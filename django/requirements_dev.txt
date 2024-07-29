@@ -1,6 +1,6 @@
 # Only needed for local development, not in production ---------------------------------
 pytest-django==4.8.0
-coverage==7.4.4
+coverage==7.6.0
 python-gettext==5.0
 pytest-asyncio==0.23.6
 django-debug-toolbar==4.3.0
