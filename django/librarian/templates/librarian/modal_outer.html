@@ -1,0 +1,38 @@
+{% load i18n %}
+ 
+<div id="libraryModalPoller"></div>
+<div class="modal fade modal-xl"
+     id="editLibrariesModal"
+     tabindex="-1"
+     aria-labelledby="editLibrariesModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title w-100" id="editLibrariesModalLabel">{% trans "Edit libraries" %}</h5>
+        <div id="librarian-modal-spinner"
+             class="spinner text-primary"
+             style="margin-bottom: -7px;
+                    margin-top: -4px">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+        </div>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div id="editLibrariesInner"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const modalEl = document.getElementById('editLibrariesModal')
+// TODO: This is not a great way of syncronizing the modal with the library list
+// It should sync in the background any time the modal refreshes
+// Modal should also launch with the current library selection from the sidebar
+modalEl.addEventListener('hidden.bs.modal', event => {
+  htmx.ajax('GET', '{% url "chat:qa_accordion" chat.id %}', {swap:'none'});
+});
+</script>

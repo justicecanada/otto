@@ -1,0 +1,93 @@
+{% load i18n %}
+
+<div class="card">
+  <div class="card-header">
+    <div class="row">
+      <div class="col">
+        {% trans "Details" %}{% trans ":" %}
+        {{ source_node.title }}
+        {% if source.chunk %}
+          ({% trans "Part" %} {{ source.chunk }})
+        {% endif %}
+      </div>
+      <div class="col-auto">
+        <button type="button"
+                class="btn-close"
+                id="close-source-details"
+                aria-controls="source-details"
+                aria-label="{% trans 'Close source details' %}"
+                onclick="showSourceDetails(null);"></button>
+      </div>
+    </div>
+  </div>
+  <div class="card-body pb-3">
+    <div class="row mb-4">
+      <div class="col">
+        <button class="p-0 btn btn-link text-decoration-none"
+                onclick="findSimilar(this);"
+                data-text="{{ source_node.text }}">{% trans "Find similar sections" %}</button>
+      </div>
+      <div class="col-auto">
+        <a href="{{ law.url }}" class="text-decoration-none p-0" target="_blank">{% trans "Go to source document" %} <i class="bi bi-box-arrow-up-right"></i></a>
+      </div>
+    </div>
+    <h5 class="card-title border-bottom pb-2 h6">{% trans "Metadata" %}</h5>
+    <div class="card-text mb-3">
+      <dl class="row">
+        <dt class="col-sm-4">{% trans "In-force start date:" %}</dt>
+        <dd class="col-sm-8">
+          {{ source_node.metadata.in_force_start_date }}
+        </dd>
+        <dt class="col-sm-4">{% trans "Last amended date:" %}</dt>
+        <dd class="col-sm-8">
+          {{ source_node.metadata.last_amended_date }}
+        </dd>
+      </dl>
+    </div>
+
+    <h5 class="card-title border-bottom pb-2 h6">{% trans "Alternate language" %}</h5>
+    <div class="card-text mb-3">{{ other_lang_node.html|safe }}</div>
+ 
+    <h5 class="card-title border-bottom pb-2 h6">{% trans "Source document" %}</h5>
+    <div class="card-text">
+      <dl class="row">
+        {% if law.short_title %}
+          <dt class="col-sm-4">{% trans "Short title:" %}</dt>
+          <dd class="col-sm-8">
+            {{ law.short_title }}
+          </dd>
+        {% endif %}
+        {% if law.long_title %}
+          <dt class="col-sm-4">{% trans "Long title:" %}</dt>
+          <dd class="col-sm-8">
+            {{ law.long_title }}
+          </dd>
+        {% endif %}
+        <dt class="col-sm-4">{% trans "Referenced as:" %}</dt>
+        <dd class="col-sm-8">
+          {{ law.ref_number }}
+        </dd>
+        <dt class="col-sm-4">{% trans "Type:" %}</dt>
+        <dd class="col-sm-8">
+          {% if law.type == "act" %}
+            {% trans "Act" %}
+          {% elif law.type == "regulation" %}
+            {% trans "Regulation" %}
+          {% else %}
+            {{ law.type }}
+          {% endif %}
+        </dd>
+        <dt class="col-sm-4">{% trans "Last amended date:" %}</dt>
+        <dd class="col-sm-8">
+          {{ law.last_amended_date }}
+        </dd>
+        {% if law.enabling_authority %}
+          <dt class="col-sm-4">{% trans "Enabling authority:" %}</dt>
+          <dd class="col-sm-8">
+            {{ law.enabling_authority }}
+          </dd>
+        {% endif %}
+      </dl>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block body_classes %}chat{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{% static 'chat/style.css' %}">
+{% endblock %}
+
+{% block page_script %}
+  <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
+{% endblock %}
+
+{% block content_container %}
+  <div id="chat-outer" class="{{ mode }}">
+    {% include 'chat/components/file_upload.html' %}
+    <div id="chat-flexbox" class="d-flex justify-content-between mb-3">
+      {% include 'chat/components/chat_history_sidebar.html' %}
+      <div id="chat-container" class="flex-grow-1">
+        <button class="btn btn-light btn-lg position-fixed chat-sidebar-toggle start-0"
+                style="z-index:1"
+                type="button"
+                aria-controls="left-sidebar"
+                id="left-sidebar-toggle">
+          <i class="bi bi-plus-square"></i>
+          <span class="visually-hidden">{% trans "Toggle chat history sidebar" %}</span>
+        </button>
+        <button class="btn btn-light btn-lg position-fixed end-0 chat-sidebar-toggle"
+                style="z-index:1"
+                type="button"
+                aria-controls="right-sidebar"
+                id="right-sidebar-toggle">
+          <i class="bi bi-gear"></i>
+          <span class="visually-hidden">{% trans "Toggle chat options sidebar" %}</span>
+        </button>
+        <div class="container px-5">
+          {% if pinned_messages %}
+            <div id="pinned-messages-container" class="pb-1 pt-3 border-bottom">
+              {% with messages=pinned_messages %}
+                {% include 'chat/components/chat_messages.html' %}
+              {% endwith %}
+            </div>
+          {% endif %}
+          <div id="messages-container"
+               class="{% if pinned_messages %}pt-2{% else %}pt-3{% endif %} px-2">
+            {% if not chat_messages and not pinned_messages %}
+              {% include 'chat/components/chat_welcome.html' %}
+            {% endif %}
+            {% include 'chat/components/chat_messages.html' %}
+          </div>
+        </div>
+        {% include 'chat/components/chat_input.html' %}
+      </div>
+      {% include 'chat/components/chat_options_sidebar.html' %}
+    </div>
+  </div>
+
+  <!-- Bootstrap modal for AI assistant feedback -->
+  <div id="modal"
+       class="modal modal-blur fade"
+       style="display: none"
+       aria-hidden="false"
+       tabindex="-1"
+       hx-target="#modal-body"
+       title="{% trans 'AI assistant feedback' %}">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <!-- Title -->
+          <h5 class="modal-title">{% trans "AI assistant feedback" %}</h5>
+          <button type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label='{% trans "Close" %}'></button>
+        </div>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap modal for editing libraries -->
+  {% include "librarian/modal_outer.html" %}
+
+  <link rel="stylesheet"
+        href="{% static 'chat/thirdparty/css/highlight.js-11.8.0.min.css' %}">
+  <script src="{% static 'chat/thirdparty/js/highlight.js-11.8.0.min.js' %}"></script>
+
+  <script src="{% static 'chat/scripts.js' %}"></script>
+  <script src="{% static 'librarian/scripts.js' %}"></script>
+
+{% endblock %}

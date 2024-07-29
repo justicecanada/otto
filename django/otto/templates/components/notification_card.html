@@ -1,0 +1,29 @@
+<li class="row px-3 py-1 notification">
+  <div class="col pe-1">
+    {% if notification.category == "success" %}
+      <!-- bootstrap checkmark icon -->
+      <i class="text-success bi bi-check-circle"></i>
+    {% elif notification.category == "error" %}
+      <i class="text-danger bi bi-exclamation-circle"></i>
+    {% endif %}
+    {% if notification.heading %}<span class="fw-semibold">{{ notification.heading }}</span>{% endif %}
+  </div>
+  <div class="col-auto px-1 text-muted">
+    <small>{{ notification.created_at|date:"SHORT_DATETIME_FORMAT" }}</small>
+  </div>
+  <div class="col-auto px-2">
+    <button type="button"
+            class="btn-close btn-close-white"
+            hx-delete="{% url 'notification' notification.id %}"
+            hx-target=".notification"></button>
+  </div>
+  <div class="col-12 lh-sm">
+    <small>{{ notification.text }}</small>
+  </div>
+
+</li>
+{% if not forloop.last %}
+  <li>
+    <hr class="dropdown-divider">
+  </li>
+{% endif %}

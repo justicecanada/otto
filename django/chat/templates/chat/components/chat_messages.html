@@ -1,0 +1,5 @@
+{% load i18n %}
+
+{% for message in chat_messages %}
+  {% include 'chat/components/chat_message.html' %}
+{% endfor %}

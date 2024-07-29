@@ -1,0 +1,41 @@
+*.pyc
+*.mo
+*.po
+*/__pycache__/*
+django/db.sqlite3
+django/venv/*
+webcrawler/venv/*
+django/staticfiles/*
+chroma.log
+.env
+.env.bk
+Logs
+media
+.coverage
+*/htmlcov/*
+media/*
+*.prof
+otto_test
+otto_test-journal
+laws-lois-xml
+*.rdb
+
+# Local Terraform directories
+**/.terraform/*
+
+# State Files
+*.tfstate
+*.tfstate.*
+*.hcl
+
+# Configuration with sensitive data (adjust as needed)
+*.tfvars
+*.tfvars.json
+
+# Terraform plans
+tfplan*
+
+# Crash logs
+crash.log
+crash.*.log
+

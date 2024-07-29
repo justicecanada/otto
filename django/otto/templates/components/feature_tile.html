@@ -1,0 +1,25 @@
+{% load i18n %}
+<a href="{% if feature.url|slice:":8" == 'https://' or feature.url|slice:":7" == 'http://' or feature.url|slice:"0" == '/' %}{{ feature.url }}{% else %}{% url feature.url %}{% endif %}"
+   class="text-decoration-none text-body">
+  <div class="card app-card mb-3 app-card-{{ feature.category }}">
+    <div class="card-body pt-0">
+      <div class="row">
+        <div class="col mt-3">
+          <div class="row">
+            <div class="col">
+              <h3 class="app-card-title">{% trans feature.name %}</h3>
+            </div>
+            <div class="col-auto">
+              {% if feature.classification == "protected_b" %}
+                <span class="badge fw-normal rounded-pill bg-success bg-opacity-10 text-success-emphasis">{% trans "Protected B" %}</span>
+              {% else %}
+                <!-- <span class="badge fw-normal rounded-pill bg-secondary bg-opacity-10 text-body">Unclassified</span> -->
+              {% endif %}
+            </div>
+          </div>
+          <p class="card-text">{{ feature.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</a>

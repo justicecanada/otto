@@ -1,0 +1,35 @@
+{% extends 'chat/components/options_submenu.html' %}
+
+{% load i18n %}
+
+{% block accordion_title %}
+  {% trans "Summarize" %}
+{% endblock %}
+
+{% block accordion_body %}
+  <div class="px-3">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.summarize_style.auto_id }}">{% trans "Summary length" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.summarize_style }}</div>
+
+  <div class="px-3 mt-2">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.summarize_language.auto_id }}">{% trans "Desired language" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.summarize_language }}</div>
+
+  <label for="{{ options_form.summarize_prompt.auto_id }}"
+         class="form-label px-3 mt-2 mb-1 small">
+    {% trans "Custom summarize prompt" %}
+    <br>
+    {% trans "(overrides length/language)" %}
+  </label>
+  <div class="px-3">{{ options_form.summarize_prompt }}</div>
+
+  <div class="px-3 mt-2">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.summarize_model.auto_id }}">{% trans "Model" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.summarize_model }}</div>
+{% endblock %}

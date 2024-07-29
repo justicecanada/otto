@@ -1,0 +1,25 @@
+- model: librarian.library
+  fields:
+    name_en: Corporate
+    name_fr: Ministériel
+    description: >-
+      The corporate library at Justice Canada is a comprehensive resource encompassing details about the corporate hierarchy, employee roles, HR processes, technical support, and organizational strategies. It serves as a centralized hub, providing employees with essential information for navigating the intricacies of the organization.
+    description_fr: >-
+      La bibliothèque ministérielle du ministère de la Justice du Canada est une ressource complète qui comprend des détails sur la hiérarchie de tout le ministère, les rôles des employés, les processus de ressources humaines, le soutien technique et les stratégies organisationnelles. Elle sert de plaque tournante centralisée, fournissant aux employés des informations essentielles pour naviguer dans les ressources ministérielles.
+    is_public: true
+    data_sources:
+      - fields:
+          name_en: Pay and Benefits
+          name_fr: Rémunération et avantages sociaux
+      - fields:
+          name_en: Collective Agreements
+          name_fr: Conventions collectives
+          documents:
+            - fields: 
+                url: https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=4
+            - fields:
+                url: https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=29
+            - fields:
+                url: https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=13
+            - fields:
+                url: https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=15

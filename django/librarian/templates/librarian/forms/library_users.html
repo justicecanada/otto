@@ -1,0 +1,35 @@
+{% load i18n %}
+{% load rules %}
+
+<form hx-post="{% url 'librarian:modal_existing_item' 'library_users' form.library.id %}"
+      id="library-users-form">
+  {{ form.non_field_errors }}
+  <h6>{% trans "Edit library users - enter Justice email" %}</h6>
+  {% csrf_token %}
+  <div hx-disinherit="*">
+    <div class="mb-3">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ form.admins.id_for_label }}">{{ form.admins.label }}</label>
+      {{ form.admins.errors }}
+      {{ form.admins }}
+    </div>
+    <div class="mb-3">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ form.contributors.id_for_label }}">{{ form.contributors.label }}</label>
+      {{ form.contributors.errors }}
+      {{ form.contributors }}
+    </div>
+    <div class="mb-3">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ form.viewers.id_for_label }}">{{ form.viewers.label }}</label>
+      {{ form.viewers.errors }}
+      {{ form.viewers }}
+    </div>
+  </div>
+  <div>
+    <button type="submit" class="btn btn-sm btn-primary me-1">{% trans "Save users" %}</button>
+    <button type="button"
+            class="btn btn-sm btn-outline-secondary"
+            hx-get="{% url 'librarian:modal_existing_item' 'library' form.library.id %}">{% trans "Cancel" %}</button>
+  </div>
+</form>

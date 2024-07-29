@@ -1,0 +1,40 @@
+:root {
+  --bg-light-gray: #f1f1f1;
+
+  --app-color-purple-1: #6c23e0;
+  --app-color-purple-1-hover: #6c23e030;
+  --app-color-purple-2: #c536f0;
+  --app-color-purple-2-hover: #c536f035;
+  --app-color-purple-3: #f092f0;
+  --app-color-purple-3-hover: #f092f044;
+  --app-color-green-1: #067856;
+  --app-color-green-1-hover: #19875440;
+  --app-color-green-2: #09bc87;
+  --app-color-green-2-hover: #09bc8740;
+  --app-color-green-3: #54e4b9;
+  --app-color-green-3-hover: rgba(84, 228, 185, 0.35);
+  --app-color-blue-1: #0d6efd;
+  --app-color-blue-1-hover: #0d6efd40;
+  --app-color-blue-2: #87befc;
+  --app-color-blue-2-hover: rgba(135, 190, 252, 0.4);
+  --app-color-blue-3: #b5dfff;
+  --app-color-blue-3-hover: #b5dfff40;
+  --app-color-orange-1: #ff8c00;
+  --app-color-orange-1-hover: #ff8c0040;
+  --app-color-orange-2: #ff9e4f;
+  --app-color-orange-2-hover: #ff9e4f40;
+  --app-color-orange-3: #ffbb7d;
+  --app-color-orange-3-hover: #ffbb7d40;
+  --app-color-red-1: #dc3545;
+  --app-color-red-1-hover: #dc354540;
+  --app-color-red-2: #ff5b6c;
+  --app-color-red-2-hover: #ff5b6c40;
+  --app-color-red-3: #ff8e9b;
+  --app-color-red-3-hover: #ff8e9b40;
+  --app-color-yellow-1: #ffc107;
+  --app-color-yellow-1-hover: #ffc10740;
+  --app-color-yellow-2: #ffd649;
+  --app-color-yellow-2-hover: #ffd64940;
+  --app-color-yellow-3: #ffeb9c;
+  --app-color-yellow-3-hover: #ffeb9c40;
+}

@@ -1,0 +1,26 @@
+{% load i18n %}
+
+<p class="mb-2">
+  {% if message.is_bot %}
+    {% blocktrans with num_files=message.num_files total_files=message.parent.num_files %}
+      Translated {{ num_files }}/{{ total_files }} files:
+    {% endblocktrans %}
+  {% else %}
+    {% blocktrans with num_files=message.num_files s=message.num_files|pluralize %}
+      Uploaded {{ num_files }} file{{ s }}:  
+    {% endblocktrans %}
+  {% endif %}
+</p>
+<ul class="list-unstyled mb-1">
+  {% for file in message.sorted_files %}
+    <li class="message-file">
+      <i class="fa-solid fa-paperclip img-thumbnail-md img-icon-sm mx-1"></i>
+      {% if file.saved_file %}
+        <a href="{% url 'chat:download_file' file_id=file.id %}"
+           class="text-body">{{ file.filename }}</a>
+      {% else %}
+        <span title="{% trans 'Chat files are deleted after 7 days' %}">{{ file.filename }} ({% trans "deleted" %})</span>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>

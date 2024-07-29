@@ -1,0 +1,22 @@
+{% load i18n %}
+<li class="{% if chat.current_chat %} current{% endif %}">
+  <div class="row border-bottom py-2 flex-nowrap">
+    <div class="col-auto pe-0">{% include 'chat/components/chat_security_label.html' %}</div>
+    <div class="col ps-2 pe-0">
+      <a href="{% url 'chat:chat' chat_id=chat.id %}"
+         class="text-dark text-decoration-none">
+        {% if chat.current_chat %}
+          <span class="chat-title fw-semibold" id="current-chat-title">{{ chat.title }}</span>
+        {% else %}
+          <span class="chat-title">{{ chat.title }}</span>
+        {% endif %}
+      </a>
+    </div>
+  </div>
+  <button class="btn btn btn-outline delete-chat"
+          hx-delete="{% url 'chat:delete_chat' chat_id=chat.id current_chat=chat.current_chat %}"
+          hx-target="closest li">
+    <span class="visually-hidden">{% trans "Delete chat" %}</span>
+    <i class="bi bi-trash"></i>
+  </button>
+</li>

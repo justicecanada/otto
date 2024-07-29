@@ -1,0 +1,16 @@
+{% load i18n %}
+<a href="{% url feature.url %}"
+   class="list-group-item list-group-item-action app-card-{{ feature.category }} text-bg-light">
+  <div class="row">
+    <div class="col">
+      <h5 class="card-title">{{ feature.name }}</h5>
+    </div>
+    <div class="col-auto">
+      {% if feature.classification == "protected_b" %}
+        <span class="badge fw-normal rounded-pill bg-success bg-opacity-10"
+              style="color: rgb(10, 54, 34)">{% trans "Protected B" %}</span>
+      {% endif %}
+    </div>
+  </div>
+  <p class="card-text">{{ feature.description }}</p>
+</a>

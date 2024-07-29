@@ -1,0 +1,52 @@
+{% load i18n %}
+
+<form class="progress-container d-none"
+      aria-role="status"
+      hx-post="{% url 'chat:done_upload' message_id=message.id %}"
+      hx-swap="outerHTML"
+      hx-target="#message_{{ message.id }}"
+      hx-trigger="done_upload"
+      style="width: 500px"
+      id="progress-{{ message.id }}">
+  <div class="row mb-2 fileupload-intro">
+    <div class="col">
+      {% blocktrans %}
+        Uploading <span class="filename fst-italic">'filename'</span>
+      {% endblocktrans %}
+    </div>
+    <div class="col-auto text-muted">
+      ({% trans "File" %} <span class="filenum">'1'</span>/<span class="total-filenum">'10'</span>)
+    </div>
+  </div>
+  <div class="row m-0">
+    <div class="mb-1 p-0 progress bg-light border"
+         role="progressbar"
+         aria-label='{% trans "File upload progress" %}'
+         aria-valuenow="0"
+         aria-valuemin="0"
+         aria-valuemax="100"
+         style="height: 0.5rem">
+      <div class="progress-bar" style="width: 0%"></div>
+    </div>
+  </div>
+</form>
+<script>
+  (function () {
+    let upload_url = "{% url 'chat:chunk_upload' message_id=message.id %}";
+    let message_id = "{{ message.id }}";
+    let file_input = document.querySelector('#chat-file-input');
+    let uploader = new FileUpload(file_input, upload_url, message_id);
+    uploader.upload();
+    // Copy the '.option select' form elements from #prompt-form into this form
+    let prompt_form = document.querySelector('#prompt-form');
+    let progress_form = document.querySelector('#progress-' + message_id);
+    let options = prompt_form.querySelectorAll('.option select');
+    for (option of options) {
+      let hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.name = option.name;
+      hiddenInput.value = option.value;
+      progress_form.appendChild(hiddenInput);
+    }
+  })();
+</script>

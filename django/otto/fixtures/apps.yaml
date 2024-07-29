@@ -1,0 +1,101 @@
+- model: otto.App
+  fields:
+    handle: chat
+    name_en: AI assistant
+    name_fr: Assistant IA
+    prod_ready: true
+    user_group: AI assistant user
+    features:
+      - fields:
+          name_en: Q&A
+          name_fr: Demander des documents
+          description_en: Get instant answers from curated and user-uploaded documents.
+          description_fr: Obtenez des réponses instantanées à partir de documents sélectionnés et téléchargés par l'utilisateur.
+          url: chat:qa
+          category: ai_assistant
+      - fields:
+          name_en: Summarization
+          name_fr: Résumé
+          description_en: Generate brief or detailed summaries from files, URLs or text input using AI.
+          description_fr: Générer des résumés brefs ou détaillés à partir de fichiers, d'URL ou de texte d'entrée à l'aide de l'IA.
+          url: chat:summarize
+          category: ai_assistant
+      - fields:
+          name_en: Translation
+          name_fr: Traduction
+          description_en: Translate to French or English from files or text input.
+          description_fr: Traduire en français ou en anglais à partir de fichiers ou de texte d'entrée.
+          url: chat:translate
+          category: ai_assistant
+      - fields:
+          name_en: Chat
+          name_fr: Discuter avec l'IA
+          description_en: Chat with a Justice-hosted AI (like ChatGPT).
+          description_fr: Discuter avec une IA hébergée par Justice (comme ChatGPT).
+          url: chat:chat_with_ai
+          category: ai_assistant
+
+- model: otto.App
+  fields:
+    handle: template_wizard
+    name_en: Template wizard
+    name_fr: Assistant de modèle
+    prod_ready: true
+    user_group: Template wizard user
+    features:
+      - fields:
+          name_en: Template wizard
+          name_fr: Assistant de modèle
+          description_en: Extract information from multiple sources and automatically populate templates.
+          description_fr: Extraire des informations de plusieurs sources et remplir automatiquement des modèles.
+          url: template_wizard:index
+          category: reporting
+
+- model: otto.App
+  fields:
+    handle: laws
+    name_en: Legislation search
+    name_fr: Recherche législative
+    prod_ready: true
+    user_group: Legislation search user
+    features:
+      - fields:
+          name_en: Legislation search
+          name_fr: Recherche législative
+          description_en: Search acts and regulations using natural language. Find sections and subsections.
+          description_fr: Recherchez des lois et des règlements en utilisant un langage naturel. Trouvez des sections et des sous-sections.
+          url: laws:index
+          category: other
+
+- model: otto.App
+  fields:
+    handle: case_prep
+    name_en: Case prep assistant
+    name_fr: Assistante à la préparation des dossiers
+    visible_to_all: false
+    prod_ready: true
+    user_group: Case prep user
+    features:
+      - fields:
+          name_en: Case prep assistant
+          name_fr: Assistante à la préparation des dossiers
+          description_en: Compile a book of documents and get prepared for a court case.
+          description_fr: Compilez un livre de documents et préparez-vous à un procès.
+          url: case_prep:index
+          category: other
+
+- model: otto.App
+  fields:
+    handle: text_extractor
+    name_en: Text extractor
+    name_fr: Extracteur de texte
+    prod_ready: true
+    user_group: OCR user
+    features:
+      - fields:
+          name_en: Text extractor
+          name_fr: Extracteur de texte
+          description_en: Extract text and handwriting from scanned PDF and images with AI-enabled OCR.
+          description_fr: Extrait de texte et d'écriture manuscrite à partir de PDF numérisés et d'images avec OCR activé par l'IA.
+          url: text_extractor:index
+          category: other

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block body %}
+  <form method="post" class="p-5 border rounded bg-white">
+    <!-- Title -->
+    <h1 class="mb-4">{% trans "Otto feedback form" %}</h1>
+    {% include 'components/feedback_form_elements.html' %}
+    <div class="d-flex justify-content-end mt-4">
+      <button type="submit" id="submitButton" class="btn btn-primary">{% trans "Submit" %}</button>
+    </div>
+  </form>
+{% endblock %}

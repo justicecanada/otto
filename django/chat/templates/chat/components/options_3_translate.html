@@ -1,0 +1,15 @@
+{% extends 'chat/components/options_submenu.html' %}
+
+{% load i18n %}
+
+{% block accordion_title %}
+  {% trans "Translate" %}
+{% endblock %}
+
+{% block accordion_body %}
+  <div class="px-3">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.translate_language.auto_id }}">{% trans "Desired language" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.translate_language }}</div>
+{% endblock %}

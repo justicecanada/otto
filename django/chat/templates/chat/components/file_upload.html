@@ -1,0 +1,88 @@
+{% load i18n %}
+
+<div class="d-flex align-items-center justify-content-center"
+     id="file-dropzone">
+  <form enctype="multipart/form-data"
+        id="chat-file-form"
+        hx-get="{% url 'chat:init_upload' chat_id=chat.id %}"
+        hx-swap="beforeend"
+        hx-target="#messages-container"
+        hx-trigger="init_file_upload">
+    <button id="chat-file-area"
+            class="rounded d-block text-center text-light"
+            type="button"
+            onclick="document.querySelector('#chat-file-input').value=null; document.querySelector('#chat-file-input').click();">
+      <p class="mb-3 h3">
+        <i class="bi bi-upload"></i>
+      </p>
+      <p class="mb-1 h5 fw-normal">{% trans "Drop files anywhere" %}</p>
+      <input type="file" name="file" id="chat-file-input" multiple>
+    </button>
+    <input type="hidden" name="mode" id="chat-action-hidden">
+  </form>
+</div>
+<script>
+  // Drag and drop file upload
+  function ePrevent(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  function onDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    document.querySelector('#chat-file-input').value = null;
+    document.querySelector('#chat-file-input').files = e.dataTransfer.files;
+    document.querySelector('#chat-file-form').dispatchEvent(new Event('change'));
+    hideOverlay();
+  }
+  function handleDragEnter(e) {
+    // If we're in "chat" or "qa" mode, don't do anything
+    // TODO: Allow temporary QA libraries for drag-drop into chat
+    let mode = document.querySelector('#chat-action').value;
+    if (mode == 'chat' || mode == 'qa') {
+      return;
+    }
+    // make sure we're dragging a file
+    var dt = (e && e.dataTransfer);
+    var isFile = (dt && dt.types && dt.types.length == 1 && dt.types[0] == "Files");
+    if (isFile) {
+      // and, if so, show the overlay
+      showOverlay();
+    }
+  }
+
+  function handleDragLeave(e) {
+    // was our dragleave off the page?
+    if (e && e.pageX == 0 && e.pageY == 0) {
+      // then hide the overlay
+      hideOverlay();
+    }
+  }
+
+  function showOverlay() {
+    document.querySelector('#file-dropzone').classList.add('show');
+  }
+
+  function hideOverlay() {
+    document.querySelector('#file-dropzone').classList.remove('show');
+  }
+
+  let dropZone = document.querySelector('#file-dropzone');
+  window.addEventListener('dragenter', handleDragEnter);
+  dropZone.addEventListener('dragover', ePrevent);
+  dropZone.addEventListener('dragleave', handleDragLeave);
+  dropZone.addEventListener('drop', onDrop);
+
+  // Monitor the form #chat-file-form for changes
+  let fileForm = document.querySelector('#chat-file-form');
+  fileForm.addEventListener('change', function (e) {
+    // Copy the select[name='mode'] into the fileForm within a hidden input
+    let mode = document.querySelector('#chat-action').value;
+    let modeInput = document.querySelector('#chat-action-hidden');
+    modeInput.value = mode;
+
+    // Send the init_file_upload event
+    fileForm.dispatchEvent(new Event('init_file_upload'));
+  });
+</script>

@@ -1,0 +1,43 @@
+{% load i18n %}
+
+{% if report.data.generated_reports %}
+
+  <p>
+    <strong>{% trans "Generated reports" %}</strong>
+  </p>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead class="visually-hidden">
+        <tr>
+          <th class="text-nowrap col"></th>
+          <th class="text-nowrap col-1"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for generated_report in report.data.generated_reports %}
+          {% if generated_report.id %}
+            <tr>
+              <td class="col ps-1 d-flex align-self-center">
+                <i class="bi bi-file-word h3 me-2" style="color: blue"></i>
+                <a class="link-dark"
+                   href="{% url 'template_wizard:canlii_wizard_download_generated_report' report.id generated_report.id %}"
+                   target="_blank">{{ generated_report.title }} (DOCX, {{ generated_report.size }})</a>
+              </td>
+              <td class="text-nowrap text-end col-1 align-middle">
+                <button type="button"
+                        class="btn btn-danger btn-sm me-2"
+                        hx-post="{% url 'template_wizard:canlii_wizard_delete_generated_report' report.id generated_report.id %}"
+                        hx-target="#generated_reports_table"
+                        title="{% trans 'Delete' %}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endif %}

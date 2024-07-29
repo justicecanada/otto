@@ -1,0 +1,11 @@
+<div hx-ext="sse"
+     sse-connect="{% url 'chat:chat_response' message_id=message.id %}"
+     sse-swap="message"
+     hx-swap="morph:innerHTML"
+     id="response-{{ message.id }}">
+  {% comment %} Spans below require to make CSS "typing dots" bounce {% endcomment %}
+  <!-- djlint:off -->
+    <div class="typing"><span></span><span></span><span></span></div>
+<!-- djlint:on -->
+</div>
+{% include "chat/components/stop_button.html" %}

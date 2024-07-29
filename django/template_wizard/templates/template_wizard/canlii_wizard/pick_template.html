@@ -1,0 +1,100 @@
+{% extends "template_wizard/pick_template.html" %}
+{% load i18n %}
+
+{% block wizard_controls %}
+
+  <!-- Form for selecting template and generating report -->
+  <form id="generate_report_form"
+        hx-post="{% url 'template_wizard:canlii_wizard_generate_report' report.id %}"
+        hx-target="#generated_reports_table"
+        hx-trigger="submit">
+    <div class="form-group row">
+      <!-- Template Selection -->
+      <div class="col-md-3">
+        <label for="template_select" class="form-label">{% trans "Select Template" %}</label>
+
+        <select class="form-select" id="template_select" name="template_key">
+          {% for template_key, template in templates.items %}
+            <option value="{{ template_key }}">{{ template.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+ 
+      <div class="col-md-3">
+        <label for="language_select" class="form-label">{% trans "Language" %}</label>
+
+        <select class="form-select" id="language_select" name="language_select">
+          <option value="en" selected>{% trans "English" %}</option>
+          <option value="fr">{% trans "French" %}</option>
+          <option value="both">{% trans "Both Languages" %}</option>
+        </select>
+      </div>
+      <!-- Generate Button -->
+
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="submit"
+                class="btn btn-primary mt-4"
+                hx-disable="#generate_button">
+          {% trans "Generate" %} <i class="bi bi-play-circle"></i>
+        </button>
+      </div>
+
+    </div>
+  </form>
+ 
+  <!-- Loading Spinner -->
+  <div id="spinner" class="my-2 text-center d-none">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">{% trans "Loading..." %}</span>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div id="error_message"
+       class="alert alert-danger fade show my-2 d-flex justify-content-between align-items-center d-none"
+       role="alert">
+    <span>{% trans "An error occurred while generating the report." %}</span>
+    <button type="button" class="btn-close" aria-label="{% trans 'Close' %}"></button>
+  </div>
+
+  <!-- Table to display generated reports -->
+  <div id="generated_reports_table" class="my-4" aria-live="polite">
+    {% include 'template_wizard/canlii_wizard/generated_reports_results.html' %}
+  </div>
+
+  <script>
+        generate_report_form = document.getElementById("generate_report_form");
+        spinner = document.getElementById("spinner");
+        error_message = document.getElementById("error_message");
+        close_button = error_message.querySelector("button");
+
+        close_button.addEventListener("click", function () {
+            error_message.classList.add("d-none");
+        });
+
+        generate_report_form.addEventListener("htmx:beforeRequest", function (event) {
+            spinner.classList.remove("d-none");
+            error_message.classList.add("d-none");
+            // Disable the button and show spinner
+            document.querySelector('button[type="submit"]').classList.add('disabled');
+            document.querySelector('button[type="submit"] .spinner-border').classList.remove('d-none');
+        });
+
+        generate_report_form.addEventListener("htmx:responseError", function (event) {
+            spinner.classList.add("d-none");
+            error_message.classList.remove("d-none");
+            // Enable the button and hide spinner
+            document.querySelector('button[type="submit"]').classList.remove('disabled');
+            document.querySelector('button[type="submit"] .spinner-border').classList.add('d-none');
+        });
+
+        generate_report_form.addEventListener("htmx:afterRequest", function (event) {
+            spinner.classList.add("d-none");
+            // Enable the button and hide spinner
+            document.querySelector('button[type="submit"]').classList.remove('disabled');
+            document.querySelector('button[type="submit"] .spinner-border').classList.add('d-none');
+        });
+  </script>
+
+
+{% endblock %}

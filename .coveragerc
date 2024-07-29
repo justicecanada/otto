@@ -1,0 +1,3 @@
+[run]
+relative_files = True
+omit = */migrations/*,*/tests/*,asgi.py,wsgi.py,manage.py,__init__.py,apps.py,admin.py,urls.py

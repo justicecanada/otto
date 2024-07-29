@@ -1,0 +1,64 @@
+{% load i18n %}
+{% load rules %}
+
+<form id="data-source-form"
+      hx-post="{% if form.instance.id %}{% url 'librarian:modal_existing_item' 'data_source' form.instance.id %}{% else %}{% url 'librarian:modal_create_from' 'data_source' form.library.value %}{% endif %}">
+  {{ form.non_field_errors }}
+  <h6>
+    {% if form.instance.id %}
+      {% trans "Edit data source" %}
+    {% else %}
+      {% trans "Create data source" %}
+    {% endif %}
+  </h6>
+  {% csrf_token %}
+  {# For some reason I just CANNOT get {{ form.id }} to render, so I have to do this #}
+  <input type="hidden"
+         name="id"
+         value="{{ form.instance.id|default_if_none:'' }}">
+  {{ form.library }}
+  <div class="mb-3">
+    <label for="{{ form.name_en.id_for_label }}"
+           class="col-form-label col-form-label-sm">{% trans "Name (English)" %}</label>
+    {{ form.name_en.errors }}
+    {{ form.name_en }}
+  </div>
+  <div class="mb-3">
+    <label for="{{ form.name_fr.id_for_label }}"
+           class="col-form-label col-form-label-sm">{% trans "Name (French)" %}</label>
+    {{ form.name_fr.errors }}
+    {{ form.name_fr }}
+  </div>
+  <div class="mb-3">
+    <label for="{{ form.security_label.id_for_label }}"
+           class="col-form-label col-form-label-sm">{% trans "Security label " %}</label>
+    {{ form.security_label.errors }}
+    {{ form.security_label }}
+  </div>
+  <div class="mb-3">
+    <label for="{{ form.order.id_for_label }}"
+           class="col-form-label col-form-label-sm">{% trans "Order" %}</label>
+    {{ form.order.errors }}
+    {{ form.order }}
+  </div>
+  <div class="row">
+    <div class="col">
+      <button type="submit" class="btn btn-sm btn-primary me-1">{% trans "Save changes" %}</button>
+      <button type="button"
+              class="btn btn-sm btn-outline-secondary"
+              hx-get="{% if form.instance.id %}{% url 'librarian:modal_existing_item' 'data_source' form.instance.id %}{% else %}{% url 'librarian:modal_existing_item' 'library' form.library.value %}{% endif %}">
+        {% trans "Cancel" %}
+      </button>
+    </div>
+    {% if form.instance.id %}
+      <div class="col-auto">
+        <button type="button"
+                class="btn btn-sm btn-outline-danger"
+                hx-delete="{% url 'librarian:modal_existing_item' 'data_source' form.instance.id %}"
+                hx-confirm="{% trans 'DANGER: Are you sure you want to delete this data source? This action is permanent.' %}">
+          {% trans "Delete" %}
+        </button>
+      </div>
+    {% endif %}
+  </div>
+</form>

@@ -1,0 +1,25 @@
+{% extends "template_wizard/wizard.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block step_content %}
+    <p>
+        <strong>{% trans "Choose from the following templates to generate a report with the selected data:" %}</strong>
+    </p>
+
+    {% block wizard_controls %}{% endblock %}
+
+    <!-- Form to submit selected template -->
+    <form id="templateForm" method="post">
+        {% csrf_token %}
+
+        <!-- Add controls here -->
+
+        <!-- Add a button to proceed to the next step -->
+        <div class="row mt-4 text-end">
+            <div class="col-md-12">
+                <a href="{% url 'template_wizard:index' %}" class="btn btn-success">{% trans "Finish: Start again" %}</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

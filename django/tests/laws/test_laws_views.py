@@ -1,0 +1,67 @@
+import urllib.parse
+
+from django.conf import settings
+from django.core.cache import cache
+from django.urls import reverse
+
+import pytest
+
+pytest_plugins = ("pytest_asyncio",)
+skip_on_github_actions = pytest.mark.skipif(
+    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
+)
+
+skip_on_devops_pipeline = pytest.mark.skipif(
+    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
+)
+
+
+@pytest.mark.django_db
+def test_laws_index(client, all_apps_user):
+    client.force_login(all_apps_user())
+    response = client.get(reverse("laws:index"))
+    assert response.status_code == 200
+    assert "Legislation search" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_laws_search_form(client, all_apps_user):
+    client.force_login(all_apps_user())
+    # Basic search form
+    # Advanced search form
+    response = client.get(reverse("laws:advanced_search_form"))
+    assert response.status_code == 200
+    assert "filter" in response.content.decode().lower()
+
+
+@skip_on_github_actions
+@pytest.mark.django_db
+def test_laws_search_and_answer(client, all_apps_user):
+    client.force_login(all_apps_user())
+    # Test basic search
+    query = (
+        "who has the right to access records about the defence of canada regulations?"
+    )
+    response = client.post(reverse("laws:search"), {"query": query})
+    assert response.status_code == 200
+    assert query in response.content.decode()
+    # The results should have been cached
+    assert cache.get(f"sources_{query}") is not None
+
+    # Test answer
+    response = client.get(
+        reverse("laws:answer") + f"?query={urllib.parse.quote_plus(query)}"
+    )
+    assert response.status_code == 200
+    # The results cache should have been deleted
+    assert cache.get(f"sources_{query}") is None
+
+    query = (
+        "are the defence of canada regulations exempt from access to information act?"
+    )
+    # Test advanced search - with no acts/regs selected it should return an error message
+    response = client.post(reverse("laws:search"), {"query": query, "advanced": "true"})
+    assert response.status_code == 200
+    assert "No sources found" in response.content.decode()
+    # There are no sources, so they should not be cached
+    assert cache.get(f"sources_{query}") is None

@@ -1,0 +1,4 @@
+<span id="bell" hx-swap-oob="true">
+  <i class="bi bi-bell"></i>
+  {% if notifications|length > 0 %}<span class="badge bg-primary">{{ notifications|length }}</span>{% endif %}
+</span>

@@ -1,0 +1,160 @@
+ 
+<div class="list-group">
+  {% for category in categorized_features %}
+    {% for feature in category.features %}
+      {% include 'components/feature_search_card.html' %}
+    {% endfor %}
+  {% endfor %}
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let searchInput = document.querySelector("#top-nav-search-input input");
+    let searchResults = document.querySelector("#top-nav-search-results");
+    // Reset search value when page loads and remove search-active class
+    document.body.classList.remove("search-active");
+    setTimeout(function () {
+      searchInput.value = "";
+    }, 10);
+    // Focus search input when Ctrl+K is pressed
+    document.addEventListener("keydown", function (event) {
+      if (event.ctrlKey && event.key === "k") {
+        event.preventDefault();
+        searchInput.focus();
+      }
+    });
+    // Open search results when search input is focused
+    searchInput.addEventListener("focus", function () {
+      document.body.classList.add("search-active");
+    });
+    // Close search results when search input is blurred
+    searchInput.addEventListener("blur", function () {
+      // Wait 20 ms
+      setTimeout(function () {
+        // Check if active element is within #top-nav-search
+        if (
+          !document
+            .querySelector("#top-nav-search")
+            .contains(document.activeElement)
+        ) {
+          // Clear search
+          searchInput.value = "";
+          document.body.classList.remove("search-active");
+        }
+      }, 20);
+    });
+
+    // Check for keyup events on search input
+    searchInput.addEventListener("keyup", function (event) {
+      // If key is escape, clear search input and blur
+      if (event.key === "Escape") {
+        searchInput.value = "";
+        searchInput.blur();
+      }
+      filterSearchResults(searchInput.value);
+    });
+
+    // Check for keydown events on search input
+    searchInput.addEventListener("keydown", function (event) {
+      // Down arrow key: focus first search result
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        document.querySelector(
+          "#top-nav-search-results .list-group-item:not(.d-none)"
+        ).focus();
+        return;
+      }
+      // Tab key: blur search input and close search
+      else if (event.key === "Tab") {
+        searchInput.blur();
+        event.preventDefault();
+        return;
+      }
+    });
+
+    // Arrow key navigation in search results
+    searchResults.addEventListener("keydown", function (event) {
+      // Get all search result cards
+      let searchResults = document.querySelectorAll(
+        "#top-nav-search-results .list-group-item:not(.d-none)"
+      );
+      // Get index of currently focused search result card
+      let focusedIndex = Array.prototype.indexOf.call(
+        searchResults,
+        document.activeElement
+      );
+      // Up arrow key: focus previous search result
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        // If first search result is focused, focus search input
+        if (focusedIndex === 0) {
+          searchInput.focus();
+        }
+        // Otherwise, focus previous search result
+        else {
+          searchResults[focusedIndex - 1].focus();
+        }
+      }
+      // Down arrow key: focus next search result
+      else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        // If last search result is focused, focus search input
+        if (focusedIndex === searchResults.length - 1) {
+          searchInput.focus();
+        }
+        // Otherwise, focus next search result
+        else {
+          searchResults[focusedIndex + 1].focus();
+        }
+      }
+      else if (event.key === "Backspace" || event.key.match(/^[a-z0-9]$/i)) {
+        searchInput.focus();
+      }
+    });
+
+    // Filter search results
+    function filterSearchResults(searchTerm) {
+      // Get all search result cards
+      let searchResults = document.querySelectorAll(
+        "#top-nav-search-results .list-group-item"
+      );
+      // Loop through search result cards
+      for (let i = 0; i < searchResults.length; i++) {
+        // Get search result card
+        let searchResult = searchResults[i];
+        // Get search result card title
+        let searchResultTitle = searchResult.querySelector(
+          ".card-title"
+        ).innerText;
+        // Get search result card text
+        let searchResultText = searchResult.querySelector(
+          ".card-text"
+        ).innerText;
+        // If search term is in title or text, show search result card
+        if (
+          searchResultTitle.toLowerCase().includes(searchTerm) ||
+          searchResultText.toLowerCase().includes(searchTerm)
+        ) {
+          searchResult.classList.remove("d-none");
+        }
+        // Otherwise, hide search result card
+        else {
+          searchResult.classList.add("d-none");
+        }
+      }
+    }
+    // Clicking overlay closes search
+    document
+      .getElementById("manual-lightbox-overlay")
+      .addEventListener("click", function () {
+        document.body.classList.remove("search-active");
+      });
+
+    // Pressing escape key whenever search is open closes search
+    document.addEventListener("keyup", function (event) {
+      if (event.key === "Escape" && document.body.classList.contains("search-active")) {
+        document.body.classList.remove("search-active");
+      }
+    });
+  });
+  window.onunload = function () { }; 
+</script>

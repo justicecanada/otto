@@ -1,0 +1,127 @@
+{% load i18n %}
+{% load static %}
+<div id="prompt-form-container" class="{{ mode }} d-none">
+  <div class="container px-5">
+    <form id="prompt-form"
+          hx-post="{% url 'chat:chat_message' chat_id=chat.id %}"
+          hx-swap="beforeend"
+          hx-target="#messages-container"
+          class="position-relative">
+      <button id="prompt-form-resize-handle"
+              class="btn btn-none"
+              type="button"
+              tabindex="0">
+        <div class="resize-handle" style="top: -4px;">
+          <span class="visually-hidden">{% trans "Drag or use the up and down arrows to resize." %}</span>
+        </div>
+      </button>
+      <div id="stop-button" class="d-none">
+        <button class="btn btn-outline-secondary btn-sm"
+                title='{% trans "Stop" %}'
+                type="button">
+          <i class="bi bi-stop-circle"></i>
+          <span class="d-none d-md-inline">{% trans "Stop" %}</span>
+        </button>
+      </div>
+      <div class="form-group mb-3" id="chat-inputs">
+        <div class="card" id="chat-toolbar">
+          <div class="col-auto pe-1 d-none">
+            <select class="form-select form-select-sm text-muted fw-semibold"
+                    name="mode"
+                    id="chat-action"
+                    aria-label='{% trans "Action" %}'
+                    onchange="handleModeChange(this.value, this);">
+              <option value="qa">{% trans "Q&A" %}</option>
+              <option value="summarize">{% trans "Summarize" %}</option>
+              <option value="translate">{% trans "Translate" %}</option>
+              <option value="chat">{% trans "Chat" %}</option>
+            </select>
+          </div>
+          <div class="row">
+            <div class="col">
+              <ul class="nav nav-pills" id="chat-modes" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button role="tab"
+                          class="nav-link qa-option"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          data-bs-title='{% trans "Ask questions about documents" %}'
+                          type="button"
+                          aria-selected="false"
+                          onclick="clickCard('qa')">{% trans "Q&A" %}</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button role="tab"
+                          class="nav-link summarize-option"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          data-bs-title='{% trans "Rewrite long text into shorter forms" %}'
+                          type="button"
+                          aria-selected="false"
+                          onclick="clickCard('summarize')">{% trans "Summarize" %}</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button role="tab"
+                          class="nav-link translate-option"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          data-bs-title='{% trans "Translate text and files to English or French" %}'
+                          type="button"
+                          aria-selected="false"
+                          onclick="clickCard('translate')">{% trans "Translate" %}</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button role="tab"
+                          class="nav-link chat-option"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          data-bs-title='{% trans "ChatGPT for writing assistance (not for facts)" %}'
+                          type="button"
+                          aria-selected="false"
+                          onclick="clickCard('chat')">{% trans "Chat" %}</button>
+                </li>
+              </ul>
+            </div>
+            <div class="col-auto py-1 px-0 translate-option summarize-option document_qa-option option">
+              <button class="btn btn-sm btn-outline-secondary col-auto text-center"
+                      type="button"
+                      aria-label='{% trans "Upload" %}'
+                      title='{% trans "Upload" %}'
+                      onclick="document.querySelector('#chat-file-input').value=null; document.querySelector('#chat-file-input').click();">
+                <i class="bi bi-upload"></i><span class="ms-1 hideable">{% trans "Upload" %}</span>
+              </button>
+            </div>
+            <div class="col-auto p-1 pe-3">
+              <button class="btn btn-sm btn-outline-secondary text-center"
+                      type="button"
+                      aria-label='{% trans "Settings" %}'
+                      title='{% trans "Settings" %}'
+                      onclick="document.querySelector('#right-sidebar-toggle').click(); this.blur();">
+                <i class="bi bi-gear"></i><span class="ms-1 hideable">{% trans "Settings" %}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="input-group">
+          <textarea class="form-control col"
+                    name="user-message"
+                    id="chat-prompt"
+                    autocomplete="off"
+                    aria-label='{% trans "Message" %}'
+                    placeholder='{% trans "Type your message here..." %}'
+                    required></textarea>
+          <button id="send-button"
+                  class="btn btn-outline-secondary"
+                  type="submit"
+                  aria-label='{% trans "Send" %}'>
+            <i class="bi bi-send"></i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block page_script %}
+  <script src="{% static 'chat/js/chatInput.js' %}"></script>
+{% endblock %}

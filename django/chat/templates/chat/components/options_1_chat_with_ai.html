@@ -1,0 +1,26 @@
+{% extends 'chat/components/options_submenu.html' %}
+{% load i18n %}
+
+{% block accordion_title %}
+  {% trans "Chat" %}
+{% endblock %}
+
+{% block accordion_body %}
+  <div class="px-3">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.chat_model.auto_id }}">{% trans "Model" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.chat_model }}</div>
+
+  <div class="px-3 mt-2">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.chat_temperature.auto_id }}">{% trans "Style" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.chat_temperature }}</div>
+
+  <div class="px-3 mt-2">
+    <label for="{{ options_form.chat_system_prompt.auto_id }}"
+           class="col-form-label col-form-label-sm">{% trans "System prompt" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.chat_system_prompt }}</div>
+{% endblock %}

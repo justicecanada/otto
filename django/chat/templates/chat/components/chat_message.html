@@ -1,0 +1,76 @@
+{% load static %}
+{% load i18n %}
+
+<div class="message-outer {% if message.is_bot %}bot{% elif not file_upload and not message.num_files %}user{% endif %}{% if message.awaiting_response %} awaiting-response{% endif %}"
+     id="message_{{ message.id }}">
+  <div class="message-meta text-muted">
+    <span class="message-author me-1">
+      {% if message.is_bot %}
+        Otto
+      {% else %}
+        {{ request.user.full_name }}
+      {% endif %}
+    </span>
+    <span class="message-date">{{ message.date_created|date:"Y-m-d H:i" }}</span>
+  </div>
+  <div class="d-flex {% if not message.is_bot %}justify-content-end{% endif %}">
+    {% if not message.is_bot %}
+      <div class="message-mode text-secondary pt-2">
+        {% if message.mode == "translate" %}
+          <i class="bi bi-translate me-2" title='{% trans "Translate" %}'></i>
+        {% elif message.mode == "summarize" %}
+          <i class="bi bi-funnel me-2" title='{% trans "Summarize" %}'></i>
+        {% elif message.mode == "qa" %}
+          <i class="bi bi-journal-text me-2" title='{% trans "Q&A" %}'></i>
+        {% endif %}
+      </div>
+    {% endif %}
+    <div class="message-blob {{ mode }}">
+      {% if message.awaiting_response %}
+        <div class="message-text" hx-ext="morph">{% include "chat/components/streaming_response.html" %}</div>
+      {% elif file_upload %}
+        <div class="message-text">{% include "chat/components/file_upload_progress.html" %}</div>
+      {% elif message.num_files %}
+        <div class="message-text">{% include "chat/components/message_files.html" %}</div>
+      {% elif message.is_bot %}
+        <div class="message-text">{{ message.text|safe }}</div>
+      {% else %}
+        <div class="message-text">{{ message.text|escape }}</div>
+      {% endif %}
+      {% comment %}
+      "Show all" only used in summarization/translation mode
+      {% endcomment %}
+      <div class="message-show-all mt-2">
+        <a class="text-secondary"
+           href="#"
+           onclick="this.closest('.message-outer').classList.add('show-all'); return false;">{% trans "Show all" %}</a>
+      </div>
+      {% comment %}
+      "Sources" only used in Q&A modes
+      {% endcomment %}
+      {% if message.sources %}
+        {% with sources=message.sources %}
+          {% include "chat/components/message_sources.html" %}
+        {% endwith %}
+      {% endif %}
+      {% if message.cost %}
+        <div class="row mt-1">
+          {% if message.cost %}<small class="col text-muted cost">${{ message.cost }}</small>{% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% include "chat/components/message_actions.html" %}
+</div>
+
+<script>
+(function () {
+  let element = document.querySelector('#message_{{message.id}} .message-text');
+  if (element && (element.offsetHeight < element.scrollHeight)) {
+    element.closest('.message-outer').classList.add('truncate');
+  }
+})();
+</script>
+
+{% block oob_content %}
+{% endblock %}

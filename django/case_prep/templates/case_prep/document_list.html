@@ -1,0 +1,85 @@
+{% load i18n %}
+
+{% if documents %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th style="width: 40px;"></th>
+        <th>{% trans "Document Name" %}</th>
+        <th style="width: 100px;">{% trans "Date" %}</th>
+        <!-- Fixed width for "Created At" column -->
+        <th style="width: 120px;">{% trans "Actions" %}</th>
+        <!-- Fixed width for "Actions" column -->
+      </tr>
+    </thead>
+    <tbody id="sortable">
+      {% for document in documents %}
+        <tr data-id="{{ document.id }}"
+            data-delete-url="{% url 'case_prep:delete_document' %}">
+          <td class="drag-handle">&#9776;</td>
+          <td>
+            <!-- Editable field -->
+            <div class="d-flex align-items-center">
+              <textarea rows="1"
+                        class="form-control document-name-input"
+                        style="resize: vertical;
+                               width: auto;
+                               flex-grow: 1">{{ document.name }}</textarea>
+            </div>
+            <small class="text-muted ms-2">Original: {{ document.original_name }}</small>
+          </td>
+          <td class="text-nowrap">
+            <input type="date"
+                   class="form-control"
+                   value="{{ document.date|date:'Y-m-d' }}">
+          </td>
+          <td class="text-nowrap">
+            <a href="{% url 'case_prep:download_document' document.id %}"
+               class="btn btn-outline-primary"
+               title="{% trans 'Download Document' %}">
+              <i class="bi bi-download"></i> <!-- Download icon -->
+            </a>
+            <!-- Hide/unhide toggle -->
+            <button class="btn btn-outline-secondary document-hide-button"
+                    data-toggle-url="{% url 'case_prep:toggle_document_visibility' %}"
+                    data-id="{{ document.id }}"
+                    title="{% if document.hidden %}{% trans 'Unhide Document' %}{% else %}{% trans 'Hide Document' %}{% endif %}">
+              <i class="bi {% if document.hidden %}bi-eye-slash{% else %}bi-eye{% endif %}"></i>
+            </button>
+            <!-- Trash can -->
+            <button class="btn btn-outline-danger document-delete-button"
+                    title="{% trans 'Delete Document' %}">
+              <i class="bi bi-trash"></i> <!-- Trash icon -->
+            </button>
+            <!-- Dropdown for additional actions -->
+            <div class="btn-group">
+              <button class="btn btn-outline-secondary dropdown-toggle"
+                      type="button"
+                      id="assistantActionsDropdown{{ document.id }}"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="{% trans 'Additional Actions' %}">
+                <i class="bi bi-list"></i>
+              </button>
+              <ul class="dropdown-menu"
+                  aria-labelledby="assistantActionsDropdown{{ document.id }}">
+                <li>
+                  <button class="dropdown-item"
+                          data-bs-toggle="modal"
+                          data-bs-target="#summarizationModal"
+                          title="{% trans 'Summarize Document' %}">{% trans "Summarize" %}</button>
+                </li>
+                <li>
+                  <button class="dropdown-item"
+                          data-bs-toggle="modal"
+                          data-bs-target="#translationModal"
+                          title="{% trans 'Translate Document' %}">{% trans "Translate" %}</button>
+                </li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}

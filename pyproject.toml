@@ -1,0 +1,67 @@
+[tool.black]
+line-length = 88
+target-version = ['py310']
+include = '\.pyi?$'
+exclude = '''
+
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.mypy_cache
+    | venv
+  )/
+  # ignore auto-generated migrations, no one ever saves those manually
+  | migrations/.*.py 
+  | migrations/.*_initial.py 
+  | migrations/.*_auto_.*.py 
+)
+'''
+
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_django = "django"
+known_first_party = [
+    "chat",
+    "librarian",
+    "otto",
+    "laws",
+    "case_prep",
+    "template_wizard",
+    "text_extractor"
+  ]
+sections = [
+    "FUTURE",
+    "STDLIB",
+    "DJANGO",
+    "THIRDPARTY",
+    "OTTO",
+    "FIRSTPARTY",
+    "LOCALFOLDER"
+]
+skip_glob=['*/migrations/*.py']
+
+
+[tool.djlint]
+indent=2
+profile="django"
+preserve_blank_lines=true
+
+# Jinja linting is opinionated so we turned off some annoying errors.
+# We're not actively linting templates, but if errors get in the way 
+# of you noticing important issues like unclosed tags 
+# feel free to add and document those error codes below
+
+ignore="H021,H008,T002,T003,T028,T032,H017,H023,H030,H031"
+#T002 -> Double quotes should be used in tags
+#T003 -> endblocks must have names
+#T028 -> Consider using spaceless tags inside attribute values. {%- if/for -%}
+#T032 -> extra whitespace
+#H008 -> attrs should be in double quotes
+#H021 -> no inline styles
+#H017 -> unpaired tags should be self-closing (should probably disable this)
+#H023 -> do not sure entity references (e.g. &laquo;)
+#H030 -> Consider adding a meta description
+#H031 -> Consider adding meta keywords

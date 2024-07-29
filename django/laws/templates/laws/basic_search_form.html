@@ -1,0 +1,48 @@
+{% load i18n %}
+<form hx-post="{% url 'laws:search' %}"
+      hx-target="#result-container"
+      hx-indicator="#spinner"
+      onsubmit="document.querySelector('#result-container').innerHTML='';">
+  <label for="basic-search-input" class="visually-hidden">{% trans "Query" %}</label>
+  <div id="basic-search-outer">
+    <div class="row">
+      <div class="col position-relative pe-0">
+        <input class="form-control form-control-lg"
+               type="search"
+               id="basic-search-input"
+               name="query"
+               autocomplete="off"
+               placeholder="{% trans 'Ask a question about federal legislation...' %}">
+        <button class="btn btn-primary" type="submit" id="basic-search-button">
+          <i class="bi bi-search"></i><span class="visually-hidden">{% trans "Submit" %}</span>
+        </button>
+      </div>
+      <div class="col-auto mx-1" style="margin-top: -1px; margin-bottom: -1px">
+        <div class="form-check form-switch">
+          <input class="form-check-input"
+                 type="checkbox"
+                 role="switch"
+                 id="ai_answer"
+                 name="ai_answer"
+                 checked>
+          <label class="form-check-label" for="ai_answer">{% trans "AI answer" %}</label>
+        </div>
+        <div class="form-check form-switch mb-0 pb-0">
+          <input class="form-check-input"
+                 type="checkbox"
+                 role="switch"
+                 id="bilingual_results"
+                 name="bilingual_results">
+          <label class="form-check-label" for="bilingual_results">{% trans "Any language" %}</label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <input type="hidden" name="advanced" value="false" id="advanced-toggle">
+  <div id="advanced-search-outer">
+    <div id="advanced-spinner" class="spinner container text-secondary pt-3">
+      <span class="spinner-border" aria-hidden="true"></span>
+      <span class="visually-hidden" role="status">Loading...</span>
+    </div>
+  </div>
+</form>

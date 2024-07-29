@@ -1,0 +1,23 @@
+# Otto admin: manage users, groups, libraries, data sources - all of it!
+- model: auth.Group
+  pk: 1
+  fields:
+    name: Otto admin
+
+# Data steward: can use the Librarian interface but requires additional permissions
+# to edit data sources and libraries (granted per-library, per-data_source)
+- model: auth.Group
+  pk: 2
+  fields:
+    name: Data steward
+
+# App-specific groups (other than app access, which are in apps.yaml)
+- model: auth.Group
+  pk: 3
+  fields:
+    name: CFS admin
+
+- model: auth.Group
+  pk: 4
+  fields:
+    name: Litigation briefing user

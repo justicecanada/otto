@@ -1,0 +1,43 @@
+{% load i18n %}
+{% load static %}
+
+<p>
+  <strong>{% trans "Select a session from the options below:" %}</strong>
+</p>
+
+{% if reports %}
+  <!-- Table to display report options -->
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="col-auto" style="width: 40px;"></th>
+        <th>Wizard</th>
+        <th class="col-3 text-nowrap">{% trans "Created" %}</th>
+        <th class="col-2 text-nowrap text-end"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for report in reports %}
+        <tr class="clickable-row" data-report-id="{{ report.id }}">
+          <td>
+            <input type="radio"
+                   name="report_id"
+                   value="{{ report.id }}"
+                   class="align-middle form-check-input">
+          </td>
+          <td class="align-middle">{{ report.wizard_name }}</td>
+          <td class="align-middle text-nowrap">{{ report.created_at }}</td>
+          <td class="align-middle text-nowrap text-end">
+            <button type="button"
+                    class="btn btn-danger btn-sm"
+                    hx-post="{% url 'template_wizard:delete_report' report.id %}"
+                    hx-target="#openExistingReportSection">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+          <!-- Add more table cells with report information as needed -->
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}

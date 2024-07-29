@@ -1,0 +1,58 @@
+{% extends 'chat/components/options_submenu.html' %}
+
+{% load i18n %}
+
+{% block accordion_title %}
+  {% trans "Q&A" %}
+{% endblock %}
+
+{% block accordion_body %}
+  <!-- Debug info -->
+  <div class="px-3">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.qa_library.auto_id }}">{% trans "Library" %}</label>
+  </div>
+  <div class="px-3 row">
+    <div class="col pe-0">{{ options_form.qa_library }}</div>
+    <div class="col-auto ps-2">
+      <button type="button"
+              class="btn btn-outline-dark btn-sm"
+              hx-get="{% url 'librarian:modal' %}"
+              hx-target="#editLibrariesInner"
+              hx-indicator="#librarian-modal-spinner"
+              hx-swap="innerHTML"
+              onclick="document.getElementById('editLibrariesInner').innerHTML='';"
+              data-bs-toggle="modal"
+              data-bs-target="#editLibrariesModal">{% trans "Edit libraries" %}</button>
+    </div>
+  </div>
+
+  <div class="px-3 mt-2">
+    <div class="d-flex justify-content-between">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.qa_data_sources.id }}">{% trans "Data sources" %}</label>
+      <div class="col-form-label-sm">
+        <!-- Select all / clear all -->
+        <a href="#"
+           class="text-decoration-none text-body"
+           onclick="selectAllDataSources(); return false;">{% trans "all" %}</a>
+        <span>/</span>
+        <a href="#"
+           class="text-decoration-none text-body"
+           onclick="clearAllDataSources(); return false;">{% trans "none" %}</a>
+      </div>
+    </div>
+  </div>
+  <div class="px-3">{{ options_form.qa_data_sources }}</div>
+
+  <div class="px-3 mt-2">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.qa_model.auto_id }}">{% trans "Model" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.qa_model }}</div>
+  <div class="px-3 mt-2">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.qa_topk.auto_id }}">{% trans "Maximum number of sources" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.qa_topk }}</div>
+{% endblock %}

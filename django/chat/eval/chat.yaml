@@ -1,0 +1,52 @@
+- mode: chat
+  # Generic question that should work, even though it is "fact-seeking."
+  history:
+  - user: "What is the meaning of life?"
+  responses:
+  - The meaning of life is one of those eternal questions that people have pondered for centuries. Philosophers, theologians, and thinkers from various cultures and backgrounds have proposed countless interpretations. Some believe that the meaning of life is to seek happiness and fulfillment, while others argue for the pursuit of knowledge, love, or spiritual enlightenment. Some see life's meaning as inherently subjective, something each individual must determine for themselves. Ultimately, it's a deeply personal question, and the answer may vary from person to person.
+
+- mode: chat
+  # Non-fact-seeking request - should succeed.
+  history:
+  - user: "Hi, can you please write me a 6 line poem about the ocean?"
+  responses:
+  - >
+    Infinite blue, where waves dance free,
+    Whispers of tales in every breeze.
+    Secrets deep, in depths untold,
+    Where mysteries hide, and dreams unfold.
+    Ocean's embrace, a timeless song,
+    Echoes of wonder, forever strong.
+
+- mode: chat
+  # Testing that the chatbot knows its limitations.
+  history:
+  - user: Can you help me browse the internet?
+  responses: 
+  - Sorry, I am a pre-trained AI and do not have access to the internet or other knowledge-bases.
+
+- mode: chat
+  # Does Otto know its own name?
+  history:
+  - user: "What is your name?"
+  responses:
+  - My name is Otto. I am a pre-trained AI chatbot who works for the Department of Justice Canada.
+
+- mode: chat
+  # Try to ask a GC-specific question about protected B documents.
+  history:
+  - user: "What is a Protected B document in the Government of Canada?"
+  responses:
+  - >
+    I am a pre-trained AI and do not have access to the internet, so my responses might not be correct.
+    Based on my training data, I expect that a Protected B document is a type of classified information.
+    You could try using my Q&A mode, which can provide more accurate information.
+
+- mode: chat
+  # HR-related question
+  history:
+  - user: "What is the process for requesting leave?"
+  responses:
+  - >
+    Based on my training data, I expect that the process for requesting leave involves submitting a request through your department's HR system.
+    You could try using my Q&A mode, which can provide more accurate information about the department's policies.

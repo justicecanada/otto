@@ -1,0 +1,228 @@
+{% load i18n %}
+{% load static %}
+
+<div class="mt-3 px-2">
+  <!-- Multiple checkboxes to select documents -->
+  <div id="document-select" class="row">
+    <div class="col-sm-3">
+      <fieldset>
+        <legend class="col-form-label fw-semibold">{% trans "Filters" %}</legend>
+        <div class="row mb-1 mx-0">
+          <input class="form-control"
+                 type="text"
+                 id="text_filter"
+                 autocomplete="false"
+                 placeholder="{% trans 'Filter legislation.' %}...">
+          <label class="visually-hidden" for="text_filter">
+            {% trans "Filter legislation. Acts and regulations will update as you type." %}
+          </label>
+        </div>
+        <div class="row mb-1 mx-0">
+          <div class="form-check form-switch col ms-2">
+            <input class="form-check-input"
+                   type="checkbox"
+                   role="switch"
+                   id="english_filter"
+                   checked>
+            <label class="form-check-label" for="english_filter">{% trans "English" %}</label>
+          </div>
+          <div class="form-check form-switch col-auto ms-2">
+            <input class="form-check-input"
+                   type="checkbox"
+                   role="switch"
+                   id="french_filter"
+                   checked>
+            <label class="form-check-label" for="french_filter">{% trans "French" %}</label>
+          </div>
+        </div>
+        <div class="row mb-1 mx-0">
+          <button class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  id="show_all_btn">{% trans "Show all" %}</button>
+        </div>
+        <div class="row mb-1 mx-0">
+          <button class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  id="show_selected_btn">{% trans "Show selected" %}</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend class="col-form-label fw-semibold">{% trans "Selection" %}</legend>
+        <div class="row mb-1 mx-0">
+          <button class="btn btn-outline-secondary btn-sm" type="button" id="clear_btn">{% trans "Clear" %}</button>
+        </div>
+        <div class="row mb-1 mx-0">
+          <button class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  id="all_acts_btn">{% trans "All acts" %}</button>
+        </div>
+        <div class="row mb-1 mx-0">
+          <button class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  id="all_regs_btn">{% trans "All regulations" %}</button>
+        </div>
+        <div class="row mb-1 mx-0">
+          <button class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  id="enabling_btn">{% trans "Enabling authority of selected" %}</button>
+        </div>
+        <div class="row mb-1 mx-0">
+          <button class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  id="enabled_by_btn">{% trans "Enabled by selected" %}</button>
+        </div>
+        <div class="row mb-1 mx-0">
+          <button class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  id="same_enabling_btn">{% trans "Same enabling authority" %}</button>
+        </div>
+        <div class="row mb-1 mx-0">
+          <button class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  id="both_lang_btn">{% trans "Both languages of selected" %}</button>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="col-sm-6 row">
+      <fieldset class="col-md-12 col-lg-6" id="acts_fieldset">
+        <legend class="col-form-label fw-semibold">
+          <div class="row">
+            <div class="col pe-0">{% trans "Acts" %}</div>
+            <div class="col-auto fw-normal text-secondary">
+              <span id="act_selected_count">{{ act_count }}</span>/{{ act_count }} {% trans "selected" %}
+              <span id="act_hidden_count" style="display: none;">(<span>0</span> {% trans "hidden" %})</span>
+            </div>
+          </div>
+        </legend>
+        <div style="max-height:415px; overflow-y:auto" class="px-1">
+          {% for document in documents %}
+            {% if document.type == "act" %}
+              <div class="form-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="acts"
+                       value="{{ document.node_id }}"
+                       id="checkbox-{{ document.node_id }}"
+                       data-law_id="{{ document.law_id }}"
+                       data-type="{{ document.type }}"
+                       data-lang="{{ document.lang }}"
+                       data-ref_number="{{ document.ref_number }}"
+                       data-enabling_authority="{{ document.enabling_authority }}"
+                       checked>
+                <label class="form-check-label" for="checkbox-{{ document.node_id }}">{{ document.title }}</label>
+              </div>
+            {% endif %}
+          {% endfor %}
+          <div aria-live="assertive"
+               aria-atomic="true"
+               id="no-acts-found"
+               class="d-none">{% trans "No acts found." %}</div>
+        </div>
+      </fieldset>
+      <fieldset class="col-md-12 col-lg-6" id="regs_fieldset">
+        <legend class="col-form-label fw-semibold">
+          <div class="row">
+            <div class="col pe-0">{% trans "Regulations" %}</div>
+            <div class="col-auto fw-normal text-secondary">
+              <span id="reg_selected_count">{{ reg_count }}</span>/{{ reg_count }} {% trans "selected" %}
+              <span id="reg_hidden_count" style="display: none;">(<span>0</span> {% trans "hidden" %})</span>
+            </div>
+          </div>
+        </legend>
+        <div style="max-height:415px; overflow-y:auto" class="px-1">
+          {% for document in documents %}
+            {% if document.type == "regulation" %}
+              <div class="form-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="regs"
+                       value="{{ document.node_id }}"
+                       id="checkbox-{{ document.node_id }}"
+                       data-law_id="{{ document.law_id }}"
+                       data-type="{{ document.type }}"
+                       data-lang="{{ document.lang }}"
+                       data-enabling_authority="{{ document.enabling_authority }}"
+                       data-ref_number="{{ document.ref_number }}"
+                       checked>
+                <label class="form-check-label" for="checkbox-{{ document.node_id }}">{{ document.title }}</label>
+              </div>
+            {% endif %}
+          {% endfor %}
+          <div aria-live="assertive"
+               aria-atomic="true"
+               id="no-regulations-found"
+               class="d-none">{% trans "No regulations found." %}</div>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="col-sm-3">
+      <fieldset>
+        <legend class="col-form-label fw-semibold">{% trans "Search options" %}</legend>
+        <div class="px-1">
+          <label for="vector_ratio">{% trans "Keyword ↔ Vector" %}</label>
+          <input type="range"
+                 class="form-range"
+                 min="0"
+                 max="1"
+                 step="0.05"
+                 value="1"
+                 id="vector_ratio"
+                 name="vector_ratio">
+          <label for="top_k">{% trans "Number of sources" %}</label>
+          <input type="number"
+                 class="form-control"
+                 id="top_k"
+                 name="top_k"
+                 min="1"
+                 max="100"
+                 value="25">
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="checkbox"
+                   disabled
+                   name="respect_quotes"
+                   id="respect_quotes">
+            <label class="form-check-label" for="respect_quotes">{% trans "Respect quotes" %}</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="checkbox"
+                   disabled
+                   name="boolean_search"
+                   id="boolean_search">
+            <label class="form-check-label" for="boolean_search">{% trans "Respect booleans" %}</label>
+          </div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend class="col-form-label fw-semibold">{% trans "AI answer options" %}</legend>
+        <div class="px-1">
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="checkbox"
+                   name="trim_redundant"
+                   id="trim_redundant"
+                   checked>
+            <label class="form-check-label" for="trim_redundant">{% trans "Trim redundant sources" %}</label>
+          </div>
+          <label for="model">{% trans "Model" %}</label>
+          <select class="form-select" id="model" name="model">
+            {% for model in model_options %}<option value="{{ model.id }}">{{ model.name }}</option>{% endfor %}
+          </select>
+          <label for="context_tokens">Maximum sources length (tokens)</label>
+          <input type="number"
+                 class="form-control"
+                 id="context_tokens"
+                 name="context_tokens"
+                 min="500"
+                 max="8000"
+                 value="2000">
+        </div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'laws/law_search.js' %}"></script>

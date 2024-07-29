@@ -1,0 +1,199 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Run Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "django"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Python: Run Court Monitor Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "django/tests/court_monitor"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Python: Run Template Wizard Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "django/tests/template_wizard"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Python: Run Case Prep Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "django/tests/case_prep"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Python: Run Chat Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "django/tests/chat"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Django: Court Monitor",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "check_the_courts",
+            ],
+            "django": true
+        },
+        {
+            "name": "Django: Update Chatbot Embeddings",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "update_embeddings",
+            ],
+            "django": true
+        },
+        {
+            "name": "Django: Test Library Initialization",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "initialize_test_library",
+            ],
+            "django": true
+        },
+        {
+            "name": "Django: Text Extractor Views Text",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "django/tests/text_extractor"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Django: Eval Library QA",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "eval_responses",
+                "mini_library_qa.yaml"
+            ],
+            "django": true
+        },
+        {
+            "name": "Django: Reset App Data",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "reset_app_data",
+                "apps"
+            ],
+            "django": true
+        },
+        {
+            "name": "Django: Migrate",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "migrate"
+            ],
+            "django": true
+        },
+        {
+            "name": "Django: Load Corporate Data",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "load_corporate_data",
+            ],
+            "django": true
+        },
+        {
+            "name": "Django: Load Case Data Incremental",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "load_case_data",
+            ],
+            "django": true
+        },
+        {
+            "name": "Django: Load Case Data Full",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "load_case_data",
+                "--full"
+            ],
+            "django": true
+        },
+        {
+            "name": "Django: Load Attribute Data",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "load_attribute_data",
+            ],
+            "django": true
+        },
+        {
+            "name": "Django: Run Server",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "runserver",
+            ],
+            "django": true
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}"
+        }
+    ]
+}

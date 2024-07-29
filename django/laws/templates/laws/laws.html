@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{% static 'laws/style.css' %}">
+{% endblock %}
+
+{% block page_script %}
+  <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "Legislation search" %}
+{% endblock %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'laws:index' %}">{% trans "Legislation search" %}</a>
+  </li>
+{% endblock %}
+
+{% block content_container %}
+  <div id="laws-outer">
+    <div class="container py-3 px-0" id="search-container">
+      <h2 class="mb-4 px-4 mt-2">
+        <a href="{% url 'laws:index' %}" class="text-decoration-none text-body">{% trans "Legislation search" %}</a>
+      </h2>
+
+      <ul class="nav nav-tabs px-3 border-bottom-0">
+        <li class="nav-item">
+          <button id="basic-search-tab"
+                  class="nav-link text-black active fw-semibold"
+                  onclick="setActiveTab(this);">{% trans "Basic search" %}</button>
+        </li>
+        <li class="nav-item">
+          <button id="advanced-search-tab"
+                  class="nav-link text-black"
+                  onclick="setActiveTab(this);">{% trans "Advanced search" %}</button>
+          <input type="button"
+                 hidden
+                 hx-get="{% url 'laws:advanced_search_form' %}"
+                 hx-indicator="#advanced-spinner"
+                 hx-target="#advanced-search-outer"
+                 id="load-advanced-button">
+        </li>
+      </ul>
+
+      <div id="step-content" class="bg-white">
+        <div class="tab-pane fade show active p-3 border rounded" id="search-form">
+          {% block step_content %}
+            {% include 'laws/basic_search_form.html' %}
+          {% endblock %}
+        </div>
+      </div>
+    </div>
+    <div id="spinner" class="spinner container text-primary px-4 pt-3">
+      <span class="spinner-border" aria-hidden="true"></span>
+      <span class="visually-hidden" role="status">Loading...</span>
+    </div>
+    <div class="container py-3 px-0" id="result-container" aria-live="polite"></div>
+  </div>
+  <script>
+    document.getElementById('basic-search-input').focus();
+    function setActiveTab(e) {
+      const tabs = document.querySelectorAll('.nav-link');
+      tabs.forEach(tab => {
+        tab.classList.remove('active');
+        tab.classList.remove('fw-semibold');
+      });
+      e.classList.add('active');
+      e.classList.add('fw-semibold');
+      if (e.id === 'basic-search-tab') {
+        document.getElementById('advanced-search-outer').classList.add('d-none');
+        document.getElementById('advanced-toggle').value = 'false';
+      } else {
+        document.getElementById('advanced-search-outer').classList.remove('d-none');
+        document.getElementById('advanced-toggle').value = 'true';
+        // Check if #document-select already exists, if not trigger click event on load-advanced-button
+        if (!document.getElementById('document-select')) {
+          document.getElementById('load-advanced-button').click();
+        }
+      }
+    }
+  </script>
+{% endblock %}

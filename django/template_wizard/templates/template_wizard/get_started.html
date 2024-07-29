@@ -1,0 +1,72 @@
+{% extends "template_wizard/wizard.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block step_content %}
+    <p>
+        <strong>{% trans "Select a wizard from the options below:" %}</strong>
+    </p>
+
+    <form id="startOpenForm" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="new_or_open" value="new">
+
+        <!-- Table to display wizard options -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="col-auto" style="width: 40px;"></th>
+                    <th class="text-nowrap">{% trans "Wizard" %}</th>
+                    <th class="text-nowrap">{% trans "Description" %}</th>
+                    <!-- Add more table headers if needed -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for wizard in wizards %}
+                    <tr class="clickable-row" data-wizard="{{ wizard.handle }}">
+                        <td class="text-nowrap">
+                            <input type="radio"
+                                   name="wizard"
+                                   value="{{ wizard.handle }}"
+                                   class="form-check-input"
+                                   aria-labelledby="{{ wizard.handle }}"
+                                   checked>
+                        </td>
+                        <td class="text-nowrap" id="{{ wizard.handle }}">{{ wizard.name }}</td>
+                        <td>{{ wizard.description }}</td>
+                        <!-- Add more table cells with wizard information as needed -->
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Add a button to proceed to the next step -->
+        <div class="row mt-4 text-end">
+            <div class="col-md-12">
+                <button type="submit" id="nextButton" class="btn btn-success">{% trans "Next: Select data" %}</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- JavaScript to handle showing/hiding sections based on radio button selection -->
+    <script>
+    function toggleRowRadio(event) {
+        const row = event.currentTarget;
+        const radio = row.querySelector('.form-check-input');
+        radio.checked = true;
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        const rows = document.querySelectorAll('.clickable-row');
+
+        rows.forEach(row => {
+            row.removeEventListener('click', toggleRowRadio);
+            row.addEventListener('click', toggleRowRadio);
+
+            // Prevent the default behavior of the radio button click event
+            row.querySelectorAll('.form-check-input').forEach(radio => {
+                radio.addEventListener('click', event => event.stopPropagation());
+            });
+        });
+    });
+    </script>
+{% endblock %}

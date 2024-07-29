@@ -1,0 +1,17 @@
+{% load i18n %}
+
+<div id="librarian-libraries" {% if swap %}hx-swap-oob="true"{% endif %}>
+  <h6 id="libraries-label">{% trans "Libraries" %}</h6>
+  <button type="button"
+          class="btn btn-sm btn-outline-dark ps-1 mb-3"
+          hx-get="{% url 'librarian:modal_create' item_type='library' %}">
+    <i class="bi bi-plus"></i> {% trans "New library" %}
+  </button>
+  {% if libraries %}
+    {% include "librarian/components/items_list.html" with items=libraries selected_item=selected_library listbox_label="libraries-label" item_type="library" %}
+  {% else %}
+    <div class="text-center">
+      <em class="small">{% trans "Libraries you can edit will appear here." %}</em>
+    </div>
+  {% endif %}
+</div>

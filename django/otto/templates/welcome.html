@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block page_css %}
+  <style>
+  body {
+    /* background: var(--bs-light);*/
+    min-height: 100vh;
+  }
+  nav {
+    display: none !important;
+  }
+  .signin-with-microsoft {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    margin: 12px;
+    min-height: 41px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #5e5e5e;
+    border: 1px solid #8c8c8c;
+    border-radius: 4px;
+    text-decoration: none;
+  }
+  main.py-md-5.py-3 {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  
+  </style>
+{% endblock %}
+
+{% block body %}
+  {# Vertically center contents #}
+  <div class="d-flex flex-column justify-content-center align-items-center"
+       style="min-height: calc(100vh - 90px)">
+    <h1 class="text-center display-1 fw-semibold mb-1 mt-4 pt-3">Otto</h1>
+    <div class="row lead fw-medium mt-5 mb-4">
+      <div class="col border-end pe-5 text-center">
+        <div style="max-width:550px;">
+          <p lang="en" class="mb-1 mt-3">AI-powered tools to automate legal processes and provide instant insights.</p>
+          <div class="d-flex justify-content-center mb-3">
+            <a href="{% url 'azure_auth:login' %}?lang=en&next={{ next_url }}"
+               class="signin-with-microsoft">
+              <img src="{% static 'thirdparty/microsoft_squares.svg' %}"
+                   style="margin-right:12px"
+                   height="21px"
+                   width="21px"
+                   alt="">
+              <span style="margin-right:6px" lang="en">Sign in to Otto with your work account</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="col ps-5 text-center">
+        <div style="max-width:550px;">
+          <p lang="fr" class="mb-1 mt-3">
+            Outils alimentés par l'IA pour automatiser les processus juridiques et fournir des informations instantanées.
+          </p>
+          <div class="d-flex justify-content-center mb-2">
+            <a href="{% url 'azure_auth:login' %}?lang=fr&next={{ next_url }}"
+               class="signin-with-microsoft">
+              <img src="{% static 'thirdparty/microsoft_squares.svg' %}"
+                   style="margin-right:12px"
+                   height="21px"
+                   width="21px"
+                   alt="">
+              <span style="margin-right:6px;" lang="fr">Connectez-vous à Otto avec votre compte professionnel</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {# Align to the bottom #}
+  <div style="height:90px;
+              overflow:hidden;
+              text-align:center;
+              padding-right:12px">
+    <img src="{% static 'doj-logo.png' %}"
+         alt=""
+         width="350px"
+         height="36px"
+         style="margin-top:27px">
+    <span class="visually-hidden" lang="en">Department of Justice Canada</span>
+    <span class="visually-hidden" lang="fr">Ministère de la Justice Canada</span>
+  </div>
+
+{% endblock %}

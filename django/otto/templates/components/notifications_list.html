@@ -1,0 +1,22 @@
+{% load i18n %}
+<div id="notifications-list" hx-swap-oob="true">
+  {% if notifications|length == 0 %}
+    <li class="dropdown-item-text">{% trans "No notifications" %}</li>
+  {% endif %}
+  {% for notification in notifications %}
+    {% include 'components/notification_card.html' %}
+  {% endfor %}
+  {% if show_notifications %}
+    <script>
+    if (!document.getElementById("notifications-ul").classList.contains("show")) {
+      document.getElementById("notifications-toggle").click();
+    }
+    </script>
+  {% elif hide_notifications %}
+    <script>
+    if (document.getElementById("notifications-ul").classList.contains("show")) {
+      document.getElementById("notifications-toggle").click();
+    }
+    </script>
+  {% endif %}
+</div>

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% load i18n %}
+
+{% block body %}
+  <!-- Access Request Form Template -->
+  <form method="post" id="accessRequestForm" class="p-5 border rounded">
+    <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
+
+    {% csrf_token %}
+ 
+    <!-- Title -->
+    <h1 class="mb-4">{% trans "Otto Platform Pilot Registration" %}</h1>
+ 
+    <!-- Description -->
+    <p class="mb-4">
+      {% trans "The Otto Platform is in preview stage and is only intended to be evaluated by a select group of users at the Department of Justice to assess potential risks and improve its safe use. By registering, pilot users are expected to actively participate, provide feedback, and responsibly use the applications to help ensure their suitability and efficiency before wider deployment." %}
+    </p>
+
+    <!-- Usage Terms -->
+    <div class="mb-4">
+      <label for="usage_terms" class="form-label fw-bold">
+        {% trans "By submitting this form, I agree to the following usage terms:" %}
+      </label>
+      <br>
+      <div class="mx-4">
+        {% for term in usage_terms %}
+          <div class="m-2 form-check">
+            <input type="checkbox"
+                   id="{{ term.id }}"
+                   name="usage_terms"
+                   value="{{ term.term_text }}"
+                   class="form-check-input border-secondary">
+            <label for="{{ term.id }}" class="form-check-label">{{ term.term_text | safe }}</label>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+ 
+    <!-- Submit Button -->
+    <div class="d-flex justify-content-center">
+      <button type="submit" id="submitButton" class="btn btn-primary" disabled>{% trans "Submit" %}</button>
+    </div>
+  </form>
+
+{% endblock %}
+
+{% block page_script %}
+  <script>
+  $(document).ready(function() {
+    // Initially disable the Submit button
+    $('#submitButton').prop('disabled', true);
+
+    // Function to check if all checkboxes are checked
+    function checkCheckboxes() {
+      var allChecked = true;
+      $('input[type="checkbox"][name="usage_terms"]').each(function() {
+        if (!$(this).is(':checked')) {
+          allChecked = false;
+        }
+      });
+      return allChecked;
+    }
+
+    // Listen for checkbox changes
+    $('input[type="checkbox"]').change(function() {
+      // Enable/disable the Submit button based on checkbox states
+      if (checkCheckboxes()) {
+        $('#submitButton').prop('disabled', false);
+      } else {
+        $('#submitButton').prop('disabled', true);
+      }
+    });
+  });
+  </script>
+
+{% endblock %}

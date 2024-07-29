@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  labels:
+    deployment: celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      pod: celery-worker
+  template:
+    metadata:
+      labels:
+        pod: celery-worker
+    spec:
+      containers:
+        - name: celery-worker
+          image: jusdevottoaacr.azurecr.io/otto:latest
+          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--concurrency=16']
+          envFrom:
+            - configMapRef:
+                name: otto-configmap
+          env:
+          - name: REDIS_HOST
+            value: redis-service
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangosecretkey
+          - name: OTTO_DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: postgrespasswordkey
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: openaiservicekey
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: cognitiveservicekey
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: storageaccountkey
+          - name: COSMOSDB_DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: cosmosdbpasswordkey
+          - name: COSMOSDB_DATABASE_HOST
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: cosmosdbhostnamekey
+          volumeMounts:
+            - name: secrets
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+            - name: media-pv-storage
+              mountPath: "/data/media"
+      volumes:
+      - name: secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "azure-keyvault"
+      - name: media-pv-storage
+        persistentVolumeClaim:
+          claimName: media-pvc

@@ -1,0 +1,85 @@
+{% load i18n %}
+{% load static %}
+
+<div id="right-sidebar"
+     class="chat-sidebar bg-light hidden"
+     aria-label='{% trans "Options" %}'>
+  <div class="border-start h-100 position-relative">
+    <button id="right-sidebar-resize-handle" class="btn btn-none" type="button">
+      <span class="visually-hidden">{% trans "Drag or use the left and right arrows to resize." %}</span>
+    </button>
+    <div class="offcanvas-header d-flex pb-2 border-bottom p-3">
+      <h5 class="offcanvas-title pb-1" style="font-size: 1rem">
+        <i class="bi bi-gear me-2"></i>{% trans "Settings" %}
+      </h5>
+      <button type="button"
+              class="btn-close"
+              id="close-right-sidebar"
+              aria-controls="right-sidebar"
+              style="margin-top: -4px"
+              aria-label='{% trans "Close" %}'></button>
+    </div>
+    <form class="overflow-y-auto overflow-x-hidden"
+          id="chat-options"
+          hx-trigger="optionsChanged"
+          hx-post="{% url 'chat:chat_options' chat_id=chat.id %}"
+          hx-swap="outerHTML"
+          hx-target="#option_presets">
+      {% csrf_token %}
+      {{ options_form.mode }}
+      <div class="row p-3 pt-2 pb-0">
+        <div class="col-auto pe-1 visually-hidden">
+          <label for="option_presets" class="col-form-label">{% trans "Preset" %}</label>
+        </div>
+        <div class="col">{% include 'chat/components/options_preset_dropdown.html' %}</div>
+      </div>
+      <div class="row mx-2 px-2 py-2 preset-actions">
+        <button class="btn btn-outline-dark btn-sm col"
+                hx-post="{% url 'chat:chat_options' chat_id=chat.id action='save_preset' %}"
+                hx-target="#option_presets"
+                data-bs-toggle="tooltip"
+                data-bs-placement="bottom"
+                data-bs-title='{% trans "Save" %}'
+                aria-label='{% trans "Save" %}'>
+          <i class="bi bi-floppy2-fill"></i>
+        </button>
+        <button class="btn btn-outline-dark btn-sm col"
+                hx-post="{% url 'chat:chat_options' chat_id=chat.id action='load_preset' %}"
+                hx-target="#options-accordion"
+                data-bs-toggle="tooltip"
+                data-bs-placement="bottom"
+                data-bs-title='{% trans "Load" %}'
+                aria-label='{% trans "Load" %}'>
+          <i class="bi bi-folder2-open"></i>
+        </button>
+        <button class="btn btn-outline-dark btn-sm col"
+                title='{% trans "Reset to Otto defaults" %}'
+                hx-get="{% url 'chat:chat_options' chat_id=chat.id action='reset' %}"
+                hx-target="#options-accordion"
+                onclick='document.querySelector("#option_presets input").value = "";'
+                data-bs-toggle="tooltip"
+                data-bs-placement="bottom"
+                data-bs-title='{% trans "Reset" %}'
+                aria-label='{% trans "Reset" %}'>
+          <i class="bi bi-arrow-counterclockwise"></i>
+        </button>
+        <button class="btn btn-outline-dark btn-sm col"
+                title='{% trans "Delete preset" %}'
+                hx-post="{% url 'chat:chat_options' chat_id=chat.id action='delete_preset' %}"
+                hx-target="#option_presets"
+                hx-confirm='{% trans "Are you sure you want to delete this options preset?" %}'
+                data-bs-toggle="tooltip"
+                data-bs-placement="bottom"
+                data-bs-title='{% trans "Delete" %}'
+                aria-label='{% trans "Delete" %}'>
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+      {% include 'chat/components/chat_options_accordion.html' %}
+    </form>
+  </div>
+</div>
+
+{% block page_script %}
+  <script src="{% static 'chat/js/sidebar.js' %}"></script>
+{% endblock %}

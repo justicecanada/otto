@@ -1,0 +1,14 @@
+{% load i18n %}
+
+<div class="modal-body">
+  {% for field in form %}
+    <div class="mb-3">
+      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% trans ":" %}</label>
+      {{ field }}
+    </div>
+  {% endfor %}
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+  <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>
+</div>

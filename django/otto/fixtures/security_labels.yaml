@@ -1,0 +1,29 @@
+- model: otto.SecurityLabel
+  pk: 1
+  fields:
+    name: Unclassified
+    name_fr: Non classifié
+    acronym: UC
+    acronym_fr: NC
+    description: If information were compromised, it would not cause injury.
+    description_fr: Si l'information était compromise, elle ne causerait pas de blessure.
+
+- model: otto.SecurityLabel
+  pk: 2
+  fields:
+    name: Protected A
+    name_fr: Protégé A
+    acronym: PA
+    acronym_fr: PA
+    description: If information were compromised, it would cause minor injury, not to the national interest.
+    description_fr: Si l'information était compromise, elle causerait des blessures mineures, mais pas à l'intérêt national.
+
+- model: otto.SecurityLabel
+  pk: 3
+  fields:
+    name: Protected B
+    name_fr: Protégé B
+    acronym: PB
+    acronym_fr: PB
+    description: If information were compromised, it would cause serious injury, not to the national interest.
+    description_fr: Si l'information était compromise, elle causerait des blessures graves, mais pas à l'intérêt national.

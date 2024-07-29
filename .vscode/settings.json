@@ -1,0 +1,70 @@
+{
+  "editor.rulers": [
+    88
+  ],
+  "editor.defaultFormatter": null,
+  "editor.formatOnSave": true,
+  // Python
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+  },
+  // Javascript
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features",
+    "editor.tabSize": 2,
+  },
+  "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
+  "javascript.format.semicolons": "insert",
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.tabSize": 2,
+  },
+  // CSS
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features",
+    "editor.tabSize": 2,
+  },
+  // HTML / Django templates
+  "[html][django-html][jinja][jinja-html]": {
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "monosans.djlint",
+  },
+  "files.associations": {
+    "*.html": "jinja-html"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "monosans.djlint",
+  },
+  "html.format.indentInnerHtml": false,
+  "html.format.wrapLineLength": 88,
+  "html.format.wrapAttributes": "force-expand-multiline",
+  "html.format.unformattedContentDelimiter": "<!--noformat-->",
+  // Misc
+  "files.insertFinalNewline": true,
+  "[yaml][markdown]": {
+    "editor.formatOnSave": false,
+  },
+  "files.exclude": {
+    "**/.git": false
+  },
+  "cSpell.words": [
+    "behaviour",
+    "database",
+    "htmx",
+    "noformat",
+    "objectgetter",
+    "otto",
+    "postgres",
+    "sessionmaker",
+    "sqlalchemy",
+    "structlog",
+    "tqdm"
+  ],
+  // Linux
+  "terminal.integrated.defaultProfile.linux": "zsh"
+}

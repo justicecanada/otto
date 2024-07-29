@@ -1,0 +1,23 @@
+{% load i18n %}
+
+<li class="list-group-item d-flex justify-content-between align-items-center {% if item.temp %}temp{% endif %}"
+    role="option"
+    tabindex="0"
+    {% if item == selected_item %}aria-selected="true"{% endif %}
+    {% if not item.temp %} hx-get="{% url 'librarian:modal_existing_item' item_type=item_type item_id=item.id %}" {% endif %}>
+  {{ item.name }}
+  {% if item.is_public or item_type == "data_source" or item.status %}
+    <div>
+      {% if item.is_public %}
+        <i class="bi bi-globe text-muted position-relative"
+           style="top: 1px"
+           title="{% trans 'JUS library' %}"></i><span class="visually-hidden">{% trans "JUS library" %}</span>
+      {% elif item_type == "data_source" %}
+        <span class="security-label-{{ item.security_label.acronym }} security-label badge rounded-pill"
+              title="{{ item.security_label }}">{{ item.security_label.acronym }}</span>
+      {% elif item.status %}
+        {% include "librarian/components/item_status_icon.html" %}
+      {% endif %}
+    </div>
+  {% endif %}
+</li>

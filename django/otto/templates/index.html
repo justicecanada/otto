@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block page_css %}
+  <style>
+  body {
+    background: var(--bs-light);
+    min-height: 100vh;
+  }
+  </style>
+{% endblock %}
+
+{% block body %}
+
+  <h1 class="text-center display-2 fw-semibold">Otto</h1>
+  <div class="lead fw-medium text-center">
+    <p>{% trans "AI-powered tools to automate legal processes and provide instant insights." %}</p>
+  </div>
+
+  <div class="my-5 alert alert-warning d-flex align-items-center"
+       role="alert">
+    <svg class="flex-shrink-0 bi me-2"
+         width="24"
+         height="24"
+         role="img"
+         aria-label="{% trans 'Warning:' %}">
+      <use xlink:href="#exclamation-triangle-fill" />
+    </svg>
+    <div class="px-3">
+      {% trans "Otto is in preview stage and is not intended to be used in legal proceedings. It is being evaluated by a select group of users at Department of Justice to assess potential risks and improve its safe use. Otto should not replace the advice of a qualified legal professional." %}
+    </div>
+  </div>
+
+  <div id="app-list"
+       class="{% if 'prod' in otto_version %}cols-2{% endif %}">
+    {% for category in categorized_features %}
+      <div class="app-category">
+        <h2 class="fw-light h4 mb-3">{{ category.category_title }}</h2>
+        {% for feature in category.features %}
+          {% include 'components/feature_tile.html' %}
+        {% endfor %}
+        <div class="app-list-spacer mb-4"></div>
+      </div>
+    {% endfor %}
+  </div>
+
+{% endblock %}

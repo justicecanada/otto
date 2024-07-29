@@ -1,0 +1,81 @@
+{
+	"info": {
+		"_postman_id": "b5d0ac19-27cf-4423-96b4-8cbfad429497",
+		"name": "Otto",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Chat API - Library QA",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"justice/jsmith\",\r\n    \"library\": \"Justipedia\",\r\n    \"data_sources\": [\"Charterpedia\"],\r\n    \"user_message\": \"What are the reasonable limits on rights and freedoms according to the Canadian Charter?\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{SERVER_NAME}}/chat/api/library-qa/",
+					"host": [
+						"{{SERVER_NAME}}"
+					],
+					"path": [
+						"chat",
+						"api",
+						"library-qa",
+						""
+					]
+				},
+				"description": "### Chat API - Library QA\n\n**Purpose:**\nThe purpose of this API is to initiate a Q&A chat session within a specified library. It allows users to ask questions and receive answers based on the specified library and optional data sources.\n\n**Endpoint:**\n`POST {{SERVER_NAME}}/chat/api/library-qa/`\n\n**Headers:**\n- `X-VERIFICATION-TOKEN`: A required token to verify the request.\n\n**Request Body:**\nThe API expects the following parameters as part of a `formdata` in the POST request:\n\n- `username` (string): Required. The username of the person making the question and for whom the chat session will be created. The user must already be an authorized user of Otto.\n  - Example: `\"justice/jsmith\"`\n- `library` (string): Required. The name of the library against which the question should be posed.\n  - Example: `\"Corporate\"`\n- `data_sources` (string, JSON array): Optional. A JSON array of data source names against which the question is posed.\n  - Example: `\"[\\\"Pay and Benefits\\\"]\"`\n- `user_message` (string): Required. The question the user is asking against the library.\n  - Example: `\"What is the coverage for dental insurance?\"`\n\n**Expected Response:**\n- **Success (200):**\n  - `status` (string): `\"success\"`\n  - `redirect_url` (string): The URL to the chat page with the specified mode.\n    - Example: `\"https://otto.justice.gc.ca/chat/id/12345?awaiting_response=True\"`\n\n- **Errors:**\n  - `400 Bad Request`:\n    - Missing or invalid parameters (e.g., missing username, library, user_message, or data_sources is not a valid JSON).\n    - Example:\n      ```json\n      {\n        \"status\": \"error\",\n        \"error_code\": \"INVALID_USER\",\n        \"error_en\": \"Missing username\",\n        \"error_fr\": \"Nom d'utilisateur manquant\"\n      }\n      ```\n  - `401 Unauthorized`:\n    - User not found.\n    - Example:\n      ```json\n      {\n        \"status\": \"error\",\n        \"error_code\": \"USER_NOT_FOUND\",\n        \"error_en\": \"User not found\",\n        \"error_fr\": \"Utilisateur non trouvé\"\n      }\n      ```\n  - `403 Forbidden`:\n    - Invalid verification token.\n    - User not authorized to access Otto AI assistant.\n    - Example:\n      ```json\n      {\n        \"status\": \"error\",\n        \"error_code\": \"INVALID_TOKEN\",\n        \"error_en\": \"Invalid verification token\",\n        \"error_fr\": \"Jeton de vérification invalide\"\n      }\n      ```\n  - `404 Not Found`:\n    - Library not found.\n    - Example:\n      ```json\n      {\n        \"status\": \"error\",\n        \"error_code\": \"LIBRARY_NOT_FOUND\",\n        \"error_en\": \"Library not found\",\n        \"error_fr\": \"Bibliothèque non trouvée\"\n      }\n      ```\n  - `400 Bad Request`:\n    - Invalid data sources.\n    - Example:\n      ```json\n      {\n        \"status\": \"error\",\n        \"error_code\": \"DATASOURCE_INVALID\",\n        \"error_en\": \"Invalid data sources\",\n        \"error_fr\": \"Sources de données invalides\"\n      }\n      ```\n\n**Example Request in Postman:**\n```json\n{\n    \"method\": \"POST\",\n    \"header\": [\n        {\n            \"key\": \"X-VERIFICATION-TOKEN\",\n            \"value\": \"demo-token\"\n        }\n    ],\n    \"body\": {\n        \"mode\": \"formdata\",\n        \"formdata\": [\n            {\n                \"key\": \"username\",\n                \"value\": \"justice/jsmith\",\n                \"description\": \"Required: username of the person making the question and for which the chat session will be created; the user must already be an authorized user of Otto.\",\n                \"type\": \"default\"\n            },\n            {\n                \"key\": \"library\",\n                \"value\": \"Justipedia\",\n                \"description\": \"Required: name of the library against which the question should be posed.\",\n                \"type\": \"default\"\n            },\n            {\n                \"key\": \"data_sources\",\n                \"value\": \"[\\\"Charterpedia\\\"]\",\n                \"description\": \"Optional: JSON array of data source names against which the question is posed.\",\n                \"type\": \"default\"\n            },\n            {\n                \"key\": \"user_message\",\n                \"value\": \"What are the reasonable limits on rights and freedoms according to the Canadian Charter?\",\n                \"description\": \"Required: the question the user is asking against the library.\",\n                \"type\": \"default\"\n            }\n        ]\n    },\n    \"url\": {\n        \"raw\": \"{{SERVER_NAME}}/chat/api/library-qa/\",\n        \"host\": [\n            \"{{SERVER_NAME}}\"\n        ],\n        \"path\": [\n            \"chat\",\n            \"api\",\n            \"library-qa\"\n        ]\n    }\n}\n```"
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "key",
+				"value": "X-VERIFICATION-TOKEN",
+				"type": "string"
+			},
+			{
+				"key": "value",
+				"value": "demo-token",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "SERVER_NAME",
+			"value": "https://otto.justice.gc.ca",
+			"type": "default"
+		}
+	]
+}

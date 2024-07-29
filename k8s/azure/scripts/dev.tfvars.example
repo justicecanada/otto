@@ -1,0 +1,4 @@
+app_name     = "Otto" # The name of the app to be deployed
+subscription = "OttoSandbox" # The name of the subscription
+environment  = "Sandbox" # The name of the environment (i.e. Sandbox, Development, Production)
+intended_use = "test" # The intended use of this instance (i.e. dev, uat, pilot, prod)

@@ -1,0 +1,27 @@
+{% load i18n %}
+
+<div class="modal-body"
+     hx-target="#editLibrariesInner"
+     hx-ext="morph"
+     hx-swap="morph:innerHTML"
+     hx-indicator="#librarian-modal-spinner">
+  <div class="row" style="min-height: 300px">
+    <div class="col-2 border-end">{% include "librarian/components/library_list.html" %}</div>
+    <div class="col-2 border-end">{% include "librarian/components/data_source_list.html" %}</div>
+    <div class="col-3 border-end">{% include "librarian/components/document_list.html" %}</div>
+    <div class="col-5">{% include "librarian/components/edit_details.html" %}</div>
+  </div>
+</div>
+{% if poll_url %}
+  {# Start/continue polling #}
+  <div id="libraryModalPoller"
+       hx-get="{{ poll_url }}"
+       hx-trigger="every 2s"
+       hx-ext="morph"
+       hx-swap="morph:innerHTML"
+       hx-target="#editLibrariesInner"
+       hx-swap-oob="true"></div>
+{% else %}
+  {# Stop polling #}
+  <div id="libraryModalPoller" hx-swap-oob="true"></div>
+{% endif %}

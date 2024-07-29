@@ -1,0 +1,33 @@
+{% load i18n %}
+<div id="left-sidebar"
+     class="chat-sidebar bg-light hidden"
+     aria-label='{% trans "Chat history" %}'>
+  <div class="border-end h-100 overflow-hidden">
+    <div class="offcanvas-header d-flex pb-2 p-3">
+      <a class="btn btn-outline-dark fw-semibold w-100 text-start me-3"
+         id="new-chat-button"
+         href="{% url 'chat:new_chat' %}">
+        <i class="bi bi-plus-square me-2"></i>
+        {% trans "New chat" %}
+      </a>
+      <div class="col-auto">
+        <button type="button"
+                class="btn-close"
+                id="close-left-sidebar"
+                aria-controls="left-sidebar"
+                style="margin-top: -4px"
+                aria-label='{% trans "Close" %}'></button>
+      </div>
+    </div>
+    <div class="overflow-y-auto overflow-x-hidden p-3 pt-0"
+         id="chat-history-list">
+      <ul class="list-unstyled my-0" id="chat-list">
+        {% for chat in user_chats %}
+          {% if chat.id %}
+            {% include 'chat/components/chat_list_item.html' %}
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>

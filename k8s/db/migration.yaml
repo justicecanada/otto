@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: django-db-migrations
+  namespace: otto
+spec:
+  ttlSecondsAfterFinished: 100
+  activeDeadlineSeconds: 60
+
+  template:
+    spec:
+      containers:
+      - name: django-migration
+        image: jusdevottoaacr.azurecr.io/otto:latest
+        command: ["python",  "manage.py", "migrate"]
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: otto-configmap
+        env:
+          - name: OTTO_DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: postgrespasswordkey
+        ports:
+          - containerPort: 8000
+        volumeMounts:
+          - name: secrets
+            mountPath: "/mnt/secrets-store"
+            readOnly: true   
+      volumes:
+        - name: secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "azure-keyvault"
+
+      restartPolicy: OnFailure
+  backoffLimit: 15

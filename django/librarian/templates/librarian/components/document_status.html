@@ -1,0 +1,119 @@
+{% load i18n %}
+
+<div id="document-status-{{ document.id }}">
+  <div class="mb-3 row">
+    <div class="col">
+      <h6>{% trans "Document status" %}</h6>
+      <div class="small">
+        {% if document.status == "PENDING" %}
+          {# Grey circle #}
+          <div class="document-status document-status-{{ document.status }}">
+            <i class="bi bi-circle-fill text-secondary small me-1"
+               aria-hidden="true"></i>
+            <span>{% trans 'Not started' %}</span>
+          </div>
+        {% elif document.status == "BLOCKED" %}
+          {# Yellow circle #}
+          <div class="document-status document-status-{{ document.status }}">
+            <i class="bi bi-slash-circle text-warning small me-1" aria-hidden="true"></i>
+            <span>{% trans 'Stopped' %}</span>
+          </div>
+        {% elif document.status == "INIT" %}
+          {# Grey circle #}
+          <div class="document-status document-status-{{ document.status }}">
+            <i class="bi bi-circle text-secondary small me-1" aria-hidden="true"></i>
+            <span>{% trans 'Starting' %}...</span>
+          </div>
+        {% elif document.status == "PROCESSING" %}
+          {# Blue spinner #}
+          <div class="document-status document-status-{{ document.status }}">
+            <span class="me-1">
+              <i class="bi bi-arrow-repeat text-primary small icn-spinner"
+                 aria-hidden="true"></i>
+            </span>
+            <span>
+              {% if document.celery_status_message %}
+                {{ document.celery_status_message }}
+              {% else %}
+                {% trans 'Processing' %}...
+              {% endif %}
+            </span>
+          </div>
+        {% elif document.status == "SUCCESS" %}
+          {# Green checkmark #}
+          <div class="document-status document-status-{{ document.status }}">
+            <i class="bi bi-check-circle-fill text-success small me-1"
+               aria-hidden="true"></i>
+            <span>{% trans 'Success' %}</span>
+          </div>
+        {% elif document.status == "ERROR" %}
+          {# Red exclamation mark #}
+          <div class="document-status document-status-{{ document.status }}">
+            <i class="bi bi-exclamation-circle-fill text-danger small me-1"
+               aria-hidden="true"></i>
+            <span>{% trans 'Error' %}</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+ 
+    <div class="col-auto">
+      {% if document.celery_task_id %}
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary"
+                hx-get="{% url 'librarian:document_stop' document.id %}">{% trans "Stop" %}</button>
+      {% else %}
+        <button type="button"
+                class="btn btn-sm btn-outline-success"
+                hx-get="{% url 'librarian:document_start' document.id %}">{% trans "Re-process" %}</button>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="small">
+    <dl>
+      {% if document.fetched_at %}
+        <dt>{% trans "Last fetched date" %}</dt>
+        <dd>
+          {{ document.fetched_at }}
+        </dd>
+      {% endif %}
+      {% if document.filename %}
+        <dt>{% trans "Filename" %}</dt>
+        <dd>
+          {{ document.filename }}
+        </dd>
+      {% endif %}
+      {% if document.content_type %}
+        <dt>{% trans "Detected content type" %}</dt>
+        <dd>
+          {{ document.content_type }}
+        </dd>
+      {% endif %}
+      {% if document.extracted_title %}
+        <dt>{% trans "Extracted title" %}</dt>
+        <dd>
+          {{ document.extracted_title }}
+        </dd>
+      {% endif %}
+      {% if document.extracted_modified_at %}
+        <dt>{% trans "Extracted modification date" %}</dt>
+        <dd>
+          {{ document.extracted_modified_at }}
+        </dd>
+      {% endif %}
+      {% if document.num_chunks %}
+        <dt>{% trans "Number of chunks" %}</dt>
+        <dd>
+          {{ document.num_chunks }}
+        </dd>
+      {% endif %}
+      {% if document.extracted_text %}
+        <dt>{% trans "Extracted text" %}</dt>
+        <dd>
+          {{ document.truncated_text }}
+        </dd>
+      {% endif %}
+    </dl>
+  </div>
+</div>
