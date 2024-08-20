@@ -1,0 +1,15 @@
+{% comment %}
+Template for updating document list items and, optionally, selected document status.
+{% endcomment %}
+
+{% load i18n %}
+
+{% if selected_document %}
+  {% include "librarian/components/document_status.html" with document=selected_document swap="true" %}
+{% endif %}
+
+{% for document in documents %}
+  {% include "librarian/components/list_item_inner.html" with item=document selected_item=selected_document item_type="document" swap="true" %}
+{% endfor %}
+
+{% include "librarian/components/poller.html" %}

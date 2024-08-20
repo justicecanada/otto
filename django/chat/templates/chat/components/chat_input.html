@@ -7,13 +7,9 @@
           hx-swap="beforeend"
           hx-target="#messages-container"
           class="position-relative">
-      <button id="prompt-form-resize-handle"
-              class="btn btn-none"
-              type="button"
-              tabindex="0">
-        <div class="resize-handle" style="top: -4px;">
-          <span class="visually-hidden">{% trans "Drag or use the up and down arrows to resize." %}</span>
-        </div>
+      <button id="prompt-form-resize-handle" class="btn btn-none" type="button">
+        <i class="bi bi-grip-horizontal"></i>
+        <span class="visually-hidden">{% trans "Drag or use the up and down arrows to resize." %}</span>
       </button>
       <div id="stop-button" class="d-none">
         <button class="btn btn-outline-secondary btn-sm"

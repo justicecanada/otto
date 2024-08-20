@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: container-azm-ms-agentconfig
+  namespace: kube-system
+data:
+  schema-version: v1
+  config-version: ver1
+  log-data-collection-settings: |-
+    [log_collection_settings]
+      [log_collection_settings.stdout]
+        enabled = true
+        exclude_namespaces = []
+        containerlog_schema_version = "v2"
+      [log_collection_settings.stderr]
+        enabled = true
+        exclude_namespaces = []
+        containerlog_schema_version = "v2"
+      [log_collection_settings.env_var]
+        enabled = true
+      [log_collection_settings.enrich_container_logs]
+        enabled = true
+      [log_collection_settings.collect_all_kube_events]
+        enabled = true
+      [log_collection_settings.schema]
+        containerlog_schema_version = "v2"
+      [log_collection_settings.enable_multiline_logs]
+        enabled = "true"
+        stacktrace_languages = ["python", "java"]
+      [log_collection_settings.metadata_collection]
+        enabled = true
+        include_fields = ["podLabels", "podAnnotations", "podUid", "image", "imageID", "imageRepo", "imageTag"]
+
+  prometheus-data-collection-settings: |-
+    [prometheus_data_collection_settings.cluster]
+      interval = "1m"
+      monitor_kubernetes_pods = true
+      
+    [prometheus_data_collection_settings.node]
+      interval = "1m"
+
+  metric_collection_settings: |-
+    [metric_collection_settings.collect_kube_system_pv_metrics]
+      enabled = true
+
+  alertable-metrics-configuration-settings: |-
+    [alertable_metrics_configuration_settings.container_resource_utilization_thresholds]
+      container_cpu_threshold_percentage = 80.0
+      container_memory_rss_threshold_percentage = 80.0
+      container_memory_working_set_threshold_percentage = 80.0
+
+    [alertable_metrics_configuration_settings.pv_utilization_thresholds]
+      pv_usage_threshold_percentage = 75.0
+
+    [alertable_metrics_configuration_settings.job_completion_threshold]
+      job_completion_threshold_time_minutes = 360
+
+  agent-settings: |-
+    [agent_settings.fbit_config]
+      log_flush_interval_secs = "5"
+      tail_mem_buf_limit_megabytes = "20"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otto-configmap
+  namespace: otto
+data:
+
+  ENV: "${DJANGO_ENV}"
+
+  SITE_URL: "https://${HOST_NAME}"
+  CREDENTIAL_TYPE: default
+  DEBUG: "${DJANGO_DEBUG}"
+  LOG_LEVEL: "INFO"
+  CELERY_LOG_LEVEL: "INFO"
+  DEBUG_TOOLBAR: "False"
+  MEDIA_ROOT: "/data/media"
+  STATIC_ROOT: "/data/static"
+
+  DJANGODB_ENGINE: "django.db.backends.postgresql_psycopg2"
+  DJANGODB_NAME: "citus"
+  DJANGODB_USER: "citus"
+
+  VECTORDB_ENGINE: "django.db.backends.postgresql_psycopg2"
+  VECTORDB_HOST: "postgres-vector-service"
+  VECTORDB_NAME: "llama_index"
+  VECTORDB_USER: "postgres"
+
+  AZURE_STORAGE_ACCOUNT_NAME: "${STORAGE_NAME}"
+  AZURE_STORAGE_CONTAINER: "otto"
+  AZURE_KEYVAULT_URL: "https://${KEYVAULT_NAME}.vault.azure.net/"
+  AZURE_OPENAI_ENDPOINT: "https://canadaeast.api.cognitive.microsoft.com/"
+  AZURE_OPENAI_VERSION: "2024-02-01"
+  AZURE_COGNITIVE_SERVICE_ENDPOINT: "https://canadacentral.api.cognitive.microsoft.com"
+  AZURE_COGNITIVE_SERVICE_REGION: "canadacentral"
+
+  DJANGO_SECRET_KEY: "django-secret-key"
+  ENTRA_REDIRECT_URI: "/accounts/login/callback"
+
+  REDIS_HOST: "redis-service"  
+  ENTRA_CLIENT_ID: "${ENTRA_CLIENT_ID}"
+  ENTRA_AUTHORITY: "${ENTRA_AUTHORITY}"

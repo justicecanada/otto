@@ -10,6 +10,8 @@ from django.utils.translation import gettext as _
 
 import markdown
 import tiktoken
+from llama_index.core import ChatPromptTemplate, PromptTemplate
+from llama_index.core.llms import ChatMessage, MessageRole
 from rules.contrib.views import permission_required
 from structlog import get_logger
 
@@ -17,6 +19,20 @@ from chat.utils import llm_response_to_html, sync_generator_to_async
 from otto.utils.decorators import app_access_required, permission_required
 
 from .models import Law
+from .prompts import qa_prompt_instruction_tmpl, system_prompt
+
+TEXT_QA_SYSTEM_PROMPT = ChatMessage(
+    content=system_prompt,
+    role=MessageRole.SYSTEM,
+)
+TEXT_QA_PROMPT_TMPL_MSGS = [
+    TEXT_QA_SYSTEM_PROMPT,
+    ChatMessage(
+        content=qa_prompt_instruction_tmpl,
+        role=MessageRole.USER,
+    ),
+]
+
 
 logger = get_logger(__name__)
 
@@ -128,8 +144,9 @@ def advanced_search_form(request):
     context["act_count"] = Law.objects.filter(type="act").count()
     context["reg_count"] = Law.objects.filter(type="regulation").count()
     context["model_options"] = [
-        {"id": "gpt-4", "name": "GPT-4"},
-        {"id": "gpt-35-turbo", "name": "GPT-3.5"},
+        {"id": "gpt-4o", "name": _("GPT-4o (Global)")},
+        {"id": "gpt-4", "name": _("GPT-4 (Canada)")},
+        {"id": "gpt-35", "name": _("GPT-3.5 (Canada)")},
     ]
     # if settings.GROQ_API_KEY:
     #     context["model_options"] += [
@@ -148,9 +165,15 @@ def answer(request):
     from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
     from llama_index.llms.azure_openai import AzureOpenAI
 
+    additional_instructions = request.GET.get("additional_instructions", "")
+
+    CHAT_TEXT_QA_PROMPT = ChatPromptTemplate(
+        message_templates=TEXT_QA_PROMPT_TMPL_MSGS
+    ).partial_format(additional_instructions=additional_instructions)
+
     # from llama_index.llms.groq import Groq
 
-    model = request.GET.get("model", "gpt-4")
+    model = request.GET.get("model", settings.DEFAULT_CHAT_MODEL)
     max_tokens = int(request.GET.get("context_tokens", 2000))
     trim_redundant = bool(request.GET.get("trim_redundant", False))
     query = urllib.parse.unquote_plus(request.GET.get("query", ""))
@@ -159,10 +182,15 @@ def answer(request):
     # if "llama" in model:
     #     llm = Groq(model=model, api_key=settings.GROQ_API_KEY, temperature=0.1)
     # else:
+    model_name = {
+        "gpt-4o": "gpt-4o",
+        "gpt-4": "gpt-4-turbo-preview",
+        "gpt-35": "gpt-35-turbo",
+    }[model]
     llm = AzureOpenAI(
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=f"{model}-unfiltered",
-        model="gpt-4-turbo-preview" if model == "gpt-4" else model,
+        azure_deployment=model,
+        model=model_name,
         api_version=settings.AZURE_OPENAI_VERSION,
         api_key=settings.AZURE_OPENAI_KEY,
         temperature=0.1,
@@ -239,7 +267,9 @@ def answer(request):
         logger.debug("\n\n\n")
 
         response_synthesizer = CompactAndRefine(
-            service_context=service_context, streaming=True
+            service_context=service_context,
+            streaming=True,
+            text_qa_template=CHAT_TEXT_QA_PROMPT,
         )
         query_suffix = (
             "\nRespond in markdown format. "
@@ -254,25 +284,86 @@ def answer(request):
         cache.delete(f"sources_{query}")
         generator = streaming_response.response_gen
 
+    def process_bold_blocks(text, is_in_bold_block, bold_block):
+        trimmed_text = text.strip()
+        if trimmed_text.startswith("**"):
+            if is_in_bold_block:
+                # End of bold block
+                bold_block += text
+                is_in_bold_block = False
+            else:
+                # Start of a new bold block
+                is_in_bold_block = True
+                bold_block = text
+        else:
+            if is_in_bold_block:
+                bold_block += text
+            else:
+                bold_block = None
+
+        return is_in_bold_block, bold_block
+
+    def format_html_response(full_message, sse_joiner):
+        # Prevent code-format output
+        # NOTE: the first replace is necessary to remove the word "markdown" that
+        # sometimes appears after triple backticks
+        tmp_full_message = full_message.replace("```markdown", "").replace("`", "")
+
+        # Parse Markdown of full_message to HTML
+        message_html = llm_response_to_html(tmp_full_message)
+        message_html_lines = message_html.split("\n")
+        if len(full_message) > 1:
+            formatted_response = (
+                f"data: <div>{sse_joiner.join(message_html_lines)}</div>\n\n"
+            )
+
+        else:
+            formatted_response = None
+
+        return (message_html_lines, formatted_response)
+
     def htmx_sse_response(response_gen):
         # time.sleep(60)
         sse_joiner = "\ndata: "
         full_message = ""
         message_html_lines = []
         try:
+            is_in_bold_block = False
+            bold_block = ""
+
             for text in response_gen:
-                full_message += text
-                # When message has uneven # of '```' then add a closing '```' on a newline
-                tmp_full_message = full_message
-                if full_message.count("```") % 2 == 1:
-                    tmp_full_message = full_message + "\n```"
-                # Parse Markdown of full_message to HTML
-                message_html = llm_response_to_html(tmp_full_message)
-                message_html_lines = message_html.split("\n")
-                if len(full_message) > 1:
-                    yield (
-                        f"data: <div>{sse_joiner.join(message_html_lines)}</div>\n\n"
-                    )
+                is_in_bold_block, bold_block_output = process_bold_blocks(
+                    text, is_in_bold_block, bold_block
+                )
+
+                if bold_block_output is not None:
+                    if is_in_bold_block:
+                        bold_block = bold_block_output
+                    else:
+                        full_message += bold_block_output
+                        bold_block = ""
+
+                elif not is_in_bold_block:
+                    full_message += text
+
+                message_html_lines, formatted_response = format_html_response(
+                    full_message, sse_joiner
+                )
+                if formatted_response is not None:
+                    yield (formatted_response)
+
+            # After the loop, handle any remaining bold block
+            if is_in_bold_block and bold_block:
+                if not bold_block.strip().endswith("**"):
+                    bold_block += "**"
+                if bold_block.strip() == "**":
+                    bold_block = ""
+                full_message += bold_block
+                message_html_lines, formatted_response = format_html_response(
+                    full_message, sse_joiner
+                )
+                if formatted_response is not None:
+                    yield (formatted_response)
         except Exception as e:
             error = str(e)
             full_message = _("An error occurred:") + f"\n```\n{error}\n```"
@@ -332,14 +423,18 @@ def search(request):
         top_k = 25
         # Options for the AI answer
         trim_redundant = True
-        model = "gpt-4"
+        model = "gpt-4o"
         context_tokens = 2000
+        additional_instructions = ""
     else:
         vector_ratio = float(request.POST.get("vector_ratio", 1))
         top_k = int(request.POST.get("top_k", 25))
         trim_redundant = request.POST.get("trim_redundant", "on") == "on"
-        model = request.POST.get("model", "gpt-4")
+        model = request.POST.get("model", settings.DEFAULT_CHAT_MODEL)
         context_tokens = request.POST.get("context_tokens", 2000)
+        additional_instructions = request.POST.get("additional_instructions", "")
+        # Need to escape the instructions so they can be passed in GET parameter
+        additional_instructions = urllib.parse.quote_plus(additional_instructions)
 
         # Search only the selected documents
         doc_id_list = request.POST.getlist("acts") + request.POST.getlist("regs")
@@ -394,8 +489,8 @@ def search(request):
             mode="relative_score",
             llm=AzureOpenAI(
                 azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-                azure_deployment=f"gpt-4-unfiltered",
-                model="gpt-4-turbo-preview",
+                azure_deployment=settings.DEFAULT_CHAT_MODEL,
+                model=settings.DEFAULT_CHAT_MODEL,
                 api_version=settings.AZURE_OPENAI_VERSION,
                 api_key=settings.AZURE_OPENAI_KEY,
                 temperature=0.1,
@@ -428,6 +523,8 @@ def search(request):
         answer_params += f"&model={model}"
     if context_tokens:
         answer_params += f"&context_tokens={context_tokens}"
+    if additional_instructions:
+        answer_params += f"&additional_instructions={additional_instructions}"
 
     context = {
         "sources": [
@@ -448,6 +545,7 @@ def search(request):
         "disable_llm": disable_llm,
         "answer_params": answer_params,
     }
+
     response = render(
         request,
         "laws/search_result.html",

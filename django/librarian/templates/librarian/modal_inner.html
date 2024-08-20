@@ -12,16 +12,5 @@
     <div class="col-5">{% include "librarian/components/edit_details.html" %}</div>
   </div>
 </div>
-{% if poll_url %}
-  {# Start/continue polling #}
-  <div id="libraryModalPoller"
-       hx-get="{{ poll_url }}"
-       hx-trigger="every 2s"
-       hx-ext="morph"
-       hx-swap="morph:innerHTML"
-       hx-target="#editLibrariesInner"
-       hx-swap-oob="true"></div>
-{% else %}
-  {# Stop polling #}
-  <div id="libraryModalPoller" hx-swap-oob="true"></div>
-{% endif %}
+
+{% include "librarian/components/poller.html" %}

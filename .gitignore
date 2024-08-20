@@ -3,6 +3,7 @@
 *.po
 */__pycache__/*
 django/db.sqlite3
+django/celerybeat-schedule
 django/venv/*
 webcrawler/venv/*
 django/staticfiles/*
@@ -19,6 +20,7 @@ otto_test
 otto_test-journal
 laws-lois-xml
 *.rdb
+version.yaml
 
 # Local Terraform directories
 **/.terraform/*

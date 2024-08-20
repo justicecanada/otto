@@ -42,14 +42,12 @@ function handleChatPromptResize(event) {
     case "ArrowUp":
       newHeight = Math.min(originalHeight + 10, chatPromptMaxHeight);
       textarea.style.height = newHeight + "px";
-      textarea.style.minHeight = newHeight + "px";
       resizeOtherElements(newHeight);;
       event.preventDefault();
       break;
     case "ArrowDown":
       newHeight = Math.max(originalHeight - 10, chatPromptMinHeight);
       textarea.style.height = newHeight + "px";
-      textarea.style.minHeight = newHeight + "px";
       event.preventDefault();
       resizeOtherElements(newHeight);;
       break;

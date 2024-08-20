@@ -1,51 +1,41 @@
 {% load i18n %}
 
-{% if item.status == "PENDING" %}
-  {# Grey circle #}
-  <div class="document-status document-status-{{ item.status }}">
+<div class="document-status document-status-{{ item.status }}">
+  {% if item.status == "PENDING" %}
+    {# Grey circle #}
     <i class="bi bi-circle-fill text-secondary small"
        title="{% trans 'Processing status' %}{% trans ':' %} {% trans 'Not started' %}"
        aria-hidden="true"></i>
     <span class="visually-hidden">{% trans 'Processing status' %}{% trans ':' %} {% trans 'Not started' %}</span>
-  </div>
-{% elif item.status == "BLOCKED" %}
-  {# Yellow circle #}
-  <div class="document-status document-status-{{ item.status }}">
+  {% elif item.status == "BLOCKED" %}
+    {# Yellow circle #}
     <i class="bi bi-slash-circle text-warning small"
        title="{% trans 'Processing status' %}{% trans ':' %} {% trans 'Stopped' %}"
        aria-hidden="true"></i>
     <span class="visually-hidden">{% trans 'Processing status' %}{% trans ':' %} {% trans 'Stopped' %}</span>
-  </div>
-{% elif item.status == "INIT" %}
-  {# Grey circle #}
-  <div class="document-status document-status-{{ document.status }}">
+  {% elif item.status == "INIT" %}
+    {# Grey circle #}
     <i class="bi bi-circle text-secondary small"
        title="{% trans 'Processing status' %}{% trans ':' %} {% trans 'Initializing' %}"
        aria-hidden="true"></i>
     <span class="visually-hidden">{% trans 'Initializing' %}</span>
-  </div>
-{% elif item.status == "PROCESSING" %}
-  {# Blue spinner #}
-  <div class="document-status document-status-{{ item.status }}">
+  {% elif item.status == "PROCESSING" %}
+    {# Blue spinner #}
     <i class="bi bi-arrow-repeat text-primary small icn-spinner"
        title="{% trans 'Processing status' %}{% trans ':' %} {% trans 'Processing' %}"
        aria-hidden="true"></i>
     <span class="visually-hidden">{% trans 'Processing status' %}{% trans ':' %} {% trans 'Processing' %}</span>
-  </div>
-{% elif item.status == "SUCCESS" %}
-  {# Green checkmark #}
-  <div class="document-status document-status-{{ item.status }}">
+  {% elif item.status == "SUCCESS" %}
+    {# Green checkmark #}
     <i class="bi bi-check-circle-fill text-success small"
        title="{% trans 'Processing status' %}{% trans ':' %} {% trans 'Success' %}"
        aria-hidden="true"></i>
     <span class="visually-hidden">{% trans 'Processing status' %}{% trans ':' %} {% trans 'Success' %}</span>
-  </div>
-{% elif item.status == "ERROR" %}
-  {# Red exclamation mark #}
-  <div class="document-status document-status-{{ item.status }}">
+  {% elif item.status == "ERROR" %}
+    {# Red exclamation mark #}
     <i class="bi bi-exclamation-circle-fill text-danger small"
        title="{% trans 'Processing status' %}{% trans ':' %} {% trans 'Error' %}"
        aria-hidden="true"></i>
     <span class="visually-hidden">{% trans 'Processing status' %}{% trans ':' %} {% trans 'Error' %}</span>
-  </div>
-{% endif %}
+  {% endif %}
+</div>

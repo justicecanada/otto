@@ -59,16 +59,14 @@ class LibraryDetailForm(forms.ModelForm):
         }
 
     def save(self, commit=True):
-        if self.instance.pk:
-            return super(LibraryDetailForm, self).save(commit=commit)
-        else:
-            # Create a new library and set the created_by field to the user
-            # This will add the user as a library admin role
-            instance = super(LibraryDetailForm, self).save(commit=commit)
+        is_new = not self.instance.pk
+        instance = super(LibraryDetailForm, self).save(commit=commit)
+        if is_new:
+            # Add the user as a library admin role
             LibraryUserRole.objects.create(
                 library=instance, user=self.user, role="admin"
             )
-            return instance
+        return instance
 
 
 class DataSourceDetailForm(forms.ModelForm):
@@ -112,6 +110,7 @@ class DocumentDetailForm(forms.ModelForm):
         fields = ["manual_title", "url", "selector", "data_source", "filename"]
         widgets = {
             "data_source": forms.HiddenInput(),
+            "filename": forms.HiddenInput(),
             "manual_title": forms.TextInput(
                 attrs={"class": "form-control form-control-sm"}
             ),

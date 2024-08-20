@@ -1,0 +1,138 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: staticfiles-pvc
+  namespace: otto
+spec:
+  storageClassName: azurefile
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: otto
+spec:
+  storageClassName: azurefile
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-deployment
+  namespace: otto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django-app
+  template:
+    metadata:
+      labels:
+        app: django-app
+    spec:
+      containers:
+        - name: django-app-container
+          image: ${ACR_NAME}.azurecr.io/otto:latest
+          imagePullPolicy: Always # IfNotPresent in PROD
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: otto-configmap
+          env:
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangosecretkey
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbhostkey
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbpasswordkey
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: vectordbpasswordkey
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: openaiservicekey
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: cognitiveservicekey
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: storageaccountkey
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: entraclientsecretkey
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: secrets
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+            - name: staticfiles-pv-storage
+              mountPath: "/data/static"
+            - name: media-pv-storage
+              mountPath: "/data/media"
+      volumes:
+      - name: secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "azure-keyvault"
+      - name: staticfiles-pv-storage
+        persistentVolumeClaim:
+          claimName: staticfiles-pvc
+      - name: media-pv-storage
+        persistentVolumeClaim:
+          claimName: media-pvc
+                
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-service
+  namespace: otto
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8000
+  selector:
+    app: django-app

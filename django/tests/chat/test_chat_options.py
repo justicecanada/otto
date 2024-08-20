@@ -21,7 +21,6 @@ skip_on_devops_pipeline = pytest.mark.skipif(
 )
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_chat_options(client, all_apps_user):
     user = all_apps_user()

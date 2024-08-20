@@ -49,8 +49,6 @@ def otto_response(request, message_id=None):
         return translate_response(chat, response_message)
     if mode == "qa":
         return qa_response(chat, response_message)
-    elif mode == "document_qa":
-        return document_qa_response(chat, response_message)
     else:
         return error_response(chat, response_message)
 
@@ -72,15 +70,10 @@ def chat_response(chat, response_message, eval=False):
 
     model = chat.options.chat_model
 
-    # Count the tokens in chat_history and upgrade model to 16k if necessary
     tokens = num_tokens_from_string(
         " ".join(message.content for message in chat_history)
     )
-    if tokens > 4096 and tokens <= 16384 and model == "gpt-35-turbo":
-        model = "gpt-35-turbo-16k"
-    elif (tokens > 16384 and model != "gpt-4") or (
-        tokens > 131072 and model == "gpt-4"
-    ):
+    if (tokens > 16384 and model == "gpt-35") or (tokens > 131072):
         # In this case, just return an error
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
@@ -99,7 +92,7 @@ def chat_response(chat, response_message, eval=False):
     temperature = chat.options.chat_temperature
     llm = AzureChatOpenAI(
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=f"{model}-unfiltered",
+        azure_deployment=f"{model}",
         model=model,
         api_version=settings.AZURE_OPENAI_VERSION,
         api_key=settings.AZURE_OPENAI_KEY,
@@ -184,13 +177,19 @@ def summarize_response(chat, response_message):
             logger.error("Invalid URL", url=user_message.text)
             text_to_summarize = user_message.text
 
-        summary = summarize_long_text(
-            text_to_summarize,
-            summary_length,
-            target_language,
-            custom_summarize_prompt,
-            model,
-        )
+        # Check if response text is too short (most likely a website blocking Otto)
+        if len(text_to_summarize.split()) < 35:
+            summary = _(
+                "This website blocks Otto from retrieving text. Try copy & pasting the webpage here."
+            )
+        else:
+            summary = summarize_long_text(
+                text_to_summarize,
+                summary_length,
+                target_language,
+                custom_summarize_prompt,
+                model,
+            )
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(chat, response_message.id, response_str=summary),
@@ -256,20 +255,20 @@ def translate_response(chat, response_message):
     target_language = {"en": "English", "fr": "French"}[language]
     translate_prompt = (
         "Translate the following text to English (Canada):\n"
-        "\n---\nBonjour, comment ça va?"
+        "Bonjour, comment ça va?"
         "\n---\nTranslation: Hello, how are you?\n"
         "Translate the following text to French (Canada):\n"
-        "\n---\nWhat size is the file?\nPlease answer in bytes."
+        "What size is the file?\nPlease answer in bytes."
         "\n---\nTranslation: Quelle est la taille du fichier?\nVeuillez répondre en octets.\n"
         f"Translate the following text to {target_language} (Canada):\n"
-        f"\n---\n{user_message.text}"
+        f"{user_message.text}"
         "\n---\nTranslation: "
     )
 
     gpt35 = AzureChatOpenAI(
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment="gpt-35-turbo-unfiltered",
-        model="gpt-3.5-turbo",
+        azure_deployment=settings.DEFAULT_CHAT_MODEL,
+        model=settings.DEFAULT_CHAT_MODEL,
         api_version=settings.AZURE_OPENAI_VERSION,
         api_key=settings.AZURE_OPENAI_KEY,
         temperature=0.1,
@@ -296,13 +295,21 @@ def qa_response(chat, response_message, eval=False):
     Answer the user's question using a specific vector store table.
     """
     from llama_index.core import ServiceContext, VectorStoreIndex
+    from llama_index.core.prompts import PromptTemplate, PromptType
     from llama_index.core.query_engine import RetrieverQueryEngine
     from llama_index.core.response_synthesizers import CompactAndRefine
     from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
     from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
     from llama_index.vector_stores.postgres import PGVectorStore
 
-    def get_query_engine(vector_store_table, filters, service_context, top_k=5):
+    def get_query_engine(
+        vector_store_table,
+        filters,
+        service_context,
+        top_k=5,
+        qa_prompt_template="{context}\n{query}",
+        vector_weight=0.6,
+    ):
         hybrid_vector_store = PGVectorStore.from_params(
             database=settings.DATABASES["vector_db"]["NAME"],
             host=settings.DATABASES["vector_db"]["HOST"],
@@ -325,6 +332,7 @@ def qa_response(chat, response_message, eval=False):
         response_synthesizer = CompactAndRefine(
             streaming=True,
             service_context=service_context,
+            text_qa_template=qa_prompt_template,
         )
 
         vector_retriever = pg_idx.as_retriever(
@@ -350,7 +358,7 @@ def qa_response(chat, response_message, eval=False):
             num_queries=1,  # set this to 1 to disable query generation
             mode="relative_score",
             use_async=False,
-            retriever_weights=[0.6, 0.4],
+            retriever_weights=[vector_weight, 1 - vector_weight],
             llm=service_context.llm,
         )
 
@@ -362,7 +370,6 @@ def qa_response(chat, response_message, eval=False):
         return query_engine
 
     # Apply filters if we are in qa mode and specific data sources are selected
-    no_documents = False
     data_sources = chat.options.qa_data_sources.all()
     max_data_sources = chat.options.qa_library.data_sources.count()
     print(f"Data sources: {data_sources}, max: {max_data_sources}")
@@ -405,11 +412,11 @@ def qa_response(chat, response_message, eval=False):
         )
     llm = AzureChatOpenAI(
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=f"{model}-unfiltered",
+        azure_deployment=f"{model}",
         model=model,
         api_version=settings.AZURE_OPENAI_VERSION,
         api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.1,
+        temperature=0,
     )
     embed_model = AzureOpenAIEmbedding(
         model="text-embedding-3-large",
@@ -424,8 +431,14 @@ def qa_response(chat, response_message, eval=False):
         llm=llm,
         embed_model=embed_model,
     )
-
-    query_engine = get_query_engine(vector_store_table, filters, service_context, top_k)
+    query_engine = get_query_engine(
+        vector_store_table,
+        filters,
+        service_context,
+        top_k,
+        chat.options.qa_prompt_combined,
+        chat.options.qa_vector_ratio,
+    )
     input = response_message.parent.text
 
     response = query_engine.query(input)
@@ -437,9 +450,7 @@ def qa_response(chat, response_message, eval=False):
             return response_str, response.source_nodes
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
-                chat,
-                response_message.id,
-                response_str=response_str,
+                chat, response_message.id, response_str=response_str
             ),
             content_type="text/event-stream",
         )
@@ -469,45 +480,3 @@ def error_response(chat, response_message):
         ),
         content_type="text/event-stream",
     )
-
-
-def document_qa_response(chat, response_message):
-    """
-    If files were uploaded, add the message to the chat Library as a DataSource.
-    Otherwise, answer the user's question using the chat Library.
-    """
-    user_message = response_message.parent
-    files = user_message.sorted_files if user_message is not None else []
-
-    async def add_files_to_library():
-        yield _("Adding files to the Library...")
-        library, created = await sync_to_async(Library.objects.get_or_create)(
-            chat=chat,
-            created_by=await sync_to_async(lambda: chat.user)(),
-        )
-        if created:
-            logger.info(f"Created Library for chat {chat.id}.")
-        else:
-            logger.info(f"Using existing Library for chat {chat.id}.")
-        ds = await sync_to_async(DataSource.objects.create)(
-            library=library,
-            name=_("Chat upload"),
-        )
-
-        # await sync_to_async(ds.discover_content)()
-        # await sync_to_async(ds.fetch_and_process)(
-        #     force=True, summarize=False, fast=True
-        # )
-        yield f"{len(files)} " + _("new file(s) ready for Q&A.") + "<<END>>"
-
-    if len(files) > 0:
-        return StreamingHttpResponse(
-            streaming_content=htmx_stream(
-                chat,
-                response_message.id,
-                response_replacer=add_files_to_library(),
-            ),
-            content_type="text/event-stream",
-        )
-    else:
-        return qa_response(chat, response_message)

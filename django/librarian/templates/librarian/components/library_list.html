@@ -4,7 +4,7 @@
   <h6 id="libraries-label">{% trans "Libraries" %}</h6>
   <button type="button"
           class="btn btn-sm btn-outline-dark ps-1 mb-3"
-          hx-get="{% url 'librarian:modal_create' item_type='library' %}">
+          hx-get="{% url 'librarian:modal_create_library' %}">
     <i class="bi bi-plus"></i> {% trans "New library" %}
   </button>
   {% if libraries %}

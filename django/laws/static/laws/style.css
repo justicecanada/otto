@@ -78,6 +78,28 @@ body {
   }
 }
 
+.clear-button {
+  position: absolute;
+  right: 48px;
+  top: 0;
+  border: none;
+  font-size: 20px;
+  display: none;
+  color: darkgrey;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.clear-button:focus {
+  background-color: transparent;
+  color: darkgrey;
+}
+
+.clear-button:hover {
+  background-color: transparent;
+  color: black;
+}
+
 button#basic-search-button {
   position: absolute;
   right: 0;
@@ -86,6 +108,7 @@ button#basic-search-button {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   min-width: 48px;
+  height: -webkit-fill-available;
 }
 
 #answer-sse * {
@@ -93,12 +116,18 @@ button#basic-search-button {
 }
 
 #basic-search-input {
-  /* Accomodate the search and clear buttons */
-  padding-right: 3.6rem !important;
+  /* Accommodate the search and clear buttons */
+  padding-right: 5.4rem !important;
+  field-sizing: content;
+  margin-bottom: 24px;
+  resize: none;
 }
 
 #basic-search-input::placeholder {
   font-size: medium;
+  line-height: 2rem;
+  height: 1.8rem;
+  overflow: hidden;
 }
 
 /* max width 1200 */

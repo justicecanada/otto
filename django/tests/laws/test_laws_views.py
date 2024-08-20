@@ -34,7 +34,6 @@ def test_laws_search_form(client, all_apps_user):
     assert "filter" in response.content.decode().lower()
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_laws_search_and_answer(client, all_apps_user):
     client.force_login(all_apps_user())

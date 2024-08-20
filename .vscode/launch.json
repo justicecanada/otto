@@ -180,6 +180,16 @@
             "django": true
         },
         {
+            "name": "Django: Sync Users",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "sync_users",
+            ],
+            "django": true
+        },
+        {
             "name": "Django: Run Server",
             "type": "python",
             "request": "launch",

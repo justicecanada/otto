@@ -1,0 +1,13 @@
+{% if poll_url %}
+  {# Start/continue polling #}
+  <div id="libraryModalPoller"
+       hx-disinherit="*"
+       hx-get="{{ poll_url }}"
+       hx-trigger="every 2s"
+       hx-ext="none"
+       hx-swap="none"
+       hx-swap-oob="true"></div>
+{% else %}
+  {# Stop polling #}
+  <div id="libraryModalPoller" hx-swap-oob="true"></div>
+{% endif %}

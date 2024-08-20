@@ -5,7 +5,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 
 from celery.result import AsyncResult
@@ -39,7 +41,11 @@ def generate_uuid_hex():
 
 class LibraryManager(models.Manager):
     def get_default_library(self):
-        return self.get_queryset().filter(is_public=True).order_by("order").first()
+        try:
+            return self.get_queryset().get(is_default_library=True)
+        except Library.DoesNotExist:
+            logger.error("Default 'Corporate' library not found")
+            return None
 
     def reset_vector_store(self):
         db = settings.DATABASES["vector_db"]
@@ -87,6 +93,7 @@ class Library(models.Model):
     )
     order = models.IntegerField(default=0)
     is_public = models.BooleanField(default=False)
+    is_default_library = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-is_public", "order", "name"]
@@ -94,6 +101,14 @@ class Library(models.Model):
 
     def clean(self):
         self._validate_public_library()
+        # Ensure that there is at most 1 default library
+        if (
+            self.is_default_library
+            and Library.objects.filter(is_default_library=True)
+            .exclude(pk=self.pk)
+            .exists()
+        ):
+            raise ValidationError("There can be only one default library")
         super().clean()
 
     def _validate_public_library(self):
@@ -119,7 +134,7 @@ class Library(models.Model):
 
     @transaction.atomic
     def delete(self, *args, **kwargs):
-        self.reset()
+        self.reset(recreate=False)
         super().delete(*args, **kwargs)
 
     def process_all(self, force=True):
@@ -127,7 +142,7 @@ class Library(models.Model):
             for document in ds.documents.all():
                 document.process()
 
-    def reset(self):
+    def reset(self, recreate=True):
         db = settings.DATABASES["vector_db"]
         connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:5432/{db['NAME']}"
 
@@ -137,8 +152,9 @@ class Library(models.Model):
         session.execute(text(f"DROP TABLE IF EXISTS data_{self.uuid_hex} CASCADE"))
         session.commit()
         session.close()
-        # This will create the vector store table
-        connect_to_vector_store(self.uuid_hex)
+        if recreate:
+            # This will create the vector store table
+            connect_to_vector_store(self.uuid_hex)
 
     @property
     def sorted_data_sources(self):
@@ -323,7 +339,15 @@ class Document(models.Model):
 
     @property
     def citation(self):
-        return self.name
+        return render_to_string(
+            "librarian/components/document_citation.html", {"document": self}
+        )
+
+    @property
+    def href(self):
+        return render_to_string(
+            "librarian/components/document_href.html", {"document": self}
+        )
 
     @property
     def truncated_text(self):
@@ -361,7 +385,7 @@ class Document(models.Model):
             self.status = "ERROR"
             self.save()
             return
-        process_document.delay(self.id)
+        process_document.delay(self.id, get_language())
         self.celery_task_id = "tbd"
         self.status = "INIT"
         self.save()

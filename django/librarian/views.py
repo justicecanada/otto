@@ -1,4 +1,6 @@
 # views.py
+from dataclasses import dataclass
+
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -29,17 +31,11 @@ def get_editable_libraries(user):
     ]
 
 
-# TODO: Permission checking on the requested / posted item!
-# Probably easiest to do by refactoring URLs per-item-type & action.
-# e.g. /modal/library/<int:library_id>/create_data_source/ can use the following:
-# @permission_required("librarian.edit_library", objectgetter(Library, "library_id"))
-# e.g. /modal/library/<int:library_id>/delete/ can use the following:
-# @permission_required("librarian.delete_library", objectgetter(Library, "library_id"))
-# e.g. /modal/data_source/<int:data_source_id>/ can use the following:
-# @permission_required("librarian.edit_data_source", objectgetter(DataSource, "data_source_id"))
-# Each of these views will be very thin, actually just returning this view with different parameters.
-def modal(request, item_type=None, item_id=None, parent_id=None):
+def modal_view(request, item_type=None, item_id=None, parent_id=None):
     """
+    !!! This is not to be called directly, but rather through the wrapper functions
+        which implement permission checking (see below) !!!
+
     This _beastly_ function handles almost all actions in the "Edit libraries" modal.
 
     This includes the initial view (no library selected), and the subsequent views for
@@ -86,6 +82,8 @@ def modal(request, item_type=None, item_id=None, parent_id=None):
                 logger.error("Error updating document:", errors=form.errors)
                 selected_data_source = get_object_or_404(DataSource, id=parent_id)
         elif request.method == "DELETE":
+            if item_id == 1:
+                return HttpResponse(status=400)
             document = get_object_or_404(Document, id=item_id)
             document.delete()
             messages.success(request, _("Document deleted successfully."))
@@ -237,21 +235,22 @@ def modal(request, item_type=None, item_id=None, parent_id=None):
         poll = False
     # We have to construct the poll URL manually (instead of using request.path)
     # because some views, e.g. document_start, return this view from a different URL
-    poll_url = (
-        reverse(
-            "librarian:modal_existing_item",
-            kwargs={
-                "item_type": "document" if selected_document else "data_source",
-                "item_id": (
-                    selected_document.id
-                    if selected_document
-                    else selected_data_source.id
-                ),
-            },
-        )
-        if poll
-        else None
-    )
+    if poll:
+        if selected_document and selected_document.id:
+            poll_url = reverse(
+                "librarian:document_status",
+                kwargs={
+                    "document_id": selected_document.id,
+                    "data_source_id": selected_data_source.id,
+                },
+            )
+        elif selected_document or (selected_data_source and selected_data_source.id):
+            poll_url = reverse(
+                "librarian:data_source_status",
+                kwargs={"data_source_id": selected_data_source.id},
+            )
+    else:
+        poll_url = None
 
     context = {
         "libraries": libraries,
@@ -265,8 +264,110 @@ def modal(request, item_type=None, item_id=None, parent_id=None):
         "document_status": show_document_status,
         "focus_el": focus_el,
         "poll_url": poll_url,
+        "poll_response": "poll" in request.GET,
     }
+    print("poll response:", context["poll_response"])
     return render(request, "librarian/modal_inner.html", context)
+
+
+@permission_required(
+    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
+)
+def poll_status(request, data_source_id, document_id=None):
+    """
+    Polling view for data source status updates
+    Updates the document list in the modal with updated titles / status icons
+    """
+    documents = Document.objects.filter(data_source_id=data_source_id)
+    poll = False
+    try:
+        poll = documents.filter(status__in=["INIT", "PROCESSING"]).exists()
+    except:
+        poll = False
+    poll_url = request.path if poll else None
+
+    document = Document.objects.get(id=document_id) if document_id else None
+    return render(
+        request,
+        "librarian/components/poll_update.html",
+        {"documents": documents, "poll_url": poll_url, "selected_document": document},
+    )
+
+
+def modal_library_list(request):
+    return modal_view(request)
+
+
+def modal_create_library(request):
+    if request.method == "POST":
+        is_public = "is_public" in request.POST
+        if is_public and not request.user.has_perm("librarian.manage_public_libraries"):
+            return HttpResponse(status=403)
+    return modal_view(request, item_type="library")
+
+
+@permission_required("librarian.edit_library", objectgetter(Library, "library_id"))
+def modal_edit_library(request, library_id):
+    if request.method == "POST":
+        is_public = "is_public" in request.POST
+        if is_public and not request.user.has_perm("librarian.manage_public_libraries"):
+            return HttpResponse(status=403)
+    return modal_view(request, item_type="library", item_id=library_id)
+
+
+@permission_required("librarian.delete_library", objectgetter(Library, "library_id"))
+def modal_delete_library(request, library_id):
+    return modal_view(request, item_type="library", item_id=library_id)
+
+
+@permission_required("librarian.edit_library", objectgetter(Library, "library_id"))
+def modal_create_data_source(request, library_id):
+    return modal_view(request, item_type="data_source", parent_id=library_id)
+
+
+@permission_required(
+    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
+)
+def modal_edit_data_source(request, data_source_id):
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+@permission_required(
+    "librarian.delete_data_source", objectgetter(DataSource, "data_source_id")
+)
+def modal_delete_data_source(request, data_source_id):
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+@permission_required(
+    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
+)
+def modal_create_document(request, data_source_id):
+    return modal_view(request, item_type="document", parent_id=data_source_id)
+
+
+@permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
+def modal_edit_document(request, document_id):
+    return modal_view(request, item_type="document", item_id=document_id)
+
+
+@permission_required("librarian.delete_document", objectgetter(Document, "document_id"))
+def modal_delete_document(request, document_id):
+    return modal_view(request, item_type="document", item_id=document_id)
+
+
+@permission_required(
+    "librarian.manage_library_users", objectgetter(Library, "library_id")
+)
+def modal_manage_library_users(request, library_id):
+    return modal_view(request, item_type="library_users", item_id=library_id)
+
+
+@dataclass
+class LibrarianTempObject:
+    id: int = None
+    name: str = ""
+    temp: bool = True
 
 
 def create_temp_object(item_type):
@@ -278,11 +379,7 @@ def create_temp_object(item_type):
         "data_source": _("Unsaved data source"),
         "library": _("Unsaved library"),
     }
-    return {
-        "id": None,
-        "name": temp_names[item_type],
-        "temp": True,
-    }
+    return LibrarianTempObject(id=None, name=temp_names[item_type], temp=True)
 
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
@@ -290,7 +387,7 @@ def document_start(request, document_id):
     # Initiate celery task
     document = get_object_or_404(Document, id=document_id)
     document.process()
-    return modal(request, item_type="document", item_id=document_id)
+    return modal_view(request, item_type="document", item_id=document_id)
 
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
@@ -298,7 +395,7 @@ def document_stop(request, document_id):
     # Initiate celery task
     document = get_object_or_404(Document, id=document_id)
     document.stop()
-    return modal(request, item_type="document", item_id=document_id)
+    return modal_view(request, item_type="document", item_id=document_id)
 
 
 @permission_required(
@@ -320,4 +417,18 @@ def upload(request, data_source_id):
         document.process()
     # Update the modal with the new documents
     request.method = "GET"
-    return modal(request, item_type="data_source", item_id=data_source_id)
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+@permission_required(
+    "librarian.download_document", objectgetter(Document, "document_id")
+)
+def download_document(request, document_id):
+    logger.info("Downloading file for QA document", document_id=document_id)
+    document = get_object_or_404(Document, pk=document_id)
+    file_obj = document.file
+    file = file_obj.file
+    # Download the file, don't display it
+    response = HttpResponse(file, content_type=file_obj.content_type)
+    response["Content-Disposition"] = f"attachment; filename={document.filename}"
+    return response

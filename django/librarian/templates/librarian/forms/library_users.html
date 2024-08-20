@@ -1,8 +1,10 @@
 {% load i18n %}
 {% load rules %}
 
-<form hx-post="{% url 'librarian:modal_existing_item' 'library_users' form.library.id %}"
-      id="library-users-form">
+{% url 'librarian:modal_manage_library_users' library_id=form.library.id as form_action_url %}
+{% url 'librarian:modal_edit_library' library_id=form.library.id as cancel_url %}
+
+<form hx-post="{{ form_action_url }}" id="library-users-form">
   {{ form.non_field_errors }}
   <h6>{% trans "Edit library users - enter Justice email" %}</h6>
   {% csrf_token %}
@@ -30,6 +32,6 @@
     <button type="submit" class="btn btn-sm btn-primary me-1">{% trans "Save users" %}</button>
     <button type="button"
             class="btn btn-sm btn-outline-secondary"
-            hx-get="{% url 'librarian:modal_existing_item' 'library' form.library.id %}">{% trans "Cancel" %}</button>
+            hx-get="{{ cancel_url }}">{% trans "Cancel" %}</button>
   </div>
 </form>

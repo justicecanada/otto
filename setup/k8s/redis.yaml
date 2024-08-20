@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  labels:
+    deployment: redis
+  namespace: otto
+spec:
+  selector:
+    matchLabels:
+      pod: redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        pod: redis
+    spec:
+      containers:
+      - name: redis
+        # TODO: probably best to use a targeted version
+        image: redis:7.0.11-bullseye        
+        ports:
+        - containerPort: 6379
+        # TODO: add resource limits
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service  
+  namespace: otto
+spec:
+  selector:
+    pod: redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379

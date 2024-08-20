@@ -10,7 +10,7 @@
   {% else %}
     <button type="button"
             class="btn btn-sm btn-outline-dark ps-1 mb-3"
-            hx-get="{% url 'librarian:modal_create_from' item_type='data_source' parent_id=selected_library.id %}">
+            hx-get="{% url 'librarian:modal_create_data_source' library_id=selected_library.id %}">
       <i class="bi bi-plus"></i> {% trans "New data source" %}
     </button>
     {% if data_sources %}

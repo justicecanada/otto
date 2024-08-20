@@ -5,15 +5,3 @@
     {% include "librarian/components/list_item.html" %}
   {% endfor %}
 </ul>
-<script>
-document.querySelectorAll('[aria-labelledby="{{ listbox_label }}"] li').forEach(li => {
-  li.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      li.click();
-    }
-  });
-  li.addEventListener('click', () => {
-    selectListItem(li);
-  });
-});
-</script>

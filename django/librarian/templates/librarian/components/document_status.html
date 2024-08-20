@@ -1,6 +1,7 @@
 {% load i18n %}
 
-<div id="document-status-{{ document.id }}">
+<div id="document-status-{{ document.id }}"
+     {% if swap %}hx-swap-oob="true"{% endif %}>
   <div class="mb-3 row">
     <div class="col">
       <h6>{% trans "Document status" %}</h6>

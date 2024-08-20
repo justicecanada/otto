@@ -1,8 +1,9 @@
 {% load i18n %}
+
 <li class="{% if chat.current_chat %} current{% endif %}">
   <div class="row border-bottom py-2 flex-nowrap">
     <div class="col-auto pe-0">{% include 'chat/components/chat_security_label.html' %}</div>
-    <div class="col ps-2 pe-0">
+    <div class="col ps-2 pe-2 overflow-x-hidden">
       <a href="{% url 'chat:chat' chat_id=chat.id %}"
          class="text-dark text-decoration-none">
         {% if chat.current_chat %}
@@ -13,10 +14,6 @@
       </a>
     </div>
   </div>
-  <button class="btn btn btn-outline delete-chat"
-          hx-delete="{% url 'chat:delete_chat' chat_id=chat.id current_chat=chat.current_chat %}"
-          hx-target="closest li">
-    <span class="visually-hidden">{% trans "Delete chat" %}</span>
-    <i class="bi bi-trash"></i>
-  </button>
+  {% include 'chat/components/chat_list_item_menu.html' %}
+ 
 </li>

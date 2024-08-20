@@ -232,8 +232,8 @@ def document_summary(content):
 
     llm = AzureChatOpenAI(
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment="gpt-35-turbo-unfiltered",
-        model="gpt-3.5-turbo",
+        azure_deployment=settings.DEFAULT_CHAT_MODEL,
+        model=settings.DEFAULT_CHAT_MODEL,
         api_version=settings.AZURE_OPENAI_VERSION,
         api_key=settings.AZURE_OPENAI_KEY,
         temperature=0.1,
@@ -251,8 +251,8 @@ def document_title(content):
 
     llm = AzureChatOpenAI(
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment="gpt-35-turbo-unfiltered",
-        model="gpt-3.5-turbo",
+        azure_deployment=settings.DEFAULT_CHAT_MODEL,
+        model=settings.DEFAULT_CHAT_MODEL,
         api_version=settings.AZURE_OPENAI_VERSION,
         api_key=settings.AZURE_OPENAI_KEY,
         temperature=0.1,
@@ -337,7 +337,7 @@ def _convert_html_to_markdown(
 ):
     import html2text
 
-    model = "gpt-4"
+    model = settings.DEFAULT_CHAT_MODEL
 
     ## Keeping this here for posterity, but it didn't work well in experiments
     ## Used https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=4 as example:

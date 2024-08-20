@@ -2644,8 +2644,8 @@
         "fr_auto": "\n<strong>Traduire le</strong> texte d’entrée ou les documents téléchargés de n’importe quelle langue en français ou en anglais.\n            Il prend en charge divers formats de documents tels que PDF, Word et PowerPoint, et s’efforce de maintenir la structure d’origine de vos documents. Les utilisateurs ont également la possibilité de saisir du texte libre pour la traduction.\n          "
     },
     "\n            <strong>Q&A</strong> provides answers based on Justice documents. Create or select your own document libraries from the settings sidebar.\n          ": {
-        "fr": "",
-        "fr_auto": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents de justice. Créez ou sélectionnez vos propres bibliothèques de documents dans la barre latérale des paramètres.\n          "
+        "fr": "\n<strong>Questions et réponses</strong> fournit des réponses basées sur des documents de justice. Créez ou sélectionnez vos propres bibliothèques de documents dans la barre latérale des paramètres.\n          ",
+        "fr_auto": "\n<strong>Questions et réponses</strong> fournit des réponses basées sur des documents de justice. Créez ou sélectionnez vos propres bibliothèques de documents dans la barre latérale des paramètres.\n          "
     },
     "While the system implements guardrails against inaccurate information, users should verify answers with the provided sources due to the potential for inaccuracies. Use responsibly and at your own discretion.": {
         "fr": "",
@@ -3054,5 +3054,165 @@
     "Unsaved library": {
         "fr": "",
         "fr_auto": "Bibliothèque non enregistrée"
+    },
+    "Rename": {
+        "fr": "",
+        "fr_auto": "Renommer"
+    },
+    "Edit chat title": {
+        "fr": "",
+        "fr_auto": "Modifier le titre du chat"
+    },
+    "\n      Uploaded %(num_files)s file%(s)s\n    ": {
+        "fr": "",
+        "fr_auto": "\n      Uploaded %(num_files)s file%(s)s\n    "
+    },
+    "for translation:": {
+        "fr": "",
+        "fr_auto": "pour la traduction :"
+    },
+    "for summarization:": {
+        "fr": "",
+        "fr_auto": "à des fins de résumé :"
+    },
+    "Fetching URL...": {
+        "fr": "",
+        "fr_auto": "Extraction de l’URL..."
+    },
+    "Reading file...": {
+        "fr": "",
+        "fr_auto": "Lecture du fichier..."
+    },
+    "Extracting text...": {
+        "fr": "",
+        "fr_auto": "Extraction de texte..."
+    },
+    "Adding to library...": {
+        "fr": "",
+        "fr_auto": "Ajouter à la bibliothèque..."
+    },
+    "This website blocks Otto from retrieving text. Try copy & pasting the webpage here.": {
+        "fr": "",
+        "fr_auto": "Ce site Web empêche Otto de récupérer du texte. Essayez de copier et coller la page Web ici."
+    },
+    "You are a general-purpose AI chatbot. You follow these rules:\n\n1. Your name is 'Otto', an AI who works for the Department of Justice Canada.\n\n2. If the user asks any question regarding Canada's laws and regulations, you must inform them of the [Legislation search app](/laws/), a tool in Otto built to be better suited for finding relevant and accurate laws and regulations in Canada. Make sure to mention the tool at the beginning of your response and in the form of a markdown link.3. You do not have access to the internet or other knowledge bases. If you are asked about very specific facts, especially one about the Government of Canada or laws, you always caveat your response, e.g., 'I am a pre-trained AI and do not have access to the internet, so my answers might not be correct. Based on my training data, I expect that...'\n\n4. If you are asked a question about Department of Justice or other Government of Canada / HR policies, you inform users of Otto's 'Q&A' mode which can provide more accurate information.\n\n5. You answer in markdown format to provide clear and readable responses.\n\n": {
+        "fr": "Vous êtes un chatbot IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de [l’application de recherche Législation](/laws/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. Assurez-vous de mentionner l’outil au début de votre réponse et sous la forme d’un lien de démarque.3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Si on vous pose une question sur le ministère de la Justice ou d’autres politiques du gouvernement du Canada / RH, vous informez les utilisateurs du mode « Q&A » d’Otto qui peut fournir des informations plus précises.\n\n5. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.\n\n",
+        "fr_auto": "Vous êtes un chatbot IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de [l’application de recherche Législation](/laws/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. Assurez-vous de mentionner l’outil au début de votre réponse et sous la forme d’un lien de démarque.3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Si on vous pose une question sur le ministère de la Justice ou d’autres politiques du gouvernement du Canada / RH, vous informez les utilisateurs du mode « Q&A » d’Otto qui peut fournir des informations plus précises.\n\n5. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.\n\n"
+    },
+    "GPT-4o (Global)": {
+        "fr": "",
+        "fr_auto": "GPT-4o (Global)"
+    },
+    "GPT-4 (Canada)": {
+        "fr": "",
+        "fr_auto": "GPT-4 (Canada)"
+    },
+    "GPT-3.5 (Canada)": {
+        "fr": "",
+        "fr_auto": "GPT-3.5 (Canada)"
+    },
+    "Context information from multiple sources is below.\n---------------------\n{context_str}\n---------------------\n": {
+        "fr": "",
+        "fr_auto": "Des informations contextuelles provenant de plusieurs sources sont ci-dessous.\n---------------------\n{context_str}\n---------------------\n"
+    },
+    "Given the information from multiple sources and not prior knowledge, answer the query in markdown format with liberal use of **bold**.\n\nOutput format:\n\nI found the following information:\n\n* <supporting direct quote> - <source link or filename>\n...\n<succinct answer to question>\nIf you can't find the answer in the sources, just say so. Don't try to provide irrelevant references or made up answers.": {
+        "fr": "Compte tenu de l’information provenant de sources multiples et non de connaissances préalables, répondez à la requête en format de démarque avec l’utilisation libérale de **bold**.\n\nFormat de sortie :\n\nJ’ai trouvé les informations suivantes :\n\n* <citation directe à l'appui> - <lien à source ou nom de fichier>\n...\n<succinct réponse à la question>\nSi vous ne trouvez pas la réponse dans les sources, dites-le simplement. N’essayez pas de fournir des références non pertinentes ou des réponses inventées.",
+        "fr_auto": "Compte tenu de l’information provenant de sources multiples et non de connaissances préalables, répondez à la requête en format de démarque avec l’utilisation libérale de **bold**.\n\nFormat de sortie :\n\nJ’ai trouvé les informations suivantes :\n\n* <citation directe à l'appui> - <lien à source ou nom de fichier>\n...\n<succinct réponse à la question>\nSi vous ne trouvez pas la réponse dans les sources, dites-le simplement. N’essayez pas de fournir des références non pertinentes ou des réponses inventées."
+    },
+    "\n---------------------\nQuery: {query_str}\nAnswer: ": {
+        "fr": "",
+        "fr_auto": "\n---------------------\nRequête : {query_str}\nRéponse : "
+    },
+    "Open link in new tab": {
+        "fr": "",
+        "fr_auto": "Ouvrir le lien dans le nouvel onglet"
+    },
+    "Question answering prompt": {
+        "fr": "",
+        "fr_auto": "Invite de réponse aux questions"
+    },
+    "You are an expert Q&A system that is trusted around the world.\nAlways answer the query using the provided context information, and not prior knowledge.": {
+        "fr": "",
+        "fr_auto": "Vous êtes un système de questions et réponses expert qui fait confiance dans le monde entier.\nRépondez toujours à la question à l’aide des informations contextuelles fournies, et non des connaissances préalables."
+    },
+    "CONTEXT INFORMATION:\n--------------------\n{context_str}\n--------------------\nINSTRUCTIONS:\n{pre_instructions}\n--------------------\nQuery: {query_str}\n{post_instructions}\nAnswer:": {
+        "fr": "",
+        "fr_auto": "RENSEIGNEMENTS SUR LE CONTEXTE :\n--------------------\n{context_str}\n--------------------\nINSTRUCTIONS :\n{pre_instructions}\n--------------------\nRequête : {query_str}\n{post_instructions}\nRéponse :"
+    },
+    "Given the information from multiple sources and not prior knowledge, answer the query in markdown format with liberal use of **bold**.\nOutput format:\n\nI found the following information:\n\n* <supporting direct quote> - <source link or filename>\n...\n<succinct answer to question>\n\nIf you can't find the answer in the sources, just say so. Don't try to provide irrelevant references or made up answers.": {
+        "fr": "",
+        "fr_auto": "Compte tenu de l’information provenant de sources multiples et non de connaissances préalables, répondez à la requête en format de démarque avec l’utilisation libérale de **bold**.\nFormat de sortie :\n\nJ’ai trouvé les informations suivantes :\n\n* <supporting direct quote> - lien <source ou nom de fichier>\n...\n<succinct réponse à la question>\n\nSi vous ne trouvez pas la réponse dans les sources, dites-le simplement. N’essayez pas de fournir des références non pertinentes ou des réponses inventées."
+    },
+    "Show all...": {
+        "fr": "",
+        "fr_auto": "Montrez tout..."
+    },
+    "Multiple relevant data sources found.": {
+        "fr": "",
+        "fr_auto": "Plusieurs sources de données pertinentes ont été trouvées."
+    },
+    "Edit advanced settings and prompts": {
+        "fr": "",
+        "fr_auto": "Modifier les paramètres avancés et les invites"
+    },
+    "Advanced Q&A settings": {
+        "fr": "",
+        "fr_auto": "Paramètres avancés de questions et réponses"
+    },
+    "Order sources by": {
+        "fr": "",
+        "fr_auto": "Commander les sources par"
+    },
+    "Relevance (score)": {
+        "fr": "",
+        "fr_auto": "Pertinence (cote)"
+    },
+    "Reading order": {
+        "fr": "",
+        "fr_auto": "Ordre de lecture"
+    },
+    "Answer granularity": {
+        "fr": "",
+        "fr_auto": "Granularité de réponse"
+    },
+    "Combine all sources": {
+        "fr": "",
+        "fr_auto": "Combiner toutes les sources"
+    },
+    "Answer for each source": {
+        "fr": "",
+        "fr_auto": "Réponse pour chaque source"
+    },
+    "Remove irrelevant sources": {
+        "fr": "",
+        "fr_auto": "Supprimer les sources non pertinentes"
+    },
+    "Rewrite queries for search": {
+        "fr": "",
+        "fr_auto": "Réécrire les requêtes pour la recherche"
+    },
+    "(Optional) Define AI model's role, background information, rules to follow, examples.": {
+        "fr": "",
+        "fr_auto": "(Facultatif) Définissez le rôle du modèle d’IA, les informations de fond, les règles à suivre, les exemples."
+    },
+    "Pre-query instructions": {
+        "fr": "",
+        "fr_auto": "Instructions préalables à la requête"
+    },
+    "(Recommended) What model should with context and query, formatting instructions.": {
+        "fr": "",
+        "fr_auto": "(Recommandé) Quel modèle devrait avec le contexte et la requête, les instructions de formatage."
+    },
+    "Post-query instructions": {
+        "fr": "",
+        "fr_auto": "Instructions post-requête"
+    },
+    "(Optional) Final reminders of desired behaviour. Keep this short.": {
+        "fr": "",
+        "fr_auto": "(Facultatif) Derniers rappels du comportement souhaité. Restez bref."
+    },
+    "Modify/add users": {
+        "fr": "",
+        "fr_auto": "Modifier/ajouter des utilisateurs"
     }
 }
