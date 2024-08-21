@@ -2,6 +2,8 @@
 
 source setup_env.sh
 
+cd k8s
+
 # Check if the image exists
 export IMAGE_EXISTS=$(
     az acr repository show-tags \
@@ -48,20 +50,20 @@ echo "Waiting for NGINX Ingress Controller to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/ingress-nginx-controller -n ingress-nginx
 
 # Apply the namespace for Otto
-kubectl apply -f /workspace/k8s/namespace.yaml
+kubectl apply -f namespace.yaml
 
 # Apply the Cluster Issuer for Let's Encrypt which will automatically provision certificates for the Ingress resources
-kubectl apply -f /workspace/k8s/letsencrypt-cluster-issuer.yaml
+kubectl apply -f letsencrypt-cluster-issuer.yaml
 
 # Apply the Kubernetes resources related to Otto, substituting environment variables where required
-envsubst < /workspace/k8s/ingress.yaml | kubectl apply -f -
-envsubst < /workspace/k8s/configmap.yaml | kubectl apply -f -
-envsubst < /workspace/k8s/secrets.yaml | kubectl apply -f -
-envsubst < /workspace/k8s/storageclass.yaml | kubectl apply -f -
-envsubst < /workspace/k8s/vectordb.yaml | kubectl apply -f -
-envsubst < /workspace/k8s/django.yaml | kubectl apply -f -
-envsubst < /workspace/k8s/redis.yaml | kubectl apply -f -
-envsubst < /workspace/k8s/celery.yaml | kubectl apply -f -
+envsubst < ingress.yaml | kubectl apply -f -
+envsubst < configmap.yaml | kubectl apply -f -
+envsubst < secrets.yaml | kubectl apply -f -
+envsubst < storageclass.yaml | kubectl apply -f -
+envsubst < vectordb.yaml | kubectl apply -f -
+envsubst < django.yaml | kubectl apply -f -
+envsubst < redis.yaml | kubectl apply -f -
+envsubst < celery.yaml | kubectl apply -f -
 
 # Function to check if all pods are ready
 check_pods_ready() {
