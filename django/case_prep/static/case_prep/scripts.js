@@ -155,7 +155,9 @@ $(document).ready(function () {
       contentType: 'application/json',
       success: function (data) {
         console.log(data);
-        tr.remove();
+        if (tr.closest('tbody').length) {
+          tr.remove();
+        }
       },
       error: function (error) {
         console.error('Error:', error);
@@ -166,19 +168,25 @@ $(document).ready(function () {
   // Event delegation for document visibility toggle
   $(document).on('click', '.document-hide-button', function () {
     const button = $(this);
-    const documentId = button.data('id');
-    const icon = button.find('i');
-
+    // const documentId = button.data('id');
+    // const icon = button.find('i');
+    const documentIds = getSelectedDocuments();
     $.ajax({
       url: button.data('toggle-url'),  // Accessing the toggle URL from data attribute
       type: 'POST',
       headers: {
         'X-CSRFToken': csrfToken
       },
-      data: JSON.stringify({document_id: documentId}),
+      data: JSON.stringify({selected_documents: documentIds}), //document_id: documentId}),
       contentType: 'application/json',
       success: function (data) {
-        icon.toggleClass('bi-eye-slash bi-eye');
+        //icon.toggleClass('bi-eye-slash bi-eye');
+        alert(data.message);
+        // Optionally, update the icons for the selected documents
+        documentIds.forEach(id => {
+          const icon = $(`tr[data-id="${id}"]`).find('i');
+          icon.toggleClass('bi-eye-slash bi-eye');
+        });
       },
       error: function (error) {
         console.error('Error:', error);
@@ -280,3 +288,125 @@ $(document).ready(function () {
   });
 
 });
+$(document).on('click', '[data-bs-target="#summarizationModal"]', function () {
+  const documentId = $(this).data('id');
+  $('#summarizationModal').data('document-id', documentId);
+});
+
+$(document).on('click', '#summarizeForm button[type="submit"]', function (e) {
+  e.preventDefault();
+  const form = $('#summarizeForm');
+  const documentId = $('#summarizationModal').data('document-id');
+
+  const requestData = {
+    document_id: documentId,
+    length: form.find('select[name="length"]').val(),
+    target_language: form.find('select[name="target_language"]').val()
+  };
+
+  console.log('Sending request data:', requestData);  // Add this line for debugging
+
+  $.ajax({
+    url: '/case_prep/summarize_feature/',
+    type: 'POST',
+    headers: {
+      'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+      'Content-Type': 'application/json'
+    },
+    data: JSON.stringify(requestData),
+    beforeSend: function () {
+      // Show "Result loading..." message
+      $('#summaryResult').html('Summary loading...');
+      // Hide the generate button and show the loading button
+      $('#generateButton').hide();
+      $('#loadingButton').show();
+    },
+    success: function (data) {
+      console.log('Summarization successful:', data);
+      $('#summaryResult').html('Summary Document Created!');   //data.summarized_text);
+
+      // Hide the loading button and show the generate button
+      $('#loadingButton').hide();
+      $('#generateButton').show();
+    },
+    error: function (error) {
+      console.error('Summarization error:', error);
+      // Hide the loading button and show the generate button
+      $('#loadingButton').hide();
+      $('#generateButton').show();
+    }
+  });
+});
+$(document).on('click', '#closeButton', function () {
+  console.clear();
+});
+
+
+$(document).on('click', '[data-bs-target="#translationModal"]', function () {
+  const documentId = $(this).data('id');
+  $('#translationModal').data('document-id', documentId);
+});
+
+$(document).on('click', '#translateForm button[type="submit"]', function (e) {
+  e.preventDefault();
+  const form = $('#translateForm');
+  const documentId = $('#translationModal').data('document-id');
+
+  const requestData = {
+    document_id: documentId,
+    target_language: form.find('select[name="target_language"]').val()
+  };
+
+  console.log('Sending request data:', requestData);  // Add this line for debugging
+  // Show the loading button and hide the generate button
+
+
+  $.ajax({
+    url: '/case_prep/translate_feature/',
+    type: 'POST',
+    headers: {
+      'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
+      'Content-Type': 'application/json'
+    },
+    data: JSON.stringify(requestData),
+    beforeSend: function () {
+      // Show "Result loading..." message
+      $('#translateResult').html('Translation loading...');
+      // Hide the generate button and show the loading button
+      $('#generateButton').hide();
+      $('#loadingButton').show();
+    },
+    success: function (data) {
+      console.log('Translation successful:', data);
+      $('#translateResult').html('Translation Document Created!'); //data.translated_text);
+      // Hide the loading button and show the generate button
+      $('#loadingButton').hide();
+      $('#generateButton').show();
+    },
+    error: function (error) {
+      console.error('Translation error:', error);
+      $('#loadingButton').hide();
+      $('#generateButton').show();
+    }
+  });
+});
+
+// function toggleSelectAll(source) {
+//   checkboxes = document.getElementsByName('selected_documents');
+//   for (var i = 0, n = checkboxes.length; i < n; i++) {
+//     checkboxes[i].checked = source.checked;
+//   }
+// }
+function toggleSelectAll(source) {
+  const checkboxes = document.querySelectorAll('tbody input[name="selected_documents"]');
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = source.checked;
+  });
+}
+function getSelectedDocuments() {
+  const selectedDocuments = [];
+  $('input[name="selected_documents"]:checked').each(function () {
+    selectedDocuments.push($(this).data('document-id'));
+  });
+  return selectedDocuments;
+}

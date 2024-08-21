@@ -33,6 +33,11 @@ urlpatterns = [
         name="download_document",
     ),
     path(
+        "download_documents/",
+        views.download_documents,
+        name="download_documents",
+    ),
+    path(
         "toggle_document_visibility/",
         views.toggle_document_visibility,
         name="toggle_document_visibility",
@@ -47,4 +52,10 @@ urlpatterns = [
         views.upvote_feature,
         name="upvote_feature",
     ),
+    path(
+        "summarize_feature/",
+        views.summarize_feature,
+        name="summarize_feature",
+    ),
+    path("translate_feature/", views.translate_feature, name="translate_feature"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

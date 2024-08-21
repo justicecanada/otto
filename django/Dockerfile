@@ -2,7 +2,7 @@ FROM python:3.11-slim-bullseye
 
 WORKDIR /otto
 
-RUN apt-get update && apt-get install -y postgresql-client poppler-utils
+RUN apt-get update && apt-get install -y postgresql-client poppler-utils tesseract-ocr
 
 COPY requirements*.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check --no-cache-dir install \

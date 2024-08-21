@@ -1,85 +1,121 @@
 {% load i18n %}
 
 {% if documents %}
-  <table class="table">
-    <thead>
-      <tr>
-        <th style="width: 40px;"></th>
-        <th>{% trans "Document Name" %}</th>
-        <th style="width: 100px;">{% trans "Date" %}</th>
-        <!-- Fixed width for "Created At" column -->
-        <th style="width: 120px;">{% trans "Actions" %}</th>
-        <!-- Fixed width for "Actions" column -->
-      </tr>
-    </thead>
-    <tbody id="sortable">
-      {% for document in documents %}
-        <tr data-id="{{ document.id }}"
-            data-delete-url="{% url 'case_prep:delete_document' %}">
-          <td class="drag-handle">&#9776;</td>
-          <td>
-            <!-- Editable field -->
-            <div class="d-flex align-items-center">
-              <textarea rows="1"
-                        class="form-control document-name-input"
-                        style="resize: vertical;
-                               width: auto;
-                               flex-grow: 1">{{ document.name }}</textarea>
-            </div>
-            <small class="text-muted ms-2">Original: {{ document.original_name }}</small>
-          </td>
-          <td class="text-nowrap">
-            <input type="date"
-                   class="form-control"
-                   value="{{ document.date|date:'Y-m-d' }}">
-          </td>
-          <td class="text-nowrap">
-            <a href="{% url 'case_prep:download_document' document.id %}"
-               class="btn btn-outline-primary"
-               title="{% trans 'Download Document' %}">
-              <i class="bi bi-download"></i> <!-- Download icon -->
-            </a>
-            <!-- Hide/unhide toggle -->
-            <button class="btn btn-outline-secondary document-hide-button"
-                    data-toggle-url="{% url 'case_prep:toggle_document_visibility' %}"
-                    data-id="{{ document.id }}"
-                    title="{% if document.hidden %}{% trans 'Unhide Document' %}{% else %}{% trans 'Hide Document' %}{% endif %}">
-              <i class="bi {% if document.hidden %}bi-eye-slash{% else %}bi-eye{% endif %}"></i>
-            </button>
-            <!-- Trash can -->
-            <button class="btn btn-outline-danger document-delete-button"
-                    title="{% trans 'Delete Document' %}">
-              <i class="bi bi-trash"></i> <!-- Trash icon -->
-            </button>
-            <!-- Dropdown for additional actions -->
+  <form id="documentsForm" method="post">
+    {% csrf_token %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width: 40px;"></th>
+          <th>{% trans "Document Name" %}</th>
+          <th style="width: 100px;">{% trans "Date" %}</th>
+          <th style="width: 120px;">
+ 
             <div class="btn-group">
-              <button class="btn btn-outline-secondary dropdown-toggle"
+              <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)">
+              <button class="btn  dropdown-toggle"
                       type="button"
-                      id="assistantActionsDropdown{{ document.id }}"
+                      id="assistantActionsDropdown"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                       title="{% trans 'Additional Actions' %}">
-                <i class="bi bi-list"></i>
+                <strong>{% trans 'Actions' %}</strong>
               </button>
-              <ul class="dropdown-menu"
-                  aria-labelledby="assistantActionsDropdown{{ document.id }}">
+              <ul class="dropdown-menu" aria-labelledby="assistantActionsDropdown">
                 <li>
-                  <button class="dropdown-item"
-                          data-bs-toggle="modal"
-                          data-bs-target="#summarizationModal"
-                          title="{% trans 'Summarize Document' %}">{% trans "Summarize" %}</button>
+                  <button type="submit"
+                          class="btn document-hide-button bi {% if document.hidden %}bi-eye-slash{% else %}bi-eye{% endif %}"
+                          formaction="{% url 'case_prep:toggle_document_visibility' %}"
+                          title="{% if document.hidden %}{% trans 'Unhide Selected' %}{% else %}{% trans 'Hide Selected' %}{% endif %}">
+                    {% if document.hidden %}
+                      {% trans 'Unhide' %}
+                    {% else %}
+                      {% trans 'Hide' %}
+                    {% endif %}
+                  </button>
                 </li>
                 <li>
+                  <button type="submit"
+                          class="btn document-delete-button bi bi-trash"
+                          formaction="{% url 'case_prep:delete_document' %}"
+                          title="{% trans 'Delete Selected' %}">
+                    {% trans 'Delete' %}
+                    <!--<i class="bi bi-trash"></i>  Trash icon -->
+                  </button>
+                </li>
+                <li>
+                  <button type="submit"
+                          class="btn bi bi-download"
+                          formaction="{% url 'case_prep:download_documents' %}"
+                          title="{% trans 'Download Selected' %}">
+                    {% trans 'Download' %}
+                    <!--<i class="bi bi-trash"></i>  Trash icon -->
+                  </button>
+                </li>
+                <li>
+                  <button type="submit"
+                          class="dropdown-item btn bi bi-file-earmark-text"
+                          formaction="{% url 'case_prep:summarize_feature' %}"
+                          title="{% trans 'Summarize Selected' %}">{% trans "Summarize" %}</button>
+                </li>
+                <li>
+                  <button class="dropdown-item bi bi-translate"
+                          formaction="{% url 'case_prep:translate_feature' %}"
+                          title="{% trans 'Translate Selected' %}">{% trans "Translate" %}</button>
+                </li>
+ 
+ 
+
+                <li>
                   <button class="dropdown-item"
                           data-bs-toggle="modal"
-                          data-bs-target="#translationModal"
-                          title="{% trans 'Translate Document' %}">{% trans "Translate" %}</button>
+                          data-bs-target="#qaResearchModal"
+                          data-id="{{ document.id }}"
+                          title="{% trans 'Q&A Research' %}">{% trans "Q&A Research" %}</button>
                 </li>
               </ul>
+
             </div>
-          </td>
+          </th>
+ 
+ 
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody id="sortable">
+        {% for document in documents %}
+          <tr data-id="{{ document.id }}"
+              data-delete-url="{% url 'case_prep:delete_document' %}">
+            <td class="drag-handle">&#9776;</td>
+            <td>
+              <!-- Editable field -->
+              <div class="d-flex align-items-center">
+                <textarea rows="1"
+                          class="form-control document-name-input"
+                          style="resize: vertical;
+                                 width: auto;
+                                 flex-grow: 1">{{ document.name }}</textarea>
+              </div>
+              <small class="text-muted ms-2">Original: {{ document.original_name }}</small>
+            </td>
+            <td class="text-nowrap">
+              <input type="date"
+                     class="form-control"
+                     value="{{ document.date|date:'Y-m-d' }}">
+            </td>
+            <!-- Multi-select checkbox -->
+            <td class="text-center">
+              <input type="checkbox" name="selected_documents" value="{{ document.id }}">
+            </td>
+ 
+            <!--      <td class="text-nowrap">
+              <a href="{% url 'case_prep:download_document' document.id %}" class="btn btn-outline-primary" title="{% trans 'Download Document' %}">
+                <i class="bi bi-download"></i> <!-- Download icon 
+              </a>
+            </td>-->
+
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</form>
 {% endif %}

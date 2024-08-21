@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Session
+from .models import Document, Session
 
 
 class SessionForm(forms.ModelForm):

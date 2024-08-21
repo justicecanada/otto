@@ -87,9 +87,7 @@
       {% trans "Generate & Download" %}
     </button>
 
-    <button class="btn btn-secondary mt-2"
-            data-bs-toggle="modal"
-            data-bs-target="#qaModal">{% trans "Q&A Research" %}</button>
+    <!-- <button class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#qaModal">{% trans "Q&A Research" %}</button>-->
  
     <!-- Delete Button -->
     <button id="deleteButton"
@@ -150,7 +148,7 @@
           <button type="button"
                   class="btn-close"
                   data-bs-dismiss="modal"
-                  aria-label="{% trans 'Close' %}"></button>
+                  aria-label="{% trans "Close" %}"></button>
         </div>
         <div class="modal-body">
           <p>
@@ -159,20 +157,37 @@
           <p>
             {% trans "This feature is designed to help you prepare for court more efficiently by ensuring all documents are available in the required languages. Simply select a document, choose the target language, and the translation will be processed and added to your case files." %}
           </p>
-          <p>{% trans "If you'd like to upvote this feature, let us know!" %}</p>
-          <form action="{% url 'case_prep:upvote_feature' 'translate' %}"
+          <form id="translateForm"
+                action="{% url 'case_prep:translate_feature' %}"
                 method="post">
             {% csrf_token %}
-            <button type="button" class="btn btn-primary mt-3 btn-upvote">{% trans "Upvote" %}</button>
-            <div class="mt-3 message"></div>
+            <label for="languageSelect" class="form-label">{% trans "Select Target Language" %}</label>
+            <select id="languageSelect" class="form-control" name="target_language">
+              <option value="en">{% trans "English" %}</option>
+              <option value="fr">{% trans "French" %}</option>
+            </select>
+            <button type="submit" id="generateButton" class="btn btn-primary mt-3">{% trans "Generate" %}</button>
+            <button type="button"
+                    id="loadingButton"
+                    class="btn btn-primary mt-3"
+                    style="display: none"
+                    disabled>
+              <span class="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"></span>
+              {% trans "Loading..." %}
+            </button>
           </form>
+          <div id="translateResult" class="mt-3"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
         </div>
+
       </div>
     </div>
   </div>
+
  
   <!-- Summarization Modal -->
   <div class="modal fade"
@@ -196,13 +211,35 @@
           <p>
             {% trans "This feature aims to help you quickly understand the key points of each document and enable you to interact with the document's content more effectively. Select a document, and Otto will generate a concise summary that you can expand upon by asking specific questions." %}
           </p>
-          <p>{% trans "If you'd like to upvote this feature, let us know!" %}</p>
-          <form action="{% url 'case_prep:upvote_feature' 'summarization' %}"
+          <p>{% trans "Choose the Summarization options below:" %}</p>
+
+          <form id="summarizeForm"
+                action="{% url 'case_prep:summarize_feature' %}"
                 method="post">
             {% csrf_token %}
-            <button type="button" class="btn btn-primary mt-3 btn-upvote">{% trans "Upvote" %}</button>
-            <div class="mt-3 message"></div>
+            <label for="lengthSelect" class="form-label">{% trans "Select Length" %}</label>
+            <select id="lengthSelect" class="form-control" name="length">
+              <option value="short">{% trans "Short" %}</option>
+              <option value="medium">{% trans "Medium" %}</option>
+              <option value="long">{% trans "Long" %}</option>
+            </select>
+            <label for="languageSelect" class="form-label">{% trans "Select Target Language" %}</label>
+            <select id="languageSelect" class="form-control" name="target_language">
+              <option value="en">{% trans "English" %}</option>
+              <option value="fr">{% trans "French" %}</option>
+            </select>
+            <button type="submit" id="generateButton" class="btn btn-primary mt-3">{% trans "Generate" %}</button>
+            <button type="button"
+                    id="loadingButton"
+                    class="btn btn-primary mt-3"
+                    style="display: none">
+              <span class="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"></span>
+              {% trans "Loading..." %}
+            </button>
           </form>
+          <div id="summaryResult" class="mt-3"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
@@ -211,6 +248,7 @@
     </div>
   </div>
 
+ 
 {% endblock %}
 
 <script src="{% static 'case_prep/scripts.js' %}"></script>
