@@ -17,18 +17,6 @@
             }
         },
         {
-            "name": "Python: Run Court Monitor Tests",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "pytest",
-            "args": [
-                "django/tests/court_monitor"
-            ],
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            }
-        },
-        {
             "name": "Python: Run Template Wizard Tests",
             "type": "debugpy",
             "request": "launch",
@@ -63,36 +51,6 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }
-        },
-        {
-            "name": "Django: Court Monitor",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "check_the_courts",
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Update Chatbot Embeddings",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "update_embeddings",
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Test Library Initialization",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "initialize_test_library",
-            ],
-            "django": true
         },
         {
             "name": "Django: Text Extractor Views Text",
@@ -135,47 +93,6 @@
             "program": "${workspaceFolder}/django/manage.py",
             "args": [
                 "migrate"
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Load Corporate Data",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "load_corporate_data",
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Load Case Data Incremental",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "load_case_data",
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Load Case Data Full",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "load_case_data",
-                "--full"
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Load Attribute Data",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "load_attribute_data",
             ],
             "django": true
         },
