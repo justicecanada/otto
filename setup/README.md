@@ -16,11 +16,25 @@ For more information on Azure roles and permissions, refer to the [Azure RBAC do
 
 ## Deployment Steps
 
-### 1. Open Azure Cloud Shell and clone the Otto repository:
+### 1. Open Azure Cloud Shell and access the Otto repository:
+
+You have two options:
+
+**Option A: Clone the repository (if you haven't done so before)**
 
 ```bash
 git clone https://github.com/justicecanada/Otto.git
 cd Otto/setup
+```
+
+**Option B: Update an existing repository**
+
+If you've previously cloned the Otto repository, navigate to the Otto directory and pull the latest changes:
+
+```bash
+cd Otto
+git pull
+cd setup
 ```
 
 ### 2. Create infrastructure using Terraform:

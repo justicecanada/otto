@@ -38,12 +38,12 @@ ensure_tf_state_storage
 cd terraform
 
 # Create a temporary backend configuration file
-cp backend.hcl backend_config.hcl
-sed -i "s/__RESOURCE_GROUP_NAME__/$TF_STATE_RESOURCE_GROUP/" backend_config.hcl
-sed -i "s/__STORAGE_ACCOUNT_NAME__/$TF_STATE_STORAGE_ACCOUNT/" backend_config.hcl
-sed -i "s/__CONTAINER_NAME__/$TF_STATE_CONTAINER/" backend_config.hcl
-sed -i "s/__KEY__/$TF_STATE_KEY/" backend_config.hcl
-
+cat > backend_config.hcl << EOF
+resource_group_name  = "$TF_STATE_RESOURCE_GROUP"
+storage_account_name = "$TF_STATE_STORAGE_ACCOUNT"
+container_name       = "$TF_STATE_CONTAINER"
+key                  = "$TF_STATE_KEY"
+EOF
 
 # Ensure terraform is initialized and upgraded
 terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure
