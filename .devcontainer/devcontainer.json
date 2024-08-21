@@ -21,7 +21,6 @@
                 "ms-python.black-formatter",
                 "ms-python.isort",
                 "ms-python.python",
-                "ms-python.black",
                 "streetsidesoftware.code-spell-checker",
                 "monosans.djlint",
                 "GitHub.copilot",
