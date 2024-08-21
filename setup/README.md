@@ -26,7 +26,7 @@ cd Otto/setup
 ### 2. Create infrastructure using Terraform:
 
 ```bash
-bash deploy_terraform.sh
+bash run_terraform.sh
 ```
 
 Note: You'll be prompted to enter the `CLIENT_SECRET` interactively.
@@ -40,7 +40,7 @@ After the Terraform script has completed deploying the OpenAI resource and its d
 ### 4. Deploy the AKS cluster:
 
 ```bash
-bash deploy_k8s.sh
+bash run_k8s.sh
 ```
 
 Important: Ensure the Otto image exists in the container registry before deploying the AKS cluster. (The image is built and pushed as part of the Continuous Integration pipeline.)

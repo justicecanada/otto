@@ -1,3 +1,6 @@
+terraform {
+  backend "azurerm" {}
+}
 
 # Use modules for different resources
 module "resource_group" {

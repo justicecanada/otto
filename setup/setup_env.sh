@@ -37,18 +37,19 @@ done
 # Load the environment variables from file
 source .env
 
-# Check if the user is logged in or not. If not, perform the az login.
-if ! az account show; then
+# Ensure Azure CLI is logged in
+if ! az account show &>/dev/null; then
+    echo "Not logged in to Azure. Please log in."
     az login
 fi
 
-# Set environment variables
+# Set the environment variables
 export TENANT_ID=$(az account show --query tenantId --output tsv)
 export SUBSCRIPTION_NAME=$(az account show --query name --output tsv)
 export ENTRA_CLIENT_ID=$(az ad app list --display-name "${ENTRA_CLIENT_NAME}" --query "[].{appId:appId}" --output tsv)
 export ENTRA_AUTHORITY="https://login.microsoftonline.com/${TENANT_ID}"
 
-# Export dynamically generated variables
+# Set the dynamically generated variables
 export RESOURCE_GROUP_NAME="${APP_NAME}${INTENDED_USE^^}Rg"
 export KEYVAULT_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-kv"
 export COGNITIVE_SERVICES_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-cs"
@@ -59,12 +60,17 @@ export STORAGE_NAME="jus${INTENDED_USE,,}${APP_NAME,,}storage"
 export ACR_NAME="jus${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-db"
 export HOST_NAME="${HOST_NAME_PREFIX}.canadacentral.cloudapp.azure.com"
+export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
 
-# TODO: Replace "OttoA" with ${APP_NAME} below. This is only temporary to help the Cloud Team avoid their cost management issues.
+# Set the Terraform state variables
+export TF_STATE_RESOURCE_GROUP="TerraformStateRG"
+export TF_STATE_STORAGE_ACCOUNT="tfstate${APP_NAME,,}${ENVIRONMENT,,}"
+export TF_STATE_CONTAINER="tfstate"
+export TF_STATE_KEY="${RESOURCE_GROUP_NAME}.tfstate"
 
 # Create terraform/.tfvars file
 cat > terraform/.tfvars <<EOF
-app_name = "OttoA"
+app_name = "${APP_NAME}"
 environment = "${ENVIRONMENT}"
 location = "${LOCATION}"
 classification = "${CLASSIFICATION}"
