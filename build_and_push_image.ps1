@@ -23,12 +23,22 @@ $VERSION = Read-Host -Prompt "Enter the version number (e.g., v1.0.0)"
 
 $timeout = 60  # Timeout in seconds
 
-if (Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet) {
+function Test-VPNConnection {
+    try {
+        $result = Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet -ErrorAction Stop
+        return $result
+    } catch {
+        Write-Host "Unable to ping VPN gateway. Assuming disconnected."
+        return $false
+    }
+}
+
+if (Test-VPNConnection) {
     Write-Host "VPN connection detected. Please disconnect within $timeout seconds."
 
     $startTime = Get-Date
     do {
-        if (-not (Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet)) {
+        if (-not (Test-VPNConnection)) {
             Write-Host "VPN disconnected. Proceeding with the script..."
             break
         }
@@ -36,7 +46,7 @@ if (Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet) {
         Write-Host "VPN still connected. Waiting for disconnection..."
     } while (((Get-Date) - $startTime).TotalSeconds -lt $timeout)
 
-    if (Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet) {
+    if (Test-VPNConnection) {
         Write-Host "Timeout reached. VPN is still connected. Attempting to use Docker cache."
         break
     }
@@ -73,7 +83,7 @@ docker build -t ${IMAGE_NAME}:${SPECIFIC_TAG} -f ./django/Dockerfile ./django
 docker tag ${IMAGE_NAME}:${SPECIFIC_TAG} ${IMAGE_NAME}:latest
 
 # Wait for VPN connection
-while (-not (Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet)) {
+while (-not (Test-VPNConnection)) {
     Write-Host "Not connected to VPN. Waiting for connection..."
     Start-Sleep -Seconds 10
 }
