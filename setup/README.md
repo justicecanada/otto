@@ -23,8 +23,8 @@ You have two options:
 **Option A: Clone the repository (if you haven't done so before)**
 
 ```bash
-git clone https://github.com/justicecanada/Otto.git
-cd Otto/setup
+git clone https://github.com/justicecanada/otto.git
+cd otto/setup
 ```
 
 **Option B: Update an existing repository**
@@ -32,7 +32,7 @@ cd Otto/setup
 If you've previously cloned the Otto repository, navigate to the Otto directory and pull the latest changes:
 
 ```bash
-cd Otto
+cd otto
 git pull
 cd setup
 ```
