@@ -1,12 +1,46 @@
 #!/bin/bash
 
+ENV_FILE=".env"
+ENV_EXAMPLE_FILE=".env.example"
+
+# Check if .env.example file exists
+if [ ! -f "$ENV_EXAMPLE_FILE" ]; then
+    echo "Error: .env.example file not found."
+    exit 1
+fi
+
+# If .env doesn't exist, copy it from .env.example
+if [ ! -f "$ENV_FILE" ]; then
+    echo ".env file not found. Creating one from .env.example."
+    cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
+    echo ".env file created. Please review and edit if necessary."
+fi
+
+while true; do
+    # Display .env contents
+    echo "Current .env file contents:"
+    echo "----------------------------"
+    cat "$ENV_FILE"
+    echo "----------------------------"
+
+    # Ask user if values are correct
+    read -p "Are all the values correct? (y/N): " confirm
+
+    if [[ $confirm =~ ^[Yy]$ ]]; then
+        echo "Proceeding with current .env values."
+        break
+    else
+        nano "$ENV_FILE"
+    fi
+done
+
+# Load the environment variables from file
+source .env
+
 # Check if the user is logged in or not. If not, perform the az login.
 if ! az account show; then
     az login
 fi
-
-# Load the environment variables from file
-source .env
 
 # Set environment variables
 export TENANT_ID=$(az account show --query tenantId --output tsv)
