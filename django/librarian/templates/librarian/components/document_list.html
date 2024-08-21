@@ -25,7 +25,7 @@
       <div class="col ps-2">
         <button type="button"
                 class="btn btn-sm btn-outline-dark w-100"
-                hx-get="{% url 'librarian:modal_create_from' item_type='document' parent_id=selected_data_source.id %}">
+                hx-get="{% url 'librarian:modal_create_document' data_source_id=selected_data_source.id %}">
           <i class="bi bi-link"></i> {% trans "Add URL" %}
         </button>
       </div>

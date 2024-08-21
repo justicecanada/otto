@@ -1,7 +1,6 @@
 import datetime
 import os
 
-# settings
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -21,8 +20,6 @@ def get_dir_size(path="."):
     return total
 
 
-# TODO: Update this logic to match new models
-# (and don't delete files that are still referenced by other Document, ChatFile objects!)
 class Command(BaseCommand):
     help = "Delete chat files more than 7 days old."
 
@@ -43,7 +40,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--purge",
             action="store_true",
-            help="Delete all chat files, regardless of age, using OS commands (DANGER).",
+            help="Delete all uploaded files, regardless of age, using OS commands (DANGER - this will also delete QA files!).",
         )
 
     @signalcommand
@@ -55,26 +52,26 @@ class Command(BaseCommand):
         else:
             delete_from = datetime.datetime.now() - datetime.timedelta(days=7)
 
-        # Find ChatFile objects with 'accessed_at' property older than 'delete_from'
+        # Find ChatFile objects with 'created_at' property older than 'delete_from'
         if options["all"]:
             chat_files = ChatFile.objects.all()
         else:
-            chat_files = ChatFile.objects.filter(accessed_at__lt=delete_from)
+            chat_files = ChatFile.objects.filter(created_at__lt=delete_from)
 
         space_freed = 0
         files_deleted = 0
-        # Delete the files
+        # Delete the files and SavedFile objects
         for chat_file in chat_files:
-            file_field = chat_file.file
-            try:
-                space_freed += file_field.size / 1024
-                file_field.delete(save=False)
-                files_deleted += 1
-            except:
-                # File must have already been deleted? Just mark as none
-                pass
-            chat_file.file = None
-            chat_file.save()
+            if chat_file.saved_file is not None:
+                file_field = chat_file.saved_file.file
+                try:
+                    space_freed += file_field.size / 1024
+                    file_field.delete()
+                    files_deleted += 1
+                except:
+                    # File must have already been deleted? Just mark as none
+                    pass
+                chat_file.saved_file.delete()
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -83,7 +80,7 @@ class Command(BaseCommand):
         )
 
         if options["purge"]:
-            chat_files_dir = os.path.join(settings.MEDIA_ROOT, "chat_files")
+            chat_files_dir = os.path.join(settings.MEDIA_ROOT, "files")
             # Calculate size of chat_files folder
             try:
                 directory_size = get_dir_size(chat_files_dir)

@@ -139,12 +139,15 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 // On prompt form submit...
 document.addEventListener("htmx:afterSwap", function (event) {
-  if (!["messages-container", "stop-button"].includes(event.target.id)) return;
+  if (event.target.id != "messages-container") return;
   if (document.querySelector("#no-messages-placeholder") !== null) {
     document.querySelector("#no-messages-placeholder").remove();
   }
   document.querySelector("#chat-prompt").value = "";
   document.querySelector("#chat-prompt").focus();
+  // Change height back to minimum
+  document.querySelector("#chat-prompt").style.height = "85px";
+  lastHeight = 85;
   scrollToBottom(false);
 });
 // When streaming response is updated
@@ -214,8 +217,16 @@ async function pasteRich(rich, plain) {
 
 function copyMessage(btn) {
   let message = btn.closest(".message-outer");
-  let messageText = message.querySelector(".message-text").innerText;
-  let messageHtml = message.querySelector(".message-text").innerHTML;
+  // Create a clone of the element in JS so we can remove the child "div.sources" if it exists
+  const messageTextClone = message.querySelector(".message-text").cloneNode(true);
+  const sources = messageTextClone.querySelector("div.sources");
+  if (sources) {
+    sources.remove();
+  }
+  let messageHtml = messageTextClone.outerHTML;
+  let messageText = messageTextClone.innerText;
+  // Remove whitespace
+  messageText = messageText.replace(/\s+/g, " ").trim();
   pasteRich(messageHtml, messageText);
   btn.blur();
   btn.classList.add("clicked");
@@ -252,6 +263,7 @@ function copyPromptToTextInput(btn, messageMode) {
 
   inputArea.dispatchEvent(new Event('change'));
   modeSelection.dispatchEvent(new Event('change'));
+  inputArea.focus();
 }
 
 
@@ -393,3 +405,33 @@ document.querySelector("#left-sidebar-toggle")
 if (performance.getEntriesByType("navigation")[0].type === "back_forward") {
   location.reload();
 }
+
+function cancelChatRename() {
+  document.querySelectorAll(".cancel-chat-rename-btn").forEach(function (btn) {
+    btn.click();
+  });
+}
+
+function updateQaModal() {
+  console.log('Updating QA modal');
+  const qa_modal_elements = document.querySelectorAll('#advanced-qa-modal [data-inputname]');
+  qa_modal_elements.forEach((modal_element) => {
+    // Dataset attributes are lowercased
+    const hidden_input_name = modal_element.dataset.inputname;
+    const hidden_field_element = document.querySelector(`input[name="${hidden_input_name}"]`);
+    console.log(hidden_input_name, hidden_field_element);
+    if (hidden_field_element) {
+      modal_element.value = hidden_field_element.value;
+    }
+  });
+};
+function updateQaHiddenField(modal_element) {
+  console.log('Updating QA hidden field');
+  // Dataset attributes are lowercased
+  const hidden_field_name = modal_element.dataset.inputname;
+  const hidden_field_element = document.querySelector(`input[name="${hidden_field_name}"]`);
+  if (hidden_field_element) {
+    hidden_field_element.value = modal_element.value;
+    hidden_field_element.dispatchEvent(new Event('change'));
+  }
+};

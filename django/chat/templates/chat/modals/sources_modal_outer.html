@@ -1,0 +1,26 @@
+{% load i18n %}
+<div class="modal modal-xl fade sources-modal"
+     id="sources-modal"
+     tabindex="-1"
+     aria-label='{% trans "Sources" %}'
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title w-100">{% trans "Sources" %}</h5>
+        <div id="sources-modal-spinner"
+             class="spinner text-primary"
+             style="margin-bottom: -7px;
+                    margin-top: -4px">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+        </div>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body p-0" id="sources-modal-inner"></div>
+    </div>
+  </div>
+</div>

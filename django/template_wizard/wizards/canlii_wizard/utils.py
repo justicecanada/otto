@@ -32,6 +32,7 @@ client = AzureOpenAI(
     azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
 )
 
+model_str = settings.DEFAULT_CHAT_MODEL
 
 system_prompt = {
     "en": "You are a legal professional who is tasked with reviewing a case and writing legal case reports. You're going to extract and write information from the following content and will only use the facts provided in the content I provide you. When providing responses, please use paragraphs instead of bullet points. Do not include question marks or exclamation marks, and ensure a constant professional style of writing throughout all your responses.",
@@ -403,10 +404,8 @@ def generate_immigration_case_report(text, language="en"):
     # TODO: Change this to gpt-4 once we figure out how to deal with the gpt-4 delay errors
     token_count_max = 15000
     if token_count < token_count_max:
-        model_str = "gpt-35-turbo-16k-unfiltered"
         content = text
     else:
-        model_str = "gpt-35-turbo-16k-unfiltered"
         content = map_reduce(text, language, model_str)
         using_large_doc = True
 
@@ -671,11 +670,9 @@ def generate_atip_case_report(text, language):
     # TODO: Change this to gpt-4 once we figure out how to deal with the gpt-4 delay errors
     token_count_max = 15000
     if token_count < token_count_max:
-        model_str = "gpt-35-turbo-16k-unfiltered"
         content = text
 
     else:
-        model_str = "gpt-35-turbo-16k-unfiltered"
         content = map_reduce(text, language, model_str)
         using_large_doc = True
 
@@ -987,13 +984,9 @@ def generate_general_case_report(text, language):
     # TODO: Change this to gpt-4 once we figure out how to deal with the gpt-4 delay errors
     token_count_max = 15000
     if token_count < token_count_max:
-        model_str = "gpt-35-turbo-16k-unfiltered"
-        # model_str = "gpt-4-turbo"
         content = text
 
     else:
-        model_str = "gpt-35-turbo-16k-unfiltered"
-        # model_str = "gpt-4-turbo"
         content = map_reduce(text, language, model_str)
         using_large_doc = True
 

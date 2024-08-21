@@ -31,7 +31,7 @@ UserModel = get_user_model()
 
 llm = AzureOpenAI(
     azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-    azure_deployment="gpt-4-unfiltered",
+    azure_deployment="gpt-4o",
     api_key=settings.AZURE_OPENAI_KEY,
     api_version=settings.AZURE_OPENAI_VERSION,
 )

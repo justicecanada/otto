@@ -6,14 +6,21 @@
   <label for="basic-search-input" class="visually-hidden">{% trans "Query" %}</label>
   <div id="basic-search-outer">
     <div class="row">
-      <div class="col position-relative pe-0">
-        <input class="form-control form-control-lg"
-               type="search"
-               id="basic-search-input"
-               name="query"
-               autocomplete="off"
-               placeholder="{% trans 'Ask a question about federal legislation...' %}">
-        <button class="btn btn-primary" type="submit" id="basic-search-button">
+      <div class="col position-relative pe-0 mb-1">
+        <textarea class="form-control form-control-lg m-0"
+                  id="basic-search-input"
+                  name="query"
+                  autocomplete="off"
+                  placeholder="{% trans 'Ask a question about federal legislation...' %}"></textarea>
+        <button class="btn btn-primary clear-button btn-lg px-2 me-1"
+                type="button"
+                id="clear-button">
+          <i class="bi bi-x"></i><span class="visually-hidden">{% trans "Clear" %}</span>
+        </button>
+        <button class="btn btn-primary"
+                type="submit"
+                id="basic-search-button"
+                disabled>
           <i class="bi bi-search"></i><span class="visually-hidden">{% trans "Submit" %}</span>
         </button>
       </div>
@@ -46,3 +53,43 @@
     </div>
   </div>
 </form>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const textarea = document.getElementById("basic-search-input");
+    const clearButton = document.getElementById("clear-button");
+    const searchButton = document.getElementById("basic-search-button");
+
+    textarea.addEventListener("keypress", e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        if (textarea.value.trim() !== "") {
+          document.getElementById("basic-search-button").click();
+        }
+      }
+    });
+
+    textarea.addEventListener("input", function() {
+      if (textarea.value) {
+        clearButton.style.display = "inline";
+        if (textarea.value.trim() !== "") {
+          searchButton.disabled = false;
+        } else {
+          searchButton.disabled = true;
+        }
+      } else {
+        clearButton.style.display = "none";
+        searchButton.disabled = true;
+      }
+
+
+    });
+
+    clearButton.addEventListener("click", function() {
+      textarea.value = ""
+      textarea.focus();
+      clearButton.style.display = "none";
+      searchButton.disabled = true;
+    });
+  });
+</script>

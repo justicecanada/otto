@@ -4,6 +4,7 @@ from logging.config import dictConfig
 from django.conf import settings
 
 from celery import Celery
+from celery.schedules import crontab
 from celery.signals import setup_logging
 from django_structlog.celery.steps import DjangoStructLogInitStep
 
@@ -14,6 +15,14 @@ app = Celery("otto")
 app.steps["worker"].add(DjangoStructLogInitStep)
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
+
+app.conf.beat_schedule = {
+    # Sync entra users every day at 5 am UTC
+    "sync-entra-users-every-morning": {
+        "task": "otto.tasks.sync_users",
+        "schedule": crontab(hour=5, minute=0),
+    }
+}
 
 
 @setup_logging.connect

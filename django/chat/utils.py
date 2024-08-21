@@ -1,6 +1,4 @@
 import asyncio
-import html
-import re
 import sys
 
 from django.conf import settings
@@ -8,6 +6,7 @@ from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
+import bleach
 import markdown
 import tiktoken
 from asgiref.sync import sync_to_async
@@ -18,7 +17,9 @@ from chat.models import AnswerSource, Chat, Message
 from otto.models import SecurityLabel
 
 # Markdown instance
-md = markdown.Markdown(extensions=["fenced_code", "nl2br", "tables"], tab_length=2)
+md = markdown.Markdown(
+    extensions=["fenced_code", "nl2br", "tables", "extra"], tab_length=2
+)
 
 
 def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
@@ -30,15 +31,56 @@ def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
 
 def llm_response_to_html(llm_response_str):
     s = str(llm_response_str)
-    # Before parsing markdown, escape HTML *except* when inside backticks or triple backticks
-    # First, escape HTML outside of code blocks
-    s = html.escape(s)
-    # Then, unescape HTML inside code blocks (triple or single backticks)
-    s = re.sub(r"```.*?```", lambda m: html.unescape(m.group(0)), s, flags=re.DOTALL)
-    s = re.sub(r"`.*?`", lambda m: html.unescape(m.group(0)), s, flags=re.DOTALL)
-
-    s = md.convert(s)
-    return s
+    raw_html = md.convert(s)
+    # return raw_html
+    allowed_tags = [
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "b",
+        "i",
+        "strong",
+        "em",
+        "tt",
+        "p",
+        "br",
+        "span",
+        "div",
+        "blockquote",
+        "code",
+        "pre",
+        "hr",
+        "ul",
+        "ol",
+        "li",
+        "dd",
+        "dt",
+        "img",
+        "a",
+        "sub",
+        "sup",
+        "table",
+        "thead",
+        "th",
+        "tbody",
+        "tr",
+        "td",
+        "tfoot",
+        "dl",
+    ]
+    allowed_attributes = {
+        "*": ["id"],
+        "img": ["src", "alt", "title"],
+        "a": ["href", "alt", "title"],
+        "pre": ["class"],
+        "code": ["class"],
+        "span": ["class"],
+    }
+    clean_html = bleach.clean(raw_html, allowed_tags, allowed_attributes)
+    return clean_html
 
 
 def url_to_text(url):
@@ -213,9 +255,6 @@ async def htmx_stream(
                     node_text=node.node.text,
                     node_score=score,
                     saved_citation=await sync_to_async(lambda: document.citation)(),
-                    saved_data_source_name=await sync_to_async(
-                        lambda: f"{document.data_source.library.name} - {document.data_source.name}"
-                    )(),
                 )
                 sources.append(source)
             except:
@@ -254,7 +293,7 @@ async def htmx_stream(
         source_html_lines = source_html.split("\n")
     yield (
         f"data: <div>{sse_joiner.join(message_html_lines)}</div>"
-        f"{sse_joiner.join(source_html_lines)}\n\n"
+        f"<div class='sources row'>{sse_joiner.join(source_html_lines)}</div>\n\n"
     )
     # Generate a title for the chat if necessary
     final_response_str = "data: "
@@ -268,7 +307,7 @@ async def htmx_stream(
     final_response_str += (
         f"<div hx-swap-oob='true' id='response-{message_id}'>"
         f"<div>{sse_joiner.join(message_html_lines)}</div>"
-        f"{sse_joiner.join(source_html_lines)}</div>"
+        f"<div class='sources row'>{sse_joiner.join(source_html_lines)}</div></div>"
         f"{sse_joiner.join(new_chat_label_lines)}"
         "\n\n"
     )
@@ -281,8 +320,8 @@ def title_chat(chat_id, force_title=True):
 
     gpt35 = AzureChatOpenAI(
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment="gpt-35-turbo-unfiltered",
-        model="gpt-3.5-turbo",
+        azure_deployment="gpt-35",
+        model="gpt-35-turbo",
         api_version=settings.AZURE_OPENAI_VERSION,
         api_key=settings.AZURE_OPENAI_KEY,
         temperature=0.1,
@@ -335,10 +374,10 @@ def tldr_summary(text):
     from llama_index.llms.azure_openai import AzureOpenAI
 
     llm = AzureOpenAI(
-        model="gpt-35-turbo",  # TODO: Rethink how to pass this in. Maybe a global variable? Or dynamic based on the library?
-        deployment_name="gpt-35-turbo-unfiltered",
-        api_key=settings.AZURE_OPENAI_KEY,
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+        deployment_name="gpt-35",
+        model="gpt-35-turbo",  # TODO: Rethink how to pass this in. Maybe a global variable? Or dynamic based on the library?
+        api_key=settings.AZURE_OPENAI_KEY,
         api_version=settings.AZURE_OPENAI_VERSION,
         temperature=0.3,
     )
@@ -348,7 +387,11 @@ def tldr_summary(text):
 
 
 def summarize_long_text(
-    text, length="short", target_language="en", custom_prompt=None, model="gpt-4"
+    text,
+    length="short",
+    target_language="en",
+    custom_prompt=None,
+    model=settings.DEFAULT_CHAT_MODEL,
 ):
 
     if len(text) == 0:
@@ -438,13 +481,10 @@ def summarize_long_text(
         length_prompt_en = custom_prompt
         length_prompt_fr = custom_prompt
 
-    if model == "gpt-35-turbo" and total_tokens_text > 4000:
-        model = "gpt-35-turbo-16k"
-
     llm = AzureChatOpenAI(
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
         model=model,
-        azure_deployment=f"{model}-unfiltered",
+        azure_deployment=f"{model}",
         api_version=settings.AZURE_OPENAI_VERSION,
         api_key=settings.AZURE_OPENAI_KEY,
         temperature=0.2,

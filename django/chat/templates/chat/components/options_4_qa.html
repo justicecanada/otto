@@ -7,7 +7,6 @@
 {% endblock %}
 
 {% block accordion_body %}
-  <!-- Debug info -->
   <div class="px-3">
     <label class="col-form-label col-form-label-sm"
            for="{{ options_form.qa_library.auto_id }}">{% trans "Library" %}</label>
@@ -16,8 +15,9 @@
     <div class="col pe-0">{{ options_form.qa_library }}</div>
     <div class="col-auto ps-2">
       <button type="button"
+              id="editLibrariesButton"
               class="btn btn-outline-dark btn-sm"
-              hx-get="{% url 'librarian:modal' %}"
+              hx-get="{% url 'librarian:modal_edit_library' options_form.qa_library.value %}"
               hx-target="#editLibrariesInner"
               hx-indicator="#librarian-modal-spinner"
               hx-swap="innerHTML"
@@ -50,9 +50,23 @@
            for="{{ options_form.qa_model.auto_id }}">{% trans "Model" %}</label>
   </div>
   <div class="px-3">{{ options_form.qa_model }}</div>
-  <div class="px-3 mt-2">
-    <label class="col-form-label col-form-label-sm"
-           for="{{ options_form.qa_topk.auto_id }}">{% trans "Maximum number of sources" %}</label>
+  <div class="px-3 mt-3">
+    <button type="button"
+            id="advancedQaModalButton"
+            class="btn btn-outline-dark btn-sm w-100"
+            onclick="updateQaModal();"
+            data-bs-toggle="modal"
+            data-bs-target="#advanced-qa-modal">{% trans "Edit advanced settings and prompts" %}</button>
   </div>
-  <div class="px-3">{{ options_form.qa_topk }}</div>
+  {# Hidden fields, editable in the advanced_qa_modal #}
+  {{ options_form.qa_prompt_template }}
+  {{ options_form.qa_system_prompt }}
+  {{ options_form.qa_pre_instructions }}
+  {{ options_form.qa_post_instructions }}
+  {{ options_form.qa_topk }}
+  {{ options_form.qa_vector_ratio }}
+  {{ options_form.qa_answer_mode }}
+  {{ options_form.qa_source_order }}
+  {{ options_form.qa_prune }}
+  {{ options_form.qa_rewrite }}
 {% endblock %}

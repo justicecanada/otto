@@ -1,0 +1,9 @@
+{
+    "name": "Otto Setup",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "otto-setup",
+    "workspaceFolder": "/workspace",
+    "forwardPorts": [
+        8000
+    ]
+}

@@ -56,7 +56,6 @@ def test_title_chat(client, all_apps_user):
     assert chat_title != ""
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_chat(client, basic_user, all_apps_user):
     # Test scenario: Not logged in
@@ -109,7 +108,6 @@ def test_chat(client, basic_user, all_apps_user):
     assert chat.security_label == SecurityLabel.default_security_label()
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_chat_message(client, all_apps_user):
     user = all_apps_user()
@@ -235,7 +233,6 @@ async def test_htmx_stream_stop(client, all_apps_user):
     assert await sync_to_async(chat.messages.count)() == 1
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_chat_routes(client, all_apps_user):
     user = all_apps_user()
@@ -349,7 +346,6 @@ def test_download_file(client, all_apps_user):
     assert response.status_code == 404
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_chat_response(client, all_apps_user):
     user = all_apps_user()
@@ -366,7 +362,7 @@ def test_chat_response(client, all_apps_user):
 
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
-    # Upgrade model cases
+    # Test different lengths of input
     text_between_4k_and_16k = "Hello there!\n" * 2000
     message = Message.objects.create(
         chat=chat, text=text_between_4k_and_16k, mode="chat"
@@ -405,7 +401,6 @@ def test_chat_response(client, all_apps_user):
 
 
 # Test chat_response with Summarize mode
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_chat_summarization_response(client, all_apps_user):
     user = all_apps_user()
@@ -532,7 +527,6 @@ def test_translate_response(client, all_apps_user):
     assert response.status_code == 200
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_qa_response(client, all_apps_user):
     user = all_apps_user()
@@ -565,7 +559,6 @@ def test_qa_response(client, all_apps_user):
     # assert response_message.sources.count() > 0
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_api_qa(client, all_apps_user, settings):
 
@@ -687,14 +680,13 @@ def test_api_qa(client, all_apps_user, settings):
     assert response_data["error_code"] == "LIBRARY_NOT_FOUND"
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
-def test_document_qa_response(client, all_apps_user):
+def test_qa_response(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
 
     # Create a chat using the route to create it with appropriate options
-    response = client.get(reverse("chat:document_qa"), follow=True)
+    response = client.get(reverse("chat:qa"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
 
     # Test chat_response with Document QA mode. Start with no files
@@ -702,10 +694,10 @@ def test_document_qa_response(client, all_apps_user):
     message = Message.objects.create(
         chat=chat,
         text="What is the capital of Canada?",
-        mode="document_qa",
+        mode="qa",
     )
     response_message = Message.objects.create(
-        chat=chat, mode="document_qa", is_bot=True, parent=message
+        chat=chat, mode="qa", is_bot=True, parent=message
     )
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
@@ -718,9 +710,9 @@ def test_document_qa_response(client, all_apps_user):
 
     # Now add some files
     # TODO: This doesn't actually complete, again because of the SSE testing issue
-    files_message = Message.objects.create(chat=chat, text="", mode="document_qa")
+    files_message = Message.objects.create(chat=chat, text="", mode="qa")
     files_message_reponse = Message.objects.create(
-        chat=chat, text="", mode="document_qa", is_bot=True, parent=files_message
+        chat=chat, text="", mode="qa", is_bot=True, parent=files_message
     )
     with tempfile.TemporaryDirectory() as tmpdirname:
         with open(f"{tmpdirname}/test file.txt", "w") as file:
@@ -731,14 +723,18 @@ def test_document_qa_response(client, all_apps_user):
             eof=1,
             content_type="text/plain",
         )
-        file1.saved_file.file.save("test file.txt", open(f"{tmpdirname}/test file.txt", "rb"))
+        file1.saved_file.file.save(
+            "test file.txt", open(f"{tmpdirname}/test file.txt", "rb")
+        )
         file2 = ChatFile.objects.create(
             message_id=files_message.id,
             filename="test file2.txt",
             eof=1,
             content_type="text/plain",
         )
-        file2.saved_file.file.save("test file2.txt", open(f"{tmpdirname}/test file.txt", "rb"))
+        file2.saved_file.file.save(
+            "test file2.txt", open(f"{tmpdirname}/test file.txt", "rb")
+        )
         response = client.get(
             reverse("chat:chat_response", args=[files_message_reponse.id])
         )
@@ -748,10 +744,10 @@ def test_document_qa_response(client, all_apps_user):
     message = Message.objects.create(
         chat=chat,
         text="What is the capital of Canada?",
-        mode="document_qa",
+        mode="qa",
     )
     response_message = Message.objects.create(
-        chat=chat, text="", mode="document_qa", is_bot=True, parent=message
+        chat=chat, text="", mode="qa", is_bot=True, parent=message
     )
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
@@ -800,3 +796,55 @@ def test_negative_thumbs_feedback(client, all_apps_user):
         response.status_code == 200
         and "Provide feedback" in response.content.decode("utf-8")
     )
+
+
+@pytest.mark.django_db
+def test_rename_chat_title(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+    chat.title = "My chat"
+    chat.save()
+
+    # Create 3 messages
+    Message.objects.create(chat=chat, text="Hello")
+    Message.objects.create(chat=chat, text="How are you?", is_bot=True)
+    Message.objects.create(chat=chat, text="I'm doing well, thanks")
+
+    # Test the title_chat function
+    response = client.get(
+        reverse(
+            "chat:chat_list_item", kwargs={"chat_id": chat.id, "current_chat": "True"}
+        )
+    )
+    assert response.status_code == 200
+    assert "My chat" in response.content.decode("utf-8")
+
+    # Rename the chat to "My new chat"
+    new_title = "My new chat"
+    response = client.post(
+        reverse(
+            "chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"}
+        ),
+        data={"title": new_title},
+    )
+    assert response.status_code == 200
+    assert new_title in response.content.decode("utf-8")
+
+    invalid_title = "".join("a" for _ in range(256))
+    # Test invalid form
+    response = client.post(
+        reverse(
+            "chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"}
+        ),
+        data={"title": invalid_title},
+    )
+    assert response.status_code == 200
+    assert f'value="{invalid_title}"' in response.content.decode("utf-8")
+
+    # Test get
+    response = client.get(
+        reverse("chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"})
+    )
+    assert response.status_code == 200
+    assert f'value="{new_title}"' in response.content.decode("utf-8")

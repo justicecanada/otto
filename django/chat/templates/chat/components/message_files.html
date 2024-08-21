@@ -7,14 +7,19 @@
     {% endblocktrans %}
   {% else %}
     {% blocktrans with num_files=message.num_files s=message.num_files|pluralize %}
-      Uploaded {{ num_files }} file{{ s }}:  
+      Uploaded {{ num_files }} file{{ s }}
     {% endblocktrans %}
+    {% if message.mode == "translate" %}
+      {% trans "for translation:" %}
+    {% elif message.mode == "summarize" %}
+      {% trans "for summarization:" %}
+    {% endif %}
   {% endif %}
 </p>
 <ul class="list-unstyled mb-1">
   {% for file in message.sorted_files %}
     <li class="message-file">
-      <i class="fa-solid fa-paperclip img-thumbnail-md img-icon-sm mx-1"></i>
+      <i class="bi bi-paperclip img-thumbnail-md img-icon-sm mx-1"></i>
       {% if file.saved_file %}
         <a href="{% url 'chat:download_file' file_id=file.id %}"
            class="text-body">{{ file.filename }}</a>

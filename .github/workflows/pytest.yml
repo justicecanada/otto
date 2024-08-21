@@ -1,4 +1,5 @@
 name: Django CI
+# See https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
 
 on:
   push:
@@ -8,40 +9,57 @@ on:
 
 defaults:
   run:
-    shell: bash
+    shell: bash 
     working-directory: ./django
 
 jobs:
-  test:
+  # Label of the container job
+  test-coverage:
+    # Containers must run in Linux based operating systems
+    runs-on: ubuntu-latest
+    # Docker Hub image that `test-coverage` executes in
+    container: python:3.11
+    permissions:
+      # See https://github.com/py-cov-action/python-coverage-comment-action#basic-usage
+      pull-requests: write
+      contents: write
+
+    services:
+      # Label used to access the service container
+      postgres-service:
+        # Docker Hub image
+        image: pgvector/pgvector:pg16
+        # Provide the password for postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: otto
+          POSTGRES_PASSWORD: password
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+
     env:
       AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
       AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
-    runs-on: ubuntu-latest
-    name: Build, test and report coverage
-    permissions:
-      # So that the action can add a comment to the PR
-      pull-requests: write
-      # Needs to push data to python-coverage-comment-action branch
-      contents: write
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.11]
+      DJANGODB_HOST: postgres-service
+      VECTORDB_HOST: postgres-service
+      LOG_LEVEL: ERROR
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        apt-get update
+        apt-get install -y postgresql-client
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements_dev.txt
-      # TODO: Not installing Poppler here because the tests that require it are skipped
-      # sudo apt-get update
-      # sudo apt-get install -y poppler-utils
     - name: Collect static files
       run: |
         python manage.py collectstatic --noinput
@@ -64,4 +82,3 @@ jobs:
       with:
         name: python-coverage-comment-action
         path: python-coverage-comment-action.txt
-  

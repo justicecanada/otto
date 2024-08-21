@@ -8,7 +8,7 @@
     features:
       - fields:
           name_en: Q&A
-          name_fr: Demander des documents
+          name_fr: Questions et réponses
           description_en: Get instant answers from curated and user-uploaded documents.
           description_fr: Obtenez des réponses instantanées à partir de documents sélectionnés et téléchargés par l'utilisateur.
           url: chat:qa

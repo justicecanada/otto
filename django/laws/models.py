@@ -25,8 +25,8 @@ def connect_to_vector_store(vector_store_table: str) -> VectorStoreIndex:
     from llama_index.vector_stores.postgres import PGVectorStore
 
     llm = AzureOpenAI(
-        model="gpt-35-turbo",  # TODO: Rethink how to pass this in. Maybe a global variable? Or dynamic based on the library?
-        deployment_name="gpt-35-turbo-unfiltered",  # TODO: Revisit whether unfiltered is still needed or if an alternative can be used.
+        model=settings.DEFAULT_CHAT_MODEL,  # TODO: Rethink how to pass this in. Maybe a global variable? Or dynamic based on the library?
+        deployment_name=settings.DEFAULT_CHAT_MODEL,  # TODO: Revisit whether unfiltered is still needed or if an alternative can be used.
         api_key=settings.AZURE_OPENAI_KEY,
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
         api_version=settings.AZURE_OPENAI_VERSION,

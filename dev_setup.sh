@@ -14,5 +14,6 @@ if [[ $input == "Y" || $input == "y" ]]; then
 else
         echo "OK, skipping."
 fi
+sudo chown -R $(whoami) django
 # Now run .devcontainer/post-create.sh
 bash .devcontainer/post-create.sh

@@ -18,11 +18,17 @@ pytest_plugins = ("pytest_asyncio",)
 async def django_db_setup(django_db_setup, django_db_blocker):
     def _inner():
         with django_db_blocker.unblock():
-            call_command("reset_app_data", "groups", "apps", "terms", "security_labels")
+            call_command(
+                "reset_app_data",
+                "groups",
+                "apps",
+                "terms",
+                "security_labels",
+                "library_mini",
+            )
             from django.conf import settings
 
-            if not (settings.IS_RUNNING_IN_GITHUB):
-                call_command("reset_app_data", "library_mini", "options")
+            if not settings.IS_RUNNING_IN_GITHUB:
                 call_command("load_corporate_library")
 
     return await sync_to_async(_inner)()

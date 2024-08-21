@@ -37,22 +37,18 @@
       {% else %}
         <div class="message-text">{{ message.text|escape }}</div>
       {% endif %}
-      {% comment %}
-      "Show all" only used in summarization/translation mode
-      {% endcomment %}
-      <div class="message-show-all mt-2">
-        <a class="text-secondary"
-           href="#"
-           onclick="this.closest('.message-outer').classList.add('show-all'); return false;">{% trans "Show all" %}</a>
+      <div class="row">
+        <div class="message-show-all col mt-2" style="line-height:1.75rem">
+          <a class="text-body fw-semibold small"
+             href="#"
+             onclick="this.closest('.message-outer').classList.add('show-all'); return false;">{% trans "Show all..." %}<i class="bi bi-chevron-down ms-1 small"></i></a>
+        </div>
+        {% if message.sources %}
+          {% with sources=message.sources %}
+            {% include "chat/components/message_sources.html" %}
+          {% endwith %}
+        {% endif %}
       </div>
-      {% comment %}
-      "Sources" only used in Q&A modes
-      {% endcomment %}
-      {% if message.sources %}
-        {% with sources=message.sources %}
-          {% include "chat/components/message_sources.html" %}
-        {% endwith %}
-      {% endif %}
       {% if message.cost %}
         <div class="row mt-1">
           {% if message.cost %}<small class="col text-muted cost">${{ message.cost }}</small>{% endif %}

@@ -1,0 +1,33 @@
+{% load i18n %}
+
+<form hx-post="{% url 'chat:rename_chat' chat_id=chat.id current_chat=chat.current_chat %}"
+      hx-target="closest li"
+      hx-swap="outerHTML"
+      hx-trigger="keyup[key=='Enter']"
+      onsubmit="event.preventDefault();"
+      class="row d-flex py-2 border-bottom">
+    <div class="col">
+        <label for="{{ form.title.id_for_label }}" class="visually-hidden">{% trans "Edit chat title" %}</label>
+        {{ form.title }}
+    </div>
+ 
+    <button type="button"
+            class="btn btn-sm btn-light me-0 ps-2 col-auto d-none cancel-chat-rename-btn"
+            hx-get="{% url 'chat:chat_list_item' chat_id=chat.id current_chat=chat.current_chat %}"
+            hx-swap="outerHTML"
+            hx-target="closest li">
+        <i class="bi bi-x-lg"></i><span class="visually-hidden">{% trans "Cancel" %}</span>
+    </button>
+</form>
+
+{% block page_script %}
+    <script>
+        htmx.onLoad((element) => {            
+            if(element instanceof HTMLFormElement) {                
+                const input = document.getElementById('{{ form.title.id_for_label }}');                
+                input.setSelectionRange(-1, -1);                            
+                input.focus()                                
+            }                
+        });        
+    </script>
+{% endblock page_script %}

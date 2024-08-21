@@ -111,7 +111,7 @@ python django/manage.py load_laws_xml --download --reset
 To speed up queries in the vector store, you may wish to build an HNSW index on the table.
 
 ```bash
-psql -U postgres -h postgres-django-service
+psql -U postgres -h postgres-service
 ```
 
 Enter the password. Switch to the llama_index database and create the HNSW index. **This can take a while.** (an hour or more for the full set of laws).
@@ -119,6 +119,22 @@ Enter the password. Switch to the llama_index database and create the HNSW index
 ```sql
 \c llama_index
 CREATE INDEX ON data_laws_lois__ USING hnsw (embedding vector_ip_ops) WITH (m = 25, ef_construction = 50);
+```
+
+### Celery Scheduler
+
+To enable the celery scheduler in the development setup uncomment the `celery-beat` service found in `.devcontainer/docker-compose.yml`.
+
+In `django/otto/celery.py` adjust the celery beat settings as needed. The following example shows a job running every morning at 5am UTC
+
+``` python
+app.conf.beat_schedule = {
+  # Sync entra users every day at 5 am UTC
+  "sync-entra-users-every-morning": {
+      "task": "otto.tasks.sync_users",
+      "schedule": crontab(hour=5, minute=0),
+  }
+}
 ```
 
 
@@ -283,29 +299,45 @@ logger.debug("")
 
 ## Deploy to Azure
 
-Not everyone on the team will have permission to run these commands, as they require access to the container registry and kubernetes cluster.
+### Prerequisites
 
-### Building and pushing the image
+Before you begin, ensure you have met the following requirements:
 
-From `/django`:
+- **PowerShell:** Installed and accessible on your system.
+- **Git:** Installed and accessible from the command line.
+- **Docker:** Installed and running on your machine.
+- **Azure CLI (az):** Installed and accessible from the command line.
+- **Azure Container Registry (ACR) Access:** Appropriate permissions to push images.
+- **Dockerfile:** Located in the `./django` directory.
+- **Git Repository Context:** Executed from within a Git repository or initialized directory.
+- **Execution Permissions:** PowerShell script execution policy set to allow running scripts (`Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process`).
+- **VPN Connection:** Required to connect to Azure and other resources.
 
+### Build and push the Docker image
+
+Run the following script and follow the prompts:
+
+The script will prompt you to enter three pieces of information:
+- **Registry Name:** Enter the name of your Azure Container Registry (ACR) instance.
+- **Version Number:** Enter the version number for the Docker image (e.g., v1.0.0).
+
+The script will:
+- Generate a unique build number based on the current date and time.
+- Create a version.yaml file with the provided information.
+- Copy the version.yaml file into the Docker build context.
+- Log in to your Azure Container Registry.
+- Build the Docker image with a specific tag based on the version and build number.
+- Tag the Docker image as latest.
+- Push both the versioned and latest tags to Azure Container Registry.
+- Clean up the temporary version.yaml file.
+
+```powershell
+.\build_and_push_image.ps1
 ```
-docker build -t jusdevottoaacr.azurecr.io/otto:latest .
-```
 
-```
-az acr login --name jusdevottoaacr.azurecr.io
-```
+2. Setup and deploy to Azure Kubernetes Service
 
-```
-docker push jusdevottoaacr.azurecr.io/otto:latest
-```
-
-### Deploying on Azure Kubernetes Service
-
-See `/k8s` folder. You will have to `exec` into the django pod and run `bash initial_setup.sh` on the first deployment.
-This will setup the database including a test user (`justice_bac_user` / `justice_bac_password`) that you can use to login.
-
+See `/setup` folder to follow the `README.md`. These steps will ensure the infrastructure is setup and that the AKS cluster is configured correctly. The final step is to deploy the run the `initial_setup.sh` on the coordinator node.
 
 ## If all else fails
 

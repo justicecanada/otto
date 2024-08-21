@@ -14,28 +14,34 @@ import logging
 import os
 import sys
 from pathlib import Path
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import quote, urlparse, urlunparse
 
 import structlog
+import yaml
 from dotenv import load_dotenv
 from storages.backends.azure_storage import AzureStorage
 
 from .utils import logging as logging_utils
 
-# Corresponds to GitHub release tag; displayed in the header.
-OTTO_VERSION = "v0"
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Set the logging level for all azure-* libraries
 logger = logging.getLogger("azure.identity")
 logger.setLevel(logging.ERROR)
 
+OTTO_VERSION = "v0"
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Load the version from the version.yaml file
+version_file_path = os.path.join(BASE_DIR, "version.yaml")
+if os.path.exists(version_file_path):
+    with open(version_file_path, "r") as file:
+        data = yaml.safe_load(file)
+        OTTO_VERSION = data.get("version")
 
 # Load environment variables from .env file
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 # Check for a variable we only set in the .env file to see if it exists
-if os.environ.get("OTTO_DATABASE_NAME") is None:
+if os.environ.get("DJANGODB_NAME") is None:
     try:
         # These are enough to run the CI tests
         load_dotenv(os.path.join(BASE_DIR, ".env.example"))
@@ -88,6 +94,8 @@ AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
 # https://openai.com/pricing
 OPENAI_COST_PER_TOKEN = 0.0020 / 1000
 OPENAI_EMBEDDING_COST_PER_TOKEN = 0.0004 / 1000
+
+DEFAULT_CHAT_MODEL = "gpt-4o"
 
 
 # Azure Cognitive Services
@@ -149,7 +157,6 @@ INSTALLED_APPS = [
     "channels",
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
-    "django_browser_reload",
 ]
 
 MIDDLEWARE = [
@@ -171,7 +178,6 @@ MIDDLEWARE = [
     "django.middleware.locale.LocaleMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 if IS_RUNNING_TESTS:
@@ -252,33 +258,29 @@ DATABASES = {
 }
 
 # If the database is set in the environment variables, use that instead
-if os.environ.get("OTTO_DATABASE_ENGINE") is not None and not IS_RUNNING_IN_GITHUB:
+if os.environ.get("DJANGODB_ENGINE") is not None:
     DATABASES["default"] = {
-        "ENGINE": os.environ.get("OTTO_DATABASE_ENGINE"),
-        "NAME": os.environ.get("OTTO_DATABASE_NAME"),
-        "USER": os.environ.get("OTTO_DATABASE_USER"),
-        "PASSWORD": os.environ.get("OTTO_DATABASE_PASSWORD", ""),
-        "HOST": os.environ.get("OTTO_DATABASE_HOST"),
-    }
-    # Assumes the vector Postgres database is same as Django database (true for now)
-    DATABASES["vector_db"] = {
-        "ENGINE": os.environ.get("OTTO_DATABASE_ENGINE"),
-        "NAME": os.environ.get("VECTOR_DATABASE_NAME"),
-        "USER": os.environ.get("OTTO_DATABASE_USER"),
-        "PASSWORD": os.environ.get("OTTO_DATABASE_PASSWORD", ""),
-        "HOST": os.environ.get("OTTO_DATABASE_HOST"),
+        "ENGINE": os.environ.get("DJANGODB_ENGINE"),
+        "NAME": os.environ.get("DJANGODB_NAME"),
+        "USER": os.environ.get("DJANGODB_USER"),
+        # CosmosDB can't have the password quoted; it seems to handle this natively. TODO: Investigate to understand better
+        "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
+        "HOST": os.environ.get("DJANGODB_HOST"),
     }
 
-if ENVIRONMENT in ["DEV", "UAT", "PROD"]:
-    # Use the CosmosDB backend for the Django database
-    DATABASES["default"] = {
-        "ENGINE": os.environ.get("COSMOSDB_DATABASE_ENGINE"),
-        "NAME": os.environ.get("COSMOSDB_DATABASE_NAME"),
-        "USER": os.environ.get("COSMOSDB_DATABASE_USER"),
-        "PASSWORD": os.environ.get("COSMOSDB_DATABASE_PASSWORD"),
-        "HOST": os.environ.get("COSMOSDB_DATABASE_HOST"),
-        "PORT": os.environ.get("COSMOSDB_DATABASE_PORT"),
-        "SSLMODE": "require",
+    # Add the PORT and SSLMODE for CosmosDB, which only exist for DEV, UAT, and PROD
+    if ENVIRONMENT in ["DEV", "UAT", "PROD"]:
+        DATABASES["default"]["PORT"] = os.environ.get("DJANGODB_PORT")
+        DATABASES["default"]["SSLMODE"] = "require"
+
+if os.environ.get("VECTORDB_ENGINE") is not None:
+    DATABASES["vector_db"] = {
+        "ENGINE": os.environ.get("VECTORDB_ENGINE"),
+        "NAME": os.environ.get("VECTORDB_NAME"),
+        "USER": os.environ.get("VECTORDB_USER"),
+        # Passwords for Postgres need to be quoted to handle special characters
+        "PASSWORD": quote(os.environ.get("VECTORDB_PASSWORD", "")),
+        "HOST": os.environ.get("VECTORDB_HOST"),
     }
 
 

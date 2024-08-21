@@ -14,7 +14,7 @@ from django.views.decorators.http import require_GET, require_POST
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 
-from chat.forms import ChatOptionsForm, DataSourcesForm
+from chat.forms import ChatOptionsForm, ChatRenameForm, DataSourcesForm
 from chat.metrics.activity_metrics import (
     chat_new_session_started_total,
     chat_request_type_total,
@@ -324,6 +324,10 @@ def chat(request, chat_id):
         }
         messages = [messages.first(), response_init_message]
 
+    # If ChatOptions has an invalid library or data source, remove them
+    if not chat.options.qa_library:
+        chat.options.qa_library = Library.objects.get_default_library()
+        chat.options.save()
     form = ChatOptionsForm(instance=chat.options, user=request.user)
     context = {
         "chat": chat,
@@ -657,6 +661,47 @@ def chat_options(request, chat_id, action=None):
     return HttpResponse(status=500)
 
 
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def chat_list_item(request, chat_id, current_chat=None):
+    chat = get_object_or_404(Chat, id=chat_id)
+    chat.current_chat = bool(current_chat == "True")
+    return render(
+        request,
+        "chat/components/chat_list_item.html",
+        {"chat": chat},
+    )
+
+
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def rename_chat(request, chat_id, current_chat=None):
+    chat = get_object_or_404(Chat, id=chat_id)
+    chat.current_chat = bool(current_chat == "True")
+
+    if request.method == "POST":
+        chat_rename_form = ChatRenameForm(request.POST)
+        if chat_rename_form.is_valid():
+            chat.title = chat_rename_form.cleaned_data["title"]
+            chat.save()
+            return render(
+                request,
+                "chat/components/chat_list_item.html",
+                {"chat": chat},
+            )
+        else:
+            return render(
+                request,
+                "chat/components/chat_list_item_title_edit.html",
+                {"form": chat_rename_form, "chat": chat},
+            )
+
+    chat_rename_form = ChatRenameForm(data={"title": chat.title})
+    return render(
+        request,
+        "chat/components/chat_list_item_title_edit.html",
+        {"form": chat_rename_form, "chat": chat},
+    )
+
+
 def get_data_sources(request, prefix="qa"):
     library_id = request.POST.get("qa_library", None)
     if not library_id:
@@ -670,8 +715,18 @@ def get_data_sources(request, prefix="qa"):
     )
 
 
-def get_qa_accordion(request, chat_id):
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def get_qa_accordion(request, chat_id, library_id):
     chat = Chat.objects.get(id=chat_id)
+    if chat.options.qa_library_id != library_id:
+        if chat.options.qa_library_id:
+            chat.options.qa_library_id = library_id
+        else:
+            # If chat.options.qa_library_id is None, it means that the selected library
+            # was deleted, and there is no Library corresponding to library_id
+            # Thus, revert back to default (Corporate) library
+            chat.options.qa_library_id = Library.objects.get_default_library().id
+        chat.options.save()
     return render(
         request,
         "chat/components/options_4_qa.html",
@@ -683,6 +738,7 @@ def get_qa_accordion(request, chat_id):
     )
 
 
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def set_security_label(request, chat_id, security_label_id):
     logger.info(
         "Setting security label for chat.",
@@ -696,4 +752,14 @@ def set_security_label(request, chat_id, security_label_id):
         request,
         "chat/components/chat_security_label.html",
         {"chat": chat, "security_labels": SecurityLabel.objects.all()},
+    )
+
+
+@permission_required("chat.access_message", objectgetter(Message, "message_id"))
+def message_sources(request, message_id):
+    message = Message.objects.get(id=message_id)
+    return render(
+        request,
+        "chat/modals/sources_modal_inner.html",
+        {"message": message, "sources": message.sources},
     )

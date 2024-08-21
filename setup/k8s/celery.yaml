@@ -1,0 +1,186 @@
+# Persistent Volume Claim for shared storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: otto
+spec:
+  storageClassName: azurefile  # Uses Azure File storage
+  accessModes:
+    - ReadWriteMany  # Allows multiple pods to read and write
+  resources:
+    requests:
+      storage: 2Gi  # Requests 2 GB of storage
+
+---
+
+# Deployment for Celery Worker
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  namespace: otto
+  labels:
+    deployment: celery-worker
+spec:
+  replicas: 1  # Runs one instance of the worker
+  selector:
+    matchLabels:
+      pod: celery-worker
+  template:
+    metadata:
+      labels:
+        pod: celery-worker
+    spec:
+      containers:
+        - name: celery-worker
+          image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the latest image from Azure Container Registry
+          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--concurrency=16']  # Starts Celery worker with 16 concurrent tasks
+          envFrom:
+            - configMapRef:
+                name: otto-configmap  # Loads environment variables from a ConfigMap
+          env:
+          # Environment variables loaded from Azure Key Vault secrets
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangosecretkey
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: vectordbpasswordkey
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: openaiservicekey
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: cognitiveservicekey
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: storageaccountkey
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbhostkey
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbpasswordkey
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: entraclientsecretkey
+          volumeMounts:
+            - name: secrets  # Mounts secrets from Azure Key Vault
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+            - name: media-pv-storage
+              mountPath: "/data/media"  # Mounts shared storage for media
+      volumes:
+      - name: secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "azure-keyvault"
+      - name: media-pv-storage
+        persistentVolumeClaim:
+          claimName: media-pvc  # References the PVC defined earlier
+
+---
+
+
+# Deployment for Celery Beat (scheduler)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-beat
+  namespace: otto
+  labels:
+    deployment: celery-beat
+spec:
+  replicas: 1  # Runs one instance of the beat scheduler
+  selector:
+    matchLabels:
+      pod: celery-beat
+  template:
+    metadata:
+      labels:
+        pod: celery-beat
+    spec:
+      containers:
+        - name: celery-beat
+          image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the same image as the worker
+          command: ['celery', '-A', 'otto', 'beat', '-l', 'INFO']  # Starts Celery beat scheduler
+          envFrom:
+            - configMapRef:
+                name: otto-configmap  # Loads environment variables from a ConfigMap
+          env:
+          # Environment variables loaded from Azure Key Vault secrets (same as worker)
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangosecretkey
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: vectordbpasswordkey
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: openaiservicekey
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: cognitiveservicekey
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: storageaccountkey
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbhostkey
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbpasswordkey
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: entraclientsecretkey
+          volumeMounts:
+            - name: secrets
+              mountPath: "/mnt/secrets-store"
+              readOnly: true  # Mounts secrets from Azure Key Vault
+            - name: media-pv-storage
+              mountPath: "/data/media"  # Mounts shared storage for media files
+      volumes:
+      - name: secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "azure-keyvault"  # Uses Azure Key Vault for secrets
+      - name: media-pv-storage
+        persistentVolumeClaim:
+          claimName: media-pvc  # References the same PVC as the worker

@@ -23,4 +23,12 @@
         dataSource.checked = false;
       });
     }
+
+    function updateLibraryModalButton() {
+      const selectElement = document.getElementById('id_qa_library');
+      const selectedLibraryId = selectElement.value;
+      const buttonElement = document.getElementById('editLibrariesButton');
+      buttonElement.setAttribute('hx-get', `/librarian/modal/library/${selectedLibraryId}/edit/`);
+      htmx.process(buttonElement);
+    }
 </script>

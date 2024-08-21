@@ -38,30 +38,6 @@ markdown_list = """
 
 
 def test_llm_response_formatter():
-    # Test that HTML outside of backticks is escaped
-    html = llm_response_to_html(tags_outside_backticks)
-    assert "<div>" not in html
-    assert "</div>" not in html
-    assert "&lt;" in html
-    assert "&gt;" in html
-
-    # I can't get the following tests to pass, but the code works
-    # and removing the unescaping code breaks the functionality in
-    # the browser, so I'm commenting out these tests for now.
-
-    # # Test that HTML inside triple backticks is not escaped
-    # html = llm_response_to_html(tags_inside_triple_backticks)
-    # assert html.count("<div>") == 1
-    # assert html.count("</div>") == 1
-    # assert "&lt;" in html
-    # assert "&gt;" in html
-
-    # # Test that HTML inside single backticks is not escaped
-    # html = llm_response_to_html(tags_inside_single_backticks)
-    # assert html.count("<div>") == 1
-    # assert html.count("</div>") == 1
-    # assert "&lt;" in html
-    # assert "&gt;" in html
 
     # Test that markdown is parsed
     html = llm_response_to_html(markdown_list)

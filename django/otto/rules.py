@@ -137,6 +137,8 @@ def can_edit_library(user, library):
 
 @predicate
 def can_delete_library(user, library):
+    if library.is_default_library:
+        return False
     if library.is_public:
         if is_admin(user):
             return True
@@ -151,7 +153,19 @@ def can_edit_data_source(user, data_source):
 
 
 @predicate
+def can_delete_data_source(user, data_source):
+    if data_source.library.is_default_library:
+        return is_admin(user)
+    return can_edit_library(user, data_source.library)
+
+
+@predicate
 def can_edit_document(user, document):
+    return can_edit_library(user, document.data_source.library)
+
+
+@predicate
+def can_delete_document(user, document):
     return can_edit_library(user, document.data_source.library)
 
 
@@ -164,11 +178,19 @@ def can_manage_library_users(user, library):
     return is_library_admin(user, library)
 
 
+@predicate
+def can_download_document(user, document):
+    return can_view_library(user, document.data_source.library)
+
+
 add_perm("librarian.manage_public_libraries", can_manage_public_libraries)
 add_perm("librarian.change_publicity", can_change_publicity)
 add_perm("librarian.view_library", can_view_library)
 add_perm("librarian.edit_library", can_edit_library)
 add_perm("librarian.delete_library", can_delete_library)
 add_perm("librarian.edit_data_source", can_edit_data_source)
+add_perm("librarian.delete_data_source", can_delete_data_source)
 add_perm("librarian.edit_document", can_edit_document)
+add_perm("librarian.delete_document", can_delete_document)
 add_perm("librarian.manage_library_users", can_manage_library_users)
+add_perm("librarian.download_document", can_download_document)

@@ -3,12 +3,13 @@ from django.forms import ModelForm
 from django.urls import reverse_lazy as url
 from django.utils.translation import gettext_lazy as _
 
-from chat.models import ChatOptions
+from chat.models import Chat, ChatOptions
 from librarian.models import DataSource, Library
 
 CHAT_MODELS = [
-    ("gpt-35-turbo", _("GPT-3.5 (faster)")),
-    ("gpt-4", _("GPT-4 (accurate)")),
+    ("gpt-4o", _("GPT-4o (Global)")),
+    ("gpt-4", _("GPT-4 (Canada)")),
+    ("gpt-35", _("GPT-3.5 (Canada)")),
 ]
 SUMMARIZE_STYLES = [
     ("short", _("Short")),
@@ -96,17 +97,32 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "triggerOptionSave();",
                 },
             ),
-            "qa_topk": forms.NumberInput(
-                attrs={
-                    "class": "form-control form-control-sm",
-                    "onchange": "triggerOptionSave();",
-                    "min": "1",
-                    "max": "100",
-                }
+            "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "qa_system_prompt": forms.HiddenInput(
+                attrs={"onchange": "triggerOptionSave();"}
             ),
+            "qa_prompt_template": forms.HiddenInput(
+                attrs={"onchange": "triggerOptionSave();"}
+            ),
+            "qa_pre_instructions": forms.HiddenInput(
+                attrs={"onchange": "triggerOptionSave();"}
+            ),
+            "qa_post_instructions": forms.HiddenInput(
+                attrs={"onchange": "triggerOptionSave();"}
+            ),
+            "qa_topk": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "qa_vector_ratio": forms.HiddenInput(
+                attrs={"onchange": "triggerOptionSave();"}
+            ),
+            "qa_source_order": forms.HiddenInput(
+                attrs={"onchange": "triggerOptionSave();"}
+            ),
+            "qa_answer_mode": forms.HiddenInput(
+                attrs={"onchange": "triggerOptionSave();"}
+            ),
+            "qa_prune": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "qa_rewrite": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
         }
-        # Mode should be a hidden field
-        widgets["mode"] = forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"})
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
@@ -155,7 +171,7 @@ class ChatOptionsForm(ModelForm):
             widget=forms.Select(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave();",
+                    "onchange": "triggerOptionSave(); updateLibraryModalButton();",
                     "hx-post": url("chat:get_data_sources"),
                     "hx-swap": "outerHTML",
                     "hx-target": "#qa_data_sources",
@@ -164,9 +180,9 @@ class ChatOptionsForm(ModelForm):
             ),
         )
 
-        _library_id = self.instance.qa_library_id
-        if not _library_id:
-            _library_id = Library.objects.get_default_library().id
+        _library_id = (
+            self.instance.qa_library_id or Library.objects.get_default_library().id
+        )
 
         # Check if any of the qa_data_sources are checked
         any_data_sources_checked = self.instance.qa_data_sources.filter(
@@ -230,3 +246,19 @@ class DataSourcesForm(forms.Form):
                 },
             ),
         )
+
+
+class ChatRenameForm(ModelForm):
+    class Meta:
+        model = Chat
+        fields = ["title"]
+        widgets = {
+            "title": forms.TextInput(
+                attrs={
+                    "class": "form-control form-control-sm",
+                    "onkeyup": "if (event.key === 'Escape') { cancelChatRename(); }",
+                    "onblur": "cancelChatRename();",
+                    "placeholder": _("Untitled chat"),
+                }
+            )
+        }

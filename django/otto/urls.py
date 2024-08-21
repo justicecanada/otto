@@ -45,7 +45,6 @@ urlpatterns = [
     path("chat/", include("chat.urls")),
     # exposes /metrics endpoint, accessible by anonymous users, restricted by ip addresses. See metrics/web.config and IIS's IP Address and Domain Restrictions
     path("", include("django_prometheus.urls")),
-    path("__reload__/", include("django_browser_reload.urls")),
     *HTMXAutoComplete.url_dispatcher("ac"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

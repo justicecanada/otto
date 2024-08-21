@@ -8,26 +8,19 @@ from django.utils.translation import gettext_lazy as _
 
 from structlog import get_logger
 
+from chat.prompts import (
+    DEFAULT_CHAT_PROMPT,
+    QA_POST_INSTRUCTIONS,
+    QA_PRE_INSTRUCTIONS,
+    QA_PROMPT_TEMPLATE,
+    QA_SYSTEM_PROMPT,
+)
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
 
 logger = get_logger(__name__)
 
 DEFAULT_MODE = "qa"
-DEFAULT_CHAT_PROMPT = (
-    "You are a general-purpose AI chatbot. You follow these rules:\n\n"
-    "1. You are professional, accurate and helpful above all.\n\n"
-    "2. Your name is 'Otto', an AI who works for the Department of Justice Canada.\n\n"
-    "3. You do not have access to the internet or other knowledge bases. "
-    "If you are asked about very specific facts, especially one about the "
-    "Government of Canada or laws, you always caveat your response, e.g., "
-    "'I am a pre-trained AI and do not have access to the internet, "
-    "so my answers might not be correct. Based on my training data, I expect that...'\n\n"
-    "4. If you are asked a question about Department of Justice or other Government of "
-    "Canada / HR policies, you inform users of Otto's 'Q&A' mode which "
-    "can provide more accurate information.\n\n"
-    "6. You answer in markdown format to provide clear and readable responses."
-)
 
 
 class ChatManager(models.Manager):
@@ -97,6 +90,14 @@ class ChatOptionsManager(models.Manager):
             default_library = Library.objects.get_default_library()
             new_options = self.create(
                 qa_library=default_library,
+                chat_system_prompt=_(DEFAULT_CHAT_PROMPT),
+                chat_model=settings.DEFAULT_CHAT_MODEL,
+                qa_model=settings.DEFAULT_CHAT_MODEL,
+                summarize_model=settings.DEFAULT_CHAT_MODEL,
+                qa_prompt_template=_(QA_PROMPT_TEMPLATE),
+                qa_pre_instructions=_(QA_PRE_INSTRUCTIONS),
+                qa_post_instructions=_(QA_POST_INSTRUCTIONS),
+                qa_system_prompt=_(QA_SYSTEM_PROMPT),
             )
             if mode:
                 new_options.mode = mode
@@ -131,12 +132,12 @@ class ChatOptions(models.Model):
     mode = models.CharField(max_length=255, default=DEFAULT_MODE)
 
     # Chat-specific options
-    chat_model = models.CharField(max_length=255, default="gpt-35-turbo")
+    chat_model = models.CharField(max_length=255, default="gpt-4o")
     chat_temperature = models.FloatField(default=0.1)
-    chat_system_prompt = models.TextField(blank=True, default=DEFAULT_CHAT_PROMPT)
+    chat_system_prompt = models.TextField(blank=True)
 
     # Summarize-specific options
-    summarize_model = models.CharField(max_length=255, default="gpt-35-turbo")
+    summarize_model = models.CharField(max_length=255, default="gpt-4o")
     summarize_style = models.CharField(max_length=255, default="short")
     summarize_language = models.CharField(max_length=255, default="en")
     summarize_prompt = models.TextField(blank=True)
@@ -145,7 +146,7 @@ class ChatOptions(models.Model):
     translate_language = models.CharField(max_length=255, default="fr")
 
     # Library QA-specific options
-    qa_model = models.CharField(max_length=255, default="gpt-35-turbo")
+    qa_model = models.CharField(max_length=255, default="gpt-4o")
     qa_library = models.ForeignKey(
         "librarian.Library",
         on_delete=models.SET_NULL,
@@ -156,6 +157,36 @@ class ChatOptions(models.Model):
         "librarian.DataSource", related_name="qa_options"
     )
     qa_topk = models.IntegerField(default=5)
+    qa_system_prompt = models.TextField(blank=True)
+    qa_prompt_template = models.TextField(blank=True)
+    qa_pre_instructions = models.TextField(blank=True)
+    qa_post_instructions = models.TextField(blank=True)
+    qa_source_order = models.CharField(max_length=20, default="score")
+    qa_vector_ratio = models.FloatField(default=0.6)
+    qa_answer_mode = models.CharField(max_length=20, default="combined")
+    qa_prune = models.BooleanField(default=True)
+    qa_rewrite = models.BooleanField(default=False)
+
+    @property
+    def qa_prompt_combined(self):
+        from llama_index.core import ChatPromptTemplate
+        from llama_index.core.llms import ChatMessage, MessageRole
+
+        return ChatPromptTemplate(
+            message_templates=[
+                ChatMessage(
+                    content=self.qa_system_prompt,
+                    role=MessageRole.SYSTEM,
+                ),
+                ChatMessage(
+                    content=self.qa_prompt_template,
+                    role=MessageRole.USER,
+                ),
+            ]
+        ).partial_format(
+            pre_instructions=self.qa_pre_instructions,
+            post_instructions=self.qa_post_instructions,
+        )
 
     def clean(self):
         if hasattr(self, "chat") and self.user:
@@ -256,9 +287,8 @@ class AnswerSource(models.Model):
     )
     node_text = models.TextField()
     node_score = models.FloatField(default=0.0)
-    # Saved citation and data source name for cases where the document is deleted later
+    # Saved citation for cases where the source Document is deleted later
     saved_citation = models.TextField(blank=True)
-    saved_data_source_name = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         document_citation = self.citation
@@ -273,14 +303,6 @@ class AnswerSource(models.Model):
     @property
     def citation(self):
         return self.document.citation if self.document else self.saved_citation
-
-    @property
-    def data_source_name(self):
-        return (
-            f"{self.document.data_source.library.name} - {self.document.data_source.name}"
-            if self.document
-            else self.saved_data_source_name
-        )
 
 
 class ChatFileManager(models.Manager):

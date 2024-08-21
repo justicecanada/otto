@@ -1,0 +1,26 @@
+<div class="accordion accordion-flush"
+     id="sources-{{ message.id }}-accordion">
+  {% for source in sources %}
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#sources-{{ message.id }}-text-{{ forloop.counter }}"
+                aria-expanded="false"
+                aria-controls="sources-{{ message.id }}-text-{{ forloop.counter }}">
+          <span class="me-1">[{{ forloop.counter }}]</span>
+          {{ source.citation|safe }}
+        </button>
+      </h2>
+      <div id="sources-{{ message.id }}-text-{{ forloop.counter }}"
+           class="accordion-collapse collapse">
+        <div class="accordion-body scrolling-content" style="">
+          {% if source.document %}<div class="float-end ps-3">{{ source.document.href|safe }}</div>{% endif %}
+          <div style="white-space:pre-wrap;">{{ source.node_text|safe }}</div>
+        </div>
+ 
+      </div>
+    </div>
+  {% endfor %}
+</div>

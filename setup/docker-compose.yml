@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  otto-setup:
+    image: otto-setup:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: otto-setup-container
+    env_file:
+      - .env
+    volumes:
+      - ./:/workspace
+    stdin_open: true
+    tty: true

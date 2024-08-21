@@ -33,6 +33,11 @@ urlpatterns = [
         responses.stop_response,
         name="stop_response",
     ),
+    path(
+        "message/<int:message_id>/sources/",
+        views.message_sources,
+        name="message_sources",
+    ),
     path("message/<int:message_id>/upload/", views.chunk_upload, name="chunk_upload"),
     path("message/<int:message_id>/upload/done", views.done_upload, name="done_upload"),
     path("file/<int:file_id>/", views.download_file, name="download_file"),
@@ -54,7 +59,17 @@ urlpatterns = [
         name="set_security_label",
     ),
     path(
-        "id/<str:chat_id>/options/qa_accordion/",
+        "id/<str:chat_id>/rename/<str:current_chat>",
+        views.rename_chat,
+        name="rename_chat",
+    ),
+    path(
+        "id/<str:chat_id>/list_item/<str:current_chat>",
+        views.chat_list_item,
+        name="chat_list_item",
+    ),
+    path(
+        "id/<str:chat_id>/options/qa_accordion/<int:library_id>",
         views.get_qa_accordion,
         name="qa_accordion",
     ),

@@ -1,0 +1,8 @@
+{% load i18n %}
+
+{# link to open a QA document #}
+{% if document.url %}
+  <a href="{{ document.url }}" target="_blank">{{ document.name }} <i class="bi bi-box-arrow-up-right"></i></a>
+{% elif document.file %}
+  <a href="{% url 'librarian:download_document' document.id %}">{{ document.name }} <i class="bi bi-file-earmark-arrow-down"></i></a>
+{% endif %}
