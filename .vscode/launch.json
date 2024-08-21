@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Python: Run Tests",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pytest",
             "args": [
@@ -17,20 +17,8 @@
             }
         },
         {
-            "name": "Python: Run Court Monitor Tests",
-            "type": "python",
-            "request": "launch",
-            "module": "pytest",
-            "args": [
-                "django/tests/court_monitor"
-            ],
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            }
-        },
-        {
             "name": "Python: Run Template Wizard Tests",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pytest",
             "args": [
@@ -42,7 +30,7 @@
         },
         {
             "name": "Python: Run Case Prep Tests",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pytest",
             "args": [
@@ -54,7 +42,7 @@
         },
         {
             "name": "Python: Run Chat Tests",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pytest",
             "args": [
@@ -65,38 +53,8 @@
             }
         },
         {
-            "name": "Django: Court Monitor",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "check_the_courts",
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Update Chatbot Embeddings",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "update_embeddings",
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Test Library Initialization",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "initialize_test_library",
-            ],
-            "django": true
-        },
-        {
             "name": "Django: Text Extractor Views Text",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pytest",
             "args": [
@@ -108,7 +66,7 @@
         },
         {
             "name": "Django: Eval Library QA",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/django/manage.py",
             "args": [
@@ -119,7 +77,7 @@
         },
         {
             "name": "Django: Reset App Data",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/django/manage.py",
             "args": [
@@ -130,7 +88,7 @@
         },
         {
             "name": "Django: Migrate",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/django/manage.py",
             "args": [
@@ -139,49 +97,8 @@
             "django": true
         },
         {
-            "name": "Django: Load Corporate Data",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "load_corporate_data",
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Load Case Data Incremental",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "load_case_data",
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Load Case Data Full",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "load_case_data",
-                "--full"
-            ],
-            "django": true
-        },
-        {
-            "name": "Django: Load Attribute Data",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/django/manage.py",
-            "args": [
-                "load_attribute_data",
-            ],
-            "django": true
-        },
-        {
             "name": "Django: Sync Users",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/django/manage.py",
             "args": [
@@ -191,7 +108,7 @@
         },
         {
             "name": "Django: Run Server",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/django/manage.py",
             "args": [
@@ -201,7 +118,7 @@
         },
         {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}"
         }
