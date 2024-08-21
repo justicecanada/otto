@@ -18,10 +18,13 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
+import magic
 import pytesseract
 from docx import Document as DocxDocument
 from docxtpl import DocxTemplate
 from pdf2image import convert_from_path
+from PyPDF2 import PdfMerger, PdfReader
+from reportlab.pdfgen import canvas
 from structlog import get_logger
 
 from otto.secure_models import AccessKey
@@ -221,6 +224,17 @@ def generate_book_of_documents(request):
         sanitized_name = re.sub(r"[^\w\-_\.]", "_", file_name)
         return sanitized_name
 
+    def convert_docx_to_pdf(docx_content):
+        doc = Document(BytesIO(docx_content))
+        pdf_buffer = BytesIO()
+        c = canvas.Canvas(pdf_buffer)
+        for para in doc.paragraphs:
+            c.drawString(100, 750, para.text)
+            c.showPage()
+        c.save()
+        pdf_buffer.seek(0)
+        return pdf_buffer
+
     access_key = AccessKey(request.user)
 
     if request.method == "POST":
@@ -229,6 +243,7 @@ def generate_book_of_documents(request):
 
         # Create a BytesIO stream to hold the ZIP file in memory
         zip_buffer = BytesIO()
+        pdf_merger = PdfMerger()
 
         with zipfile.ZipFile(zip_buffer, "w") as zip_ref:
             for document in session.document_set.filter(
@@ -243,6 +258,41 @@ def generate_book_of_documents(request):
 
                 # Write the document content to the ZIP file
                 zip_ref.writestr(file_name, document_content)
+                mime = magic.Magic(mime=True)
+                mime_type = mime.from_buffer(document_content)
+                # If the document is a PDF, add it to the PdfMerger
+                if mime_type == "application/pdf":
+                    try:
+                        pdf_reader = PdfReader(BytesIO(document_content))
+                        pdf_merger.append(pdf_reader)
+                    except Exception as e:
+                        print(f"Error processing PDF: {e}")
+                # If the document is a Word document, convert it to PDF and add to the PdfMerger
+                elif (
+                    mime_type
+                    == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                ):
+                    pdf_buffer = convert_docx_to_pdf(document_content)
+                    if pdf_buffer:
+                        pdf_merger.append(pdf_buffer)
+
+        # Ensure the buffer position is at the start
+        zip_buffer.seek(0)
+
+        # Save the merged PDF to the desired location in the storage
+        merged_pdf_buffer = BytesIO()
+        pdf_merger.write(merged_pdf_buffer)
+        merged_pdf_buffer.seek(0)
+        merged_pdf_file_name = (
+            f"{session.created_by.username}-{session.name}-merged.pdf"
+        )
+        merged_pdf_file_name = sanitize_file_name(merged_pdf_file_name)
+        merged_pdf_file_path = default_storage.save(
+            merged_pdf_file_name, merged_pdf_buffer
+        )
+        # Add the merged PDF to the ZIP file
+        with zipfile.ZipFile(zip_buffer, "a") as zip_ref:
+            zip_ref.writestr(merged_pdf_file_name, merged_pdf_buffer.getvalue())
 
         # Ensure the buffer position is at the start
         zip_buffer.seek(0)
@@ -254,6 +304,7 @@ def generate_book_of_documents(request):
 
         # Update the session model instance with the file path
         session.book_of_documents = file_path
+        session.merged_pdf = merged_pdf_file_path
         session.save(access_key)
 
         return JsonResponse(
