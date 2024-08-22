@@ -3,12 +3,22 @@
 # Function to clean up temporary files
 cleanup() {
     rm -f backend_config.hcl
-    unset ENTRA_CLIENT_SECRET
+    unset TF_VAR_entra_client_secret
 }
 trap cleanup EXIT
 
 # Source setup_env.sh to set environment variables and create .tfvars
 source setup_env.sh
+
+# Check if the Entra client secret is stored in Key Vault
+unset TF_VAR_entra_client_secret
+if TF_VAR_entra_client_secret=$(az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "ENTRA-CLIENT-SECRET" --query value -o tsv 2>/dev/null); then
+    read -p "Entra client secret exists in the Key Vault. Use it? (y/N): " use_secret
+    if [[ $use_secret =~ ^[Yy]$ ]]; then
+        # Set the Entra client secret as a Terraform variable
+        export TF_VAR_entra_client_secret
+    fi
+fi
 
 # Function to ensure Terraform state storage exists
 ensure_tf_state_storage() {
@@ -36,22 +46,6 @@ ensure_tf_state_storage() {
 # Create Terraform state storage
 ensure_tf_state_storage
 
-# Function to check if a secret exists in the Key Vault and prompt to use it
-check_and_get_secret() {
-    local vault_name="$1"
-    local secret_name="$2"
-    local secret_value
-
-    if secret_value=$(az keyvault secret show --vault-name "$vault_name" --name "$secret_name" --query value -o tsv 2>/dev/null); then
-        read -p "Secret '$secret_name' exists in Key Vault '$vault_name'. Use it? (y/N): " use_secret
-        if [[ $use_secret =~ ^[Yy]$ ]]; then
-            echo "$secret_value"
-        fi
-    fi
-}
-
-# Check if the Entra client secret exists in the Key Vault
-export ENTRA_CLIENT_SECRET=$(check_and_get_secret "$KEYVAULT_NAME" "ENTRA-CLIENT-SECRET")
 
 
 # Change to the Terraform directory
@@ -69,8 +63,4 @@ EOF
 terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure
 
 # Apply the Terraform configuration
-if [ -n "$ENTRA_CLIENT_SECRET" ]; then
-    terraform apply -var-file=.tfvars -var="entra_client_secret=$ENTRA_CLIENT_SECRET"
-else
-    terraform apply -var-file=.tfvars
-fi
+terraform apply -var-file=.tfvars # -auto-approve
