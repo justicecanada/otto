@@ -284,7 +284,7 @@ def generate_book_of_documents(request):
         pdf_merger.write(merged_pdf_buffer)
         merged_pdf_buffer.seek(0)
         merged_pdf_file_name = (
-            f"{session.created_by.username}-{session.name}-merged.pdf"
+            f"Merged_{session.created_by.username}-{session.name}.pdf"
         )
         merged_pdf_file_name = sanitize_file_name(merged_pdf_file_name)
         merged_pdf_file_path = default_storage.save(
