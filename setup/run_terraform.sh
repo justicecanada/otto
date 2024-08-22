@@ -63,4 +63,4 @@ EOF
 terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure
 
 # Apply the Terraform configuration
-terraform apply -var-file=.tfvars # -auto-approve
+terraform apply -var-file=.tfvars
