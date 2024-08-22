@@ -40,7 +40,7 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
     2. Navigate to "Microsoft Entra" and select "App registrations."
     3. Click "New registration."
     4. Enter **Otto** as the name for the application and select "Single Tenant" for the supported account types.
-    5. Set the callback URL as `https://<host-name-prefix>.canadacentral.cloudapp.azure.com/accounts/login/callback/`.
+    5. Set the callback URL as `https://<host-name-prefix>.canadacentral.cloudapp.azure.com/accounts/login/callback/`. **Note:** Replace `<host-name-prefix>` to match the target environment.
     6. Click "Register" to create the app registration.
   - Retrieve the client secret for Terraform script setup:
     1. After registration, go to "Certificates & secrets."
@@ -105,12 +105,14 @@ cd otto/setup
 
 ### 2. Build and connect to the setup container:
 
-Option 1: Using Visual Studio Code
+**If you are using Visual Studio Code:**
+- Launch Visual Studio Code in a new window
 - Open the Command Palette (Ctrl+Shift+P)
 - Type "Dev Containers: Open Folder in Container" and select it
 - Choose the repo's `setup` folder
 
-Option 2: Using Docker CLI
+**If you are using Docker CLI:**
+
 ```bash
 docker-compose up -d
 docker exec -it otto-setup-container /bin/bash
