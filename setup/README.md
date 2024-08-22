@@ -68,8 +68,8 @@ For developers who want to emulate and test the scripts within a Docker containe
 ### 1. Clone the repository and navigate to the setup folder:
 
 ```bash
-git clone https://github.com/justicecanada/Otto.git
-cd Otto/setup
+git clone https://github.com/justicecanada/otto.git
+cd otto/setup
 ```
 
 ### 2. Build and connect to the setup container:
