@@ -9,15 +9,15 @@ Write-Host "VPN connection detected. Proceeding with the script..."
 
 # Ensure Azure login and correct subscription selection
 az login
-Write-Host "Select the subscription to use:"
+Write-Host "Available subscriptions:"
 az account list --query "[].{Name:name, SubscriptionId:id}" --output table
 $SUBSCRIPTION_ID = Read-Host -Prompt "Enter the Subscription ID you want to use"
 az account set --subscription $SUBSCRIPTION_ID
 
 # Prompt for inputs
-Write-Host "Select the container registry to use:"
+Write-Host "Available container registries:"
 az acr list --query "[].{ResourceGroup:resourceGroup, Name:name}" --output table
-$REGISTRY_NAME = Read-Host -Prompt "Enter the registry name"
+$REGISTRY_NAME = Read-Host -Prompt "Enter the registry name you want to use"
 
 $VERSION = Read-Host -Prompt "Enter the version number (e.g., v1.0.0)"
 
@@ -27,7 +27,8 @@ function Test-VPNConnection {
     try {
         $result = Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet -ErrorAction Stop
         return $result
-    } catch {
+    }
+    catch {
         Write-Host "Unable to ping VPN gateway. Assuming disconnected."
         return $false
     }

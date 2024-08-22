@@ -1,35 +1,66 @@
 # Otto Setup Guide for Cloud Admins
 
-This guide outlines the process for deploying Otto infrastructure using Azure Cloud Shell.
+This guide provides a comprehensive overview of deploying Otto infrastructure using Azure Cloud Shell. The deployment process requires specific prerequisites and configurations to ensure a successful setup.
 
 ## Prerequisites
 
-Before proceeding with the Otto infrastructure deployment using Azure Cloud Shell, ensure you have the following:
+Before deploying Otto infrastructure, ensure the following prerequisites are met:
 
-- **Azure Subscription with Necessary Permissions:** An active Azure subscription is required, along with sufficient permissions to create resources. You should have at least the **Contributor** or **Owner** role at the subscription level to manage resource groups and deploy services.
+- **Azure Subscription with Permissions:** You must have an active Azure subscription with sufficient permissions to create and manage resources. Ensure the following:
+  - Log in to the [Azure Portal](https://portal.azure.com).
+  - Navigate to "Subscriptions" in the left-hand menu.
+  - Select your subscription and go to "Access control (IAM)."
+  - Verify that your account has the required role. If not, contact your Azure administrator to grant you the necessary permissions.
 
-- **Entra Callback URL Configured for AKS Cluster Access:** You need to have the callback URL for the Entra ID service configured correctly. This URL is essential for accessing the AKS cluster once it is deployed, allowing secure communication and authentication for your applications.
+- **Registration of Cloud Shell:** Ensure that the **Microsoft.CloudShell** resource provider is registered in your Azure subscription.
+  - In the [Azure Portal](https://portal.azure.com), search for "Resource providers" in the top search bar.
+  - Select "Resource providers" from the search results.
+  - In the list of resource providers, find "Microsoft.CloudShell".
+  - If its status is not "Registered", select it and click the "Register" button at the top of the page.
+  - Wait for the registration process to complete.
 
-For more information on Azure roles and permissions, refer to the [Azure RBAC documentation](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview).
+- **Agreement to Responsible AI Terms:** Follow these steps to accept the Responsible AI terms:
+  - Log in to the [Azure Portal](https://portal.azure.com).
+  - Navigate to "Create a resource."
+  - Search for and select a Cognitive Service (e.g., Language Service).
+  - Click "Create."
+  - Review and accept the Responsible AI terms when prompted.
+  - Cancel the resource creation after accepting the terms. (Terraform will create the necessary resources.)
 
-**Note:** For information on Azure OpenAI content filter modifications, see the [Registration for modified content filters and/or abuse monitoring](https://learn.microsoft.com/en-us/legal/cognitive-services/openai/limited-access#registration-for-modified-content-filters-andor-abuse-monitoring) documentation. This step has already been completed for Justice Canada.
+- **Azure OpenAI Content Filter Modifications:** 
+  - This step is required only once per subscription.
+  - Visit [this link](https://aka.ms/oai/rai/exceptions) to request an exemption from the default content filtering and abuse monitoring.
+  - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing data where standard content filtering is not appropriate.
+  - Wait for Microsoft's approval before proceeding with the deployment.
+
+- **Entra App Registration:** 
+  - Complete the [Entra App registration](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad) as a **Single Tenant** application.
+  - To register the app:
+    1. Log in to the Azure Portal.
+    2. Navigate to "Microsoft Entra" and select "App registrations."
+    3. Click "New registration."
+    4. Enter **Otto** as the name for the application and select "Single Tenant" for the supported account types.
+    5. Set the callback URL as `https://<host-name-prefix>.canadacentral.cloudapp.azure.com/accounts/login/callback/`.
+    6. Click "Register" to create the app registration.
+  - Retrieve the client secret for Terraform script setup:
+    1. After registration, go to "Certificates & secrets."
+    2. Click "New client secret," enter a description, and set an expiration period.
+    3. Click "Add" and copy the client secret value before navigating away from the page.
 
 ## Deployment Steps
 
 ### 1. Open Azure Cloud Shell and access the Otto repository:
 
-You have two options:
+Open an Azure Cloud Shell session and navigate to the `setup` directory within the Otto repository:
 
-**Option A: Clone the repository (if you haven't done so before)**
+**If you have NOT YET cloned the repository:**
 
 ```bash
 git clone https://github.com/justicecanada/otto.git
 cd otto/setup
 ```
 
-**Option B: Update an existing repository**
-
-If you've previously cloned the Otto repository, navigate to the Otto directory and pull the latest changes:
+**If you've previously cloned the Otto repository, navigate to the Otto directory and pull the latest changes:**
 
 ```bash
 cd otto
@@ -43,7 +74,7 @@ cd setup
 bash run_terraform.sh
 ```
 
-Note: You'll be prompted to either input the `ENTRA-CLIENT-SECRET` or use the value if it exists in the Key Vault already.
+Note: You'll be prompted to either input the `ENTRA-CLIENT-SECRET` or use the value if it exists in the Key Vault already. Once the plan is generated, you'll be prompted to apply the changes. Enter `yes` to proceed with the deployment.
 
 ### 3. Deploy the AKS cluster:
 
@@ -55,7 +86,7 @@ Important: Ensure the Otto image exists in the container registry before deployi
 
 # Appendix: Development Team Guide
 
-For developers who want to emulate and test the scripts within a Docker container:
+To develop and test the scripts / terraform / kubernetes manifests, a VS Code devcontainer as well as a plain Docker image are provided. Ensure that you set the environment variables to a non-production test environment.
 
 ## Prerequisites
 

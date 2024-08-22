@@ -43,9 +43,24 @@ if ! az account show &>/dev/null; then
     az login
 fi
 
+# List available subscriptions and prompt user to select one
+echo "Available subscriptions:"
+az account list --query "[].{Name:name, SubscriptionId:id}" --output table
+
+while true; do
+    read -p "Enter the Subscription ID you want to use: " SUBSCRIPTION_ID
+    if az account show --subscription "$SUBSCRIPTION_ID" &>/dev/null; then
+        az account set --subscription "$SUBSCRIPTION_ID"
+        export SUBSCRIPTION_ID
+        echo "Subscription set to: $SUBSCRIPTION_ID"
+        break
+    else
+        echo "Invalid Subscription ID. Please try again."
+    fi
+done
+
 # Set the environment variables
 export TENANT_ID=$(az account show --query tenantId --output tsv)
-export SUBSCRIPTION_NAME=$(az account show --query name --output tsv)
 export ENTRA_CLIENT_ID=$(az ad app list --display-name "${ENTRA_CLIENT_NAME}" --query "[].{appId:appId}" --output tsv)
 export ENTRA_AUTHORITY="https://login.microsoftonline.com/${TENANT_ID}"
 
