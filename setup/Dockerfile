@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/azure-cli:cbl-mariner2.0
 
-RUN tdnf install -y gettext tar gawk && tdnf clean all
+RUN tdnf install -y gettext tar gawk nano && tdnf clean all
 
 RUN az aks install-cli
 

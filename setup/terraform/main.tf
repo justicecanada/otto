@@ -1,3 +1,6 @@
+terraform {
+  backend "azurerm" {}
+}
 
 # Use modules for different resources
 module "resource_group" {
@@ -85,13 +88,17 @@ module "cognitive_services" {
 
 # OpenAI module
 module "openai" {
-  source               = "./modules/openai"
-  name                 = var.openai_service_name
-  location             = var.location
-  resource_group_name  = module.resource_group.name
-  keyvault_id          = module.keyvault.keyvault_id
-  tags                 = local.common_tags
-  wait_for_propagation = module.keyvault.wait_for_propagation
+  source                          = "./modules/openai"
+  name                            = var.openai_service_name
+  location                        = var.location
+  resource_group_name             = module.resource_group.name
+  keyvault_id                     = module.keyvault.keyvault_id
+  tags                            = local.common_tags
+  wait_for_propagation            = module.keyvault.wait_for_propagation
+  gpt_35_turbo_capacity           = var.gpt_35_turbo_capacity
+  gpt_4_turbo_capacity            = var.gpt_4_turbo_capacity
+  gpt_4o_capacity                 = var.gpt_4o_capacity
+  text_embedding_3_large_capacity = var.text_embedding_3_large_capacity
 }
 
 # AKS module
