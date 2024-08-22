@@ -43,15 +43,9 @@ cd setup
 bash run_terraform.sh
 ```
 
-Note: You'll be prompted to enter the `CLIENT_SECRET` interactively.
+Note: You'll be prompted to either input the `ENTRA-CLIENT-SECRET` or use the value if it exists in the Key Vault already.
 
-### 3. Manually adjust the capacity for each OpenAI model deployment in the Azure portal.
-
-After the Terraform script has completed deploying the OpenAI resource and its default model deployments, the capacity for each model deployment needs to be adjusted manually. This is necessary to ensure that the deployments have sufficient capacity to handle the expected workload.
-
-**Note:** Instances of OpenAI within the same subscription share the same capacity pool. Ensure that the total capacity across all deployments does not exceed the subscription's capacity limit.
-
-### 4. Deploy the AKS cluster:
+### 3. Deploy the AKS cluster:
 
 ```bash
 bash run_k8s.sh

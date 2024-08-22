@@ -88,4 +88,8 @@ storage_name = "${STORAGE_NAME}"
 acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
 host_name_prefix = "${HOST_NAME_PREFIX}"
+gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}
+gpt_4_turbo_capacity = ${GPT_4_TURBO_CAPACITY}
+gpt_4o_capacity = ${GPT_4o_CAPACITY}
+text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
 EOF
