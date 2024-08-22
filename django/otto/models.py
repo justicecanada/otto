@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 from django.conf import settings
@@ -8,7 +9,6 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
-from django.db.models import Prefetch, Q
 from django.utils.translation import gettext_lazy as _
 
 
@@ -160,6 +160,7 @@ class Feature(models.Model):
 
     app = models.ForeignKey(App, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=50, unique=True, null=True)
     description = models.TextField()
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     classification = models.CharField(max_length=50, blank=True, null=True)
@@ -237,3 +238,87 @@ class SecurityLabel(models.Model):
         if not security_label:
             security_label = SecurityLabel.default_security_label()
         return security_label
+
+
+class CostType(models.Model):
+    name = models.CharField(max_length=100)
+    short_name = models.CharField(max_length=50, unique=True, null=True)
+    description = models.TextField()
+    # e.g. Token
+    unit_name = models.CharField(max_length=50, default="units")
+    # e.g. 0.00015 ($ USD)
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=6, default=1)
+    # e.g. 1000
+    unit_quantity = models.IntegerField(default=1)
+
+    @property
+    def cost_per_unit(self):
+        return self.unit_cost / self.unit_quantity
+
+    def __str__(self):
+        return self.name
+
+
+class CostManager(models.Manager):
+    def new(self, user: User, feature: str, cost_type: str, count: int) -> "Cost":
+        feature = Feature.objects.get(short_name=feature)
+        cost_type = CostType.objects.get(short_name=cost_type)
+        return self.create(
+            user=user,
+            feature=feature,
+            cost_type=cost_type,
+            count=count,
+            amount=count * cost_type.unit_cost,
+        )
+
+    def get_user_cost(self, user):
+        # Total cost for a user
+        return sum(cost.amount for cost in self.filter(user=user))
+
+    def get_user_cost_by_type(self, user, cost_type):
+        # Total cost for a user by cost type
+        return sum(cost.amount for cost in self.filter(user=user, cost_type=cost_type))
+
+    def get_user_cost_by_feature(self, user, feature):
+        # Total cost for a user by feature
+        return sum(cost.amount for cost in self.filter(user=user, feature=feature))
+
+    def get_total_cost(self):
+        # Total cost for all users
+        return sum(cost.amount for cost in self.all())
+
+    def get_total_cost_by_type(self, cost_type):
+        # Total cost for all users by cost type
+        return sum(cost.amount for cost in self.filter(cost_type=cost_type))
+
+    def get_total_cost_by_feature(self, feature):
+        # Total cost for all users by feature
+        return sum(cost.amount for cost in self.filter(feature=feature))
+
+    def get_user_cost_today(self, user):
+        # Total cost for a user today
+        return sum(
+            cost.amount
+            for cost in self.filter(
+                user=user, date_incurred__date=datetime.date.today()
+            )
+        )
+
+
+class Cost(models.Model):
+    """Tracks costs in US dollars for API calls"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    feature = models.ForeignKey(Feature, on_delete=models.CASCADE)
+    cost_type = models.ForeignKey(CostType, on_delete=models.CASCADE)
+    count = models.IntegerField(default=1)
+    amount = models.DecimalField(max_digits=12, decimal_places=6)
+    date_incurred = models.DateTimeField(auto_now_add=True)
+
+    objects = CostManager()
+
+    def __str__(self):
+        user_str = self.user.username if self.user else _("Otto")
+        return (
+            f"{user_str} - {self.feature.name} - {self.cost_type.name} - {self.amount}"
+        )
