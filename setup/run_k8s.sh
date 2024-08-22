@@ -65,22 +65,30 @@ envsubst < django.yaml | kubectl apply -f -
 envsubst < redis.yaml | kubectl apply -f -
 envsubst < celery.yaml | kubectl apply -f -
 
-# Function to check if all pods are ready
-check_pods_ready() {
-    local total_pods=$(kubectl get pods -n otto --no-headers | wc -l)
-    local ready_pods=$(kubectl get pods -n otto -o jsonpath='{.items[*].status.containerStatuses[*].ready}' | tr ' ' '\n' | grep -c true)
-    return $(( total_pods == ready_pods || total_pods == 0 ))
+# Function to check if all deployments are ready
+check_deployments_ready() {
+    local deployments=$(kubectl get deployments -n otto -o name)
+    for deployment in $deployments; do
+        local ready=$(kubectl get $deployment -n otto -o jsonpath='{.status.readyReplicas}')
+        local desired=$(kubectl get $deployment -n otto -o jsonpath='{.spec.replicas}')
+        if [[ "$ready" != "$desired" ]]; then
+            return 1
+        fi
+    done
+    return 0
 }
 
-# Wait for the pods to be ready
-echo "Waiting for pods to be ready..."
-while check_pods_ready; do
-    echo "Not all pods are ready yet. Waiting for 10 seconds..."
+# Wait for the deployments to be ready
+echo "Waiting for deployments to be ready..."
+while ! check_deployments_ready; do
+    echo "Not all deployments are ready yet. Waiting for 10 seconds..."
     sleep 10
 done
 
+echo "All deployments are ready."
+
 # Prompt the user if they want to run the initial setup
-read -p "Pods are ready. Do you want to run the initial setup? (y/N) " -e -r
+read -p "Do you want to run the initial setup? (y/N) " -e -r
 
 # If yes, run the initial setup
 if [[ $REPLY =~ ^[Yy]$ ]]; then
