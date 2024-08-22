@@ -599,11 +599,3 @@ async def summarize_long_text_async(
     return await sync_to_async(summarize_long_text)(
         text, length, target_language, custom_prompt, model
     )
-
-
-def calculate_cost(usage, price_per_million_chars):
-    price_per_char = (
-        price_per_million_chars / 1000000.0
-    )  # calculate the price per character
-    # calculate the estimated cost based on the usage and price per character
-    return usage * price_per_char

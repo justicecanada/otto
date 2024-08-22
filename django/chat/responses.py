@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 from django.conf import settings
 from django.core.cache import cache
@@ -26,7 +25,8 @@ from chat.utils import (
     sync_generator_to_async,
     url_to_text,
 )
-from librarian.models import DataSource, Document, Library
+from librarian.models import Document
+from otto.models import Cost
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
@@ -88,6 +88,16 @@ def chat_response(chat, response_message, eval=False):
             ),
             content_type="text/event-stream",
         )
+
+    # TODO(cost)
+    # cost = Cost.objects.new(
+    #     user=chat.user,
+    #     feature="chat",
+    #     cost_type=f"{model}-in",
+    #     count=tokens,
+    # )
+    # Actually should use https://docs.llamaindex.ai/en/stable/examples/observability/TokenCountingHandler/
+    # But would have to pass that through to the htmx_stream function.. or refactor more
 
     temperature = chat.options.chat_temperature
     llm = AzureChatOpenAI(

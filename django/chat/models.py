@@ -232,7 +232,7 @@ class Message(models.Model):
     feedback_comment = models.TextField(blank=True)
     is_bot = models.BooleanField(default=False)
     bot_name = models.CharField(max_length=255, blank=True)
-    cost = models.FloatField(default=0.0)
+    cost = models.DecimalField(max_digits=10, decimal_places=4, default=0)
     pinned = models.BooleanField(default=False)
     # Flexible JSON field for mode-specific details such as translation target language
     details = models.JSONField(default=dict)

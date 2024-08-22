@@ -66,8 +66,9 @@ def translate_file(file_path, out_message_id, target_language):
         result = poller.result()
 
         # Estimate the cost
-        # usage = poller.details.total_characters_charged
-        # estimated_cost = calculate_cost(usage, settings.AZURE_DOCUMENT_TRANSLATION)
+        usage = poller.details.total_characters_charged
+        # TODO(cost)
+        # cost = Cost.objects.new(user=user, feature="translate", cost_type="translate-doc", count=usage)
 
         out_message = Message.objects.get(id=out_message_id)
         for document in result:
