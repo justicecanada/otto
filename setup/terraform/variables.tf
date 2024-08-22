@@ -93,3 +93,23 @@ variable "host_name_prefix" {
   description = "Prefix for the host name"
   type        = string
 }
+
+variable "gpt_35_turbo_capacity" {
+  description = "GPT-3.5 Turbo quota limit"
+  type        = number
+}
+
+variable "gpt_4_turbo_capacity" {
+  description = "GPT-4 Turbo quota limit"
+  type        = number
+}
+
+variable "gpt_4o_capacity" {
+  description = "GPT-4o quota limit"
+  type        = number
+}
+
+variable "text_embedding_3_large_capacity" {
+  description = "Text Embedding 3 Large quota limit"
+  type        = number
+}
