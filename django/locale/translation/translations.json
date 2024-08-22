@@ -3218,5 +3218,9 @@
     "Maximum sources": {
         "fr": "",
         "fr_auto": "Sources maximales"
+    },
+    "Otto": {
+        "fr": "Otto",
+        "fr_auto": "Otton"
     }
 }

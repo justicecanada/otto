@@ -1,6 +1,6 @@
 from modeltranslation.translator import TranslationOptions, register
 
-from .models import App, Feature, SecurityLabel, UsageTerm
+from .models import App, CostType, Feature, SecurityLabel, UsageTerm
 
 
 @register(App)
@@ -21,6 +21,11 @@ class UsageTermTranslationOptions(TranslationOptions):
 @register(SecurityLabel)
 class SecurityLabelTranslationOptions(TranslationOptions):
     fields = ("name", "description", "acronym")
+
+
+@register(CostType)
+class CostTypeTranslationOptions(TranslationOptions):
+    fields = ("name", "description", "unit_name")
 
 
 # TODO: Seperate heading and text from model.
