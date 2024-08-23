@@ -78,11 +78,11 @@ Note: You'll be prompted to either input the `ENTRA-CLIENT-SECRET` or use the va
 
 ### 3. Deploy the AKS cluster:
 
+If the container registry was created for the first time, the image will not exist in the registry. The Continuous Integration pipeline will need to be configured to build and push the image to the registry. (In the interim, the development team can manually push the image to the registry.)
+
 ```bash
 bash run_k8s.sh
 ```
-
-Note: If the container registry was created for the first time, the image will not exist in the registry. The Continuous Integration pipeline will need to be configured to build and push the image to the registry. (In the interim, the development team can manually push the image to the registry.)
 
 # Appendix: Development Team Guide
 

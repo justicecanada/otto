@@ -56,7 +56,6 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "$ENV_FILE file not found. Creating from $ENV_EXAMPLE_FILE..."
     cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
     echo "$ENV_FILE file created successfully."
-    exit 0
 fi
 
 # Get versions
@@ -99,7 +98,14 @@ while true; do
         echo "Proceeding with current .env values."
         break
     else
-        nano "$ENV_FILE"
+        # Ask the user if they want to open nano to edit the file
+        read -p "Do you want to edit the .env file in nano? (y/N): " answer
+        if [[ $answer =~ ^[Yy]$ ]]; then
+            nano "$ENV_FILE"
+        else
+            echo "Please update the .env file with the correct values."
+            exit 1
+        fi
     fi
 done
 
