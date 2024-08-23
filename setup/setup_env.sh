@@ -42,7 +42,7 @@ fi
 
 # Check if .env.example file exists
 if [ ! -f "$ENV_EXAMPLE_FILE" ]; then
-    echo "Error: .env.example file not found."
+    echo "Error: $ENV_EXAMPLE_FILE file not found."
     exit 1
 fi
 
@@ -53,9 +53,9 @@ get_version() {
 
 # Check if .env file exists
 if [ ! -f "$ENV_FILE" ]; then
-    echo ".env file not found. Creating from .env.example..."
-    cp .env.example .env
-    echo ".env file created successfully."
+    echo "$ENV_FILE file not found. Creating from $ENV_EXAMPLE_FILE..."
+    cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
+    echo "$ENV_FILE file created successfully."
     exit 0
 fi
 
