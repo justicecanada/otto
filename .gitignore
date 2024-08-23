@@ -9,7 +9,7 @@ webcrawler/venv/*
 django/staticfiles/*
 chroma.log
 .env
-.env.bk
+.env.bk*
 Logs
 media
 .coverage

@@ -33,9 +33,14 @@ variable "owner" {
   description = "Owner of the resources"
 }
 
-variable "group_name" {
+variable "admin_group_name" {
   type        = string
-  description = "Group name for access control"
+  description = "Group name for admin users on the Key Vault and AKS cluster"
+}
+
+variable "acr_publishers_group_name" {
+  type        = string
+  description = "Group name for ACR publishers"
 }
 
 variable "resource_group_name" {
