@@ -10,13 +10,13 @@ Write-Host "VPN connection detected. Proceeding with the script..."
 # Ensure Azure login and correct subscription selection
 az login
 Write-Host "Available subscriptions:"
-az account list --query "[].{Name:name, SubscriptionId:id}" --output table
+az account list --query "[].{SubscriptionId:id, Name:name}" --output table
 $SUBSCRIPTION_ID = Read-Host -Prompt "Enter the Subscription ID you want to use"
 az account set --subscription $SUBSCRIPTION_ID
 
 # Prompt for inputs
 Write-Host "Available container registries:"
-az acr list --query "[].{ResourceGroup:resourceGroup, Name:name}" --output table
+az acr list --query "[].{Name:name, ResourceGroup:resourceGroup}" --output table
 $REGISTRY_NAME = Read-Host -Prompt "Enter the registry name you want to use"
 
 $VERSION = Read-Host -Prompt "Enter the version number (e.g., v1.0.0)"

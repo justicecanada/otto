@@ -82,7 +82,7 @@ Note: You'll be prompted to either input the `ENTRA-CLIENT-SECRET` or use the va
 bash run_k8s.sh
 ```
 
-Important: Ensure the Otto image exists in the container registry before deploying the AKS cluster. (The image is built and pushed as part of the Continuous Integration pipeline.)
+Note: If the container registry was created for the first time, the image will not exist in the registry. The Continuous Integration pipeline will need to be configured to build and push the image to the registry. (In the interim, the development team can manually push the image to the registry.)
 
 # Appendix: Development Team Guide
 

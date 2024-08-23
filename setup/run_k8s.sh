@@ -125,23 +125,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         --ids $PUBLIC_IP_RESOURCE_ID \
         --dns-name ${HOST_NAME_PREFIX}
 
-    # Wait for HTTPS site to be accessible
-    echo "Waiting for HTTPS site to be accessible... (This can take a few minutes)"
+    # Set the FQDN
     FQDN="https://${HOST_NAME_PREFIX}.${LOCATION}.cloudapp.azure.com"
-    MAX_RETRIES=30
-    RETRY_INTERVAL=10
 
-    for ((i=1; i<=MAX_RETRIES; i++)); do
-        if curl -s -o /dev/null -w "%{http_code}" "$FQDN" | grep -q "200\|301\|302"; then
-            echo "HTTPS site is accessible! URL: $FQDN"
-            break
-        fi
-        echo "Attempt $i: HTTPS site not yet accessible. Waiting $RETRY_INTERVAL seconds..."
-        sleep $RETRY_INTERVAL
-    done
-
-    if [[ $i -gt $MAX_RETRIES ]]; then
-        echo "HTTPS site accessibility check timed out. Please check your configuration and try again."
-    fi
+    # Inform the user that the DNS label has been set and that it can take a few minutes to propagate
+    echo "The DNS label has been set and it can take a few minutes to fully propagate. Once it is done, you can access the site at $FQDN."
     
 fi
