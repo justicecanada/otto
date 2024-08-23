@@ -61,7 +61,6 @@ client = SecretClient(
 
 print("Writing temporary .env file...")
 
-
 # Write a file to current directory/.env
 with open(os.path.join(os.path.dirname(__file__), "../django/.env"), "w") as f:
     f.write(f"AZURE_OPENAI_KEY='{client.get_secret('OPENAI-SERVICE-KEY').value}'\n")
@@ -70,6 +69,5 @@ with open(os.path.join(os.path.dirname(__file__), "../django/.env"), "w") as f:
     )
     f.write(f"AZURE_ACCOUNT_KEY='{client.get_secret('STORAGE-KEY').value}'\n")
     f.write(f"ENTRA_CLIENT_SECRET='{client.get_secret('ENTRA-CLIENT-SECRET').value}'\n")
-
     f.write(f"ENTRA_CLIENT_ID='{entra_client_id}'\n")
     f.write(f"ENTRA_AUTHORITY='https://login.microsoftonline.com/{entra_tenant_id}'\n")
