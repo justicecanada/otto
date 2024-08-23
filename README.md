@@ -29,7 +29,8 @@ Otto is a suite of AI services developed by data specialists at Justice Canada w
 * Docker (with Hyper-V and WSL2 enabled)
 * Git
 
-Note that the installation may take 5-10 minutes (longer if you are connected to VPN).
+> [!NOTE]  
+> Note that the installation may take 5-10 minutes (longer if you are connected to VPN).
 
 1. Clone this repository.
 2. Start Docker.
@@ -140,9 +141,9 @@ app.conf.beat_schedule = {
 
 ## Contributing
 
-* Don't push commits directly to `main` or `cloud`.
-* Always branch off `main` or `cloud` to create a feature branch, e.g. `git checkout -b chatbot-error-messages` or (from `cloud`) `git checkout -b cloud_chatbot-error-messages`
-* Before opening a pull request (PR), make sure your branch is up to date with the source branch by running `git merge origin/<main or cloud>`; resolve any conflicts.
+* Don't push commits directly to `main`.
+* Always branch off `main` to create a feature branch, e.g. `git checkout -b chatbot-error-messages`
+* Before opening a pull request (PR), make sure your branch is up to date with the source branch by running `git merge origin/main`; resolve any conflicts.
 * Run integration tests before opening a PR (see the instructions below). If the tests don't pass on your machine, they won't pass in the PR checks either.
 * Write more tests if you have added new functionality (or are addressing a bug that wasn't previously caught by the tests).
 * Give your PR a descriptive title using [conventional commits](https://kapeli.com/cheat_sheets/Conventional_Commits.docset/Contents/Resources/Documents/index), e.g.:
@@ -150,11 +151,11 @@ app.conf.beat_schedule = {
   * `feat: upload document preview` for a new feature
   * `chore: upgrade llama-index version`
   * `refactor: extract logic from models into utils`
-* To indicate that the PR *isn't* ready to merge, start the title with `WIP:`
+* To indicate that the PR *isn't* ready to merge, create a `Draft PR`
 * Get someone else to review your PR before merging it.
 
 After your PR is merged:
-  * On your workstation, `git checkout <main or cloud>` and `git pull`
+  * On your workstation, `git checkout main` and `git pull`
   * Delete the branch that was just merged, e.g. `git branch -D chatbot-error-messages`
   * Create a new feature branch, if you are ready to do so.
 
@@ -343,11 +344,12 @@ See `/setup` folder to follow the `README.md`. These steps will ensure the infra
 
 If you are having migration issues and/or have run out of options for debugging your branch, try resetting your database.
 
-**This will delete all of your data - be warned!**
+> [!WARNING] 
+> This will delete all of your data - be warned!
 
 `python manage.py reset_database`
 
 If things are even more messed up:
-* delete all your Docker containers, images and volumes
-* ensure you have checked out the `cloud` branch and are sync'd with origin.
+* Delete all your Docker containers, images and volumes
+* Ensure you are sync'd with origin.
 * Open the folder in VScode to rebuild the container from scratch.
