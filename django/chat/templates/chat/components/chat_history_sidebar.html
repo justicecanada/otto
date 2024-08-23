@@ -1,8 +1,8 @@
 {% load i18n %}
 <div id="left-sidebar"
-     class="chat-sidebar bg-light hidden"
+     class="chat-sidebar bg-light hidden d-flex flex-column"
      aria-label='{% trans "Chat history" %}'>
-  <div class="border-end h-100 overflow-hidden">
+  <div class="border-end h-100 overflow-hidden d-flex flex-column">
     <div class="offcanvas-header d-flex pb-2 p-3">
       <a class="btn btn-outline-dark fw-semibold w-100 text-start me-3"
          id="new-chat-button"
@@ -19,7 +19,7 @@
                 aria-label='{% trans "Close" %}'></button>
       </div>
     </div>
-    <div class="overflow-y-auto overflow-x-hidden p-3 pt-0"
+    <div class="overflow-y-auto overflow-x-hidden p-3 pt-0 flex-grow-1"
          id="chat-history-list">
       <ul class="list-unstyled my-0" id="chat-list">
         {% for chat in user_chats %}
@@ -29,5 +29,11 @@
         {% endfor %}
       </ul>
     </div>
+    <div class="p-3">
+      <button type="button" class="btn btn-outline-danger w-100">
+        <i class="bi bi-trash me-2"></i>Delete all chats
+      </button>
+    </div>
   </div>
+
 </div>
