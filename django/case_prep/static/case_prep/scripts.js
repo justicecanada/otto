@@ -142,8 +142,10 @@ $(document).ready(function () {
 
   // Event delegation for document delete button
   $(document).on('click', '.document-delete-button', function () {
-    const tr = $(this).closest('tr');
-    const documentId = tr.data('id');
+    //const tr = $(this).closest('tr');
+    //const documentId = tr.data('id');
+    const trs = getSelectedDocumentRows();
+    const documentIds = getSelectedDocuments();
 
     $.ajax({
       url: tr.data('delete-url'),  // Accessing the delete URL from data attribute
@@ -151,26 +153,33 @@ $(document).ready(function () {
       headers: {
         'X-CSRFToken': csrfToken
       },
-      data: JSON.stringify({document_id: documentId}),
+      data: JSON.stringify({selected_documents: documentIds}),
       contentType: 'application/json',
       success: function (data) {
         console.log(data);
-        if (tr.closest('tbody').length) {
-          tr.remove();
-        }
+        trs.each(function () {
+          $(this).remove(); // Remove each selected row
+        });
+        alert(data.message);
       },
       error: function (error) {
         console.error('Error:', error);
       }
     });
   });
-
+  function getSelectedDocumentRows() {
+    return $('tr.selected'); // Assuming rows have a 'selected' class when selected
+  }
   // Event delegation for document visibility toggle
   $(document).on('click', '.document-hide-button', function () {
     const button = $(this);
     // const documentId = button.data('id');
     // const icon = button.find('i');
     const documentIds = getSelectedDocuments();
+    if (documentIds.length === 0) {
+      alert("No documents selected.");
+      return;
+    }
     $.ajax({
       url: button.data('toggle-url'),  // Accessing the toggle URL from data attribute
       type: 'POST',
@@ -289,17 +298,28 @@ $(document).ready(function () {
 
 });
 $(document).on('click', '[data-bs-target="#summarizationModal"]', function () {
-  const documentId = $(this).data('id');
-  $('#summarizationModal').data('document-id', documentId);
+  // const documentId = $(this).data('id');
+  // $('#summarizationModal').data('document-id', documentId);
+  const selectedDocumentIds = [];
+  $('input[name="selected_documents"]:checked').each(function () {
+    selectedDocumentIds.push($(this).val());
+  });
+  $('#summarizationModal').data('document-ids', selectedDocumentIds);
 });
 
 $(document).on('click', '#summarizeForm button[type="submit"]', function (e) {
   e.preventDefault();
   const form = $('#summarizeForm');
-  const documentId = $('#summarizationModal').data('document-id');
+  //const documentId = $('#summarizationModal').data('document-id');
+  const selectedDocumentIds = $('#summarizationModal').data('document-ids');
 
+  // const requestData = {
+  //   document_id: documentId,
+  //   length: form.find('select[name="length"]').val(),
+  //   target_language: form.find('select[name="target_language"]').val()
+  // };
   const requestData = {
-    document_id: documentId,
+    document_ids: selectedDocumentIds,
     length: form.find('select[name="length"]').val(),
     target_language: form.find('select[name="target_language"]').val()
   };
@@ -343,17 +363,22 @@ $(document).on('click', '#closeButton', function () {
 
 
 $(document).on('click', '[data-bs-target="#translationModal"]', function () {
-  const documentId = $(this).data('id');
-  $('#translationModal').data('document-id', documentId);
+  //const documentId = $(this).data('id');
+  //$('#translationModal').data('document-id', documentId);
+  const selectedDocumentIds = [];
+  $('input[name="selected_documents"]:checked').each(function () {
+    selectedDocumentIds.push($(this).val());
+  });
+  $('#translationModal').data('document-ids', selectedDocumentIds);
 });
 
 $(document).on('click', '#translateForm button[type="submit"]', function (e) {
   e.preventDefault();
   const form = $('#translateForm');
-  const documentId = $('#translationModal').data('document-id');
+  const selectedDocumentIds = $('#translationModal').data('document-ids');
 
   const requestData = {
-    document_id: documentId,
+    document_ids: selectedDocumentIds,
     target_language: form.find('select[name="target_language"]').val()
   };
 

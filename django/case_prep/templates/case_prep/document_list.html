@@ -56,11 +56,15 @@
                   <button type="submit"
                           class="dropdown-item btn bi bi-file-earmark-text"
                           formaction="{% url 'case_prep:summarize_feature' %}"
+                          data-bs-toggle="modal"
+                          data-bs-target="#summarizationModal"
                           title="{% trans 'Summarize Selected' %}">{% trans "Summarize" %}</button>
                 </li>
                 <li>
                   <button class="dropdown-item bi bi-translate"
                           formaction="{% url 'case_prep:translate_feature' %}"
+                          data-bs-toggle="modal"
+                          data-bs-target="#translationModal"
                           title="{% trans 'Translate Selected' %}">{% trans "Translate" %}</button>
                 </li>
  
@@ -104,7 +108,11 @@
             </td>
             <!-- Multi-select checkbox -->
             <td class="text-center">
-              <input type="checkbox" name="selected_documents" value="{{ document.id }}">
+              <input type="checkbox"
+                     name="selected_documents"
+                     value="{{ document.id }}"
+                     style="width: 16px;
+                            height: 16px">
             </td>
  
             <!--      <td class="text-nowrap">

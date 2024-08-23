@@ -250,7 +250,8 @@ def generate_book_of_documents(request):
                 access_key, hidden=False
             ).order_by("sequence"):
                 sequence_with_zero_padding = str(document.sequence).zfill(3)
-                file_name = f"{sequence_with_zero_padding}_{document.name}_{document.date}.{document.file.name.split('.')[-1]}"
+                document_date = document.date if document.date else "00"
+                file_name = f"{sequence_with_zero_padding}_{document.name}_{document_date}.{document.file.name.split('.')[-1]}"
                 file_name = sanitize_file_name(file_name)
 
                 # Read the document content
@@ -287,8 +288,10 @@ def generate_book_of_documents(request):
             f"Merged_{session.created_by.username}-{session.name}.pdf"
         )
         merged_pdf_file_name = sanitize_file_name(merged_pdf_file_name)
+        merged_folder_path = f"merged/{merged_pdf_file_name}"
+
         merged_pdf_file_path = default_storage.save(
-            merged_pdf_file_name, merged_pdf_buffer
+            merged_folder_path, merged_pdf_buffer
         )
         # Add the merged PDF to the ZIP file
         with zipfile.ZipFile(zip_buffer, "a") as zip_ref:
@@ -365,7 +368,7 @@ def download_documents(request):
             # Read the document content
             document_content = document.file.read()
             # Write the document content to the ZIP file
-            zip_ref.writestr(document.name, document_content)
+            zip_ref.writestr(document.original_name, document_content)
 
     # Ensure the buffer position is at the start
     zip_buffer.seek(0)
@@ -522,19 +525,16 @@ def summarize_feature(request):
         access_key = AccessKey(request.user)
 
         data = json.loads(request.body)
-        document_id = data.get("document_id")
+        # document_id = data.get("document_id") #to do : it will be multiple document ids
         length = data.get("length")
         target_lang = data.get("target_language")
 
-        print(
-            f"Received data: document_id={document_id}, length={length}, target_lang={target_lang},"
-        )
+        print(f"Received data : length={length}, target_lang={target_lang},")
         documents = get_selected_docs(request)
-
-        # if not document_id:
-        #     return JsonResponse({"error": "Document ID is required."}, status=400)
         if not documents:
             return JsonResponse({"error": "No documents selected."}, status=400)
+        # if not document_id:
+        #     return JsonResponse({"error": "Document ID is required."}, status=400)
 
         summarized_texts = []
         for document in documents:
@@ -558,7 +558,14 @@ def summarize_feature(request):
                         {"error": "Failed to create summarized document file."},
                         status=500,
                     )
-                summarized_texts.append(summarized_text)
+                # summarized_texts.append(summarized_text)
+                summarized_texts.append(
+                    {
+                        "document_id": document.id,
+                        "summarized_text": summarized_text,
+                        "new_document_id": new_document.id,
+                    }
+                )
             except Document.DoesNotExist:
                 return JsonResponse(
                     {"error": f"Document {document.id} not found."}, status=404
@@ -572,39 +579,6 @@ def summarize_feature(request):
         print(f"Unexpected error: {e}")
         return JsonResponse({"error": "An unexpected error occurred."}, status=500)
 
-        # try:
-        #     document = Document.objects.get(access_key, pk=document_id)
-        #     print("doc found----", document)
-        # except Document.DoesNotExist:
-        #     return JsonResponse({"error": "Document not found."}, status=404)
-
-    #     file_path = document.file.path
-    #     if not file_path:
-    #         return JsonResponse({"error": "File path is empty."}, status=400)
-    #     file_contents = extract_text_from_file(document)
-    #     print(f"File contents: {file_contents}")
-
-    #     summarized_text = summarize_long_text(file_contents, length, target_lang)
-    #     print(summarized_text)
-    #     session = document.session
-    #     new_document = create_doc(
-    #         document, session, summarized_text, access_key, "summarize"
-    #     )
-    #     if not new_document.file:
-    #         return JsonResponse(
-    #             {"error": "Failed to create summarized document file."}, status=500
-    #         )
-    #     return JsonResponse({"summarized_text": summarized_text})
-
-    #     # Render the template with the list of documents
-    # except json.JSONDecodeError:
-    #     return JsonResponse({"error": "Invalid JSON data."}, status=400)
-    # except Document.DoesNotExist:
-    #     return JsonResponse({"error": "Document not found."}, status=404)
-    # except Exception as e:
-    #     print(f"Unexpected error: {e}")
-    #     return JsonResponse({"error": "An unexpected error occurred."}, status=500)
-
 
 @require_http_methods(["POST"])
 def translate_feature(request):
@@ -613,10 +587,13 @@ def translate_feature(request):
     try:
         access_key = AccessKey(request.user)
         data = json.loads(request.body)
-        document_id = data.get("document_id")
+        # document_id = data.get("document_id")
+        documents = get_selected_docs(request)
         target_lang = data.get("target_language")
 
-        print(f"Received data: document_id={document_id}, target_lang={target_lang}")
+        print(
+            f"Received data: document_total={len(documents)}, target_lang={target_lang}"
+        )
 
         # if not document_id:
         #     return JsonResponse({"error": "Document ID is required."}, status=400)
@@ -664,40 +641,6 @@ def translate_feature(request):
         print(f"Unexpected error: {e}")
         logger.error(f"Unexpected error: {e}", exc_info=True)
         return JsonResponse({"error": "An unexpected error occurred."}, status=500)
-    #     try:
-    #         document = Document.objects.get(access_key, pk=document_id)
-    #         # print("Document found:", document)
-    #     except Document.DoesNotExist:
-    #         return JsonResponse({"error": "Document not found."}, status=404)
-
-    #     file_path = document.file.path
-    #     if not file_path:
-    #         return JsonResponse({"error": "File path is empty."}, status=400)
-    #     file_contents = extract_text_from_file(document)
-    #     file_contents = sanitize_text(file_contents)
-    #     # print(f"File contents: {file_contents}")
-
-    #     translator = LocaleTranslator(
-    #         key=settings.AZURE_COGNITIVE_SERVICE_KEY,
-    #         region=settings.AZURE_COGNITIVE_SERVICE_REGION,
-    #         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-    #     )
-    #     translated_text = translator.translate_text(file_contents)
-    #     print(translated_text)
-    #     session = document.session
-    #     new_document = create_doc(
-    #         document, session, translated_text, access_key, "translate"
-    #     )
-    #     return JsonResponse({"translated_text": translated_text})
-
-    # except json.JSONDecodeError:
-    #     return JsonResponse({"error": "Invalid JSON data."}, status=400)
-    # except Document.DoesNotExist:
-    #     return JsonResponse({"error": "Document not found."}, status=404)
-    # except Exception as e:
-    #     print(f"Unexpected error: {e}")
-    #     logger.error(f"Unexpected error: {e}", exc_info=True)
-    #     return JsonResponse({"error": "An unexpected error occurred."}, status=500)
 
 
 def create_doc(document, session, text, access_key, feat):
@@ -751,10 +694,26 @@ def sanitize_text(text):
 
 
 def get_selected_docs(request):
-    access_key = AccessKey(request.user)
-    document_ids = request.POST.getlist("selected_documents")
-    documents = [
-        get_object_or_404(Document.objects.all(access_key), pk=document_id)
-        for document_id in document_ids
-    ]
-    return documents
+    # access_key = AccessKey(request.user)
+    # document_ids = request.POST.getlist("selected_documents")
+    # documents = [
+    #     get_object_or_404(Document.objects.all(access_key), pk=document_id)
+    #     for document_id in document_ids
+    # ]
+    # return documents
+    try:
+        access_key = AccessKey(request.user)
+        document_ids = request.POST.getlist("selected_documents")
+
+        # Assuming you have a field in Document model to filter by access_key
+        documents = [
+            get_object_or_404(
+                Document.objects.filter(access_key=access_key), pk=document_id
+            )
+            for document_id in document_ids
+        ]
+
+        return documents
+    except Exception as e:
+        print(f"Error in get_selected_docs: {e}")
+        return None
