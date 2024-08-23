@@ -55,16 +55,16 @@
                 <li>
                   <button type="submit"
                           class="dropdown-item btn bi bi-file-earmark-text"
-                          formaction="{% url 'case_prep:summarize_feature' %}"
-                          data-bs-toggle="modal"
                           data-bs-target="#summarizationModal"
+                          data-bs-toggle="modal"
+                          formaction="{% url 'case_prep:summarize_feature' %}"
                           title="{% trans 'Summarize Selected' %}">{% trans "Summarize" %}</button>
                 </li>
                 <li>
                   <button class="dropdown-item bi bi-translate"
-                          formaction="{% url 'case_prep:translate_feature' %}"
                           data-bs-toggle="modal"
                           data-bs-target="#translationModal"
+                          formaction="{% url 'case_prep:translate_feature' %}"
                           title="{% trans 'Translate Selected' %}">{% trans "Translate" %}</button>
                 </li>
  

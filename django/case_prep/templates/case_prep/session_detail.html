@@ -205,16 +205,10 @@
                   aria-label="{% trans 'Close' %}"></button>
         </div>
         <div class="modal-body">
-          <p>
-            {% trans "The document summarization feature allows you to generate a summary for any document in your case files. The summary will be created in a new chat session, where you can ask follow-up questions about the content of the document." %}
-          </p>
-          <p>
-            {% trans "This feature aims to help you quickly understand the key points of each document and enable you to interact with the document's content more effectively. Select a document, and Otto will generate a concise summary that you can expand upon by asking specific questions." %}
-          </p>
+          
           <p>{% trans "Choose the Summarization options below:" %}</p>
 
           <form id="summarizeForm"
-                action="{% url 'case_prep:summarize_feature' %}"
                 method="post">
             {% csrf_token %}
             <label for="lengthSelect" class="form-label">{% trans "Select Length" %}</label>

@@ -11,7 +11,7 @@ from io import BytesIO
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.http import FileResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -176,7 +176,10 @@ def delete_document(request):
     # document.delete(access_key)
 
     # Return success response
-    return JsonResponse({"message": "Document deleted successfully."})
+    return HttpResponse(status=204)
+
+
+# return JsonResponse({"message": "Document deleted successfully."})
 
 
 def save_changes(request):
@@ -368,7 +371,13 @@ def download_documents(request):
             # Read the document content
             document_content = document.file.read()
             # Write the document content to the ZIP file
-            zip_ref.writestr(document.original_name, document_content)
+            if document.name.startswith("summarized") or document.name.startswith(
+                "translated"
+            ):
+                name = document.name + ".docx"
+                zip_ref.writestr(name, document_content)
+            else:
+                zip_ref.writestr(document.original_name, document_content)
 
     # Ensure the buffer position is at the start
     zip_buffer.seek(0)
@@ -523,18 +532,17 @@ def summarize_feature(request):
 
     try:
         access_key = AccessKey(request.user)
-
         data = json.loads(request.body)
-        # document_id = data.get("document_id") #to do : it will be multiple document ids
+        document_ids = data.get("document_ids")
         length = data.get("length")
         target_lang = data.get("target_language")
 
-        print(f"Received data : length={length}, target_lang={target_lang},")
-        documents = get_selected_docs(request)
+        print(
+            f"Received data : length={length}, target_lang={target_lang}, document_ids={document_ids}"
+        )
+        documents = Document.objects.filter(id__in=document_ids, access_key=access_key)
         if not documents:
             return JsonResponse({"error": "No documents selected."}, status=400)
-        # if not document_id:
-        #     return JsonResponse({"error": "Document ID is required."}, status=400)
 
         summarized_texts = []
         for document in documents:
@@ -543,12 +551,12 @@ def summarize_feature(request):
                 if not file_path:
                     return JsonResponse({"error": "File path is empty."}, status=400)
                 file_contents = extract_text_from_file(document)
-                print(f"File contents: {file_contents}")
+                # print(f"File contents: {file_contents}")
 
                 summarized_text = summarize_long_text(
                     file_contents, length, target_lang
                 )
-                print(summarized_text)
+                # print(summarized_text)
                 session = document.session
                 new_document = create_doc(
                     document, session, summarized_text, access_key, "summarize"
@@ -573,8 +581,8 @@ def summarize_feature(request):
 
         return JsonResponse({"summarized_texts": summarized_texts})
 
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON data."}, status=400)
+    # except json.JSONDecodeError:
+    #     return JsonResponse({"error": "Invalid JSON data."}, status=400)
     except Exception as e:
         print(f"Unexpected error: {e}")
         return JsonResponse({"error": "An unexpected error occurred."}, status=500)
@@ -585,25 +593,30 @@ def translate_feature(request):
     from otto.utils.localization import LocaleTranslator
 
     try:
+        # Log the raw request body for debugging
+        logger.debug(f"Raw request body: {request.body}")
+
+        if not request.body:
+            logger.error("Empty request body.")
+            return JsonResponse({"error": "Empty request body."}, status=400)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON data in request body.")
+            return JsonResponse({"error": "Invalid JSON data."}, status=400)
+
         access_key = AccessKey(request.user)
-        data = json.loads(request.body)
-        # document_id = data.get("document_id")
-        documents = get_selected_docs(request)
+        # data = json.loads(request.body)
+        document_ids = data.get("document_ids")
         target_lang = data.get("target_language")
 
-        print(
-            f"Received data: document_total={len(documents)}, target_lang={target_lang}"
-        )
-
-        # if not document_id:
-        #     return JsonResponse({"error": "Document ID is required."}, status=400)
-        if not target_lang:
-            return JsonResponse({"error": "Target language is required."}, status=400)
-
-        documents = get_selected_docs(request)
-
+        print(f"Received data : target_lang={target_lang}, document_ids={document_ids}")
+        documents = Document.objects.filter(id__in=document_ids, access_key=access_key)
         if not documents:
             return JsonResponse({"error": "No documents selected."}, status=400)
+        if not target_lang:
+            return JsonResponse({"error": "Target language is required."}, status=400)
 
         translated_texts = []
 
@@ -621,21 +634,38 @@ def translate_feature(request):
                     region=settings.AZURE_COGNITIVE_SERVICE_REGION,
                     endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
                 )
-                translated_text = translator.translate_text(file_contents, target_lang)
-                print(translated_text)
+                translated_text = translator.translate_text(
+                    file_contents
+                )  # , target_lang)
+                # print(translated_text)
                 session = document.session
                 new_document = create_doc(
                     document, session, translated_text, access_key, "translate"
                 )
-                translated_texts.append(translated_text)
+                translated_texts.append(
+                    {
+                        "document_id": document.id,
+                        "translated_text": translated_text,
+                        "new_document_id": new_document.id,
+                    }
+                )
             except Document.DoesNotExist:
                 return JsonResponse(
                     {"error": f"Document {document.id} not found."}, status=404
+                )
+            except Exception as e:
+                logger.error(
+                    f"Error translating document {document.id}: {e}", exc_info=True
+                )
+                return JsonResponse(
+                    {"error": f"Error translating document {document.id}: {str(e)}"},
+                    status=500,
                 )
 
         return JsonResponse({"translated_texts": translated_texts})
 
     except json.JSONDecodeError:
+        logger.error("Invalid JSON data in request body.", exc_info=True)
         return JsonResponse({"error": "Invalid JSON data."}, status=400)
     except Exception as e:
         print(f"Unexpected error: {e}")

@@ -155,15 +155,24 @@ $(document).ready(function () {
       },
       data: JSON.stringify({selected_documents: documentIds}),
       contentType: 'application/json',
+      beforeSend: function () {
+        $('#deleteButton').hide();
+        $('#loadingButton').show();
+      },
       success: function (data) {
         console.log(data);
         trs.each(function () {
           $(this).remove(); // Remove each selected row
         });
-        alert(data.message);
+        alert('Documents deleted successfully!');
+        $('#loadingButton').hide();
+        $('#deleteButton').show();
+        location.reload();
       },
       error: function (error) {
         console.error('Error:', error);
+        $('#loadingButton').hide();
+        $('#deleteButton').show();
       }
     });
   });
@@ -231,6 +240,7 @@ $(document).ready(function () {
           'X-CSRFToken': csrfToken
         },
         success: function (data) {
+          //location.reload();
           window.location.href = data.url; // Replace with your delete redirect URL
         },
         error: function (error) {
@@ -298,8 +308,6 @@ $(document).ready(function () {
 
 });
 $(document).on('click', '[data-bs-target="#summarizationModal"]', function () {
-  // const documentId = $(this).data('id');
-  // $('#summarizationModal').data('document-id', documentId);
   const selectedDocumentIds = [];
   $('input[name="selected_documents"]:checked').each(function () {
     selectedDocumentIds.push($(this).val());
@@ -307,17 +315,13 @@ $(document).on('click', '[data-bs-target="#summarizationModal"]', function () {
   $('#summarizationModal').data('document-ids', selectedDocumentIds);
 });
 
-$(document).on('click', '#summarizeForm button[type="submit"]', function (e) {
+//$(document).on('click', '#summarizeForm button[type="submit"]', function (e) {
+$(document).on('submit', '#summarizeForm', function (e) {
   e.preventDefault();
   const form = $('#summarizeForm');
   //const documentId = $('#summarizationModal').data('document-id');
   const selectedDocumentIds = $('#summarizationModal').data('document-ids');
 
-  // const requestData = {
-  //   document_id: documentId,
-  //   length: form.find('select[name="length"]').val(),
-  //   target_language: form.find('select[name="target_language"]').val()
-  // };
   const requestData = {
     document_ids: selectedDocumentIds,
     length: form.find('select[name="length"]').val(),
@@ -327,7 +331,7 @@ $(document).on('click', '#summarizeForm button[type="submit"]', function (e) {
   console.log('Sending request data:', requestData);  // Add this line for debugging
 
   $.ajax({
-    url: '/case_prep/summarize_feature/',
+    url: '/case_prep/summarize_feature/', //form.attr('action'), //
     type: 'POST',
     headers: {
       'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val(),
@@ -335,23 +339,19 @@ $(document).on('click', '#summarizeForm button[type="submit"]', function (e) {
     },
     data: JSON.stringify(requestData),
     beforeSend: function () {
-      // Show "Result loading..." message
       $('#summaryResult').html('Summary loading...');
-      // Hide the generate button and show the loading button
       $('#generateButton').hide();
       $('#loadingButton').show();
     },
     success: function (data) {
       console.log('Summarization successful:', data);
-      $('#summaryResult').html('Summary Document Created!');   //data.summarized_text);
-
-      // Hide the loading button and show the generate button
+      $('#summaryResult').html('Summary Document Created!');
       $('#loadingButton').hide();
       $('#generateButton').show();
+      location.reload();
     },
     error: function (error) {
       console.error('Summarization error:', error);
-      // Hide the loading button and show the generate button
       $('#loadingButton').hide();
       $('#generateButton').show();
     }
@@ -363,8 +363,6 @@ $(document).on('click', '#closeButton', function () {
 
 
 $(document).on('click', '[data-bs-target="#translationModal"]', function () {
-  //const documentId = $(this).data('id');
-  //$('#translationModal').data('document-id', documentId);
   const selectedDocumentIds = [];
   $('input[name="selected_documents"]:checked').each(function () {
     selectedDocumentIds.push($(this).val());
@@ -416,12 +414,7 @@ $(document).on('click', '#translateForm button[type="submit"]', function (e) {
   });
 });
 
-// function toggleSelectAll(source) {
-//   checkboxes = document.getElementsByName('selected_documents');
-//   for (var i = 0, n = checkboxes.length; i < n; i++) {
-//     checkboxes[i].checked = source.checked;
-//   }
-// }
+
 function toggleSelectAll(source) {
   const checkboxes = document.querySelectorAll('tbody input[name="selected_documents"]');
   checkboxes.forEach(checkbox => {
