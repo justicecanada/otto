@@ -139,7 +139,7 @@ spec:
       containers:
         - name: celery-beat
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the same image as the worker
-          command: ['celery', '-A', 'otto', 'beat', '-l', 'INFO', '--schedule=/tmp/celerybeat-schedule']  # Starts Celery beat scheduler
+          command: ['celery', '-A', 'otto', 'beat', '-l', 'INFO', '--scheduler', 'django_celery_beat.schedulers:DatabaseScheduler']  # Starts Celery beat scheduler
           securityContext:
             allowPrivilegeEscalation: false  # Privilege escalation is disabled
             readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
