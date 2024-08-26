@@ -125,6 +125,7 @@ resource "null_resource" "wait_for_rai_policy" {
   depends_on = [azapi_resource.rai_policy]
 }
 
+
 # GPT-3.5 Turbo deployment
 resource "azapi_resource" "gpt-35-turbo-deployment" {
   type                      = "Microsoft.CognitiveServices/accounts/deployments@2023-05-01"
@@ -135,7 +136,7 @@ resource "azapi_resource" "gpt-35-turbo-deployment" {
   body = jsonencode({
     sku = {
       name     = "Standard"
-      capacity = 1 # Requires manual adjustment after deployment
+      capacity = var.gpt_35_turbo_capacity
     }
     properties = {
       model = {
@@ -168,7 +169,7 @@ resource "azapi_resource" "gpt-4-deployment" {
   body = jsonencode({
     sku = {
       name     = "Standard",
-      capacity = 1 # Requires manual adjustment after deployment
+      capacity = var.gpt_4_turbo_capacity
     },
     properties = {
       model = {
@@ -201,7 +202,7 @@ resource "azapi_resource" "gpt-4o-deployment" {
   body = jsonencode({
     sku = {
       name     = "GlobalStandard",
-      capacity = 1 # Requires manual adjustment after deployment
+      capacity = var.gpt_4o_capacity
     },
     properties = {
       model = {
@@ -234,7 +235,7 @@ resource "azapi_resource" "text-embedding-3-large-deployment" {
   body = jsonencode({
     sku = {
       name     = "Standard",
-      capacity = 1 # Requires manual adjustment after deployment
+      capacity = var.text_embedding_3_large_capacity
     },
     properties = {
       model = {

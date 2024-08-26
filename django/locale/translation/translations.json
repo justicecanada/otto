@@ -3214,5 +3214,9 @@
     "Modify/add users": {
         "fr": "",
         "fr_auto": "Modifier/ajouter des utilisateurs"
+    },
+    "Maximum sources": {
+        "fr": "",
+        "fr_auto": "Sources maximales"
     }
 }
