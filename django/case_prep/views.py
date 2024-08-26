@@ -504,6 +504,21 @@ def upvote_feature(request, feature_handle):
     return JsonResponse({"message": _("Invalid request")}, status=400)
 
 
+def preview_document(request, document_id):
+    access_key = AccessKey(request.user)
+    try:
+        document = Document.objects.get(access_key=access_key, pk=document_id)
+        # Assuming the document has a 'content' field or similar
+        preview_content = (
+            document.content
+        )  # Replace with actual content retrieval logic
+        return JsonResponse(
+            {"message": "Document preview in progress.", "content": preview_content}
+        )
+    except Document.DoesNotExist:
+        return JsonResponse({"error": "Document not found."}, status=404)
+
+
 def extract_text_from_file(document):
     if document.original_name.lower().endswith(".pdf"):
         images = convert_from_path(document.file.path)  # or name
@@ -533,59 +548,92 @@ def summarize_feature(request):
     try:
         access_key = AccessKey(request.user)
         data = json.loads(request.body)
-        document_ids = data.get("document_ids")
+        # document_ids = data.get("document_ids")
+        document_id = data.get("document_id")
         length = data.get("length")
         target_lang = data.get("target_language")
-
         print(
-            f"Received data : length={length}, target_lang={target_lang}, document_ids={document_ids}"
+            f"Received data: document_id={document_id}, length={length}, target_lang={target_lang},"
         )
-        documents = Document.objects.filter(id__in=document_ids, access_key=access_key)
-        if not documents:
-            return JsonResponse({"error": "No documents selected."}, status=400)
 
-        summarized_texts = []
-        for document in documents:
-            try:
-                file_path = document.file.path
-                if not file_path:
-                    return JsonResponse({"error": "File path is empty."}, status=400)
-                file_contents = extract_text_from_file(document)
-                # print(f"File contents: {file_contents}")
+        if not document_id:
+            return JsonResponse({"error": "Document ID is required."}, status=400)
+        try:
+            document = Document.objects.get(access_key, pk=document_id)
+            print("doc found----", document)
+        except Document.DoesNotExist:
+            return JsonResponse({"error": "Document not found."}, status=404)
 
-                summarized_text = summarize_long_text(
-                    file_contents, length, target_lang
-                )
-                # print(summarized_text)
-                session = document.session
-                new_document = create_doc(
-                    document, session, summarized_text, access_key, "summarize"
-                )
-                if not new_document.file:
-                    return JsonResponse(
-                        {"error": "Failed to create summarized document file."},
-                        status=500,
-                    )
-                # summarized_texts.append(summarized_text)
-                summarized_texts.append(
-                    {
-                        "document_id": document.id,
-                        "summarized_text": summarized_text,
-                        "new_document_id": new_document.id,
-                    }
-                )
-            except Document.DoesNotExist:
-                return JsonResponse(
-                    {"error": f"Document {document.id} not found."}, status=404
-                )
+        file_path = document.file.path
+        if not file_path:
+            return JsonResponse({"error": "File path is empty."}, status=400)
+        file_contents = extract_text_from_file(document)
+        print(f"File contents: {file_contents}")
 
-        return JsonResponse({"summarized_texts": summarized_texts})
-
-    # except json.JSONDecodeError:
-    #     return JsonResponse({"error": "Invalid JSON data."}, status=400)
+        summarized_text = summarize_long_text(file_contents, length, target_lang)
+        print(summarized_text)
+        return JsonResponse({"summarized_text": summarized_text})
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON data."}, status=400)
+    except Document.DoesNotExist:
+        return JsonResponse({"error": "Document not found."}, status=404)
     except Exception as e:
         print(f"Unexpected error: {e}")
         return JsonResponse({"error": "An unexpected error occurred."}, status=500)
+
+
+###BULK ACTIONS/MULTIPLE DOCS:-----------------------------------------------------
+# print(
+#     f"Received data : length={length}, target_lang={target_lang}, document_ids={document_ids}"
+# )
+# documents = Document.objects.filter(id__in=document_ids, access_key=access_key)
+# if not documents:
+#     return JsonResponse({"error": "No documents selected."}, status=400)
+
+# summarized_texts = []
+# for document in documents:
+#     try:
+#         file_path = document.file.path
+#         if not file_path:
+#             return JsonResponse({"error": "File path is empty."}, status=400)
+#         file_contents = extract_text_from_file(document)
+#         # print(f"File contents: {file_contents}")
+
+#         summarized_text = summarize_long_text(
+#             file_contents, length, target_lang
+#         )
+# print(summarized_text)
+# session = document.session
+# new_document = create_doc(
+#     document, session, summarized_text, access_key, "summarize"
+# )
+# if not new_document.file:
+#     return JsonResponse(
+#         {"error": "Failed to create summarized document file."},
+#         status=500,
+#     )
+# # summarized_texts.append(summarized_text)
+# summarized_texts.append(
+#     {
+#         "document_id": document.id,
+#         "summarized_text": summarized_text,
+#         "new_document_id": new_document.id,
+#     }
+# )
+
+# except Document.DoesNotExist:
+#     return JsonResponse(
+#         {"error": f"Document {document.id} not found."}, status=404
+#     )
+
+# return JsonResponse({"summarized_texts": summarized_texts})
+
+
+# except json.JSONDecodeError:
+#     return JsonResponse({"error": "Invalid JSON data."}, status=400)
+# except Exception as e:
+#     print(f"Unexpected error: {e}")
+#     return JsonResponse({"error": "An unexpected error occurred."}, status=500)
 
 
 @require_http_methods(["POST"])
@@ -608,69 +656,101 @@ def translate_feature(request):
 
         access_key = AccessKey(request.user)
         # data = json.loads(request.body)
-        document_ids = data.get("document_ids")
+        document_id = data.get("document_id")
+        # document_ids = data.get("document_ids")
         target_lang = data.get("target_language")
+        print(f"Received data: document_id={document_id}, target_lang={target_lang},")
 
-        print(f"Received data : target_lang={target_lang}, document_ids={document_ids}")
-        documents = Document.objects.filter(id__in=document_ids, access_key=access_key)
-        if not documents:
-            return JsonResponse({"error": "No documents selected."}, status=400)
-        if not target_lang:
-            return JsonResponse({"error": "Target language is required."}, status=400)
+        if not document_id:
+            return JsonResponse({"error": "Document ID is required."}, status=400)
+        try:
+            document = Document.objects.get(access_key, pk=document_id)
+            print("doc found----", document)
+        except Document.DoesNotExist:
+            return JsonResponse({"error": "Document not found."}, status=404)
 
-        translated_texts = []
-
-        for document in documents:
-            try:
-                file_path = document.file.path
-                if not file_path:
-                    return JsonResponse({"error": "File path is empty."}, status=400)
-                file_contents = extract_text_from_file(document)
-                file_contents = sanitize_text(file_contents)
-                # print(f"File contents: {file_contents}")
-
-                translator = LocaleTranslator(
-                    key=settings.AZURE_COGNITIVE_SERVICE_KEY,
-                    region=settings.AZURE_COGNITIVE_SERVICE_REGION,
-                    endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-                )
-                translated_text = translator.translate_text(
-                    file_contents
-                )  # , target_lang)
-                # print(translated_text)
-                session = document.session
-                new_document = create_doc(
-                    document, session, translated_text, access_key, "translate"
-                )
-                translated_texts.append(
-                    {
-                        "document_id": document.id,
-                        "translated_text": translated_text,
-                        "new_document_id": new_document.id,
-                    }
-                )
-            except Document.DoesNotExist:
-                return JsonResponse(
-                    {"error": f"Document {document.id} not found."}, status=404
-                )
-            except Exception as e:
-                logger.error(
-                    f"Error translating document {document.id}: {e}", exc_info=True
-                )
-                return JsonResponse(
-                    {"error": f"Error translating document {document.id}: {str(e)}"},
-                    status=500,
-                )
-
-        return JsonResponse({"translated_texts": translated_texts})
-
+        file_path = document.file.path
+        if not file_path:
+            return JsonResponse({"error": "File path is empty."}, status=400)
+        file_contents = extract_text_from_file(document)
+        print(f"File contents: {file_contents}")
+        translator = LocaleTranslator(
+            key=settings.AZURE_COGNITIVE_SERVICE_KEY,
+            region=settings.AZURE_COGNITIVE_SERVICE_REGION,
+            endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+        )
+        translated_text = translator.translate_text(file_contents, target_lang)
+        return JsonResponse({"translated_text": translated_text})
     except json.JSONDecodeError:
-        logger.error("Invalid JSON data in request body.", exc_info=True)
         return JsonResponse({"error": "Invalid JSON data."}, status=400)
+    except Document.DoesNotExist:
+        return JsonResponse({"error": "Document not found."}, status=404)
     except Exception as e:
         print(f"Unexpected error: {e}")
-        logger.error(f"Unexpected error: {e}", exc_info=True)
         return JsonResponse({"error": "An unexpected error occurred."}, status=500)
+
+
+###BULK OPERATIONS/MULTIPLE DOCS:-----------------------------------------------------
+# print(f"Received data : target_lang={target_lang}, document_ids={document_ids}")
+# documents = Document.objects.filter(id__in=document_ids, access_key=access_key)
+#     if not documents:
+#         return JsonResponse({"error": "No documents selected."}, status=400)
+#     if not target_lang:
+#         return JsonResponse({"error": "Target language is required."}, status=400)
+
+#     translated_texts = []
+
+#     for document in documents:
+#         try:
+#             file_path = document.file.path
+#             if not file_path:
+#                 return JsonResponse({"error": "File path is empty."}, status=400)
+#             file_contents = extract_text_from_file(document)
+#             file_contents = sanitize_text(file_contents)
+#             # print(f"File contents: {file_contents}")
+
+#             translator = LocaleTranslator(
+#                 key=settings.AZURE_COGNITIVE_SERVICE_KEY,
+#                 region=settings.AZURE_COGNITIVE_SERVICE_REGION,
+#                 endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+#             )
+#             translated_text = translator.translate_text(
+#                 file_contents
+#             )  # , target_lang)
+#             # print(translated_text)
+#             session = document.session
+#             new_document = create_doc(
+#                 document, session, translated_text, access_key, "translate"
+#             )
+#             translated_texts.append(
+#                 {
+#                     "document_id": document.id,
+#                     "translated_text": translated_text,
+#                     "new_document_id": new_document.id,
+#                 }
+#             )
+#         except Document.DoesNotExist:
+#             return JsonResponse(
+#                 {"error": f"Document {document.id} not found."}, status=404
+#             )
+#         except Exception as e:
+#             logger.error(
+#                 f"Error translating document {document.id}: {e}", exc_info=True
+#             )
+#             return JsonResponse(
+#                 {"error": f"Error translating document {document.id}: {str(e)}"},
+#                 status=500,
+#             )
+
+#     return JsonResponse({"translated_texts": translated_texts})
+
+# except json.JSONDecodeError:
+#     logger.error("Invalid JSON data in request body.", exc_info=True)
+#     return JsonResponse({"error": "Invalid JSON data."}, status=400)
+# except Exception as e:
+#     print(f"Unexpected error: {e}")
+#     logger.error(f"Unexpected error: {e}", exc_info=True)
+#     return JsonResponse({"error": "An unexpected error occurred."}, status=500)
 
 
 def create_doc(document, session, text, access_key, feat):

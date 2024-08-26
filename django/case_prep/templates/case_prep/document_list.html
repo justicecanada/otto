@@ -9,17 +9,19 @@
           <th style="width: 40px;"></th>
           <th>{% trans "Document Name" %}</th>
           <th style="width: 100px;">{% trans "Date" %}</th>
+          <th style="width: 120px;">{% trans "Actions" %}</th>
           <th style="width: 120px;">
  
+ 
             <div class="btn-group">
-              <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)">
+              <input type="checkbox" id="selectAll"  onclick="toggleSelectAll(this)">
               <button class="btn  dropdown-toggle"
                       type="button"
                       id="assistantActionsDropdown"
                       data-bs-toggle="dropdown"
                       aria-expanded="false"
                       title="{% trans 'Additional Actions' %}">
-                <strong>{% trans 'Actions' %}</strong>
+                <strong>{% trans 'More' %}</strong>
               </button>
               <ul class="dropdown-menu" aria-labelledby="assistantActionsDropdown">
                 <li>
@@ -106,6 +108,28 @@
                      class="form-control"
                      value="{{ document.date|date:'Y-m-d' }}">
             </td>
+            <td class="text-nowrap">
+              <a href="{% url 'case_prep:download_document' document.id %}"
+                 class="btn btn-outline-primary"
+                 title="{% trans 'Download Document' %}">
+                <i class="bi bi-download"></i> <!-- Download icon -->
+              </a>
+              <a href="{% url 'case_prep:preview_document' document.id %}"
+                 class="btn btn-outline-secondary"
+                 title="{% trans 'Preview Document' %}">
+                <i class="bi bi-eye"></i> <!-- Preview icon -->
+              </a>
+              <!--<button type="submit" class="btn document-delete-button bi bi-trash" formaction="{% url 'case_prep:delete_document' %}" title="{% trans 'Delete Selected' %}">
+                <i class="bi bi-trash"></i>
+              </button>-->
+              <a href="{% url 'case_prep:delete_document' %}"
+                 class="btn btn-outline-danger document-delete-button"
+                 title="{% trans 'Delete Document' %}">
+                <i class="bi bi-trash"></i> <!-- Preview icon -->
+              </a>
+ 
+            </td>
+
             <!-- Multi-select checkbox -->
             <td class="text-center">
               <input type="checkbox"

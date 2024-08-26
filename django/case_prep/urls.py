@@ -58,4 +58,9 @@ urlpatterns = [
         name="summarize_feature",
     ),
     path("translate_feature/", views.translate_feature, name="translate_feature"),
+    path(
+        "preview_document/<int:document_id>/",
+        views.preview_document,
+        name="preview_document",
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

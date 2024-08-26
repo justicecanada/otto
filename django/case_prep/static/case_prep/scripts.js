@@ -307,6 +307,24 @@ $(document).ready(function () {
   });
 
 });
+
+$('.document-preview-button').click(function () {
+  const documentId = $(this).data('document-id');
+  $.ajax({
+    url: `/case_prep/preview_document/${documentId}/`,  // Accessing the preview URL
+    type: 'GET',
+    success: function (data) {
+      console.log('Preview operation successful');
+      // Display the preview in a modal or any other UI element
+      $('#previewModal .modal-body').html(data);
+      $('#previewModal').modal('show');
+    },
+    error: function (error) {
+      console.error('Preview operation failed', error);
+    }
+  });
+});
+
 $(document).on('click', '[data-bs-target="#summarizationModal"]', function () {
   const selectedDocumentIds = [];
   $('input[name="selected_documents"]:checked').each(function () {
