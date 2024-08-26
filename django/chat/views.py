@@ -766,6 +766,12 @@ def message_sources(request, message_id):
 
 
 def delete_all_chats(request):
+
     chat = Chat.objects.filter(user=request.user)
     chat.delete()
-    return HttpResponse(status=200)
+
+    logger.info("all chats deleted")
+
+    response = HttpResponse()
+    response["HX-Redirect"] = reverse("chat:new_chat")
+    return response
