@@ -112,6 +112,26 @@ done
 # Load the environment variables from file
 source .env
 
+export ENV_VERSION
+export INTENDED_USE
+export ADMIN_GROUP_NAME
+export ACR_PUBLISHERS_GROUP_NAME
+export ENTRA_CLIENT_NAME
+export HOST_NAME_PREFIX
+export APP_NAME
+export ENVIRONMENT
+export LOCATION
+export CLASSIFICATION
+export COST_CENTER
+export CRITICALITY
+export OWNER
+export DJANGO_ENV
+export DJANGO_DEBUG
+export GPT_35_TURBO_CAPACITY
+export GPT_4_TURBO_CAPACITY
+export GPT_4o_CAPACITY
+export TEXT_EMBEDDING_3_LARGE_CAPACITY
+
 # Set the environment variables
 export TENANT_ID=$(az account show --query tenantId --output tsv)
 export ENTRA_CLIENT_ID=$(az ad app list --display-name "${ENTRA_CLIENT_NAME}" --query "[].{appId:appId}" --output tsv)
