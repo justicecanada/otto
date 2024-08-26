@@ -9,12 +9,12 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
 from asgiref.sync import sync_to_async
-from langchain.schema import AIMessage, HumanMessage, SystemMessage
-from langchain_openai import AzureChatOpenAI
+from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.retrievers import QueryFusionRetriever
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 
+from chat.llm import OttoLLM
 from chat.models import Message
 from chat.tasks import translate_file
 from chat.utils import (
@@ -22,7 +22,6 @@ from chat.utils import (
     num_tokens_from_string,
     summarize_long_text,
     summarize_long_text_async,
-    sync_generator_to_async,
     url_to_text,
 )
 from librarian.models import Document
@@ -58,22 +57,24 @@ def chat_response(chat, response_message, eval=False):
     user_message = response_message.parent
 
     system_prompt = chat.options.chat_system_prompt
-    chat_history = [SystemMessage(content=system_prompt)]
+    chat_history = [ChatMessage(role=MessageRole.SYSTEM, content=system_prompt)]
     chat_history += [
-        (
-            AIMessage(content=message.text)
-            if message.is_bot
-            else HumanMessage(content=message.text)
+        ChatMessage(
+            role=MessageRole.ASSISTANT if message.is_bot else MessageRole.USER,
+            content=message.text,
         )
         for message in chat.messages.all().order_by("date_created")
     ]
 
     model = chat.options.chat_model
+    temperature = chat.options.chat_temperature
+
+    llm = OttoLLM(model, temperature)
 
     tokens = num_tokens_from_string(
         " ".join(message.content for message in chat_history)
     )
-    if (tokens > 16384 and model == "gpt-35") or (tokens > 131072):
+    if tokens > llm.max_input_tokens:
         # In this case, just return an error
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
@@ -99,27 +100,17 @@ def chat_response(chat, response_message, eval=False):
     # Actually should use https://docs.llamaindex.ai/en/stable/examples/observability/TokenCountingHandler/
     # But would have to pass that through to the htmx_stream function.. or refactor more
 
-    temperature = chat.options.chat_temperature
-    llm = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=f"{model}",
-        model=model,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=temperature,
-    )
+    # if eval:
+    #     # Just return the full response and an empty list representing source nodes
+    #     return llm.invoke(chat_history).content, []
 
-    if eval:
-        # Just return the full response and an empty list representing source nodes
-        return llm.invoke(chat_history).content, []
-
-    llm_stream = llm.astream(chat_history)
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
-            response_stream=llm_stream,
-            chunk_property="content",
+            response_replacer=llm.chat_stream(chat_history),
+            llm=llm,
+            user=chat.user,
         ),
         content_type="text/event-stream",
     )
@@ -168,11 +159,15 @@ def summarize_response(chat, response_message):
                 yield f"{summary}\n\n-----\n"
             else:
                 yield f"{summary}\n<<END>>"
+            await asyncio.sleep(0)
 
     if len(files) > 0:
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
-                chat, response_message.id, response_generator=multi_summary_generator()
+                chat,
+                response_message.id,
+                response_generator=multi_summary_generator(),
+                dots=True,
             ),
             content_type="text/event-stream",
         )
@@ -255,6 +250,7 @@ def translate_response(chat, response_message):
                 chat,
                 response_message.id,
                 response_replacer=file_translation_generator(task_ids),
+                dots=True,
                 format=False,  # Because the generator already returns HTML
                 save_message=False,  # Because the generator already saves messages
             ),
@@ -305,7 +301,6 @@ def qa_response(chat, response_message, eval=False):
     Answer the user's question using a specific vector store table.
     """
     from llama_index.core import ServiceContext, VectorStoreIndex
-    from llama_index.core.prompts import PromptTemplate, PromptType
     from llama_index.core.query_engine import RetrieverQueryEngine
     from llama_index.core.response_synthesizers import CompactAndRefine
     from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
@@ -420,14 +415,7 @@ def qa_response(chat, response_message, eval=False):
                 operator="in",
             )
         )
-    llm = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=f"{model}",
-        model=model,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0,
-    )
+    llm = OttoLLM(model, 0.1)
     embed_model = AzureOpenAIEmbedding(
         model="text-embedding-3-large",
         deployment_name="text-embedding-3-large",
@@ -438,8 +426,9 @@ def qa_response(chat, response_message, eval=False):
         api_version=settings.AZURE_OPENAI_VERSION,
     )
     service_context = ServiceContext.from_defaults(
-        llm=llm,
+        llm=llm.llm,
         embed_model=embed_model,
+        callback_manager=llm.llm.callback_manager,
     )
     query_engine = get_query_engine(
         vector_store_table,
@@ -471,8 +460,10 @@ def qa_response(chat, response_message, eval=False):
         streaming_content=htmx_stream(
             chat,
             response_message.id,
-            response_stream=sync_generator_to_async(response.response_gen),
+            response_generator=response.response_gen,
             source_nodes=response.source_nodes,
+            llm=llm,
+            user=chat.user,
         ),
         content_type="text/event-stream",
     )

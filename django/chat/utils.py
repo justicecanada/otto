@@ -14,7 +14,7 @@ from langchain.schema import HumanMessage
 from newspaper import Article
 
 from chat.models import AnswerSource, Chat, Message
-from otto.models import SecurityLabel
+from otto.models import Cost, CostType, SecurityLabel
 
 # Markdown instance
 md = markdown.Markdown(
@@ -31,6 +31,9 @@ def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
 
 def llm_response_to_html(llm_response_str):
     s = str(llm_response_str)
+    # When message has uneven # of '```' then add a closing '```' on a newline
+    if s.count("```") % 2 == 1:
+        s += "\n```"
     raw_html = md.convert(s)
     # return raw_html
     allowed_tags = [
@@ -100,34 +103,46 @@ async def sync_generator_to_async(generator):
         await asyncio.sleep(0)  # This will allow other async tasks to run
 
 
+async def stream_to_replacer(response_stream, attribute=None):
+    response = ""
+    try:
+        async for chunk in response_stream:
+            response += getattr(chunk, attribute) if attribute else chunk
+            yield response
+    except:
+        for chunk in response_stream:
+            response += getattr(chunk, attribute) if attribute else chunk
+            yield response
+            await asyncio.sleep(0)  # This will allow other async tasks to run
+    yield response + "<<END>>"
+
+
 async def htmx_stream(
     chat,
     message_id,
-    response_stream=None,  # Langchain generator that yields response chunks from LLM
+    response_generator=None,  # Generator that yields partial responses (to be joined) with <<END>>
+    response_replacer=None,  # Generator that yields complete responses (to replace previous response) with <<END>>
     response_str="",
-    response_generator=None,  # Custom generator that yields response chunks with <<END>>
-    response_replacer=None,  # Custom generator that yields response string (to replace previous response) with <<END>>
     format=True,
     save_message=True,
-    chunk_property=None,  # LangChain's stream has the text in a "content" property of each chunk
+    dots=False,
     source_nodes=[],
+    llm=None,
+    user=None,
 ):
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
     This function is a generator that yields SSE strings (lines starting with "data: ").
 
-    There are four ways to use this function:
-    1. response_stream: A generator that yields response chunks from LLM.
-       Each chunk must have a [stream_property] attribute. The typing dots will be
-       hidden once the initial chunk is received.
-    2. response_str: A static response string, for non-streaming responses.
-       The "typing dots" will be displayed until the final response is received.
-    3. response_generator: A custom generator that yields response chunks.
-       Like response_stream, each chunk will be *appended* to the previous chunk.
-       When the <<END>> marker is received, the typing dots will no longer be shown.
-    4. response_replacer: A custom generator that yields complete response strings.
+    There are 3 ways to use this function:
+    1. response_generator: A custom generator that yields response chunks.
+       Each chunk will be *appended* to the previous chunk.
+    2. response_replacer: A custom generator that yields complete response strings.
        Unlike response_generator, each response will *replace* the previous response.
-       When the <<END>> marker is received, the typing dots will no longer be shown.
+    3. response_str: A static response string.
+
+    If dots == True, typing dots will be added to the end of the response.
+    When the <<END>> marker is received, the typing dots will no longer be shown.
 
     The function typically expects markdown responses from LLM, but can also handle
     HTML responses from other sources. Set format=False to disable markdown parsing.
@@ -140,51 +155,14 @@ async def htmx_stream(
     untitled_chat = chat.title.strip() == ""
     full_message = ""
     message_html_lines = []
-    dots = '<div class="typing"> <span></span><span></span><span></span></div>'
+    if dots:
+        dots = '<div class="typing"> <span></span><span></span><span></span></div>'
     try:
-        if response_stream:
-            async for chunk in response_stream:
-                if cache.get(f"stop_response_{message_id}", False):
-                    break
-                if chunk_property:
-                    chunk = getattr(chunk, chunk_property, "")
-                full_message += chunk
-                if format:
-                    # When message has uneven # of '```' then add a closing '```' on a newline
-                    tmp_full_message = full_message
-                    if full_message.count("```") % 2 == 1:
-                        tmp_full_message = full_message + "\n```"
-                    # Parse Markdown of full_message to HTML
-                    message_html = llm_response_to_html(tmp_full_message)
-                else:
-                    message_html = full_message
-                message_html_lines = message_html.split("\n")
-                if len(full_message) > 1:
-                    yield (
-                        f"data: <div>{sse_joiner.join(message_html_lines)}</div>\n\n"
-                    )
-        elif response_generator:
-            async for chunk in response_generator:
-                if cache.get(f"stop_response_{message_id}", False):
-                    if message_html_lines and message_html_lines[-1] == dots:
-                        message_html_lines.pop()
-                    break
-                if chunk.endswith("<<END>>"):
-                    full_message += chunk.replace("<<END>>", "")
-                else:
-                    full_message += chunk
-                if format:
-                    message_html = llm_response_to_html(full_message)
-                else:
-                    message_html = full_message
-                message_html_lines = message_html.split("\n")
-                # If the message is not finished, add a typing indicator
-                if not chunk.endswith("<<END>>"):
-                    message_html_lines.append(dots)
-                yield f"data: <div>{sse_joiner.join(message_html_lines)}</div>\n\n"
-                # The sleep is necessary to unblock the server from sending the response
-                await asyncio.sleep(0.1)
-        elif response_replacer:
+        if response_generator:
+            response_replacer = stream_to_replacer(response_generator)
+        if response_str:
+            response_str = stream_to_replacer([response_str])
+        if response_replacer:
             async for response in response_replacer:
                 if cache.get(f"stop_response_{message_id}", False):
                     if message_html_lines and message_html_lines[-1] == dots:
@@ -199,10 +177,10 @@ async def htmx_stream(
                 else:
                     message_html = full_message
                 message_html_lines = message_html.split("\n")
-                if not response.endswith("<<END>>"):
+                if not response.endswith("<<END>>") and dots:
                     message_html_lines.append(dots)
                 yield f"data: <div>{sse_joiner.join(message_html_lines)}</div>\n\n"
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
         else:
             # Static response (e.g. for summarize mode or any other non-streaming response)
             full_message = response_str
@@ -304,6 +282,13 @@ async def htmx_stream(
                 f"<span hx-swap-oob='true' id='current-chat-title'>"
                 f"{chat_title}</span>"
             )
+
+    # Create cost objects based on llm.input_tokens and llm.output_tokens
+    if llm and save_message:
+        costs = await sync_to_async(llm.create_costs)(user, "chat")
+        total_cost = sum([cost.usd_cost for cost in costs])
+        final_response_str += f"<span style='color:red;'>Cost: ${total_cost:.2f}</span>"
+
     final_response_str += (
         f"<div hx-swap-oob='true' id='response-{message_id}'>"
         f"<div>{sse_joiner.join(message_html_lines)}</div>"
@@ -314,7 +299,7 @@ async def htmx_stream(
     yield final_response_str
 
 
-def title_chat(chat_id, force_title=True):
+def title_chat(chat_id, force_title=True, llm=None):
     # Langchain chat model
     from langchain_openai import AzureChatOpenAI
 

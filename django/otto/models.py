@@ -114,6 +114,7 @@ class AppManager(models.Manager):
                 url=feature_data["fields"]["url"],
                 category=feature_data["fields"]["category"],
                 classification=feature_data["fields"].get("classification", ""),
+                short_name=feature_data["fields"].get("short_name", None),
             )
 
             # Set French translations for features if available
@@ -268,37 +269,39 @@ class CostManager(models.Manager):
             feature=feature,
             cost_type=cost_type,
             count=count,
-            amount=count * cost_type.unit_cost,
+            usd_cost=(count * cost_type.unit_cost) / cost_type.unit_quantity,
         )
 
     def get_user_cost(self, user):
         # Total cost for a user
-        return sum(cost.amount for cost in self.filter(user=user))
+        return sum(cost.usd_cost for cost in self.filter(user=user))
 
     def get_user_cost_by_type(self, user, cost_type):
         # Total cost for a user by cost type
-        return sum(cost.amount for cost in self.filter(user=user, cost_type=cost_type))
+        return sum(
+            cost.usd_cost for cost in self.filter(user=user, cost_type=cost_type)
+        )
 
     def get_user_cost_by_feature(self, user, feature):
         # Total cost for a user by feature
-        return sum(cost.amount for cost in self.filter(user=user, feature=feature))
+        return sum(cost.usd_cost for cost in self.filter(user=user, feature=feature))
 
     def get_total_cost(self):
         # Total cost for all users
-        return sum(cost.amount for cost in self.all())
+        return sum(cost.usd_cost for cost in self.all())
 
     def get_total_cost_by_type(self, cost_type):
         # Total cost for all users by cost type
-        return sum(cost.amount for cost in self.filter(cost_type=cost_type))
+        return sum(cost.usd_cost for cost in self.filter(cost_type=cost_type))
 
     def get_total_cost_by_feature(self, feature):
         # Total cost for all users by feature
-        return sum(cost.amount for cost in self.filter(feature=feature))
+        return sum(cost.usd_cost for cost in self.filter(feature=feature))
 
     def get_user_cost_today(self, user):
         # Total cost for a user today
         return sum(
-            cost.amount
+            cost.usd_cost
             for cost in self.filter(
                 user=user, date_incurred__date=datetime.date.today()
             )
@@ -312,13 +315,11 @@ class Cost(models.Model):
     feature = models.ForeignKey(Feature, on_delete=models.CASCADE)
     cost_type = models.ForeignKey(CostType, on_delete=models.CASCADE)
     count = models.IntegerField(default=1)
-    amount = models.DecimalField(max_digits=12, decimal_places=6)
+    usd_cost = models.DecimalField(max_digits=12, decimal_places=6)
     date_incurred = models.DateTimeField(auto_now_add=True)
 
     objects = CostManager()
 
     def __str__(self):
         user_str = self.user.username if self.user else _("Otto")
-        return (
-            f"{user_str} - {self.feature.name} - {self.cost_type.name} - {self.amount}"
-        )
+        return f"{user_str} - {self.feature.name} - {self.cost_type.name} - {self.usd_cost}"
