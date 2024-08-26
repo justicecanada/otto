@@ -73,4 +73,5 @@ urlpatterns = [
         views.get_qa_accordion,
         name="qa_accordion",
     ),
+    path("delete_all_chats/", views.delete_all_chats, name="delete_all_chats"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

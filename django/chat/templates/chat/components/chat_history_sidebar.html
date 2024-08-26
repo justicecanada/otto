@@ -30,7 +30,11 @@
       </ul>
     </div>
     <div class="p-3">
-      <button type="button" class="btn btn-outline-danger w-100">
+      <button type="button"
+              class="btn btn-outline-danger w-100"
+              id="delete-all-chats"
+              hx-target="#chat-history-list"
+              hx-post="{% url 'chat:delete_all_chats' %}">
         <i class="bi bi-trash me-2"></i>Delete all chats
       </button>
     </div>

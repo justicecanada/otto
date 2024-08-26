@@ -763,3 +763,9 @@ def message_sources(request, message_id):
         "chat/modals/sources_modal_inner.html",
         {"message": message, "sources": message.sources},
     )
+
+
+def delete_all_chats(request):
+    chat = Chat.objects.filter(user=request.user)
+    chat.delete()
+    return HttpResponse(status=200)
