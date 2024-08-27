@@ -109,15 +109,40 @@ while true; do
     fi
 done
 
+# Unset all environment variables
+unset $(grep -v '^#' "$ENV_FILE" | sed -E 's/(.*)=.*/\1/' | xargs)
+
 # Load the environment variables from file
 source .env
+
+# Validation and URL setting
+if [ -n "$SITE_URL" ] && [ -n "$DNS_LABEL" ]; then
+    echo "Error: Both SITE_URL and DNS_LABEL are set. Please choose only one option."
+    return
+elif [ -n "$DNS_LABEL" ]; then
+    # Ensure LOCATION is set
+    if [ -z "$LOCATION" ]; then
+        echo "Error: LOCATION is not set. Please set the Azure region."
+        return
+    fi
+    SITE_URL="https://${DNS_LABEL}.${LOCATION}.cloudapp.azure.com"
+    echo "SITE_URL set to: $SITE_URL"
+elif [ -z "$SITE_URL" ]; then
+    echo "Error: Neither SITE_URL nor DNS_LABEL is set. Please set one of them."
+    return
+fi
+
+# Extract HOST_NAME from SITE_URL
+export DNS_LABEL
+export SITE_URL
+export HOST_NAME=${SITE_URL#https://}
 
 export ENV_VERSION
 export INTENDED_USE
 export ADMIN_GROUP_NAME
 export ACR_PUBLISHERS_GROUP_NAME
 export ENTRA_CLIENT_NAME
-export HOST_NAME_PREFIX
+
 export APP_NAME
 export ENVIRONMENT
 export LOCATION
@@ -148,8 +173,8 @@ export DISK_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-disk"
 export STORAGE_NAME="jus${INTENDED_USE,,}${APP_NAME,,}storage"
 export ACR_NAME="jus${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-db"
-export HOST_NAME="${HOST_NAME_PREFIX}.canadacentral.cloudapp.azure.com"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
+
 
 # Set the Terraform state variables
 export TF_STATE_RESOURCE_GROUP="TerraformStateRG"
@@ -177,7 +202,6 @@ disk_name = "${DISK_NAME}"
 storage_name = "${STORAGE_NAME}"
 acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
-host_name_prefix = "${HOST_NAME_PREFIX}"
 gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}
 gpt_4_turbo_capacity = ${GPT_4_TURBO_CAPACITY}
 gpt_4o_capacity = ${GPT_4o_CAPACITY}

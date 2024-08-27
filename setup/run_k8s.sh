@@ -97,17 +97,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 
-# At the time of writing (Aug 2024), the `dns_prefix` attribute in the `azurerm_kubernetes_cluster` 
-# terraform resource doesn't directly set the DNS name label on the public IP created for the AKS 
-# cluster. This extra step is necessary because Terraform doesn't currently have a built-in way to 
-# manage this new Azure feature. However, it's important to note that this situation is likely to 
-# change in the future as Azure and Terraform providers adapt to these new security measures.
+# If the DNS_LABEL is set, update the DNS label for the public IP. This is only necessary if not using a custom domain.
+if [ -n "$DNS_LABEL" ]; then
+    echo "DNS label is set to ${DNS_LABEL}. Proceeding with DNS label update."
 
-# Prompt the user if they want to update the DNS label
-read -p "Do you want to set the DNS label to ${HOST_NAME_PREFIX}? (y/N) " -e -r
-
-# If yes, update the DNS label
-if [[ $REPLY =~ ^[Yy]$ ]]; then
     # Get the AKS cluster managed resource group
     export MC_RESOURCE_GROUP=$(az aks show --resource-group $RESOURCE_GROUP_NAME --name $AKS_CLUSTER_NAME --query nodeResourceGroup -o tsv)
 
@@ -122,12 +115,16 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     # Replace <public-ip-resource-id> with the actual ID you obtained
     az network public-ip update \
         --ids $PUBLIC_IP_RESOURCE_ID \
-        --dns-name ${HOST_NAME_PREFIX}
-
-    # Set the FQDN
-    FQDN="https://${HOST_NAME_PREFIX}.${LOCATION}.cloudapp.azure.com"
+        --dns-name ${DNS_LABEL}
 
     # Inform the user that the DNS label has been set and that it can take a few minutes to propagate
-    echo "The DNS label has been set and it can take a few minutes to fully propagate. Once it is done, you can access the site at $FQDN."
+    echo "The DNS label has been set. Once propagation completes in a few minutes, you can access the site at $SITE_URL."
     
+else
+
+    # If the DNS_LABEL is not set, inform the user to update the DNS entries manually
+    echo "Please update the DNS entries to point to the external IP of the Load Balancer."
+    echo "The external IP of the Load Balancer is: $EXTERNAL_IP"
+    echo "The site URL is: $SITE_URL"
+
 fi

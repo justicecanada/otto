@@ -94,11 +94,6 @@ variable "entra_client_secret" {
   sensitive   = true
 }
 
-variable "host_name_prefix" {
-  description = "Prefix for the host name"
-  type        = string
-}
-
 variable "gpt_35_turbo_capacity" {
   description = "GPT-3.5 Turbo quota limit"
   type        = number

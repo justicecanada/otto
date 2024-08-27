@@ -12,6 +12,9 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
   - Select your subscription and go to "Access control (IAM)."
   - Verify that your account has the required role. If not, contact your Azure administrator to grant you the necessary permissions.
 
+- **Custom Domain Name (Optional):**
+  - If you plan to use a custom domain, make sure you have access to the domain registrar to update the DNS records.
+
 - **Registration of Cloud Shell:** Ensure that the **Microsoft.CloudShell** resource provider is registered in your Azure subscription.
   - In the [Azure Portal](https://portal.azure.com), search for "Resource providers" in the top search bar.
   - Select "Resource providers" from the search results.
@@ -33,19 +36,39 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
   - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing data where standard content filtering is not appropriate.
   - Wait for Microsoft's approval before proceeding with the deployment.
 
-- **Entra App Registration:** 
-  - Complete the [Entra App registration](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad) as a **Single Tenant** application.
-  - To register the app:
-    1. Log in to the Azure Portal.
-    2. Navigate to "Microsoft Entra" and select "App registrations."
-    3. Click "New registration."
-    4. Enter **Otto** as the name for the application and select "Single Tenant" for the supported account types.
-    5. Set the callback URL as `https://<host-name-prefix>.canadacentral.cloudapp.azure.com/accounts/login/callback/`. **Note:** Replace `<host-name-prefix>` to match the target environment.
-    6. Click "Register" to create the app registration.
-  - Retrieve the client secret for Terraform script setup:
-    1. After registration, go to "Certificates & secrets."
-    2. Click "New client secret," enter a description, and set an expiration period.
-    3. Click "Add" and copy the client secret value before navigating away from the page.
+- **Entra App Registration:**
+  - Log in to the Azure Portal (https://portal.azure.com).
+  - Navigate to "Microsoft Entra ID" and select "App registrations."
+  - Click "New registration."
+  - In the "Register an application" page:
+    - Enter a descriptive name for your application.
+    - Under "Supported account types," select "Accounts in this organizational directory only (Single tenant)."
+  - In the "Redirect URI" section:
+    - Select "Web" as the platform.
+    - Add the following URIs, replacing placeholders with your specific values:
+      - `<site-url>/accounts/login/callback` (if using a custom domain)
+      - `https://<dns-label>.<location>.cloudapp.azure.com/accounts/login/callback` (if not using a custom domain)
+      - `https://127.0.0.1/accounts/login/callback` (optional for local testing)
+      - `http://localhost/accounts/login/callback` (optional for local testing)
+  - Click "Register" to create the app registration and note the "Application (client) ID" from the overview page.
+  - Go to "API permissions":
+    - Click "Add a permission."
+    - Select "Microsoft Graph" in the right panel.
+    - Choose "Application permissions."
+    - Add the following permissions:
+      - `AuditLog.Read.All`
+      - `Directory.Read.All`
+      - `User.Read`
+      - `User.Read.All`
+    - Click "Add permissions" to save.
+    - Grant admin consent for your organization.
+  - Go to "Certificates & secrets":
+     - Click "New client secret."
+     - Enter a description for the secret.
+     - Choose an expiration period.
+     - Click "Add."
+     - Copy and securely store the client secret value.
+  - Use the Application (client) ID and client secret in your Terraform script or application configuration.
 
 ## Deployment Steps
 
@@ -83,6 +106,10 @@ If the container registry was created for the first time, the image will not exi
 ```bash
 bash run_k8s.sh
 ```
+
+### 4. Configure the DNS records:
+
+If you are using a custom domain, update the DNS records to point to the AKS cluster's public IP address. The script will output the public IP address to use for the DNS records.
 
 # Appendix: Development Team Guide
 
