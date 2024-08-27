@@ -1,6 +1,5 @@
 import asyncio
 
-from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -24,7 +23,6 @@ from chat.utils import (
     url_to_text,
 )
 from librarian.models import Document
-from otto.models import Cost
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)

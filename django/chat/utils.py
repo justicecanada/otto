@@ -10,11 +10,10 @@ import bleach
 import markdown
 import tiktoken
 from asgiref.sync import sync_to_async
-from langchain.schema import HumanMessage
 from newspaper import Article
 
 from chat.models import AnswerSource, Chat, Message
-from otto.models import Cost, CostType, SecurityLabel
+from otto.models import SecurityLabel
 
 # Markdown instance
 md = markdown.Markdown(
@@ -276,7 +275,9 @@ async def htmx_stream(
     # Generate a title for the chat if necessary
     final_response_str = "data: "
     if untitled_chat:
-        chat_title = await sync_to_async(title_chat)(chat.id, force_title=False)
+        chat_title = await sync_to_async(title_chat)(
+            chat.id, force_title=False, llm=llm
+        )
         if chat_title != "":
             final_response_str += (
                 f"<span hx-swap-oob='true' id='current-chat-title'>"
@@ -302,17 +303,6 @@ async def htmx_stream(
 
 
 def title_chat(chat_id, force_title=True, llm=None):
-    # Langchain chat model
-    from langchain_openai import AzureChatOpenAI
-
-    gpt35 = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment="gpt-35",
-        model="gpt-35-turbo",
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.1,
-    )
     chat = Chat.objects.get(id=chat_id)
     chat_messages = chat.messages.filter(pinned=False).order_by("date_created")
     if not force_title and (
@@ -344,10 +334,10 @@ def title_chat(chat_id, force_title=True, llm=None):
         "TITLE: "
     )
     try:
-        generated_title = gpt35([HumanMessage(content=prompt)]).content[:254]
+        generated_title = llm.complete(prompt)[:254]
         if generated_title.startswith('"') and generated_title.endswith('"'):
             generated_title = generated_title[1:-1]
-    except:
+    except Exception as e:
         generated_title = _("Untitled chat")
     chat.title = generated_title
     chat.save()

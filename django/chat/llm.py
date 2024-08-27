@@ -82,7 +82,12 @@ class OttoLLM:
         async for chunk in response_stream:
             yield chunk.text
 
+    def complete(self, prompt: str):
+        return self.llm.complete(prompt).text
+
     def create_costs(self, user: User, feature: str) -> list[Cost]:
+        # Tempted to make this private and call from the destructor
+        # For now it needs to be called manually before the object is destroyed
         costs = []
         if self.input_token_count > 0:
             costs.append(

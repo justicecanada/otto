@@ -15,6 +15,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 
 from chat.forms import ChatOptionsForm, ChatRenameForm, DataSourcesForm
+from chat.llm import OttoLLM
 from chat.metrics.activity_metrics import (
     chat_new_session_started_total,
     chat_request_type_total,
@@ -292,15 +293,20 @@ def chat(request, chat_id):
         .order_by("-created_at")
     )
     # Title chats in sidebar if necessary & set default labels
+    llm = None
     for user_chat in user_chats:
         user_chat.current_chat = user_chat.id == chat.id
         if user_chat.title.strip() == "":
-            user_chat.title = title_chat(user_chat.id)
+            if not llm:
+                llm = OttoLLM()
+            user_chat.title = title_chat(user_chat.id, llm=llm)
             if not user_chat.current_chat:
                 user_chat.save()
         if not user_chat.security_label:
             user_chat.security_label_id = SecurityLabel.default_security_label().id
             user_chat.save()
+    if llm:
+        llm.create_costs(request.user, "chat")
 
     # Usage metrics
     awaiting_response = request.GET.get("awaiting_response") == "True"
