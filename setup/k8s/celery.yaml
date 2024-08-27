@@ -139,7 +139,7 @@ spec:
       containers:
         - name: celery-beat
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the same image as the worker
-          command: ['celery', '-A', 'otto', 'beat', '-l', 'INFO']  # Starts Celery beat scheduler
+          command: ['celery', '-A', 'otto', 'beat', '-l', 'INFO', '--scheduler', 'django_celery_beat.schedulers:DatabaseScheduler']  # Starts Celery beat scheduler
           securityContext:
             allowPrivilegeEscalation: false  # Privilege escalation is disabled
             readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
@@ -191,11 +191,11 @@ spec:
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
-              readOnly: true  # Mounts secrets from Azure Key Vault
+              readOnly: true
             - name: media-pv-storage
-              mountPath: "/data/media"  # Mounts shared storage for media files
+              mountPath: "/data/media"
             - name: tmp
-              mountPath: /tmp # A writable /tmp directory is provided for temporary files
+              mountPath: /tmp  # Mounts the writable directory for the schedule file
       volumes:
       - name: secrets
         csi:
@@ -207,4 +207,4 @@ spec:
         persistentVolumeClaim:
           claimName: media-pvc  # References the same PVC as the worker
       - name: tmp
-        emptyDir: {}
+        emptyDir: {}  # Provides a writable directory for the celerybeat-schedule file
