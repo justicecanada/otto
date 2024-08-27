@@ -1,8 +1,5 @@
 #!/bin/sh
 
-echo "Installing Python dependencies..."
-pip install -r requirements.txt || { echo "Error: Pip install failed"; exit 1; }
-
 echo "Running database migrations..."
 python manage.py migrate || { echo "Error: Migrate failed"; exit 1; }
 
