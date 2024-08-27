@@ -47,9 +47,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
     log_analytics_workspace_id = azurerm_log_analytics_workspace.aks.id
   }
 
-  # Set the domain name label for the cluster's public IP
-  dns_prefix = var.host_name_prefix
-
   # Enable auto-upgrade to stable channel
   automatic_channel_upgrade = "stable"
 

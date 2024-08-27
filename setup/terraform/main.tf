@@ -118,7 +118,6 @@ module "aks" {
   acr_id                 = module.acr.acr_id
   disk_encryption_set_id = module.disk.disk_encryption_set_id
   storage_account_id     = module.storage.storage_account_id
-  host_name_prefix       = var.host_name_prefix
   tags                   = local.common_tags
 }
 
