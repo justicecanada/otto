@@ -151,12 +151,6 @@
                   aria-label="{% trans "Close" %}"></button>
         </div>
         <div class="modal-body">
-          <p>
-            {% trans "The Document Translation feature allows you to select any document from your case files and generate a translated version of it. The translated document will automatically be added to your list of documents, making it easier for you to work with documents in different languages." %}
-          </p>
-          <p>
-            {% trans "This feature is designed to help you prepare for court more efficiently by ensuring all documents are available in the required languages. Simply select a document, choose the target language, and the translation will be processed and added to your case files." %}
-          </p>
           <form id="translateForm"
                 action="{% url 'case_prep:translate_feature' %}"
                 method="post">
@@ -205,11 +199,10 @@
                   aria-label="{% trans 'Close' %}"></button>
         </div>
         <div class="modal-body">
-          
+ 
           <p>{% trans "Choose the Summarization options below:" %}</p>
 
-          <form id="summarizeForm"
-                method="post">
+          <form id="summarizeForm" method="post">
             {% csrf_token %}
             <label for="lengthSelect" class="form-label">{% trans "Select Length" %}</label>
             <select id="lengthSelect" class="form-control" name="length">

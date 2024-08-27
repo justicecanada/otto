@@ -50,35 +50,43 @@
  
       <h2 class="my-4">{% trans "Case prep assistant" %}</h2>
 
-      <!-- Session List -->
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">{% trans "Session Name" %}</th>
-            <th scope="col" class="text-end">{% trans "Actions" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for session in sessions %}
-            <tr>
-              <td>{{ session.name }}</td>
-              <td class="text-end">
-                <a href="{% url 'case_prep:session_detail' session.id %}"
-                   class="btn btn-sm btn-secondary">{% trans "View Details" %}</a>
-              </td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="2">{% trans "No sessions available" %}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <!-- Court information-->
+      <div class="form-container-court">
+        <div class="mb-3">
+          <label for="court" class="form-label">{% trans "Court" %}</label>
+          <select id="court" name="court" class="form-select">
+            <option value="">{% trans "Select Court" %}</option>
+            <option value="Tax Court">{% trans "Tax Court" %}</option>
+            <option value="Federal Court">{% trans "Federal Court" %}</option>
+            <option value="Provincial Court">{% trans "Provincial Court" %}</option>
+            <option value="Supreme Court">{% trans "Supreme Court" %}</option>
+          </select>
+        </div>
 
-      <!-- Create New Session Button -->
-      <a href="{% url 'case_prep:create_session' %}"
-         class="btn btn-primary mt-3">{% trans "Create New Session" %}</a>
+        <div class="mb-3">
+          <label for="styleOfCause" class="form-label">{% trans "Style of Cause" %}</label>
+          <input type="text"
+                 id="styleOfCause"
+                 name="styleOfCause"
+                 class="form-control"
+                 placeholder="{% trans 'Enter Style of Cause' %}">
+        </div>
+        <div class="mb-3">
+          <label for="fileNumber" class="form-label">{% trans "File Number" %}</label>
+          <input type="text"
+                 id="fileNumber"
+                 name="fileNumber"
+                 class="form-control"
+                 placeholder="{% trans 'Enter File Number' %}">
+        </div>
+        <div class="mb-3">
+ 
+          <a href="{% url 'case_prep:create_session' %}"
+             class="btn btn-primary mt-3">{% trans "Create Session" %}</a>
+
+          <a href="" class="btn btn-primary mt-3">{% trans "Add Header" %}</a>
+        </div>
+      </div>
     </div>
   </div>
-
 {% endblock %}

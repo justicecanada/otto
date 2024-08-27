@@ -57,6 +57,7 @@ def create_session(request):
         reason="Owner of the object.",
     )
     return redirect("case_prep:session_detail", session_id=session.id)
+    # return redirect("case_prep:sessions_list", session_id=session.id)
 
 
 def session_detail(request, session_id):
