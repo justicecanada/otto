@@ -287,6 +287,8 @@ async def htmx_stream(
     if llm and save_message:
         costs = await sync_to_async(llm.create_costs)(user, "chat")
         total_cost = sum([cost.usd_cost for cost in costs])
+        print("COSTS:", costs)
+        print("TOTAL COST:", total_cost)
         final_response_str += f"<span style='color:red;'>Cost: ${total_cost:.2f}</span>"
 
     final_response_str += (

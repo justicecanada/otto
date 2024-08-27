@@ -10,7 +10,6 @@ from django.utils.translation import gettext_lazy as _
 
 from asgiref.sync import sync_to_async
 from llama_index.core.llms import ChatMessage, MessageRole
-from llama_index.core.retrievers import QueryFusionRetriever
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 
@@ -300,79 +299,7 @@ def qa_response(chat, response_message, eval=False):
     """
     Answer the user's question using a specific vector store table.
     """
-    from llama_index.core import ServiceContext, VectorStoreIndex
-    from llama_index.core.query_engine import RetrieverQueryEngine
-    from llama_index.core.response_synthesizers import CompactAndRefine
     from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
-    from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
-    from llama_index.vector_stores.postgres import PGVectorStore
-
-    def get_query_engine(
-        vector_store_table,
-        filters,
-        service_context,
-        top_k=5,
-        qa_prompt_template="{context}\n{query}",
-        vector_weight=0.6,
-    ):
-        hybrid_vector_store = PGVectorStore.from_params(
-            database=settings.DATABASES["vector_db"]["NAME"],
-            host=settings.DATABASES["vector_db"]["HOST"],
-            password=settings.DATABASES["vector_db"]["PASSWORD"],
-            port=5432,
-            user=settings.DATABASES["vector_db"]["USER"],
-            table_name=vector_store_table,
-            embed_dim=1536,  # openai embedding dimension
-            hybrid_search=True,
-            text_search_config="simple",
-            perform_setup=True,
-        )
-
-        pg_idx = VectorStoreIndex.from_vector_store(
-            vector_store=hybrid_vector_store,
-            service_context=service_context,
-            show_progress=False,
-        )
-
-        response_synthesizer = CompactAndRefine(
-            streaming=True,
-            service_context=service_context,
-            text_qa_template=qa_prompt_template,
-        )
-
-        vector_retriever = pg_idx.as_retriever(
-            vector_store_query_mode="default",
-            similarity_top_k=max(top_k, 100),
-            filters=filters,
-        )
-
-        # TODO: If we search for "Who does Ebrahim Adeeb report to?", we got results
-        # that weren't really relevant. When we asked ChatGPT to recommend retriever
-        # weights based on the query, it told us [0.3, 0.7] and those weights did
-        # perform better. So we should consider using either an LLM or a custom
-        # model to determine the retriever weights (and possibly other settings).
-
-        text_retriever = pg_idx.as_retriever(
-            vector_store_query_mode="sparse",
-            similarity_top_k=max(top_k, 100),
-            filters=filters,
-        )
-        retriever = QueryFusionRetriever(
-            [vector_retriever, text_retriever],
-            similarity_top_k=top_k,
-            num_queries=1,  # set this to 1 to disable query generation
-            mode="relative_score",
-            use_async=False,
-            retriever_weights=[vector_weight, 1 - vector_weight],
-            llm=service_context.llm,
-        )
-
-        query_engine = RetrieverQueryEngine(
-            retriever=retriever,
-            response_synthesizer=response_synthesizer,
-        )
-
-        return query_engine
 
     # Apply filters if we are in qa mode and specific data sources are selected
     data_sources = chat.options.qa_data_sources.all()
@@ -416,45 +343,30 @@ def qa_response(chat, response_message, eval=False):
             )
         )
     llm = OttoLLM(model, 0.1)
-    embed_model = AzureOpenAIEmbedding(
-        model="text-embedding-3-large",
-        deployment_name="text-embedding-3-large",
-        dimensions=1536,
-        embed_batch_size=16,
-        api_key=settings.AZURE_OPENAI_KEY,
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        api_version=settings.AZURE_OPENAI_VERSION,
-    )
-    service_context = ServiceContext.from_defaults(
-        llm=llm.llm,
-        embed_model=embed_model,
-        callback_manager=llm.llm.callback_manager,
-    )
-    query_engine = get_query_engine(
+    retriever = llm.get_retriever(
         vector_store_table,
         filters,
-        service_context,
         top_k,
-        chat.options.qa_prompt_combined,
         chat.options.qa_vector_ratio,
     )
+    synthesizer = llm.get_response_synthesizer(chat.options.qa_prompt_combined)
     input = response_message.parent.text
+    source_nodes = retriever.retrieve(input)
 
-    response = query_engine.query(input)
-    if len(response.source_nodes) == 0:
+    if len(source_nodes) == 0:
         response_str = _(
             "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
         )
         if eval:
-            return response_str, response.source_nodes
+            return response_str, source_nodes
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat, response_message.id, response_str=response_str
             ),
             content_type="text/event-stream",
         )
-    elif eval:
-        return response.response, response.source_nodes
+
+    response = synthesizer.synthesize(query=input, nodes=source_nodes)
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(

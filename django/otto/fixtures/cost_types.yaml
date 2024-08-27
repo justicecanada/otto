@@ -83,7 +83,7 @@
     unit_name: tokens
     unit_name_fr: jetons
     unit_cost: 0.00013
-    unit_quantity: 1
+    unit_quantity: 1000
 - model: otto.CostType
   pk: 8
   fields:
@@ -95,7 +95,7 @@
     unit_name: tokens
     unit_name_fr: jetons
     unit_cost: 0.00013
-    unit_quantity: 1
+    unit_quantity: 1000
 # https://azure.microsoft.com/en-us/pricing/details/cognitive-services/translator/
 - model: otto.CostType
   pk: 9
