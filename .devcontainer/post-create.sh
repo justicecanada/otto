@@ -20,9 +20,9 @@ if [[ $input == "Y" || $input == "y" ]]; then
         sudo az aks install-cli
         az account set --subscription 86ca3d9f-ad5e-4c04-8dea-af9a9802e459
         # Set azure environment variables in zshrc
-        echo "export AZURE_DEFAULTS_GROUP=OttoADEVRg" >> ~/.zshrc
+        echo "export AZURE_DEFAULTS_GROUP=OttoSANDBOXRg" >> ~/.zshrc
         echo "export AZURE_DEFAULTS_LOCATION=canadacentral" >> ~/.zshrc
-        az aks get-credentials --resource-group OttoADEVRG --name jus-dev-ottoa-aks --overwrite-existing
+        az aks get-credentials --resource-group OttoSANDBOXRg --name jus-sandbox-otto-aks --overwrite-existing
         kubelogin convert-kubeconfig -l azurecli
         source <(kubectl completion zsh)  # set up autocomplete in zsh into the current shell
         alias k="kubectl"
