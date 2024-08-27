@@ -93,9 +93,8 @@ read -p "Do you want to run the initial setup? (y/N) " -e -r
 # If yes, run the initial setup
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     export COORDINATOR_POD=$(kubectl get pods -n otto -l app=django-app -o jsonpath='{.items[0].metadata.name}')
-    kubectl exec -it $COORDINATOR_POD -n otto -- /otto/initial_setup.sh
+    kubectl exec -it $COORDINATOR_POD -n otto -- env OTTO_ADMIN="${OTTO_ADMIN}" /otto/initial_setup.sh
 fi
-
 
 
 # At the time of writing (Aug 2024), the `dns_prefix` attribute in the `azurerm_kubernetes_cluster` 
