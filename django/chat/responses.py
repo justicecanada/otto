@@ -270,26 +270,17 @@ def translate_response(chat, response_message):
         "\n---\nTranslation: "
     )
 
-    gpt35 = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=settings.DEFAULT_CHAT_MODEL,
-        model=settings.DEFAULT_CHAT_MODEL,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.1,
-    )
-
+    llm = OttoLLM()
     # Note that long plain-translations frequently fail due to output token limits
     # It is not easy to check for this in advance, so we just try and see what happens
-
-    llm_stream = gpt35.astream([HumanMessage(content=translate_prompt)])
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
-            response_stream=llm_stream,
-            chunk_property="content",
+            response_replacer=llm.stream(translate_prompt),
+            llm=llm,
+            user=chat.user,
         ),
         content_type="text/event-stream",
     )

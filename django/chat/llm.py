@@ -77,6 +77,11 @@ class OttoLLM:
         async for chunk in response_stream:
             yield chunk.message.content
 
+    async def stream(self, prompt: str):
+        response_stream = await self.llm.astream_complete(prompt)
+        async for chunk in response_stream:
+            yield chunk.text
+
     def create_costs(self, user: User, feature: str) -> list[Cost]:
         costs = []
         if self.input_token_count > 0:
