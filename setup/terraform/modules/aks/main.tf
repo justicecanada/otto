@@ -13,6 +13,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
   location            = var.location
   resource_group_name = var.resource_group_name
   kubernetes_version  = "1.29.7"
+  dns_prefix          = var.aks_cluster_name
+
+  ## TODO: Configure the private cluster settings
+  #private_cluster_enabled = true
+  #private_dns_zone_id     = "System" # Consider a custom DNS zone instead
 
   # Configure the default node pool
   default_node_pool {

@@ -111,6 +111,8 @@ done
 
 # Unset all environment variables
 unset $(grep -v '^#' "$ENV_FILE" | sed -E 's/(.*)=.*/\1/' | xargs)
+unset SITE_URL
+unset DNS_LABEL
 
 # Load the environment variables from file
 source .env
@@ -142,6 +144,7 @@ export INTENDED_USE
 export ADMIN_GROUP_NAME
 export ACR_PUBLISHERS_GROUP_NAME
 export ENTRA_CLIENT_NAME
+export ORGANIZATION
 
 export APP_NAME
 export ENVIRONMENT
@@ -165,14 +168,14 @@ export ENTRA_AUTHORITY="https://login.microsoftonline.com/${TENANT_ID}"
 
 # Set the dynamically generated variables
 export RESOURCE_GROUP_NAME="${APP_NAME}${INTENDED_USE^^}Rg"
-export KEYVAULT_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-kv"
-export COGNITIVE_SERVICES_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-cs"
-export OPENAI_SERVICE_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-openai"
-export AKS_CLUSTER_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-aks"
-export DISK_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-disk"
-export STORAGE_NAME="jus${INTENDED_USE,,}${APP_NAME,,}storage"
-export ACR_NAME="jus${INTENDED_USE,,}${APP_NAME,,}acr"
-export DJANGODB_RESOURCE_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-db"
+export KEYVAULT_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-kv"
+export COGNITIVE_SERVICES_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-cs"
+export OPENAI_SERVICE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-openai"
+export AKS_CLUSTER_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-aks"
+export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
+export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}storage"
+export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
+export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
 
 
