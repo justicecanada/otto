@@ -65,7 +65,7 @@ current_version=$(get_version "$ENV_FILE")
 # Compare versions
 if [ "$(printf '%s\n' "$current_version" "$example_version" | sort -V | tail -n1)" != "$current_version" ]; then
     echo "Your $ENV_FILE file (version $current_version) is outdated. The latest version is $example_version."
-    read -p "Do you want to update your $ENV_FILE file? (y/n): " answer
+    read -p "Do you want to update your $ENV_FILE file? (y/N): " answer
 
     if [[ $answer =~ ^[Yy]$ ]]; then
         # Create backup

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+echo "Installing Python dependencies..."
+pip install -r requirements.txt || { echo "Error: Pip install failed"; exit 1; }
+
 echo "Running database migrations..."
 python manage.py migrate || { echo "Error: Migrate failed"; exit 1; }
 
@@ -28,8 +31,7 @@ python manage.py sync_users || { echo "Error: Sync users failed"; exit 1; }
 
 # Check if OTTO_ADMIN is provided
 if [ -n "$OTTO_ADMIN" ]; then
-
-    echo "Setting up Otto admin..."
+    echo "Setting Otto admin..."
     
     # Split the OTTO_ADMIN string into an array
     IFS=',' read -ra ADMIN_ARRAY <<< "$OTTO_ADMIN"
@@ -37,22 +39,13 @@ if [ -n "$OTTO_ADMIN" ]; then
     # Loop through each admin UPN
     for admin in "${ADMIN_ARRAY[@]}"; do
         # Trim any whitespace
-        admin=$(echo "$admin" | xargs)
+        admin=$(echo "$admin" | tr -d '[:space:]')
         
         if [ -n "$admin" ]; then
             echo "Setting $admin as Otto admin..."
             python manage.py set_admin_user "$admin"
-            
-            # Check if the command was successful
-            if [ $? -eq 0 ]; then
-                echo "Successfully set $admin as Otto admin."
-            else
-                echo "Failed to set $admin as Otto admin."
-            fi
         fi
     done
-else
-    echo "No OTTO_ADMIN provided. Skipping admin setup."
 fi
 
 echo "Setup completed successfully!"

@@ -38,7 +38,7 @@ $SPECIFIC_TAG = "$VERSION-$BUILD_NUMBER"
 
 # Inform the user that, if the image doesn't exist in the Docker cache, they will need to be off the JUS network to pull the base image
 Write-Host "If the image doesn't exist in the Docker cache, you will need to be off the JUS network to pull the base image."
-$continue = Read-Host -Prompt "Do you want to continue? (y/n)"
+$continue = Read-Host -Prompt "Do you want to continue? (y/N)"
 if ($continue -ne "y") {
     exit
 }
