@@ -33,11 +33,6 @@ variable "acr_id" {
   type        = string
 }
 
-variable "host_name_prefix" {
-  description = "The prefix for the host name"
-  type        = string
-}
-
 variable "tags" {
   description = "A mapping of tags to assign to the resource"
   type        = map(string)

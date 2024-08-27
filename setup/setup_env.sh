@@ -56,7 +56,6 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "$ENV_FILE file not found. Creating from $ENV_EXAMPLE_FILE..."
     cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
     echo "$ENV_FILE file created successfully."
-    exit 0
 fi
 
 # Get versions
@@ -66,7 +65,7 @@ current_version=$(get_version "$ENV_FILE")
 # Compare versions
 if [ "$(printf '%s\n' "$current_version" "$example_version" | sort -V | tail -n1)" != "$current_version" ]; then
     echo "Your $ENV_FILE file (version $current_version) is outdated. The latest version is $example_version."
-    read -p "Do you want to update your $ENV_FILE file? (y/n): " answer
+    read -p "Do you want to update your $ENV_FILE file? (y/N): " answer
 
     if [[ $answer =~ ^[Yy]$ ]]; then
         # Create backup
@@ -99,12 +98,65 @@ while true; do
         echo "Proceeding with current .env values."
         break
     else
-        nano "$ENV_FILE"
+        # Ask the user if they want to open nano to edit the file
+        read -p "Do you want to edit the .env file in nano? (y/N): " answer
+        if [[ $answer =~ ^[Yy]$ ]]; then
+            nano "$ENV_FILE"
+        else
+            echo "Please update the .env file with the correct values."
+            exit 1
+        fi
     fi
 done
 
+# Unset all environment variables
+unset $(grep -v '^#' "$ENV_FILE" | sed -E 's/(.*)=.*/\1/' | xargs)
+
 # Load the environment variables from file
 source .env
+
+# Validation and URL setting
+if [ -n "$SITE_URL" ] && [ -n "$DNS_LABEL" ]; then
+    echo "Error: Both SITE_URL and DNS_LABEL are set. Please choose only one option."
+    return
+elif [ -n "$DNS_LABEL" ]; then
+    # Ensure LOCATION is set
+    if [ -z "$LOCATION" ]; then
+        echo "Error: LOCATION is not set. Please set the Azure region."
+        return
+    fi
+    SITE_URL="https://${DNS_LABEL}.${LOCATION}.cloudapp.azure.com"
+    echo "SITE_URL set to: $SITE_URL"
+elif [ -z "$SITE_URL" ]; then
+    echo "Error: Neither SITE_URL nor DNS_LABEL is set. Please set one of them."
+    return
+fi
+
+# Extract HOST_NAME from SITE_URL
+export DNS_LABEL
+export SITE_URL
+export HOST_NAME=${SITE_URL#https://}
+
+export ENV_VERSION
+export INTENDED_USE
+export ADMIN_GROUP_NAME
+export ACR_PUBLISHERS_GROUP_NAME
+export ENTRA_CLIENT_NAME
+
+export APP_NAME
+export ENVIRONMENT
+export LOCATION
+export CLASSIFICATION
+export COST_CENTER
+export CRITICALITY
+export OWNER
+export DJANGO_ENV
+export DJANGO_DEBUG
+export OTTO_ADMIN
+export GPT_35_TURBO_CAPACITY
+export GPT_4_TURBO_CAPACITY
+export GPT_4o_CAPACITY
+export TEXT_EMBEDDING_3_LARGE_CAPACITY
 
 # Set the environment variables
 export TENANT_ID=$(az account show --query tenantId --output tsv)
@@ -121,8 +173,8 @@ export DISK_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-disk"
 export STORAGE_NAME="jus${INTENDED_USE,,}${APP_NAME,,}storage"
 export ACR_NAME="jus${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-db"
-export HOST_NAME="${HOST_NAME_PREFIX}.canadacentral.cloudapp.azure.com"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
+
 
 # Set the Terraform state variables
 export TF_STATE_RESOURCE_GROUP="TerraformStateRG"
@@ -150,7 +202,6 @@ disk_name = "${DISK_NAME}"
 storage_name = "${STORAGE_NAME}"
 acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
-host_name_prefix = "${HOST_NAME_PREFIX}"
 gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}
 gpt_4_turbo_capacity = ${GPT_4_TURBO_CAPACITY}
 gpt_4o_capacity = ${GPT_4o_CAPACITY}

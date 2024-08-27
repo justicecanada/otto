@@ -157,6 +157,7 @@ INSTALLED_APPS = [
     "channels",
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
