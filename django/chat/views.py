@@ -400,7 +400,7 @@ def init_upload(request, chat_id):
     Creates a file upload progress message in the chat and initiates the file upload
     """
     chat = Chat.objects.get(id=chat_id)
-    mode = request.GET.get("mode", "summarize")
+    mode = chat.options.mode
     # Create the user's message in database
     logger.info("File upload initiated.", chat_id=chat_id, mode=mode)
     message = Message.objects.create(chat=chat, text="", is_bot=False, mode=mode)
