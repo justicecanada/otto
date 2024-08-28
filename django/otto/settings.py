@@ -418,70 +418,70 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 # Logging
 
-LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
-CELERY_LOG_LEVEL = os.environ.get("CELERY_LOG_LEVEL", "INFO")
-DJANGO_STRUCTLOG_CELERY_ENABLED = True
-DJANGO_STRUCTLOG_COMMAND_LOGGING_ENABLED = True
+# LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
+# CELERY_LOG_LEVEL = os.environ.get("CELERY_LOG_LEVEL", "INFO")
+# DJANGO_STRUCTLOG_CELERY_ENABLED = True
+# DJANGO_STRUCTLOG_COMMAND_LOGGING_ENABLED = True
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "formatters": {
-        "json_formatter": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.processors.JSONRenderer(),
-        },
-        "console": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.dev.ConsoleRenderer(),
-        },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "console",
-        },
-        "json": {
-            "class": "logging.StreamHandler",
-            "formatter": "json_formatter",
-        },
-        "null": {
-            "class": "logging.NullHandler",
-        },
-    },
-    "root": {
-        "handlers": ["json"],
-        "level": LOG_LEVEL,
-        "stream": sys.stdout,
-    },
-}
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": True,
+#     "formatters": {
+#         "json_formatter": {
+#             "()": structlog.stdlib.ProcessorFormatter,
+#             "processor": structlog.processors.JSONRenderer(),
+#         },
+#         "console": {
+#             "()": structlog.stdlib.ProcessorFormatter,
+#             "processor": structlog.dev.ConsoleRenderer(),
+#         },
+#     },
+#     "handlers": {
+#         "console": {
+#             "class": "logging.StreamHandler",
+#             "formatter": "console",
+#         },
+#         "json": {
+#             "class": "logging.StreamHandler",
+#             "formatter": "json_formatter",
+#         },
+#         "null": {
+#             "class": "logging.NullHandler",
+#         },
+#     },
+#     "root": {
+#         "handlers": ["json"],
+#         "level": LOG_LEVEL,
+#         "stream": sys.stdout,
+#     },
+# }
 
-if ENVIRONMENT == "LOCAL":
-    LOGGING["root"]["handlers"] = ["console"]
-elif IS_RUNNING_TESTS:
-    LOGGING["root"]["handlers"] = ["null"]
+# if ENVIRONMENT == "LOCAL":
+#     LOGGING["root"]["handlers"] = ["console"]
+# elif IS_RUNNING_TESTS:
+#     LOGGING["root"]["handlers"] = ["null"]
 
-structlog.configure(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.stdlib.filter_by_level,
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.CallsiteParameterAdder(
-            [
-                structlog.processors.CallsiteParameter.PATHNAME,
-                structlog.processors.CallsiteParameter.FUNC_NAME,
-                structlog.processors.CallsiteParameter.LINENO,
-            ]
-        ),
-        logging_utils.merge_pathname_lineno_function_to_location,
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    cache_logger_on_first_use=True,
-)
+# structlog.configure(
+#     processors=[
+#         structlog.contextvars.merge_contextvars,
+#         structlog.stdlib.filter_by_level,
+#         structlog.processors.TimeStamper(fmt="iso"),
+#         structlog.stdlib.add_logger_name,
+#         structlog.stdlib.add_log_level,
+#         structlog.stdlib.PositionalArgumentsFormatter(),
+#         structlog.processors.CallsiteParameterAdder(
+#             [
+#                 structlog.processors.CallsiteParameter.PATHNAME,
+#                 structlog.processors.CallsiteParameter.FUNC_NAME,
+#                 structlog.processors.CallsiteParameter.LINENO,
+#             ]
+#         ),
+#         logging_utils.merge_pathname_lineno_function_to_location,
+#         structlog.processors.StackInfoRenderer(),
+#         structlog.processors.format_exc_info,
+#         structlog.processors.UnicodeDecoder(),
+#         structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+#     ],
+#     logger_factory=structlog.stdlib.LoggerFactory(),
+#     cache_logger_on_first_use=True,
+# )

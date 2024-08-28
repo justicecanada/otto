@@ -143,7 +143,7 @@ async def test_htmx_stream_response_generator(all_apps_user):
             if i < len(files) - 1:
                 yield f"{summary}\n\n-----\n"
             else:
-                yield f"{summary}\n<<END>>"
+                yield f"{summary}\n"
 
     # We first need an empty chat and a message
     user = await sync_to_async(all_apps_user)("test_user_3")
@@ -176,7 +176,7 @@ async def test_htmx_stream_response_generator(all_apps_user):
 async def test_htmx_stream_response_replacer(basic_user):
     async def stream_generator():
         yield "first thing"
-        yield "second thing<<END>>"
+        yield "second thing"
 
     # We first need an empty chat and a message
     user = await sync_to_async(basic_user)("test_user_4")

@@ -1,9 +1,9 @@
 from django.conf import settings
 
 import tiktoken
-from llama_index.core import ServiceContext, VectorStoreIndex
+from llama_index.core import PromptTemplate, ServiceContext, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
-from llama_index.core.response_synthesizers import CompactAndRefine
+from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
@@ -30,7 +30,9 @@ class OttoLLM:
         "gpt-35": 16385,
     }
 
-    def __init__(self, deployment: str = "gpt-4o", temperature: float = 0.1):
+    def __init__(
+        self, deployment: str = settings.DEFAULT_CHAT_MODEL, temperature: float = 0.1
+    ):
         if deployment not in self._deployment_to_model_mapping:
             raise ValueError(f"Invalid deployment: {deployment}")
         self.deployment = deployment
@@ -164,12 +166,6 @@ class OttoLLM:
             service_context=self._service_context,
         )
 
-        # TODO: If we search for "Who does Ebrahim Adeeb report to?", we got results
-        # that weren't really relevant. When we asked ChatGPT to recommend retriever
-        # weights based on the query, it told us [0.3, 0.7] and those weights did
-        # perform better. So we should consider using either an LLM or a custom
-        # model to determine the retriever weights (and possibly other settings).
-
         text_retriever = pg_idx.as_retriever(
             vector_store_query_mode="sparse",
             similarity_top_k=max(top_k, 100),
@@ -201,3 +197,31 @@ class OttoLLM:
             callback_manager=self._callback_manager,
             text_qa_template=qa_prompt_template,
         )
+
+    def get_tree_summarizer(
+        self, summary_template: PromptTemplate = None
+    ) -> TreeSummarize:
+        return TreeSummarize(
+            llm=self.llm,
+            callback_manager=self._callback_manager,
+            prompt_helper=None,
+            summary_template=summary_template,
+            output_cls=None,
+            streaming=True,
+            use_async=True,
+            verbose=True,
+        )
+
+    async def tree_summarize(
+        self,
+        context: str,
+        query: str = "summarize the text",
+        template: PromptTemplate = None,
+    ):
+        response = await self.get_tree_summarizer(
+            summary_template=template
+        ).aget_response(query, [context])
+        response_text = ""
+        async for chunk in response:
+            response_text += chunk
+            yield response_text

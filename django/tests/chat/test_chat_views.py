@@ -193,7 +193,7 @@ def test_translate_file(client, all_apps_user):
 async def test_htmx_stream_stop(client, all_apps_user):
     async def stream_generator():
         yield "first thing"
-        yield "second thing<<END>>"
+        yield "second thing"
 
     # We first need an empty chat and a message
     user = await sync_to_async(all_apps_user)("test_user_stream_stop")

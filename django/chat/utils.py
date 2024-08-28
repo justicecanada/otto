@@ -1,7 +1,6 @@
 import asyncio
 import sys
 
-from django.conf import settings
 from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
@@ -10,6 +9,8 @@ import bleach
 import markdown
 import tiktoken
 from asgiref.sync import sync_to_async
+from llama_index.core import PromptTemplate
+from llama_index.core.prompts import PromptType
 from newspaper import Article
 
 from chat.models import AnswerSource, Chat, Message
@@ -113,14 +114,13 @@ async def stream_to_replacer(response_stream, attribute=None):
             response += getattr(chunk, attribute) if attribute else chunk
             yield response
             await asyncio.sleep(0)  # This will allow other async tasks to run
-    yield response + "<<END>>"
 
 
 async def htmx_stream(
     chat,
     message_id,
-    response_generator=None,  # Generator that yields partial responses (to be joined) with <<END>>
-    response_replacer=None,  # Generator that yields complete responses (to replace previous response) with <<END>>
+    response_generator=None,  # Generator that yields partial responses (to be joined)
+    response_replacer=None,  # Generator that yields complete responses (to replace previous response)
     response_str="",
     format=True,
     save_message=True,
@@ -140,8 +140,7 @@ async def htmx_stream(
        Unlike response_generator, each response will *replace* the previous response.
     3. response_str: A static response string.
 
-    If dots == True, typing dots will be added to the end of the response.
-    When the <<END>> marker is received, the typing dots will no longer be shown.
+    If dots is True, typing dots will be added to the end of the response.
 
     The function typically expects markdown responses from LLM, but can also handle
     HTML responses from other sources. Set format=False to disable markdown parsing.
@@ -167,19 +166,19 @@ async def htmx_stream(
                     if message_html_lines and message_html_lines[-1] == dots:
                         message_html_lines.pop()
                     break
-                if response.endswith("<<END>>"):
-                    full_message = response.replace("<<END>>", "")
-                else:
-                    full_message = response
+                full_message = response
                 if format:
                     message_html = llm_response_to_html(full_message)
                 else:
                     message_html = full_message
                 message_html_lines = message_html.split("\n")
-                if not response.endswith("<<END>>") and dots:
+                if dots:
                     message_html_lines.append(dots)
                 yield f"data: <div>{sse_joiner.join(message_html_lines)}</div>\n\n"
                 await asyncio.sleep(0.01)
+            # Remove the dots once response is complete regardless of whether it was stopped
+            if message_html_lines and message_html_lines[-1] == dots:
+                message_html_lines.pop()
         else:
             # Static response (e.g. for summarize mode or any other non-streaming response)
             full_message = response_str
@@ -302,7 +301,8 @@ async def htmx_stream(
     yield final_response_str
 
 
-def title_chat(chat_id, force_title=True, llm=None):
+def title_chat(chat_id, llm, force_title=True):
+    # Assume costs will be calculated in the calling function where LLM instantiated
     chat = Chat.objects.get(id=chat_id)
     chat_messages = chat.messages.filter(pinned=False).order_by("date_created")
     if not force_title and (
@@ -344,45 +344,25 @@ def title_chat(chat_id, force_title=True, llm=None):
     return generated_title
 
 
-def tldr_summary(text):
+def tldr_summary(text, llm):
+    # Assume costs will be calculated in the calling function where LLM instantiated
     if len(text) == 0:
         return _("No text provided.")
-    from llama_index.core.llms import ChatMessage
-    from llama_index.llms.azure_openai import AzureOpenAI
-
-    llm = AzureOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        deployment_name="gpt-35",
-        model="gpt-35-turbo",  # TODO: Rethink how to pass this in. Maybe a global variable? Or dynamic based on the library?
-        api_key=settings.AZURE_OPENAI_KEY,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        temperature=0.3,
-    )
-    return llm.chat(
-        [ChatMessage(role="user", content=text + "\n\nTL;DR:\n")]
-    ).message.content
+    return llm.complete(text + "\n\nTL;DR:\n")
 
 
 def summarize_long_text(
     text,
+    llm,
     length="short",
     target_language="en",
     custom_prompt=None,
-    model=settings.DEFAULT_CHAT_MODEL,
 ):
 
     if len(text) == 0:
         return _("No text provided.")
 
     import asyncio
-
-    from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
-    from langchain.chains.combine_documents.stuff import StuffDocumentsChain
-    from langchain.chains.llm import LLMChain
-    from langchain.prompts import PromptTemplate
-    from langchain.schema import Document
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
-    from langchain_openai import AzureChatOpenAI
 
     # The "basic" prompts are the initial ones that jason wrote
     # the "orginal" ones are similar to the ones Michel wrote in the previous Summization tool but slightly reworded for better performance
@@ -447,132 +427,53 @@ def summarize_long_text(
     }
 
     total_tokens_text = num_tokens_from_string(text)
-    print("TOTAL TOKENS", total_tokens_text)
 
     # we can customize which prompts we want in this section
     prompt_type = "tldr" if length == "short" else "original"
 
     length_prompt_en = length_prompts[prompt_type][length]["en"]
     length_prompt_fr = length_prompts[prompt_type][length]["fr"]
-    if custom_prompt:
-        length_prompt_en = custom_prompt
-        length_prompt_fr = custom_prompt
 
-    llm = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        model=model,
-        azure_deployment=f"{model}",
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.2,
+    length_prompt = length_prompt_fr if target_language == "fr" else length_prompt_en
+    length_prompt_template = (
+        "{docs}" + length_prompt
+        if prompt_type == "tldr"
+        else length_prompt + "\n\n Document: {docs}"
     )
-
-    if total_tokens_text <= 16000:
-        # if False:
-        length_prompt = (
-            length_prompt_fr if target_language == "fr" else length_prompt_en
-        )
+    if custom_prompt and "{docs}" in custom_prompt:
+        length_prompt_template = custom_prompt
+    elif custom_prompt:
         length_prompt_template = (
-            "{docs}" + length_prompt
-            if prompt_type == "tldr"
-            else length_prompt + "\n\n Document: {docs}"
+            custom_prompt
+            + "\n\n The original document is below, enclosed in triple quotes:\n'''\n{docs}\n'''"
         )
-        if custom_prompt and "{docs}" in custom_prompt:
-            length_prompt_template = custom_prompt
-        elif custom_prompt:
-            length_prompt_template = (
-                custom_prompt
-                + "\n\n The original document is below, enclosed in triple quotes:\n'''\n{docs}\n'''"
-            )
-        response = llm.invoke(length_prompt_template.format(docs=text)).content
+    if total_tokens_text <= 16000:
+        response = llm.stream(length_prompt_template.format(docs=text))
     else:
-        # prompts for beginning of map reduce
-        map_template_en = (
-            "The following are parts of a larger document:\n\n"
-            "{docs}\n\n"
-            "Based on these parts, rewrite the text in a summary that covers all important aspects of the document.\n"
-            "Helpful Answer:"
+        # Tree summarizer prompt requires certain variables
+        # Note that we aren't passing in a query here, so the query will be empty
+        length_prompt_template = length_prompt_template.replace(
+            "{docs}", "{context_str}{query_str}"
         )
-        map_template_fr = (
-            "Les parties suivantes sont tirées d'un document plus long:\n\n"
-            "{docs}\n\n"
-            "À partir de ces parties, réécrivez le texte dans un résumé qui couvre tous les aspects importants du document."
-            "Réponse utile:"
-        )
-        map_template = map_template_fr if target_language == "fr" else map_template_en
-        map_prompt = PromptTemplate.from_template(map_template)
-
-        # prompts for duration of recursion process
-        reduce_template_en = (
-            "The following are summaries generated based on a document:\n\n"
-            "{docs}\n\n"
-            f"Take these and rewrite it into a final summary. {length_prompt_en}. Return it in markdown format.\n"
-            "Helpful Answer:"
-        )
-        reduce_template_fr = (
-            "Les résumés suivants ont été générés à partir d'un document:\n\n"
-            "{docs}\n\n"
-            f"Prenez-les et réécrivez-le en un résumé final. {length_prompt_fr}. Renvoyez-le au format markdown.\n"
-            "Réponse utile:"
-        )
-        reduce_template = (
-            reduce_template_fr if target_language == "fr" else reduce_template_en
-        )
-        reduce_prompt = PromptTemplate.from_template(reduce_template)
-
-        map_chain = LLMChain(llm=llm, prompt=map_prompt)
-
-        # Run chain
-        reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt)
-
-        # Takes a list of documents, combines them into a single string, and passes this to an LLMChain
-        combine_documents_chain = StuffDocumentsChain(
-            llm_chain=reduce_chain, document_variable_name="docs"
+        template = PromptTemplate(
+            length_prompt_template, prompt_type=PromptType.SUMMARY
         )
 
-        # Combines and iteratively reduces the mapped documents
-        reduce_documents_chain = ReduceDocumentsChain(
-            # This is final chain that is called.
-            combine_documents_chain=combine_documents_chain,
-            # If documents exceed context for `StuffDocumentsChain`
-            collapse_documents_chain=combine_documents_chain,
-            # The maximum number of tokens to group documents into.
-            token_max=15000,
+        response = llm.tree_summarize(
+            context=text,
+            query="",
+            template=template,
         )
-
-        # Combining documents by mapping a chain over them, then combining results
-        map_reduce_chain = MapReduceDocumentsChain(
-            # Map chain
-            llm_chain=map_chain,
-            # Reduce chain
-            reduce_documents_chain=reduce_documents_chain,
-            # The variable name in the llm_chain to put the documents in
-            document_variable_name="docs",
-            # Return the results of the map steps in the output
-            return_intermediate_steps=False,
-        )
-
-        # Split the text into chunks
-        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=12000, chunk_overlap=100
-        )
-
-        docs = [Document(page_content=text, metadata={"source": "userinput"})]
-
-        split_docs = text_splitter.split_documents(docs)
-
-        async def run_map_reduce():
-
-            # Run the chain asynchronously and return the result when it's done
-            return await map_reduce_chain.arun(split_docs)
-
-        response = asyncio.run(run_map_reduce())
     return response
 
 
 async def summarize_long_text_async(
-    text, length="short", target_language="en", custom_prompt=None, model="gpt-4"
+    text,
+    llm,
+    length="short",
+    target_language="en",
+    custom_prompt=None,
 ):
     return await sync_to_async(summarize_long_text)(
-        text, length, target_language, custom_prompt, model
+        text, llm, length, target_language, custom_prompt
     )

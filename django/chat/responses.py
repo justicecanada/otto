@@ -87,16 +87,7 @@ def chat_response(chat, response_message, eval=False):
             content_type="text/event-stream",
         )
 
-    # TODO(cost)
-    # cost = Cost.objects.new(
-    #     user=chat.user,
-    #     feature="chat",
-    #     cost_type=f"{model}-in",
-    #     count=tokens,
-    # )
-    # Actually should use https://docs.llamaindex.ai/en/stable/examples/observability/TokenCountingHandler/
-    # But would have to pass that through to the htmx_stream function.. or refactor more
-
+    # TODO: Update eval stuff
     # if eval:
     #     # Just return the full response and an empty list representing source nodes
     #     return llm.invoke(chat_history).content, []
@@ -139,23 +130,30 @@ def summarize_response(chat, response_message):
     target_language = chat.options.summarize_language
     model = chat.options.summarize_model
 
+    llm = OttoLLM(model)
+
     async def multi_summary_generator():
+        full_text = ""
         for i, file in enumerate(files):
-            yield f"**{file.filename}**\n\n"
+            full_text += f"**{file.filename}**\n\n"
+            yield full_text
             if not file.text:
                 await sync_to_async(file.extract_text)(fast=True)
-            summary = await summarize_long_text_async(
+            response_stream = await summarize_long_text_async(
                 file.text,
+                llm,
                 summary_length,
                 target_language,
                 custom_summarize_prompt,
-                model,
             )
+            async for summary in response_stream:
+                full_text_with_summary = full_text + summary
+                yield full_text_with_summary
 
+            full_text = full_text_with_summary
             if i < len(files) - 1:
-                yield f"{summary}\n\n-----\n"
-            else:
-                yield f"{summary}\n<<END>>"
+                full_text += "\n\n-----\n"
+            yield full_text
             await asyncio.sleep(0)
 
     if len(files) > 0:
@@ -163,34 +161,42 @@ def summarize_response(chat, response_message):
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
-                response_generator=multi_summary_generator(),
+                response_replacer=multi_summary_generator(),
                 dots=True,
             ),
             content_type="text/event-stream",
         )
     elif user_message.text == "":
-        summary = "No text to summarize."
+        summary = _("No text to summarize.")
     else:
         url_validator = URLValidator()
         try:
             url_validator(user_message.text)
             text_to_summarize = url_to_text(user_message.text)
         except ValidationError:
-            logger.error("Invalid URL", url=user_message.text)
             text_to_summarize = user_message.text
 
         # Check if response text is too short (most likely a website blocking Otto)
         if len(text_to_summarize.split()) < 35:
             summary = _(
-                "This website blocks Otto from retrieving text. Try copy & pasting the webpage here."
+                "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here."
             )
         else:
-            summary = summarize_long_text(
+            response = summarize_long_text(
                 text_to_summarize,
+                llm,
                 summary_length,
                 target_language,
                 custom_summarize_prompt,
-                model,
+            )
+            return StreamingHttpResponse(
+                streaming_content=htmx_stream(
+                    chat,
+                    response_message.id,
+                    response_replacer=response,
+                    dots=True,
+                ),
+                content_type="text/event-stream",
             )
 
     return StreamingHttpResponse(
@@ -231,7 +237,6 @@ def translate_response(chat, response_message):
                 yield "<p>" + _("Translating file") + f" 1/{len(files)}...</p>"
             else:
                 yield await sync_to_async(file_msg)(response_message, len(files))
-        yield await sync_to_async(file_msg)(response_message, len(files)) + "<<END>>"
 
     if len(files) > 0:
         # Initiate the Celery task for translating each file with Azure

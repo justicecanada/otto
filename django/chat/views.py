@@ -298,7 +298,7 @@ def chat(request, chat_id):
         user_chat.current_chat = user_chat.id == chat.id
         if user_chat.title.strip() == "":
             if not llm:
-                llm = OttoLLM()
+                llm = OttoLLM("gpt-35")
             user_chat.title = title_chat(user_chat.id, llm=llm)
             if not user_chat.current_chat:
                 user_chat.save()
@@ -360,10 +360,10 @@ def chat_message(request, chat_id):
     user_message_text = request.POST.get("user-message", "").strip()
     mode = chat.options.mode
 
-    logger.info(
+    logger.debug(
         "User message received.",
         chat_id=chat_id,
-        user_message=user_message_text,
+        user_message=f"{user_message_text[:100]}{'...' if len(user_message_text) > 100 else ''}",
         mode=mode,
     )
 
