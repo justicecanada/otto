@@ -343,6 +343,9 @@ class ChatFile(models.Model):
         return f"File {self.id}: {self.filename}"
 
     def extract_text(self, fast=True):
+        # TODO: Extracting text from file may incur Azure Document AI costs.
+        # Need to refactor extract_text to create Cost object with correct user and mode.
+        # (Presently, this is only used in summarize mode, and user can be inferred...)
         from librarian.utils.process_engine import (
             extract_markdown,
             get_process_engine_from_type,

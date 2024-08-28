@@ -136,6 +136,8 @@ def summarize_response(chat, response_message):
 
     llm = OttoLLM(model)
 
+    # TODO: Extracting text from file may incur Azure Document AI costs.
+    # Need to refactor extract_text to create Cost object with correct user and mode.
     async def multi_summary_generator():
         full_text = ""
         for i, file in enumerate(files):

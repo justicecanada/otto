@@ -51,45 +51,68 @@ class OttoLLM:
         )
         self.max_input_tokens = self._deployment_to_max_input_tokens_mapping[deployment]
 
-    def _get_llm(self) -> AzureOpenAI:
-        return AzureOpenAI(
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_VERSION,
-            api_key=settings.AZURE_OPENAI_KEY,
-            deployment_name=self.deployment,
-            model=self.model,
-            temperature=self.temperature,
-            callback_manager=self._callback_manager,
-        )
-
-    def _get_embed_model(self) -> AzureOpenAIEmbedding:
-        return AzureOpenAIEmbedding(
-            model="text-embedding-3-large",
-            deployment_name="text-embedding-3-large",
-            dimensions=1536,
-            embed_batch_size=16,
-            api_key=settings.AZURE_OPENAI_KEY,
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_VERSION,
-            callback_manager=self._callback_manager,
-        )
-
+    # Convenience methods to interact with LLM
+    # Each will return a complete response (not single tokens)
     async def chat_stream(self, chat_history: list):
+        """
+        Stream complete response (not single tokens) from list of chat history objects
+        """
         response_stream = await self.llm.astream_chat(chat_history)
         async for chunk in response_stream:
             yield chunk.message.content
 
     async def stream(self, prompt: str):
+        """
+        Stream complete response (not single tokens) from single prompt string
+        """
         response_stream = await self.llm.astream_complete(prompt)
         async for chunk in response_stream:
             yield chunk.text
 
     def complete(self, prompt: str):
+        """
+        Return complete response string from single prompt string (no streaming)
+        """
         return self.llm.complete(prompt).text
 
+    async def tree_summarize(
+        self,
+        context: str,
+        query: str = "summarize the text",
+        template: PromptTemplate = None,
+    ):
+        """
+        Stream complete response (not single tokens) from context string and query.
+        Optional: summary template (must include "{context_str}" and "{query_str}".)
+        """
+        response = await self._get_tree_summarizer(
+            summary_template=template
+        ).aget_response(query, [context])
+        response_text = ""
+        async for chunk in response:
+            response_text += chunk
+            yield response_text
+
+    # Token counting / cost tracking
+    @property
+    def input_token_count(self):
+        return self._token_counter.prompt_llm_token_count
+
+    @property
+    def output_token_count(self):
+        return self._token_counter.completion_llm_token_count
+
+    @property
+    def embed_token_count(self):
+        return self._token_counter.total_embedding_token_count
+
     def create_costs(self, user: User, feature: str) -> list[Cost]:
-        # Tempted to make this private and call from the destructor
-        # For now it needs to be called manually before the object is destroyed
+        """
+        Create Otto Cost objects for the given user and feature:
+        - "embed-query": cost for embedding tokens
+        - "{deployment}-in": cost for input tokens
+        - "{deployment}-out": cost for output tokens
+        """
         costs = []
         if self.input_token_count > 0:
             costs.append(
@@ -120,18 +143,7 @@ class OttoLLM:
             )
         return costs
 
-    @property
-    def input_token_count(self):
-        return self._token_counter.prompt_llm_token_count
-
-    @property
-    def output_token_count(self):
-        return self._token_counter.completion_llm_token_count
-
-    @property
-    def embed_token_count(self):
-        return self._token_counter.total_embedding_token_count
-
+    # RAG-related getters for retriever (get sources only) and response synthesizer
     def get_retriever(
         self,
         vector_store_table: str,
@@ -198,7 +210,8 @@ class OttoLLM:
             text_qa_template=qa_prompt_template,
         )
 
-    def get_tree_summarizer(
+    # Private helpers
+    def _get_tree_summarizer(
         self, summary_template: PromptTemplate = None
     ) -> TreeSummarize:
         return TreeSummarize(
@@ -212,16 +225,25 @@ class OttoLLM:
             verbose=True,
         )
 
-    async def tree_summarize(
-        self,
-        context: str,
-        query: str = "summarize the text",
-        template: PromptTemplate = None,
-    ):
-        response = await self.get_tree_summarizer(
-            summary_template=template
-        ).aget_response(query, [context])
-        response_text = ""
-        async for chunk in response:
-            response_text += chunk
-            yield response_text
+    def _get_llm(self) -> AzureOpenAI:
+        return AzureOpenAI(
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+            api_version=settings.AZURE_OPENAI_VERSION,
+            api_key=settings.AZURE_OPENAI_KEY,
+            deployment_name=self.deployment,
+            model=self.model,
+            temperature=self.temperature,
+            callback_manager=self._callback_manager,
+        )
+
+    def _get_embed_model(self) -> AzureOpenAIEmbedding:
+        return AzureOpenAIEmbedding(
+            model="text-embedding-3-large",
+            deployment_name="text-embedding-3-large",
+            dimensions=1536,
+            embed_batch_size=16,
+            api_key=settings.AZURE_OPENAI_KEY,
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+            api_version=settings.AZURE_OPENAI_VERSION,
+            callback_manager=self._callback_manager,
+        )
