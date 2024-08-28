@@ -9,13 +9,14 @@ if ! az account show &>/dev/null; then
     az login
 fi
 
-# If SUBSCRIPTION_ID is already set, confirm if user wants to change it
+# If SUBSCRIPTION_ID is already set, confirm if user wants to keep it
 if [ -n "$SUBSCRIPTION_ID" ]; then
-    read -p "Subscription ID is already set. Do you want to change it? (y/N): " confirm
+    read -p "Subscription ID is already set to $SUBSCRIPTION_ID. Do you want to keep it? (y/N): " confirm
     if [[ $confirm =~ ^[Yy]$ ]]; then
-        unset SUBSCRIPTION_ID
+        echo "Keeping current subscription: $SUBSCRIPTION_ID"
     else
-        echo "Using current subscription: $SUBSCRIPTION_ID"
+        unset SUBSCRIPTION_ID
+        echo "Subscription ID cleared. You will be prompted to enter a new one."
     fi
 fi
 
