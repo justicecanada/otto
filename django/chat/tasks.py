@@ -11,6 +11,8 @@ from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from structlog import get_logger
 
+from otto.models import Cost
+
 logger = get_logger(__name__)
 ten_minutes = 600
 
@@ -65,12 +67,15 @@ def translate_file(file_path, out_message_id, target_language):
         # Wait for translation to finish
         result = poller.result()
 
-        # Estimate the cost
-        usage = poller.details.total_characters_charged
-        # TODO(cost)
-        # cost = Cost.objects.new(user=user, feature="translate", cost_type="translate-doc", count=usage)
-
         out_message = Message.objects.get(id=out_message_id)
+        usage = poller.details.total_characters_charged
+        cost = Cost.objects.new(
+            user=out_message.chat.user,
+            feature="translate",
+            cost_type="translate-doc",
+            count=usage,
+        )
+        print(f"Cost: {cost}")
         for document in result:
             if document.status == "Succeeded":
                 # Save the translated file to the database
