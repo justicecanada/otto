@@ -63,4 +63,5 @@ urlpatterns = [
         views.preview_document,
         name="preview_document",
     ),
+    path("sessions_page/", views.sessions_page, name="sessions_page"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

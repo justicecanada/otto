@@ -11,6 +11,9 @@
   <li class="breadcrumb-item">
     <a href="{% url 'case_prep:index' %}">{% trans "Case prep assistant" %}</a>
   </li>
+  <li class="breadcrumb-item active" aria-current="page">
+    <a href="{% url 'case_prep:sessions_page' %}">{% trans "sessions" %}</a>
+  </li>
   <li class="breadcrumb-item">{{ session.name }}</li>
 {% endblock %}
 
@@ -26,14 +29,15 @@
 {% endblock %}
 
 {% block content_container %}
+ 
   <div class="container mt-4">
     <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
 
     <div id="document_list">{% include 'case_prep/document_list.html' %}</div>
 
-    <!-- Provide a multi-file upload form -->
     <div class="container">
-      <div class="row justify-content-center">
+      <div class="row">
+        <!-- Provide a multi-file upload form-->
         <div class="col-md-6 mt-4 p-3 border rounded">
           <form id="uploadForm"
                 method="post"
@@ -54,12 +58,30 @@
             </div>
           </form>
         </div>
+ 
+        <div class="col-md-6 mt-4 p-3 border rounded">
+          <!-- Provide court inputs-->
+          <form method="post">
+            {% csrf_token %}
+            <div class="form">
+              <div>
+                <label for="court" class="form-label">{% trans "Choose Court" %}</label>
+                {{ form.court }}
+              </div>
+              <div>
+                <label for="styleOfCause" class="form-label">{% trans "Style of Cause" %}</label>
+                {{ form.styleOfCause }}
+              </div>
+              <div class="text-end">
+                <button type="submit" class="btn btn-primary mt-2">{% trans "Submit" %}</button>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
-
   <div class="container mt-4 text-center">
-
     <!-- Save Button -->
     <button id="saveButton"
             class="btn btn-success mt-2"

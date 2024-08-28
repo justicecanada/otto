@@ -30,6 +30,7 @@ from structlog import get_logger
 from otto.secure_models import AccessKey
 from otto.utils.decorators import app_access_required
 
+from .forms import SessionDetailForm
 from .models import Document, Session
 
 logger = get_logger(__name__)
@@ -57,7 +58,13 @@ def create_session(request):
         reason="Owner of the object.",
     )
     return redirect("case_prep:session_detail", session_id=session.id)
-    # return redirect("case_prep:sessions_list", session_id=session.id)
+    # return redirect("case_prep:sessions_page", session_id=session.id)
+
+
+def sessions_page(request):
+    access_key = AccessKey(request.user)
+    sessions = Session.objects.all(access_key=access_key)
+    return render(request, "case_prep/sessions_page.html", {"sessions": sessions})
 
 
 def session_detail(request, session_id):
@@ -67,10 +74,20 @@ def session_detail(request, session_id):
     if documents:
         documents = documents.order_by("sequence")
 
+    if request.method == "POST":
+        form = SessionDetailForm(request.POST)
+        if form.is_valid():
+            # Process the form data
+            court = form.cleaned_data["court"]
+            style_of_cause = form.cleaned_data["styleOfCause"]
+            # You can save or process the data as needed
+    else:
+        form = SessionDetailForm(initial={"court": "none", "styleOfCause": "none"})
+
     return render(
         request,
         "case_prep/session_detail.html",
-        {"session": session, "documents": documents},
+        {"session": session, "documents": documents, "form": form},
     )
 
 
@@ -156,7 +173,10 @@ def delete_session(request, session_id):
 
     # Return success response
     return JsonResponse(
-        {"message": "Session deleted successfully.", "url": reverse("case_prep:index")}
+        {
+            "message": "Session deleted successfully.",
+            "url": reverse("case_prep:sessions_page"),
+        }  # was originally case_prep:index
     )
 
 

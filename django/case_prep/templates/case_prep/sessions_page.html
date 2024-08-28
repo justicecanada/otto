@@ -3,13 +3,16 @@
 {% load i18n %}
 
 {% block page_title %}
-  {% trans "Case prep assistant" %}
+  {% trans "Case prep assistant/sessions" %}
 {% endblock %}
 
 {% block breadcrumb %}
   {{ block.super }}
   <li class="breadcrumb-item">
     <a href="{% url 'case_prep:index' %}">{% trans "Case prep assistant" %}</a>
+  </li>
+  <li class="breadcrumb-item active" aria-current="page">
+    <a href="{% url 'case_prep:sessions_page' %}">{% trans "sessions" %}</a>
   </li>
 {% endblock %}
 
@@ -50,25 +53,35 @@
  
       <h2 class="my-4">{% trans "Case prep assistant" %}</h2>
 
-      <!-- Court information-->
-      <div class="form-container-court">
-        <div class="mb-3">
-          <label for="fileNumber" class="form-label">{% trans "Court File Number" %}</label>
-          <input type="text"
-                 id="fileNumber"
-                 name="fileNumber"
-                 class="form-control"
-                 placeholder="{% trans 'Enter File Number' %}">
-        </div>
-        <div class="mb-3">
- 
-          <!-- <a href="{% url 'case_prep:sessions_page' %}" class="btn btn-primary mt-3">{% trans "Next" %}</a> -->
-          <a href="{% url 'case_prep:sessions_page' %}"
-             class="btn btn-primary mt-3">{% trans "Create/Open Session" %}</a>
+      <!-- Session List -->
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Session Name" %}</th>
+            <th scope="col" class="text-end">{% trans "Actions" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for session in sessions %}
+            <tr>
+              <td>{{ session.name }}</td>
+              <td class="text-end">
+                <a href="{% url 'case_prep:session_detail' session.id %}"
+                   class="btn btn-sm btn-secondary">{% trans "View Details" %}</a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="2">{% trans "No sessions available" %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
- 
-        </div>
-      </div>
+      <!-- Create New Session Button -->
+      <a href="{% url 'case_prep:create_session' %}"
+         class="btn btn-primary mt-3">{% trans "Create New Session" %}</a>
     </div>
   </div>
+
 {% endblock %}
