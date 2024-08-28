@@ -97,12 +97,6 @@ def url_to_text(url):
         return ""
 
 
-async def sync_generator_to_async(generator):
-    for value in generator:
-        yield value
-        await asyncio.sleep(0)  # This will allow other async tasks to run
-
-
 async def stream_to_replacer(response_stream, attribute=None):
     response = ""
     try:
@@ -114,6 +108,37 @@ async def stream_to_replacer(response_stream, attribute=None):
             response += getattr(chunk, attribute) if attribute else chunk
             yield response
             await asyncio.sleep(0)  # This will allow other async tasks to run
+
+
+def save_sources_and_update_security_label(source_nodes, message, chat):
+    from librarian.models import Document
+
+    sources = []
+    for node in source_nodes:
+        try:
+            if node.node.text == "":
+                continue
+            document = Document.objects.get(uuid_hex=node.node.ref_doc_id)
+            score = node.score
+            source = AnswerSource(
+                message=message,
+                document_id=document.id,
+                node_text=node.node.text,
+                node_score=score,
+                saved_citation=document.citation,
+            )
+            sources.append(source)
+        except Exception as e:
+            print("Error saving source:", node, e)
+
+    AnswerSource.objects.bulk_create(sources)
+
+    security_labels = [
+        source.document.data_source.security_label.acronym for source in sources
+    ] + [chat.security_label.acronym]
+
+    message.chat.security_label = SecurityLabel.maximum_of(security_labels)
+    message.chat.save()
 
 
 async def htmx_stream(
@@ -145,62 +170,65 @@ async def htmx_stream(
     HTML responses from other sources. Set format=False to disable markdown parsing.
 
     By default, the response will be saved as a Message object in the database after
-    the response is finished. Set save_message=False to disable this behavior (for
-    )
+    the response is finished. Set save_message=False to disable this behavior.
     """
-    sse_joiner = "\ndata: "
-    untitled_chat = chat.title.strip() == ""
+
+    # Helper function to format a string as an SSE message
+    def sse_string(
+        message,
+        format,
+        dots=False,
+        remove_stop=False,
+        end_swap=False,
+    ):
+        sse_joiner = "\ndata: "
+        if format:
+            message = llm_response_to_html(message)
+        if dots:
+            message.append(dots)
+        if end_swap:
+            out_string = f"data: <div hx-swap-oob='true' id='response-{message_id}'>"
+        else:
+            out_string = "data: <div>"
+        out_string += sse_joiner.join(message.split("\n"))
+        out_string += "</div>"
+        if remove_stop:
+            out_string += "<div hx-swap-oob='true' id='stop-button'></div>"
+        out_string += "\n\n"  # End of SSE message
+        return out_string
+
+    ##############################
+    # Start of the main function #
+    ##############################
+    is_untitled_chat = chat.title.strip() == ""
     full_message = ""
-    message_html_lines = []
     if dots:
         dots = f'<div class="typing" id="{message_id}-dots"> <span></span><span></span><span></span></div>'
+
     try:
         if response_generator:
             response_replacer = stream_to_replacer(response_generator)
         if response_str:
             response_replacer = stream_to_replacer([response_str])
-        if response_replacer:
-            async for response in response_replacer:
-                if cache.get(f"stop_response_{message_id}", False):
-                    if message_html_lines and message_html_lines[-1] == dots:
-                        message_html_lines.pop()
-                    break
-                full_message = response
-                if format:
-                    message_html = llm_response_to_html(full_message)
-                else:
-                    message_html = full_message
-                message_html_lines = message_html.split("\n")
-                if dots:
-                    message_html_lines.append(dots)
-                yield f"data: <div>{sse_joiner.join(message_html_lines)}</div>\n\n"
-                await asyncio.sleep(0.01)
-            # Remove the dots once response is complete regardless of whether it was stopped
-            if message_html_lines and message_html_lines[-1] == dots:
-                message_html_lines.pop()
-        else:
-            # Static response (e.g. for summarize mode or any other non-streaming response)
-            full_message = response_str
-            if format:
-                message_html = llm_response_to_html(full_message)
-            else:
-                message_html = full_message
-            message_html_lines = message_html.split("\n")
+        async for response in response_replacer:
+            if cache.get(f"stop_response_{message_id}", False):
+                break
+            full_message = response
+            yield sse_string(full_message, format, dots)
+            await asyncio.sleep(0.01)
+
     except Exception as e:
         error = str(e)
-        import traceback
-
-        print(f"ERROR: {str(e)}")
-        print(traceback.format_exc())
+        # import traceback
+        # print(traceback.format_exc())
         full_message = _("An error occurred:") + f"\n```\n{error}\n```"
-        message_html = llm_response_to_html(full_message)
-        message_html_lines = message_html.split("\n")
+        format = True
 
-    yield (
-        f"data: <div>{sse_joiner.join(message_html_lines)}</div>"
-        "<div hx-swap-oob='true' id='stop-button'></div>\n\n"
-    )
-    # Now the response is finished, so save the response message
+    yield sse_string(full_message, format, remove_stop=True)
+
+    if is_untitled_chat:
+        await sync_to_async(title_chat)(chat.id, force_title=False, llm=llm)
+
     if save_message:
         # Get the mode of the message from message_id
         mode = (await sync_to_async(Message.objects.get)(id=message_id)).mode
@@ -208,79 +236,6 @@ async def htmx_stream(
             id=message_id,
             defaults={"chat": chat, "text": full_message, "is_bot": True, "mode": mode},
         )
-    # Save the sources
-    source_html_lines = ""
-    # Update the chat security label in the sidebar if necessary
-    new_chat_label_lines = ""
-    if source_nodes and save_message:
-        from librarian.models import Document
-
-        sources = []
-        for node in source_nodes:
-            try:
-                if node.node.text == "":
-                    continue
-                document = await sync_to_async(Document.objects.get)(
-                    uuid_hex=node.node.ref_doc_id
-                )
-                score = node.score
-                source = AnswerSource(
-                    message=message,
-                    document_id=document.id,
-                    node_text=node.node.text,
-                    node_score=score,
-                    saved_citation=await sync_to_async(lambda: document.citation)(),
-                )
-                sources.append(source)
-            except:
-                print("Error saving source:", node)
-        await sync_to_async(AnswerSource.objects.bulk_create)(sources)
-        # Find the maximum security label of the sources
-        security_labels = await sync_to_async(
-            lambda: [
-                source.document.data_source.security_label.acronym for source in sources
-            ]
-            + [chat.security_label.acronym]
-        )()
-        message.chat.security_label = await sync_to_async(SecurityLabel.maximum_of)(
-            security_labels
-        )
-        await sync_to_async(message.chat.save)()
-        new_chat_label = await sync_to_async(render_to_string)(
-            "chat/components/chat_security_label.html",
-            {
-                "chat": message.chat,
-                "security_labels": SecurityLabel.objects.all(),
-                "swap_oob": True,
-            },
-        )
-        new_chat_label_lines = new_chat_label.split("\n")
-        # Add the sources (render message_sources.html)
-        multiple_data_sources = len(set([s.document.data_source for s in sources])) > 1
-        source_html = await sync_to_async(render_to_string)(
-            "chat/components/message_sources.html",
-            {
-                "sources": sources,
-                "message": message,
-                "warn": multiple_data_sources and mode == "qa",
-            },
-        )
-        source_html_lines = source_html.split("\n")
-    yield (
-        f"data: <div>{sse_joiner.join(message_html_lines)}</div>"
-        f"<div class='sources row'>{sse_joiner.join(source_html_lines)}</div>\n\n"
-    )
-    # Generate a title for the chat if necessary
-    final_response_str = "data: "
-    if untitled_chat:
-        chat_title = await sync_to_async(title_chat)(
-            chat.id, force_title=False, llm=llm
-        )
-        if chat_title != "":
-            final_response_str += (
-                f"<span hx-swap-oob='true' id='current-chat-title'>"
-                f"{chat_title}</span>"
-            )
 
     # Create cost objects based on llm.input_tokens and llm.output_tokens
     if llm and save_message:
@@ -290,14 +245,15 @@ async def htmx_stream(
         print("COSTS:", costs)
         print("TOTAL COST:", total_cost)
 
-    final_response_str += (
-        f"<div hx-swap-oob='true' id='response-{message_id}'>"
-        f"<div>{sse_joiner.join(message_html_lines)}</div>"
-        f"<div class='sources row'>{sse_joiner.join(source_html_lines)}</div></div>"
-        f"{sse_joiner.join(new_chat_label_lines)}"
-        "\n\n"
-    )
-    yield final_response_str
+    if source_nodes and save_message:
+        await sync_to_async(
+            save_sources_and_update_security_label(source_nodes, message, chat)
+        )
+
+    # TODO: Use render_to_string on a template to completely replace the message
+    # including sources, costs, etc.
+    # (and also replace the chat title and chat label if necessary, with swap-oob)
+    yield sse_string(full_message, format, end_swap=True)
 
 
 def title_chat(chat_id, llm, force_title=True):
