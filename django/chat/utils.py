@@ -127,7 +127,6 @@ async def htmx_stream(
     dots=False,
     source_nodes=[],
     llm=None,
-    user=None,
 ):
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
@@ -154,12 +153,12 @@ async def htmx_stream(
     full_message = ""
     message_html_lines = []
     if dots:
-        dots = '<div class="typing"> <span></span><span></span><span></span></div>'
+        dots = f'<div class="typing" id="{message_id}-dots"> <span></span><span></span><span></span></div>'
     try:
         if response_generator:
             response_replacer = stream_to_replacer(response_generator)
         if response_str:
-            response_str = stream_to_replacer([response_str])
+            response_replacer = stream_to_replacer([response_str])
         if response_replacer:
             async for response in response_replacer:
                 if cache.get(f"stop_response_{message_id}", False):
@@ -285,11 +284,11 @@ async def htmx_stream(
 
     # Create cost objects based on llm.input_tokens and llm.output_tokens
     if llm and save_message:
-        costs = await sync_to_async(llm.create_costs)(user, "chat")
+        user = await sync_to_async(lambda: chat.user)()
+        costs = await sync_to_async(llm.create_costs)(user, message.mode)
         total_cost = sum([cost.usd_cost for cost in costs])
         print("COSTS:", costs)
         print("TOTAL COST:", total_cost)
-        final_response_str += f"<span style='color:red;'>Cost: ${total_cost:.2f}</span>"
 
     final_response_str += (
         f"<div hx-swap-oob='true' id='response-{message_id}'>"
@@ -344,13 +343,6 @@ def title_chat(chat_id, llm, force_title=True):
     return generated_title
 
 
-def tldr_summary(text, llm):
-    # Assume costs will be calculated in the calling function where LLM instantiated
-    if len(text) == 0:
-        return _("No text provided.")
-    return llm.complete(text + "\n\nTL;DR:\n")
-
-
 def summarize_long_text(
     text,
     llm,
@@ -362,108 +354,59 @@ def summarize_long_text(
     if len(text) == 0:
         return _("No text provided.")
 
-    import asyncio
-
-    # The "basic" prompts are the initial ones that jason wrote
-    # the "orginal" ones are similar to the ones Michel wrote in the previous Summization tool but slightly reworded for better performance
-    # Im keeping the prompts in a dictionary structure for now as we want to experiment with them and perhaps add more options in the future
     length_prompts = {
-        # "basic": {
-        #     "short": {
-        #         "en": "Please summarize the main themes in a few sentences.",
-        #         "fr": "Veuillez résumer les principaux thèmes en quelques phrases.",
-        #     },
-        #     "medium": {
-        #         "en": "Please summarize the main themes in a few paragraphs.",
-        #         "fr": "Veuillez résumer les principaux thèmes en quelques paragraphes.",
-        #     },
-        #     "long": {
-        #         "en": "Please summarize the main themes in several verbose paragraphs.",
-        #         "fr": "Veuillez résumer les principaux thèmes en plusieurs paragraphes verbeux.",
-        #     },
-        # },
-        "original": {
-            "short": {
-                "en": "Rewrite the text (in English) in a short sized summary format. Make sure the summary is around two or three sentences and gives the reader a quick idea of what the text entails without going into too much details.",
-                "fr": "Réécrivez le texte (en français) sous forme de résumé court. Assurez-vous que le résumé comporte environ deux ou trois phrases et donne au lecteur une idée rapide de ce que le texte contient sans entrer dans trop de détails.",
-            },
-            "medium": {
-                "en": "Rewrite the text (in English) in a medium sized summary format and make sure the length is around two or three paragraphs.",
-                "fr": "Réécrivez le texte (en français) dans un format de résumé de taille moyenne et assurez-vous que la longueur est de deux ou trois paragraphes.",
-            },
-            "long": {
-                "en": (
-                    "Rewrite the text (in English) as a detailed summary, using multiple paragraphs if necessary. (If the input is short, output 1 paragraph only)\n\n"
-                    "Some rules to follow:\n"
-                    '* Simply rewrite; do not say "This document is about..." etc. Include *all* important details.\n'
-                    "* There is no length limit - be as detailed as possible. However, **do not extrapolate** on the text. The summary must be factual and not introduce any new ideas.\n"
-                    "* The summary must not be longer than the input text.\n\n"
-                    "Please rewrite the following document."
-                ),
-                "fr": (
-                    "Réécrivez le texte (en anglais) sous forme de résumé détaillé, en utilisant plusieurs paragraphes si nécessaire. (Si la saisie est courte, affichez 1 seul paragraphe)\n\n"
-                    "Quelques règles à suivre :\n"
-                    '* Réécrivez simplement ; ne dites pas "Ce document concerne..." etc. Incluez *tous* les détails importants.\n'
-                    "* Il n'y a pas de limite de longueur : soyez aussi détaillé que possible. Cependant, **n'extrapolez pas** sur le texte. Le résumé doit être factuel et ne pas introduire de nouvelles idées.\n"
-                    "* Le résumé ne doit pas être plus long que le texte saisi.\n\n"
-                    "Veuillez réécrire le document suivant."
-                ),
-            },
+        "short": {
+            "en": "{docs}\n\nTL;DR (in English, in three or four sentences):\n",
+            "fr": "{docs}\n\nTL;DR (en français, en trois ou quatre phrases):\n",
         },
-        "tldr": {
-            "short": {
-                "en": "\n\nTL;DR (in English, in three or four sentences):\n",
-                "fr": "\n\nTL;DR (en français, en trois ou quatre phrases):\n",
-            },
-            # "medium": {
-            #     "en": "\n\n TL;DR in 300 words:\n",
-            #     "fr": "\n\nTL;DR en 300 mots:\n",
-            # },
-            # "long": {
-            #     "en": "\n\n TL;DR using 500 to 1000 words:\n",
-            #     "fr": "\n\nTL;DR en utilisant 500 a 1000 mots:\n",
-            # },
+        "medium": {
+            "en": "Rewrite the text (in English) in a medium sized summary format and make sure the length is around two or three paragraphs.\n\n Document: {docs}",
+            "fr": "Réécrivez le texte (en français) dans un format de résumé de taille moyenne et assurez-vous que la longueur est de deux ou trois paragraphes.\n\n Document: {docs}",
+        },
+        "long": {
+            "en": (
+                "Rewrite the text (in English) as a detailed summary, using multiple paragraphs if necessary. (If the input is short, output 1 paragraph only)\n\n"
+                "Some rules to follow:\n"
+                '* Simply rewrite; do not say "This document is about..." etc. Include *all* important details.\n'
+                "* There is no length limit - be as detailed as possible. However, **do not extrapolate** on the text. The summary must be factual and not introduce any new ideas.\n"
+                "* The summary must not be longer than the input text.\n\n"
+                "Please rewrite the following document."
+                "\n\n Document: {docs}"
+            ),
+            "fr": (
+                "Réécrivez le texte (en anglais) sous forme de résumé détaillé, en utilisant plusieurs paragraphes si nécessaire. (Si la saisie est courte, affichez 1 seul paragraphe)\n\n"
+                "Quelques règles à suivre :\n"
+                '* Réécrivez simplement ; ne dites pas "Ce document concerne..." etc. Incluez *tous* les détails importants.\n'
+                "* Il n'y a pas de limite de longueur : soyez aussi détaillé que possible. Cependant, **n'extrapolez pas** sur le texte. Le résumé doit être factuel et ne pas introduire de nouvelles idées.\n"
+                "* Le résumé ne doit pas être plus long que le texte saisi.\n\n"
+                "Veuillez réécrire le document suivant."
+                "\n\n Document: {docs}"
+            ),
         },
     }
 
-    total_tokens_text = num_tokens_from_string(text)
-
-    # we can customize which prompts we want in this section
-    prompt_type = "tldr" if length == "short" else "original"
-
-    length_prompt_en = length_prompts[prompt_type][length]["en"]
-    length_prompt_fr = length_prompts[prompt_type][length]["fr"]
-
-    length_prompt = length_prompt_fr if target_language == "fr" else length_prompt_en
-    length_prompt_template = (
-        "{docs}" + length_prompt
-        if prompt_type == "tldr"
-        else length_prompt + "\n\n Document: {docs}"
-    )
+    length_prompt_template = length_prompts[length][target_language]
     if custom_prompt and "{docs}" in custom_prompt:
         length_prompt_template = custom_prompt
     elif custom_prompt:
         length_prompt_template = (
             custom_prompt
-            + "\n\n The original document is below, enclosed in triple quotes:\n'''\n{docs}\n'''"
+            + "\n\n"
+            + _("The original document is below, enclosed in triple quotes:")
+            + "\n'''\n{docs}\n'''"
         )
-    if total_tokens_text <= 16000:
-        response = llm.stream(length_prompt_template.format(docs=text))
-    else:
-        # Tree summarizer prompt requires certain variables
-        # Note that we aren't passing in a query here, so the query will be empty
-        length_prompt_template = length_prompt_template.replace(
-            "{docs}", "{context_str}{query_str}"
-        )
-        template = PromptTemplate(
-            length_prompt_template, prompt_type=PromptType.SUMMARY
-        )
+    # Tree summarizer prompt requires certain variables
+    # Note that we aren't passing in a query here, so the query will be empty
+    length_prompt_template = length_prompt_template.replace(
+        "{docs}", "{context_str}{query_str}"
+    )
+    template = PromptTemplate(length_prompt_template, prompt_type=PromptType.SUMMARY)
 
-        response = llm.tree_summarize(
-            context=text,
-            query="",
-            template=template,
-        )
+    response = llm.tree_summarize(
+        context=text,
+        query="",
+        template=template,
+    )
     return response
 
 

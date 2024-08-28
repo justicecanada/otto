@@ -51,14 +51,19 @@ def otto_response(request, message_id=None):
 
 def chat_response(chat, response_message, eval=False):
 
-    user_message = response_message.parent
+    def is_text_to_summarize(message):
+        return message.mode == "summarize" and not message.is_bot
 
     system_prompt = chat.options.chat_system_prompt
     chat_history = [ChatMessage(role=MessageRole.SYSTEM, content=system_prompt)]
     chat_history += [
         ChatMessage(
             role=MessageRole.ASSISTANT if message.is_bot else MessageRole.USER,
-            content=message.text,
+            content=(
+                message.text
+                if not is_text_to_summarize(message)
+                else "<text to summarize...>"
+            ),
         )
         for message in chat.messages.all().order_by("date_created")
     ]
@@ -98,7 +103,6 @@ def chat_response(chat, response_message, eval=False):
             response_message.id,
             response_replacer=llm.chat_stream(chat_history),
             llm=llm,
-            user=chat.user,
         ),
         content_type="text/event-stream",
     )
@@ -163,6 +167,7 @@ def summarize_response(chat, response_message):
                 response_message.id,
                 response_replacer=multi_summary_generator(),
                 dots=True,
+                llm=llm,
             ),
             content_type="text/event-stream",
         )
@@ -194,7 +199,7 @@ def summarize_response(chat, response_message):
                     chat,
                     response_message.id,
                     response_replacer=response,
-                    dots=True,
+                    llm=llm,
                 ),
                 content_type="text/event-stream",
             )
@@ -283,7 +288,6 @@ def translate_response(chat, response_message):
             response_message.id,
             response_replacer=llm.stream(translate_prompt),
             llm=llm,
-            user=chat.user,
         ),
         content_type="text/event-stream",
     )
@@ -369,7 +373,6 @@ def qa_response(chat, response_message, eval=False):
             response_generator=response.response_gen,
             source_nodes=response.source_nodes,
             llm=llm,
-            user=chat.user,
         ),
         content_type="text/event-stream",
     )
