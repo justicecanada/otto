@@ -35,9 +35,8 @@
               id="delete-all-chats"
               hx-target="#chat-history-list"
               hx-post="{% url 'chat:delete_all_chats' %}"
-              hx-confirm="Are you sure you want to delete all chats? This action is irreversible."
-              hx-confirm-target="#delete-all-chat-modal">
-        <i class="bi bi-trash me-2"></i>Delete all chats
+              hx-confirm='{% trans "Are you sure you want to delete all chats? This action is irreversible." %}'>
+        <i class="bi bi-trash me-2"></i>{% trans "Delete all chats" %}
       </button>
     </div>
   </div>
