@@ -9,13 +9,14 @@ if ! az account show &>/dev/null; then
     az login
 fi
 
-# If SUBSCRIPTION_ID is already set, confirm if user wants to change it
+# If SUBSCRIPTION_ID is already set, confirm if user wants to keep it
 if [ -n "$SUBSCRIPTION_ID" ]; then
-    read -p "Subscription ID is already set. Do you want to change it? (y/N): " confirm
+    read -p "Subscription ID is already set to $SUBSCRIPTION_ID. Do you want to keep it? (y/N): " confirm
     if [[ $confirm =~ ^[Yy]$ ]]; then
-        unset SUBSCRIPTION_ID
+        echo "Keeping current subscription: $SUBSCRIPTION_ID"
     else
-        echo "Using current subscription: $SUBSCRIPTION_ID"
+        unset SUBSCRIPTION_ID
+        echo "Subscription ID cleared. You will be prompted to enter a new one."
     fi
 fi
 
@@ -111,6 +112,8 @@ done
 
 # Unset all environment variables
 unset $(grep -v '^#' "$ENV_FILE" | sed -E 's/(.*)=.*/\1/' | xargs)
+unset SITE_URL
+unset DNS_LABEL
 
 # Load the environment variables from file
 source .env
@@ -142,6 +145,7 @@ export INTENDED_USE
 export ADMIN_GROUP_NAME
 export ACR_PUBLISHERS_GROUP_NAME
 export ENTRA_CLIENT_NAME
+export ORGANIZATION
 
 export APP_NAME
 export ENVIRONMENT
@@ -165,14 +169,14 @@ export ENTRA_AUTHORITY="https://login.microsoftonline.com/${TENANT_ID}"
 
 # Set the dynamically generated variables
 export RESOURCE_GROUP_NAME="${APP_NAME}${INTENDED_USE^^}Rg"
-export KEYVAULT_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-kv"
-export COGNITIVE_SERVICES_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-cs"
-export OPENAI_SERVICE_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-openai"
-export AKS_CLUSTER_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-aks"
-export DISK_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-disk"
-export STORAGE_NAME="jus${INTENDED_USE,,}${APP_NAME,,}storage"
-export ACR_NAME="jus${INTENDED_USE,,}${APP_NAME,,}acr"
-export DJANGODB_RESOURCE_NAME="jus-${INTENDED_USE,,}-${APP_NAME,,}-db"
+export KEYVAULT_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-kv"
+export COGNITIVE_SERVICES_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-cs"
+export OPENAI_SERVICE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-openai"
+export AKS_CLUSTER_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-aks"
+export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
+export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}storage"
+export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
+export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
 
 
