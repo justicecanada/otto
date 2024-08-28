@@ -28,16 +28,10 @@ python manage.py sync_users || { echo "Error: Sync users failed"; exit 1; }
 
 # Check if OTTO_ADMIN is provided
 if [ -n "$OTTO_ADMIN" ]; then
-    echo "Setting Otto admin..."
+    echo "Setting Otto admin(s)..."
     
-    # Split the OTTO_ADMIN string into an array
-    IFS=',' read -ra ADMIN_ARRAY <<< "$OTTO_ADMIN"
-   
-    # Loop through each admin UPN
-    for admin in "${ADMIN_ARRAY[@]}"; do
-        # Trim any whitespace
-        admin=$(echo "$admin" | tr -d '[:space:]')
-        
+    # Use xargs to trim whitespace and run the command for each admin
+    echo "$OTTO_ADMIN" | tr ',' '\n' | while read -r admin; do
         if [ -n "$admin" ]; then
             echo "Setting $admin as Otto admin..."
             python manage.py set_admin_user "$admin"
