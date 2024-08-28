@@ -10,9 +10,14 @@ module "resource_group" {
   tags     = local.common_tags
 }
 
-# Data source for Azure AD group
+# Data source for Azure AD group of KeyVault and AKS administrators
 data "azuread_group" "admin_group" {
-  display_name = var.group_name
+  display_name = var.admin_group_name
+}
+
+# Data source for Azure AD group of ACR publishers
+data "azuread_group" "acr_publishers" {
+  display_name = var.acr_publishers_group_name
 }
 
 # Key Vault module
@@ -34,6 +39,7 @@ module "acr" {
   location            = var.location
   acr_sku             = "Basic"
   tags                = local.common_tags
+  acr_publishers_id   = data.azuread_group.acr_publishers.object_id
   keyvault_id         = module.keyvault.keyvault_id
 }
 
@@ -112,7 +118,6 @@ module "aks" {
   acr_id                 = module.acr.acr_id
   disk_encryption_set_id = module.disk.disk_encryption_set_id
   storage_account_id     = module.storage.storage_account_id
-  host_name_prefix       = var.host_name_prefix
   tags                   = local.common_tags
 }
 
