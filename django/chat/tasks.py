@@ -76,6 +76,8 @@ def translate_file(file_path, out_message_id, target_language):
             count=usage,
         )
         print(f"Cost: {cost}")
+        out_message.cost = float(out_message.cost) + float(cost.usd_cost)
+        out_message.save()
         for document in result:
             if document.status == "Succeeded":
                 # Save the translated file to the database
