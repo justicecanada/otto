@@ -174,24 +174,14 @@ async def htmx_stream(
     """
 
     # Helper function to format a string as an SSE message
-    def sse_string(
-        message,
-        format,
-        dots=False,
-        remove_stop=False,
-        end_swap=False,
-    ):
+    def sse_string(message, format=True, dots=False, remove_stop=False):
         sse_joiner = "\ndata: "
         if format:
             message = llm_response_to_html(message)
         if dots:
             message.append(dots)
-        if end_swap:
-            out_string = f"data: <div hx-swap-oob='true' id='response-{message_id}'>"
-        else:
-            out_string = "data: <div>"
+        out_string = "data: "
         out_string += sse_joiner.join(message.split("\n"))
-        out_string += "</div>"
         if remove_stop:
             out_string += "<div hx-swap-oob='true' id='stop-button'></div>"
         out_string += "\n\n"  # End of SSE message
@@ -210,6 +200,8 @@ async def htmx_stream(
             response_replacer = stream_to_replacer(response_generator)
         if response_str:
             response_replacer = stream_to_replacer([response_str])
+
+        # Stream the response text
         async for response in response_replacer:
             if cache.get(f"stop_response_{message_id}", False):
                 break
@@ -217,43 +209,45 @@ async def htmx_stream(
             yield sse_string(full_message, format, dots)
             await asyncio.sleep(0.01)
 
+        # Update chat title & security label, message costs & sources
+        if is_untitled_chat:
+            await sync_to_async(title_chat)(chat.id, force_title=False, llm=llm)
+
+        message = await sync_to_async(Message.objects.get)(id=message_id)
+        if llm:
+            user = await sync_to_async(lambda: chat.user)()
+            # TODO: Add costs for translation messages
+            costs = await sync_to_async(llm.create_costs)(user, message.mode)
+            total_cost = sum([cost.usd_cost for cost in costs])
+            message.cost = total_cost
+        message.text = full_message
+        await sync_to_async(message.save)()
+        message.text = llm_response_to_html(full_message)
+
+        context = {"message": message, "swap_oob": True}
+        if source_nodes:
+            await sync_to_async(save_sources_and_update_security_label)(
+                source_nodes, message, chat
+            )
+            context["security_labels"] = await sync_to_async(
+                SecurityLabel.objects.all
+            )()
+
     except Exception as e:
-        error = str(e)
-        # import traceback
-        # print(traceback.format_exc())
-        full_message = _("An error occurred:") + f"\n```\n{error}\n```"
-        format = True
+        full_message = _("An error occurred:") + f"\n```\n{str(e)}\n```"
+        message.text = full_message
+        await sync_to_async(message.save)()
+        message.text = llm_response_to_html(full_message)
+        context = {"message": message, "swap_oob": True}
 
-    yield sse_string(full_message, format, remove_stop=True)
-
-    if is_untitled_chat:
-        await sync_to_async(title_chat)(chat.id, force_title=False, llm=llm)
-
-    if save_message:
-        # Get the mode of the message from message_id
-        mode = (await sync_to_async(Message.objects.get)(id=message_id)).mode
-        message, is_created = await sync_to_async(Message.objects.update_or_create)(
-            id=message_id,
-            defaults={"chat": chat, "text": full_message, "is_bot": True, "mode": mode},
-        )
-
-    # Create cost objects based on llm.input_tokens and llm.output_tokens
-    if llm and save_message:
-        user = await sync_to_async(lambda: chat.user)()
-        costs = await sync_to_async(llm.create_costs)(user, message.mode)
-        total_cost = sum([cost.usd_cost for cost in costs])
-        print("COSTS:", costs)
-        print("TOTAL COST:", total_cost)
-
-    if source_nodes and save_message:
-        await sync_to_async(
-            save_sources_and_update_security_label(source_nodes, message, chat)
-        )
-
-    # TODO: Use render_to_string on a template to completely replace the message
-    # including sources, costs, etc.
-    # (and also replace the chat title and chat label if necessary, with swap-oob)
-    yield sse_string(full_message, format, end_swap=True)
+    # Render the message template, wrapped in SSE format
+    yield sse_string(
+        await sync_to_async(render_to_string)(
+            "chat/components/chat_message.html", context
+        ),
+        format=False,
+        remove_stop=True,
+    )
 
 
 def title_chat(chat_id, llm, force_title=True):

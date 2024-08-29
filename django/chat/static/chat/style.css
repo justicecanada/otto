@@ -100,10 +100,6 @@ ol.breadcrumb {
   border: 1px solid #ccc;
 }
 
-.cost {
-  text-align: left;
-}
-
 .align-self-end {
   align-self: flex-end;
 }
@@ -559,7 +555,7 @@ form#dropzone-basic {
 }
 
 .bot .message-blob {
-  min-width: 66px;
+  min-width: 140px;
 }
 
 #pinned-messages-container .message-blob {
@@ -582,6 +578,7 @@ li.message-file {
 .bot .message-blob {
   border: solid 1px #f1dda2;
   background: #fff8e2;
+  position: relative;
 }
 
 .message-blob .dropdown {
@@ -775,10 +772,11 @@ div#prompt-form-container {
   display: inline-block;
 }
 
-/* .message-outer.bot .message-actions button:not(.clicked):hover,
-.message-outer.bot .message-actions button:not(.clicked):focus {
-  color: var(--bs-black) !important;
-} */
+.message-cost {
+  position: absolute;
+  bottom: -1.5rem;
+  right: 0.25rem;
+}
 
 .message-outer button:not(.accordion-button) {
   font-size: 0.9rem;
