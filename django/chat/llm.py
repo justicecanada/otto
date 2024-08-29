@@ -106,7 +106,9 @@ class OttoLLM:
     def embed_token_count(self):
         return self._token_counter.total_embedding_token_count
 
-    def create_costs(self, user: User, feature: str) -> list[Cost]:
+    def create_costs(
+        self, user: User, feature: str, embed_task: str = "query"
+    ) -> list[Cost]:
         """
         Create Otto Cost objects for the given user and feature:
         - "embed-query": cost for embedding tokens
@@ -136,7 +138,7 @@ class OttoLLM:
             costs.append(
                 Cost.objects.new(
                     user=user,
-                    cost_type="embed-query",
+                    cost_type=f"embed-{embed_task}",
                     feature=feature,
                     count=self.embed_token_count,
                 )
@@ -152,24 +154,7 @@ class OttoLLM:
         vector_weight: float = 0.6,
     ) -> QueryFusionRetriever:
 
-        hybrid_vector_store = PGVectorStore.from_params(
-            database=settings.DATABASES["vector_db"]["NAME"],
-            host=settings.DATABASES["vector_db"]["HOST"],
-            password=settings.DATABASES["vector_db"]["PASSWORD"],
-            port=5432,
-            user=settings.DATABASES["vector_db"]["USER"],
-            table_name=vector_store_table,
-            embed_dim=1536,  # openai embedding dimension
-            hybrid_search=True,
-            text_search_config="simple",
-            perform_setup=True,
-        )
-
-        pg_idx = VectorStoreIndex.from_vector_store(
-            vector_store=hybrid_vector_store,
-            service_context=self._service_context,
-            show_progress=False,
-        )
+        pg_idx = self.get_index(vector_store_table)
 
         vector_retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
@@ -177,14 +162,13 @@ class OttoLLM:
             filters=filters,
             service_context=self._service_context,
         )
-
         text_retriever = pg_idx.as_retriever(
             vector_store_query_mode="sparse",
             similarity_top_k=max(top_k, 100),
             filters=filters,
             service_context=self._service_context,
         )
-        retriever = QueryFusionRetriever(
+        hybrid_retriever = QueryFusionRetriever(
             [vector_retriever, text_retriever],
             similarity_top_k=top_k,
             num_queries=1,  # set this to 1 to disable query generation
@@ -193,8 +177,27 @@ class OttoLLM:
             retriever_weights=[vector_weight, 1 - vector_weight],
             llm=self.llm,
         )
+        return hybrid_retriever
 
-        return retriever
+    def get_index(self, vector_store_table: str) -> VectorStoreIndex:
+        vector_store = PGVectorStore.from_params(
+            database=settings.DATABASES["vector_db"]["NAME"],
+            host=settings.DATABASES["vector_db"]["HOST"],
+            password=settings.DATABASES["vector_db"]["PASSWORD"],
+            port=5432,
+            user=settings.DATABASES["vector_db"]["USER"],
+            table_name=vector_store_table,
+            embed_dim=1536,  # openai embedding dimension
+            hybrid_search=True,
+            text_search_config="english",
+            perform_setup=True,
+        )
+        idx = VectorStoreIndex.from_vector_store(
+            vector_store=vector_store,
+            service_context=self._service_context,
+            show_progress=False,
+        )
+        return idx
 
     def get_response_synthesizer(
         self,

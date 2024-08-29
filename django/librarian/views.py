@@ -73,7 +73,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                     ),
                 )
                 if not item_id:
-                    form.instance.process()
+                    form.instance.process(user=request.user)
                 selected_document = form.instance
                 selected_data_source = selected_document.data_source
                 item_id = selected_document.id
@@ -386,7 +386,7 @@ def create_temp_object(item_type):
 def document_start(request, document_id):
     # Initiate celery task
     document = get_object_or_404(Document, id=document_id)
-    document.process()
+    document.process(user=request.user)
     return modal_view(request, item_type="document", item_id=document_id)
 
 
@@ -414,7 +414,7 @@ def upload(request, data_source_id):
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )
-        document.process()
+        document.process(user=request.user)
     # Update the modal with the new documents
     request.method = "GET"
     return modal_view(request, item_type="data_source", item_id=data_source_id)

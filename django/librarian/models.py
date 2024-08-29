@@ -2,7 +2,6 @@ import hashlib
 import uuid
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.loader import render_to_string
@@ -16,12 +15,12 @@ from sqlalchemy.engine import reflection
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
 
-from otto.models import SecurityLabel
+from chat.llm import OttoLLM
+from otto.models import SecurityLabel, User
+from otto.utils.common import display_cad_cost
 
-from .utils.vector_store_helpers import connect_to_vector_store
-
-User = get_user_model()
 logger = get_logger(__name__)
+llm = OttoLLM()
 
 STATUS_CHOICES = [
     ("PENDING", "Not started"),
@@ -137,10 +136,10 @@ class Library(models.Model):
         self.reset(recreate=False)
         super().delete(*args, **kwargs)
 
-    def process_all(self, force=True):
+    def process_all(self, force=True, user=None):
         for ds in self.data_sources.all():
             for document in ds.documents.all():
-                document.process()
+                document.process(user=user)
 
     def reset(self, recreate=True):
         db = settings.DATABASES["vector_db"]
@@ -154,7 +153,7 @@ class Library(models.Model):
         session.close()
         if recreate:
             # This will create the vector store table
-            connect_to_vector_store(self.uuid_hex)
+            llm.get_index(self.uuid_hex)
 
     @property
     def sorted_data_sources(self):
@@ -248,9 +247,9 @@ class DataSource(models.Model):
             document.delete()
         super().delete()
 
-    def process_all(self, force=True):
+    def process_all(self, force=True, user=None):
         for document in self.documents.all():
-            document.process()
+            document.process(user=user)
 
 
 class Document(models.Model):
@@ -270,6 +269,8 @@ class Document(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    # Cost includes OpenAI embedding and (in some cases) Azure Document AI costs
+    cost = models.DecimalField(max_digits=10, decimal_places=6, default=0)
 
     # Document always associated with a single DataSource
     data_source = models.ForeignKey(
@@ -359,6 +360,10 @@ class Document(models.Model):
         return ""
 
     @property
+    def display_cost(self):
+        return display_cad_cost(self.cost)
+
+    @property
     def content_type(self):
         if self.file:
             return self.file.content_type
@@ -366,7 +371,7 @@ class Document(models.Model):
             return self.url_content_type
 
     def remove_from_vector_store(self):
-        idx = connect_to_vector_store(self.data_source.library.uuid_hex)
+        idx = llm.get_index(self.data_source.library.uuid_hex)
         idx.delete_ref_doc(self.uuid_hex, delete_from_docstore=True)
 
     def delete(self, *args, **kwargs):
@@ -377,7 +382,7 @@ class Document(models.Model):
             logger.error(f"Failed to remove document from vector store: {e}")
         super().delete(*args, **kwargs)
 
-    def process(self):
+    def process(self, user: User = None):
         from .tasks import process_document
 
         # Logic for updating the document embeddings, metadata, etc.
@@ -385,7 +390,8 @@ class Document(models.Model):
             self.status = "ERROR"
             self.save()
             return
-        process_document.delay(self.id, get_language())
+        # User is optionally passed through for cost tracking purposes
+        process_document.delay(self.id, user.upn if user else None, get_language())
         self.celery_task_id = "tbd"
         self.status = "INIT"
         self.save()

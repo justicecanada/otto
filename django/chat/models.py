@@ -17,6 +17,7 @@ from chat.prompts import (
 )
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
+from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
 
@@ -258,10 +259,7 @@ class Message(models.Model):
 
     @property
     def display_cost(self):
-        approx_cost_cad = float(self.cost) * settings.USD_TO_CAD
-        if approx_cost_cad < 0.005:
-            return "< $0.01"
-        return f"${approx_cost_cad:.2f}"
+        return display_cad_cost(self.cost)
 
     def get_toggled_feedback(self, feeback_value):
         if feeback_value not in [-1, 1]:

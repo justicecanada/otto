@@ -109,6 +109,12 @@
           {{ document.num_chunks }}
         </dd>
       {% endif %}
+      {% if document.cost %}
+        <dt>{% trans "Processing cost" %}</dt>
+        <dd>
+          {{ document.display_cost }}
+        </dd>
+      {% endif %}
       {% if document.extracted_text %}
         <dt>{% trans "Extracted text" %}</dt>
         <dd>
