@@ -39,7 +39,7 @@ Otto is a suite of AI services developed by data specialists at Justice Canada w
 5. From the terminal, run `bash dev_setup.sh` and follow the instructions.
 6. You can now run the server from the "Run and debug" sidebar in VScode or just run `python django/manage.py runserver` in the VScode terminal.
 7. Login to Otto using your Justice account.
-8. From the terminal, run `python manage.py set_admin_user` followed by your Justice email.
+8. From the terminal, run `python manage.py set_admin_user <firstname.lastname@justice.gc.ca>`.
 9. You will now have full permissions when you refresh Otto. You can add other users using the "Manage users > Upload CSV" option. (CSV of pilot users is found in our shared drive).
 
 After the initial setup, you will rarely have to build the dev containers again. You can just:
