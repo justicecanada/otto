@@ -28,7 +28,7 @@ azure-identity==1.16.0
 azure-keyvault==4.2.0
 azure-ai-formrecognizer==3.3.3
 azure-ai-translation-document==1.0.0
-azure-storage-blob==12.19.1
+azure-storage-blob==12.22.0
 msgraph-sdk==1.5.3
 # requests_ntlm==1.2.0
 
