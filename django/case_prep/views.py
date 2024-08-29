@@ -41,6 +41,9 @@ app_name = "case_prep"
 @app_access_required(app_name)
 def index(request):
     sessions = Session.objects.all(AccessKey(request.user))
+    if request.method == "POST":
+        file_number = request.POST.get("fileNumber")
+        return redirect("case_prep:sessions_page", file_number=file_number)
     return render(request, "case_prep/index.html", {"sessions": sessions})
 
 
@@ -61,10 +64,14 @@ def create_session(request):
     # return redirect("case_prep:sessions_page", session_id=session.id)
 
 
-def sessions_page(request):
+def sessions_page(request, file_number):
     access_key = AccessKey(request.user)
     sessions = Session.objects.all(access_key=access_key)
-    return render(request, "case_prep/sessions_page.html", {"sessions": sessions})
+    return render(
+        request,
+        "case_prep/sessions_page.html",
+        {"sessions": sessions, "file_number": file_number},
+    )
 
 
 def session_detail(request, session_id):

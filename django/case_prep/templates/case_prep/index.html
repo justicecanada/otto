@@ -52,22 +52,20 @@
 
       <!-- Court information-->
       <div class="form-container-court">
-        <div class="mb-3">
-          <label for="fileNumber" class="form-label">{% trans "Court File Number" %}</label>
-          <input type="text"
-                 id="fileNumber"
-                 name="fileNumber"
-                 class="form-control"
-                 placeholder="{% trans 'Enter File Number' %}">
-        </div>
-        <div class="mb-3">
- 
-          <!-- <a href="{% url 'case_prep:sessions_page' %}" class="btn btn-primary mt-3">{% trans "Next" %}</a> -->
-          <a href="{% url 'case_prep:sessions_page' %}"
-             class="btn btn-primary mt-3">{% trans "Create/Open Session" %}</a>
-
- 
-        </div>
+        <form method="post" action="{% url 'case_prep:index' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="fileNumber" class="form-label">{% trans "Court File Number" %}</label>
+            <input type="text"
+                   id="fileNumber"
+                   name="fileNumber"
+                   class="form-control"
+                   placeholder="{% trans 'Enter File Number' %}">
+          </div>
+          <div class="mb-3">
+            <button type="submit" class="btn btn-primary mt-3">{% trans "Create/Open Session" %}</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
