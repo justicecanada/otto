@@ -11,6 +11,8 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from otto.utils.common import display_cad_cost
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, upn, password=None, **extra_fields):
@@ -68,6 +70,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def roles(self):
         return self.groups.all()
+
+    @property
+    def total_cost(self):
+        return display_cad_cost(Cost.objects.get_user_cost(self))
 
     def __str__(self):
         return f"{self.lastname_firstname} ({self.email})"
