@@ -28,6 +28,7 @@
             title='{% trans "Dislike" %}'>
       <i class="bi bi-hand-thumbs-down"></i><i class="bi bi-hand-thumbs-down-fill"></i>
     </button>
+    {% if message.cost %}<span class="message-cost ms-1">{{ message.display_cost }}</span>{% endif %}
   {% else %}
     <button type="button"
             class="btn btn-link m-0 ms-1 p-0 text-muted"

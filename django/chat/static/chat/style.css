@@ -555,7 +555,11 @@ form#dropzone-basic {
 }
 
 .bot .message-blob {
-  min-width: 140px;
+  min-height: 2.5rem;
+}
+
+.awaiting-response .message-blob {
+  min-width: 57px;
 }
 
 #pinned-messages-container .message-blob {
@@ -770,12 +774,6 @@ div#prompt-form-container {
 
 .message-outer button.clicked i:not(:first-child) {
   display: inline-block;
-}
-
-.message-cost {
-  position: absolute;
-  bottom: -1.5rem;
-  right: 0.25rem;
 }
 
 .message-outer button:not(.accordion-button) {

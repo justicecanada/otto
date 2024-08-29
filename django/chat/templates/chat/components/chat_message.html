@@ -50,11 +50,6 @@
           {% endwith %}
         {% endif %}
       </div>
-      {% if message.cost %}
-        <div class="row mt-1 message-cost">
-          <small class="col text-muted">{{ message.display_cost }}</small>
-        </div>
-      {% endif %}
     </div>
   </div>
   {% include "chat/components/message_actions.html" %}
@@ -71,8 +66,12 @@
 
 {% if swap_oob %}
   {# Update chat title and security label #}
-  <span class="chat-title fw-semibold"
-        id="current-chat-title"
-        hx-swap-oob="true">{{ message.chat.title }}</span>
-  {% include "chat/components/chat_security_label.html" with chat=message.chat %}
+  {% if message.chat.title %}
+    <span class="chat-title fw-semibold"
+          id="current-chat-title"
+          hx-swap-oob="true">{{ message.chat.title }}</span>
+  {% endif %}
+  {% if security_labels %}
+    {% include "chat/components/chat_security_label.html" with chat=message.chat %}
+  {% endif %}
 {% endif %}

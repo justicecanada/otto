@@ -179,7 +179,7 @@ async def htmx_stream(
         if format:
             message = llm_response_to_html(message)
         if dots:
-            message.append(dots)
+            message += dots
         out_string = "data: "
         out_string += sse_joiner.join(message.split("\n"))
         if remove_stop:
@@ -203,28 +203,34 @@ async def htmx_stream(
 
         # Stream the response text
         async for response in response_replacer:
+            full_message = response
             if cache.get(f"stop_response_{message_id}", False):
                 break
-            full_message = response
             yield sse_string(full_message, format, dots)
             await asyncio.sleep(0.01)
 
-        # Update chat title & security label, message costs & sources
-        if is_untitled_chat:
-            await sync_to_async(title_chat)(chat.id, force_title=False, llm=llm)
+        yield sse_string(full_message, format, dots=False, remove_stop=True)
 
+        # Response is done! Update costs and save message
         message = await sync_to_async(Message.objects.get)(id=message_id)
         if llm:
             user = await sync_to_async(lambda: chat.user)()
             # TODO: Add costs for translation messages
             costs = await sync_to_async(llm.create_costs)(user, message.mode)
+            print(costs)
             total_cost = sum([cost.usd_cost for cost in costs])
             message.cost = total_cost
         message.text = full_message
         await sync_to_async(message.save)()
-        message.text = llm_response_to_html(full_message)
 
+        if is_untitled_chat:
+            await sync_to_async(title_chat)(chat.id, force_title=False, llm=llm)
+
+        # Update message text with HTML formatting to pass to template
+        message.text = llm_response_to_html(full_message)
         context = {"message": message, "swap_oob": True}
+
+        # Save sources and security label
         if source_nodes:
             await sync_to_async(save_sources_and_update_security_label)(
                 source_nodes, message, chat
@@ -253,7 +259,7 @@ async def htmx_stream(
 def title_chat(chat_id, llm, force_title=True):
     # Assume costs will be calculated in the calling function where LLM instantiated
     chat = Chat.objects.get(id=chat_id)
-    chat_messages = chat.messages.filter(pinned=False).order_by("date_created")
+    chat_messages = chat.messages.order_by("date_created")
     if not force_title and (
         chat.title != ""
         or (
