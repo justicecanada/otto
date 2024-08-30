@@ -513,6 +513,9 @@ def _pdf_to_html_using_azure(content):
     poller = document_analysis_client.begin_analyze_document("prebuilt-layout", content)
     result = poller.result()
 
+    num_pages = len(result.pages)
+    # TODO: create cost object based on number of pages
+
     # Extract table bounding regions
     table_bounding_regions = []
     for table in result.tables:

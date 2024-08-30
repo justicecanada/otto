@@ -28,7 +28,7 @@
     {% endif %}
     <div class="message-blob {{ mode }}">
       {% if message.awaiting_response %}
-        <div class="message-text" hx-ext="morph">{% include "chat/components/streaming_response.html" %}</div>
+        <div class="message-text">{% include "chat/components/streaming_response.html" %}</div>
       {% elif file_upload %}
         <div class="message-text">{% include "chat/components/file_upload_progress.html" %}</div>
       {% elif message.num_files %}

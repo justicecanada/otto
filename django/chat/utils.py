@@ -148,7 +148,6 @@ async def htmx_stream(
     response_replacer=None,  # Generator that yields complete responses (to replace previous response)
     response_str="",
     format=True,
-    save_message=True,
     dots=False,
     source_nodes=[],
     llm=None,
@@ -193,7 +192,7 @@ async def htmx_stream(
     is_untitled_chat = chat.title.strip() == ""
     full_message = ""
     if dots:
-        dots = f'<div class="typing" id="{message_id}-dots"> <span></span><span></span><span></span></div>'
+        dots = f'<div class="typing"><span></span><span></span><span></span></div>'
 
     try:
         if response_generator:

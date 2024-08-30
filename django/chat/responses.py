@@ -261,7 +261,6 @@ def translate_response(chat, response_message):
                 response_replacer=file_translation_generator(task_ids),
                 dots=True,
                 format=False,  # Because the generator already returns HTML
-                save_message=False,  # Because the generator already saves messages
             ),
             content_type="text/event-stream",
         )
