@@ -14,9 +14,10 @@ resource "azurerm_key_vault" "kv" {
 }
 
 resource "azurerm_role_assignment" "kv_role" {
+  for_each             = var.admin_group_object_ids
   scope                = azurerm_key_vault.kv.id
   role_definition_name = "Key Vault Administrator"
-  principal_id         = var.admin_group_object_id
+  principal_id         = each.value
 }
 
 resource "azurerm_role_assignment" "current_user_kv_role" {

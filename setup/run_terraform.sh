@@ -7,8 +7,42 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Function to display usage information
+usage() {
+    echo -e "\n\e[1;33mUsage:\e[0m"
+    echo -e "\e[1;32m$0 <env>\e[0m"
+    echo
+    echo -e "\e[1;33mWhere <env> must be one of:\e[0m"
+    echo -e "\e[1;34m  uat     \e[0m- User Acceptance Testing environment"
+    echo -e "\e[1;34m  sandbox \e[0m- Sandbox environment for testing and development"
+    echo -e "\e[1;34m  prod    \e[0m- Production environment"
+    echo
+    echo -e "\e[1;31mError: Please provide a valid environment.\e[0m"
+    exit 1
+}
+
+# Get the environment argument
+ENV=$1
+
+# Define allowed environment options
+case "$ENV" in
+    sandbox)
+        ENV_EXAMPLE_FILE_OVERRIDE=".env.example"
+        ;;
+    uat)
+        ENV_EXAMPLE_FILE_OVERRIDE=".env.example.uat"
+        ;;
+    prod)
+        ENV_EXAMPLE_FILE_OVERRIDE=".env.example.prod"
+        ;;
+    *)
+        echo -e "\e[1;31mError: Invalid environment '$ENV'.\e[0m"
+        usage
+        ;;
+esac
+
 # Source setup_env.sh to set environment variables and create .tfvars
-source setup_env.sh
+source setup_env.sh "$ENV_EXAMPLE_FILE_OVERRIDE"
 
 # Check if the Entra client secret is stored in Key Vault
 unset TF_VAR_entra_client_secret

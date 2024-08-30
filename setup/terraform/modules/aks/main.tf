@@ -65,7 +65,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   azure_active_directory_role_based_access_control {
     managed                = true # Deprecated but still required
     azure_rbac_enabled     = true
-    admin_group_object_ids = [var.admin_group_object_id]
+    admin_group_object_ids = var.admin_group_object_ids
   }
 
   local_account_disabled = true
@@ -96,7 +96,8 @@ resource "azurerm_role_assignment" "aks_vm_contributor" {
 }
 
 resource "azurerm_role_assignment" "rbac_cluster_admin" {
-  principal_id         = var.admin_group_object_id
+  for_each = var.admin_group_object_ids
+  principal_id         = each.value.object_id
   role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
   scope                = azurerm_kubernetes_cluster.aks.id
 }

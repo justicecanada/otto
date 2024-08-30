@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Check if exactly one argument is provided
+if [ "$#" -ne 1 ]; then
+    echo -e "\e[1;31mError: Exactly one argument is required.\e[0m"
+    usage
+fi
+
+# Get the exmaple file location as an argument
+ENV_EXAMPLE_FILE_OVERRIDE=$1
+
 ENV_FILE=".env"
 ENV_EXAMPLE_FILE=".env.example"
 
@@ -47,20 +56,29 @@ if [ ! -f "$ENV_EXAMPLE_FILE" ]; then
     exit 1
 fi
 
+# Check if .env.example.<env> file exists
+if [ ! -f "$ENV_EXAMPLE_FILE_OVERRIDE" ]; then
+    echo "Error: $ENV_EXAMPLE_FILE_OVERRIDE file not found."
+    exit 1
+fi
+
 # Function to extract version from file
 get_version() {
     grep "^ENV_VERSION=" "$1" | cut -d '=' -f2 | cut -d '#' -f1 | tr -d ' '
 }
 
+merged_env_example_file=$(sort -u -t '=' -k 1,1 $ENV_EXAMPLE_FILE_OVERRIDE $ENV_EXAMPLE_FILE | grep -v '^$\|^\s*\#')
+
 # Check if .env file exists
 if [ ! -f "$ENV_FILE" ]; then
-    echo "$ENV_FILE file not found. Creating from $ENV_EXAMPLE_FILE..."
-    cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
+    echo "$ENV_FILE file not found. Creating from $ENV_EXAMPLE_FILE_OVERRIDE..."
+    # Merge the two files and remove any duplicate lines
+    echo "$merged_env_example_file" > $ENV_FILE
     echo "$ENV_FILE file created successfully."
 fi
 
 # Get versions
-example_version=$(get_version "$ENV_EXAMPLE_FILE")
+example_version=$(echo "$merged_env_example_file" | grep '^ENV_VERSION=' | cut -d '=' -f 2-)
 current_version=$(get_version "$ENV_FILE")
 
 # Compare versions
@@ -75,7 +93,7 @@ if [ "$(printf '%s\n' "$current_version" "$example_version" | sort -V | tail -n1
         echo "Backup created: $backup_file"
 
         # Create new .env file
-        cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
+        echo "$merged_env_example_file" > "$ENV_FILE"
         echo "$ENV_FILE file has been updated to version $example_version."
         echo "Please review the new $ENV_FILE file and adjust any custom settings as needed."
     else
@@ -142,10 +160,11 @@ export HOST_NAME=${SITE_URL#https://}
 
 export ENV_VERSION
 export INTENDED_USE
-export ADMIN_GROUP_NAME
-export ACR_PUBLISHERS_GROUP_NAME
+export ADMIN_GROUP_NAMES
+export ACR_PUBLISHERS_GROUP_NAMES
 export ENTRA_CLIENT_NAME
 export ORGANIZATION
+export STORAGE_CONTAINER_NAME
 
 export APP_NAME
 export ENVIRONMENT
@@ -195,8 +214,8 @@ classification = "${CLASSIFICATION}"
 cost_center = "${COST_CENTER}"
 criticality = "${CRITICALITY}"
 owner = "${OWNER}"
-admin_group_name = "${ADMIN_GROUP_NAME}"
-acr_publishers_group_name = "${ACR_PUBLISHERS_GROUP_NAME}"
+admin_group_names = ${ADMIN_GROUP_NAMES}
+acr_publishers_group_names = ${ACR_PUBLISHERS_GROUP_NAMES}
 resource_group_name = "${RESOURCE_GROUP_NAME}"
 keyvault_name = "${KEYVAULT_NAME}"
 cognitive_services_name = "${COGNITIVE_SERVICES_NAME}"
@@ -204,6 +223,7 @@ openai_service_name = "${OPENAI_SERVICE_NAME}"
 aks_cluster_name = "${AKS_CLUSTER_NAME}"
 disk_name = "${DISK_NAME}"
 storage_name = "${STORAGE_NAME}"
+storage_container_name = "${STORAGE_CONTAINER_NAME}"
 acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
 gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}

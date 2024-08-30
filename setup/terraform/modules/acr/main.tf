@@ -13,9 +13,10 @@ resource "azurerm_container_registry" "acr" {
 
 # Role assignment for ACR
 resource "azurerm_role_assignment" "acr_push" {
+  for_each = var.acr_publisher_object_ids
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPush"
-  principal_id         = var.acr_publishers_id
+  principal_id         = each.value.object_id
 
   depends_on = [azurerm_container_registry.acr]
 }

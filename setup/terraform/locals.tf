@@ -9,4 +9,7 @@ locals {
     Location       = var.location
     Owner          = var.owner
   }
+
+  admin_group_names = toset(var.admin_group_names)
+  acr_publishers_group_names = toset(var.acr_publishers_group_names)
 }

@@ -25,9 +25,9 @@ variable "tags" {
   default     = {}
 }
 
-variable "acr_publishers_id" {
-  description = "The object ID of the ACR publishers Azure AD group"
-  type        = string
+variable "acr_publisher_object_ids" {
+  description = "The object IDs of the ACR publishers Azure AD group"
+  type        = list({ object_id = string })
 }
 
 variable "keyvault_id" {

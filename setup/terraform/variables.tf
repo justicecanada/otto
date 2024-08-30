@@ -33,14 +33,18 @@ variable "owner" {
   description = "Owner of the resources"
 }
 
-variable "admin_group_name" {
-  type        = string
+variable "admin_group_names" {
+  type        = list(string)  
   description = "Group name for admin users on the Key Vault and AKS cluster"
+  default = []
+  nullable = false
 }
 
-variable "acr_publishers_group_name" {
-  type        = string
+variable "acr_publishers_group_names" {
+  type        = list(string)
   description = "Group name for ACR publishers"
+  default = []
+  nullable = false
 }
 
 variable "resource_group_name" {
@@ -76,6 +80,11 @@ variable "disk_name" {
 variable "storage_name" {
   type        = string
   description = "Name of the storage"
+}
+
+variable "storage_container_name" {
+  description = "Name of the default container to create in the storage account"
+  type        = string  
 }
 
 variable "acr_name" {

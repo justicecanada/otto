@@ -34,6 +34,12 @@ resource "azurerm_storage_management_policy" "lifecycle" {
   }
 }
 
+resource "azurerm_storage_container" "container" {
+  name                  = var.storage_container_name
+  storage_account_name  = azurerm_storage_account.storage.name
+  container_access_type = "private"  
+}
+
 # Add a delay to allow for the storage to be created 
 resource "null_resource" "wait_for_storage_account" {
   provisioner "local-exec" {

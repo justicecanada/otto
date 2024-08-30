@@ -19,9 +19,11 @@ variable "tags" {
   default     = {}
 }
 
-variable "admin_group_object_id" {
-  type        = string
+variable "admin_group_object_ids" {
+  type        = list({object_id = string})
   description = "The object ID of the admin group"
+  default     = []
+  nullable    = false
 }
 
 variable "entra_client_secret" {
