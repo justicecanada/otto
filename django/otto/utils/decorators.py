@@ -1,3 +1,4 @@
+import threading
 from functools import wraps
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -12,6 +13,7 @@ from otto.models import App, Notification
 from otto.rules import ADMINISTRATIVE_PERMISSIONS
 
 logger = get_logger(__name__)
+_thread_locals = threading.local()
 
 
 def app_access_required(app_handle):
@@ -101,6 +103,44 @@ def permission_required(
                         perms=perms,
                     )
                 return view_func(request, *args, **kwargs)
+
+        return _wrapped_view
+
+    return decorator
+
+
+# Request Info - for sharing request-specific information across the application
+class RequestInfo:
+    """
+    Track request-specific information, such as the user and feature being accessed.
+    Persisted in a thread-local variable.
+    Useful for costing and logging.
+    """
+
+    def __init__(self, user=None, feature=None):
+        self.user = user
+        self.feature = feature
+
+
+def get_request_info():
+    return getattr(_thread_locals, "request_info", RequestInfo())
+
+
+def track_request_info(feature: str = None):
+    """
+    Adds a RequestInfo object to the thread-local storage for the duration of the request.
+    It contains the properties "user" and "feature" (optional argument to decorator).
+    Retrieve the RequestInfo object with get_request_info().
+    """
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            _thread_locals.request_info = RequestInfo(
+                user=request.user, feature=feature
+            )
+            response = view_func(request, *args, **kwargs)
+            return response
 
         return _wrapped_view
 
