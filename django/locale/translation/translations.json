@@ -3230,5 +3230,25 @@
     "Delete all chats": {
         "fr": "",
         "fr_auto": "Supprimer tous les chats"
+    },
+    "No text to summarize.": {
+        "fr": "",
+        "fr_auto": "Aucun texte à résumer."
+    },
+    "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here.": {
+        "fr": "",
+        "fr_auto": "Impossible de récupérer la page Web. Le site peut bloquer les robots. Essayez de copier et coller la page Web ici."
+    },
+    "The original document is below, enclosed in triple quotes:": {
+        "fr": "",
+        "fr_auto": "Le document original est ci-dessous, entre guillemets triples :"
+    },
+    "Processing cost": {
+        "fr": "",
+        "fr_auto": "Coût de traitement"
+    },
+    "Costs": {
+        "fr": "",
+        "fr_auto": "Coûts"
     }
 }
