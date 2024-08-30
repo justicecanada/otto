@@ -283,6 +283,28 @@ def test_delete_chat(client, all_apps_user):
     assert response.status_code == 404
 
 
+# Test delete_all_chats view
+@pytest.mark.django_db
+def test_delete_all_chats(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create multiple chats for the user
+    Chat.objects.create(user=user)
+    Chat.objects.create(user=user)
+    assert Chat.objects.filter(user=user).count() == 2
+
+    # Call the delete_all_chats view
+    response = client.get(reverse("chat:delete_all_chats"))
+
+    # Check that all chats are deleted
+    assert response.status_code == 200
+    assert Chat.objects.filter(user=user).count() == 0
+
+    # Check that the response contains the HX-Redirect header
+    assert response["HX-Redirect"] == reverse("chat:new_chat")
+
+
 # Test init_upload view
 @pytest.mark.django_db
 def test_init_upload(client, all_apps_user):

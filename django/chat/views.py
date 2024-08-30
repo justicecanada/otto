@@ -258,6 +258,21 @@ def delete_chat(request, chat_id, current_chat=None):
     return HttpResponse(status=200)
 
 
+@app_access_required("chat")
+def delete_all_chats(request):
+
+    # delete all chats for the user
+    chat = Chat.objects.filter(user=request.user)
+    chat.delete()
+
+    logger.info("all chats deleted")
+
+    # redirect user to new chat
+    response = HttpResponse()
+    response["HX-Redirect"] = reverse("chat:new_chat")
+    return response
+
+
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def chat(request, chat_id):
     """
