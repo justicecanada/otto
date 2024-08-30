@@ -214,9 +214,7 @@ async def htmx_stream(
         message = await sync_to_async(Message.objects.get)(id=message_id)
         if llm:
             user = await sync_to_async(lambda: chat.user)()
-            # TODO: Add costs for translation messages
             costs = await sync_to_async(llm.create_costs)(user, message.mode)
-            print(costs)
             total_cost = sum([cost.usd_cost for cost in costs])
             message.cost = total_cost
         message.text = full_message
