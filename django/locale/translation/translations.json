@@ -3218,5 +3218,13 @@
     "Maximum sources": {
         "fr": "",
         "fr_auto": "Sources maximales"
+    },
+    "Are you sure you want to delete all chats? This action is irreversible.": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir supprimer tous les chats ? Cette action est irréversible."
+    },
+    "Delete all chats": {
+        "fr": "",
+        "fr_auto": "Supprimer tous les chats"
     }
 }
