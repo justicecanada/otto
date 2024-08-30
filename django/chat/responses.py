@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from asgiref.sync import sync_to_async
 from llama_index.core.llms import ChatMessage, MessageRole
+from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 
@@ -77,11 +78,12 @@ def chat_response(chat, response_message, eval=False):
         " ".join(message.content for message in chat_history)
     )
     if tokens > llm.max_input_tokens:
-        # In this case, just return an error
+        # In this case, just return an error. No LLM costs are incurred.
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
+                llm,
                 response_str=_(
                     "**Error:** The chat is too long for this AI model.\n\nYou can try: \n"
                     "1. Starting a new chat\n"
@@ -101,8 +103,8 @@ def chat_response(chat, response_message, eval=False):
         streaming_content=htmx_stream(
             chat,
             response_message.id,
+            llm,
             response_replacer=llm.chat_stream(chat_history),
-            llm=llm,
         ),
         content_type="text/event-stream",
     )
@@ -167,9 +169,9 @@ def summarize_response(chat, response_message):
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
+                llm,
                 response_replacer=multi_summary_generator(),
                 dots=True,
-                llm=llm,
             ),
             content_type="text/event-stream",
         )
@@ -200,14 +202,17 @@ def summarize_response(chat, response_message):
                 streaming_content=htmx_stream(
                     chat,
                     response_message.id,
+                    llm,
                     response_replacer=response,
-                    llm=llm,
                 ),
                 content_type="text/event-stream",
             )
 
+    # This will only be reached in an error case
     return StreamingHttpResponse(
-        streaming_content=htmx_stream(chat, response_message.id, response_str=summary),
+        streaming_content=htmx_stream(
+            chat, response_message.id, llm, response_str=summary
+        ),
         content_type="text/event-stream",
     )
 
@@ -217,6 +222,7 @@ def translate_response(chat, response_message):
     Translate the user's input text and stream the response.
     If the translation technique does not support streaming, send final response only.
     """
+    llm = OttoLLM()
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
     language = chat.options.translate_language
@@ -255,9 +261,11 @@ def translate_response(chat, response_message):
             task = translate_file.delay(file_path, response_message.id, language)
             task_ids.append(task.id)
         return StreamingHttpResponse(
+            # No cost because file translation costs are calculated in Celery task
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
+                llm,
                 response_replacer=file_translation_generator(task_ids),
                 dots=True,
                 format=False,  # Because the generator already returns HTML
@@ -265,6 +273,8 @@ def translate_response(chat, response_message):
             content_type="text/event-stream",
         )
     # Simplest method: Just use LLM to translate input text.
+    # Note that long plain-translations frequently fail due to output token limits (~4k)
+    # It is not easy to check for this in advance, so we just try and see what happens
     # TODO: Evaluate vs. Azure translator (cost and quality)
     target_language = {"en": "English", "fr": "French"}[language]
     translate_prompt = (
@@ -279,16 +289,12 @@ def translate_response(chat, response_message):
         "\n---\nTranslation: "
     )
 
-    llm = OttoLLM()
-    # Note that long plain-translations frequently fail due to output token limits
-    # It is not easy to check for this in advance, so we just try and see what happens
-
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
+            llm,
             response_replacer=llm.stream(translate_prompt),
-            llm=llm,
         ),
         content_type="text/event-stream",
     )
@@ -298,7 +304,7 @@ def qa_response(chat, response_message, eval=False):
     """
     Answer the user's question using a specific vector store table.
     """
-    from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
+    llm = OttoLLM(model, 0.1)
 
     # Apply filters if we are in qa mode and specific data sources are selected
     data_sources = chat.options.qa_data_sources.all()
@@ -314,6 +320,7 @@ def qa_response(chat, response_message, eval=False):
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
+                llm,
                 response_str=response_str,
             ),
             content_type="text/event-stream",
@@ -341,7 +348,6 @@ def qa_response(chat, response_message, eval=False):
                 operator="in",
             )
         )
-    llm = OttoLLM(model, 0.1)
     retriever = llm.get_retriever(
         vector_store_table,
         filters,
@@ -359,8 +365,9 @@ def qa_response(chat, response_message, eval=False):
         if eval:
             return response_str, source_nodes
         return StreamingHttpResponse(
+            # Although there are no LLM costs, there is still a query embedding cost
             streaming_content=htmx_stream(
-                chat, response_message.id, response_str=response_str
+                chat, response_message.id, llm, response_str=response_str
             ),
             content_type="text/event-stream",
         )
@@ -371,9 +378,9 @@ def qa_response(chat, response_message, eval=False):
         streaming_content=htmx_stream(
             chat,
             response_message.id,
+            llm,
             response_generator=response.response_gen,
             source_nodes=response.source_nodes,
-            llm=llm,
         ),
         content_type="text/event-stream",
     )
@@ -383,10 +390,12 @@ def error_response(chat, response_message):
     """
     Send an error message to the user.
     """
+    llm = OttoLLM()
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
+            llm,
             response_str=_("Sorry, this isn't working right now."),
         ),
         content_type="text/event-stream",

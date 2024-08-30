@@ -1,5 +1,6 @@
 import asyncio
 import sys
+from typing import AsyncGenerator, Generator
 
 from django.core.cache import cache
 from django.template.loader import render_to_string
@@ -13,6 +14,7 @@ from llama_index.core import PromptTemplate
 from llama_index.core.prompts import PromptType
 from newspaper import Article
 
+from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
 from otto.models import SecurityLabel
 
@@ -142,16 +144,16 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
 
 
 async def htmx_stream(
-    chat,
-    message_id,
-    response_generator=None,  # Generator that yields partial responses (to be joined)
-    response_replacer=None,  # Generator that yields complete responses (to replace previous response)
-    response_str="",
-    format=True,
-    dots=False,
-    source_nodes=[],
-    llm=None,
-):
+    chat: Chat,
+    message_id: int,
+    llm: OttoLLM,
+    response_generator: Generator = None,
+    response_replacer: AsyncGenerator = None,
+    response_str: str = "",
+    format: bool = True,
+    dots: bool = False,
+    source_nodes: list = [],
+) -> AsyncGenerator:
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
     This function is a generator that yields SSE strings (lines starting with "data: ").
@@ -173,7 +175,7 @@ async def htmx_stream(
     """
 
     # Helper function to format a string as an SSE message
-    def sse_string(message, format=True, dots=False, remove_stop=False):
+    def sse_string(message: str, format=True, dots=False, remove_stop=False) -> str:
         sse_joiner = "\ndata: "
         if format:
             message = llm_response_to_html(message)
@@ -212,11 +214,10 @@ async def htmx_stream(
 
         # Response is done! Update costs and save message
         message = await sync_to_async(Message.objects.get)(id=message_id)
-        if llm:
-            user = await sync_to_async(lambda: chat.user)()
-            costs = await sync_to_async(llm.create_costs)(user, message.mode)
-            total_cost = sum([cost.usd_cost for cost in costs])
-            message.cost = total_cost
+        user = await sync_to_async(lambda: chat.user)()
+        costs = await sync_to_async(llm.create_costs)(user, message.mode)
+        total_cost = sum([cost.usd_cost for cost in costs])
+        message.cost = total_cost
         message.text = full_message
         await sync_to_async(message.save)()
 
