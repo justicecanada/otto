@@ -12,6 +12,7 @@
     <a href="{% url 'text_extractor:index' %}">{% trans "Text extractor" %}</a>
   </li>
 {% endblock %}
+{% block main_content_id %}upload-label{% endblock %}
 
 {% block content_container %}
   <form method="post"

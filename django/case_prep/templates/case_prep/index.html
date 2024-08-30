@@ -19,6 +19,8 @@
   <link rel="stylesheet" href="{% static 'case_prep/style.css' %}">
 {% endblock %}
 
+{% block main_content_id %}session-list{% endblock %}
+
 {% block content_container %}
 
   <div id="case_prep-outer">
@@ -51,7 +53,7 @@
       <h2 class="my-4">{% trans "Case prep assistant" %}</h2>
 
       <!-- Session List -->
-      <table class="table">
+      <table class="table" id="session-list">
         <thead>
           <tr>
             <th scope="col">{% trans "Session Name" %}</th>

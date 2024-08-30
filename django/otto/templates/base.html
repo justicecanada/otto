@@ -38,7 +38,6 @@
            data-bs-theme="dark"
            id="top-nav">
         <div class="container-fluid">
-          {% include 'components/search.html' %}
           <a class="navbar-brand text-white" href="{% url 'index' %}">
             <img src="{% static 'otto.png' %}"
                  width="30"
@@ -48,6 +47,10 @@
             Otto
             <small class="text-muted" id="otto-version">{{ otto_version }}</small>
           </a>
+          <a href="#{% block main_content_id %}main-content{% endblock %}"
+             class="skip-to-content">{% trans "Skip to main content" %}</a>
+
+          {% include 'components/search.html' %}
  
           {% if request.user.is_authenticated %}
             <button class="navbar-toggler"

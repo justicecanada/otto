@@ -21,6 +21,8 @@
   </li>
 {% endblock %}
 
+{% block main_content_id %}law-search-options{% endblock %}
+
 {% block content_container %}
   <div id="laws-outer">
     <div class="container py-3 px-0" id="search-container">
@@ -28,7 +30,7 @@
         <a href="{% url 'laws:index' %}" class="text-decoration-none text-body">{% trans "Legislation search" %}</a>
       </h2>
 
-      <ul class="nav nav-tabs px-3 border-bottom-0">
+      <ul class="nav nav-tabs px-3 border-bottom-0" id="law-search-options">
         <li class="nav-item">
           <button id="basic-search-tab"
                   class="nav-link text-black active fw-semibold"

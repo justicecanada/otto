@@ -12,6 +12,8 @@
   <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
 {% endblock %}
 
+{% block main_content_id %}chat-inputs{% endblock %}
+
 {% block content_container %}
   <main id="chat-outer" class="{{ mode }}">
     {% include 'chat/components/file_upload.html' %}
