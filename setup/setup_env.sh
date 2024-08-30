@@ -78,7 +78,7 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Get versions
-example_version=$(echo "$merged_env_example_file" | grep '^ENV_VERSION=' | cut -d '=' -f 2-)
+example_version=$(echo "$merged_env_example_file" | grep '^ENV_VERSION=' |  cut -d '=' -f2 | cut -d '#' -f1 | tr -d ' ')
 current_version=$(get_version "$ENV_FILE")
 
 # Compare versions
