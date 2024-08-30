@@ -1114,3 +1114,8 @@ ul.errorlist {
 #editLibrariesModal dl * {
   word-break: break-word;
 }
+
+.btn-outline-initially-black:not(:hover):not(:focus) {
+  color: var(--bs-black);
+  border-color: var(--bs-black) !important;
+}
