@@ -31,12 +31,49 @@
 {% block content_container %}
  
   <div class="container mt-4">
+    <div class="mb-4">
+      <label for="fileNumber" class="form-label">
+        <strong>{% trans "Court File Number" %}:</strong>
+      </label>
+      <input type="text"
+             id="fileNumber"
+             name="fileNumber"
+             class="form-control"
+             value="{{ file_number }}"
+             readonly>
+    </div>
+    <div class="mb-4">
+      <label for="styleOfCause" class="form-label">
+        <strong>{% trans "STYLE OF CAUSE" %}:</strong>
+      </label>
+      <input type="text"
+             id="styleOfCause"
+             name="styleOfCause"
+             class="form-control"
+             placeholder="{% trans 'Enter Style of Cause' %}">
+    </div>
+  </div>
+
+  <div class="container mt-4">
     <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+    <div class="mb-3">
+      <button type="button" class="btn btn-dark me-2">{% trans "Add Header" %}</button>
+      <a href="{% url 'case_prep:upload' %}" class="btn btn-secondary">{% trans "Upload Files" %}</a>
+    </div>
 
     <div id="document_list">{% include 'case_prep/document_list.html' %}</div>
 
+    <!-- <div class="container">
+      <div class="mt-4 text-center">
+        <button type="button" class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#qaModal">{% trans "Research" %}</button>
+        Generate and Download Button
+        <button id="generateDownloadButton" class="btn btn-primary mt-2" data-session-id="{{ session.id }}" data-generate-url="{% url 'case_prep:generate_book_of_documents' %}">
+          <span id="generateSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+          {% trans "Generate & Download" %}
+        </button>
+      </div>-->
     <div class="container">
-      <div class="row">
+      <div class="row justify-content-center">
         <!-- Provide a multi-file upload form-->
         <div class="col-md-6 mt-4 p-3 border rounded">
           <form id="uploadForm"
@@ -58,206 +95,241 @@
             </div>
           </form>
         </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mt-4 text-center">
+  <!-- Save Button -->
+  <button id="saveButton"
+          class="btn btn-success mt-2"
+          data-save-url="{% url 'case_prep:save_changes' %}">{% trans "Save Changes" %}</button>
+  <!--
+  <button id="createTocButton" class="btn btn-secondary mt-2" data-session-id="{{ session.id }}" data-generate-url="{% url 'case_prep:create_table_of_contents' %}">
+    <span id="tocSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>{% trans "Create TOC" %}
+  </button>-->
+  <button type="button"
+          class="btn btn-secondary mt-2"
+          data-bs-toggle="modal"
+          data-bs-target="#qaModal">{% trans "Research" %}</button>
+  <!-- Generate and Download Button
+  <button id="generateDownloadButton" class="btn btn-primary mt-2" data-session-id="{{ session.id }}" data-generate-url="{% url 'case_prep:generate_book_of_documents' %}">
+    <span id="generateSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+    {% trans "Generate & Download" %}
+  </button>-->
+  <!-- Download Button -->
+  <button id="downloadButton"
+          class="btn btn-primary mt-2"
+          data-bs-toggle="modal"
+          data-bs-target="#downloadModal">
+    <span id="generateSpinner"
+          class="spinner-border spinner-border-sm d-none"
+          role="status"
+          aria-hidden="true"></span>
+    {% trans "Download" %}
+  </button>
+  <!-- <button class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#qaModal">{% trans "Q&A Research" %}</button>-->
  
-        <div class="col-md-6 mt-4 p-3 border rounded">
-          <!-- Provide court inputs-->
-          <form method="post">
-            {% csrf_token %}
-            <div class="form">
-              <div>
-                <label for="court" class="form-label">{% trans "Choose Court" %}</label>
-                {{ form.court }}
-              </div>
-              <div>
-                <label for="styleOfCause" class="form-label">{% trans "Style of Cause" %}</label>
-                {{ form.styleOfCause }}
-              </div>
-              <div class="text-end">
-                <button type="submit" class="btn btn-primary mt-2">{% trans "Submit" %}</button>
-              </div>
-            </div>
+  <!-- Delete Button -->
+  <button id="deleteButton"
+          class="btn btn-danger mt-2"
+          data-session-id="{{ session.id }}"
+          data-delete-url="{% url 'case_prep:delete_session' session.id %}"
+          data-delete-redirect-url="{% url 'case_prep:sessions_page' %}">{% trans "Delete" %}</button>
+</div>
+ 
+<!-- Q&A Research Modal -->
+<div class="modal fade"
+     id="qaModal"
+     tabindex="-1"
+     aria-labelledby="qaModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="qaModalLabel">{% trans "Q&A research" %}</h5>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          {% trans "The Q&A research feature will enable you to interact with your documents to extract key information, generate notes, and perform various tasks to help you prepare for court more efficiently." %}
+        </p>
+        <p>
+          {% trans "You will be able to ask questions directly related to your case documents, and Otto will assist in providing detailed and contextually relevant answers. This feature aims to streamline your case preparation process and ensure you have all the critical information at your fingertips." %}
+        </p>
+        <p>{% trans "If you'd like to upvote this feature, let us know!" %}</p>
+        <form action="{% url 'case_prep:upvote_feature' 'qa_research' %}"
+              method="post">
+          {% csrf_token %}
+          <button type="button" class="btn btn-primary mt-3 btn-upvote">{% trans "Upvote" %}</button>
+          <div class="mt-3 message"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+ 
+<!-- Translation Modal -->
+<div class="modal fade"
+     id="translationModal"
+     tabindex="-1"
+     aria-labelledby="translationModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="translationModalLabel">{% trans "Document Translation" %}</h5>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="{% trans "Close" %}"></button>
+      </div>
+      <div class="modal-body">
+        <form id="translateForm"
+              action="{% url 'case_prep:translate_feature' %}"
+              method="post">
+          {% csrf_token %}
+          <label for="languageSelect" class="form-label">{% trans "Select Target Language" %}</label>
+          <select id="languageSelect" class="form-control" name="target_language">
+            <option value="en">{% trans "English" %}</option>
+            <option value="fr">{% trans "French" %}</option>
+          </select>
+          <button type="submit" id="generateButton" class="btn btn-primary mt-3">{% trans "Generate" %}</button>
+          <button type="button"
+                  id="loadingButton"
+                  class="btn btn-primary mt-3"
+                  style="display: none"
+                  disabled>
+            <span class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"></span>
+            {% trans "Loading..." %}
+          </button>
+        </form>
+        <div id="translateResult" class="mt-3"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+ 
+<!-- Summarization Modal -->
+<div class="modal fade"
+     id="summarizationModal"
+     tabindex="-1"
+     aria-labelledby="summarizationModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="summarizationModalLabel">{% trans "Document Summarization" %}</h5>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body">
+ 
+        <p>{% trans "Choose the Summarization options below:" %}</p>
+
+        <form id="summarizeForm" method="post">
+          {% csrf_token %}
+          <label for="lengthSelect" class="form-label">{% trans "Select Length" %}</label>
+          <select id="lengthSelect" class="form-control" name="length">
+            <option value="short">{% trans "Short" %}</option>
+            <option value="medium">{% trans "Medium" %}</option>
+            <option value="long">{% trans "Long" %}</option>
+          </select>
+          <label for="languageSelect" class="form-label">{% trans "Select Target Language" %}</label>
+          <select id="languageSelect" class="form-control" name="target_language">
+            <option value="en">{% trans "English" %}</option>
+            <option value="fr">{% trans "French" %}</option>
+          </select>
+          <button type="submit" id="generateButton" class="btn btn-primary mt-3">{% trans "Generate" %}</button>
+          <button type="button"
+                  id="loadingButton"
+                  class="btn btn-primary mt-3"
+                  style="display: none">
+            <span class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"></span>
+            {% trans "Loading..." %}
+          </button>
+        </form>
+        <div id="summaryResult" class="mt-3"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Download Modal-->
+<div class="modal fade"
+     id="downloadModal"
+     tabindex="-1"
+     aria-labelledby="downloadModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="downloadModalLabel">{% trans "Download Options" %}</h5>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body">
+        <form id="downloadForm">
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="checkbox"
+                   id="bookOfDocuments"
+                   name="bookOfDocuments">
+            <label class="form-check-label" for="bookOfDocuments">{% trans "Book of documents" %}</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="checkbox"
+                   id="listOfDocuments"
+                   name="listOfDocuments">
+            <label class="form-check-label" for="listOfDocuments">{% trans "List of Documents" %}</label>
+          </div>
+          <br>
+          <div class="mb-3">
+            <label for="courtTemplate" class="form-label">
+              <strong>{% trans "Court Template:" %}</strong>
+            </label>
+            <select class="form-select" id="courtTemplate" name="courtTemplate">
+              <option value="tax_court_lod_template">{% trans "Tax Court LOD Template" %}</option>
+              <option value="template_2">{% trans "Template 2" %}</option>
+              <option value="template_3">{% trans "Template 3" %}</option>
+            </select>
           </div>
         </form>
       </div>
-    </div>
-  </div>
-  <div class="container mt-4 text-center">
-    <!-- Save Button -->
-    <button id="saveButton"
-            class="btn btn-success mt-2"
-            data-save-url="{% url 'case_prep:save_changes' %}">{% trans "Save Changes" %}</button>
-
-    <button id="createTocButton"
-            class="btn btn-secondary mt-2"
-            data-session-id="{{ session.id }}"
-            data-generate-url="{% url 'case_prep:create_table_of_contents' %}">
-      <span id="tocSpinner"
-            class="spinner-border spinner-border-sm d-none"
-            role="status"
-            aria-hidden="true"></span>{% trans "Create TOC" %}
-    </button>
-
-    <!-- Generate and Download Button -->
-    <button id="generateDownloadButton"
-            class="btn btn-primary mt-2"
-            data-session-id="{{ session.id }}"
-            data-generate-url="{% url 'case_prep:generate_book_of_documents' %}">
-      <span id="generateSpinner"
-            class="spinner-border spinner-border-sm d-none"
-            role="status"
-            aria-hidden="true"></span>
-      {% trans "Generate & Download" %}
-    </button>
-
-    <!-- <button class="btn btn-secondary mt-2" data-bs-toggle="modal" data-bs-target="#qaModal">{% trans "Q&A Research" %}</button>-->
+      <div class="modal-footer justify-content-center">
  
-    <!-- Delete Button -->
-    <button id="deleteButton"
-            class="btn btn-danger mt-2"
-            data-session-id="{{ session.id }}"
-            data-delete-url="{% url 'case_prep:delete_session' session.id %}"
-            data-delete-redirect-url="{% url 'case_prep:index' %}">{% trans "Delete" %}</button>
-  </div>
- 
-  <!-- Q&A Research Modal -->
-  <div class="modal fade"
-       id="qaModal"
-       tabindex="-1"
-       aria-labelledby="qaModalLabel"
-       aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="qaModalLabel">{% trans "Q&A research" %}</h5>
-          <button type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="{% trans 'Close' %}"></button>
-        </div>
-        <div class="modal-body">
-          <p>
-            {% trans "The Q&A research feature will enable you to interact with your documents to extract key information, generate notes, and perform various tasks to help you prepare for court more efficiently." %}
-          </p>
-          <p>
-            {% trans "You will be able to ask questions directly related to your case documents, and Otto will assist in providing detailed and contextually relevant answers. This feature aims to streamline your case preparation process and ensure you have all the critical information at your fingertips." %}
-          </p>
-          <p>{% trans "If you'd like to upvote this feature, let us know!" %}</p>
-          <form action="{% url 'case_prep:upvote_feature' 'qa_research' %}"
-                method="post">
-            {% csrf_token %}
-            <button type="button" class="btn btn-primary mt-3 btn-upvote">{% trans "Upvote" %}</button>
-            <div class="mt-3 message"></div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
-        </div>
+        <button type="button" class="btn btn-primary" id="downloadZipButton">{% trans "Download ZIP" %}</button>
+        <button type="button" class="btn btn-primary" id="downloadPdfButton">{% trans "Download PDF" %}</button>
       </div>
     </div>
   </div>
-
- 
-  <!-- Translation Modal -->
-  <div class="modal fade"
-       id="translationModal"
-       tabindex="-1"
-       aria-labelledby="translationModalLabel"
-       aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="translationModalLabel">{% trans "Document Translation" %}</h5>
-          <button type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="{% trans "Close" %}"></button>
-        </div>
-        <div class="modal-body">
-          <form id="translateForm"
-                action="{% url 'case_prep:translate_feature' %}"
-                method="post">
-            {% csrf_token %}
-            <label for="languageSelect" class="form-label">{% trans "Select Target Language" %}</label>
-            <select id="languageSelect" class="form-control" name="target_language">
-              <option value="en">{% trans "English" %}</option>
-              <option value="fr">{% trans "French" %}</option>
-            </select>
-            <button type="submit" id="generateButton" class="btn btn-primary mt-3">{% trans "Generate" %}</button>
-            <button type="button"
-                    id="loadingButton"
-                    class="btn btn-primary mt-3"
-                    style="display: none"
-                    disabled>
-              <span class="spinner-border spinner-border-sm"
-                    role="status"
-                    aria-hidden="true"></span>
-              {% trans "Loading..." %}
-            </button>
-          </form>
-          <div id="translateResult" class="mt-3"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
- 
-  <!-- Summarization Modal -->
-  <div class="modal fade"
-       id="summarizationModal"
-       tabindex="-1"
-       aria-labelledby="summarizationModalLabel"
-       aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="summarizationModalLabel">{% trans "Document Summarization" %}</h5>
-          <button type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="{% trans 'Close' %}"></button>
-        </div>
-        <div class="modal-body">
- 
-          <p>{% trans "Choose the Summarization options below:" %}</p>
-
-          <form id="summarizeForm" method="post">
-            {% csrf_token %}
-            <label for="lengthSelect" class="form-label">{% trans "Select Length" %}</label>
-            <select id="lengthSelect" class="form-control" name="length">
-              <option value="short">{% trans "Short" %}</option>
-              <option value="medium">{% trans "Medium" %}</option>
-              <option value="long">{% trans "Long" %}</option>
-            </select>
-            <label for="languageSelect" class="form-label">{% trans "Select Target Language" %}</label>
-            <select id="languageSelect" class="form-control" name="target_language">
-              <option value="en">{% trans "English" %}</option>
-              <option value="fr">{% trans "French" %}</option>
-            </select>
-            <button type="submit" id="generateButton" class="btn btn-primary mt-3">{% trans "Generate" %}</button>
-            <button type="button"
-                    id="loadingButton"
-                    class="btn btn-primary mt-3"
-                    style="display: none">
-              <span class="spinner-border spinner-border-sm"
-                    role="status"
-                    aria-hidden="true"></span>
-              {% trans "Loading..." %}
-            </button>
-          </form>
-          <div id="summaryResult" class="mt-3"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
- 
+</div>
 {% endblock %}
 
 <script src="{% static 'case_prep/scripts.js' %}"></script>

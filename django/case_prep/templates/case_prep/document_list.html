@@ -2,6 +2,7 @@
 {% if documents %}
   <form id="documentsForm" method="post">
     {% csrf_token %}
+ 
     <table class="table">
       <thead>
         <tr>
@@ -9,79 +10,7 @@
           <th>{% trans "Document Name" %}</th>
           <th style="width: 100px;">{% trans "Date" %}</th>
           <th style="width: 120px;">{% trans "Actions" %}</th>
-          <th style="width: 120px;">
  
- 
-            <div class="btn-group">
-              <input type="checkbox" id="selectAll"  onclick="toggleSelectAll(this)">
-              <button class="btn  dropdown-toggle"
-                      type="button"
-                      id="assistantActionsDropdown"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                      title="{% trans 'Additional Actions' %}">
-                <strong>{% trans 'More' %}</strong>
-              </button>
-              <ul class="dropdown-menu" aria-labelledby="assistantActionsDropdown">
-                <li>
-                  <button type="submit"
-                          class="btn document-hide-button bi {% if document.hidden %}bi-eye-slash{% else %}bi-eye{% endif %}"
-                          formaction="{% url 'case_prep:toggle_document_visibility' %}"
-                          title="{% if document.hidden %}{% trans 'Unhide Selected' %}{% else %}{% trans 'Hide Selected' %}{% endif %}">
-                    {% if document.hidden %}
-                      {% trans 'Unhide' %}
-                    {% else %}
-                      {% trans 'Hide' %}
-                    {% endif %}
-                  </button>
-                </li>
-                <li>
-                  <button type="submit"
-                          class="btn document-delete-button bi bi-trash"
-                          formaction="{% url 'case_prep:delete_document' %}"
-                          title="{% trans 'Delete Selected' %}">
-                    {% trans 'Delete' %}
-                    <!--<i class="bi bi-trash"></i>  Trash icon -->
-                  </button>
-                </li>
-                <li>
-                  <button type="submit"
-                          class="btn bi bi-download"
-                          formaction="{% url 'case_prep:download_documents' %}"
-                          title="{% trans 'Download Selected' %}">
-                    {% trans 'Download' %}
-                    <!--<i class="bi bi-trash"></i>  Trash icon -->
-                  </button>
-                </li>
-                <li>
-                  <button type="submit"
-                          class="dropdown-item btn bi bi-file-earmark-text"
-                          data-bs-target="#summarizationModal"
-                          data-bs-toggle="modal"
-                          formaction="{% url 'case_prep:summarize_feature' %}"
-                          title="{% trans 'Summarize Selected' %}">{% trans "Summarize" %}</button>
-                </li>
-                <li>
-                  <button class="dropdown-item bi bi-translate"
-                          data-bs-toggle="modal"
-                          data-bs-target="#translationModal"
-                          formaction="{% url 'case_prep:translate_feature' %}"
-                          title="{% trans 'Translate Selected' %}">{% trans "Translate" %}</button>
-                </li>
- 
- 
-
-                <li>
-                  <button class="dropdown-item"
-                          data-bs-toggle="modal"
-                          data-bs-target="#qaResearchModal"
-                          data-id="{{ document.id }}"
-                          title="{% trans 'Q&A Research' %}">{% trans "Q&A Research" %}</button>
-                </li>
-              </ul>
-
-            </div>
-          </th>
  
  
         </tr>
@@ -91,62 +20,123 @@
           <tr data-id="{{ document.id }}"
               data-delete-url="{% url 'case_prep:delete_document' %}">
             <td class="drag-handle">&#9776;</td>
-            <td>
-              <!-- Editable field -->
+            <!--<td>
+               Editable field
               <div class="d-flex align-items-center">
-                <textarea rows="1"
-                          class="form-control document-name-input"
-                          style="resize: vertical;
-                                 width: auto;
-                                 flex-grow: 1">{{ document.name }}</textarea>
+                <!-- <textarea rows="1" class="form-control document-name-input" style="resize: vertical; width: auto; flex-grow: 1">{{ document.name }}</textarea> -->
+<!--
               </div>
               <small class="text-muted ms-2">Original: {{ document.original_name }}</small>
             </td>
             <td class="text-nowrap">
-              <input type="date"
-                     class="form-control"
-                     value="{{ document.date|date:'Y-m-d' }}">
-            </td>
-            <td class="text-nowrap">
-              <a href="{% url 'case_prep:download_document' document.id %}"
-                 class="btn btn-outline-primary"
-                 title="{% trans 'Download Document' %}">
-                <i class="bi bi-download"></i> <!-- Download icon -->
-              </a>
-              <a href="{% url 'case_prep:preview_document' document.id %}"
-                 class="btn btn-outline-secondary"
-                 title="{% trans 'Preview Document' %}">
-                <i class="bi bi-eye"></i> <!-- Preview icon -->
-              </a>
-              <!--<button type="submit" class="btn document-delete-button bi bi-trash" formaction="{% url 'case_prep:delete_document' %}" title="{% trans 'Delete Selected' %}">
-                <i class="bi bi-trash"></i>
-              </button>-->
-              <a href="{% url 'case_prep:delete_document' %}"
-                 class="btn btn-outline-danger document-delete-button"
-                 title="{% trans 'Delete Document' %}">
-                <i class="bi bi-trash"></i> <!-- Preview icon -->
-              </a>
+              <input type="date" class="form-control" value="{{ document.date|date:'Y-m-d' }}">
+            </td>-->
+<td>
+<a href="#" class="document-link" data-bs-toggle="modal" data-bs-target="#documentDetailsModal" data-document-id="{{ document.id }}" data-document-name="{{ document.name }}" data-document-date="{{ document.date }}">
+{{ document.name }}
+</a>
+<small class="text-muted ms-2">Original: {{ document.original_name }}</small>
+</td>
+<td>{{ document.date }}</td>
+<td class="text-nowrap">
+<!--<a href="{% url 'case_prep:download_document' document.id %}" class="btn btn-outline-primary" title="{% trans 'Download Document' %}">
+                      <i class="bi bi-download"></i> 
+                    </a>-->
+<a href="{% url 'case_prep:preview_document' document.id %}" class="btn btn-outline-secondary" title="{% trans 'Preview/Toggle Document' %}">
+<i class="bi bi-eye"></i> <!-- Preview icon -->
+</a>
+<!--<button type="submit" class="btn document-delete-button bi bi-trash" formaction="{% url 'case_prep:delete_document' %}" title="{% trans 'Delete Selected' %}">
+                      <i class="bi bi-trash"></i>
+                    </button>-->
+<a href="{% url 'case_prep:delete_document' %}" class="btn btn-outline-danger document-delete-button" title="{% trans 'Delete Document' %}">
+<i class="bi bi-trash"></i> <!-- Preview icon -->
+</a>
  
-            </td>
+</td>
 
-            <!-- Multi-select checkbox -->
+<!-- Multi-select checkbox
             <td class="text-center">
-              <input type="checkbox"
-                     name="selected_documents"
-                     value="{{ document.id }}"
-                     style="width: 16px;
-                            height: 16px">
-            </td>
+              <input type="checkbox" name="selected_documents" value="{{ document.id }}" style="width: 16px; height: 16px">
+            </td>-->
  
-            <!--      <td class="text-nowrap">
+<!--      <td class="text-nowrap">
               <a href="{% url 'case_prep:download_document' document.id %}" class="btn btn-outline-primary" title="{% trans 'Download Document' %}">
                 <i class="bi bi-download"></i> <!-- Download icon 
               </a>
             </td>-->
 
 </tr>
+
 {% endfor %}
+
 </tbody>
 </table>
 </form>
 {% endif %}
+
+
+<!-- Document Details Modal -->
+<div class="modal fade" id="documentDetailsModal" tabindex="-1" aria-labelledby="documentDetailsModalLabel" aria-hidden="true">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title" id="documentDetailsModalLabel">{% trans "Document Details" %}</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+</div>
+<div class="modal-body">
+<form id="documentDetailsForm">
+<div class="mb-3">
+<label for="documentName" class="form-label">
+<strong>{% trans "Name of the document" %}</strong>
+</label>
+<input type="text" class="form-control" id="documentName" name="documentName" value="">
+</div>
+<div class="mb-3">
+<label for="documentDate" class="form-label">
+<strong>{% trans "Date" %}</strong>
+</label>
+<input type="date" class="form-control" id="documentDate" name="documentDate" value="">
+</div>
+<div class="mb-3">
+<label for="summaryLength" class="form-label">
+<strong>{% trans "Summary Length" %}</strong>
+</label>
+<select class="form-select" id="summaryLength" name="summaryLength">
+<option value="short">{% trans "Short" %}</option>
+<option value="medium">{% trans "Medium" %}</option>
+<option value="long">{% trans "Long" %}</option>
+</select>
+</div>
+<div class="mb-3">
+<label for="summaryLanguage" class="form-label">
+<strong>{% trans "Summary Language" %}</strong>
+</label>
+<select class="form-select" id="summaryLanguage" name="summaryLanguage">
+<option value="english">{% trans "English" %}</option>
+<option value="french">{% trans "French" %}</option>
+</select>
+</div>
+<button type="button" class="btn btn-primary" id="generateSummaryButton">{% trans "Generate" %}</button>
+<div class="mt-3" id="summaryOutput">
+<!-- Summary output will be displayed here -->
+</div>
+<div class="mb-3">
+<label for="translateLanguage" class="form-label">
+<strong>{% trans "Translate Language" %}</strong>
+</label>
+<select class="form-select" id="translateLanguage" name="translateLanguage">
+<option value="english">{% trans "English" %}</option>
+<option value="french">{% trans "French" %}</option>
+</select>
+</div>
+<button type="button" class="btn btn-primary" id="translateButton">{% trans "Translate" %}</button>
+</form>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+<button type="button" class="btn btn-primary" id="downloadButton">{% trans "Download" %}</button>
+<button type="button" class="btn btn-primary" id="saveButton">{% trans "Save" %}</button>
+</div>
+</div>
+</div>
+</div>

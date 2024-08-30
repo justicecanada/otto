@@ -446,3 +446,34 @@ function getSelectedDocuments() {
   });
   return selectedDocuments;
 }
+document.addEventListener('DOMContentLoaded', function () {
+  const bookOfDocumentsCheckbox = document.getElementById('bookOfDocuments');
+  const listOfDocumentsCheckbox = document.getElementById('listOfDocuments');
+
+  bookOfDocumentsCheckbox.addEventListener('change', function () {
+    if (this.checked) {
+      listOfDocumentsCheckbox.checked = true;
+    }
+  });
+
+  listOfDocumentsCheckbox.addEventListener('change', function () {
+    if (!this.checked && bookOfDocumentsCheckbox.checked) {
+      bookOfDocumentsCheckbox.checked = false;
+    }
+  });
+});
+document.addEventListener('DOMContentLoaded', function () {
+  const documentDetailsModal = document.getElementById('documentDetailsModal');
+  const documentNameInput = document.getElementById('documentName');
+  const documentDateInput = document.getElementById('documentDate');
+
+  documentDetailsModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const documentId = button.getAttribute('data-document-id');
+    const documentName = button.getAttribute('data-document-name');
+    const documentDate = button.getAttribute('data-document-date');
+
+    documentNameInput.value = documentName;
+    documentDateInput.value = documentDate;
+  });
+});

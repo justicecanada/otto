@@ -65,4 +65,5 @@ urlpatterns = [
     ),
     path("sessions_page/", views.sessions_page, name="sessions_page"),
     path("sessions/<str:file_number>/", views.sessions_page, name="sessions_page"),
+    path("upload/", views.upload_files, name="upload"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -65,6 +65,7 @@ def create_session(request):
 
 
 def sessions_page(request, file_number):
+    # file_number = request.GET.get("fileNumber")
     access_key = AccessKey(request.user)
     sessions = Session.objects.all(access_key=access_key)
     return render(
@@ -76,25 +77,26 @@ def sessions_page(request, file_number):
 
 def session_detail(request, session_id):
     access_key = AccessKey(request.user)
+    file_number = request.GET.get("fileNumber")
     session = Session.objects.get(access_key, pk=session_id)
     documents = Document.objects.filter(access_key, session=session)
     if documents:
         documents = documents.order_by("sequence")
 
-    if request.method == "POST":
-        form = SessionDetailForm(request.POST)
-        if form.is_valid():
-            # Process the form data
-            court = form.cleaned_data["court"]
-            style_of_cause = form.cleaned_data["styleOfCause"]
-            # You can save or process the data as needed
-    else:
-        form = SessionDetailForm(initial={"court": "none", "styleOfCause": "none"})
+    # if request.method == "POST":
+    #     form = SessionDetailForm(request.POST)
+    #     if form.is_valid():
+    #         # Process the form data
+    #         court = form.cleaned_data["court"]
+    #         style_of_cause = form.cleaned_data["styleOfCause"]
+    #         # You can save or process the data as needed
+    # else:
+    #     form = SessionDetailForm(initial={"court": "none", "styleOfCause": "none"})
 
     return render(
         request,
         "case_prep/session_detail.html",
-        {"session": session, "documents": documents, "form": form},
+        {"session": session, "documents": documents, "file_number": file_number},
     )
 
 
@@ -168,7 +170,7 @@ def upload_files(request):
 def delete_session(request, session_id):
     access_key = AccessKey(request.user)
     session = Session.objects.get(access_key, pk=session_id)
-
+    file_number = request.session.get("file_number")
     logger.info(f"Deleting session {session_id}.")
 
     # Delete associated documents
@@ -182,7 +184,9 @@ def delete_session(request, session_id):
     return JsonResponse(
         {
             "message": "Session deleted successfully.",
-            "url": reverse("case_prep:sessions_page"),
+            "url": reverse(
+                "case_prep:sessions_page", kwargs={"file_number": file_number}
+            ),
         }  # was originally case_prep:index
     )
 
