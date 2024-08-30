@@ -99,7 +99,8 @@ Run the following command to create the infrastructure for the specified environ
 bash run_terraform.sh <env>
 ```
 
-> [!NOTE]: You'll be prompted to either input the `ENTRA-CLIENT-SECRET` or use the value if it exists in the Key Vault already. Once the plan is generated, you'll be prompted to apply the changes. Enter `yes` to proceed with the deployment.
+> [!NOTE]
+> You'll be prompted to either input the `ENTRA-CLIENT-SECRET` or use the value if it exists in the Key Vault already. Once the plan is generated, you'll be prompted to apply the changes. Enter `yes` to proceed with the deployment.
 
 ### 3. Deploy the AKS cluster:
 
@@ -151,4 +152,5 @@ docker exec -it otto-setup-container /bin/bash
 
 Once inside the container, follow the same deployment steps as outlined in the Cloud Admin guide above.
 
-> [!NOTE]: When testing locally, ensure you have the necessary Azure credentials and permissions configured within your development environment.
+> [!NOTE]
+>  When testing locally, ensure you have the necessary Azure credentials and permissions configured within your development environment.
