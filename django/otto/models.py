@@ -267,15 +267,14 @@ class CostType(models.Model):
 
 
 class CostManager(models.Manager):
-    def new(self, user: User, feature: str, cost_type: str, count: int) -> "Cost":
-        feature = Feature.objects.get(short_name=feature)
+
+    def new(self, cost_type: str, count: int, **kwargs) -> "Cost":
         cost_type = CostType.objects.get(short_name=cost_type)
         return self.create(
-            user=user,
-            feature=feature,
             cost_type=cost_type,
             count=count,
             usd_cost=(count * cost_type.unit_cost) / cost_type.unit_quantity,
+            **kwargs,
         )
 
     def get_user_cost(self, user):
@@ -314,18 +313,48 @@ class CostManager(models.Manager):
         )
 
 
+FEATURE_CHOICES = [
+    ("librarian", _("Librarian")),
+    ("qa", _("Q&A")),
+    ("chat", _("Chat")),
+    ("translate", _("Translate")),
+    ("summarize", _("Summarize")),
+    ("template_wizard", _("Template wizard")),
+    ("laws_query", _("Legislation search")),
+    ("laws_load", _("Legislation loading")),
+    ("case_prep", _("Case prep assistant")),
+    ("text_extractor", _("Text extractor")),
+]
+
+
 class Cost(models.Model):
     """Tracks costs in US dollars for API calls"""
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    feature = models.ForeignKey(Feature, on_delete=models.CASCADE)
+    # Required
     cost_type = models.ForeignKey(CostType, on_delete=models.CASCADE)
     count = models.IntegerField(default=1)
-    usd_cost = models.DecimalField(max_digits=12, decimal_places=6)
+
+    # Automatically added/calculated
     date_incurred = models.DateTimeField(auto_now_add=True)
+    usd_cost = models.DecimalField(max_digits=12, decimal_places=6)
+
+    # Optional, for aggregation and reporting
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    feature = models.CharField(
+        max_length=50, null=True, blank=True, choices=FEATURE_CHOICES
+    )
+
+    # Optional, for debugging purposes
+    request_id = models.CharField(max_length=50, null=True, blank=True)
+    message = models.ForeignKey(
+        "chat.Message", on_delete=models.CASCADE, null=True, blank=True
+    )
+    document = models.ForeignKey(
+        "librarian.Document", on_delete=models.CASCADE, null=True, blank=True
+    )
 
     objects = CostManager()
 
     def __str__(self):
         user_str = self.user.username if self.user else _("Otto")
-        return f"{user_str} - {self.feature.name} - {self.cost_type.name} - {self.usd_cost}"
+        return f"{user_str} - {self.feature} - {self.cost_type.name} - {display_cad_cost(self.usd_cost)}"

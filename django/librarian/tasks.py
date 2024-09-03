@@ -8,6 +8,7 @@ from django.utils.translation import gettext as _
 from celery import current_task, shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from structlog import get_logger
+from structlog.contextvars import get_contextvars
 from tqdm import tqdm
 
 from chat.llm import OttoLLM
@@ -27,7 +28,7 @@ ten_minutes = 600
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def process_document(document_id, user_upn=None, language=None):
+def process_document(document_id, language=None):
     """
     Process a URL and save the content to a document.
     """
@@ -52,9 +53,14 @@ def process_document(document_id, user_upn=None, language=None):
         document.celery_task_id = None
         document.save()
 
-    user = User.objects.get(upn=user_upn) if user_upn else None
-    costs = llm.create_costs(user, feature="qa", embed_task="doc")
-    document.cost = costs[0].usd_cost
+    request_context = get_contextvars()
+    feature = request_context.get("feature")  # "translate"
+    request_id = request_context.get("request_id")
+    user = User.objects.get(id=request_context.get("user_id"))
+    costs = llm.create_costs(
+        user=user, feature=feature, request_id=request_id, document=document
+    )
+    document.usd_cost = costs[0].usd_cost
     document.save()
 
 

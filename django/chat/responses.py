@@ -12,6 +12,7 @@ from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from rules.contrib.views import objectgetter
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from chat.models import Message
@@ -32,12 +33,17 @@ logger = get_logger(__name__)
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def otto_response(request, message_id=None):
     """
-    Stream a response to the user's message. Uses LangChain to manage chat history.
+    Stream a response to the user's message. Uses LlamaIndex to manage chat history.
     """
     response_message = Message.objects.get(id=message_id)
     chat = response_message.chat
     assert chat.user_id == request.user.id
     mode = chat.options.mode
+
+    # For costing and logging. Contextvars are accessible anytime during the request
+    # including in async functions (i.e. htmx_stream) and Celery tasks.
+    bind_contextvars(message_id=message_id, feature=mode)
+
     if mode == "chat":
         return chat_response(chat, response_message)
     if mode == "summarize":
@@ -304,6 +310,7 @@ def qa_response(chat, response_message, eval=False):
     """
     Answer the user's question using a specific vector store table.
     """
+    model = chat.options.qa_model
     llm = OttoLLM(model, 0.1)
 
     # Apply filters if we are in qa mode and specific data sources are selected
@@ -327,7 +334,6 @@ def qa_response(chat, response_message, eval=False):
         )
 
     vector_store_table = chat.options.qa_library.uuid_hex
-    model = chat.options.qa_model
     top_k = chat.options.qa_topk
 
     # Don't include the top-level nodes (documents); they don't contain text

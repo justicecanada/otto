@@ -9,6 +9,7 @@ from django.utils.translation import gettext as _
 
 from rules.contrib.views import objectgetter
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
 from otto.utils.decorators import permission_required
 
@@ -73,7 +74,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                     ),
                 )
                 if not item_id:
-                    form.instance.process(user=request.user)
+                    bind_contextvars(feature="librarian")
+                    form.instance.process()
                 selected_document = form.instance
                 selected_data_source = selected_document.data_source
                 item_id = selected_document.id
@@ -385,14 +387,15 @@ def create_temp_object(item_type):
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 def document_start(request, document_id):
     # Initiate celery task
+    bind_contextvars(feature="librarian")
     document = get_object_or_404(Document, id=document_id)
-    document.process(user=request.user)
+    document.process()
     return modal_view(request, item_type="document", item_id=document_id)
 
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 def document_stop(request, document_id):
-    # Initiate celery task
+    # Stop celery task
     document = get_object_or_404(Document, id=document_id)
     document.stop()
     return modal_view(request, item_type="document", item_id=document_id)
@@ -408,13 +411,14 @@ def upload(request, data_source_id):
     """
     print(f"upload: {data_source_id}")
     print(request.FILES)
+    bind_contextvars(feature="librarian")
     for file in request.FILES.getlist("file"):
         file_obj = SavedFile.objects.create(content_type=file.content_type)
         file_obj.file.save(file.name, file)
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )
-        document.process(user=request.user)
+        document.process()
     # Update the modal with the new documents
     request.method = "GET"
     return modal_view(request, item_type="data_source", item_id=data_source_id)

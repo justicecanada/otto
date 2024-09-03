@@ -10,8 +10,9 @@ from azure.core.credentials import AzureKeyCredential
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from structlog import get_logger
+from structlog.contextvars import get_contextvars
 
-from otto.models import Cost
+from otto.models import Cost, User
 
 logger = get_logger(__name__)
 ten_minutes = 600
@@ -67,16 +68,25 @@ def translate_file(file_path, out_message_id, target_language):
         # Wait for translation to finish
         result = poller.result()
 
-        out_message = Message.objects.get(id=out_message_id)
         usage = poller.details.total_characters_charged
+
+        # Add the cost
+        request_context = get_contextvars()
+        feature = request_context.get("feature")  # should be "translate"
+        request_id = request_context.get("request_id")
+        user = User.objects.get(id=request_context.get("user_id"))
+        out_message = Message.objects.get(id=out_message_id)
         cost = Cost.objects.new(
-            user=out_message.chat.user,
-            feature="translate",
-            cost_type="translate-doc",
+            cost_type="translate-file",
             count=usage,
+            user=user,
+            feature=feature,
+            message=out_message,
+            request_id=request_id,
         )
         print(f"Cost: {cost}")
-        out_message.cost = float(out_message.cost) + float(cost.usd_cost)
+
+        out_message.usd_cost = float(out_message.usd_cost) + float(cost.usd_cost)
         out_message.save()
         for document in result:
             if document.status == "Succeeded":

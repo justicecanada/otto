@@ -233,7 +233,7 @@ class Message(models.Model):
     feedback_comment = models.TextField(blank=True)
     is_bot = models.BooleanField(default=False)
     bot_name = models.CharField(max_length=255, blank=True)
-    cost = models.DecimalField(max_digits=10, decimal_places=4, default=0)
+    usd_cost = models.DecimalField(max_digits=10, decimal_places=4, default=0)
     pinned = models.BooleanField(default=False)
     # Flexible JSON field for mode-specific details such as translation target language
     details = models.JSONField(default=dict)
@@ -259,7 +259,7 @@ class Message(models.Model):
 
     @property
     def display_cost(self):
-        return display_cad_cost(self.cost)
+        return display_cad_cost(self.usd_cost)
 
     def get_toggled_feedback(self, feeback_value):
         if feeback_value not in [-1, 1]:

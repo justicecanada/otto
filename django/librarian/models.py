@@ -136,10 +136,13 @@ class Library(models.Model):
         self.reset(recreate=False)
         super().delete(*args, **kwargs)
 
-    def process_all(self, force=True, user=None):
+    def process_all(
+        self,
+        force=True,
+    ):
         for ds in self.data_sources.all():
             for document in ds.documents.all():
-                document.process(user=user)
+                document.process()
 
     def reset(self, recreate=True):
         db = settings.DATABASES["vector_db"]
@@ -247,9 +250,9 @@ class DataSource(models.Model):
             document.delete()
         super().delete()
 
-    def process_all(self, force=True, user=None):
+    def process_all(self, force=True):
         for document in self.documents.all():
-            document.process(user=user)
+            document.process()
 
 
 class Document(models.Model):
@@ -270,7 +273,7 @@ class Document(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     # Cost includes OpenAI embedding and (in some cases) Azure Document AI costs
-    cost = models.DecimalField(max_digits=10, decimal_places=6, default=0)
+    usd_cost = models.DecimalField(max_digits=10, decimal_places=6, default=0)
 
     # Document always associated with a single DataSource
     data_source = models.ForeignKey(
@@ -361,7 +364,7 @@ class Document(models.Model):
 
     @property
     def display_cost(self):
-        return display_cad_cost(self.cost)
+        return display_cad_cost(self.usd_cost)
 
     @property
     def content_type(self):
@@ -382,7 +385,7 @@ class Document(models.Model):
             logger.error(f"Failed to remove document from vector store: {e}")
         super().delete(*args, **kwargs)
 
-    def process(self, user: User = None):
+    def process(self):
         from .tasks import process_document
 
         # Logic for updating the document embeddings, metadata, etc.
@@ -390,8 +393,7 @@ class Document(models.Model):
             self.status = "ERROR"
             self.save()
             return
-        # User is optionally passed through for cost tracking purposes
-        process_document.delay(self.id, user.upn if user else None, get_language())
+        process_document.delay(self.id, get_language())
         self.celery_task_id = "tbd"
         self.status = "INIT"
         self.save()

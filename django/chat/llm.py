@@ -10,7 +10,7 @@ from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.vector_stores.postgres import PGVectorStore
 
-from otto.models import Cost, User
+from otto.models import Cost
 
 
 class OttoLLM:
@@ -106,41 +106,33 @@ class OttoLLM:
     def embed_token_count(self):
         return self._token_counter.total_embedding_token_count
 
-    def create_costs(
-        self, user: User, feature: str, embed_task: str = "query"
-    ) -> list[Cost]:
+    def create_costs(self, **kwargs) -> list[Cost]:
         """
-        Create Otto Cost objects for the given user and feature:
-        - "embed-query": cost for embedding tokens
-        - "{deployment}-in": cost for input tokens
-        - "{deployment}-out": cost for output tokens
+        Create Otto Cost objects for the given user and feature.
         """
         costs = []
         if self.input_token_count > 0:
             costs.append(
                 Cost.objects.new(
-                    user=user,
                     cost_type=f"{self.deployment}-in",
-                    feature=feature,
                     count=self.input_token_count,
+                    **kwargs,
                 )
             )
         if self.output_token_count > 0:
             costs.append(
                 Cost.objects.new(
-                    user=user,
                     cost_type=f"{self.deployment}-out",
-                    feature=feature,
                     count=self.output_token_count,
+                    **kwargs,
                 )
             )
         if self.embed_token_count > 0:
             costs.append(
                 Cost.objects.new(
-                    user=user,
-                    cost_type=f"embed-{embed_task}",
-                    feature=feature,
+                    cost_type="embedding",
                     count=self.embed_token_count,
+                    **kwargs,
                 )
             )
         return costs
