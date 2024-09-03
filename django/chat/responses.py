@@ -24,7 +24,7 @@ from chat.utils import (
     url_to_text,
 )
 from librarian.models import Document
-from otto.utils.decorators import permission_required, track_request_info
+from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
 
@@ -39,19 +39,18 @@ def otto_response(request, message_id=None):
     assert chat.user_id == request.user.id
     mode = chat.options.mode
     if mode == "chat":
-        return chat_response(request, chat, response_message)
+        return chat_response(chat, response_message)
     if mode == "summarize":
-        return summarize_response(request, chat, response_message)
+        return summarize_response(chat, response_message)
     if mode == "translate":
-        return translate_response(request, chat, response_message)
+        return translate_response(chat, response_message)
     if mode == "qa":
-        return qa_response(request, chat, response_message)
+        return qa_response(chat, response_message)
     else:
-        return error_response(request, chat, response_message)
+        return error_response(chat, response_message)
 
 
-@track_request_info("chat")
-def chat_response(request, chat, response_message, eval=False):
+def chat_response(chat, response_message, eval=False):
 
     def is_text_to_summarize(message):
         return message.mode == "summarize" and not message.is_bot
@@ -125,8 +124,7 @@ def stop_response(request, message_id):
     return HttpResponse(200)
 
 
-@track_request_info("summarize")
-def summarize_response(request, chat, response_message):
+def summarize_response(chat, response_message):
     """
     Summarize the user's input text (or URL) and stream the response.
     If the summarization technique does not support streaming, send final response only.
@@ -219,8 +217,7 @@ def summarize_response(request, chat, response_message):
     )
 
 
-@track_request_info("translate")
-def translate_response(request, chat, response_message):
+def translate_response(chat, response_message):
     """
     Translate the user's input text and stream the response.
     If the translation technique does not support streaming, send final response only.
@@ -303,8 +300,7 @@ def translate_response(request, chat, response_message):
     )
 
 
-@track_request_info("qa")
-def qa_response(request, chat, response_message, eval=False):
+def qa_response(chat, response_message, eval=False):
     """
     Answer the user's question using a specific vector store table.
     """
