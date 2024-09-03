@@ -20,46 +20,69 @@
           <tr data-id="{{ document.id }}"
               data-delete-url="{% url 'case_prep:delete_document' %}">
             <td class="drag-handle">&#9776;</td>
-            <!--<td>
-               Editable field
+            <td>
+              <!--Editable field-->
               <div class="d-flex align-items-center">
                 <!-- <textarea rows="1" class="form-control document-name-input" style="resize: vertical; width: auto; flex-grow: 1">{{ document.name }}</textarea> -->
-<!--
+                <div class="document-name-box"
+                     data-bs-toggle="modal"
+                     data-bs-target="#documentDetailsModal"
+                     data-document-id="{{ document.id }}"
+                     data-document-name="{{ document.name }}"
+                     data-document-date="{{ document.date }}"
+                     data-document-original-name="{{ document.original_name }}"
+                     style="resize: vertical;
+                            width: auto;
+                            flex-grow: 1;
+                            border:1px solid #ced4da;
+                            padding: 0.375rem 0.75rem;
+                            border-radius: 0.25rem;
+                            cursor: pointer">{{ document.name }}</div>
               </div>
               <small class="text-muted ms-2">Original: {{ document.original_name }}</small>
             </td>
             <td class="text-nowrap">
-              <input type="date" class="form-control" value="{{ document.date|date:'Y-m-d' }}">
-            </td>-->
-<td>
-<a href="#" class="document-link" data-bs-toggle="modal" data-bs-target="#documentDetailsModal" data-document-id="{{ document.id }}" data-document-name="{{ document.name }}" data-document-date="{{ document.date }}">
-{{ document.name }}
-</a>
-<small class="text-muted ms-2">Original: {{ document.original_name }}</small>
-</td>
-<td>{{ document.date }}</td>
-<td class="text-nowrap">
-<!--<a href="{% url 'case_prep:download_document' document.id %}" class="btn btn-outline-primary" title="{% trans 'Download Document' %}">
+              <input type="date"
+                     class="form-control"
+                     value="{{ document.date|date:'Y-m-d' }}">
+            </td>
+
+            <!--<td>
+            <a href="#" class="document-link" data-bs-toggle="modal" data-bs-target="#documentDetailsModal" data-document-id="{{ document.id }}" data-document-name="{{ document.name }}" data-document-date="{{ document.date }}">
+            {{ document.name }}
+            </a>
+            <small class="text-muted ms-2">Original: {{ document.original_name }}</small>
+            </td>
+            <td>{{ document.date }}</td>
+            <td class="text-nowrap">-->
+
+
+            <!--<a href="{% url 'case_prep:download_document' document.id %}" class="btn btn-outline-primary" title="{% trans 'Download Document' %}">
                       <i class="bi bi-download"></i> 
                     </a>-->
-<a href="{% url 'case_prep:preview_document' document.id %}" class="btn btn-outline-secondary" title="{% trans 'Preview/Toggle Document' %}">
-<i class="bi bi-eye"></i> <!-- Preview icon -->
-</a>
-<!--<button type="submit" class="btn document-delete-button bi bi-trash" formaction="{% url 'case_prep:delete_document' %}" title="{% trans 'Delete Selected' %}">
+            <td>
+              <a href="{% url 'case_prep:preview_document' document.id %}"
+                 class="btn btn-outline-secondary"
+                 title="{% trans 'Preview/Toggle Document' %}">
+                <i class="bi bi-eye"></i> <!-- Preview icon -->
+              </a>
+              <!--<button type="submit" class="btn document-delete-button bi bi-trash" formaction="{% url 'case_prep:delete_document' %}" title="{% trans 'Delete Selected' %}">
                       <i class="bi bi-trash"></i>
                     </button>-->
-<a href="{% url 'case_prep:delete_document' %}" class="btn btn-outline-danger document-delete-button" title="{% trans 'Delete Document' %}">
-<i class="bi bi-trash"></i> <!-- Preview icon -->
-</a>
+              <a href="{% url 'case_prep:delete_document' %}"
+                 class="btn btn-outline-danger document-delete-button"
+                 title="{% trans 'Delete Document' %}">
+                <i class="bi bi-trash"></i> <!-- Preview icon -->
+              </a>
  
-</td>
+            </td>
 
-<!-- Multi-select checkbox
+            <!-- Multi-select checkbox
             <td class="text-center">
               <input type="checkbox" name="selected_documents" value="{{ document.id }}" style="width: 16px; height: 16px">
             </td>-->
  
-<!--      <td class="text-nowrap">
+            <!--      <td class="text-nowrap">
               <a href="{% url 'case_prep:download_document' document.id %}" class="btn btn-outline-primary" title="{% trans 'Download Document' %}">
                 <i class="bi bi-download"></i> <!-- Download icon 
               </a>
