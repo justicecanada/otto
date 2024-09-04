@@ -4,6 +4,7 @@ import pytest
 from asgiref.sync import sync_to_async
 from bs4 import BeautifulSoup as bs
 
+from chat.llm import OttoLLM
 from chat.models import Chat, Message
 from chat.utils import (
     htmx_stream,
@@ -66,6 +67,8 @@ def test_url_to_text():
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_htmx_stream_response_stream(all_apps_user):
+    llm = OttoLLM()
+
     async def stream_generator():
         for char in "Hi!":
             yield char
@@ -79,7 +82,8 @@ async def test_htmx_stream_response_stream(all_apps_user):
     response_stream = htmx_stream(
         chat,
         message.id,
-        response_stream=stream_generator(),
+        response_generator=stream_generator(),
+        llm=llm,
     )
     # Iterate over the response_stream generator
     final_output = ""
@@ -99,6 +103,7 @@ async def test_htmx_stream_response_stream(all_apps_user):
 @pytest.mark.asyncio
 @pytest.mark.django_db()
 async def test_htmx_stream_response_str(all_apps_user):
+    llm = OttoLLM()
     # We first need an empty chat and a message
     user = await sync_to_async(all_apps_user)("test_user_2")
     chat = await sync_to_async(Chat.objects.create)(user=user)
@@ -108,6 +113,7 @@ async def test_htmx_stream_response_str(all_apps_user):
         chat,
         message.id,
         response_str="Hi!",
+        llm=llm,
     )
     # Iterate over the response_stream generator
     final_output = ""
@@ -127,6 +133,8 @@ async def test_htmx_stream_response_str(all_apps_user):
 @pytest.mark.asyncio
 @pytest.mark.django_db()
 async def test_htmx_stream_response_generator(all_apps_user):
+    llm = OttoLLM()
+
     class FakeFile:
         def __init__(self, name, text):
             self.name = name
@@ -139,7 +147,7 @@ async def test_htmx_stream_response_generator(all_apps_user):
         ]
         for i, file in enumerate(files):
             yield f"**{file.name}**\n"
-            summary = await summarize_long_text_async(file.text, "short")
+            summary = await summarize_long_text_async(file.text, llm, "short")
             if i < len(files) - 1:
                 yield f"{summary}\n\n-----\n"
             else:
@@ -154,6 +162,7 @@ async def test_htmx_stream_response_generator(all_apps_user):
         chat,
         message.id,
         response_generator=stream_generator(),
+        llm=llm,
     )
     # Iterate over the response_stream generator
     final_output = ""
@@ -174,6 +183,8 @@ async def test_htmx_stream_response_generator(all_apps_user):
 @pytest.mark.asyncio
 @pytest.mark.django_db()
 async def test_htmx_stream_response_replacer(basic_user):
+    llm = OttoLLM()
+
     async def stream_generator():
         yield "first thing"
         yield "second thing"
@@ -187,8 +198,8 @@ async def test_htmx_stream_response_replacer(basic_user):
         chat,
         message.id,
         response_replacer=stream_generator(),
-        save_message=False,
         format=False,
+        llm=llm,
     )
     # Iterate over the response_stream generator
     final_output = ""
@@ -208,5 +219,5 @@ async def test_htmx_stream_response_replacer(basic_user):
     assert "second thing" in final_output
     # There should be an element in the response to replace the SSE div
     assert "<div hx-swap-oob" in final_output
-    # A new message should NOT have been created since save_message=False
+    # A new message should NOT have been created
     assert await sync_to_async(chat.messages.count)() == 1
