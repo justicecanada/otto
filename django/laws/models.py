@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 
 import tiktoken
-from llama_index.core import ServiceContext, VectorStoreIndex
+from llama_index.core import VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -42,11 +42,11 @@ def connect_to_vector_store(vector_store_table: str) -> VectorStoreIndex:
         api_version=settings.AZURE_OPENAI_VERSION,
     )
 
-    service_context = ServiceContext.from_defaults(
-        llm=llm,
-        embed_model=embed_model,
-        callback_manager=CallbackManager([token_counter]),
-    )
+    # service_context = ServiceContext.from_defaults(
+    #     llm=llm,
+    #     embed_model=embed_model,
+    #     callback_manager=CallbackManager([token_counter]),
+    # )
 
     # Get the vector store for the library
     vector_store = PGVectorStore.from_params(
@@ -65,7 +65,9 @@ def connect_to_vector_store(vector_store_table: str) -> VectorStoreIndex:
     # Remove the old content from the vector store
     idx = VectorStoreIndex.from_vector_store(
         vector_store=vector_store,
-        service_context=service_context,
+        llm=llm,
+        embed_model=embed_model,
+        callback_manager=CallbackManager([token_counter]),
         show_progress=False,
     )
 
