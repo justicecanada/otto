@@ -9,7 +9,7 @@ from django.utils.translation import gettext as _
 from autocomplete import widgets
 
 from chat.models import Message
-from otto.models import App, Feedback
+from otto.models import App, Feedback, Pilot
 
 User = get_user_model()
 
@@ -94,3 +94,30 @@ class UserGroupForm(forms.Form):
             options={"multiselect": True, "minimum_search_length": 0, "model": Group},
         ),
     )
+    pilot = forms.ModelChoiceField(
+        queryset=Pilot.objects.all(),
+        label="Pilot",
+        required=False,
+        widget=widgets.Autocomplete(
+            name="pilot", options={"minimum_search_length": 0, "model": Pilot}
+        ),
+    )
+
+
+class PilotForm(forms.ModelForm):
+    # Simple form with all the fields default widgets
+    class Meta:
+        model = Pilot
+        fields = "__all__"
+        # Add the bootstrap classes to the form fields and labels
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "service_unit": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control"}),
+            "start_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "end_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+        }

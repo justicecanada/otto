@@ -33,6 +33,17 @@ urlpatterns = [
     path(
         "user_management/download/", views.manage_users_download, name="download_users"
     ),
+    path("user_management/pilots/", views.manage_pilots, name="manage_pilots"),
+    path(
+        "user_management/pilots/form/",
+        views.manage_pilots_form,
+        name="manage_pilots_form",
+    ),
+    path(
+        "user_management/pilots/form/<pilot_id>/",
+        views.manage_pilots_form,
+        name="manage_pilots_form",
+    ),
     path("accept_terms/", views.accept_terms, name="accept_terms"),
     path("feedback/", views.message_feedback, name="user_feedback"),
     path("feedback/<message_id>/", views.message_feedback, name="user_feedback"),

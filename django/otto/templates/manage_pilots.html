@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load filters %}
+{% load autocomplete %}
+{% load static %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_pilots' %}">{% trans "Manage pilots" %}</a>
+  </li>
+{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet"
+        type="text/css"
+        href="{% static 'thirdparty/css/datatables.min.css' %}">
+{% endblock %}
+
+{% block page_title %}
+  {% trans "Manage pilots" %}
+{% endblock %}
+
+{% block content_container %}
+  <div id="manage-pilots-outer">
+    <div class="container py-3 px-0">
+      <h2 class="mb-3 mt-2">{% trans "Manage pilots" %}</h2>
+
+      <div class="row">
+        <div class="col">
+          <button type="button"
+                  class="btn btn-primary"
+                  hx-get="{% url 'manage_pilots_form' %}"
+                  hx-target="#pilot-form"
+                  hx-swap="innerHTML"
+                  hx-indicator="#modal-spinner"
+                  onclick="document.getElementById('pilot-form').innerHTML='';"
+                  data-bs-toggle="modal"
+                  data-bs-target="#pilot-modal">{% trans "Add pilot" %}</button>
+        </div>
+      </div>
+ 
+      <!-- Bootstrap table of pilots -->
+      <div class="table-responsive">
+        <table class="table table-striped" id="pilots">
+          <thead>
+            <tr>
+              <th>{% trans "Name" %}</th>
+              <th>{% trans "Description" %}</th>
+              <th>{% trans "Service unit" %}</th>
+              <th>{% trans "Start date" %}</th>
+              <th>{% trans "End date" %}</th>
+              <th>{% trans "Users" %}</th>
+              <th>{% trans "Cost" %}</th>
+              <th>{% trans "Edit" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in pilots %}
+              <tr>
+                <th>{{ p.name }}</th>
+                <td>{{ p.description }}</td>
+                <td>{{ p.service_unit }}</td>
+                <td>
+                  {% comment %}ISO date is for sorting to work properly{% endcomment %}
+                  <span class="d-none">{{ p.start_date|iso_date }}</span>{{ p.start_date }}
+                </td>
+                <td>
+                  <span class="d-none">{{ p.end_date|iso_date }}</span>{{ p.end_date }}
+                </td>
+                <td>{{ p.user_count }}</td>
+                <td>{{ p.total_cost }}</td>
+                <td style="max-width:100px;">
+                  <a href="#"
+                     hx-get="{% url 'manage_pilots_form' p.id %}"
+                     hx-target="#pilot-form"
+                     hx-swap="innerHTML"
+                     hx-indicator="#modal-spinner"
+                     onclick="document.getElementById('pilot-form').innerHTML='';"
+                     data-bs-toggle="modal"
+                     data-bs-target="#pilot-modal">{% trans "Edit" %}</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function checkUserKeydown(event) {
+      return event instanceof KeyboardEvent
+    }
+  </script>
+ 
+  <!-- Bootstrap modal for adding users -->
+  <div class="modal modal-lg fade"
+       id="pilot-modal"
+       tabindex="-1"
+       aria-labelledby="pilot-modal-label"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title h5" id="pilot-modal-label">{% trans "Add/edit pilot" %}</h1>
+          <button type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="{% trans 'Close' %}"></button>
+        </div>
+        <div id="modal-spinner" class="spinner container text-primary pt-3">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">Loading...</span>
+        </div>
+        <form action="{{ request.path }}" method="post">
+          {% csrf_token %}
+          <div id="pilot-form"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block page_script %}
+  <script src="{% static 'thirdparty/datatables.min.js' %}"></script>
+  <script>
+  $(document).ready(function() {
+    let dataTableConfig = {
+      "paginate": false,
+    };
+    $('#pilots').DataTable(dataTableConfig);
+  });
+  </script>
+{% endblock %}

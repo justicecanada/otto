@@ -36,8 +36,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
-
     accepted_terms_date = models.DateField(null=True)
+    pilot = models.ForeignKey("Pilot", on_delete=models.SET_NULL, null=True, blank=True)
 
     objects = CustomUserManager()
 
@@ -337,6 +337,10 @@ class CostManager(models.Manager):
             )
         )
 
+    def get_pilot_cost(self, pilot):
+        # Total cost for a pilot
+        return sum(cost.usd_cost for cost in self.filter(user__pilot=pilot))
+
 
 FEATURE_CHOICES = [
     ("librarian", _("Librarian")),
@@ -383,3 +387,24 @@ class Cost(models.Model):
     def __str__(self):
         user_str = self.user.username if self.user else _("Otto")
         return f"{user_str} - {self.feature} - {self.cost_type.name} - {display_cad_cost(self.usd_cost)}"
+
+
+class Pilot(models.Model):
+    """For pilot governance. Pilot users will have a FK to this model."""
+
+    name = models.CharField(max_length=100)
+    service_unit = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    start_date = models.DateField(null=True)
+    end_date = models.DateField(null=True)
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def user_count(self):
+        return User.objects.filter(pilot=self).count()
+
+    @property
+    def total_cost(self):
+        return display_cad_cost(Cost.objects.get_pilot_cost(self))

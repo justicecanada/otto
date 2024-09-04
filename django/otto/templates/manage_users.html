@@ -31,9 +31,10 @@
         <div class="d-flex">
           <a href="{% url 'download_users' %}" class="btn btn-secondary me-1">{% trans "Download CSV" %}</a>
           <button type="button"
-                  class="btn btn-secondary me-1"
+                  class="btn btn-secondary me-3"
                   data-bs-toggle="modal"
                   data-bs-target="#bulkUploadModal">{% trans "Upload CSV" %}</button>
+          <a href="{% url 'manage_pilots' %}" class="btn btn-secondary me-3">{% trans "Manage pilots" %}</a>
           <button type="button"
                   class="btn btn-primary"
                   hx-get="{% url 'manage_users_form' %}"
@@ -50,19 +51,20 @@
         <table class="table table-striped" id="users">
           <thead>
             <tr>
-              <th>{% trans "Name" %}</th>
+              {# <th>{% trans "Name" %}</th> #}
               <th>{% trans "Email" %}</th>
               <th>{% trans "Last login" %}</th>
               <th>{% trans "Costs" %}</th>
               <th>{% trans "Roles" %}</th>
+              <th>{% trans "Pilot" %}</th>
               <th>{% trans "Manage" %}</th>
             </tr>
           </thead>
           <tbody>
             {% for u in users %}
               <tr>
-                <th>{{ u.lastname_firstname }}</th>
-                <td>{{ u.email }}</td>
+                {# <th>{{ u.lastname_firstname }}</th> #}
+                <th>{{ u.email }}</th>
                 <td>
                   {% comment %}ISO date is for sorting to work properly{% endcomment %}
                   <span class="d-none">{{ u.last_login|iso_date }}</span>{{ u.last_login }}
@@ -77,6 +79,9 @@
                     {% endif %}
                   {% endfor %}
                 </td>
+                <td>
+                  {% if u.pilot %}<span class="badge bg-success">{{ u.pilot.name }}</span>{% endif %}
+                </td>
                 <td style="max-width:100px;">
                   <a href="#"
                      hx-get="{% url 'manage_users_form' u.id %}"
@@ -84,7 +89,7 @@
                      hx-indicator="#modal-spinner"
                      onclick="document.getElementById('user-roles-form').innerHTML='';"
                      data-bs-toggle="modal"
-                     data-bs-target="#addUserModal">{% trans "Edit roles" %}</a>
+                     data-bs-target="#addUserModal">{% trans "Edit user" %}</a>
                 </td>
               </tr>
             {% endfor %}

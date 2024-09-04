@@ -9,7 +9,8 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import check_for_language, get_language
 from django.views.decorators.csrf import csrf_protect
@@ -18,10 +19,10 @@ from django.views.decorators.http import require_POST
 from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
 
-from otto.forms import FeedbackForm, UserGroupForm
+from otto.forms import FeedbackForm, PilotForm, UserGroupForm
 from otto.metrics.activity_metrics import otto_access_total
 from otto.metrics.feedback_metrics import otto_feedback_submitted_with_comment_total
-from otto.models import App, Feature, UsageTerm
+from otto.models import App, Feature, Pilot, UsageTerm
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
@@ -210,6 +211,9 @@ def manage_users(request):
                 logger.info("Updating user groups", user=user, groups=groups)
                 user.groups.clear()
                 user.groups.add(*groups)
+                if "pilot" in form.cleaned_data:
+                    user.pilot = form.cleaned_data["pilot"]
+                    user.save()
         else:
             raise ValueError(form.errors)
 
@@ -229,7 +233,9 @@ def manage_users_form(request, user_id=None):
     if user_id:
         logger.info("Accessing user roles form", update_user_id=user_id)
         user = User.objects.get(id=user_id)
-        form = UserGroupForm(initial={"email": [user], "group": user.groups.all()})
+        form = UserGroupForm(
+            initial={"email": [user], "group": user.groups.all(), "pilot": user.pilot}
+        )
     else:
         form = UserGroupForm()
     return render(request, "components/user_roles_modal.html", {"form": form})
@@ -295,3 +301,48 @@ def manage_users_download(request):
         writer.writerow([user.upn, roles])
 
     return response
+
+
+@permission_required("otto.manage_users")
+def manage_pilots(request):
+    if request.method == "POST":
+        pilot_id = request.POST.get("id")
+        print(pilot_id)
+        if pilot_id:
+            pilot = get_object_or_404(Pilot, pk=pilot_id)
+            form = PilotForm(request.POST, instance=pilot)
+        else:
+            form = PilotForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+        else:
+            raise ValueError(form.errors)
+
+    context = {
+        "pilots": Pilot.objects.order_by("name"),
+        "form": PilotForm(),
+    }
+    return render(request, "manage_pilots.html", context)
+
+
+@permission_required("otto.manage_users")
+def manage_pilots_form(request, pilot_id=None):
+    if pilot_id and request.method == "DELETE":
+        pilot = Pilot.objects.get(id=pilot_id)
+        pilot.delete()
+        response = HttpResponse()
+        # Add hx-redirect header to trigger HTMX redirect
+        response["hx-redirect"] = reverse("manage_pilots")
+        return response
+    if pilot_id:
+        pilot = Pilot.objects.get(id=pilot_id)
+        form = PilotForm(instance=pilot)
+    else:
+        form = PilotForm()
+    return render(request, "components/pilot_modal.html", {"form": form})
+
+
+@permission_required("otto.manage_users")
+def cost_dashboard(request):
+    return render(request, "cost_dashboard.html")
