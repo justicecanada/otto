@@ -4,29 +4,18 @@ source setup_env.sh
 
 cd k8s
 
-while true; do
-    # Check if the image exists
-    export IMAGE_EXISTS=$(
-        az acr repository show-tags \
-            --name $ACR_NAME \
-            --repository otto \
-            --output tsv | grep -q "^latest$" && echo true || echo false
-        )
+# Check if the image exists
+export IMAGE_EXISTS=$(
+    az acr repository show-tags \
+        --name $ACR_NAME \
+        --repository otto \
+        --output tsv | grep -q "^latest$" && echo true || echo false
+    )
 
-    if [[ $IMAGE_EXISTS == "true" ]]; then
-        echo "The latest image exists in the ACR. Continuing..."
-        break
-    else
-        echo "The latest image does not exist in the ACR."
-        read -p "Press 'y' to check again when the image exists, or any other key to exit: " response
-        if [[ $response =~ ^[Yy]$ ]]; then
-            echo "Checking that the image exists..."
-        else
-            echo "Exiting..."
-            exit 0
-        fi
-    fi
-done
+if [[ $IMAGE_EXISTS == "false" ]]; then
+    echo "The latest image does not exist in the ACR. Exiting..."
+    exit 0
+fi
 
 # Get the credentials for the AKS cluster and exit if it fails
 if ! az aks get-credentials --resource-group "$RESOURCE_GROUP_NAME" --name "$AKS_CLUSTER_NAME" --overwrite-existing; then
