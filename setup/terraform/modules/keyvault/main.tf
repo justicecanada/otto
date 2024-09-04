@@ -5,7 +5,7 @@ resource "azurerm_key_vault" "kv" {
   location                   = var.location
   resource_group_name        = var.resource_group_name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
+  sku_name                   = "premium"  # SC-13: Premium SKU is FIPS 140-2 Level 2 compliant
   enable_rbac_authorization  = true
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
@@ -40,8 +40,8 @@ resource "null_resource" "wait_for_permission_propagation" {
 resource "azurerm_key_vault_key" "cmk" {
   name         = "otto-encryption-key"
   key_vault_id = azurerm_key_vault.kv.id
-  key_type     = "RSA"
-  key_size     = 2048
+  key_type     = "RSA" # SC-13: Use RSA keys for encryption
+  key_size     = 2048 # SC-13: Use 2048-bit keys for encryption
   key_opts = [
     "decrypt",
     "encrypt",

@@ -88,6 +88,7 @@ resource "null_resource" "wait_for_storage_permission_propagation" {
 }
 
 # Update storage account to use the Key Vault Key for encryption
+# SC-13: Customer-managed keys for enhanced encryption control
 resource "azurerm_storage_account_customer_managed_key" "storage_cmk" {
   storage_account_id = azurerm_storage_account.storage.id
   key_vault_id       = var.keyvault_id
