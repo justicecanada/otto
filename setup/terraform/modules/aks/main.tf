@@ -13,6 +13,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
   location            = var.location
   resource_group_name = var.resource_group_name
   kubernetes_version  = "1.29.7"
+  dns_prefix          = var.aks_cluster_name
+
+  ## TODO: Configure the private cluster settings
+  #private_cluster_enabled = true
+  #private_dns_zone_id     = "System" # Consider a custom DNS zone instead
 
   # Configure the default node pool
   default_node_pool {
@@ -46,9 +51,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
   oms_agent {
     log_analytics_workspace_id = azurerm_log_analytics_workspace.aks.id
   }
-
-  # Set the domain name label for the cluster's public IP
-  dns_prefix = var.host_name_prefix
 
   # Enable auto-upgrade to stable channel
   automatic_channel_upgrade = "stable"

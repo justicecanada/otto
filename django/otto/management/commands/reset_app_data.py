@@ -22,7 +22,7 @@ class Command(BaseCommand):
             "objects",
             nargs="*",
             type=str,
-            help="Specify objects to reset (apps, terms, groups, libraries, library_mini, security_labels)",
+            help="Specify objects to reset (apps, terms, groups, libraries, library_mini, security_labels, cost_types)",
         )
         parser.add_argument("--all", action="store_true", help="Reset all objects")
 
@@ -69,6 +69,7 @@ class Command(BaseCommand):
             self.reset_usage_terms()
             self.reset_security_labels()
             self.reset_libraries()
+            self.reset_cost_types()
         else:
             if "groups" in objects_to_reset:
                 self.reset_groups()
@@ -79,11 +80,14 @@ class Command(BaseCommand):
             if "terms" in objects_to_reset:
                 self.reset_usage_terms()
 
-            if "libraries" in objects_to_reset:
-                self.reset_libraries()
+            if "cost_types" in objects_to_reset:
+                self.reset_cost_types()
 
             if "security_labels" in objects_to_reset:
                 self.reset_security_labels()
+
+            if "libraries" in objects_to_reset:
+                self.reset_libraries()
 
             if "library_mini" in objects_to_reset:
                 self.reset_libraries("library_mini.yaml")
@@ -238,3 +242,8 @@ class Command(BaseCommand):
         # Simply call manage.py loaddata security_labels.yaml
         call_command("loaddata", "security_labels.yaml")
         self.stdout.write(self.style.SUCCESS("Security labels reset successfully."))
+
+    def reset_cost_types(self):
+        # Simply call manage.py loaddata cost_types.yaml
+        call_command("loaddata", "cost_types.yaml")
+        self.stdout.write(self.style.SUCCESS("Cost types reset successfully."))

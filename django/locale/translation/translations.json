@@ -3214,5 +3214,49 @@
     "Modify/add users": {
         "fr": "",
         "fr_auto": "Modifier/ajouter des utilisateurs"
+    },
+    "Maximum sources": {
+        "fr": "",
+        "fr_auto": "Sources maximales"
+    },
+    "Otto": {
+        "fr": "Otto",
+        "fr_auto": "Otton"
+    },
+    "Are you sure you want to delete all chats? This action is irreversible.": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir supprimer tous les chats ? Cette action est irréversible."
+    },
+    "Delete all chats": {
+        "fr": "",
+        "fr_auto": "Supprimer tous les chats"
+    },
+    "No text to summarize.": {
+        "fr": "",
+        "fr_auto": "Aucun texte à résumer."
+    },
+    "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here.": {
+        "fr": "",
+        "fr_auto": "Impossible de récupérer la page Web. Le site peut bloquer les robots. Essayez de copier et coller la page Web ici."
+    },
+    "The original document is below, enclosed in triple quotes:": {
+        "fr": "",
+        "fr_auto": "Le document original est ci-dessous, entre guillemets triples :"
+    },
+    "Processing cost": {
+        "fr": "",
+        "fr_auto": "Coût de traitement"
+    },
+    "Costs": {
+        "fr": "",
+        "fr_auto": "Coûts"
+    },
+    "Processing cost (cumulative)": {
+        "fr": "",
+        "fr_auto": "Coût de traitement (cumulatif)"
+    },
+    "Legislation loading": {
+        "fr": "",
+        "fr_auto": "Chargement de la législation"
     }
 }

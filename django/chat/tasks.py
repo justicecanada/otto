@@ -10,6 +10,9 @@ from azure.core.credentials import AzureKeyCredential
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from structlog import get_logger
+from structlog.contextvars import get_contextvars
+
+from otto.models import Cost, User
 
 logger = get_logger(__name__)
 ten_minutes = 600
@@ -28,7 +31,7 @@ def azure_delete(path):
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def translate_file(file_path, out_message_id, target_language):
+def translate_file(file_path, target_language):
     try:
         from chat.models import ChatFile, Message
 
@@ -65,11 +68,11 @@ def translate_file(file_path, out_message_id, target_language):
         # Wait for translation to finish
         result = poller.result()
 
-        # Estimate the cost
-        # usage = poller.details.total_characters_charged
-        # estimated_cost = calculate_cost(usage, settings.AZURE_DOCUMENT_TRANSLATION)
+        usage = poller.details.total_characters_charged
+        Cost.objects.new(cost_type="translate-file", count=usage)
 
-        out_message = Message.objects.get(id=out_message_id)
+        request_context = get_contextvars()
+        out_message = Message.objects.get(id=request_context.get("message_id"))
         for document in result:
             if document.status == "Succeeded":
                 # Save the translated file to the database

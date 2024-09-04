@@ -8,6 +8,7 @@ from django.utils import timezone
 import pytest
 from asgiref.sync import sync_to_async
 
+from chat.llm import OttoLLM
 from chat.models import Chat, ChatFile, Message
 from chat.utils import htmx_stream, title_chat
 from librarian.models import Library
@@ -25,12 +26,13 @@ skip_on_devops_pipeline = pytest.mark.skipif(
 
 @pytest.mark.django_db
 def test_title_chat(client, all_apps_user):
+    llm = OttoLLM()
     user = all_apps_user()
     client.force_login(user)
     chat = Chat.objects.create(user=user)
     # The title_chat function, with force_title=True
     # should return "Untitled chat"
-    chat_title = title_chat(chat.id, force_title=True)
+    chat_title = title_chat(chat.id, llm, force_title=True)
     assert chat_title == "Untitled chat"
 
     # Create 2 messages
@@ -39,12 +41,12 @@ def test_title_chat(client, all_apps_user):
 
     # The title_chat function, with force_title=False
     # should return an empty string
-    chat_title = title_chat(chat.id, force_title=False)
+    chat_title = title_chat(chat.id, llm, force_title=False)
     assert chat_title == ""
 
     # The title_chat function, with force_title=True
     # should return a title
-    chat_title = title_chat(chat.id, force_title=True)
+    chat_title = title_chat(chat.id, llm, force_title=True)
     assert chat_title != ""
 
     # Add a third message
@@ -52,7 +54,7 @@ def test_title_chat(client, all_apps_user):
 
     # The title_chat function, with force_title=False
     # should now return a title since there are 3 messages
-    chat_title = title_chat(chat.id, force_title=False)
+    chat_title = title_chat(chat.id, llm, force_title=False)
     assert chat_title != ""
 
 
@@ -191,46 +193,54 @@ def test_translate_file(client, all_apps_user):
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_htmx_stream_stop(client, all_apps_user):
+    llm = OttoLLM()
+
     async def stream_generator():
         yield "first thing"
-        yield "second thing<<END>>"
+        yield "second thing"
+        yield "third thing"
 
     # We first need an empty chat and a message
     user = await sync_to_async(all_apps_user)("test_user_stream_stop")
+    await sync_to_async(client.force_login)(user)
     chat = await sync_to_async(Chat.objects.create)(user=user)
     message = await sync_to_async(Message.objects.create)(chat=chat, text="Hello")
-    assert await sync_to_async(chat.messages.count)() == 1
+    response_message = await sync_to_async(Message.objects.create)(
+        chat=chat, mode="chat", is_bot=True, parent=message
+    )
+    assert await sync_to_async(chat.messages.count)() == 2
     response_stream = htmx_stream(
         chat,
-        message.id,
+        response_message.id,
         response_replacer=stream_generator(),
-        save_message=False,
         format=False,
+        llm=llm,
     )
-    await sync_to_async(client.force_login)(user)
     # Iterate over the response_stream generator
     final_output = ""
     first = True
     async for yielded_output in response_stream:
-        print(yielded_output)
         if first:
             assert "first thing" in yielded_output
             # Stop the stream by requesting chat:stop_response
             response = await sync_to_async(client.get)(
-                reverse("chat:stop_response", args=[message.id])
+                reverse("chat:stop_response", args=[response_message.id])
             )
+            first = False
             assert response.status_code == 200
         # Output should start with "data: " for Server-Sent Events
         assert yielded_output.startswith("data: ")
         # Output should end with a double newline
         assert yielded_output.endswith("\n\n")
         final_output = yielded_output
-    assert "first thing" in final_output
-    assert "second thing" not in final_output
+    # Before stopping, the second generated message should be in the output
+    assert "second thing" in final_output
+    # However, the third message should not be in the output
+    assert "third thing" not in final_output
     # There should be an element in the response to replace the SSE div
     assert "<div hx-swap-oob" in final_output
-    # A new message should NOT have been created since save_message=False
-    assert await sync_to_async(chat.messages.count)() == 1
+    # A new message should NOT have been created
+    assert await sync_to_async(chat.messages.count)() == 2
 
 
 @pytest.mark.django_db
@@ -281,6 +291,28 @@ def test_delete_chat(client, all_apps_user):
     # This should give a 404
     response = client.post(reverse("chat:delete_chat", args=[chat.id, chat.id]))
     assert response.status_code == 404
+
+
+# Test delete_all_chats view
+@pytest.mark.django_db
+def test_delete_all_chats(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create multiple chats for the user
+    Chat.objects.create(user=user)
+    Chat.objects.create(user=user)
+    assert Chat.objects.filter(user=user).count() == 2
+
+    # Call the delete_all_chats view
+    response = client.get(reverse("chat:delete_all_chats"))
+
+    # Check that all chats are deleted
+    assert response.status_code == 200
+    assert Chat.objects.filter(user=user).count() == 0
+
+    # Check that the response contains the HX-Redirect header
+    assert response["HX-Redirect"] == reverse("chat:new_chat")
 
 
 # Test init_upload view

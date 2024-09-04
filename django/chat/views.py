@@ -13,8 +13,10 @@ from django.views.decorators.http import require_GET, require_POST
 
 from rules.contrib.views import objectgetter
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm, ChatRenameForm, DataSourcesForm
+from chat.llm import OttoLLM
 from chat.metrics.activity_metrics import (
     chat_new_session_started_total,
     chat_request_type_total,
@@ -257,6 +259,21 @@ def delete_chat(request, chat_id, current_chat=None):
     return HttpResponse(status=200)
 
 
+@app_access_required("chat")
+def delete_all_chats(request):
+
+    # delete all chats for the user
+    chat = Chat.objects.filter(user=request.user)
+    chat.delete()
+
+    logger.info("all chats deleted")
+
+    # redirect user to new chat
+    response = HttpResponse()
+    response["HX-Redirect"] = reverse("chat:new_chat")
+    return response
+
+
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def chat(request, chat_id):
     """
@@ -264,6 +281,7 @@ def chat(request, chat_id):
     """
 
     logger.info("Chat session retrieved.", chat_id=chat_id)
+    bind_contextvars(feature="chat")
 
     chat = Chat.objects.get(id=chat_id)
     # Get chat options
@@ -292,15 +310,20 @@ def chat(request, chat_id):
         .order_by("-created_at")
     )
     # Title chats in sidebar if necessary & set default labels
+    llm = None
     for user_chat in user_chats:
         user_chat.current_chat = user_chat.id == chat.id
         if user_chat.title.strip() == "":
-            user_chat.title = title_chat(user_chat.id)
+            if not llm:
+                llm = OttoLLM("gpt-35")
+            user_chat.title = title_chat(user_chat.id, llm=llm)
             if not user_chat.current_chat:
                 user_chat.save()
         if not user_chat.security_label:
             user_chat.security_label_id = SecurityLabel.default_security_label().id
             user_chat.save()
+    if llm:
+        llm.create_costs()
 
     # Usage metrics
     awaiting_response = request.GET.get("awaiting_response") == "True"
@@ -354,10 +377,10 @@ def chat_message(request, chat_id):
     user_message_text = request.POST.get("user-message", "").strip()
     mode = chat.options.mode
 
-    logger.info(
+    logger.debug(
         "User message received.",
         chat_id=chat_id,
-        user_message=user_message_text,
+        user_message=f"{user_message_text[:100]}{'...' if len(user_message_text) > 100 else ''}",
         mode=mode,
     )
 
@@ -394,7 +417,7 @@ def init_upload(request, chat_id):
     Creates a file upload progress message in the chat and initiates the file upload
     """
     chat = Chat.objects.get(id=chat_id)
-    mode = request.GET.get("mode", "summarize")
+    mode = chat.options.mode
     # Create the user's message in database
     logger.info("File upload initiated.", chat_id=chat_id, mode=mode)
     message = Message.objects.create(chat=chat, text="", is_bot=False, mode=mode)

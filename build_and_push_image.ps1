@@ -1,46 +1,16 @@
-$VPN_DEFAULT_GATEWAY = "10.100.64.1"
-
-# Wait for VPN connection
-while (-not (Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet)) {
-    Write-Host "Not connected to VPN. Waiting for connection..."
-    Start-Sleep -Seconds 10
-}
-Write-Host "VPN connection detected. Proceeding with the script..."
-
 # Ensure Azure login and correct subscription selection
 az login
-Write-Host "Select the subscription to use:"
-az account list --query "[].{Name:name, SubscriptionId:id}" --output table
+Write-Host "Available subscriptions:"
+az account list --query "[].{SubscriptionId:id, Name:name}" --output table
 $SUBSCRIPTION_ID = Read-Host -Prompt "Enter the Subscription ID you want to use"
 az account set --subscription $SUBSCRIPTION_ID
 
 # Prompt for inputs
-Write-Host "Select the container registry to use:"
-az acr list --query "[].{ResourceGroup:resourceGroup, Name:name}" --output table
-$REGISTRY_NAME = Read-Host -Prompt "Enter the registry name"
+Write-Host "Available container registries:"
+az acr list --query "[].{Name:name, ResourceGroup:resourceGroup}" --output table
+$REGISTRY_NAME = Read-Host -Prompt "Enter the registry name you want to use"
 
 $VERSION = Read-Host -Prompt "Enter the version number (e.g., v1.0.0)"
-
-$timeout = 60  # Timeout in seconds
-
-if (Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet) {
-    Write-Host "VPN connection detected. Please disconnect within $timeout seconds."
-
-    $startTime = Get-Date
-    do {
-        if (-not (Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet)) {
-            Write-Host "VPN disconnected. Proceeding with the script..."
-            break
-        }
-        Start-Sleep -Seconds 10
-        Write-Host "VPN still connected. Waiting for disconnection..."
-    } while (((Get-Date) - $startTime).TotalSeconds -lt $timeout)
-
-    if (Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet) {
-        Write-Host "Timeout reached. VPN is still connected. Attempting to use Docker cache."
-        break
-    }
-}
 
 # Get the latest Git commit hash dynamically
 $GITHUB_HASH = & git rev-parse HEAD
@@ -66,18 +36,18 @@ Copy-Item -Path $tempFile -Destination "./django/version.yaml"
 $IMAGE_NAME = "$($REGISTRY_NAME).azurecr.io/otto"
 $SPECIFIC_TAG = "$VERSION-$BUILD_NUMBER"
 
+# Inform the user that, if the image doesn't exist in the Docker cache, they will need to be off the JUS network to pull the base image
+Write-Host "If the image doesn't exist in the Docker cache, you will need to be off the JUS network to pull the base image."
+$continue = Read-Host -Prompt "Do you want to continue? (y/N)"
+if ($continue -ne "y") {
+    exit
+}
+
 # Build Docker image
 docker build -t ${IMAGE_NAME}:${SPECIFIC_TAG} -f ./django/Dockerfile ./django
 
 # Tag Docker image for ACR
 docker tag ${IMAGE_NAME}:${SPECIFIC_TAG} ${IMAGE_NAME}:latest
-
-# Wait for VPN connection
-while (-not (Test-Connection -ComputerName $VPN_DEFAULT_GATEWAY -Count 1 -Quiet)) {
-    Write-Host "Not connected to VPN. Waiting for connection..."
-    Start-Sleep -Seconds 10
-}
-Write-Host "VPN connection detected. Proceeding with the script..."
 
 # Login to ACR
 az acr login --name $REGISTRY_NAME

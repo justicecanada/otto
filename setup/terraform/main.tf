@@ -1,3 +1,6 @@
+terraform {
+  backend "azurerm" {}
+}
 
 # Use modules for different resources
 module "resource_group" {
@@ -7,9 +10,14 @@ module "resource_group" {
   tags     = local.common_tags
 }
 
-# Data source for Azure AD group
+# Data source for Azure AD group of KeyVault and AKS administrators
 data "azuread_group" "admin_group" {
-  display_name = var.group_name
+  display_name = var.admin_group_name
+}
+
+# Data source for Azure AD group of ACR publishers
+data "azuread_group" "acr_publishers" {
+  display_name = var.acr_publishers_group_name
 }
 
 # Key Vault module
@@ -31,6 +39,7 @@ module "acr" {
   location            = var.location
   acr_sku             = "Basic"
   tags                = local.common_tags
+  acr_publishers_id   = data.azuread_group.acr_publishers.object_id
   keyvault_id         = module.keyvault.keyvault_id
 }
 
@@ -85,13 +94,17 @@ module "cognitive_services" {
 
 # OpenAI module
 module "openai" {
-  source               = "./modules/openai"
-  name                 = var.openai_service_name
-  location             = var.location
-  resource_group_name  = module.resource_group.name
-  keyvault_id          = module.keyvault.keyvault_id
-  tags                 = local.common_tags
-  wait_for_propagation = module.keyvault.wait_for_propagation
+  source                          = "./modules/openai"
+  name                            = var.openai_service_name
+  location                        = var.location
+  resource_group_name             = module.resource_group.name
+  keyvault_id                     = module.keyvault.keyvault_id
+  tags                            = local.common_tags
+  wait_for_propagation            = module.keyvault.wait_for_propagation
+  gpt_35_turbo_capacity           = var.gpt_35_turbo_capacity
+  gpt_4_turbo_capacity            = var.gpt_4_turbo_capacity
+  gpt_4o_capacity                 = var.gpt_4o_capacity
+  text_embedding_3_large_capacity = var.text_embedding_3_large_capacity
 }
 
 # AKS module
@@ -105,7 +118,6 @@ module "aks" {
   acr_id                 = module.acr.acr_id
   disk_encryption_set_id = module.disk.disk_encryption_set_id
   storage_account_id     = module.storage.storage_account_id
-  host_name_prefix       = var.host_name_prefix
   tags                   = local.common_tags
 }
 

@@ -91,18 +91,17 @@ SESSION_SAVE_EVERY_REQUEST = True  # Reset the timeout on every request
 # OpenAI
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
-# https://openai.com/pricing
+# TODO: Replace with Cost model (this is used in Template Wizard)
 OPENAI_COST_PER_TOKEN = 0.0020 / 1000
 OPENAI_EMBEDDING_COST_PER_TOKEN = 0.0004 / 1000
 
 DEFAULT_CHAT_MODEL = "gpt-4o"
+USD_TO_CAD = 1.36
 
 
 # Azure Cognitive Services
 AZURE_COGNITIVE_SERVICE_ENDPOINT = os.environ.get("AZURE_COGNITIVE_SERVICE_ENDPOINT")
 AZURE_COGNITIVE_SERVICE_REGION = os.environ.get("AZURE_COGNITIVE_SERVICE_REGION")
-AZURE_STANDARD_TRANSLATION = 13.33
-AZURE_DOCUMENT_TRANSLATION = 20.00
 
 AZURE_ACCOUNT_NAME = os.environ.get(
     "AZURE_STORAGE_ACCOUNT_NAME", ""
@@ -157,6 +156,7 @@ INSTALLED_APPS = [
     "channels",
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [

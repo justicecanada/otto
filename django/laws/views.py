@@ -1,4 +1,4 @@
-import time
+import asyncio
 import urllib.parse
 
 from django.conf import settings
@@ -10,13 +10,12 @@ from django.utils.translation import gettext as _
 
 import markdown
 import tiktoken
-from llama_index.core import ChatPromptTemplate, PromptTemplate
+from llama_index.core import ChatPromptTemplate
 from llama_index.core.llms import ChatMessage, MessageRole
-from rules.contrib.views import permission_required
 from structlog import get_logger
 
-from chat.utils import llm_response_to_html, sync_generator_to_async
-from otto.utils.decorators import app_access_required, permission_required
+from chat.utils import llm_response_to_html
+from otto.utils.decorators import app_access_required
 
 from .models import Law
 from .prompts import qa_prompt_instruction_tmpl, system_prompt
@@ -46,6 +45,12 @@ def _num_tokens(string: str, model_name: str) -> int:
     encoding = tiktoken.encoding_for_model(model_name)
     num_tokens = len(encoding.encode(string))
     return num_tokens
+
+
+async def sync_generator_to_async(generator):
+    for value in generator:
+        yield value
+        await asyncio.sleep(0)  # This will allow other async tasks to run
 
 
 def _get_source_node(node_id):

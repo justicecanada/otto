@@ -32,10 +32,18 @@ spec:
       labels:
         pod: celery-worker
     spec:
+      # The Celery worker and beat processes run as a non-root user (UID 1000)
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: celery-worker
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the latest image from Azure Container Registry
           command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--concurrency=16']  # Starts Celery worker with 16 concurrent tasks
+          securityContext:
+            allowPrivilegeEscalation: false  # Privilege escalation is disabled
+            readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
           envFrom:
             - configMapRef:
                 name: otto-configmap  # Loads environment variables from a ConfigMap
@@ -87,6 +95,8 @@ spec:
               readOnly: true
             - name: media-pv-storage
               mountPath: "/data/media"  # Mounts shared storage for media
+            - name: tmp
+              mountPath: /tmp # A writable /tmp directory is provided for temporary files
       volumes:
       - name: secrets
         csi:
@@ -97,6 +107,8 @@ spec:
       - name: media-pv-storage
         persistentVolumeClaim:
           claimName: media-pvc  # References the PVC defined earlier
+      - name: tmp
+        emptyDir: {}
 
 ---
 
@@ -119,10 +131,18 @@ spec:
       labels:
         pod: celery-beat
     spec:
+      # The Celery worker and beat processes run as a non-root user (UID 1000)
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: celery-beat
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the same image as the worker
-          command: ['celery', '-A', 'otto', 'beat', '-l', 'INFO']  # Starts Celery beat scheduler
+          command: ['celery', '-A', 'otto', 'beat', '-l', 'INFO', '--scheduler', 'django_celery_beat.schedulers:DatabaseScheduler']  # Starts Celery beat scheduler
+          securityContext:
+            allowPrivilegeEscalation: false  # Privilege escalation is disabled
+            readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
           envFrom:
             - configMapRef:
                 name: otto-configmap  # Loads environment variables from a ConfigMap
@@ -171,9 +191,11 @@ spec:
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
-              readOnly: true  # Mounts secrets from Azure Key Vault
+              readOnly: true
             - name: media-pv-storage
-              mountPath: "/data/media"  # Mounts shared storage for media files
+              mountPath: "/data/media"
+            - name: tmp
+              mountPath: /tmp  # Mounts the writable directory for the schedule file
       volumes:
       - name: secrets
         csi:
@@ -184,3 +206,5 @@ spec:
       - name: media-pv-storage
         persistentVolumeClaim:
           claimName: media-pvc  # References the same PVC as the worker
+      - name: tmp
+        emptyDir: {}  # Provides a writable directory for the celerybeat-schedule file
