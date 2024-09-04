@@ -1,0 +1,50 @@
+{% load i18n %}
+
+{% block page_css %}
+  <style>
+  .btn-ghost {
+    background-color: transparent !important;
+    border: none !important;
+
+    &:focus-visible {
+      outline-style: solid !important;
+      outline-width: 2px !important;
+      outline-color: black !important;
+    }
+  }
+
+  .card-footer {
+    display: flex;
+    background-color: none !important;
+    padding: 0;
+
+    button {
+      padding: var(--bs-btn-cap-padding-y) var(--bs-btn-cap-padding-x);
+    }
+
+    &>button+button {
+      border 0 solid var(--bs-card-border-color) !important;
+      border-left-width: 1px !important;
+      border-radius: 0;
+    }
+
+    &:focus-visible {
+      border-bottom-right-radius: var(--bs-card-inner-border-radius) !important;
+    }
+  }
+  </style>
+{% endblock page_css %}
+
+<div class="modal modal-xl fade sources-modal show"
+     id="sources-modal"
+     tabindex="0"
+     aria-label='{% trans "Presets" %}'
+     aria-hidden="true"
+     style="display: block">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      {# {% include "chat/modals/presets/presets_list.html" %} #}
+      {% include "chat/modals/presets/presets_form.html" %}
+    </div>
+  </div>
+</div>

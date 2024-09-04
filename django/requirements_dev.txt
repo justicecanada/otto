@@ -7,3 +7,4 @@ django-debug-toolbar==4.3.0
 djlint==1.34.1
 watchdog==4.0.1
 rich==13.7.1
+django-livereload-server==0.5.1

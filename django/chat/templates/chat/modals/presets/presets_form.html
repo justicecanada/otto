@@ -1,0 +1,80 @@
+{% load i18n %}
+
+{% block page_css %}
+
+  <style>
+  .nav-link {
+    color: var(--bs-body-color);
+    font-size: 0.875rem;
+    font-weight: 600;
+
+    &:hover {
+      color: var(--bs-gray-900);
+      font-weight: bold outline: none;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 0.15rem rgba(66, 70, 73, 0.5);
+    }
+  }
+  </style>
+
+{% endblock page_css %}
+
+<div class="modal-header">
+  <h5 class="modal-title w-100 h-6" style="font-weight: 600;">{% trans "Create / Edit Presets" %}</h5>
+  <button type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="{% trans 'Close' %}"></button>
+</div>
+
+<div class="modal-body">
+
+  <div class="d-flex flex-column">
+    <ul class="nav nav-underline nav-fill"
+        id="presset-edit-tabs"
+        role="tablist">
+
+      <li class="nav-item" role="presentation">
+        <button id="en-preset-tab"
+                class="active nav-link"
+                data-bs-target="#en-preset-tab-pane"
+                data-bs-toggle="pill"
+                type="button"
+                role="tab"
+                aria-controls="en-preset-tab-pane"
+                aria-selected="true">EN</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button id="fr-preset-tab"
+                class="nav-link"
+                data-bs-target="#fr-preset-tab-pane"
+                data-bs-toggle="pill"
+                type="button"
+                role="tab"
+                aria-controls="fr-preset-tab-pane"
+                aria-selected="false">FR</button>
+      </li>
+    </ul>
+
+    <div class="tab-content border-bottom pt-4">
+      <div class="tab-pane fade show active"
+           id="en-preset-tab-pane"
+           role="tabpanel"
+           aria-labelledby="en-preset-tab"
+           tabindex="0">
+        <h3>English</h3>
+      </div>
+      <div class="tab-pane fade"
+           id="fr-preset-tab-pane"
+           role="tabpanel"
+           aria-labelledby="fr-preset-tab"
+           tabindex="0">
+        <h3>French</h3>
+      </div>
+    </div>
+  </div>
+
+</div>
