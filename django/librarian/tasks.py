@@ -60,7 +60,7 @@ def process_document(document_id, language=None):
     costs = llm.create_costs(
         user=user, feature=feature, request_id=request_id, document=document
     )
-    document.usd_cost = costs[0].usd_cost
+    document.usd_cost = document.usd_cost + costs[0].usd_cost
     document.save()
 
 

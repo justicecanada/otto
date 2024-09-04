@@ -386,7 +386,7 @@ def create_temp_object(item_type):
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 def document_start(request, document_id):
     bind_contextvars(feature="librarian")
-    
+
     # Initiate celery task
     document = get_object_or_404(Document, id=document_id)
     document.process()

@@ -14,6 +14,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import reflection
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from otto.models import SecurityLabel, User
@@ -387,6 +388,8 @@ class Document(models.Model):
 
     def process(self):
         from .tasks import process_document
+
+        bind_contextvars(document_id=self.id)
 
         # Logic for updating the document embeddings, metadata, etc.
         if not (self.file or self.url):
