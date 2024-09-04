@@ -141,7 +141,7 @@ class OttoLLM:
     def get_retriever(
         self,
         vector_store_table: str,
-        filters: MetadataFilters,
+        filters: MetadataFilters = None,
         top_k: int = 5,
         vector_weight: float = 0.6,
     ) -> QueryFusionRetriever:

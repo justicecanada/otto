@@ -156,7 +156,7 @@ class Library(models.Model):
         session.close()
         if recreate:
             # This will create the vector store table
-            llm.get_index(self.uuid_hex)
+            llm.get_retriever(self.uuid_hex).retrieve("?")
 
     @property
     def sorted_data_sources(self):

@@ -47,7 +47,6 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     When a data source is visible that contains in-progress documents, the modal will
     poll for updates until all documents are processed or stopped.
     """
-    print(f"modal: {item_type}, {item_id}, {parent_id}")
     libraries = get_editable_libraries(request.user)
     selected_library = None
     data_sources = None
@@ -268,7 +267,6 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "poll_url": poll_url,
         "poll_response": "poll" in request.GET,
     }
-    print("poll response:", context["poll_response"])
     return render(request, "librarian/modal_inner.html", context)
 
 
