@@ -3250,5 +3250,13 @@
     "Costs": {
         "fr": "",
         "fr_auto": "Coûts"
+    },
+    "Processing cost (cumulative)": {
+        "fr": "",
+        "fr_auto": "Coût de traitement (cumulatif)"
+    },
+    "Legislation loading": {
+        "fr": "",
+        "fr_auto": "Chargement de la législation"
     }
 }

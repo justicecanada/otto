@@ -13,7 +13,6 @@ from asgiref.sync import sync_to_async
 from llama_index.core import PromptTemplate
 from llama_index.core.prompts import PromptType
 from newspaper import Article
-from structlog.contextvars import get_contextvars
 
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
@@ -213,16 +212,9 @@ async def htmx_stream(
 
         yield sse_string(full_message, format, dots=False, remove_stop=True)
 
-        request_context = get_contextvars()
-        message = await sync_to_async(Message.objects.get)(id=message_id)
-        costs = await sync_to_async(llm.create_costs)(
-            user=await sync_to_async(lambda: chat.user)(),
-            feature=message.mode,
-            message=message,
-            request_id=request_context.get("request_id"),
-        )
+        await sync_to_async(llm.create_costs)()
 
-        message.usd_cost = message.usd_cost + sum([cost.usd_cost for cost in costs])
+        message = await sync_to_async(Message.objects.get)(id=message_id)
         message.text = full_message
         await sync_to_async(message.save)()
 

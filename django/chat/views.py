@@ -13,7 +13,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from rules.contrib.views import objectgetter
 from structlog import get_logger
-from structlog.contextvars import get_contextvars
+from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm, ChatRenameForm, DataSourcesForm
 from chat.llm import OttoLLM
@@ -281,6 +281,7 @@ def chat(request, chat_id):
     """
 
     logger.info("Chat session retrieved.", chat_id=chat_id)
+    bind_contextvars(feature="chat")
 
     chat = Chat.objects.get(id=chat_id)
     # Get chat options
@@ -322,11 +323,7 @@ def chat(request, chat_id):
             user_chat.security_label_id = SecurityLabel.default_security_label().id
             user_chat.save()
     if llm:
-        llm.create_costs(
-            user=request.user,
-            request_id=get_contextvars().get("request_id"),
-            feature="chat",
-        )
+        llm.create_costs()
 
     # Usage metrics
     awaiting_response = request.GET.get("awaiting_response") == "True"

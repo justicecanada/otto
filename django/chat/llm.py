@@ -106,36 +106,20 @@ class OttoLLM:
     def embed_token_count(self):
         return self._token_counter.total_embedding_token_count
 
-    def create_costs(self, **kwargs) -> list[Cost]:
+    def create_costs(self) -> None:
         """
         Create Otto Cost objects for the given user and feature.
         """
-        costs = []
         if self.input_token_count > 0:
-            costs.append(
-                Cost.objects.new(
-                    cost_type=f"{self.deployment}-in",
-                    count=self.input_token_count,
-                    **kwargs,
-                )
+            Cost.objects.new(
+                cost_type=f"{self.deployment}-in", count=self.input_token_count
             )
         if self.output_token_count > 0:
-            costs.append(
-                Cost.objects.new(
-                    cost_type=f"{self.deployment}-out",
-                    count=self.output_token_count,
-                    **kwargs,
-                )
+            Cost.objects.new(
+                cost_type=f"{self.deployment}-out", count=self.output_token_count
             )
         if self.embed_token_count > 0:
-            costs.append(
-                Cost.objects.new(
-                    cost_type="embedding",
-                    count=self.embed_token_count,
-                    **kwargs,
-                )
-            )
-        return costs
+            Cost.objects.new(cost_type="embedding", count=self.embed_token_count)
 
     # RAG-related getters for retriever (get sources only) and response synthesizer
     def get_retriever(

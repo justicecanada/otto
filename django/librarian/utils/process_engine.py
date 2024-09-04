@@ -11,7 +11,6 @@ import filetype
 import requests
 from bs4 import BeautifulSoup
 from structlog import get_logger
-from structlog.contextvars import get_contextvars
 
 from chat.models import Message
 from librarian.models import Document
@@ -519,32 +518,7 @@ def _pdf_to_html_using_azure(content):
     result = poller.result()
 
     num_pages = len(result.pages)
-    request_context = get_contextvars()
-    document = (
-        Document.objects.get(id=request_context.get("document_id"))
-        if request_context.get("document_id")
-        else None
-    )
-    message = (
-        Message.objects.get(id=request_context.get("message_id"))
-        if request_context.get("message_id")
-        else None
-    )
-    cost = Cost.objects.new(
-        cost_type="doc-ai-prebuilt",
-        count=num_pages,
-        user=User.objects.get(id=request_context.get("user_id")),
-        feature=request_context.get("feature"),
-        request_id=request_context.get("request_id"),
-        document=document,
-        message=message,
-    )
-    if message:
-        message.usd_cost = message.usd_cost + cost.usd_cost
-        message.save()
-    if document:
-        document.usd_cost = document.usd_cost + cost.usd_cost
-        document.save()
+    cost = Cost.objects.new(cost_type="doc-ai-prebuilt", count=num_pages)
 
     # Extract table bounding regions
     table_bounding_regions = []

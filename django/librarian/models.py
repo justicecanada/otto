@@ -18,7 +18,7 @@ from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from otto.models import SecurityLabel, User
-from otto.utils.common import display_cad_cost
+from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
 llm = OttoLLM()
@@ -410,6 +410,9 @@ class Document(models.Model):
         self.celery_task_id = None
         self.status = "BLOCKED"
         self.save()
+
+    def calculate_costs(self):
+        set_costs(self)
 
 
 class SavedFile(models.Model):

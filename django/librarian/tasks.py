@@ -8,7 +8,6 @@ from django.utils.translation import gettext as _
 from celery import current_task, shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from structlog import get_logger
-from structlog.contextvars import get_contextvars
 from tqdm import tqdm
 
 from chat.llm import OttoLLM
@@ -53,15 +52,7 @@ def process_document(document_id, language=None):
         document.celery_task_id = None
         document.save()
 
-    request_context = get_contextvars()
-    feature = request_context.get("feature")  # "translate"
-    request_id = request_context.get("request_id")
-    user = User.objects.get(id=request_context.get("user_id"))
-    costs = llm.create_costs(
-        user=user, feature=feature, request_id=request_id, document=document
-    )
-    document.usd_cost = document.usd_cost + costs[0].usd_cost
-    document.save()
+    llm.create_costs()
 
 
 def process_document_helper(document, llm):

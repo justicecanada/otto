@@ -69,21 +69,10 @@ def translate_file(file_path, target_language):
         result = poller.result()
 
         usage = poller.details.total_characters_charged
+        Cost.objects.new(cost_type="translate-file", count=usage)
 
         request_context = get_contextvars()
         out_message = Message.objects.get(id=request_context.get("message_id"))
-        # Add the cost
-        cost = Cost.objects.new(
-            cost_type="translate-file",
-            count=usage,
-            user=User.objects.get(id=request_context.get("user_id")),
-            feature=request_context.get("feature"),
-            message=out_message,
-            request_id=request_context.get("request_id"),
-        )
-
-        out_message.usd_cost = out_message.usd_cost + cost.usd_cost
-        out_message.save()
         for document in result:
             if document.status == "Succeeded":
                 # Save the translated file to the database

@@ -268,14 +268,39 @@ class CostType(models.Model):
 
 class CostManager(models.Manager):
 
-    def new(self, cost_type: str, count: int, **kwargs) -> "Cost":
+    def new(self, cost_type: str, count: int) -> "Cost":
+        from structlog.contextvars import get_contextvars
+
+        from chat.models import Message
+        from librarian.models import Document
+
         cost_type = CostType.objects.get(short_name=cost_type)
-        return self.create(
+
+        # The rest of the fields are optional & stored in structlog request context
+        request_context = get_contextvars()
+        message_id = request_context.get("message_id")
+        document_id = request_context.get("document_id")
+        user_id = request_context.get("user_id")
+
+        cost_object = self.create(
             cost_type=cost_type,
             count=count,
             usd_cost=(count * cost_type.unit_cost) / cost_type.unit_quantity,
-            **kwargs,
+            # Optional fields from request context
+            feature=request_context.get("feature"),
+            request_id=request_context.get("request_id"),
+            user=User.objects.get(id=user_id) if user_id else None,
+            message=Message.objects.get(id=message_id) if message_id else None,
+            document=Document.objects.get(id=document_id) if document_id else None,
         )
+
+        # Recalculate document and message costs, if applicable
+        if cost_object.document:
+            cost_object.document.calculate_costs()
+        if cost_object.message:
+            cost_object.message.calculate_costs()
+
+        return cost_object
 
     def get_user_cost(self, user):
         # Total cost for a user
