@@ -264,7 +264,7 @@ def translate_response(chat, response_message):
             # file is a django ChatFile object with property "file" that is a FileField
             # We need the path of the file to pass to the Celery task
             file_path = file.saved_file.file.path
-            task = translate_file.delay(file_path, response_message.id, language)
+            task = translate_file.delay(file_path, language)
             task_ids.append(task.id)
         return StreamingHttpResponse(
             # No cost because file translation costs are calculated in Celery task

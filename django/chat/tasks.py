@@ -31,7 +31,7 @@ def azure_delete(path):
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def translate_file(file_path, out_message_id, target_language):
+def translate_file(file_path, target_language):
     try:
         from chat.models import ChatFile, Message
 
@@ -70,23 +70,19 @@ def translate_file(file_path, out_message_id, target_language):
 
         usage = poller.details.total_characters_charged
 
-        # Add the cost
         request_context = get_contextvars()
-        feature = request_context.get("feature")  # should be "translate"
-        request_id = request_context.get("request_id")
-        user = User.objects.get(id=request_context.get("user_id"))
-        out_message = Message.objects.get(id=out_message_id)
+        out_message = Message.objects.get(id=request_context.get("message_id"))
+        # Add the cost
         cost = Cost.objects.new(
             cost_type="translate-file",
             count=usage,
-            user=user,
-            feature=feature,
+            user=User.objects.get(id=request_context.get("user_id")),
+            feature=request_context.get("feature"),
             message=out_message,
-            request_id=request_id,
+            request_id=request_context.get("request_id"),
         )
-        print(f"Cost: {cost}")
 
-        out_message.usd_cost = float(out_message.usd_cost) + float(cost.usd_cost)
+        out_message.usd_cost = out_message.usd_cost + cost.usd_cost
         out_message.save()
         for document in result:
             if document.status == "Succeeded":

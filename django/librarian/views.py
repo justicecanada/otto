@@ -47,6 +47,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     When a data source is visible that contains in-progress documents, the modal will
     poll for updates until all documents are processed or stopped.
     """
+    bind_contextvars(feature="librarian")
+
     libraries = get_editable_libraries(request.user)
     selected_library = None
     data_sources = None
@@ -73,7 +75,6 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                     ),
                 )
                 if not item_id:
-                    bind_contextvars(feature="librarian")
                     form.instance.process()
                 selected_document = form.instance
                 selected_data_source = selected_document.data_source
@@ -384,8 +385,9 @@ def create_temp_object(item_type):
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 def document_start(request, document_id):
-    # Initiate celery task
     bind_contextvars(feature="librarian")
+    
+    # Initiate celery task
     document = get_object_or_404(Document, id=document_id)
     document.process()
     return modal_view(request, item_type="document", item_id=document_id)
@@ -407,9 +409,8 @@ def upload(request, data_source_id):
     Handles POST request for (multiple) document upload
     <input type="file" name="file" id="document-file-input" multiple>
     """
-    print(f"upload: {data_source_id}")
-    print(request.FILES)
     bind_contextvars(feature="librarian")
+
     for file in request.FILES.getlist("file"):
         file_obj = SavedFile.objects.create(content_type=file.content_type)
         file_obj.file.save(file.name, file)

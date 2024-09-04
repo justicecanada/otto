@@ -13,7 +13,7 @@ from asgiref.sync import sync_to_async
 from llama_index.core import PromptTemplate
 from llama_index.core.prompts import PromptType
 from newspaper import Article
-from structlog.contextvars import bind_contextvars, get_contextvars
+from structlog.contextvars import get_contextvars
 
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
@@ -222,8 +222,7 @@ async def htmx_stream(
             request_id=request_context.get("request_id"),
         )
 
-        total_cost = sum([cost.usd_cost for cost in costs])
-        message.usd_cost = total_cost
+        message.usd_cost = message.usd_cost + sum([cost.usd_cost for cost in costs])
         message.text = full_message
         await sync_to_async(message.save)()
 

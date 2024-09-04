@@ -14,6 +14,6 @@ def file_size_to_string(filesize):
 
 def display_cad_cost(usd_cost):
     approx_cost_cad = float(usd_cost) * settings.USD_TO_CAD
-    if approx_cost_cad < 0.005:
+    if approx_cost_cad < 0.01:
         return "< $0.01"
     return f"${approx_cost_cad:.2f}"
