@@ -337,11 +337,11 @@ $(document).on('click', '[data-bs-target="#summarizationModal"]', function () {
 $(document).on('submit', '#summarizeForm', function (e) {
   e.preventDefault();
   const form = $('#summarizeForm');
-  //const documentId = $('#summarizationModal').data('document-id');
-  const selectedDocumentIds = $('#summarizationModal').data('document-ids');
+  const documentId = $('#summarizationModal').data('document-id');
+  //const selectedDocumentIds = $('#summarizationModal').data('document-ids');
 
   const requestData = {
-    document_ids: selectedDocumentIds,
+    document_id: documentId,
     length: form.find('select[name="length"]').val(),
     target_language: form.find('select[name="target_language"]').val()
   };
@@ -363,7 +363,7 @@ $(document).on('submit', '#summarizeForm', function (e) {
     },
     success: function (data) {
       console.log('Summarization successful:', data);
-      $('#summaryResult').html('Summary Document Created!');
+      $('#summaryResult').html(data.summarized_text);
       $('#loadingButton').hide();
       $('#generateButton').show();
       location.reload();
