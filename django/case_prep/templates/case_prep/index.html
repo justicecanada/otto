@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="{% static 'case_prep/style.css' %}">
 {% endblock %}
 
-{% block main_content_id %}session-list{% endblock %}
+{% block main_content_id %}session-table{% endblock %}
 
 {% block content_container %}
 
@@ -53,7 +53,7 @@
       <h2 class="my-4">{% trans "Case prep assistant" %}</h2>
 
       <!-- Session List -->
-      <table class="table" id="session-list">
+      <table class="table" id="session-table">
         <thead>
           <tr>
             <th scope="col">{% trans "Session Name" %}</th>
