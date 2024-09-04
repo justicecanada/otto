@@ -93,10 +93,10 @@ cd setup
 
 ### 2. Create infrastructure using Terraform:
 
-Run the following command to create the infrastructure for the specified environment. Replace `<env>` with the environment you want to deploy to (e.g. `sandbox`, `uat`, `prod`).
+Run the following command to create the infrastructure for the specified environment:
 
 ```bash
-bash run_terraform.sh <env>
+bash run_terraform.sh
 ```
 
 > [!NOTE]

@@ -4,23 +4,34 @@ source setup_env.sh
 
 cd k8s
 
-# Check if the image exists
-export IMAGE_EXISTS=$(
-    az acr repository show-tags \
-        --name $ACR_NAME \
-        --repository otto \
-        --output tsv | grep -q "^latest$" && echo true || echo false
-    )
+while true; do
+    # Check if the image exists
+    export IMAGE_EXISTS=$(
+        az acr repository show-tags \
+            --name $ACR_NAME \
+            --repository otto \
+            --output tsv | grep -q "^latest$" && echo true || echo false
+        )
 
-if [[ $IMAGE_EXISTS == "false" ]]; then
-    echo "The latest image does not exist in the ACR. Exiting..."
-    return 1
-fi
+    if [[ $IMAGE_EXISTS == "true" ]]; then
+        echo "The latest image exists in the ACR. Continuing..."
+        break
+    else
+        echo "The latest image does not exist in the ACR."
+        read -p "Press 'y' to check again when the image exists, or any other key to exit: " response
+        if [[ $response =~ ^[Yy]$ ]]; then
+            echo "Checking that the image exists..."
+        else
+            echo "Exiting..."
+            exit 0
+        fi
+    fi
+done
 
 # Get the credentials for the AKS cluster and exit if it fails
 if ! az aks get-credentials --resource-group "$RESOURCE_GROUP_NAME" --name "$AKS_CLUSTER_NAME" --overwrite-existing; then
     echo "Failed to get AKS credentials. Exiting..."
-    return 1
+    exit 0
 fi
 
 # Convert the kubeconfig to use the Azure CLI login mode, which utilizes the already logged-in context from Azure CLI to obtain the access token

@@ -1,16 +1,6 @@
 #!/bin/bash
 
-# Check if exactly one argument is provided
-if [ "$#" -ne 1 ]; then
-    echo -e "\e[1;31mError: Exactly one argument is required.\e[0m"
-    usage
-fi
-
-# Get the exmaple file location as an argument
-ENV_EXAMPLE_FILE_OVERRIDE=$1
-
 ENV_FILE=".env"
-ENV_EXAMPLE_FILE=".env.example"
 
 # Ensure Azure CLI is logged in
 if ! az account show &>/dev/null; then
@@ -50,31 +40,29 @@ if [ -z "$SUBSCRIPTION_ID" ]; then
 
 fi
 
-# Check if .env.example file exists
-if [ ! -f "$ENV_EXAMPLE_FILE" ]; then
-    echo "Error: $ENV_EXAMPLE_FILE file not found."
-    exit 1
-fi
-
-# Check if .env.example.<env> file exists
-if [ ! -f "$ENV_EXAMPLE_FILE_OVERRIDE" ]; then
-    echo "Error: $ENV_EXAMPLE_FILE_OVERRIDE file not found."
-    exit 1
-fi
-
-# Function to extract version from file
-get_version() {
-    grep "^ENV_VERSION=" "$1" | cut -d '=' -f2 | cut -d '#' -f1 | tr -d ' '
-}
-
-merged_env_example_file=$(sort -u -t '=' -k 1,1 $ENV_EXAMPLE_FILE_OVERRIDE $ENV_EXAMPLE_FILE | grep -v '^$\|^\s*\#')
-
 # Check if .env file exists
-if [ ! -f "$ENV_FILE" ]; then
-    echo "$ENV_FILE file not found. Creating from $ENV_EXAMPLE_FILE_OVERRIDE..."
-    # Merge the two files and remove any duplicate lines
-    echo "$merged_env_example_file" > $ENV_FILE
-    echo "$ENV_FILE file created successfully."
+if [ ! -f ".env" ]; then
+    read -p "Create a new .env file from an example? (y/N): " answer
+    if [[ $answer =~ ^[Yy]$ ]]; then
+        echo "Available example files to copy from:"
+        env_files=($(ls .env.*.example | sed 's/\.env\.\(.*\)\.example/\1/'))
+        printf "%s\n" "${env_files[@]}"
+        
+        while true; do
+            read -p "Select an environment to copy (you can edit values after): " env
+            if [ -f ".env.$env.example" ]; then
+                cp ".env.$env.example" ".env"
+                echo ".env file created from .env.$env.example"
+                echo "You can now edit the .env file to customize your settings."
+                break
+            else
+                echo "Invalid selection. Please choose from the list above."
+            fi
+        done
+    else
+        echo "Please create a .env file manually."
+        exit 1
+    fi
 fi
 
 # Get versions
@@ -164,7 +152,6 @@ export ADMIN_GROUP_NAMES
 export ACR_PUBLISHERS_GROUP_NAMES
 export ENTRA_CLIENT_NAME
 export ORGANIZATION
-export STORAGE_CONTAINER_NAME
 
 export APP_NAME
 export ENVIRONMENT
@@ -214,8 +201,8 @@ classification = "${CLASSIFICATION}"
 cost_center = "${COST_CENTER}"
 criticality = "${CRITICALITY}"
 owner = "${OWNER}"
-admin_group_names = ${ADMIN_GROUP_NAMES}
-acr_publishers_group_names = ${ACR_PUBLISHERS_GROUP_NAMES}
+admin_group_name = "${ADMIN_GROUP_NAME}"
+acr_publishers_group_name = "${ACR_PUBLISHERS_GROUP_NAME}"
 resource_group_name = "${RESOURCE_GROUP_NAME}"
 keyvault_name = "${KEYVAULT_NAME}"
 cognitive_services_name = "${COGNITIVE_SERVICES_NAME}"
@@ -223,7 +210,6 @@ openai_service_name = "${OPENAI_SERVICE_NAME}"
 aks_cluster_name = "${AKS_CLUSTER_NAME}"
 disk_name = "${DISK_NAME}"
 storage_name = "${STORAGE_NAME}"
-storage_container_name = "${STORAGE_CONTAINER_NAME}"
 acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
 gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}

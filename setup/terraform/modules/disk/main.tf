@@ -52,11 +52,6 @@ resource "azurerm_managed_disk" "aks_ssd_disk" {
   create_option        = "Empty"
   disk_size_gb         = var.ssd_disk_size
   os_type              = "Linux"
-  
-  # SC-13: Encryption at rest using Azure Disk Encryption (AES-256)
-  encryption_settings {
-    enabled = true
-  }
 
   public_network_access_enabled = false
   disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-13: Customer-managed keys for enhanced encryption control
@@ -77,11 +72,6 @@ resource "azurerm_managed_disk" "aks_hdd_disk" {
   create_option        = "Empty"
   disk_size_gb         = var.hdd_disk_size
   os_type              = "Linux"
-  
-  # SC-13: Encryption at rest using Azure Disk Encryption (AES-256)
-  encryption_settings {
-    enabled = true
-  }
 
   public_network_access_enabled = false
   disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-13: Customer-managed keys for enhanced encryption control

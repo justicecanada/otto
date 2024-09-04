@@ -5,7 +5,7 @@ resource "azurerm_storage_account" "storage" {
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
   account_kind                    = "StorageV2"
-  public_network_access_enabled   = false
+  public_network_access_enabled   = true # TODO: Set to false when we have a VNet
   default_to_oauth_authentication = true
   is_hns_enabled                  = true
 
@@ -37,7 +37,7 @@ resource "azurerm_storage_management_policy" "lifecycle" {
 resource "azurerm_storage_container" "container" {
   name                  = var.storage_container_name
   storage_account_name  = azurerm_storage_account.storage.name
-  container_access_type = "private"  
+  container_access_type = "private"
 }
 
 # Add a delay to allow for the storage to be created 

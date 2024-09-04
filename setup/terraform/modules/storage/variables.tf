@@ -36,6 +36,5 @@ variable "wait_for_propagation" {
 
 variable "storage_container_name" {
   description = "The name of the default container to create in the storage account"
-  type        = string  
-
+  type        = string
 }

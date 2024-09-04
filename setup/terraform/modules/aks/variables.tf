@@ -15,9 +15,7 @@ variable "resource_group_name" {
 
 variable "admin_group_object_ids" {
   description = "The list of objects IDs of the admin Azure AD group"
-  type        = list({ object_id = string })
-  default     = []
-  nullable = false
+  type        = list(string)
 }
 
 variable "keyvault_id" {

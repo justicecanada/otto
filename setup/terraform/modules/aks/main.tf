@@ -96,8 +96,8 @@ resource "azurerm_role_assignment" "aks_vm_contributor" {
 }
 
 resource "azurerm_role_assignment" "rbac_cluster_admin" {
-  for_each = var.admin_group_object_ids
-  principal_id         = each.value.object_id
+  for_each             = toset(var.admin_group_object_ids)
+  principal_id         = each.value
   role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
   scope                = azurerm_kubernetes_cluster.aks.id
 }
