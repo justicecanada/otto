@@ -66,6 +66,7 @@ class LibraryDetailForm(forms.ModelForm):
             LibraryUserRole.objects.create(
                 library=instance, user=self.user, role="admin"
             )
+            instance.reset()
         return instance
 
 

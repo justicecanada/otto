@@ -2,7 +2,6 @@ import hashlib
 import uuid
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.loader import render_to_string
@@ -15,13 +14,14 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import reflection
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
-from otto.models import SecurityLabel
+from chat.llm import OttoLLM
+from otto.models import SecurityLabel, User
+from otto.utils.common import display_cad_cost, set_costs
 
-from .utils.vector_store_helpers import connect_to_vector_store
-
-User = get_user_model()
 logger = get_logger(__name__)
+llm = OttoLLM()
 
 STATUS_CHOICES = [
     ("PENDING", "Not started"),
@@ -137,7 +137,10 @@ class Library(models.Model):
         self.reset(recreate=False)
         super().delete(*args, **kwargs)
 
-    def process_all(self, force=True):
+    def process_all(
+        self,
+        force=True,
+    ):
         for ds in self.data_sources.all():
             for document in ds.documents.all():
                 document.process()
@@ -154,7 +157,7 @@ class Library(models.Model):
         session.close()
         if recreate:
             # This will create the vector store table
-            connect_to_vector_store(self.uuid_hex)
+            llm.get_retriever(self.uuid_hex).retrieve("?")
 
     @property
     def sorted_data_sources(self):
@@ -270,6 +273,8 @@ class Document(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    # Cost includes OpenAI embedding and (in some cases) Azure Document AI costs
+    usd_cost = models.DecimalField(max_digits=10, decimal_places=6, default=0)
 
     # Document always associated with a single DataSource
     data_source = models.ForeignKey(
@@ -359,6 +364,10 @@ class Document(models.Model):
         return ""
 
     @property
+    def display_cost(self):
+        return display_cad_cost(self.usd_cost)
+
+    @property
     def content_type(self):
         if self.file:
             return self.file.content_type
@@ -366,7 +375,7 @@ class Document(models.Model):
             return self.url_content_type
 
     def remove_from_vector_store(self):
-        idx = connect_to_vector_store(self.data_source.library.uuid_hex)
+        idx = llm.get_index(self.data_source.library.uuid_hex)
         idx.delete_ref_doc(self.uuid_hex, delete_from_docstore=True)
 
     def delete(self, *args, **kwargs):
@@ -379,6 +388,8 @@ class Document(models.Model):
 
     def process(self):
         from .tasks import process_document
+
+        bind_contextvars(document_id=self.id)
 
         # Logic for updating the document embeddings, metadata, etc.
         if not (self.file or self.url):
@@ -399,6 +410,9 @@ class Document(models.Model):
         self.celery_task_id = None
         self.status = "BLOCKED"
         self.save()
+
+    def calculate_costs(self):
+        set_costs(self)
 
 
 class SavedFile(models.Model):

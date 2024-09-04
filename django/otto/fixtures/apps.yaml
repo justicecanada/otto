@@ -7,6 +7,7 @@
     user_group: AI assistant user
     features:
       - fields:
+          short_name: "qa"
           name_en: Q&A
           name_fr: Questions et réponses
           description_en: Get instant answers from curated and user-uploaded documents.
@@ -14,6 +15,7 @@
           url: chat:qa
           category: ai_assistant
       - fields:
+          short_name: "summarize"
           name_en: Summarization
           name_fr: Résumé
           description_en: Generate brief or detailed summaries from files, URLs or text input using AI.
@@ -21,6 +23,7 @@
           url: chat:summarize
           category: ai_assistant
       - fields:
+          short_name: "translate"
           name_en: Translation
           name_fr: Traduction
           description_en: Translate to French or English from files or text input.
@@ -28,6 +31,7 @@
           url: chat:translate
           category: ai_assistant
       - fields:
+          short_name: "chat"
           name_en: Chat
           name_fr: Discuter avec l'IA
           description_en: Chat with a Justice-hosted AI (like ChatGPT).
@@ -44,6 +48,7 @@
     user_group: Template wizard user
     features:
       - fields:
+          short_name: "template_wizard"
           name_en: Template wizard
           name_fr: Assistant de modèle
           description_en: Extract information from multiple sources and automatically populate templates.
@@ -60,6 +65,7 @@
     user_group: Legislation search user
     features:
       - fields:
+          short_name: "laws"
           name_en: Legislation search
           name_fr: Recherche législative
           description_en: Search acts and regulations using natural language. Find sections and subsections.
@@ -77,6 +83,7 @@
     user_group: Case prep user
     features:
       - fields:
+          short_name: "case_prep"
           name_en: Case prep assistant
           name_fr: Assistante à la préparation des dossiers
           description_en: Compile a book of documents and get prepared for a court case.
@@ -93,6 +100,7 @@
     user_group: OCR user
     features:
       - fields:
+          short_name: "text_extractor"
           name_en: Text extractor
           name_fr: Extracteur de texte
           description_en: Extract text and handwriting from scanned PDF and images with AI-enabled OCR.

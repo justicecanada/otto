@@ -28,6 +28,7 @@ Otto is a suite of AI services developed by data specialists at Justice Canada w
 * Visual Studio Code (VScode) with Dev Containers extension
 * Docker (with Hyper-V and WSL2 enabled)
 * Git
+* VPN (some Azure resources will not work if not connected)
 
 > [!NOTE]  
 > Note that the installation may take 5-10 minutes (longer if you are connected to VPN).
