@@ -157,6 +157,7 @@ INSTALLED_APPS = [
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
     "django_celery_beat",
+    "livereload",
 ]
 
 MIDDLEWARE = [
@@ -178,6 +179,7 @@ MIDDLEWARE = [
     "django.middleware.locale.LocaleMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
+    "livereload.middleware.LiveReloadScript",
 ]
 
 if IS_RUNNING_TESTS:
