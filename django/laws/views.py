@@ -164,9 +164,9 @@ def advanced_search_form(request):
 
 @app_access_required(app_name)
 def answer(request):
+    from llama_index.core import Settings
     from llama_index.core.response_synthesizers import CompactAndRefine
     from llama_index.core.schema import MetadataMode
-    from llama_index.core import Settings
     from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
     from llama_index.llms.azure_openai import AzureOpenAI
 
@@ -273,7 +273,6 @@ def answer(request):
 
         response_synthesizer = CompactAndRefine(
             llm=llm,
-            embed_model=embed_model,
             streaming=True,
             text_qa_template=CHAT_TEXT_QA_PROMPT,
         )
