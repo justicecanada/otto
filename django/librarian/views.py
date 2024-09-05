@@ -9,6 +9,7 @@ from django.utils.translation import gettext as _
 
 from rules.contrib.views import objectgetter
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
 from otto.utils.decorators import permission_required
 
@@ -46,7 +47,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     When a data source is visible that contains in-progress documents, the modal will
     poll for updates until all documents are processed or stopped.
     """
-    print(f"modal: {item_type}, {item_id}, {parent_id}")
+    bind_contextvars(feature="librarian")
+
     libraries = get_editable_libraries(request.user)
     selected_library = None
     data_sources = None
@@ -266,7 +268,6 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "poll_url": poll_url,
         "poll_response": "poll" in request.GET,
     }
-    print("poll response:", context["poll_response"])
     return render(request, "librarian/modal_inner.html", context)
 
 
@@ -384,6 +385,8 @@ def create_temp_object(item_type):
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 def document_start(request, document_id):
+    bind_contextvars(feature="librarian")
+
     # Initiate celery task
     document = get_object_or_404(Document, id=document_id)
     document.process()
@@ -392,7 +395,7 @@ def document_start(request, document_id):
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 def document_stop(request, document_id):
-    # Initiate celery task
+    # Stop celery task
     document = get_object_or_404(Document, id=document_id)
     document.stop()
     return modal_view(request, item_type="document", item_id=document_id)
@@ -406,8 +409,8 @@ def upload(request, data_source_id):
     Handles POST request for (multiple) document upload
     <input type="file" name="file" id="document-file-input" multiple>
     """
-    print(f"upload: {data_source_id}")
-    print(request.FILES)
+    bind_contextvars(feature="librarian")
+
     for file in request.FILES.getlist("file"):
         file_obj = SavedFile.objects.create(content_type=file.content_type)
         file_obj.file.save(file.name, file)
