@@ -21,8 +21,6 @@
   </li>
 {% endblock %}
 
-{% block main_content_id %}nav-item{% endblock %}
-
 {% block content_container %}
   <div id="laws-outer">
     <div class="container py-3 px-0" id="search-container">
@@ -31,7 +29,7 @@
       </h2>
 
       <ul class="nav nav-tabs px-3 border-bottom-0">
-        <li class="nav-item" id="nav-item">
+        <li class="nav-item">
           <button id="basic-search-tab"
                   class="nav-link text-black active fw-semibold"
                   onclick="setActiveTab(this);">{% trans "Basic search" %}</button>
