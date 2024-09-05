@@ -364,7 +364,7 @@ class Cost(models.Model):
     count = models.IntegerField(default=1)
 
     # Automatically added/calculated
-    date_incurred = models.DateTimeField(auto_now_add=True)
+    date_incurred = models.DateField(auto_now_add=True)
     usd_cost = models.DecimalField(max_digits=12, decimal_places=6)
 
     # Optional, for aggregation and reporting

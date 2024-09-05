@@ -1,6 +1,7 @@
 import csv
 import io
 from collections import defaultdict
+from datetime import date, timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -8,11 +9,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
+from django.db import models
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import check_for_language, get_language
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
@@ -22,7 +25,8 @@ from structlog import get_logger
 from otto.forms import FeedbackForm, PilotForm, UserGroupForm
 from otto.metrics.activity_metrics import otto_access_total
 from otto.metrics.feedback_metrics import otto_feedback_submitted_with_comment_total
-from otto.models import App, Feature, Pilot, UsageTerm
+from otto.models import FEATURE_CHOICES, App, Cost, CostType, Feature, Pilot, UsageTerm
+from otto.utils.common import cad_cost, display_cad_cost
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
@@ -365,4 +369,53 @@ def manage_pilots_form(request, pilot_id=None):
 
 @permission_required("otto.manage_users")
 def cost_dashboard(request):
-    return render(request, "cost_dashboard.html")
+    """
+    Displays a responsive dashboard with cost data.
+    X axis aggregations can be:
+    feature (e.g. "chat", "qa", "summarize") - in constant FEATURE_CHOICES
+    individual users (i.e. top X users) or pilot groups - in models User, Pilot
+    cost type (e.g. "GPT-4 input tokens", "embedding tokens", "file translation pages") - in model CostType
+    date aggregation (daily, weekly, monthly) (Cost.date_incurred) - usually primary aggregation
+
+    TODO: Select aggregations (primary, secondary) / filters etc. Stacked or grouped bar for secondary aggregation.
+    """
+    # Fetch the data from the database
+    daily_totals = (
+        Cost.objects.values("date_incurred")
+        .annotate(total_cost=models.Sum("usd_cost"))
+        .order_by("date_incurred")
+    )
+
+    # Convert the queryset to a dictionary for easier manipulation
+    daily_totals_dict = {d["date_incurred"]: d["total_cost"] for d in daily_totals}
+
+    # Determine the date range
+    if daily_totals:
+        start_date = daily_totals[0]["date_incurred"]
+    else:
+        start_date = timezone.now().date()
+
+    end_date = timezone.now().date()
+
+    # Generate a complete date range
+    date_range = [
+        start_date + timedelta(days=x) for x in range((end_date - start_date).days + 1)
+    ]
+
+    # Fill in missing dates with zero costs
+    filled_daily_totals = {
+        date: cad_cost(daily_totals_dict.get(date, 0)) for date in date_range
+    }
+
+    total_cost_today = display_cad_cost(
+        filled_daily_totals.get(timezone.now().date(), 0)
+    )
+    total_costs_alltime = display_cad_cost(sum(filled_daily_totals.values()))
+    context = {
+        "lead_number": total_cost_today,
+        "lead_number_title": _("Total cost today"),
+        "secondary_number": total_costs_alltime,
+        "secondary_number_title": _("Total cost all time"),
+        "daily_totals": filled_daily_totals,
+    }
+    return render(request, "cost_dashboard.html", context)
