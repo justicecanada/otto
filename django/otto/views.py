@@ -376,9 +376,33 @@ def cost_dashboard(request):
     individual users (i.e. top X users) or pilot groups - in models User, Pilot
     cost type (e.g. "GPT-4 input tokens", "embedding tokens", "file translation pages") - in model CostType
     date aggregation (daily, weekly, monthly) (Cost.date_incurred) - usually primary aggregation
-
-    TODO: Select aggregations (primary, secondary) / filters etc. Stacked or grouped bar for secondary aggregation.
     """
+    x_axis = request.GET.get("x_axis", "day")
+    stack = request.GET.get("stack", "none")
+    pilot = request.GET.get("pilot", "all")
+    feature = request.GET.get("feature", "all")
+    cost_type = request.GET.get("cost_type", "all")
+
+    print(x_axis, stack, pilot, feature, cost_type)
+
+    x_axis_labels = {
+        "day": _("Day"),
+        "week": _("Week"),
+        "month": _("Month"),
+        "feature": _("Feature"),
+        "pilot": _("Pilot"),
+        "user": _("User"),
+        "cost_type": _("Cost type"),
+    }
+
+    stack_labels = {
+        "none": _("None"),
+        "feature": _("Feature"),
+        "pilot": _("Pilot"),
+        "cost_type": _("Cost type"),
+    }
+
+    # Date aggregations
     # Fetch the data from the database
     daily_totals = (
         Cost.objects.values("date_incurred")
@@ -407,15 +431,95 @@ def cost_dashboard(request):
         date: cad_cost(daily_totals_dict.get(date, 0)) for date in date_range
     }
 
+    # Now, let's refactor the above to work with the GET options.
+    # First, filter the costs by the selected options
+    costs = Cost.objects.all()
+    if pilot != "all":
+        costs = costs.filter(user__pilot__id=pilot)
+    if feature != "all":
+        costs = costs.filter(feature=feature)
+    if cost_type != "all":
+        costs = costs.filter(cost_type__id=cost_type)
+
     total_cost_today = display_cad_cost(
-        filled_daily_totals.get(timezone.now().date(), 0)
+        sum(c.usd_cost for c in costs.filter(date_incurred=timezone.now().date()))
     )
-    total_costs_alltime = display_cad_cost(sum(filled_daily_totals.values()))
+    total_costs_alltime = display_cad_cost(sum(c.usd_cost for c in costs))
+
+    # Now, aggregate the costs by the selected x-axis
+    # The date ones are tricky so we will save that for last
+    if x_axis == "feature":
+        costs = costs.values("feature").annotate(total_cost=models.Sum("usd_cost"))
+    elif x_axis == "pilot":
+        costs = costs.values("user__pilot__name").annotate(
+            total_cost=models.Sum("usd_cost")
+        )
+        costs = [{**c, "pilot": c.pop("user__pilot__name")} for c in costs]
+    elif x_axis == "user":
+        costs = costs.values("user__upn").annotate(total_cost=models.Sum("usd_cost"))
+        costs = [{**c, "user": c.pop("user__upn")} for c in costs]
+    elif x_axis == "cost_type":
+        costs = costs.values("cost_type__name").annotate(
+            total_cost=models.Sum("usd_cost")
+        )
+        costs = [{**c, "cost_type": c.pop("cost_type__name")} for c in costs]
+    else:
+        costs = costs.values("date_incurred").annotate(
+            total_cost=models.Sum("usd_cost")
+        )
+        costs = [{**c, "day": c.pop("date_incurred")} for c in costs]
+        # TODO: Deal with year and month aggregations, and fill in missing dates
+
+    # Now, we have the costs aggregated by the selected x-axis
+    # Let's format the data for the table
+    column_headers = [x_axis_labels[x_axis], _("Total cost (CAD)")]
+    rows = []
+    for cost in costs:
+        if x_axis == "day":
+            rows.append(
+                [
+                    cost["day"].strftime("%Y-%m-%d"),
+                    f"${cad_cost(cost['total_cost']):.2f}",
+                ]
+            )
+        else:
+            rows.append([cost[x_axis], f"${cad_cost(cost['total_cost']):.2f}"])
+
+    # And for the dashboard
+    chart_x_labels = [c[x_axis] for c in costs]
+    chart_y_groups = [
+        {
+            "label": _("Total cost (CAD)"),
+            "values": [cad_cost(c["total_cost"]) for c in costs],
+        }
+    ]
+
+    # Options for the dropdowns
+    pilot_options = {"all": _("All pilots")}
+    pilot_options.update({p.id: p.name for p in list(Pilot.objects.all())})
+    feature_options = {"all": _("All features")}
+    feature_options.update({f[0]: f[1] for f in FEATURE_CHOICES})
+    cost_type_options = {"all": _("All cost types")}
+    cost_type_options.update({c.id: c.name for c in list(CostType.objects.all())})
     context = {
+        "column_headers": column_headers,
+        "rows": rows,
         "lead_number": total_cost_today,
-        "lead_number_title": _("Total cost today"),
+        "lead_number_title": _("Cost today"),
         "secondary_number": total_costs_alltime,
-        "secondary_number_title": _("Total cost all time"),
+        "secondary_number_title": _("Cost all time"),
         "daily_totals": filled_daily_totals,
+        "chart_x_labels": chart_x_labels,
+        "chart_y_groups": chart_y_groups,
+        "x_axis": x_axis,
+        "stack": stack,
+        "pilot": pilot,
+        "feature": feature,
+        "cost_type": cost_type,
+        "x_axis_options": x_axis_labels,
+        "stack_options": stack_labels,
+        "pilot_options": pilot_options,
+        "feature_options": feature_options,
+        "cost_type_options": cost_type_options,
     }
     return render(request, "cost_dashboard.html", context)

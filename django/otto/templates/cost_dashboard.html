@@ -14,11 +14,7 @@
   </li>
 {% endblock %}
 
-{% block page_css %}
-  <link rel="stylesheet"
-        type="text/css"
-        href="{% static 'thirdparty/css/datatables.min.css' %}">
-{% endblock %}
+{% block page_css %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
 
 {% block page_title %}
   {% trans "Cost dashboard" %}
@@ -29,44 +25,198 @@
     <div class="container py-3 px-0">
       <h2 class="mb-3 mt-2">{% trans "Cost dashboard" %}</h2>
 
-      {# Top-line number #}
-      <div class="card mb-3" style="width:fit-content;">
-        <div class="card-body">
-          <p class="h5 mb-2">
-            {{ lead_number_title }}: <span class="text-primary">{{ lead_number }}</span>
-          </p>
-          <p class="h6 m-0 text-secondary">
-            {{ secondary_number_title }}: <span class="text-success">{{ secondary_number }}</span>
-          </p>
+      <div class="row">
+        {# Interactive stuff #}
+        <div class="col">
+          <div class="mb-3 pt-1">
+            <h5 class="card-title visually-hidden">{% trans "Chart options" %}</h5>
+            <form id="cost-dashboard-form"
+                  hx-get="{% url 'cost_dashboard' %}"
+                  hx-trigger="change"
+                  hx-target="#cost-dashboard-outer"
+                  hx-select="#cost-dashboard-outer">
+              <fieldset class="form-group">
+                <div class="row mb-1">
+                  <legend class="col-form-label col-1 fw-semibold">{% trans "Group:" %}</legend>
+                  <div class="col-lg-1">
+                    <label class="col-form-label" for="x_axis">{% trans "X-axis:" %}</label>
+                  </div>
+                  <div class="col-lg-2">
+                    <select class="form-select" id="x_axis" name="x_axis">
+                      {% for option_id, option in x_axis_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id == x_axis %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+ 
+                  <div class="col-lg-1">
+                    <label class="col-form-label" for="stack">{% trans "Stack:" %}</label>
+                  </div>
+                  <div class="col-lg-2">
+                    <select class="form-select" id="stack" name="stack">
+                      {% for option_id, option in stack_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id == stack %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset class="form-group">
+                <div class="row">
+                  <legend class="col-form-label col-1 fw-semibold">{% trans "Filter:" %}</legend>
+                  <div class="col-lg-1 visually-hidden">
+                    <label class="col-form-label me-0" for="pilot">{% trans "Pilot:" %}</label>
+                  </div>
+                  <div class="col-lg-3">
+                    <select class="form-select" id="pilot" name="pilot">
+                      {% for option_id, option in pilot_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id|stringformat:"s" == pilot|stringformat:"s" %}selected{% endif %}>
+                          {{ option }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                  <div class="col-lg-1 visually-hidden">
+                    <label class="col-form-label me-0" for="feature">{% trans "Feature:" %}</label>
+                  </div>
+                  <div class="col-lg-3">
+                    <select class="form-select" id="feature" name="feature">
+                      {% for option_id, option in feature_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id|stringformat:"s" == feature|stringformat:"s" %}selected{% endif %}>
+                          {{ option }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                  <div class="col-lg-auto visually-hidden">
+                    <label class="col-form-label me-0" for="cost_type">{% trans "Cost type:" %}</label>
+                  </div>
+                  <div class="col-lg-4">
+                    <select class="form-select" id="cost_type" name="cost_type">
+                      {% for option_id, option in cost_type_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id|stringformat:"s" == cost_type|stringformat:"s" %}selected{% endif %}>
+                          {{ option }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                </div>
+              </fieldset>
+            </form>
+ 
+          </div>
+        </div>
+        {# Top-line numbers #}
+        <div class="col-auto">
+          <div class="card mb-3" style="width:fit-content;">
+            <div class="card-body">
+              <p class="h5 mb-2">
+                {{ lead_number_title }}: <span class="text-primary">{{ lead_number }}</span>
+              </p>
+              <p class="h6 m-0 text-secondary">
+                {{ secondary_number_title }}: <span class="text-success">{{ secondary_number }}</span>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {# Bar chart #}
-      <div id="chart-container" style="max-height: 20rem;">
-        <canvas id="costChart"></canvas>
-      </div>
+      {# Data display #}
+      <div class="row" id="cost-data-display">
+        <div class="col-lg-8">
+          {# Bar chart #}
+          <div id="chart-container">
+            <canvas id="costChart"></canvas>
+          </div>
+          <script>
+            (function () {
+              let costChart = null;
+              function prepareChart() {
+                console.log("preparing chart...");
+                if (costChart) {
+                  costChart.destroy();
+                }
+                // Prepare data for the chart
+                const labels = [
+                    {% for label in chart_x_labels %}"{{ label}}",{% endfor %}
+                ];
+
+                const colors = ['#00429d', '#3761ab', '#5681b9', '#73a2c6', '#93c4d2', '#b9e5dd', '#ffd3bf', '#ffa59e', '#f4777f', '#dd4c65', '#be214d', '#93003a'];
+
+                const data = {
+                    labels: labels,
+                    datasets: [
+                      {% for group in chart_y_groups %}
+                        {
+                          label: '{{ group.label }}',
+                          data: [
+                              {% for value in group.values %}{{ value }},{% endfor %}
+                          ],
+                          backgroundColor: colors[{{ forloop.counter0 }}],
+                        },
+                      {% endfor %}
+                    ]
+                };
+
+                // Configuration for the chart
+                const config = {
+                    type: 'bar',
+                    data: data,
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            },
+                            x: {
+                                stacked: '{{ stack }}' !== 'none'
+                            }
+                        },
+                        animation: {
+                            duration: 0
+                        }
+                    }
+                };
+
+                // Render the chart
+                costChart = new Chart(
+                    document.getElementById('costChart'),
+                    config
+                );
+              }
+              prepareChart();
+            })();
+          </script>
+        </div>
+        <div class="col-lg-4">
+          {# Table of details #}
+          <div class="table-responsive">
+            <table class="table table-striped" id="totals">
+              <thead>
+                <tr>
+                  {% for header in column_headers %}
+                    <th>{{ header }}</th>
+                  {% endfor %}
+                </tr>
  
-      {# Table of details #}
-      <div class="table-responsive">
-        <table class="table table-striped" id="totals">
-          <thead>
-            <tr>
-              <th>{% trans "Date" %}</th>
-              <th>{% trans "Total cost (CAD)" %}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for date, total_cost in daily_totals.items %}
-              <tr>
-                <td>
-                  {% comment %}ISO date is for sorting to work properly{% endcomment %}
-                  <span class="d-none">{{ date|iso_date }}</span>{{ date }}
-                </td>
-                <td>${{ total_cost|floatformat:2 }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {% for row in rows %}
+                  <tr>
+                    {% for col in row %}<td>{{ col }}</td>{% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -79,56 +229,4 @@
  
 {% endblock %}
 
-{% block page_script %}
-  <script src="{% static 'thirdparty/datatables.min.js' %}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-  $(document).ready(function() {
-    let dataTableConfig = {
-      "paginate": false,
-    };
-    $('#totals').DataTable(dataTableConfig);
-
-    // Prepare data for the chart
-    const labels = [
-        {% for date, total_cost in daily_totals.items %}
-            "{{ date }}",
-        {% endfor %}
-    ];
-
-    const data = {
-        labels: labels,
-        datasets: [{
-            label: '{% trans "Total cost ($CAD)" %}',
-            data: [
-                {% for date, total_cost in daily_totals.items %}
-                    {{ total_cost|floatformat:2 }},
-                {% endfor %}
-            ],
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-        }]
-    };
-
-    // Configuration for the chart
-    const config = {
-        type: 'bar',
-        data: data,
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    };
-
-    // Render the chart
-    const costChart = new Chart(
-        document.getElementById('costChart'),
-        config
-    );
-  });
-  </script>
-{% endblock %}
+{% block page_script %}{% endblock %}
