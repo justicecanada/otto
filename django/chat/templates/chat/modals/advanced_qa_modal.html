@@ -112,7 +112,7 @@
                       spellcheck="false"
                       id="qa_system_prompt-modal"
                       data-inputname="qa_system_prompt"
-                      onkeypress="updateQaHiddenField(this);"
+                      onkeyup="updateQaHiddenField(this);"
                       rows="20"></textarea>
           </div>
           <div class="col-lg-4 mb-2">
@@ -127,7 +127,7 @@
                       spellcheck="false"
                       id="qa_pre_instructions-modal"
                       data-inputname="qa_pre_instructions"
-                      onkeypress="updateQaHiddenField(this);"
+                      onkeyup="updateQaHiddenField(this);"
                       rows="20"></textarea>
           </div>
           <div class="col-lg-4 mb-2">
@@ -142,7 +142,7 @@
                       spellcheck="false"
                       id="qa_post_instructions-modal"
                       data-inputname="qa_post_instructions"
-                      onkeypress="updateQaHiddenField(this);"
+                      onkeyup="updateQaHiddenField(this);"
                       rows="20"></textarea>
           </div>
           {% comment %}
@@ -152,7 +152,7 @@
               <em>{% trans "(Required) Must include {context_str}, {query_str}, {pre_instructions}, {post_instructions}." %}</em>
             </p>
             <textarea class="form-control form-control-sm" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="qa_prompt_template-modal" data-inputname="qa_prompt_template" onkeypress="updateQaHiddenField(this);" rows="12"></textarea>
-                                                                          </div>
+                                                                                          </div>
         {% endcomment %}
       </div>
     </div>
