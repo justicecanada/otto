@@ -1,0 +1,148 @@
+# https://azure.microsoft.com/en-ca/pricing/details/cognitive-services/openai-service/
+# Prices for Canada East in USD as of 2024-08-22
+- model: otto.CostType
+  pk: 1
+  fields:
+    short_name: gpt-35-in
+    name: GPT-3.5 (input)
+    name_fr: GPT-3.5 (entrée)
+    description: API calls to Azure OpenAI GPT-3.5 turbo model (input)
+    description_fr: Appels API au modèle turbo Azure OpenAI GPT-3.5 (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.0005
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 2
+  fields:
+    short_name: gpt-35-out
+    name: GPT-3.5 (output)
+    name_fr: GPT-3.5 (sortie)
+    description: API calls to Azure OpenAI GPT-3.5 turbo model (output)
+    description_fr: Appels API au modèle turbo Azure OpenAI GPT-3.5 (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.0005
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 3
+  fields:
+    short_name: gpt-4o-in
+    name: GPT-4o Global (input)
+    name_fr: GPT-4o Global (entrée)
+    description: API calls to Azure OpenAI GPT-4o Global Deployment model (input)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.005
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 4
+  fields:
+    short_name: gpt-4o-out
+    name: GPT-4o Global (output)
+    name_fr: GPT-4o Global (sortie)
+    description: API calls to Azure OpenAI GPT-4o Global Deployment model (output)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.015
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 5
+  fields:
+    short_name: gpt-4-in
+    name: GPT-4 (input)
+    name_fr: GPT-4 (entrée)
+    description: API calls to Azure OpenAI GPT-4-Turbo model (input)
+    description_fr: Appels API au modèle Azure OpenAI GPT-4-Turbo (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.01
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 6
+  fields:
+    short_name: gpt-4-out
+    name: GPT-4 (output)
+    name_fr: GPT-4 (sortie)
+    description: API calls to Azure OpenAI GPT-4-Turbo model (output)
+    description_fr: Appels API au modèle Azure OpenAI GPT-4-Turbo (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.03
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 7
+  fields:
+    short_name: embedding
+    name: OpenAI Embedding 3 Large
+    name_fr: OpenAI Embedding 3 Large
+    description: OpenAI Embedding 3 Large model
+    description_fr: Modèle OpenAI Embedding 3 Large
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.00013
+    unit_quantity: 1000
+# https://azure.microsoft.com/en-us/pricing/details/cognitive-services/translator/
+- model: otto.CostType
+  pk: 8
+  fields:
+    short_name: translate-text
+    name: Azure text translation
+    name_fr: Traduction de texte Azure
+    description: Azure AI translator service (plain text input)
+    description_fr: Service de traduction Azure AI (entrée de texte brut)
+    unit_name: characters
+    unit_name_fr: caractères
+    unit_cost: 10
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 9
+  fields:
+    short_name: translate-file
+    name: Azure document translation
+    name_fr: Traduction de documents Azure
+    description: Azure AI translator service (document input)
+    description_fr: Service de traduction Azure AI (entrée de document)
+    unit_name: characters
+    unit_name_fr: caractères
+    unit_cost: 15
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 10
+  fields:
+    short_name: translate-custom
+    name: Azure custom translation
+    name_fr: Traduction personnalisée Azure
+    description: Azure AI translator service (custom model - text or document input)
+    description_fr: Service de traduction Azure AI (modèle personnalisé - entrée de texte ou de document)
+    unit_name: characters
+    unit_name_fr: caractères
+    unit_cost: 40
+    unit_quantity: 1000000
+# https://azure.microsoft.com/en-ca/pricing/details/ai-document-intelligence/
+- model: otto.CostType
+  pk: 11
+  fields:
+    short_name: doc-ai-prebuilt
+    name: Azure Document Intelligence (prebuilt models)
+    name_fr: Azure Document Intelligence (modèles préconçus)
+    description: Azure Document Intelligence service using prebuilt models for batch processing
+    description_fr: Service Azure Document Intelligence utilisant des modèles préconçus pour le traitement par lots
+    unit_name: pages
+    unit_name_fr: pages
+    unit_cost: 10
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 12
+  fields:
+    short_name: doc-ai-read
+    name: Azure Document Intelligence (read)
+    name_fr: Azure Document Intelligence (lecture)
+    description: Azure Document Intelligence service for batch reading of documents
+    description_fr: Service Azure Document Intelligence pour la lecture par lots de documents
+    unit_name: pages
+    unit_name_fr: pages
+    unit_cost: 1.50
+    unit_quantity: 1000

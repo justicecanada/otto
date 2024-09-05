@@ -67,5 +67,6 @@
     "tqdm"
   ],
   // Linux
-  "terminal.integrated.defaultProfile.linux": "zsh"
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "python.REPL.enableREPLSmartSend": false
 }
