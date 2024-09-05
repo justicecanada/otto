@@ -17,6 +17,7 @@ from chat.prompts import (
 )
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
+from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
 
@@ -232,7 +233,7 @@ class Message(models.Model):
     feedback_comment = models.TextField(blank=True)
     is_bot = models.BooleanField(default=False)
     bot_name = models.CharField(max_length=255, blank=True)
-    cost = models.FloatField(default=0.0)
+    usd_cost = models.DecimalField(max_digits=10, decimal_places=4, default=0)
     pinned = models.BooleanField(default=False)
     # Flexible JSON field for mode-specific details such as translation target language
     details = models.JSONField(default=dict)
@@ -255,6 +256,13 @@ class Message(models.Model):
     @property
     def sources(self):
         return self.answersource_set.all().order_by("-node_score")
+
+    @property
+    def display_cost(self):
+        return display_cad_cost(self.usd_cost)
+
+    def calculate_costs(self):
+        set_costs(self)
 
     def get_toggled_feedback(self, feeback_value):
         if feeback_value not in [-1, 1]:
@@ -343,6 +351,9 @@ class ChatFile(models.Model):
         return f"File {self.id}: {self.filename}"
 
     def extract_text(self, fast=True):
+        # TODO: Extracting text from file may incur Azure Document AI costs.
+        # Need to refactor extract_text to create Cost object with correct user and mode.
+        # (Presently, this is only used in summarize mode, and user can be inferred...)
         from librarian.utils.process_engine import (
             extract_markdown,
             get_process_engine_from_type,

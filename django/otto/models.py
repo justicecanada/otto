@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 from django.conf import settings
@@ -8,8 +9,9 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
-from django.db.models import Prefetch, Q
 from django.utils.translation import gettext_lazy as _
+
+from otto.utils.common import display_cad_cost
 
 
 class CustomUserManager(BaseUserManager):
@@ -69,6 +71,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     def roles(self):
         return self.groups.all()
 
+    @property
+    def total_cost(self):
+        return display_cad_cost(Cost.objects.get_user_cost(self))
+
     def __str__(self):
         return f"{self.lastname_firstname} ({self.email})"
 
@@ -114,6 +120,7 @@ class AppManager(models.Manager):
                 url=feature_data["fields"]["url"],
                 category=feature_data["fields"]["category"],
                 classification=feature_data["fields"].get("classification", ""),
+                short_name=feature_data["fields"].get("short_name", None),
             )
 
             # Set French translations for features if available
@@ -160,6 +167,7 @@ class Feature(models.Model):
 
     app = models.ForeignKey(App, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=50, unique=True, null=True)
     description = models.TextField()
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     classification = models.CharField(max_length=50, blank=True, null=True)
@@ -237,3 +245,141 @@ class SecurityLabel(models.Model):
         if not security_label:
             security_label = SecurityLabel.default_security_label()
         return security_label
+
+
+class CostType(models.Model):
+    name = models.CharField(max_length=100)
+    short_name = models.CharField(max_length=50, unique=True, null=True)
+    description = models.TextField()
+    # e.g. Token
+    unit_name = models.CharField(max_length=50, default="units")
+    # e.g. 0.00015 ($ USD)
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=6, default=1)
+    # e.g. 1000
+    unit_quantity = models.IntegerField(default=1)
+
+    @property
+    def cost_per_unit(self):
+        return self.unit_cost / self.unit_quantity
+
+    def __str__(self):
+        return self.name
+
+
+class CostManager(models.Manager):
+
+    def new(self, cost_type: str, count: int) -> "Cost":
+        from structlog.contextvars import get_contextvars
+
+        from chat.models import Message
+        from librarian.models import Document
+
+        cost_type = CostType.objects.get(short_name=cost_type)
+
+        # The rest of the fields are optional & stored in structlog request context
+        request_context = get_contextvars()
+        message_id = request_context.get("message_id")
+        document_id = request_context.get("document_id")
+        user_id = request_context.get("user_id")
+
+        cost_object = self.create(
+            cost_type=cost_type,
+            count=count,
+            usd_cost=(count * cost_type.unit_cost) / cost_type.unit_quantity,
+            # Optional fields from request context
+            feature=request_context.get("feature"),
+            request_id=request_context.get("request_id"),
+            user=User.objects.get(id=user_id) if user_id else None,
+            message=Message.objects.get(id=message_id) if message_id else None,
+            document=Document.objects.get(id=document_id) if document_id else None,
+        )
+
+        # Recalculate document and message costs, if applicable
+        if cost_object.document:
+            cost_object.document.calculate_costs()
+        if cost_object.message:
+            cost_object.message.calculate_costs()
+
+        return cost_object
+
+    def get_user_cost(self, user):
+        # Total cost for a user
+        return sum(cost.usd_cost for cost in self.filter(user=user))
+
+    def get_user_cost_by_type(self, user, cost_type):
+        # Total cost for a user by cost type
+        return sum(
+            cost.usd_cost for cost in self.filter(user=user, cost_type=cost_type)
+        )
+
+    def get_user_cost_by_feature(self, user, feature):
+        # Total cost for a user by feature
+        return sum(cost.usd_cost for cost in self.filter(user=user, feature=feature))
+
+    def get_total_cost(self):
+        # Total cost for all users
+        return sum(cost.usd_cost for cost in self.all())
+
+    def get_total_cost_by_type(self, cost_type):
+        # Total cost for all users by cost type
+        return sum(cost.usd_cost for cost in self.filter(cost_type=cost_type))
+
+    def get_total_cost_by_feature(self, feature):
+        # Total cost for all users by feature
+        return sum(cost.usd_cost for cost in self.filter(feature=feature))
+
+    def get_user_cost_today(self, user):
+        # Total cost for a user today
+        return sum(
+            cost.usd_cost
+            for cost in self.filter(
+                user=user, date_incurred__date=datetime.date.today()
+            )
+        )
+
+
+FEATURE_CHOICES = [
+    ("librarian", _("Librarian")),
+    ("qa", _("Q&A")),
+    ("chat", _("Chat")),
+    ("translate", _("Translate")),
+    ("summarize", _("Summarize")),
+    ("template_wizard", _("Template wizard")),
+    ("laws_query", _("Legislation search")),
+    ("laws_load", _("Legislation loading")),
+    ("case_prep", _("Case prep assistant")),
+    ("text_extractor", _("Text extractor")),
+]
+
+
+class Cost(models.Model):
+    """Tracks costs in US dollars for API calls"""
+
+    # Required
+    cost_type = models.ForeignKey(CostType, on_delete=models.CASCADE)
+    count = models.IntegerField(default=1)
+
+    # Automatically added/calculated
+    date_incurred = models.DateTimeField(auto_now_add=True)
+    usd_cost = models.DecimalField(max_digits=12, decimal_places=6)
+
+    # Optional, for aggregation and reporting
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    feature = models.CharField(
+        max_length=50, null=True, blank=True, choices=FEATURE_CHOICES
+    )
+
+    # Optional, for debugging purposes
+    request_id = models.CharField(max_length=50, null=True, blank=True)
+    message = models.ForeignKey(
+        "chat.Message", on_delete=models.CASCADE, null=True, blank=True
+    )
+    document = models.ForeignKey(
+        "librarian.Document", on_delete=models.CASCADE, null=True, blank=True
+    )
+
+    objects = CostManager()
+
+    def __str__(self):
+        user_str = self.user.username if self.user else _("Otto")
+        return f"{user_str} - {self.feature} - {self.cost_type.name} - {display_cad_cost(self.usd_cost)}"

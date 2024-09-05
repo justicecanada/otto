@@ -53,6 +53,7 @@
               <th>{% trans "Name" %}</th>
               <th>{% trans "Email" %}</th>
               <th>{% trans "Last login" %}</th>
+              <th>{% trans "Costs" %}</th>
               <th>{% trans "Roles" %}</th>
               <th>{% trans "Manage" %}</th>
             </tr>
@@ -66,6 +67,7 @@
                   {% comment %}ISO date is for sorting to work properly{% endcomment %}
                   <span class="d-none">{{ u.last_login|iso_date }}</span>{{ u.last_login }}
                 </td>
+                <td>{{ u.total_cost }}</td>
                 <td>
                   {% for role in u.roles %}
                     {% if role.name == "Otto admin" %}
