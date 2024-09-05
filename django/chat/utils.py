@@ -219,7 +219,9 @@ async def htmx_stream(
         await sync_to_async(message.save)()
 
         if is_untitled_chat:
-            await sync_to_async(title_chat)(chat.id, force_title=False, llm=llm)
+            title_llm = OttoLLM("gpt-35")
+            await sync_to_async(title_chat)(chat.id, force_title=False, llm=title_llm)
+            await sync_to_async(title_llm.create_costs)()
 
         # Update message text with HTML formatting to pass to template
         message.text = llm_response_to_html(full_message)
