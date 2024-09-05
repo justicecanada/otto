@@ -65,32 +65,6 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
-# Get versions
-example_version=$(echo "$merged_env_example_file" | grep '^ENV_VERSION=' |  cut -d '=' -f2 | cut -d '#' -f1 | tr -d ' ')
-current_version=$(get_version "$ENV_FILE")
-
-# Compare versions
-if [ "$(printf '%s\n' "$current_version" "$example_version" | sort -V | tail -n1)" != "$current_version" ]; then
-    echo "Your $ENV_FILE file (version $current_version) is outdated. The latest version is $example_version."
-    read -p "Do you want to update your $ENV_FILE file? (y/N): " answer
-
-    if [[ $answer =~ ^[Yy]$ ]]; then
-        # Create backup
-        backup_file="$ENV_FILE.bk_$(date +%Y%m%d_%H%M%S)"
-        cp "$ENV_FILE" "$backup_file"
-        echo "Backup created: $backup_file"
-
-        # Create new .env file
-        echo "$merged_env_example_file" > "$ENV_FILE"
-        echo "$ENV_FILE file has been updated to version $example_version."
-        echo "Please review the new $ENV_FILE file and adjust any custom settings as needed."
-    else
-        echo "Update cancelled. Your $ENV_FILE file remains unchanged."
-    fi
-else
-    echo "Your $ENV_FILE file is up to date (version $current_version)."
-fi
-
 while true; do
     # Display .env contents
     echo "Current .env file contents:"
