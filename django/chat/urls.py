@@ -74,4 +74,14 @@ urlpatterns = [
         views.get_qa_accordion,
         name="qa_accordion",
     ),
+    path(
+        "id/options/presets/",
+        views.get_presets,
+        name="get_presets",
+    ),
+    path(
+        "id/options/presets/form/",
+        views.get_preset_form,
+        name="get_preset_form",
+    ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -786,3 +786,19 @@ def message_sources(request, message_id):
         "chat/modals/sources_modal_inner.html",
         {"message": message, "sources": message.sources},
     )
+
+
+def get_presets(request, chat_id=None):
+    return render(
+        request,
+        "chat/modals/presets/modal.html",
+        {"presets": ChatOptions.objects.filter(user=request.user)},
+    )
+
+
+def get_preset_form(request, chat_id=None):
+    return render(
+        request,
+        "chat/modals/presets/presets_form.html",
+        {"presets": ChatOptions.objects.filter(user=request.user)},
+    )
