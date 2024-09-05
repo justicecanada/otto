@@ -149,18 +149,35 @@
                     {% for label in chart_x_labels %}"{{ label}}",{% endfor %}
                 ];
 
-                const colors = ['#00429d', '#3761ab', '#5681b9', '#73a2c6', '#93c4d2', '#b9e5dd', '#ffd3bf', '#ffa59e', '#f4777f', '#dd4c65', '#be214d', '#93003a'];
-
+                const colors4 = ['#00429d', '#73a2c6', '#f4777f', '#93003a']
+                const colors6 = ['#00429d', '#5681b9', '#93c4d2', '#ffa59e', '#dd4c65', '#93003a']
+                const colors8 = ['#00429d', '#4771b2', '#73a2c6', '#a5d5d8', '#ffbcaf', '#f4777f', '#cf3759', '#93003a']
+                const colors10 = ['#00429d', '#3e67ae', '#618fbf', '#85b7ce', '#b1dfdb', '#ffcab9', '#fd9291', '#e75d6f', '#c52a52', '#93003a']
+                const colors12 = ['#00429d', '#3761ab', '#5681b9', '#73a2c6', '#93c4d2', '#b9e5dd', '#ffd3bf', '#ffa59e', '#f4777f', '#dd4c65', '#be214d', '#93003a'];
+                // Use the smallest color pallete available based on the numbers of chart_y_groups
+                let colors = colors4;
+                if ({{ chart_y_groups|length }} > 4) {
+                  colors = colors6;
+                }
+                if ({{ chart_y_groups|length }} > 6) {
+                  colors = colors8;
+                }
+                if ({{ chart_y_groups|length }} > 8) {
+                  colors = colors10;
+                }
+                if ({{ chart_y_groups|length }} > 10) {
+                  colors = colors12;
+                }
                 const data = {
                     labels: labels,
                     datasets: [
                       {% for group in chart_y_groups %}
                         {
-                          label: '{{ group.label }}',
+                          label: '{{ group.label|safe }}',
                           data: [
                               {% for value in group.values %}{{ value }},{% endfor %}
                           ],
-                          backgroundColor: colors[{{ forloop.counter0 }}],
+                          backgroundColor: colors[{{ forloop.counter0 }}%colors.length],
                         },
                       {% endfor %}
                     ]
@@ -173,7 +190,14 @@
                     options: {
                         scales: {
                             y: {
-                                beginAtZero: true
+                                beginAtZero: true,
+                                stacked: '{{ stack }}' !== 'none',
+                                ticks: {
+                                    // Include a dollar sign in the ticks
+                                    callback: function(value, index, ticks) {
+                                        return '$' + value;
+                                    }
+                                }
                             },
                             x: {
                                 stacked: '{{ stack }}' !== 'none'
