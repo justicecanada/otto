@@ -11,36 +11,40 @@ module "resource_group" {
 }
 
 # Data source for Azure AD group of KeyVault and AKS administrators
-data "azuread_group" "admin_group" {
-  display_name = var.admin_group_name
+data "azuread_group" "admin_groups" {
+  for_each     = toset(split(",", var.admin_group_name))
+  display_name = trimspace(each.value)
 }
 
 # Data source for Azure AD group of ACR publishers
 data "azuread_group" "acr_publishers" {
-  display_name = var.acr_publishers_group_name
+  for_each     = toset(split(",", var.acr_publishers_group_name))
+  display_name = trimspace(each.value)
 }
 
+
 # Key Vault module
+# SC-13: Centralized key management and cryptographic operations
 module "keyvault" {
-  source                = "./modules/keyvault"
-  resource_group_name   = module.resource_group.name
-  location              = var.location
-  keyvault_name         = var.keyvault_name
-  admin_group_object_id = data.azuread_group.admin_group.object_id
-  entra_client_secret   = var.entra_client_secret
-  tags                  = local.common_tags
+  source                 = "./modules/keyvault"
+  resource_group_name    = module.resource_group.name
+  location               = var.location
+  keyvault_name          = var.keyvault_name
+  admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
+  entra_client_secret    = var.entra_client_secret
+  tags                   = local.common_tags
 }
 
 # ACR module
 module "acr" {
-  source              = "./modules/acr"
-  acr_name            = var.acr_name
-  resource_group_name = module.resource_group.name
-  location            = var.location
-  acr_sku             = "Basic"
-  tags                = local.common_tags
-  acr_publishers_id   = data.azuread_group.acr_publishers.object_id
-  keyvault_id         = module.keyvault.keyvault_id
+  source                   = "./modules/acr"
+  acr_name                 = var.acr_name
+  resource_group_name      = module.resource_group.name
+  location                 = var.location
+  acr_sku                  = "Basic"
+  tags                     = local.common_tags
+  acr_publisher_object_ids = values(data.azuread_group.acr_publishers)[*].object_id
+  keyvault_id              = module.keyvault.keyvault_id
 }
 
 # Disk module
@@ -58,14 +62,15 @@ module "disk" {
 
 # Storage module
 module "storage" {
-  source               = "./modules/storage"
-  storage_name         = var.storage_name
-  resource_group_name  = module.resource_group.name
-  location             = var.location
-  tags                 = local.common_tags
-  keyvault_id          = module.keyvault.keyvault_id
-  cmk_name             = module.keyvault.cmk_name
-  wait_for_propagation = module.keyvault.wait_for_propagation
+  source                 = "./modules/storage"
+  storage_name           = var.storage_name
+  resource_group_name    = module.resource_group.name
+  location               = var.location
+  tags                   = local.common_tags
+  keyvault_id            = module.keyvault.keyvault_id
+  cmk_name               = module.keyvault.cmk_name
+  wait_for_propagation   = module.keyvault.wait_for_propagation
+  storage_container_name = var.storage_container_name
 }
 
 # DjangoDB module
@@ -113,7 +118,7 @@ module "aks" {
   aks_cluster_name       = var.aks_cluster_name
   location               = var.location
   resource_group_name    = module.resource_group.name
-  admin_group_object_id  = data.azuread_group.admin_group.object_id
+  admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
   keyvault_id            = module.keyvault.keyvault_id
   acr_id                 = module.acr.acr_id
   disk_encryption_set_id = module.disk.disk_encryption_set_id

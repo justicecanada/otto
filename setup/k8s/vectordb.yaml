@@ -1,3 +1,4 @@
+# SC-13: Ensure secure key management practices
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

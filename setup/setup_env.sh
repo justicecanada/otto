@@ -1,7 +1,6 @@
 #!/bin/bash
 
 ENV_FILE=".env"
-ENV_EXAMPLE_FILE=".env.example"
 
 # Ensure Azure CLI is logged in
 if ! az account show &>/dev/null; then
@@ -41,48 +40,29 @@ if [ -z "$SUBSCRIPTION_ID" ]; then
 
 fi
 
-# Check if .env.example file exists
-if [ ! -f "$ENV_EXAMPLE_FILE" ]; then
-    echo "Error: $ENV_EXAMPLE_FILE file not found."
-    exit 1
-fi
-
-# Function to extract version from file
-get_version() {
-    grep "^ENV_VERSION=" "$1" | cut -d '=' -f2 | cut -d '#' -f1 | tr -d ' '
-}
-
 # Check if .env file exists
-if [ ! -f "$ENV_FILE" ]; then
-    echo "$ENV_FILE file not found. Creating from $ENV_EXAMPLE_FILE..."
-    cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
-    echo "$ENV_FILE file created successfully."
-fi
-
-# Get versions
-example_version=$(get_version "$ENV_EXAMPLE_FILE")
-current_version=$(get_version "$ENV_FILE")
-
-# Compare versions
-if [ "$(printf '%s\n' "$current_version" "$example_version" | sort -V | tail -n1)" != "$current_version" ]; then
-    echo "Your $ENV_FILE file (version $current_version) is outdated. The latest version is $example_version."
-    read -p "Do you want to update your $ENV_FILE file? (y/N): " answer
-
+if [ ! -f ".env" ]; then
+    read -p "Create a new .env file from an example? (y/N): " answer
     if [[ $answer =~ ^[Yy]$ ]]; then
-        # Create backup
-        backup_file="$ENV_FILE.bk_$(date +%Y%m%d_%H%M%S)"
-        cp "$ENV_FILE" "$backup_file"
-        echo "Backup created: $backup_file"
-
-        # Create new .env file
-        cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
-        echo "$ENV_FILE file has been updated to version $example_version."
-        echo "Please review the new $ENV_FILE file and adjust any custom settings as needed."
+        echo "Available example files to copy from:"
+        env_files=($(ls .env.*.example | sed 's/\.env\.\(.*\)\.example/\1/'))
+        printf "%s\n" "${env_files[@]}"
+        
+        while true; do
+            read -p "Select an environment to copy (you can edit values after): " env
+            if [ -f ".env.$env.example" ]; then
+                cp ".env.$env.example" ".env"
+                echo ".env file created from .env.$env.example"
+                echo "You can now edit the .env file to customize your settings."
+                break
+            else
+                echo "Invalid selection. Please choose from the list above."
+            fi
+        done
     else
-        echo "Update cancelled. Your $ENV_FILE file remains unchanged."
+        echo "Please create a .env file manually."
+        exit 1
     fi
-else
-    echo "Your $ENV_FILE file is up to date (version $current_version)."
 fi
 
 while true; do
@@ -142,8 +122,8 @@ export HOST_NAME=${SITE_URL#https://}
 
 export ENV_VERSION
 export INTENDED_USE
-export ADMIN_GROUP_NAME
-export ACR_PUBLISHERS_GROUP_NAME
+export ADMIN_GROUP_NAMES
+export ACR_PUBLISHERS_GROUP_NAMES
 export ENTRA_CLIENT_NAME
 export ORGANIZATION
 
