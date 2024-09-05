@@ -98,9 +98,8 @@ class UserGroupForm(forms.Form):
         queryset=Pilot.objects.all(),
         label="Pilot",
         required=False,
-        widget=widgets.Autocomplete(
-            name="pilot", options={"minimum_search_length": 0, "model": Pilot}
-        ),
+        widget=forms.Select(attrs={"class": "form-control"}),
+        to_field_name="name",
     )
 
 
@@ -111,13 +110,25 @@ class PilotForm(forms.ModelForm):
         fields = "__all__"
         # Add the bootstrap classes to the form fields and labels
         widgets = {
+            "pilot_id": forms.TextInput(attrs={"class": "form-control"}),
             "name": forms.TextInput(attrs={"class": "form-control"}),
-            "service_unit": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control"}),
+            "service_unit": forms.TextInput(
+                attrs={"class": "form-control", "required": False}
+            ),
+            "description": forms.Textarea(
+                attrs={"class": "form-control", "required": False, "rows": 3}
+            ),
             "start_date": forms.DateInput(
-                attrs={"class": "form-control", "type": "date"}
+                attrs={"class": "form-control", "type": "date", "required": False}
             ),
             "end_date": forms.DateInput(
-                attrs={"class": "form-control", "type": "date"}
+                attrs={"class": "form-control", "type": "date", "required": False}
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # For some reason, the required attribute is not being set in the widget
+        # so we need to set it manually
+        self.fields["start_date"].required = False
+        self.fields["end_date"].required = False

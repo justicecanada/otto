@@ -1,10 +1,14 @@
 {% load i18n %}
 
 <div class="modal-body">
-  <input type="hidden" name="id" value="{{ form.instance.pk }}">
+  {% if form.instance.pk %}<input type="hidden" name="id" value="{{ form.instance.pk }}">{% endif %}
   {% for field in form %}
     <div class="mb-3">
       <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% trans ":" %}</label>
+      {% if field.name == "pilot_id" %}
+        <br>
+        <small>{% trans "For use in the CSV. Use only lowercase characters and underscores, e.g. 'lsb_drafting'" %}</small>
+      {% endif %}
       {{ field }}
     </div>
   {% endfor %}

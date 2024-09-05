@@ -49,7 +49,8 @@
           <thead>
             <tr>
               <th>{% trans "Name" %}</th>
-              <th>{% trans "Description" %}</th>
+              <th>{% trans "Pilot ID" %}</th>
+              {# <th>{% trans "Description" %}</th> #}
               <th>{% trans "Service unit" %}</th>
               <th>{% trans "Start date" %}</th>
               <th>{% trans "End date" %}</th>
@@ -62,7 +63,8 @@
             {% for p in pilots %}
               <tr>
                 <th>{{ p.name }}</th>
-                <td>{{ p.description }}</td>
+                <td>{{ p.pilot_id }}</td>
+                {# <td>{{ p.description }}</td> #}
                 <td>{{ p.service_unit }}</td>
                 <td>
                   {% comment %}ISO date is for sorting to work properly{% endcomment %}

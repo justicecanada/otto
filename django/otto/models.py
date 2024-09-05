@@ -392,6 +392,7 @@ class Cost(models.Model):
 class Pilot(models.Model):
     """For pilot governance. Pilot users will have a FK to this model."""
 
+    pilot_id = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=100)
     service_unit = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)

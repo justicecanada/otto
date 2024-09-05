@@ -263,14 +263,32 @@ def manage_users_upload(request):
                         email = upn
                     except ValidationError as e:
                         email = ""
+                        logger.error(f"Invalid email address {upn}: {e}")
+                        continue
+                    # Get or create the pilot
+                    pilot_id = row.get("pilot_id", None)
+                    if pilot_id:
+                        try:
+                            pilot = Pilot.objects.get(pilot_id=pilot_id)
+                        except ObjectDoesNotExist:
+                            # Create a new pilot
+                            pilot = Pilot.objects.create(
+                                pilot_id=pilot_id,
+                                name=pilot_id.replace("_", " ").capitalize(),
+                            )
                     user, created = User.objects.get_or_create(upn=upn)
                     if created:
                         user.email = email
                         user.first_name = given_name
                         user.last_name = surname
+                        if pilot_id:
+                            user.pilot = pilot
                         user.save()
                     if not created:
                         user.groups.clear()
+                        if pilot_id:
+                            user.pilot = pilot
+                            user.save()
                     for role in row["roles"].split("|"):
                         role = role.strip()
                         try:
@@ -294,11 +312,13 @@ def manage_users_download(request):
     response["Content-Disposition"] = 'attachment; filename="otto_users.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(["upn", "roles"])
+    writer.writerow(["upn", "pilot_id", "roles"])
 
-    for user in User.objects.all():
+    # Only get users who have roles
+    for user in User.objects.filter(groups__isnull=False).order_by("last_name"):
         roles = "|".join(user.groups.values_list("name", flat=True))
-        writer.writerow([user.upn, roles])
+        pilot_id = user.pilot.pilot_id if user.pilot else ""
+        writer.writerow([user.upn, pilot_id, roles])
 
     return response
 

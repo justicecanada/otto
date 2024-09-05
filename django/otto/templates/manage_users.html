@@ -139,19 +139,23 @@
               <table class="table table-border">
                 <tr>
                   <th>upn</th>
+                  <th>pilot</th>
                   <th>roles</th>
                 </tr>
                 <tr>
                   <td>Givenname.Surname@justice.gc.ca</td>
+                  <td>pilot_id</td>
                   <td>role1|role2</td>
                 </tr>
                 <tr>
                   <td>Admin.User@justice.gc.ca</td>
+                  <td></td>
                   <td>Otto user</td>
                 </tr>
                 <tr>
                   <td>ApprovedApps.User@justice.gc.ca</td>
-                  <td>AI assistant user|Template wizard user|Case prep user</td>
+                  <td>lsb_drafting</td>
+                  <td>AI assistant user|Template wizard user|Legislation search user</td>
                 </tr>
               </table>
               <p>{% trans "The file must be in English as shown above." %}</p>
@@ -163,7 +167,10 @@
                 {% for role in roles %}<li>{{ role.name }}</li>{% endfor %}
               </ul>
               <p>
-                {% trans "Users which do not currently exist in Otto will be created. Users which do exist will have their roles updated to match the CSV file. i.e. User roles currently in the Django database which are not in the CSV will be removed." %}
+                {% trans "Users which do not currently exist in Otto will be created. Users which do exist will have their roles updated to match the CSV file. i.e. the user's roles which are not in the CSV will be removed." %}
+              </p>
+              <p>
+                {% trans "Any pilot_id that does not exist will be created, then the user will be associated with it. The pilot_id is optional." %}
               </p>
               <p>
                 {% trans "If the user does not exist, their first name, last name and email will be extrapolated from the UPN. These properties will be updated when the user next logs in with Entra." %}
