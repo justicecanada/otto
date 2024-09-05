@@ -54,7 +54,7 @@ spec:
             - configMapRef:
                 name: otto-configmap
           env:
-          # SC-13: Secure storage and retrieval of cryptographic keys
+          # SC-12 & SC-13: Secure storage and retrieval of cryptographic keys
           - name: DJANGO_SECRET_KEY
             valueFrom:
               secretKeyRef:

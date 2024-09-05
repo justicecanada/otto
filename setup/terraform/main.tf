@@ -24,6 +24,7 @@ data "azuread_group" "acr_publishers" {
 
 
 # Key Vault module
+# SC-13: Centralized key management and cryptographic operations
 module "keyvault" {
   source                 = "./modules/keyvault"
   resource_group_name    = module.resource_group.name

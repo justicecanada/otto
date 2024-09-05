@@ -48,7 +48,7 @@ resource "null_resource" "wait_for_storage_account" {
   depends_on = [var.keyvault_id, azurerm_storage_account.storage, var.wait_for_propagation]
 }
 
-# Create a secret in the Key Vault
+# SC-13: Secure storage of storage account key in Key Vault
 resource "azurerm_key_vault_secret" "storage_key" {
   name         = "STORAGE-KEY"
   value        = azurerm_storage_account.storage.primary_access_key
@@ -88,8 +88,8 @@ resource "null_resource" "wait_for_storage_permission_propagation" {
 }
 
 # Update storage account to use the Key Vault Key for encryption
-# SC-13: Customer-managed keys for enhanced encryption control
 resource "azurerm_storage_account_customer_managed_key" "storage_cmk" {
+  # SC-12 & SC-13: Customer-managed keys for storage encryption
   storage_account_id = azurerm_storage_account.storage.id
   key_vault_id       = var.keyvault_id
   key_name           = var.cmk_name

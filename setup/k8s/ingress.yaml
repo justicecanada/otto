@@ -10,6 +10,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer
 spec:
   ingressClassName: nginx
+  # SC-13: TLS configuration for secure communication
   tls:
   - hosts:
     - ${HOST_NAME}

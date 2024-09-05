@@ -36,7 +36,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     type = "SystemAssigned"
   }
 
-  # Configure the Key Vault secrets provider
+  # SC-12 & SC-13: Enabling Azure Key Vault secrets provider for secure key management
   key_vault_secrets_provider {
     secret_rotation_enabled  = true
     secret_rotation_interval = "2m"
@@ -103,6 +103,7 @@ resource "azurerm_role_assignment" "rbac_cluster_admin" {
 }
 
 resource "azurerm_role_assignment" "kv_secrets_provider_user" {
+  # SC-12: RBAC for AKS to access Key Vault secrets
   principal_id         = azurerm_kubernetes_cluster.aks.key_vault_secrets_provider[0].secret_identity[0].object_id
   role_definition_name = "Key Vault Secrets User"
   scope                = var.keyvault_id

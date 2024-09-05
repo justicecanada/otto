@@ -1,6 +1,7 @@
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "kv" {
+  # SC-12: Centralized key management system
   name                       = var.keyvault_name
   location                   = var.location
   resource_group_name        = var.resource_group_name
@@ -31,6 +32,7 @@ resource "null_resource" "wait_for_permission_propagation" {
 }
 
 resource "azurerm_key_vault_key" "cmk" {
+  # SC-12: Automated key generation and management
   name         = "otto-encryption-key"
   key_vault_id = azurerm_key_vault.kv.id
   key_type     = "RSA" # SC-13: Use RSA keys for encryption
@@ -47,6 +49,7 @@ resource "azurerm_key_vault_key" "cmk" {
 }
 
 resource "azurerm_key_vault_secret" "entra_client_secret" {
+  # SC-12: Secure storage of application secrets
   name         = "ENTRA-CLIENT-SECRET"
   value        = var.entra_client_secret
   key_vault_id = azurerm_key_vault.kv.id
