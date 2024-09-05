@@ -42,12 +42,6 @@ def connect_to_vector_store(vector_store_table: str) -> VectorStoreIndex:
         api_version=settings.AZURE_OPENAI_VERSION,
     )
 
-    # service_context = ServiceContext.from_defaults(
-    #     llm=llm,
-    #     embed_model=embed_model,
-    #     callback_manager=CallbackManager([token_counter]),
-    # )
-
     # Get the vector store for the library
     vector_store = PGVectorStore.from_params(
         database=settings.DATABASES["vector_db"]["NAME"],

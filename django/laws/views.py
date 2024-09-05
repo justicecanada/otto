@@ -209,10 +209,7 @@ def answer(request):
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
         api_version=settings.AZURE_OPENAI_VERSION,
     )
-    # service_context = ServiceContext.from_defaults(
-    #     llm=llm,
-    #     embed_model=embed_model,
-    # )
+
     sources = cache.get(f"sources_{query}")
     if not sources:
         generator = iter([_("Error generating AI response.")])

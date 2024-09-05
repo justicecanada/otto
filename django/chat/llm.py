@@ -44,11 +44,6 @@ class OttoLLM:
         self._callback_manager = CallbackManager([self._token_counter])
         self.llm = self._get_llm()
         self.embed_model = self._get_embed_model()
-        # self._service_context = ServiceContext.from_defaults(
-        #     llm=self.llm,
-        #     embed_model=self.embed_model,
-        #     callback_manager=self._callback_manager,
-        # )
         self.max_input_tokens = self._deployment_to_max_input_tokens_mapping[deployment]
 
     # Convenience methods to interact with LLM
@@ -131,8 +126,6 @@ class OttoLLM:
     ) -> QueryFusionRetriever:
 
         pg_idx = self.get_index(vector_store_table)
-
-        pg_idx._callback_manager = self._callback_manager
 
         vector_retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
