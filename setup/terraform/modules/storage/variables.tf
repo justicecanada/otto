@@ -33,3 +33,8 @@ variable "wait_for_propagation" {
   description = "Flag for keyvault permission propagation"
   type        = string
 }
+
+variable "storage_container_name" {
+  description = "The name of the default container to create in the storage account"
+  type        = string
+}
