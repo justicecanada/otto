@@ -402,6 +402,14 @@ def cost_dashboard(request):
         "cost_type": _("Cost type"),
     }
 
+    # Options for the dropdowns
+    pilot_options = {"all": _("All pilots")}
+    pilot_options.update({p.id: p.name for p in list(Pilot.objects.all())})
+    feature_options = {"all": _("All features")}
+    feature_options.update({f[0]: f[1] for f in FEATURE_CHOICES})
+    cost_type_options = {"all": _("All cost types")}
+    cost_type_options.update({c.id: c.name for c in list(CostType.objects.all())})
+
     # Date aggregations
     # Fetch the data from the database
     daily_totals = (
@@ -468,7 +476,47 @@ def cost_dashboard(request):
             total_cost=models.Sum("usd_cost")
         )
         costs = [{**c, "day": c.pop("date_incurred")} for c in costs]
-        # TODO: Deal with year and month aggregations, and fill in missing dates
+        # Fill missing dates (if any) with zero costs, up until today's date
+        if costs:
+            start_date = costs[0]["day"]
+        else:
+            start_date = timezone.now().date()
+        end_date = timezone.now().date()
+        date_range = [
+            start_date + timedelta(days=x)
+            for x in range((end_date - start_date).days + 1)
+        ]
+        costs_dict = {c["day"]: c for c in costs}
+        costs = [
+            costs_dict.get(date, {"day": date, "total_cost": 0}) for date in date_range
+        ]
+        if x_axis == "week":
+            costs = [
+                {
+                    "week": c["day"].strftime("%Y-%W"),
+                    "total_cost": c["total_cost"],
+                }
+                for c in costs
+            ]
+        elif x_axis == "month":
+            costs = [
+                {
+                    "month": c["day"].strftime("%Y-%m"),
+                    "total_cost": c["total_cost"],
+                }
+                for c in costs
+            ]
+        if x_axis in ["week", "month"]:
+            # Sum the costs for each week
+            costs = [
+                {
+                    f"{x_axis}": week_or_month,
+                    "total_cost": sum(
+                        c["total_cost"] for c in costs if c[x_axis] == week_or_month
+                    ),
+                }
+                for week_or_month in set(c[x_axis] for c in costs)
+            ]
 
     # Now, we have the costs aggregated by the selected x-axis
     # Let's format the data for the table
@@ -482,11 +530,25 @@ def cost_dashboard(request):
                     f"${cad_cost(cost['total_cost']):.2f}",
                 ]
             )
+        elif x_axis == "feature":
+            rows.append(
+                [
+                    feature_options.get(cost[x_axis], cost[x_axis]),
+                    f"${cad_cost(cost['total_cost']):.2f}",
+                ]
+            )
         else:
             rows.append([cost[x_axis], f"${cad_cost(cost['total_cost']):.2f}"])
 
     # And for the dashboard
     chart_x_labels = [c[x_axis] for c in costs]
+    if x_axis == "feature":
+        chart_x_labels = [feature_options.get(c, c) for c in chart_x_labels]
+    elif x_axis == "pilot":
+        chart_x_labels = [pilot_options.get(c, c) for c in chart_x_labels]
+    elif x_axis == "cost_type":
+        chart_x_labels = [cost_type_options.get(c, c) for c in chart_x_labels]
+
     chart_y_groups = [
         {
             "label": _("Total cost (CAD)"),
@@ -494,13 +556,6 @@ def cost_dashboard(request):
         }
     ]
 
-    # Options for the dropdowns
-    pilot_options = {"all": _("All pilots")}
-    pilot_options.update({p.id: p.name for p in list(Pilot.objects.all())})
-    feature_options = {"all": _("All features")}
-    feature_options.update({f[0]: f[1] for f in FEATURE_CHOICES})
-    cost_type_options = {"all": _("All cost types")}
-    cost_type_options.update({c.id: c.name for c in list(CostType.objects.all())})
     context = {
         "column_headers": column_headers,
         "rows": rows,
