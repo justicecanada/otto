@@ -1,8 +1,7 @@
 {% load i18n %}
 
 {% block page_css %}
-  <style>
-
+<style>
   .card-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -21,7 +20,7 @@
       outline-width: 2px !important;
     }
   }
-  </style>
+</style>
 {% endblock page_css %}
 
 <div class="modal-body">
@@ -30,18 +29,25 @@
       <div class="col-12 d-flex flex-column">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h2 class="fs-6 my-auto">{% trans "Available Presets" %}</h2>
-          <button type="button"
-                  class="btn btn-outline-dark btn-sm"
-                  hx-get="{% url 'chat:get_preset_form' %}"
-                  hx-target="#presets-modal-body"
-                  hx-swap="innerHTML transition:true">
+          <button
+            type="button"
+            class="btn btn-outline-dark btn-sm"
+            hx-get="{% url 'chat:get_preset_form' chat_id=chat_id %}"
+            hx-target="#presets-modal-body"
+            hx-swap="innerHTML transition:true"
+          >
             <i class="bi bi-plus me-1"></i>
             <span>{% trans "Create new preset from current chat settings" %}</span>
           </button>
         </div>
         <ul class="card-list">
-          {% for preset in "aaaaa" %}
-            {% include "chat/modals/presets/card.html" %}
+          {% if presets|length == 0 %}
+          {# TODO: Add a message saying there are no presets yet #}
+          NO PRESETS AVAILABLE
+          {% else %}
+          {% endif %}
+          {% for preset in presets %}
+          {% include "chat/modals/presets/card.html" %}
           {% endfor %}
         </ul>
       </div>

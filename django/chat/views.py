@@ -565,7 +565,7 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def chat_options(request, chat_id, action=None):
+def chat_options(request, chat_id, action=None, preset_id=None):
     """
     Save and load chat options.
     """
@@ -595,18 +595,15 @@ def chat_options(request, chat_id, action=None):
             preset_options = ChatOptions.objects.from_defaults(user=request.user)
             logger.info("Resetting chat options to default.", chat_id=chat_id)
         else:
-            # Check that the preset is not empty and exists
-            preset_name = request.POST.get("option_presets")
+
             logger.info(
                 "Loading chat options from a preset.",
                 chat_id=chat_id,
-                preset=preset_name,
+                preset=preset_id,
             )
-            if not preset_name:
+            if not preset_id:
                 return HttpResponse(status=500)
-            preset_options = ChatOptions.objects.filter(
-                user=request.user, preset_name=preset_name
-            ).first()
+            preset_options = ChatOptions.objects.get(id=int(preset_id))
             if not preset_options:
                 return HttpResponse(status=500)
         # Update the chat options with the default options
@@ -788,17 +785,17 @@ def message_sources(request, message_id):
     )
 
 
-def get_presets(request, chat_id=None):
+def get_presets(request, chat_id):
     return render(
         request,
         "chat/modals/presets/card_list.html",
-        {"presets": ChatOptions.objects.filter(user=request.user)},
+        {"presets": ChatOptions.objects.filter(user=request.user), "chat_id": chat_id},
     )
 
 
-def get_preset_form(request, chat_id=None):
+def get_preset_form(request, chat_id):
     return render(
         request,
         "chat/modals/presets/presets_form.html",
-        {"presets": ChatOptions.objects.filter(user=request.user)},
+        {"presets": ChatOptions.objects.filter(user=request.user), "chat_id": chat_id},
     )
