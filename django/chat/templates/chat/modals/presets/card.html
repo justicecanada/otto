@@ -117,7 +117,11 @@
     <button type="button" class="btn btn-ghost flex-grow-1">
       <i class="bi bi-download me-2 text-secondary"></i><span>Load</span>
     </button>
-    <button type="button" class="btn btn-ghost flex-grow-1">
+    <button type="button"
+            class="btn btn-ghost flex-grow-1"
+            hx-get="{% url 'chat:get_preset_form' %}"
+            hx-target="#presets-modal-body"
+            hx-swap="innerHTML transition:true">
       <i class="bi bi-pencil me-2 text-secondary"></i><span>Edit</span>
     </button>
   </div>

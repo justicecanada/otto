@@ -33,7 +33,8 @@
           <button type="button"
                   class="btn btn-outline-dark btn-sm"
                   hx-get="{% url 'chat:get_preset_form' %}"
-                  hx-target="#presets-modal-body">
+                  hx-target="#presets-modal-body"
+                  hx-swap="innerHTML transition:true">
             <i class="bi bi-plus me-1"></i>
             <span>{% trans "Create new preset from current chat settings" %}</span>
           </button>

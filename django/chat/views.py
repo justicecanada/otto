@@ -791,7 +791,7 @@ def message_sources(request, message_id):
 def get_presets(request, chat_id=None):
     return render(
         request,
-        "chat/modals/presets/modal.html",
+        "chat/modals/presets/card_list.html",
         {"presets": ChatOptions.objects.filter(user=request.user)},
     )
 

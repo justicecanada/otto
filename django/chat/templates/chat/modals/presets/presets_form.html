@@ -75,5 +75,6 @@
   <button type="button"
           class="btn btn-secondary"
           hx-get="{% url 'chat:get_presets' %}"
-          hx-target="#presets-modal-body">{% trans "Close" %}</button>
+          hx-target="#presets-modal-body"
+          hx-swap="innerHTML transition:true">{% trans "Close" %}</button>
 </div>
