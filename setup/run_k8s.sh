@@ -65,9 +65,9 @@ envsubst < django.yaml | kubectl apply -f -
 envsubst < redis.yaml | kubectl apply -f -
 envsubst < celery.yaml | kubectl apply -f -
 
-# Function to check if all deployments are ready
+# Function to check if all deployments (except those containing "celery") are ready
 check_deployments_ready() {
-    local deployments=$(kubectl get deployments -n otto -o name)
+    local deployments=$(kubectl get deployments -n otto -o name | grep -v "deployment.apps/.*celery.*")
     for deployment in $deployments; do
         local ready=$(kubectl get $deployment -n otto -o jsonpath='{.status.readyReplicas}')
         local desired=$(kubectl get $deployment -n otto -o jsonpath='{.spec.replicas}')
@@ -78,7 +78,7 @@ check_deployments_ready() {
     return 0
 }
 
-# Wait for the deployments to be ready
+# Wait for the deployments (except those containing "celery") to be ready
 echo "Waiting for deployments to be ready..."
 while ! check_deployments_ready; do
     echo "Not all deployments are ready yet. Waiting for 10 seconds..."
