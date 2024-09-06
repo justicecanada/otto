@@ -54,7 +54,7 @@ resource "azurerm_managed_disk" "aks_ssd_disk" {
   os_type              = "Linux"
 
   public_network_access_enabled = false
-  disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-13: Customer-managed keys for enhanced encryption control
+  disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-28 & SC-28(1): Customer-managed keys for enhanced encryption control
 
   tags = merge(var.tags, {
     "Purpose" = "Static files and performance-sensitive data"
