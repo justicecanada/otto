@@ -42,7 +42,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     secret_rotation_interval = "2m"
   }
 
-  # Configure the network profile
+  # SC-8: Secure Internal Communication in AKS
   network_profile {
     network_plugin    = "kubenet"
     load_balancer_sku = "standard"
