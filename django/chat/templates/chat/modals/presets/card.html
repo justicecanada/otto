@@ -1,6 +1,5 @@
 {% load i18n %}
-{% load tags %}
-{% get_current_language as LANGUAGE_CODE %}
+{% load chat_tags %}
 
 {% block page_css %}
   <style>
@@ -80,21 +79,13 @@
 
 <li class="card">
   <div class="card-header align-items-center">
-    <div class="card-title fs-6 my-auto text-truncate me-2 fw-medium">
-      {{ preset.name_en
-      }}
-    </div>
+    <div class="card-title fs-6 my-auto text-truncate me-2 fw-medium">{{ preset.name_en }}</div>
     <div class="d-flex align-items-center">
       <i class="bi bi-people-fill text-secondary me-1"
          data-bs-toggle="tooltip"
          data-bs-title="{% trans 'Shared with others' %}"></i>
       {# <i class="bi bi-globe-americas me-2 text-secondary"></i> #}
-      <button type="button"
-              class="btn btn-light rounded-circle"
-              data-bs-toggle="tooltip"
-              data-bs-title="{% trans 'Add to favourites' %}">
-        <i class="bi bi-heart-fill"></i>
-      </button>
+      {% include "chat/modals/presets/favourite.html" %}
     </div>
 
   </div>

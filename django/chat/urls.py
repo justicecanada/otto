@@ -89,4 +89,9 @@ urlpatterns = [
         views.get_preset_form,
         name="get_preset_form",
     ),
+    path(
+        "presets/<str:preset_id>/favourite/",
+        views.set_preset_favourite,
+        name="set_preset_favourite",
+    ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
