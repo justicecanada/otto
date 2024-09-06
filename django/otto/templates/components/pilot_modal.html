@@ -1,0 +1,25 @@
+{% load i18n %}
+
+<div class="modal-body">
+  {% if form.instance.pk %}<input type="hidden" name="id" value="{{ form.instance.pk }}">{% endif %}
+  {% for field in form %}
+    <div class="mb-3">
+      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% trans ":" %}</label>
+      {% if field.name == "pilot_id" %}
+        <br>
+        <small>{% trans "For use in the CSV. Use only lowercase characters and underscores, e.g. 'lsb_drafting'" %}</small>
+      {% endif %}
+      {{ field }}
+    </div>
+  {% endfor %}
+</div>
+<div class="modal-footer">
+  {% if form.instance.pk %}
+    <button type="button"
+            class="btn btn-danger"
+            hx-delete="{% url 'manage_pilots_form' form.instance.pk %}"
+            hx-confirm="{% trans 'Are you sure you want to delete this pilot?' %}">{% trans "Delete" %}</button>
+  {% endif %}
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+  <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>
+</div>

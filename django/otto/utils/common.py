@@ -22,6 +22,14 @@ def display_cad_cost(usd_cost):
     return f"${approx_cost_cad:.2f}"
 
 
+def cad_cost(usd_cost):
+    """
+    Converts a USD cost to CAD and returns a float
+    """
+    approx_cost_cad = float(usd_cost) * settings.USD_TO_CAD
+    return approx_cost_cad
+
+
 def set_costs(object):
     """
     Sums cost.usd_cost from the object's cost_set and assigns total to object.usd_cost
