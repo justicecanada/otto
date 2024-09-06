@@ -3306,5 +3306,129 @@
     "Edit user": {
         "fr": "",
         "fr_auto": "Modifier l’utilisateur"
+    },
+    "AI assistant - Otto": {
+        "fr": "",
+        "fr_auto": "Assistant IA - Otto"
+    },
+    "Skip to main content": {
+        "fr": "",
+        "fr_auto": "Passer au contenu principal"
+    },
+    "For use in the CSV. Use only lowercase characters and underscores, e.g. 'lsb_drafting'": {
+        "fr": "",
+        "fr_auto": "Pour une utilisation dans le CSV. Utilisez uniquement des caractères minuscules et des traits de soulignement, par exemple « lsb_drafting »"
+    },
+    "Cost dashboard": {
+        "fr": "",
+        "fr_auto": "Tableau de bord des coûts"
+    },
+    "Cost dashboard - Otto": {
+        "fr": "",
+        "fr_auto": "Tableau de bord des coûts - Otto"
+    },
+    "Chart options": {
+        "fr": "",
+        "fr_auto": "Options de graphique"
+    },
+    "Chart:": {
+        "fr": "",
+        "fr_auto": "Graphique :"
+    },
+    "X-axis:": {
+        "fr": "",
+        "fr_auto": "Axe des X :"
+    },
+    "Group by:": {
+        "fr": "",
+        "fr_auto": "Regrouper par :"
+    },
+    "Bar chart type:": {
+        "fr": "",
+        "fr_auto": "Type de graphique à barres :"
+    },
+    "Filter:": {
+        "fr": "",
+        "fr_auto": "Filtre :"
+    },
+    "Pilot:": {
+        "fr": "",
+        "fr_auto": "Projet pilote :"
+    },
+    "Feature:": {
+        "fr": "",
+        "fr_auto": "Caractéristique :"
+    },
+    "Cost type:": {
+        "fr": "",
+        "fr_auto": "Type de coût :"
+    },
+    "Pilot ID": {
+        "fr": "",
+        "fr_auto": "ID du pilote"
+    },
+    "Users which do not currently exist in Otto will be created. Users which do exist will have their roles updated to match the CSV file. i.e. the user's roles which are not in the CSV will be removed.": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs qui n’existent pas actuellement dans Otto seront créés. Les rôles des utilisateurs qui existent auront leurs rôles mis à jour pour correspondre au fichier CSV. c’est-à-dire que les rôles de l’utilisateur qui ne sont pas dans le CSV seront supprimés."
+    },
+    "Any pilot_id that does not exist will be created, then the user will be associated with it. The pilot_id is optional.": {
+        "fr": "",
+        "fr_auto": "Toute pilot_id qui n’existe pas sera créée, puis l’utilisateur y sera associé. Le pilot_id est facultatif."
+    },
+    "Day": {
+        "fr": "",
+        "fr_auto": "Jour"
+    },
+    "Week": {
+        "fr": "",
+        "fr_auto": "Semaine"
+    },
+    "Month": {
+        "fr": "",
+        "fr_auto": "Mois"
+    },
+    "Feature": {
+        "fr": "",
+        "fr_auto": "Caractéristique"
+    },
+    "Cost type": {
+        "fr": "",
+        "fr_auto": "Type de coût"
+    },
+    "None": {
+        "fr": "",
+        "fr_auto": "Aucune"
+    },
+    "Grouped": {
+        "fr": "",
+        "fr_auto": "Groupé"
+    },
+    "Stacked": {
+        "fr": "",
+        "fr_auto": "Empilé"
+    },
+    "All pilots": {
+        "fr": "",
+        "fr_auto": "Tous les pilotes"
+    },
+    "All features": {
+        "fr": "",
+        "fr_auto": "Toutes les caractéristiques"
+    },
+    "All cost types": {
+        "fr": "",
+        "fr_auto": "Tous les types de coûts"
+    },
+    "Total cost (CAD)": {
+        "fr": "",
+        "fr_auto": "Coût total (CAD)"
+    },
+    "Today": {
+        "fr": "",
+        "fr_auto": "Aujourd’hui"
+    },
+    "All time": {
+        "fr": "",
+        "fr_auto": "Tout le temps"
     }
 }

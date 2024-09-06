@@ -16,7 +16,7 @@
 
 {% block page_css %}
   {# Script embedded here because it is required in the content_container block #}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{% static 'thirdparty/chart.js' %}"></script>
 {% endblock %}
 
 {% block page_title %}
