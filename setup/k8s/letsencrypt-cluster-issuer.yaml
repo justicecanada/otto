@@ -1,3 +1,4 @@
+# SC-13: Use of approved cryptographic algorithms
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:

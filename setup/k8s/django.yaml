@@ -28,6 +28,7 @@ spec:
 
 ---
 
+# SC-13: Secure key management using Azure Key Vault (FIPS 140-2 compliant)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -53,6 +54,7 @@ spec:
             - configMapRef:
                 name: otto-configmap
           env:
+          # SC-12 & SC-13: Secure storage and retrieval of cryptographic keys
           - name: DJANGO_SECRET_KEY
             valueFrom:
               secretKeyRef:
@@ -109,6 +111,7 @@ spec:
             - name: media-pv-storage
               mountPath: "/data/media"
       volumes:
+      # SC-13: Integration with Azure Key Vault for secure secret management
       - name: secrets
         csi:
           driver: secrets-store.csi.k8s.io
