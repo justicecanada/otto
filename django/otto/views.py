@@ -477,8 +477,8 @@ def cost_dashboard(request):
 
     # Get the filters / groupings from the query string
     x_axis = request.GET.get("x_axis", "day")
-    group = request.GET.get("group", "none")
-    bar_chart_type = request.GET.get("bar_chart_type", "grouped")
+    group = request.GET.get("group", "feature")
+    bar_chart_type = request.GET.get("bar_chart_type", "stacked")
     pilot = request.GET.get("pilot", "all")
     feature = request.GET.get("feature", "all")
     cost_type = request.GET.get("cost_type", "all")
