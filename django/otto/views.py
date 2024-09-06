@@ -332,7 +332,6 @@ def manage_users_download(request):
 def manage_pilots(request):
     if request.method == "POST":
         pilot_id = request.POST.get("id")
-        print(pilot_id)
         if pilot_id:
             pilot = get_object_or_404(Pilot, pk=pilot_id)
             form = PilotForm(request.POST, instance=pilot)
@@ -478,8 +477,8 @@ def cost_dashboard(request):
 
     # Get the filters / groupings from the query string
     x_axis = request.GET.get("x_axis", "day")
-    group = request.GET.get("group", "none")
-    bar_chart_type = request.GET.get("bar_chart_type", "grouped")
+    group = request.GET.get("group", "feature")
+    bar_chart_type = request.GET.get("bar_chart_type", "stacked")
     pilot = request.GET.get("pilot", "all")
     feature = request.GET.get("feature", "all")
     cost_type = request.GET.get("cost_type", "all")
@@ -519,13 +518,16 @@ def cost_dashboard(request):
         ]
 
     costs = aggregate_costs(raw_costs, x_axis)
-    chart_x_labels = [c[x_axis] for c in costs]
+    chart_x_keys = sorted([c[x_axis] for c in costs])
+    # Pretty labels
+    chart_x_labels = chart_x_keys
     if x_axis == "feature":
         chart_x_labels = [feature_options.get(c, c) for c in chart_x_labels]
     elif x_axis == "pilot":
         chart_x_labels = [pilot_options.get(c, c) for c in chart_x_labels]
     elif x_axis == "cost_type":
         chart_x_labels = [cost_type_options.get(c, c) for c in chart_x_labels]
+
     if group == "none":
         # Now, we have the costs aggregated by the selected x-axis
         # Let's format the data for the table
@@ -567,6 +569,18 @@ def cost_dashboard(request):
         group_costs = [
             s for s in group_costs if sum(cost["total_cost"] for cost in s["costs"]) > 0
         ]
+        # Fill in missing x-axis values with zero costs (chart_x_keys)
+        for group_cost in group_costs:
+            costs_dict = {c[x_axis]: c["total_cost"] for c in group_cost["costs"]}
+            new_costs = [
+                {
+                    x_axis: x,
+                    "total_cost": costs_dict.get(x, 0),
+                }
+                for x in chart_x_keys
+            ]
+            group_cost["costs"] = new_costs
+
         column_headers = [
             x_axis_labels[x_axis],
             group_labels[group],
@@ -603,13 +617,16 @@ def cost_dashboard(request):
                     )
         rows = sorted(rows, key=lambda r: r[0])
 
-        chart_y_groups = [
-            {
-                "label": group_cost["label"],
-                "values": [cad_cost(c["total_cost"]) for c in group_cost["costs"]],
-            }
-            for group_cost in group_costs
-        ]
+        chart_y_groups = sorted(
+            [
+                {
+                    "label": group_cost["label"],
+                    "values": [cad_cost(c["total_cost"]) for c in group_cost["costs"]],
+                }
+                for group_cost in group_costs
+            ],
+            key=lambda g: g["label"],
+        )
 
     context = {
         "column_headers": column_headers,
