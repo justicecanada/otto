@@ -1,94 +1,71 @@
 #!/bin/bash
 
-ENV_FILE=".env"
-
 # Ensure Azure CLI is logged in
 if ! az account show &>/dev/null; then
     echo "Not logged in to Azure. Please log in."
     az login
 fi
 
-# If SUBSCRIPTION_ID is already set, confirm if user wants to keep it
-if [ -n "$SUBSCRIPTION_ID" ]; then
-    read -p "Subscription ID is already set to $SUBSCRIPTION_ID. Do you want to keep it? (y/N): " confirm
-    if [[ $confirm =~ ^[Yy]$ ]]; then
-        echo "Keeping current subscription: $SUBSCRIPTION_ID"
+# Prompt user to select an environment
+echo "Available environments:"
+env_files=($(ls .env* 2>/dev/null | sort))
+
+# Check if any .env files were found
+if [ ${#env_files[@]} -eq 0 ]; then
+    echo "No environment files found."
+    exit 1
+fi
+
+for i in "${!env_files[@]}"; do 
+    echo "$((i+1)). ${env_files[$i]}"
+done
+
+while true; do
+    read -p "Select an environment (enter the number): " selection
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le "${#env_files[@]}" ]; then
+        ENV_FILE="${env_files[$((selection-1))]}"
+        echo "Selected environment: $ENV_FILE"
+        break
     else
-        unset SUBSCRIPTION_ID
-        echo "Subscription ID cleared. You will be prompted to enter a new one."
+        echo "Invalid selection. Please choose a number from the list above."
     fi
-fi
+done
 
-# If SUBSCRIPTION_ID is not set, prompt user to select one
-if [ -z "$SUBSCRIPTION_ID" ]; then
+# List available subscriptions and prompt user to select one
+echo "Available subscriptions:"
+az account list --query "[].{SubscriptionId:id, Name:name}" --output table
 
-    # List available subscriptions and prompt user to select one
-    echo "Available subscriptions:"
-    az account list --query "[].{SubscriptionId:id, Name:name}" --output table
-
-    while true; do
-        read -p "Enter the Subscription ID you want to use: " SUBSCRIPTION_ID
-        if az account show --subscription "$SUBSCRIPTION_ID" &>/dev/null; then
-            az account set --subscription "$SUBSCRIPTION_ID"
-            export SUBSCRIPTION_ID
-            echo "Subscription set to: $SUBSCRIPTION_ID"
-            break
-        else
-            echo "Invalid Subscription ID. Please try again."
-        fi
-    done
-
-fi
-
-# Check if .env file exists
-if [ ! -f ".env" ]; then
-    read -p "Create a new .env file from an example? (y/N): " answer
-    if [[ $answer =~ ^[Yy]$ ]]; then
-        echo "Available example files to copy from:"
-        env_files=($(ls .env.*.example | sed 's/\.env\.\(.*\)\.example/\1/'))
-        printf "%s\n" "${env_files[@]}"
-        
-        while true; do
-            read -p "Select an environment to copy (you can edit values after): " env
-            if [ -f ".env.$env.example" ]; then
-                cp ".env.$env.example" ".env"
-                echo ".env file created from .env.$env.example"
-                echo "You can now edit the .env file to customize your settings."
-                break
-            else
-                echo "Invalid selection. Please choose from the list above."
-            fi
-        done
+while true; do
+    read -p "Enter the Subscription ID you want to use: " SUBSCRIPTION_ID
+    if az account show --subscription "$SUBSCRIPTION_ID" &>/dev/null; then
+        az account set --subscription "$SUBSCRIPTION_ID"
+        export SUBSCRIPTION_ID
+        echo "Subscription set to: $SUBSCRIPTION_ID"
+        break
     else
-        echo "Please create a .env file manually."
+        echo "Invalid Subscription ID. Please try again."
+    fi
+done
+
+# Display selected environment file contents
+echo "Selected environment file contents:"
+echo "----------------------------"
+cat "$ENV_FILE"
+echo "----------------------------"
+
+# Ask user if values are correct
+read -p "Are all the values correct? (y/N): " confirm
+
+if [[ ! $confirm =~ ^[Yy]$ ]]; then
+    # Ask the user if they want to open nano to edit the file
+    read -p "Do you want to edit the $ENV_FILE file in nano? (y/N): " edit_confirm
+    if [[ $edit_confirm =~ ^[Yy]$ ]]; then
+        nano "$ENV_FILE"
+    else
+        echo "Please update the $ENV_FILE file with the correct values and run the script again."
         exit 1
     fi
 fi
-
-while true; do
-    # Display .env contents
-    echo "Current .env file contents:"
-    echo "----------------------------"
-    cat "$ENV_FILE"
-    echo "----------------------------"
-
-    # Ask user if values are correct
-    read -p "Are all the values correct? (y/N): " confirm
-
-    if [[ $confirm =~ ^[Yy]$ ]]; then
-        echo "Proceeding with current .env values."
-        break
-    else
-        # Ask the user if they want to open nano to edit the file
-        read -p "Do you want to edit the .env file in nano? (y/N): " answer
-        if [[ $answer =~ ^[Yy]$ ]]; then
-            nano "$ENV_FILE"
-        else
-            echo "Please update the .env file with the correct values."
-            exit 1
-        fi
-    fi
-done
 
 # Unset all environment variables
 unset $(grep -v '^#' "$ENV_FILE" | sed -E 's/(.*)=.*/\1/' | xargs)
@@ -96,7 +73,9 @@ unset SITE_URL
 unset DNS_LABEL
 
 # Load the environment variables from file
-source .env
+source "$ENV_FILE"
+
+echo "Environment variables loaded from $ENV_FILE"
 
 # Validation and URL setting
 if [ -n "$SITE_URL" ] && [ -n "$DNS_LABEL" ]; then
