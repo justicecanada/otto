@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
@@ -341,7 +342,7 @@ def manage_pilots(request):
         if form.is_valid():
             form.save()
         else:
-            raise ValueError(form.errors)
+            messages.error(request, form.errors)
 
     context = {
         "pilots": Pilot.objects.order_by("name"),
@@ -556,7 +557,9 @@ def cost_dashboard(request):
             for stack_cost in stack_costs
         ]
         # Remove stack_costs which have no cost objects at all
-        stack_costs = [s for s in stack_costs if sum(cost['total_cost'] for cost in s["costs"]) > 0]
+        stack_costs = [
+            s for s in stack_costs if sum(cost["total_cost"] for cost in s["costs"]) > 0
+        ]
         column_headers = [
             x_axis_labels[x_axis],
             stack_labels[stack],
@@ -565,7 +568,7 @@ def cost_dashboard(request):
         rows = []
         for stack_cost in stack_costs:
             for cost in stack_cost["costs"]:
-                if cost['total_cost'] == 0:
+                if cost["total_cost"] == 0:
                     continue
                 if x_axis == "day":
                     rows.append(

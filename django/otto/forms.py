@@ -132,3 +132,8 @@ class PilotForm(forms.ModelForm):
         # so we need to set it manually
         self.fields["start_date"].required = False
         self.fields["end_date"].required = False
+        # If the instance is not None, then we are editing an existing pilot
+        # So the pilot_id should be read-only
+        if self.instance.pk:
+            self.fields["pilot_id"].widget.attrs["readonly"] = True
+            self.fields["pilot_id"].widget.attrs["disabled"] = True

@@ -14,7 +14,10 @@
   </li>
 {% endblock %}
 
-{% block page_css %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
+{% block page_css %}
+  {# Script embedded here because it is required in the content_container block #}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
 
 {% block page_title %}
   {% trans "Cost dashboard" %}
@@ -136,89 +139,95 @@
           <div id="chart-container">
             <canvas id="costChart"></canvas>
           </div>
+          {# Script is embedded here so that it will get run each time HTMX swaps the chart #}
+          {# It has to be in the Django template due to looping over template variables #}
           <script>
-            (function () {
-              let costChart = null;
-              function prepareChart() {
-                console.log("preparing chart...");
-                if (costChart) {
-                  costChart.destroy();
-                }
-                // Prepare data for the chart
-                const labels = [
-                    {% for label in chart_x_labels %}"{{ label}}",{% endfor %}
-                ];
+(function () {
+  let costChart = null;
+  function prepareChart() {
+    console.log("preparing chart...");
+    if (costChart) {
+      costChart.destroy();
+    }
+    // Prepare data for the chart
+    const labels = [
+      {% for label in chart_x_labels %}"{{ label}}",{% endfor %}
+    ];
 
-                const colors4 = ['#00429d', '#73a2c6', '#f4777f', '#93003a']
-                const colors6 = ['#00429d', '#5681b9', '#93c4d2', '#ffa59e', '#dd4c65', '#93003a']
-                const colors8 = ['#00429d', '#4771b2', '#73a2c6', '#a5d5d8', '#ffbcaf', '#f4777f', '#cf3759', '#93003a']
-                const colors10 = ['#00429d', '#3e67ae', '#618fbf', '#85b7ce', '#b1dfdb', '#ffcab9', '#fd9291', '#e75d6f', '#c52a52', '#93003a']
-                const colors12 = ['#00429d', '#3761ab', '#5681b9', '#73a2c6', '#93c4d2', '#b9e5dd', '#ffd3bf', '#ffa59e', '#f4777f', '#dd4c65', '#be214d', '#93003a'];
-                // Use the smallest color pallete available based on the numbers of chart_y_groups
-                let colors = colors4;
-                if ({{ chart_y_groups|length }} > 4) {
-                  colors = colors6;
-                }
-                if ({{ chart_y_groups|length }} > 6) {
-                  colors = colors8;
-                }
-                if ({{ chart_y_groups|length }} > 8) {
-                  colors = colors10;
-                }
-                if ({{ chart_y_groups|length }} > 10) {
-                  colors = colors12;
-                }
-                const data = {
-                    labels: labels,
-                    datasets: [
-                      {% for group in chart_y_groups %}
-                        {
-                          label: '{{ group.label|safe }}',
-                          data: [
-                              {% for value in group.values %}{{ value }},{% endfor %}
-                          ],
-                          backgroundColor: colors[{{ forloop.counter0 }}%colors.length],
-                        },
-                      {% endfor %}
-                    ]
-                };
+    const colors4 = ['#00429d', '#73a2c6', '#f4777f', '#93003a']
+    const colors6 = ['#00429d', '#5681b9', '#93c4d2', '#ffa59e', '#dd4c65', '#93003a']
+    const colors8 = ['#00429d', '#4771b2', '#73a2c6', '#a5d5d8', '#ffbcaf', '#f4777f', '#cf3759', '#93003a']
+    const colors10 = ['#00429d', '#3e67ae', '#618fbf', '#85b7ce', '#b1dfdb', '#ffcab9', '#fd9291', '#e75d6f', '#c52a52', '#93003a']
+    const colors12 = ['#00429d', '#3761ab', '#5681b9', '#73a2c6', '#93c4d2', '#b9e5dd', '#ffd3bf', '#ffa59e', '#f4777f', '#dd4c65', '#be214d', '#93003a'];
+    // Use the smallest color pallete available based on the numbers of chart_y_groups
+    let colors = colors4;
+    if ({{ chart_y_groups|length }} > 4) {
+      colors = colors6;
+    }
+    if ({{ chart_y_groups|length }} > 6) {
+      colors = colors8;
+    }
+    if ({{ chart_y_groups|length }} > 8) {
+      colors = colors10;
+    }
+    if ({{ chart_y_groups|length }} > 10) {
+      colors = colors12;
+    }
+    const data = {
+      labels: labels,
+      datasets: [
+        {% for group in chart_y_groups %}
+          {
+            label: '{{ group.label|safe }}',
+            data: [
+              {% for value in group.values %}{{ value }},{% endfor %}
+            ],
+            backgroundColor: colors[{{ forloop.counter0 }}%colors.length],
+          },
+        {% endfor %}
+      ]
+    };
 
-                // Configuration for the chart
-                const config = {
-                    type: 'bar',
-                    data: data,
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                stacked: '{{ stack }}' !== 'none',
-                                ticks: {
-                                    // Include a dollar sign in the ticks
-                                    callback: function(value, index, ticks) {
-                                        return '$' + value;
-                                    }
-                                }
-                            },
-                            x: {
-                                stacked: '{{ stack }}' !== 'none'
-                            }
-                        },
-                        animation: {
-                            duration: 0
-                        }
-                    }
-                };
-
-                // Render the chart
-                costChart = new Chart(
-                    document.getElementById('costChart'),
-                    config
-                );
+    // Configuration for the chart
+    const config = {
+      type: 'bar',
+      data: data,
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            // You could do a grouped bar chart instead, but there are a lot of
+            // groups so we'll always stack them
+            stacked: '{{ stack }}' !== 'none',
+            ticks: {
+              // Include a dollar sign in the ticks
+              callback: function(value, index, ticks) {
+                return '$' + value;
               }
-              prepareChart();
-            })();
+            }
+          },
+          x: {
+            stacked: '{{ stack }}' !== 'none'
+          }
+        },
+        animation: {
+          // Animation causes odd behaviour if you change multiple dropdowns without waiting
+          duration: 0
+        }
+      }
+    };
+
+    // Render the chart
+    costChart = new Chart(
+      document.getElementById('costChart'),
+      config
+    );
+  }
+  prepareChart();
+})();
           </script>
         </div>
+
         <div class="col-lg-4">
           {# Table of details #}
           <div class="table-responsive">
@@ -247,7 +256,7 @@
 
   <script>
     function checkUserKeydown(event) {
-      return event instanceof KeyboardEvent
+      return event instanceof KeyboardEvent;
     }
   </script>
  

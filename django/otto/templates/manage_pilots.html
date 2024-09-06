@@ -118,7 +118,10 @@
           <span class="spinner-border" aria-hidden="true"></span>
           <span class="visually-hidden" role="status">Loading...</span>
         </div>
-        <form action="{{ request.path }}" method="post">
+        {# Re-enable any disabled elements onsubmit #}
+        <form action="{{ request.path }}"
+              method="post"
+              onsubmit="this.querySelectorAll('[disabled]').forEach(e => e.disabled = false);">
           {% csrf_token %}
           <div id="pilot-form"></div>
         </form>
