@@ -37,6 +37,7 @@
                   hx-get="{% url 'cost_dashboard' %}"
                   hx-trigger="change"
                   hx-target="#cost-dashboard-outer"
+                  hx-push-url="true"
                   hx-select="#cost-dashboard-outer">
               <fieldset class="form-group">
                 <div class="row mb-1">
@@ -199,6 +200,8 @@
         {% endfor %}
       ]
     };
+
+    console.log(data);
 
     // Configuration for the chart
     const config = {
