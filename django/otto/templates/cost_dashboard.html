@@ -158,7 +158,6 @@
 (function () {
   let costChart = null;
   function prepareChart() {
-    console.log("preparing chart...");
     if (costChart) {
       costChart.destroy();
     }
@@ -200,8 +199,6 @@
         {% endfor %}
       ]
     };
-
-    console.log(data);
 
     // Configuration for the chart
     const config = {
