@@ -1,7 +1,7 @@
 from django.conf import settings
 
 import tiktoken
-from llama_index.core import PromptTemplate, ServiceContext, VectorStoreIndex
+from llama_index.core import PromptTemplate, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import QueryFusionRetriever
@@ -44,11 +44,6 @@ class OttoLLM:
         self._callback_manager = CallbackManager([self._token_counter])
         self.llm = self._get_llm()
         self.embed_model = self._get_embed_model()
-        self._service_context = ServiceContext.from_defaults(
-            llm=self.llm,
-            embed_model=self.embed_model,
-            callback_manager=self._callback_manager,
-        )
         self.max_input_tokens = self._deployment_to_max_input_tokens_mapping[deployment]
 
     # Convenience methods to interact with LLM
@@ -136,13 +131,15 @@ class OttoLLM:
             vector_store_query_mode="default",
             similarity_top_k=max(top_k, 100),
             filters=filters,
-            service_context=self._service_context,
+            llm=self.llm,
+            embed_model=self.embed_model,
         )
         text_retriever = pg_idx.as_retriever(
             vector_store_query_mode="sparse",
             similarity_top_k=max(top_k, 100),
             filters=filters,
-            service_context=self._service_context,
+            llm=self.llm,
+            embed_model=self.embed_model,
         )
         hybrid_retriever = QueryFusionRetriever(
             [vector_retriever, text_retriever],
@@ -170,7 +167,9 @@ class OttoLLM:
         )
         idx = VectorStoreIndex.from_vector_store(
             vector_store=vector_store,
-            service_context=self._service_context,
+            llm=self.llm,
+            embed_model=self.embed_model,
+            callback_manager=self._callback_manager,
             show_progress=False,
         )
         return idx
