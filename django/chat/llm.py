@@ -116,6 +116,8 @@ class OttoLLM:
         if self.embed_token_count > 0:
             Cost.objects.new(cost_type="embedding", count=self.embed_token_count)
 
+        self._token_counter.reset_counts()
+
     # RAG-related getters for retriever (get sources only) and response synthesizer
     def get_retriever(
         self,
