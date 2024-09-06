@@ -3258,5 +3258,53 @@
     "Legislation loading": {
         "fr": "",
         "fr_auto": "Chargement de la législation"
+    },
+    "Are you sure you want to delete this pilot?": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir supprimer ce pilote ?"
+    },
+    "Manage pilots": {
+        "fr": "",
+        "fr_auto": "Gérer les pilotes"
+    },
+    "Add pilot": {
+        "fr": "",
+        "fr_auto": "Ajouter un pilote"
+    },
+    "Service unit": {
+        "fr": "",
+        "fr_auto": "Unité de service"
+    },
+    "Start date": {
+        "fr": "",
+        "fr_auto": "Date de début"
+    },
+    "End date": {
+        "fr": "",
+        "fr_auto": "Date de fin"
+    },
+    "Users": {
+        "fr": "",
+        "fr_auto": "Utilisateurs"
+    },
+    "Cost": {
+        "fr": "",
+        "fr_auto": "Coût"
+    },
+    "Edit": {
+        "fr": "",
+        "fr_auto": "Modifier"
+    },
+    "Add/edit pilot": {
+        "fr": "",
+        "fr_auto": "Pilote d’ajout/modification"
+    },
+    "Pilot": {
+        "fr": "",
+        "fr_auto": "Pilote"
+    },
+    "Edit user": {
+        "fr": "",
+        "fr_auto": "Modifier l’utilisateur"
     }
 }
