@@ -164,9 +164,9 @@ def advanced_search_form(request):
 
 @app_access_required(app_name)
 def answer(request):
+    from llama_index.core import Settings
     from llama_index.core.response_synthesizers import CompactAndRefine
     from llama_index.core.schema import MetadataMode
-    from llama_index.core.service_context import ServiceContext
     from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
     from llama_index.llms.azure_openai import AzureOpenAI
 
@@ -209,10 +209,7 @@ def answer(request):
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
         api_version=settings.AZURE_OPENAI_VERSION,
     )
-    service_context = ServiceContext.from_defaults(
-        llm=llm,
-        embed_model=embed_model,
-    )
+
     sources = cache.get(f"sources_{query}")
     if not sources:
         generator = iter([_("Error generating AI response.")])
@@ -272,7 +269,7 @@ def answer(request):
         logger.debug("\n\n\n")
 
         response_synthesizer = CompactAndRefine(
-            service_context=service_context,
+            llm=llm,
             streaming=True,
             text_qa_template=CHAT_TEXT_QA_PROMPT,
         )

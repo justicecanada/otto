@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load filters %}
+{% load autocomplete %}
+{% load static %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
+  </li>
+{% endblock %}
+
+{% block page_css %}
+  {# Script embedded here because it is required in the content_container block #}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "Cost dashboard - Otto" %}
+{% endblock %}
+
+{% block content_container %}
+  <div id="cost-dashboard-outer">
+    <div class="container py-3 px-0">
+      <h2 class="mb-3 mt-2">{% trans "Cost dashboard" %}</h2>
+
+      <div class="row">
+        {# Interactive stuff #}
+        <div class="col">
+          <div class="mb-3 pt-1">
+            <h5 class="card-title visually-hidden">{% trans "Chart options" %}</h5>
+            <form id="cost-dashboard-form"
+                  hx-get="{% url 'cost_dashboard' %}"
+                  hx-trigger="change"
+                  hx-target="#cost-dashboard-outer"
+                  hx-select="#cost-dashboard-outer">
+              <fieldset class="form-group">
+                <div class="row mb-1">
+                  <legend class="col-form-label col-1 fw-semibold">{% trans "Chart:" %}</legend>
+                  <div class="col-lg-1">
+                    <label class="col-form-label" for="x_axis">{% trans "X-axis:" %}</label>
+                  </div>
+                  <div class="col-lg-2">
+                    <select class="form-select" id="x_axis" name="x_axis">
+                      {% for option_id, option in x_axis_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id == x_axis %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+ 
+                  <div class="col-lg-auto">
+                    <label class="col-form-label" for="group">{% trans "Group by:" %}</label>
+                  </div>
+                  <div class="col-lg-2">
+                    <select class="form-select" id="group" name="group">
+                      {% for option_id, option in group_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id == group %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                  <div class="col-lg-auto">
+                    <label class="col-form-label" for="bar_chart_type">{% trans "Bar chart type:" %}</label>
+                  </div>
+                  <div class="col-lg-2">
+                    <select class="form-select" id="bar_chart_type" name="bar_chart_type">
+                      {% for option_id, option in bar_chart_type_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id == bar_chart_type %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset class="form-group">
+                <div class="row">
+                  <legend class="col-form-label col-1 fw-semibold">{% trans "Filter:" %}</legend>
+                  <div class="col-lg-1 visually-hidden">
+                    <label class="col-form-label me-0" for="pilot">{% trans "Pilot:" %}</label>
+                  </div>
+                  <div class="col-lg-3">
+                    <select class="form-select" id="pilot" name="pilot">
+                      {% for option_id, option in pilot_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id|stringformat:"s" == pilot|stringformat:"s" %}selected{% endif %}>
+                          {{ option }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                  <div class="col-lg-1 visually-hidden">
+                    <label class="col-form-label me-0" for="feature">{% trans "Feature:" %}</label>
+                  </div>
+                  <div class="col-lg-3">
+                    <select class="form-select" id="feature" name="feature">
+                      {% for option_id, option in feature_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id|stringformat:"s" == feature|stringformat:"s" %}selected{% endif %}>
+                          {{ option }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                  <div class="col-lg-auto visually-hidden">
+                    <label class="col-form-label me-0" for="cost_type">{% trans "Cost type:" %}</label>
+                  </div>
+                  <div class="col-lg-4">
+                    <select class="form-select" id="cost_type" name="cost_type">
+                      {% for option_id, option in cost_type_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id|stringformat:"s" == cost_type|stringformat:"s" %}selected{% endif %}>
+                          {{ option }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+
+                </div>
+              </fieldset>
+            </form>
+ 
+          </div>
+        </div>
+        {# Top-line numbers #}
+        <div class="col-auto">
+          <div class="card mb-3" style="width:fit-content;">
+            <div class="card-body">
+              <p class="h5 mb-2">
+                {{ lead_number_title }}: <span class="text-primary">{{ lead_number }}</span>
+              </p>
+              <p class="h6 m-0 text-secondary">
+                {{ secondary_number_title }}: <span class="text-success">{{ secondary_number }}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# Data display #}
+      <div class="row" id="cost-data-display">
+        <div class="col-lg-8">
+          {# Bar chart #}
+          <div id="chart-container">
+            <canvas id="costChart"></canvas>
+          </div>
+          {# Script is embedded here so that it will get run each time HTMX swaps the chart #}
+          {# It has to be in the Django template due to looping over template variables #}
+          <script>
+(function () {
+  let costChart = null;
+  function prepareChart() {
+    console.log("preparing chart...");
+    if (costChart) {
+      costChart.destroy();
+    }
+    // Prepare data for the chart
+    const labels = [
+      {% for label in chart_x_labels %}"{{ label|safe }}",{% endfor %}
+    ];
+
+    const colors4 = ['#00429d', '#73a2c6', '#f4777f', '#93003a']
+    const colors6 = ['#00429d', '#5681b9', '#93c4d2', '#ffa59e', '#dd4c65', '#93003a']
+    const colors8 = ['#00429d', '#4771b2', '#73a2c6', '#a5d5d8', '#ffbcaf', '#f4777f', '#cf3759', '#93003a']
+    const colors10 = ['#00429d', '#3e67ae', '#618fbf', '#85b7ce', '#b1dfdb', '#ffcab9', '#fd9291', '#e75d6f', '#c52a52', '#93003a']
+    const colors12 = ['#00429d', '#3761ab', '#5681b9', '#73a2c6', '#93c4d2', '#b9e5dd', '#ffd3bf', '#ffa59e', '#f4777f', '#dd4c65', '#be214d', '#93003a'];
+    // Use the smallest color pallete available based on the numbers of chart_y_groups
+    let colors = colors4;
+    if ({{ chart_y_groups|length }} > 4) {
+      colors = colors6;
+    }
+    if ({{ chart_y_groups|length }} > 6) {
+      colors = colors8;
+    }
+    if ({{ chart_y_groups|length }} > 8) {
+      colors = colors10;
+    }
+    if ({{ chart_y_groups|length }} > 10) {
+      colors = colors12;
+    }
+    const data = {
+      labels: labels,
+      datasets: [
+        {% for group in chart_y_groups %}
+          {
+            label: '{{ group.label|safe }}',
+            data: [
+              {% for value in group.values %}{{ value }},{% endfor %}
+            ],
+            backgroundColor: colors[{{ forloop.counter0 }}%colors.length],
+          },
+        {% endfor %}
+      ]
+    };
+
+    // Configuration for the chart
+    const config = {
+      type: 'bar',
+      data: data,
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            // You could do a grouped bar chart instead, but there are a lot of
+            // groups so we'll always group them
+            stacked: '{{ bar_chart_type }}' === 'stacked',
+            ticks: {
+              // Include a dollar sign in the ticks and format 2 decimals
+              callback: function(value, index, ticks) {
+                return '$' + value.toFixed(2);
+              }
+            }
+          },
+          x: {
+            stacked: '{{ bar_chart_type }}' === 'stacked',
+          }
+        },
+        animation: {
+          // Animation causes odd behaviour if you change multiple dropdowns without waiting
+          duration: 0
+        }
+      }
+    };
+
+    // Render the chart
+    costChart = new Chart(
+      document.getElementById('costChart'),
+      config
+    );
+  }
+  prepareChart();
+})();
+          </script>
+        </div>
+
+        <div class="col-lg-4">
+          {# Table of details #}
+          <div class="table-responsive">
+            <table class="table table-striped" id="totals">
+              <thead>
+                <tr>
+                  {% for header in column_headers %}
+                    <th>{{ header }}</th>
+                  {% endfor %}
+                </tr>
+ 
+              </thead>
+              <tbody>
+                {% for row in rows %}
+                  <tr>
+                    {% for col in row %}<td>{{ col }}</td>{% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function checkUserKeydown(event) {
+      return event instanceof KeyboardEvent;
+    }
+  </script>
+ 
+{% endblock %}
+
+{% block page_script %}{% endblock %}

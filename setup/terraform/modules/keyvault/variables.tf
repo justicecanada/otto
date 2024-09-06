@@ -19,9 +19,9 @@ variable "tags" {
   default     = {}
 }
 
-variable "admin_group_object_id" {
-  type        = string
-  description = "The object ID of the admin group"
+variable "admin_group_object_ids" {
+  type        = list(string)
+  description = "List of object IDs of the admin Azure AD groups"
 }
 
 variable "entra_client_secret" {
