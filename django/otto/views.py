@@ -456,11 +456,16 @@ def cost_dashboard(request):
         "cost_type": _("Cost type"),
     }
 
-    stack_labels = {
+    group_labels = {
         "none": _("None"),
         "feature": _("Feature"),
         "pilot": _("Pilot"),
         "cost_type": _("Cost type"),
+    }
+
+    bar_chart_type_labels = {
+        "grouped": _("Grouped"),
+        "stacked": _("Stacked"),
     }
 
     # Options for the dropdowns
@@ -473,12 +478,11 @@ def cost_dashboard(request):
 
     # Get the filters / groupings from the query string
     x_axis = request.GET.get("x_axis", "day")
-    stack = request.GET.get("stack", "none")
+    group = request.GET.get("group", "none")
+    bar_chart_type = request.GET.get("bar_chart_type", "grouped")
     pilot = request.GET.get("pilot", "all")
     feature = request.GET.get("feature", "all")
     cost_type = request.GET.get("cost_type", "all")
-
-    print(x_axis, stack, pilot, feature, cost_type)
 
     # First, filter the costs by the selected options
     raw_costs = Cost.objects.all()
@@ -489,24 +493,27 @@ def cost_dashboard(request):
     if cost_type != "all":
         raw_costs = raw_costs.filter(cost_type__id=cost_type)
 
+    if x_axis in ["day", "week", "month"]:
+        raw_costs = raw_costs.order_by("date_incurred")
+
     # Total costs, to display in the lead numbers
     total_cost_today = display_cad_cost(
         sum(c.usd_cost for c in raw_costs.filter(date_incurred=timezone.now().date()))
     )
     total_costs_alltime = display_cad_cost(sum(c.usd_cost for c in raw_costs))
 
-    if stack == "feature":
-        stack_costs = [
+    if group == "feature":
+        group_costs = [
             {"label": feature_label, "costs": raw_costs.filter(feature=feature_id)}
             for feature_id, feature_label in dict(FEATURE_CHOICES).items()
         ]
-    elif stack == "pilot":
-        stack_costs = [
+    elif group == "pilot":
+        group_costs = [
             {"label": pilot.name, "costs": raw_costs.filter(user__pilot=pilot)}
             for pilot in list(Pilot.objects.all())
         ]
-    elif stack == "cost_type":
-        stack_costs = [
+    elif group == "cost_type":
+        group_costs = [
             {"label": cost_type.name, "costs": raw_costs.filter(cost_type=cost_type)}
             for cost_type in list(CostType.objects.all())
         ]
@@ -519,7 +526,7 @@ def cost_dashboard(request):
         chart_x_labels = [pilot_options.get(c, c) for c in chart_x_labels]
     elif x_axis == "cost_type":
         chart_x_labels = [cost_type_options.get(c, c) for c in chart_x_labels]
-    if stack == "none":
+    if group == "none":
         # Now, we have the costs aggregated by the selected x-axis
         # Let's format the data for the table
         column_headers = [x_axis_labels[x_axis], _("Total cost (CAD)")]
@@ -549,32 +556,32 @@ def cost_dashboard(request):
             }
         ]
     else:
-        stack_costs = [
+        group_costs = [
             {
-                "label": stack_cost["label"],
-                "costs": aggregate_costs(stack_cost["costs"], x_axis),
+                "label": group_cost["label"],
+                "costs": aggregate_costs(group_cost["costs"], x_axis),
             }
-            for stack_cost in stack_costs
+            for group_cost in group_costs
         ]
-        # Remove stack_costs which have no cost objects at all
-        stack_costs = [
-            s for s in stack_costs if sum(cost["total_cost"] for cost in s["costs"]) > 0
+        # Remove group_costs which have no cost objects at all
+        group_costs = [
+            s for s in group_costs if sum(cost["total_cost"] for cost in s["costs"]) > 0
         ]
         column_headers = [
             x_axis_labels[x_axis],
-            stack_labels[stack],
+            group_labels[group],
             _("Total cost (CAD)"),
         ]
         rows = []
-        for stack_cost in stack_costs:
-            for cost in stack_cost["costs"]:
+        for group_cost in group_costs:
+            for cost in group_cost["costs"]:
                 if cost["total_cost"] == 0:
                     continue
                 if x_axis == "day":
                     rows.append(
                         [
                             cost["day"].strftime("%Y-%m-%d"),
-                            stack_cost["label"],
+                            group_cost["label"],
                             f"${cad_cost(cost['total_cost']):.2f}",
                         ]
                     )
@@ -582,7 +589,7 @@ def cost_dashboard(request):
                     rows.append(
                         [
                             feature_options.get(cost[x_axis], cost[x_axis]),
-                            stack_cost["label"],
+                            group_cost["label"],
                             f"${cad_cost(cost['total_cost']):.2f}",
                         ]
                     )
@@ -590,7 +597,7 @@ def cost_dashboard(request):
                     rows.append(
                         [
                             cost[x_axis],
-                            stack_cost["label"],
+                            group_cost["label"],
                             f"${cad_cost(cost['total_cost']):.2f}",
                         ]
                     )
@@ -598,28 +605,30 @@ def cost_dashboard(request):
 
         chart_y_groups = [
             {
-                "label": stack_cost["label"],
-                "values": [cad_cost(c["total_cost"]) for c in stack_cost["costs"]],
+                "label": group_cost["label"],
+                "values": [cad_cost(c["total_cost"]) for c in group_cost["costs"]],
             }
-            for stack_cost in stack_costs
+            for group_cost in group_costs
         ]
 
     context = {
         "column_headers": column_headers,
         "rows": rows,
         "lead_number": total_cost_today,
-        "lead_number_title": _("Cost today"),
+        "lead_number_title": _("Today"),
         "secondary_number": total_costs_alltime,
-        "secondary_number_title": _("Cost all time"),
+        "secondary_number_title": _("All time"),
         "chart_x_labels": chart_x_labels,
         "chart_y_groups": chart_y_groups,
         "x_axis": x_axis,
-        "stack": stack,
+        "group": group,
+        "bar_chart_type": bar_chart_type,
         "pilot": pilot,
         "feature": feature,
         "cost_type": cost_type,
         "x_axis_options": x_axis_labels,
-        "stack_options": stack_labels,
+        "group_options": group_labels,
+        "bar_chart_type_options": bar_chart_type_labels,
         "pilot_options": pilot_options,
         "feature_options": feature_options,
         "cost_type_options": cost_type_options,
