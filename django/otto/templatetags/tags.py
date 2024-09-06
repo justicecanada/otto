@@ -16,3 +16,8 @@ def get_librarian_modal_url(item_type, item_id):
     if url_name:
         return reverse(url_name, kwargs={f"{item_type}_id": item_id})
     return "#"
+
+
+@register.simple_tag
+def get_preset_description(preset, language):
+    preset.get_description(language)

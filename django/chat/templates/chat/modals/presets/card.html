@@ -1,7 +1,9 @@
 {% load i18n %}
+{% load tags %}
+{% get_current_language as LANGUAGE_CODE %}
 
 {% block page_css %}
-<style>
+  <style>
   .card {
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   }
@@ -72,74 +74,55 @@
       }
     }
   }
-</style>
+  </style>
 
 {% endblock page_css %}
 
 <li class="card">
   <div class="card-header align-items-center">
     <div class="card-title fs-6 my-auto text-truncate me-2 fw-medium">
-      {{ preset.preset_name }}</div>
+      {{ preset.name_en
+      }}
+    </div>
     <div class="d-flex align-items-center">
-      <i
-        class="bi bi-people-fill text-secondary me-1"
-        data-bs-toggle="tooltip"
-        data-bs-title="{% trans 'Shared with others' %}"
-      ></i>
+      <i class="bi bi-people-fill text-secondary me-1"
+         data-bs-toggle="tooltip"
+         data-bs-title="{% trans 'Shared with others' %}"></i>
       {# <i class="bi bi-globe-americas me-2 text-secondary"></i> #}
-      <button
-        type="button"
-        class="btn btn-light rounded-circle"
-        data-bs-toggle="tooltip"
-        data-bs-title="{% trans 'Add to favourites' %}"
-      >
+      <button type="button"
+              class="btn btn-light rounded-circle"
+              data-bs-toggle="tooltip"
+              data-bs-title="{% trans 'Add to favourites' %}">
         <i class="bi bi-heart-fill"></i>
       </button>
     </div>
 
   </div>
 
-  <hr
-    class="px-2"
-    style="margin-top: 0; margin-bottom: 0;"
-  >
+  <hr class="px-2" style="margin-top: 0; margin-bottom: 0;">
 
   <div class="card-body">
-    <p
-      class="card-text"
-      style="-webkit-box-orient: vertical !important;
+    <p class="card-text"
+       style="-webkit-box-orient: vertical !important;
               display: -webkit-box !important;
               -webkit-line-clamp: 4 !important;
               overflow: hidden !important;
               text-overflow: ellipsis !important;
-              white-space: normal !important"
-    >
-      Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dolore optiosaepe
-      accusamus similique corrupti a quam rem eum, labore suscipit distinctio numquam
-      accusantium fugiat dolores tenetur alias nam. Nobis,
-      fugit. Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat a
-      rem repudiandae et molestiae aliquam voluptatem ducimus, quae, quia
-      dolorem fuga recusandae consequatur quibusdam maxime, nulla tempore
-      laborum eos nam.
-    </p>
+              white-space: normal !important">{% get_preset_description preset LANGUAGE_CODE %}</p>
   </div>
   <div class="card-footer">
-    <button
-      type="button"
-      class="btn btn-ghost flex-grow-1"
-      data-bs-dismiss="modal"
-      hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
-      hx-target="#options-accordion"
-    >
+    <button type="button"
+            class="btn btn-ghost flex-grow-1"
+            data-bs-dismiss="modal"
+            hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
+            hx-target="#options-accordion">
       <i class="bi bi-download me-2 text-secondary"></i><span>{% trans "Load" %}</span>
     </button>
-    <button
-      type="button"
-      class="btn btn-ghost flex-grow-1"
-      hx-get="{% url 'chat:get_preset_form' chat_id=chat_id %}"
-      hx-target="#presets-modal-body"
-      hx-swap="innerHTML transition:true"
-    >
+    <button type="button"
+            class="btn btn-ghost flex-grow-1"
+            hx-get="{% url 'chat:get_preset_form' chat_id=chat_id %}"
+            hx-target="#presets-modal-body"
+            hx-swap="innerHTML transition:true">
       <i class="bi bi-pencil me-2 text-secondary"></i><span>Edit</span>
     </button>
   </div>

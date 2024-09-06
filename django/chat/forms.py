@@ -81,7 +81,7 @@ class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions
         fields = "__all__"
-        exclude = ["chat", "user", "global_default", "preset_name"]
+        exclude = ["chat", "global_default"]
         widgets = {
             "chat_temperature": forms.Select(
                 choices=TEMPERATURES,
@@ -125,7 +125,7 @@ class ChatOptionsForm(ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("user", None)
+        user = kwargs.pop("user", None)
         super(ChatOptionsForm, self).__init__(*args, **kwargs)
         # Each of chat_model, summarize_model, qa_model
         # should be a choice field with the available models
@@ -166,7 +166,7 @@ class ChatOptionsForm(ModelForm):
             )
 
         self.fields["qa_library"] = GroupedLibraryChoiceField(
-            user=self.user,
+            user=user,
             empty_label=None,
             widget=forms.Select(
                 attrs={
