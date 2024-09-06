@@ -60,21 +60,52 @@
     </ul>
 
     <div class="tab-content border-bottom pt-4">
-      <div class="tab-pane fade show active"
-           id="en-preset-tab-pane"
-           role="tabpanel"
-           aria-labelledby="en-preset-tab"
-           tabindex="0">
-        <h3>English</h3>
+
+ 
+
+      <form class="g-3 mt-1 row">
+        <div class="col-12">
+          <label class="form-label" for="title_of_preset">Title (required)</label>
+
+          <input type="text"
+                 class="form-control"
+                 id="title_of_preset"
+                 name="title_of_preset"
+                 placeholder="Enter title of preset"
+                 required>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="description_of_preset">Description</label>
+
+          <textarea class="form-control"
+                    id="description_of_preset"
+                    name="description_of_preset"
+                    placeholder="Enter description of preset"
+                    rows="3"></textarea>
+ 
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="checkbox"
+                   id="make_public"
+                   name="make_public">
+            <label class="form-check-label" for="make_public">Make preset public</label>
+          </div>
+        </div>
+
+
       </div>
-      <div class="tab-pane fade"
-           id="fr-preset-tab-pane"
-           role="tabpanel"
-           aria-labelledby="fr-preset-tab"
-           tabindex="0">
-        <h3>French</h3>
+    </form>
+    <div class="col-12 d-flex justify-content-center mt-2">
+      <div class="w-50 d-flex">
+        <button id="save_preset" class="btn btn-primary flex-fill me-2" type="submit">Save</button>
+        <button id="cancel_preset"
+                class="btn btn-outline-secondary flex-fill"
+                type="button">Cancel</button>
       </div>
     </div>
   </div>
+</div>
 
 </div>
