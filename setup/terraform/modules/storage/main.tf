@@ -1,3 +1,5 @@
+# SC-28: Storage account encryption by default using 256-bit AES encryption
+# SC-8: Azure Storage implicitly enables secure transfer
 resource "azurerm_storage_account" "storage" {
   name                            = var.storage_name
   resource_group_name             = var.resource_group_name

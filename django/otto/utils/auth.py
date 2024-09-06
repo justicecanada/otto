@@ -49,7 +49,7 @@ class RedirectToLoginMiddleware:
         no_trailing_dash_path = request.path.rstrip("/") or "/"
         if no_trailing_dash_path in PUBLIC_PATHS:
             return self.get_response(request)
-        # Can't be anonymous
+        # AC-2: User Authentication (Can't be anonymous)
         if not request.user.is_authenticated or request.user.is_anonymous:
             return HttpResponseRedirect(reverse("welcome") + "?next=" + request.path)
 
