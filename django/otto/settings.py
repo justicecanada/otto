@@ -66,7 +66,7 @@ AZURE_ACCOUNT_KEY = os.environ.get(
     "AZURE_ACCOUNT_KEY"
 )  # Azure as default storage requires this name to be AZURE_ACCOUNT_KEY
 
-# Entra
+# AC-2: Entra Integration
 ENTRA_CLIENT_ID = os.environ.get("ENTRA_CLIENT_ID")
 ENTRA_CLIENT_SECRET = os.environ.get("ENTRA_CLIENT_SECRET")
 ENTRA_AUTHORITY = os.environ.get("ENTRA_AUTHORITY")
@@ -115,7 +115,7 @@ DEBUG_PROPAGATE_EXCEPTIONS = True
 
 ALLOWED_HOSTS = [SITE_URL.hostname, "localhost", "127.0.0.1"]
 
-
+# AC-2: Entra Integration Helper App Configuration
 AUTHENTICATION_BACKENDS = [
     "azure_auth.backends.AzureBackend",
     "rules.permissions.ObjectPermissionBackend",
@@ -144,7 +144,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "autocomplete",
     "rules.apps.AutodiscoverRulesConfig",
-    "azure_auth",
+    "azure_auth",  # AC-2: Entra Integration Helper App
     # Otto apps
     "otto",
     "librarian",
@@ -164,12 +164,12 @@ MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",  # AC-2: Authentication
     # Static files
     "whitenoise.middleware.WhiteNoiseMiddleware",
     # Handle login flows: redirect to login page, use Azure login, accept terms to use
     "otto.utils.auth.RedirectToLoginMiddleware",
-    "azure_auth.middleware.AzureMiddleware",
+    "azure_auth.middleware.AzureMiddleware",  # AC-2: Protect entire site by default
     "otto.utils.auth.AcceptTermsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

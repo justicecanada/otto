@@ -37,8 +37,9 @@
       <nav class="navbar bg-dark border-bottom navbar-expand-sm position-relative"
            data-bs-theme="dark"
            id="top-nav">
+        <a href="#main-content-wrapper"
+           class="btn btn-primary position-absolute visually-hidden-focusable ms-2">{% trans "Skip to main content" %}</a>
         <div class="container-fluid">
-          {% include 'components/search.html' %}
           <a class="navbar-brand text-white" href="{% url 'index' %}">
             <img src="{% static 'otto.png' %}"
                  width="30"
@@ -48,6 +49,8 @@
             Otto
             <small class="text-muted" id="otto-version">{{ otto_version }}</small>
           </a>
+
+          {% include 'components/search.html' %}
  
           {% if request.user.is_authenticated %}
             <button class="navbar-toggler"
@@ -87,18 +90,19 @@
       </nav>
     {% endif %}
 
-    {% include "components/messages.html" with add_padding=true %}
+    {% include "components/messages.html" with add_padding="true" %}
 
-    {% block content_container %}
-      <div class="container body-content">
-        <main class="py-md-5 py-3" role="main">
-          {% block body %}{% endblock %}
-        </main>
-      </div>
-    {% endblock %}
+    <div id="main-content-wrapper">
+      {% block content_container %}
+        <div class="container body-content">
+          <main class="py-md-5 py-3" role="main">
+            {% block body %}{% endblock %}
+          </main>
+        </div>
+      {% endblock %}
+      {% block flash_messages %}{% endblock %}
+    </div>
 
-    {% block flash_messages %}{% endblock %}
- 
     <script>
     // the following will add the csrf token to .post and .ajax requests
     const csrftoken = Cookies.get("csrftoken");
