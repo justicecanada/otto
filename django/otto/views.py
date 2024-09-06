@@ -332,7 +332,6 @@ def manage_users_download(request):
 def manage_pilots(request):
     if request.method == "POST":
         pilot_id = request.POST.get("id")
-        print(pilot_id)
         if pilot_id:
             pilot = get_object_or_404(Pilot, pk=pilot_id)
             form = PilotForm(request.POST, instance=pilot)
@@ -579,9 +578,7 @@ def cost_dashboard(request):
         ]
         # Fill in missing x-axis values with zero costs (chart_x_keys)
         for group_cost in group_costs:
-            print(group_cost)
             costs_dict = {c[x_axis]: c["total_cost"] for c in group_cost["costs"]}
-            print(costs_dict)
             new_costs = [
                 {
                     x_axis: x,
@@ -589,7 +586,6 @@ def cost_dashboard(request):
                 }
                 for x in chart_x_keys
             ]
-            print(new_costs)
             group_cost["costs"] = new_costs
 
         column_headers = [
