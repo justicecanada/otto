@@ -25,15 +25,16 @@
       background-color: transparent;
       border: none;
       border-color: var(--app-color-red-1);
-
       i.bi.bi-heart-fill {
-        color: var(--app-color-red-1);
+        color: var(--app-color-red-1);        
       }
-
       &:hover {
-        background-color: var(--app-color-red-1-hover);
+        i.bi.bi-heart {
+          color: var(--app-color-red-1);    
+        }
+        background-color: transparent !important;
+        text-shadow: 0px 0px 7px var(--app-color-red-1);
       }
-
       &:focus-visible {
         border: solid 1px var(--app-color-red-1);
         background-color: var(--app-color-red-1-hover);
@@ -84,7 +85,6 @@
       <i class="bi bi-people-fill text-secondary me-1"
          data-bs-toggle="tooltip"
          data-bs-title="{% trans 'Shared with others' %}"></i>
-      {# <i class="bi bi-globe-americas me-2 text-secondary"></i> #}
       {% include "chat/modals/presets/favourite.html" %}
     </div>
 

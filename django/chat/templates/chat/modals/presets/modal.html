@@ -2,7 +2,7 @@
 
 {% block page_css %}
 
-<style>
+  <style>
   /* just trying things out here */
   @keyframes fade-in {
     from {
@@ -43,24 +43,19 @@
   .sample-transition {
     view-transition-name: slide-it;
   }
-</style>
+  </style>
 
 {% endblock page_css %}
 
-<div
-  class="modal modal-xl fade"
-  id="presets-modal"
-  tabindex="0"
-  aria-label='{% trans "Settings Presets" %}'
-  aria-hidden="true"
->
+<div class="modal modal-xl fade"
+     id="presets-modal"
+     tabindex="0"
+     aria-label='{% trans "Settings Presets" %}'
+     aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       {% include "chat/modals/presets/modal_header.html" %}
-      <div
-        id="presets-modal-body"
-        class="sample-transition"
-      ></div>
+      <div id="presets-modal-body" class="sample-transition"></div>
     </div>
   </div>
 </div>
