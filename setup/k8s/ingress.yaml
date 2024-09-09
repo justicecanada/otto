@@ -7,10 +7,10 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/whitelist-source-range: 199.212.215.11/32
     nginx.ingress.kubernetes.io/proxy-body-size: "51200m"
-    cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer
+    cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer # SC-8: Ensure the integrity of transmitted data
 spec:
   ingressClassName: nginx
-  # SC-13: TLS configuration for secure communication
+  # SC-8 & SC-13: TLS configuration for secure communication
   tls:
   - hosts:
     - ${HOST_NAME}
