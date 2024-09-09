@@ -373,3 +373,12 @@ async def summarize_long_text_async(
     return await sync_to_async(summarize_long_text)(
         text, llm, length, target_language, custom_prompt
     )
+
+
+async def combine_responses(responses, sources):
+    for response, source in zip(responses, sources):
+        yield f"\n###{source.metadata['title']}\n"
+        generator = response.response_gen
+        for value in generator:
+            yield value
+            await asyncio.sleep(0)

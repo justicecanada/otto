@@ -18,6 +18,7 @@ from chat.llm import OttoLLM
 from chat.models import Message
 from chat.tasks import translate_file
 from chat.utils import (
+    combine_responses,
     htmx_stream,
     num_tokens_from_string,
     summarize_long_text,
@@ -378,15 +379,25 @@ def qa_response(chat, response_message, eval=False):
             content_type="text/event-stream",
         )
 
-    response = synthesizer.synthesize(query=input, nodes=source_nodes)
+    if chat.options.qa_answer_mode != "per-source":
+        response = synthesizer.synthesize(query=input, nodes=source_nodes)
+        response_generator = response.response_gen
+        sources = response.source_nodes
+    else:
+        responses = []
+        for source in source_nodes:
+            responses.append(synthesizer.synthesize(query=input, nodes=[source]))
+
+        response_generator = combine_responses(responses, source_nodes)
+        sources = source_nodes
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
             llm,
-            response_generator=response.response_gen,
-            source_nodes=response.source_nodes,
+            response_generator=response_generator,
+            source_nodes=sources,
         ),
         content_type="text/event-stream",
     )
