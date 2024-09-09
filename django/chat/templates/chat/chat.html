@@ -12,6 +12,10 @@
   <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
 {% endblock %}
 
+{% block page_title %}
+  {% trans "AI assistant - Otto" %}
+{% endblock %}
+
 {% block content_container %}
   <main id="chat-outer" class="{{ mode }}">
     {% include 'chat/components/file_upload.html' %}
@@ -60,7 +64,7 @@
   {% include "chat/modals/advanced_qa_modal.html" %}
   {# For modals below, contents ("inner" template) are loaded through HTMX #}
   {% include "chat/modals/sources_modal_outer.html" %}
-  {% include "chat/modals/presets/presets_modal.html" %}
+  {% include "chat/modals/presets/modal.html" %}
   {% include "librarian/modal_outer.html" %}
 
   <link rel="stylesheet"

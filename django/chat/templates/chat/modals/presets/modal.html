@@ -1,0 +1,66 @@
+{% load i18n %}
+
+{% block page_css %}
+
+<style>
+  /* just trying things out here */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-from-right {
+    from {
+      transform: translateX(90px);
+    }
+  }
+
+  @keyframes slide-to-left {
+    to {
+      transform: translateX(-90px);
+    }
+  }
+
+  /* define animations for the old and new content */
+  ::view-transition-old(slide-it) {
+    animation: 180ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
+      600ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-left;
+  }
+
+  ::view-transition-new(slide-it) {
+    animation: 420ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in,
+      600ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-right;
+  }
+
+  /* tie the view transition to a given CSS class */
+  .sample-transition {
+    view-transition-name: slide-it;
+  }
+</style>
+
+{% endblock page_css %}
+
+<div
+  class="modal modal-xl fade"
+  id="presets-modal"
+  tabindex="0"
+  aria-label='{% trans "Settings Presets" %}'
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      {% include "chat/modals/presets/modal_header.html" %}
+      <div
+        id="presets-modal-body"
+        class="sample-transition"
+      ></div>
+    </div>
+  </div>
+</div>

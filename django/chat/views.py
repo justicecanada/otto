@@ -26,7 +26,7 @@ from chat.metrics.feedback_metrics import (
     chat_negative_feedback_total,
     chat_positive_feedback_total,
 )
-from chat.models import Chat, ChatFile, ChatOptions, Message
+from chat.models import Chat, ChatFile, ChatOptions, Message, Preset
 from chat.utils import llm_response_to_html, title_chat
 from librarian.models import DataSource, Library
 from otto.models import App, SecurityLabel
@@ -187,7 +187,7 @@ def api_qa(request):
     chat = Chat.objects.create(user=user, mode=mode)
 
     # Create a chat options object
-    chat.options = ChatOptions.objects.from_defaults(user=chat.user)
+    chat.options = ChatOptions.objects.from_defaults(user=chat.user.default_preset)
     chat.options.mode = mode
 
     # Usage metrics
@@ -288,7 +288,9 @@ def chat(request, chat_id):
     if not chat.options:
         # This is just to catch chats which existed before ChatOptions was introduced.
         # The existing chat mode for these chats will be lost.
-        chat.options = ChatOptions.objects.from_defaults(user=chat.user)
+        chat.options = ChatOptions.objects.from_defaults(
+            default_preset=chat.user.default_preset
+        )
         chat.save()
     mode = chat.options.mode
 
@@ -355,7 +357,7 @@ def chat(request, chat_id):
     context = {
         "chat": chat,
         "options_form": form,
-        "option_presets": ChatOptions.objects.filter(user=request.user),
+        "option_presets": request.user.default_preset.values("options"),
         "chat_messages": messages,
         "hide_breadcrumbs": True,
         "user_chats": user_chats,
@@ -565,7 +567,7 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def chat_options(request, chat_id, action=None):
+def chat_options(request, chat_id, action=None, preset_id=None):
     """
     Save and load chat options.
     """
@@ -573,7 +575,7 @@ def chat_options(request, chat_id, action=None):
     def _copy_options(source_options, target_options):
         source_options = model_to_dict(source_options)
         # Remove the fields that are not part of the preset
-        for field in ["id", "user", "preset_name"]:
+        for field in ["id"]:
             source_options.pop(field)
         # Update the preset options with the dictionary
         fk_fields = ["qa_library"]
@@ -592,21 +594,19 @@ def chat_options(request, chat_id, action=None):
     chat = Chat.objects.get(id=chat_id)
     if action in ["reset", "load_preset"]:
         if action == "reset":
-            preset_options = ChatOptions.objects.from_defaults(user=request.user)
+            preset_options = ChatOptions.objects.from_defaults(
+                default_preset=request.user.default_preset
+            )
             logger.info("Resetting chat options to default.", chat_id=chat_id)
         else:
-            # Check that the preset is not empty and exists
-            preset_name = request.POST.get("option_presets")
             logger.info(
                 "Loading chat options from a preset.",
                 chat_id=chat_id,
-                preset=preset_name,
+                preset=preset_id,
             )
-            if not preset_name:
+            if not preset_id:
                 return HttpResponse(status=500)
-            preset_options = ChatOptions.objects.filter(
-                user=request.user, preset_name=preset_name
-            ).first()
+            preset_options = Preset.objects.get(id=int(preset_id))
             if not preset_options:
                 return HttpResponse(status=500)
         # Update the chat options with the default options
@@ -623,6 +623,7 @@ def chat_options(request, chat_id, action=None):
             },
         )
     elif action == "save_preset":
+        # TODO: Preset refactor: save preset
         # Save the current chat options as a preset
         preset_name = request.POST.get("option_presets")
         logger.info(
@@ -632,32 +633,35 @@ def chat_options(request, chat_id, action=None):
         if not preset_name:
             return HttpResponse(status=500)
         # Get or create the preset
-        preset_options = ChatOptions.objects.filter(
-            user=request.user, preset_name=preset_name
-        ).first()
-        if not preset_options:
-            preset_options = ChatOptions.objects.create(
-                user=request.user, preset_name=preset_name
-            )
-        _copy_options(chat.options, preset_options)
+        if preset_id:
+            preset = Preset.objects.get(preset_id).first()
+        else:
+            preset = Preset()
+            preset.name_en = preset_name
+            preset.owner = request.user
+            options = ChatOptions.objects.from_defaults()
+            preset.options = options
+            preset.save()
+        _copy_options(chat.options, preset.options)
         # Replaces the preset dropdown with the saved one selected
         return render(
             request,
             "chat/components/options_preset_dropdown.html",
             {
-                "option_presets": ChatOptions.objects.filter(user=chat.user),
+                "option_presets": chat.user.accessible_presets.all(),
                 "selected_preset": preset_name,
             },
         )
     elif action == "delete_preset":
-        # Delete the preset
-        preset_name = request.POST.get("option_presets")
-        logger.info(
-            "Deleting chat options preset.", chat_id=chat_id, preset=preset_name
-        )
-        if not preset_name:
+        if not preset_id:
             return HttpResponse(status=500)
-        ChatOptions.objects.filter(user=request.user, preset_name=preset_name).delete()
+        logger.info(
+            "Deleting chat options preset.",
+            user_id=request.user.id,
+            preset_id=preset_id,
+        )
+        preset = ChatOptions.objects.get(id=preset_id).delete_preset(request.user)
+        # TODO: Preset refactor: handle return
         # Replaces the preset dropdown with none selected
         return render(
             request,
@@ -679,7 +683,7 @@ def chat_options(request, chat_id, action=None):
         return render(
             request,
             "chat/components/options_preset_dropdown.html",
-            {"option_presets": ChatOptions.objects.filter(user=chat.user)},
+            {"option_presets": chat.user.accessible_presets.all()},
         )
     return HttpResponse(status=500)
 
@@ -785,4 +789,26 @@ def message_sources(request, message_id):
         request,
         "chat/modals/sources_modal_inner.html",
         {"message": message, "sources": message.sources},
+    )
+
+
+def get_presets(request, chat_id):
+    return render(
+        request,
+        "chat/modals/presets/card_list.html",
+        {
+            "presets": Preset.objects.get_accessible_presets(request.user),
+            "chat_id": chat_id,
+        },
+    )
+
+
+def get_preset_form(request, chat_id):
+    return render(
+        request,
+        "chat/modals/presets/presets_form.html",
+        {
+            "presets": Preset.objects.get_accessible_presets(request.user),
+            "chat_id": chat_id,
+        },
     )

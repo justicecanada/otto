@@ -22,14 +22,6 @@
 
 {% endblock page_css %}
 
-<div class="modal-header">
-  <h5 class="modal-title w-100 h-6" style="font-weight: 600;">{% trans "Create / Edit Presets" %}</h5>
-  <button type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="{% trans 'Close' %}"></button>
-</div>
-
 <div class="modal-body">
 
   <div class="d-flex flex-column">
@@ -108,4 +100,12 @@
   </div>
 </div>
 
+</div>
+
+<div class="modal-footer">
+  <button type="button"
+          class="btn btn-secondary"
+          hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
+          hx-target="#presets-modal-body"
+          hx-swap="innerHTML transition:true">{% trans "Close" %}</button>
 </div>

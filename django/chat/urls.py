@@ -55,6 +55,11 @@ urlpatterns = [
         name="chat_options",
     ),
     path(
+        "id/<str:chat_id>/options/preset/<str:action>/<str:preset_id>",
+        views.chat_options,
+        name="chat_options",
+    ),
+    path(
         "id/<str:chat_id>/set_security_label/<str:security_label_id>",
         views.set_security_label,
         name="set_security_label",
@@ -73,5 +78,15 @@ urlpatterns = [
         "id/<str:chat_id>/options/qa_accordion/<int:library_id>",
         views.get_qa_accordion,
         name="qa_accordion",
+    ),
+    path(
+        "id/<str:chat_id>/options/presets/",
+        views.get_presets,
+        name="get_presets",
+    ),
+    path(
+        "id/<str:chat_id>/options/presets/form/",
+        views.get_preset_form,
+        name="get_preset_form",
     ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

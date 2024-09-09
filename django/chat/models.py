@@ -31,7 +31,7 @@ class ChatManager(models.Manager):
         else:
             mode = DEFAULT_MODE
         kwargs["options"] = ChatOptions.objects.from_defaults(
-            user=kwargs["user"], mode=mode
+            default_preset=kwargs["user"].default_preset, mode=mode
         )
         kwargs["security_label_id"] = SecurityLabel.default_security_label().id
         return super().create(*args, **kwargs)
@@ -70,17 +70,17 @@ class Chat(models.Model):
 
 
 class ChatOptionsManager(models.Manager):
-    def from_defaults(self, mode=None, user=None):
+    def from_defaults(self, mode=None, default_preset=None):
         """
         If a user default exists, copy that into a new ChatOptions object.
         If not, create a new object with some default settings manually.
         Set the mode and chat FK in the new object.
         """
-        if user:
-            user_default = (
-                self.get_queryset().filter(user=user, user_default=True).first()
-            )
-        if user and user_default:
+        user_default = None
+        if default_preset:
+            user_default = default_preset.values("options")
+        if user_default:
+            user_default = user_default.first()
             new_options = user_default
             new_options.pk = None
             if mode:
@@ -118,17 +118,6 @@ class ChatOptions(models.Model):
 
     # Default case: ChatOptions object is associated with a particular chat.
     # (Does not show up in the list of option presets for a user.)
-
-    # Second case: user options preset. One user can have many presets.
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        null=True,
-        related_name="chat_options",
-    )
-    preset_name = models.CharField(max_length=255, blank=True)
-    # Third case (can overlap with 2nd case): User default options.
-    user_default = models.BooleanField(default=False)
 
     mode = models.CharField(max_length=255, default=DEFAULT_MODE)
 
@@ -190,12 +179,12 @@ class ChatOptions(models.Model):
         )
 
     def clean(self):
-        if hasattr(self, "chat") and self.user:
+        if hasattr(self, "chat") and self.preset.first():
             logger.error(
-                "ChatOptions cannot be associated with both a chat AND a user.",
+                "ChatOptions cannot be associated with both a chat AND a user preset.",
             )
             raise ValueError(
-                "ChatOptions cannot be associated with both a chat AND a user."
+                "ChatOptions cannot be associated with both a chat AND a user preset."
             )
 
     def make_user_default(self):
@@ -216,6 +205,76 @@ class ChatOptions(models.Model):
                 logger.info("Chat library selection changed. Resetting data_sources.")
                 self.qa_data_sources.set(self.qa_library.data_sources.all())
         super().save(*args, **kwargs)
+
+
+class PresetManager(models.Manager):
+    def get_accessible_presets(self, user):
+        presets = self.filter(
+            (Q(owner=user) | Q(is_public=True)) & Q(is_deleted=False)
+        ) | user.accessible_presets.filter(is_deleted=False)
+        return presets
+
+
+class Preset(models.Model):
+    """
+    A preset of options for a chat
+    """
+
+    objects = PresetManager()
+
+    name_en = models.CharField(max_length=255, blank=True)
+    name_fr = models.CharField(max_length=255, blank=True)
+    description_en = models.TextField(blank=True)
+    description_fr = models.TextField(blank=True)
+    options = models.ForeignKey(
+        ChatOptions, on_delete=models.CASCADE, related_name="preset"
+    )
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_public = models.BooleanField(default=False)
+    accessible_to = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="accessible_presets"
+    )
+    editable_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="editable_presets"
+    )
+    favourited_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="favourited_presets"
+    )
+    default_for = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="default_preset",
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    is_deleted = models.BooleanField(default=False)
+
+    def toggle_user_default(self, user_id):
+        if self.user_id:
+            user = settings.AUTH_USER_MODEL.objects.get(id=user_id)
+            try:
+                self.favourited_by.get(user).delete()
+            except:
+                self.favourited_by.add(user)
+        else:
+            logger.error("User must be set to set user default.")
+            raise ValueError("User must be set to set user default")
+
+    def delete_preset(self, user):
+        # TODO: Preset refactor: Delete preset if no other presets are using it
+        if self.owner != user:
+            logger.error("User is not the owner of the preset.")
+            raise ValueError("User is not the owner of the preset.")
+        self.is_deleted = True
+        self.save()
+
+    def get_description(self, language):
+        language = language.lower()
+        if language == "en":
+            return self.description_en if self.description_en else self.description_fr
+        else:
+            return self.description_fr if self.description_fr else self.description_en
 
 
 class Message(models.Model):

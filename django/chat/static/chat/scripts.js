@@ -78,12 +78,12 @@ let debounceTimer;
 document.querySelector("#chat-container").addEventListener("scroll", function () {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    if (this.scrollTop + this.clientHeight < this.scrollHeight - 50) {
+    if (this.scrollTop + this.clientHeight < this.scrollHeight - 1) {
       preventAutoScrolling = true;
     } else {
       preventAutoScrolling = false;
     }
-  }, 100);
+  }, 10);
 });
 
 // Some resizing hacks to make the prompt form the same width as the messages
@@ -158,7 +158,7 @@ document.addEventListener("htmx:sseMessage", function (event) {
     hljs.highlightElement(block);
     block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
   }
-  scrollToBottom(false);
+  scrollToBottom(false, false);
 });
 // When streaming response is finished
 document.addEventListener("htmx:oobAfterSwap", function (event) {
@@ -168,7 +168,7 @@ document.addEventListener("htmx:oobAfterSwap", function (event) {
     hljs.highlightElement(block);
     block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
   }
-  scrollToBottom(false);
+  scrollToBottom(false, false);
 });
 // When prompt input is focused, Enter sends message, unless Shift+Enter (newline)
 document.addEventListener("keydown", function (event) {
