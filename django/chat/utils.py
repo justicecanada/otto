@@ -377,7 +377,7 @@ async def summarize_long_text_async(
 
 async def combine_responses(responses, sources):
     for response, source in zip(responses, sources):
-        yield f"\n###{source.metadata['title']}\n"
+        yield f"\n###{source.metadata.get('title', source.metadata['source'])}\n"
         generator = response.response_gen
         for value in generator:
             yield value
