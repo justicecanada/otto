@@ -37,6 +37,7 @@
                   hx-get="{% url 'cost_dashboard' %}"
                   hx-trigger="change"
                   hx-target="#cost-dashboard-outer"
+                  hx-push-url="true"
                   hx-select="#cost-dashboard-outer">
               <fieldset class="form-group">
                 <div class="row mb-1">
@@ -157,7 +158,6 @@
 (function () {
   let costChart = null;
   function prepareChart() {
-    console.log("preparing chart...");
     if (costChart) {
       costChart.destroy();
     }
