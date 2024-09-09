@@ -17,6 +17,7 @@ django-htmx-autocomplete==0.8.4
 rules==3.4
 django-cleanup==8.1.0
 django-azure-auth==2.0.0
+gevent==24.2.1
 
 # Logging ----------------------------------------------------------------------
 django-structlog[celery,commands]==8.1.0
