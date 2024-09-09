@@ -15,7 +15,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.forms import ChatOptionsForm, ChatRenameForm, DataSourcesForm
+from chat.forms import ChatOptionsForm, ChatRenameForm, DataSourcesForm, UserPresetForm
 from chat.llm import OttoLLM
 from chat.metrics.activity_metrics import (
     chat_new_session_started_total,
@@ -804,11 +804,13 @@ def get_presets(request, chat_id):
 
 
 def get_preset_form(request, chat_id):
+    form = UserPresetForm()
     return render(
         request,
         "chat/modals/presets/presets_form.html",
         {
             "presets": Preset.objects.get_accessible_presets(request.user),
             "chat_id": chat_id,
+            "form": form,
         },
     )

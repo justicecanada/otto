@@ -86,26 +86,30 @@
           </div>
         </div>
 
+        <div class="col-12">
+          <label class="form-label">{% trans "Editable by:" %}</label>
+          {{ form.editable_by }}
+          <label class="form-label">{% trans "Viewable by:" %}</label>
+          {{ form.viewable_by }}
+        </div>
+      </div>
 
-      </div>
     </form>
-    <div class="col-12 d-flex justify-content-center mt-2">
-      <div class="w-50 d-flex">
-        <button id="save_preset" class="btn btn-primary flex-fill me-2" type="submit">Save</button>
-        <button id="cancel_preset"
-                class="btn btn-outline-secondary flex-fill"
-                type="button">Cancel</button>
-      </div>
-    </div>
   </div>
 </div>
 
-</div>
 
 <div class="modal-footer">
-  <button type="button"
-          class="btn btn-secondary"
-          hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
-          hx-target="#presets-modal-body"
-          hx-swap="innerHTML transition:true">{% trans "Close" %}</button>
+
+  <div class="col-12 d-flex justify-content-center mt-2">
+    <div class="w-50 d-flex">
+      <button id="save_preset" class="btn btn-primary flex-fill me-2" type="submit">Save</button>
+      <button id="cancel_preset"
+              class="btn btn-outline-secondary flex-fill"
+              hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
+              hx-target="#presets-modal-body"
+              hx-swap="innerHTML transition:true"
+              type="button">Cancel</button>
+    </div>
+  </div>
 </div>

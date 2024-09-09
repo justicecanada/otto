@@ -262,3 +262,44 @@ class ChatRenameForm(ModelForm):
                 }
             )
         }
+
+
+class UserPresetForm(forms.Form):
+
+    from django.contrib.auth import get_user_model
+
+    from autocomplete import widgets
+
+    User = get_user_model()
+
+    editable_by = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        label="Editable Email",
+        required=True,
+        widget=widgets.Autocomplete(
+            name="editable_email",
+            options={
+                "item_value": User.id,
+                "item_label": User.email,
+                "multiselect": True,
+                "minimum_search_length": 2,
+                "model": User,
+            },
+        ),
+    )
+
+    viewable_by = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        label="Email",
+        required=True,
+        widget=widgets.Autocomplete(
+            name="viewable_email",
+            options={
+                "item_value": User.id,
+                "item_label": User.email,
+                "multiselect": True,
+                "minimum_search_length": 2,
+                "model": User,
+            },
+        ),
+    )
