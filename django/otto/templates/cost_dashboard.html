@@ -16,7 +16,7 @@
 
 {% block page_css %}
   {# Script embedded here because it is required in the content_container block #}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{% static 'thirdparty/chart.js' %}"></script>
 {% endblock %}
 
 {% block page_title %}
@@ -37,6 +37,7 @@
                   hx-get="{% url 'cost_dashboard' %}"
                   hx-trigger="change"
                   hx-target="#cost-dashboard-outer"
+                  hx-push-url="true"
                   hx-select="#cost-dashboard-outer">
               <fieldset class="form-group">
                 <div class="row mb-1">
@@ -157,7 +158,6 @@
 (function () {
   let costChart = null;
   function prepareChart() {
-    console.log("preparing chart...");
     if (costChart) {
       costChart.destroy();
     }

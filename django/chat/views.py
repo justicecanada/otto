@@ -7,6 +7,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -797,7 +798,9 @@ def get_presets(request, chat_id):
         request,
         "chat/modals/presets/card_list.html",
         {
-            "presets": Preset.objects.get_accessible_presets(request.user),
+            "presets": Preset.objects.get_accessible_presets(
+                request.user, get_language()
+            ),
             "chat_id": chat_id,
         },
     )
@@ -809,8 +812,24 @@ def get_preset_form(request, chat_id):
         request,
         "chat/modals/presets/presets_form.html",
         {
-            "presets": Preset.objects.get_accessible_presets(request.user),
+            "presets": Preset.objects.get_accessible_presets(
+                request.user, get_language()
+            ),
             "chat_id": chat_id,
             "form": form,
         },
     )
+
+
+def set_preset_favourite(request, preset_id):
+    preset = Preset.objects.get(id=preset_id)
+    try:
+        is_favourite = preset.toggle_favourite(request.user)
+        return render(
+            request,
+            "chat/modals/presets/favourite.html",
+            context={"is_favourite": is_favourite, "preset": preset},
+        )
+    except ValueError:
+        # TODO: Preset refactor: show friendly error message
+        return HttpResponse(status=500)

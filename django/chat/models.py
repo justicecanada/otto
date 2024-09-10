@@ -2,7 +2,8 @@ import uuid
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Q
+from django.db.models import BooleanField, Q, Value
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -208,11 +209,24 @@ class ChatOptions(models.Model):
 
 
 class PresetManager(models.Manager):
-    def get_accessible_presets(self, user):
-        presets = self.filter(
-            (Q(owner=user) | Q(is_public=True)) & Q(is_deleted=False)
-        ) | user.accessible_presets.filter(is_deleted=False)
-        return presets
+    def get_accessible_presets(self, user, language=None):
+        ordering = ["-favourite"]
+        if language:
+            ordering.append(f"name_{language}")
+        return (
+            self.filter(
+                Q(owner=user) | Q(is_public=True) | Q(accessible_to=user),
+                is_deleted=False,
+            )
+            .annotate(
+                favourite=Coalesce(
+                    Q(favourited_by__in=[user]),
+                    Value(False),
+                    output_field=BooleanField(),
+                )
+            )
+            .order_by(*ordering)
+        )
 
 
 class Preset(models.Model):
@@ -250,13 +264,20 @@ class Preset(models.Model):
     )
     is_deleted = models.BooleanField(default=False)
 
-    def toggle_user_default(self, user_id):
-        if self.user_id:
-            user = settings.AUTH_USER_MODEL.objects.get(id=user_id)
+    def toggle_favourite(self, user):
+        """Sets the favourite flag for the preset.
+        Returns True if the preset was added to the favourites, False if it was removed.
+        Raises ValueError if user is None.
+        """
+
+        if user:
             try:
-                self.favourited_by.get(user).delete()
+                self.favourited_by.get(pk=user.id)
+                self.favourited_by.remove(user)
+                return False
             except:
                 self.favourited_by.add(user)
+                return True
         else:
             logger.error("User must be set to set user default.")
             raise ValueError("User must be set to set user default")
