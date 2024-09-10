@@ -4,6 +4,9 @@
   ],
   "editor.defaultFormatter": null,
   "editor.formatOnSave": true,
+  "emmet.includeLanguages": {
+    "jinja-html": "html"
+  },
   // Python
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
