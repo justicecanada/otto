@@ -10,6 +10,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 from structlog import get_logger
 from tqdm import tqdm
 
+from chat.llm import OttoLLM
 from librarian.models import Document
 from librarian.utils.process_engine import (
     create_nodes,
@@ -18,7 +19,7 @@ from librarian.utils.process_engine import (
     fetch_from_url,
     get_process_engine_from_type,
 )
-from librarian.utils.vector_store_helpers import connect_to_vector_store
+from otto.models import User
 
 logger = get_logger(__name__)
 
@@ -41,17 +42,20 @@ def process_document(document_id, language=None):
     document.celery_task_id = current_task.request.id
     document.save()
 
-    with translation.override(language):
-        try:
-            process_document_helper(document)
+    llm = OttoLLM()
+    try:
+        with translation.override(language):
+            process_document_helper(document, llm)
 
-        except SoftTimeLimitExceeded:
-            document.status = "ERROR"
-            document.celery_task_id = None
-            document.save()
+    except SoftTimeLimitExceeded:
+        document.status = "ERROR"
+        document.celery_task_id = None
+        document.save()
+
+    llm.create_costs()
 
 
-def process_document_helper(document):
+def process_document_helper(document, llm):
     url = document.url
     file = document.file
     if not (url or file):
@@ -114,10 +118,11 @@ def process_document_helper(document):
         },
     )
     nodes = create_nodes(chunks, document)
+
+    library_uuid = document.data_source.library.uuid_hex
+    vector_store_index = llm.get_index(library_uuid)
     # Delete existing nodes
     document_uuid = document.uuid_hex
-    library_uuid = document.data_source.library.uuid_hex
-    vector_store_index = connect_to_vector_store(library_uuid)
     vector_store_index.delete_ref_doc(document_uuid, delete_from_docstore=True)
     # Insert new nodes in batches
     batch_size = 16

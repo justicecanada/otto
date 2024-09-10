@@ -9,7 +9,7 @@ webcrawler/venv/*
 django/staticfiles/*
 chroma.log
 .env
-.env.bk
+.env.bk*
 Logs
 media
 .coverage
@@ -21,6 +21,7 @@ otto_test-journal
 laws-lois-xml
 *.rdb
 version.yaml
+tmp_text
 
 # Local Terraform directories
 **/.terraform/*

@@ -5,9 +5,9 @@ const copyCodeButtonHTML = `<button type="button" onclick="copyCode(this)"
 class="btn btn-link m-0 p-0 text-muted copy-message-button copy-button"
 title="Copy"><i class="bi bi-clipboard"></i><i class="bi bi-clipboard-fill"></i></button>`;
 
-function scrollToBottom(smooth = true) {
+function scrollToBottom(smooth = true, force = false) {
   resizePromptContainer();
-  if (preventAutoScrolling) {
+  if (preventAutoScrolling && !force) {
     return;
   }
   let messagesContainer = document.querySelector("#chat-container");
@@ -78,12 +78,12 @@ let debounceTimer;
 document.querySelector("#chat-container").addEventListener("scroll", function () {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    if (this.scrollTop + this.clientHeight < this.scrollHeight - 50) {
+    if (this.scrollTop + this.clientHeight < this.scrollHeight - 1) {
       preventAutoScrolling = true;
     } else {
       preventAutoScrolling = false;
     }
-  }, 100);
+  }, 10);
 });
 
 // Some resizing hacks to make the prompt form the same width as the messages
@@ -148,7 +148,7 @@ document.addEventListener("htmx:afterSwap", function (event) {
   // Change height back to minimum
   document.querySelector("#chat-prompt").style.height = "85px";
   lastHeight = 85;
-  scrollToBottom(false);
+  scrollToBottom(false, true);
 });
 // When streaming response is updated
 document.addEventListener("htmx:sseMessage", function (event) {
@@ -158,17 +158,17 @@ document.addEventListener("htmx:sseMessage", function (event) {
     hljs.highlightElement(block);
     block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
   }
-  scrollToBottom(false);
+  scrollToBottom(false, false);
 });
 // When streaming response is finished
 document.addEventListener("htmx:oobAfterSwap", function (event) {
-  if (!(event.target.id.startsWith("response-"))) return;
+  if (!(event.target.id.startsWith("message_"))) return;
   for (block of event.target.querySelectorAll("pre code")) {
     block.classList.add("language-txt");
     hljs.highlightElement(block);
     block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
   }
-  scrollToBottom(false);
+  scrollToBottom(false, false);
 });
 // When prompt input is focused, Enter sends message, unless Shift+Enter (newline)
 document.addEventListener("keydown", function (event) {

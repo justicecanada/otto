@@ -66,7 +66,7 @@ AZURE_ACCOUNT_KEY = os.environ.get(
     "AZURE_ACCOUNT_KEY"
 )  # Azure as default storage requires this name to be AZURE_ACCOUNT_KEY
 
-# Entra
+# AC-2: Entra Integration
 ENTRA_CLIENT_ID = os.environ.get("ENTRA_CLIENT_ID")
 ENTRA_CLIENT_SECRET = os.environ.get("ENTRA_CLIENT_SECRET")
 ENTRA_AUTHORITY = os.environ.get("ENTRA_AUTHORITY")
@@ -91,18 +91,17 @@ SESSION_SAVE_EVERY_REQUEST = True  # Reset the timeout on every request
 # OpenAI
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
-# https://openai.com/pricing
+# TODO: Replace with Cost model (this is used in Template Wizard)
 OPENAI_COST_PER_TOKEN = 0.0020 / 1000
 OPENAI_EMBEDDING_COST_PER_TOKEN = 0.0004 / 1000
 
 DEFAULT_CHAT_MODEL = "gpt-4o"
+USD_TO_CAD = 1.36
 
 
 # Azure Cognitive Services
 AZURE_COGNITIVE_SERVICE_ENDPOINT = os.environ.get("AZURE_COGNITIVE_SERVICE_ENDPOINT")
 AZURE_COGNITIVE_SERVICE_REGION = os.environ.get("AZURE_COGNITIVE_SERVICE_REGION")
-AZURE_STANDARD_TRANSLATION = 13.33
-AZURE_DOCUMENT_TRANSLATION = 20.00
 
 AZURE_ACCOUNT_NAME = os.environ.get(
     "AZURE_STORAGE_ACCOUNT_NAME", ""
@@ -116,7 +115,7 @@ DEBUG_PROPAGATE_EXCEPTIONS = True
 
 ALLOWED_HOSTS = [SITE_URL.hostname, "localhost", "127.0.0.1"]
 
-
+# AC-2: Entra Integration Helper App Configuration
 AUTHENTICATION_BACKENDS = [
     "azure_auth.backends.AzureBackend",
     "rules.permissions.ObjectPermissionBackend",
@@ -145,7 +144,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "autocomplete",
     "rules.apps.AutodiscoverRulesConfig",
-    "azure_auth",
+    "azure_auth",  # AC-2: Entra Integration Helper App
     # Otto apps
     "otto",
     "librarian",
@@ -157,6 +156,7 @@ INSTALLED_APPS = [
     "channels",
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -164,12 +164,12 @@ MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",  # AC-2: Authentication
     # Static files
     "whitenoise.middleware.WhiteNoiseMiddleware",
     # Handle login flows: redirect to login page, use Azure login, accept terms to use
     "otto.utils.auth.RedirectToLoginMiddleware",
-    "azure_auth.middleware.AzureMiddleware",
+    "azure_auth.middleware.AzureMiddleware",  # AC-2: Protect entire site by default
     "otto.utils.auth.AcceptTermsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -415,6 +415,7 @@ else:
 
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+DATA_UPLOAD_MAX_NUMBER_FILES = 2000
 
 # Logging
 

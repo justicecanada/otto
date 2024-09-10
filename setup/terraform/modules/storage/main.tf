@@ -1,3 +1,5 @@
+# SC-28: Storage account encryption by default using 256-bit AES encryption
+# SC-8: Azure Storage implicitly enables secure transfer
 resource "azurerm_storage_account" "storage" {
   name                            = var.storage_name
   resource_group_name             = var.resource_group_name
@@ -5,7 +7,7 @@ resource "azurerm_storage_account" "storage" {
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
   account_kind                    = "StorageV2"
-  public_network_access_enabled   = false
+  public_network_access_enabled   = true # TODO: Set to false for private access
   default_to_oauth_authentication = true
   is_hns_enabled                  = true
 
@@ -34,6 +36,12 @@ resource "azurerm_storage_management_policy" "lifecycle" {
   }
 }
 
+resource "azurerm_storage_container" "container" {
+  name                  = var.storage_container_name
+  storage_account_name  = azurerm_storage_account.storage.name
+  container_access_type = "private"
+}
+
 # Add a delay to allow for the storage to be created 
 resource "null_resource" "wait_for_storage_account" {
   provisioner "local-exec" {
@@ -42,7 +50,7 @@ resource "null_resource" "wait_for_storage_account" {
   depends_on = [var.keyvault_id, azurerm_storage_account.storage, var.wait_for_propagation]
 }
 
-# Create a secret in the Key Vault
+# SC-13: Secure storage of storage account key in Key Vault
 resource "azurerm_key_vault_secret" "storage_key" {
   name         = "STORAGE-KEY"
   value        = azurerm_storage_account.storage.primary_access_key
@@ -83,6 +91,7 @@ resource "null_resource" "wait_for_storage_permission_propagation" {
 
 # Update storage account to use the Key Vault Key for encryption
 resource "azurerm_storage_account_customer_managed_key" "storage_cmk" {
+  # SC-12 & SC-13: Customer-managed keys for storage encryption
   storage_account_id = azurerm_storage_account.storage.id
   key_vault_id       = var.keyvault_id
   key_name           = var.cmk_name

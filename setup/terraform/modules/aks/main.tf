@@ -13,6 +13,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
   location            = var.location
   resource_group_name = var.resource_group_name
   kubernetes_version  = "1.29.7"
+  dns_prefix          = var.aks_cluster_name
+
+  ## TODO: Configure the private cluster settings
+  #private_cluster_enabled = true
+  #private_dns_zone_id     = "System" # Consider a custom DNS zone instead
 
   # Configure the default node pool
   default_node_pool {
@@ -31,13 +36,13 @@ resource "azurerm_kubernetes_cluster" "aks" {
     type = "SystemAssigned"
   }
 
-  # Configure the Key Vault secrets provider
+  # SC-12 & SC-13: Enabling Azure Key Vault secrets provider for secure key management
   key_vault_secrets_provider {
     secret_rotation_enabled  = true
     secret_rotation_interval = "2m"
   }
 
-  # Configure the network profile
+  # SC-8: Secure Internal Communication in AKS
   network_profile {
     network_plugin    = "kubenet"
     load_balancer_sku = "standard"
@@ -46,9 +51,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
   oms_agent {
     log_analytics_workspace_id = azurerm_log_analytics_workspace.aks.id
   }
-
-  # Set the domain name label for the cluster's public IP
-  dns_prefix = var.host_name_prefix
 
   # Enable auto-upgrade to stable channel
   automatic_channel_upgrade = "stable"
@@ -63,7 +65,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   azure_active_directory_role_based_access_control {
     managed                = true # Deprecated but still required
     azure_rbac_enabled     = true
-    admin_group_object_ids = [var.admin_group_object_id]
+    admin_group_object_ids = var.admin_group_object_ids
   }
 
   local_account_disabled = true
@@ -94,12 +96,14 @@ resource "azurerm_role_assignment" "aks_vm_contributor" {
 }
 
 resource "azurerm_role_assignment" "rbac_cluster_admin" {
-  principal_id         = var.admin_group_object_id
+  for_each             = toset(var.admin_group_object_ids)
+  principal_id         = each.value
   role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
   scope                = azurerm_kubernetes_cluster.aks.id
 }
 
 resource "azurerm_role_assignment" "kv_secrets_provider_user" {
+  # SC-12: RBAC for AKS to access Key Vault secrets
   principal_id         = azurerm_kubernetes_cluster.aks.key_vault_secrets_provider[0].secret_identity[0].object_id
   role_definition_name = "Key Vault Secrets User"
   scope                = var.keyvault_id

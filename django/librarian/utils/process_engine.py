@@ -12,6 +12,10 @@ import requests
 from bs4 import BeautifulSoup
 from structlog import get_logger
 
+from chat.models import Message
+from librarian.models import Document
+from otto.models import Cost, User
+
 logger = get_logger(__name__)
 
 
@@ -513,6 +517,9 @@ def _pdf_to_html_using_azure(content):
     poller = document_analysis_client.begin_analyze_document("prebuilt-layout", content)
     result = poller.result()
 
+    num_pages = len(result.pages)
+    cost = Cost.objects.new(cost_type="doc-ai-prebuilt", count=num_pages)
+
     # Extract table bounding regions
     table_bounding_regions = []
     for table in result.tables:
@@ -617,48 +624,3 @@ def _pdf_to_html_using_azure(content):
 
     # self.fetched_from_source_at = timezone.now()
     # """
-
-    # def extract_text(self, fast=True):
-    #     from librarian.utils.process_engine import (
-    #         extract_markdown,
-    #         get_process_engine_from_type,
-    #     )
-
-    #     if not self.file:
-    #         return
-
-    #     process_engine = get_process_engine_from_type(self.content_type)
-    #     self.text, _ = extract_markdown(
-    #         self.file.file.read(), process_engine, fast=fast
-    #     )
-    #     self.save()
-
-    # @property
-    # def citation(self):
-    #     # The human-readable citation for the document which helps users understand where the document came from. It should inform the user about the source, author, date, version, and title of the document.
-    #     if self.manual_title:
-    #         return self.manual_title
-    #     display_name = (
-    #         self.extracted_title or self.generated_title or self.filename or self.url
-    #     )
-    #     display_name = (
-    #         display_name[:50] + "..." + display_name[-50:]
-    #         if len(display_name) > 100
-    #         else display_name
-    #     ).replace("%20", "&nbsp;")
-    #     return display_name or _("Untitled document")
-
-    # @property
-    # def citation_href(self):
-    #     if self.url:
-    #         return (
-    #             f'<a href="{self.url}" target="_blank" class="btn btn-sm btn-outline-primary">'
-    #             f'{_("Open link in new tab")} <i class="bi bi-box-arrow-up-right"></i></a>'
-    #         )
-    #     elif self.file:
-    #         download_url = reverse("librarian:download_file", args=[self.file.id])
-    #         return (
-    #             f'<a href="{download_url}" target="_blank" class="btn btn-sm btn-outline-primary">'
-    #             f'{_("Download file")} <i class="bi bi-download"></i></a>'
-    #         )
-    #     return ""

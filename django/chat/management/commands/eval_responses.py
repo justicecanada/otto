@@ -15,7 +15,7 @@ from django.core.management.base import BaseCommand
 import tqdm
 import yaml
 from django_extensions.management.utils import signalcommand
-from llama_index.core import ChatPromptTemplate, PromptTemplate, ServiceContext
+from llama_index.core import ChatPromptTemplate, PromptTemplate, Settings
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
@@ -46,10 +46,8 @@ embed_model = AzureOpenAIEmbedding(
     api_version=settings.AZURE_OPENAI_VERSION,
 )
 
-service_context = ServiceContext.from_defaults(
-    llm=llm,
-    embed_model=embed_model,
-)
+Settings.llm = llm
+Settings.embed_model = embed_model
 
 
 # Copy/pasting some of the LlamaIndex eval code here because the FaithfulnessEvaluator

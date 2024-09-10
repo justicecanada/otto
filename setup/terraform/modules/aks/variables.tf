@@ -13,9 +13,9 @@ variable "resource_group_name" {
   type        = string
 }
 
-variable "admin_group_object_id" {
-  description = "The object ID of the admin Azure AD group"
-  type        = string
+variable "admin_group_object_ids" {
+  description = "The list of objects IDs of the admin Azure AD group"
+  type        = list(string)
 }
 
 variable "keyvault_id" {
@@ -30,11 +30,6 @@ variable "disk_encryption_set_id" {
 
 variable "acr_id" {
   description = "The ID of the Azure Container Registry"
-  type        = string
-}
-
-variable "host_name_prefix" {
-  description = "The prefix for the host name"
   type        = string
 }
 
