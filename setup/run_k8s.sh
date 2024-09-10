@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# CM-8 & CM-9: Automate the deployment process, ensuring the inventory remains current and consistent
+
 source setup_env.sh
 
 cd k8s

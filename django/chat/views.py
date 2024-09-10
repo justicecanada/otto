@@ -761,6 +761,7 @@ def get_qa_accordion(request, chat_id, library_id):
     )
 
 
+# AC-16 & AC-16(2): Allows for the modification of security labels associated with chat sessions
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def set_security_label(request, chat_id, security_label_id):
     logger.info(

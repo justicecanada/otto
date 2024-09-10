@@ -1,3 +1,5 @@
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
 # SC-13: Use of approved cryptographic algorithms
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
