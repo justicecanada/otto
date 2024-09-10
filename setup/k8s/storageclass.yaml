@@ -1,3 +1,5 @@
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
 # SC-13: Encryption at rest using Azure Disk Encryption
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
