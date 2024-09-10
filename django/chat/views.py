@@ -27,6 +27,7 @@ from chat.metrics.feedback_metrics import (
 from chat.models import Chat, ChatFile, ChatOptions, Message
 from chat.utils import llm_response_to_html, title_chat
 from librarian.models import DataSource, Library
+from otto.forms import FeedbackForm
 from otto.models import App, SecurityLabel
 from otto.utils.decorators import app_access_required, permission_required
 from otto.views import message_feedback
@@ -41,6 +42,18 @@ new_translate = lambda request: new_chat(request, mode="translate")
 new_summarize = lambda request: new_chat(request, mode="summarize")
 new_document_qa = lambda request: new_chat(request, mode="document_qa")
 new_qa = lambda request: new_chat(request, mode="qa")
+
+
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def chat_feedback(request, chat_id):
+    chat = Chat.objects.get(id=chat_id)
+    mode = chat.options.mode
+
+    form = FeedbackForm(request.user, message_id=None, chatmode=mode)
+
+    return render(
+        request, "feedback.html", {"form": form, "mode": mode, "chat_id": chat_id}
+    )
 
 
 @csrf_exempt
