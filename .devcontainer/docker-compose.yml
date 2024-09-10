@@ -41,7 +41,7 @@ services:
     volumes:
       - ..:/workspace:cached
     working_dir: /workspace/django
-    command: watchmedo auto-restart --pattern=*.py --recursive -- celery -A otto worker --loglevel=info --concurrency=4
+    command: watchmedo auto-restart --pattern=*.py --recursive -- celery -A otto worker -l INFO --pool=gevent --concurrency=1000
     network_mode: service:postgres-service
     depends_on:
       - postgres-service
