@@ -20,6 +20,7 @@
     align-items: center;
     background-color: transparent;
     border-bottom: none;
+    padding-bottom: 0;
 
     button {
       background-color: transparent;
@@ -80,20 +81,16 @@
 
 <li class="card">
   <div class="card-header align-items-center">
-    <div class="card-title fs-6 my-auto text-truncate me-2 fw-medium">{{ preset.name_en }}</div>
+    <div class="card-title fs-6 my-auto text-truncate me-2 fw-medium"
+         title="{{ preset.name_en }}">{{ preset.name_en }}</div>
     <div class="d-flex align-items-center">
-      <i class="bi bi-people-fill text-secondary me-1"
-         data-bs-toggle="tooltip"
-         data-bs-title="{% trans 'Shared with others' %}"></i>
+      {% include "chat/modals/presets/shared_icon.html" %}
       {% include "chat/modals/presets/favourite.html" %}
     </div>
-
   </div>
 
-  <hr class="px-2" style="margin-top: 0; margin-bottom: 0;">
-
-  <div class="card-body">
-    <p class="card-text"
+  <div class="card-body pt-2">
+    <p class="card-text fs-6"
        style="-webkit-box-orient: vertical !important;
               display: -webkit-box !important;
               -webkit-line-clamp: 4 !important;

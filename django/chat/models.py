@@ -264,6 +264,14 @@ class Preset(models.Model):
     )
     is_deleted = models.BooleanField(default=False)
 
+    @property
+    def shared_with(self):
+        if self.is_public:
+            return _("Shared with everyone")
+        elif self.accessible_to.exists():
+            return _("Shared with specific users")
+        return _("Private")
+
     def toggle_favourite(self, user):
         """Sets the favourite flag for the preset.
         Returns True if the preset was added to the favourites, False if it was removed.
