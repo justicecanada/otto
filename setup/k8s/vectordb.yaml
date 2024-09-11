@@ -1,3 +1,5 @@
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
 # SC-13: Ensure secure key management practices
 apiVersion: v1
 kind: PersistentVolumeClaim

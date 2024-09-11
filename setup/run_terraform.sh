@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# CM-8 & CM-9: Automate the deployment process, ensuring the inventory remains current and consistent
+
 # Function to clean up temporary files
 cleanup() {
     rm -f backend_config.hcl
