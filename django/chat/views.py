@@ -833,3 +833,49 @@ def set_preset_favourite(request, preset_id):
     except ValueError:
         # TODO: Preset refactor: show friendly error message
         return HttpResponse(status=500)
+
+
+from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
+
+from .models import Preset
+
+
+def save_preset(request, chat_id):
+    if request.method == "POST":
+        # Determine which tab was selected
+        selected_tab = request.POST.get("selected_tab", "en")
+
+        # Create a new Preset object
+        preset = Preset()
+        preset.owner = request.user
+
+        # # get chat object from chat_id
+        chat = Chat.objects.get(id=chat_id)
+
+        preset.options = chat.options
+
+        # Set the fields based on the selected tab
+        if selected_tab == "en":
+            preset.name_en = request.POST.get("title_of_preset", "")
+            preset.description_en = request.POST.get("description_of_preset", "")
+        elif selected_tab == "fr":
+            preset.name_fr = request.POST.get("title_of_preset", "")
+            preset.description_fr = request.POST.get("description_of_preset", "")
+
+        # Set the public status
+        preset.is_public = "on" == request.POST.get("make_public")
+
+        # Handle ManyToMany fields
+        editable_by = request.POST.getlist("editable_by")
+        viewable_by = request.POST.getlist("viewable_by")
+        if editable_by:
+            preset.editable_by.set(editable_by)
+        if viewable_by:
+            preset.accessible_to.set(viewable_by)
+
+        # # Save the preset
+        preset.save()
+
+    # # Redirect to the card list page
+    return redirect("chat:get_presets", chat_id=chat_id)

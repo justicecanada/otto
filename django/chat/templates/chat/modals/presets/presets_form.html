@@ -55,9 +55,9 @@
 
  
 
-      <form class="g-3 mt-1 row">
+      <form class="g-3 mt-1 row" id="edit_preset_form">
         <div class="col-12">
-          <label class="form-label" for="title_of_preset">Title (required)</label>
+          <label class="form-label" for="title_of_preset">{% trans "Title (required)" %}</label>
 
           <input type="text"
                  class="form-control"
@@ -67,7 +67,7 @@
                  required>
         </div>
         <div class="col-12">
-          <label class="form-label" for="description_of_preset">Description</label>
+          <label class="form-label" for="description_of_preset">{% trans "Description" %}</label>
 
           <textarea class="form-control"
                     id="description_of_preset"
@@ -82,7 +82,7 @@
                    type="checkbox"
                    id="make_public"
                    name="make_public">
-            <label class="form-check-label" for="make_public">Make preset public</label>
+            <label class="form-check-label" for="make_public">{% trans "Make preset public" %}</label>
           </div>
         </div>
 
@@ -92,24 +92,31 @@
           <label class="form-label">{% trans "Viewable by:" %}</label>
           {{ form.viewable_by }}
         </div>
-      </div>
+ 
 
-    </form>
+      </form>
+    </div>
   </div>
-</div>
 
 
-<div class="modal-footer">
+  <div class="modal-footer">
 
-  <div class="col-12 d-flex justify-content-center mt-2">
-    <div class="w-50 d-flex">
-      <button id="save_preset" class="btn btn-primary flex-fill me-2" type="submit">Save</button>
-      <button id="cancel_preset"
-              class="btn btn-outline-secondary flex-fill"
-              hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
-              hx-target="#presets-modal-body"
-              hx-swap="innerHTML transition:true"
-              type="button">Cancel</button>
+    <div class="col-12 d-flex justify-content-center mt-2">
+      <div class="w-50 d-flex">
+        <button id="save_preset"
+                class="btn btn-primary flex-fill me-2"
+                type="submit"
+                hx-post="{% url 'chat:save_preset' chat_id=chat_id %}"
+                hx-target="#presets-modal-body"
+                hx-include="#edit_preset_form"
+                hx-swap="innerHTML transition:true">{% trans "Save" %}</button>
+        <button id="cancel_preset"
+                class="btn btn-outline-secondary flex-fill"
+                hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
+                hx-target="#presets-modal-body"
+                hx-swap="innerHTML transition:true"
+                type="button">{% trans "Cancel" %}</button>
+      </div>
     </div>
   </div>
 </div>
