@@ -14,6 +14,7 @@ urlpatterns = [
     path("search/", views.topnav_search_inner, name="search_inner"),
     path("welcome/", views.welcome, name="welcome"),
     # AC-2: Entra Integration Helper App Configuration
+    # AC-14: Login Page Accessibility
     path("azure_auth/login", views.login, name="login"),
     path("azure_auth/", include("azure_auth.urls")),
     path("accounts/login/callback/", azure_auth_callback, name="callback"),

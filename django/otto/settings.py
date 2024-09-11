@@ -164,12 +164,14 @@ MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",  # AC-2: Authentication
+    # AC-2: Authentication, AC-14: Limited Access
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Static files
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    # Handle login flows: redirect to login page, use Azure login, accept terms to use
+    # AC-14: Limited Access to handle login flows: redirect to login page, use Azure login, accept terms to use
     "otto.utils.auth.RedirectToLoginMiddleware",
-    "azure_auth.middleware.AzureMiddleware",  # AC-2: Protect entire site by default
+    # AC-2 & AC-14: Azure AD Integration to protect entire site by default
+    "azure_auth.middleware.AzureMiddleware",
     "otto.utils.auth.AcceptTermsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -177,6 +179,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
+    # AU-6: Aupports structured logging, facilitating the review and analysis of audit records for inappropriate or unusual activity
     "django_structlog.middlewares.RequestMiddleware",
 ]
 
@@ -415,6 +418,7 @@ else:
 
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+DATA_UPLOAD_MAX_NUMBER_FILES = 2000
 
 # Logging
 
@@ -461,6 +465,7 @@ if ENVIRONMENT == "LOCAL":
 elif IS_RUNNING_TESTS:
     LOGGING["root"]["handlers"] = ["null"]
 
+# AU-6 & AU-7: Allows for the adjustment of log levels based on the environment and operational needs
 structlog.configure(
     processors=[
         structlog.contextvars.merge_contextvars,

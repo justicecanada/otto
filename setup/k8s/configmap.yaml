@@ -1,3 +1,5 @@
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,6 +8,8 @@ metadata:
 data:
   schema-version: v1
   config-version: ver1
+  # AU-4(1): Application-level logs are also collected
+  # AU-6: Supports the identification of unusual activities through automated log analysis
   log-data-collection-settings: |-
     [log_collection_settings]
       [log_collection_settings.stdout]
@@ -31,6 +35,7 @@ data:
         enabled = true
         include_fields = ["podLabels", "podAnnotations", "podUid", "image", "imageID", "imageRepo", "imageTag"]
 
+  # AU-7: Generating metrics and reports based on system activities
   prometheus-data-collection-settings: |-
     [prometheus_data_collection_settings.cluster]
       interval = "1m"

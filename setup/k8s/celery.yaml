@@ -1,3 +1,5 @@
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
 # Persistent Volume Claim for shared storage
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -40,7 +42,7 @@ spec:
       containers:
         - name: celery-worker
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the latest image from Azure Container Registry
-          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--concurrency=16']  # Starts Celery worker with 16 concurrent tasks
+          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--pool=gevent', '--concurrency=1000']  # Starts Celery worker
           securityContext:
             allowPrivilegeEscalation: false  # Privilege escalation is disabled
             readOnlyRootFilesystem: true  # The root filesystem is read-only for added security

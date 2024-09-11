@@ -64,5 +64,6 @@ class AppAdmin(TranslationAdmin):
     pass
 
 
+# AC-16 & AC-16(2): Allows authorized administrators to modify various security-related attributes of user accounts
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(App, AppAdmin)

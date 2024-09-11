@@ -202,6 +202,7 @@ def notifications(request, hide=False):
     )
 
 
+# AC-16 & AC-16(2): Allows authorized administrators to modify user groups and roles
 @permission_required("otto.manage_users")
 def manage_users(request):
     if request.method == "POST":
@@ -434,6 +435,7 @@ def aggregate_costs(costs, x_axis="day"):
     return costs
 
 
+# AU-7: Aggregates and presents cost data in a dashboard
 @permission_required("otto.manage_users")
 def cost_dashboard(request):
     """

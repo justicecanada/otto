@@ -6,7 +6,7 @@ if ! az account show &>/dev/null; then
     az login
 fi
 
-# Prompt user to select an environment
+# CM-9: Prompt user to select an environment
 echo "Available environments:"
 env_files=($(ls .env* 2>/dev/null | sort))
 
