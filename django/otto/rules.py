@@ -9,6 +9,8 @@ from rules import add_perm, is_group_member, predicate
 
 from librarian.models import LibraryUserRole
 
+# AC-16 & AC-16(2): Real-time enforcement of modified security attributes
+
 ADMINISTRATIVE_PERMISSIONS = {
     "otto.manage_users",
     "librarian.manage_public_libraries",
@@ -21,6 +23,7 @@ def accepted_terms(user):
     return user.accepted_terms_date is not None
 
 
+# AC-16(2): Security Attribute Modification
 # "is_group_member" returns a predicate
 is_admin = is_group_member("Otto admin")
 is_data_steward = is_group_member("Data steward")
