@@ -38,19 +38,13 @@
           <button id="advanced-search-tab"
                   class="nav-link text-black"
                   onclick="setActiveTab(this);">{% trans "Advanced search" %}</button>
-          <input type="button"
-                 hidden
-                 hx-get="{% url 'laws:advanced_search_form' %}"
-                 hx-indicator="#advanced-spinner"
-                 hx-target="#advanced-search-outer"
-                 id="load-advanced-button">
         </li>
       </ul>
 
       <div id="step-content" class="bg-white">
         <div class="tab-pane fade show active p-3 border rounded" id="search-form">
           {% block step_content %}
-            {% include 'laws/basic_search_form.html' %}
+            {% include 'laws/search_form.html' %}
           {% endblock %}
         </div>
       </div>
@@ -61,27 +55,5 @@
     </div>
     <div class="container py-3 px-0" id="result-container" aria-live="polite"></div>
   </div>
-  <script>
-    document.getElementById('basic-search-input').focus();
-    function setActiveTab(e) {
-      const tabs = document.querySelectorAll('.nav-link');
-      tabs.forEach(tab => {
-        tab.classList.remove('active');
-        tab.classList.remove('fw-semibold');
-      });
-      e.classList.add('active');
-      e.classList.add('fw-semibold');
-      if (e.id === 'basic-search-tab') {
-        document.getElementById('advanced-search-outer').classList.add('d-none');
-        document.getElementById('advanced-toggle').value = 'false';
-      } else {
-        document.getElementById('advanced-search-outer').classList.remove('d-none');
-        document.getElementById('advanced-toggle').value = 'true';
-        // Check if #document-select already exists, if not trigger click event on load-advanced-button
-        if (!document.getElementById('document-select')) {
-          document.getElementById('load-advanced-button').click();
-        }
-      }
-    }
-  </script>
+  <script src="{% static 'laws/law_search.js' %}"></script>
 {% endblock %}

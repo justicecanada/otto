@@ -17,6 +17,7 @@ from structlog import get_logger
 from chat.utils import llm_response_to_html
 from otto.utils.decorators import app_access_required
 
+from .forms import LawSearchForm
 from .models import Law
 from .prompts import qa_prompt_instruction_tmpl, system_prompt
 
@@ -101,7 +102,8 @@ def _get_law_url(law):
 
 @app_access_required(app_name)
 def index(request):
-    context = {"hide_breadcrumbs": True}
+    form = LawSearchForm()
+    context = {"hide_breadcrumbs": True, "form": form}
     return render(request, "laws/laws.html", context=context)
 
 
