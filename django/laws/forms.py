@@ -38,7 +38,7 @@ class LawSearchForm(forms.Form):
             name="acts",
             options={
                 "item_value": Law.id,
-                "item_label": Law.title,
+                "item_label": Law.title_en,
                 "multiselect": True,
                 "minimum_search_length": 0,
                 "model": Law,
@@ -54,7 +54,7 @@ class LawSearchForm(forms.Form):
             name="enabling_acts",
             options={
                 "item_value": Law.id,
-                "item_label": Law.title,
+                "item_label": Law.title_en,
                 "multiselect": True,
                 "minimum_search_length": 0,
                 "model": Law,
