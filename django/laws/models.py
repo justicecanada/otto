@@ -18,8 +18,11 @@ token_counter = TokenCountingHandler(
 )
 
 
-def connect_to_vector_store(vector_store_table: str) -> VectorStoreIndex:
+def connect_to_vector_store(
+    vector_store_table: str, mock_embedding: bool = False
+) -> VectorStoreIndex:
     # Same as in Librarian utils, but with token counter added
+    from llama_index.core.embeddings import MockEmbedding
     from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
     from llama_index.llms.azure_openai import AzureOpenAI
     from llama_index.vector_stores.postgres import PGVectorStore
@@ -32,6 +35,8 @@ def connect_to_vector_store(vector_store_table: str) -> VectorStoreIndex:
         api_version=settings.AZURE_OPENAI_VERSION,
     )
 
+    if mock_embedding:
+        embed_model = MockEmbedding(1536)
     embed_model = AzureOpenAIEmbedding(
         model="text-embedding-3-large",
         deployment_name="text-embedding-3-large",
@@ -70,30 +75,56 @@ def connect_to_vector_store(vector_store_table: str) -> VectorStoreIndex:
 
 class LawManager(models.Manager):
 
-    def from_doc_and_nodes(self, document, nodes, add_to_vector_store=True):
+    def from_docs_and_nodes(
+        self,
+        document_en,
+        nodes_en,
+        document_fr,
+        nodes_fr,
+        add_to_vector_store=True,
+        embed=True,
+    ):
         obj = self.model()
-        obj.title = document.metadata["display_metadata"]
-        obj.short_title = document.metadata.get("short_title")
-        obj.long_title = document.metadata.get("long_title")
-        obj.ref_number = (
-            document.metadata["consolidated_number"]
-            or document.metadata["instrument_number"]
-            or document.metadata["bill_number"]
+
+        # Document-level metadata (English)
+        obj.short_title_en = document_en.metadata.get("short_title")
+        obj.long_title_en = document_en.metadata.get("long_title")
+        obj.ref_number_en = (
+            document_en.metadata["consolidated_number"]
+            or document_en.metadata["instrument_number"]
+            or document_en.metadata["bill_number"]
         )
-        obj.law_id = document.metadata["id"]
-        obj.lang = document.metadata["lang"]
-        obj.type = document.metadata["type"]
-        obj.last_amended_date = document.metadata.get("last_amended_date")
-        obj.current_date = document.metadata.get("current_date")
-        obj.enabling_authority = document.metadata.get("enabling_authority")
-        obj.node_id = document.doc_id
+        obj.title_en = (
+            f"{obj.short_title_en or obj.long_title_en} ({obj.ref_number_en})"
+        )
+        obj.enabling_authority_en = document_en.metadata.get("enabling_authority")
+        obj.node_id_en = document_en.doc_id
+        # Document-level metadata (French)
+        obj.short_title_fr = document_fr.metadata.get("short_title")
+        obj.long_title_fr = document_fr.metadata.get("long_title")
+        obj.ref_number_fr = (
+            document_fr.metadata["consolidated_number"]
+            or document_fr.metadata["instrument_number"]
+            or document_fr.metadata["bill_number"]
+        )
+        obj.title_fr = (
+            f"{obj.short_title_fr or obj.long_title_fr} ({obj.ref_number_fr})"
+        )
+        obj.enabling_authority_fr = document_fr.metadata.get("enabling_authority")
+        obj.node_id_fr = document_fr.doc_id
+
+        # Language-agnostic metadata
+        obj.type = document_en.metadata["type"]
+        obj.last_amended_date = document_en.metadata.get("last_amended_date")
+        obj.current_date = document_en.metadata.get("current_date")
+        obj.in_force_start_date = document_en.metadata.get("in_force_start_date")
 
         obj.full_clean()
         obj.save()
 
         if add_to_vector_store:
-            nodes = [document] + nodes
-            idx = connect_to_vector_store("laws_lois__")
+            nodes = [document_en, document_fr] + nodes_en + nodes_fr
+            idx = connect_to_vector_store("laws_lois__", mock_embedding=not embed)
             batch_size = 128
             logger.debug(
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
@@ -114,30 +145,25 @@ class LawManager(models.Manager):
 class Law(models.Model):
     """
     Act or regulation. Mirrors LlamaIndex vector store representation.
+    Translated model so that the list of laws can be displayed in the user's language.
     """
 
-    # Title concatenates short_title, long_title and ref_number
+    #### BILINGUAL FIELDS
+    # Title concatenates short_title (or long_title, if no short_title) and ref_number
     title = models.TextField()
     short_title = models.TextField(null=True, blank=True)
     long_title = models.TextField(null=True, blank=True)
+    # Enabling authority matches format of ref_number
+    ref_number = models.CharField(max_length=255)  # e.g. "A-0.6" or "SOR-86-1026".
+    enabling_authority = models.CharField(max_length=255, null=True, blank=True)
+    # ID of the LlamaIndex node for the document
+    node_id = models.CharField(max_length=255, unique=True)
 
-    # e.g. "A-0.6" or "SOR-86-1026".
-    # Enabling authority or external references use these.
-    ref_number = models.CharField(max_length=255)
-
-    # Language-agnostic ID of the law
-    law_id = models.CharField(max_length=255)
-
-    lang = models.CharField(max_length=10, default="eng")
+    #### SHARED BETWEEN LANGUAGES
     type = models.CharField(max_length=255, default="act")
     last_amended_date = models.DateField(null=True)
     current_date = models.DateField(null=True)
-
-    # enabling_authority = models.ForeignKey("self", on_delete=models.PROTECT, null=True)
-    enabling_authority = models.CharField(max_length=255, null=True, blank=True)
-
-    # ID of the LlamaIndex node for the document (language-specific)
-    node_id = models.CharField(max_length=255, unique=True)
+    in_force_start_date = models.DateField(null=True)
 
     objects = LawManager()
 
