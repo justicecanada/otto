@@ -17,7 +17,7 @@ from chat.prompts import (
     QA_SYSTEM_PROMPT,
 )
 from librarian.models import Library, SavedFile
-from otto.models import SecurityLabel
+from otto.models import SecurityLabel, User
 from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
@@ -79,9 +79,8 @@ class ChatOptionsManager(models.Manager):
         """
         user_default = None
         if default_preset:
-            user_default = default_preset.values("options")
+            user_default = default_preset.first().options
         if user_default:
-            user_default = user_default.first()
             new_options = user_default
             new_options.pk = None
             if mode:
@@ -209,8 +208,8 @@ class ChatOptions(models.Model):
 
 
 class PresetManager(models.Manager):
-    def get_accessible_presets(self, user, language=None):
-        ordering = ["-favourite"]
+    def get_accessible_presets(self, user: User, language: str = None):
+        ordering = ["-default", "-favourite"]
         if language:
             ordering.append(f"name_{language}")
         return (
@@ -223,7 +222,12 @@ class PresetManager(models.Manager):
                     Q(favourited_by__in=[user]),
                     Value(False),
                     output_field=BooleanField(),
-                )
+                ),
+                default=Coalesce(
+                    Q(default_for__in=[user]),
+                    Value(False),
+                    output_field=BooleanField(),
+                ),
             )
             .order_by(*ordering)
         )
@@ -272,7 +276,7 @@ class Preset(models.Model):
             return _("Shared with specific users")
         return _("Private")
 
-    def toggle_favourite(self, user):
+    def toggle_favourite(self, user: User):
         """Sets the favourite flag for the preset.
         Returns True if the preset was added to the favourites, False if it was removed.
         Raises ValueError if user is None.
@@ -290,7 +294,7 @@ class Preset(models.Model):
             logger.error("User must be set to set user default.")
             raise ValueError("User must be set to set user default")
 
-    def delete_preset(self, user):
+    def delete_preset(self, user: User):
         # TODO: Preset refactor: Delete preset if no other presets are using it
         if self.owner != user:
             logger.error("User is not the owner of the preset.")
@@ -298,7 +302,7 @@ class Preset(models.Model):
         self.is_deleted = True
         self.save()
 
-    def get_description(self, language):
+    def get_description(self, language: str):
         language = language.lower()
         if language == "en":
             return self.description_en if self.description_en else self.description_fr

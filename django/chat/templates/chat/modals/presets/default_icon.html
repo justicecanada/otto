@@ -1,0 +1,18 @@
+{% load i18n %}
+
+{% if preset.default %}
+ 
+  <button type="button"
+          class="btn btn-light rounded-circle"
+          data-bs-toggle="tooltip"
+          data-bs-title="{% trans 'Set as default' %}">
+    <i class="bi bi-star-fill" style="color: gold;"></i>
+  </button>
+{% else %}
+  <button type="button"
+          class="btn btn-light rounded-circle"
+          data-bs-toggle="tooltip"
+          data-bs-title="{% trans 'Remove default' %}">
+    <i class="bi bi-star"></i>
+  </button>
+{% endif %}
