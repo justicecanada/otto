@@ -22,7 +22,7 @@ class LawSearchForm(forms.Form):
             ("acts", _("All acts")),
             ("regulations", _("All regulations")),
             ("specific_laws", _("Specific act(s)/regulation(s)...")),
-            ("enabling_acts", _("Specific enabling act(s)...")),
+            ("enabling_acts", _("Enabled by specific act(s)...")),
         ],
         label=_("Select laws to search"),
         required=True,
@@ -66,7 +66,7 @@ class LawSearchForm(forms.Form):
     date_filter_option = forms.ChoiceField(
         choices=[
             ("all", _("All dates")),
-            ("filter_dates", _("Filter by dates")),
+            ("filter_dates", _("Filter by section date metadata...")),
         ],
         label=_("Select date filters"),
         required=True,
@@ -75,32 +75,22 @@ class LawSearchForm(forms.Form):
     )
 
     in_force_date_start = forms.DateField(
-        label=_("Law in force (start)"),
+        label=_("In force (start)"),
         required=False,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
     )
     in_force_date_end = forms.DateField(
-        label=_("Law in force (end)"),
+        label=_("In force (end)"),
         required=False,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
     )
     last_amended_date_start = forms.DateField(
-        label=_("Law amended (start)"),
+        label=_("Last amended (start)"),
         required=False,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
     )
     last_amended_date_end = forms.DateField(
-        label=_("Law amended (end)"),
-        required=False,
-        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-    )
-    section_last_amended_date_start = forms.DateField(
-        label=_("Section amended (start)"),
-        required=False,
-        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-    )
-    section_last_amended_date_end = forms.DateField(
-        label=_("Section amended (end)"),
+        label=_("Last amended (end)"),
         required=False,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
     )
