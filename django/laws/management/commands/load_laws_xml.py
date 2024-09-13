@@ -753,10 +753,12 @@ class Command(BaseCommand):
             [os.path.getsize(file_path) for file_path in flattened_file_paths]
         )
         file_size_so_far = 0
-        empty_count = 0
-        exist_count = 0
-        error_count = 0
-        added_count = 0
+        load_results = {
+            "empty": [],
+            "error": [],
+            "added": [],
+            "exists": [],
+        }
 
         # Reset the Django and LlamaIndex tables
         if reset:
@@ -787,7 +789,8 @@ class Command(BaseCommand):
             for i, future in enumerate(futures):
                 try:
                     result = future.result()
-                    print(f"Processed {i+1}/{num_to_load}")
+                    for k, v in result.items():
+                        load_results[k].extend(v)
                     # Handle the result
                 except Exception as e:
                     # Handle exceptions
@@ -798,9 +801,26 @@ class Command(BaseCommand):
                 # Clean up the downloaded repo
                 shutil.rmtree(laws_root)
         print("Done!")
+        added_count = len(load_results["added"])
+        exist_count = len(load_results["exists"])
+        empty_count = len(load_results["empty"])
+        error_count = len(load_results["error"])
+        if error_count:
+            print("\nError files:")
+            for error in load_results["error"]:
+                print(error)
+        if empty_count:
+            print("\nEmpty files:")
+            for empty in load_results["empty"]:
+                print(empty)
+        if exist_count:
+            print("\nExisting files:")
+            for exist in load_results["exists"]:
+                print(exist)
         print(
-            f"Added: {added_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}"
+            f"\nAdded: {added_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}"
         )
+        print(f"Total time: {time.time() - start_time:.2f} seconds")
 
 
 def process_en_fr_paths(file_paths, mock_embedding, debug, constitution_file_paths):
@@ -810,6 +830,12 @@ def process_en_fr_paths(file_paths, mock_embedding, debug, constitution_file_pat
     nodes_en = None
     nodes_fr = None
     inner_loop_err = False
+    load_results = {
+        "empty": [],
+        "error": [],
+        "added": [],
+        "exists": [],
+    }
     # Create nodes for the English and French XML files
     for k, file_path in enumerate(file_paths):
         # Get the directory path of the XML file
@@ -820,20 +846,11 @@ def process_en_fr_paths(file_paths, mock_embedding, debug, constitution_file_pat
         html_file_path = os.path.join(
             directory, "html", f"{os.path.splitext(base_name)[0]}.html"
         )
-        # print(
-        #     f"Processing law {j+1}/{num_to_load}: {base_name} ({'EN' if k == 0 else 'FR'})"
-        # )
-        # file_size_so_far += os.path.getsize(file_path)
-        # Use xsltproc to render the XML to HTML
-        # os.system(f"xsltproc -o {html_file_path} {xslt_path} {file_path}")
 
         # Create nodes from XML
         node_dict = law_xml_to_nodes(file_path)
         if not node_dict["nodes"]:
-            # print("No nodes found in this document.")
-            # print(f"File path: {file_path}")
-            # print("-------")
-            # empty_count += 1
+            load_results["empty"].append(file_path)
             inner_loop_err = True
             break
         doc_metadata = {
@@ -923,7 +940,7 @@ def process_en_fr_paths(file_paths, mock_embedding, debug, constitution_file_pat
                     )
 
     if inner_loop_err:
-        return
+        return load_results
     # Nodes and document should be ready now! Let's add to our Django model
     # This will also handle the creation of LlamaIndex vector tables
     if not debug:
@@ -937,38 +954,11 @@ def process_en_fr_paths(file_paths, mock_embedding, debug, constitution_file_pat
                 add_to_vector_store=True,
                 mock_embedding=mock_embedding,
             )
-            # embedding_cost = _price_tokens(token_counter)
-            # token_counter.reset_counts()
-            # total_cost += embedding_cost
-            # added_count += 1
+            load_results["added"].append(file_paths)
         except Exception as e:
-            print(f"Error processing file pair: {file_paths}\n {e}\n")
-            print("------")
-
-            # if "Law with this Node id already exists" in str(e):
-            #     exist_count += 1
-            # else:
-            #     error_count += 1
-            return
-        # embedding_cost = 0
-        # est_time_left_seconds = (
-        #     (time.time() - start_time) / file_size_so_far
-        # ) * (total_file_size - file_size_so_far)
-        # # Format as HH:MM:SS
-        # est_time_left = (
-        #     str(datetime.utcfromtimestamp(est_time_left_seconds))
-        #     .split(" ")[1]
-        #     .split(".")[0]
-        # )
-        # time_so_far = (
-        #     str(datetime.utcfromtimestamp(time.time() - start_time))
-        #     .split(" ")[1]
-        #     .split(".")[0]
-        # )
-        # print(
-        #     f"Added: {added_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}\n"
-        #     f"Document cost: ${embedding_cost:.2f}; "
-        #     f"Cost so far: ${total_cost:.2f}; "
-        #     f"Estimated total: ${(total_cost/file_size_so_far) * total_file_size:.2f}\n"
-        #     f"Time so far / estimated time left: {time_so_far} / {est_time_left}\n"
-        # )
+            print(f"*** Error processing file pair: {file_paths}\n {e}\n")
+            if "Law with this Node id already exists" in str(e):
+                load_results["exists"].append(file_paths)
+            else:
+                load_results["error"].append(file_paths)
+    return load_results
