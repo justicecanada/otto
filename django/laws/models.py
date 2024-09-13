@@ -161,7 +161,7 @@ class Law(models.Model):
     node_id = models.CharField(max_length=255, unique=True)
 
     #### SHARED BETWEEN LANGUAGES
-    type = models.CharField(max_length=255, default="act")
+    type = models.CharField(max_length=255, default="act")  # "act" or "regulation"
     last_amended_date = models.DateField(null=True, blank=True)
     current_date = models.DateField(null=True, blank=True)
     in_force_start_date = models.DateField(null=True, blank=True)

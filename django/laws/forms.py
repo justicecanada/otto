@@ -64,7 +64,7 @@ class LawSearchForm(forms.Form):
         label=_("Select act(s)/regulation(s)"),
         required=False,
         widget=widgets.Autocomplete(
-            name="acts",
+            name="laws",
             options={
                 "multiselect": True,
                 "minimum_search_length": 0,
@@ -99,12 +99,12 @@ class LawSearchForm(forms.Form):
     )
 
     in_force_date_start = forms.DateField(
-        label=_("In force (start)"),
+        label=_("In force as of (start)"),
         required=False,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
     )
     in_force_date_end = forms.DateField(
-        label=_("In force (end)"),
+        label=_("In force as of (end)"),
         required=False,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
     )

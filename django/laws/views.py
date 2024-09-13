@@ -390,7 +390,7 @@ def search(request):
     advanced_mode = request.POST.get("advanced") == "true"
     disable_llm = not (request.POST.get("ai_answer", False) == "on")
     detect_lang = not (request.POST.get("bilingual_results", None) == "on")
-    doc_id_list = None
+    selected_laws = Law.objects.all()
 
     logger.info(
         "Search query",
@@ -418,26 +418,86 @@ def search(request):
         additional_instructions = request.POST.get("additional_instructions", "")
         # Need to escape the instructions so they can be passed in GET parameter
         additional_instructions = urllib.parse.quote_plus(additional_instructions)
-
-        # Search only the selected documents
-        doc_id_list = request.POST.getlist("acts") + request.POST.getlist("regs")
-
-    if detect_lang and not advanced_mode:
-        # Detect the language of the query and search only documents in that lang
-        lang = detect(query).replace("en", "eng").replace("fr", "fra")
-        if lang == "eng":
-            doc_id_list = [law.node_id_en for law in Law.objects.all()]
-        elif lang == "fra":
-            doc_id_list = [law.node_id_fr for law in Law.objects.all()]
-
-    if doc_id_list is not None:
-        filters.append(
-            MetadataFilter(
-                key="doc_id",
-                value=doc_id_list,
-                operator="in",
+        # Whether to select individual documents depends on "search_laws_option"
+        search_laws_option = request.POST.get("search_laws_option", "all")
+        if search_laws_option == "acts":
+            selected_laws = Law.objects.filter(type="act")
+        elif search_laws_option == "regulations":
+            selected_laws = Law.objects.filter(type="regulation")
+        elif search_laws_option == "specific_laws":
+            laws = request.POST.getlist("laws")
+            selected_laws = Law.objects.filter(pk__in=laws)
+        elif search_laws_option == "enabling_acts":
+            enabling_acts = request.POST.getlist("enabling_acts")
+            enabling_acts = Law.objects.filter(pk__in=enabling_acts)
+            selected_laws = Law.objects.filter(
+                enabling_authority_en__in=[
+                    enabling_acts.ref_number_en for enabling_acts in enabling_acts
+                ]
             )
+    if detect_lang:
+        # Detect the language of the query and search only documents in that lang
+        lang = detect(query)
+        if lang not in ["en", "fr"]:
+            lang = request.LANGUAGE_CODE
+        lang = "eng" if lang == "en" else "fra"
+        if lang == "fra":
+            doc_id_list = [law.node_id_fr for law in selected_laws]
+        else:
+            doc_id_list = [law.node_id_en for law in selected_laws]
+    else:
+        doc_id_list = [law.node_id_en for law in selected_laws] + [
+            law.node_id_fr for law in selected_laws
+        ]
+
+    filters.append(
+        MetadataFilter(
+            key="doc_id",
+            value=doc_id_list,
+            operator="in",
         )
+    )
+
+    if request.POST.get("date_filter_option", "all") != "all":
+        in_force_date_start = request.POST.get("in_force_date_start", None)
+        in_force_date_end = request.POST.get("in_force_date_end", None)
+        last_amended_date_start = request.POST.get("last_amended_date_start", None)
+        last_amended_date_end = request.POST.get("last_amended_date_end", None)
+        print("in force")
+        print("last amended")
+        if in_force_date_start:
+            filters.append(
+                MetadataFilter(
+                    key="in_force_start_date",
+                    value=in_force_date_start,
+                    operator=">=",
+                )
+            )
+        if in_force_date_end:
+            filters.append(
+                MetadataFilter(
+                    key="in_force_start_date",
+                    value=in_force_date_end,
+                    operator="<=",
+                )
+            )
+        if last_amended_date_start:
+            filters.append(
+                MetadataFilter(
+                    key="last_amended_date",
+                    value=last_amended_date_start,
+                    operator=">=",
+                )
+            )
+        if last_amended_date_end:
+            filters.append(
+                MetadataFilter(
+                    key="last_amended_date",
+                    value=last_amended_date_end,
+                    operator="<=",
+                )
+            )
+
     filters = MetadataFilters(filters=filters)
     if vector_ratio == 1:
         retriever = pg_idx.as_retriever(
@@ -479,7 +539,11 @@ def search(request):
             retriever_weights=[vector_ratio, 1 - vector_ratio],
         )
 
-    if advanced_mode and len(doc_id_list) == 0:
+    try:
+        sources = retriever.retrieve(query)
+    except:
+        sources = None
+    if not sources:
         context = {
             "sources": [],
             "query": query,
@@ -487,7 +551,6 @@ def search(request):
             "answer_params": "",
         }
         return render(request, "laws/search_result.html", context=context)
-    sources = retriever.retrieve(query)
 
     # Cache sources so they can be retrieved in the AI answer function
     cache.set(f"sources_{query}", sources, timeout=60)

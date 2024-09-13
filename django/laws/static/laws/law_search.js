@@ -80,3 +80,33 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
 });
+
+function showSourceDetails(button) {
+  const details = document.getElementById('source-details');
+  details.querySelector("#source-details-inner").innerHTML = '';
+  document.querySelectorAll("#sources-container .card").forEach(card => {
+    card.classList.remove("border-4");
+  });
+  if (button === null) {
+    details.classList.add('d-none');
+    return;
+  }
+  const card = button.closest('.card');
+  card.classList.add("border-4");
+  details.classList.remove('d-none');
+}
+function findSimilar(el) {
+  const text = el.getAttribute('data-text');
+  // Populate the search form with the text
+  document.getElementById('basic-search-input').value = text;
+  // Trigger the input event so that the search button is enabled
+  document.getElementById('basic-search-input').dispatchEvent(new Event('input'));
+  // Change the tab to basic search
+  setActiveTab(document.getElementById('basic-search-tab'));
+  // Disable AI answer
+  document.getElementById('ai_answer').checked = false;
+  // Enable bilingual results
+  document.getElementById('bilingual_results').checked = true;
+  // Submit the form
+  document.getElementById('basic-search-button').click();
+}

@@ -467,10 +467,14 @@ def get_heading_str(section):
     return " > ".join(section["headings"])
 
 
-def get_section(section):
+def get_section(section, last_amended_date=None):
     # If the section has an ancestor <Schedule> tag, skip it
     if section.xpath(".//Schedule"):
         return None
+    # Subsections do not have a last_amended_date, so we pass it down from the parent
+    last_amended_date = section.attrib.get(
+        "{http://justice.gc.ca/lims}lastAmendedDate", last_amended_date
+    )
     return {
         "id": _get_text(section.find(".//Label")),
         "headings": get_headings(section),
@@ -479,11 +483,10 @@ def get_section(section):
         "in_force_start_date": section.attrib.get(
             "{http://justice.gc.ca/lims}inforce-start-date", None
         ),
-        "last_amended_date": section.attrib.get(
-            "{http://justice.gc.ca/lims}lastAmendedDate", None
-        ),
+        "last_amended_date": last_amended_date,
         "subsections": [
-            get_section(subsection) for subsection in section.findall(".//Subsection")
+            get_section(subsection, last_amended_date)
+            for subsection in section.findall(".//Subsection")
         ],
         "external_refs": get_external_xrefs(section),
         "internal_refs": get_internal_xrefs(section),
