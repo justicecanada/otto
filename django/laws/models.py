@@ -82,10 +82,21 @@ class LawManager(models.Manager):
         nodes_en,
         document_fr,
         nodes_fr,
+        sha_256_hash_en,
+        sha_256_hash_fr,
         add_to_vector_store=True,
         mock_embedding=False,
     ):
-        obj = self.model()
+        # Does this law already exist?
+        existing_law = self.filter(node_id_en=document_en.doc_id)
+        en_hash_changed = True
+        fr_hash_changed = True
+        if existing_law.exists():
+            obj = existing_law.first()
+            en_hash_changed = obj.sha_256_hash_en != sha_256_hash_en
+            fr_hash_changed = obj.sha_256_hash_fr != sha_256_hash_fr
+        else:
+            obj = self.model()
 
         # Document-level metadata (English)
         obj.short_title_en = document_en.metadata.get("short_title")
@@ -119,13 +130,27 @@ class LawManager(models.Manager):
         obj.last_amended_date = document_en.metadata.get("last_amended_date", None)
         obj.current_date = document_en.metadata.get("current_date", None)
         obj.in_force_start_date = document_en.metadata.get("in_force_start_date", None)
+        obj.sha_256_hash_en = sha_256_hash_en
+        obj.sha_256_hash_fr = sha_256_hash_fr
 
         obj.full_clean()
         obj.save()
 
         if add_to_vector_store:
-            nodes = [document_en, document_fr] + nodes_en + nodes_fr
             idx = connect_to_vector_store("laws_lois__", mock_embedding)
+            nodes = []
+            if existing_law.exists():
+                # Remove the old content from the vector store
+                if en_hash_changed:
+                    idx.delete_ref_doc(obj.node_id_en, delete_from_docstore=True)
+                if fr_hash_changed:
+                    idx.delete_ref_doc(obj.node_id_fr, delete_from_docstore=True)
+            if en_hash_changed:
+                nodes.append(document_en)
+                nodes.extend(nodes_en)
+            if fr_hash_changed:
+                nodes.append(document_fr)
+                nodes.extend(nodes_fr)
             batch_size = 128
             logger.debug(
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
@@ -149,7 +174,7 @@ class Law(models.Model):
     Translated model so that the list of laws can be displayed in the user's language.
     """
 
-    #### BILINGUAL FIELDS
+    #### BILINGUAL FIELDS (through model translation)
     # Title concatenates short_title (or long_title, if no short_title) and ref_number
     title = models.TextField()
     short_title = models.TextField(null=True, blank=True)
@@ -159,6 +184,10 @@ class Law(models.Model):
     enabling_authority = models.CharField(max_length=255, null=True, blank=True)
     # ID of the LlamaIndex node for the document
     node_id = models.CharField(max_length=255, unique=True)
+
+    # Hashes for each language - so we can see if the content has changed
+    sha_256_hash_en = models.CharField(max_length=64, null=True, blank=True)
+    sha_256_hash_fr = models.CharField(max_length=64, null=True, blank=True)
 
     #### SHARED BETWEEN LANGUAGES
     type = models.CharField(max_length=255, default="act")  # "act" or "regulation"

@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shutil
 import time
@@ -672,14 +673,34 @@ class Command(BaseCommand):
             action="store_true",
             help="Skip cleanup of the laws-lois-xml repo",
         )
+        parser.add_argument(
+            "--force_update",
+            action="store_true",
+            help="Force update of existing laws (even if they have not changed)",
+        )
+        parser.add_argument(
+            "--max_workers",
+            type=int,
+            default=1,
+            help="Number of workers to use for parallel processing",
+        )
 
     @signalcommand
     def handle(self, *args, **options):
         total_cost = 0
         full = options.get("full", False)
         reset = options.get("reset", False)
+        if reset:
+            # Confirm the user wants to delete all laws
+            print("This will delete all laws in the database. Are you sure?")
+            response = input("Type 'yes' to confirm: ")
+            if response != "yes":
+                print("Aborted")
+                return
         small = options.get("small", False)
         const_only = options.get("const_only", False)
+        force_update = options.get("force_update", False)
+        max_workers = options.get("max_workers", 1)
         debug = options.get("debug", False)
         mock_embedding = options.get("mock_embedding", False)
         laws_root = os.path.join(os.path.dirname(settings.BASE_DIR), "laws-lois-xml")
@@ -758,6 +779,7 @@ class Command(BaseCommand):
             "error": [],
             "added": [],
             "exists": [],
+            "updated": [],
         }
 
         # Reset the Django and LlamaIndex tables
@@ -775,7 +797,7 @@ class Command(BaseCommand):
         #         file_paths, mock_embedding, debug, constitution_file_paths
         #     )
 
-        with ThreadPoolExecutor(max_workers=8) as executor:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [
                 executor.submit(
                     process_en_fr_paths,
@@ -783,6 +805,7 @@ class Command(BaseCommand):
                     mock_embedding,
                     debug,
                     constitution_file_paths,
+                    force_update,
                 )
                 for file_paths in file_path_tuples
             ]
@@ -805,6 +828,7 @@ class Command(BaseCommand):
         exist_count = len(load_results["exists"])
         empty_count = len(load_results["empty"])
         error_count = len(load_results["error"])
+        updated_count = len(load_results["updated"])
         if error_count:
             print("\nError files:")
             for error in load_results["error"]:
@@ -817,14 +841,31 @@ class Command(BaseCommand):
             print("\nExisting files:")
             for exist in load_results["exists"]:
                 print(exist)
+        if updated_count:
+            print("\nUpdated files:")
+            for updated in load_results["updated"]:
+                print(updated)
+        if added_count:
+            print("\nAdded files:")
+            for added in load_results["added"]:
+                print(added)
         print(
-            f"\nAdded: {added_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}"
+            f"\nAdded: {added_count}; Updated: {updated_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}"
         )
         print(f"Total time: {time.time() - start_time:.2f} seconds")
 
 
-def process_en_fr_paths(file_paths, mock_embedding, debug, constitution_file_paths):
-    num_to_load = len(file_paths)
+def get_sha_256_hash(file_path):
+    sha256_hash = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        while chunk := f.read(4096):
+            sha256_hash.update(chunk)
+    return sha256_hash.hexdigest()
+
+
+def process_en_fr_paths(
+    file_paths, mock_embedding, debug, constitution_file_paths, force_update=False
+):
     document_en = None
     document_fr = None
     nodes_en = None
@@ -835,7 +876,23 @@ def process_en_fr_paths(file_paths, mock_embedding, debug, constitution_file_pat
         "error": [],
         "added": [],
         "exists": [],
+        "updated": [],
     }
+
+    # Check the hashes of both files
+    en_hash = get_sha_256_hash(file_paths[0])
+    fr_hash = get_sha_256_hash(file_paths[1])
+    # If *BOTH* exist in the database, skip
+    if (
+        Law.objects.filter(sha_256_hash_en=en_hash).exists()
+        and Law.objects.filter(sha_256_hash_fr=fr_hash).exists()
+        and not force_update
+    ):
+        print(f"Duplicate EN/FR hashes found in database. Skipping. {file_paths}")
+        if not force_update:
+            load_results["exists"].append(file_paths)
+            return load_results
+
     # Create nodes for the English and French XML files
     for k, file_path in enumerate(file_paths):
         # Get the directory path of the XML file
@@ -945,16 +1002,27 @@ def process_en_fr_paths(file_paths, mock_embedding, debug, constitution_file_pat
     # This will also handle the creation of LlamaIndex vector tables
     if not debug:
         try:
+            # Check if law already exists.
+            # node_id_en property will be unique in database
+            node_id_en = document_en.doc_id
+            if Law.objects.filter(node_id_en=node_id_en).exists():
+                print(f"Updating existing law with different hash")
+                load_results["updated"].append(file_paths)
+            else:
+                load_results["added"].append(file_paths)
             print(f"Adding to database: {document_en.metadata['display_metadata']}")
+            # This method will update existing Law object if it already exists
             Law.objects.from_docs_and_nodes(
                 document_en,
                 nodes_en,
                 document_fr,
                 nodes_fr,
+                sha_256_hash_en=en_hash,
+                sha_256_hash_fr=fr_hash,
                 add_to_vector_store=True,
                 mock_embedding=mock_embedding,
             )
-            load_results["added"].append(file_paths)
+
         except Exception as e:
             print(f"*** Error processing file pair: {file_paths}\n {e}\n")
             if "Law with this Node id already exists" in str(e):
