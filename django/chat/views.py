@@ -864,17 +864,17 @@ def save_preset(request, chat_id):
         # Set the public status
         preset.is_public = "on" == request.POST.get("make_public")
 
-        editable_by = request.POST.getlist("editable_email")
-        viewable_by = request.POST.getlist("viewable_email")
-
         # Save the preset
         preset.save()
 
-        # retreive the user ids from teh lists and create User object with them
-        for user_id in editable_by:
-            preset.editable_by.add(user_id)
-        for user_id in viewable_by:
-            preset.accessible_to.add(user_id)
+        if preset.is_public:
+            editable_by = request.POST.getlist("editable_email")
+            viewable_by = request.POST.getlist("viewable_email")
+            # retreive the user ids from teh lists and create User object with them
+            for user_id in editable_by:
+                preset.editable_by.add(user_id)
+            for user_id in viewable_by:
+                preset.accessible_to.add(user_id)
 
     # # Redirect to the card list page
     return redirect("chat:get_presets", chat_id=chat_id)
