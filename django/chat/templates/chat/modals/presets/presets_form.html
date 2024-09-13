@@ -87,12 +87,13 @@
         </div>
 
         <div class="col-12">
-          <label class="form-label">{% trans "Editable by:" %}</label>
-          {{ form.editable_by }}
-          <label class="form-label">{% trans "Viewable by:" %}</label>
-          {{ form.viewable_by }}
+          {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+            </div>
+          {% endfor %}
         </div>
- 
 
       </form>
     </div>
