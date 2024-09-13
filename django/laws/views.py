@@ -10,10 +10,13 @@ from django.utils.translation import gettext as _
 
 import markdown
 import tiktoken
+from asgiref.sync import sync_to_async
 from llama_index.core import ChatPromptTemplate
 from llama_index.core.llms import ChatMessage, MessageRole
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
+from chat.llm import OttoLLM
 from chat.utils import llm_response_to_html
 from otto.utils.decorators import app_access_required
 
@@ -145,11 +148,8 @@ def source(request, source_id):
 
 @app_access_required(app_name)
 def answer(request):
-    from llama_index.core import Settings
-    from llama_index.core.response_synthesizers import CompactAndRefine
+    bind_contextvars(feature="laws_query")
     from llama_index.core.schema import MetadataMode
-    from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
-    from llama_index.llms.azure_openai import AzureOpenAI
 
     additional_instructions = request.GET.get("additional_instructions", "")
 
@@ -165,32 +165,7 @@ def answer(request):
     query = urllib.parse.unquote_plus(request.GET.get("query", ""))
     logger.debug(query)
 
-    # if "llama" in model:
-    #     llm = Groq(model=model, api_key=settings.GROQ_API_KEY, temperature=0.1)
-    # else:
-    model_name = {
-        "gpt-4o": "gpt-4o",
-        "gpt-4": "gpt-4-turbo-preview",
-        "gpt-35": "gpt-35-turbo",
-    }[model]
-    llm = AzureOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=model,
-        model=model_name,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.1,
-    )
-    embed_model = AzureOpenAIEmbedding(
-        model="text-embedding-3-large",
-        deployment_name="text-embedding-3-large",
-        dimensions=1536,
-        embed_batch_size=16,
-        api_key=settings.AZURE_OPENAI_KEY,
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        api_version=settings.AZURE_OPENAI_VERSION,
-    )
-
+    llm = OttoLLM(deployment=model, temperature=0)
     sources = cache.get(f"sources_{query}")
     if not sources:
         generator = iter([_("Error generating AI response.")])
@@ -249,11 +224,8 @@ def answer(request):
         sources = trimmed_sources
         logger.debug("\n\n\n")
 
-        response_synthesizer = CompactAndRefine(
-            llm=llm,
-            streaming=True,
-            text_qa_template=CHAT_TEXT_QA_PROMPT,
-        )
+        response_synthesizer = llm.get_response_synthesizer(CHAT_TEXT_QA_PROMPT)
+
         query_suffix = (
             "\nRespond in markdown format. "
             "The most important words should be **bolded like this**."
@@ -264,7 +236,6 @@ def answer(request):
             query=query + query_suffix,
             nodes=sources,
         )
-        cache.delete(f"sources_{query}")
         generator = streaming_response.response_gen
 
     def process_bold_blocks(text, is_in_bold_block, bold_block):
@@ -305,7 +276,7 @@ def answer(request):
 
         return (message_html_lines, formatted_response)
 
-    def htmx_sse_response(response_gen):
+    def htmx_sse_response(response_gen, llm):
         # time.sleep(60)
         sse_joiner = "\ndata: "
         full_message = ""
@@ -353,19 +324,23 @@ def answer(request):
             message_html = llm_response_to_html(full_message)
             message_html_lines = message_html.split("\n")
 
+        sync_to_async(llm.create_costs)()
+        sync_to_async(cache.delete)(f"sources_{query}")
+
         yield (
             f"data: <div hx-swap-oob='true' id='answer-sse'>"
             f"<div>{sse_joiner.join(message_html_lines)}</div></div>\n\n"
         )
 
     return StreamingHttpResponse(
-        streaming_content=sync_generator_to_async(htmx_sse_response(generator)),
+        streaming_content=sync_generator_to_async(htmx_sse_response(generator, llm)),
         content_type="text/event-stream",
     )
 
 
 @app_access_required(app_name)
 def search(request):
+    bind_contextvars(feature="laws_query")
     if request.method != "POST":
         # redirect to laws index
         return redirect("laws:index")
@@ -373,6 +348,8 @@ def search(request):
     from llama_index.core.retrievers import QueryFusionRetriever
     from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
     from llama_index.llms.azure_openai import AzureOpenAI
+
+    llm = OttoLLM()
 
     # time.sleep(60)
     # We don't want to search Document nodes - only chunks
@@ -385,7 +362,7 @@ def search(request):
     ]
 
     query = request.POST.get("query")
-    pg_idx = Law.get_index()
+    pg_idx = llm.get_index("laws_lois__")
 
     advanced_mode = request.POST.get("advanced") == "true"
     disable_llm = not (request.POST.get("ai_answer", False) == "on")
@@ -525,14 +502,7 @@ def search(request):
         retriever = QueryFusionRetriever(
             retrievers=[vector_retriever, text_retriever],
             mode="relative_score",
-            llm=AzureOpenAI(
-                azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-                azure_deployment=settings.DEFAULT_CHAT_MODEL,
-                model=settings.DEFAULT_CHAT_MODEL,
-                api_version=settings.AZURE_OPENAI_VERSION,
-                api_key=settings.AZURE_OPENAI_KEY,
-                temperature=0.1,
-            ),
+            llm=llm.llm,
             similarity_top_k=top_k,
             num_queries=1,
             use_async=False,
@@ -543,6 +513,7 @@ def search(request):
         sources = retriever.retrieve(query)
     except:
         sources = None
+    llm.create_costs()
     if not sources:
         context = {
             "sources": [],
