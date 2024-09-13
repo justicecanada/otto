@@ -11,67 +11,13 @@ from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
 from tqdm import tqdm
 
+from chat.llm import OttoLLM
+
 logger = get_logger(__name__)
 
 token_counter = TokenCountingHandler(
     tokenizer=tiktoken.encoding_for_model("gpt-4").encode
 )
-
-
-def connect_to_vector_store(
-    vector_store_table: str, mock_embedding: bool = False
-) -> VectorStoreIndex:
-    # Same as in Librarian utils, but with token counter added
-    from llama_index.core.embeddings import MockEmbedding
-    from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
-    from llama_index.llms.azure_openai import AzureOpenAI
-    from llama_index.vector_stores.postgres import PGVectorStore
-
-    llm = AzureOpenAI(
-        model=settings.DEFAULT_CHAT_MODEL,  # TODO: Rethink how to pass this in. Maybe a global variable? Or dynamic based on the library?
-        deployment_name=settings.DEFAULT_CHAT_MODEL,  # TODO: Revisit whether unfiltered is still needed or if an alternative can be used.
-        api_key=settings.AZURE_OPENAI_KEY,
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        api_version=settings.AZURE_OPENAI_VERSION,
-    )
-
-    if mock_embedding:
-        embed_model = MockEmbedding(1536)
-    else:
-        embed_model = AzureOpenAIEmbedding(
-            model="text-embedding-3-large",
-            deployment_name="text-embedding-3-large",
-            dimensions=1536,
-            embed_batch_size=128,
-            api_key=settings.AZURE_OPENAI_KEY,
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_VERSION,
-        )
-
-    # Get the vector store for the library
-    vector_store = PGVectorStore.from_params(
-        database=settings.DATABASES["vector_db"]["NAME"],
-        host=settings.DATABASES["vector_db"]["HOST"],
-        password=settings.DATABASES["vector_db"]["PASSWORD"],
-        port=5432,
-        user=settings.DATABASES["vector_db"]["USER"],
-        table_name=vector_store_table,
-        embed_dim=1536,  # openai embedding dimension
-        hybrid_search=True,
-        text_search_config="english",
-        perform_setup=True,
-    )
-
-    # Remove the old content from the vector store
-    idx = VectorStoreIndex.from_vector_store(
-        vector_store=vector_store,
-        llm=llm,
-        embed_model=embed_model,
-        callback_manager=CallbackManager([token_counter]),
-        show_progress=False,
-    )
-
-    return idx
 
 
 class LawManager(models.Manager):
@@ -85,8 +31,8 @@ class LawManager(models.Manager):
         sha_256_hash_en,
         sha_256_hash_fr,
         add_to_vector_store=True,
-        mock_embedding=False,
         force_update=False,
+        llm=None,
     ):
         # Does this law already exist?
         existing_law = self.filter(node_id_en=document_en.doc_id)
@@ -140,7 +86,9 @@ class LawManager(models.Manager):
         obj.save()
 
         if add_to_vector_store:
-            idx = connect_to_vector_store("laws_lois__", mock_embedding)
+            if llm is None:
+                return
+            idx = llm.get_index("laws_lois__")
             nodes = []
             if existing_law.exists():
                 # Remove the old content from the vector store
@@ -217,5 +165,5 @@ class Law(models.Model):
 
     @classmethod
     def get_index(cls):
-        idx = connect_to_vector_store("laws_lois__")
+        idx = OttoLLM().get_index("laws_lois__")
         return idx

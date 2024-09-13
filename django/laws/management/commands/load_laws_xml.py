@@ -868,6 +868,7 @@ def process_en_fr_paths(
     file_paths, mock_embedding, debug, constitution_file_paths, force_update=False
 ):
     bind_contextvars(feature="laws_load")
+    llm = OttoLLM(mock_embedding=mock_embedding)
     document_en = None
     document_fr = None
     nodes_en = None
@@ -1021,10 +1022,11 @@ def process_en_fr_paths(
                 sha_256_hash_en=en_hash,
                 sha_256_hash_fr=fr_hash,
                 add_to_vector_store=True,
-                mock_embedding=mock_embedding,
                 force_update=force_update,
+                llm=llm,
             )
             bind_contextvars(law_id=law.id)
+            llm.create_costs()
 
         except Exception as e:
             print(f"*** Error processing file pair: {file_paths}\n {e}\n")

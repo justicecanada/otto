@@ -3,6 +3,7 @@ from django.conf import settings
 import tiktoken
 from llama_index.core import PromptTemplate, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
+from llama_index.core.embeddings import MockEmbedding
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
@@ -31,7 +32,10 @@ class OttoLLM:
     }
 
     def __init__(
-        self, deployment: str = settings.DEFAULT_CHAT_MODEL, temperature: float = 0.1
+        self,
+        deployment: str = settings.DEFAULT_CHAT_MODEL,
+        temperature: float = 0.1,
+        mock_embedding: bool = False,
     ):
         if deployment not in self._deployment_to_model_mapping:
             raise ValueError(f"Invalid deployment: {deployment}")
@@ -43,6 +47,7 @@ class OttoLLM:
         )
         self._callback_manager = CallbackManager([self._token_counter])
         self.llm = self._get_llm()
+        self.mock_embedding = mock_embedding
         self.embed_model = self._get_embed_model()
         self.max_input_tokens = self._deployment_to_max_input_tokens_mapping[deployment]
 
@@ -113,7 +118,7 @@ class OttoLLM:
             Cost.objects.new(
                 cost_type=f"{self.deployment}-out", count=self.output_token_count
             )
-        if self.embed_token_count > 0:
+        if self.embed_token_count > 0 and not self.mock_embedding:
             Cost.objects.new(cost_type="embedding", count=self.embed_token_count)
 
         self._token_counter.reset_counts()
@@ -216,7 +221,9 @@ class OttoLLM:
             callback_manager=self._callback_manager,
         )
 
-    def _get_embed_model(self) -> AzureOpenAIEmbedding:
+    def _get_embed_model(self) -> AzureOpenAIEmbedding | MockEmbedding:
+        if self.mock_embedding:
+            return MockEmbedding(1536, callback_manager=self._callback_manager)
         return AzureOpenAIEmbedding(
             model="text-embedding-3-large",
             deployment_name="text-embedding-3-large",
