@@ -1,0 +1,10 @@
+{% if form %}
+  <div class="col-12">
+    {% for field in form %}
+      <div class="mb-3">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

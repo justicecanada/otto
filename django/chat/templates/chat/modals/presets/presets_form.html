@@ -81,19 +81,16 @@
             <input class="form-check-input"
                    type="checkbox"
                    id="make_public"
-                   name="make_public">
+                   name="make_public"
+                   hx-trigger="change"
+                   hx-get="{% url 'chat:get_public_fields' chat_id=chat_id %}"
+                   hx-target="#public-fields-container"
+                   hx-swap="innerHTML">
             <label class="form-check-label" for="make_public">{% trans "Make preset public" %}</label>
           </div>
         </div>
 
-        <div class="col-12">
-          {% for field in form %}
-            <div class="mb-3">
-              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-              {{ field }}
-            </div>
-          {% endfor %}
-        </div>
+        <div id="public-fields-container" class="col-12"></div>
 
       </form>
     </div>

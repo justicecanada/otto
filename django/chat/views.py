@@ -807,7 +807,6 @@ def get_presets(request, chat_id):
 
 
 def get_preset_form(request, chat_id):
-    form = UserPresetForm()
     return render(
         request,
         "chat/modals/presets/presets_form.html",
@@ -816,7 +815,6 @@ def get_preset_form(request, chat_id):
                 request.user, get_language()
             ),
             "chat_id": chat_id,
-            "form": form,
         },
     )
 
@@ -880,3 +878,9 @@ def save_preset(request, chat_id):
 
     # # Redirect to the card list page
     return redirect("chat:get_presets", chat_id=chat_id)
+
+
+def get_public_fields(request, chat_id):
+    make_public = request.GET.get("make_public")
+    form = UserPresetForm() if make_public == "on" else None
+    return render(request, "chat/modals/presets/public_fields.html", {"form": form})

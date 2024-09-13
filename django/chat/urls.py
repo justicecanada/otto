@@ -99,4 +99,9 @@ urlpatterns = [
         views.save_preset,
         name="save_preset",
     ),
+    path(
+        "id/<str:chat_id>/options/get_public_fields",
+        views.get_public_fields,
+        name="get_public_fields",
+    ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
