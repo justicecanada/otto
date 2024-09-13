@@ -47,43 +47,44 @@ def _download_repo():
     os.remove(zip_file_path)
 
 
+def _get_fr_matching_id(eng_id):
+    return eng_id.replace("SOR-", "DORS-").replace("SI-", "TR-").replace("_c.", "_ch.")
+
+
+def _get_en_file_path(eng_id, laws_dir):
+    act_path = os.path.join(laws_dir, "eng", "acts", f"{eng_id}.xml")
+    reg_path = os.path.join(laws_dir, "eng", "regulations", f"{eng_id}.xml")
+    if os.path.exists(act_path):
+        return act_path
+    elif os.path.exists(reg_path):
+        return reg_path
+    else:
+        return None
+
+
+def _get_fr_file_path(fr_id, laws_dir):
+    act_path = os.path.join(laws_dir, "fra", "lois", f"{fr_id}.xml")
+    reg_path = os.path.join(laws_dir, "fra", "reglements", f"{fr_id}.xml")
+    if os.path.exists(act_path):
+        return act_path
+    elif os.path.exists(reg_path):
+        return reg_path
+    else:
+        print(f"Could not find French file for {fr_id}")
+        print(f"(FR: {act_path}, FR: {reg_path})")
+        return None
+
+
 def _get_en_fr_law_file_paths(laws_dir, eng_law_ids=[]):
     """
     Search for the English and French file paths for each law ID
     Return a list of tuples (EN, FR) where each element is a full file path
     """
 
-    def get_fr_matching_id(eng_id):
-        return (
-            eng_id.replace("SOR-", "DORS-").replace("SI-", "TR-").replace("_c.", "_ch.")
-        )
-
-    def get_en_file_path(eng_id):
-        act_path = os.path.join(laws_dir, "eng", "acts", f"{eng_id}.xml")
-        reg_path = os.path.join(laws_dir, "eng", "regulations", f"{eng_id}.xml")
-        if os.path.exists(act_path):
-            return act_path
-        elif os.path.exists(reg_path):
-            return reg_path
-        else:
-            return None
-
-    def get_fr_file_path(fr_id):
-        act_path = os.path.join(laws_dir, "fra", "lois", f"{fr_id}.xml")
-        reg_path = os.path.join(laws_dir, "fra", "reglements", f"{fr_id}.xml")
-        if os.path.exists(act_path):
-            return act_path
-        elif os.path.exists(reg_path):
-            return reg_path
-        else:
-            print(f"Could not find French file for {fr_id}")
-            print(f"(FR: {act_path}, FR: {reg_path})")
-            return None
-
     file_paths = []
     for eng_law_id in eng_law_ids:
-        en_file_path = get_en_file_path(eng_law_id)
-        fr_file_path = get_fr_file_path(get_fr_matching_id(eng_law_id))
+        en_file_path = _get_en_file_path(eng_law_id, laws_dir)
+        fr_file_path = _get_fr_file_path(_get_fr_matching_id(eng_law_id), laws_dir)
         if en_file_path and fr_file_path:
             file_paths.append((en_file_path, fr_file_path))
         else:
@@ -92,6 +93,17 @@ def _get_en_fr_law_file_paths(laws_dir, eng_law_ids=[]):
 
     print(len(file_paths), "laws found in both languages")
     return file_paths
+
+
+def _get_all_eng_law_ids(laws_dir):
+    """
+    Get all English law IDs from the laws directory
+    """
+    act_dir = os.path.join(laws_dir, "eng", "acts")
+    reg_dir = os.path.join(laws_dir, "eng", "regulations")
+    act_ids = [f.replace(".xml", "") for f in os.listdir(act_dir) if f.endswith(".xml")]
+    reg_ids = [f.replace(".xml", "") for f in os.listdir(reg_dir) if f.endswith(".xml")]
+    return act_ids + reg_ids
 
 
 import os
@@ -681,7 +693,7 @@ class Command(BaseCommand):
                 "xml_sample",
             )
         if full:
-            law_ids = []  # All laws will be loaded
+            law_ids = _get_all_eng_law_ids(laws_root)
         elif small:
             law_ids = [
                 "SOR-2010-203",  # Certain Ships Remission Order, 2010 (5kb)
@@ -734,6 +746,7 @@ class Command(BaseCommand):
             file_path_tuples += constitution_file_paths
 
         flattened_file_paths = [p for t in file_path_tuples for p in t]
+        num_to_load = len(file_path_tuples)
         total_file_size = sum(
             [os.path.getsize(file_path) for file_path in flattened_file_paths]
         )
@@ -756,6 +769,7 @@ class Command(BaseCommand):
             document_fr = None
             nodes_en = None
             nodes_fr = None
+            inner_loop_err = False
             # Create nodes for the English and French XML files
             for k, file_path in enumerate(file_paths):
                 # Get the directory path of the XML file
@@ -767,7 +781,7 @@ class Command(BaseCommand):
                     directory, "html", f"{os.path.splitext(base_name)[0]}.html"
                 )
                 print(
-                    f"Processing law {j+1}/{len(file_paths)}: {base_name} ({'EN' if k == 0 else 'FR'})"
+                    f"Processing law {j+1}/{num_to_load}: {base_name} ({'EN' if k == 0 else 'FR'})"
                 )
                 file_size_so_far += os.path.getsize(file_path)
                 # Use xsltproc to render the XML to HTML
@@ -777,8 +791,11 @@ class Command(BaseCommand):
                 node_dict = law_xml_to_nodes(file_path)
                 if not node_dict["nodes"]:
                     print("No nodes found in this document.")
+                    print(f"File path: {file_path}")
+                    print("-------")
                     empty_count += 1
-                    continue
+                    inner_loop_err = True
+                    break
                 doc_metadata = {
                     "id": node_dict["id"],
                     "lang": node_dict["lang"],
@@ -865,6 +882,8 @@ class Command(BaseCommand):
                                 f"{node.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
                             )
 
+            if inner_loop_err:
+                continue
             # Nodes and document should be ready now! Let's add to our Django model
             # This will also handle the creation of LlamaIndex vector tables
             if not debug:
@@ -885,10 +904,9 @@ class Command(BaseCommand):
                     total_cost += embedding_cost
                     added_count += 1
                 except Exception as e:
-                    print(
-                        f"Error processing: {document_en.metadata['display_metadata']}"
-                    )
-                    print(e, "\n")
+                    print(f"Error processing file pair: {file_paths}\n {e}\n")
+                    print("------")
+
                     if "Law with this Node id already exists" in str(e):
                         exist_count += 1
                     else:

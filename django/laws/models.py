@@ -151,9 +151,9 @@ class Law(models.Model):
 
     #### BILINGUAL FIELDS
     # Title concatenates short_title (or long_title, if no short_title) and ref_number
-    title = models.CharField(max_length=511)
-    short_title = models.CharField(max_length=511, null=True, blank=True)
-    long_title = models.CharField(max_length=511, null=True, blank=True)
+    title = models.TextField()
+    short_title = models.TextField(null=True, blank=True)
+    long_title = models.TextField(null=True, blank=True)
     # Enabling authority matches format of ref_number
     ref_number = models.CharField(max_length=255)  # e.g. "A-0.6" or "SOR-86-1026".
     enabling_authority = models.CharField(max_length=255, null=True, blank=True)
