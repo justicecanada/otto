@@ -38,6 +38,34 @@ class ActsAutocomplete(HTMXAutoComplete):
         return []
 
 
+class LawsAutocomplete(HTMXAutoComplete):
+    """Autocomplete component to select any law (Act or Regulation)"""
+
+    name = "laws"
+    multiselect = True
+    minimum_search_length = 0
+    model = Law
+
+    def get_items(self, search=None, values=None):
+        data = Law.objects.all().order_by("type", "title")
+        if search is not None:
+            items = [
+                {"label": str(x), "value": str(x.id)}
+                for x in data
+                if search == "" or str(search).upper() in f"{x}".upper()
+            ]
+            return items
+        if values is not None:
+            items = [
+                {"label": str(x), "value": str(x.id)}
+                for x in data
+                if str(x.id) in values
+            ]
+            return items
+
+        return []
+
+
 class LawSearchForm(forms.Form):
     """
     Enter query. Optionally, select query filters (e.g. specific laws, date ranges)
@@ -63,12 +91,11 @@ class LawSearchForm(forms.Form):
         queryset=Law.objects.all(),
         label=_("Select act(s)/regulation(s)"),
         required=False,
-        widget=widgets.Autocomplete(
-            name="laws",
-            options={
-                "multiselect": True,
-                "minimum_search_length": 0,
-                "model": Law,
+        widget=Autocomplete(
+            use_ac=LawsAutocomplete,
+            attrs={
+                "component_id": f"id_laws",
+                "id": f"id_laws__textinput",
             },
         ),
     )
