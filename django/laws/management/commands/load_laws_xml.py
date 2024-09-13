@@ -12,6 +12,7 @@ from django.utils.timezone import datetime
 
 import requests
 from django_extensions.management.utils import signalcommand
+from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from laws.models import Law, token_counter
@@ -866,6 +867,7 @@ def get_sha_256_hash(file_path):
 def process_en_fr_paths(
     file_paths, mock_embedding, debug, constitution_file_paths, force_update=False
 ):
+    bind_contextvars(feature="laws_load")
     document_en = None
     document_fr = None
     nodes_en = None
@@ -888,10 +890,9 @@ def process_en_fr_paths(
         and Law.objects.filter(sha_256_hash_fr=fr_hash).exists()
         and not force_update
     ):
-        print(f"Duplicate EN/FR hashes found in database. Skipping. {file_paths}")
-        if not force_update:
-            load_results["exists"].append(file_paths)
-            return load_results
+        print(f"Duplicate EN/FR hashes found in database: {file_paths}")
+        load_results["exists"].append(file_paths)
+        return load_results
 
     # Create nodes for the English and French XML files
     for k, file_path in enumerate(file_paths):
@@ -1006,13 +1007,13 @@ def process_en_fr_paths(
             # node_id_en property will be unique in database
             node_id_en = document_en.doc_id
             if Law.objects.filter(node_id_en=node_id_en).exists():
-                print(f"Updating existing law with different hash")
+                print(f"Updating existing law.")
                 load_results["updated"].append(file_paths)
             else:
                 load_results["added"].append(file_paths)
             print(f"Adding to database: {document_en.metadata['display_metadata']}")
             # This method will update existing Law object if it already exists
-            Law.objects.from_docs_and_nodes(
+            law = Law.objects.from_docs_and_nodes(
                 document_en,
                 nodes_en,
                 document_fr,
@@ -1021,7 +1022,9 @@ def process_en_fr_paths(
                 sha_256_hash_fr=fr_hash,
                 add_to_vector_store=True,
                 mock_embedding=mock_embedding,
+                force_update=force_update,
             )
+            bind_contextvars(law_id=law.id)
 
         except Exception as e:
             print(f"*** Error processing file pair: {file_paths}\n {e}\n")

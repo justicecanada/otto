@@ -86,6 +86,7 @@ class LawManager(models.Manager):
         sha_256_hash_fr,
         add_to_vector_store=True,
         mock_embedding=False,
+        force_update=False,
     ):
         # Does this law already exist?
         existing_law = self.filter(node_id_en=document_en.doc_id)
@@ -95,6 +96,8 @@ class LawManager(models.Manager):
             obj = existing_law.first()
             en_hash_changed = obj.sha_256_hash_en != sha_256_hash_en
             fr_hash_changed = obj.sha_256_hash_fr != sha_256_hash_fr
+            print(f"en_hash_changed: {en_hash_changed}")
+            print(f"fr_hash_changed: {fr_hash_changed}")
         else:
             obj = self.model()
 
@@ -141,14 +144,14 @@ class LawManager(models.Manager):
             nodes = []
             if existing_law.exists():
                 # Remove the old content from the vector store
-                if en_hash_changed:
+                if en_hash_changed or force_update:
                     idx.delete_ref_doc(obj.node_id_en, delete_from_docstore=True)
-                if fr_hash_changed:
+                if fr_hash_changed or force_update:
                     idx.delete_ref_doc(obj.node_id_fr, delete_from_docstore=True)
-            if en_hash_changed:
+            if en_hash_changed or force_update:
                 nodes.append(document_en)
                 nodes.extend(nodes_en)
-            if fr_hash_changed:
+            if fr_hash_changed or force_update:
                 nodes.append(document_fr)
                 nodes.extend(nodes_fr)
             batch_size = 128
