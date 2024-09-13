@@ -24,9 +24,13 @@ def _download_repo():
         "https://github.com/justicecanada/laws-lois-xml/archive/refs/heads/main.zip"
     )
 
+    # Check if the repo was already downloaded
+    if os.path.exists("/tmp/laws-lois-xml-main"):
+        print("Folder already exists, skipping download")
+        return
+
     # Path to save the downloaded zip file
     zip_file_path = "/tmp/laws-lois-xml.zip"
-
     # Path to extract the zip file
     extract_path = "/tmp"
 
@@ -43,31 +47,50 @@ def _download_repo():
     os.remove(zip_file_path)
 
 
-def _get_law_file_paths(laws_dir, eng_law_ids=[]):
+def _get_en_fr_law_file_paths(laws_dir, eng_law_ids=[]):
     """
     Search for the English and French file paths for each law ID
+    Return a list of tuples (EN, FR) where each element is a full file path
     """
-    file_paths = []
-    # French regulations have different names, unfortunately
-    # Replace "SOR-" with "DORS-", "SI-" with "TR-" and "_c." with "_ch."
-    filenames = set(
-        [f"{law_id}.xml" for law_id in eng_law_ids]
-        + [f"{law_id.replace('_c.', '_ch.')}.xml" for law_id in eng_law_ids]
-        + [f"{law_id.replace('SOR-', 'DORS-')}.xml" for law_id in eng_law_ids]
-        + [f"{law_id.replace('SI-', 'TR-')}.xml" for law_id in eng_law_ids]
-    )
-    for lang in ["eng", "fra"]:
-        categories = (
-            ["acts", "regulations"] if lang == "eng" else ["lois", "reglements"]
-        )
-        for category in categories:
-            for file in os.listdir(os.path.join(laws_dir, lang, category)):
-                if (file in filenames or not filenames) and (file.endswith(".xml")):
-                    file_paths.append(os.path.join(laws_dir, lang, category, file))
 
-    print(len(eng_law_ids), "law IDs provided")
-    print(len(file_paths), "files found (should be 2x the number of law IDs)")
-    # print("File paths:\n", file_paths)
+    def get_fr_matching_id(eng_id):
+        return (
+            eng_id.replace("SOR-", "DORS-").replace("SI-", "TR-").replace("_c.", "_ch.")
+        )
+
+    def get_en_file_path(eng_id):
+        act_path = os.path.join(laws_dir, "eng", "acts", f"{eng_id}.xml")
+        reg_path = os.path.join(laws_dir, "eng", "regulations", f"{eng_id}.xml")
+        if os.path.exists(act_path):
+            return act_path
+        elif os.path.exists(reg_path):
+            return reg_path
+        else:
+            return None
+
+    def get_fr_file_path(fr_id):
+        act_path = os.path.join(laws_dir, "fra", "lois", f"{fr_id}.xml")
+        reg_path = os.path.join(laws_dir, "fra", "reglements", f"{fr_id}.xml")
+        if os.path.exists(act_path):
+            return act_path
+        elif os.path.exists(reg_path):
+            return reg_path
+        else:
+            print(f"Could not find French file for {fr_id}")
+            print(f"(FR: {act_path}, FR: {reg_path})")
+            return None
+
+    file_paths = []
+    for eng_law_id in eng_law_ids:
+        en_file_path = get_en_file_path(eng_law_id)
+        fr_file_path = get_fr_file_path(get_fr_matching_id(eng_law_id))
+        if en_file_path and fr_file_path:
+            file_paths.append((en_file_path, fr_file_path))
+        else:
+            print(f"Could not find both English and French files for {eng_law_id}")
+            print(f"(EN: {en_file_path}, FR: {fr_file_path})")
+
+    print(len(file_paths), "laws found in both languages")
     return file_paths
 
 
@@ -373,10 +396,12 @@ def get_dict_from_xml(xml_filename):
             ]
         )
         for section in d["preamble"][0]["subsections"]:
-            section["section_id"] = f'{d["doc_id"]}_preamble_provision_{section["id"]}'
+            section["section_id"] = (
+                f'{d["doc_id"]}_preamble_provision_{section["id"]+1}'
+            )
             section["parent_id"] = d["preamble"][0]["section_id"]
             section["heading_str"] = get_heading_str(section)
-            section["section_str"] = f"Preamble provision {section['id']}"
+            section["section_str"] = f"Preamble provision {section['id']+1}"
             section["all_str"] = "\n".join(
                 [
                     d["title_str"],
@@ -620,6 +645,16 @@ class Command(BaseCommand):
             action="store_true",
             help="Download the laws-lois-xml repo from github",
         )
+        parser.add_argument(
+            "--mock_embedding",
+            action="store_true",
+            help="Mock embedding the nodes (save time/cost for debugging)",
+        )
+        parser.add_argument(
+            "--skip_cleanup",
+            action="store_true",
+            help="Skip cleanup of the laws-lois-xml repo",
+        )
 
     @signalcommand
     def handle(self, *args, **options):
@@ -629,6 +664,7 @@ class Command(BaseCommand):
         small = options.get("small", False)
         const_only = options.get("const_only", False)
         debug = options.get("debug", False)
+        mock_embedding = options.get("mock_embedding", False)
         laws_root = os.path.join(os.path.dirname(settings.BASE_DIR), "laws-lois-xml")
         if options.get("download", True):
             _download_repo()
@@ -680,18 +716,24 @@ class Command(BaseCommand):
                 "N-22",  # Canadian Navigable Waters Act
             ]
 
-        file_paths = _get_law_file_paths(laws_root, law_ids)
+        file_path_tuples = _get_en_fr_law_file_paths(laws_root, law_ids)
         # Create constitution file paths
         constitution_dir = os.path.join(settings.BASE_DIR, "laws", "data")
         constitution_file_paths = [
-            os.path.join(constitution_dir, "Constitution 2020_E.xml"),
-            os.path.join(constitution_dir, "Constitution 2020_F_Rapport.xml"),
+            (
+                os.path.join(constitution_dir, "Constitution 2020_E.xml"),
+                os.path.join(constitution_dir, "Constitution 2020_F_Rapport.xml"),
+            )
         ]
         if const_only:
-            file_paths = constitution_file_paths
+            file_path_tuples = constitution_file_paths
         elif not small:
-            file_paths += constitution_file_paths
-        total_file_size = sum([os.path.getsize(file_path) for file_path in file_paths])
+            file_path_tuples += constitution_file_paths
+
+        flattened_file_paths = [p for t in file_path_tuples for p in t]
+        total_file_size = sum(
+            [os.path.getsize(file_path) for file_path in flattened_file_paths]
+        )
         file_size_so_far = 0
         empty_count = 0
         exist_count = 0
@@ -706,121 +748,143 @@ class Command(BaseCommand):
 
         start_time = time.time()
 
-        for i, file_path in enumerate(file_paths):
-            # Get the directory path of the XML file
-            directory = os.path.dirname(file_path)
-            # Get the base name of the XML file
-            base_name = os.path.basename(file_path)
-            # Construct the output HTML file path
-            html_file_path = os.path.join(
-                directory, "html", f"{os.path.splitext(base_name)[0]}.html"
-            )
-            print(f"Processing file {i+1}/{len(file_paths)}: {base_name}")
-            file_size_so_far += os.path.getsize(file_path)
-            # Use xsltproc to render the XML to HTML
-            # os.system(f"xsltproc -o {html_file_path} {xslt_path} {file_path}")
-
-            # Create nodes from XML
-            node_dict = law_xml_to_nodes(file_path)
-            if not node_dict["nodes"]:
-                print("No nodes found in this document.")
-                empty_count += 1
-                continue
-            doc_metadata = {
-                "id": node_dict["id"],
-                "lang": node_dict["lang"],
-                "filename": node_dict["filename"],
-                "type": node_dict["type"],
-                "short_title": node_dict["short_title"],
-                "long_title": node_dict["long_title"],
-                "bill_number": node_dict["bill_number"],
-                "instrument_number": node_dict["instrument_number"],
-                "consolidated_number": node_dict["consolidated_number"],
-                "last_amended_date": node_dict["last_amended_date"],
-                "current_date": node_dict["current_date"],
-                "enabling_authority": node_dict["enabling_authority"],
-                "node_type": "document",
-            }
-            if file_path in constitution_file_paths:
-                # This is used as a reference in other Acts/Regulations
-                doc_metadata["consolidated_number"] = "Const"
-                # The date metadata in these files is missing
-                # Last amendment reference I can find in the document
-                doc_metadata["last_amended_date"] = "2011-12-16"
-                # Date this script was written
-                doc_metadata["current_date"] = "2024-05-23"
-                doc_metadata["type"] = "act"
-
-            exclude_keys = list(doc_metadata.keys())
-            doc_metadata["display_metadata"] = (
-                f'{doc_metadata["short_title"] or ""}'
-                f'{": " if doc_metadata["short_title"] and doc_metadata["long_title"] else ""}'
-                f'{doc_metadata["long_title"] or ""} '
-                f'({doc_metadata["consolidated_number"] or doc_metadata["instrument_number"] or doc_metadata["bill_number"]})'
-            )
-
-            document = Document(
-                text="",
-                metadata=doc_metadata,
-                excluded_llm_metadata_keys=exclude_keys,
-                excluded_embed_metadata_keys=exclude_keys,
-                metadata_template="{value}",
-                text_template="{metadata_str}",
-            )
-            document.doc_id = f'{node_dict["id"]}_{node_dict["lang"]}'
-
-            nodes = node_dict["nodes"]
-            for i, node in enumerate(nodes):
-                node.id_ = node.metadata["section_id"]
-                if node.metadata["parent_id"] is not None:
-                    node.relationships[NodeRelationship.PARENT] = RelatedNodeInfo(
-                        node_id=node.metadata["parent_id"]
-                    )
-                node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
-                    node_id=document.doc_id
+        for j, file_paths in enumerate(file_path_tuples):
+            document_en = None
+            document_fr = None
+            nodes_en = None
+            nodes_fr = None
+            # Create nodes for the English and French XML files
+            for k, file_path in enumerate(file_paths):
+                # Get the directory path of the XML file
+                directory = os.path.dirname(file_path)
+                # Get the base name of the XML file
+                base_name = os.path.basename(file_path)
+                # Construct the output HTML file path
+                html_file_path = os.path.join(
+                    directory, "html", f"{os.path.splitext(base_name)[0]}.html"
                 )
-            # Set prev/next relationships
-            for i in range(len(nodes) - 1):
-                nodes[i].relationships[NodeRelationship.NEXT] = RelatedNodeInfo(
-                    node_id=nodes[i + 1].node_id
+                print(
+                    f"Processing law {j+1}/{len(file_paths)}: {base_name} ({'EN' if k == 0 else 'FR'})"
                 )
-                nodes[i + 1].relationships[NodeRelationship.PREVIOUS] = RelatedNodeInfo(
-                    node_id=nodes[i].node_id
+                file_size_so_far += os.path.getsize(file_path)
+                # Use xsltproc to render the XML to HTML
+                # os.system(f"xsltproc -o {html_file_path} {xslt_path} {file_path}")
+
+                # Create nodes from XML
+                node_dict = law_xml_to_nodes(file_path)
+                if not node_dict["nodes"]:
+                    print("No nodes found in this document.")
+                    empty_count += 1
+                    continue
+                doc_metadata = {
+                    "id": node_dict["id"],
+                    "lang": node_dict["lang"],
+                    "filename": node_dict["filename"],
+                    "type": node_dict["type"],
+                    "short_title": node_dict["short_title"],
+                    "long_title": node_dict["long_title"],
+                    "bill_number": node_dict["bill_number"],
+                    "instrument_number": node_dict["instrument_number"],
+                    "consolidated_number": node_dict["consolidated_number"],
+                    "last_amended_date": node_dict["last_amended_date"],
+                    "current_date": node_dict["current_date"],
+                    "enabling_authority": node_dict["enabling_authority"],
+                    "node_type": "document",
+                }
+                if file_path in [p for t in constitution_file_paths for p in t]:
+                    # This is used as a reference in other Acts/Regulations
+                    doc_metadata["consolidated_number"] = "Const"
+                    # The date metadata in these files is missing
+                    # Last amendment reference I can find in the document
+                    doc_metadata["last_amended_date"] = "2011-12-16"
+                    # Date this script was written
+                    doc_metadata["current_date"] = "2024-05-23"
+                    doc_metadata["type"] = "act"
+
+                exclude_keys = list(doc_metadata.keys())
+                doc_metadata["display_metadata"] = (
+                    f'{doc_metadata["short_title"] or ""}'
+                    f'{": " if doc_metadata["short_title"] and doc_metadata["long_title"] else ""}'
+                    f'{doc_metadata["long_title"] or ""} '
+                    f'({doc_metadata["consolidated_number"] or doc_metadata["instrument_number"] or doc_metadata["bill_number"]})'
                 )
 
-            # Write text files of nodes (for debugging purposes)
-            if debug:
-                nodes_file_path = os.path.join(
-                    directory, "nodes", f"{os.path.splitext(base_name)[0]}.md"
+                document = Document(
+                    text="",
+                    metadata=doc_metadata,
+                    excluded_llm_metadata_keys=exclude_keys,
+                    excluded_embed_metadata_keys=exclude_keys,
+                    metadata_template="{value}",
+                    text_template="{metadata_str}",
                 )
-                # Create the /nodes directory if it doesn't exist
-                if not os.path.exists(os.path.dirname(nodes_file_path)):
-                    os.makedirs(os.path.dirname(nodes_file_path))
-                with open(nodes_file_path, "w") as f:
-                    f.write(
-                        f"{document.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
-                    )
-                    for node in nodes:
-                        f.write(
-                            f"{node.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
+                document.doc_id = f'{node_dict["id"]}_{node_dict["lang"]}'
+
+                nodes = node_dict["nodes"]
+                for i, node in enumerate(nodes):
+                    node.id_ = node.metadata["section_id"]
+                    if node.metadata["parent_id"] is not None:
+                        node.relationships[NodeRelationship.PARENT] = RelatedNodeInfo(
+                            node_id=node.metadata["parent_id"]
                         )
+                    node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
+                        node_id=document.doc_id
+                    )
+                # Set prev/next relationships
+                for i in range(len(nodes) - 1):
+                    nodes[i].relationships[NodeRelationship.NEXT] = RelatedNodeInfo(
+                        node_id=nodes[i + 1].node_id
+                    )
+                    nodes[i + 1].relationships[NodeRelationship.PREVIOUS] = (
+                        RelatedNodeInfo(node_id=nodes[i].node_id)
+                    )
+
+                if doc_metadata["lang"] == "eng":
+                    document_en = document
+                    nodes_en = nodes
+                elif doc_metadata["lang"] == "fra":
+                    document_fr = document
+                    nodes_fr = nodes
+
+                # Write text files of nodes (for debugging purposes)
+                if debug:
+                    nodes_file_path = os.path.join(
+                        directory, "nodes", f"{os.path.splitext(base_name)[0]}.md"
+                    )
+                    # Create the /nodes directory if it doesn't exist
+                    if not os.path.exists(os.path.dirname(nodes_file_path)):
+                        os.makedirs(os.path.dirname(nodes_file_path))
+                    with open(nodes_file_path, "w") as f:
+                        f.write(
+                            f"{document.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
+                        )
+                        for node in nodes:
+                            f.write(
+                                f"{node.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
+                            )
 
             # Nodes and document should be ready now! Let's add to our Django model
             # This will also handle the creation of LlamaIndex vector tables
-            else:
+            if not debug:
                 try:
                     print(
-                        f"Adding to database: {document.metadata['display_metadata']}"
+                        f"Adding to database: {document_en.metadata['display_metadata']}"
                     )
-                    Law.objects.from_doc_and_nodes(
-                        document, nodes, add_to_vector_store=True
+                    Law.objects.from_docs_and_nodes(
+                        document_en,
+                        nodes_en,
+                        document_fr,
+                        nodes_fr,
+                        add_to_vector_store=True,
+                        mock_embedding=mock_embedding,
                     )
                     embedding_cost = _price_tokens(token_counter)
                     token_counter.reset_counts()
                     total_cost += embedding_cost
                     added_count += 1
                 except Exception as e:
-                    print(f"Error processing: {document.metadata['display_metadata']}")
+                    print(
+                        f"Error processing: {document_en.metadata['display_metadata']}"
+                    )
                     print(e, "\n")
                     if "Law with this Node id already exists" in str(e):
                         exist_count += 1
@@ -851,8 +915,9 @@ class Command(BaseCommand):
                 )
 
         if options.get("download", False) and not small:
-            # Clean up the downloaded repo
-            shutil.rmtree(laws_root)
+            if not options.get("skip_cleanup", False):
+                # Clean up the downloaded repo
+                shutil.rmtree(laws_root)
         print("Done!")
         print(
             f"Added: {added_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}"

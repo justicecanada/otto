@@ -37,15 +37,16 @@ def connect_to_vector_store(
 
     if mock_embedding:
         embed_model = MockEmbedding(1536)
-    embed_model = AzureOpenAIEmbedding(
-        model="text-embedding-3-large",
-        deployment_name="text-embedding-3-large",
-        dimensions=1536,
-        embed_batch_size=128,
-        api_key=settings.AZURE_OPENAI_KEY,
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        api_version=settings.AZURE_OPENAI_VERSION,
-    )
+    else:
+        embed_model = AzureOpenAIEmbedding(
+            model="text-embedding-3-large",
+            deployment_name="text-embedding-3-large",
+            dimensions=1536,
+            embed_batch_size=128,
+            api_key=settings.AZURE_OPENAI_KEY,
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+            api_version=settings.AZURE_OPENAI_VERSION,
+        )
 
     # Get the vector store for the library
     vector_store = PGVectorStore.from_params(
@@ -82,7 +83,7 @@ class LawManager(models.Manager):
         document_fr,
         nodes_fr,
         add_to_vector_store=True,
-        embed=True,
+        mock_embedding=False,
     ):
         obj = self.model()
 
@@ -115,16 +116,16 @@ class LawManager(models.Manager):
 
         # Language-agnostic metadata
         obj.type = document_en.metadata["type"]
-        obj.last_amended_date = document_en.metadata.get("last_amended_date")
-        obj.current_date = document_en.metadata.get("current_date")
-        obj.in_force_start_date = document_en.metadata.get("in_force_start_date")
+        obj.last_amended_date = document_en.metadata.get("last_amended_date", None)
+        obj.current_date = document_en.metadata.get("current_date", None)
+        obj.in_force_start_date = document_en.metadata.get("in_force_start_date", None)
 
         obj.full_clean()
         obj.save()
 
         if add_to_vector_store:
             nodes = [document_en, document_fr] + nodes_en + nodes_fr
-            idx = connect_to_vector_store("laws_lois__", mock_embedding=not embed)
+            idx = connect_to_vector_store("laws_lois__", mock_embedding)
             batch_size = 128
             logger.debug(
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
@@ -150,9 +151,9 @@ class Law(models.Model):
 
     #### BILINGUAL FIELDS
     # Title concatenates short_title (or long_title, if no short_title) and ref_number
-    title = models.TextField()
-    short_title = models.TextField(null=True, blank=True)
-    long_title = models.TextField(null=True, blank=True)
+    title = models.CharField(max_length=511)
+    short_title = models.CharField(max_length=511, null=True, blank=True)
+    long_title = models.CharField(max_length=511, null=True, blank=True)
     # Enabling authority matches format of ref_number
     ref_number = models.CharField(max_length=255)  # e.g. "A-0.6" or "SOR-86-1026".
     enabling_authority = models.CharField(max_length=255, null=True, blank=True)
@@ -161,11 +162,14 @@ class Law(models.Model):
 
     #### SHARED BETWEEN LANGUAGES
     type = models.CharField(max_length=255, default="act")
-    last_amended_date = models.DateField(null=True)
-    current_date = models.DateField(null=True)
-    in_force_start_date = models.DateField(null=True)
+    last_amended_date = models.DateField(null=True, blank=True)
+    current_date = models.DateField(null=True, blank=True)
+    in_force_start_date = models.DateField(null=True, blank=True)
 
     objects = LawManager()
+
+    def __str__(self):
+        return self.title
 
     @classmethod
     def reset(cls):

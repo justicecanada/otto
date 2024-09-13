@@ -83,20 +83,22 @@ def _get_other_lang_node(node_id):
     return _get_source_node(other_lang_node_id)
 
 
-def _get_law_url(law):
+def _get_law_url(law, request_lang):
     ref = law.ref_number.replace(" ", "-").replace("/", "-")
+    # Get user's language setting in Django
+    lang = "fra" if request_lang == "fr" else "eng"
     # Constitution has special case
-    if ref == "Const" and law.lang == "eng":
+    if ref == "Const" and lang == "eng":
         return "https://laws-lois.justice.gc.ca/eng/Const/Const_index.html"
-    if ref == "Const" and law.lang == "fra":
+    if ref == "Const" and lang == "fra":
         return "https://laws-lois.justice.gc.ca/fra/ConstRpt/Const_index.html"
-    if law.type == "act" and law.lang == "eng":
+    if law.type == "act" and lang == "eng":
         return f"https://laws-lois.justice.gc.ca/eng/acts/{ref}/"
-    if law.type == "act" and law.lang == "fra":
+    if law.type == "act" and lang == "fra":
         return f"https://laws-lois.justice.gc.ca/fra/lois/{ref}/"
-    if law.type == "regulation" and law.lang == "eng":
+    if law.type == "regulation" and lang == "eng":
         return f"https://laws-lois.justice.gc.ca/eng/regulations/{ref}/"
-    if law.type == "regulation" and law.lang == "fra":
+    if law.type == "regulation" and lang == "fra":
         return f"https://laws-lois.justice.gc.ca/fra/reglements/{ref}/"
 
 
@@ -110,8 +112,13 @@ def index(request):
 def source(request, source_id):
     source_id = urllib.parse.unquote_plus(source_id)
     source_node = _get_source_node(source_id)
+    # What language is the source_node?
+    lang = "eng" if "eng" in source_node["metadata"]["doc_id"] else "fra"
+    if lang == "eng":
+        law = Law.objects.filter(node_id_en=source_node["metadata"]["doc_id"]).first()
+    else:
+        law = Law.objects.filter(node_id_fr=source_node["metadata"]["doc_id"]).first()
     other_lang_node = _get_other_lang_node(source_id)
-    law = Law.objects.filter(node_id=source_node["metadata"]["doc_id"]).first()
     nodes = [source_node, other_lang_node]
     if other_lang_node is None:
         nodes = [source_node]
@@ -124,7 +131,7 @@ def source(request, source_id):
             if not node["metadata"]["chunk"].endswith("/1")
             else None
         )
-    law.url = _get_law_url(law)
+    law.url = _get_law_url(law, request.LANGUAGE_CODE)
     context = {
         "source_node": source_node,
         "other_lang_node": other_lang_node,
@@ -134,34 +141,6 @@ def source(request, source_id):
         return HttpResponse(_("Source not found."), status=404)
 
     return render(request, "laws/source_details.html", context=context)
-
-
-def advanced_search_form(request):
-    """
-    Returns the search form HTML for advanced search.
-    Advanced search requires some database queries to populate the form.
-    """
-    context = {}
-    context["documents"] = Law.objects.all().order_by("title")
-    for document in context["documents"]:
-        if ": " in document.title:
-            document.title = (
-                f'{document.title.split(": ")[0]} ({document.title.split("(")[-1]}'
-            )
-    context["act_count"] = Law.objects.filter(type="act").count()
-    context["reg_count"] = Law.objects.filter(type="regulation").count()
-    context["model_options"] = [
-        {"id": "gpt-4o", "name": _("GPT-4o (Global)")},
-        {"id": "gpt-4", "name": _("GPT-4 (Canada)")},
-        {"id": "gpt-35", "name": _("GPT-3.5 (Canada)")},
-    ]
-    # if settings.GROQ_API_KEY:
-    #     context["model_options"] += [
-    #         {"id": "llama3-70b-8192", "name": "Llama3 70B (Groq)"},
-    #         {"id": "llama3-8b-8192", "name": "Llama3 8B (Groq)"},
-    #     ]
-
-    return render(request, f"laws/advanced_search_form.html", context=context)
 
 
 @app_access_required(app_name)
@@ -446,15 +425,10 @@ def search(request):
     if detect_lang and not advanced_mode:
         # Detect the language of the query and search only documents in that lang
         lang = detect(query).replace("en", "eng").replace("fr", "fra")
-        if lang in ["eng", "fra"]:
-            if doc_id_list is None:
-                doc_id_list = [law.node_id for law in Law.objects.filter(lang=lang)]
-            else:
-                doc_id_list = [
-                    law.node_id
-                    for law in Law.objects.filter(lang=lang)
-                    if law.node_id in doc_id_list
-                ]
+        if lang == "eng":
+            doc_id_list = [law.node_id_en for law in Law.objects.all()]
+        elif lang == "fra":
+            doc_id_list = [law.node_id_fr for law in Law.objects.all()]
 
     if doc_id_list is not None:
         filters.append(

@@ -2,11 +2,40 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import widgets
+from autocomplete import HTMXAutoComplete, widgets
+from autocomplete.widgets import Autocomplete
 
 from chat.forms import CHAT_MODELS
 
 from .models import Law
+
+
+class ActsAutocomplete(HTMXAutoComplete):
+    """Autocomplete component to select Acts only (filter out regulations)"""
+
+    name = "enabling_acts"
+    multiselect = True
+    minimum_search_length = 0
+    model = Law
+
+    def get_items(self, search=None, values=None):
+        data = Law.objects.filter(type="act").order_by("title")
+        if search is not None:
+            items = [
+                {"label": str(x), "value": str(x.id)}
+                for x in data
+                if search == "" or str(search).upper() in f"{x}".upper()
+            ]
+            return items
+        if values is not None:
+            items = [
+                {"label": str(x), "value": str(x.id)}
+                for x in data
+                if str(x.id) in values
+            ]
+            return items
+
+        return []
 
 
 class LawSearchForm(forms.Form):
@@ -37,8 +66,6 @@ class LawSearchForm(forms.Form):
         widget=widgets.Autocomplete(
             name="acts",
             options={
-                "item_value": Law.id,
-                "item_label": Law.title_en,
                 "multiselect": True,
                 "minimum_search_length": 0,
                 "model": Law,
@@ -50,14 +77,11 @@ class LawSearchForm(forms.Form):
         queryset=Law.objects.all(),
         label=_("Select enabling act(s)"),
         required=False,
-        widget=widgets.Autocomplete(
-            name="enabling_acts",
-            options={
-                "item_value": Law.id,
-                "item_label": Law.title_en,
-                "multiselect": True,
-                "minimum_search_length": 0,
-                "model": Law,
+        widget=Autocomplete(
+            use_ac=ActsAutocomplete,
+            attrs={
+                "component_id": f"id_enabling_acts",
+                "id": f"id_enabling_acts__textinput",
             },
         ),
     )
