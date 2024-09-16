@@ -159,7 +159,9 @@ class OttoLLM:
         )
         return hybrid_retriever
 
-    def get_index(self, vector_store_table: str) -> VectorStoreIndex:
+    def get_index(
+        self, vector_store_table: str, hnsw: bool = False
+    ) -> VectorStoreIndex:
         vector_store = PGVectorStore.from_params(
             database=settings.DATABASES["vector_db"]["NAME"],
             host=settings.DATABASES["vector_db"]["HOST"],
@@ -171,6 +173,11 @@ class OttoLLM:
             hybrid_search=True,
             text_search_config="english",
             perform_setup=True,
+            hnsw_kwargs=(
+                {"hnsw_ef_construction": 300, "hnsw_m": 25, "hnsw_ef_search": 300}
+                if hnsw
+                else None
+            ),
         )
         idx = VectorStoreIndex.from_vector_store(
             vector_store=vector_store,

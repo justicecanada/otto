@@ -12,10 +12,14 @@ from django.utils.timezone import datetime
 
 import requests
 from django_extensions.management.utils import signalcommand
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from laws.models import Law, token_counter
+from otto.models import Cost
+from otto.utils.common import display_cad_cost
 
 
 def _price_tokens(token_counter):
@@ -664,11 +668,6 @@ class Command(BaseCommand):
             help="Write node markdown to source directories. Does not alter database.",
         )
         parser.add_argument(
-            "--download",
-            action="store_true",
-            help="Download the laws-lois-xml repo from github",
-        )
-        parser.add_argument(
             "--mock_embedding",
             action="store_true",
             help="Mock embedding the nodes (save time/cost for debugging)",
@@ -714,11 +713,8 @@ class Command(BaseCommand):
         max_workers = options.get("max_workers", 1)
         debug = options.get("debug", False)
         mock_embedding = options.get("mock_embedding", False)
-        laws_root = os.path.join(os.path.dirname(settings.BASE_DIR), "laws-lois-xml")
-        if options.get("download", True):
-            _download_repo(force_download)
-            laws_root = "/tmp/laws-lois-xml-main"
-        elif small:
+
+        if small:
             laws_root = os.path.join(
                 os.path.dirname(settings.BASE_DIR),
                 "django",
@@ -726,6 +722,9 @@ class Command(BaseCommand):
                 "laws",
                 "xml_sample",
             )
+        else:
+            _download_repo(force_download)
+            laws_root = "/tmp/laws-lois-xml-main"
         if full:
             law_ids = _get_all_eng_law_ids(laws_root)
         elif small:
@@ -822,9 +821,10 @@ class Command(BaseCommand):
             ]
             for i, future in enumerate(futures):
                 try:
-                    result = future.result()
+                    result, cost = future.result()
                     for k, v in result.items():
                         load_results[k].extend(v)
+                    total_cost += cost
                     # Handle the result
                 except Exception as e:
                     # Handle exceptions
@@ -863,7 +863,28 @@ class Command(BaseCommand):
         print(
             f"\nAdded: {added_count}; Updated: {updated_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}"
         )
-        print(f"Total time: {time.time() - start_time:.2f} seconds")
+        print(f"Total time to load XML files: {time.time() - start_time:.2f} seconds")
+        print(f"Total cost: {display_cad_cost(total_cost)}")
+
+        if full:
+            print("Creating HNSW index...")
+            start_time = time.time()
+            # Create the HNSW index
+            db = settings.DATABASES["vector_db"]
+            connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:5432/{db['NAME']}"
+            engine = create_engine(connection_string)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+            session.execute(
+                text(
+                    f"CREATE INDEX IF NOT EXISTS ON data_laws_lois__ USING hnsw (embedding vector_ip_ops) WITH (m = 25, ef_construction = 300)"
+                )
+            )
+            session.commit()
+            session.close()
+            print(
+                f"Total time to create HNSW index: {time.time() - start_time:.2f} seconds"
+            )
 
 
 def get_sha_256_hash(file_path):
@@ -903,7 +924,7 @@ def process_en_fr_paths(
     ):
         print(f"Duplicate EN/FR hashes found in database: {file_paths}")
         load_results["exists"].append(file_paths)
-        return load_results
+        return load_results, 0
 
     # Create nodes for the English and French XML files
     for k, file_path in enumerate(file_paths):
@@ -1009,7 +1030,7 @@ def process_en_fr_paths(
                     )
 
     if inner_loop_err:
-        return load_results
+        return load_results, 0
     # Nodes and document should be ready now! Let's add to our Django model
     # This will also handle the creation of LlamaIndex vector tables
     if not debug:
@@ -1037,6 +1058,10 @@ def process_en_fr_paths(
             )
             bind_contextvars(law_id=law.id)
             llm.create_costs()
+            cost = (
+                Cost.objects.filter(law=law).order_by("date_incurred").last().usd_cost
+            )
+            print(f"Cost: {display_cad_cost(cost)}")
 
         except Exception as e:
             print(f"*** Error processing file pair: {file_paths}\n {e}\n")
@@ -1044,4 +1069,5 @@ def process_en_fr_paths(
                 load_results["exists"].append(file_paths)
             else:
                 load_results["error"].append(file_paths)
-    return load_results
+            cost = 0
+    return load_results, cost

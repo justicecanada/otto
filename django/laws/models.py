@@ -88,7 +88,7 @@ class LawManager(models.Manager):
         if add_to_vector_store:
             if llm is None:
                 return
-            idx = llm.get_index("laws_lois__")
+            idx = llm.get_index("laws_lois__", hnsw=True)
             nodes = []
             if existing_law.exists():
                 # Remove the old content from the vector store
