@@ -18,6 +18,7 @@ rules==3.4
 django-cleanup==8.1.0
 django-azure-auth==2.0.0
 gevent==24.2.1
+django-data-fetcher==2.2
 
 # Logging ----------------------------------------------------------------------
 django-structlog[celery,commands]==8.1.0
