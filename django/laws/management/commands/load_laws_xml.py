@@ -866,26 +866,6 @@ class Command(BaseCommand):
         print(f"Total time to load XML files: {time.time() - start_time:.2f} seconds")
         print(f"Total cost: {display_cad_cost(total_cost)}")
 
-        if full:
-            print("Creating HNSW index...")
-            start_time = time.time()
-            # Create the HNSW index
-            db = settings.DATABASES["vector_db"]
-            connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:5432/{db['NAME']}"
-            engine = create_engine(connection_string)
-            Session = sessionmaker(bind=engine)
-            session = Session()
-            session.execute(
-                text(
-                    f"CREATE INDEX IF NOT EXISTS ON data_laws_lois__ USING hnsw (embedding vector_ip_ops) WITH (m = 25, ef_construction = 300)"
-                )
-            )
-            session.commit()
-            session.close()
-            print(
-                f"Total time to create HNSW index: {time.time() - start_time:.2f} seconds"
-            )
-
 
 def get_sha_256_hash(file_path):
     sha256_hash = hashlib.sha256()
