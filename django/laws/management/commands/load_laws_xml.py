@@ -22,16 +22,19 @@ def _price_tokens(token_counter):
     return 0.000178 * token_counter.total_embedding_token_count / 1000
 
 
-def _download_repo():
-    print("Downloading laws-lois-xml repo...")
+def _download_repo(force_download=False):
     repo_url = (
         "https://github.com/justicecanada/laws-lois-xml/archive/refs/heads/main.zip"
     )
 
     # Check if the repo was already downloaded
     if os.path.exists("/tmp/laws-lois-xml-main"):
-        print("Folder already exists, skipping download")
-        return
+        if force_download:
+            print("Deleting existing repo before re-downloading")
+            shutil.rmtree("/tmp/laws-lois-xml-main")
+        else:
+            print("Folder already exists, skipping download")
+            return
 
     # Path to save the downloaded zip file
     zip_file_path = "/tmp/laws-lois-xml.zip"
@@ -39,6 +42,7 @@ def _download_repo():
     extract_path = "/tmp"
 
     # Download the zip file
+    print("Downloading laws-lois-xml repo...")
     response = requests.get(repo_url)
     with open(zip_file_path, "wb") as file:
         file.write(response.content)
@@ -685,6 +689,11 @@ class Command(BaseCommand):
             default=1,
             help="Number of workers to use for parallel processing",
         )
+        parser.add_argument(
+            "--force_download",
+            action="store_true",
+            help="Force re-download of the laws-lois-xml repo, even if it exists",
+        )
 
     @signalcommand
     def handle(self, *args, **options):
@@ -701,12 +710,13 @@ class Command(BaseCommand):
         small = options.get("small", False)
         const_only = options.get("const_only", False)
         force_update = options.get("force_update", False)
+        force_download = options.get("force_download", False)
         max_workers = options.get("max_workers", 1)
         debug = options.get("debug", False)
         mock_embedding = options.get("mock_embedding", False)
         laws_root = os.path.join(os.path.dirname(settings.BASE_DIR), "laws-lois-xml")
         if options.get("download", True):
-            _download_repo()
+            _download_repo(force_download)
             laws_root = "/tmp/laws-lois-xml-main"
         elif small:
             laws_root = os.path.join(
