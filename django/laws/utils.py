@@ -150,11 +150,11 @@ async def htmx_sse_response(response_gen, query, llm):
         full_message = _("An error occurred:") + f"\n```\n{error}\n```"
         message_html = llm_response_to_html(full_message)
         message_html_lines = message_html.split("\n")
-    finally:
-        await sync_to_async(llm.create_costs)()
-        await sync_to_async(cache.delete)(f"sources_{query}")
 
-        yield (
-            f"data: <div hx-swap-oob='true' id='answer-sse'>"
-            f"<div>{sse_joiner.join(message_html_lines)}</div></div>\n\n"
-        )
+    await sync_to_async(llm.create_costs)()
+    await sync_to_async(cache.delete)(f"sources_{query}")
+
+    yield (
+        f"data: <div hx-swap-oob='true' id='answer-sse'>"
+        f"<div>{sse_joiner.join(message_html_lines)}</div></div>\n\n"
+    )
