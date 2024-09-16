@@ -1,28 +1,30 @@
-import asyncio
 import urllib.parse
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import connections
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 
 import markdown
-import tiktoken
-from asgiref.sync import sync_to_async
 from llama_index.core import ChatPromptTemplate
 from llama_index.core.llms import ChatMessage, MessageRole
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
-from chat.utils import llm_response_to_html
 from otto.utils.decorators import app_access_required
 
 from .forms import LawSearchForm
 from .models import Law
 from .prompts import qa_prompt_instruction_tmpl, system_prompt
+from .utils import (
+    get_law_url,
+    get_other_lang_node,
+    get_source_node,
+    htmx_sse_response,
+    num_tokens,
+)
 
 TEXT_QA_SYSTEM_PROMPT = ChatMessage(
     content=system_prompt,
@@ -44,67 +46,6 @@ md = markdown.Markdown(extensions=["fenced_code", "nl2br", "tables"], tab_length
 app_name = "laws"
 
 
-def _num_tokens(string: str, model_name: str) -> int:
-    """Returns the number of tokens in a text string."""
-    encoding = tiktoken.encoding_for_model(model_name)
-    num_tokens = len(encoding.encode(string))
-    return num_tokens
-
-
-async def sync_generator_to_async(generator):
-    for value in generator:
-        yield value
-        await asyncio.sleep(0)  # This will allow other async tasks to run
-
-
-def _get_source_node(node_id):
-    # Get the source node from the database (settings.DATABASES["vector_db"])
-    # It is in a table data_laws_lois__ and column is "node_id"
-    # Return the "text" and "metadata_" columns
-    # "metadata_" column is a JSON field, so you can access it like a dictionary
-    with connections["vector_db"].cursor() as cursor:
-        cursor.execute(
-            f"SELECT text, metadata_ FROM data_laws_lois__ WHERE node_id = '{node_id}'"
-        )
-        row = cursor.fetchone()
-        if row:
-            return {
-                "text": row[0],
-                "metadata": row[1],
-            }
-    return None
-
-
-def _get_other_lang_node(node_id):
-    # Replace "eng" with "fra" and vice versa
-    lang = "eng" if "eng" in node_id else "fra"
-    other_lang_node_id = (
-        node_id.replace("eng", "fra")
-        if lang == "eng"
-        else node_id.replace("fra", "eng")
-    )
-    return _get_source_node(other_lang_node_id)
-
-
-def _get_law_url(law, request_lang):
-    ref = law.ref_number.replace(" ", "-").replace("/", "-")
-    # Get user's language setting in Django
-    lang = "fra" if request_lang == "fr" else "eng"
-    # Constitution has special case
-    if ref == "Const" and lang == "eng":
-        return "https://laws-lois.justice.gc.ca/eng/Const/Const_index.html"
-    if ref == "Const" and lang == "fra":
-        return "https://laws-lois.justice.gc.ca/fra/ConstRpt/Const_index.html"
-    if law.type == "act" and lang == "eng":
-        return f"https://laws-lois.justice.gc.ca/eng/acts/{ref}/"
-    if law.type == "act" and lang == "fra":
-        return f"https://laws-lois.justice.gc.ca/fra/lois/{ref}/"
-    if law.type == "regulation" and lang == "eng":
-        return f"https://laws-lois.justice.gc.ca/eng/regulations/{ref}/"
-    if law.type == "regulation" and lang == "fra":
-        return f"https://laws-lois.justice.gc.ca/fra/reglements/{ref}/"
-
-
 @app_access_required(app_name)
 def index(request):
     form = LawSearchForm()
@@ -114,14 +55,14 @@ def index(request):
 
 def source(request, source_id):
     source_id = urllib.parse.unquote_plus(source_id)
-    source_node = _get_source_node(source_id)
+    source_node = get_source_node(source_id)
     # What language is the source_node?
     lang = "eng" if "eng" in source_node["metadata"]["doc_id"] else "fra"
     if lang == "eng":
         law = Law.objects.filter(node_id_en=source_node["metadata"]["doc_id"]).first()
     else:
         law = Law.objects.filter(node_id_fr=source_node["metadata"]["doc_id"]).first()
-    other_lang_node = _get_other_lang_node(source_id)
+    other_lang_node = get_other_lang_node(source_id)
     nodes = [source_node, other_lang_node]
     if other_lang_node is None:
         nodes = [source_node]
@@ -134,7 +75,7 @@ def source(request, source_id):
             if not node["metadata"]["chunk"].endswith("/1")
             else None
         )
-    law.url = _get_law_url(law, request.LANGUAGE_CODE)
+    law.url = get_law_url(law, request.LANGUAGE_CODE)
     context = {
         "source_node": source_node,
         "other_lang_node": other_lang_node,
@@ -198,7 +139,7 @@ def answer(request):
                         None,
                     )
                     if parent_index:
-                        parent_tokens = _num_tokens(
+                        parent_tokens = num_tokens(
                             sources[parent_index].node.get_content(
                                 metadata_mode=MetadataMode.LLM
                             ),
@@ -206,7 +147,7 @@ def answer(request):
                         )
                         if total_tokens + parent_tokens <= max_tokens:
                             source = sources.pop(parent_index)
-            source_tokens = _num_tokens(
+            source_tokens = num_tokens(
                 source.node.get_content(metadata_mode=MetadataMode.LLM),
                 "gpt-4-turbo-preview",
             )
@@ -238,102 +179,8 @@ def answer(request):
         )
         generator = streaming_response.response_gen
 
-    def process_bold_blocks(text, is_in_bold_block, bold_block):
-        trimmed_text = text.strip()
-        if trimmed_text.startswith("**"):
-            if is_in_bold_block:
-                # End of bold block
-                bold_block += text
-                is_in_bold_block = False
-            else:
-                # Start of a new bold block
-                is_in_bold_block = True
-                bold_block = text
-        else:
-            if is_in_bold_block:
-                bold_block += text
-            else:
-                bold_block = None
-
-        return is_in_bold_block, bold_block
-
-    def format_html_response(full_message, sse_joiner):
-        # Prevent code-format output
-        # NOTE: the first replace is necessary to remove the word "markdown" that
-        # sometimes appears after triple backticks
-        tmp_full_message = full_message.replace("```markdown", "").replace("`", "")
-
-        # Parse Markdown of full_message to HTML
-        message_html = llm_response_to_html(tmp_full_message)
-        message_html_lines = message_html.split("\n")
-        if len(full_message) > 1:
-            formatted_response = (
-                f"data: <div>{sse_joiner.join(message_html_lines)}</div>\n\n"
-            )
-
-        else:
-            formatted_response = None
-
-        return (message_html_lines, formatted_response)
-
-    def htmx_sse_response(response_gen, llm):
-        # time.sleep(60)
-        sse_joiner = "\ndata: "
-        full_message = ""
-        message_html_lines = []
-        try:
-            is_in_bold_block = False
-            bold_block = ""
-
-            for text in response_gen:
-                is_in_bold_block, bold_block_output = process_bold_blocks(
-                    text, is_in_bold_block, bold_block
-                )
-
-                if bold_block_output is not None:
-                    if is_in_bold_block:
-                        bold_block = bold_block_output
-                    else:
-                        full_message += bold_block_output
-                        bold_block = ""
-
-                elif not is_in_bold_block:
-                    full_message += text
-
-                message_html_lines, formatted_response = format_html_response(
-                    full_message, sse_joiner
-                )
-                if formatted_response is not None:
-                    yield (formatted_response)
-
-            # After the loop, handle any remaining bold block
-            if is_in_bold_block and bold_block:
-                if not bold_block.strip().endswith("**"):
-                    bold_block += "**"
-                if bold_block.strip() == "**":
-                    bold_block = ""
-                full_message += bold_block
-                message_html_lines, formatted_response = format_html_response(
-                    full_message, sse_joiner
-                )
-                if formatted_response is not None:
-                    yield (formatted_response)
-        except Exception as e:
-            error = str(e)
-            full_message = _("An error occurred:") + f"\n```\n{error}\n```"
-            message_html = llm_response_to_html(full_message)
-            message_html_lines = message_html.split("\n")
-
-        sync_to_async(llm.create_costs)()
-        sync_to_async(cache.delete)(f"sources_{query}")
-
-        yield (
-            f"data: <div hx-swap-oob='true' id='answer-sse'>"
-            f"<div>{sse_joiner.join(message_html_lines)}</div></div>\n\n"
-        )
-
     return StreamingHttpResponse(
-        streaming_content=sync_generator_to_async(htmx_sse_response(generator, llm)),
+        streaming_content=htmx_sse_response(generator, query, llm),
         content_type="text/event-stream",
     )
 
@@ -347,7 +194,6 @@ def search(request):
     from langdetect import detect
     from llama_index.core.retrievers import QueryFusionRetriever
     from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
-    from llama_index.llms.azure_openai import AzureOpenAI
 
     llm = OttoLLM()
 
@@ -409,7 +255,7 @@ def search(request):
             enabling_acts = Law.objects.filter(pk__in=enabling_acts)
             selected_laws = Law.objects.filter(
                 enabling_authority_en__in=[
-                    enabling_acts.ref_number_en for enabling_acts in enabling_acts
+                    enabling_acts.refnumber_en for enabling_acts in enabling_acts
                 ]
             )
     if detect_lang:

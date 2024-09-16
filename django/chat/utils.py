@@ -212,8 +212,6 @@ async def htmx_stream(
 
         yield sse_string(full_message, format, dots=False, remove_stop=True)
 
-        await sync_to_async(llm.create_costs)()
-
         message = await sync_to_async(Message.objects.get)(id=message_id)
         message.text = full_message
         await sync_to_async(message.save)()
@@ -243,14 +241,16 @@ async def htmx_stream(
         message.text = llm_response_to_html(full_message)
         context = {"message": message, "swap_oob": True}
 
-    # Render the message template, wrapped in SSE format
-    yield sse_string(
-        await sync_to_async(render_to_string)(
-            "chat/components/chat_message.html", context
-        ),
-        format=False,
-        remove_stop=True,
-    )
+    finally:
+        await sync_to_async(llm.create_costs)()
+        # Render the message template, wrapped in SSE format
+        yield sse_string(
+            await sync_to_async(render_to_string)(
+                "chat/components/chat_message.html", context
+            ),
+            format=False,
+            remove_stop=True,
+        )
 
 
 def title_chat(chat_id, llm, force_title=True):
