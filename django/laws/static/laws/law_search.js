@@ -22,15 +22,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const clearButton = document.getElementById("clear-button");
   const searchButton = document.getElementById("basic-search-button");
 
-  textarea.addEventListener("keypress", e => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (textarea.value.trim() !== "") {
-        document.getElementById("basic-search-button").click();
-      }
-    }
-  });
-
   textarea.addEventListener("input", function () {
     if (textarea.value) {
       clearButton.style.display = "inline";
@@ -43,8 +34,18 @@ document.addEventListener("DOMContentLoaded", function () {
       clearButton.style.display = "none";
       searchButton.disabled = true;
     }
+  });
 
-
+  // When "Enter" is pressed in textarea (except when Shift is held), submit the form
+  // then clear the textarea
+  textarea.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      searchButton.click();
+      textarea.value = "";
+      clearButton.style.display = "none";
+      searchButton.disabled = true;
+    }
   });
 
   clearButton.addEventListener("click", function () {
