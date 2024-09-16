@@ -42,7 +42,7 @@ def get_other_lang_node(node_id):
         if lang == "eng"
         else node_id.replace("fra", "eng")
     )
-    return _get_source_node(other_lang_node_id)
+    return get_source_node(other_lang_node_id)
 
 
 def get_law_url(law, request_lang):
@@ -152,7 +152,6 @@ async def htmx_sse_response(response_gen, query, llm):
         message_html_lines = message_html.split("\n")
 
     await sync_to_async(llm.create_costs)()
-    await sync_to_async(cache.delete)(f"sources_{query}")
 
     yield (
         f"data: <div hx-swap-oob='true' id='answer-sse'>"

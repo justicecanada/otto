@@ -17,8 +17,12 @@
     </div>
   </div>
 {% endif %}
-
-{% if not sources|length %}
+{% if error %}
+  <div class="alert alert-danger">
+    <p>{% trans "Error getting search results:" %}</p>
+    <p>{{ error }}</p>
+  </div>
+{% elif not sources|length %}
   <div class="alert alert-warning">
     {% trans "No sources found. Please modify the search options or use basic search." %}
   </div>
