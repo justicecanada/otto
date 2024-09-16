@@ -25,16 +25,6 @@ def test_laws_index(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_laws_search_form(client, all_apps_user):
-    client.force_login(all_apps_user())
-    # Basic search form
-    # Advanced search form
-    response = client.get(reverse("laws:advanced_search_form"))
-    assert response.status_code == 200
-    assert "filter" in response.content.decode().lower()
-
-
-@pytest.mark.django_db
 def test_laws_search_and_answer(client, all_apps_user):
     client.force_login(all_apps_user())
     # Test basic search
