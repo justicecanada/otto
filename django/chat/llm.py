@@ -110,18 +110,23 @@ class OttoLLM:
         """
         Create Otto Cost objects for the given user and feature.
         """
+        usd_cost = 0
         if self.input_token_count > 0:
-            Cost.objects.new(
+            c1 = Cost.objects.new(
                 cost_type=f"{self.deployment}-in", count=self.input_token_count
             )
+            usd_cost += c1.usd_cost
         if self.output_token_count > 0:
-            Cost.objects.new(
+            c2 = Cost.objects.new(
                 cost_type=f"{self.deployment}-out", count=self.output_token_count
             )
+            usd_cost += c2.usd_cost
         if self.embed_token_count > 0 and not self.mock_embedding:
-            Cost.objects.new(cost_type="embedding", count=self.embed_token_count)
+            c3 = Cost.objects.new(cost_type="embedding", count=self.embed_token_count)
+            usd_cost += c3.usd_cost
 
         self._token_counter.reset_counts()
+        return usd_cost
 
     # RAG-related getters for retriever (get sources only) and response synthesizer
     def get_retriever(

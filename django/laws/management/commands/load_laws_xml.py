@@ -1038,10 +1038,10 @@ def process_en_fr_paths(
             )
             bind_contextvars(law_id=law.id)
             llm.create_costs()
-            cost = (
-                Cost.objects.filter(law=law).order_by("date_incurred").last().usd_cost
-            )
-            print(f"Cost: {display_cad_cost(cost)}")
+            cost_obj = Cost.objects.filter(law=law).order_by("date_incurred")
+            if cost_obj.exists():
+                cost = cost_obj.last().usd_cost
+                print(f"Cost: {display_cad_cost(cost)}")
 
         except Exception as e:
             print(f"*** Error processing file pair: {file_paths}\n {e}\n")

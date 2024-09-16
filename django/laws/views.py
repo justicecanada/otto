@@ -210,6 +210,10 @@ def search(request):
         ]
 
         query = request.POST.get("query")
+        # Trim query to 10000 characters
+        query_too_long = len(query) > 10000
+        if query_too_long:
+            query = query[:10000] + "..."
         pg_idx = llm.get_index("laws_lois__", hnsw=True)
 
         advanced_mode = request.POST.get("advanced") == "true"

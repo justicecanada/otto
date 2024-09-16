@@ -10,7 +10,7 @@ echo "Loading corporate library..."
 python manage.py load_corporate_library --force || { echo "Error: Load corporate library failed"; exit 1; }
 
 echo "Loading laws XML..."
-python manage.py load_laws_xml --download --reset --small || { echo "Error: Load laws XML failed"; exit 1; }
+python manage.py load_laws_xml --reset --small || { echo "Error: Load laws XML failed"; exit 1; }
 
 echo "Cleaning static files..."
 if [ -d "staticfiles" ]; then

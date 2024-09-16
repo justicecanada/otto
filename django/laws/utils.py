@@ -7,6 +7,7 @@ import tiktoken
 from asgiref.sync import sync_to_async
 
 from chat.utils import llm_response_to_html
+from otto.utils.common import display_cad_cost
 
 
 def num_tokens(string: str, model_name: str) -> int:
@@ -132,6 +133,7 @@ async def htmx_sse_response(response_gen, query, llm):
             )
             if formatted_response is not None:
                 yield formatted_response
+            await asyncio.sleep(0.01)
 
         # After the loop, handle any remaining bold block
         if is_in_bold_block and bold_block:
@@ -151,9 +153,11 @@ async def htmx_sse_response(response_gen, query, llm):
         message_html = llm_response_to_html(full_message)
         message_html_lines = message_html.split("\n")
 
-    await sync_to_async(llm.create_costs)()
+    cost = await sync_to_async(llm.create_costs)()
+    display_cost = await sync_to_async(display_cad_cost)(cost)
 
     yield (
         f"data: <div hx-swap-oob='true' id='answer-sse'>"
-        f"<div>{sse_joiner.join(message_html_lines)}</div></div>\n\n"
+        f"<div>{sse_joiner.join(message_html_lines)}</div>"
+        f"<div class='mb-2 text-muted' style='font-size:0.875rem !important;'>{display_cost}</div></div>\n\n"
     )
