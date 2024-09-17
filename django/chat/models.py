@@ -218,16 +218,6 @@ class ChatOptions(models.Model):
             logger.error("User must be set to set user default.")
             raise ValueError("User must be set to set user default")
 
-    def save(self, *args, **kwargs):
-        self.clean()
-        new = self.pk is None
-        if not new:
-            orig = ChatOptions.objects.get(pk=self.pk)
-            if orig.qa_library != self.qa_library:
-                logger.info("Chat library selection changed. Resetting data_sources.")
-                self.qa_data_sources.set(self.qa_library.data_sources.all())
-        super().save(*args, **kwargs)
-
 
 class Message(models.Model):
     """

@@ -283,11 +283,18 @@ class ChatOptionsForm(ModelForm):
         self.fields["qa_documents"].required = False
 
     def save(self, commit=True):
+        # Get the PK, if any
+        pk = self.instance.pk
+        if pk:
+            original_library_id = ChatOptions.objects.get(pk=pk).qa_library_id
         instance = super(ChatOptionsForm, self).save(commit=False)
-        # Remove any data sources that aren't in the library
         library_id = instance.qa_library_id
         if not library_id:
             library_id = Library.objects.get_default_library().id
+        if pk and original_library_id != library_id:
+            instance.qa_scope = "all"
+            instance.qa_data_sources.clear()
+            instance.qa_documents.clear()
         if commit:
             instance.save()
         return instance
