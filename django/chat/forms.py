@@ -171,7 +171,7 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_SCOPE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave(); showHideQaSourceForms();",
+                    "onchange": "showHideQaSourceForms(); triggerOptionSave();",
                 },
             ),
             # QA advanced options are shown in a different form so they can be hidden
@@ -248,7 +248,7 @@ class ChatOptionsForm(ModelForm):
             widget=forms.Select(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave(); updateLibraryModalButton();",
+                    "onchange": "triggerOptionSave(); updateLibraryModalButton(); resetQaAutocompletes();",
                 }
             ),
         )
