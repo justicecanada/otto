@@ -25,6 +25,8 @@ function showHideQaSourceForms() {
   }
 }
 
+// TODO: abstract this into a JS helper class for Autocomplete widgets
+// and contribute upstream to django-htmx-autocomplete repo
 function updateAutocompleteLibraryid(element_id) {
   // Add hx-vals to the autocomplete elements
   const input_element = document.getElementById(element_id);
@@ -40,7 +42,7 @@ function updateAutocompleteLibraryid(element_id) {
 }
 
 // After toggling elements in the autocomplete widget, the input element is swapped out.
-// Monitor the related input elements for hx-swaps and then run this function again
+// Monitor the related input elements for hx-swaps and then update the library ID again.
 document.addEventListener("htmx:afterSettle", function (event) {
   if (event.target.id == "id_qa_data_sources" || event.target.id == "id_qa_documents") {
     updateAutocompleteLibraryid('id_qa_data_sources__textinput');

@@ -578,7 +578,7 @@ def chat_options(request, chat_id, action=None):
             source_options.pop(field)
         # Update the preset options with the dictionary
         fk_fields = ["qa_library"]
-        m2m_fields = ["qa_data_sources"]
+        m2m_fields = ["qa_data_sources", "qa_documents"]
         # Remove None values
         source_options = {k: v for k, v in source_options.items()}
         for key, value in source_options.items():
