@@ -13,7 +13,11 @@ updateLibrarianModalOnClose = (library_id) => {
   const chatId = modalEl.getAttribute('data-chat-id');
   modalEl.removeEventListener('hidden.bs.modal', librarianModalCloseHandler);
   librarianModalCloseHandler = event => {
-    htmx.ajax('GET', `/chat/id/${chatId}/options/qa_accordion/${library_id}`, {swap: 'none'});
+    const qa_library_select = document.getElementById("id_qa_library");
+    if (qa_library_select.value !== library_id) {
+      qa_library_select.value = library_id;
+      qa_library_select.dispatchEvent(new Event('change'));
+    }
   };
   modalEl.addEventListener('hidden.bs.modal', librarianModalCloseHandler);
 };
