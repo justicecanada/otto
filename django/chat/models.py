@@ -103,8 +103,6 @@ class ChatOptionsManager(models.Manager):
             if mode:
                 new_options.mode = mode
             new_options.save()
-            if default_library:
-                new_options.qa_data_sources.set(default_library.data_sources.all())
 
         return new_options
 

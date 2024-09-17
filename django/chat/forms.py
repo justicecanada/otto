@@ -297,6 +297,8 @@ class ChatOptionsForm(ModelForm):
             instance.qa_documents.clear()
         if commit:
             instance.save()
+        instance.qa_data_sources.set(self.cleaned_data["qa_data_sources"])
+        instance.qa_documents.set(self.cleaned_data["qa_documents"])
         return instance
 
 

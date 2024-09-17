@@ -34,9 +34,6 @@
     }
   }
 
-  showHideQaSourceForms();
-  updateLibraryModalButton();
-
   function updateAutocompleteLibraryid(element_id) {
     // Add hx-vals to the autocomplete elements
     const input_element = document.getElementById(element_id);
@@ -54,14 +51,16 @@
   // After toggling elements in the autocomplete widget, the input element is swapped out.
   // Monitor the related input elements for hx-swaps and then run this function again
   document.addEventListener("htmx:afterSettle", function(event) {
-    // Depending on whether an item is added or removed, the swapped element may be different
-    // But the ID always includes the form element ID
-    if (event.target.id.includes("id_qa_data_sources") || event.target.id.includes("id_qa_documents")) {
+    if (event.target.id == "id_qa_data_sources" || event.target.id == "id_qa_documents") {
       updateAutocompleteLibraryid('id_qa_data_sources__textinput');
       updateAutocompleteLibraryid('id_qa_documents__textinput');
+      // Unlike the other widgets, the autocomplete doesn't have a change event to trigger
+      // the ChatOption form save, but we can trigger it now
+      triggerOptionSave();
     }
   });
-
+  showHideQaSourceForms();
+  updateLibraryModalButton();
   updateAutocompleteLibraryid('id_qa_data_sources__textinput');
   updateAutocompleteLibraryid('id_qa_documents__textinput');
 </script>
