@@ -726,29 +726,6 @@ def rename_chat(request, chat_id, current_chat=None):
     )
 
 
-@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def get_qa_accordion(request, chat_id, library_id):
-    chat = Chat.objects.get(id=chat_id)
-    if chat.options.qa_library_id != library_id:
-        if chat.options.qa_library_id:
-            chat.options.qa_library_id = library_id
-        else:
-            # If chat.options.qa_library_id is None, it means that the selected library
-            # was deleted, and there is no Library corresponding to library_id
-            # Thus, revert back to default (Corporate) library
-            chat.options.qa_library_id = Library.objects.get_default_library().id
-        chat.options.save()
-    return render(
-        request,
-        "chat/components/options_4_qa.html",
-        {
-            "options_form": ChatOptionsForm(instance=chat.options, user=request.user),
-            "swap": True,
-            "options_section_id": "qa",
-        },
-    )
-
-
 # AC-16 & AC-16(2): Allows for the modification of security labels associated with chat sessions
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def set_security_label(request, chat_id, security_label_id):

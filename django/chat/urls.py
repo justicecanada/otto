@@ -68,9 +68,4 @@ urlpatterns = [
         views.chat_list_item,
         name="chat_list_item",
     ),
-    path(
-        "id/<str:chat_id>/options/qa_accordion/<int:library_id>",
-        views.get_qa_accordion,
-        name="qa_accordion",
-    ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -9,12 +9,12 @@
   {# Data sources autocompletes, selectively visible #}
   <div id="qa_data_sources_autocomplete"
        class="mt-2 small {% if options_form.qa_scope != 'data_sources' %}d-none{% endif %}">
-    <div class="visually-hidden">{{ options_form.qa_data_sources.label_tag }}</div>
+    <div style="font-style:italic;">{{ options_form.qa_data_sources.label_tag }}</div>
     {{ options_form.qa_data_sources }}
   </div>
   <div id="qa_documents_autocomplete"
        class="mt-2 small {% if options_form.qa_scope != 'documents' %}d-none{% endif %}">
-    <div class="visually-hidden">{{ options_form.qa_documents.label_tag }}</div>
+    <div style="font-style:italic;">{{ options_form.qa_documents.label_tag }}</div>
     {{ options_form.qa_documents }}
   </div>
 </div>
