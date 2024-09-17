@@ -109,6 +109,13 @@ class ChatOptionsManager(models.Manager):
         return new_options
 
 
+QA_SCOPE_CHOICES = [
+    ("all", _("Entire library")),
+    ("data_sources", _("Selected data sources")),
+    ("documents", _("Selected documents")),
+]
+
+
 class ChatOptions(models.Model):
     """
     Options for a chat, e.g. the mode, custom prompts, etc.
@@ -154,8 +161,12 @@ class ChatOptions(models.Model):
         null=True,
         related_name="qa_options",
     )
+    qa_scope = models.CharField(max_length=255, default="all", choices=QA_SCOPE_CHOICES)
     qa_data_sources = models.ManyToManyField(
         "librarian.DataSource", related_name="qa_options"
+    )
+    qa_documents = models.ManyToManyField(
+        "librarian.Document", related_name="qa_options"
     )
     qa_topk = models.IntegerField(default=5)
     qa_system_prompt = models.TextField(blank=True)
@@ -351,9 +362,7 @@ class ChatFile(models.Model):
         return f"File {self.id}: {self.filename}"
 
     def extract_text(self, fast=True):
-        # TODO: Extracting text from file may incur Azure Document AI costs.
-        # Need to refactor extract_text to create Cost object with correct user and mode.
-        # (Presently, this is only used in summarize mode, and user can be inferred...)
+
         from librarian.utils.process_engine import (
             extract_markdown,
             get_process_engine_from_type,

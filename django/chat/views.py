@@ -15,7 +15,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.forms import ChatOptionsForm, ChatRenameForm, DataSourcesForm
+from chat.forms import ChatOptionsForm, ChatRenameForm
 from chat.llm import OttoLLM
 from chat.metrics.activity_metrics import (
     chat_new_session_started_total,
@@ -722,19 +722,6 @@ def rename_chat(request, chat_id, current_chat=None):
         request,
         "chat/components/chat_list_item_title_edit.html",
         {"form": chat_rename_form, "chat": chat},
-    )
-
-
-def get_data_sources(request, prefix="qa"):
-    library_id = request.POST.get("qa_library", None)
-    if not library_id:
-        return HttpResponse(status=500)
-    # Assuming DataSource model has a ForeignKey to Library model
-    data_sources_form = DataSourcesForm(library_id=library_id, prefix=prefix)
-    return render(
-        request,
-        "chat/components/data_sources_options.html",
-        {"options_form": data_sources_form},
     )
 
 
