@@ -789,6 +789,44 @@ def test_qa_response(client, all_apps_user):
 
 
 @pytest.mark.django_db
+def test_qa_filters(client, all_apps_user):
+    # Create an empty library
+    empty_library = Library.objects.create(name="Test Library")
+    # Create a chat by hitting the new chat route in QA mode
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("chat:qa"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+    chat_options = chat.options
+    chat_options.qa_library = empty_library
+    chat_options.save()
+    # Create a message asking a question by hitting the chat_message route
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "What is the capital of Canada?"},
+    )
+    assert response.status_code == 200
+    # Create a response by hitting the chat_response route
+    response = client.get(
+        reverse("chat:chat_response", args=[Message.objects.last().id])
+    )
+    assert response.status_code == 200
+    # Change the chat_options qa_scope to "documents" and "data_sources" and try each
+    chat_options.qa_scope = "documents"
+    chat_options.save()
+    response = client.get(
+        reverse("chat:chat_response", args=[Message.objects.last().id])
+    )
+    assert response.status_code == 200
+    chat_options.qa_scope = "data_sources"
+    chat_options.save()
+    response = client.get(
+        reverse("chat:chat_response", args=[Message.objects.last().id])
+    )
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
 def test_positive_thumbs_feedback(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
