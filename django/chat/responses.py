@@ -314,12 +314,16 @@ def qa_response(chat, response_message, eval=False):
     llm = OttoLLM(model, 0.1)
 
     # Apply filters if we are in qa mode and specific data sources are selected
-    data_sources = chat.options.qa_data_sources.all()
-    max_data_sources = chat.options.qa_library.data_sources.count()
-    print(f"Data sources: {data_sources}, max: {max_data_sources}")
-    if not Document.objects.filter(data_source__in=data_sources).exists():
+    qa_scope = chat.options.qa_scope
+    if qa_scope == "data_sources":
+        data_sources = chat.options.qa_data_sources.all()
+        filter_documents = Document.objects.filter(data_source__in=data_sources)
+    elif qa_scope == "documents":
+        filter_documents = chat.options.qa_documents.all()
+    if qa_scope != "all" and not filter_documents.exists():
         response_str = _(
-            "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
+            "Sorry, I couldn't find any information about that. "
+            "Try selecting more data sources or documents, or try a different library."
         )
         if eval:
             return response_str, []
@@ -346,11 +350,11 @@ def qa_response(chat, response_message, eval=False):
             ),
         ]
     )
-    if len(data_sources) and len(data_sources) != max_data_sources:
+    if qa_scope != "all":
         filters.filters.append(
             MetadataFilter(
-                key="data_source_uuid",
-                value=[data_source.uuid_hex for data_source in data_sources],
+                key="doc_id",
+                value=[document.uuid_hex for document in filter_documents],
                 operator="in",
             )
         )
