@@ -94,9 +94,10 @@ class Library(models.Model):
     order = models.IntegerField(default=0)
     is_public = models.BooleanField(default=False)
     is_default_library = models.BooleanField(default=False)
+    is_personal_library = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ["-is_public", "order", "name"]
+        ordering = ["-is_personal_library", "-is_public", "order", "name"]
         verbose_name_plural = "Libraries"
 
     def clean(self):

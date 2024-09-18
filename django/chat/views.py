@@ -293,6 +293,10 @@ def chat(request, chat_id):
         chat.save()
     mode = chat.options.mode
 
+    # Ensure user has a personal library
+    if not request.user.personal_library:
+        request.user.create_personal_library()
+
     # Get chat messages ready
     messages = Message.objects.filter(chat=chat).order_by("id")
     for message in messages:

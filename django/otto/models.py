@@ -86,6 +86,37 @@ class User(AbstractBaseUser, PermissionsMixin):
     def make_otto_admin(self):
         self.groups.add(Group.objects.get(name="Otto admin"))
 
+    # When user is deleted, their personal library should be also
+    def delete(self, *args, **kwargs):
+        from librarian.models import Library
+
+        Library.objects.filter(created_by=self, is_personal_library=True).delete()
+        super().delete(*args, **kwargs)
+
+    @property
+    def personal_library(self):
+        from librarian.models import Library
+
+        return Library.objects.filter(created_by=self, is_personal_library=True).first()
+
+    def create_personal_library(self):
+        from librarian.models import Library, LibraryUserRole
+
+        new_personal_library = Library.objects.create(
+            name_en=self.full_name,
+            name_fr=self.full_name,
+            created_by=self,
+            is_personal_library=True,
+            description_en=f"Personal library for {self.upn}. Files uploaded to chats will be saved here.",
+            description_fr=f"Bibliothèque personnels pour {self.upn}. Les fichiers téléchargés dans les chats seront enregistrés ici.",
+        )
+        LibraryUserRole.objects.create(
+            user=self,
+            library=new_personal_library,
+            role="admin",
+        )
+        return new_personal_library
+
 
 class UserOptions(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
