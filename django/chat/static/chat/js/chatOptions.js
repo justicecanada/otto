@@ -10,6 +10,7 @@ function updateLibraryModalButton() {
 }
 
 function showHideQaSourceForms() {
+  console.log("showHideQaSourceForms");
   const scope = document.getElementById('id_qa_scope').value;
   const dataSources = document.getElementById('qa_data_sources_autocomplete');
   const documents = document.getElementById('qa_documents_autocomplete');

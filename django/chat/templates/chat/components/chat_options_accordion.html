@@ -8,6 +8,7 @@
   if ("{{ preset_loaded }}" === "true") {
     let mode = "{{ options_form.mode.value }}";
     handleModeChange(mode);
+    setTimeout(showHideQaSourceForms, 100);
   }
 
   showHideQaSourceForms();
