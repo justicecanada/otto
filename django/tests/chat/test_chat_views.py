@@ -250,7 +250,6 @@ def test_chat_routes(client, all_apps_user):
     new_translate = reverse("chat:translate")
     new_summarize = reverse("chat:summarize")
     new_qa = reverse("chat:qa")
-    new_document_qa = reverse("chat:document_qa")
     new_chat = reverse("chat:new_chat")
     Chat.objects.all().delete()
     # Check that the routes are accessible. Each should create a new chat
@@ -262,8 +261,6 @@ def test_chat_routes(client, all_apps_user):
     response = client.get(new_summarize)
     assert response.status_code == 302
     response = client.get(new_qa)
-    assert response.status_code == 302
-    response = client.get(new_document_qa)
     assert response.status_code == 302
     response = client.get(new_chat)
     assert response.status_code == 302
@@ -325,7 +322,7 @@ def test_init_upload(client, all_apps_user):
     assert response.status_code == 200
 
 
-# Test done_upload view with modes "translate", "summarize" and "document_qa"
+# Test done_upload view with modes "translate", "summarize" and "qa"
 @pytest.mark.django_db
 def test_done_upload(client, all_apps_user):
     user = all_apps_user()
@@ -337,7 +334,7 @@ def test_done_upload(client, all_apps_user):
     message = Message.objects.create(chat=chat, text="Hello", mode="summarize")
     response = client.get(reverse("chat:done_upload", args=[message.id]))
     assert response.status_code == 200
-    message = Message.objects.create(chat=chat, text="Hello", mode="document_qa")
+    message = Message.objects.create(chat=chat, text="Hello", mode="qa")
     response = client.get(reverse("chat:done_upload", args=[message.id]))
     assert response.status_code == 200
 
@@ -721,7 +718,7 @@ def test_qa_response(client, all_apps_user):
     response = client.get(reverse("chat:qa"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
 
-    # Test chat_response with Document QA mode. Start with no files
+    # Test chat_response with QA mode. Start with no files
     # Now make a new message asking a question about the document(s)
     message = Message.objects.create(
         chat=chat,
