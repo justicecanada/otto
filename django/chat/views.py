@@ -841,12 +841,10 @@ def save_preset(request, chat_id):
         preset.options = chat.options
 
         # Set the fields based on the selected tab
-        if selected_tab == "en":
-            preset.name_en = request.POST.get("name_en", "")
-            preset.description_en = request.POST.get("description_en", "")
-        elif selected_tab == "fr":
-            preset.name_fr = request.POST.get("name_fr", "")
-            preset.description_fr = request.POST.get("description_fr", "")
+        preset.name_en = request.POST.get("name_en", "")
+        preset.description_en = request.POST.get("description_en", "")
+        preset.name_fr = request.POST.get("name_fr", "")
+        preset.description_fr = request.POST.get("description_fr", "")
 
         # Set the public status
         preset.is_public = "on" == request.POST.get("is_public")

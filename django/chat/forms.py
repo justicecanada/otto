@@ -282,6 +282,13 @@ class PresetForm(forms.ModelForm):
             "accessible_to",
         ]
 
+        widgets = {
+            "name_en": forms.TextInput(attrs={"class": "form-control"}),
+            "name_fr": forms.TextInput(attrs={"class": "form-control"}),
+            "description_en": forms.Textarea(attrs={"class": "form-control"}),
+            "description_fr": forms.Textarea(attrs={"class": "form-control"}),
+        }
+
     editable_by = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
         label="Editable Email",

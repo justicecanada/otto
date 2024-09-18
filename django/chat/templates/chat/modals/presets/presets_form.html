@@ -17,6 +17,12 @@
       box-shadow: 0 0 0 0.15rem rgba(66, 70, 73, 0.5);
     }
   }
+  .language-content {
+    display: none;
+  }
+  .language-content.active {
+    display: block;
+  }
   </style>
 {% endblock page_css %}
 
@@ -51,12 +57,26 @@
       <form class="g-3 mt-1 row" id="edit_preset_form" method="post">
         {% csrf_token %}
         <div class="col-12">
-          <label class="form-label" for="id_name_en">{% trans "Title (required)" %}</label>
-          {{ form.name_en }}
-        </div>
-        <div class="col-12">
-          <label class="form-label" for="id_description_en">{% trans "Description" %}</label>
-          {{ form.description_en }}
+          <div id="en-content" class="language-content active">
+            <div class="mb-3">
+              <label class="form-label" for="id_name_en">{% trans "Title (english)" %}</label>
+              {{ form.name_en }}
+            </div>
+            <div class="mb-3">
+              <label class="form-group" for="id_description_en">{% trans "Description (english)" %}</label>
+              {{ form.description_en }}
+            </div>
+          </div>
+          <div id="fr-content" class="language-content">
+            <div class="mb-3">
+              <label class="form-label" for="id_name_fr">{% trans "Title (french)" %}</label>
+              {{ form.name_fr }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="id_description_fr">{% trans "Description (french)" %}</label>
+              {{ form.description_fr }}
+            </div>
+          </div>
         </div>
         <div class="col-12">
           <div class="form-check">
@@ -103,29 +123,41 @@
   document.body.addEventListener('htmx:afterSettle', function() {
     const isPublicCheckbox = document.getElementById('id_is_public');
     const publicFields = document.getElementById('public_fields');
+    const enTab = document.getElementById('en-preset-tab');
+    const frTab = document.getElementById('fr-preset-tab');
+    const enContent = document.getElementById('en-content');
+    const frContent = document.getElementById('fr-content');
 
-    console.log('isPublicCheckbox', isPublicCheckbox);
-    console.log('publicFields', publicFields);
-
-    if (isPublicCheckbox) {
-      isPublicCheckbox.addEventListener('change', function() {
-        console.log('isPublicCheckbox changed');
-        if (isPublicCheckbox.checked) {
-          publicFields.style.display = 'block';
-        } else {
-          publicFields.style.display = 'none';
-        }
-      });
-
-      // Set initial state
+    function togglePublicFields() {
       if (isPublicCheckbox.checked) {
         publicFields.style.display = 'block';
       } else {
         publicFields.style.display = 'none';
       }
-      console.log('isPublicCheckbox.checked', isPublicCheckbox.checked);
+    }
+
+    function switchLanguage(lang) {
+      if (lang === 'en') {
+        enContent.classList.add('active');
+        frContent.classList.remove('active');
+        enTab.classList.add('active');
+        frTab.classList.remove('active');
+      } else {
+        frContent.classList.add('active');
+        enContent.classList.remove('active');
+        frTab.classList.add('active');
+        enTab.classList.remove('active');
+      }
+    }
+
+    if (isPublicCheckbox) {
+      isPublicCheckbox.addEventListener('change', togglePublicFields);
+      togglePublicFields(); // Set initial state
     } else {
       console.error('Checkbox not found');
     }
+
+    enTab.addEventListener('click', () => switchLanguage('en'));
+    frTab.addEventListener('click', () => switchLanguage('fr'));
   });
 </script>
