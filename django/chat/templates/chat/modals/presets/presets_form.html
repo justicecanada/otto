@@ -98,3 +98,34 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.body.addEventListener('htmx:afterSettle', function() {
+    const isPublicCheckbox = document.getElementById('id_is_public');
+    const publicFields = document.getElementById('public_fields');
+
+    console.log('isPublicCheckbox', isPublicCheckbox);
+    console.log('publicFields', publicFields);
+
+    if (isPublicCheckbox) {
+      isPublicCheckbox.addEventListener('change', function() {
+        console.log('isPublicCheckbox changed');
+        if (isPublicCheckbox.checked) {
+          publicFields.style.display = 'block';
+        } else {
+          publicFields.style.display = 'none';
+        }
+      });
+
+      // Set initial state
+      if (isPublicCheckbox.checked) {
+        publicFields.style.display = 'block';
+      } else {
+        publicFields.style.display = 'none';
+      }
+      console.log('isPublicCheckbox.checked', isPublicCheckbox.checked);
+    } else {
+      console.error('Checkbox not found');
+    }
+  });
+</script>

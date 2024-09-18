@@ -901,10 +901,3 @@ def edit_preset(request, chat_id, preset_id):
         "chat/modals/presets/presets_form.html",
         {"form": form, "preset": preset, "chat_id": chat_id},
     )
-
-
-def get_public_fields(request):
-    make_public = request.GET.get("is_public")
-
-    if make_public == "on":
-        return render(request, "chat/modals/presets/public_fields.html")
