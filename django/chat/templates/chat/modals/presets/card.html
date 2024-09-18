@@ -89,8 +89,8 @@
     padding-bottom: .65rem;
 
     button {
-      font-size: 0.75rem;
-      line-height: 1rem;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
       
       &:hover {
         background-color: var(--bs-light) !important;        
@@ -103,8 +103,9 @@
 
 <li class="card" data-default="{{ preset.default }}">
   <div class="card-header align-items-center">
-    <div class="card-title fs-6 my-auto text-truncate me-2 fw-medium"
-         title="{{ preset.name_en }}">{{ preset.name_en }}</div>
+    <div class="card-title my-auto text-truncate me-2 fw-semibold" style="line-height: 1.25rem; font-size: 0.875rem; letter-spacing: -0.025rem;"
+      {# TODO: change to billingual preset name #}
+      title="{{ preset.name_en }}">{{ preset.name_en }}</div>
     <div class="d-flex align-items-center">
       {% include "chat/modals/presets/shared_icon.html" %}
       {% include "chat/modals/presets/default_icon.html" %}
@@ -112,8 +113,10 @@
     </div>
   </div>
 
-  <div class="card-body pt-2">
-    <p class="card-text fs-6 text-muted"
+  <div class="card-body pt-2"
+       style="line-height: 1.25rem;
+              font-size: 0.875rem">
+    <p class="card-text text-muted"
        style="min-height: 4.5rem !important;
               -webkit-box-orient: vertical !important;
               display: -webkit-box !important;
@@ -124,12 +127,12 @@
   </div>
   <div class="card-footer">
     <button type="button"
-            class="btn btn-light shadow-sm fw-bold text-uppercase"
+            class="btn btn-light fw-semibold"
             data-bs-dismiss="modal"
             hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
             hx-target="#options-accordion">{% trans "Load" %}</button>
     <button type="button"
-            class="btn btn-light fw-bold text-uppercase"
+            class="btn btn-light fw-semibold"
             hx-get="{% url 'chat:get_preset_form' chat_id=chat_id %}"
             hx-target="#presets-modal-body"
             hx-swap="innerHTML transition:true">{% trans "Edit" %}</button>

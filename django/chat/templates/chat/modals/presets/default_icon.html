@@ -1,18 +1,13 @@
 {% load i18n %}
 
-{% if preset.default %}
- 
-  <button type="button"
-          class="btn btn-light rounded-circle"
-          data-bs-toggle="tooltip"
-          data-bs-title="{% trans 'Set as default' %}">
-    <i class="bi bi-star-fill" style="color: var(--app-color-yellow-1);"></i>
-  </button>
-{% else %}
-  <button type="button"
-          class="btn btn-light rounded-circle"
-          data-bs-toggle="tooltip"
-          data-bs-title="{% trans 'Remove default' %}">
-    <i class="bi bi-star"></i>
-  </button>
-{% endif %}
+<button type="button"
+        class="btn btn-light rounded-circle"
+        data-bs-toggle="tooltip"
+        data-bs-title="{% if preset.default %}{% trans 'Remove default' %}{% else %}{% trans 'Set as default' %}{% endif %}"
+        hx-get="{% url 'chat:set_preset_default' chat_id=chat_id preset_id=preset.id %}"
+        hx-target="#preset-card-list"
+        hx-swap="outerHTML">
+      <i class="bi {% if preset.default %}bi-star-fill{% else %}bi-star{% endif %}"
+         style="{% if preset.default %}color: var(--app-color-yellow-1);
+                {% endif %}"></i>
+</button>

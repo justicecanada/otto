@@ -77,11 +77,9 @@ class ChatOptionsManager(models.Manager):
         If not, create a new object with some default settings manually.
         Set the mode and chat FK in the new object.
         """
-        user_default = None
         if default_preset:
-            user_default = default_preset.first().options
-        if user_default:
-            new_options = user_default
+            new_options = default_preset.options
+        if new_options:
             new_options.pk = None
             if mode:
                 new_options.mode = mode
@@ -260,12 +258,6 @@ class Preset(models.Model):
     favourited_by = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="favourited_presets"
     )
-    default_for = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="default_preset",
-        null=True,
-        on_delete=models.SET_NULL,
-    )
     is_deleted = models.BooleanField(default=False)
 
     @property
@@ -308,6 +300,18 @@ class Preset(models.Model):
             return self.description_en if self.description_en else self.description_fr
         else:
             return self.description_fr if self.description_fr else self.description_en
+
+    def set_as_default(self, user: User):
+        if user:
+            if user.default_preset == self:
+                user.default_preset = None
+            else:
+                user.default_preset = self
+            user.save()
+            return user.default_preset
+        else:
+            logger.error("User must be set to set user default.")
+            raise ValueError("User must be set to set user default")
 
 
 class Message(models.Model):
