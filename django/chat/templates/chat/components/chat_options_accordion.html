@@ -5,30 +5,14 @@
   {% include 'chat/components/options_1_chat_with_ai.html' with options_section_id='chat' %}
 </div>
 <script>
-    if ("{{ preset_loaded }}" === "true") {
-      let mode = "{{ options_form.mode.value }}";
-      handleModeChange(mode);
-    }
+  if ("{{ preset_loaded }}" === "true") {
+    let mode = "{{ options_form.mode.value }}";
+    handleModeChange(mode);
+    setTimeout(showHideQaSourceForms, 100);
+  }
 
-    function selectAllDataSources() {
-      let dataSources = document.querySelectorAll('#qa_data_sources input');
-      dataSources.forEach((dataSource) => {
-        dataSource.checked = true;
-      });
-    }
-
-    function clearAllDataSources() {
-      let dataSources = document.querySelectorAll('#qa_data_sources input');
-      dataSources.forEach((dataSource) => {
-        dataSource.checked = false;
-      });
-    }
-
-    function updateLibraryModalButton() {
-      const selectElement = document.getElementById('id_qa_library');
-      const selectedLibraryId = selectElement.value;
-      const buttonElement = document.getElementById('editLibrariesButton');
-      buttonElement.setAttribute('hx-get', `/librarian/modal/library/${selectedLibraryId}/edit/`);
-      htmx.process(buttonElement);
-    }
+  showHideQaSourceForms();
+  updateLibraryModalButton();
+  updateAutocompleteLibraryid('id_qa_data_sources__textinput');
+  updateAutocompleteLibraryid('id_qa_documents__textinput');
 </script>

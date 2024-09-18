@@ -1,10 +1,13 @@
 from django import forms
 from django.forms import ModelForm
-from django.urls import reverse_lazy as url
 from django.utils.translation import gettext_lazy as _
 
-from chat.models import Chat, ChatOptions
-from librarian.models import DataSource, Library
+from autocomplete import HTMXAutoComplete
+from autocomplete.widgets import Autocomplete
+from data_fetcher.util import get_request
+
+from chat.models import QA_SCOPE_CHOICES, Chat, ChatOptions
+from librarian.models import DataSource, Document, Library
 
 CHAT_MODELS = [
     ("gpt-4o", _("GPT-4o (Global)")),
@@ -77,12 +80,79 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         return self.get_grouped_choices()
 
 
+class DataSourcesAutocomplete(HTMXAutoComplete):
+    """Autocomplete component to select Data Sources from a library"""
+
+    name = "qa_data_sources"
+    multiselect = True
+    minimum_search_length = 0
+    model = DataSource
+
+    def get_items(self, search=None, values=None):
+        request = get_request()
+        library_id = request.GET.get("library_id", None)
+        if library_id:
+            data = DataSource.objects.filter(library_id=library_id)
+        else:
+            data = DataSource.objects.all()
+        if search is not None:
+            items = [
+                {"label": str(x), "value": str(x.id)}
+                for x in data
+                if search == "" or str(search).upper() in f"{x}".upper()
+            ]
+            return items
+        if values is not None:
+            items = [
+                {"label": str(x), "value": str(x.id)}
+                for x in data
+                if str(x.id) in values
+            ]
+            return items
+
+        return []
+
+
+class DocumentsAutocomplete(HTMXAutoComplete):
+    """Autocomplete component to select Documents from a library"""
+
+    name = "qa_documents"
+    multiselect = True
+    minimum_search_length = 0
+    model = Document
+
+    def get_items(self, search=None, values=None):
+        request = get_request()
+        library_id = request.GET.get("library_id", None)
+        if library_id:
+            data = Document.objects.filter(data_source__library_id=library_id)
+        else:
+            data = Document.objects.all()
+        if search is not None:
+            items = [
+                {"label": str(x), "value": str(x.id)}
+                for x in data
+                if search == "" or str(search).upper() in f"{x}".upper()
+            ]
+            return items
+        if values is not None:
+            items = [
+                {"label": str(x), "value": str(x.id)}
+                for x in data
+                if str(x.id) in values
+            ]
+            return items
+
+        return []
+
+
 class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions
         fields = "__all__"
         exclude = ["chat", "user", "global_default", "preset_name"]
         widgets = {
+            "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
                 choices=TEMPERATURES,
                 attrs={
@@ -97,7 +167,14 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "triggerOptionSave();",
                 },
             ),
-            "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "qa_scope": forms.Select(
+                choices=QA_SCOPE_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "showHideQaSourceForms(); triggerOptionSave();",
+                },
+            ),
+            # QA advanced options are shown in a different form so they can be hidden
             "qa_system_prompt": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
             ),
@@ -171,81 +248,59 @@ class ChatOptionsForm(ModelForm):
             widget=forms.Select(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave(); updateLibraryModalButton();",
-                    "hx-post": url("chat:get_data_sources"),
-                    "hx-swap": "outerHTML",
-                    "hx-target": "#qa_data_sources",
-                    "hx-trigger": "change",
+                    "onchange": "triggerOptionSave(); updateLibraryModalButton(); resetQaAutocompletes();",
                 }
             ),
         )
 
-        _library_id = (
-            self.instance.qa_library_id or Library.objects.get_default_library().id
+        self.fields["qa_data_sources"] = forms.ModelMultipleChoiceField(
+            queryset=DataSource.objects.all(),
+            label=_("Select data source(s)"),
+            required=False,
+            widget=Autocomplete(
+                use_ac=DataSourcesAutocomplete,
+                attrs={
+                    "component_id": f"id_qa_data_sources",
+                    "id": f"id_qa_data_sources__textinput",
+                },
+            ),
         )
 
-        # Check if any of the qa_data_sources are checked
-        any_data_sources_checked = self.instance.qa_data_sources.filter(
-            library_id=_library_id
-        ).exists()
-        if not any_data_sources_checked:
-            self.instance.qa_data_sources.set(
-                DataSource.objects.filter(library_id=_library_id)
-            )
-
-        self.fields["qa_data_sources"] = forms.ModelMultipleChoiceField(
-            queryset=DataSource.objects.filter(library_id=_library_id),
+        self.fields["qa_documents"] = forms.ModelMultipleChoiceField(
+            queryset=Document.objects.all(),
+            label=_("Select document(s)"),
             required=False,
-            widget=forms.CheckboxSelectMultiple(
+            widget=Autocomplete(
+                use_ac=DocumentsAutocomplete,
                 attrs={
-                    "onchange": "triggerOptionSave();",
-                    "class": "small",
-                    "id": "qa_data_sources",
+                    "component_id": f"id_qa_documents",
+                    "id": f"id_qa_documents__textinput",
                 },
             ),
         )
 
         self.fields["qa_data_sources"].required = False
+        self.fields["qa_documents"].required = False
 
     def save(self, commit=True):
+        # Get the PK, if any
+        pk = self.instance.pk
+        if pk:
+            original_library_id = ChatOptions.objects.get(pk=pk).qa_library_id
         instance = super(ChatOptionsForm, self).save(commit=False)
-        # Remove any data sources that aren't in the library
         library_id = instance.qa_library_id
         if not library_id:
             library_id = Library.objects.get_default_library().id
-        # Check if any of the qa_data_sources are checked
-        any_data_sources_checked = self.instance.qa_data_sources.filter(
-            library_id=library_id
-        ).exists()
-        if not any_data_sources_checked:
-            instance.qa_data_sources.set(
-                DataSource.objects.filter(library_id=library_id)
-            )
+        if pk and original_library_id != library_id:
+            instance.qa_scope = "all"
+            instance.qa_data_sources.clear()
+            instance.qa_documents.clear()
         if commit:
             instance.save()
+        if not (pk and original_library_id != library_id):
+            instance.qa_data_sources.set(self.cleaned_data["qa_data_sources"])
+            instance.qa_documents.set(self.cleaned_data["qa_documents"])
         return instance
-
-
-class DataSourcesForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        self.library_id = kwargs.pop("library_id")
-        prefix = kwargs.pop("prefix")
-        super(DataSourcesForm, self).__init__(*args, **kwargs)
-        field_name = f"{prefix}_data_sources"
-        self.fields[field_name] = forms.ModelMultipleChoiceField(
-            queryset=DataSource.objects.filter(library_id=self.library_id).order_by(
-                "order", "name"
-            ),
-            required=False,
-            widget=forms.CheckboxSelectMultiple(
-                attrs={
-                    "onchange": "triggerOptionSave();",
-                    "class": "small",
-                    "id": field_name,
-                    "checked": "checked",  # Check all by default
-                },
-            ),
-        )
 
 
 class ChatRenameForm(ModelForm):

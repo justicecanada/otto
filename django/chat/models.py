@@ -103,10 +103,15 @@ class ChatOptionsManager(models.Manager):
             if mode:
                 new_options.mode = mode
             new_options.save()
-            if default_library:
-                new_options.qa_data_sources.set(default_library.data_sources.all())
 
         return new_options
+
+
+QA_SCOPE_CHOICES = [
+    ("all", _("Entire library")),
+    ("data_sources", _("Selected data sources")),
+    ("documents", _("Selected documents")),
+]
 
 
 class ChatOptions(models.Model):
@@ -154,8 +159,12 @@ class ChatOptions(models.Model):
         null=True,
         related_name="qa_options",
     )
+    qa_scope = models.CharField(max_length=255, default="all", choices=QA_SCOPE_CHOICES)
     qa_data_sources = models.ManyToManyField(
         "librarian.DataSource", related_name="qa_options"
+    )
+    qa_documents = models.ManyToManyField(
+        "librarian.Document", related_name="qa_options"
     )
     qa_topk = models.IntegerField(default=5)
     qa_system_prompt = models.TextField(blank=True)
@@ -206,16 +215,6 @@ class ChatOptions(models.Model):
         else:
             logger.error("User must be set to set user default.")
             raise ValueError("User must be set to set user default")
-
-    def save(self, *args, **kwargs):
-        self.clean()
-        new = self.pk is None
-        if not new:
-            orig = ChatOptions.objects.get(pk=self.pk)
-            if orig.qa_library != self.qa_library:
-                logger.info("Chat library selection changed. Resetting data_sources.")
-                self.qa_data_sources.set(self.qa_library.data_sources.all())
-        super().save(*args, **kwargs)
 
 
 class Message(models.Model):
@@ -351,9 +350,7 @@ class ChatFile(models.Model):
         return f"File {self.id}: {self.filename}"
 
     def extract_text(self, fast=True):
-        # TODO: Extracting text from file may incur Azure Document AI costs.
-        # Need to refactor extract_text to create Cost object with correct user and mode.
-        # (Presently, this is only used in summarize mode, and user can be inferred...)
+
         from librarian.utils.process_engine import (
             extract_markdown,
             get_process_engine_from_type,

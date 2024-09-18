@@ -3502,5 +3502,33 @@
     "Advanced search options": {
         "fr": "",
         "fr_auto": "Options de recherche avancées"
+    },
+    "Select data source(s)": {
+        "fr": "",
+        "fr_auto": "Sélectionner la ou les sources de données"
+    },
+    "Select document(s)": {
+        "fr": "",
+        "fr_auto": "Sélectionner le(s) document(s)"
+    },
+    "Entire library": {
+        "fr": "",
+        "fr_auto": "Bibliothèque entière"
+    },
+    "Selected data sources": {
+        "fr": "",
+        "fr_auto": "Sources de données sélectionnées"
+    },
+    "Selected documents": {
+        "fr": "",
+        "fr_auto": "Documents sélectionnés"
+    },
+    "Filter results": {
+        "fr": "",
+        "fr_auto": "Résultats du filtre"
+    },
+    "Error getting search results:": {
+        "fr": "",
+        "fr_auto": "Erreur d’obtention des résultats de recherche :"
     }
 }
