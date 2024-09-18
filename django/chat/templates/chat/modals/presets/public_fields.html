@@ -1,10 +1,10 @@
-{% if form %}
-  <div class="col-12">
-    {% for field in form %}
-      <div class="mb-3">
-        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-      </div>
-    {% endfor %}
+<div class="col-12" id="public_fields">
+  <div class="mb-3">
+    <label class="form-label" for="id_editable_by">{% trans "Editable by: " %}</label>
+    {{ form.editable_by }}
   </div>
-{% endif %}
+  <div class="mb-3">
+    <label class="form-label" for="id_accessible_to">{% trans "Accessible To: " %}</label>
+    {{ form.accessible_to }}
+  </div>
+</div>

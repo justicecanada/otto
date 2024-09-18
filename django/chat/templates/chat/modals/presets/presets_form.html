@@ -1,7 +1,6 @@
 {% load i18n %}
 
 {% block page_css %}
-
   <style>
   .nav-link {
     color: var(--bs-body-color);
@@ -19,16 +18,13 @@
     }
   }
   </style>
-
 {% endblock page_css %}
 
 <div class="modal-body">
-
   <div class="d-flex flex-column">
     <ul class="nav nav-underline nav-fill"
-        id="presset-edit-tabs"
+        id="preset-edit-tabs"
         role="tablist">
-
       <li class="nav-item" role="presentation">
         <button id="en-preset-tab"
                 class="active nav-link"
@@ -52,53 +48,37 @@
     </ul>
 
     <div class="tab-content border-bottom pt-4">
-
- 
-
-      <form class="g-3 mt-1 row" id="edit_preset_form">
+      <form class="g-3 mt-1 row" id="edit_preset_form" method="post">
+        {% csrf_token %}
         <div class="col-12">
-          <label class="form-label" for="title_of_preset">{% trans "Title (required)" %}</label>
-
-          <input type="text"
-                 class="form-control"
-                 id="title_of_preset"
-                 name="title_of_preset"
-                 placeholder="Enter title of preset"
-                 required>
+          <label class="form-label" for="id_name_en">{% trans "Title (required)" %}</label>
+          {{ form.name_en }}
         </div>
         <div class="col-12">
-          <label class="form-label" for="description_of_preset">{% trans "Description" %}</label>
-
-          <textarea class="form-control"
-                    id="description_of_preset"
-                    name="description_of_preset"
-                    placeholder="Enter description of preset"
-                    rows="3"></textarea>
- 
+          <label class="form-label" for="id_description_en">{% trans "Description" %}</label>
+          {{ form.description_en }}
         </div>
         <div class="col-12">
           <div class="form-check">
-            <input class="form-check-input"
-                   type="checkbox"
-                   id="make_public"
-                   name="make_public"
-                   hx-trigger="change"
-                   hx-get="{% url 'chat:get_public_fields' chat_id=chat_id %}"
-                   hx-target="#public-fields-container"
-                   hx-swap="innerHTML">
-            <label class="form-check-label" for="make_public">{% trans "Make preset public" %}</label>
+            {{ form.is_public }}
+            <label class="form-check-label" for="id_is_public">{% trans "Make preset public" %}</label>
           </div>
         </div>
-
-        <div id="public-fields-container" class="col-12"></div>
-
+        <div class="col-12" id="public_fields">
+          <div class="mb-3">
+            <label class="form-label" for="id_editable_by">{% trans "Editable by: " %}</label>
+            {{ form.editable_by }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="id_accessible_to">{% trans "Accessible To: " %}</label>
+            {{ form.accessible_to }}
+          </div>
+        </div>
       </form>
     </div>
   </div>
 
-
   <div class="modal-footer">
-
     <div class="col-12 d-flex justify-content-center mt-2">
       <div class="w-50 d-flex">
         <button id="save_preset"

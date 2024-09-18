@@ -85,11 +85,6 @@ urlpatterns = [
         name="get_presets",
     ),
     path(
-        "id/<str:chat_id>/options/presets/form/",
-        views.get_preset_form,
-        name="get_preset_form",
-    ),
-    path(
         "presets/<str:preset_id>/favourite/",
         views.set_preset_favourite,
         name="set_preset_favourite",
@@ -100,8 +95,13 @@ urlpatterns = [
         name="save_preset",
     ),
     path(
-        "id/<str:chat_id>/options/get_public_fields",
-        views.get_public_fields,
-        name="get_public_fields",
+        "id/<str:chat_id>/options/presets/<str:preset_id>/edit/",
+        views.edit_preset,
+        name="edit_preset",
+    ),
+    path(
+        "id/<str:chat_id>/options/presets/form/",
+        views.create_preset,
+        name="create_preset",
     ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 
 from autocomplete import widgets
 
-from chat.models import Message
+from chat.models import Message, Preset
 from otto.models import App, Feedback, Pilot
 
 User = get_user_model()

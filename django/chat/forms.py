@@ -1,9 +1,12 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.forms import ModelForm
 from django.urls import reverse_lazy as url
 from django.utils.translation import gettext_lazy as _
 
-from chat.models import Chat, ChatOptions
+from autocomplete import widgets
+
+from chat.models import Chat, ChatOptions, Preset
 from librarian.models import DataSource, Library
 
 CHAT_MODELS = [
@@ -22,6 +25,8 @@ TEMPERATURES = [
     (1.2, _("Creative")),
 ]
 LANGUAGES = [("en", _("English")), ("fr", _("French"))]
+
+User = get_user_model()
 
 
 class GroupedLibraryChoiceField(forms.ModelChoiceField):
@@ -264,20 +269,25 @@ class ChatRenameForm(ModelForm):
         }
 
 
-class UserPresetForm(forms.Form):
-
-    from django.contrib.auth import get_user_model
-
-    from autocomplete import widgets
-
-    User = get_user_model()
+class PresetForm(forms.ModelForm):
+    class Meta:
+        model = Preset
+        fields = [
+            "name_en",
+            "name_fr",
+            "description_en",
+            "description_fr",
+            "is_public",
+            "editable_by",
+            "accessible_to",
+        ]
 
     editable_by = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
         label="Editable Email",
         required=True,
         widget=widgets.Autocomplete(
-            name="editable_email",
+            name="editable_by",
             options={
                 "item_value": User.id,
                 "item_label": User.email,
@@ -288,12 +298,12 @@ class UserPresetForm(forms.Form):
         ),
     )
 
-    viewable_by = forms.ModelMultipleChoiceField(
+    accessible_to = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
         label="Email",
         required=True,
         widget=widgets.Autocomplete(
-            name="viewable_email",
+            name="accessible_to",
             options={
                 "item_value": User.id,
                 "item_label": User.email,

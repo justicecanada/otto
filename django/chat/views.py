@@ -16,7 +16,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.forms import ChatOptionsForm, ChatRenameForm, DataSourcesForm, UserPresetForm
+from chat.forms import ChatOptionsForm, ChatRenameForm, DataSourcesForm, PresetForm
 from chat.llm import OttoLLM
 from chat.metrics.activity_metrics import (
     chat_new_session_started_total,
@@ -806,19 +806,6 @@ def get_presets(request, chat_id):
     )
 
 
-def get_preset_form(request, chat_id):
-    return render(
-        request,
-        "chat/modals/presets/presets_form.html",
-        {
-            "presets": Preset.objects.get_accessible_presets(
-                request.user, get_language()
-            ),
-            "chat_id": chat_id,
-        },
-    )
-
-
 def set_preset_favourite(request, preset_id):
     preset = Preset.objects.get(id=preset_id)
     try:
@@ -855,32 +842,69 @@ def save_preset(request, chat_id):
 
         # Set the fields based on the selected tab
         if selected_tab == "en":
-            preset.name_en = request.POST.get("title_of_preset", "")
-            preset.description_en = request.POST.get("description_of_preset", "")
+            preset.name_en = request.POST.get("name_en", "")
+            preset.description_en = request.POST.get("description_en", "")
         elif selected_tab == "fr":
-            preset.name_fr = request.POST.get("title_of_preset", "")
-            preset.description_fr = request.POST.get("description_of_preset", "")
+            preset.name_fr = request.POST.get("name_fr", "")
+            preset.description_fr = request.POST.get("description_fr", "")
 
         # Set the public status
-        preset.is_public = "on" == request.POST.get("make_public")
+        preset.is_public = "on" == request.POST.get("is_public")
 
         # Save the preset
         preset.save()
 
         if preset.is_public:
-            editable_by = request.POST.getlist("editable_email")
-            viewable_by = request.POST.getlist("viewable_email")
-            # retreive the user ids from teh lists and create User object with them
+            editable_by = request.POST.getlist("editable_by", [])
+            accessible_to = request.POST.getlist("accessible_to", [])
             for user_id in editable_by:
                 preset.editable_by.add(user_id)
-            for user_id in viewable_by:
+            for user_id in accessible_to:
                 preset.accessible_to.add(user_id)
 
     # # Redirect to the card list page
     return redirect("chat:get_presets", chat_id=chat_id)
 
 
-def get_public_fields(request, chat_id):
-    make_public = request.GET.get("make_public")
-    form = UserPresetForm() if make_public == "on" else None
-    return render(request, "chat/modals/presets/public_fields.html", {"form": form})
+def create_preset(request, chat_id):
+    if request.method == "POST":
+        form = PresetForm(request.POST)
+        if form.is_valid():
+            preset = form.save(commit=False)
+            preset.owner = request.user
+            preset.options = ChatOptions.objects.get(id=chat_id)
+            preset.save()
+            form.save_m2m()
+            return redirect("chat:get_presets", chat_id=chat_id)
+    else:
+        form = PresetForm()
+
+    return render(
+        request,
+        "chat/modals/presets/presets_form.html",
+        {"form": form, "chat_id": chat_id},
+    )
+
+
+def edit_preset(request, chat_id, preset_id):
+    preset = get_object_or_404(Preset, id=preset_id)
+    if request.method == "POST":
+        form = PresetForm(request.POST, instance=preset)
+        if form.is_valid():
+            form.save()
+            return redirect("chat:get_presets", chat_id=chat_id)
+    else:
+        form = PresetForm(instance=preset)
+
+    return render(
+        request,
+        "chat/modals/presets/presets_form.html",
+        {"form": form, "preset": preset, "chat_id": chat_id},
+    )
+
+
+def get_public_fields(request):
+    make_public = request.GET.get("is_public")
+
+    if make_public == "on":
+        return render(request, "chat/modals/presets/public_fields.html")
