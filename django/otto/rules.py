@@ -159,6 +159,8 @@ def can_edit_data_source(user, data_source):
 
 @predicate
 def can_delete_data_source(user, data_source):
+    if data_source.chat:
+        return False
     if data_source.library.is_default_library:
         return is_admin(user)
     return can_edit_library(user, data_source.library)

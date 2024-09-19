@@ -117,6 +117,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             form = DataSourceDetailForm(
                 request.POST,
                 instance=data_source,
+                user=request.user,
             )
             if form.is_valid():
                 form.save()
@@ -158,6 +159,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             form = form or DataSourceDetailForm(
                 instance=selected_data_source if item_id else None,
                 library_id=parent_id,
+                user=request.user,
             )
 
     if item_type == "library":

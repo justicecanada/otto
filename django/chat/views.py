@@ -284,18 +284,28 @@ def chat(request, chat_id):
     logger.info("Chat session retrieved.", chat_id=chat_id)
     bind_contextvars(feature="chat")
 
-    chat = Chat.objects.get(id=chat_id)
-    # Get chat options
+    chat = (
+        Chat.objects.filter(id=chat_id)
+        .prefetch_related("options", "data_source")
+        .first()
+    )
+
+    # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
+    # If database is completely wiped, this should all be removable
     if not chat.options:
-        # This is just to catch chats which existed before ChatOptions was introduced.
-        # The existing chat mode for these chats will be lost.
         chat.options = ChatOptions.objects.from_defaults(user=chat.user)
         chat.save()
-    mode = chat.options.mode
-
-    # Ensure user has a personal library
     if not request.user.personal_library:
         request.user.create_personal_library()
+    if not DataSource.objects.filter(chat=chat).exists():
+        DataSource.objects.create(
+            name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            library=chat.user.personal_library,
+            chat=chat,
+        )
+    # END INSURANCE CODE
+
+    mode = chat.options.mode
 
     # Get chat messages ready
     messages = Message.objects.filter(chat=chat).order_by("id")
@@ -466,13 +476,6 @@ def done_upload(request, message_id):
         chat_request_type_total.labels(user=request.user.upn, type="qa upload")
         chat.options.qa_library = chat.user.personal_library
         chat.options.qa_scope = "data_sources"
-        if not DataSource.objects.filter(chat=chat).exists():
-            DataSource.objects.create(
-                name_en=f"Chat {str(chat.id).split('-')[0]}",
-                name_fr=f"Chat {str(chat.id).split('-')[0]}",
-                library=chat.user.personal_library,
-                chat=chat,
-            )
         chat.options.qa_data_sources.set([chat.data_source])
         chat.options.save()
 
