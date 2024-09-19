@@ -346,6 +346,7 @@ def qa_response(chat, response_message, eval=False):
                 response_message.id,
                 llm,
                 response_replacer=add_files_to_library(),
+                dots=True,
             ),
             content_type="text/event-stream",
         )
