@@ -18,6 +18,8 @@ class CustomUserManager(BaseUserManager):
     def create_user(self, upn, password=None, **extra_fields):
         user = self.model(upn=upn, **extra_fields)
         user.save()
+        # Create personal library
+        user.create_personal_library()
         return user
 
     def create_superuser(self, upn, password=None, **extra_fields):
