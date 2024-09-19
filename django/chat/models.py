@@ -79,11 +79,11 @@ class ChatOptionsManager(models.Manager):
         """
         if default_preset:
             new_options = default_preset.options
-        if new_options:
-            new_options.pk = None
-            if mode:
-                new_options.mode = mode
-            new_options.save()
+            if new_options:
+                new_options.pk = None
+                if mode:
+                    new_options.mode = mode
+                new_options.save()
         else:
             # Default Otto settings
             default_library = Library.objects.get_default_library()
