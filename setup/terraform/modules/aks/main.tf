@@ -1,4 +1,4 @@
-# Create a Log Analytics workspace
+# AU-4(1): Create a Log Analytics workspace
 resource "azurerm_log_analytics_workspace" "aks" {
   name                = "${var.aks_cluster_name}-logs"
   location            = var.location
@@ -43,16 +43,18 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   # SC-8: Secure Internal Communication in AKS
+  # CM-8(3): Network Policies for AKS
   network_profile {
     network_plugin    = "kubenet"
     load_balancer_sku = "standard"
   }
 
   oms_agent {
+    # AU-6: Enables automated analysis and reporting capabilities
+    # CM-8(3): For detecting unauthorized components or suspicious activities
     log_analytics_workspace_id = azurerm_log_analytics_workspace.aks.id
   }
 
-  # Enable auto-upgrade to stable channel
   automatic_channel_upgrade = "stable"
 
   maintenance_window {
@@ -62,6 +64,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     }
   }
 
+  # CM-8(3): Azure Active Directory integration and RBAC can be used to enforce compliance and detect unauthorized access attempts
   azure_active_directory_role_based_access_control {
     managed                = true # Deprecated but still required
     azure_rbac_enabled     = true
@@ -124,14 +127,21 @@ resource "azurerm_role_assignment" "acr_pull_kubelet" {
   principal_type       = "ServicePrincipal"
 }
 
+# AU-4(1): AKS cluster is configured to use Azure Monitor for logging
+# AU-6: Comprehensive audit logging
+# AU-7: Integration with Azure Monitor provides audit reduction and report generation capabilities
 resource "azurerm_monitor_diagnostic_setting" "aks" {
-  name                           = "${var.aks_cluster_name}-diagnostics"
-  target_resource_id             = azurerm_kubernetes_cluster.aks.id
+  name               = "${var.aks_cluster_name}-diagnostics"
+  target_resource_id = azurerm_kubernetes_cluster.aks.id
+
+  # AU-7: Ensures that original audit records are preserved
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.aks.id
   log_analytics_destination_type = "Dedicated"
 
+  # AU-4(1): Send logs to a storage account
   storage_account_id = var.storage_account_id
 
+  # AU-4(1) & AU-7: Enable the required logs and metrics
   enabled_log {
     category = "kube-apiserver"
   }

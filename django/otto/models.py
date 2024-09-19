@@ -272,6 +272,7 @@ class CostManager(models.Manager):
         from structlog.contextvars import get_contextvars
 
         from chat.models import Message
+        from laws.models import Law
         from librarian.models import Document
 
         cost_type = CostType.objects.get(short_name=cost_type)
@@ -280,6 +281,7 @@ class CostManager(models.Manager):
         request_context = get_contextvars()
         message_id = request_context.get("message_id")
         document_id = request_context.get("document_id")
+        law_id = request_context.get("law_id")
         user_id = request_context.get("user_id")
 
         cost_object = self.create(
@@ -292,6 +294,7 @@ class CostManager(models.Manager):
             user=User.objects.get(id=user_id) if user_id else None,
             message=Message.objects.get(id=message_id) if message_id else None,
             document=Document.objects.get(id=document_id) if document_id else None,
+            law=Law.objects.get(id=law_id) if law_id else None,
         )
 
         # Recalculate document and message costs, if applicable
@@ -381,6 +384,7 @@ class Cost(models.Model):
     document = models.ForeignKey(
         "librarian.Document", on_delete=models.CASCADE, null=True, blank=True
     )
+    law = models.ForeignKey("laws.Law", on_delete=models.CASCADE, null=True, blank=True)
 
     objects = CostManager()
 

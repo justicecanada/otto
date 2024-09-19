@@ -1,0 +1,165 @@
+{% load i18n %}
+{% load static %}
+
+<form hx-post="{% url 'laws:search' %}"
+      hx-target="#result-container"
+      hx-indicator="#spinner"
+      onsubmit="document.querySelector('#result-container').innerHTML='';">
+
+  {{ form.non_field_errors }}
+
+  <div id="basic-search-outer">
+    <div class="row">
+      <div class="col position-relative pe-0 mb-1">
+        {{ form.query.errors }}
+        <div class="visually-hidden">{{ form.query.label_tag }}</div>
+        {{ form.query }}
+        <button class="btn btn-primary clear-button btn-lg px-2 me-1"
+                type="button"
+                id="clear-button">
+          <i class="bi bi-x"></i><span class="visually-hidden">{% trans "Clear" %}</span>
+        </button>
+        <button class="btn btn-primary"
+                type="submit"
+                id="basic-search-button"
+                disabled>
+          <i class="bi bi-search"></i><span class="visually-hidden">{% trans "Submit" %}</span>
+        </button>
+      </div>
+      <div class="col-auto mx-1" style="margin-top: -1px; margin-bottom: -1px">
+        <div class="form-check form-switch">
+          {{ form.ai_answer.errors }}
+          {{ form.ai_answer }}
+          {{ form.ai_answer.label_tag }}
+        </div>
+        <div class="form-check form-switch mb-0 pb-0">
+          {{ form.bilingual_results.errors }}
+          {{ form.bilingual_results }}
+          {{ form.bilingual_results.label_tag }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="advanced-search-outer"
+       class="row d-none px-2 mt-3 pt-3 pb-1 border-top"
+       hx-disinherit="*">
+    <h6>{% trans "Advanced search options" %}</h6>
+    <div class="col-lg-4 col-md-6">
+      <div class="mt-3">
+        {{ form.search_laws_option.errors }}
+        {{ form.search_laws_option.label_tag }}
+        {{ form.search_laws_option }}
+      </div>
+
+      <div class="mt-3 bg-light rounded p-2 d-none acts-regs">
+        {{ form.laws.errors }}
+        {{ form.laws.label_tag }}
+        {{ form.laws }}
+      </div>
+
+      <div class="mt-3 bg-light rounded p-2 d-none enabling-acts">
+        {{ form.enabling_acts.errors }}
+        {{ form.enabling_acts.label_tag }}
+        {{ form.enabling_acts }}
+      </div>
+
+      <div class="mt-3">
+        {{ form.date_filter_option.errors }}
+        {{ form.date_filter_option.label_tag }}
+        {{ form.date_filter_option }}
+      </div>
+      <div id="date-filters" class="mt-3 bg-light rounded p-2 d-none">
+        <div class="row">
+          <div class="col">
+            {{ form.in_force_date_start.errors }}
+            {{ form.in_force_date_start.label_tag }}
+            {{ form.in_force_date_start }}
+          </div>
+
+          <div class="col">
+            {{ form.in_force_date_end.errors }}
+            {{ form.in_force_date_end.label_tag }}
+            {{ form.in_force_date_end }}
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col">
+            {{ form.last_amended_date_start.errors }}
+            {{ form.last_amended_date_start.label_tag }}
+            {{ form.last_amended_date_start }}
+          </div>
+
+          <div class="col">
+            {{ form.last_amended_date_end.errors }}
+            {{ form.last_amended_date_end.label_tag }}
+            {{ form.last_amended_date_end }}
+          </div>
+        </div>
+        {% comment %}
+        <div class="row mt-3">
+          <div class="col">
+            {{ form.section_last_amended_date_start.errors }}
+            {{ form.section_last_amended_date_start.label_tag }}
+            {{ form.section_last_amended_date_start }}
+          </div>
+
+          <div class="col">
+            {{ form.section_last_amended_date_end.errors }}
+            {{ form.section_last_amended_date_end.label_tag }}
+            {{ form.section_last_amended_date_end }}
+          </div>
+        </div>
+        {% endcomment %}
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+      <div class="row mt-3">
+        <div class="col">
+          {{ form.top_k.errors }}
+          {{ form.top_k.label_tag }}
+          {{ form.top_k }}
+        </div>
+
+        <div class="col">
+          {{ form.vector_ratio.errors }}
+          {{ form.vector_ratio.label_tag }}
+          {{ form.vector_ratio }}
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col">
+          {{ form.model.errors }}
+          {{ form.model.label_tag }}
+          {{ form.model }}
+        </div>
+
+        <div class="col">
+          {{ form.context_tokens.errors }}
+          {{ form.context_tokens.label_tag }}
+          {{ form.context_tokens }}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+      {% comment %}
+      <div class="mt-3">
+        {{ form.trim_redundant.errors }}
+        {{ form.trim_redundant.label_tag }}
+        {{ form.trim_redundant }}
+      </div>
+      {% endcomment %}
+
+      <div class="mt-3">
+        {{ form.additional_instructions.errors }}
+        {{ form.additional_instructions.label_tag }}
+        {{ form.additional_instructions }}
+      </div>
+    </div>
+  </div>
+  <input type="hidden" name="advanced" value="false" id="advanced-toggle">
+
+</form>
+
+<script src="{% static 'laws/law_search.js' %}"></script>

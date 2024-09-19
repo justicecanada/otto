@@ -27,23 +27,7 @@
     </div>
   </div>
 
-  <div class="px-3 mt-2">
-    <div class="d-flex justify-content-between">
-      <label class="col-form-label col-form-label-sm"
-             for="{{ options_form.qa_data_sources.id }}">{% trans "Data sources" %}</label>
-      <div class="col-form-label-sm">
-        <!-- Select all / clear all -->
-        <a href="#"
-           class="text-decoration-none text-body"
-           onclick="selectAllDataSources(); return false;">{% trans "all" %}</a>
-        <span>/</span>
-        <a href="#"
-           class="text-decoration-none text-body"
-           onclick="clearAllDataSources(); return false;">{% trans "none" %}</a>
-      </div>
-    </div>
-  </div>
-  <div class="px-3">{{ options_form.qa_data_sources }}</div>
+  {% include "chat/components/options_qa_scope.html" %}
 
   <div class="px-3 mt-2">
     <label class="col-form-label col-form-label-sm"

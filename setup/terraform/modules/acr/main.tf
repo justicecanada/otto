@@ -1,3 +1,4 @@
+# CM-8: ACR maintains an inventory of container images used in the system
 resource "azurerm_container_registry" "acr" {
   name                = var.acr_name
   resource_group_name = var.resource_group_name

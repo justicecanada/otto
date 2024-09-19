@@ -1,3 +1,5 @@
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
 # Persistent Volume Claim for shared storage
 apiVersion: v1
 kind: PersistentVolumeClaim
