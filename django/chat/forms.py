@@ -292,7 +292,7 @@ class PresetForm(forms.ModelForm):
     editable_by = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
         label="Editable Email",
-        required=True,
+        required=False,
         widget=widgets.Autocomplete(
             name="editable_by",
             options={
@@ -308,7 +308,7 @@ class PresetForm(forms.ModelForm):
     accessible_to = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
         label="Email",
-        required=True,
+        required=False,
         widget=widgets.Autocomplete(
             name="accessible_to",
             options={

@@ -838,23 +838,55 @@ def save_preset(request, chat_id):
         # # get chat object from chat_id
         chat = Chat.objects.get(id=chat_id)
 
+        english_title = request.POST.get("name_en", "")
+        french_title = request.POST.get("name_fr", "")
+
+        if english_title == "" and french_title == "":
+
+            form = PresetForm(request.POST)
+            # # Render the full form with the error message
+            context = {
+                "form": form,
+                "chat_id": chat_id,
+                "error_message": _(
+                    "Please provide a title in either English or French."
+                ),
+            }
+            return render(request, "chat/modals/presets/presets_form.html", context)
+
         preset.options = chat.options
 
         # Set the fields based on the selected tab
-        preset.name_en = request.POST.get("name_en", "")
+        preset.name_en = english_title
         preset.description_en = request.POST.get("description_en", "")
-        preset.name_fr = request.POST.get("name_fr", "")
+        preset.name_fr = french_title
         preset.description_fr = request.POST.get("description_fr", "")
 
         # Set the public status
         preset.is_public = "on" == request.POST.get("is_public")
 
+        editable_by = request.POST.getlist("editable_by", [])
+        accessible_to = request.POST.getlist("accessible_to", [])
+
+        if preset.is_public:
+            # check if editable_by and accessible_to are empty
+            if not editable_by or not accessible_to:
+                form = PresetForm(request.POST)
+                # Render the full form with the error message
+                context = {
+                    "form": form,
+                    "chat_id": chat_id,
+                    "error_message": _(
+                        "Please provide at least one user for the editable and accessible permissions."
+                    ),
+                }
+                return render(request, "chat/modals/presets/presets_form.html", context)
+
         # Save the preset
         preset.save()
 
         if preset.is_public:
-            editable_by = request.POST.getlist("editable_by", [])
-            accessible_to = request.POST.getlist("accessible_to", [])
+
             for user_id in editable_by:
                 preset.editable_by.add(user_id)
             for user_id in accessible_to:

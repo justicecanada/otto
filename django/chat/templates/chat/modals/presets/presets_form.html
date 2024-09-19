@@ -26,7 +26,9 @@
   </style>
 {% endblock page_css %}
 
+
 <div class="modal-body">
+
   <div class="d-flex flex-column">
     <ul class="nav nav-underline nav-fill"
         id="preset-edit-tabs"
@@ -94,9 +96,13 @@
             {{ form.accessible_to }}
           </div>
         </div>
+        <div id="error-message">
+          {% if error_message %}<div class="alert alert-danger" role="alert">{{ error_message }}</div>{% endif %}
+        </div>
       </form>
     </div>
   </div>
+
 
   <div class="modal-footer">
     <div class="col-12 d-flex justify-content-center mt-2">
@@ -105,9 +111,9 @@
                 class="btn btn-primary flex-fill me-2"
                 type="submit"
                 hx-post="{% url 'chat:save_preset' chat_id=chat_id %}"
-                hx-target="#presets-modal-body"
                 hx-include="#edit_preset_form"
-                hx-swap="innerHTML transition:true">{% trans "Save" %}</button>
+                hx-target="#presets-modal-body"
+                hx-swap="innerHTML">{% trans "Save" %}</button>
         <button id="cancel_preset"
                 class="btn btn-outline-secondary flex-fill"
                 hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
