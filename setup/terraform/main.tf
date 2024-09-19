@@ -1,3 +1,5 @@
+# CM-8 & CM-9: Defines and manages various resources, providing a documented inventory of system components
+
 terraform {
   backend "azurerm" {}
 }
@@ -127,7 +129,7 @@ module "aks" {
 }
 
 
-# Diagnostic settings for Key Vault
+# CM-8 & CM-9: Diagnostic settings for Key Vault
 resource "azurerm_monitor_diagnostic_setting" "key_vault" {
   name               = "${var.keyvault_name}-diagnostics"
   target_resource_id = module.keyvault.keyvault_id
@@ -142,7 +144,7 @@ resource "azurerm_monitor_diagnostic_setting" "key_vault" {
   }
 }
 
-# Diagnostic settings for ACR
+# CM-8 & CM-9: Diagnostic settings for ACR
 resource "azurerm_monitor_diagnostic_setting" "acr" {
   name               = "${var.acr_name}-diagnostics"
   target_resource_id = module.acr.acr_id

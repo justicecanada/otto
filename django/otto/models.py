@@ -38,6 +38,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
     accepted_terms_date = models.DateField(null=True)
     pilot = models.ForeignKey("Pilot", on_delete=models.SET_NULL, null=True, blank=True)
+    default_preset = models.ForeignKey(
+        "chat.Preset",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="default_for",
+    )
 
     objects = CustomUserManager()
 

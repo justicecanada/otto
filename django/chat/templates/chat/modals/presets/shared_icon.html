@@ -1,0 +1,16 @@
+{% load i18n %}
+
+{% if preset.shared_with == "Private" %}
+  <i class="bi bi-person-fill-lock text-secondary me-1"
+     data-bs-toggle="tooltip"
+     data-bs-title="{% trans 'Private' %}"></i>
+{% elif preset.shared_with == "Shared with everyone" %}
+ 
+  <i class="bi bi-globe-am text-secondary me-1"
+     data-bs-toggle="tooltip"
+     data-bs-title="{% trans 'Shared with everyone' %}"></i>
+{% else %}
+  <i class="bi bi-people-fill text-secondary me-1"
+     data-bs-toggle="tooltip"
+     data-bs-title="{% trans 'Shared with others' %}"></i>
+{% endif %}

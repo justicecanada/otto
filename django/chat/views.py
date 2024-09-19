@@ -34,6 +34,8 @@ from otto.models import App, SecurityLabel
 from otto.utils.decorators import app_access_required, permission_required
 from otto.views import message_feedback
 
+from .models import Preset
+
 app_name = "chat"
 logger = get_logger(__name__)
 User = get_user_model()
@@ -355,10 +357,12 @@ def chat(request, chat_id):
         chat.options.qa_library = Library.objects.get_default_library()
         chat.options.save()
     form = ChatOptionsForm(instance=chat.options, user=request.user)
+    # TODO: Preset refactor: get accessible presets as list
+    options_preset = Preset.objects.filter(owner=request.user)
     context = {
         "chat": chat,
         "options_form": form,
-        "option_presets": request.user.default_preset.values("options"),
+        "option_presets": options_preset,
         "chat_messages": messages,
         "hide_breadcrumbs": True,
         "user_chats": user_chats,
@@ -766,6 +770,7 @@ def get_qa_accordion(request, chat_id, library_id):
     )
 
 
+# AC-16 & AC-16(2): Allows for the modification of security labels associated with chat sessions
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def set_security_label(request, chat_id, security_label_id):
     logger.info(
@@ -818,12 +823,6 @@ def set_preset_favourite(request, preset_id):
     except ValueError:
         # TODO: Preset refactor: show friendly error message
         return HttpResponse(status=500)
-
-
-from django.shortcuts import redirect, render
-from django.utils.translation import gettext as _
-
-from .models import Preset
 
 
 def save_preset(request, chat_id, preset_id=None):
@@ -914,3 +913,22 @@ def edit_preset(request, chat_id, preset_id):
         "chat/modals/presets/presets_form.html",
         {"form": form, "preset": preset, "preset_id": preset_id, "chat_id": chat_id},
     )
+
+
+def set_preset_default(request, chat_id: str, preset_id: int):
+    try:
+        preset = Preset.objects.get(id=preset_id)
+        preset = preset.set_as_default(request.user)
+        return render(
+            request,
+            "chat/modals/presets/card_list.html",
+            {
+                "presets": Preset.objects.get_accessible_presets(
+                    request.user, get_language()
+                ),
+                "chat_id": chat_id,
+            },
+        )
+    except ValueError:
+        # TODO: Preset refactor: show friendly error message
+        logger.error("Error setting default preset")

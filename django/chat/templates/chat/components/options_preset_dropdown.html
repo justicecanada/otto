@@ -8,7 +8,8 @@
          aria-label='{% trans "Select or create preset..." %}'
          value="{{ selected_preset }}" />
   <datalist id="preset_list">
-    {% for preset in option_presets %}<option value="{{ preset.preset_name }}"></option>{% endfor %}
+    {# TODO: change to billingual preset name #}
+    {% for preset in option_presets %}<option value="{{ preset.name_en }}"></option>{% endfor %}
   </datalist>
   <!-- Clear input button -->
   <button class="btn btn-none position-absolute top-0 end-0 px-1"

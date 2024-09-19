@@ -1,10 +1,12 @@
 {% load i18n %}
 {% load chat_tags %}
+{% load static %}
 
 {% block page_css %}
   <style>
   .card {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    border: none;
+    box-shadow: 2px 4px 10px -1px rgb(0 0 0 / 0.1), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important;
   }
 
   /* Do we want this?
@@ -20,57 +22,79 @@
     align-items: center;
     background-color: transparent;
     border-bottom: none;
+    padding-bottom: 0;
+    padding-top: .45rem;
 
     button {
       background-color: transparent;
       border: none;
-      border-color: var(--app-color-red-1);
+      
       i.bi.bi-heart-fill {
+        border-color: var(--app-color-red-1);
         color: var(--app-color-red-1);        
       }
-      &:hover {
+      &:hover {        
         i.bi.bi-heart {
+          border-color: var(--app-color-red-1);
           color: var(--app-color-red-1);    
         }
+
+        i.bi.bi-star {
+          border-color: var(--app-color-yellow-1);
+          color: var(--app-color-yellow-1);
+        }
+
+        i.bi.bi-heart,
+        i.bi.bi-heart-fill {
+          text-shadow: 0px 0px 7px var(--app-color-red-1);
+        } 
+
+        i.bi.bi-star,
+        i.bi.bi-star-fill {
+          text-shadow: 0px 0px 7px var(--app-color-yellow-2);
+        }
         background-color: transparent !important;
-        text-shadow: 0px 0px 7px var(--app-color-red-1);
+        
       }
-      &:focus-visible {
-        border: solid 1px var(--app-color-red-1);
-        background-color: var(--app-color-red-1-hover);
+      &:focus-visible {        
+        background-color: var(--bg-light-gray);
+        border: none !important;
+        outline: none !important;
         box-shadow: none;
+
+        &i.bi.bi-heart,
+        &i.bi.bi-heart-fill {
+          border: solid 1px var(--app-color-red-1);
+          background-color: var(--app-color-red-1-hover);
+        }
+
+        &i.bi.bi-start,
+        &i.bi.bi-star-fill {
+          border: solid 1px var(--app-color-yellow-1);
+          background-color: var(--app-color-yellow-2);          
+        }
+
         color: transparent;
       }
     }
   }
 
 
-  .card-footer {
-    display: flex !important;
-    background-color: transparent;
-    padding: 0;
+  .card-footer {      
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;  
+    background-color: transparent;    
+    border-top: none;
+    padding-top: 0;
+    padding-bottom: .65rem;
 
     button {
-      padding: var(--bs-card-cap-padding-y) var(--bs-card-cap-padding-x);
-      border: 0 solid var(--bs-card-border-color) !important;
-      border-radius: 0;
-
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      
       &:hover {
-        background-color: var(--bs-light) !important;
-      }
-
-
-      &:first-of-type {
-        border-bottom-left-radius: var(--bs-card-inner-border-radius) !important;
-      }
-
-      &:last-child {
-        border-left-width: 1px !important;
-        border-bottom-right-radius: var(--bs-card-inner-border-radius) !important;
-      }
-
-      i {
-        font-size: 0.9rem;
+        background-color: var(--bs-light) !important;        
       }
     }
   }
@@ -78,23 +102,24 @@
 
 {% endblock page_css %}
 
-<li class="card">
+<li class="card" data-default="{{ preset.default }}">
   <div class="card-header align-items-center">
-    <div class="card-title fs-6 my-auto text-truncate me-2 fw-medium">{{ preset.name_en }}</div>
+    <div class="card-title my-auto text-truncate me-2 fw-semibold" style="line-height: 1.25rem; font-size: 0.875rem; letter-spacing: -0.025rem;"
+      {# TODO: change to billingual preset name #}
+      title="{{ preset.name_en }}">{{ preset.name_en }}</div>
     <div class="d-flex align-items-center">
-      <i class="bi bi-people-fill text-secondary me-1"
-         data-bs-toggle="tooltip"
-         data-bs-title="{% trans 'Shared with others' %}"></i>
+      {% include "chat/modals/presets/shared_icon.html" %}
+      {% include "chat/modals/presets/default_icon.html" %}
       {% include "chat/modals/presets/favourite.html" %}
     </div>
-
   </div>
 
-  <hr class="px-2" style="margin-top: 0; margin-bottom: 0;">
-
-  <div class="card-body">
-    <p class="card-text"
-       style="-webkit-box-orient: vertical !important;
+  <div class="card-body pt-2"
+       style="line-height: 1.25rem;
+              font-size: 0.875rem">
+    <p class="preset-description card-text text-muted"
+       style="min-height: 4.5rem !important;
+              -webkit-box-orient: vertical !important;
               display: -webkit-box !important;
               -webkit-line-clamp: 4 !important;
               overflow: hidden !important;
@@ -103,19 +128,24 @@
   </div>
   <div class="card-footer">
     <button type="button"
-            class="btn btn-ghost flex-grow-1"
+            class="btn btn-light fw-semibold"
             data-bs-dismiss="modal"
             hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
-            hx-target="#options-accordion">
-      <i class="bi bi-download me-2 text-secondary"></i><span>{% trans "Load" %}</span>
-    </button>
+            hx-target="#options-accordion">{% trans "Load" %}</button>
     <button type="button"
+<<<<<<< HEAD
             class="btn btn-ghost flex-grow-1"
             hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
+=======
+            class="btn btn-light fw-semibold"
+            hx-get="{% url 'chat:get_preset_form' chat_id=chat_id %}"
+>>>>>>> presets-refactor
             hx-target="#presets-modal-body"
-            hx-swap="innerHTML transition:true">
-      <i class="bi bi-pencil me-2 text-secondary"></i><span>Edit</span>
-    </button>
+            hx-swap="innerHTML transition:true">{% trans "Edit" %}</button>
   </div>
 
 </li>
+
+{% block page_script %}
+  <script src="{% static 'chat/js/card.js' %}"></script>
+{% endblock %}

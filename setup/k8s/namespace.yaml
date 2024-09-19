@@ -1,3 +1,5 @@
+# CM-8: Defines the application's components within the AKS cluster
+
 apiVersion: v1
 kind: Namespace
 metadata:

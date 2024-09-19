@@ -69,6 +69,7 @@ class FeedbackForm(ModelForm):
         self.fields["chat_message"].initial = Message.objects.get(id=message_id)
 
 
+# AC-16 & AC-16(2): Enables the modification of user roles and group memberships
 class UserGroupForm(forms.Form):
     email = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),
