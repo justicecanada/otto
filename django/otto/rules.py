@@ -115,6 +115,8 @@ def can_manage_public_libraries(user):
 
 @predicate
 def can_change_publicity(user, library):
+    if library.is_personal_library:
+        return False
     if not library.id:
         return can_manage_public_libraries(user)
     return can_manage_public_libraries(user) and (
@@ -140,7 +142,7 @@ def can_edit_library(user, library):
 
 @predicate
 def can_delete_library(user, library):
-    if library.is_default_library:
+    if library.is_default_library or library.is_personal_library:
         return False
     if library.is_public:
         if is_admin(user):
@@ -174,6 +176,8 @@ def can_delete_document(user, document):
 
 @predicate
 def can_manage_library_users(user, library):
+    if library.is_personal_library:
+        return False
     if library.is_public:
         if is_admin(user):
             return True

@@ -467,10 +467,11 @@ def done_upload(request, message_id):
         chat.options.qa_library = chat.user.personal_library
         chat.options.qa_scope = "data_sources"
         if not DataSource.objects.filter(chat=chat).exists():
-            chat.data_source = DataSource.objects.create(
-                name_en=f"Uploads (Chat {str(chat.id).split('-')[0]})",
-                name_fr=f"Téléchargés (Chat {str(chat.id).split('-')[0]})",
+            DataSource.objects.create(
+                name_en=f"Chat {str(chat.id).split('-')[0]}",
+                name_fr=f"Chat {str(chat.id).split('-')[0]}",
                 library=chat.user.personal_library,
+                chat=chat,
             )
         chat.options.qa_data_sources.set([chat.data_source])
         chat.options.save()
