@@ -324,7 +324,7 @@ def qa_response(chat, response_message, eval=False):
         while processing_count:
             yield _(
                 "Adding files to the Library"
-            ) + f" {len(files)-processing_count+1}/{len(files)}..."
+            ) + f" ({len(files)-processing_count+1}/{len(files)})..."
             await asyncio.sleep(0.5)
             processing_count = await sync_to_async(
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
