@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 def get_editable_libraries(user):
     return [
         library
-        for library in Library.objects.filter(chat=None)
+        for library in Library.objects.all()
         if user.has_perm("librarian.edit_library", library)
     ]
 
