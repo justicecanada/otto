@@ -36,7 +36,7 @@
                   class="btn btn-sm btn-outline-dark"
                   data-bs-toggle="tooltip"
                   data-bs-title="{% trans "Create preset from current settings" %}"
-                  hx-get="{% url 'chat:get_preset_form' chat_id=chat.id %}"
+                  hx-get="{% url 'chat:create_preset' chat_id=chat.id %}"
                   hx-target="#presets-modal-body"
                   hx-swap="innerHTML transition:true">
             <i class="bi bi-floppy2-fill"></i>

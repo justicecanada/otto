@@ -133,13 +133,8 @@
             hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
             hx-target="#options-accordion">{% trans "Load" %}</button>
     <button type="button"
-<<<<<<< HEAD
             class="btn btn-ghost flex-grow-1"
             hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
-=======
-            class="btn btn-light fw-semibold"
-            hx-get="{% url 'chat:get_preset_form' chat_id=chat_id %}"
->>>>>>> presets-refactor
             hx-target="#presets-modal-body"
             hx-swap="innerHTML transition:true">{% trans "Edit" %}</button>
   </div>
