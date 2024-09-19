@@ -88,9 +88,6 @@ class Library(models.Model):
     # Last access time manually updated when library is queried through Library Q&A
     accessed_at = models.DateTimeField(auto_now_add=True)
 
-    chat = models.OneToOneField(
-        "chat.Chat", on_delete=models.CASCADE, null=True, blank=True
-    )
     order = models.IntegerField(default=0)
     is_public = models.BooleanField(default=False)
     is_default_library = models.BooleanField(default=False)
@@ -239,6 +236,15 @@ class DataSource(models.Model):
         SecurityLabel,
         on_delete=models.SET_NULL,
         null=True,
+    )
+
+    # Chats have their own data source, within user's personal library, for uploads
+    chat = models.OneToOneField(
+        "chat.Chat",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="data_source",
     )
 
     class Meta:

@@ -308,10 +308,24 @@ def translate_response(chat, response_message):
 
 def qa_response(chat, response_message, eval=False):
     """
-    Answer the user's question using a specific vector store table.
+    Answer a question using RAG on the selected library / data sources / documents
     """
     model = chat.options.qa_model
     llm = OttoLLM(model, 0.1)
+
+    user_message = response_message.parent
+    files = user_message.sorted_files if user_message is not None else []
+    if len(files) > 0:
+        response_str = "Placeholder for files upload response"
+        return StreamingHttpResponse(
+            streaming_content=htmx_stream(
+                chat,
+                response_message.id,
+                llm,
+                response_str=response_str,
+            ),
+            content_type="text/event-stream",
+        )
 
     # Apply filters if we are in qa mode and specific data sources are selected
     qa_scope = chat.options.qa_scope

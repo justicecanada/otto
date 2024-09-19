@@ -448,6 +448,8 @@ def done_upload(request, message_id):
     response_message = Message.objects.create(
         chat=user_message.chat, text="", is_bot=True, mode=mode, parent=user_message
     )
+    chat = user_message.chat
+    response = HttpResponse()
 
     if mode == "translate":
         # usage metrics
@@ -457,6 +459,33 @@ def done_upload(request, message_id):
     if mode == "summarize":
         # usage metrics
         chat_request_type_total.labels(user=request.user.upn, type="text summarization")
+
+    if mode == "qa":
+        # usage metrics
+        print("QA upload")
+        chat_request_type_total.labels(user=request.user.upn, type="qa upload")
+        chat.options.qa_library = chat.user.personal_library
+        chat.options.qa_scope = "data_sources"
+        if not DataSource.objects.filter(chat=chat).exists():
+            chat.data_source = DataSource.objects.create(
+                name_en=f"Uploads (Chat {str(chat.id).split('-')[0]})",
+                name_fr=f"Téléchargés (Chat {str(chat.id).split('-')[0]})",
+                library=chat.user.personal_library,
+            )
+        chat.options.qa_data_sources.set([chat.data_source])
+        chat.options.save()
+
+        response.write(
+            render_to_string(
+                "chat/components/chat_options_accordion.html",
+                {
+                    "options_form": ChatOptionsForm(
+                        instance=chat.options, user=request.user
+                    ),
+                    "swap": "true",
+                },
+            )
+        )
 
     response_init_message = {
         "is_bot": True,
@@ -471,7 +500,10 @@ def done_upload(request, message_id):
         ],
         "mode": mode,
     }
-    return render(request, "chat/components/chat_messages.html", context=context)
+    response.write(
+        render_to_string("chat/components/chat_messages.html", context=context)
+    )
+    return response
 
 
 @require_POST
