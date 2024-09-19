@@ -826,14 +826,17 @@ from django.utils.translation import gettext as _
 from .models import Preset
 
 
-def save_preset(request, chat_id):
+def save_preset(request, chat_id, preset_id=None):
     if request.method == "POST":
         # Determine which tab was selected
         selected_tab = request.POST.get("selected_tab", "en")
 
-        # Create a new Preset object
-        preset = Preset()
-        preset.owner = request.user
+        if preset_id:
+            preset = get_object_or_404(Preset, id=preset_id, owner=request.user)
+        else:
+            # Create a new Preset object
+            preset = Preset()
+            preset.owner = request.user
 
         # # get chat object from chat_id
         chat = Chat.objects.get(id=chat_id)
@@ -872,7 +875,6 @@ def save_preset(request, chat_id):
             # check if editable_by and accessible_to are empty
             if not editable_by or not accessible_to:
                 form = PresetForm(request.POST)
-                # Render the full form with the error message
                 context = {
                     "form": form,
                     "chat_id": chat_id,
@@ -882,32 +884,19 @@ def save_preset(request, chat_id):
                 }
                 return render(request, "chat/modals/presets/presets_form.html", context)
 
-        # Save the preset
         preset.save()
 
         if preset.is_public:
-
-            for user_id in editable_by:
-                preset.editable_by.add(user_id)
-            for user_id in accessible_to:
-                preset.accessible_to.add(user_id)
+            preset.editable_by.set(editable_by)
+            preset.accessible_to.set(accessible_to)
 
     # # Redirect to the card list page
     return redirect("chat:get_presets", chat_id=chat_id)
 
 
 def create_preset(request, chat_id):
-    if request.method == "POST":
-        form = PresetForm(request.POST)
-        if form.is_valid():
-            preset = form.save(commit=False)
-            preset.owner = request.user
-            preset.options = ChatOptions.objects.get(id=chat_id)
-            preset.save()
-            form.save_m2m()
-            return redirect("chat:get_presets", chat_id=chat_id)
-    else:
-        form = PresetForm()
+
+    form = PresetForm()
 
     return render(
         request,
@@ -918,16 +907,10 @@ def create_preset(request, chat_id):
 
 def edit_preset(request, chat_id, preset_id):
     preset = get_object_or_404(Preset, id=preset_id)
-    if request.method == "POST":
-        form = PresetForm(request.POST, instance=preset)
-        if form.is_valid():
-            form.save()
-            return redirect("chat:get_presets", chat_id=chat_id)
-    else:
-        form = PresetForm(instance=preset)
+    form = PresetForm(instance=preset)
 
     return render(
         request,
         "chat/modals/presets/presets_form.html",
-        {"form": form, "preset": preset, "chat_id": chat_id},
+        {"form": form, "preset": preset, "preset_id": preset_id, "chat_id": chat_id},
     )
