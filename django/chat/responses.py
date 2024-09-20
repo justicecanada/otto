@@ -24,7 +24,7 @@ from chat.utils import (
     summarize_long_text_async,
     url_to_text,
 )
-from librarian.models import Document
+from librarian.models import DataSource, Document, Library
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
@@ -60,6 +60,12 @@ def chat_response(chat, response_message, eval=False):
 
     def is_text_to_summarize(message):
         return message.mode == "summarize" and not message.is_bot
+
+    # TODO: Allow selection of agent on/off
+    # agent_enabled = chat.options.agent_enabled
+    agent_enabled = True
+    if agent_enabled:
+        return chat_agent(chat, response_message, eval)
 
     system_prompt = chat.options.chat_system_prompt
     chat_history = [ChatMessage(role=MessageRole.SYSTEM, content=system_prompt)]
@@ -445,6 +451,60 @@ def error_response(chat, response_message):
             response_message.id,
             llm,
             response_str=_("Sorry, this isn't working right now."),
+        ),
+        content_type="text/event-stream",
+    )
+
+
+def chat_agent(chat, response_message, eval=False):
+    """
+    Select the mode for the chat response.
+    """
+    user_message = response_message.parent
+    if user_message is None:
+        return error_response(chat, response_message)
+
+    user_text = user_message.text
+    llm = OttoLLM()
+    prompt = (
+        "Your role is to determine the best mode to handle the user's message.\n"
+        "The available modes and their descriptions are below:\n"
+        "- 'qa' mode: Question answering over previously uploaded 'document libraries'.\n"
+        "  Available document libraries:\n"
+    )
+    available_libraries = [
+        library
+        for library in Library.objects.all()
+        if chat.user.has_perm("librarian.view_library", library)
+    ]
+    for library in available_libraries:
+        prompt += f"  - {library.name} {(': ' + library.description) if library.description else ''}\n"
+    prompt += (
+        "- 'chat' mode: General purpose interaction with LLM, like ChatGPT.\n\n"
+        "Based on the user's message (below), respond with the appropriate mode.\n"
+        "User's message:\n\n"
+        f"{user_text}\n\n"
+        "Mode: (qa, chat)"
+    )
+    mode_response_raw = llm.complete(prompt)
+    print(
+        "Mode selected based on the prompt and response:\n",
+        prompt,
+        "\n\n",
+        mode_response_raw,
+    )
+    if "qa" in mode_response_raw:
+        mode = "qa"
+    else:
+        mode = "chat"
+    chat.options.mode = mode
+    chat.options.save()
+    return StreamingHttpResponse(
+        streaming_content=htmx_stream(
+            chat,
+            response_message.id,
+            llm,
+            response_str=_("Mode selected: ") + mode,
         ),
         content_type="text/event-stream",
     )

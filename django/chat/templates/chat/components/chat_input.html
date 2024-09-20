@@ -21,18 +21,6 @@
       </div>
       <div class="form-group mb-3" id="chat-inputs">
         <div class="card" id="chat-toolbar">
-          <div class="col-auto pe-1 d-none">
-            <select class="form-select form-select-sm text-muted fw-semibold"
-                    name="mode"
-                    id="chat-action"
-                    aria-label='{% trans "Action" %}'
-                    onchange="handleModeChange(this.value, this);">
-              <option value="chat">{% trans "Chat" %}</option>
-              <option value="qa">{% trans "Q&A" %}</option>
-              <option value="summarize">{% trans "Summarize" %}</option>
-              <option value="translate">{% trans "Translate" %}</option>
-            </select>
-          </div>
           <div class="row">
             <div class="col">
               <ul class="nav nav-pills" id="chat-modes" role="tablist">

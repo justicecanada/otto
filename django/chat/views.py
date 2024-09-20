@@ -433,6 +433,8 @@ def init_upload(request, chat_id):
     """
     chat = Chat.objects.get(id=chat_id)
     mode = chat.options.mode
+    if mode == "chat":
+        mode = "qa"
     # Create the user's message in database
     logger.info("File upload initiated.", chat_id=chat_id, mode=mode)
     message = Message.objects.create(chat=chat, text="", is_bot=False, mode=mode)
