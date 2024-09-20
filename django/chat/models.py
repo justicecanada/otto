@@ -215,6 +215,7 @@ class PresetManager(models.Manager):
                 Q(owner=user) | Q(is_public=True) | Q(accessible_to=user),
                 is_deleted=False,
             )
+            .distinct()
             .annotate(
                 favourite=Coalesce(
                     Q(favourited_by__in=[user]),
