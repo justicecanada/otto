@@ -40,7 +40,7 @@
     // If we're in "chat" or "qa" mode, don't do anything
     // TODO: Allow temporary QA libraries for drag-drop into chat
     let mode = document.querySelector('#chat-action').value;
-    if (mode == 'chat' || mode == 'qa') {
+    if (mode == 'chat') {
       return;
     }
     // make sure we're dragging a file
