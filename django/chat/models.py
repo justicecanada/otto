@@ -148,6 +148,7 @@ class ChatOptions(models.Model):
     chat_model = models.CharField(max_length=255, default="gpt-4o")
     chat_temperature = models.FloatField(default=0.1)
     chat_system_prompt = models.TextField(blank=True)
+    chat_agent = models.BooleanField(default=True)
 
     # Summarize-specific options
     summarize_model = models.CharField(max_length=255, default="gpt-4o")

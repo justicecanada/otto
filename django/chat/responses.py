@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
 from asgiref.sync import sync_to_async
+from data_fetcher.util import get_request
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from rules.contrib.views import objectgetter
@@ -31,41 +32,41 @@ logger = get_logger(__name__)
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def otto_response(request, message_id=None):
+def otto_response(request, message_id=None, switch_mode=False, skip_agent=False):
     """
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
     """
     response_message = Message.objects.get(id=message_id)
     chat = response_message.chat
-    assert chat.user_id == request.user.id
     mode = chat.options.mode
 
     # For costing and logging. Contextvars are accessible anytime during the request
     # including in async functions (i.e. htmx_stream) and Celery tasks.
     bind_contextvars(message_id=message_id, feature=mode)
 
+    agent_enabled = not skip_agent and mode == "chat" and chat.options.chat_agent
+    if agent_enabled:
+        return chat_agent(chat, response_message)
     if mode == "chat":
-        return chat_response(chat, response_message)
+        return chat_response(chat, response_message, switch_mode=switch_mode)
     if mode == "summarize":
         return summarize_response(chat, response_message)
     if mode == "translate":
         return translate_response(chat, response_message)
     if mode == "qa":
-        return qa_response(chat, response_message)
+        return qa_response(chat, response_message, switch_mode=switch_mode)
     else:
         return error_response(chat, response_message)
 
 
-def chat_response(chat, response_message, eval=False):
+def chat_response(
+    chat,
+    response_message,
+    switch_mode=False,
+):
 
     def is_text_to_summarize(message):
         return message.mode == "summarize" and not message.is_bot
-
-    # TODO: Allow selection of agent on/off
-    # agent_enabled = chat.options.agent_enabled
-    agent_enabled = True
-    if agent_enabled:
-        return chat_agent(chat, response_message, eval)
 
     system_prompt = chat.options.chat_system_prompt
     chat_history = [ChatMessage(role=MessageRole.SYSTEM, content=system_prompt)]
@@ -104,12 +105,8 @@ def chat_response(chat, response_message, eval=False):
                 ),
             ),
             content_type="text/event-stream",
+            switch_mode=switch_mode,
         )
-
-    # TODO: Update eval stuff
-    # if eval:
-    #     # Just return the full response and an empty list representing source nodes
-    #     return llm.invoke(chat_history).content, []
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
@@ -117,6 +114,7 @@ def chat_response(chat, response_message, eval=False):
             response_message.id,
             llm,
             response_replacer=llm.chat_stream(chat_history),
+            switch_mode=switch_mode,
         ),
         content_type="text/event-stream",
     )
@@ -129,7 +127,6 @@ def stop_response(request, message_id):
     """
     response_message = Message.objects.get(id=message_id)
     chat = response_message.chat
-    assert chat.user_id == request.user.id
 
     cache.set(f"stop_response_{message_id}", True, timeout=60)
 
@@ -312,7 +309,7 @@ def translate_response(chat, response_message):
     )
 
 
-def qa_response(chat, response_message, eval=False):
+def qa_response(chat, response_message, switch_mode=False):
     """
     Answer a question using RAG on the selected library / data sources / documents
     """
@@ -369,14 +366,13 @@ def qa_response(chat, response_message, eval=False):
             "Sorry, I couldn't find any information about that. "
             "Try selecting more data sources or documents, or try a different library."
         )
-        if eval:
-            return response_str, []
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
                 llm,
                 response_str=response_str,
+                switch_mode=switch_mode,
             ),
             content_type="text/event-stream",
         )
@@ -416,12 +412,14 @@ def qa_response(chat, response_message, eval=False):
         response_str = _(
             "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
         )
-        if eval:
-            return response_str, source_nodes
         return StreamingHttpResponse(
             # Although there are no LLM costs, there is still a query embedding cost
             streaming_content=htmx_stream(
-                chat, response_message.id, llm, response_str=response_str
+                chat,
+                response_message.id,
+                llm,
+                response_str=response_str,
+                switch_mode=switch_mode,
             ),
             content_type="text/event-stream",
         )
@@ -435,6 +433,7 @@ def qa_response(chat, response_message, eval=False):
             llm,
             response_generator=response.response_gen,
             source_nodes=response.source_nodes,
+            switch_mode=switch_mode,
         ),
         content_type="text/event-stream",
     )
@@ -456,16 +455,17 @@ def error_response(chat, response_message):
     )
 
 
-def chat_agent(chat, response_message, eval=False):
+def chat_agent(chat, response_message):
     """
     Select the mode for the chat response.
     """
+    bind_contextvars(feature="chat_agent")
     user_message = response_message.parent
     if user_message is None:
         return error_response(chat, response_message)
 
     user_text = user_message.text
-    llm = OttoLLM()
+    llm = OttoLLM("gpt-35")
     prompt = (
         "Your role is to determine the best mode to handle the user's message.\n"
         "The available modes and their descriptions are below:\n"
@@ -478,13 +478,14 @@ def chat_agent(chat, response_message, eval=False):
         if chat.user.has_perm("librarian.view_library", library)
     ]
     for library in available_libraries:
-        prompt += f"  - {library.name} {(': ' + library.description) if library.description else ''}\n"
+        prompt += f"  - {library.name} (id={library.id}){(': ' + library.description) if library.description else ''}\n"
     prompt += (
         "- 'chat' mode: General purpose interaction with LLM, like ChatGPT.\n\n"
-        "Based on the user's message (below), respond with the appropriate mode.\n"
+        "Based on the user's message (below), respond with the appropriate mode and library, if any.\n"
         "User's message:\n\n"
         f"{user_text}\n\n"
         "Mode: (qa, chat)"
+        "Library ID: (if qa mode)"
     )
     mode_response_raw = llm.complete(prompt)
     print(
@@ -493,18 +494,34 @@ def chat_agent(chat, response_message, eval=False):
         "\n\n",
         mode_response_raw,
     )
+    original_mode = chat.options.mode
     if "qa" in mode_response_raw:
         mode = "qa"
+        try:
+            library_id = int("".join(c for c in mode_response_raw if c.isdigit()))
+        except:
+            library_id = None
     else:
         mode = "chat"
+        library_id = None
     chat.options.mode = mode
+    if (
+        library_id
+        and Library.objects.filter(id=library_id).exists()
+        and chat.user.has_perm(
+            "librarian.view_library", Library.objects.get(id=library_id)
+        )
+    ):
+        chat.options.qa_library_id = library_id
+        chat.options.qa_scope = "all"
+        chat.options.qa_data_sources.clear()
+        chat.options.qa_documents.clear()
     chat.options.save()
-    return StreamingHttpResponse(
-        streaming_content=htmx_stream(
-            chat,
-            response_message.id,
-            llm,
-            response_str=_("Mode selected: ") + mode,
-        ),
-        content_type="text/event-stream",
+    llm.create_costs()
+    request = get_request()
+    return otto_response(
+        request,
+        message_id=response_message.id,
+        switch_mode=mode if mode != original_mode else False,
+        skip_agent=True,
     )

@@ -1,0 +1,20 @@
+{% load i18n %}
+
+<p>
+  <em>{% trans "Switched mode to" %} {{ mode_str }}.</em>
+</p>
+{% if mode == "qa" %}
+  <p>{% trans "Selected library:" %} {{ library_str }}</p>
+{% endif %}
+
+<script>
+(function(){
+  handleModeChange('{{ mode }}');
+  // Select the library
+  const qa_library_select = document.getElementById("id_qa_library");
+  if (qa_library_select.value !== {{ library_id }}) {
+    qa_library_select.value = {{ library_id }};
+    qa_library_select.dispatchEvent(new Event('change'));
+  }
+})();
+</script>
