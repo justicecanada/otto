@@ -26,7 +26,7 @@ function handleModeChange(mode, element = null) {
   let hidden_mode_input = document.querySelector('#chat-options input[name="mode"]');
   hidden_mode_input.value = mode;
   // If the element is not null, dispatch a change event to trigger the form submission
-  if (element) hidden_mode_input.dispatchEvent(new Event('change'));
+  triggerOptionSave();
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
 
@@ -58,6 +58,7 @@ function updateAccordion(mode) {
 // Card links should change the mode dropdown and fire change event
 function clickCard(mode) {
   toggleAriaSelected(mode);
+  handleModeChange(mode);
   // Focus the chat input
   document.querySelector('#chat-prompt').focus();
 }
