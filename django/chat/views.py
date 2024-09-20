@@ -486,6 +486,7 @@ def done_upload(request, message_id):
                     "options_form": ChatOptionsForm(
                         instance=chat.options, user=request.user
                     ),
+                    "mode": "qa",
                     "swap": "true",
                 },
             )

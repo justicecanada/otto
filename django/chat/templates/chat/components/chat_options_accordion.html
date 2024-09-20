@@ -7,11 +7,13 @@
   {% include 'chat/components/options_3_translate.html' with options_section_id='translate' %}
 </div>
 <script>
-  if ("{{ preset_loaded }}" === "true" || "{{ swap }}" === "true") {
-    let mode = "{{ options_form.mode.value }}";
-    handleModeChange(mode);
-    setTimeout(showHideQaSourceForms, 100);
-  }
+  (function (){
+    if ("{{ preset_loaded }}" === "true" || "{{ swap }}" === "true") {
+      let mode = "{{ options_form.mode.value }}";
+      handleModeChange(mode);
+      setTimeout(showHideQaSourceForms, 100);
+    }
+  })();
 
   showHideQaSourceForms();
   updateLibraryModalButton();
