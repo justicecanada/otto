@@ -465,6 +465,8 @@ def chat_agent(chat, response_message):
         return error_response(chat, response_message)
 
     user_text = user_message.text
+    if len(user_text) > 500:
+        user_text = user_text[:500] + "..."
     llm = OttoLLM("gpt-35")
     prompt = (
         "Your role is to determine the best mode to handle the user's message.\n"
@@ -484,16 +486,16 @@ def chat_agent(chat, response_message):
         "Based on the user's message (below), respond with the appropriate mode and library, if any.\n"
         "User's message:\n\n"
         f"{user_text}\n\n"
-        "Mode: (qa, chat)"
+        "Mode: (qa, chat)\n"
         "Library ID: (if qa mode)"
     )
     mode_response_raw = llm.complete(prompt)
-    print(
-        "Mode selected based on the prompt and response:\n",
-        prompt,
-        "\n\n",
-        mode_response_raw,
-    )
+    # print(
+    #     "Mode selected based on the prompt and response:\n",
+    #     prompt,
+    #     "\n\n",
+    #     mode_response_raw,
+    # )
     original_mode = chat.options.mode
     if "qa" in mode_response_raw:
         mode = "qa"
