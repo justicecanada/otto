@@ -27,15 +27,25 @@
                     id="chat-action"
                     aria-label='{% trans "Action" %}'
                     onchange="handleModeChange(this.value, this);">
+              <option value="chat">{% trans "Chat" %}</option>
               <option value="qa">{% trans "Q&A" %}</option>
               <option value="summarize">{% trans "Summarize" %}</option>
               <option value="translate">{% trans "Translate" %}</option>
-              <option value="chat">{% trans "Chat" %}</option>
             </select>
           </div>
           <div class="row">
             <div class="col">
               <ul class="nav nav-pills" id="chat-modes" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button role="tab"
+                          class="nav-link chat-option"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          data-bs-title='{% trans "ChatGPT for writing assistance (not for facts)" %}'
+                          type="button"
+                          aria-selected="false"
+                          onclick="clickCard('chat')">{% trans "Chat" %}</button>
+                </li>
                 <li class="nav-item" role="presentation">
                   <button role="tab"
                           class="nav-link qa-option"
@@ -65,16 +75,6 @@
                           type="button"
                           aria-selected="false"
                           onclick="clickCard('translate')">{% trans "Translate" %}</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button role="tab"
-                          class="nav-link chat-option"
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          data-bs-title='{% trans "ChatGPT for writing assistance (not for facts)" %}'
-                          type="button"
-                          aria-selected="false"
-                          onclick="clickCard('chat')">{% trans "Chat" %}</button>
                 </li>
               </ul>
             </div>

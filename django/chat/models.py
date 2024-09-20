@@ -21,7 +21,7 @@ from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
 
-DEFAULT_MODE = "qa"
+DEFAULT_MODE = "chat"
 
 
 class ChatManager(models.Manager):
