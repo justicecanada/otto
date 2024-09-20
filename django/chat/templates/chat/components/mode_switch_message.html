@@ -4,7 +4,9 @@
   <em>{% trans "Switched mode to" %} {{ mode_str }}.</em>
 </p>
 {% if mode == "qa" %}
-  <p>{% trans "Selected library:" %} {{ library_str }}</p>
+  <p>
+    <em>{% trans "Selected library:" %} {{ library_str }}</em>
+  </p>
 {% endif %}
 
 <script>

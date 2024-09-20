@@ -467,7 +467,7 @@ def chat_agent(chat, response_message):
     user_text = user_message.text
     if len(user_text) > 500:
         user_text = user_text[:500] + "..."
-    llm = OttoLLM("gpt-35")
+    llm = OttoLLM()
     prompt = (
         "Your role is to determine the best mode to handle the user's message.\n"
         "The available modes and their descriptions are below:\n"
@@ -483,7 +483,8 @@ def chat_agent(chat, response_message):
         prompt += f"  - {library.name} (id={library.id}){(': ' + library.description) if library.description else ''}\n"
     prompt += (
         "- 'chat' mode: General purpose interaction with LLM, like ChatGPT.\n\n"
-        "Based on the user's message (below), respond with the appropriate mode and library, if any.\n"
+        "Based on the user's message (below), respond with the appropriate mode and library, if any. "
+        "For questions unrelated to the available libraries, prefer to use 'chat' mode.\n"
         "User's message:\n\n"
         f"{user_text}\n\n"
         "Mode: (qa, chat)\n"

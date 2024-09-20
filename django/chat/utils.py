@@ -230,6 +230,7 @@ async def htmx_stream(
             await asyncio.sleep(0.01)
 
         yield sse_string(full_message, format, dots=False, remove_stop=True)
+        await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
 
