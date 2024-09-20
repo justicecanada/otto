@@ -23,9 +23,8 @@ function scrollToBottom(smooth = true, force = false) {
 
 function handleModeChange(mode, element = null) {
   // Set the hidden input value to the selected mode
-  let hidden_mode_input = document.querySelector('#chat-options input[name="mode"]');
+  let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
-  // If the element is not null, dispatch a change event to trigger the form submission
   triggerOptionSave();
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];

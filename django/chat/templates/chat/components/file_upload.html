@@ -40,7 +40,10 @@
     var dt = (e && e.dataTransfer);
     var isFile = (dt && dt.types && dt.types.length == 1 && dt.types[0] == "Files");
     if (isFile) {
-      // and, if so, show the overlay
+      // check if the mode is "chat"; if so, switch to QA mode
+      if (document.querySelector('#id_mode').value == 'chat') {
+        handleModeChange('qa');
+      }
       showOverlay();
     }
   }
