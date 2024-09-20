@@ -41,7 +41,8 @@
     // TODO: Allow temporary QA libraries for drag-drop into chat
     let mode = document.querySelector('#chat-action').value;
     if (mode == 'chat') {
-      return;
+      document.querySelector('#chat-action').value = 'qa';
+      document.querySelector('#chat-action').dispatchEvent(new Event('change'));
     }
     // make sure we're dragging a file
     var dt = (e && e.dataTransfer);
