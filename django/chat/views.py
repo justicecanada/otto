@@ -2,6 +2,7 @@ import json
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -828,7 +829,7 @@ def set_preset_favourite(request, preset_id):
 def save_preset(request, chat_id, preset_id=None):
     if request.method == "POST":
         # Determine which tab was selected
-        selected_tab = request.POST.get("selected_tab", "en")
+        form = PresetForm(request.POST)
 
         if preset_id:
             preset = get_object_or_404(Preset, id=preset_id, owner=request.user)
@@ -836,6 +837,7 @@ def save_preset(request, chat_id, preset_id=None):
             # Create a new Preset object
             preset = Preset()
             preset.owner = request.user
+            preset_id = preset.id
 
         # # get chat object from chat_id
         chat = Chat.objects.get(id=chat_id)
@@ -843,9 +845,9 @@ def save_preset(request, chat_id, preset_id=None):
         english_title = request.POST.get("name_en", "")
         french_title = request.POST.get("name_fr", "")
 
+        # check if both titles are empty
         if english_title == "" and french_title == "":
 
-            form = PresetForm(request.POST)
             # # Render the full form with the error message
             context = {
                 "form": form,
@@ -853,6 +855,36 @@ def save_preset(request, chat_id, preset_id=None):
                 "error_message": _(
                     "Please provide a title in either English or French."
                 ),
+            }
+            return render(request, "chat/modals/presets/presets_form.html", context)
+
+        # check if the title for english or french already exists
+        if (
+            Preset.objects.filter(
+                Q(name_en=english_title) | Q(name_fr=english_title), owner=request.user
+            )
+            .exclude(id=preset_id)
+            .exists()
+        ) and english_title != "":
+            context = {
+                "form": form,
+                "chat_id": chat_id,
+                "error_message": _("A preset with your English title already exists."),
+            }
+            return render(request, "chat/modals/presets/presets_form.html", context)
+
+        # check if the title for french already exists
+        if (
+            Preset.objects.filter(
+                Q(name_fr=french_title) | Q(name_en=french_title), owner=request.user
+            )
+            .exclude(id=preset_id)
+            .exists()
+        ) and french_title != "":
+            context = {
+                "form": form,
+                "chat_id": chat_id,
+                "error_message": _("A preset with your French title already exists."),
             }
             return render(request, "chat/modals/presets/presets_form.html", context)
 
@@ -873,7 +905,6 @@ def save_preset(request, chat_id, preset_id=None):
         if preset.is_public:
             # check if editable_by and accessible_to are empty
             if not editable_by or not accessible_to:
-                form = PresetForm(request.POST)
                 context = {
                     "form": form,
                     "chat_id": chat_id,
