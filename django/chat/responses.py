@@ -17,6 +17,7 @@ from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from chat.models import Message
+from chat.prompts import current_time_prompt
 from chat.tasks import translate_file
 from chat.utils import (
     htmx_stream,
@@ -68,7 +69,7 @@ def chat_response(
     def is_text_to_summarize(message):
         return message.mode == "summarize" and not message.is_bot
 
-    system_prompt = chat.options.chat_system_prompt
+    system_prompt = current_time_prompt() + chat.options.chat_system_prompt
     chat_history = [ChatMessage(role=MessageRole.SYSTEM, content=system_prompt)]
     chat_history += [
         ChatMessage(

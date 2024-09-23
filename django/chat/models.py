@@ -14,6 +14,7 @@ from chat.prompts import (
     QA_PRE_INSTRUCTIONS,
     QA_PROMPT_TEMPLATE,
     QA_SYSTEM_PROMPT,
+    current_time_prompt,
 )
 from librarian.models import DataSource, Library, SavedFile
 from otto.models import SecurityLabel
@@ -203,7 +204,7 @@ class ChatOptions(models.Model):
         return ChatPromptTemplate(
             message_templates=[
                 ChatMessage(
-                    content=self.qa_system_prompt,
+                    content=current_time_prompt() + self.qa_system_prompt,
                     role=MessageRole.SYSTEM,
                 ),
                 ChatMessage(
