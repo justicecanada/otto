@@ -167,7 +167,6 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     # AC-2 & AC-3: Authentication, AC-14: Limited Access
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    # Static files
     "whitenoise.middleware.WhiteNoiseMiddleware",
     # AC-3 & AC-14: Limited Access to handle login flows: redirect to login page, use Azure login, accept terms to use
     # AC-3(7): Custom middleware for enforcing role-based access control
@@ -175,6 +174,7 @@ MIDDLEWARE = [
     # AC-2 & AC-14: Azure AD Integration to protect entire site by default
     "azure_auth.middleware.AzureMiddleware",
     "otto.utils.auth.AcceptTermsMiddleware",
+    "data_fetcher.middleware.GlobalRequestMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",

@@ -7,6 +7,7 @@ from django.conf import settings
 
 from rules import add_perm, is_group_member, predicate
 
+from chat.models import Chat
 from librarian.models import LibraryUserRole
 
 # AC-16 & AC-16(2): Real-time enforcement of modified security attributes
@@ -116,6 +117,8 @@ def can_manage_public_libraries(user):
 
 @predicate
 def can_change_publicity(user, library):
+    if library.is_personal_library:
+        return False
     if not library.id:
         return can_manage_public_libraries(user)
     return can_manage_public_libraries(user) and (
@@ -141,7 +144,7 @@ def can_edit_library(user, library):
 
 @predicate
 def can_delete_library(user, library):
-    if library.is_default_library:
+    if library.is_default_library or library.is_personal_library:
         return False
     if library.is_public:
         if is_admin(user):
@@ -158,6 +161,8 @@ def can_edit_data_source(user, data_source):
 
 @predicate
 def can_delete_data_source(user, data_source):
+    if Chat.objects.filter(data_source=data_source).exists():
+        return False
     if data_source.library.is_default_library:
         return is_admin(user)
     return can_edit_library(user, data_source.library)
@@ -175,6 +180,8 @@ def can_delete_document(user, document):
 
 @predicate
 def can_manage_library_users(user, library):
+    if library.is_personal_library:
+        return False
     if library.is_public:
         if is_admin(user):
             return True

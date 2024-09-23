@@ -250,7 +250,6 @@ def test_chat_routes(client, all_apps_user):
     new_translate = reverse("chat:translate")
     new_summarize = reverse("chat:summarize")
     new_qa = reverse("chat:qa")
-    new_document_qa = reverse("chat:document_qa")
     new_chat = reverse("chat:new_chat")
     Chat.objects.all().delete()
     # Check that the routes are accessible. Each should create a new chat
@@ -262,8 +261,6 @@ def test_chat_routes(client, all_apps_user):
     response = client.get(new_summarize)
     assert response.status_code == 302
     response = client.get(new_qa)
-    assert response.status_code == 302
-    response = client.get(new_document_qa)
     assert response.status_code == 302
     response = client.get(new_chat)
     assert response.status_code == 302
@@ -325,7 +322,7 @@ def test_init_upload(client, all_apps_user):
     assert response.status_code == 200
 
 
-# Test done_upload view with modes "translate", "summarize" and "document_qa"
+# Test done_upload view with modes "translate", "summarize" and "qa"
 @pytest.mark.django_db
 def test_done_upload(client, all_apps_user):
     user = all_apps_user()
@@ -337,7 +334,7 @@ def test_done_upload(client, all_apps_user):
     message = Message.objects.create(chat=chat, text="Hello", mode="summarize")
     response = client.get(reverse("chat:done_upload", args=[message.id]))
     assert response.status_code == 200
-    message = Message.objects.create(chat=chat, text="Hello", mode="document_qa")
+    message = Message.objects.create(chat=chat, text="Hello", mode="qa")
     response = client.get(reverse("chat:done_upload", args=[message.id]))
     assert response.status_code == 200
 
@@ -592,6 +589,53 @@ def test_qa_response(client, all_apps_user):
 
 
 @pytest.mark.django_db
+def test_chat_agent(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    # Create a chat using the chat_with_ai route to create it with appropriate options
+    response = client.get(reverse("chat:chat_with_ai"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+
+    message = Message.objects.create(chat=chat, text="Hello", mode="chat")
+    response_message = Message.objects.create(
+        chat=chat, mode="chat", is_bot=True, parent=message
+    )
+
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+    # Refresh the chat
+    chat.refresh_from_db()
+    # Check that the chat mode is "chat"
+    assert chat.options.mode == "chat"
+
+    # Ask a generic question to the chat agent, not about the department
+    message = Message.objects.create(
+        chat=chat, text="What is the meaning of life?", mode="chat"
+    )
+    response_message = Message.objects.create(
+        chat=chat, mode="chat", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+    chat.refresh_from_db()
+    # Check that the chat mode is still "chat"
+    assert chat.options.mode == "chat"
+
+    # Ask a question to the chat agent about Corporate library
+    message = Message.objects.create(
+        chat=chat, text="What is my corporate dental coverage?", mode="chat"
+    )
+    response_message = Message.objects.create(
+        chat=chat, mode="chat", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+    chat.refresh_from_db()
+    # Check that the chat mode has been switched to "qa"
+    assert chat.options.mode == "qa"
+
+
+@pytest.mark.django_db
 def test_api_qa(client, all_apps_user, settings):
 
     # For some reason, the rule isn't getting loaded automatically in this test!
@@ -721,8 +765,7 @@ def test_qa_response(client, all_apps_user):
     response = client.get(reverse("chat:qa"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
 
-    # Test chat_response with Document QA mode. Start with no files
-    # Now make a new message asking a question about the document(s)
+    # Test chat_response with QA mode. This should query the Corporate library.
     message = Message.objects.create(
         chat=chat,
         text="What is the capital of Canada?",
@@ -734,61 +777,43 @@ def test_qa_response(client, all_apps_user):
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
 
-    # TODO: The latest bot message should NOT have answersources
-    # response_message = (
-    #     Message.objects.filter(chat=chat).order_by("-created_at").first()
-    # )
-    # assert response_message.sources.count() == 0
 
-    # Now add some files
-    # TODO: This doesn't actually complete, again because of the SSE testing issue
-    files_message = Message.objects.create(chat=chat, text="", mode="qa")
-    files_message_reponse = Message.objects.create(
-        chat=chat, text="", mode="qa", is_bot=True, parent=files_message
+@pytest.mark.django_db
+def test_qa_filters(client, all_apps_user):
+    # Create an empty library
+    empty_library = Library.objects.create(name="Test Library")
+    # Create a chat by hitting the new chat route in QA mode
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("chat:qa"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+    chat_options = chat.options
+    chat_options.qa_library = empty_library
+    chat_options.save()
+    # Create a message asking a question by hitting the chat_message route
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "What is the capital of Canada?"},
     )
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        with open(f"{tmpdirname}/test file.txt", "w") as file:
-            file.write("The capital of Canada is Ottawa.")
-        file1 = ChatFile.objects.create(
-            message_id=files_message.id,
-            filename="test file.txt",
-            eof=1,
-            content_type="text/plain",
-        )
-        file1.saved_file.file.save(
-            "test file.txt", open(f"{tmpdirname}/test file.txt", "rb")
-        )
-        file2 = ChatFile.objects.create(
-            message_id=files_message.id,
-            filename="test file2.txt",
-            eof=1,
-            content_type="text/plain",
-        )
-        file2.saved_file.file.save(
-            "test file2.txt", open(f"{tmpdirname}/test file.txt", "rb")
-        )
-        response = client.get(
-            reverse("chat:chat_response", args=[files_message_reponse.id])
-        )
-        assert response.status_code == 200
-
-    # Ask the question again
-    message = Message.objects.create(
-        chat=chat,
-        text="What is the capital of Canada?",
-        mode="qa",
-    )
-    response_message = Message.objects.create(
-        chat=chat, text="", mode="qa", is_bot=True, parent=message
-    )
-    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
-
-    # TODO: The latest bot message should have answersources
-    # response_message = (
-    #     Message.objects.filter(chat=chat).order_by("-created_at").first()
-    # )
-    # assert response_message.sources.count() > 0
+    # Create a response by hitting the chat_response route
+    response = client.get(
+        reverse("chat:chat_response", args=[Message.objects.last().id])
+    )
+    assert response.status_code == 200
+    # Change the chat_options qa_scope to "documents" and "data_sources" and try each
+    chat_options.qa_scope = "documents"
+    chat_options.save()
+    response = client.get(
+        reverse("chat:chat_response", args=[Message.objects.last().id])
+    )
+    assert response.status_code == 200
+    chat_options.qa_scope = "data_sources"
+    chat_options.save()
+    response = client.get(
+        reverse("chat:chat_response", args=[Message.objects.last().id])
+    )
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db

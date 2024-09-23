@@ -75,10 +75,14 @@ class DataSourceDetailForm(forms.ModelForm):
     template_name = "librarian/forms/data_source.html"
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
         self.library_id = kwargs.pop("library_id", None)
         super(DataSourceDetailForm, self).__init__(*args, **kwargs)
         if self.library_id:
             self.fields["library"].initial = self.library_id
+        self.deletable = self.instance.pk and self.user.has_perm(
+            "librarian.delete_data_source", self.instance
+        )
 
     class Meta:
         model = DataSource
