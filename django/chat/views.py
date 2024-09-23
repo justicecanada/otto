@@ -27,7 +27,7 @@ from chat.metrics.feedback_metrics import (
     chat_negative_feedback_total,
     chat_positive_feedback_total,
 )
-from chat.models import Chat, ChatFile, ChatOptions, Message
+from chat.models import Chat, ChatFile, ChatOptions, Message, create_chat_data_source
 from chat.utils import llm_response_to_html, title_chat
 from librarian.models import DataSource, Library
 from otto.models import App, SecurityLabel
@@ -297,12 +297,9 @@ def chat(request, chat_id):
         chat.save()
     if not request.user.personal_library:
         request.user.create_personal_library()
-    if not DataSource.objects.filter(chat=chat).exists():
-        DataSource.objects.create(
-            name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
-            library=chat.user.personal_library,
-            chat=chat,
-        )
+    if not chat.data_source:
+        chat.data_source = create_chat_data_source(request.user)
+        chat.save()
     # END INSURANCE CODE
 
     mode = chat.options.mode

@@ -24,6 +24,13 @@ logger = get_logger(__name__)
 DEFAULT_MODE = "chat"
 
 
+def create_chat_data_source(user):
+    return DataSource.objects.create(
+        name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        library=user.personal_library,
+    )
+
+
 class ChatManager(models.Manager):
     def create(self, *args, **kwargs):
         if "mode" in kwargs:
@@ -34,13 +41,8 @@ class ChatManager(models.Manager):
             user=kwargs["user"], mode=mode
         )
         kwargs["security_label_id"] = SecurityLabel.default_security_label().id
+        kwargs["data_source"] = create_chat_data_source(kwargs["user"])
         instance = super().create(*args, **kwargs)
-        # Create data source
-        DataSource.objects.create(
-            name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
-            library=instance.user.personal_library,
-            chat=instance,
-        )
         return instance
 
 
@@ -66,6 +68,14 @@ class Chat(models.Model):
 
     options = models.OneToOneField(
         "ChatOptions", on_delete=models.CASCADE, related_name="chat", null=True
+    )
+
+    data_source = models.OneToOneField(
+        "librarian.DataSource",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="chat",
     )
 
     def __str__(self):
