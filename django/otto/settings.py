@@ -163,6 +163,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    # SC-10: Django default session management
     "django.contrib.sessions.middleware.SessionMiddleware",
     # AC-2 & AC-3: Authentication, AC-14: Limited Access
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -347,7 +348,11 @@ X_FRAME_OPTIONS = "SAMEORIGIN"  # Required for iframe on same origin
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# SC-10: Session Timeout
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_AGE = 1800  # 30 minutes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Security
 
