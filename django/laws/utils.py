@@ -105,7 +105,7 @@ def format_html_response(full_message, sse_joiner):
     return (message_html_lines, formatted_response)
 
 
-async def htmx_sse_response(response_gen, query, llm):
+async def htmx_sse_response(response_gen, llm, query_uuid):
     sse_joiner = "\ndata: "
     full_message = ""
     message_html_lines = []
@@ -155,9 +155,14 @@ async def htmx_sse_response(response_gen, query, llm):
 
     cost = await sync_to_async(llm.create_costs)()
     display_cost = await sync_to_async(display_cad_cost)(cost)
+    cost_div = f"<div class='mb-2 text-muted' style='font-size:0.875rem !important;'>{display_cost}</div>"
+
+    query_info = cache.get(query_uuid)
+    query_info["answer"] = "\n".join(message_html_lines + [cost_div])
+    cache.set(query_uuid, query_info, timeout=300)
 
     yield (
         f"data: <div hx-swap-oob='true' id='answer-sse'>"
         f"<div>{sse_joiner.join(message_html_lines)}</div>"
-        f"<div class='mb-2 text-muted' style='font-size:0.875rem !important;'>{display_cost}</div></div>\n\n"
+        f"{cost_div}</div>\n\n"
     )

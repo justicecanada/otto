@@ -1,4 +1,5 @@
 import urllib.parse
+import uuid
 
 from django.conf import settings
 from django.core.cache import cache
@@ -98,16 +99,16 @@ def answer(request):
         message_templates=TEXT_QA_PROMPT_TMPL_MSGS
     ).partial_format(additional_instructions=additional_instructions)
 
-    # from llama_index.llms.groq import Groq
-
-    model = request.GET.get("model", settings.DEFAULT_CHAT_MODEL)
-    max_tokens = int(request.GET.get("context_tokens", 2000))
-    trim_redundant = bool(request.GET.get("trim_redundant", False))
-    query = urllib.parse.unquote_plus(request.GET.get("query", ""))
-    logger.debug(query)
+    # Retrieve query, sources and options from cache
+    query_uuid = request.GET.get("query_uuid")
+    query_info = cache.get(query_uuid)
+    sources = query_info["sources"]
+    query = query_info["query"]
+    trim_redundant = query_info["trim_redundant"]
+    model = query_info["model"]
+    max_tokens = query_info["context_tokens"]
 
     llm = OttoLLM(deployment=model, temperature=0)
-    sources = cache.get(f"sources_{query}")
     if not sources:
         generator = iter([_("Error generating AI response.")])
     else:
@@ -181,7 +182,7 @@ def answer(request):
         generator = streaming_response.response_gen
 
     return StreamingHttpResponse(
-        streaming_content=htmx_sse_response(generator, query, llm),
+        streaming_content=htmx_sse_response(generator, llm, query_uuid),
         content_type="text/event-stream",
     )
 
@@ -189,9 +190,22 @@ def answer(request):
 @app_access_required(app_name)
 def search(request):
     bind_contextvars(feature="laws_query")
-    if request.method != "POST":
-        # redirect to laws index
+    query_uuid = request.GET.get("query_uuid")
+    if request.method != "POST" and not query_uuid:
         return redirect("laws:index")
+    if query_uuid:
+        # Render the search result page with the cached sources
+        query_info = cache.get(query_uuid)
+        if not query_info:
+            return redirect("laws:index")
+        context = {
+            "form": LawSearchForm(),
+            "hide_breadcrumbs": True,
+            "sources": sources_to_html(query_info["sources"]),
+            "query": query_info["query"],
+            "answer": query_info["answer"],
+        }
+        return render(request, "laws/laws.html", context=context)
     try:
         from langdetect import detect
         from llama_index.core.retrievers import QueryFusionRetriever
@@ -376,38 +390,22 @@ def search(request):
             return render(request, "laws/search_result.html", context=context)
 
         # Cache sources so they can be retrieved in the AI answer function
-        cache.set(f"sources_{query}", sources, timeout=60)
-
-        # Pass options through to the AI answer function
-        url_encoded_query = urllib.parse.quote_plus(query)
-        answer_params = f"?query={url_encoded_query}"
-        if trim_redundant:
-            answer_params += f"&trim_redundant={trim_redundant}"
-        if model:
-            answer_params += f"&model={model}"
-        if context_tokens:
-            answer_params += f"&context_tokens={context_tokens}"
-        if additional_instructions:
-            answer_params += f"&additional_instructions={additional_instructions}"
+        query_uuid = uuid.uuid4()
+        query_info = {
+            "sources": sources,
+            "query": query,
+            "trim_redundant": trim_redundant,
+            "model": model,
+            "context_tokens": context_tokens,
+            "additional_instructions": additional_instructions,
+        }
+        cache.set(query_uuid, query_info, timeout=300)
 
         context = {
-            "sources": [
-                {
-                    "node_id": urllib.parse.quote_plus(s.node.node_id),
-                    "title": s.node.metadata["display_metadata"].split("\n")[0],
-                    "chunk": (
-                        s.node.metadata["chunk"]
-                        if not s.node.metadata["chunk"].endswith("/1")
-                        else None
-                    ),
-                    "headings": s.node.metadata.get("headings", None),
-                    "html": md.convert(s.node.text),
-                }
-                for s in sources
-            ],
+            "sources": sources_to_html(sources),
             "query": query,
             "disable_llm": disable_llm,
-            "answer_params": answer_params,
+            "answer_params": f"?query_uuid={query_uuid}",
         }
     except Exception as e:
         context = {
@@ -425,7 +423,24 @@ def search(request):
         context=context,
     )
     # URL-encode query and append to history URL
-    # history_url = "/laws/search/"
-    # history_url += f"?query={urllib.parse.quote_plus(query)}"
-    # response["HX-Push-Url"] = history_url
+    history_url = "/laws/search/"
+    history_url += f"?query_uuid={query_uuid}"
+    response["HX-Push-Url"] = history_url
     return response
+
+
+def sources_to_html(sources):
+    return [
+        {
+            "node_id": urllib.parse.quote_plus(s.node.node_id),
+            "title": s.node.metadata["display_metadata"].split("\n")[0],
+            "chunk": (
+                s.node.metadata["chunk"]
+                if not s.node.metadata["chunk"].endswith("/1")
+                else None
+            ),
+            "headings": s.node.metadata.get("headings", None),
+            "html": md.convert(s.node.text),
+        }
+        for s in sources
+    ]

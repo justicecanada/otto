@@ -53,7 +53,11 @@
       <span class="spinner-border" aria-hidden="true"></span>
       <span class="visually-hidden" role="status">Loading...</span>
     </div>
-    <div class="container py-3 px-0" id="result-container" aria-live="polite"></div>
+    <div class="container py-3 px-0" id="result-container" aria-live="polite">
+      {% if sources %}
+        {% include "laws/search_result.html" %}
+      {% endif %}
+    </div>
   </div>
   <script src="{% static 'laws/law_search.js' %}"></script>
 {% endblock %}
