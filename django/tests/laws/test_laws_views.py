@@ -25,16 +25,6 @@ def test_laws_index(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_laws_search_form(client, all_apps_user):
-    client.force_login(all_apps_user())
-    # Basic search form
-    # Advanced search form
-    response = client.get(reverse("laws:advanced_search_form"))
-    assert response.status_code == 200
-    assert "filter" in response.content.decode().lower()
-
-
-@pytest.mark.django_db
 def test_laws_search_and_answer(client, all_apps_user):
     client.force_login(all_apps_user())
     # Test basic search
@@ -58,8 +48,26 @@ def test_laws_search_and_answer(client, all_apps_user):
     query = (
         "are the defence of canada regulations exempt from access to information act?"
     )
-    # Test advanced search - with no acts/regs selected it should return an error message
-    response = client.post(reverse("laws:search"), {"query": query, "advanced": "true"})
+    # Test advanced search - with no acts/regs selected it should return "no sources found"
+    response = client.post(
+        reverse("laws:search"),
+        {"query": query, "advanced": "true", "search_laws_option": "specific_laws"},
+    )
+    assert response.status_code == 200
+    assert "No sources found" in response.content.decode()
+    # There are no sources, so they should not be cached
+    assert cache.get(f"sources_{query}") is None
+
+    # With a date range far in the future it should return "no sources found"
+    response = client.post(
+        reverse("laws:search"),
+        {
+            "query": query,
+            "advanced": "true",
+            "date_filter_option": "filter_dates",
+            "in_force_date_start": "2050-10-12",
+        },
+    )
     assert response.status_code == 200
     assert "No sources found" in response.content.decode()
     # There are no sources, so they should not be cached

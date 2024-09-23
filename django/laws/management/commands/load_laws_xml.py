@@ -1,7 +1,9 @@
+import hashlib
 import os
 import shutil
 import time
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from math import ceil
 
 from django.conf import settings
@@ -10,27 +12,41 @@ from django.utils.timezone import datetime
 
 import requests
 from django_extensions.management.utils import signalcommand
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+from structlog.contextvars import bind_contextvars
 
+from chat.llm import OttoLLM
 from laws.models import Law, token_counter
+from otto.models import Cost
+from otto.utils.common import display_cad_cost
 
 
 def _price_tokens(token_counter):
     return 0.000178 * token_counter.total_embedding_token_count / 1000
 
 
-def _download_repo():
-    print("Downloading laws-lois-xml repo...")
+def _download_repo(force_download=False):
     repo_url = (
         "https://github.com/justicecanada/laws-lois-xml/archive/refs/heads/main.zip"
     )
 
+    # Check if the repo was already downloaded
+    if os.path.exists("/tmp/laws-lois-xml-main"):
+        if force_download:
+            print("Deleting existing repo before re-downloading")
+            shutil.rmtree("/tmp/laws-lois-xml-main")
+        else:
+            print("Folder already exists, skipping download")
+            return
+
     # Path to save the downloaded zip file
     zip_file_path = "/tmp/laws-lois-xml.zip"
-
     # Path to extract the zip file
     extract_path = "/tmp"
 
     # Download the zip file
+    print("Downloading laws-lois-xml repo...")
     response = requests.get(repo_url)
     with open(zip_file_path, "wb") as file:
         file.write(response.content)
@@ -43,32 +59,63 @@ def _download_repo():
     os.remove(zip_file_path)
 
 
-def _get_law_file_paths(laws_dir, eng_law_ids=[]):
+def _get_fr_matching_id(eng_id):
+    return eng_id.replace("SOR-", "DORS-").replace("SI-", "TR-").replace("_c.", "_ch.")
+
+
+def _get_en_file_path(eng_id, laws_dir):
+    act_path = os.path.join(laws_dir, "eng", "acts", f"{eng_id}.xml")
+    reg_path = os.path.join(laws_dir, "eng", "regulations", f"{eng_id}.xml")
+    if os.path.exists(act_path):
+        return act_path
+    elif os.path.exists(reg_path):
+        return reg_path
+    else:
+        return None
+
+
+def _get_fr_file_path(fr_id, laws_dir):
+    act_path = os.path.join(laws_dir, "fra", "lois", f"{fr_id}.xml")
+    reg_path = os.path.join(laws_dir, "fra", "reglements", f"{fr_id}.xml")
+    if os.path.exists(act_path):
+        return act_path
+    elif os.path.exists(reg_path):
+        return reg_path
+    else:
+        print(f"Could not find French file for {fr_id}")
+        print(f"(FR: {act_path}, FR: {reg_path})")
+        return None
+
+
+def _get_en_fr_law_file_paths(laws_dir, eng_law_ids=[]):
     """
     Search for the English and French file paths for each law ID
+    Return a list of tuples (EN, FR) where each element is a full file path
     """
-    file_paths = []
-    # French regulations have different names, unfortunately
-    # Replace "SOR-" with "DORS-", "SI-" with "TR-" and "_c." with "_ch."
-    filenames = set(
-        [f"{law_id}.xml" for law_id in eng_law_ids]
-        + [f"{law_id.replace('_c.', '_ch.')}.xml" for law_id in eng_law_ids]
-        + [f"{law_id.replace('SOR-', 'DORS-')}.xml" for law_id in eng_law_ids]
-        + [f"{law_id.replace('SI-', 'TR-')}.xml" for law_id in eng_law_ids]
-    )
-    for lang in ["eng", "fra"]:
-        categories = (
-            ["acts", "regulations"] if lang == "eng" else ["lois", "reglements"]
-        )
-        for category in categories:
-            for file in os.listdir(os.path.join(laws_dir, lang, category)):
-                if (file in filenames or not filenames) and (file.endswith(".xml")):
-                    file_paths.append(os.path.join(laws_dir, lang, category, file))
 
-    print(len(eng_law_ids), "law IDs provided")
-    print(len(file_paths), "files found (should be 2x the number of law IDs)")
-    # print("File paths:\n", file_paths)
+    file_paths = []
+    for eng_law_id in eng_law_ids:
+        en_file_path = _get_en_file_path(eng_law_id, laws_dir)
+        fr_file_path = _get_fr_file_path(_get_fr_matching_id(eng_law_id), laws_dir)
+        if en_file_path and fr_file_path:
+            file_paths.append((en_file_path, fr_file_path))
+        else:
+            print(f"Could not find both English and French files for {eng_law_id}")
+            print(f"(EN: {en_file_path}, FR: {fr_file_path})")
+
+    print(len(file_paths), "laws found in both languages")
     return file_paths
+
+
+def _get_all_eng_law_ids(laws_dir):
+    """
+    Get all English law IDs from the laws directory
+    """
+    act_dir = os.path.join(laws_dir, "eng", "acts")
+    reg_dir = os.path.join(laws_dir, "eng", "regulations")
+    act_ids = [f.replace(".xml", "") for f in os.listdir(act_dir) if f.endswith(".xml")]
+    reg_ids = [f.replace(".xml", "") for f in os.listdir(reg_dir) if f.endswith(".xml")]
+    return act_ids + reg_ids
 
 
 import os
@@ -373,10 +420,12 @@ def get_dict_from_xml(xml_filename):
             ]
         )
         for section in d["preamble"][0]["subsections"]:
-            section["section_id"] = f'{d["doc_id"]}_preamble_provision_{section["id"]}'
+            section["section_id"] = (
+                f'{d["doc_id"]}_preamble_provision_{section["id"]+1}'
+            )
             section["parent_id"] = d["preamble"][0]["section_id"]
             section["heading_str"] = get_heading_str(section)
-            section["section_str"] = f"Preamble provision {section['id']}"
+            section["section_str"] = f"Preamble provision {section['id']+1}"
             section["all_str"] = "\n".join(
                 [
                     d["title_str"],
@@ -442,10 +491,14 @@ def get_heading_str(section):
     return " > ".join(section["headings"])
 
 
-def get_section(section):
+def get_section(section, last_amended_date=None):
     # If the section has an ancestor <Schedule> tag, skip it
     if section.xpath(".//Schedule"):
         return None
+    # Subsections do not have a last_amended_date, so we pass it down from the parent
+    last_amended_date = section.attrib.get(
+        "{http://justice.gc.ca/lims}lastAmendedDate", last_amended_date
+    )
     return {
         "id": _get_text(section.find(".//Label")),
         "headings": get_headings(section),
@@ -454,11 +507,10 @@ def get_section(section):
         "in_force_start_date": section.attrib.get(
             "{http://justice.gc.ca/lims}inforce-start-date", None
         ),
-        "last_amended_date": section.attrib.get(
-            "{http://justice.gc.ca/lims}lastAmendedDate", None
-        ),
+        "last_amended_date": last_amended_date,
         "subsections": [
-            get_section(subsection) for subsection in section.findall(".//Subsection")
+            get_section(subsection, last_amended_date)
+            for subsection in section.findall(".//Subsection")
         ],
         "external_refs": get_external_xrefs(section),
         "internal_refs": get_internal_xrefs(section),
@@ -616,9 +668,30 @@ class Command(BaseCommand):
             help="Write node markdown to source directories. Does not alter database.",
         )
         parser.add_argument(
-            "--download",
+            "--mock_embedding",
             action="store_true",
-            help="Download the laws-lois-xml repo from github",
+            help="Mock embedding the nodes (save time/cost for debugging)",
+        )
+        parser.add_argument(
+            "--skip_cleanup",
+            action="store_true",
+            help="Skip cleanup of the laws-lois-xml repo",
+        )
+        parser.add_argument(
+            "--force_update",
+            action="store_true",
+            help="Force update of existing laws (even if they have not changed)",
+        )
+        parser.add_argument(
+            "--max_workers",
+            type=int,
+            default=1,
+            help="Number of workers to use for parallel processing",
+        )
+        parser.add_argument(
+            "--force_download",
+            action="store_true",
+            help="Force re-download of the laws-lois-xml repo, even if it exists",
         )
 
     @signalcommand
@@ -626,14 +699,22 @@ class Command(BaseCommand):
         total_cost = 0
         full = options.get("full", False)
         reset = options.get("reset", False)
+        if reset:
+            # Confirm the user wants to delete all laws
+            print("This will delete all laws in the database. Are you sure?")
+            response = input("Type 'yes' to confirm: ")
+            if response != "yes":
+                print("Aborted")
+                return
         small = options.get("small", False)
         const_only = options.get("const_only", False)
+        force_update = options.get("force_update", False)
+        force_download = options.get("force_download", False)
+        max_workers = options.get("max_workers", 1)
         debug = options.get("debug", False)
-        laws_root = os.path.join(os.path.dirname(settings.BASE_DIR), "laws-lois-xml")
-        if options.get("download", True):
-            _download_repo()
-            laws_root = "/tmp/laws-lois-xml-main"
-        elif small:
+        mock_embedding = options.get("mock_embedding", False)
+
+        if small:
             laws_root = os.path.join(
                 os.path.dirname(settings.BASE_DIR),
                 "django",
@@ -641,8 +722,11 @@ class Command(BaseCommand):
                 "laws",
                 "xml_sample",
             )
+        else:
+            _download_repo(force_download)
+            laws_root = "/tmp/laws-lois-xml-main"
         if full:
-            law_ids = []  # All laws will be loaded
+            law_ids = _get_all_eng_law_ids(laws_root)
         elif small:
             law_ids = [
                 "SOR-2010-203",  # Certain Ships Remission Order, 2010 (5kb)
@@ -680,180 +764,290 @@ class Command(BaseCommand):
                 "N-22",  # Canadian Navigable Waters Act
             ]
 
-        file_paths = _get_law_file_paths(laws_root, law_ids)
+        file_path_tuples = _get_en_fr_law_file_paths(laws_root, law_ids)
         # Create constitution file paths
         constitution_dir = os.path.join(settings.BASE_DIR, "laws", "data")
         constitution_file_paths = [
-            os.path.join(constitution_dir, "Constitution 2020_E.xml"),
-            os.path.join(constitution_dir, "Constitution 2020_F_Rapport.xml"),
+            (
+                os.path.join(constitution_dir, "Constitution 2020_E.xml"),
+                os.path.join(constitution_dir, "Constitution 2020_F_Rapport.xml"),
+            )
         ]
         if const_only:
-            file_paths = constitution_file_paths
+            file_path_tuples = constitution_file_paths
         elif not small:
-            file_paths += constitution_file_paths
-        total_file_size = sum([os.path.getsize(file_path) for file_path in file_paths])
+            file_path_tuples += constitution_file_paths
+
+        flattened_file_paths = [p for t in file_path_tuples for p in t]
+        num_to_load = len(file_path_tuples)
+        total_file_size = sum(
+            [os.path.getsize(file_path) for file_path in flattened_file_paths]
+        )
         file_size_so_far = 0
-        empty_count = 0
-        exist_count = 0
-        error_count = 0
-        added_count = 0
+        load_results = {
+            "empty": [],
+            "error": [],
+            "added": [],
+            "exists": [],
+            "updated": [],
+        }
 
         # Reset the Django and LlamaIndex tables
         if reset:
             Law.reset()
+            # Recreate the table
+            OttoLLM().get_retriever("laws_lois__").retrieve("?")
 
         xslt_path = os.path.join(laws_root, "xslt", "LIMS2HTML.xsl")
 
         start_time = time.time()
 
-        for i, file_path in enumerate(file_paths):
-            # Get the directory path of the XML file
-            directory = os.path.dirname(file_path)
-            # Get the base name of the XML file
-            base_name = os.path.basename(file_path)
-            # Construct the output HTML file path
-            html_file_path = os.path.join(
-                directory, "html", f"{os.path.splitext(base_name)[0]}.html"
-            )
-            print(f"Processing file {i+1}/{len(file_paths)}: {base_name}")
-            file_size_so_far += os.path.getsize(file_path)
-            # Use xsltproc to render the XML to HTML
-            # os.system(f"xsltproc -o {html_file_path} {xslt_path} {file_path}")
+        # for j, file_paths in enumerate(file_path_tuples):
+        #     process_en_fr_paths(
+        #         file_paths, mock_embedding, debug, constitution_file_paths
+        #     )
 
-            # Create nodes from XML
-            node_dict = law_xml_to_nodes(file_path)
-            if not node_dict["nodes"]:
-                print("No nodes found in this document.")
-                empty_count += 1
-                continue
-            doc_metadata = {
-                "id": node_dict["id"],
-                "lang": node_dict["lang"],
-                "filename": node_dict["filename"],
-                "type": node_dict["type"],
-                "short_title": node_dict["short_title"],
-                "long_title": node_dict["long_title"],
-                "bill_number": node_dict["bill_number"],
-                "instrument_number": node_dict["instrument_number"],
-                "consolidated_number": node_dict["consolidated_number"],
-                "last_amended_date": node_dict["last_amended_date"],
-                "current_date": node_dict["current_date"],
-                "enabling_authority": node_dict["enabling_authority"],
-                "node_type": "document",
-            }
-            if file_path in constitution_file_paths:
-                # This is used as a reference in other Acts/Regulations
-                doc_metadata["consolidated_number"] = "Const"
-                # The date metadata in these files is missing
-                # Last amendment reference I can find in the document
-                doc_metadata["last_amended_date"] = "2011-12-16"
-                # Date this script was written
-                doc_metadata["current_date"] = "2024-05-23"
-                doc_metadata["type"] = "act"
-
-            exclude_keys = list(doc_metadata.keys())
-            doc_metadata["display_metadata"] = (
-                f'{doc_metadata["short_title"] or ""}'
-                f'{": " if doc_metadata["short_title"] and doc_metadata["long_title"] else ""}'
-                f'{doc_metadata["long_title"] or ""} '
-                f'({doc_metadata["consolidated_number"] or doc_metadata["instrument_number"] or doc_metadata["bill_number"]})'
-            )
-
-            document = Document(
-                text="",
-                metadata=doc_metadata,
-                excluded_llm_metadata_keys=exclude_keys,
-                excluded_embed_metadata_keys=exclude_keys,
-                metadata_template="{value}",
-                text_template="{metadata_str}",
-            )
-            document.doc_id = f'{node_dict["id"]}_{node_dict["lang"]}'
-
-            nodes = node_dict["nodes"]
-            for i, node in enumerate(nodes):
-                node.id_ = node.metadata["section_id"]
-                if node.metadata["parent_id"] is not None:
-                    node.relationships[NodeRelationship.PARENT] = RelatedNodeInfo(
-                        node_id=node.metadata["parent_id"]
-                    )
-                node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
-                    node_id=document.doc_id
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [
+                executor.submit(
+                    process_en_fr_paths,
+                    file_paths,
+                    mock_embedding,
+                    debug,
+                    constitution_file_paths,
+                    force_update,
                 )
-            # Set prev/next relationships
-            for i in range(len(nodes) - 1):
-                nodes[i].relationships[NodeRelationship.NEXT] = RelatedNodeInfo(
-                    node_id=nodes[i + 1].node_id
-                )
-                nodes[i + 1].relationships[NodeRelationship.PREVIOUS] = RelatedNodeInfo(
-                    node_id=nodes[i].node_id
-                )
-
-            # Write text files of nodes (for debugging purposes)
-            if debug:
-                nodes_file_path = os.path.join(
-                    directory, "nodes", f"{os.path.splitext(base_name)[0]}.md"
-                )
-                # Create the /nodes directory if it doesn't exist
-                if not os.path.exists(os.path.dirname(nodes_file_path)):
-                    os.makedirs(os.path.dirname(nodes_file_path))
-                with open(nodes_file_path, "w") as f:
-                    f.write(
-                        f"{document.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
-                    )
-                    for node in nodes:
-                        f.write(
-                            f"{node.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
-                        )
-
-            # Nodes and document should be ready now! Let's add to our Django model
-            # This will also handle the creation of LlamaIndex vector tables
-            else:
+                for file_paths in file_path_tuples
+            ]
+            for i, future in enumerate(futures):
                 try:
-                    print(
-                        f"Adding to database: {document.metadata['display_metadata']}"
-                    )
-                    Law.objects.from_doc_and_nodes(
-                        document, nodes, add_to_vector_store=True
-                    )
-                    embedding_cost = _price_tokens(token_counter)
-                    token_counter.reset_counts()
-                    total_cost += embedding_cost
-                    added_count += 1
+                    result, cost = future.result()
+                    for k, v in result.items():
+                        load_results[k].extend(v)
+                    total_cost += cost
+                    # Handle the result
                 except Exception as e:
-                    print(f"Error processing: {document.metadata['display_metadata']}")
-                    print(e, "\n")
-                    if "Law with this Node id already exists" in str(e):
-                        exist_count += 1
-                    else:
-                        error_count += 1
-                    continue
-                embedding_cost = 0
-                est_time_left_seconds = (
-                    (time.time() - start_time) / file_size_so_far
-                ) * (total_file_size - file_size_so_far)
-                # Format as HH:MM:SS
-                est_time_left = (
-                    str(datetime.utcfromtimestamp(est_time_left_seconds))
-                    .split(" ")[1]
-                    .split(".")[0]
-                )
-                time_so_far = (
-                    str(datetime.utcfromtimestamp(time.time() - start_time))
-                    .split(" ")[1]
-                    .split(".")[0]
-                )
-                print(
-                    f"Added: {added_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}\n"
-                    f"Document cost: ${embedding_cost:.2f}; "
-                    f"Cost so far: ${total_cost:.2f}; "
-                    f"Estimated total: ${(total_cost/file_size_so_far) * total_file_size:.2f}\n"
-                    f"Time so far / estimated time left: {time_so_far} / {est_time_left}\n"
-                )
+                    # Handle exceptions
+                    pass
 
         if options.get("download", False) and not small:
-            # Clean up the downloaded repo
-            shutil.rmtree(laws_root)
+            if not options.get("skip_cleanup", False):
+                # Clean up the downloaded repo
+                shutil.rmtree(laws_root)
         print("Done!")
+        added_count = len(load_results["added"])
+        exist_count = len(load_results["exists"])
+        empty_count = len(load_results["empty"])
+        error_count = len(load_results["error"])
+        updated_count = len(load_results["updated"])
+        if error_count:
+            print("\nError files:")
+            for error in load_results["error"]:
+                print(error)
+        if empty_count:
+            print("\nEmpty files:")
+            for empty in load_results["empty"]:
+                print(empty)
+        if exist_count:
+            print("\nExisting files:")
+            for exist in load_results["exists"]:
+                print(exist)
+        if updated_count:
+            print("\nUpdated files:")
+            for updated in load_results["updated"]:
+                print(updated)
+        if added_count:
+            print("\nAdded files:")
+            for added in load_results["added"]:
+                print(added)
         print(
-            f"Added: {added_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}"
+            f"\nAdded: {added_count}; Updated: {updated_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}"
         )
+        print(f"Total time to load XML files: {time.time() - start_time:.2f} seconds")
+        print(f"Total cost: {display_cad_cost(total_cost)}")
+
+
+def get_sha_256_hash(file_path):
+    sha256_hash = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        while chunk := f.read(4096):
+            sha256_hash.update(chunk)
+    return sha256_hash.hexdigest()
+
+
+def process_en_fr_paths(
+    file_paths, mock_embedding, debug, constitution_file_paths, force_update=False
+):
+    bind_contextvars(feature="laws_load")
+    llm = OttoLLM(mock_embedding=mock_embedding)
+    document_en = None
+    document_fr = None
+    nodes_en = None
+    nodes_fr = None
+    inner_loop_err = False
+    load_results = {
+        "empty": [],
+        "error": [],
+        "added": [],
+        "exists": [],
+        "updated": [],
+    }
+
+    # Check the hashes of both files
+    en_hash = get_sha_256_hash(file_paths[0])
+    fr_hash = get_sha_256_hash(file_paths[1])
+    # If *BOTH* exist in the database, skip
+    if (
+        Law.objects.filter(sha_256_hash_en=en_hash).exists()
+        and Law.objects.filter(sha_256_hash_fr=fr_hash).exists()
+        and not force_update
+    ):
+        print(f"Duplicate EN/FR hashes found in database: {file_paths}")
+        load_results["exists"].append(file_paths)
+        return load_results, 0
+
+    # Create nodes for the English and French XML files
+    for k, file_path in enumerate(file_paths):
+        # Get the directory path of the XML file
+        directory = os.path.dirname(file_path)
+        # Get the base name of the XML file
+        base_name = os.path.basename(file_path)
+        # Construct the output HTML file path
+        html_file_path = os.path.join(
+            directory, "html", f"{os.path.splitext(base_name)[0]}.html"
+        )
+
+        # Create nodes from XML
+        node_dict = law_xml_to_nodes(file_path)
+        if not node_dict["nodes"]:
+            load_results["empty"].append(file_path)
+            inner_loop_err = True
+            break
+        doc_metadata = {
+            "id": node_dict["id"],
+            "lang": node_dict["lang"],
+            "filename": node_dict["filename"],
+            "type": node_dict["type"],
+            "short_title": node_dict["short_title"],
+            "long_title": node_dict["long_title"],
+            "bill_number": node_dict["bill_number"],
+            "instrument_number": node_dict["instrument_number"],
+            "consolidated_number": node_dict["consolidated_number"],
+            "last_amended_date": node_dict["last_amended_date"],
+            "current_date": node_dict["current_date"],
+            "enabling_authority": node_dict["enabling_authority"],
+            "node_type": "document",
+        }
+        if file_path in [p for t in constitution_file_paths for p in t]:
+            # This is used as a reference in other Acts/Regulations
+            doc_metadata["consolidated_number"] = "Const"
+            # The date metadata in these files is missing
+            # Last amendment reference I can find in the document
+            doc_metadata["last_amended_date"] = "2011-12-16"
+            # Date this script was written
+            doc_metadata["current_date"] = "2024-05-23"
+            doc_metadata["type"] = "act"
+
+        exclude_keys = list(doc_metadata.keys())
+        doc_metadata["display_metadata"] = (
+            f'{doc_metadata["short_title"] or ""}'
+            f'{": " if doc_metadata["short_title"] and doc_metadata["long_title"] else ""}'
+            f'{doc_metadata["long_title"] or ""} '
+            f'({doc_metadata["consolidated_number"] or doc_metadata["instrument_number"] or doc_metadata["bill_number"]})'
+        )
+
+        document = Document(
+            text="",
+            metadata=doc_metadata,
+            excluded_llm_metadata_keys=exclude_keys,
+            excluded_embed_metadata_keys=exclude_keys,
+            metadata_template="{value}",
+            text_template="{metadata_str}",
+        )
+        document.doc_id = f'{node_dict["id"]}_{node_dict["lang"]}'
+
+        nodes = node_dict["nodes"]
+        for i, node in enumerate(nodes):
+            node.id_ = node.metadata["section_id"]
+            if node.metadata["parent_id"] is not None:
+                node.relationships[NodeRelationship.PARENT] = RelatedNodeInfo(
+                    node_id=node.metadata["parent_id"]
+                )
+            node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
+                node_id=document.doc_id
+            )
+        # Set prev/next relationships
+        for i in range(len(nodes) - 1):
+            nodes[i].relationships[NodeRelationship.NEXT] = RelatedNodeInfo(
+                node_id=nodes[i + 1].node_id
+            )
+            nodes[i + 1].relationships[NodeRelationship.PREVIOUS] = RelatedNodeInfo(
+                node_id=nodes[i].node_id
+            )
+
+        if doc_metadata["lang"] == "eng":
+            document_en = document
+            nodes_en = nodes
+        elif doc_metadata["lang"] == "fra":
+            document_fr = document
+            nodes_fr = nodes
+
+        # Write text files of nodes (for debugging purposes)
+        if debug:
+            nodes_file_path = os.path.join(
+                directory, "nodes", f"{os.path.splitext(base_name)[0]}.md"
+            )
+            # Create the /nodes directory if it doesn't exist
+            if not os.path.exists(os.path.dirname(nodes_file_path)):
+                os.makedirs(os.path.dirname(nodes_file_path))
+            with open(nodes_file_path, "w") as f:
+                f.write(
+                    f"{document.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
+                )
+                for node in nodes:
+                    f.write(
+                        f"{node.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
+                    )
+
+    if inner_loop_err:
+        return load_results, 0
+    # Nodes and document should be ready now! Let's add to our Django model
+    # This will also handle the creation of LlamaIndex vector tables
+    if not debug:
+        try:
+            # Check if law already exists.
+            # node_id_en property will be unique in database
+            node_id_en = document_en.doc_id
+            if Law.objects.filter(node_id_en=node_id_en).exists():
+                print(f"Updating existing law.")
+                load_results["updated"].append(file_paths)
+            else:
+                load_results["added"].append(file_paths)
+            print(f"Adding to database: {document_en.metadata['display_metadata']}")
+            # This method will update existing Law object if it already exists
+            law = Law.objects.from_docs_and_nodes(
+                document_en,
+                nodes_en,
+                document_fr,
+                nodes_fr,
+                sha_256_hash_en=en_hash,
+                sha_256_hash_fr=fr_hash,
+                add_to_vector_store=True,
+                force_update=force_update,
+                llm=llm,
+            )
+            bind_contextvars(law_id=law.id)
+            llm.create_costs()
+            cost_obj = Cost.objects.filter(law=law).order_by("date_incurred")
+            if cost_obj.exists():
+                cost = cost_obj.last().usd_cost
+                print(f"Cost: {display_cad_cost(cost)}")
+
+        except Exception as e:
+            print(f"*** Error processing file pair: {file_paths}\n {e}\n")
+            if "Law with this Node id already exists" in str(e):
+                load_results["exists"].append(file_paths)
+            else:
+                load_results["error"].append(file_paths)
+            cost = 0
+    return load_results, cost

@@ -3430,5 +3430,105 @@
     "All time": {
         "fr": "",
         "fr_auto": "Tout le temps"
+    },
+    "All acts and regulations": {
+        "fr": "",
+        "fr_auto": "Toutes les lois et tous les règlements"
+    },
+    "Specific act(s)/regulation(s)...": {
+        "fr": "",
+        "fr_auto": "Loi(s)/règlement(s) spécifique(s)..."
+    },
+    "Enabled by specific act(s)...": {
+        "fr": "",
+        "fr_auto": "Activé par des actes spécifiques..."
+    },
+    "Select laws to search": {
+        "fr": "",
+        "fr_auto": "Sélectionner des lois à rechercher"
+    },
+    "Select act(s)/regulation(s)": {
+        "fr": "",
+        "fr_auto": "Certains actes/règlements"
+    },
+    "Select enabling act(s)": {
+        "fr": "",
+        "fr_auto": "Sélectionnez loi(s) habilitante(s)"
+    },
+    "All dates": {
+        "fr": "",
+        "fr_auto": "Toutes les dates"
+    },
+    "Filter by section date metadata...": {
+        "fr": "",
+        "fr_auto": "Filtrer par section les métadonnées de date..."
+    },
+    "Select date filters": {
+        "fr": "",
+        "fr_auto": "Sélectionner des filtres de date"
+    },
+    "In force as of (start)": {
+        "fr": "",
+        "fr_auto": "En vigueur à partir du (début)"
+    },
+    "In force as of (end)": {
+        "fr": "",
+        "fr_auto": "En vigueur à compter du (fin)"
+    },
+    "Last amended (start)": {
+        "fr": "",
+        "fr_auto": "Dernière modification (début)"
+    },
+    "Last amended (end)": {
+        "fr": "",
+        "fr_auto": "Dernière modification (fin)"
+    },
+    "AI model": {
+        "fr": "",
+        "fr_auto": "Modèle d’IA"
+    },
+    "Max input tokens": {
+        "fr": "",
+        "fr_auto": "Nombre maximal de jetons d’entrée"
+    },
+    "Additional instructions for AI answer": {
+        "fr": "",
+        "fr_auto": "Instructions supplémentaires pour la réponse à l’IA"
+    },
+    "Any language results": {
+        "fr": "",
+        "fr_auto": "Tous les résultats linguistiques"
+    },
+    "Advanced search options": {
+        "fr": "",
+        "fr_auto": "Options de recherche avancées"
+    },
+    "Select data source(s)": {
+        "fr": "",
+        "fr_auto": "Sélectionner la ou les sources de données"
+    },
+    "Select document(s)": {
+        "fr": "",
+        "fr_auto": "Sélectionner le(s) document(s)"
+    },
+    "Entire library": {
+        "fr": "",
+        "fr_auto": "Bibliothèque entière"
+    },
+    "Selected data sources": {
+        "fr": "",
+        "fr_auto": "Sources de données sélectionnées"
+    },
+    "Selected documents": {
+        "fr": "",
+        "fr_auto": "Documents sélectionnés"
+    },
+    "Filter results": {
+        "fr": "",
+        "fr_auto": "Résultats du filtre"
+    },
+    "Error getting search results:": {
+        "fr": "",
+        "fr_auto": "Erreur d’obtention des résultats de recherche :"
     }
 }
