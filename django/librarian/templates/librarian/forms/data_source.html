@@ -57,7 +57,7 @@
               class="btn btn-sm btn-outline-secondary"
               hx-get="{{ cancel_url }}">{% trans "Cancel" %}</button>
     </div>
-    {% if form.instance.id %}
+    {% if form.instance.id and form.deletable %}
       <div class="col-auto">
         <button type="button"
                 class="btn btn-sm btn-outline-danger"

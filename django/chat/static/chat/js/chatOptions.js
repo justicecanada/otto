@@ -10,7 +10,6 @@ function updateLibraryModalButton() {
 }
 
 function showHideQaSourceForms() {
-  console.log("showHideQaSourceForms");
   const scope = document.getElementById('id_qa_scope').value;
   const dataSources = document.getElementById('qa_data_sources_autocomplete');
   const documents = document.getElementById('qa_documents_autocomplete');
@@ -38,7 +37,7 @@ function updateAutocompleteLibraryid(element_id) {
   // Remove the last character, which is a closing brace
   hx_vals = hx_vals.slice(0, -1);
   // Now add the library_id key to the hx-vals string
-  hx_vals += ", library_id: document.getElementById('id_qa_library').value}";
+  hx_vals += ", library_id: document.getElementById('id_qa_library').value, chat_id: chat_id}";
   input_element.setAttribute('hx-vals', hx_vals);
 }
 

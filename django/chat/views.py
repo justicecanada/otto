@@ -284,13 +284,27 @@ def chat(request, chat_id):
     logger.info("Chat session retrieved.", chat_id=chat_id)
     bind_contextvars(feature="chat")
 
-    chat = Chat.objects.get(id=chat_id)
-    # Get chat options
+    chat = (
+        Chat.objects.filter(id=chat_id)
+        .prefetch_related("options", "data_source")
+        .first()
+    )
+
+    # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
+    # If database is completely wiped, this should all be removable
     if not chat.options:
-        # This is just to catch chats which existed before ChatOptions was introduced.
-        # The existing chat mode for these chats will be lost.
         chat.options = ChatOptions.objects.from_defaults(user=chat.user)
         chat.save()
+    if not request.user.personal_library:
+        request.user.create_personal_library()
+    if not DataSource.objects.filter(chat=chat).exists():
+        DataSource.objects.create(
+            name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            library=chat.user.personal_library,
+            chat=chat,
+        )
+    # END INSURANCE CODE
+
     mode = chat.options.mode
 
     # Get chat messages ready
@@ -444,6 +458,8 @@ def done_upload(request, message_id):
     response_message = Message.objects.create(
         chat=user_message.chat, text="", is_bot=True, mode=mode, parent=user_message
     )
+    chat = user_message.chat
+    response = HttpResponse()
 
     if mode == "translate":
         # usage metrics
@@ -453,6 +469,27 @@ def done_upload(request, message_id):
     if mode == "summarize":
         # usage metrics
         chat_request_type_total.labels(user=request.user.upn, type="text summarization")
+
+    if mode == "qa":
+        # usage metrics
+        print("QA upload")
+        chat_request_type_total.labels(user=request.user.upn, type="qa upload")
+        chat.options.qa_library = chat.user.personal_library
+        chat.options.qa_scope = "data_sources"
+        chat.options.qa_data_sources.set([chat.data_source])
+        chat.options.save()
+
+        response.write(
+            render_to_string(
+                "chat/components/chat_options_accordion.html",
+                {
+                    "options_form": ChatOptionsForm(
+                        instance=chat.options, user=request.user
+                    ),
+                    "swap": "true",
+                },
+            )
+        )
 
     response_init_message = {
         "is_bot": True,
@@ -467,7 +504,10 @@ def done_upload(request, message_id):
         ],
         "mode": mode,
     }
-    return render(request, "chat/components/chat_messages.html", context=context)
+    response.write(
+        render_to_string("chat/components/chat_messages.html", context=context)
+    )
+    return response
 
 
 @require_POST

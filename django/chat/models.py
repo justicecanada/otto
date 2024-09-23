@@ -15,7 +15,7 @@ from chat.prompts import (
     QA_PROMPT_TEMPLATE,
     QA_SYSTEM_PROMPT,
 )
-from librarian.models import Library, SavedFile
+from librarian.models import DataSource, Library, SavedFile
 from otto.models import SecurityLabel
 from otto.utils.common import display_cad_cost, set_costs
 
@@ -34,7 +34,14 @@ class ChatManager(models.Manager):
             user=kwargs["user"], mode=mode
         )
         kwargs["security_label_id"] = SecurityLabel.default_security_label().id
-        return super().create(*args, **kwargs)
+        instance = super().create(*args, **kwargs)
+        # Create data source
+        DataSource.objects.create(
+            name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            library=instance.user.personal_library,
+            chat=instance,
+        )
+        return instance
 
 
 class Chat(models.Model):

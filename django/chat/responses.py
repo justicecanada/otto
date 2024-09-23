@@ -308,10 +308,48 @@ def translate_response(chat, response_message):
 
 def qa_response(chat, response_message, eval=False):
     """
-    Answer the user's question using a specific vector store table.
+    Answer a question using RAG on the selected library / data sources / documents
     """
     model = chat.options.qa_model
     llm = OttoLLM(model, 0.1)
+
+    user_message = response_message.parent
+    files = user_message.sorted_files if user_message is not None else []
+
+    async def add_files_to_library():
+        ds = chat.data_source
+        processing_count = await sync_to_async(
+            lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
+        )()
+        while processing_count:
+            yield _(
+                "Adding files to the Library"
+            ) + f" ({len(files)-processing_count+1}/{len(files)})..."
+            await asyncio.sleep(0.5)
+            processing_count = await sync_to_async(
+                lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
+            )()
+
+        yield f"{len(files)} " + _("new file(s) ready for Q&A.")
+
+    if len(files) > 0:
+        for file in files:
+            document = Document.objects.create(
+                data_source=chat.data_source,
+                file=file.saved_file,
+                filename=file.filename,
+            )
+            document.process()
+        return StreamingHttpResponse(
+            streaming_content=htmx_stream(
+                chat,
+                response_message.id,
+                llm,
+                response_replacer=add_files_to_library(),
+                dots=True,
+            ),
+            content_type="text/event-stream",
+        )
 
     # Apply filters if we are in qa mode and specific data sources are selected
     qa_scope = chat.options.qa_scope

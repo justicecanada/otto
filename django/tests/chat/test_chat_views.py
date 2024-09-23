@@ -718,8 +718,7 @@ def test_qa_response(client, all_apps_user):
     response = client.get(reverse("chat:qa"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
 
-    # Test chat_response with QA mode. Start with no files
-    # Now make a new message asking a question about the document(s)
+    # Test chat_response with QA mode. This should query the Corporate library.
     message = Message.objects.create(
         chat=chat,
         text="What is the capital of Canada?",
@@ -730,62 +729,6 @@ def test_qa_response(client, all_apps_user):
     )
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
-
-    # TODO: The latest bot message should NOT have answersources
-    # response_message = (
-    #     Message.objects.filter(chat=chat).order_by("-created_at").first()
-    # )
-    # assert response_message.sources.count() == 0
-
-    # Now add some files
-    # TODO: This doesn't actually complete, again because of the SSE testing issue
-    files_message = Message.objects.create(chat=chat, text="", mode="qa")
-    files_message_reponse = Message.objects.create(
-        chat=chat, text="", mode="qa", is_bot=True, parent=files_message
-    )
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        with open(f"{tmpdirname}/test file.txt", "w") as file:
-            file.write("The capital of Canada is Ottawa.")
-        file1 = ChatFile.objects.create(
-            message_id=files_message.id,
-            filename="test file.txt",
-            eof=1,
-            content_type="text/plain",
-        )
-        file1.saved_file.file.save(
-            "test file.txt", open(f"{tmpdirname}/test file.txt", "rb")
-        )
-        file2 = ChatFile.objects.create(
-            message_id=files_message.id,
-            filename="test file2.txt",
-            eof=1,
-            content_type="text/plain",
-        )
-        file2.saved_file.file.save(
-            "test file2.txt", open(f"{tmpdirname}/test file.txt", "rb")
-        )
-        response = client.get(
-            reverse("chat:chat_response", args=[files_message_reponse.id])
-        )
-        assert response.status_code == 200
-
-    # Ask the question again
-    message = Message.objects.create(
-        chat=chat,
-        text="What is the capital of Canada?",
-        mode="qa",
-    )
-    response_message = Message.objects.create(
-        chat=chat, text="", mode="qa", is_bot=True, parent=message
-    )
-    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
-    assert response.status_code == 200
-
-    # TODO: The latest bot message should have answersources
-    # response_message = (
-    #     Message.objects.filter(chat=chat).order_by("-created_at").first()
-    # )
-    # assert response_message.sources.count() > 0
 
 
 @pytest.mark.django_db
