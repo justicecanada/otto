@@ -27,7 +27,7 @@ from chat.metrics.feedback_metrics import (
     chat_negative_feedback_total,
     chat_positive_feedback_total,
 )
-from chat.models import Chat, ChatFile, ChatOptions, Message
+from chat.models import Chat, ChatFile, ChatOptions, Message, create_chat_data_source
 from chat.utils import llm_response_to_html, title_chat
 from librarian.models import DataSource, Library
 from otto.models import App, SecurityLabel
@@ -284,13 +284,22 @@ def chat(request, chat_id):
     logger.info("Chat session retrieved.", chat_id=chat_id)
     bind_contextvars(feature="chat")
 
-    chat = Chat.objects.get(id=chat_id)
-    # Get chat options
+    chat = (
+        Chat.objects.filter(id=chat_id)
+        .prefetch_related("options", "data_source")
+        .first()
+    )
+
+    # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
+    # If database is completely wiped, this should all be removable
     if not chat.options:
-        # This is just to catch chats which existed before ChatOptions was introduced.
-        # The existing chat mode for these chats will be lost.
         chat.options = ChatOptions.objects.from_defaults(user=chat.user)
         chat.save()
+    if not chat.data_source:
+        chat.data_source = create_chat_data_source(request.user)
+        chat.save()
+    # END INSURANCE CODE
+
     mode = chat.options.mode
 
     # Get chat messages ready
@@ -419,6 +428,8 @@ def init_upload(request, chat_id):
     """
     chat = Chat.objects.get(id=chat_id)
     mode = chat.options.mode
+    if mode == "chat":
+        mode = "qa"
     # Create the user's message in database
     logger.info("File upload initiated.", chat_id=chat_id, mode=mode)
     message = Message.objects.create(chat=chat, text="", is_bot=False, mode=mode)
@@ -444,6 +455,8 @@ def done_upload(request, message_id):
     response_message = Message.objects.create(
         chat=user_message.chat, text="", is_bot=True, mode=mode, parent=user_message
     )
+    chat = user_message.chat
+    response = HttpResponse()
 
     if mode == "translate":
         # usage metrics
@@ -453,6 +466,28 @@ def done_upload(request, message_id):
     if mode == "summarize":
         # usage metrics
         chat_request_type_total.labels(user=request.user.upn, type="text summarization")
+
+    if mode == "qa":
+        # usage metrics
+        print("QA upload")
+        chat_request_type_total.labels(user=request.user.upn, type="qa upload")
+        chat.options.qa_library = chat.user.personal_library
+        chat.options.qa_scope = "data_sources"
+        chat.options.qa_data_sources.set([chat.data_source])
+        chat.options.save()
+
+        response.write(
+            render_to_string(
+                "chat/components/chat_options_accordion.html",
+                {
+                    "options_form": ChatOptionsForm(
+                        instance=chat.options, user=request.user
+                    ),
+                    "mode": "qa",
+                    "swap": "true",
+                },
+            )
+        )
 
     response_init_message = {
         "is_bot": True,
@@ -467,7 +502,10 @@ def done_upload(request, message_id):
         ],
         "mode": mode,
     }
-    return render(request, "chat/components/chat_messages.html", context=context)
+    response.write(
+        render_to_string("chat/components/chat_messages.html", context=context)
+    )
+    return response
 
 
 @require_POST

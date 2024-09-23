@@ -91,8 +91,21 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
     def get_items(self, search=None, values=None):
         request = get_request()
         library_id = request.GET.get("library_id", None)
+        chat_id = request.GET.get("chat_id", None)
         if library_id:
-            data = DataSource.objects.filter(library_id=library_id)
+            library = (
+                Library.objects.filter(pk=library_id)
+                .prefetch_related("data_sources")
+                .first()
+            )
+            data = library.data_sources.all()
+            if chat_id and library.is_personal_library:
+                chat = Chat.objects.get(pk=chat_id)
+                if DataSource.objects.filter(chat=chat).exists():
+                    data = list(data)
+                    data.insert(0, chat.data_source)
+                    data[0].name_en = "This chat"
+                    data[0].name_fr = "Ce chat"
         else:
             data = DataSource.objects.all()
         if search is not None:
@@ -173,6 +186,13 @@ class ChatOptionsForm(ModelForm):
                     "class": "form-select form-select-sm",
                     "onchange": "showHideQaSourceForms(); triggerOptionSave();",
                 },
+            ),
+            "chat_agent": forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input small",
+                    "onchange": "triggerOptionSave();",
+                    "style": "filter: saturate(0); margin-top: 6px;",
+                }
             ),
             # QA advanced options are shown in a different form so they can be hidden
             "qa_system_prompt": forms.HiddenInput(

@@ -14,14 +14,24 @@ from chat.prompts import (
     QA_PRE_INSTRUCTIONS,
     QA_PROMPT_TEMPLATE,
     QA_SYSTEM_PROMPT,
+    current_time_prompt,
 )
-from librarian.models import Library, SavedFile
+from librarian.models import DataSource, Library, SavedFile
 from otto.models import SecurityLabel
 from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
 
-DEFAULT_MODE = "qa"
+DEFAULT_MODE = "chat"
+
+
+def create_chat_data_source(user):
+    if not user.personal_library:
+        user.create_personal_library()
+    return DataSource.objects.create(
+        name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        library=user.personal_library,
+    )
 
 
 class ChatManager(models.Manager):
@@ -34,7 +44,9 @@ class ChatManager(models.Manager):
             user=kwargs["user"], mode=mode
         )
         kwargs["security_label_id"] = SecurityLabel.default_security_label().id
-        return super().create(*args, **kwargs)
+        kwargs["data_source"] = create_chat_data_source(kwargs["user"])
+        instance = super().create(*args, **kwargs)
+        return instance
 
 
 class Chat(models.Model):
@@ -59,6 +71,14 @@ class Chat(models.Model):
 
     options = models.OneToOneField(
         "ChatOptions", on_delete=models.CASCADE, related_name="chat", null=True
+    )
+
+    data_source = models.OneToOneField(
+        "librarian.DataSource",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="chat",
     )
 
     def __str__(self):
@@ -141,6 +161,7 @@ class ChatOptions(models.Model):
     chat_model = models.CharField(max_length=255, default="gpt-4o")
     chat_temperature = models.FloatField(default=0.1)
     chat_system_prompt = models.TextField(blank=True)
+    chat_agent = models.BooleanField(default=True)
 
     # Summarize-specific options
     summarize_model = models.CharField(max_length=255, default="gpt-4o")
@@ -185,7 +206,7 @@ class ChatOptions(models.Model):
         return ChatPromptTemplate(
             message_templates=[
                 ChatMessage(
-                    content=self.qa_system_prompt,
+                    content=current_time_prompt() + self.qa_system_prompt,
                     role=MessageRole.SYSTEM,
                 ),
                 ChatMessage(
