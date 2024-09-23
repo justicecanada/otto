@@ -23,4 +23,10 @@
            class="col-form-label col-form-label-sm">{% trans "System prompt" %}</label>
   </div>
   <div class="px-3">{{ options_form.chat_system_prompt }}</div>
+
+  <div class="mx-3 mt-2 form-switch form-check">
+    {{ options_form.chat_agent }}
+    <label class="form-check-label small ms-1"
+           for="{{ options_form.chat_agent.auto_id }}">{% trans "Detect best mode (Chat or Q&A)" %}</label>
+  </div>
 {% endblock %}

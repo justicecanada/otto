@@ -589,6 +589,53 @@ def test_qa_response(client, all_apps_user):
 
 
 @pytest.mark.django_db
+def test_chat_agent(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    # Create a chat using the chat_with_ai route to create it with appropriate options
+    response = client.get(reverse("chat:chat_with_ai"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+
+    message = Message.objects.create(chat=chat, text="Hello", mode="chat")
+    response_message = Message.objects.create(
+        chat=chat, mode="chat", is_bot=True, parent=message
+    )
+
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+    # Refresh the chat
+    chat.refresh_from_db()
+    # Check that the chat mode is "chat"
+    assert chat.options.mode == "chat"
+
+    # Ask a generic question to the chat agent, not about the department
+    message = Message.objects.create(
+        chat=chat, text="What is the meaning of life?", mode="chat"
+    )
+    response_message = Message.objects.create(
+        chat=chat, mode="chat", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+    chat.refresh_from_db()
+    # Check that the chat mode is still "chat"
+    assert chat.options.mode == "chat"
+
+    # Ask a question to the chat agent about Corporate library
+    message = Message.objects.create(
+        chat=chat, text="What is my corporate dental coverage?", mode="chat"
+    )
+    response_message = Message.objects.create(
+        chat=chat, mode="chat", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+    chat.refresh_from_db()
+    # Check that the chat mode has been switched to "qa"
+    assert chat.options.mode == "qa"
+
+
+@pytest.mark.django_db
 def test_api_qa(client, all_apps_user, settings):
 
     # For some reason, the rule isn't getting loaded automatically in this test!

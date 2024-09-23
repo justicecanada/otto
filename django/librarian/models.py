@@ -99,25 +99,43 @@ class Library(models.Model):
 
     def clean(self):
         self._validate_public_library()
-        # Ensure that there is at most 1 default library
-        if (
-            self.is_default_library
-            and Library.objects.filter(is_default_library=True)
-            .exclude(pk=self.pk)
-            .exists()
-        ):
-            raise ValidationError("There can be only one default library")
+        self._validate_default_library()
+        self._validate_personal_library()
         super().clean()
 
     def _validate_public_library(self):
-        if self.is_public and not self.name:
+        if not self.is_public:
+            return
+        if not self.name:
             raise ValidationError("Public libraries must have a name")
-        if self.is_public and (
+        if (
             Library.objects.filter(is_public=True, name=self.name)
             .exclude(pk=self.pk)
             .exists()
         ):
             raise ValidationError("A public library with this name already exists")
+        if self.is_personal_library:
+            raise ValidationError("Personal libraries cannot be public libraries")
+
+    def _validate_default_library(self):
+        if not self.is_default_library:
+            return
+        elif (
+            Library.objects.filter(is_default_library=True).exclude(pk=self.pk).exists()
+        ):
+            raise ValidationError("There can be only one default library")
+        elif self.is_personal_library:
+            raise ValidationError("Personal libraries cannot be default libraries")
+        elif not self.is_public:
+            raise ValidationError("Default libraries must be public libraries")
+
+    def _validate_personal_library(self):
+        if not self.is_personal_library:
+            return
+        if Library.objects.filter(is_personal_library=True, created_by=self.created_by):
+            raise ValidationError(
+                "There can be only one personal library for each user"
+            )
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -236,15 +254,6 @@ class DataSource(models.Model):
         SecurityLabel,
         on_delete=models.SET_NULL,
         null=True,
-    )
-
-    # Chats have their own data source, within user's personal library, for uploads
-    chat = models.OneToOneField(
-        "chat.Chat",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="data_source",
     )
 
     class Meta:
