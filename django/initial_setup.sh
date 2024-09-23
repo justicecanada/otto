@@ -4,7 +4,7 @@ echo "Running database migrations..."
 python manage.py migrate || { echo "Error: Migrate failed"; exit 1; }
 
 echo "Resetting app data..."
-python manage.py reset_app_data apps terms groups library_mini security_labels || { echo "Error: Reset app data failed"; exit 1; }
+python manage.py reset_app_data apps terms groups library_mini security_labels cost_types || { echo "Error: Reset app data failed"; exit 1; }
 
 echo "Loading corporate library..."
 python manage.py load_corporate_library --force || { echo "Error: Load corporate library failed"; exit 1; }
