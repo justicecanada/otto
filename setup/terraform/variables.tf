@@ -119,3 +119,8 @@ variable "text_embedding_3_large_capacity" {
   description = "Text Embedding 3 Large quota limit"
   type        = number
 }
+
+variable "admin_email" {
+  description = "Admin email address"
+  type        = string
+}

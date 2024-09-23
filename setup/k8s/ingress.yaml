@@ -7,9 +7,13 @@ metadata:
   namespace: otto
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/whitelist-source-range: 199.212.215.11/32
+    nginx.ingress.kubernetes.io/whitelist-source-range: "${ALLOWED_IPS}" # AC-22: Whitelisting IP addresses
     nginx.ingress.kubernetes.io/proxy-body-size: "51200m"
-    cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer # SC-8: Ensure the integrity of transmitted data
+    cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer # SC-8: Ensure the integrity of transmitted data    
+    # SC-10: Network Disconnect - Add timeout configurations
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"  # 30 minutes
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"  # 30 minutes
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"  # 1 minute
 spec:
   ingressClassName: nginx
   # SC-8 & SC-13: TLS configuration for secure communication

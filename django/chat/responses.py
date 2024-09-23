@@ -306,6 +306,7 @@ def translate_response(chat, response_message):
     )
 
 
+# AC-20: Only read and retrieve information from external sources (libraries and data sources) without modifying them
 def qa_response(chat, response_message, eval=False):
     """
     Answer the user's question using a specific vector store table.

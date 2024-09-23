@@ -164,11 +164,12 @@ MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    # AC-2: Authentication, AC-14: Limited Access
+    # AC-2 & AC-3: Authentication, AC-14: Limited Access
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Static files
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    # AC-14: Limited Access to handle login flows: redirect to login page, use Azure login, accept terms to use
+    # AC-3 & AC-14: Limited Access to handle login flows: redirect to login page, use Azure login, accept terms to use
+    # AC-3(7): Custom middleware for enforcing role-based access control
     "otto.utils.auth.RedirectToLoginMiddleware",
     # AC-2 & AC-14: Azure AD Integration to protect entire site by default
     "azure_auth.middleware.AzureMiddleware",

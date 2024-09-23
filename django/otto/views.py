@@ -202,7 +202,7 @@ def notifications(request, hide=False):
     )
 
 
-# AC-16 & AC-16(2): Allows authorized administrators to modify user groups and roles
+# AC-3(7), AC-16, & AC-16(2): Allows authorized administrators to modify user groups and roles
 @permission_required("otto.manage_users")
 def manage_users(request):
     if request.method == "POST":

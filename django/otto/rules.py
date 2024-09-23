@@ -10,6 +10,7 @@ from rules import add_perm, is_group_member, predicate
 from librarian.models import LibraryUserRole
 
 # AC-16 & AC-16(2): Real-time enforcement of modified security attributes
+# AC-3(7): Custom permission predicates and rules for role-based access control
 
 ADMINISTRATIVE_PERMISSIONS = {
     "otto.manage_users",

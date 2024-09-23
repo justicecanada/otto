@@ -84,6 +84,7 @@ module "djangodb" {
   tags                 = local.common_tags
   storage_account_id   = module.storage.storage_account_id
   keyvault_id          = module.keyvault.keyvault_id
+  aks_ip_address       = module.aks.outbound_ip_address
   wait_for_propagation = module.keyvault.wait_for_propagation
 }
 
@@ -126,6 +127,7 @@ module "aks" {
   disk_encryption_set_id = module.disk.disk_encryption_set_id
   storage_account_id     = module.storage.storage_account_id
   tags                   = local.common_tags
+  admin_email            = var.admin_email
 }
 
 

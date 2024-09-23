@@ -105,6 +105,7 @@ export ADMIN_GROUP_NAMES
 export ACR_PUBLISHERS_GROUP_NAMES
 export ENTRA_CLIENT_NAME
 export ORGANIZATION
+export ALLOWED_IPS
 
 export APP_NAME
 export ENVIRONMENT
@@ -116,6 +117,8 @@ export OWNER
 export DJANGO_ENV
 export DJANGO_DEBUG
 export OTTO_ADMIN
+export ADMIN_EMAIL
+
 export GPT_35_TURBO_CAPACITY
 export GPT_4_TURBO_CAPACITY
 export GPT_4o_CAPACITY
@@ -169,4 +172,5 @@ gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}
 gpt_4_turbo_capacity = ${GPT_4_TURBO_CAPACITY}
 gpt_4o_capacity = ${GPT_4o_CAPACITY}
 text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
+admin_email = "${ADMIN_EMAIL}"
 EOF

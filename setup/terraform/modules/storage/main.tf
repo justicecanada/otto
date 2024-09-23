@@ -7,7 +7,7 @@ resource "azurerm_storage_account" "storage" {
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
   account_kind                    = "StorageV2"
-  public_network_access_enabled   = true # TODO: Set to false for private access
+  public_network_access_enabled   = false # AC-22: Set to false for private access
   default_to_oauth_authentication = true
   is_hns_enabled                  = true
 

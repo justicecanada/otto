@@ -42,3 +42,8 @@ variable "storage_account_id" {
   description = "The ID of the storage account"
   type        = string
 }
+
+variable "admin_email" {
+  description = "The email address of the admin user"
+  type        = string
+}

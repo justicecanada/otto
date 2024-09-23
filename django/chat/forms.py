@@ -77,6 +77,7 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         return self.get_grouped_choices()
 
 
+# AC-20: Allows users to control which sources are queried
 class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions

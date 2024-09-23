@@ -33,3 +33,8 @@ variable "wait_for_propagation" {
   description = "Flag for keyvault permission propagation"
   type        = string
 }
+
+variable "aks_ip_address" {
+  description = "Outbound IP address of the AKS cluster"
+  type        = string
+}

@@ -25,7 +25,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "djangodb" {
   node_vcores                   = 4
   node_storage_quota_in_mb      = 524288
   node_server_edition           = "MemoryOptimized"
-  node_public_ip_access_enabled = true
+  node_public_ip_access_enabled = false # AC-22: Set to false for private access
 
   ha_enabled = false
 
@@ -50,12 +50,20 @@ resource "azurerm_key_vault_secret" "djangodb_hostname" {
   depends_on = [var.keyvault_id, var.wait_for_propagation]
 }
 
-# Allow public access from Azure services and resources within Azure
-resource "azurerm_cosmosdb_postgresql_firewall_rule" "allow_azure_services" {
-  name             = "AllowAzureServices"
+# # Allow public access from Azure services and resources within Azure
+# resource "azurerm_cosmosdb_postgresql_firewall_rule" "allow_azure_services" {
+#   name             = "AllowAzureServices"
+#   cluster_id       = azurerm_cosmosdb_postgresql_cluster.djangodb.id
+#   start_ip_address = "0.0.0.0"
+#   end_ip_address   = "0.0.0.0"
+# }
+
+# Allow access from AKS cluster
+resource "azurerm_cosmosdb_postgresql_firewall_rule" "allow_aks" {
+  name             = "AllowAKS"
   cluster_id       = azurerm_cosmosdb_postgresql_cluster.djangodb.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0"
+  start_ip_address = var.aks_ip_address
+  end_ip_address   = var.aks_ip_address
 }
 
 resource "azurerm_monitor_diagnostic_setting" "djangodb_diagnostics" {

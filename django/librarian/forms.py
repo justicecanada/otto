@@ -43,7 +43,7 @@ class LibraryDetailForm(forms.ModelForm):
             "description_en",
             "description_fr",
             "order",
-            "is_public",
+            "is_public", 
         ]
         widgets = {
             "name_en": forms.TextInput(attrs={"class": "form-control form-control-sm"}),
@@ -55,6 +55,7 @@ class LibraryDetailForm(forms.ModelForm):
                 attrs={"class": "form-control form-control-sm", "rows": 2}
             ),
             "order": forms.NumberInput(attrs={"class": "form-control form-control-sm"}),
+            # AC-21: Add a checkbox to make the library public
             "is_public": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 

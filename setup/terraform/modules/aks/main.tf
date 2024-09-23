@@ -15,9 +15,9 @@ resource "azurerm_kubernetes_cluster" "aks" {
   kubernetes_version  = "1.29.7"
   dns_prefix          = var.aks_cluster_name
 
-  ## TODO: Configure the private cluster settings
-  #private_cluster_enabled = true
-  #private_dns_zone_id     = "System" # Consider a custom DNS zone instead
+  # AC-22: Configure the private cluster settings
+  private_cluster_enabled = true
+  private_dns_zone_id     = "System" # Consider a custom DNS zone instead
 
   # Configure the default node pool
   default_node_pool {
@@ -43,7 +43,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   # SC-8: Secure Internal Communication in AKS
-  # CM-8(3): Network Policies for AKS
+  # AC-3 & CM-8(3): Network Policies for AKS
   network_profile {
     network_plugin    = "kubenet"
     load_balancer_sku = "standard"
@@ -64,10 +64,12 @@ resource "azurerm_kubernetes_cluster" "aks" {
     }
   }
 
-  # CM-8(3): Azure Active Directory integration and RBAC can be used to enforce compliance and detect unauthorized access attempts
+  # AC-3 & CM-8(3): Azure Active Directory integration and RBAC can be used to enforce compliance and detect unauthorized access attempts
+  # AC-3(7): Use Azure AD groups for role assignments and permission management in AKSs
+  # AC-20: AAD enables centralized identity management and access control
   azure_active_directory_role_based_access_control {
     managed                = true # Deprecated but still required
-    azure_rbac_enabled     = true
+    azure_rbac_enabled     = true # AC-22: Enable Azure RBAC
     admin_group_object_ids = var.admin_group_object_ids
   }
 
@@ -175,3 +177,99 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   }
 }
 
+locals {
+  admin_email_list = split(",", var.admin_email)
+}
+
+# SC-5(3): Create an action group for AKS alerts
+resource "azurerm_monitor_action_group" "aks_alerts" {
+  name                = "${var.aks_cluster_name}-alert-group"
+  resource_group_name = var.resource_group_name
+  short_name          = "aksalerts"
+
+  dynamic "email_receiver" {
+    for_each = local.admin_email_list
+    content {
+      name                    = "admin${index(local.admin_email_list, email_receiver.value) + 1}"
+      email_address           = trimspace(email_receiver.value)
+      use_common_alert_schema = true
+    }
+  }
+}
+
+# SC-5(3): Network traffic spike alert: Notifies when network traffic reaches an abnormally high level
+resource "azurerm_monitor_metric_alert" "aks_network_alert" {
+  name                = "${var.aks_cluster_name}-network-spike-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_kubernetes_cluster.aks.id]
+
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "network_in_bytes"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 1000000000 # 1 GB, adjust as needed
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.aks_alerts.id
+  }
+}
+
+# SC-5(3): CPU usage alert: Notifies when CPU reaches an abnormally high level, which could be caused by a DDoS attack
+resource "azurerm_monitor_metric_alert" "aks_cpu_alert" {
+  name                = "${var.aks_cluster_name}-high-cpu-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_kubernetes_cluster.aks.id]
+
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "node_cpu_usage_percentage"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 80 # Adjust based on your normal CPU usage
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.aks_alerts.id
+  }
+}
+
+
+# SC-5(3): Request rate alert: Notifies when the request rate is abnormally high
+resource "azurerm_monitor_metric_alert" "aks_request_rate_alert" {
+  name                = "${var.aks_cluster_name}-high-request-rate-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_kubernetes_cluster.aks.id]
+
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "kube_pod_status_ready"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 1000 # Adjust based on your normal traffic
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.aks_alerts.id
+  }
+}
+
+# SC-5(3): Connection count alert: Notifies when the number of connections to the cluster is abnormally high
+resource "azurerm_monitor_metric_alert" "aks_connection_count_alert" {
+  name                = "${var.aks_cluster_name}-high-connection-count-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_kubernetes_cluster.aks.id]
+
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "kube_node_status_condition"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 5000 # Adjust based on your expected connection limits
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.aks_alerts.id
+  }
+}

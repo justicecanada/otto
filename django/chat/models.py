@@ -51,6 +51,7 @@ class Chat(models.Model):
     # Last access time manually updated when chat is opened
     accessed_at = models.DateTimeField(auto_now_add=True)
 
+    # AC-20: Allows for the classification of information
     security_label = models.ForeignKey(
         SecurityLabel,
         on_delete=models.SET_NULL,
