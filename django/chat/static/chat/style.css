@@ -1115,6 +1115,11 @@ ul.errorlist {
   word-break: break-word;
 }
 
+#editLibrariesInner .modal-body>.row>div {
+  max-height: calc(100vh - 10rem);
+  overflow-y: auto;
+}
+
 .btn-outline-initially-black:not(:hover):not(:focus) {
   color: var(--bs-black);
   border-color: var(--bs-black) !important;
