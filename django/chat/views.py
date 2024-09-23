@@ -295,8 +295,6 @@ def chat(request, chat_id):
     if not chat.options:
         chat.options = ChatOptions.objects.from_defaults(user=chat.user)
         chat.save()
-    if not request.user.personal_library:
-        request.user.create_personal_library()
     if not chat.data_source:
         chat.data_source = create_chat_data_source(request.user)
         chat.save()
