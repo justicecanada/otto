@@ -387,24 +387,33 @@ def qa_response(chat, response_message, eval=False):
         response = synthesizer.synthesize(query=input, nodes=source_nodes)
         response_generator = response.response_gen
         sources = response.source_nodes
+        return StreamingHttpResponse(
+            streaming_content=htmx_stream(
+                chat,
+                response_message.id,
+                llm,
+                response_generator=response_generator,
+                source_nodes=sources,
+            ),
+            content_type="text/event-stream",
+        )
     else:
         responses = []
         for source in source_nodes:
             responses.append(synthesizer.synthesize(query=input, nodes=[source]))
 
-        response_generator = combine_responses(responses, source_nodes)
+        response_replacer = combine_responses(responses, source_nodes)
         sources = source_nodes
-
-    return StreamingHttpResponse(
-        streaming_content=htmx_stream(
-            chat,
-            response_message.id,
-            llm,
-            response_generator=response_generator,
-            source_nodes=sources,
-        ),
-        content_type="text/event-stream",
-    )
+        return StreamingHttpResponse(
+            streaming_content=htmx_stream(
+                chat,
+                response_message.id,
+                llm,
+                response_replacer=response_replacer,
+                source_nodes=sources,
+            ),
+            content_type="text/event-stream",
+        )
 
 
 def error_response(chat, response_message):
