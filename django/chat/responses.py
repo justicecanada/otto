@@ -437,6 +437,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 llm,
                 response_generator=response_generator,
                 source_nodes=sources,
+                switch_mode=switch_mode,
             ),
             content_type="text/event-stream",
         )
