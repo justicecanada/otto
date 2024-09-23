@@ -31,20 +31,17 @@
 <div class="modal-body" id="preset-card-list">
   <div class="row px-3 pb-3">
     <div style="top: 0; bottom: 0; min-height: 300px">
-      <div class="col-12 d-flex flex-column">
- 
+      <div class="col-12 d-flex flex-column h-100">
         <h2 class="fs-6 mb-3">{% trans "Available Presets" %}</h2>
- 
-        <ul class="card-list">
-          {% if presets|length == 0 %}
-            {# TODO: Add a message saying there are no presets yet #}
-            NO PRESETS AVAILABLE
-          {% else %}
-          {% endif %}
-          {% for preset in presets %}
-            {% include "chat/modals/presets/card.html" %}
-          {% endfor %}
-        </ul>
+        {% if presets|length == 0 %}
+          {% include "chat/modals/presets/empty_card_list.html" %}
+        {% else %}
+          <ul class="card-list">
+            {% for preset in presets %}
+              {% include "chat/modals/presets/card.html" %}
+            {% endfor %}
+          </ul>
+        {% endif %}
       </div>
     </div>
   </div>
