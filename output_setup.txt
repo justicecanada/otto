@@ -1,0 +1,2998 @@
+=== Contents of setup\k8s\celery.yaml ===
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
+# Persistent Volume Claim for shared storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: otto
+spec:
+  storageClassName: azurefile  # Uses Azure File storage
+  accessModes:
+    - ReadWriteMany  # Allows multiple pods to read and write
+  resources:
+    requests:
+      storage: 2Gi  # Requests 2 GB of storage
+
+---
+
+# Deployment for Celery Worker
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  namespace: otto
+  labels:
+    deployment: celery-worker
+spec:
+  replicas: 1  # Runs one instance of the worker
+  selector:
+    matchLabels:
+      pod: celery-worker
+  template:
+    metadata:
+      labels:
+        pod: celery-worker
+    spec:
+      # The Celery worker and beat processes run as a non-root user (UID 1000)
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: celery-worker
+          image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the latest image from Azure Container Registry
+          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--pool=gevent', '--concurrency=1000']  # Starts Celery worker
+          securityContext:
+            allowPrivilegeEscalation: false  # Privilege escalation is disabled
+            readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
+          envFrom:
+            - configMapRef:
+                name: otto-configmap  # Loads environment variables from a ConfigMap
+          env:
+          # Environment variables loaded from Azure Key Vault secrets
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangosecretkey
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: vectordbpasswordkey
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: openaiservicekey
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: cognitiveservicekey
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: storageaccountkey
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbhostkey
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbpasswordkey
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: entraclientsecretkey
+          volumeMounts:
+            - name: secrets  # Mounts secrets from Azure Key Vault
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+            - name: media-pv-storage
+              mountPath: "/data/media"  # Mounts shared storage for media
+            - name: tmp
+              mountPath: /tmp # A writable /tmp directory is provided for temporary files
+      volumes:
+      - name: secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "azure-keyvault"
+      - name: media-pv-storage
+        persistentVolumeClaim:
+          claimName: media-pvc  # References the PVC defined earlier
+      - name: tmp
+        emptyDir: {}
+
+---
+
+
+# Deployment for Celery Beat (scheduler)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-beat
+  namespace: otto
+  labels:
+    deployment: celery-beat
+spec:
+  replicas: 1  # Runs one instance of the beat scheduler
+  selector:
+    matchLabels:
+      pod: celery-beat
+  template:
+    metadata:
+      labels:
+        pod: celery-beat
+    spec:
+      # The Celery worker and beat processes run as a non-root user (UID 1000)
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: celery-beat
+          image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the same image as the worker
+          command: ['celery', '-A', 'otto', 'beat', '-l', 'INFO', '--scheduler', 'django_celery_beat.schedulers:DatabaseScheduler']  # Starts Celery beat scheduler
+          securityContext:
+            allowPrivilegeEscalation: false  # Privilege escalation is disabled
+            readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
+          envFrom:
+            - configMapRef:
+                name: otto-configmap  # Loads environment variables from a ConfigMap
+          env:
+          # Environment variables loaded from Azure Key Vault secrets (same as worker)
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangosecretkey
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: vectordbpasswordkey
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: openaiservicekey
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: cognitiveservicekey
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: storageaccountkey
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbhostkey
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbpasswordkey
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: entraclientsecretkey
+          volumeMounts:
+            - name: secrets
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+            - name: media-pv-storage
+              mountPath: "/data/media"
+            - name: tmp
+              mountPath: /tmp  # Mounts the writable directory for the schedule file
+      volumes:
+      - name: secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "azure-keyvault"  # Uses Azure Key Vault for secrets
+      - name: media-pv-storage
+        persistentVolumeClaim:
+          claimName: media-pvc  # References the same PVC as the worker
+      - name: tmp
+        emptyDir: {}  # Provides a writable directory for the celerybeat-schedule file
+
+
+
+=== Contents of setup\k8s\configmap.yaml ===
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: container-azm-ms-agentconfig
+  namespace: kube-system
+data:
+  schema-version: v1
+  config-version: ver1
+  # AU-4(1): Application-level logs are also collected
+  # AU-6: Supports the identification of unusual activities through automated log analysis
+  log-data-collection-settings: |-
+    [log_collection_settings]
+      [log_collection_settings.stdout]
+        enabled = true
+        exclude_namespaces = []
+        containerlog_schema_version = "v2"
+      [log_collection_settings.stderr]
+        enabled = true
+        exclude_namespaces = []
+        containerlog_schema_version = "v2"
+      [log_collection_settings.env_var]
+        enabled = true
+      [log_collection_settings.enrich_container_logs]
+        enabled = true
+      [log_collection_settings.collect_all_kube_events]
+        enabled = true
+      [log_collection_settings.schema]
+        containerlog_schema_version = "v2"
+      [log_collection_settings.enable_multiline_logs]
+        enabled = "true"
+        stacktrace_languages = ["python", "java"]
+      [log_collection_settings.metadata_collection]
+        enabled = true
+        include_fields = ["podLabels", "podAnnotations", "podUid", "image", "imageID", "imageRepo", "imageTag"]
+
+  # AU-7: Generating metrics and reports based on system activities
+  prometheus-data-collection-settings: |-
+    [prometheus_data_collection_settings.cluster]
+      interval = "1m"
+      monitor_kubernetes_pods = true
+      
+    [prometheus_data_collection_settings.node]
+      interval = "1m"
+
+  metric_collection_settings: |-
+    [metric_collection_settings.collect_kube_system_pv_metrics]
+      enabled = true
+
+  alertable-metrics-configuration-settings: |-
+    [alertable_metrics_configuration_settings.container_resource_utilization_thresholds]
+      container_cpu_threshold_percentage = 80.0
+      container_memory_rss_threshold_percentage = 80.0
+      container_memory_working_set_threshold_percentage = 80.0
+
+    [alertable_metrics_configuration_settings.pv_utilization_thresholds]
+      pv_usage_threshold_percentage = 75.0
+
+    [alertable_metrics_configuration_settings.job_completion_threshold]
+      job_completion_threshold_time_minutes = 360
+
+  agent-settings: |-
+    [agent_settings.fbit_config]
+      log_flush_interval_secs = "5"
+      tail_mem_buf_limit_megabytes = "20"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otto-configmap
+  namespace: otto
+data:
+
+  ENV: "${DJANGO_ENV}"
+
+  SITE_URL: "https://${HOST_NAME}"
+  CREDENTIAL_TYPE: default
+  DEBUG: "${DJANGO_DEBUG}"
+  LOG_LEVEL: "INFO"
+  CELERY_LOG_LEVEL: "INFO"
+  DEBUG_TOOLBAR: "False"
+  MEDIA_ROOT: "/data/media"
+  STATIC_ROOT: "/data/static"
+
+  DJANGODB_ENGINE: "django.db.backends.postgresql_psycopg2"
+  DJANGODB_NAME: "citus"
+  DJANGODB_USER: "citus"
+
+  VECTORDB_ENGINE: "django.db.backends.postgresql_psycopg2"
+  VECTORDB_HOST: "postgres-vector-service"
+  VECTORDB_NAME: "llama_index"
+  VECTORDB_USER: "postgres"
+
+  AZURE_STORAGE_ACCOUNT_NAME: "${STORAGE_NAME}"
+  AZURE_STORAGE_CONTAINER: "otto"
+  AZURE_KEYVAULT_URL: "https://${KEYVAULT_NAME}.vault.azure.net/"
+  AZURE_OPENAI_ENDPOINT: "https://canadaeast.api.cognitive.microsoft.com/"
+  AZURE_OPENAI_VERSION: "2024-02-01"
+  AZURE_COGNITIVE_SERVICE_ENDPOINT: "https://canadacentral.api.cognitive.microsoft.com"
+  AZURE_COGNITIVE_SERVICE_REGION: "canadacentral"
+
+  DJANGO_SECRET_KEY: "django-secret-key"
+  ENTRA_REDIRECT_URI: "/accounts/login/callback"
+
+  REDIS_HOST: "redis-service"  
+  ENTRA_CLIENT_ID: "${ENTRA_CLIENT_ID}"
+  ENTRA_AUTHORITY: "${ENTRA_AUTHORITY}"
+
+
+
+=== Contents of setup\k8s\django.yaml ===
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: staticfiles-pvc
+  namespace: otto
+spec:
+  storageClassName: azurefile
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: otto
+spec:
+  storageClassName: azurefile
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+
+# SC-13: Secure key management using Azure Key Vault (FIPS 140-2 compliant)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-deployment
+  namespace: otto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django-app
+  template:
+    metadata:
+      labels:
+        app: django-app
+    spec:
+      containers:
+        - name: django-app-container
+          image: ${ACR_NAME}.azurecr.io/otto:latest
+          imagePullPolicy: Always # IfNotPresent in PROD
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: otto-configmap
+          env:
+          # SC-12 & SC-13: Secure storage and retrieval of cryptographic keys
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangosecretkey
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbhostkey
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbpasswordkey
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: vectordbpasswordkey
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: openaiservicekey
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: cognitiveservicekey
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: storageaccountkey
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: entraclientsecretkey
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: secrets
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+            - name: staticfiles-pv-storage
+              mountPath: "/data/static"
+            - name: media-pv-storage
+              mountPath: "/data/media"
+      volumes:
+      # SC-13: Integration with Azure Key Vault for secure secret management
+      - name: secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "azure-keyvault"
+      - name: staticfiles-pv-storage
+        persistentVolumeClaim:
+          claimName: staticfiles-pvc
+      - name: media-pv-storage
+        persistentVolumeClaim:
+          claimName: media-pvc
+                
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-service
+  namespace: otto
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8000
+  selector:
+    app: django-app
+
+
+
+=== Contents of setup\k8s\ingress.yaml ===
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: otto-ingress
+  namespace: otto
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/whitelist-source-range: "${ALLOWED_IPS}" # AC-22: Whitelisting IP addresses
+    nginx.ingress.kubernetes.io/proxy-body-size: "51200m"
+    cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer # SC-8: Ensure the integrity of transmitted data
+spec:
+  ingressClassName: nginx
+  # SC-8 & SC-13: TLS configuration for secure communication
+  tls:
+  - hosts:
+    - ${HOST_NAME}
+    secretName: tls-secret
+  rules:
+  - host: ${HOST_NAME}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: django-service
+            port:
+              number: 80
+
+
+
+=== Contents of setup\k8s\letsencrypt-cluster-issuer.yaml ===
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
+# SC-13: Use of approved cryptographic algorithms
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-cluster-issuer
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: otto@justice.gc.ca
+    privateKeySecretRef:
+      name: letsencrypt-cluster-issuer-key
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+          podTemplate:
+            spec:
+              nodeSelector:
+                "kubernetes.io/os": linux
+
+
+
+=== Contents of setup\k8s\namespace.yaml ===
+# CM-8: Defines the application's components within the AKS cluster
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: otto
+  labels:
+    name: otto
+
+
+
+=== Contents of setup\k8s\redis.yaml ===
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  labels:
+    deployment: redis
+  namespace: otto
+spec:
+  selector:
+    matchLabels:
+      pod: redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        pod: redis
+    spec:
+      containers:
+      - name: redis
+        # TODO: probably best to use a targeted version
+        image: redis:7.0.11-bullseye        
+        ports:
+        - containerPort: 6379
+        # TODO: add resource limits
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service  
+  namespace: otto
+spec:
+  selector:
+    pod: redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+
+
+
+=== Contents of setup\k8s\secrets.yaml ===
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  # SC-13 & SC-28: Integration of Key Vault with Kubernetes for secure key distribution
+  name: azure-keyvault
+  namespace: otto
+spec:
+  provider: azure
+  secretObjects:
+  # AC-3 & SC-8(1): Ensures that sensitive information is securely retrieved and used by the application
+  - secretName: azure-keyvault-secrets
+    type: Opaque
+    data:
+      - key: djangosecretkey
+        objectName: DJANGO-SECRET-KEY
+      - key: vectordbpasswordkey
+        objectName: VECTORDB-PASSWORD
+      - key: openaiservicekey
+        objectName: OPENAI-SERVICE-KEY
+      - key: cognitiveservicekey
+        objectName: COGNITIVE-SERVICE-KEY
+      - key: storageaccountkey
+        objectName: STORAGE-KEY
+      - key: djangodbhostkey
+        objectName: DJANGODB-HOSTNAME
+      - key: djangodbpasswordkey
+        objectName: DJANGODB-PASSWORD
+      - key: entraclientsecretkey
+        objectName: ENTRA-CLIENT-SECRET
+  parameters:
+    usePodIdentity: "false"
+    useVMManagedIdentity: "true"
+    userAssignedIdentityID: "${AKS_IDENTITY_ID}"
+    keyvaultName: "${KEYVAULT_NAME}"
+    objects: |
+      array:
+        - |
+          objectName: DJANGO-SECRET-KEY
+          objectType: secret
+          objectVersion: ""
+        - |
+          objectName: VECTORDB-PASSWORD
+          objectType: secret 
+          objectVersion: ""
+        - |
+          objectName: COGNITIVE-SERVICE-KEY
+          objectType: secret   
+          objectVersion: ""
+        - |
+          objectName: OPENAI-SERVICE-KEY
+          objectType: secret   
+          objectVersion: ""      
+        - |
+          objectName: STORAGE-KEY
+          objectType: secret  
+          objectVersion: ""      
+        - |
+          objectName: DJANGODB-HOSTNAME
+          objectType: secret
+          objectVersion: "" 
+        - |
+          objectName: DJANGODB-PASSWORD
+          objectType: secret
+          objectVersion: ""
+        - |
+          objectName: ENTRA-CLIENT-SECRET
+          objectType: secret
+          objectVersion: ""
+    tenantId: "${TENANT_ID}"
+
+
+
+=== Contents of setup\k8s\storageclass.yaml ===
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
+# SC-13: Encryption at rest using Azure Disk Encryption
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: managed-csi
+provisioner: disk.csi.azure.com
+
+
+
+=== Contents of setup\k8s\vectordb.yaml ===
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+
+# SC-13: Ensure secure key management practices
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-vector-pvc
+  namespace: otto
+spec:
+  storageClassName: managed-csi
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-vector-deployment
+  namespace: otto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-vector-db
+  template:
+    metadata:
+      labels:
+        app: postgres-vector-db
+        tier: backend
+    spec:
+      containers:
+        - name: postgres-vector-db
+          image: pgvector/pgvector:pg16
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: azure-keyvault-secrets
+                  key: vectordbpasswordkey
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: otto-configmap
+                  key: VECTORDB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: otto-configmap
+                  key: VECTORDB_USER
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-vector-volume-mount
+              subPath: vectordb
+              mountPath: /var/lib/postgresql/data
+            - name: secrets
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+      volumes:
+        - name: postgres-vector-volume-mount
+          persistentVolumeClaim:
+            claimName: postgres-vector-pvc
+        - name: secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "azure-keyvault"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-vector-service
+  namespace: otto
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres-vector-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+
+
+
+=== Contents of setup\terraform\modules\acr\main.tf ===
+# CM-8: ACR maintains an inventory of container images used in the system
+resource "azurerm_container_registry" "acr" {
+  name                = var.acr_name
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  sku                 = var.acr_sku
+
+  admin_enabled = true
+
+  tags = var.tags
+
+  depends_on = [var.keyvault_id]
+}
+
+# Role assignment for ACR
+resource "azurerm_role_assignment" "acr_push" {
+  for_each             = toset(var.acr_publisher_object_ids)
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPush"
+  principal_id         = each.value
+
+  depends_on = [azurerm_container_registry.acr]
+}
+
+
+
+=== Contents of setup\terraform\modules\acr\outputs.tf ===
+output "acr_name" {
+  value       = azurerm_container_registry.acr.name
+  description = "The name of the ACR"
+}
+
+output "acr_id" {
+  value       = azurerm_container_registry.acr.id
+  description = "The ID of the ACR"
+}
+
+
+
+=== Contents of setup\terraform\modules\acr\variables.tf ===
+variable "acr_name" {
+  description = "The name of the ACR"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+}
+
+variable "location" {
+  description = "The Azure region for resource deployment"
+  type        = string
+}
+
+variable "acr_sku" {
+  description = "The SKU (pricing tier) of the ACR"
+  type        = string
+  default     = "Basic"
+}
+
+variable "tags" {
+  description = "A mapping of tags to assign to the resource"
+  type        = map(string)
+  default     = {}
+}
+
+variable "acr_publisher_object_ids" {
+  description = "The list of object IDs of the ACR publishers Azure AD groups"
+  type        = list(string)
+}
+
+variable "keyvault_id" {
+  description = "The ID of the Key Vault"
+  type        = string
+}
+
+
+
+=== Contents of setup\terraform\modules\aks\main.tf ===
+# AU-4(1): Create a Log Analytics workspace
+resource "azurerm_log_analytics_workspace" "aks" {
+  name                = "${var.aks_cluster_name}-logs"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+# Define the Azure Kubernetes Service (AKS) cluster
+resource "azurerm_kubernetes_cluster" "aks" {
+  name                = var.aks_cluster_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  kubernetes_version  = "1.29.7"
+  dns_prefix          = var.aks_cluster_name
+
+  # AC-22: Configure the private cluster settings
+  private_cluster_enabled = true
+  private_dns_zone_id     = "System" # Consider a custom DNS zone instead
+
+  # Configure the default node pool
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+
+    # Set upgrade settings for the node pool
+    upgrade_settings {
+      max_surge = "10%"
+    }
+  }
+
+  # Set the identity type to SystemAssigned
+  identity {
+    type = "SystemAssigned"
+  }
+
+  # SC-12 & SC-13: Enabling Azure Key Vault secrets provider for secure key management
+  key_vault_secrets_provider {
+    secret_rotation_enabled  = true
+    secret_rotation_interval = "2m"
+  }
+
+  # SC-8: Secure Internal Communication in AKS
+  # AC-3 & CM-8(3): Network Policies for AKS
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+
+  oms_agent {
+    # AU-6: Enables automated analysis and reporting capabilities
+    # CM-8(3): For detecting unauthorized components or suspicious activities
+    log_analytics_workspace_id = azurerm_log_analytics_workspace.aks.id
+  }
+
+  automatic_channel_upgrade = "stable"
+
+  maintenance_window {
+    allowed {
+      day   = "Sunday"
+      hours = [21, 22, 23, 0]
+    }
+  }
+
+  # AC-3 & CM-8(3): Azure Active Directory integration and RBAC can be used to enforce compliance and detect unauthorized access attempts
+  # AC-3(7): Use Azure AD groups for role assignments and permission management in AKSs
+  # AC-20: AAD enables centralized identity management and access control
+  azure_active_directory_role_based_access_control {
+    managed                = true # Deprecated but still required
+    azure_rbac_enabled     = true # AC-22: Enable Azure RBAC
+    admin_group_object_ids = var.admin_group_object_ids
+  }
+
+  local_account_disabled = true
+
+  disk_encryption_set_id = var.disk_encryption_set_id
+
+  # Set resource tags
+  tags = var.tags
+
+  # Specify dependencies
+  depends_on = [var.acr_id]
+}
+
+resource "azurerm_role_assignment" "aks_des_reader" {
+  scope                = var.disk_encryption_set_id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
+
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
+
+resource "azurerm_role_assignment" "aks_vm_contributor" {
+  scope                = var.disk_encryption_set_id
+  role_definition_name = "Virtual Machine Contributor"
+  principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
+
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
+
+resource "azurerm_role_assignment" "rbac_cluster_admin" {
+  for_each             = toset(var.admin_group_object_ids)
+  principal_id         = each.value
+  role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
+  scope                = azurerm_kubernetes_cluster.aks.id
+}
+
+resource "azurerm_role_assignment" "kv_secrets_provider_user" {
+  # SC-12: RBAC for AKS to access Key Vault secrets
+  principal_id         = azurerm_kubernetes_cluster.aks.key_vault_secrets_provider[0].secret_identity[0].object_id
+  role_definition_name = "Key Vault Secrets User"
+  scope                = var.keyvault_id
+  principal_type       = "ServicePrincipal"
+}
+
+resource "azurerm_role_assignment" "acr_pull" {
+  principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
+  role_definition_name = "AcrPull"
+  scope                = var.acr_id
+  principal_type       = "ServicePrincipal"
+}
+
+resource "azurerm_role_assignment" "acr_pull_kubelet" {
+  principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  role_definition_name = "AcrPull"
+  scope                = var.acr_id
+  principal_type       = "ServicePrincipal"
+}
+
+# AU-4(1): AKS cluster is configured to use Azure Monitor for logging
+# AU-6: Comprehensive audit logging
+# AU-7: Integration with Azure Monitor provides audit reduction and report generation capabilities
+resource "azurerm_monitor_diagnostic_setting" "aks" {
+  name               = "${var.aks_cluster_name}-diagnostics"
+  target_resource_id = azurerm_kubernetes_cluster.aks.id
+
+  # AU-7: Ensures that original audit records are preserved
+  log_analytics_workspace_id     = azurerm_log_analytics_workspace.aks.id
+  log_analytics_destination_type = "Dedicated"
+
+  # AU-4(1): Send logs to a storage account
+  storage_account_id = var.storage_account_id
+
+  # AU-4(1) & AU-7: Enable the required logs and metrics
+  enabled_log {
+    category = "kube-apiserver"
+  }
+
+  enabled_log {
+    category = "kube-audit"
+  }
+
+  enabled_log {
+    category = "kube-audit-admin"
+  }
+
+  enabled_log {
+    category = "kube-controller-manager"
+  }
+
+  enabled_log {
+    category = "kube-scheduler"
+  }
+
+  enabled_log {
+    category = "cluster-autoscaler"
+  }
+
+  enabled_log {
+    category = "guard"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+locals {
+  admin_email_list = split(",", var.admin_email)
+}
+
+# SC-5(3): Create an action group for AKS alerts
+resource "azurerm_monitor_action_group" "aks_alerts" {
+  name                = "${var.aks_cluster_name}-alert-group"
+  resource_group_name = var.resource_group_name
+  short_name          = "aksalerts"
+
+  dynamic "email_receiver" {
+    for_each = local.admin_email_list
+    content {
+      name                    = "admin${index(local.admin_email_list, email_receiver.value) + 1}"
+      email_address           = trimspace(email_receiver.value)
+      use_common_alert_schema = true
+    }
+  }
+}
+
+# SC-5(3): Network traffic spike alert: Notifies when network traffic reaches an abnormally high level
+resource "azurerm_monitor_metric_alert" "aks_network_alert" {
+  name                = "${var.aks_cluster_name}-network-spike-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_kubernetes_cluster.aks.id]
+
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "network_in_bytes"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 1000000000 # 1 GB, adjust as needed
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.aks_alerts.id
+  }
+}
+
+# SC-5(3): CPU usage alert: Notifies when CPU reaches an abnormally high level, which could be caused by a DDoS attack
+resource "azurerm_monitor_metric_alert" "aks_cpu_alert" {
+  name                = "${var.aks_cluster_name}-high-cpu-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_kubernetes_cluster.aks.id]
+
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "node_cpu_usage_percentage"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 80 # Adjust based on your normal CPU usage
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.aks_alerts.id
+  }
+}
+
+
+# SC-5(3): Request rate alert: Notifies when the request rate is abnormally high
+resource "azurerm_monitor_metric_alert" "aks_request_rate_alert" {
+  name                = "${var.aks_cluster_name}-high-request-rate-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_kubernetes_cluster.aks.id]
+
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "kube_pod_status_ready"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 1000 # Adjust based on your normal traffic
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.aks_alerts.id
+  }
+}
+
+# SC-5(3): Connection count alert: Notifies when the number of connections to the cluster is abnormally high
+resource "azurerm_monitor_metric_alert" "aks_connection_count_alert" {
+  name                = "${var.aks_cluster_name}-high-connection-count-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_kubernetes_cluster.aks.id]
+
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "kube_node_status_condition"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 5000 # Adjust based on your expected connection limits
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.aks_alerts.id
+  }
+}
+
+
+
+=== Contents of setup\terraform\modules\aks\outputs.tf ===
+output "aks_cluster_name" {
+  value       = azurerm_kubernetes_cluster.aks.name
+  description = "The name of the AKS cluster"
+}
+
+output "aks_cluster_id" {
+  value       = azurerm_kubernetes_cluster.aks.id
+  description = "The ID of the AKS cluster"
+}
+
+output "outbound_ip_address" {
+  value       = tolist(azurerm_kubernetes_cluster.aks.network_profile[0].load_balancer_profile[0].effective_outbound_ips)[0]
+  description = "The outbound IP address of the AKS cluster"
+}
+
+
+
+=== Contents of setup\terraform\modules\aks\variables.tf ===
+variable "aks_cluster_name" {
+  description = "The name of the AKS cluster"
+  type        = string
+}
+
+variable "location" {
+  description = "The Azure region for resource deployment"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+}
+
+variable "admin_group_object_ids" {
+  description = "The list of objects IDs of the admin Azure AD group"
+  type        = list(string)
+}
+
+variable "keyvault_id" {
+  description = "The ID of the keyvault"
+  type        = string
+}
+
+variable "disk_encryption_set_id" {
+  description = "The ID of the disk encryption set"
+  type        = string
+}
+
+variable "acr_id" {
+  description = "The ID of the Azure Container Registry"
+  type        = string
+}
+
+variable "tags" {
+  description = "A mapping of tags to assign to the resource"
+  type        = map(string)
+}
+
+variable "storage_account_id" {
+  description = "The ID of the storage account"
+  type        = string
+}
+
+variable "admin_email" {
+  description = "The email address of the admin user"
+  type        = string
+}
+
+
+
+=== Contents of setup\terraform\modules\cognitive_services\main.tf ===
+resource "azurerm_cognitive_account" "cognitive_services" {
+  name                = var.name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  kind                = "CognitiveServices"
+  sku_name            = "S0"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = var.tags
+
+  depends_on = [var.keyvault_id]
+}
+
+resource "azurerm_role_assignment" "cognitive_services_blob_contributor" {
+  scope                = var.storage_account_id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_cognitive_account.cognitive_services.identity[0].principal_id
+  depends_on           = [azurerm_cognitive_account.cognitive_services]
+}
+
+# SC-13: Secure storage of Cognitive Services key in Key Vault
+resource "azurerm_key_vault_secret" "cognitive_services_key" {
+  name         = "COGNITIVE-SERVICE-KEY"
+  value        = azurerm_cognitive_account.cognitive_services.primary_access_key
+  key_vault_id = var.keyvault_id
+  depends_on   = [azurerm_cognitive_account.cognitive_services, var.wait_for_propagation]
+}
+
+
+
+
+=== Contents of setup\terraform\modules\cognitive_services\outputs.tf ===
+output "id" {
+  value       = azurerm_cognitive_account.cognitive_services.id
+  description = "The ID of the Cognitive Services account"
+}
+
+output "endpoint" {
+  value       = azurerm_cognitive_account.cognitive_services.endpoint
+  description = "The endpoint used to connect to the Cognitive Services account"
+}
+
+output "primary_access_key" {
+  value       = azurerm_cognitive_account.cognitive_services.primary_access_key
+  description = "The primary access key for the Cognitive Services account"
+  sensitive   = true
+}
+
+output "secondary_access_key" {
+  value       = azurerm_cognitive_account.cognitive_services.secondary_access_key
+  description = "The secondary access key for the Cognitive Services account"
+  sensitive   = true
+}
+
+output "secret_id" {
+  value       = azurerm_key_vault_secret.cognitive_services_key.id
+  description = "The ID of the Key Vault Secret containing the Cognitive Services key"
+}
+
+
+
+=== Contents of setup\terraform\modules\cognitive_services\variables.tf ===
+variable "name" {
+  type        = string
+  description = "The name of the Cognitive Services account"
+}
+
+variable "location" {
+  type        = string
+  description = "The Azure region where the Cognitive Services account should be created"
+}
+
+variable "resource_group_name" {
+  type        = string
+  description = "The name of the resource group in which to create the Cognitive Services account"
+}
+
+variable "storage_account_id" {
+  description = "The ID of the storage account to which the Cognitive Services account needs access."
+  type        = string
+}
+
+variable "keyvault_id" {
+  type        = string
+  description = "The ID of the Key Vault where the Cognitive Services key will be stored"
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "A mapping of tags to assign to the resource"
+  default     = {}
+}
+
+variable "wait_for_propagation" {
+  description = "Flag for keyvault permission propagation"
+  type        = string
+}
+
+
+
+=== Contents of setup\terraform\modules\disk\main.tf ===
+# Add a delay to allow for the key vault's purge protection to be enabled 
+resource "null_resource" "wait_for_purge_protection" {
+  provisioner "local-exec" {
+    command = "sleep 120"
+  }
+  depends_on = [var.wait_for_propagation, var.cmk_id]
+}
+
+resource "azurerm_disk_encryption_set" "des" {
+  name                = "${var.disk_name}-des"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  key_vault_key_id    = var.cmk_id
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  depends_on = [null_resource.wait_for_purge_protection]
+}
+
+# Add a delay to allow for the disk encryption set to be created 
+resource "null_resource" "wait_for_disk_encryption_set" {
+  provisioner "local-exec" {
+    command = "sleep 60"
+  }
+  depends_on = [var.wait_for_propagation, azurerm_disk_encryption_set.des]
+}
+
+resource "azurerm_role_assignment" "des_key_vault_crypto_user" {
+  scope                = var.keyvault_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = azurerm_disk_encryption_set.des.identity[0].principal_id
+
+  depends_on = [azurerm_disk_encryption_set.des, null_resource.wait_for_disk_encryption_set]
+}
+
+# Add a delay to allow for the disk encryption set permissions to be propagated
+resource "null_resource" "wait_for_disk_encryption_set_permissions" {
+  provisioner "local-exec" {
+    command = "sleep 60"
+  }
+  depends_on = [azurerm_role_assignment.des_key_vault_crypto_user, null_resource.wait_for_disk_encryption_set]
+}
+
+# SSD for static files and performance-sensitive data
+resource "azurerm_managed_disk" "aks_ssd_disk" {
+  name                 = "${var.disk_name}-ssd"
+  location             = var.location
+  resource_group_name  = var.resource_group_name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = var.ssd_disk_size
+  os_type              = "Linux"
+
+  public_network_access_enabled = false
+  disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-28 & SC-28(1): Customer-managed keys for enhanced encryption control
+
+  tags = merge(var.tags, {
+    "Purpose" = "Static files and performance-sensitive data"
+  })
+
+  depends_on = [var.aks_cluster_id, null_resource.wait_for_disk_encryption_set_permissions]
+}
+
+# HDD for larger, less frequently accessed data
+resource "azurerm_managed_disk" "aks_hdd_disk" {
+  name                 = "${var.disk_name}-hdd"
+  location             = var.location
+  resource_group_name  = var.resource_group_name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = var.hdd_disk_size
+  os_type              = "Linux"
+
+  public_network_access_enabled = false
+  disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-13: Customer-managed keys for enhanced encryption control
+
+  tags = merge(var.tags, {
+    "Purpose" = "Media and larger data storage"
+  })
+
+  depends_on = [var.aks_cluster_id, null_resource.wait_for_disk_encryption_set_permissions]
+}
+
+
+
+=== Contents of setup\terraform\modules\disk\outputs.tf ===
+output "disk_encryption_set_id" {
+  value = azurerm_disk_encryption_set.des.id
+}
+
+
+
+=== Contents of setup\terraform\modules\disk\variables.tf ===
+variable "disk_name" {
+  description = "The name of the disk"
+  type        = string
+}
+
+variable "location" {
+  description = "The Azure region for resource deployment"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+}
+
+variable "ssd_disk_size" {
+  description = "The size of the SSD disk in GB"
+  type        = number
+  default     = 64
+}
+
+variable "hdd_disk_size" {
+  description = "The size of the HDD disk in GB"
+  type        = number
+  default     = 500
+}
+
+variable "tags" {
+  description = "A mapping of tags to assign to the resource"
+  type        = map(string)
+  default     = {}
+}
+
+variable "aks_cluster_id" {
+  description = "The ID of the AKS cluster"
+  type        = string
+}
+
+variable "keyvault_id" {
+  description = "The ID of the Key Vault"
+  type        = string
+}
+
+variable "cmk_id" {
+  description = "The ID of the Key in the Key Vault to use for encryption"
+  type        = string
+}
+
+variable "wait_for_propagation" {
+  description = "Flag for keyvault permission propagation"
+  type        = string
+}
+
+
+
+=== Contents of setup\terraform\modules\djangodb\main.tf ===
+provider "azurerm" {
+  features {}
+}
+
+# Generate a random password for DjangoDB
+resource "random_password" "djangodb_password" {
+  length  = 16
+  special = true
+}
+
+resource "azurerm_cosmosdb_postgresql_cluster" "djangodb" {
+  name                            = var.resource_name
+  resource_group_name             = var.resource_group_name
+  location                        = var.location
+  citus_version                   = "12.1"
+  sql_version                     = "16"
+  administrator_login_password    = random_password.djangodb_password.result
+  node_count                      = 0
+  coordinator_storage_quota_in_mb = 32768
+  coordinator_vcore_count         = 1
+  coordinator_server_edition      = "BurstableMemoryOptimized"
+  tags                            = var.tags
+
+  # Configure nodes
+  node_vcores                   = 4
+  node_storage_quota_in_mb      = 524288
+  node_server_edition           = "MemoryOptimized"
+  node_public_ip_access_enabled = false # AC-22: Set to false for private access
+
+  ha_enabled = false
+
+  depends_on = [var.keyvault_id, random_password.djangodb_password]
+}
+
+# Store the generated password in the admin Key Vault
+resource "azurerm_key_vault_secret" "djangodb_password" {
+  name         = "DJANGODB-PASSWORD"
+  value        = random_password.djangodb_password.result
+  key_vault_id = var.keyvault_id
+
+  depends_on = [var.keyvault_id, random_password.djangodb_password, var.wait_for_propagation]
+}
+
+# Store the generated hostname in the admin Key Vault
+resource "azurerm_key_vault_secret" "djangodb_hostname" {
+  name         = "DJANGODB-HOSTNAME"
+  value        = azurerm_cosmosdb_postgresql_cluster.djangodb.servers[0].fqdn
+  key_vault_id = var.keyvault_id
+
+  depends_on = [var.keyvault_id, var.wait_for_propagation]
+}
+
+# # Allow public access from Azure services and resources within Azure
+# resource "azurerm_cosmosdb_postgresql_firewall_rule" "allow_azure_services" {
+#   name             = "AllowAzureServices"
+#   cluster_id       = azurerm_cosmosdb_postgresql_cluster.djangodb.id
+#   start_ip_address = "0.0.0.0"
+#   end_ip_address   = "0.0.0.0"
+# }
+
+# Allow access from AKS cluster
+resource "azurerm_cosmosdb_postgresql_firewall_rule" "allow_aks" {
+  name             = "AllowAKS"
+  cluster_id       = azurerm_cosmosdb_postgresql_cluster.djangodb.id
+  start_ip_address = var.aks_ip_address
+  end_ip_address   = var.aks_ip_address
+}
+
+resource "azurerm_monitor_diagnostic_setting" "djangodb_diagnostics" {
+  name               = "${var.resource_name}-diagnostics"
+  target_resource_id = azurerm_cosmosdb_postgresql_cluster.djangodb.id
+  storage_account_id = var.storage_account_id
+
+  enabled_log {
+    category = "PostgreSQLLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+
+  depends_on = [azurerm_cosmosdb_postgresql_cluster.djangodb]
+}
+
+
+
+=== Contents of setup\terraform\modules\djangodb\outputs.tf ===
+output "db_hostname" {
+  value = azurerm_cosmosdb_postgresql_cluster.djangodb.servers[0].fqdn
+  description = "The hostname of the Cosmos DB for PostgreSQL"
+}
+
+
+
+=== Contents of setup\terraform\modules\djangodb\variables.tf ===
+variable "resource_name" {
+  description = "The name of the Django database resource"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+}
+
+variable "location" {
+  description = "The Azure region for resource deployment"
+  type        = string
+}
+
+variable "tags" {
+  description = "A mapping of tags to assign to the resource"
+  type        = map(string)
+  default     = {}
+}
+
+variable "storage_account_id" {
+  description = "The ID of the storage account"
+  type        = string
+}
+
+variable "keyvault_id" {
+  description = "The ID of the Key Vault"
+  type        = string
+}
+
+variable "wait_for_propagation" {
+  description = "Flag for keyvault permission propagation"
+  type        = string
+}
+
+variable "aks_ip_address" {
+  description = "Outbound IP address of the AKS cluster"
+  type        = string
+}
+
+
+
+=== Contents of setup\terraform\modules\keyvault\main.tf ===
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "kv" {
+  # SC-12: Centralized key management system
+  name                       = var.keyvault_name
+  location                   = var.location
+  resource_group_name        = var.resource_group_name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium" # SC-13: Premium SKU is FIPS 140-2 Level 2 compliant
+  enable_rbac_authorization  = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
+
+  tags = var.tags
+}
+
+resource "azurerm_role_assignment" "kv_role" {
+  for_each             = toset(var.admin_group_object_ids)
+  scope                = azurerm_key_vault.kv.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = each.value
+}
+
+# Wait 5 minutes to allow the permissions to propagate
+resource "null_resource" "wait_for_permission_propagation" {
+  provisioner "local-exec" {
+    command = "sleep 300"
+  }
+  depends_on = [
+    azurerm_role_assignment.kv_role
+  ]
+}
+
+resource "azurerm_key_vault_key" "cmk" {
+  # SC-12: Automated key generation and management
+  name         = "otto-encryption-key"
+  key_vault_id = azurerm_key_vault.kv.id
+  key_type     = "RSA" # SC-13: Use RSA keys for encryption
+  key_size     = 2048  # SC-13: Use 2048-bit keys for encryption
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+  depends_on = [null_resource.wait_for_permission_propagation]
+}
+
+resource "azurerm_key_vault_secret" "entra_client_secret" {
+  # SC-12: Secure storage of application secrets
+  name         = "ENTRA-CLIENT-SECRET"
+  value        = var.entra_client_secret
+  key_vault_id = azurerm_key_vault.kv.id
+  depends_on   = [null_resource.wait_for_permission_propagation]
+}
+
+resource "random_password" "vectordb_password" {
+  length  = 16
+  special = true
+}
+
+resource "azurerm_key_vault_secret" "vectordb_password" {
+  name         = "VECTORDB-PASSWORD"
+  value        = random_password.vectordb_password.result
+  key_vault_id = azurerm_key_vault.kv.id
+  depends_on   = [null_resource.wait_for_permission_propagation]
+}
+
+resource "random_password" "django_secret_key" {
+  length = 50
+}
+
+resource "azurerm_key_vault_secret" "django_secret_key" {
+  name         = "DJANGO-SECRET-KEY"
+  value        = random_password.django_secret_key.result
+  key_vault_id = azurerm_key_vault.kv.id
+  depends_on   = [null_resource.wait_for_permission_propagation]
+}
+
+
+
+=== Contents of setup\terraform\modules\keyvault\outputs.tf ===
+output "keyvault_id" {
+  value       = azurerm_key_vault.kv.id
+  description = "The ID of the main Key Vault"
+}
+
+output "keyvault_name" {
+  value       = azurerm_key_vault.kv.name
+  description = "The name of the main Key Vault"
+}
+
+output "keyvault_uri" {
+  value       = azurerm_key_vault.kv.vault_uri
+  description = "The URI of the main Key Vault"
+}
+
+output "cmk_name" {
+  value       = azurerm_key_vault_key.cmk.name
+  description = "The name of the Customer Managed Key"
+}
+
+output "cmk_id" {
+  value       = azurerm_key_vault_key.cmk.id
+  description = "The ID of the Customer Managed Key"
+}
+
+output "wait_for_propagation" {
+  value       = null_resource.wait_for_permission_propagation.id
+  description = "The flag indicating that propagation has completed"
+}
+
+
+
+=== Contents of setup\terraform\modules\keyvault\variables.tf ===
+variable "resource_group_name" {
+  type        = string
+  description = "The name of the resource group in which to create the Key Vaults"
+}
+
+variable "location" {
+  type        = string
+  description = "The Azure region where the Key Vaults should be created"
+}
+
+variable "keyvault_name" {
+  type        = string
+  description = "The name of the main Key Vault"
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "A mapping of tags to assign to the Key Vaults"
+  default     = {}
+}
+
+variable "admin_group_object_ids" {
+  type        = list(string)
+  description = "List of object IDs of the admin Azure AD groups"
+}
+
+variable "entra_client_secret" {
+  type        = string
+  description = "The client secret of the ENTRA application"
+}
+
+
+
+=== Contents of setup\terraform\modules\openai\main.tf ===
+terraform {
+  required_providers {
+    azapi = {
+      source  = "azure/azapi"
+      version = "~> 1.5.0" # Use the latest version available
+    }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0" # Use an appropriate version
+    }
+  }
+}
+
+# Azure Cognitive Account for OpenAI
+resource "azurerm_cognitive_account" "openai" {
+  name                = var.name
+  location            = "canadaeast" # The models are not available in the Canada Central region
+  resource_group_name = var.resource_group_name
+  kind                = "OpenAI"
+  sku_name            = "S0"
+
+  lifecycle {
+    ignore_changes = all
+  }
+
+  tags       = var.tags
+  depends_on = [var.keyvault_id]
+}
+
+resource "azurerm_key_vault_secret" "openai_key" {
+  name         = "OPENAI-SERVICE-KEY"
+  value        = azurerm_cognitive_account.openai.primary_access_key
+  key_vault_id = var.keyvault_id
+
+  depends_on = [var.wait_for_propagation]
+}
+
+# A delay is required to avoid a 409 conflict error when adding deployments concurrently
+resource "null_resource" "wait_for_openai_resource" {
+  provisioner "local-exec" {
+    command = "sleep 60"
+  }
+  depends_on = [azurerm_key_vault_secret.openai_key, azurerm_cognitive_account.openai]
+}
+
+resource "azapi_resource" "rai_policy" {
+  type                      = "Microsoft.CognitiveServices/accounts/raiPolicies@2024-04-01-preview"
+  name                      = "Unfiltered"
+  parent_id                 = azurerm_cognitive_account.openai.id
+  schema_validation_enabled = false
+
+  body = jsonencode({
+    properties = {
+      mode = "Default"
+      basePolicyName : "Microsoft.Default",
+      contentFilters : [
+        {
+          name : "hate",
+          allowedContentLevel : "Medium",
+          blocking : false,
+          enabled : false,
+          source : "Prompt"
+        },
+        {
+          name : "sexual",
+          allowedContentLevel : "Medium",
+          blocking : false,
+          enabled : false,
+          source : "Prompt"
+        },
+        {
+          name : "selfharm",
+          allowedContentLevel : "Medium",
+          blocking : false,
+          enabled : false,
+          source : "Prompt"
+        },
+        {
+          name : "violence",
+          allowedContentLevel : "Medium",
+          blocking : false,
+          enabled : false,
+          source : "Prompt"
+        },
+        {
+          name : "hate",
+          allowedContentLevel : "Medium",
+          blocking : false,
+          enabled : false,
+          source : "Completion"
+        },
+        {
+          name : "sexual",
+          allowedContentLevel : "Medium",
+          blocking : false,
+          enabled : false,
+          source : "Completion"
+        },
+        {
+          name : "selfharm",
+          allowedContentLevel : "Medium",
+          blocking : false,
+          enabled : false,
+          source : "Completion"
+        },
+        {
+          name : "violence",
+          allowedContentLevel : "Medium",
+          blocking : false,
+          enabled : false,
+          source : "Completion"
+        }
+      ]
+    }
+  })
+
+  depends_on = [null_resource.wait_for_openai_resource]
+}
+
+# A delay is required to avoid a 409 conflict error when adding deployments concurrently
+resource "null_resource" "wait_for_rai_policy" {
+  provisioner "local-exec" {
+    command = "sleep 60"
+  }
+  depends_on = [azapi_resource.rai_policy]
+}
+
+
+# GPT-3.5 Turbo deployment
+resource "azapi_resource" "gpt-35-turbo-deployment" {
+  type                      = "Microsoft.CognitiveServices/accounts/deployments@2023-05-01"
+  name                      = "gpt-35"
+  parent_id                 = azurerm_cognitive_account.openai.id
+  schema_validation_enabled = false
+
+  body = jsonencode({
+    sku = {
+      name     = "Standard"
+      capacity = var.gpt_35_turbo_capacity
+    }
+    properties = {
+      model = {
+        format  = "OpenAI"
+        name    = "gpt-35-turbo"
+        version = "0125"
+      }
+      raiPolicyName = "Unfiltered"
+    }
+  })
+
+  depends_on = [null_resource.wait_for_rai_policy]
+}
+
+# A delay is required to avoid a 409 conflict error when adding deployments concurrently
+resource "null_resource" "wait_for_openai_deployment_1" {
+  provisioner "local-exec" {
+    command = "sleep 60"
+  }
+  depends_on = [azapi_resource.gpt-35-turbo-deployment, null_resource.wait_for_openai_resource]
+}
+
+# GPT-4 deployment
+resource "azapi_resource" "gpt-4-deployment" {
+  type                      = "Microsoft.CognitiveServices/accounts/deployments@2023-05-01"
+  name                      = "gpt-4"
+  parent_id                 = azurerm_cognitive_account.openai.id
+  schema_validation_enabled = false
+
+  body = jsonencode({
+    sku = {
+      name     = "Standard",
+      capacity = var.gpt_4_turbo_capacity
+    },
+    properties = {
+      model = {
+        format  = "OpenAI",
+        name    = "gpt-4",
+        version = "1106-Preview"
+      }
+      raiPolicyName = "Unfiltered"
+    }
+  })
+
+  depends_on = [null_resource.wait_for_openai_deployment_1]
+}
+
+# A delay is required to avoid a 409 conflict error when adding deployments concurrently
+resource "null_resource" "wait_for_openai_deployment_2" {
+  provisioner "local-exec" {
+    command = "sleep 60"
+  }
+  depends_on = [azapi_resource.gpt-4-deployment]
+}
+
+# GPT-4o deployment
+resource "azapi_resource" "gpt-4o-deployment" {
+  type                      = "Microsoft.CognitiveServices/accounts/deployments@2023-05-01"
+  name                      = "gpt-4o"
+  parent_id                 = azurerm_cognitive_account.openai.id
+  schema_validation_enabled = false
+
+  body = jsonencode({
+    sku = {
+      name     = "GlobalStandard",
+      capacity = var.gpt_4o_capacity
+    },
+    properties = {
+      model = {
+        format  = "OpenAI",
+        name    = "gpt-4o",
+        version = "2024-05-13"
+      }
+      raiPolicyName = "Unfiltered"
+    }
+  })
+
+  depends_on = [null_resource.wait_for_openai_deployment_2]
+}
+
+# A delay is required to avoid a 409 conflict error when adding deployments concurrently
+resource "null_resource" "wait_for_openai_deployment_3" {
+  provisioner "local-exec" {
+    command = "sleep 60"
+  }
+  depends_on = [azapi_resource.gpt-4o-deployment]
+}
+
+# Text embedding large deployment
+resource "azapi_resource" "text-embedding-3-large-deployment" {
+  type                      = "Microsoft.CognitiveServices/accounts/deployments@2023-05-01"
+  name                      = "text-embedding-3-large"
+  parent_id                 = azurerm_cognitive_account.openai.id
+  schema_validation_enabled = false
+
+  body = jsonencode({
+    sku = {
+      name     = "Standard",
+      capacity = var.text_embedding_3_large_capacity
+    },
+    properties = {
+      model = {
+        format  = "OpenAI",
+        name    = "text-embedding-3-large",
+        version = "1"
+      }
+      raiPolicyName = "Unfiltered"
+    }
+  })
+
+  depends_on = [null_resource.wait_for_openai_deployment_3]
+}
+
+
+
+=== Contents of setup\terraform\modules\openai\variables.tf ===
+variable "name" {
+  type        = string
+  description = "The name of the Cognitive Services OpenAI service"
+}
+
+variable "location" {
+  type        = string
+  description = "The Azure region where the Cognitive Services OpenAI account should be created"
+}
+
+variable "resource_group_name" {
+  type        = string
+  description = "The name of the resource group in which to create the Cognitive Services OpenAI account"
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "A map of tags to apply to the Cognitive Services OpenAI account"
+}
+
+variable "keyvault_id" {
+  type        = string
+  description = "The ID of the Key Vault where the Cognitive Services OpenAI key will be stored"
+}
+
+variable "wait_for_propagation" {
+  description = "Flag for keyvault permission propagation"
+  type        = string
+}
+
+variable "gpt_35_turbo_capacity" {
+  description = "GPT-3.5 Turbo quota limit"
+  type        = number
+}
+
+variable "gpt_4_turbo_capacity" {
+  description = "GPT-4 Turbo quota limit"
+  type        = number
+}
+
+variable "gpt_4o_capacity" {
+  description = "GPT-4o quota limit"
+  type        = number
+}
+
+variable "text_embedding_3_large_capacity" {
+  description = "Text Embedding 3 Large quota limit"
+  type        = number
+}
+
+
+
+=== Contents of setup\terraform\modules\resource_group\main.tf ===
+resource "azurerm_resource_group" "rg" {
+  name     = var.name
+  location = var.location
+  tags     = var.tags
+}
+
+
+
+=== Contents of setup\terraform\modules\resource_group\outputs.tf ===
+output "name" {
+  value       = azurerm_resource_group.rg.name
+  description = "The name of the resource group"
+}
+
+output "id" {
+  value       = azurerm_resource_group.rg.id
+  description = "The ID of the resource group"
+}
+
+output "location" {
+  value       = azurerm_resource_group.rg.location
+  description = "The location of the resource group"
+}
+
+
+
+=== Contents of setup\terraform\modules\resource_group\variables.tf ===
+variable "name" {
+  type        = string
+  description = "The name of the resource group"
+}
+
+variable "location" {
+  type        = string
+  description = "The Azure region where the resource group should be created"
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "A mapping of tags to assign to the resource group"
+  default     = {}
+}
+
+
+
+=== Contents of setup\terraform\modules\storage\main.tf ===
+# SC-28: Storage account encryption by default using 256-bit AES encryption
+# SC-8: Azure Storage implicitly enables secure transfer
+resource "azurerm_storage_account" "storage" {
+  name                            = var.storage_name
+  resource_group_name             = var.resource_group_name
+  location                        = var.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  account_kind                    = "StorageV2"
+  public_network_access_enabled   = false # AC-22: Set to false for private access
+  default_to_oauth_authentication = true
+  is_hns_enabled                  = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = var.tags
+}
+
+resource "azurerm_storage_management_policy" "lifecycle" {
+  storage_account_id = azurerm_storage_account.storage.id
+
+  rule {
+    name    = "delete-old-logs"
+    enabled = true
+    filters {
+      prefix_match = ["insights-logs-", "insights-metrics-"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        delete_after_days_since_modification_greater_than = 30
+      }
+    }
+  }
+}
+
+resource "azurerm_storage_container" "container" {
+  name                  = var.storage_container_name
+  storage_account_name  = azurerm_storage_account.storage.name
+  container_access_type = "private"
+}
+
+# Add a delay to allow for the storage to be created 
+resource "null_resource" "wait_for_storage_account" {
+  provisioner "local-exec" {
+    command = "sleep 120"
+  }
+  depends_on = [var.keyvault_id, azurerm_storage_account.storage, var.wait_for_propagation]
+}
+
+# SC-13: Secure storage of storage account key in Key Vault
+resource "azurerm_key_vault_secret" "storage_key" {
+  name         = "STORAGE-KEY"
+  value        = azurerm_storage_account.storage.primary_access_key
+  key_vault_id = var.keyvault_id
+
+  depends_on = [null_resource.wait_for_storage_account]
+}
+
+# Assign "Key Vault Crypto Service Encryption User" role
+resource "azurerm_role_assignment" "storage_key_vault_crypto_user" {
+  scope                = var.keyvault_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = azurerm_storage_account.storage.identity[0].principal_id
+
+  depends_on = [null_resource.wait_for_storage_account]
+}
+
+# Assign "Key Vault Secrets User" role
+resource "azurerm_role_assignment" "storage_key_vault_secrets_user" {
+  scope                = var.keyvault_id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_storage_account.storage.identity[0].principal_id
+
+  depends_on = [null_resource.wait_for_storage_account]
+}
+
+# Add a delay to allow for the permissions to propagate
+resource "null_resource" "wait_for_storage_permission_propagation" {
+  provisioner "local-exec" {
+    command = "sleep 120"
+  }
+  depends_on = [
+    null_resource.wait_for_storage_account,
+    azurerm_role_assignment.storage_key_vault_crypto_user,
+    azurerm_role_assignment.storage_key_vault_secrets_user
+  ]
+}
+
+# Update storage account to use the Key Vault Key for encryption
+resource "azurerm_storage_account_customer_managed_key" "storage_cmk" {
+  # SC-12 & SC-13: Customer-managed keys for storage encryption
+  storage_account_id = azurerm_storage_account.storage.id
+  key_vault_id       = var.keyvault_id
+  key_name           = var.cmk_name
+
+  depends_on = [null_resource.wait_for_storage_permission_propagation]
+}
+
+
+
+=== Contents of setup\terraform\modules\storage\outputs.tf ===
+output "storage_account_id" {
+  value       = azurerm_storage_account.storage.id
+  description = "The ID of the storage account"
+}
+
+output "storage_account_name" {
+  value       = azurerm_storage_account.storage.name
+  description = "The name of the storage account"
+}
+
+output "primary_access_key" {
+  value       = azurerm_storage_account.storage.primary_access_key
+  description = "The primary access key for the storage account"
+  sensitive   = true
+}
+
+output "primary_blob_endpoint" {
+  value       = azurerm_storage_account.storage.primary_blob_endpoint
+  description = "The endpoint URL for blob storage in the primary location"
+}
+
+
+
+=== Contents of setup\terraform\modules\storage\variables.tf ===
+variable "storage_name" {
+  type        = string
+  description = "The name of the storage account"
+}
+
+variable "resource_group_name" {
+  type        = string
+  description = "The name of the resource group in which to create the storage account"
+}
+
+variable "location" {
+  type        = string
+  description = "The Azure region where the storage account should be created"
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "A mapping of tags to assign to the resource"
+  default     = {}
+}
+
+variable "keyvault_id" {
+  type        = string
+  description = "The ID of the Key Vault where the storage key will be stored"
+}
+
+variable "cmk_name" {
+  type        = string
+  description = "The name of the key in the Key Vault to use for encryption"
+}
+
+variable "wait_for_propagation" {
+  description = "Flag for keyvault permission propagation"
+  type        = string
+}
+
+variable "storage_container_name" {
+  description = "The name of the default container to create in the storage account"
+  type        = string
+}
+
+
+
+=== Contents of setup\terraform\locals.tf ===
+locals {
+  # CM-8: Common tags are defined for all resources
+  common_tags = {
+    Application    = var.app_name
+    Classification = var.classification
+    CostCenter     = var.cost_center
+    Criticality    = var.criticality
+    Environment    = var.environment
+    Location       = var.location
+    Owner          = var.owner
+  }
+}
+
+
+
+=== Contents of setup\terraform\main.tf ===
+# CM-8 & CM-9: Defines and manages various resources, providing a documented inventory of system components
+
+terraform {
+  backend "azurerm" {}
+}
+
+# Use modules for different resources
+module "resource_group" {
+  source   = "./modules/resource_group"
+  name     = var.resource_group_name
+  location = var.location
+  tags     = local.common_tags
+}
+
+# Data source for Azure AD group of KeyVault and AKS administrators
+data "azuread_group" "admin_groups" {
+  for_each     = toset(split(",", var.admin_group_name))
+  display_name = trimspace(each.value)
+}
+
+# Data source for Azure AD group of ACR publishers
+data "azuread_group" "acr_publishers" {
+  for_each     = toset(split(",", var.acr_publishers_group_name))
+  display_name = trimspace(each.value)
+}
+
+
+# Key Vault module
+# SC-13: Centralized key management and cryptographic operations
+module "keyvault" {
+  source                 = "./modules/keyvault"
+  resource_group_name    = module.resource_group.name
+  location               = var.location
+  keyvault_name          = var.keyvault_name
+  admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
+  entra_client_secret    = var.entra_client_secret
+  tags                   = local.common_tags
+}
+
+# ACR module
+module "acr" {
+  source                   = "./modules/acr"
+  acr_name                 = var.acr_name
+  resource_group_name      = module.resource_group.name
+  location                 = var.location
+  acr_sku                  = "Basic"
+  tags                     = local.common_tags
+  acr_publisher_object_ids = values(data.azuread_group.acr_publishers)[*].object_id
+  keyvault_id              = module.keyvault.keyvault_id
+}
+
+# Disk module
+module "disk" {
+  source               = "./modules/disk"
+  disk_name            = var.disk_name
+  resource_group_name  = module.resource_group.name
+  location             = var.location
+  tags                 = local.common_tags
+  aks_cluster_id       = module.aks.aks_cluster_id
+  keyvault_id          = module.keyvault.keyvault_id
+  cmk_id               = module.keyvault.cmk_id
+  wait_for_propagation = module.keyvault.wait_for_propagation
+}
+
+# Storage module
+module "storage" {
+  source                 = "./modules/storage"
+  storage_name           = var.storage_name
+  resource_group_name    = module.resource_group.name
+  location               = var.location
+  tags                   = local.common_tags
+  keyvault_id            = module.keyvault.keyvault_id
+  cmk_name               = module.keyvault.cmk_name
+  wait_for_propagation   = module.keyvault.wait_for_propagation
+  storage_container_name = var.storage_container_name
+}
+
+# DjangoDB module
+module "djangodb" {
+  source               = "./modules/djangodb"
+  resource_name        = var.djangodb_resource_name
+  resource_group_name  = module.resource_group.name
+  location             = var.location
+  tags                 = local.common_tags
+  storage_account_id   = module.storage.storage_account_id
+  keyvault_id          = module.keyvault.keyvault_id
+  aks_ip_address       = module.aks.outbound_ip_address
+  wait_for_propagation = module.keyvault.wait_for_propagation
+}
+
+# Cognitive Services module
+module "cognitive_services" {
+  source               = "./modules/cognitive_services"
+  name                 = var.cognitive_services_name
+  location             = var.location
+  resource_group_name  = module.resource_group.name
+  storage_account_id   = module.storage.storage_account_id
+  keyvault_id          = module.keyvault.keyvault_id
+  wait_for_propagation = module.keyvault.wait_for_propagation
+  tags                 = local.common_tags
+}
+
+# OpenAI module
+module "openai" {
+  source                          = "./modules/openai"
+  name                            = var.openai_service_name
+  location                        = var.location
+  resource_group_name             = module.resource_group.name
+  keyvault_id                     = module.keyvault.keyvault_id
+  tags                            = local.common_tags
+  wait_for_propagation            = module.keyvault.wait_for_propagation
+  gpt_35_turbo_capacity           = var.gpt_35_turbo_capacity
+  gpt_4_turbo_capacity            = var.gpt_4_turbo_capacity
+  gpt_4o_capacity                 = var.gpt_4o_capacity
+  text_embedding_3_large_capacity = var.text_embedding_3_large_capacity
+}
+
+# AKS module
+module "aks" {
+  source                 = "./modules/aks"
+  aks_cluster_name       = var.aks_cluster_name
+  location               = var.location
+  resource_group_name    = module.resource_group.name
+  admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
+  keyvault_id            = module.keyvault.keyvault_id
+  acr_id                 = module.acr.acr_id
+  disk_encryption_set_id = module.disk.disk_encryption_set_id
+  storage_account_id     = module.storage.storage_account_id
+  tags                   = local.common_tags
+  admin_email            = var.admin_email
+}
+
+
+# CM-8 & CM-9: Diagnostic settings for Key Vault
+resource "azurerm_monitor_diagnostic_setting" "key_vault" {
+  name               = "${var.keyvault_name}-diagnostics"
+  target_resource_id = module.keyvault.keyvault_id
+  storage_account_id = module.storage.storage_account_id
+
+  enabled_log {
+    category = "AuditEvent"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+# CM-8 & CM-9: Diagnostic settings for ACR
+resource "azurerm_monitor_diagnostic_setting" "acr" {
+  name               = "${var.acr_name}-diagnostics"
+  target_resource_id = module.acr.acr_id
+  storage_account_id = module.storage.storage_account_id
+
+  enabled_log {
+    category = "ContainerRegistryRepositoryEvents"
+  }
+
+  enabled_log {
+    category = "ContainerRegistryLoginEvents"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+
+
+=== Contents of setup\terraform\variables.tf ===
+variable "app_name" {
+  type        = string
+  description = "Application name (e.g., Otto)"
+}
+
+variable "environment" {
+  type        = string
+  description = "Environment name (e.g., Sandbox, Development, Production)"
+}
+
+variable "location" {
+  type        = string
+  description = "Azure region for resource deployment"
+}
+
+variable "classification" {
+  type        = string
+  description = "Resource classification"
+}
+
+variable "cost_center" {
+  type        = string
+  description = "Cost center for billing"
+}
+
+variable "criticality" {
+  type        = string
+  description = "Resource criticality"
+}
+
+variable "owner" {
+  type        = string
+  description = "Owner of the resources"
+}
+
+variable "admin_group_name" {
+  type        = string
+  description = "Comma-separated list of group names for admin users on the Key Vault and AKS cluster"
+}
+
+variable "acr_publishers_group_name" {
+  type        = string
+  description = "Comma-separated list of group names for ACR publishers"
+}
+
+variable "resource_group_name" {
+  type        = string
+  description = "Name of the resource group"
+}
+
+variable "keyvault_name" {
+  type        = string
+  description = "Name of the key vault"
+}
+
+variable "cognitive_services_name" {
+  type        = string
+  description = "Name of the cognitive services"
+}
+
+variable "openai_service_name" {
+  type        = string
+  description = "Name of the OpenAI service"
+}
+
+variable "aks_cluster_name" {
+  type        = string
+  description = "Name of the AKS cluster"
+}
+
+variable "disk_name" {
+  type        = string
+  description = "Name of the disk"
+}
+
+variable "storage_name" {
+  type        = string
+  description = "Name of the storage"
+}
+
+variable "storage_container_name" {
+  description = "Name of the default container to create in the storage account"
+  type        = string
+  default     = "otto"
+}
+
+variable "acr_name" {
+  type        = string
+  description = "Name of the ACR"
+}
+
+variable "djangodb_resource_name" {
+  type        = string
+  description = "Name of the Django DB resource"
+}
+
+variable "entra_client_secret" {
+  description = "Entra client secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "gpt_35_turbo_capacity" {
+  description = "GPT-3.5 Turbo quota limit"
+  type        = number
+}
+
+variable "gpt_4_turbo_capacity" {
+  description = "GPT-4 Turbo quota limit"
+  type        = number
+}
+
+variable "gpt_4o_capacity" {
+  description = "GPT-4o quota limit"
+  type        = number
+}
+
+variable "text_embedding_3_large_capacity" {
+  description = "Text Embedding 3 Large quota limit"
+  type        = number
+}
+
+variable "admin_email" {
+  description = "Admin email address"
+  type        = string
+}
+
+
+
+=== Contents of setup\terraform\versions.tf ===
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
+
+
+=== Contents of setup\run_k8s.sh ===
+#!/bin/bash
+
+# CM-8 & CM-9: Automate the deployment process, ensuring the inventory remains current and consistent
+
+source setup_env.sh
+
+cd k8s
+
+# Check if the image exists
+export IMAGE_EXISTS=$(
+    az acr repository show-tags \
+        --name $ACR_NAME \
+        --repository otto \
+        --output tsv | grep -q "^latest$" && echo true || echo false
+    )
+
+if [[ $IMAGE_EXISTS == "false" ]]; then
+    echo "The latest image does not exist in the ACR. Exiting..."
+    exit 0
+fi
+
+# Get the credentials for the AKS cluster and exit if it fails
+if ! az aks get-credentials --resource-group "$RESOURCE_GROUP_NAME" --name "$AKS_CLUSTER_NAME" --overwrite-existing; then
+    echo "Failed to get AKS credentials. Exiting..."
+    exit 0
+fi
+
+# Convert the kubeconfig to use the Azure CLI login mode, which utilizes the already logged-in context from Azure CLI to obtain the access token
+kubelogin convert-kubeconfig -l azurecli
+
+export AKS_IDENTITY_ID=$(
+  az aks show \
+    --resource-group "$RESOURCE_GROUP_NAME" \
+    --name "$AKS_CLUSTER_NAME" \
+    --query addonProfiles.azureKeyvaultSecretsProvider.identity.clientId \
+    -o tsv
+)
+
+# Apply the NGINX Ingress Controller and patch the service to use the public IP address and DNS label
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+
+# Apply the Cert-Manager CRDs and Cert-Manager
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.crds.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+
+# Wait for cert-manager webhook to be ready
+echo "Waiting for cert-manager webhook to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-webhook -n cert-manager
+
+# Wait for the NGINX Ingress Controller to be ready
+echo "Waiting for NGINX Ingress Controller to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/ingress-nginx-controller -n ingress-nginx
+
+# Apply the namespace for Otto
+kubectl apply -f namespace.yaml
+
+# Apply the Cluster Issuer for Let's Encrypt which will automatically provision certificates for the Ingress resources
+kubectl apply -f letsencrypt-cluster-issuer.yaml
+
+# Apply the Kubernetes resources related to Otto, substituting environment variables where required
+envsubst < ingress.yaml | kubectl apply -f -
+envsubst < configmap.yaml | kubectl apply -f -
+envsubst < secrets.yaml | kubectl apply -f -
+envsubst < storageclass.yaml | kubectl apply -f -
+envsubst < vectordb.yaml | kubectl apply -f -
+envsubst < django.yaml | kubectl apply -f -
+envsubst < redis.yaml | kubectl apply -f -
+envsubst < celery.yaml | kubectl apply -f -
+
+# Function to check if all deployments (except those containing "celery") are ready
+check_deployments_ready() {
+    local deployments=$(kubectl get deployments -n otto -o name | grep -v "deployment.apps/.*celery.*")
+    for deployment in $deployments; do
+        local ready=$(kubectl get $deployment -n otto -o jsonpath='{.status.readyReplicas}')
+        local desired=$(kubectl get $deployment -n otto -o jsonpath='{.spec.replicas}')
+        if [[ "$ready" != "$desired" ]]; then
+            return 1
+        fi
+    done
+    return 0
+}
+
+# Wait for the deployments (except those containing "celery") to be ready
+echo "Waiting for deployments to be ready..."
+while ! check_deployments_ready; do
+    echo "Not all deployments are ready yet. Waiting for 10 seconds..."
+    sleep 10
+done
+
+echo "All deployments are ready."
+
+# Prompt the user if they want to run the initial setup
+read -p "Do you want to run the initial setup? (y/N) " -e -r
+
+# If yes, run the initial setup
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    export COORDINATOR_POD=$(kubectl get pods -n otto -l app=django-app -o jsonpath='{.items[0].metadata.name}')
+    kubectl exec -it $COORDINATOR_POD -n otto -- env OTTO_ADMIN="${OTTO_ADMIN}" /otto/initial_setup.sh
+fi
+
+
+# If the DNS_LABEL is set, update the DNS label for the public IP. This is only necessary if not using a custom domain.
+if [ -n "$DNS_LABEL" ]; then
+    echo "DNS label is set to ${DNS_LABEL}. Proceeding with DNS label update."
+
+    # Get the AKS cluster managed resource group
+    export MC_RESOURCE_GROUP=$(az aks show --resource-group $RESOURCE_GROUP_NAME --name $AKS_CLUSTER_NAME --query nodeResourceGroup -o tsv)
+
+    # Find the LoadBalancer service and capture the external IP
+    EXTERNAL_IP=$(kubectl get svc -A -o jsonpath='{.items[?(@.spec.type=="LoadBalancer")].status.loadBalancer.ingress[0].ip}')
+    echo "Load Balancer External IP: $EXTERNAL_IP"
+
+    # Replace <your-external-ip> with the actual external IP you captured
+    PUBLIC_IP_RESOURCE_ID=$(az network public-ip list --resource-group $MC_RESOURCE_GROUP --query "[?ipAddress=='$EXTERNAL_IP'].id" -o tsv)
+    echo "Public IP Resource ID: $PUBLIC_IP_RESOURCE_ID"
+
+    # Replace <public-ip-resource-id> with the actual ID you obtained
+    az network public-ip update \
+        --ids $PUBLIC_IP_RESOURCE_ID \
+        --dns-name ${DNS_LABEL}
+
+    # Inform the user that the DNS label has been set and that it can take a few minutes to propagate
+    echo "The DNS label has been set. Once propagation completes in a few minutes, you can access the site at $SITE_URL."
+    
+else
+
+    # If the DNS_LABEL is not set, inform the user to update the DNS entries manually
+    echo "Please update the DNS entries to point to the external IP of the Load Balancer."
+    echo "The external IP of the Load Balancer is: $EXTERNAL_IP"
+    echo "The site URL is: $SITE_URL"
+
+fi
+
+
+
+=== Contents of setup\run_terraform.sh ===
+#!/bin/bash
+
+# CM-8 & CM-9: Automate the deployment process, ensuring the inventory remains current and consistent
+
+# Function to clean up temporary files
+cleanup() {
+    rm -f backend_config.hcl
+    unset TF_VAR_entra_client_secret
+}
+trap cleanup EXIT
+
+# Source setup_env.sh to set environment variables and create .tfvars
+source setup_env.sh
+
+# Check if the Entra client secret is stored in Key Vault
+unset TF_VAR_entra_client_secret
+if TF_VAR_entra_client_secret=$(az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "ENTRA-CLIENT-SECRET" --query value -o tsv 2>/dev/null); then
+    read -p "Entra client secret exists in the Key Vault. Use it? (y/N): " use_secret
+    if [[ $use_secret =~ ^[Yy]$ ]]; then
+        # Set the Entra client secret as a Terraform variable
+        export TF_VAR_entra_client_secret
+    fi
+fi
+
+# Function to ensure Terraform state storage exists
+ensure_tf_state_storage() {
+    echo "Ensuring Terraform state storage exists..."
+
+    # Create or update resource group with tags
+    if ! az group show --name "$TF_STATE_RESOURCE_GROUP" --only-show-errors &>/dev/null; then
+        echo "Creating resource group: $TF_STATE_RESOURCE_GROUP"
+        az group create --name "$TF_STATE_RESOURCE_GROUP" --location "$LOCATION" --tags $TAGS --only-show-errors
+    fi
+
+    # Create storage account if it doesn't exist
+    if ! az storage account show --name "$TF_STATE_STORAGE_ACCOUNT" --resource-group "$TF_STATE_RESOURCE_GROUP" --only-show-errors &>/dev/null; then
+        echo "Creating storage account: $TF_STATE_STORAGE_ACCOUNT"
+        az storage account create --name "$TF_STATE_STORAGE_ACCOUNT" --resource-group "$TF_STATE_RESOURCE_GROUP" --location "$LOCATION" --sku Standard_LRS --tags $TAGS --only-show-errors
+    fi
+
+    # Create blob container if it doesn't exist
+    if ! az storage container show --name "$TF_STATE_CONTAINER" --account-name "$TF_STATE_STORAGE_ACCOUNT" --auth-mode login --only-show-errors &>/dev/null; then
+        echo "Creating blob container: $TF_STATE_CONTAINER"
+        az storage container create --name "$TF_STATE_CONTAINER" --account-name "$TF_STATE_STORAGE_ACCOUNT" --auth-mode login --only-show-errors
+    fi
+}
+
+# Create Terraform state storage
+ensure_tf_state_storage
+
+
+
+# Change to the Terraform directory
+cd terraform
+
+# Create a temporary backend configuration file
+cat > backend_config.hcl << EOF
+resource_group_name  = "$TF_STATE_RESOURCE_GROUP"
+storage_account_name = "$TF_STATE_STORAGE_ACCOUNT"
+container_name       = "$TF_STATE_CONTAINER"
+key                  = "$TF_STATE_KEY"
+EOF
+
+# Ensure terraform is initialized and upgraded
+terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure
+
+# Apply the Terraform configuration
+terraform apply -var-file=.tfvars
+
+
+
+=== Contents of setup\setup_env.sh ===
+#!/bin/bash
+
+# Ensure Azure CLI is logged in
+if ! az account show &>/dev/null; then
+    echo "Not logged in to Azure. Please log in."
+    az login
+fi
+
+# CM-9: Prompt user to select an environment
+echo "Available environments:"
+env_files=($(ls .env* 2>/dev/null | sort))
+
+# Check if any .env files were found
+if [ ${#env_files[@]} -eq 0 ]; then
+    echo "No environment files found."
+    exit 1
+fi
+
+for i in "${!env_files[@]}"; do 
+    echo "$((i+1)). ${env_files[$i]}"
+done
+
+while true; do
+    read -p "Select an environment (enter the number): " selection
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le "${#env_files[@]}" ]; then
+        ENV_FILE="${env_files[$((selection-1))]}"
+        echo "Selected environment: $ENV_FILE"
+        break
+    else
+        echo "Invalid selection. Please choose a number from the list above."
+    fi
+done
+
+# List available subscriptions and prompt user to select one
+echo "Available subscriptions:"
+az account list --query "[].{SubscriptionId:id, Name:name}" --output table
+
+while true; do
+    read -p "Enter the Subscription ID you want to use: " SUBSCRIPTION_ID
+    if az account show --subscription "$SUBSCRIPTION_ID" &>/dev/null; then
+        az account set --subscription "$SUBSCRIPTION_ID"
+        export SUBSCRIPTION_ID
+        echo "Subscription set to: $SUBSCRIPTION_ID"
+        break
+    else
+        echo "Invalid Subscription ID. Please try again."
+    fi
+done
+
+# Display selected environment file contents
+echo "Selected environment file contents:"
+echo "----------------------------"
+cat "$ENV_FILE"
+echo "----------------------------"
+
+# Ask user if values are correct
+read -p "Are all the values correct? (y/N): " confirm
+
+if [[ ! $confirm =~ ^[Yy]$ ]]; then
+    # Ask the user if they want to open nano to edit the file
+    read -p "Do you want to edit the $ENV_FILE file in nano? (y/N): " edit_confirm
+    if [[ $edit_confirm =~ ^[Yy]$ ]]; then
+        nano "$ENV_FILE"
+    else
+        echo "Please update the $ENV_FILE file with the correct values and run the script again."
+        exit 1
+    fi
+fi
+
+# Unset all environment variables
+unset $(grep -v '^#' "$ENV_FILE" | sed -E 's/(.*)=.*/\1/' | xargs)
+unset SITE_URL
+unset DNS_LABEL
+
+# Load the environment variables from file
+source "$ENV_FILE"
+
+echo "Environment variables loaded from $ENV_FILE"
+
+# Validation and URL setting
+if [ -n "$SITE_URL" ] && [ -n "$DNS_LABEL" ]; then
+    echo "Error: Both SITE_URL and DNS_LABEL are set. Please choose only one option."
+    return
+elif [ -n "$DNS_LABEL" ]; then
+    # Ensure LOCATION is set
+    if [ -z "$LOCATION" ]; then
+        echo "Error: LOCATION is not set. Please set the Azure region."
+        return
+    fi
+    SITE_URL="https://${DNS_LABEL}.${LOCATION}.cloudapp.azure.com"
+    echo "SITE_URL set to: $SITE_URL"
+elif [ -z "$SITE_URL" ]; then
+    echo "Error: Neither SITE_URL nor DNS_LABEL is set. Please set one of them."
+    return
+fi
+
+# Extract HOST_NAME from SITE_URL
+export DNS_LABEL
+export SITE_URL
+export HOST_NAME=${SITE_URL#https://}
+
+export ENV_VERSION
+export INTENDED_USE
+export ADMIN_GROUP_NAMES
+export ACR_PUBLISHERS_GROUP_NAMES
+export ENTRA_CLIENT_NAME
+export ORGANIZATION
+export ALLOWED_IPS
+
+export APP_NAME
+export ENVIRONMENT
+export LOCATION
+export CLASSIFICATION
+export COST_CENTER
+export CRITICALITY
+export OWNER
+export DJANGO_ENV
+export DJANGO_DEBUG
+export OTTO_ADMIN
+export ADMIN_EMAIL
+
+export GPT_35_TURBO_CAPACITY
+export GPT_4_TURBO_CAPACITY
+export GPT_4o_CAPACITY
+export TEXT_EMBEDDING_3_LARGE_CAPACITY
+
+# Set the environment variables
+export TENANT_ID=$(az account show --query tenantId --output tsv)
+export ENTRA_CLIENT_ID=$(az ad app list --display-name "${ENTRA_CLIENT_NAME}" --query "[].{appId:appId}" --output tsv)
+export ENTRA_AUTHORITY="https://login.microsoftonline.com/${TENANT_ID}"
+
+# Set the dynamically generated variables
+export RESOURCE_GROUP_NAME="${APP_NAME}${INTENDED_USE^^}Rg"
+export KEYVAULT_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-kv"
+export COGNITIVE_SERVICES_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-cs"
+export OPENAI_SERVICE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-openai"
+export AKS_CLUSTER_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-aks"
+export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
+export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}storage"
+export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
+export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
+export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
+
+
+# Set the Terraform state variables
+export TF_STATE_RESOURCE_GROUP="TerraformStateRG"
+export TF_STATE_STORAGE_ACCOUNT="tfstate${APP_NAME,,}${ENVIRONMENT,,}"
+export TF_STATE_CONTAINER="tfstate"
+export TF_STATE_KEY="${RESOURCE_GROUP_NAME}.tfstate"
+
+# Create terraform/.tfvars file
+cat > terraform/.tfvars <<EOF
+app_name = "${APP_NAME}"
+environment = "${ENVIRONMENT}"
+location = "${LOCATION}"
+classification = "${CLASSIFICATION}"
+cost_center = "${COST_CENTER}"
+criticality = "${CRITICALITY}"
+owner = "${OWNER}"
+admin_group_name = "${ADMIN_GROUP_NAME}"
+acr_publishers_group_name = "${ACR_PUBLISHERS_GROUP_NAME}"
+resource_group_name = "${RESOURCE_GROUP_NAME}"
+keyvault_name = "${KEYVAULT_NAME}"
+cognitive_services_name = "${COGNITIVE_SERVICES_NAME}"
+openai_service_name = "${OPENAI_SERVICE_NAME}"
+aks_cluster_name = "${AKS_CLUSTER_NAME}"
+disk_name = "${DISK_NAME}"
+storage_name = "${STORAGE_NAME}"
+acr_name = "${ACR_NAME}"
+djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
+gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}
+gpt_4_turbo_capacity = ${GPT_4_TURBO_CAPACITY}
+gpt_4o_capacity = ${GPT_4o_CAPACITY}
+text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
+admin_email = "${ADMIN_EMAIL}"
+EOF
+
+
+
