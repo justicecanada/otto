@@ -482,6 +482,11 @@ def chat_agent(chat, response_message):
     ]
     for library in available_libraries:
         prompt += f"  - {library.name} (id={library.id}){(': ' + library.description) if library.description else ''}\n"
+        if not library.is_personal_library:
+            # List the data sources in the library
+            data_sources = DataSource.objects.filter(library=library)
+            for data_source in data_sources:
+                prompt += f"    - {data_source.name}\n"
     prompt += (
         "- 'chat' mode: General purpose interaction with LLM, like ChatGPT.\n\n"
         "Based on the user's message (below), respond with the appropriate mode and library, if any. "
