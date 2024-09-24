@@ -3,6 +3,7 @@ from django.conf import settings
 import tiktoken
 from llama_index.core import PromptTemplate, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
+from llama_index.core.embeddings import MockEmbedding
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
@@ -31,7 +32,10 @@ class OttoLLM:
     }
 
     def __init__(
-        self, deployment: str = settings.DEFAULT_CHAT_MODEL, temperature: float = 0.1
+        self,
+        deployment: str = settings.DEFAULT_CHAT_MODEL,
+        temperature: float = 0.1,
+        mock_embedding: bool = False,
     ):
         if deployment not in self._deployment_to_model_mapping:
             raise ValueError(f"Invalid deployment: {deployment}")
@@ -43,6 +47,7 @@ class OttoLLM:
         )
         self._callback_manager = CallbackManager([self._token_counter])
         self.llm = self._get_llm()
+        self.mock_embedding = mock_embedding
         self.embed_model = self._get_embed_model()
         self.max_input_tokens = self._deployment_to_max_input_tokens_mapping[deployment]
 
@@ -105,18 +110,23 @@ class OttoLLM:
         """
         Create Otto Cost objects for the given user and feature.
         """
+        usd_cost = 0
         if self.input_token_count > 0:
-            Cost.objects.new(
+            c1 = Cost.objects.new(
                 cost_type=f"{self.deployment}-in", count=self.input_token_count
             )
+            usd_cost += c1.usd_cost
         if self.output_token_count > 0:
-            Cost.objects.new(
+            c2 = Cost.objects.new(
                 cost_type=f"{self.deployment}-out", count=self.output_token_count
             )
-        if self.embed_token_count > 0:
-            Cost.objects.new(cost_type="embedding", count=self.embed_token_count)
+            usd_cost += c2.usd_cost
+        if self.embed_token_count > 0 and not self.mock_embedding:
+            c3 = Cost.objects.new(cost_type="embedding", count=self.embed_token_count)
+            usd_cost += c3.usd_cost
 
         self._token_counter.reset_counts()
+        return usd_cost
 
     # RAG-related getters for retriever (get sources only) and response synthesizer
     def get_retriever(
@@ -154,7 +164,9 @@ class OttoLLM:
         )
         return hybrid_retriever
 
-    def get_index(self, vector_store_table: str) -> VectorStoreIndex:
+    def get_index(
+        self, vector_store_table: str, hnsw: bool = False
+    ) -> VectorStoreIndex:
         vector_store = PGVectorStore.from_params(
             database=settings.DATABASES["vector_db"]["NAME"],
             host=settings.DATABASES["vector_db"]["HOST"],
@@ -166,6 +178,11 @@ class OttoLLM:
             hybrid_search=True,
             text_search_config="english",
             perform_setup=True,
+            hnsw_kwargs=(
+                {"hnsw_ef_construction": 300, "hnsw_m": 25, "hnsw_ef_search": 300}
+                if hnsw
+                else None
+            ),
         )
         idx = VectorStoreIndex.from_vector_store(
             vector_store=vector_store,
@@ -216,7 +233,9 @@ class OttoLLM:
             callback_manager=self._callback_manager,
         )
 
-    def _get_embed_model(self) -> AzureOpenAIEmbedding:
+    def _get_embed_model(self) -> AzureOpenAIEmbedding | MockEmbedding:
+        if self.mock_embedding:
+            return MockEmbedding(1536, callback_manager=self._callback_manager)
         return AzureOpenAIEmbedding(
             model="text-embedding-3-large",
             deployment_name="text-embedding-3-large",

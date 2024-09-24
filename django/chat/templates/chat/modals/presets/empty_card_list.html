@@ -1,0 +1,20 @@
+{% load i18n %}
+
+<div class="text-center my-auto">
+  <h1 class="fs-3 fw-bold">{% trans "No presets available" %}</h1>
+  <p class="text-muted mb-4">
+    {% trans "Create a new preset to use your chat settings in other sessions or shared them with others." %}
+  </p>
+ 
+  <button type="button"
+          class="btn btn-sm btn-outline-dark"
+          data-bs-toggle="tooltip"
+          data-bs-title="{% trans "Create preset from current settings" %}"
+          hx-get="{% url 'chat:get_preset_form' chat_id=chat_id %}"
+          hx-target="#presets-modal-body"
+          hx-swap="innerHTML transition:true">
+    <i class="bi bi-floppy2-fill me-2"></i>
+    {% trans "Create preset from current settings" %}
+  </button>
+ 
+</div>

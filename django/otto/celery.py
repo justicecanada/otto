@@ -21,7 +21,12 @@ app.conf.beat_schedule = {
     "sync-entra-users-every-morning": {
         "task": "otto.tasks.sync_users",
         "schedule": crontab(hour=5, minute=0),
-    }
+    },
+    # Update laws every week on Saturdays at 5 am UTC
+    "update-laws-every-week": {
+        "task": "otto.tasks.update_laws",
+        "schedule": crontab(hour=5, minute=0, day_of_week=6),
+    },
 }
 
 
