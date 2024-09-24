@@ -1,17 +1,19 @@
 <div class="accordion accordion-flush border-top"
      id="options-accordion"
      {% if swap %}hx-swap-oob="true"{% endif %}>
+  {% include 'chat/components/options_1_chat_with_ai.html' with options_section_id='chat' %}
   {% include 'chat/components/options_4_qa.html' with options_section_id='qa' %}
   {% include 'chat/components/options_2_summarize.html' with options_section_id='summarize' %}
   {% include 'chat/components/options_3_translate.html' with options_section_id='translate' %}
-  {% include 'chat/components/options_1_chat_with_ai.html' with options_section_id='chat' %}
 </div>
 <script>
-  if ("{{ preset_loaded }}" === "true" || "{{ swap }}" === "true") {
-    let mode = "{{ options_form.mode.value }}";
-    handleModeChange(mode);
-    setTimeout(showHideQaSourceForms, 100);
-  }
+  (function (){
+    if ("{{ preset_loaded }}" === "true" || "{{ swap }}" === "true") {
+      let mode = "{{ options_form.mode.value }}";
+      handleModeChange(mode);
+      setTimeout(showHideQaSourceForms, 100);
+    }
+  })();
 
   showHideQaSourceForms();
   updateLibraryModalButton();

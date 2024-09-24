@@ -7,6 +7,14 @@
     user_group: AI assistant user
     features:
       - fields:
+          short_name: "chat"
+          name_en: Chat
+          name_fr: Discuter avec l'IA
+          description_en: Chat with a Justice-hosted AI (like ChatGPT).
+          description_fr: Discuter avec une IA hébergée par Justice (comme ChatGPT).
+          url: chat:chat_with_ai
+          category: ai_assistant
+      - fields:
           short_name: "qa"
           name_en: Q&A
           name_fr: Questions et réponses
@@ -29,14 +37,6 @@
           description_en: Translate to French or English from files or text input.
           description_fr: Traduire en français ou en anglais à partir de fichiers ou de texte d'entrée.
           url: chat:translate
-          category: ai_assistant
-      - fields:
-          short_name: "chat"
-          name_en: Chat
-          name_fr: Discuter avec l'IA
-          description_en: Chat with a Justice-hosted AI (like ChatGPT).
-          description_fr: Discuter avec une IA hébergée par Justice (comme ChatGPT).
-          url: chat:chat_with_ai
           category: ai_assistant
 
 - model: otto.App

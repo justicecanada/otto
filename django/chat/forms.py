@@ -190,6 +190,13 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "showHideQaSourceForms(); triggerOptionSave();",
                 },
             ),
+            "chat_agent": forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input small",
+                    "onchange": "triggerOptionSave();",
+                    "style": "filter: saturate(0); margin-top: 6px;",
+                }
+            ),
             # QA advanced options are shown in a different form so they can be hidden
             "qa_system_prompt": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
