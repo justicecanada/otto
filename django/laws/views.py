@@ -24,6 +24,7 @@ from .utils import (
     get_law_url,
     get_other_lang_node,
     get_source_node,
+    htmx_sse_error,
     htmx_sse_response,
     num_tokens,
 )
@@ -102,10 +103,8 @@ def answer(request, query_uuid):
 
     query_info = cache.get(query_uuid)
     if not query_info:
-        return (
-            htmx_sse_response(
-                [_("Error answering query. Please refresh the page.")], llm, None
-            ),
+        return StreamingHttpResponse(
+            streaming_content=htmx_sse_error(), content_type="text/event-stream"
         )
     sources = query_info["sources"]
     query = query_info["query"]
@@ -203,6 +202,7 @@ def existing_search(request, query_uuid):
         "hide_breadcrumbs": True,
         "sources": sources_to_html(query_info["sources"]),
         "query": query_info["query"],
+        "query_uuid": query_uuid,
         "answer": query_info.get("answer", None),
     }
     return render(request, "laws/laws.html", context=context)

@@ -34,11 +34,23 @@ def test_laws_search_and_answer(client, all_apps_user):
     assert response.status_code == 200
     assert query in response.content.decode()
 
+    assert "HX-Push-Url" in response
+    result_url = response["HX-Push-Url"]
+    result_uuid = result_url.split("/")[-1]
+    assert result_uuid
+
     # Test answer
     response = client.get(
-        reverse("laws:answer") + f"?query={urllib.parse.quote_plus(query)}"
+        reverse("laws:answer", args=[str(result_uuid)]),
     )
     assert response.status_code == 200
+
+    # Load an existing search by UUID
+    response = client.get(
+        reverse("laws:existing_search", args=[str(result_uuid)]),
+    )
+    assert response.status_code == 200
+    assert query in response.content.decode()
 
     query = (
         "are the defence of canada regulations exempt from access to information act?"

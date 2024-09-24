@@ -2,6 +2,7 @@ import asyncio
 
 from django.core.cache import cache
 from django.db import connections
+from django.utils.translation import gettext as _
 
 import tiktoken
 from asgiref.sync import sync_to_async
@@ -165,4 +166,12 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
         f"data: <div hx-swap-oob='true' id='answer-sse'>"
         f"<div>{sse_joiner.join(message_html_lines)}</div>"
         f"{cost_div}</div>\n\n"
+    )
+
+
+async def htmx_sse_error():
+    error_message = _("An error occurred while processing the request.")
+    yield (
+        f"data: <div hx-swap-oob='true' id='answer-sse'>"
+        f"<div>{error_message}</div></div>\n\n"
     )
