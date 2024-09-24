@@ -3,11 +3,11 @@
 resource "azurerm_storage_account" "storage" {
   name                            = var.storage_name
   resource_group_name             = var.resource_group_name
-  location                        = var.location
+  location                        = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
   account_kind                    = "StorageV2"
-  public_network_access_enabled   = false # AC-22: Set to false for private access
+  public_network_access_enabled   = false # AC-22, IA-8: Set to false for private access
   default_to_oauth_authentication = true
   is_hns_enabled                  = true
 

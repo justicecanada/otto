@@ -8,7 +8,7 @@ resource "null_resource" "wait_for_purge_protection" {
 
 resource "azurerm_disk_encryption_set" "des" {
   name                = "${var.disk_name}-des"
-  location            = var.location
+  location            = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   resource_group_name = var.resource_group_name
   key_vault_key_id    = var.cmk_id
 

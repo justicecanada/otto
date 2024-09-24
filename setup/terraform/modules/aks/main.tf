@@ -1,7 +1,7 @@
 # AU-4(1): Create a Log Analytics workspace
 resource "azurerm_log_analytics_workspace" "aks" {
   name                = "${var.aks_cluster_name}-logs"
-  location            = var.location
+  location            = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   resource_group_name = var.resource_group_name
   sku                 = "PerGB2018"
   retention_in_days   = 30
@@ -15,7 +15,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   kubernetes_version  = "1.29.7"
   dns_prefix          = var.aks_cluster_name
 
-  # AC-22: Configure the private cluster settings
+  # AC-22, IA-8, SC-2, SC-5: Configure the private cluster settings
   private_cluster_enabled = true
   private_dns_zone_id     = "System" # Consider a custom DNS zone instead
 
@@ -46,7 +46,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   # AC-3 & CM-8(3): Network Policies for AKS
   network_profile {
     network_plugin    = "kubenet"
-    load_balancer_sku = "standard"
+    load_balancer_sku = "standard" # SC-10: Load balancer which implements connection timeouts 
   }
 
   oms_agent {
@@ -66,7 +66,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   # AC-3 & CM-8(3): Azure Active Directory integration and RBAC can be used to enforce compliance and detect unauthorized access attempts
   # AC-3(7): Use Azure AD groups for role assignments and permission management in AKSs
-  # AC-20: AAD enables centralized identity management and access control
+  # AC-20, AC-20(3), SC-2: AAD enables centralized identity management and access control
   azure_active_directory_role_based_access_control {
     managed                = true # Deprecated but still required
     azure_rbac_enabled     = true # AC-22: Enable Azure RBAC
@@ -197,7 +197,7 @@ resource "azurerm_monitor_action_group" "aks_alerts" {
   }
 }
 
-# SC-5(3): Network traffic spike alert: Notifies when network traffic reaches an abnormally high level
+# SC-5, SC-5(3): Network traffic spike alert: Notifies when network traffic reaches an abnormally high level
 resource "azurerm_monitor_metric_alert" "aks_network_alert" {
   name                = "${var.aks_cluster_name}-network-spike-alert"
   resource_group_name = var.resource_group_name
@@ -216,7 +216,7 @@ resource "azurerm_monitor_metric_alert" "aks_network_alert" {
   }
 }
 
-# SC-5(3): CPU usage alert: Notifies when CPU reaches an abnormally high level, which could be caused by a DDoS attack
+# SC-5, SC-5(3): CPU usage alert: Notifies when CPU reaches an abnormally high level, which could be caused by a DDoS attack
 resource "azurerm_monitor_metric_alert" "aks_cpu_alert" {
   name                = "${var.aks_cluster_name}-high-cpu-alert"
   resource_group_name = var.resource_group_name
@@ -236,7 +236,7 @@ resource "azurerm_monitor_metric_alert" "aks_cpu_alert" {
 }
 
 
-# SC-5(3): Request rate alert: Notifies when the request rate is abnormally high
+# SC-5, SC-5(3): Request rate alert: Notifies when the request rate is abnormally high
 resource "azurerm_monitor_metric_alert" "aks_request_rate_alert" {
   name                = "${var.aks_cluster_name}-high-request-rate-alert"
   resource_group_name = var.resource_group_name
@@ -255,7 +255,7 @@ resource "azurerm_monitor_metric_alert" "aks_request_rate_alert" {
   }
 }
 
-# SC-5(3): Connection count alert: Notifies when the number of connections to the cluster is abnormally high
+# SC-5, SC-5(3): Connection count alert: Notifies when the number of connections to the cluster is abnormally high
 resource "azurerm_monitor_metric_alert" "aks_connection_count_alert" {
   name                = "${var.aks_cluster_name}-high-connection-count-alert"
   resource_group_name = var.resource_group_name

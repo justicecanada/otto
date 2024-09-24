@@ -11,7 +11,7 @@ resource "random_password" "djangodb_password" {
 resource "azurerm_cosmosdb_postgresql_cluster" "djangodb" {
   name                            = var.resource_name
   resource_group_name             = var.resource_group_name
-  location                        = var.location
+  location                        = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   citus_version                   = "12.1"
   sql_version                     = "16"
   administrator_login_password    = random_password.djangodb_password.result
@@ -25,7 +25,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "djangodb" {
   node_vcores                   = 4
   node_storage_quota_in_mb      = 524288
   node_server_edition           = "MemoryOptimized"
-  node_public_ip_access_enabled = false # AC-22: Set to false for private access
+  node_public_ip_access_enabled = false # AC-22, IA-8: Set to false for private access
 
   ha_enabled = false
 

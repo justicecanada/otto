@@ -32,8 +32,14 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
 
 - **Azure OpenAI Content Filter Modifications:** 
   - This step is required only once per subscription.
-  - Visit [this link](https://aka.ms/oai/rai/exceptions) to request an exemption from the default content filtering and abuse monitoring.
-  - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing data where standard content filtering is not appropriate.
+  - Visit [this link](https://aka.ms/oai/rai/exceptions) to request an exemption from the default content filtering.
+  - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing information where standard content filtering is not appropriate.
+  - Wait for Microsoft's approval before proceeding with the deployment.
+  
+- **Agreement to Disable Abuse Monitoring:** 
+  - This step is required only once per subscription.
+  - Visit [this link](https://ncv.microsoft.com/3a140V2W0l) to request an exemption from the default abuse monitoring.
+  - Fill out the form to apply disable abuse monitoring. This is necessary because the organization has data residency requirements and the storage of prompts and completions must remain in Canada. SA-9(5)
   - Wait for Microsoft's approval before proceeding with the deployment.
 
 - **Entra App Registration:**
