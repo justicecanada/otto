@@ -132,11 +132,13 @@
             data-bs-dismiss="modal"
             hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
             hx-target="#options-accordion">{% trans "Load" %}</button>
-    <button type="button"
-            class="btn btn-ghost flex-grow-1"
-            hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
-            hx-target="#presets-modal-body"
-            hx-swap="innerHTML transition:true">{% trans "Edit" %}</button>
+    {% if user in preset.editable_by or user == preset.owner %}
+      <button type="button"
+              class="btn btn-ghost flex-grow-1"
+              hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
+              hx-target="#presets-modal-body"
+              hx-swap="innerHTML transition:true">{% trans "Edit" %}</button>
+    {% endif %}
   </div>
 
 </li>
