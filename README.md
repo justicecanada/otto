@@ -24,8 +24,8 @@
 | django/laws/prompts.py                                                 |        2 |        0 |    100% |           |
 | django/laws/tests.py                                                   |        1 |        0 |    100% |           |
 | django/laws/translation.py                                             |        5 |        0 |    100% |           |
-| django/laws/utils.py                                                   |       94 |       77 |     18% |25-35, 40-46, 50-65, 69-85, 92-105, 109-159 |
-| django/laws/views.py                                                   |      201 |       53 |     74% |57-87, 112, 118, 128-149, 159, 194, 216, 253, 255, 260-262, 271, 274, 278, 304, 312, 320, 336-354, 391, 412-420 |
+| django/laws/utils.py                                                   |      103 |       87 |     16% |16-18, 26-36, 41-47, 51-66, 70-86, 93-106, 110-165, 173-174 |
+| django/laws/views.py                                                   |      208 |       96 |     54% |60-90, 95-188, 197-208, 215, 237, 274, 276, 281-283, 292, 295, 299, 325, 333, 341, 357-375, 417-425 |
 | django/librarian/forms.py                                              |       85 |       30 |     65% |77-82, 104-111, 186-197, 203-212 |
 | django/librarian/metrics/activity\_metrics.py                          |        9 |        9 |      0% |      1-50 |
 | django/librarian/models.py                                             |      276 |       82 |     70% |46-48, 116, 118, 126, 128, 130, 136, 145-146, 153-154, 160-162, 180, 184, 222, 266-268, 271-272, 338, 342, 346, 350-359, 363, 369, 375-380, 384, 388-391, 394-395, 398-403, 406-418, 421-428, 431, 447, 450-454 |
@@ -47,7 +47,7 @@
 | django/otto/templatetags/tags.py                                       |       10 |        1 |     90% |        18 |
 | django/otto/translation.py                                             |       17 |        0 |    100% |           |
 | django/otto/utils/auth.py                                              |       34 |        6 |     82% |     15-29 |
-| django/otto/utils/cache.py                                             |       91 |       39 |     57% |25-30, 44, 55-60, 63-72, 75-80, 87-94, 110-112 |
+| django/otto/utils/cache.py                                             |       91 |       44 |     52% |25-30, 44, 55-60, 63-72, 75-80, 87-94, 99, 102, 105-107, 110-112 |
 | django/otto/utils/common.py                                            |       19 |        3 |     84% | 22, 29-30 |
 | django/otto/utils/decorators.py                                        |       46 |        4 |     91% |22-23, 62, 84 |
 | django/otto/utils/logging.py                                           |       15 |        0 |    100% |           |
@@ -62,7 +62,7 @@
 | django/text\_extractor/tests.py                                        |        1 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                        |      149 |       84 |     44% |48-71, 112-113, 131-287 |
 | django/text\_extractor/views.py                                        |      104 |       86 |     17% |29-32, 37-207, 211-226 |
-|                                                              **TOTAL** | **5418** | **2070** | **62%** |           |
+|                                                              **TOTAL** | **5434** | **2128** | **61%** |           |
 
 
 ## Setup coverage badge
