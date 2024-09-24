@@ -396,17 +396,11 @@ async def summarize_long_text_async(
 
 
 async def combine_responses(responses, sources):
-    # for response, source in zip(responses, sources):
-    #     yield f"\n###{source.metadata.get('title', source.metadata['source'])}"
-    #     generator = response.response_gen
-    #     for value in generator:
-    #         yield value
-    #         await asyncio.sleep(0)
     streams = [
         {"stream": stream.response_gen, "status": "running"} for stream in responses
     ]
     final_streams = [
-        f"\n###{source.metadata.get('title', source.metadata['source'])}\n"
+        f"\n###### *{source.metadata.get('title', source.metadata['source'])}*\n"
         for source in sources
     ]
     while any([stream["status"] == "running" for stream in streams]):
@@ -416,5 +410,5 @@ async def combine_responses(responses, sources):
                     final_streams[i] += next(stream["stream"])
             except StopIteration:
                 stream["status"] = "stopped"
-        yield ("\n".join(final_streams))
+        yield ("\n\n---\n\n".join(final_streams))
         await asyncio.sleep(0)

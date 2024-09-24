@@ -429,36 +429,29 @@ def qa_response(chat, response_message, switch_mode=False):
     if chat.options.qa_answer_mode != "per-source":
         response = synthesizer.synthesize(query=input, nodes=source_nodes)
         response_generator = response.response_gen
-        sources = response.source_nodes
-        return StreamingHttpResponse(
-            streaming_content=htmx_stream(
-                chat,
-                response_message.id,
-                llm,
-                response_generator=response_generator,
-                source_nodes=sources,
-                switch_mode=switch_mode,
-            ),
-            content_type="text/event-stream",
-        )
+        response_replacer = None
+
     else:
         responses = []
         for source in source_nodes:
             responses.append(synthesizer.synthesize(query=input, nodes=[source]))
-
         response_replacer = combine_responses(responses, source_nodes)
-        sources = source_nodes
-        return StreamingHttpResponse(
-            streaming_content=htmx_stream(
-                chat,
-                response_message.id,
-                llm,
-                response_replacer=response_replacer,
-                source_nodes=sources,
-                switch_mode=switch_mode,
-            ),
-            content_type="text/event-stream",
-        )
+        response_generator = None
+
+    sources = source_nodes
+
+    return StreamingHttpResponse(
+        streaming_content=htmx_stream(
+            chat,
+            response_message.id,
+            llm,
+            response_generator=response_generator,
+            response_replacer=response_replacer,
+            source_nodes=sources,
+            switch_mode=switch_mode,
+        ),
+        content_type="text/event-stream",
+    )
 
 
 def error_response(chat, response_message):
