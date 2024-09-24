@@ -157,7 +157,6 @@ INSTALLED_APPS = [
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
     "django_celery_beat",
-    "livereload",
 ]
 
 MIDDLEWARE = [
@@ -182,7 +181,6 @@ MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusAfterMiddleware",
     # AU-6: Aupports structured logging, facilitating the review and analysis of audit records for inappropriate or unusual activity
     "django_structlog.middlewares.RequestMiddleware",
-    "livereload.middleware.LiveReloadScript",
 ]
 
 if IS_RUNNING_TESTS:

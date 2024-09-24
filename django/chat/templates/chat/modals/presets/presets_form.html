@@ -61,7 +61,9 @@
         <div class="col-12">
           <div id="en-content" class="language-content active">
             <div class="mb-3">
-              <label class="form-label" for="id_name_en">{% trans "Title (english)" %}</label>
+              <label class="form-label" for="id_name_en">
+                {% trans "Title (english)" %}<span style="color: red;">*</span>
+              </label>
               {{ form.name_en }}
             </div>
             <div class="mb-3">
@@ -71,7 +73,9 @@
           </div>
           <div id="fr-content" class="language-content">
             <div class="mb-3">
-              <label class="form-label" for="id_name_fr">{% trans "Title (french)" %}</label>
+              <label class="form-label" for="id_name_fr">
+                {% trans "Title (french)" %}<span style="color: red;">*</span>
+              </label>
               {{ form.name_fr }}
             </div>
             <div class="mb-3">
@@ -108,7 +112,7 @@
     <div class="col-12 d-flex justify-content-center mt-2">
       <div class="w-50 d-flex">
         <button id="save_preset"
-                class="btn btn-primary flex-fill me-2"
+                class="btn btn-dark flex-fill me-2"
                 type="submit"
                 hx-post="{% if preset_id %}{% url 'chat:update_preset' chat_id=chat_id preset_id=preset_id %}{% else %}{% url 'chat:save_preset' chat_id=chat_id %}{% endif %}"
                 hx-include="#edit_preset_form"

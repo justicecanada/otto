@@ -360,6 +360,9 @@ class PresetForm(forms.ModelForm):
             "name_fr": forms.TextInput(attrs={"class": "form-control"}),
             "description_en": forms.Textarea(attrs={"class": "form-control"}),
             "description_fr": forms.Textarea(attrs={"class": "form-control"}),
+            "is_public": forms.CheckboxInput(
+                attrs={"class": "form-check-input", "type": "checkbox"}
+            ),
         }
 
     editable_by = forms.ModelMultipleChoiceField(
