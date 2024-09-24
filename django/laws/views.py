@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 
 import markdown
@@ -89,7 +90,7 @@ def source(request, source_id):
 
 
 @app_access_required(app_name)
-def answer(request):
+def answer(request, query_uuid):
     bind_contextvars(feature="laws_query")
     from llama_index.core.schema import MetadataMode
 
@@ -99,9 +100,13 @@ def answer(request):
         message_templates=TEXT_QA_PROMPT_TMPL_MSGS
     ).partial_format(additional_instructions=additional_instructions)
 
-    # Retrieve query, sources and options from cache
-    query_uuid = request.GET.get("query_uuid")
     query_info = cache.get(query_uuid)
+    if not query_info:
+        return (
+            htmx_sse_response(
+                [_("Error answering query. Please refresh the page.")], llm, None
+            ),
+        )
     sources = query_info["sources"]
     query = query_info["query"]
     trim_redundant = query_info["trim_redundant"]
@@ -188,24 +193,26 @@ def answer(request):
 
 
 @app_access_required(app_name)
+def existing_search(request, query_uuid):
+    """For back/forward navigation or (short-term) sharing of a search result page."""
+    query_info = cache.get(query_uuid)
+    if not query_info:
+        return redirect("laws:index")
+    context = {
+        "form": LawSearchForm(),
+        "hide_breadcrumbs": True,
+        "sources": sources_to_html(query_info["sources"]),
+        "query": query_info["query"],
+        "answer": query_info.get("answer", None),
+    }
+    return render(request, "laws/laws.html", context=context)
+
+
+@app_access_required(app_name)
 def search(request):
     bind_contextvars(feature="laws_query")
-    query_uuid = request.GET.get("query_uuid")
-    if request.method != "POST" and not query_uuid:
+    if request.method != "POST":
         return redirect("laws:index")
-    if query_uuid:
-        # Render the search result page with the cached sources
-        query_info = cache.get(query_uuid)
-        if not query_info:
-            return redirect("laws:index")
-        context = {
-            "form": LawSearchForm(),
-            "hide_breadcrumbs": True,
-            "sources": sources_to_html(query_info["sources"]),
-            "query": query_info["query"],
-            "answer": query_info["answer"],
-        }
-        return render(request, "laws/laws.html", context=context)
     try:
         from langdetect import detect
         from llama_index.core.retrievers import QueryFusionRetriever
@@ -257,7 +264,7 @@ def search(request):
             top_k = int(request.POST.get("top_k", 25))
             trim_redundant = request.POST.get("trim_redundant", "on") == "on"
             model = request.POST.get("model", settings.DEFAULT_CHAT_MODEL)
-            context_tokens = request.POST.get("context_tokens", 2000)
+            context_tokens = int(request.POST.get("context_tokens", 2000))
             additional_instructions = request.POST.get("additional_instructions", "")
             # Need to escape the instructions so they can be passed in GET parameter
             additional_instructions = urllib.parse.quote_plus(additional_instructions)
@@ -404,15 +411,15 @@ def search(request):
         context = {
             "sources": sources_to_html(sources),
             "query": query,
+            "query_uuid": query_uuid,
             "disable_llm": disable_llm,
-            "answer_params": f"?query_uuid={query_uuid}",
         }
     except Exception as e:
         context = {
             "sources": [],
             "query": query,
+            "query_uuid": query_uuid,
             "disable_llm": True,
-            "answer_params": "",
             "error": e,
         }
         return render(request, "laws/search_result.html", context=context)
@@ -422,10 +429,10 @@ def search(request):
         "laws/search_result.html",
         context=context,
     )
-    # URL-encode query and append to history URL
-    history_url = "/laws/search/"
-    history_url += f"?query_uuid={query_uuid}"
-    response["HX-Push-Url"] = history_url
+
+    new_url = reverse("laws:existing_search", args=[str(query_uuid)])
+    response["HX-Push-Url"] = new_url
+
     return response
 
 

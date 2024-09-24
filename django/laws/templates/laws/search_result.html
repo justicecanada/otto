@@ -8,18 +8,18 @@
         {{ answer|safe }}
       {% else %}
         <div hx-ext="sse"
-             sse-connect="{% url 'laws:answer' %}{{ answer_params }}"
+             sse-connect="{% url 'laws:answer' query_uuid %}"
              sse-swap="message"
              id="answer-sse">
           <!-- djlint:off -->
-          {% comment %} Spans below require to make CSS "typing dots" bounce {% endcomment %}
-          <p>&nbsp;</p>
-          <div class="typing"><span></span><span></span><span></span></div>
-          <!-- djlint:on -->
-        </div>
-      {% endif %}
-    </div>
+                              {% comment %} Spans below require to make CSS "typing dots" bounce {% endcomment %}
+                              <p>&nbsp;</p>
+                          <div class="typing"><span></span><span></span><span></span></div>
+        <!-- djlint:on -->
+      </div>
+    {% endif %}
   </div>
+</div>
 {% endif %}
 {% if error %}
   <div class="alert alert-danger">
@@ -78,3 +78,4 @@
     </div>
   </div>
 {% endif %}
+<script></script>

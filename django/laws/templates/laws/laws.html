@@ -4,6 +4,12 @@
 
 {% block page_css %}
   <link rel="stylesheet" href="{% static 'laws/style.css' %}">
+  <script>
+    // Fix: HTMX autocomplete, csrftoken etc. is causing issues with history handling
+    window.addEventListener('popstate', _=> {
+      location.href = window.location.href;
+    })
+  </script>
 {% endblock %}
 
 {% block page_script %}
