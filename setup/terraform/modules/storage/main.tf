@@ -10,9 +10,31 @@ resource "azurerm_storage_account" "storage" {
   public_network_access_enabled   = false # AC-22, IA-8: Set to false for private access
   default_to_oauth_authentication = true
   is_hns_enabled                  = true
+  versioning_enabled              = true
 
   identity {
     type = "SystemAssigned"
+  }
+
+  blob_properties {
+    delete_retention_policy {
+      days = 7
+    }
+    container_delete_retention_policy {
+      days = 7
+    }
+  }
+
+  lifecycle_rule {
+    name = "retention-policy"
+    enabled = true
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than = 30
+        tier_to_archive_after_days_since_modification_greater_than = 90
+        delete_after_days_since_modification_greater_than = 365
+      }
+    }
   }
 
   tags = var.tags

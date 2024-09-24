@@ -82,3 +82,41 @@ resource "azurerm_managed_disk" "aks_hdd_disk" {
 
   depends_on = [var.aks_cluster_id, null_resource.wait_for_disk_encryption_set_permissions]
 }
+
+# Create a Recovery Services Vault for backup
+resource "azurerm_recovery_services_vault" "aks_backup_vault" {
+  name                = "aks-backup-vault"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  sku                 = "Standard"
+}
+
+# Create a backup policy for the managed disks
+resource "azurerm_backup_policy_disk" "aks_disk_backup_policy" {
+  name                = "aks-disk-backup-policy"
+  resource_group_name = var.resource_group_name
+  recovery_vault_name = azurerm_recovery_services_vault.aks_backup_vault.name
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 7
+  }
+}
+
+# Protect the managed disks with the backup policy
+resource "azurerm_backup_protected_disk" "aks_ssd_disk_backup" {
+  resource_group_name = var.resource_group_name
+  disk_id             = azurerm_managed_disk.aks_ssd_disk.id
+  backup_policy_id    = azurerm_backup_policy_disk.aks_disk_backup_policy.id
+}
+
+# Protect the managed disks with the backup policy
+resource "azurerm_backup_protected_disk" "aks_hdd_disk_backup" {
+  resource_group_name = var.resource_group_name
+  disk_id             = azurerm_managed_disk.aks_hdd_disk.id
+  backup_policy_id    = azurerm_backup_policy_disk.aks_disk_backup_policy.id
+}

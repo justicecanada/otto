@@ -21,6 +21,10 @@ resource "azurerm_cosmosdb_postgresql_cluster" "djangodb" {
   coordinator_server_edition      = "BurstableMemoryOptimized"
   tags                            = var.tags
 
+  # Configure backup settings
+  backup_retention_days        = 35
+  geo_redundant_backup_enabled = true
+
   # Configure nodes
   node_vcores                   = 4
   node_storage_quota_in_mb      = 524288
