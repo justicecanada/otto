@@ -74,3 +74,15 @@ function resetQaAutocompletes() {
   clearAutocomplete('qa_data_sources');
   clearAutocomplete('qa_documents');
 }
+
+function limitScopeSelect(value) {
+  const scope = document.getElementById('id_qa_scope');
+  if (value === "rag") {
+    scope.value = 'all';
+    scope.removeAttribute('disabled');
+  } else {
+    scope.value = "documents";
+    scope.setAttribute('disabled', 'disabled');
+  }
+  showHideQaSourceForms();
+}
