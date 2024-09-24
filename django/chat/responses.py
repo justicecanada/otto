@@ -20,6 +20,7 @@ from chat.models import Message
 from chat.prompts import current_time_prompt
 from chat.tasks import translate_file
 from chat.utils import (
+    combine_responses,
     htmx_stream,
     num_tokens_from_string,
     summarize_long_text,
@@ -425,15 +426,28 @@ def qa_response(chat, response_message, switch_mode=False):
             content_type="text/event-stream",
         )
 
-    response = synthesizer.synthesize(query=input, nodes=source_nodes)
+    if chat.options.qa_answer_mode != "per-source":
+        response = synthesizer.synthesize(query=input, nodes=source_nodes)
+        response_generator = response.response_gen
+        response_replacer = None
+
+    else:
+        responses = []
+        for source in source_nodes:
+            responses.append(synthesizer.synthesize(query=input, nodes=[source]))
+        response_replacer = combine_responses(responses, source_nodes)
+        response_generator = None
+
+    sources = source_nodes
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
             llm,
-            response_generator=response.response_gen,
-            source_nodes=response.source_nodes,
+            response_generator=response_generator,
+            response_replacer=response_replacer,
+            source_nodes=sources,
             switch_mode=switch_mode,
         ),
         content_type="text/event-stream",
