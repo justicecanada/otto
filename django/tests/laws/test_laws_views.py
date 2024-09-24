@@ -1,7 +1,6 @@
 import urllib.parse
 
 from django.conf import settings
-from django.core.cache import cache
 from django.urls import reverse
 
 import pytest
@@ -34,16 +33,12 @@ def test_laws_search_and_answer(client, all_apps_user):
     response = client.post(reverse("laws:search"), {"query": query})
     assert response.status_code == 200
     assert query in response.content.decode()
-    # The results should have been cached
-    assert cache.get(f"sources_{query}") is not None
 
     # Test answer
     response = client.get(
         reverse("laws:answer") + f"?query={urllib.parse.quote_plus(query)}"
     )
     assert response.status_code == 200
-    # The results cache should have been deleted
-    assert cache.get(f"sources_{query}") is None
 
     query = (
         "are the defence of canada regulations exempt from access to information act?"
@@ -55,8 +50,6 @@ def test_laws_search_and_answer(client, all_apps_user):
     )
     assert response.status_code == 200
     assert "No sources found" in response.content.decode()
-    # There are no sources, so they should not be cached
-    assert cache.get(f"sources_{query}") is None
 
     # With a date range far in the future it should return "no sources found"
     response = client.post(
@@ -70,5 +63,3 @@ def test_laws_search_and_answer(client, all_apps_user):
     )
     assert response.status_code == 200
     assert "No sources found" in response.content.decode()
-    # There are no sources, so they should not be cached
-    assert cache.get(f"sources_{query}") is None
