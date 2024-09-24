@@ -44,35 +44,35 @@ class FeedbackForm(ModelForm):
             ),
         }
 
-    def __init__(self, user, message_id, chat_mode, *args, **kwargs):
+    def __init__(self, user, message_id, *args, **kwargs):
         super(FeedbackForm, self).__init__(*args, **kwargs)
         self.fields["modified_by"].queryset = User.objects.filter(id=user.id)
         self.fields["modified_by"].initial = user
         self.fields["chat_message"].queryset = Message.objects.filter(id=message_id)
         self.fields["otto_version"].initial = settings.OTTO_VERSION
-
         if message_id is not None:
-            self.initialize_chat_feedback(message_id, chat_mode)
+            self.initialize_chat_feedback(message_id)
         else:
             self.fields["app"].choices = [
                 (app.name, app.name_fr if get_language() == "fr" else app.name_en)
                 for app in App.objects.visible_to_user(user)
             ] + [("Otto", _("General (Otto)"))]
 
-    def initialize_chat_feedback(self, message_id, mode):
+    def initialize_chat_feedback(self, message_id):
         self.fields["feedback_type"].initial = next(
             filter(
                 lambda option: option[0] == "feedback", Feedback.FEEDBACK_TYPE_CHOICES
             )
         )
 
-        if mode == "translate":
+        chat_mode = Message.objects.get(id=message_id).mode
+        if chat_mode == "translate":
             self.fields["app"].choices = [("translate", _("Translate"))]
-        elif mode == "summarize":
+        elif chat_mode == "summarize":
             self.fields["app"].choices = [("summarize", _("Summarize"))]
-        elif mode == "document_qa":
+        elif chat_mode == "document_qa":
             self.fields["app"].choices = [("document qa", _("Document QA"))]
-        elif mode == "qa":
+        elif chat_mode == "qa":
             self.fields["app"].choices = [("qa", _("QA"))]
         else:
             self.fields["app"].choices = [("chat", _("Chat"))]

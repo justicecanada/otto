@@ -134,10 +134,7 @@ def accept_terms(request):
 @login_required
 def message_feedback(request: HttpRequest, message_id=None):
     if request.method == "POST":
-        logger.info("Feedback form submitted", message_id=message_id)
-        chat_message = Message.objects.get(id=message_id)
-        mode = chat_message.chat.options.mode
-        form = FeedbackForm(request.user, message_id, chat_mode=mode, data=request.POST)
+        form = FeedbackForm(request.user, message_id, request.POST)
 
         if form.is_valid():
             date_and_time = timezone.now().strftime("%Y%m%d-%H%M%S")
@@ -145,7 +142,7 @@ def message_feedback(request: HttpRequest, message_id=None):
             form.save()
 
             otto_feedback_submitted_with_comment_total.labels(
-                user=request.user.upn
+                user=request.user.username
             ).inc()
 
             if message_id is None:
@@ -153,9 +150,7 @@ def message_feedback(request: HttpRequest, message_id=None):
             else:
                 return HttpResponse()
     else:
-        chat_message = Message.objects.get(id=message_id)
-        mode = chat_message.chat.options.mode
-        form = FeedbackForm(request.user, message_id, chat_mode=mode)
+        form = FeedbackForm(request.user, message_id)
 
     return render(
         request,
