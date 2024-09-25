@@ -905,3 +905,27 @@ def test_rename_chat_title(client, all_apps_user):
     )
     assert response.status_code == 200
     assert f'value="{new_title}"' in response.content.decode("utf-8")
+
+
+@pytest.mark.django_db
+def test_per_source_qa_response(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat using the route to create it with appropriate options
+    response = client.get(reverse("chat:qa"), follow=True)
+    chat = Chat.objects.create(user=user)
+    chat.options.qa_answer_mode = "per-source"
+
+    # Test corporate chatbot QA mode
+    corporate_library_id = Library.objects.get_default_library().id
+    message = Message.objects.create(
+        chat=chat, text="What is my dental coverage?", mode="qa"
+    )
+    message.details["library"] = corporate_library_id
+    message.save()
+    response_message = Message.objects.create(
+        chat=chat, mode="qa", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200

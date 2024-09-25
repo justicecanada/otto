@@ -1,7 +1,6 @@
 import urllib.parse
 
 from django.conf import settings
-from django.core.cache import cache
 from django.urls import reverse
 
 import pytest
@@ -34,16 +33,11 @@ def test_laws_search_and_answer(client, all_apps_user):
     response = client.post(reverse("laws:search"), {"query": query})
     assert response.status_code == 200
     assert query in response.content.decode()
-    # The results should have been cached
-    assert cache.get(f"sources_{query}") is not None
 
-    # Test answer
-    response = client.get(
-        reverse("laws:answer") + f"?query={urllib.parse.quote_plus(query)}"
-    )
-    assert response.status_code == 200
-    # The results cache should have been deleted
-    assert cache.get(f"sources_{query}") is None
+    assert "HX-Push-Url" in response
+    result_url = response["HX-Push-Url"]
+    result_uuid = result_url.split("/")[-1]
+    assert result_uuid
 
     query = (
         "are the defence of canada regulations exempt from access to information act?"
@@ -55,8 +49,6 @@ def test_laws_search_and_answer(client, all_apps_user):
     )
     assert response.status_code == 200
     assert "No sources found" in response.content.decode()
-    # There are no sources, so they should not be cached
-    assert cache.get(f"sources_{query}") is None
 
     # With a date range far in the future it should return "no sources found"
     response = client.post(
@@ -70,5 +62,35 @@ def test_laws_search_and_answer(client, all_apps_user):
     )
     assert response.status_code == 200
     assert "No sources found" in response.content.decode()
-    # There are no sources, so they should not be cached
-    assert cache.get(f"sources_{query}") is None
+
+
+@pytest.mark.django_db
+@skip_on_github_actions
+def test_laws_cache(client, all_apps_user):
+    """Skipping on GitHub because requires Redis cache"""
+    client.force_login(all_apps_user())
+    # Test basic search
+    query = (
+        "who has the right to access records about the defence of canada regulations?"
+    )
+    response = client.post(reverse("laws:search"), {"query": query})
+    assert response.status_code == 200
+    assert query in response.content.decode()
+
+    assert "HX-Push-Url" in response
+    result_url = response["HX-Push-Url"]
+    result_uuid = result_url.split("/")[-1]
+    assert result_uuid
+
+    # Test answer
+    response = client.get(
+        reverse("laws:answer", args=[str(result_uuid)]),
+    )
+    assert response.status_code == 200
+
+    # Load an existing search by UUID
+    response = client.get(
+        reverse("laws:existing_search", args=[str(result_uuid)]),
+    )
+    assert response.status_code == 200
+    assert query in response.content.decode()

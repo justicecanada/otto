@@ -71,8 +71,8 @@
             <label for="qa_answer_mode-modal" class="col-form-label col-form-label-sm">{% trans "Answer granularity" %}</label>
             <select class="form-select form-select-sm"
                     id="qa_answer_mode-modal"
-                    disabled
-                    data-inputname="qa_answer_mode">
+                    data-inputname="qa_answer_mode"
+                    oninput="updateQaHiddenField(this);">
               <option value="combined">{% trans "Combine all sources" %}</option>
               <option value="per-source">{% trans "Answer for each source" %}</option>
             </select>

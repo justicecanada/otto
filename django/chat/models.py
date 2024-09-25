@@ -26,6 +26,8 @@ DEFAULT_MODE = "chat"
 
 
 def create_chat_data_source(user):
+    if not user.personal_library:
+        user.create_personal_library()
     return DataSource.objects.create(
         name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
         library=user.personal_library,

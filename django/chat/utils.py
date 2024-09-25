@@ -393,3 +393,22 @@ async def summarize_long_text_async(
     return await sync_to_async(summarize_long_text)(
         text, llm, length, target_language, custom_prompt
     )
+
+
+async def combine_responses(responses, sources):
+    streams = [
+        {"stream": stream.response_gen, "status": "running"} for stream in responses
+    ]
+    final_streams = [
+        f"\n###### *{source.metadata.get('title', source.metadata['source'])}*\n"
+        for source in sources
+    ]
+    while any([stream["status"] == "running" for stream in streams]):
+        for i, stream in enumerate(streams):
+            try:
+                if stream["status"] == "running":
+                    final_streams[i] += next(stream["stream"])
+            except StopIteration:
+                stream["status"] = "stopped"
+        yield ("\n\n---\n\n".join(final_streams))
+        await asyncio.sleep(0)
