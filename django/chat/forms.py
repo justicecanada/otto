@@ -275,7 +275,7 @@ class ChatOptionsForm(ModelForm):
             widget=forms.Select(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "limitScopeSelect(); resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
+                    "onchange": "resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
                 }
             ),
         )

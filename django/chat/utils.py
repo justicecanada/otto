@@ -257,6 +257,7 @@ async def htmx_stream(
             )()
 
     except Exception as e:
+        message = await sync_to_async(Message.objects.get)(id=message_id)
         full_message = _("An error occurred:") + f"\n```\n{str(e)}\n```"
         message.text = full_message
         await sync_to_async(message.save)()
@@ -358,7 +359,6 @@ def summarize_long_text(
         },
     }
 
-    length_prompt_template = length_prompts[length][target_language]
     if custom_prompt and "{docs}" in custom_prompt:
         length_prompt_template = custom_prompt
     elif custom_prompt:
@@ -368,6 +368,8 @@ def summarize_long_text(
             + _("The original document is below, enclosed in triple quotes:")
             + "\n'''\n{docs}\n'''"
         )
+    else:
+        length_prompt_template = length_prompts[length][target_language]
     # Tree summarizer prompt requires certain variables
     # Note that we aren't passing in a query here, so the query will be empty
     length_prompt_template = length_prompt_template.replace(
@@ -395,20 +397,38 @@ async def summarize_long_text_async(
     )
 
 
-async def combine_responses(responses, sources):
-    streams = [
-        {"stream": stream.response_gen, "status": "running"} for stream in responses
+def get_source_titles(sources):
+    return [
+        source.metadata.get("title", source.metadata["source"]) for source in sources
     ]
-    final_streams = [
-        f"\n###### *{source.metadata.get('title', source.metadata['source'])}*\n"
-        for source in sources
-    ]
+
+
+async def combine_response_generators(responses, titles):
+    streams = [{"stream": stream, "status": "running"} for stream in responses]
+    final_streams = [f"\n###### *{title}*\n" for title in titles]
     while any([stream["status"] == "running" for stream in streams]):
         for i, stream in enumerate(streams):
             try:
                 if stream["status"] == "running":
                     final_streams[i] += next(stream["stream"])
             except StopIteration:
+                stream["status"] = "stopped"
+        yield ("\n\n---\n\n".join(final_streams))
+        await asyncio.sleep(0)
+
+
+async def combine_response_replacers(responses, titles):
+    streams = [{"stream": stream, "status": "running"} for stream in responses]
+    formatted_titles = [f"\n###### *{title}*\n" for title in titles]
+    partial_streams = ["" for _ in titles]
+    final_streams = ["" for _ in titles]
+    while any([stream["status"] == "running" for stream in streams]):
+        for i, stream in enumerate(streams):
+            try:
+                if stream["status"] == "running":
+                    partial_streams[i] = await stream["stream"].__anext__()
+                    final_streams[i] = formatted_titles[i] + partial_streams[i]
+            except StopAsyncIteration:
                 stream["status"] = "stopped"
         yield ("\n\n---\n\n".join(final_streams))
         await asyncio.sleep(0)

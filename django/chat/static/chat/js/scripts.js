@@ -107,6 +107,7 @@ function showHideSidebars() {
 window.addEventListener('resize', showHideSidebars);
 // On page load...
 document.addEventListener("DOMContentLoaded", function () {
+  limitScopeSelect();
   showHideSidebars();
   document.querySelector('#prompt-form-container').classList.remove("d-none");
   resizeTextarea();

@@ -67,11 +67,9 @@ function clearAutocomplete(field_name) {
 }
 
 function resetQaAutocompletes() {
-  // This mirrors the code in forms.py ChatOptionsForm.save()
-  const scope = document.getElementById('id_qa_scope');
-  scope.value = 'all';
   const mode = document.getElementById('id_qa_mode');
   mode.value = 'rag';
+  limitScopeSelect();
   updateQaSourceForms();
   clearAutocomplete('qa_data_sources');
   clearAutocomplete('qa_documents');
