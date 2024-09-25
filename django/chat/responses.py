@@ -438,8 +438,6 @@ def qa_response(chat, response_message, switch_mode=False):
         response_replacer = combine_responses(responses, source_nodes)
         response_generator = None
 
-    sources = source_nodes
-
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
@@ -447,7 +445,7 @@ def qa_response(chat, response_message, switch_mode=False):
             llm,
             response_generator=response_generator,
             response_replacer=response_replacer,
-            source_nodes=sources,
+            source_nodes=source_nodes,
             switch_mode=switch_mode,
         ),
         content_type="text/event-stream",

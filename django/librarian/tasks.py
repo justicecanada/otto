@@ -117,6 +117,7 @@ def process_document_helper(document, llm):
             "status_text": _("Adding to library..."),
         },
     )
+
     nodes = create_nodes(chunks, document)
 
     library_uuid = document.data_source.library.uuid_hex
