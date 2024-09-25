@@ -184,14 +184,14 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "limitScopeSelect(this.value); triggerOptionSave();",
+                    "onchange": "updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(
                 choices=QA_SCOPE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "showHideQaSourceForms(); triggerOptionSave();",
+                    "onchange": "updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
             "chat_agent": forms.CheckboxInput(
@@ -275,7 +275,7 @@ class ChatOptionsForm(ModelForm):
             widget=forms.Select(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave(); updateLibraryModalButton(); resetQaAutocompletes();",
+                    "onchange": "updateQaSourceForms(); triggerOptionSave(); updateLibraryModalButton(); resetQaAutocompletes();",
                 }
             ),
         )
