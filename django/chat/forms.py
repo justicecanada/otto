@@ -184,7 +184,7 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "updateQaSourceForms(); triggerOptionSave();",
+                    "onchange": "limitScopeSelect(); updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(
@@ -275,7 +275,7 @@ class ChatOptionsForm(ModelForm):
             widget=forms.Select(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "updateQaSourceForms(); triggerOptionSave(); updateLibraryModalButton(); resetQaAutocompletes();",
+                    "onchange": "limitScopeSelect(); resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
                 }
             ),
         )
