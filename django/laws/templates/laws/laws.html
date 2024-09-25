@@ -4,6 +4,12 @@
 
 {% block page_css %}
   <link rel="stylesheet" href="{% static 'laws/style.css' %}">
+  <script>
+    // Fix: HTMX autocomplete, csrftoken etc. is causing issues with history handling
+    window.addEventListener('popstate', _=> {
+      location.href = window.location.href;
+    })
+  </script>
 {% endblock %}
 
 {% block page_script %}
@@ -53,7 +59,11 @@
       <span class="spinner-border" aria-hidden="true"></span>
       <span class="visually-hidden" role="status">Loading...</span>
     </div>
-    <div class="container py-3 px-0" id="result-container" aria-live="polite"></div>
+    <div class="container py-3 px-0" id="result-container" aria-live="polite">
+      {% if sources %}
+        {% include "laws/search_result.html" %}
+      {% endif %}
+    </div>
   </div>
   <script src="{% static 'laws/law_search.js' %}"></script>
 {% endblock %}
