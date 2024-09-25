@@ -18,6 +18,8 @@ class CustomUserManager(BaseUserManager):
     def create_user(self, upn, password=None, **extra_fields):
         user = self.model(upn=upn, **extra_fields)
         user.save()
+        # Create personal library
+        user.create_personal_library()
         return user
 
     def create_superuser(self, upn, password=None, **extra_fields):
@@ -85,6 +87,37 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def make_otto_admin(self):
         self.groups.add(Group.objects.get(name="Otto admin"))
+
+    # When user is deleted, their personal library should be also
+    def delete(self, *args, **kwargs):
+        from librarian.models import Library
+
+        Library.objects.filter(created_by=self, is_personal_library=True).delete()
+        super().delete(*args, **kwargs)
+
+    @property
+    def personal_library(self):
+        from librarian.models import Library
+
+        return Library.objects.filter(created_by=self, is_personal_library=True).first()
+
+    def create_personal_library(self):
+        from librarian.models import Library, LibraryUserRole
+
+        new_personal_library = Library.objects.create(
+            name_en=self.full_name,
+            name_fr=self.full_name,
+            created_by=self,
+            is_personal_library=True,
+            description_en=f"Personal library for {self.upn}. Files uploaded to chats will be saved here.",
+            description_fr=f"Bibliothèque personnels pour {self.upn}. Les fichiers téléchargés dans les chats seront enregistrés ici.",
+        )
+        LibraryUserRole.objects.create(
+            user=self,
+            library=new_personal_library,
+            role="admin",
+        )
+        return new_personal_library
 
 
 class UserOptions(models.Model):
@@ -272,6 +305,7 @@ class CostManager(models.Manager):
         from structlog.contextvars import get_contextvars
 
         from chat.models import Message
+        from laws.models import Law
         from librarian.models import Document
 
         cost_type = CostType.objects.get(short_name=cost_type)
@@ -280,6 +314,7 @@ class CostManager(models.Manager):
         request_context = get_contextvars()
         message_id = request_context.get("message_id")
         document_id = request_context.get("document_id")
+        law_id = request_context.get("law_id")
         user_id = request_context.get("user_id")
 
         cost_object = self.create(
@@ -292,6 +327,7 @@ class CostManager(models.Manager):
             user=User.objects.get(id=user_id) if user_id else None,
             message=Message.objects.get(id=message_id) if message_id else None,
             document=Document.objects.get(id=document_id) if document_id else None,
+            law=Law.objects.get(id=law_id) if law_id else None,
         )
 
         # Recalculate document and message costs, if applicable
@@ -346,6 +382,7 @@ FEATURE_CHOICES = [
     ("librarian", _("Librarian")),
     ("qa", _("Q&A")),
     ("chat", _("Chat")),
+    ("chat_agent", _("Chat agent")),
     ("translate", _("Translate")),
     ("summarize", _("Summarize")),
     ("template_wizard", _("Template wizard")),
@@ -381,6 +418,7 @@ class Cost(models.Model):
     document = models.ForeignKey(
         "librarian.Document", on_delete=models.CASCADE, null=True, blank=True
     )
+    law = models.ForeignKey("laws.Law", on_delete=models.CASCADE, null=True, blank=True)
 
     objects = CostManager()
 

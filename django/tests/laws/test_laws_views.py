@@ -1,7 +1,6 @@
 import urllib.parse
 
 from django.conf import settings
-from django.core.cache import cache
 from django.urls import reverse
 
 import pytest
@@ -25,16 +24,6 @@ def test_laws_index(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_laws_search_form(client, all_apps_user):
-    client.force_login(all_apps_user())
-    # Basic search form
-    # Advanced search form
-    response = client.get(reverse("laws:advanced_search_form"))
-    assert response.status_code == 200
-    assert "filter" in response.content.decode().lower()
-
-
-@pytest.mark.django_db
 def test_laws_search_and_answer(client, all_apps_user):
     client.force_login(all_apps_user())
     # Test basic search
@@ -44,23 +33,64 @@ def test_laws_search_and_answer(client, all_apps_user):
     response = client.post(reverse("laws:search"), {"query": query})
     assert response.status_code == 200
     assert query in response.content.decode()
-    # The results should have been cached
-    assert cache.get(f"sources_{query}") is not None
 
-    # Test answer
-    response = client.get(
-        reverse("laws:answer") + f"?query={urllib.parse.quote_plus(query)}"
-    )
-    assert response.status_code == 200
-    # The results cache should have been deleted
-    assert cache.get(f"sources_{query}") is None
+    assert "HX-Push-Url" in response
+    result_url = response["HX-Push-Url"]
+    result_uuid = result_url.split("/")[-1]
+    assert result_uuid
 
     query = (
         "are the defence of canada regulations exempt from access to information act?"
     )
-    # Test advanced search - with no acts/regs selected it should return an error message
-    response = client.post(reverse("laws:search"), {"query": query, "advanced": "true"})
+    # Test advanced search - with no acts/regs selected it should return "no sources found"
+    response = client.post(
+        reverse("laws:search"),
+        {"query": query, "advanced": "true", "search_laws_option": "specific_laws"},
+    )
     assert response.status_code == 200
     assert "No sources found" in response.content.decode()
-    # There are no sources, so they should not be cached
-    assert cache.get(f"sources_{query}") is None
+
+    # With a date range far in the future it should return "no sources found"
+    response = client.post(
+        reverse("laws:search"),
+        {
+            "query": query,
+            "advanced": "true",
+            "date_filter_option": "filter_dates",
+            "in_force_date_start": "2050-10-12",
+        },
+    )
+    assert response.status_code == 200
+    assert "No sources found" in response.content.decode()
+
+
+@pytest.mark.django_db
+@skip_on_github_actions
+def test_laws_cache(client, all_apps_user):
+    """Skipping on GitHub because requires Redis cache"""
+    client.force_login(all_apps_user())
+    # Test basic search
+    query = (
+        "who has the right to access records about the defence of canada regulations?"
+    )
+    response = client.post(reverse("laws:search"), {"query": query})
+    assert response.status_code == 200
+    assert query in response.content.decode()
+
+    assert "HX-Push-Url" in response
+    result_url = response["HX-Push-Url"]
+    result_uuid = result_url.split("/")[-1]
+    assert result_uuid
+
+    # Test answer
+    response = client.get(
+        reverse("laws:answer", args=[str(result_uuid)]),
+    )
+    assert response.status_code == 200
+
+    # Load an existing search by UUID
+    response = client.get(
+        reverse("laws:existing_search", args=[str(result_uuid)]),
+    )
+    assert response.status_code == 200
+    assert query in response.content.decode()

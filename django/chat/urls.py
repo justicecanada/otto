@@ -47,7 +47,6 @@ urlpatterns = [
         views.thumbs_feedback,
         name="thumbs_feedback",
     ),
-    path("get_data_sources/", views.get_data_sources, name="get_data_sources"),
     path("id/<str:chat_id>/options/", views.chat_options, name="chat_options"),
     path(
         "id/<str:chat_id>/options/preset/<str:action>",
@@ -68,10 +67,5 @@ urlpatterns = [
         "id/<str:chat_id>/list_item/<str:current_chat>",
         views.chat_list_item,
         name="chat_list_item",
-    ),
-    path(
-        "id/<str:chat_id>/options/qa_accordion/<int:library_id>",
-        views.get_qa_accordion,
-        name="qa_accordion",
     ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
