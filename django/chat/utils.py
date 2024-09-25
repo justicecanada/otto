@@ -153,6 +153,7 @@ async def htmx_stream(
     format: bool = True,
     dots: bool = False,
     source_nodes: list = [],
+    switch_mode: bool = False,
 ) -> AsyncGenerator:
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
@@ -193,8 +194,12 @@ async def htmx_stream(
     ##############################
     is_untitled_chat = chat.title.strip() == ""
     full_message = ""
+    dots_html = '<div class="typing"><span></span><span></span><span></span></div>'
     if dots:
-        dots = f'<div class="typing"><span></span><span></span><span></span></div>'
+        dots = dots_html
+    if switch_mode:
+        mode = chat.options.mode
+        mode_str = {"qa": _("Q&A"), "chat": _("Chat")}[mode]
 
     try:
         if response_generator:
@@ -203,7 +208,21 @@ async def htmx_stream(
             response_replacer = stream_to_replacer([response_str])
 
         # Stream the response text
+        first_message = True
         async for response in response_replacer:
+            if first_message and switch_mode:
+                full_message = render_to_string(
+                    "chat/components/mode_switch_message.html",
+                    {
+                        "mode": mode,
+                        "mode_str": mode_str,
+                        "library_id": chat.options.qa_library_id,
+                        "library_str": chat.options.qa_library.name,
+                    },
+                )
+                yield sse_string(full_message, format=False, dots=dots_html)
+                await asyncio.sleep(1)
+                first_message = False
             full_message = response
             if cache.get(f"stop_response_{message_id}", False):
                 break
@@ -211,6 +230,7 @@ async def htmx_stream(
             await asyncio.sleep(0.01)
 
         yield sse_string(full_message, format, dots=False, remove_stop=True)
+        await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
 
@@ -373,3 +393,22 @@ async def summarize_long_text_async(
     return await sync_to_async(summarize_long_text)(
         text, llm, length, target_language, custom_prompt
     )
+
+
+async def combine_responses(responses, sources):
+    streams = [
+        {"stream": stream.response_gen, "status": "running"} for stream in responses
+    ]
+    final_streams = [
+        f"\n###### *{source.metadata.get('title', source.metadata['source'])}*\n"
+        for source in sources
+    ]
+    while any([stream["status"] == "running" for stream in streams]):
+        for i, stream in enumerate(streams):
+            try:
+                if stream["status"] == "running":
+                    final_streams[i] += next(stream["stream"])
+            except StopIteration:
+                stream["status"] = "stopped"
+        yield ("\n\n---\n\n".join(final_streams))
+        await asyncio.sleep(0)

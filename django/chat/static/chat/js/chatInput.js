@@ -1,9 +1,6 @@
 const chatPromptMinHeight = 85;
 const chatPromptMaxHeight = 400;
 
-// Set the #chat-action value to the {{mode}}
-document.querySelector('#chat-action').value = '{{ mode }}';
-
 promptResizeHandle = document.getElementById("prompt-form-resize-handle");
 
 // Resize the #chat-prompt textarea to fit its content, up to a maximum height of 400px

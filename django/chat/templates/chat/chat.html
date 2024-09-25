@@ -10,6 +10,7 @@
 
 {% block page_script %}
   <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
+  <script>const chat_id = "{{ chat.id }}";</script>
 {% endblock %}
 
 {% block page_title %}
@@ -70,7 +71,7 @@
         href="{% static 'chat/thirdparty/css/highlight.js-11.8.0.min.css' %}">
   <script src="{% static 'chat/thirdparty/js/highlight.js-11.8.0.min.js' %}"></script>
 
-  <script src="{% static 'chat/scripts.js' %}"></script>
+  <script src="{% static 'chat/js/scripts.js' %}"></script>
   <script src="{% static 'librarian/scripts.js' %}"></script>
 
 {% endblock %}

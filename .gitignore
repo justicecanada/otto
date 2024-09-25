@@ -42,3 +42,5 @@ tfplan*
 crash.log
 crash.*.log
 
+test_streams.py
+test_async.py

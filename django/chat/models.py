@@ -14,14 +14,24 @@ from chat.prompts import (
     QA_PRE_INSTRUCTIONS,
     QA_PROMPT_TEMPLATE,
     QA_SYSTEM_PROMPT,
+    current_time_prompt,
 )
-from librarian.models import Library, SavedFile
+from librarian.models import DataSource, Library, SavedFile
 from otto.models import SecurityLabel
 from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
 
-DEFAULT_MODE = "qa"
+DEFAULT_MODE = "chat"
+
+
+def create_chat_data_source(user):
+    if not user.personal_library:
+        user.create_personal_library()
+    return DataSource.objects.create(
+        name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        library=user.personal_library,
+    )
 
 
 class ChatManager(models.Manager):
@@ -34,7 +44,9 @@ class ChatManager(models.Manager):
             user=kwargs["user"], mode=mode
         )
         kwargs["security_label_id"] = SecurityLabel.default_security_label().id
-        return super().create(*args, **kwargs)
+        kwargs["data_source"] = create_chat_data_source(kwargs["user"])
+        instance = super().create(*args, **kwargs)
+        return instance
 
 
 class Chat(models.Model):
@@ -59,6 +71,14 @@ class Chat(models.Model):
 
     options = models.OneToOneField(
         "ChatOptions", on_delete=models.CASCADE, related_name="chat", null=True
+    )
+
+    data_source = models.OneToOneField(
+        "librarian.DataSource",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="chat",
     )
 
     def __str__(self):
@@ -103,10 +123,15 @@ class ChatOptionsManager(models.Manager):
             if mode:
                 new_options.mode = mode
             new_options.save()
-            if default_library:
-                new_options.qa_data_sources.set(default_library.data_sources.all())
 
         return new_options
+
+
+QA_SCOPE_CHOICES = [
+    ("all", _("Entire library")),
+    ("data_sources", _("Selected data sources")),
+    ("documents", _("Selected documents")),
+]
 
 
 class ChatOptions(models.Model):
@@ -136,6 +161,7 @@ class ChatOptions(models.Model):
     chat_model = models.CharField(max_length=255, default="gpt-4o")
     chat_temperature = models.FloatField(default=0.1)
     chat_system_prompt = models.TextField(blank=True)
+    chat_agent = models.BooleanField(default=True)
 
     # Summarize-specific options
     summarize_model = models.CharField(max_length=255, default="gpt-4o")
@@ -154,8 +180,12 @@ class ChatOptions(models.Model):
         null=True,
         related_name="qa_options",
     )
+    qa_scope = models.CharField(max_length=255, default="all", choices=QA_SCOPE_CHOICES)
     qa_data_sources = models.ManyToManyField(
         "librarian.DataSource", related_name="qa_options"
+    )
+    qa_documents = models.ManyToManyField(
+        "librarian.Document", related_name="qa_options"
     )
     qa_topk = models.IntegerField(default=5)
     qa_system_prompt = models.TextField(blank=True)
@@ -176,7 +206,7 @@ class ChatOptions(models.Model):
         return ChatPromptTemplate(
             message_templates=[
                 ChatMessage(
-                    content=self.qa_system_prompt,
+                    content=current_time_prompt() + self.qa_system_prompt,
                     role=MessageRole.SYSTEM,
                 ),
                 ChatMessage(
@@ -206,16 +236,6 @@ class ChatOptions(models.Model):
         else:
             logger.error("User must be set to set user default.")
             raise ValueError("User must be set to set user default")
-
-    def save(self, *args, **kwargs):
-        self.clean()
-        new = self.pk is None
-        if not new:
-            orig = ChatOptions.objects.get(pk=self.pk)
-            if orig.qa_library != self.qa_library:
-                logger.info("Chat library selection changed. Resetting data_sources.")
-                self.qa_data_sources.set(self.qa_library.data_sources.all())
-        super().save(*args, **kwargs)
 
 
 class Message(models.Model):
@@ -351,9 +371,7 @@ class ChatFile(models.Model):
         return f"File {self.id}: {self.filename}"
 
     def extract_text(self, fast=True):
-        # TODO: Extracting text from file may incur Azure Document AI costs.
-        # Need to refactor extract_text to create Cost object with correct user and mode.
-        # (Presently, this is only used in summarize mode, and user can be inferred...)
+
         from librarian.utils.process_engine import (
             extract_markdown,
             get_process_engine_from_type,

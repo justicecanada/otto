@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -15,7 +16,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.forms import ChatOptionsForm, ChatRenameForm, DataSourcesForm
+from chat.forms import ChatOptionsForm, ChatRenameForm
 from chat.llm import OttoLLM
 from chat.metrics.activity_metrics import (
     chat_new_session_started_total,
@@ -26,7 +27,7 @@ from chat.metrics.feedback_metrics import (
     chat_negative_feedback_total,
     chat_positive_feedback_total,
 )
-from chat.models import Chat, ChatFile, ChatOptions, Message
+from chat.models import Chat, ChatFile, ChatOptions, Message, create_chat_data_source
 from chat.utils import llm_response_to_html, title_chat
 from librarian.models import DataSource, Library
 from otto.models import App, SecurityLabel
@@ -283,13 +284,22 @@ def chat(request, chat_id):
     logger.info("Chat session retrieved.", chat_id=chat_id)
     bind_contextvars(feature="chat")
 
-    chat = Chat.objects.get(id=chat_id)
-    # Get chat options
+    chat = (
+        Chat.objects.filter(id=chat_id)
+        .prefetch_related("options", "data_source")
+        .first()
+    )
+
+    # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
+    # If database is completely wiped, this should all be removable
     if not chat.options:
-        # This is just to catch chats which existed before ChatOptions was introduced.
-        # The existing chat mode for these chats will be lost.
         chat.options = ChatOptions.objects.from_defaults(user=chat.user)
         chat.save()
+    if not chat.data_source:
+        chat.data_source = create_chat_data_source(request.user)
+        chat.save()
+    # END INSURANCE CODE
+
     mode = chat.options.mode
 
     # Get chat messages ready
@@ -418,6 +428,8 @@ def init_upload(request, chat_id):
     """
     chat = Chat.objects.get(id=chat_id)
     mode = chat.options.mode
+    if mode == "chat":
+        mode = "qa"
     # Create the user's message in database
     logger.info("File upload initiated.", chat_id=chat_id, mode=mode)
     message = Message.objects.create(chat=chat, text="", is_bot=False, mode=mode)
@@ -443,6 +455,8 @@ def done_upload(request, message_id):
     response_message = Message.objects.create(
         chat=user_message.chat, text="", is_bot=True, mode=mode, parent=user_message
     )
+    chat = user_message.chat
+    response = HttpResponse()
 
     if mode == "translate":
         # usage metrics
@@ -452,6 +466,28 @@ def done_upload(request, message_id):
     if mode == "summarize":
         # usage metrics
         chat_request_type_total.labels(user=request.user.upn, type="text summarization")
+
+    if mode == "qa":
+        # usage metrics
+        print("QA upload")
+        chat_request_type_total.labels(user=request.user.upn, type="qa upload")
+        chat.options.qa_library = chat.user.personal_library
+        chat.options.qa_scope = "data_sources"
+        chat.options.qa_data_sources.set([chat.data_source])
+        chat.options.save()
+
+        response.write(
+            render_to_string(
+                "chat/components/chat_options_accordion.html",
+                {
+                    "options_form": ChatOptionsForm(
+                        instance=chat.options, user=request.user
+                    ),
+                    "mode": "qa",
+                    "swap": "true",
+                },
+            )
+        )
 
     response_init_message = {
         "is_bot": True,
@@ -466,7 +502,10 @@ def done_upload(request, message_id):
         ],
         "mode": mode,
     }
-    return render(request, "chat/components/chat_messages.html", context=context)
+    response.write(
+        render_to_string("chat/components/chat_messages.html", context=context)
+    )
+    return response
 
 
 @require_POST
@@ -577,7 +616,7 @@ def chat_options(request, chat_id, action=None):
             source_options.pop(field)
         # Update the preset options with the dictionary
         fk_fields = ["qa_library"]
-        m2m_fields = ["qa_data_sources"]
+        m2m_fields = ["qa_data_sources", "qa_documents"]
         # Remove None values
         source_options = {k: v for k, v in source_options.items()}
         for key, value in source_options.items():
@@ -722,42 +761,6 @@ def rename_chat(request, chat_id, current_chat=None):
         request,
         "chat/components/chat_list_item_title_edit.html",
         {"form": chat_rename_form, "chat": chat},
-    )
-
-
-def get_data_sources(request, prefix="qa"):
-    library_id = request.POST.get("qa_library", None)
-    if not library_id:
-        return HttpResponse(status=500)
-    # Assuming DataSource model has a ForeignKey to Library model
-    data_sources_form = DataSourcesForm(library_id=library_id, prefix=prefix)
-    return render(
-        request,
-        "chat/components/data_sources_options.html",
-        {"options_form": data_sources_form},
-    )
-
-
-@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def get_qa_accordion(request, chat_id, library_id):
-    chat = Chat.objects.get(id=chat_id)
-    if chat.options.qa_library_id != library_id:
-        if chat.options.qa_library_id:
-            chat.options.qa_library_id = library_id
-        else:
-            # If chat.options.qa_library_id is None, it means that the selected library
-            # was deleted, and there is no Library corresponding to library_id
-            # Thus, revert back to default (Corporate) library
-            chat.options.qa_library_id = Library.objects.get_default_library().id
-        chat.options.save()
-    return render(
-        request,
-        "chat/components/options_4_qa.html",
-        {
-            "options_form": ChatOptionsForm(instance=chat.options, user=request.user),
-            "swap": True,
-            "options_section_id": "qa",
-        },
     )
 
 

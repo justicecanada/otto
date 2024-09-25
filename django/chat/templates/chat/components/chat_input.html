@@ -21,21 +21,19 @@
       </div>
       <div class="form-group mb-3" id="chat-inputs">
         <div class="card" id="chat-toolbar">
-          <div class="col-auto pe-1 d-none">
-            <select class="form-select form-select-sm text-muted fw-semibold"
-                    name="mode"
-                    id="chat-action"
-                    aria-label='{% trans "Action" %}'
-                    onchange="handleModeChange(this.value, this);">
-              <option value="qa">{% trans "Q&A" %}</option>
-              <option value="summarize">{% trans "Summarize" %}</option>
-              <option value="translate">{% trans "Translate" %}</option>
-              <option value="chat">{% trans "Chat" %}</option>
-            </select>
-          </div>
           <div class="row">
             <div class="col">
               <ul class="nav nav-pills" id="chat-modes" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button role="tab"
+                          class="nav-link chat-option"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          data-bs-title='{% trans "ChatGPT for writing assistance (not for facts)" %}'
+                          type="button"
+                          aria-selected="false"
+                          onclick="clickCard('chat')">{% trans "Chat" %}</button>
+                </li>
                 <li class="nav-item" role="presentation">
                   <button role="tab"
                           class="nav-link qa-option"
@@ -51,7 +49,7 @@
                           class="nav-link summarize-option"
                           data-bs-toggle="tooltip"
                           data-bs-placement="top"
-                          data-bs-title='{% trans "Rewrite long text into shorter forms" %}'
+                          data-bs-title='{% trans "Summarize text, files and URLs" %}'
                           type="button"
                           aria-selected="false"
                           onclick="clickCard('summarize')">{% trans "Summarize" %}</button>
@@ -66,19 +64,9 @@
                           aria-selected="false"
                           onclick="clickCard('translate')">{% trans "Translate" %}</button>
                 </li>
-                <li class="nav-item" role="presentation">
-                  <button role="tab"
-                          class="nav-link chat-option"
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          data-bs-title='{% trans "ChatGPT for writing assistance (not for facts)" %}'
-                          type="button"
-                          aria-selected="false"
-                          onclick="clickCard('chat')">{% trans "Chat" %}</button>
-                </li>
               </ul>
             </div>
-            <div class="col-auto py-1 px-0 translate-option summarize-option document_qa-option option">
+            <div class="col-auto py-1 px-0 translate-option summarize-option qa-option option">
               <button class="btn btn-sm btn-outline-secondary col-auto text-center"
                       type="button"
                       aria-label='{% trans "Upload" %}'
