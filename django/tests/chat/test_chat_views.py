@@ -780,6 +780,8 @@ def test_qa_response(client, all_apps_user):
 
 @pytest.mark.django_db
 def test_qa_filters(client, all_apps_user):
+    from librarian.models import DataSource
+
     # Create an empty library
     empty_library = Library.objects.create(name="Test Library")
     # Create a chat by hitting the new chat route in QA mode
@@ -804,11 +806,14 @@ def test_qa_filters(client, all_apps_user):
     # Change the chat_options qa_scope to "documents" and "data_sources" and try each
     chat_options.qa_scope = "documents"
     chat_options.save()
+    # There should be no nodes retrieved since no documents are selected.
     response = client.get(
         reverse("chat:chat_response", args=[Message.objects.last().id])
     )
     assert response.status_code == 200
     chat_options.qa_scope = "data_sources"
+    chat_options.data_sources = DataSource.objects.all()
+    # This should exercise the case in which filters are applied and DO retrieve nodes
     chat_options.save()
     response = client.get(
         reverse("chat:chat_response", args=[Message.objects.last().id])
@@ -914,16 +919,16 @@ def test_per_source_qa_response(client, all_apps_user):
 
     # Create a chat using the route to create it with appropriate options
     response = client.get(reverse("chat:qa"), follow=True)
-    chat = Chat.objects.create(user=user)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
     chat.options.qa_answer_mode = "per-source"
+    chat.options.save()
 
-    # Test corporate chatbot QA mode
-    corporate_library_id = Library.objects.get_default_library().id
+    # Test chat_response with QA mode. This should query the Corporate library.
     message = Message.objects.create(
-        chat=chat, text="What is my dental coverage?", mode="qa"
+        chat=chat,
+        text="What is the capital of Canada?",
+        mode="qa",
     )
-    message.details["library"] = corporate_library_id
-    message.save()
     response_message = Message.objects.create(
         chat=chat, mode="qa", is_bot=True, parent=message
     )
@@ -940,19 +945,16 @@ def test_summarize_qa_response(client, all_apps_user):
 
     # Create a chat using the route to create it with appropriate options
     response = client.get(reverse("chat:qa"), follow=True)
-    chat = Chat.objects.create(user=user)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
     chat.options.qa_scope = "documents"
     chat.options.qa_mode = "summarize"
 
     # Test corporate chatbot QA mode
-    corporate_library_id = Library.objects.get_default_library().id
-    chat.options.qa_documents.set(
-        Document.objects.filter(data_source__library_id=corporate_library_id)
-    )
+    chat.options.qa_documents.set(Document.objects.all())
+    chat.options.save()
     message = Message.objects.create(
         chat=chat, text="What is my dental coverage?", mode="qa"
     )
-    message.details["library"] = corporate_library_id
     message.save()
     response_message = Message.objects.create(
         chat=chat, mode="qa", is_bot=True, parent=message
