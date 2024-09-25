@@ -69,6 +69,15 @@
     border-color: #a2a2a2;
     box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
   }
+
+  #delete_preset{
+    color: red;
+    border-color: red;
+    &:hover {
+      background-color: red !important;
+      color: white !important;
+    }
+  }
   </style>
 {% endblock page_css %}
 
@@ -162,6 +171,15 @@
                 hx-include="#edit_preset_form"
                 hx-target="#presets-modal-body"
                 hx-swap="innerHTML">{% trans "Save" %}</button>
+        {% if preset_id %}
+          <button id="delete_preset"
+                  class="btn btn-outline-secondary flex-fill me-2"
+                  hx-get="{% url 'chat:delete_preset' chat_id=chat_id preset_id=preset_id %}"
+                  hx-target="#presets-modal-body"
+                  hx-swap="innerHTML transition:true"
+                  hx-confirm="{% trans 'Are you sure you want to delete this preset?' %}"
+                  type="button">{% trans "Delete" %}</button>
+        {% endif %}
         <button id="cancel_preset"
                 class="btn btn-outline-secondary flex-fill"
                 hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"

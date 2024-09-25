@@ -929,6 +929,13 @@ def edit_preset(request, chat_id, preset_id):
     )
 
 
+def delete_preset(request, chat_id, preset_id):
+
+    preset = Preset.objects.get(id=preset_id)
+    preset.delete()
+    return redirect("chat:get_presets", chat_id=chat_id)
+
+
 def set_preset_default(request, chat_id: str, preset_id: int):
     try:
         preset = Preset.objects.get(id=preset_id)

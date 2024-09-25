@@ -94,6 +94,11 @@ urlpatterns = [
         name="update_preset",
     ),
     path(
+        "id/<str:chat_id>/options/presets/<str:preset_id>/delete/",
+        views.delete_preset,
+        name="delete_preset",
+    ),
+    path(
         "id/<str:chat_id>/options/presets/<str:preset_id>/edit/",
         views.edit_preset,
         name="edit_preset",
