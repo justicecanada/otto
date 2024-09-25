@@ -151,40 +151,27 @@ def summarize_response(chat, response_message):
 
     llm = OttoLLM(model)
 
-    # TODO: Extracting text from file may incur Azure Document AI costs.
-    # Need to refactor extract_text to create Cost object with correct user and mode.
-    async def multi_summary_generator():
-        full_text = ""
-        for i, file in enumerate(files):
-            full_text += f"**{file.filename}**\n\n"
-            yield full_text
-            if not file.text:
-                await sync_to_async(file.extract_text)(fast=True)
-            response_stream = await summarize_long_text_async(
-                file.text,
-                llm,
-                summary_length,
-                target_language,
-                custom_summarize_prompt,
-            )
-            async for summary in response_stream:
-                full_text_with_summary = full_text + summary
-                yield full_text_with_summary
-
-            full_text = full_text_with_summary
-            if i < len(files) - 1:
-                full_text += "\n\n-----\n"
-            yield full_text
-            await asyncio.sleep(0)
-
     if len(files) > 0:
+        titles = [file.filename for file in files]
+        responses = []
+        for file in files:
+            if not file.text:
+                file.extract_text(fast=True)
+            responses.append(
+                summarize_long_text(
+                    file.text,
+                    llm,
+                    summary_length,
+                    target_language,
+                    custom_summarize_prompt,
+                )
+            )
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
                 llm,
-                response_replacer=multi_summary_generator(),
-                dots=True,
+                response_replacer=combine_response_replacers(responses, titles),
             ),
             content_type="text/event-stream",
         )
