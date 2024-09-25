@@ -816,6 +816,7 @@ def get_presets(request, chat_id):
                 request.user, get_language()
             ),
             "chat_id": chat_id,
+            "user": request.user,
         },
     )
 

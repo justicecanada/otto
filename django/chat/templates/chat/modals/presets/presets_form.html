@@ -23,6 +23,15 @@
   .language-content.active {
     display: block;
   }
+  .form-check-input:checked {
+  background-color: black;
+  border-color: black;
+  }
+
+  .form-check-input:focus {
+    border-color: #a2a2a2;
+    box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
+  }
   </style>
 {% endblock page_css %}
 
@@ -87,7 +96,7 @@
         <div class="col-12">
           <div class="form-check">
             {{ form.is_public }}
-            <label class="form-check-label" for="id_is_public">{% trans "Make preset public" %}</label>
+            <label class="form-check-label" for="id_is_public">{% trans "Share with others" %}</label>
           </div>
         </div>
         <div class="col-12" id="public_fields">
