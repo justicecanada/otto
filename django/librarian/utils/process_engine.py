@@ -77,9 +77,18 @@ def create_nodes(chunks, document):
 
     # Create chunk (child) nodes
     metadata["node_type"] = "chunk"
+
+    text_strings_with_page_numbers = [
+        (chunk, chunk.get("page_numbers", None)) for chunk in chunks
+    ]
     child_nodes = create_child_nodes(
-        chunks, source_node_id=document_node.node_id, metadata=metadata
+        text_strings_with_page_numbers,
+        source_node_id=document_node.node_id,
+        metadata=metadata,
     )
+    # child_nodes = create_child_nodes(
+    #     chunks, source_node_id=document_node.node_id, metadata=metadata
+    # )
 
     # Update node properties
     new_nodes = [document_node] + child_nodes
@@ -138,13 +147,13 @@ def get_process_engine_from_type(type):
 def extract_markdown(
     content, process_engine, fast=False, base_url=None, chunk_size=768, selector=None
 ):
-    if process_engine == "PDF" and fast:
-        md, md_chunks = fast_pdf_to_text(content, chunk_size)
-        if len(md) < 10:
-            # Fallback to Azure Document AI (fka Form Recognizer) if the fast method fails
-            # since that probably means it needs OCR
-            md, md_chunks = pdf_to_markdown(content, chunk_size)
-    elif process_engine == "PDF":
+    # if process_engine == "PDF" and fast:
+    #     md, md_chunks = fast_pdf_to_text(content, chunk_size)
+    #     if len(md) < 10:
+    #         # Fallback to Azure Document AI (fka Form Recognizer) if the fast method fails
+    #         # since that probably means it needs OCR
+    #         md, md_chunks = pdf_to_markdown(content, chunk_size)
+    if process_engine == "PDF":
         md, md_chunks = pdf_to_markdown(content, chunk_size)
     elif process_engine == "WORD":
         md, md_chunks = docx_to_markdown(content, chunk_size)
@@ -177,13 +186,24 @@ def fast_pdf_to_text(content, chunk_size=768):
 
     pdf = fitz.open(stream=io.BytesIO(content))
     text = ""
+    # for page_number in range(pdf.page_count):
+    #     page = pdf.load_page(page_number)
+    #     text += page.get_text("text")
+    # pdf.close()
+
+    # # We don't split the text into chunks here because it's done in create_child_nodes()
+    # return text, [text]
+    page_texts = []
     for page_number in range(pdf.page_count):
         page = pdf.load_page(page_number)
-        text += page.get_text("text")
+        # text += page.get_text("text")
+        page_text = page.get_text("text")
+        page_texts.append((page_text, page_number + 1))
+
     pdf.close()
 
     # We don't split the text into chunks here because it's done in create_child_nodes()
-    return text, [text]
+    return text, page_texts
 
 
 def html_to_markdown(content, chunk_size=768, base_url=None, selector=None):
@@ -284,28 +304,56 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     # Create TextNode objects
     nodes = []
     split_texts = []
-    for i, text in enumerate(text_strings):
-        split_texts += [close_tags(t) for t in splitter.split_text(text)]
-
+    # for i, text in enumerate(text_strings):
+    #     split_texts += [close_tags(t) for t in splitter.split_text(text)]
+    for text, page_number in text_strings:  # new
+        split_texts += [(close_tags(t), page_number) for t in splitter.split_text(text)]
     # Now all the chunks are at most 768 tokens long, but many are much shorter
     # We want to make them a uniform size, so we'll stuff them into the previous chunk
     # (making sure the previous chunk doesn't exceed 768 tokens)
     stuffed_texts = []
     current_text = ""
-    for text in split_texts:
+    # for text in split_texts:
+    #     if token_count(f"{current_text} {text}") > 768:
+    #         stuffed_texts.append(current_text)
+    #         current_text = text
+    #     else:
+    #         current_text += " " + text
+
+    # # Append the last stuffed text if it's not empty
+    # if current_text:
+    #     stuffed_texts.append(current_text)
+
+    # for text in stuffed_texts:
+    #     node = TextNode(text=text, id_=str(uuid.uuid4()))
+    #     node.metadata = metadata
+    #     node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
+    #         node_id=source_node_id
+    #     )
+    #     nodes.append(node)
+    current_page_number = []  # new
+    for text, page_numbers in split_texts:
         if token_count(f"{current_text} {text}") > 768:
-            stuffed_texts.append(current_text)
+            stuffed_texts.append((current_text, current_page_number))
             current_text = text
+            current_page_numbers = page_numbers if page_numbers is not None else []
         else:
             current_text += " " + text
-
+            if page_numbers is not None:
+                for page_number in page_numbers:
+                    if page_number not in current_page_numbers:
+                        current_page_numbers.append(page_number)
     # Append the last stuffed text if it's not empty
     if current_text:
-        stuffed_texts.append(current_text)
+        # stuffed_texts.append(current_text)
+        stuffed_texts.append((current_text, current_page_numbers))  # new
 
-    for text in stuffed_texts:
+    for text, page_number in stuffed_texts:  # new
         node = TextNode(text=text, id_=str(uuid.uuid4()))
-        node.metadata = metadata
+        node.metadata = metadata.copy() if metadata else {}
+        node.metadata["page_numbers"] = (
+            page_numbers if page_numbers else None
+        )  # new: Add page number to metadata
         node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
             node_id=source_node_id
         )
@@ -498,6 +546,14 @@ def _convert_html_to_markdown(
             nodes.append(h.handle(f"{current_node}</table>").strip())
             current_node = ""
 
+    # Extract page numbers and include them in the markdown
+    for div in cleaned_soup.find_all("div", class_="line"):
+        page_number = div.get("data-page")
+        div_text = h.handle(str(div)).strip()
+        if page_number:
+            div_text += f" (Page {page_number})"
+        nodes.append(div_text)
+
     md = h.handle(text).strip()
     return md, nodes
 
@@ -599,7 +655,8 @@ def _pdf_to_html_using_azure(content):
     )
     html = ""
     for _, chunk in enumerate(chunks, 1):
-        html += chunk.get("text")
+        page_number = chunk.get("page_number")
+        html += f"<div class='line' data-page='{page_number}'>{chunk.get('text')}</div>"
 
     return html
 

@@ -2,6 +2,7 @@ import hashlib
 import uuid
 
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.loader import render_to_string
@@ -315,7 +316,8 @@ class Document(models.Model):
     # Not necessary to store permanently in this model; saved in vector DB chunks
     extracted_text = models.TextField(null=True, blank=True)
     num_chunks = models.IntegerField(null=True, blank=True)
-
+    # Add the page_numbers field
+    page_numbers = ArrayField(models.IntegerField(), null=True, blank=True)
     # Specific to URL-based documents
     url = models.URLField(null=True, blank=True)
     selector = models.CharField(max_length=255, null=True, blank=True)

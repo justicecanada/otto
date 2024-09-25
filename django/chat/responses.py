@@ -428,7 +428,21 @@ def qa_response(chat, response_message, switch_mode=False):
 
     if chat.options.qa_answer_mode != "per-source":
         response = synthesizer.synthesize(query=input, nodes=source_nodes)
-        response_generator = response.response_gen
+        for node in response.source_nodes:
+            source = node.metadata.get("source", "")
+            if source.endswith(".pdf") or source.endswith(".docx"):
+                print("node metadata---", node.metadata)
+                print("source---", node.metadata.get("source"))
+                print("pg#----", node.metadata.get("page_number"))
+                if "page_number" in node.metadata:
+                    node.metadata["source"] = (
+                        f"{node.metadata.get('source', '')} (Page {node.metadata['page_number']})"
+                    )
+        # new: Format the response to include page numbers in the source list
+        response_generator = format_response_with_sources(
+            response.response_gen, response.source_nodes
+        )
+        # response_generator = response.response_gen
         response_replacer = None
 
     else:
@@ -452,6 +466,25 @@ def qa_response(chat, response_message, switch_mode=False):
         ),
         content_type="text/event-stream",
     )
+
+
+def format_response_with_sources(response_gen, source_nodes):
+    """
+    Format the response to include page numbers in the source list.
+    """
+    response_str = "".join(response_gen)  # Collect all parts of the original response
+    sources_str = "\n".join(
+        f"{node.metadata.get('source', 'Unknown source')}"
+        + (
+            f" (Page {node.metadata.get('page_number', 'N/A')})"
+            if node.metadata.get("source", "").endswith((".pdf", ".docx"))
+            else ""
+        )
+        for node in source_nodes
+    )
+    for node in source_nodes:
+        print("metadata-----", node.metadata)
+    return f"{response_str}\n\nSources:\n{sources_str}"
 
 
 def error_response(chat, response_message):

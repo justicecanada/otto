@@ -109,6 +109,14 @@ def process_document_helper(document, llm):
     )
     num_chunks = len(chunks)
     document.num_chunks = num_chunks
+    # Extract and save page numbers
+    page_numbers_list = []
+    for chunk, page_numbers in chunks:
+        page_numbers_list.extend(page_numbers)
+
+    # Assuming document has a field `page_numbers` to store the page numbers
+    document.page_numbers = page_numbers_list
+    print("page num list: ", page_numbers_list)
     document.save()
 
     current_task.update_state(
