@@ -941,6 +941,7 @@ def set_preset_default(request, chat_id: str, preset_id: int):
                     request.user, get_language()
                 ),
                 "chat_id": chat_id,
+                "user": request.user,
             },
         )
     except ValueError:

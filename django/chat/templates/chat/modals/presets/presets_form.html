@@ -2,19 +2,56 @@
 
 {% block page_css %}
   <style>
+  :root {
+    --tab-border-color: 0.01rem solid #d5d5d5;
+  }
+
   .nav-link {
     color: var(--bs-body-color);
     font-size: 0.875rem;
     font-weight: 600;
-
     &:hover {
       color: var(--bs-gray-900);
       font-weight: bold outline: none;
+      &:not(.active) {
+        background-color: #f1f1f1;
+        border-bottom: var(--tab-border-color); 
+      }
     }
-
     &:focus-visible {
-      outline: none;
       box-shadow: 0 0 0 0.15rem rgba(66, 70, 73, 0.5);
+    }
+    &:not(.active) {
+    background-color: #eaeaea; 
+    border-bottom: var(--tab-border-color);
+    }
+    &.active {
+      border-top: var(--tab-border-color) !important; 
+      border-left: var(--tab-border-color) !important;
+      border-right: var(--tab-border-color) !important; 
+    }
+  }
+
+  .card-footer {
+    display: flex !important;
+    gap: 1rem;  
+    background-color: transparent;    
+    border-top: none;
+    padding-top: 0;
+    padding-bottom: .65rem;
+
+    button {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      flex-grow: 1;
+
+      &:hover {
+        background-color: var(--bs-light) !important;        
+      }
+
+      &:only-child {
+        flex-basis: 100%;
+      }
     }
   }
   .language-content {
@@ -39,9 +76,7 @@
 <div class="modal-body">
 
   <div class="d-flex flex-column">
-    <ul class="nav nav-underline nav-fill"
-        id="preset-edit-tabs"
-        role="tablist">
+    <ul class="nav nav-tabs nav-fill" id="preset-edit-tabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button id="en-preset-tab"
                 class="active nav-link"
