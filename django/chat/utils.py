@@ -403,8 +403,8 @@ def get_source_titles(sources):
     ]
 
 
-async def combine_response_generators(responses, titles):
-    streams = [{"stream": stream, "status": "running"} for stream in responses]
+async def combine_response_generators(generators, titles):
+    streams = [{"stream": stream, "status": "running"} for stream in generators]
     final_streams = [f"\n###### *{title}*\n" for title in titles]
     while any([stream["status"] == "running" for stream in streams]):
         for i, stream in enumerate(streams):
@@ -417,8 +417,8 @@ async def combine_response_generators(responses, titles):
         await asyncio.sleep(0)
 
 
-async def combine_response_replacers(responses, titles):
-    streams = [{"stream": stream, "status": "running"} for stream in responses]
+async def combine_response_replacers(generators, titles):
+    streams = [{"stream": stream, "status": "running"} for stream in generators]
     formatted_titles = [f"\n###### *{title}*\n" for title in titles]
     partial_streams = ["" for _ in titles]
     final_streams = ["" for _ in titles]

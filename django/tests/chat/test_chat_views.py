@@ -929,3 +929,33 @@ def test_per_source_qa_response(client, all_apps_user):
     )
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_summarize_qa_response(client, all_apps_user):
+    from librarian.models import Document
+
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat using the route to create it with appropriate options
+    response = client.get(reverse("chat:qa"), follow=True)
+    chat = Chat.objects.create(user=user)
+    chat.options.qa_scope = "documents"
+    chat.options.qa_mode = "summarize"
+
+    # Test corporate chatbot QA mode
+    corporate_library_id = Library.objects.get_default_library().id
+    chat.options.qa_documents.set(
+        Document.objects.filter(data_source__library_id=corporate_library_id)
+    )
+    message = Message.objects.create(
+        chat=chat, text="What is my dental coverage?", mode="qa"
+    )
+    message.details["library"] = corporate_library_id
+    message.save()
+    response_message = Message.objects.create(
+        chat=chat, mode="qa", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
