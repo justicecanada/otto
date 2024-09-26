@@ -317,8 +317,6 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
 
     # Set relationships
     for i in range(len(nodes) - 1):
-        print("aaaaaaaaa")
-        print(nodes[i].metadata)
         nodes[i].relationships[NodeRelationship.NEXT] = RelatedNodeInfo(
             node_id=nodes[i + 1].node_id
         )
