@@ -6,13 +6,7 @@ from autocomplete import HTMXAutoComplete
 from autocomplete.widgets import Autocomplete
 from data_fetcher.util import get_request
 
-from chat.models import (
-    QA_MODE_CHOICES,
-    QA_SCOPE_CHOICES,
-    Chat,
-    ChatOptions,
-    qa_source_order_CHOICES,
-)
+from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions
 from librarian.models import DataSource, Document, Library
 
 CHAT_MODELS = [
