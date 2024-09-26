@@ -6,7 +6,13 @@ from autocomplete import HTMXAutoComplete
 from autocomplete.widgets import Autocomplete
 from data_fetcher.util import get_request
 
-from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions
+from chat.models import (
+    QA_MODE_CHOICES,
+    QA_SCOPE_CHOICES,
+    Chat,
+    ChatOptions,
+    qa_source_order_CHOICES,
+)
 from librarian.models import DataSource, Document, Library
 
 CHAT_MODELS = [
@@ -189,6 +195,13 @@ class ChatOptionsForm(ModelForm):
             ),
             "qa_scope": forms.Select(
                 choices=QA_SCOPE_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "updateQaSourceForms(); triggerOptionSave();",
+                },
+            ),
+            "qa_source_order": forms.Select(
+                choices=qa_source_order_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
                     "onchange": "updateQaSourceForms(); triggerOptionSave();",
