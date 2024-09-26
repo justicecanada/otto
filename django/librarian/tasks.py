@@ -68,32 +68,35 @@ def process_document_helper(document, llm):
             + "://"
             + urllib.parse.urlparse(url).netloc
         )
-        current_task.update_state(
-            state="PROCESSING",
-            meta={
-                "status_text": _("Fetching URL..."),
-            },
-        )
+        if current_task:
+            current_task.update_state(
+                state="PROCESSING",
+                meta={
+                    "status_text": _("Fetching URL..."),
+                },
+            )
         content, content_type = fetch_from_url(url)
         document.url_content_type = content_type
     else:
         logger.info("Processing file", file=file)
         base_url = None
-        current_task.update_state(
-            state="PROCESSING",
-            meta={
-                "status_text": _("Reading file..."),
-            },
-        )
+        if current_task:
+            current_task.update_state(
+                state="PROCESSING",
+                meta={
+                    "status_text": _("Reading file..."),
+                },
+            )
         content = file.file.read()
         content_type = file.content_type
 
-    current_task.update_state(
-        state="PROCESSING",
-        meta={
-            "status_text": _("Extracting text..."),
-        },
-    )
+    if current_task:
+        current_task.update_state(
+            state="PROCESSING",
+            meta={
+                "status_text": _("Extracting text..."),
+            },
+        )
     process_engine = get_process_engine_from_type(content_type)
     if process_engine == "HTML":
         extracted_metadata = extract_html_metadata(content)
@@ -110,14 +113,13 @@ def process_document_helper(document, llm):
     num_chunks = len(chunks)
     document.num_chunks = num_chunks
     document.save()
-
-    current_task.update_state(
-        state="PROCESSING",
-        meta={
-            "status_text": _("Adding to library..."),
-        },
-    )
-
+    if current_task:
+        current_task.update_state(
+            state="PROCESSING",
+            meta={
+                "status_text": _("Adding to library..."),
+            },
+        )
     nodes = create_nodes(chunks, document)
 
     library_uuid = document.data_source.library.uuid_hex
@@ -130,12 +132,13 @@ def process_document_helper(document, llm):
     for i in tqdm(range(0, len(nodes), batch_size)):
         if i > 0:
             percent_complete = i / len(nodes) * 100
-            current_task.update_state(
-                state="PROCESSING",
-                meta={
-                    "status_text": f"{_('Adding to library...')} ({int(percent_complete)}% {_('done')})",
-                },
-            )
+            if current_task:
+                current_task.update_state(
+                    state="PROCESSING",
+                    meta={
+                        "status_text": f"{_('Adding to library...')} ({int(percent_complete)}% {_('done')})",
+                    },
+                )
         # Exponential backoff retry
         for j in range(3, 12):
             try:
