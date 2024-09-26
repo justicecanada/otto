@@ -421,7 +421,7 @@ def qa_response(chat, response_message, switch_mode=False):
             source_nodes = sorted(
                 source_nodes,
                 key=lambda x: (
-                    x.node.relationships["1"].node_id,
+                    x.node.relationships["1"].node_id,  # UUID for source document
                     x.metadata["chunk_number"],
                 ),
             )
