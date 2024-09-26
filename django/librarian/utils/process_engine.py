@@ -272,7 +272,6 @@ def document_title(content):
 
 
 def create_child_nodes(text_strings, source_node_id, metadata=None):
-    return "aaaaaaaaaaaaaaaaaa"
     from llama_index.core.node_parser import SentenceSplitter
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
@@ -307,7 +306,6 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     for i, text in enumerate(stuffed_texts):
         node = TextNode(text=text, id_=str(uuid.uuid4()))
         node.metadata = dict(metadata, chunk_number=i)
-        print(tttttttttttttttttt)
         node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
             node_id=source_node_id
         )
