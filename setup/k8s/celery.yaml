@@ -189,7 +189,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: azure-keyvault-secrets
-                key: entraclientsecretkey
+                key: entraclientsecretkey            
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
