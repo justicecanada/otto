@@ -200,13 +200,6 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
-            "qa_source_order": forms.Select(
-                choices=qa_source_order_CHOICES,
-                attrs={
-                    "class": "form-select form-select-sm",
-                    "onchange": "updateQaSourceForms(); triggerOptionSave();",
-                },
-            ),
             "chat_agent": forms.CheckboxInput(
                 attrs={
                     "class": "form-check-input small",
