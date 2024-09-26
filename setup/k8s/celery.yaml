@@ -91,16 +91,6 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: entraclientsecretkey
-          readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - celery -A otto inspect ping -d celery@$HOSTNAME
-            periodSeconds: 30
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
           volumeMounts:
             - name: secrets  # Mounts secrets from Azure Key Vault
               mountPath: "/mnt/secrets-store"
@@ -199,17 +189,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: azure-keyvault-secrets
-                key: entraclientsecretkey
-          readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - celery -A otto inspect ping -d celery@$HOSTNAME
-            periodSeconds: 30
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3                
+                key: entraclientsecretkey            
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"

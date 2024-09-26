@@ -104,14 +104,6 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "500m"
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 8000
-            periodSeconds: 30
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
