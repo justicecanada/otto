@@ -11,11 +11,11 @@
     if ("{{ preset_loaded }}" === "true" || "{{ swap }}" === "true") {
       let mode = "{{ options_form.mode.value }}";
       handleModeChange(mode);
-      setTimeout(showHideQaSourceForms, 100);
+      setTimeout(updateQaSourceForms, 100);
     }
   })();
 
-  showHideQaSourceForms();
+  updateQaSourceForms();
   updateLibraryModalButton();
   updateAutocompleteLibraryid('id_qa_data_sources__textinput');
   updateAutocompleteLibraryid('id_qa_documents__textinput');
