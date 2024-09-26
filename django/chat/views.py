@@ -505,6 +505,7 @@ def done_upload(request, message_id):
     response.write(
         render_to_string("chat/components/chat_messages.html", context=context)
     )
+    response.write("<script>scrollToBottom(false, true);</script>")
     return response
 
 
