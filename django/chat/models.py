@@ -288,7 +288,7 @@ class Message(models.Model):
 
     @property
     def sources(self):
-        return self.answersource_set.all().order_by("-node_score")
+        return self.answersource_set.all()
 
     @property
     def display_cost(self):

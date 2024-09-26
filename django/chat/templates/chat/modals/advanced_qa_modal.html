@@ -61,10 +61,10 @@
             <label for="qa_source_order-modal" class="col-form-label col-form-label-sm">{% trans "Order sources by" %}</label>
             <select class="form-select form-select-sm"
                     id="qa_source_order-modal"
-                    disabled
-                    data-inputname="qa_source_order">
+                    data-inputname="qa_source_order"
+                    oninput="updateQaHiddenField(this);">
               <option value="score">{% trans "Relevance (score)" %}</option>
-              <option value="reading-order">{% trans "Reading order" %}</option>
+              <option value="reading_order">{% trans "Reading order" %}</option>
             </select>
           </div>
           <div class="col-md-2 mb-2">
@@ -152,7 +152,7 @@
               <em>{% trans "(Required) Must include {context_str}, {query_str}, {pre_instructions}, {post_instructions}." %}</em>
             </p>
             <textarea class="form-control form-control-sm" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="qa_prompt_template-modal" data-inputname="qa_prompt_template" onkeypress="updateQaHiddenField(this);" rows="12"></textarea>
-          </div>
+                          </div>
         {% endcomment %}
       </div>
     </div>

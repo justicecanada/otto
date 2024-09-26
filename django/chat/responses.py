@@ -417,6 +417,15 @@ def qa_response(chat, response_message, switch_mode=False):
         input = response_message.parent.text
         source_nodes = retriever.retrieve(input)
 
+        if chat.options.qa_source_order == "reading_order":
+            source_nodes = sorted(
+                source_nodes,
+                key=lambda x: (
+                    x.node.relationships["1"].node_id,
+                    x.metadata["chunk_number"],
+                ),
+            )
+
         if len(source_nodes) == 0:
             response_str = _(
                 "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
