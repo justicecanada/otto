@@ -12,7 +12,7 @@ spec:
     - ReadWriteMany  # Allows multiple pods to read and write
   resources:
     requests:
-      storage: 2Gi  # Requests 2 GB of storage
+      storage: 16Gi
 
 ---
 
