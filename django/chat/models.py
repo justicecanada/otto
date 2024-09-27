@@ -138,7 +138,7 @@ QA_MODE_CHOICES = [
     ("summarize", _("Read entire documents (slow, expensive)")),
 ]
 
-qa_source_order_CHOICES = [
+QA_SOURCE_ORDER_CHOICES = [
     ("score", _("Relevance score")),
     ("reading_order", _("Reading order")),
 ]
@@ -204,7 +204,7 @@ class ChatOptions(models.Model):
     qa_pre_instructions = models.TextField(blank=True)
     qa_post_instructions = models.TextField(blank=True)
     qa_source_order = models.CharField(
-        max_length=20, default="score", choices=qa_source_order_CHOICES
+        max_length=20, default="score", choices=QA_SOURCE_ORDER_CHOICES
     )
     qa_vector_ratio = models.FloatField(default=0.6)
     qa_answer_mode = models.CharField(max_length=20, default="combined")
