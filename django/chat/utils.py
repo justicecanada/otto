@@ -16,6 +16,7 @@ from newspaper import Article
 
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
+from chat.prompts import QA_PRUNING_INSTRUCTIONS
 from otto.models import SecurityLabel
 
 # Markdown instance
@@ -403,7 +404,7 @@ def get_source_titles(sources):
     ]
 
 
-async def combine_response_generators(generators, titles):
+async def combine_response_generators(generators, titles, query, llm):
     streams = [{"stream": stream, "status": "running"} for stream in generators]
     final_streams = [f"\n###### *{title}*\n" for title in titles]
     while any([stream["status"] == "running" for stream in streams]):
@@ -413,7 +414,24 @@ async def combine_response_generators(generators, titles):
                     final_streams[i] += next(stream["stream"])
             except StopIteration:
                 stream["status"] = "stopped"
-        yield ("\n\n---\n\n".join(final_streams))
+                tmpl = PromptTemplate(QA_PRUNING_INSTRUCTIONS).format(
+                    query_str=query, answer_str=final_streams[i]
+                )
+                relevance_check = llm.complete(
+                    tmpl
+                )  # TODO: check cost tracking implications
+                if relevance_check is None:
+                    relevance_check = "yes"
+                if str(relevance_check).lower().startswith("no"):
+                    final_streams[i] = ""
+
+        final_pruned_result = "\n\n---\n\n".join(
+            [stream for stream in final_streams if stream]
+        )
+        if final_pruned_result:
+            yield (final_pruned_result)
+        else:
+            yield ("**No relevant sources found.**")
         await asyncio.sleep(0)
 
 
