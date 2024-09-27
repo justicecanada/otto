@@ -433,7 +433,10 @@ def qa_response(chat, response_message, switch_mode=False):
             # Sort document groups by maximum node score
             # TODO: consider average node score instead
             sorted_doc_groups = sorted(
-                doc_groups, key=lambda x: max(-y.score for y in x)
+                doc_groups,
+                key=lambda x: max(
+                    -y.score for y in x
+                ),  # Negative sign ensures top groups first
             )
 
             source_nodes = [node for doc in sorted_doc_groups for node in doc]
