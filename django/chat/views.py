@@ -852,6 +852,7 @@ def save_preset(request, chat_id, preset_id=None):
 
             # # get chat object from chat_id
             chat = Chat.objects.get(id=chat_id)
+            preset.options = chat.options
 
             english_title = form.cleaned_data["name_en"]
             french_title = form.cleaned_data["name_fr"]
@@ -868,8 +869,6 @@ def save_preset(request, chat_id, preset_id=None):
                     ),
                 }
                 return render(request, "chat/modals/presets/presets_form.html", context)
-
-            preset.options = chat.options
 
             # Set the fields based on the selected tab
             preset.name_en = english_title
