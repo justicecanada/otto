@@ -468,7 +468,11 @@ def qa_response(chat, response_message, switch_mode=False):
                 for source in source_nodes
             ]
             response_replacer = combine_response_generators(
-                responses, get_source_titles(source_nodes), input, llm
+                responses,
+                get_source_titles(source_nodes),
+                input,
+                llm,
+                chat.options.qa_prune,
             )
             response_generator = None
 

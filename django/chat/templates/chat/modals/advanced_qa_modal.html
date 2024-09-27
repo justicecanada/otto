@@ -79,11 +79,12 @@
           </div>
           <div class="col-md-3 mb-2 pt-3">
             <div class="form-check form-switch col ms-2">
-              <input class="form-check-input small"
-                     type="checkbox"
-                     role="switch"
-                     id="qa_prune-modal"
-                     disabled>
+          <input class="form-check-input small"
+                type="checkbox"
+                id="qa_prune-modal"
+                data-inputname="qa_prune"
+                value="true"
+                onchange="this.value = this.checked ? 'true' : 'false'; updateQaHiddenField(this);">
               <label class="form-check-label small" for="qa_prune-modal">{% trans "Remove irrelevant sources" %}</label>
             </div>
             <div class="form-check form-switch col-auto ms-2">
