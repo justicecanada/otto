@@ -108,11 +108,25 @@ def process_document_helper(document, llm):
         selector=document.selector,
     )
     num_chunks = len(chunks)
+    print("length of chunks----------------", num_chunks)
     document.num_chunks = num_chunks
     # Extract and save page numbers
     page_numbers_list = []
-    for chunk, page_numbers in chunks:
+    if len(chunks) > 2:
+        raise ValueError("contains {} elements: {}".format(len(chunks), chunks))
+    for _, page_numbers in chunks:
         page_numbers_list.extend(page_numbers)
+        chunk = _
+    # for chunk in chunks:
+    #     print("Chunk:", chunk)  # Print each chunk for debugging
+    #     if len(chunk) == 2:
+    #         chnk, page_numbers = chunk
+    #         page_numbers_list.extend(page_numbers)
+    #     else:
+    #         # Handle the case where chunk does not have exactly 2 elements
+    #         raise ValueError(
+    #             "Expected chunk to have exactly 2 elements, got {}".format(len(chunk))
+    #         )
 
     # Assuming document has a field `page_numbers` to store the page numbers
     document.page_numbers = page_numbers_list

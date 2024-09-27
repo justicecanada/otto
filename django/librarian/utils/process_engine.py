@@ -1,5 +1,6 @@
 import hashlib
 import io
+import logging
 import re
 import uuid
 from urllib.parse import urljoin
@@ -15,6 +16,15 @@ from structlog import get_logger
 from chat.models import Message
 from librarian.models import Document
 from otto.models import Cost, User
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="celery_debug.log",
+    filemode="w",
+)
+
 
 logger = get_logger(__name__)
 
@@ -169,7 +179,10 @@ def extract_markdown(
     # Sometimes HTML to markdown will result in zero chunks, even though there is text
     if not md_chunks:
         md_chunks = [md]
-
+    if len(md_chunks) > 2:
+        raise ValueError(
+            "md_Chunks contain {}".format(md_chunks) + "md contains {}".format(md)
+        )
     return md, md_chunks
 
 
@@ -295,6 +308,8 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     from llama_index.core.node_parser import SentenceSplitter
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
+    logging.basicConfig(level=logging.DEBUG)
+
     def close_tags(html_string):
         soup = BeautifulSoup(html_string, "html.parser")
         return str(soup)
@@ -307,6 +322,9 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     # for i, text in enumerate(text_strings):
     #     split_texts += [close_tags(t) for t in splitter.split_text(text)]
     for text, page_number in text_strings:  # new
+        logging.debug(
+            f"Original text: {text[:10]}... with page_numbers: {page_numbers}"
+        )
         split_texts += [(close_tags(t), page_number) for t in splitter.split_text(text)]
     # Now all the chunks are at most 768 tokens long, but many are much shorter
     # We want to make them a uniform size, so we'll stuff them into the previous chunk
@@ -335,6 +353,10 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     for text, page_numbers in split_texts:
         if token_count(f"{current_text} {text}") > 768:
             stuffed_texts.append((current_text, current_page_number))
+            logging.debug(
+                f"Stuffed text: {current_text[:50]}... with page_numbers: {current_page_numbers}"
+            )
+
             current_text = text
             current_page_numbers = page_numbers if page_numbers is not None else []
         else:
@@ -347,7 +369,14 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     if current_text:
         # stuffed_texts.append(current_text)
         stuffed_texts.append((current_text, current_page_numbers))  # new
-
+        logging.debug(
+            f"Final stuffed text: {current_text[:50]}... with page_numbers: {current_page_numbers}"
+        )
+    # Ensure we only return a maximum of 2 chunks
+    if len(stuffed_texts) > 2:
+        raise ValueError(
+            "stuffed_texts contains {} elements".format(len(stuffed_texts))
+        )
     for text, page_number in stuffed_texts:  # new
         node = TextNode(text=text, id_=str(uuid.uuid4()))
         node.metadata = metadata.copy() if metadata else {}
@@ -358,6 +387,9 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
             node_id=source_node_id
         )
         nodes.append(node)
+        logging.debug(
+            f"Created node with text: {text[:10]}... and page_numbers: {page_numbers}"
+        )
 
     # Handle the case when there's only one or zero elements
     if len(text_strings) < 2:
@@ -371,7 +403,7 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
         nodes[i + 1].relationships[NodeRelationship.PREVIOUS] = RelatedNodeInfo(
             node_id=nodes[i].node_id
         )
-
+    print(nodes[0].metadata)
     return nodes
 
 
@@ -387,21 +419,22 @@ def token_count(string: str, model: str = "gpt-4") -> int:
 def _convert_html_to_markdown(
     source_html, chunk_size=768, base_url=None, selector=None
 ):
+    import logging
+    import re
+    from urllib.parse import urljoin
+
     import html2text
+    from bs4 import BeautifulSoup
+
+    # Configure logging
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        filename="celery_debug.log",
+        filemode="w",
+    )
 
     model = settings.DEFAULT_CHAT_MODEL
-
-    ## Keeping this here for posterity, but it didn't work well in experiments
-    ## Used https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=4 as example:
-    ## It cut off the text randomly after a long html was passed in
-    ## It loses all the formatting (like headers)
-    ## It loses all the links and/or doesn't format them properly
-    # article = Article(" ", source_url=base_url)
-    # article.set_html(text)
-    # article.parse()
-    # return article.text
-    # TODO: Remove the following comments when completely sure the new approach works
-    # if text contains html, convert it to markdown
 
     soup = BeautifulSoup(source_html, "html.parser")
 
@@ -410,35 +443,25 @@ def _convert_html_to_markdown(
         if selected_html:
             soup = selected_html
         else:
-            logger.warning(f"Selector {selector} not found in HTML")
+            logging.warning(f"Selector {selector} not found in HTML")
 
     if not base_url:
-        # find all anchor tags
         for anchor in soup.find_all("a"):
-            # get the href attribute value
             href = anchor.get("href")
-            # convert relative URLs to absolute URLs
             if href and not href.startswith("http"):
                 absolute_url = urljoin(base_url, href)
                 anchor["href"] = absolute_url
 
-    # remove any javascript, css, images, svg, and comments from self.text
     text = re.sub(r"<script.*?</script>", "", str(soup), flags=re.DOTALL)
     text = re.sub(r"<style.*?</style>", "", text, flags=re.DOTALL)
     text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
     text = re.sub(r"<img.*?>", "", text, flags=re.DOTALL)
     text = re.sub(r"<svg.*?</svg>", "", text, flags=re.DOTALL)
-    # remove any attribute tags that start with javascript:
     text = re.sub(r"<[^>]+javascript:.*?>", "", text, flags=re.DOTALL)
-    # remove any empty html tags from self.text
     text = re.sub(r"<[^/>][^>]*>\s*</[^>]+>", "", text, flags=re.DOTALL)
-
-    # remove any header/footer/nav tags and the content within them
     text = re.sub(r"<header.*?</header>", "", text, flags=re.DOTALL)
     text = re.sub(r"<footer.*?</footer>", "", text, flags=re.DOTALL)
     text = re.sub(r"<nav.*?</nav>", "", text, flags=re.DOTALL)
-
-    # Remove all the line breaks, carriage returns, and tabs
     text = re.sub(r"[\n\r\t]", "", text)
 
     h = html2text.HTML2Text()
@@ -448,114 +471,281 @@ def _convert_html_to_markdown(
     h.drop_white_space = True
     h.footnote = False
 
-    # Recreate the soup object from the cleaned text
     cleaned_soup = BeautifulSoup(text, "html.parser")
 
-    # Process paragraphs, lists, and tables
     nodes = []
 
-    # Elements that are typically text
     header_node_names = ["h1", "h2", "h3", "h4", "h5", "h6"]
     section_node_names = ["section", "article"]
     text_node_names = ["p", "ul", "ol"]
     table_node_names = ["table"]
 
-    # Accumulate text nodes until the chunk size is reached
-    current_node = ""
+    current_text = ""
+    current_page_numbers = []
+
     header_str = ""
     header_map = {f"h{i}": "" for i in range(1, 7)}
     for node in cleaned_soup.find_all(
         header_node_names + text_node_names + table_node_names
     ):
 
-        # If it's a header, then append the current node and reset
         if node.name in header_node_names:
-            nodes.append(h.handle(current_node).strip())
-
-            # Update the header map with the current header
+            if current_text:
+                nodes.append((h.handle(current_text).strip(), current_page_numbers))
             header_map[node.name] = str(node)
-
-            # Clear all the headers that are smaller than the current header
             for i in range(int(node.name[1]) + 1, 7):
                 header_map[f"h{i}"] = ""
-
-            # Create the header string from the header map
             header_str = "".join(header_map.values())
-            current_node = header_str
+            current_text = header_str
+            current_page_numbers = []
 
-        # If it's a section or article node, then append the current node and reset
         elif node.name in section_node_names:
-            nodes.append(h.handle(current_node).strip())
-            current_node = ""
+            if current_text:
+                nodes.append((h.handle(current_text).strip(), current_page_numbers))
+            current_text = ""
+            current_page_numbers = []
 
-        # If it's a text node, then accumulate the text until the chunk size is reached
         elif node.name in text_node_names:
             node_str = str(node)
-
-            # Split the text by chunk size or if the node is a header
-            tentative_node = h.handle(f"{current_node}{node_str}").strip()
-            if token_count(tentative_node, model) > chunk_size:
-                nodes.append(tentative_node)
-                # Reset the current node and include the header again for context
-                current_node = f"{header_str}{node_str}"
+            tentative_text = h.handle(f"{current_text}{node_str}").strip()
+            if token_count(tentative_text, model) > chunk_size:
+                nodes.append((tentative_text, current_page_numbers))
+                current_text = f"{header_str}{node_str}"
+                current_page_numbers = []
             else:
-                current_node += node_str
+                current_text += node_str
 
-        # If it's a table node, then split the table by chunk size
         elif node.name in table_node_names:
+            if current_text:
+                nodes.append((h.handle(current_text).strip(), current_page_numbers))
+                current_text = ""
+                current_page_numbers = []
 
-            # Append the current node to the nodes list and reset the current node
-            if current_node:
-                nodes.append(h.handle(current_node).strip())
-                current_node = ""
-
-            # Find the table caption and append it to the current node
             caption = node.select_one("caption")
             caption_str = str(caption) if caption else ""
 
             thead = node.select_one("thead")
             thead_str = str(thead) if thead else ""
 
-            # if no thead, iterate through all the rows and find a row that has ONLY th tags as children
             if not thead:
                 for row in node.find_all("tr"):
                     if all([child.name == "th" for child in row.children]):
                         thead_str = str(row)
                         break
 
-            # Iterate through all other rows and append them to the data rows list
             data_rows = []
             for row in node.find_all("tr"):
                 if str(row) not in thead_str:
                     data_rows.append(row)
 
-            # Split the table by chunk size, preserving the header for each mini table
-            current_node = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
+            current_text = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
             for data_row in data_rows:
                 data_str = str(data_row)
-
-                # Split the table by chunk size
-                tentative_node = h.handle(f"{current_node}{data_str}</table>").strip()
-                if token_count(tentative_node, model) > chunk_size:
-                    nodes.append(tentative_node)
-                    current_node = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
+                tentative_text = h.handle(f"{current_text}{data_str}</table>").strip()
+                if token_count(tentative_text, model) > chunk_size:
+                    nodes.append((tentative_text, current_page_numbers))
+                    current_text = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
+                    current_page_numbers = []
                 else:
-                    current_node += data_str
+                    current_text += data_str
 
-            # Append the last mini table to the nodes list
-            nodes.append(h.handle(f"{current_node}</table>").strip())
-            current_node = ""
+            nodes.append(
+                (h.handle(f"{current_text}</table>").strip(), current_page_numbers)
+            )
+            current_text = ""
+            current_page_numbers = []
 
-    # Extract page numbers and include them in the markdown
     for div in cleaned_soup.find_all("div", class_="line"):
         page_number = div.get("data-page")
         div_text = h.handle(str(div)).strip()
+        logging.debug(f"Div Text: {div_text}, Page Number: {page_number}")
+
         if page_number:
             div_text += f" (Page {page_number})"
-        nodes.append(div_text)
+            current_page_numbers.append(page_number)
+        nodes.append((div_text, current_page_numbers))
+
+    if current_text:
+        nodes.append((h.handle(current_text).strip(), current_page_numbers))
 
     md = h.handle(text).strip()
     return md, nodes
+
+
+# def _convert_html_to_markdown(
+#     source_html, chunk_size=768, base_url=None, selector=None
+# ):
+#     import html2text
+
+#     model = settings.DEFAULT_CHAT_MODEL
+
+#     ## Keeping this here for posterity, but it didn't work well in experiments
+#     ## Used https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=4 as example:
+#     ## It cut off the text randomly after a long html was passed in
+#     ## It loses all the formatting (like headers)
+#     ## It loses all the links and/or doesn't format them properly
+#     # article = Article(" ", source_url=base_url)
+#     # article.set_html(text)
+#     # article.parse()
+#     # return article.text
+#     # TODO: Remove the following comments when completely sure the new approach works
+#     # if text contains html, convert it to markdown
+
+#     soup = BeautifulSoup(source_html, "html.parser")
+
+#     if selector:
+#         selected_html = soup.select_one(selector)
+#         if selected_html:
+#             soup = selected_html
+#         else:
+#             logger.warning(f"Selector {selector} not found in HTML")
+
+#     if not base_url:
+#         # find all anchor tags
+#         for anchor in soup.find_all("a"):
+#             # get the href attribute value
+#             href = anchor.get("href")
+#             # convert relative URLs to absolute URLs
+#             if href and not href.startswith("http"):
+#                 absolute_url = urljoin(base_url, href)
+#                 anchor["href"] = absolute_url
+
+#     # remove any javascript, css, images, svg, and comments from self.text
+#     text = re.sub(r"<script.*?</script>", "", str(soup), flags=re.DOTALL)
+#     text = re.sub(r"<style.*?</style>", "", text, flags=re.DOTALL)
+#     text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+#     text = re.sub(r"<img.*?>", "", text, flags=re.DOTALL)
+#     text = re.sub(r"<svg.*?</svg>", "", text, flags=re.DOTALL)
+#     # remove any attribute tags that start with javascript:
+#     text = re.sub(r"<[^>]+javascript:.*?>", "", text, flags=re.DOTALL)
+#     # remove any empty html tags from self.text
+#     text = re.sub(r"<[^/>][^>]*>\s*</[^>]+>", "", text, flags=re.DOTALL)
+
+#     # remove any header/footer/nav tags and the content within them
+#     text = re.sub(r"<header.*?</header>", "", text, flags=re.DOTALL)
+#     text = re.sub(r"<footer.*?</footer>", "", text, flags=re.DOTALL)
+#     text = re.sub(r"<nav.*?</nav>", "", text, flags=re.DOTALL)
+
+#     # Remove all the line breaks, carriage returns, and tabs
+#     text = re.sub(r"[\n\r\t]", "", text)
+
+#     h = html2text.HTML2Text()
+#     h.ignore_images = True
+#     h.skip_internal_links = True
+#     h.body_width = 0
+#     h.drop_white_space = True
+#     h.footnote = False
+
+#     # Recreate the soup object from the cleaned text
+#     cleaned_soup = BeautifulSoup(text, "html.parser")
+
+#     # Process paragraphs, lists, and tables
+#     nodes = []
+
+#     # Elements that are typically text
+#     header_node_names = ["h1", "h2", "h3", "h4", "h5", "h6"]
+#     section_node_names = ["section", "article"]
+#     text_node_names = ["p", "ul", "ol"]
+#     table_node_names = ["table"]
+
+#     # Accumulate text nodes until the chunk size is reached
+#     current_node = ""
+#     header_str = ""
+#     header_map = {f"h{i}": "" for i in range(1, 7)}
+#     for node in cleaned_soup.find_all(
+#         header_node_names + text_node_names + table_node_names
+#     ):
+
+#         # If it's a header, then append the current node and reset
+#         if node.name in header_node_names:
+#             nodes.append(h.handle(current_node).strip())
+
+#             # Update the header map with the current header
+#             header_map[node.name] = str(node)
+
+#             # Clear all the headers that are smaller than the current header
+#             for i in range(int(node.name[1]) + 1, 7):
+#                 header_map[f"h{i}"] = ""
+
+#             # Create the header string from the header map
+#             header_str = "".join(header_map.values())
+#             current_node = header_str
+
+#         # If it's a section or article node, then append the current node and reset
+#         elif node.name in section_node_names:
+#             nodes.append(h.handle(current_node).strip())
+#             current_node = ""
+
+#         # If it's a text node, then accumulate the text until the chunk size is reached
+#         elif node.name in text_node_names:
+#             node_str = str(node)
+
+#             # Split the text by chunk size or if the node is a header
+#             tentative_node = h.handle(f"{current_node}{node_str}").strip()
+#             if token_count(tentative_node, model) > chunk_size:
+#                 nodes.append(tentative_node)
+#                 # Reset the current node and include the header again for context
+#                 current_node = f"{header_str}{node_str}"
+#             else:
+#                 current_node += node_str
+
+#         # If it's a table node, then split the table by chunk size
+#         elif node.name in table_node_names:
+
+#             # Append the current node to the nodes list and reset the current node
+#             if current_node:
+#                 nodes.append(h.handle(current_node).strip())
+#                 current_node = ""
+
+#             # Find the table caption and append it to the current node
+#             caption = node.select_one("caption")
+#             caption_str = str(caption) if caption else ""
+
+#             thead = node.select_one("thead")
+#             thead_str = str(thead) if thead else ""
+
+#             # if no thead, iterate through all the rows and find a row that has ONLY th tags as children
+#             if not thead:
+#                 for row in node.find_all("tr"):
+#                     if all([child.name == "th" for child in row.children]):
+#                         thead_str = str(row)
+#                         break
+
+#             # Iterate through all other rows and append them to the data rows list
+#             data_rows = []
+#             for row in node.find_all("tr"):
+#                 if str(row) not in thead_str:
+#                     data_rows.append(row)
+
+#             # Split the table by chunk size, preserving the header for each mini table
+#             current_node = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
+#             for data_row in data_rows:
+#                 data_str = str(data_row)
+
+#                 # Split the table by chunk size
+#                 tentative_node = h.handle(f"{current_node}{data_str}</table>").strip()
+#                 if token_count(tentative_node, model) > chunk_size:
+#                     nodes.append(tentative_node)
+#                     current_node = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
+#                 else:
+#                     current_node += data_str
+
+#             # Append the last mini table to the nodes list
+#             nodes.append(h.handle(f"{current_node}</table>").strip())
+#             current_node = ""
+
+#     # Extract page numbers and include them in the markdown
+#     for div in cleaned_soup.find_all("div", class_="line"):
+#         page_number = div.get("data-page")
+#         div_text = h.handle(str(div)).strip()
+#         logging.debug(f"Div Text: {div_text}, Page Number: {page_number}")
+
+#         if page_number:
+#             div_text += f" (Page {page_number})"
+#         nodes.append(div_text)
+
+#     md = h.handle(text).strip()
+#     return md, nodes
 
 
 def _pdf_to_html_using_azure(content):
@@ -653,6 +843,7 @@ def _pdf_to_html_using_azure(content):
     chunks = sorted(
         chunks, key=lambda item: (item.get("page_number"), item.get("y"), item.get("x"))
     )
+
     html = ""
     for _, chunk in enumerate(chunks, 1):
         page_number = chunk.get("page_number")
