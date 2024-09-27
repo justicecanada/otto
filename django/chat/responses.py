@@ -452,17 +452,17 @@ def qa_response(chat, response_message, switch_mode=False):
         # response_generator = response.response_gen
         response_replacer = None
 
-        else:
-            responses = [
-                synthesizer.synthesize(query=input, nodes=[source]).response_gen
-                for source in source_nodes
-            ]
-            response_replacer = combine_response_generators(
-                responses, get_source_titles(source_nodes)
-            )
-            response_generator = None
+    else:
+        responses = [
+            synthesizer.synthesize(query=input, nodes=[source]).response_gen
+            for source in source_nodes
+        ]
+        response_replacer = combine_response_generators(
+            responses, get_source_titles(source_nodes)
+        )
+        response_generator = None
 
-        sources = source_nodes
+    sources = source_nodes
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(

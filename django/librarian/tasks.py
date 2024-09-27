@@ -56,6 +56,8 @@ def process_document(document_id, language=None):
 
 
 def process_document_helper(document, llm):
+    from django.utils.translation import gettext as _
+
     url = document.url
     file = document.file
     if not (url or file):
@@ -111,15 +113,16 @@ def process_document_helper(document, llm):
         selector=document.selector,
     )
     num_chunks = len(chunks)
+    if len(num_chunks) > 2:
+        raise ValueError("contains {} elements: {}".format(len(num_chunks), num_chunks))
     print("length of chunks----------------", num_chunks)
     document.num_chunks = num_chunks
     # Extract and save page numbers
     page_numbers_list = []
-    if len(chunks) > 2:
-        raise ValueError("contains {} elements: {}".format(len(chunks), chunks))
-    for _, page_numbers in chunks:
+
+    for chnk, page_numbers in chunks:
         page_numbers_list.extend(page_numbers)
-        chunk = _
+
     # for chunk in chunks:
     #     print("Chunk:", chunk)  # Print each chunk for debugging
     #     if len(chunk) == 2:
