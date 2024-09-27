@@ -225,6 +225,39 @@ resource "null_resource" "wait_for_openai_deployment_3" {
   depends_on = [azapi_resource.gpt-4o-deployment]
 }
 
+# GPT-4o-mini deployment
+resource "azapi_resource" "gpt-4o-mini-deployment" {
+  type                      = "Microsoft.CognitiveServices/accounts/deployments@2023-05-01"
+  name                      = "gpt-4o-mini"
+  parent_id                 = azurerm_cognitive_account.openai.id
+  schema_validation_enabled = false
+
+  body = jsonencode({
+    sku = {
+      name     = "GlobalStandard",
+      capacity = var.gpt_4o_mini_capacity
+    },
+    properties = {
+      model = {
+        format  = "OpenAI",
+        name    = "gpt-4o-mini",
+        version = "2024-07-18"
+      }
+      raiPolicyName = "Unfiltered"
+    }
+  })
+
+  depends_on = [null_resource.wait_for_openai_deployment_3]
+}
+
+# A delay is required to avoid a 409 conflict error when adding deployments concurrently
+resource "null_resource" "wait_for_openai_deployment_4" {
+  provisioner "local-exec" {
+    command = "sleep 60"
+  }
+  depends_on = [azapi_resource.gpt-4o-mini-deployment]
+}
+
 # Text embedding large deployment
 resource "azapi_resource" "text-embedding-3-large-deployment" {
   type                      = "Microsoft.CognitiveServices/accounts/deployments@2023-05-01"
@@ -247,5 +280,5 @@ resource "azapi_resource" "text-embedding-3-large-deployment" {
     }
   })
 
-  depends_on = [null_resource.wait_for_openai_deployment_3]
+  depends_on = [null_resource.wait_for_openai_deployment_4]
 }
