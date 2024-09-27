@@ -88,8 +88,11 @@ def create_nodes(chunks, document):
     # Create chunk (child) nodes
     metadata["node_type"] = "chunk"
 
+    # text_strings_with_page_numbers = [
+    #     (chunk, chunk.get("page_numbers", None)) for chunk in chunks
+    # ]
     text_strings_with_page_numbers = [
-        (chunk, chunk.get("page_numbers", None)) for chunk in chunks
+        (chunk[0], chunk[1]) for chunk in chunks  # [0] is text, [1] is page_num
     ]
     child_nodes = create_child_nodes(
         text_strings_with_page_numbers,
@@ -179,10 +182,7 @@ def extract_markdown(
     # Sometimes HTML to markdown will result in zero chunks, even though there is text
     if not md_chunks:
         md_chunks = [md]
-    if len(md_chunks) > 2:
-        raise ValueError(
-            "md_Chunks contain {}".format(md_chunks) + "md contains {}".format(md)
-        )
+    print("md_Chunks contain {}".format(md_chunks) + " md contains {}".format(md))
     return md, md_chunks
 
 
@@ -315,6 +315,7 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
         return str(soup)
 
     splitter = SentenceSplitter(chunk_overlap=100, chunk_size=768)
+    text_strings = [{"text": ts[0], "page_number": ts[1]} for ts in text_strings]
 
     # Create TextNode objects
     nodes = []
@@ -322,9 +323,7 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     # for i, text in enumerate(text_strings):
     #     split_texts += [close_tags(t) for t in splitter.split_text(text)]
     for text, page_number in text_strings:  # new
-        logging.debug(
-            f"Original text: {text[:10]}... with page_numbers: {page_numbers}"
-        )
+
         split_texts += [(close_tags(t), page_number) for t in splitter.split_text(text)]
     # Now all the chunks are at most 768 tokens long, but many are much shorter
     # We want to make them a uniform size, so we'll stuff them into the previous chunk
@@ -349,14 +348,11 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     #         node_id=source_node_id
     #     )
     #     nodes.append(node)
-    current_page_number = []  # new
+    current_page_numbers = []  # new
+    # current_page_numbers=[]
     for text, page_numbers in split_texts:
         if token_count(f"{current_text} {text}") > 768:
-            stuffed_texts.append((current_text, current_page_number))
-            logging.debug(
-                f"Stuffed text: {current_text[:50]}... with page_numbers: {current_page_numbers}"
-            )
-
+            stuffed_texts.append((current_text, current_page_numbers))
             current_text = text
             current_page_numbers = page_numbers if page_numbers is not None else []
         else:
@@ -369,9 +365,7 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     if current_text:
         # stuffed_texts.append(current_text)
         stuffed_texts.append((current_text, current_page_numbers))  # new
-        logging.debug(
-            f"Final stuffed text: {current_text[:50]}... with page_numbers: {current_page_numbers}"
-        )
+
     # Ensure we only return a maximum of 2 chunks
     if len(stuffed_texts) > 2:
         raise ValueError(
@@ -387,9 +381,6 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
             node_id=source_node_id
         )
         nodes.append(node)
-        logging.debug(
-            f"Created node with text: {text[:10]}... and page_numbers: {page_numbers}"
-        )
 
     # Handle the case when there's only one or zero elements
     if len(text_strings) < 2:

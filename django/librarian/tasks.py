@@ -113,9 +113,8 @@ def process_document_helper(document, llm):
         selector=document.selector,
     )
     num_chunks = len(chunks)
-    if len(num_chunks) > 2:
-        raise ValueError("contains {} elements: {}".format(len(num_chunks), num_chunks))
-    print("length of chunks----------------", num_chunks)
+    if num_chunks > 2:
+        print("length of chunks----------------", num_chunks)
     document.num_chunks = num_chunks
     # Extract and save page numbers
     page_numbers_list = []
