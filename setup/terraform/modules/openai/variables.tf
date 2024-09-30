@@ -43,6 +43,11 @@ variable "gpt_4o_capacity" {
   type        = number
 }
 
+variable "gpt_4o_mini_capacity" {
+  description = "GPT-4o Mini quota limit"
+  type        = number
+}
+
 variable "text_embedding_3_large_capacity" {
   description = "Text Embedding 3 Large quota limit"
   type        = number

@@ -134,6 +134,11 @@ QA_SCOPE_CHOICES = [
     ("documents", _("Selected documents")),
 ]
 
+QA_MODE_CHOICES = [
+    ("rag", _("Use top sources only (fast, cheap)")),
+    ("summarize", _("Read entire documents (slow, expensive)")),
+]
+
 
 class ChatOptions(models.Model):
     """
@@ -173,7 +178,7 @@ class ChatOptions(models.Model):
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
 
-    # Library QA-specific options
+    # QA-specific options
     qa_model = models.CharField(max_length=255, default="gpt-4o")
     qa_library = models.ForeignKey(
         "librarian.Library",
@@ -181,7 +186,8 @@ class ChatOptions(models.Model):
         null=True,
         related_name="qa_options",
     )
-    qa_scope = models.CharField(max_length=255, default="all", choices=QA_SCOPE_CHOICES)
+    qa_mode = models.CharField(max_length=20, default="rag", choices=QA_MODE_CHOICES)
+    qa_scope = models.CharField(max_length=20, default="all", choices=QA_SCOPE_CHOICES)
     qa_data_sources = models.ManyToManyField(
         "librarian.DataSource", related_name="qa_options"
     )

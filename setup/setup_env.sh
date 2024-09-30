@@ -122,6 +122,7 @@ export ADMIN_EMAIL
 export GPT_35_TURBO_CAPACITY
 export GPT_4_TURBO_CAPACITY
 export GPT_4o_CAPACITY
+export GPT_4o_MINI_CAPACITY
 export TEXT_EMBEDDING_3_LARGE_CAPACITY
 
 # Set the environment variables
@@ -171,6 +172,7 @@ djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
 gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}
 gpt_4_turbo_capacity = ${GPT_4_TURBO_CAPACITY}
 gpt_4o_capacity = ${GPT_4o_CAPACITY}
+gpt_4o_mini_capacity = ${GPT_4o_MINI_CAPACITY}
 text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
 admin_email = "${ADMIN_EMAIL}"
 EOF

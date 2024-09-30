@@ -112,6 +112,7 @@ module "openai" {
   gpt_35_turbo_capacity           = var.gpt_35_turbo_capacity
   gpt_4_turbo_capacity            = var.gpt_4_turbo_capacity
   gpt_4o_capacity                 = var.gpt_4o_capacity
+  gpt_4o_mini_capacity            = var.gpt_4o_mini_capacity
   text_embedding_3_large_capacity = var.text_embedding_3_large_capacity
 }
 
