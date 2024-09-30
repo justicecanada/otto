@@ -16,15 +16,7 @@ resource "azurerm_cognitive_account" "openai" {
   name                = var.name
 
   # SC-9(5): OpenAI Resource Exception and Safeguards
-  # Note: This resource is deployed in East US 2 to access the GPT-4o-mini model, which offers significant 
-  # benefits including pay-as-you-go pricing, cost-effectiveness (25x more cost-effective than alternatives), 
-  # improved model quality, and a large 128K token context window. Content filtering and abuse monitoring 
-  # must be disabled to address data residency concerns. This setup ensures that only data processing 
-  # occurs in East US 2, while all data at rest remains in Canadian data centers. An exception to the 
-  # standard cloud policy has been requested for this specific resource. All other Otto platform resources 
-  # (AKS, storage, database) remain in Canadian locations. This approach complies with TBS Guidelines 
-  # on Service and Digital, which state that "Data in transit is not restricted by the residency requirement".
-  location            = "eastus2"
+  location            = "canadaeast"
   resource_group_name = var.resource_group_name
   kind                = "OpenAI"
   sku_name            = "S0"
