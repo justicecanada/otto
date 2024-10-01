@@ -57,7 +57,7 @@ bleach==6.1.0
 newspaper3k==0.2.8
 PyMuPDF==1.24.9
 filetype==1.2.0
-docxtpl==0.16.8
+docxtpl==0.18.0
 mammoth==1.7.1
 python-pptx==0.6.23
 python-docx==1.1.2
