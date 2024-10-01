@@ -7,10 +7,11 @@ from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 from data_fetcher.util import get_request
 
-from chat.models import QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
+from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
 from librarian.models import DataSource, Document, Library
 
 CHAT_MODELS = [
+    ("gpt-4o-mini", _("GPT-4o-mini (Global)")),
     ("gpt-4o", _("GPT-4o (Global)")),
     ("gpt-4", _("GPT-4 (Canada)")),
     ("gpt-35", _("GPT-3.5 (Canada)")),
@@ -183,11 +184,18 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "triggerOptionSave();",
                 },
             ),
+            "qa_mode": forms.Select(
+                choices=QA_MODE_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "limitScopeSelect(); updateQaSourceForms(); triggerOptionSave();",
+                },
+            ),
             "qa_scope": forms.Select(
                 choices=QA_SCOPE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "showHideQaSourceForms(); triggerOptionSave();",
+                    "onchange": "updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
             "chat_agent": forms.CheckboxInput(
@@ -271,7 +279,7 @@ class ChatOptionsForm(ModelForm):
             widget=forms.Select(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave(); updateLibraryModalButton(); resetQaAutocompletes();",
+                    "onchange": "resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
                 }
             ),
         )

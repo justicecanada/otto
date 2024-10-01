@@ -595,6 +595,8 @@ def test_chat_agent(client, all_apps_user):
     # Create a chat using the chat_with_ai route to create it with appropriate options
     response = client.get(reverse("chat:chat_with_ai"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+    chat.options.chat_agent = True
+    chat.options.save()
 
     message = Message.objects.create(chat=chat, text="Hello", mode="chat")
     response_message = Message.objects.create(
@@ -780,6 +782,8 @@ def test_qa_response(client, all_apps_user):
 
 @pytest.mark.django_db
 def test_qa_filters(client, all_apps_user):
+    from librarian.models import DataSource
+
     # Create an empty library
     empty_library = Library.objects.create(name="Test Library")
     # Create a chat by hitting the new chat route in QA mode
@@ -804,11 +808,14 @@ def test_qa_filters(client, all_apps_user):
     # Change the chat_options qa_scope to "documents" and "data_sources" and try each
     chat_options.qa_scope = "documents"
     chat_options.save()
+    # There should be no nodes retrieved since no documents are selected.
     response = client.get(
         reverse("chat:chat_response", args=[Message.objects.last().id])
     )
     assert response.status_code == 200
     chat_options.qa_scope = "data_sources"
+    chat_options.data_sources = DataSource.objects.all()
+    # This should exercise the case in which filters are applied and DO retrieve nodes
     chat_options.save()
     response = client.get(
         reverse("chat:chat_response", args=[Message.objects.last().id])
@@ -905,3 +912,54 @@ def test_rename_chat_title(client, all_apps_user):
     )
     assert response.status_code == 200
     assert f'value="{new_title}"' in response.content.decode("utf-8")
+
+
+@pytest.mark.django_db
+def test_per_source_qa_response(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat using the route to create it with appropriate options
+    response = client.get(reverse("chat:qa"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+    chat.options.qa_answer_mode = "per-source"
+    chat.options.save()
+
+    # Test chat_response with QA mode. This should query the Corporate library.
+    message = Message.objects.create(
+        chat=chat,
+        text="What is the capital of Canada?",
+        mode="qa",
+    )
+    response_message = Message.objects.create(
+        chat=chat, mode="qa", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_summarize_qa_response(client, all_apps_user):
+    from librarian.models import Document
+
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat using the route to create it with appropriate options
+    response = client.get(reverse("chat:qa"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+    chat.options.qa_scope = "documents"
+    chat.options.qa_mode = "summarize"
+
+    # Test corporate chatbot QA mode
+    chat.options.qa_documents.set(Document.objects.all())
+    chat.options.save()
+    message = Message.objects.create(
+        chat=chat, text="What is my dental coverage?", mode="qa"
+    )
+    message.save()
+    response_message = Message.objects.create(
+        chat=chat, mode="qa", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200

@@ -68,8 +68,8 @@
           short_name: "laws"
           name_en: Legislation search
           name_fr: Recherche législative
-          description_en: Search acts and regulations using natural language. Find sections and subsections.
-          description_fr: Recherchez des lois et des règlements en utilisant un langage naturel. Trouvez des sections et des sous-sections.
+          description_en: Search acts and regulations using natural language. Find relevant sections of laws.
+          description_fr: Recherchez des lois et des règlements en utilisant un langage naturel. Trouvez des sections pertinentes des lois.
           url: laws:index
           category: other
 
