@@ -34,7 +34,7 @@ azure-keyvault==4.2.0
 azure-ai-formrecognizer==3.3.3
 azure-ai-translation-document==1.0.0
 azure-storage-blob==12.22.0
-msgraph-sdk==1.5.3
+msgraph-sdk==1.8.0
 
 # LLM-related ------------------------------------------------------------------
 openai==1.43.0
