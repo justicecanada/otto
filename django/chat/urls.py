@@ -113,4 +113,9 @@ urlpatterns = [
         views.set_preset_default,
         name="set_preset_default",
     ),
+    path(
+        "id/<str:chat_id>/options/save_preset",
+        views.save_preset,
+        name="save_preset",
+    ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
