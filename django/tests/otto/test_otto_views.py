@@ -118,6 +118,22 @@ def test_initialize_feedback_for_chat_mode(client, all_apps_user):
     client.force_login(user)
     chat = Chat.objects.create(title="test", user=user)
     message = Message.objects.create(chat=chat, mode="translate", is_bot=False)
+
+    data = {
+        "user": user.id,
+        "feedback_type": Feedback.FEEDBACK_TYPE_CHOICES[0][0],
+        "feedback_message": "Test feedback message for translation",
+        "app": "translate",
+        "chat_message_id": message.id,
+        "modified_by": user.id,
+        "otto_version": "v0",
+    }
+
+    client.post(
+        reverse("user_feedback", kwargs={"message_id": message.id}),
+        data=data,
+    )
+
     form = FeedbackForm(user=user, message_id=message.id)
     form.initialize_chat_feedback(message.id)
 
