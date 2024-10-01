@@ -110,6 +110,7 @@ class ChatOptionsManager(models.Manager):
             # Default Otto settings
             default_library = Library.objects.get_default_library()
             new_options = self.create(
+                chat_agent=False,
                 qa_library=default_library,
                 chat_system_prompt=_(DEFAULT_CHAT_PROMPT),
                 chat_model=settings.DEFAULT_CHAT_MODEL,
