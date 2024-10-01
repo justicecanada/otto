@@ -595,6 +595,8 @@ def test_chat_agent(client, all_apps_user):
     # Create a chat using the chat_with_ai route to create it with appropriate options
     response = client.get(reverse("chat:chat_with_ai"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+    chat.options.chat_agent = True
+    chat.options.save()
 
     message = Message.objects.create(chat=chat, text="Hello", mode="chat")
     response_message = Message.objects.create(

@@ -10,6 +10,7 @@ from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions
 from librarian.models import DataSource, Document, Library
 
 CHAT_MODELS = [
+    ("gpt-4o-mini", _("GPT-4o-mini (Global)")),
     ("gpt-4o", _("GPT-4o (Global)")),
     ("gpt-4", _("GPT-4 (Canada)")),
     ("gpt-35", _("GPT-3.5 (Canada)")),
