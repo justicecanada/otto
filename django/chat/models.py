@@ -137,6 +137,11 @@ QA_MODE_CHOICES = [
     ("summarize", _("Read entire documents (slow, expensive)")),
 ]
 
+QA_SOURCE_ORDER_CHOICES = [
+    ("score", _("Relevance score")),
+    ("reading_order", _("Reading order")),
+]
+
 
 class ChatOptions(models.Model):
     """
@@ -186,7 +191,9 @@ class ChatOptions(models.Model):
     qa_prompt_template = models.TextField(blank=True)
     qa_pre_instructions = models.TextField(blank=True)
     qa_post_instructions = models.TextField(blank=True)
-    qa_source_order = models.CharField(max_length=20, default="score")
+    qa_source_order = models.CharField(
+        max_length=20, default="score", choices=QA_SOURCE_ORDER_CHOICES
+    )
     qa_vector_ratio = models.FloatField(default=0.6)
     qa_answer_mode = models.CharField(max_length=20, default="combined")
     qa_prune = models.BooleanField(default=True)
@@ -379,7 +386,7 @@ class Message(models.Model):
 
     @property
     def sources(self):
-        return self.answersource_set.all().order_by("-node_score")
+        return self.answersource_set.all()
 
     @property
     def display_cost(self):
