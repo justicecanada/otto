@@ -1,4 +1,5 @@
 import asyncio
+from itertools import groupby
 
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -20,7 +21,9 @@ from chat.models import Message
 from chat.prompts import current_time_prompt
 from chat.tasks import translate_file
 from chat.utils import (
-    combine_responses,
+    combine_response_generators,
+    combine_response_replacers,
+    get_source_titles,
     htmx_stream,
     num_tokens_from_string,
     summarize_long_text,
@@ -149,40 +152,27 @@ def summarize_response(chat, response_message):
 
     llm = OttoLLM(model)
 
-    # TODO: Extracting text from file may incur Azure Document AI costs.
-    # Need to refactor extract_text to create Cost object with correct user and mode.
-    async def multi_summary_generator():
-        full_text = ""
-        for i, file in enumerate(files):
-            full_text += f"**{file.filename}**\n\n"
-            yield full_text
-            if not file.text:
-                await sync_to_async(file.extract_text)(fast=True)
-            response_stream = await summarize_long_text_async(
-                file.text,
-                llm,
-                summary_length,
-                target_language,
-                custom_summarize_prompt,
-            )
-            async for summary in response_stream:
-                full_text_with_summary = full_text + summary
-                yield full_text_with_summary
-
-            full_text = full_text_with_summary
-            if i < len(files) - 1:
-                full_text += "\n\n-----\n"
-            yield full_text
-            await asyncio.sleep(0)
-
     if len(files) > 0:
+        titles = [file.filename for file in files]
+        responses = []
+        for file in files:
+            if not file.text:
+                file.extract_text(fast=True)
+            responses.append(
+                summarize_long_text(
+                    file.text,
+                    llm,
+                    summary_length,
+                    target_language,
+                    custom_summarize_prompt,
+                )
+            )
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
                 llm,
-                response_replacer=multi_summary_generator(),
-                dots=True,
+                response_replacer=combine_response_replacers(responses, titles),
             ),
             content_type="text/event-stream",
         )
@@ -379,66 +369,108 @@ def qa_response(chat, response_message, switch_mode=False):
             content_type="text/event-stream",
         )
 
-    vector_store_table = chat.options.qa_library.uuid_hex
-    top_k = chat.options.qa_topk
-
-    # Don't include the top-level nodes (documents); they don't contain text
-    filters = MetadataFilters(
-        filters=[
-            MetadataFilter(
-                key="node_type",
-                value="document",
-                operator="!=",
-            ),
-        ]
-    )
-    if qa_scope != "all":
-        filters.filters.append(
-            MetadataFilter(
-                key="doc_id",
-                value=[document.uuid_hex for document in filter_documents],
-                operator="in",
+    # Summarize mode
+    if chat.options.qa_mode == "summarize":
+        # Use summarization on each of the filter_documents
+        document_titles = [document.name for document in filter_documents]
+        summary_responses = [
+            llm.tree_summarize(
+                context=document.extracted_text,
+                query=user_message.text,
             )
+            for document in filter_documents
+        ]
+        response_replacer = combine_response_replacers(
+            summary_responses, document_titles
         )
-    retriever = llm.get_retriever(
-        vector_store_table,
-        filters,
-        top_k,
-        chat.options.qa_vector_ratio,
-    )
-    synthesizer = llm.get_response_synthesizer(chat.options.qa_prompt_combined)
-    input = response_message.parent.text
-    source_nodes = retriever.retrieve(input)
-
-    if len(source_nodes) == 0:
-        response_str = _(
-            "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
-        )
-        return StreamingHttpResponse(
-            # Although there are no LLM costs, there is still a query embedding cost
-            streaming_content=htmx_stream(
-                chat,
-                response_message.id,
-                llm,
-                response_str=response_str,
-                switch_mode=switch_mode,
-            ),
-            content_type="text/event-stream",
-        )
-
-    if chat.options.qa_answer_mode != "per-source":
-        response = synthesizer.synthesize(query=input, nodes=source_nodes)
-        response_generator = response.response_gen
-        response_replacer = None
+        response_generator = None
+        source_nodes = None
 
     else:
-        responses = []
-        for source in source_nodes:
-            responses.append(synthesizer.synthesize(query=input, nodes=[source]))
-        response_replacer = combine_responses(responses, source_nodes)
-        response_generator = None
+        vector_store_table = chat.options.qa_library.uuid_hex
+        top_k = chat.options.qa_topk
 
-    sources = source_nodes
+        # Don't include the top-level nodes (documents); they don't contain text
+        filters = MetadataFilters(
+            filters=[
+                MetadataFilter(
+                    key="node_type",
+                    value="document",
+                    operator="!=",
+                ),
+            ]
+        )
+        if qa_scope != "all":
+            filters.filters.append(
+                MetadataFilter(
+                    key="doc_id",
+                    value=[document.uuid_hex for document in filter_documents],
+                    operator="in",
+                )
+            )
+        retriever = llm.get_retriever(
+            vector_store_table,
+            filters,
+            top_k,
+            chat.options.qa_vector_ratio,
+        )
+        synthesizer = llm.get_response_synthesizer(chat.options.qa_prompt_combined)
+        input = response_message.parent.text
+        source_nodes = retriever.retrieve(input)
+
+        if chat.options.qa_source_order == "reading_order":
+            doc_key = lambda x: x.node.ref_doc_id
+            # Group nodes from the same doc together,
+            # and sort by reading order within each group
+            doc_iters = groupby(
+                sorted(
+                    source_nodes, key=lambda x: (doc_key(x), x.metadata["chunk_number"])
+                ),
+                key=doc_key,
+            )
+            doc_groups = [list(doc) for _, doc in doc_iters]
+
+            # Sort document groups by maximum node score
+            # TODO: consider average node score instead
+            sorted_doc_groups = sorted(
+                doc_groups,
+                key=lambda x: max(
+                    -y.score for y in x
+                ),  # Negative sign ensures top groups first
+            )
+
+            source_nodes = [node for doc in sorted_doc_groups for node in doc]
+
+        if len(source_nodes) == 0:
+            response_str = _(
+                "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
+            )
+            return StreamingHttpResponse(
+                # Although there are no LLM costs, there is still a query embedding cost
+                streaming_content=htmx_stream(
+                    chat,
+                    response_message.id,
+                    llm,
+                    response_str=response_str,
+                    switch_mode=switch_mode,
+                ),
+                content_type="text/event-stream",
+            )
+
+        if chat.options.qa_answer_mode != "per-source":
+            response = synthesizer.synthesize(query=input, nodes=source_nodes)
+            response_generator = response.response_gen
+            response_replacer = None
+
+        else:
+            responses = [
+                synthesizer.synthesize(query=input, nodes=[source]).response_gen
+                for source in source_nodes
+            ]
+            response_replacer = combine_response_generators(
+                responses, get_source_titles(source_nodes)
+            )
+            response_generator = None
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
@@ -447,7 +479,7 @@ def qa_response(chat, response_message, switch_mode=False):
             llm,
             response_generator=response_generator,
             response_replacer=response_replacer,
-            source_nodes=sources,
+            source_nodes=source_nodes,
             switch_mode=switch_mode,
         ),
         content_type="text/event-stream",

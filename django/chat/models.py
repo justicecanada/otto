@@ -110,6 +110,7 @@ class ChatOptionsManager(models.Manager):
             # Default Otto settings
             default_library = Library.objects.get_default_library()
             new_options = self.create(
+                chat_agent=False,
                 qa_library=default_library,
                 chat_system_prompt=_(DEFAULT_CHAT_PROMPT),
                 chat_model=settings.DEFAULT_CHAT_MODEL,
@@ -131,6 +132,16 @@ QA_SCOPE_CHOICES = [
     ("all", _("Entire library")),
     ("data_sources", _("Selected data sources")),
     ("documents", _("Selected documents")),
+]
+
+QA_MODE_CHOICES = [
+    ("rag", _("Use top sources only (fast, cheap)")),
+    ("summarize", _("Read entire documents (slow, expensive)")),
+]
+
+QA_SOURCE_ORDER_CHOICES = [
+    ("score", _("Relevance score")),
+    ("reading_order", _("Reading order")),
 ]
 
 
@@ -172,7 +183,7 @@ class ChatOptions(models.Model):
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
 
-    # Library QA-specific options
+    # QA-specific options
     qa_model = models.CharField(max_length=255, default="gpt-4o")
     qa_library = models.ForeignKey(
         "librarian.Library",
@@ -180,7 +191,8 @@ class ChatOptions(models.Model):
         null=True,
         related_name="qa_options",
     )
-    qa_scope = models.CharField(max_length=255, default="all", choices=QA_SCOPE_CHOICES)
+    qa_mode = models.CharField(max_length=20, default="rag", choices=QA_MODE_CHOICES)
+    qa_scope = models.CharField(max_length=20, default="all", choices=QA_SCOPE_CHOICES)
     qa_data_sources = models.ManyToManyField(
         "librarian.DataSource", related_name="qa_options"
     )
@@ -192,7 +204,9 @@ class ChatOptions(models.Model):
     qa_prompt_template = models.TextField(blank=True)
     qa_pre_instructions = models.TextField(blank=True)
     qa_post_instructions = models.TextField(blank=True)
-    qa_source_order = models.CharField(max_length=20, default="score")
+    qa_source_order = models.CharField(
+        max_length=20, default="score", choices=QA_SOURCE_ORDER_CHOICES
+    )
     qa_vector_ratio = models.FloatField(default=0.6)
     qa_answer_mode = models.CharField(max_length=20, default="combined")
     qa_prune = models.BooleanField(default=True)
@@ -275,7 +289,7 @@ class Message(models.Model):
 
     @property
     def sources(self):
-        return self.answersource_set.all().order_by("-node_score")
+        return self.answersource_set.all()
 
     @property
     def display_cost(self):
