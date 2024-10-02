@@ -24,10 +24,11 @@ from chat.utils import (
     combine_response_generators,
     combine_response_replacers,
     get_source_titles,
+    group_sources_into_docs,
     htmx_stream,
     num_tokens_from_string,
+    sort_by_max_score,
     summarize_long_text,
-    summarize_long_text_async,
     url_to_text,
 )
 from librarian.models import DataSource, Document, Library
@@ -418,50 +419,6 @@ def qa_response(chat, response_message, switch_mode=False):
         input = response_message.parent.text
         source_nodes = retriever.retrieve(input)
 
-        if (
-            chat.options.qa_source_order == "reading_order"
-            or chat.options.qa_granularity > 768
-        ):
-            doc_key = lambda x: x.node.ref_doc_id
-            # Group nodes from the same doc together,
-            # and sort by reading order within each group
-            doc_iters = groupby(
-                sorted(
-                    source_nodes, key=lambda x: (doc_key(x), x.metadata["chunk_number"])
-                ),
-                key=doc_key,
-            )
-            doc_groups = [list(doc) for _, doc in doc_iters]
-
-            # source_groups = []
-            # for doc in doc_groups:
-            #     doc_iter = iter(doc)
-            #     current_source_group = []
-            #     while next_source := next(doc_iter, None):
-            #         if (
-            #             num_tokens_from_string(
-            #                 "\n\n".join(
-            #                     [x.text for x in current_source_group] + [next_source]
-            #                 )
-            #             )
-            #             <= chat.options.qa_granularity
-            #         ):
-            #             current_source_group.append(next_source)
-            #         else:
-            #             source_groups.append(current_source_group)
-            #             current_source_group = [next_source]
-
-            # Sort document groups by maximum node score
-            # TODO: consider average node score instead
-            sorted_doc_groups = sorted(
-                doc_groups,
-                key=lambda x: max(
-                    -y.score for y in x
-                ),  # Negative sign ensures top groups first
-            )
-
-            source_nodes = [node for doc in sorted_doc_groups for node in doc]
-
         if len(source_nodes) == 0:
             response_str = _(
                 "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
@@ -478,19 +435,79 @@ def qa_response(chat, response_message, switch_mode=False):
                 content_type="text/event-stream",
             )
 
+        # If we're stitching sources together into groups...
+        if chat.options.qa_granularity > 768:
+            # Group nodes from the same doc together,
+            # and ensure nodes WITHIN each doc are in reading order.
+            # Need to do this if granularity is set to group multiple nodes together
+            # AND/OR if "reading order" is enabled
+
+            doc_groups = group_sources_into_docs(source_nodes)
+
+            if chat.options.qa_source_order == "reading_order":
+                # Reading order requires keeping docs together, so
+                # sort documents by maximum node score within doc
+                # before stitching nodes together
+                doc_groups = sort_by_max_score(doc_groups)
+
+            # Stitching
+            source_groups = []
+            for doc in doc_groups:
+                current_source_group = []
+                for next_source in doc:
+                    if (
+                        num_tokens_from_string(
+                            "\n\n".join(
+                                [x.text for x in current_source_group]
+                                + [next_source.text]
+                            )
+                        )
+                        <= chat.options.qa_granularity
+                    ):
+                        current_source_group.append(next_source)
+                    else:
+                        source_groups.append(current_source_group)
+                        current_source_group = [next_source]  # Start a new group
+
+                # Add any remaining sources in current_source_group
+                if current_source_group:
+                    source_groups.append(current_source_group)
+
+            # If sorting by score, sort groups by max score within each one
+            # (without keeping documents together across groups)
+            if chat.options.qa_source_order == "score":
+                source_groups = sort_by_max_score(source_groups)
+
+            # Flatten newly-sorted source nodes
+            source_nodes = [node for group in source_groups for node in group]
+
+        else:
+            if chat.options.qa_source_order == "reading_order":
+                # If we're not stitching anything, then we only need to group docs
+                # if we're doing it in reading order
+                doc_groups = group_sources_into_docs(source_nodes)
+                doc_groups = sort_by_max_score(doc_groups)
+
+                # Flatten newly-sorted source nodes
+                source_nodes = [node for doc in doc_groups for node in doc]
+
+            # TODO: refactor for cleaner code and to group sources in output
+            source_groups = [[source] for source in source_nodes]
         if chat.options.qa_answer_mode != "per-source":
             response = synthesizer.synthesize(query=input, nodes=source_nodes)
             response_generator = response.response_gen
             response_replacer = None
 
         else:
+
+            # TODO: refactor for cleaner code and to group sources in output
             responses = [
-                synthesizer.synthesize(query=input, nodes=[source]).response_gen
-                for source in source_nodes
+                synthesizer.synthesize(query=input, nodes=sources).response_gen
+                for sources in source_groups
             ]
             response_replacer = combine_response_generators(
                 responses,
-                get_source_titles(source_nodes),
+                get_source_titles([sources[0] for sources in source_groups]),
                 input,
                 llm,
                 chat.options.qa_prune,

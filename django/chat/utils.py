@@ -1,5 +1,6 @@
 import asyncio
 import sys
+from itertools import groupby
 from typing import AsyncGenerator, Generator
 
 from django.core.cache import cache
@@ -451,3 +452,28 @@ async def combine_response_replacers(generators, titles):
                 stream["status"] = "stopped"
         yield ("\n\n---\n\n".join(final_streams))
         await asyncio.sleep(0)
+
+
+def group_sources_into_docs(source_nodes):
+    doc_key = lambda x: x.node.ref_doc_id
+
+    doc_group_iters = groupby(
+        sorted(source_nodes, key=lambda x: (doc_key(x), x.metadata["chunk_number"])),
+        key=doc_key,
+    )
+
+    # Nested list makes downstream manipulations (e.g. sorting by scores) easier
+    doc_groups = [list(doc) for _, doc in doc_group_iters]
+
+    return doc_groups
+
+
+def sort_by_max_score(groups):
+    # Sort groups of nodes by the maximum relevance score within each group
+    # TODO: consider using average score within each group instead
+
+    return sorted(
+        groups,
+        key=lambda doc: max(node.score for node in doc),
+        reverse=True,
+    )
