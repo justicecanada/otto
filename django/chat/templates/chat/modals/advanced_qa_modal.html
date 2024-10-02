@@ -108,7 +108,7 @@
             <div
               class="row"
               id="qa_granularity_slider"
-              style="display: none;"
+              style="{% if chat.options.qa_answer_mode == 'combined' %}display: none;{% endif %}"
             >
               <label
                 for="qa_granularity-modal"
