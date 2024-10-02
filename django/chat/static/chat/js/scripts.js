@@ -429,3 +429,18 @@ function updateQaHiddenField(modal_element) {
     hidden_field_element.dispatchEvent(new Event('change'));
   }
 };
+
+function toggleSlider(value) {
+  var slider = document.getElementById('qa_granularity_slider');
+  var sliderInput = document.getElementById('qa_granularity-modal');
+  var numberInput = document.getElementById('qa_granularity_number-modal');
+  // var granularityValue = document.getElementById('granularity_value');
+
+  if (value === 'per-source') {
+    slider.style.display = 'flex';
+  } else {
+    slider.style.display = 'none';
+    sliderInput.value = 768; // Reset slider value to 768 when "combined" is selected
+    numberInput.value = 768;
+  }
+}
