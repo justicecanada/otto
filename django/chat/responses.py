@@ -418,7 +418,10 @@ def qa_response(chat, response_message, switch_mode=False):
         input = response_message.parent.text
         source_nodes = retriever.retrieve(input)
 
-        if chat.options.qa_source_order == "reading_order":
+        if (
+            chat.options.qa_source_order == "reading_order"
+            or chat.options.qa_granularity > 768
+        ):
             doc_key = lambda x: x.node.ref_doc_id
             # Group nodes from the same doc together,
             # and sort by reading order within each group
@@ -429,6 +432,24 @@ def qa_response(chat, response_message, switch_mode=False):
                 key=doc_key,
             )
             doc_groups = [list(doc) for _, doc in doc_iters]
+
+            # source_groups = []
+            # for doc in doc_groups:
+            #     doc_iter = iter(doc)
+            #     current_source_group = []
+            #     while next_source := next(doc_iter, None):
+            #         if (
+            #             num_tokens_from_string(
+            #                 "\n\n".join(
+            #                     [x.text for x in current_source_group] + [next_source]
+            #                 )
+            #             )
+            #             <= chat.options.qa_granularity
+            #         ):
+            #             current_source_group.append(next_source)
+            #         else:
+            #             source_groups.append(current_source_group)
+            #             current_source_group = [next_source]
 
             # Sort document groups by maximum node score
             # TODO: consider average node score instead

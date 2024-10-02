@@ -211,6 +211,7 @@ class ChatOptions(models.Model):
     qa_answer_mode = models.CharField(max_length=20, default="combined")
     qa_prune = models.BooleanField(default=True)
     qa_rewrite = models.BooleanField(default=False)
+    qa_granularity = models.IntegerField(default=768)
 
     @property
     def qa_prompt_combined(self):
