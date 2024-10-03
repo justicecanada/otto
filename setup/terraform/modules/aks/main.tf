@@ -17,7 +17,12 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   # AC-22, IA-8, SC-2, SC-5: Configure the private cluster settings
   private_cluster_enabled = var.use_private_network
-  private_dns_zone_id     = "System"
+  dynamic "private_dns_zone_id" {
+    for_each = var.use_private_network ? ["System"] : []
+    content {
+      private_dns_zone_id = private_dns_zone_id.value
+    }
+  }
 
   # Configure the default node pool
   default_node_pool {
