@@ -146,3 +146,27 @@
     unit_name_fr: pages
     unit_cost: 1.50
     unit_quantity: 1000
+- model: otto.CostType
+  pk: 13
+  fields:
+    short_name: gpt-4o-mini-in
+    name: GPT-4o-mini Global (input)
+    name_fr: GPT-4o-mini Global (entrée)
+    description: API calls to Azure OpenAI GPT-4o-mini Global Deployment model (input)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o-mini (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.00015
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 14
+  fields:
+    short_name: gpt-4o-mini-out
+    name: GPT-4o-mini Global (output)
+    name_fr: GPT-4o-mini Global (sortie)
+    description: API calls to Azure OpenAI GPT-4o-mini Global Deployment model (output)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o-mini (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.0006
+    unit_quantity: 1000
