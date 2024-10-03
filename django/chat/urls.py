@@ -84,21 +84,6 @@ urlpatterns = [
         name="set_preset_favourite",
     ),
     path(
-        "id/<str:chat_id>/options/save_preset",
-        views.save_preset,
-        name="save_preset",
-    ),
-    path(
-        "chat/<str:chat_id>/options/save_preset/<str:preset_id>/",
-        views.save_preset,
-        name="update_preset",
-    ),
-    path(
-        "id/<str:chat_id>/options/presets/<str:preset_id>/delete/",
-        views.delete_preset,
-        name="delete_preset",
-    ),
-    path(
         "id/<str:chat_id>/options/presets/<str:preset_id>/edit/",
         views.edit_preset,
         name="edit_preset",
@@ -112,10 +97,5 @@ urlpatterns = [
         "presets/<int:preset_id>/default/<str:chat_id>",
         views.set_preset_default,
         name="set_preset_default",
-    ),
-    path(
-        "id/<str:chat_id>/options/save_preset",
-        views.save_preset,
-        name="save_preset",
     ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
