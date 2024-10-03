@@ -47,3 +47,8 @@ variable "admin_email" {
   description = "The email address of the admin user"
   type        = string
 }
+
+variable "use_private_network" {
+  type        = bool
+  description = "Whether to use private networking for the AKS cluster"
+}

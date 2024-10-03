@@ -21,15 +21,11 @@ resource "azurerm_cosmosdb_postgresql_cluster" "djangodb" {
   coordinator_server_edition      = "BurstableMemoryOptimized"
   tags                            = var.tags
 
-  # Configure backup settings
-  backup_retention_days        = 35
-  geo_redundant_backup_enabled = true
-
   # Configure nodes
   node_vcores                   = 4
   node_storage_quota_in_mb      = 524288
   node_server_edition           = "MemoryOptimized"
-  node_public_ip_access_enabled = false # AC-22, IA-8: Set to false for private access
+  node_public_ip_access_enabled = !var.use_private_network # AC-22, IA-8: Set to false for private access
 
   ha_enabled = false
 
@@ -63,7 +59,9 @@ resource "azurerm_key_vault_secret" "djangodb_hostname" {
 # }
 
 # Allow access from AKS cluster
+# Only create this rule if not using private networking
 resource "azurerm_cosmosdb_postgresql_firewall_rule" "allow_aks" {
+  count            = var.use_private_network ? 0 : 1
   name             = "AllowAKS"
   cluster_id       = azurerm_cosmosdb_postgresql_cluster.djangodb.id
   start_ip_address = var.aks_ip_address

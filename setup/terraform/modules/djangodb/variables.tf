@@ -38,3 +38,8 @@ variable "aks_ip_address" {
   description = "Outbound IP address of the AKS cluster"
   type        = string
 }
+
+variable "use_private_network" {
+  type        = bool
+  description = "Whether to use private networking for the Cosmos DB for PostgreSQL"
+}

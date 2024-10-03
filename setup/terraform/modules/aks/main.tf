@@ -16,8 +16,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   dns_prefix          = var.aks_cluster_name
 
   # AC-22, IA-8, SC-2, SC-5: Configure the private cluster settings
-  private_cluster_enabled = true
-  private_dns_zone_id     = "System" # Consider a custom DNS zone instead
+  private_cluster_enabled = var.use_private_network
+  private_dns_zone_id     = "System"
 
   # Configure the default node pool
   default_node_pool {
@@ -45,8 +45,9 @@ resource "azurerm_kubernetes_cluster" "aks" {
   # SC-8: Secure Internal Communication in AKS
   # AC-3 & CM-8(3): Network Policies for AKS
   network_profile {
-    network_plugin    = "kubenet"
-    load_balancer_sku = "standard" # SC-10: Load balancer which implements connection timeouts 
+    network_plugin    = "azure"    # Azure CNI provides integration with Azure networking features
+    network_policy    = "azure"    # Azure network policies control traffic flow between pods
+    load_balancer_sku = "standard" # Standard SKU provides more features and better performance
   }
 
   oms_agent {

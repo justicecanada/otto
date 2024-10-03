@@ -60,6 +60,7 @@ module "disk" {
   keyvault_id          = module.keyvault.keyvault_id
   cmk_id               = module.keyvault.cmk_id
   wait_for_propagation = module.keyvault.wait_for_propagation
+  use_private_network = var.use_private_network
 }
 
 # Storage module
@@ -73,6 +74,7 @@ module "storage" {
   cmk_name               = module.keyvault.cmk_name
   wait_for_propagation   = module.keyvault.wait_for_propagation
   storage_container_name = var.storage_container_name
+  use_private_network = var.use_private_network
 }
 
 # DjangoDB module
@@ -86,6 +88,7 @@ module "djangodb" {
   keyvault_id          = module.keyvault.keyvault_id
   aks_ip_address       = module.aks.outbound_ip_address
   wait_for_propagation = module.keyvault.wait_for_propagation
+  use_private_network = var.use_private_network
 }
 
 # Cognitive Services module
@@ -129,6 +132,7 @@ module "aks" {
   storage_account_id     = module.storage.storage_account_id
   tags                   = local.common_tags
   admin_email            = var.admin_email
+  use_private_network = var.use_private_network
 }
 
 

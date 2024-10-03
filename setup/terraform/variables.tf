@@ -129,3 +129,8 @@ variable "admin_email" {
   description = "Admin email address"
   type        = string
 }
+
+variable "use_private_network" {
+  type        = bool
+  description = "Whether to use private networking for the infrastructure"
+}

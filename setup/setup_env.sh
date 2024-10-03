@@ -6,6 +6,12 @@ if ! az account show &>/dev/null; then
     az login
 fi
 
+# Check if the Azure CLI token has expired
+if ! az account get-access-token --query "expiresOn" -o tsv &>/dev/null; then
+    echo "Azure CLI token has expired or is invalid. Please log in again."
+    az login --scope https://storage.azure.com/.default
+fi
+
 # CM-9: Prompt user to select an environment
 echo "Available environments:"
 env_files=($(ls .env* 2>/dev/null | sort))
@@ -106,6 +112,7 @@ export ACR_PUBLISHERS_GROUP_NAMES
 export ENTRA_CLIENT_NAME
 export ORGANIZATION
 export ALLOWED_IPS
+export USE_PRIVATE_NETWORK
 
 export APP_NAME
 export ENVIRONMENT
@@ -175,4 +182,5 @@ gpt_4o_capacity = ${GPT_4o_CAPACITY}
 gpt_4o_mini_capacity = ${GPT_4o_MINI_CAPACITY}
 text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
 admin_email = "${ADMIN_EMAIL}"
+use_private_network = "${USE_PRIVATE_NETWORK}"
 EOF

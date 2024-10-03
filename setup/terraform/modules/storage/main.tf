@@ -7,10 +7,9 @@ resource "azurerm_storage_account" "storage" {
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
   account_kind                    = "StorageV2"
-  public_network_access_enabled   = false # AC-22, IA-8: Set to false for private access
+  public_network_access_enabled   = !var.use_private_network # AC-22, IA-8: Set to false for private access
   default_to_oauth_authentication = true
   is_hns_enabled                  = true
-  versioning_enabled              = true
 
   identity {
     type = "SystemAssigned"
@@ -25,16 +24,9 @@ resource "azurerm_storage_account" "storage" {
     }
   }
 
-  lifecycle_rule {
-    name = "retention-policy"
-    enabled = true
-    actions {
-      base_blob {
-        tier_to_cool_after_days_since_modification_greater_than = 30
-        tier_to_archive_after_days_since_modification_greater_than = 90
-        delete_after_days_since_modification_greater_than = 365
-      }
-    }
+  network_rules {
+    default_action = var.use_private_network ? "Deny" : "Allow"
+    bypass         = ["AzureServices"]
   }
 
   tags = var.tags
@@ -53,6 +45,21 @@ resource "azurerm_storage_management_policy" "lifecycle" {
     actions {
       base_blob {
         delete_after_days_since_modification_greater_than = 30
+      }
+    }
+  }
+
+  rule {
+    name    = "retention-policy"
+    enabled = true
+    filters {
+      blob_types = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 30
+        tier_to_archive_after_days_since_modification_greater_than = 90
+        delete_after_days_since_modification_greater_than          = 365
       }
     }
   }

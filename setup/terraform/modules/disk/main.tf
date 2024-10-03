@@ -53,7 +53,7 @@ resource "azurerm_managed_disk" "aks_ssd_disk" {
   disk_size_gb         = var.ssd_disk_size
   os_type              = "Linux"
 
-  public_network_access_enabled = false
+  public_network_access_enabled = !var.use_private_network
   disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-28 & SC-28(1): Customer-managed keys for enhanced encryption control
 
   tags = merge(var.tags, {
@@ -73,7 +73,7 @@ resource "azurerm_managed_disk" "aks_hdd_disk" {
   disk_size_gb         = var.hdd_disk_size
   os_type              = "Linux"
 
-  public_network_access_enabled = false
+  public_network_access_enabled = !var.use_private_network
   disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-13: Customer-managed keys for enhanced encryption control
 
   tags = merge(var.tags, {
@@ -84,39 +84,48 @@ resource "azurerm_managed_disk" "aks_hdd_disk" {
 }
 
 # Create a Recovery Services Vault for backup
-resource "azurerm_recovery_services_vault" "aks_backup_vault" {
-  name                = "aks-backup-vault"
-  location            = var.location
+resource "azurerm_data_protection_backup_vault" "disk_backup_vault" {
+  name                = "disk-backup-vault"
   resource_group_name = var.resource_group_name
-  sku                 = "Standard"
+  location            = var.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
 }
 
 # Create a backup policy for the managed disks
-resource "azurerm_backup_policy_disk" "aks_disk_backup_policy" {
-  name                = "aks-disk-backup-policy"
-  resource_group_name = var.resource_group_name
-  recovery_vault_name = azurerm_recovery_services_vault.aks_backup_vault.name
+resource "azurerm_data_protection_backup_policy_disk" "disk_backup_policy" {
+  name     = "disk-backup-policy"
+  vault_id = azurerm_data_protection_backup_vault.disk_backup_vault.id
 
-  backup {
-    frequency = "Daily"
-    time      = "23:00"
-  }
+  backup_repeating_time_intervals = ["R/2021-05-19T04:00:00+00:00/P1D"]
+  default_retention_duration      = "P7D"
 
-  retention_daily {
-    count = 7
+  retention_rule {
+    name     = "Weekly"
+    duration = "P7D"
+    priority = 20
+    criteria {
+      absolute_criteria = "FirstOfWeek"
+    }
   }
 }
 
 # Protect the managed disks with the backup policy
-resource "azurerm_backup_protected_disk" "aks_ssd_disk_backup" {
-  resource_group_name = var.resource_group_name
-  disk_id             = azurerm_managed_disk.aks_ssd_disk.id
-  backup_policy_id    = azurerm_backup_policy_disk.aks_disk_backup_policy.id
+resource "azurerm_data_protection_backup_instance_disk" "ssd_disk_backup" {
+  name                         = "ssd-disk-backup"
+  location                     = var.location
+  vault_id                     = azurerm_data_protection_backup_vault.disk_backup_vault.id
+  disk_id                      = azurerm_managed_disk.aks_ssd_disk.id
+  snapshot_resource_group_name = var.resource_group_name
+  backup_policy_id             = azurerm_data_protection_backup_policy_disk.disk_backup_policy.id
 }
 
 # Protect the managed disks with the backup policy
-resource "azurerm_backup_protected_disk" "aks_hdd_disk_backup" {
-  resource_group_name = var.resource_group_name
-  disk_id             = azurerm_managed_disk.aks_hdd_disk.id
-  backup_policy_id    = azurerm_backup_policy_disk.aks_disk_backup_policy.id
+resource "azurerm_data_protection_backup_instance_disk" "hdd_disk_backup" {
+  name                         = "hdd-disk-backup"
+  location                     = var.location
+  vault_id                     = azurerm_data_protection_backup_vault.disk_backup_vault.id
+  disk_id                      = azurerm_managed_disk.aks_hdd_disk.id
+  snapshot_resource_group_name = var.resource_group_name
+  backup_policy_id             = azurerm_data_protection_backup_policy_disk.disk_backup_policy.id
 }
