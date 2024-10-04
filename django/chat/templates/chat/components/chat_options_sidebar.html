@@ -40,7 +40,7 @@
                   hx-get="{% url 'chat:create_preset' chat_id=chat.id %}"
                   hx-target="#presets-modal-body"
                   hx-swap="innerHTML transition:true">
-            <i class="bi bi-floppy2-fill fs-6"></i>
+            <i class="bi bi-floppy2-fill"></i>
             <span class="visually-hidden">{% trans "Create preset from current settings" %}</span>
           </button>
         </span>
@@ -52,7 +52,7 @@
                   hx-get="{% url 'chat:chat_options' chat_id=chat.id action='reset' %}"
                   hx-target="#options-accordion"
                   hx-swap="outerHTML">
-            <i class="bi bi-arrow-counterclockwise fs-6"></i>
+            <i class="bi bi-arrow-counterclockwise"></i>
           </button>
         </span>
         <span class="px-0" data-bs-toggle="modal" data-bs-target="#presets-modal">
@@ -66,7 +66,7 @@
                   hx-swap="innerHTML"
                   onclick="document.getElementById('presets-modal-body').innerHTML = '';">
             <span class="visually-hidden">{% trans "Open Presets Menu" %}</span>
-            <i class="bi bi-folder fs-6"></i>
+            <i class="bi bi-folder"></i>
           </button>
         </span>
       </div>
