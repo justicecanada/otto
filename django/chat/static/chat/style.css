@@ -1124,3 +1124,192 @@ ul.errorlist {
   color: var(--bs-black);
   border-color: var(--bs-black) !important;
 }
+
+:root {
+  --tab-border-color: 0.01rem solid #d5d5d5;
+}
+
+.nav-link {
+  color: var(--bs-body-color);
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  &:hover {
+    color: var(--bs-gray-900);
+    font-weight: bold outline: none;
+
+    &:not(.active) {
+      background-color: var(--bs-light);
+      border-bottom: var(--tab-border-color);
+    }
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 0.15rem rgba(66, 70, 73, 0.5);
+  }
+
+  &:not(.active) {
+    background-color: #eaeaea;
+    border-bottom: var(--tab-border-color);
+  }
+
+  &.active {
+    border-top: var(--tab-border-color) !important;
+    border-left: var(--tab-border-color) !important;
+    border-right: var(--tab-border-color) !important;
+  }
+}
+
+.card-footer {
+  display: flex !important;
+  gap: 1rem;
+  background-color: transparent;
+  border-top: none;
+  padding-top: 0;
+  padding-bottom: .65rem;
+
+  button {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    flex-grow: 1;
+
+    &:hover {
+      background-color: var(--bs-light) !important;
+    }
+
+    &:only-child {
+      flex-basis: 100%;
+    }
+  }
+}
+
+.language-content {
+  display: none;
+}
+
+.language-content.active {
+  display: block;
+}
+
+.form-check-input:checked {
+  background-color: black;
+  border-color: black;
+}
+
+.form-check-input:focus {
+  border-color: #a2a2a2;
+  box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
+}
+
+#delete_preset {
+  color: red;
+  border-color: red;
+
+  &:hover {
+    background-color: red !important;
+    color: white !important;
+  }
+}
+
+
+.card {
+  border: none;
+  box-shadow: 2px 4px 10px -1px rgb(0 0 0 / 0.1), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Do we want this?
+::selection {
+  color: var(--bs-white);
+  background: var(--bs-dark);
+}
+*/
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: transparent;
+  border-bottom: none;
+  padding-bottom: 0;
+  padding-top: .45rem;
+
+  button {
+    background-color: transparent;
+    border: none;
+
+    i.bi.bi-heart-fill {
+      border-color: var(--app-color-red-1);
+      color: var(--app-color-red-1);
+    }
+
+    &:hover {
+      i.bi.bi-heart {
+        border-color: var(--app-color-red-1);
+        color: var(--app-color-red-1);
+      }
+
+      i.bi.bi-star {
+        border-color: var(--app-color-yellow-1);
+        color: var(--app-color-yellow-1);
+      }
+
+      i.bi.bi-heart,
+      i.bi.bi-heart-fill {
+        text-shadow: 0px 0px 7px var(--app-color-red-1);
+      }
+
+      i.bi.bi-star,
+      i.bi.bi-star-fill {
+        text-shadow: 0px 0px 7px var(--app-color-yellow-2);
+      }
+
+      background-color: transparent !important;
+
+    }
+
+    &:focus-visible {
+      background-color: var(--bg-light-gray);
+      border: none !important;
+      outline: none !important;
+      box-shadow: none;
+
+      &i.bi.bi-heart,
+      &i.bi.bi-heart-fill {
+        border: solid 1px var(--app-color-red-1);
+        background-color: var(--app-color-red-1-hover);
+      }
+
+      &i.bi.bi-start,
+      &i.bi.bi-star-fill {
+        border: solid 1px var(--app-color-yellow-1);
+        background-color: var(--app-color-yellow-2);
+      }
+
+      color: transparent;
+    }
+  }
+}
+
+.modal-body {
+  max-height: 85vh !important;
+  overflow-y: scroll;
+}
+
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.btn-ghost {
+  background-color: transparent !important;
+  border: none !important;
+
+  &:focus-visible {
+    outline-style: solid !important;
+    outline-color: black !important;
+    outline-width: 2px !important;
+  }
+}
