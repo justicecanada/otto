@@ -433,7 +433,6 @@ function updateQaHiddenField(modal_element) {
 function toggleSlider(value) {
   var slider = document.getElementById('qa_granularity_slider');
   var sliderInput = document.getElementById('qa_granularity-modal');
-  // var granularityValue = document.getElementById('granularity_value');
 
   if (value === 'per-source') {
     slider.style.display = 'flex';
