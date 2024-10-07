@@ -311,28 +311,46 @@ def qa_response(chat, response_message, switch_mode=False):
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
 
+    # Quick-add URL to library
+    url_validator = URLValidator()
+    try:
+        url_validator(user_message.text)
+        adding_url = True
+        print("Valid URL. Adding to chat library...")
+    except ValidationError:
+        adding_url = False
+
     async def add_files_to_library():
         ds = chat.data_source
         processing_count = await sync_to_async(
             lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
         )()
         while processing_count:
-            yield _(
-                "Adding files to the Library"
-            ) + f" ({len(files)-processing_count+1}/{len(files)})..."
+            if adding_url:
+                yield _("Adding to the Q&A library...")
+            else:
+                yield _(
+                    "Adding to the Q&A library"
+                ) + f" ({len(files)-processing_count+1}/{len(files)})..."
             await asyncio.sleep(0.5)
             processing_count = await sync_to_async(
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
             )()
 
-        yield f"{len(files)} " + _("new file(s) ready for Q&A.")
+        yield f"{len(files)} " + _("new document(s) ready for Q&A.")
 
-    if len(files) > 0:
+    if len(files) > 0 or adding_url:
         for file in files:
             document = Document.objects.create(
                 data_source=chat.data_source,
                 file=file.saved_file,
                 filename=file.filename,
+            )
+            document.process()
+        if adding_url:
+            document = Document.objects.create(
+                data_source=chat.data_source,
+                url=user_message.text,
             )
             document.process()
         return StreamingHttpResponse(
