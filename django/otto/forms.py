@@ -70,8 +70,6 @@ class FeedbackForm(ModelForm):
             self.fields["app"].choices = [("translate", _("Translate"))]
         elif chat_mode == "summarize":
             self.fields["app"].choices = [("summarize", _("Summarize"))]
-        elif chat_mode == "document_qa":
-            self.fields["app"].choices = [("document qa", _("Document QA"))]
         elif chat_mode == "qa":
             self.fields["app"].choices = [("qa", _("QA"))]
         else:
