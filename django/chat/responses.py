@@ -491,7 +491,6 @@ def qa_response(chat, response_message, switch_mode=False):
                 # Flatten newly-sorted source nodes
                 source_nodes = [node for doc in doc_groups for node in doc]
 
-            # TODO: refactor for cleaner code and to group sources in output
             source_groups = [[source] for source in source_nodes]
         if chat.options.qa_answer_mode != "per-source":
             response = synthesizer.synthesize(query=input, nodes=source_nodes)
@@ -499,8 +498,6 @@ def qa_response(chat, response_message, switch_mode=False):
             response_replacer = None
 
         else:
-
-            # TODO: refactor for cleaner code and to group sources in output
             responses = [
                 synthesizer.synthesize(query=input, nodes=sources).response_gen
                 for sources in source_groups
