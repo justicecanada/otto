@@ -56,7 +56,8 @@ def translate_file(file_path, target_language):
 
         # Upload to Azure Blob Storage
         azure_storage = settings.AZURE_STORAGE
-        azure_storage.save(input_file_path, open(file_path, "rb"))
+        with open(file_path, "rb") as f:
+            azure_storage.save(input_file_path, f)
 
         # Set up translation parameters
         source_url = f"https://{settings.AZURE_ACCOUNT_NAME}.blob.core.windows.net/{settings.AZURE_CONTAINER}/{input_file_path}"
@@ -80,9 +81,8 @@ def translate_file(file_path, target_language):
                     filename=output_file_name,
                     content_type="?",
                 )
-                new_file.saved_file.file.save(
-                    output_file_name, azure_storage.open(output_file_path)
-                )
+                with azure_storage.open(output_file_path) as f:
+                    new_file.saved_file.save(output_file_name, f)
             else:
                 logger.error("Translation failed: ", error=document.error.message)
                 raise Exception(f"Translation failed:\n{document.error.message}")
