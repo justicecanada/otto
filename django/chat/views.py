@@ -442,6 +442,18 @@ def chat_message(request, chat_id):
     return response
 
 
+@permission_required("chat.access_message", objectgetter(Message, "message_id"))
+def delete_message(request, message_id):
+    """
+    Delete a message from the chat
+    """
+    message = Message.objects.get(id=message_id)
+    chat = message.chat
+    logger.info("Deleting chat message.", message_id=message_id, chat_id=chat.id)
+    message.delete()
+    return HttpResponse()
+
+
 @require_GET
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def init_upload(request, chat_id):
