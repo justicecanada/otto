@@ -27,7 +27,6 @@ from chat.utils import (
     htmx_stream,
     num_tokens_from_string,
     summarize_long_text,
-    summarize_long_text_async,
     url_to_text,
 )
 from librarian.models import DataSource, Document, Library
@@ -336,8 +335,10 @@ def qa_response(chat, response_message, switch_mode=False):
             processing_count = await sync_to_async(
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
             )()
-
-        yield f"{len(files)} " + _("new document(s) ready for Q&A.")
+        if adding_url:
+            yield _("URL ready for Q&A.")
+        else:
+            yield f"{len(files)} " + _("new document(s) ready for Q&A.")
 
     if len(files) > 0 or adding_url:
         for file in files:
