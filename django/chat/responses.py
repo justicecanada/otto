@@ -385,7 +385,7 @@ def qa_response(chat, response_message, switch_mode=False):
             summary_responses, document_titles
         )
         response_generator = None
-        source_nodes = None
+        source_groups = None
 
     else:
         vector_store_table = chat.options.qa_library.uuid_hex
