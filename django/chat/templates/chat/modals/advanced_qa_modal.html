@@ -110,13 +110,12 @@
               id="qa_granularity_slider"
               style="{% if chat.options.qa_answer_mode == 'combined' %}display: none;{% endif %}"
             >
-              <label
-                for="qa_granularity-modal"
-                class="col-form-label col-form-label-sm"
-                id="granularity-label"
-              >{% trans "Granularity" %}</label>
-              <div class="col pe-0">
-
+              <div class="col pe-0 text-center">
+                <label
+                  for="qa_granularity-modal"
+                  class="col-form-label col-form-label-sm mb-0"
+                  id="granularity-label"
+                >{% trans "Granularity" %}</label>
                 <input
                   type="range"
                   class="form-range my-1"
@@ -126,28 +125,14 @@
                   max="16000"
                   step="100"
                   value="768"
-                  onchange="updateQaHiddenField(this); document.getElementById('qa_granularity_number-modal').value=this.value;"
+                  onchange="updateQaHiddenField(this);"
                 >
+                <div class="d-flex justify-content-between mt-0 align-items-end">
+                    <span class="col-form-label-sm small">{% trans "Fine" %}</span>
+                    <span class="col-form-label-sm small">{% trans "Coarse" %}</span>
+                </div>
               </div>
-              <div class="col-auto">
-                <input
-                  type="number"
-                  style="width: 70px"
-                  class="form-control form-control-sm"
-                  aria-labelledby="granularity-label"
-                  id="qa_granularity_number-modal"
-                  data-inputname="qa_granularity"
-                  onchange="updateQaHiddenField(this); document.getElementById('qa_granularity-modal').value=this.value;"
-                  min="768"
-                  max="16000"
-                  step="100"
-                  value="768"
-                >
-              </div>
-
-
             </div>
-
           </div>
           <div class="col-md-2 mb-2 pt-3">
             <div class="form-check form-switch col ms-2">

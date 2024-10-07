@@ -433,7 +433,6 @@ function updateQaHiddenField(modal_element) {
 function toggleSlider(value) {
   var slider = document.getElementById('qa_granularity_slider');
   var sliderInput = document.getElementById('qa_granularity-modal');
-  var numberInput = document.getElementById('qa_granularity_number-modal');
   // var granularityValue = document.getElementById('granularity_value');
 
   if (value === 'per-source') {
@@ -441,7 +440,6 @@ function toggleSlider(value) {
   } else {
     slider.style.display = 'none';
     sliderInput.value = 768; // Reset slider value to 768 when "combined" is selected
-    numberInput.value = 768;
   }
 
   updateQaHiddenField(sliderInput);
