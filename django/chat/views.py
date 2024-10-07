@@ -2,6 +2,7 @@ import json
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.forms.models import model_to_dict
@@ -395,6 +396,11 @@ def chat_message(request, chat_id):
         user_message=f"{user_message_text[:100]}{'...' if len(user_message_text) > 100 else ''}",
         mode=mode,
     )
+
+    # Stop the previous bot response message, if necessary
+    chat_bot_messages = Message.objects.filter(chat=chat, is_bot=True).order_by("id")
+    if chat_bot_messages.exists():
+        cache.set(f"stop_response_{chat_bot_messages.last().id}", True, timeout=60)
 
     # Quick-add URL to library (Change mode to QA and data source to current Chat if so)
     adding_url_to_qa = False
