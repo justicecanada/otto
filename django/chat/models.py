@@ -290,7 +290,7 @@ class Message(models.Model):
 
     @property
     def sources(self):
-        return self.answersource_set.all()
+        return self.answersource_set.all().order_by("id")
 
     @property
     def display_cost(self):
@@ -332,6 +332,7 @@ class AnswerSource(models.Model):
     node_score = models.FloatField(default=0.0)
     # Saved citation for cases where the source Document is deleted later
     saved_citation = models.TextField(blank=True)
+    group_number = models.IntegerField(default=0)
 
     def __str__(self):
         document_citation = self.citation

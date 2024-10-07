@@ -118,22 +118,24 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
     from librarian.models import Document
 
     sources = []
-    for node in source_nodes:
-        try:
-            if node.node.text == "":
-                continue
-            document = Document.objects.get(uuid_hex=node.node.ref_doc_id)
-            score = node.score
-            source = AnswerSource(
-                message=message,
-                document_id=document.id,
-                node_text=node.node.text,
-                node_score=score,
-                saved_citation=document.citation,
-            )
-            sources.append(source)
-        except Exception as e:
-            print("Error saving source:", node, e)
+    for i, group in enumerate(source_nodes):
+        for node in group:
+            try:
+                if node.node.text == "":
+                    continue
+                document = Document.objects.get(uuid_hex=node.node.ref_doc_id)
+                score = node.score
+                source = AnswerSource(
+                    message=message,
+                    document_id=document.id,
+                    node_text=node.node.text,
+                    node_score=score,
+                    saved_citation=document.citation,
+                    group_number=i,
+                )
+                sources.append(source)
+            except Exception as e:
+                print("Error saving source:", node, e)
 
     AnswerSource.objects.bulk_create(sources)
 

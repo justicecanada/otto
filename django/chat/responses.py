@@ -479,7 +479,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 source_groups = sort_by_max_score(source_groups)
 
             # Flatten newly-sorted source nodes
-            source_nodes = [node for group in source_groups for node in group]
+            # source_nodes = [node for group in source_groups for node in group]
 
         else:
             if chat.options.qa_source_order == "reading_order":
@@ -521,7 +521,7 @@ def qa_response(chat, response_message, switch_mode=False):
             llm,
             response_generator=response_generator,
             response_replacer=response_replacer,
-            source_nodes=source_nodes,
+            source_nodes=source_groups,
             switch_mode=switch_mode,
         ),
         content_type="text/event-stream",

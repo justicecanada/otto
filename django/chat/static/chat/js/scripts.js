@@ -443,4 +443,6 @@ function toggleSlider(value) {
     sliderInput.value = 768; // Reset slider value to 768 when "combined" is selected
     numberInput.value = 768;
   }
+
+  updateQaHiddenField(sliderInput);
 }
