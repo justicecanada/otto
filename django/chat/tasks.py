@@ -32,6 +32,8 @@ def azure_delete(path):
 
 @shared_task(soft_time_limit=ten_minutes)
 def translate_file(file_path, target_language):
+    input_file_path = None
+    output_file_path = None
     try:
         from chat.models import ChatFile, Message
 
@@ -43,7 +45,6 @@ def translate_file(file_path, target_language):
         logger.info(f"Processing translation for {file_path} at {datetime.now()}")
         file_name = file_path.split("/")[-1]
         input_file_name = file_name.replace(" ", "_")
-        # Get extension from filename
         file_extension = os.path.splitext(input_file_name)[1]
         file_name_without_extension = os.path.splitext(input_file_name)[0]
         output_file_name = (
@@ -53,7 +54,7 @@ def translate_file(file_path, target_language):
         input_file_path = f"temp/translation/in/{file_uuid}/{input_file_name}"
         output_file_path = f"temp/translation/out/{file_uuid}/{output_file_name}"
 
-        # We need to upload to Azure Blob Storage for Translation API to work
+        # Upload to Azure Blob Storage
         azure_storage = settings.AZURE_STORAGE
         azure_storage.save(input_file_path, open(file_path, "rb"))
 
@@ -65,7 +66,6 @@ def translate_file(file_path, target_language):
         poller = translation_client.begin_translation(
             source_url, target_url, target_language, storage_type="File"
         )
-        # Wait for translation to finish
         result = poller.result()
 
         usage = poller.details.total_characters_charged
@@ -75,13 +75,11 @@ def translate_file(file_path, target_language):
         out_message = Message.objects.get(id=request_context.get("message_id"))
         for document in result:
             if document.status == "Succeeded":
-                # Save the translated file to the database
                 new_file = ChatFile.objects.create(
                     message=out_message,
                     filename=output_file_name,
                     content_type="?",
                 )
-
                 new_file.saved_file.file.save(
                     output_file_name, azure_storage.open(output_file_path)
                 )
@@ -89,10 +87,15 @@ def translate_file(file_path, target_language):
                 logger.error("Translation failed: ", error=document.error.message)
                 raise Exception(f"Translation failed:\n{document.error.message}")
 
-        Thread(target=azure_delete, args=(input_file_path,)).start()
-        Thread(target=azure_delete, args=(output_file_path,)).start()
-
         logger.info(f"Translation processed for {file_path} at {datetime.now()}")
     except SoftTimeLimitExceeded:
         logger.error(f"Translation task timed out for {file_path}")
         raise Exception(f"Translation task timed out for {file_path}")
+    except Exception as e:
+        logger.error(f"Error translating {file_path}: {e}")
+        raise Exception(f"Error translating {file_path}")
+    finally:
+        if input_file_path:
+            Thread(target=azure_delete, args=(input_file_path,)).start()
+        if output_file_path:
+            Thread(target=azure_delete, args=(output_file_path,)).start()
