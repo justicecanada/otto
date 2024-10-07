@@ -421,9 +421,7 @@ async def combine_response_generators(generators, titles, query, llm, prune=Fals
                     tmpl = PromptTemplate(QA_PRUNING_INSTRUCTIONS).format(
                         query_str=query, answer_str=final_streams[i]
                     )
-                    relevance_check = llm.complete(
-                        tmpl
-                    )  # TODO: check cost tracking implications
+                    relevance_check = llm.complete(tmpl)
                     if relevance_check is None:
                         relevance_check = "yes"
                     if str(relevance_check).lower().startswith("no"):
