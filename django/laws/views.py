@@ -95,17 +95,17 @@ def answer(request, query_uuid):
     bind_contextvars(feature="laws_query")
     from llama_index.core.schema import MetadataMode
 
-    additional_instructions = request.GET.get("additional_instructions", "")
-
-    CHAT_TEXT_QA_PROMPT = ChatPromptTemplate(
-        message_templates=TEXT_QA_PROMPT_TMPL_MSGS
-    ).partial_format(additional_instructions=additional_instructions)
-
     query_info = cache.get(query_uuid)
     if not query_info:
         return StreamingHttpResponse(
             streaming_content=htmx_sse_error(), content_type="text/event-stream"
         )
+
+    additional_instructions = query_info["additional_instructions"]
+    CHAT_TEXT_QA_PROMPT = ChatPromptTemplate(
+        message_templates=TEXT_QA_PROMPT_TMPL_MSGS
+    ).partial_format(additional_instructions=additional_instructions)
+
     sources = query_info["sources"]
     query = query_info["query"]
     trim_redundant = query_info["trim_redundant"]
@@ -258,7 +258,11 @@ def search(request):
             trim_redundant = True
             model = "gpt-4o"
             context_tokens = 2000
-            additional_instructions = ""
+            additional_instructions = (
+                "If the context information is entirely unrelated to the provided query,"
+                "don't try to answer the question; just say "
+                "'Sorry, I cannot answer that question.'."
+            )
         else:
             vector_ratio = float(request.POST.get("vector_ratio", 1))
             top_k = int(request.POST.get("top_k", 25))
