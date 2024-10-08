@@ -15,6 +15,7 @@ from llama_index.core import PromptTemplate
 from llama_index.core.prompts import PromptType
 from newspaper import Article
 
+from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS
@@ -476,4 +477,20 @@ def sort_by_max_score(groups):
         groups,
         key=lambda doc: max(node.score for node in doc),
         reverse=True,
+    )
+
+  
+def change_mode_to_chat_qa(chat):
+    chat.options.qa_library = chat.user.personal_library
+    chat.options.qa_scope = "data_sources"
+    chat.options.qa_data_sources.set([chat.data_source])
+    chat.options.save()
+
+    return render_to_string(
+        "chat/components/chat_options_accordion.html",
+        {
+            "options_form": ChatOptionsForm(instance=chat.options, user=chat.user),
+            "mode": "qa",
+            "swap": "true",
+        },
     )

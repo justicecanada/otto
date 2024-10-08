@@ -3530,5 +3530,85 @@
     "Error getting search results:": {
         "fr": "",
         "fr_auto": "Erreur d’obtention des résultats de recherche :"
+    },
+    "GPT-4o-mini (Global)": {
+        "fr": "",
+        "fr_auto": "GPT-4o-mini (Global)"
+    },
+    "Use top sources only (fast, cheap)": {
+        "fr": "",
+        "fr_auto": "Utilisez les meilleures sources uniquement (rapide, pas cher)"
+    },
+    "Read entire documents (slow, expensive)": {
+        "fr": "",
+        "fr_auto": "Lire des documents entiers (lents, coûteux)"
+    },
+    "Relevance score": {
+        "fr": "",
+        "fr_auto": "Cote de pertinence"
+    },
+    "You are a general-purpose AI chatbot. You follow these rules:\n\n1. Your name is 'Otto', an AI who works for the Department of Justice Canada.\n\n2. If the user asks any question regarding Canada's laws and regulations, you must inform them of the [Legislation search app](/laws/), a tool in Otto built to be better suited for finding relevant and accurate laws and regulations in Canada. If relevant, add a markdown link to the Legislation search app.\n\n3. You do not have access to the internet or other knowledge bases. If you are asked about very specific facts, especially one about the Government of Canada or laws, you always caveat your response, e.g., 'I am a pre-trained AI and do not have access to the internet, so my answers might not be correct. Based on my training data, I expect that...'\n\n4. You answer in markdown format to provide clear and readable responses.": {
+        "fr": "",
+        "fr_auto": "Vous êtes un chatbot IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de l’application de recherche [Législation] (/lois/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. S’il y a lieu, ajoutez un lien de démarque à l’application de recherche Législation.\n\n3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles."
+    },
+    "Current date: {time}": {
+        "fr": "",
+        "fr_auto": "Date actuelle : {time}"
+    },
+    "Adding to the Q&A library...": {
+        "fr": "",
+        "fr_auto": "Ajout à la bibliothèque de questions et réponses..."
+    },
+    "Adding to the Q&A library": {
+        "fr": "",
+        "fr_auto": "Ajout à la bibliothèque de questions et réponses"
+    },
+    "URL ready for Q&A.": {
+        "fr": "",
+        "fr_auto": "URL prête pour les questions et réponses."
+    },
+    "new document(s) ready for Q&A.": {
+        "fr": "",
+        "fr_auto": "nouveau(s) document(s) prêt(s) pour les questions et réponses."
+    },
+    "Sorry, I couldn't find any information about that. Try selecting more data sources or documents, or try a different library.": {
+        "fr": "",
+        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner d’autres sources de données ou documents, ou essayez une autre bibliothèque."
+    },
+    "Summarize text, files and URLs": {
+        "fr": "",
+        "fr_auto": "Résumer le texte, les fichiers et les URL"
+    },
+    "Delete message": {
+        "fr": "",
+        "fr_auto": "Supprimer le message"
+    },
+    "Switched mode to": {
+        "fr": "",
+        "fr_auto": "Mode commuté vers"
+    },
+    "Selected library:": {
+        "fr": "",
+        "fr_auto": "Bibliothèque sélectionnée :"
+    },
+    "Detect best mode (Chat or Q&A)": {
+        "fr": "",
+        "fr_auto": "Détecter le meilleur mode (Chat ou Q&A)"
+    },
+    "Search mode": {
+        "fr": "",
+        "fr_auto": "Mode de recherche"
+    },
+    "An error occurred while processing the request.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors du traitement de la demande."
+    },
+    "Personal library": {
+        "fr": "",
+        "fr_auto": "Bibliothèque personnelle"
+    },
+    "Chat agent": {
+        "fr": "",
+        "fr_auto": "Agent de chat"
     }
 }
