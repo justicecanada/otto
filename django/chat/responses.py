@@ -1,4 +1,5 @@
 import asyncio
+from itertools import groupby
 
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -383,7 +384,7 @@ def qa_response(chat, response_message, switch_mode=False):
             summary_responses, document_titles
         )
         response_generator = None
-        sources = None
+        source_nodes = None
 
     else:
         vector_store_table = chat.options.qa_library.uuid_hex
@@ -417,6 +418,29 @@ def qa_response(chat, response_message, switch_mode=False):
         input = response_message.parent.text
         source_nodes = retriever.retrieve(input)
 
+        if chat.options.qa_source_order == "reading_order":
+            doc_key = lambda x: x.node.ref_doc_id
+            # Group nodes from the same doc together,
+            # and sort by reading order within each group
+            doc_iters = groupby(
+                sorted(
+                    source_nodes, key=lambda x: (doc_key(x), x.metadata["chunk_number"])
+                ),
+                key=doc_key,
+            )
+            doc_groups = [list(doc) for _, doc in doc_iters]
+
+            # Sort document groups by maximum node score
+            # TODO: consider average node score instead
+            sorted_doc_groups = sorted(
+                doc_groups,
+                key=lambda x: max(
+                    -y.score for y in x
+                ),  # Negative sign ensures top groups first
+            )
+
+            source_nodes = [node for doc in sorted_doc_groups for node in doc]
+
         if len(source_nodes) == 0:
             response_str = _(
                 "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
@@ -448,8 +472,6 @@ def qa_response(chat, response_message, switch_mode=False):
             )
             response_generator = None
 
-        sources = source_nodes
-
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
@@ -457,7 +479,7 @@ def qa_response(chat, response_message, switch_mode=False):
             llm,
             response_generator=response_generator,
             response_replacer=response_replacer,
-            source_nodes=sources,
+            source_nodes=source_nodes,
             switch_mode=switch_mode,
         ),
         content_type="text/event-stream",

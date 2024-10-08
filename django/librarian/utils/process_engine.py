@@ -303,9 +303,9 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     if current_text:
         stuffed_texts.append(current_text)
 
-    for text in stuffed_texts:
+    for i, text in enumerate(stuffed_texts):
         node = TextNode(text=text, id_=str(uuid.uuid4()))
-        node.metadata = metadata
+        node.metadata = dict(metadata, chunk_number=i)
         node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
             node_id=source_node_id
         )
