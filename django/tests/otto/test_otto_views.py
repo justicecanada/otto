@@ -6,11 +6,13 @@ import json
 
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 import pytest
 from bs4 import BeautifulSoup
 
 from chat.models import Chat, Message
+from otto.forms import FeedbackForm
 from otto.models import Feedback, Notification
 
 
@@ -109,3 +111,30 @@ def test_valid_feedback_form_from_message(client, all_apps_user):
         data=data,
     )
     assert response.status_code == 200
+
+
+def test_initialize_feedback_for_chat_mode(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(title="test", user=user)
+    message = Message.objects.create(chat=chat, mode="translate", is_bot=False)
+
+    data = {
+        "user": user.id,
+        "feedback_type": Feedback.FEEDBACK_TYPE_CHOICES[0][0],
+        "feedback_message": "Test feedback message for translation",
+        "app": "translate",
+        "chat_message_id": message.id,
+        "modified_by": user.id,
+        "otto_version": "v0",
+    }
+
+    client.post(
+        reverse("user_feedback", kwargs={"message_id": message.id}),
+        data=data,
+    )
+
+    form = FeedbackForm(user=user, message_id=message.id)
+    form.initialize_chat_feedback(message.id)
+
+    assert form.fields["app"].choices == [("translate", _("Translate"))]
