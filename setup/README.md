@@ -15,12 +15,24 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
 - **Custom Domain Name (Optional):**
   - If you plan to use a custom domain, make sure you have access to the domain registrar to update the DNS records.
 
-- **Registration of Cloud Shell:** Ensure that the **Microsoft.CloudShell** resource provider is registered in your Azure subscription.
+- **Registration of Required Resource Providers:** Ensure that the following resource providers are registered in your Azure subscription:
+  - Microsoft.Storage
+  - Microsoft.KeyVault
+  - Microsoft.ContainerRegistry
+  - Microsoft.CognitiveServices
+  - Microsoft.ContainerService
+  - Microsoft.DBforPostgreSQL
+  - Microsoft.Network
+  - Microsoft.Compute
+  - Microsoft.OperationalInsights
+  - Microsoft.ManagedIdentity
+
+  To register these providers:
   - In the [Azure Portal](https://portal.azure.com), search for "Resource providers" in the top search bar.
   - Select "Resource providers" from the search results.
-  - In the list of resource providers, find "Microsoft.CloudShell".
-  - If its status is not "Registered", select it and click the "Register" button at the top of the page.
-  - Wait for the registration process to complete.
+  - In the list of resource providers, find each of the providers listed above.
+  - If the status of any provider is not "Registered", select it and click the "Register" button at the top of the page.
+  - Wait for the registration process to complete for each provider.
 
 - **Agreement to Responsible AI Terms:** Follow these steps to accept the Responsible AI terms:
   - Log in to the [Azure Portal](https://portal.azure.com).
@@ -32,8 +44,14 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
 
 - **Azure OpenAI Content Filter Modifications:** 
   - This step is required only once per subscription.
-  - Visit [this link](https://aka.ms/oai/rai/exceptions) to request an exemption from the default content filtering and abuse monitoring.
-  - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing data where standard content filtering is not appropriate.
+  - Visit [this link](https://aka.ms/oai/rai/exceptions) to request an exemption from the default content filtering.
+  - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing information where standard content filtering is not appropriate.
+  - Wait for Microsoft's approval before proceeding with the deployment.
+  
+- **Agreement to Disable Abuse Monitoring:** 
+  - This step is required only once per subscription.
+  - Visit [this link](https://ncv.microsoft.com/3a140V2W0l) to request an exemption from the default abuse monitoring.
+  - Fill out the form to apply disable abuse monitoring. This is necessary because the organization has data residency requirements and the storage of prompts and completions must remain in Canada. SA-9(5)
   - Wait for Microsoft's approval before proceeding with the deployment.
 
 - **Entra App Registration:**

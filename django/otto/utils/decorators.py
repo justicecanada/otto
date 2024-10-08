@@ -14,6 +14,7 @@ from otto.rules import ADMINISTRATIVE_PERMISSIONS
 logger = get_logger(__name__)
 
 
+# AC-3: Enforce access controls on specific views and functions
 def app_access_required(app_handle):
     def decorator(func):
         @wraps(func)
@@ -44,6 +45,7 @@ def app_access_required(app_handle):
     return decorator
 
 
+# AC-3: Enforce access controls on specific views and functions
 def permission_required(
     perm,
     fn=None,

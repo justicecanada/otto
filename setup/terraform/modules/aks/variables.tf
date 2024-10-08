@@ -42,3 +42,13 @@ variable "storage_account_id" {
   description = "The ID of the storage account"
   type        = string
 }
+
+variable "admin_email" {
+  description = "The email address of the admin user"
+  type        = string
+}
+
+variable "use_private_network" {
+  type        = bool
+  description = "Whether to use private networking for the AKS cluster"
+}
