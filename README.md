@@ -35,11 +35,11 @@
 | django/librarian/views.py                                              |      241 |      139 |     42% |64-109, 115-159, 170-188, 192-195, 214-230, 243-252, 284-293, 308, 315-317, 323, 328, 335, 342, 349, 354, 359, 366, 390-395, 401-403, 414-425, 432-439 |
 | django/otto/celery.py                                                  |       16 |        1 |     94% |        35 |
 | django/otto/context\_processors.py                                     |        3 |        0 |    100% |           |
-| django/otto/forms.py                                                   |       48 |        6 |     88% |   131-140 |
+| django/otto/forms.py                                                   |       55 |        8 |     85% |72, 74, 140-149 |
 | django/otto/management/commands/reset\_app\_data.py                    |      124 |       20 |     84% |67-72, 90, 104-109, 129-134, 155-160, 174-175, 180-183, 198-203, 214 |
 | django/otto/metrics/activity\_metrics.py                               |        2 |        0 |    100% |           |
 | django/otto/metrics/feedback\_metrics.py                               |        3 |        0 |    100% |           |
-| django/otto/models.py                                                  |      236 |       32 |     86% |26-28, 63, 67-70, 89, 93-96, 131, 173, 189, 210, 217, 235, 296, 299, 335, 347, 353, 357, 361, 365, 369, 378, 426-427, 441, 445, 449 |
+| django/otto/models.py                                                  |      236 |       31 |     87% |26-28, 67-70, 89, 93-96, 131, 173, 189, 210, 217, 235, 296, 299, 335, 347, 353, 357, 361, 365, 369, 378, 426-427, 441, 445, 449 |
 | django/otto/rules.py                                                   |      121 |       22 |     82% |24, 41, 50, 88, 120, 148-152, 158, 163-167, 172, 177, 183, 187-188, 193 |
 | django/otto/secure\_models.py                                          |      248 |       63 |     75% |21-22, 61, 86-100, 129-130, 135-136, 149-154, 183-224, 248, 268-269, 307, 337, 350, 359, 378, 393, 398, 403, 409-415, 418, 423, 437, 442, 447, 491-498, 517, 536-537, 549-552 |
 | django/otto/settings.py                                                |      145 |       22 |     85% |37-39, 49-50, 202-211, 276-277, 354-360, 381, 408, 465-466 |
@@ -52,7 +52,7 @@
 | django/otto/utils/common.py                                            |       19 |        3 |     84% | 22, 29-30 |
 | django/otto/utils/decorators.py                                        |       46 |        4 |     91% |22-23, 62, 84 |
 | django/otto/utils/logging.py                                           |       15 |        0 |    100% |           |
-| django/otto/views.py                                                   |      310 |      154 |     50% |40, 45-59, 100, 110-121, 169, 224, 270-273, 277-281, 291, 294-297, 303-304, 334-351, 356-368, 373-435, 450-655 |
+| django/otto/views.py                                                   |      310 |      154 |     50% |41, 46-60, 101, 111-122, 169, 224, 270-273, 277-281, 291, 294-297, 303-304, 334-351, 356-368, 373-435, 450-655 |
 | django/template\_wizard/metrics/template\_wizard\_activity\_metrics.py |        2 |        0 |    100% |           |
 | django/template\_wizard/models.py                                      |        9 |        0 |    100% |           |
 | django/template\_wizard/translation.py                                 |        0 |        0 |    100% |           |
@@ -63,7 +63,7 @@
 | django/text\_extractor/tests.py                                        |        1 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                        |      149 |       84 |     44% |48-71, 112-113, 131-287 |
 | django/text\_extractor/views.py                                        |      104 |       86 |     17% |29-32, 37-207, 211-226 |
-|                                                              **TOTAL** | **5813** | **2197** | **62%** |           |
+|                                                              **TOTAL** | **5820** | **2198** | **62%** |           |
 
 
 ## Setup coverage badge
