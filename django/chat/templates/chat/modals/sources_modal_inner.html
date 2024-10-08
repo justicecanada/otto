@@ -1,6 +1,7 @@
 <div class="accordion accordion-flush"
      id="sources-{{ message.id }}-accordion">
   {% for source in sources %}
+
     <div class="accordion-item" data-group="{{ source.group_number }}">
       <h2 class="accordion-header">
         <button class="accordion-button collapsed"
@@ -17,28 +18,30 @@
            class="accordion-collapse collapse">
         <div class="accordion-body scrolling-content" style="">
           {% if source.document %}<div class="float-end ps-3">{{ source.document.href|safe }}</div>{% endif %}
+
           <div style="white-space:pre-wrap;">{{ source.node_text|safe }}</div>
         </div>
       </div>
     </div>
   {% endfor %}
+
 </div>
 
 <script>
-  var accordionItems = document.querySelectorAll(".accordion-item");
-  var lastGroup = null;
+    var accordionItems = document.getElementById("sources-{{ message.id }}-accordion").querySelectorAll(".accordion-item");
+    var lastGroup = null;
 
-  accordionItems.forEach((item, index) => {
-    var currentGroup = item.getAttribute("data-group");
+    accordionItems.forEach((item, index) => {
+        var currentGroup = item.getAttribute("data-group");
 
-    // Check if we need to insert an hr before the current item
-    if (lastGroup !== currentGroup && index !== 0) {
-      var hr = document.createElement("hr");
-      hr.style.border = "2px solid";
-      hr.style.margin = "0px";
-      item.parentNode.insertBefore(hr, item);
-    }
+        // Check if we need to insert an hr before the current item
+        if (lastGroup !== currentGroup && index !== 0) {
+            var hr = document.createElement("hr");
+            hr.style.border = "2px solid";
+            hr.style.margin = "0px";
+            item.parentNode.insertBefore(hr, item);
+        }
 
-    lastGroup = currentGroup;
-  });
+        lastGroup = currentGroup;
+    });
 </script>
