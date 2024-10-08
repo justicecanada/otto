@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_9125c692c1971378_cache_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-10-08 18:49 +0000
+            created at 2024-10-08 19:34 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -131,7 +131,7 @@
     <p class="run"><span class="n"><a id="t49" href="#t49">49</a></span><span class="t">        <span class="nam">no_trailing_dash_path</span> <span class="op">=</span> <span class="nam">request</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">rstrip</span><span class="op">(</span><span class="str">"/"</span><span class="op">)</span> <span class="key">or</span> <span class="str">"/"</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t">        <span class="key">if</span> <span class="nam">no_trailing_dash_path</span> <span class="key">in</span> <span class="nam">PUBLIC_PATHS</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">            <span class="key">return</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_response</span><span class="op">(</span><span class="nam">request</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">        <span class="com"># AC-2: User Authentication (Can't be anonymous)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">        <span class="com"># AC-2, AC-19: User Authentication (Can't be anonymous)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">        <span class="key">if</span> <span class="key">not</span> <span class="nam">request</span><span class="op">.</span><span class="nam">user</span><span class="op">.</span><span class="nam">is_authenticated</span> <span class="key">or</span> <span class="nam">request</span><span class="op">.</span><span class="nam">user</span><span class="op">.</span><span class="nam">is_anonymous</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t">            <span class="key">return</span> <span class="nam">HttpResponseRedirect</span><span class="op">(</span><span class="nam">reverse</span><span class="op">(</span><span class="str">"welcome"</span><span class="op">)</span> <span class="op">+</span> <span class="str">"?next="</span> <span class="op">+</span> <span class="nam">request</span><span class="op">.</span><span class="nam">path</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -161,7 +161,7 @@
             <a class="nav" href="z_9125c692c1971378_cache_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-10-08 18:49 +0000
+            created at 2024-10-08 19:34 +0000
         </p>
     </div>
 </footer>
