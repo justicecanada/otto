@@ -95,17 +95,17 @@ def answer(request, query_uuid):
     bind_contextvars(feature="laws_query")
     from llama_index.core.schema import MetadataMode
 
-    additional_instructions = request.GET.get("additional_instructions", "")
-
-    CHAT_TEXT_QA_PROMPT = ChatPromptTemplate(
-        message_templates=TEXT_QA_PROMPT_TMPL_MSGS
-    ).partial_format(additional_instructions=additional_instructions)
-
     query_info = cache.get(query_uuid)
     if not query_info:
         return StreamingHttpResponse(
             streaming_content=htmx_sse_error(), content_type="text/event-stream"
         )
+
+    additional_instructions = query_info["additional_instructions"]
+    CHAT_TEXT_QA_PROMPT = ChatPromptTemplate(
+        message_templates=TEXT_QA_PROMPT_TMPL_MSGS
+    ).partial_format(additional_instructions=additional_instructions)
+
     sources = query_info["sources"]
     query = query_info["query"]
     trim_redundant = query_info["trim_redundant"]
