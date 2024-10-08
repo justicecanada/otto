@@ -11,7 +11,7 @@ resource "random_password" "djangodb_password" {
 resource "azurerm_cosmosdb_postgresql_cluster" "djangodb" {
   name                            = var.resource_name
   resource_group_name             = var.resource_group_name
-  location                        = var.location
+  location                        = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   citus_version                   = "12.1"
   sql_version                     = "16"
   administrator_login_password    = random_password.djangodb_password.result
@@ -25,7 +25,7 @@ resource "azurerm_cosmosdb_postgresql_cluster" "djangodb" {
   node_vcores                   = 4
   node_storage_quota_in_mb      = 524288
   node_server_edition           = "MemoryOptimized"
-  node_public_ip_access_enabled = true
+  node_public_ip_access_enabled = !var.use_private_network # AC-22, IA-8: Set to false for private access
 
   ha_enabled = false
 
@@ -50,12 +50,22 @@ resource "azurerm_key_vault_secret" "djangodb_hostname" {
   depends_on = [var.keyvault_id, var.wait_for_propagation]
 }
 
-# Allow public access from Azure services and resources within Azure
-resource "azurerm_cosmosdb_postgresql_firewall_rule" "allow_azure_services" {
-  name             = "AllowAzureServices"
+# # Allow public access from Azure services and resources within Azure
+# resource "azurerm_cosmosdb_postgresql_firewall_rule" "allow_azure_services" {
+#   name             = "AllowAzureServices"
+#   cluster_id       = azurerm_cosmosdb_postgresql_cluster.djangodb.id
+#   start_ip_address = "0.0.0.0"
+#   end_ip_address   = "0.0.0.0"
+# }
+
+# Allow access from AKS cluster
+# Only create this rule if not using private networking
+resource "azurerm_cosmosdb_postgresql_firewall_rule" "allow_aks" {
+  count            = var.use_private_network ? 0 : 1
+  name             = "AllowAKS"
   cluster_id       = azurerm_cosmosdb_postgresql_cluster.djangodb.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0"
+  start_ip_address = var.aks_ip_address
+  end_ip_address   = var.aks_ip_address
 }
 
 resource "azurerm_monitor_diagnostic_setting" "djangodb_diagnostics" {

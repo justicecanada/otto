@@ -2,7 +2,7 @@
 resource "azurerm_container_registry" "acr" {
   name                = var.acr_name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   sku                 = var.acr_sku
 
   admin_enabled = true

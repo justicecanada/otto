@@ -50,3 +50,8 @@ variable "wait_for_propagation" {
   description = "Flag for keyvault permission propagation"
   type        = string
 }
+
+variable "use_private_network" {
+  type        = bool
+  description = "Whether to use private networking for the managed disks"
+}
