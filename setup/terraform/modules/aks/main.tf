@@ -202,8 +202,8 @@ resource "azurerm_monitor_metric_alert" "aks_network_alert" {
 
   criteria {
     metric_namespace = "Microsoft.ContainerService/managedClusters"
-    metric_name      = "network_in_bytes"
-    aggregation      = "Total"
+    metric_name      = "node_network_in_bytes"
+    aggregation      = "Average"
     operator         = "GreaterThan"
     threshold        = 1000000000 # 1 GB, adjust as needed
   }
@@ -211,6 +211,9 @@ resource "azurerm_monitor_metric_alert" "aks_network_alert" {
   action {
     action_group_id = azurerm_monitor_action_group.aks_alerts.id
   }
+
+  frequency   = "PT1M"
+  window_size = "PT5M"
 }
 
 # SC-5, SC-5(3): CPU usage alert: Notifies when CPU reaches an abnormally high level, which could be caused by a DDoS attack

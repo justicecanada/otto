@@ -60,7 +60,7 @@ module "disk" {
   keyvault_id          = module.keyvault.keyvault_id
   cmk_id               = module.keyvault.cmk_id
   wait_for_propagation = module.keyvault.wait_for_propagation
-  use_private_network = var.use_private_network
+  use_private_network  = var.use_private_network
 }
 
 # Storage module
@@ -74,7 +74,12 @@ module "storage" {
   cmk_name               = module.keyvault.cmk_name
   wait_for_propagation   = module.keyvault.wait_for_propagation
   storage_container_name = var.storage_container_name
-  use_private_network = var.use_private_network
+  use_private_network    = var.use_private_network
+}
+
+data "azurerm_public_ip" "aks_outbound_ip" {
+  name                = split("/", module.aks.outbound_ip_resource_id)[8]
+  resource_group_name = split("/", module.aks.outbound_ip_resource_id)[4]
 }
 
 # DjangoDB module
@@ -86,9 +91,9 @@ module "djangodb" {
   tags                 = local.common_tags
   storage_account_id   = module.storage.storage_account_id
   keyvault_id          = module.keyvault.keyvault_id
-  aks_ip_address       = module.aks.outbound_ip_address
+  aks_ip_address       = data.azurerm_public_ip.aks_outbound_ip.ip_address
   wait_for_propagation = module.keyvault.wait_for_propagation
-  use_private_network = var.use_private_network
+  use_private_network  = var.use_private_network
 }
 
 # Cognitive Services module
@@ -132,7 +137,7 @@ module "aks" {
   storage_account_id     = module.storage.storage_account_id
   tags                   = local.common_tags
   admin_email            = var.admin_email
-  use_private_network = var.use_private_network
+  use_private_network    = var.use_private_network
 }
 
 

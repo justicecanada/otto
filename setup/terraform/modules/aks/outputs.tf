@@ -8,7 +8,7 @@ output "aks_cluster_id" {
   description = "The ID of the AKS cluster"
 }
 
-output "outbound_ip_address" {
+output "outbound_ip_resource_id" {
   value       = tolist(azurerm_kubernetes_cluster.aks.network_profile[0].load_balancer_profile[0].effective_outbound_ips)[0]
-  description = "The outbound IP address of the AKS cluster"
+  description = "The resource ID of the outbound IP address of the AKS cluster"
 }

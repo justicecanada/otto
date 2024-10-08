@@ -15,12 +15,24 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
 - **Custom Domain Name (Optional):**
   - If you plan to use a custom domain, make sure you have access to the domain registrar to update the DNS records.
 
-- **Registration of Cloud Shell:** Ensure that the **Microsoft.CloudShell** resource provider is registered in your Azure subscription.
+- **Registration of Required Resource Providers:** Ensure that the following resource providers are registered in your Azure subscription:
+  - Microsoft.Storage
+  - Microsoft.KeyVault
+  - Microsoft.ContainerRegistry
+  - Microsoft.CognitiveServices
+  - Microsoft.ContainerService
+  - Microsoft.DBforPostgreSQL
+  - Microsoft.Network
+  - Microsoft.Compute
+  - Microsoft.OperationalInsights
+  - Microsoft.ManagedIdentity
+
+  To register these providers:
   - In the [Azure Portal](https://portal.azure.com), search for "Resource providers" in the top search bar.
   - Select "Resource providers" from the search results.
-  - In the list of resource providers, find "Microsoft.CloudShell".
-  - If its status is not "Registered", select it and click the "Register" button at the top of the page.
-  - Wait for the registration process to complete.
+  - In the list of resource providers, find each of the providers listed above.
+  - If the status of any provider is not "Registered", select it and click the "Register" button at the top of the page.
+  - Wait for the registration process to complete for each provider.
 
 - **Agreement to Responsible AI Terms:** Follow these steps to accept the Responsible AI terms:
   - Log in to the [Azure Portal](https://portal.azure.com).
