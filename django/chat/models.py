@@ -274,7 +274,7 @@ class Message(models.Model):
     details = models.JSONField(default=dict)
     mode = models.CharField(max_length=255, default="chat")
     parent = models.OneToOneField(
-        "self", on_delete=models.CASCADE, null=True, related_name="child"
+        "self", on_delete=models.SET_NULL, null=True, related_name="child"
     )
 
     def __str__(self):

@@ -14,6 +14,7 @@ from llama_index.core import PromptTemplate
 from llama_index.core.prompts import PromptType
 from newspaper import Article
 
+from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
 from otto.models import SecurityLabel
@@ -432,3 +433,19 @@ async def combine_response_replacers(generators, titles):
                 stream["status"] = "stopped"
         yield ("\n\n---\n\n".join(final_streams))
         await asyncio.sleep(0)
+
+
+def change_mode_to_chat_qa(chat):
+    chat.options.qa_library = chat.user.personal_library
+    chat.options.qa_scope = "data_sources"
+    chat.options.qa_data_sources.set([chat.data_source])
+    chat.options.save()
+
+    return render_to_string(
+        "chat/components/chat_options_accordion.html",
+        {
+            "options_form": ChatOptionsForm(instance=chat.options, user=chat.user),
+            "mode": "qa",
+            "swap": "true",
+        },
+    )

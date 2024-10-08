@@ -2,6 +2,9 @@ import json
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -28,7 +31,7 @@ from chat.metrics.feedback_metrics import (
     chat_positive_feedback_total,
 )
 from chat.models import Chat, ChatFile, ChatOptions, Message, create_chat_data_source
-from chat.utils import llm_response_to_html, title_chat
+from chat.utils import change_mode_to_chat_qa, llm_response_to_html, title_chat
 from librarian.models import DataSource, Library
 from otto.models import App, SecurityLabel
 from otto.utils.decorators import app_access_required, permission_required
@@ -394,6 +397,21 @@ def chat_message(request, chat_id):
         mode=mode,
     )
 
+    # Stop the previous bot response message, if necessary
+    chat_bot_messages = Message.objects.filter(chat=chat, is_bot=True).order_by("id")
+    if chat_bot_messages.exists():
+        cache.set(f"stop_response_{chat_bot_messages.last().id}", True, timeout=60)
+
+    # Quick-add URL to library (Change mode to QA and data source to current Chat if so)
+    adding_url_to_qa = False
+    if mode == "qa":
+        url_validator = URLValidator()
+        try:
+            url_validator(user_message_text)
+            adding_url_to_qa = True
+        except ValidationError:
+            pass
+
     user_message = Message.objects.create(
         chat=chat, text=user_message_text, is_bot=False, mode=mode
     )
@@ -417,7 +435,23 @@ def chat_message(request, chat_id):
         ],
         "mode": mode,
     }
-    return render(request, "chat/components/chat_messages.html", context=context)
+    response = HttpResponse()
+    response.write(render_to_string("chat/components/chat_messages.html", context))
+    if adding_url_to_qa:
+        response.write(change_mode_to_chat_qa(chat))
+    return response
+
+
+@permission_required("chat.access_message", objectgetter(Message, "message_id"))
+def delete_message(request, message_id):
+    """
+    Delete a message from the chat
+    """
+    message = Message.objects.get(id=message_id)
+    chat = message.chat
+    logger.info("Deleting chat message.", message_id=message_id, chat_id=chat.id)
+    message.delete()
+    return HttpResponse()
 
 
 @require_GET
@@ -471,23 +505,7 @@ def done_upload(request, message_id):
         # usage metrics
         print("QA upload")
         chat_request_type_total.labels(user=request.user.upn, type="qa upload")
-        chat.options.qa_library = chat.user.personal_library
-        chat.options.qa_scope = "data_sources"
-        chat.options.qa_data_sources.set([chat.data_source])
-        chat.options.save()
-
-        response.write(
-            render_to_string(
-                "chat/components/chat_options_accordion.html",
-                {
-                    "options_form": ChatOptionsForm(
-                        instance=chat.options, user=request.user
-                    ),
-                    "mode": "qa",
-                    "swap": "true",
-                },
-            )
-        )
+        response.write(change_mode_to_chat_qa(chat))
 
     response_init_message = {
         "is_bot": True,
