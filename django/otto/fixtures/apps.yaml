@@ -107,3 +107,21 @@
           description_fr: Extrait de texte et d'écriture manuscrite à partir de PDF numérisés et d'images avec OCR activé par l'IA.
           url: text_extractor:index
           category: other
+
+- model: otto.App
+  fields:
+    handle: chronology_email
+    name_en: Email Chronology
+    name_fr: chronologie des e-mails
+    visible_to_all: false
+    prod_ready: true
+    user_group: Chronology email user
+    features:
+      - fields:
+          short_name: "chronology_email"
+          name_en: Email Chronology
+          name_fr: chronologie des e-mails
+          description_en: Upload and organize emails.
+          description_fr: Téléchargez et organisez les e-mails.
+          url: case_prep:index
+          category: other
