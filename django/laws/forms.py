@@ -192,6 +192,11 @@ class LawSearchForm(forms.Form):
     additional_instructions = forms.CharField(
         label=_("Additional instructions for AI answer"),
         required=False,
+        initial=(
+            "If the context information is entirely unrelated to the provided query,"
+            "don't try to answer the question; just say "
+            "'Sorry, I cannot answer that question.'."
+        ),
         widget=forms.Textarea(
             attrs={
                 "class": "form-control",
