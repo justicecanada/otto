@@ -227,6 +227,8 @@ async def test_htmx_stream_response_replacer(basic_user):
 async def test_combine_response_generators():
     from chat.utils import combine_response_generators
 
+    llm = OttoLLM()
+
     # The function should take a list of (sync) generators and a list of titles
     # and combine the output of the generators into a single stream
     # By the end, it will have output all the text from all the generators
@@ -245,7 +247,7 @@ async def test_combine_response_generators():
 
     titles = ["Title 1", "Title 2", "Title 3"]
     generators = [stream_generator1(), stream_generator2(), stream_generator3()]
-    response_stream = combine_response_generators(generators, titles)
+    response_stream = combine_response_generators(generators, titles, query="", llm=llm)
     final_output = ""
     async for yielded_output in response_stream:
         final_output = yielded_output

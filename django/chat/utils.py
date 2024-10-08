@@ -1,5 +1,6 @@
 import asyncio
 import sys
+from itertools import groupby
 from typing import AsyncGenerator, Generator
 
 from django.core.cache import cache
@@ -17,6 +18,7 @@ from newspaper import Article
 from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
+from chat.prompts import QA_PRUNING_INSTRUCTIONS
 from otto.models import SecurityLabel
 
 # Markdown instance
@@ -117,22 +119,24 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
     from librarian.models import Document
 
     sources = []
-    for node in source_nodes:
-        try:
-            if node.node.text == "":
-                continue
-            document = Document.objects.get(uuid_hex=node.node.ref_doc_id)
-            score = node.score
-            source = AnswerSource(
-                message=message,
-                document_id=document.id,
-                node_text=node.node.text,
-                node_score=score,
-                saved_citation=document.citation,
-            )
-            sources.append(source)
-        except Exception as e:
-            print("Error saving source:", node, e)
+    for i, group in enumerate(source_nodes):
+        for node in group:
+            try:
+                if node.node.text == "":
+                    continue
+                document = Document.objects.get(uuid_hex=node.node.ref_doc_id)
+                score = node.score
+                source = AnswerSource(
+                    message=message,
+                    document_id=document.id,
+                    node_text=node.node.text,
+                    node_score=score,
+                    saved_citation=document.citation,
+                    group_number=i,
+                )
+                sources.append(source)
+            except Exception as e:
+                print("Error saving source:", node, e)
 
     AnswerSource.objects.bulk_create(sources)
 
@@ -404,7 +408,7 @@ def get_source_titles(sources):
     ]
 
 
-async def combine_response_generators(generators, titles):
+async def combine_response_generators(generators, titles, query, llm, prune=False):
     streams = [{"stream": stream, "status": "running"} for stream in generators]
     final_streams = [f"\n###### *{title}*\n" for title in titles]
     while any([stream["status"] == "running" for stream in streams]):
@@ -414,7 +418,23 @@ async def combine_response_generators(generators, titles):
                     final_streams[i] += next(stream["stream"])
             except StopIteration:
                 stream["status"] = "stopped"
-        yield ("\n\n---\n\n".join(final_streams))
+                if prune:
+                    tmpl = PromptTemplate(QA_PRUNING_INSTRUCTIONS).format(
+                        query_str=query, answer_str=final_streams[i]
+                    )
+                    relevance_check = llm.complete(tmpl)
+                    if relevance_check is None:
+                        relevance_check = "yes"
+                    if str(relevance_check).lower().startswith("no"):
+                        final_streams[i] = ""
+
+        final_result = "\n\n---\n\n".join(
+            [stream for stream in final_streams if stream]
+        )
+        if final_result:
+            yield (final_result)
+        else:
+            yield ("**No relevant sources found.**")
         await asyncio.sleep(0)
 
 
@@ -435,6 +455,31 @@ async def combine_response_replacers(generators, titles):
         await asyncio.sleep(0)
 
 
+def group_sources_into_docs(source_nodes):
+    doc_key = lambda x: x.node.ref_doc_id
+
+    doc_group_iters = groupby(
+        sorted(source_nodes, key=lambda x: (doc_key(x), x.metadata["chunk_number"])),
+        key=doc_key,
+    )
+
+    # Nested list makes downstream manipulations (e.g. sorting by scores) easier
+    doc_groups = [list(doc) for _, doc in doc_group_iters]
+
+    return doc_groups
+
+
+def sort_by_max_score(groups):
+    # Sort groups of nodes by the maximum relevance score within each group
+    # TODO: consider using average score within each group instead
+
+    return sorted(
+        groups,
+        key=lambda doc: max(node.score for node in doc),
+        reverse=True,
+    )
+
+  
 def change_mode_to_chat_qa(chat):
     chat.options.qa_library = chat.user.personal_library
     chat.options.qa_scope = "data_sources"
