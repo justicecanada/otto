@@ -3,7 +3,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "kv" {
   # SC-12: Centralized key management system
   name                       = var.keyvault_name
-  location                   = var.location
+  location                   = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   resource_group_name        = var.resource_group_name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium" # SC-13: Premium SKU is FIPS 140-2 Level 2 compliant

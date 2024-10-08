@@ -38,3 +38,8 @@ variable "storage_container_name" {
   description = "The name of the default container to create in the storage account"
   type        = string
 }
+
+variable "use_private_network" {
+  type        = bool
+  description = "Whether to use private networking for the storage account"
+}

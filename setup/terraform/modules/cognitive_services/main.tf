@@ -1,6 +1,6 @@
 resource "azurerm_cognitive_account" "cognitive_services" {
   name                = var.name
-  location            = var.location
+  location            = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   resource_group_name = var.resource_group_name
   kind                = "CognitiveServices"
   sku_name            = "S0"

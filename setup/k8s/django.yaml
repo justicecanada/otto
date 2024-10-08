@@ -47,6 +47,7 @@ spec:
         app: django-app
     spec:
       containers:
+        # SC-2: Secure configuration of the container
         - name: django-app-container
           image: ${ACR_NAME}.azurecr.io/otto:latest
           imagePullPolicy: Always # IfNotPresent in PROD

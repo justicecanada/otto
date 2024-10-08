@@ -202,7 +202,7 @@ def notifications(request, hide=False):
     )
 
 
-# AC-16 & AC-16(2): Allows authorized administrators to modify user groups and roles
+# AC-3(7), AC-16, & AC-16(2): Allows authorized administrators to modify user groups and roles
 @permission_required("otto.manage_users")
 def manage_users(request):
     if request.method == "POST":
@@ -432,6 +432,8 @@ def aggregate_costs(costs, x_axis="day"):
                 }
                 for week_or_month in set(c[x_axis] for c in costs)
             ]
+        # Sort by x-axis label
+        costs = sorted(costs, key=lambda c: c[x_axis])
     return costs
 
 
@@ -520,7 +522,7 @@ def cost_dashboard(request):
         ]
 
     costs = aggregate_costs(raw_costs, x_axis)
-    chart_x_keys = sorted([c[x_axis] for c in costs])
+    chart_x_keys = [c[x_axis] for c in costs]
     # Pretty labels
     chart_x_labels = chart_x_keys
     if x_axis == "feature":
@@ -617,7 +619,6 @@ def cost_dashboard(request):
                             f"${cad_cost(cost['total_cost']):.2f}",
                         ]
                     )
-        rows = sorted(rows, key=lambda r: r[0])
 
         chart_y_groups = sorted(
             [
