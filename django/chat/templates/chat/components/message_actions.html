@@ -2,13 +2,13 @@
 {% load i18n %}
 
 <div class="message-meta message-actions text-muted">
+  <button type="button"
+          onclick="copyMessage(this)"
+          class="btn btn-link m-0 ms-1 p-0 text-muted copy-message-button"
+          title='{% trans "Copy" %}'>
+    <i class="bi bi-clipboard"></i><i class="bi bi-clipboard-fill"></i>
+  </button>
   {% if message.is_bot %}
-    <button type="button"
-            onclick="copyMessage(this)"
-            class="btn btn-link m-0 ms-1 p-0 text-muted copy-message-button"
-            title='{% trans "Copy" %}'>
-      <i class="bi bi-clipboard"></i><i class="bi bi-clipboard-fill"></i>
-    </button>
     <button type="button"
             hx-get="{% url 'chat:thumbs_feedback' message_id=message.id feedback=1 %}"
             hx-trigger="click"
