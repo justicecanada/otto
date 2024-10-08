@@ -23,6 +23,7 @@ from django.views.decorators.http import require_POST
 from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
 
+from chat.models import Message
 from otto.forms import FeedbackForm, PilotForm, UserGroupForm
 from otto.metrics.activity_metrics import otto_access_total
 from otto.metrics.feedback_metrics import otto_feedback_submitted_with_comment_total
@@ -133,7 +134,6 @@ def accept_terms(request):
 @login_required
 def message_feedback(request: HttpRequest, message_id=None):
     if request.method == "POST":
-        logger.info("Feedback form submitted", message_id=message_id)
         form = FeedbackForm(request.user, message_id, request.POST)
 
         if form.is_valid():
@@ -142,7 +142,7 @@ def message_feedback(request: HttpRequest, message_id=None):
             form.save()
 
             otto_feedback_submitted_with_comment_total.labels(
-                user=request.user.upn
+                user=request.user.username
             ).inc()
 
             if message_id is None:
