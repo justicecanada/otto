@@ -258,7 +258,11 @@ def search(request):
             trim_redundant = True
             model = "gpt-4o"
             context_tokens = 2000
-            additional_instructions = ""
+            additional_instructions = (
+                "If the context information is entirely unrelated to the provided query,"
+                "don't try to answer the question; just say "
+                "'Sorry, I cannot answer that question.'."
+            )
         else:
             vector_ratio = float(request.POST.get("vector_ratio", 1))
             top_k = int(request.POST.get("top_k", 25))
