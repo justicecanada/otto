@@ -199,7 +199,9 @@ def api_qa(request):
     chat = Chat.objects.create(user=user, mode=mode)
 
     # Create a chat options object
-    chat.options = ChatOptions.objects.from_defaults(user=chat.user.default_preset)
+    chat.options = ChatOptions.objects.from_defaults(
+        default_preset=request.user.default_preset
+    )
     chat.options.mode = mode
 
     # Usage metrics
@@ -651,8 +653,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             logger.info("Resetting chat options to default.", chat_id=chat_id)
 
             # Update the chat options with the default options
-            chat_options = chat.options
-            _copy_options(preset_options, chat_options)
+            _copy_options(preset_options, chat.options)
         else:
             logger.info(
                 "Loading chat options from a preset.",
@@ -661,17 +662,25 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             )
             if not preset_id:
                 return HttpResponse(status=500)
-            preset_options = Preset.objects.get(id=int(preset_id))
-            if not preset_options:
+            preset = Preset.objects.get(id=int(preset_id))
+            if not preset:
                 return HttpResponse(status=500)
-            chat_options = preset_options.options
+
+            new_options = ChatOptions.objects.from_defaults()
+
+            # copy the options from the preset to the chat
+            _copy_options(preset.options, new_options)
+
+            # Update chat options
+            chat.options = new_options
+            chat.save()
 
         return render(
             request,
             "chat/components/chat_options_accordion.html",
             {
                 "options_form": ChatOptionsForm(
-                    instance=chat_options, user=request.user
+                    instance=chat.options, user=request.user
                 ),
                 "preset_loaded": "true",
             },
@@ -693,21 +702,12 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
                 # # get chat object from chat_id
                 chat = Chat.objects.get(id=chat_id)
-
                 new_options = ChatOptions.objects.from_defaults()
 
-                # Copy all fields from chat.options to new_options
-                for field in chat.options._meta.fields:
-                    if field.name not in ["id", "chat", "preset"]:
-                        setattr(
-                            new_options, field.name, getattr(chat.options, field.name)
-                        )
+                # copy the options from the chat to the preset
+                _copy_options(chat.options, new_options)
 
-                # Handle many-to-many fields
-                new_options.qa_data_sources.set(chat.options.qa_data_sources.all())
-                new_options.qa_documents.set(chat.options.qa_documents.all())
-
-                new_options.save()
+                # Update preset options
                 preset.options = new_options
 
                 english_title = form.cleaned_data["name_en"]
@@ -778,6 +778,11 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             logger.error(chat_options_form.errors)
             return HttpResponse(status=500)
         chat_options_form.save()
+        # Return a simple success response
+        return HttpResponse(status=200)
+
+    else:
+        return HttpResponse(status=500)
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))

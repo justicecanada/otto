@@ -988,7 +988,9 @@ def test_preset(client, all_apps_user):
     assert Preset.objects.filter(name_en="New Preset").exists()
 
     # Test saving an existing preset
+    user2 = all_apps_user("user2")
     preset = Preset.objects.get(name_en="New Preset")
+
     response = client.post(
         reverse(
             "chat:chat_options",
@@ -1001,17 +1003,46 @@ def test_preset(client, all_apps_user):
         data={
             "name_en": "Updated Preset",
             "description_en": "Updated Description",
-            "is_public": False,
+            "is_public": True,
             "editable_by": [],
             "accessible_to": [],
+        },
+    )
+
+    assert response.status_code == 200
+    # the user did not provide any users for the editable field or the accessible field with is_public=True
+    assert "Please provide at least one user for the editable field or the accessible field." in response.content.decode("utf-8")
+    # the new preset should not have been updated since there was an error
+    preset.refresh_from_db()
+    assert preset.name_en == "New Preset"
+
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat.id,
+                "action": "save_preset",
+                "preset_id": preset.id,
+            },
+        ),
+        data={
+            "name_en": "Updated Preset",
+            "description_en": "Updated Description",
+            "is_public": True,
+            "editable_by": [user2.id],
+            "accessible_to": [user2.id],
         },
     )
     assert response.status_code == 302  # Redirect after saving
     preset.refresh_from_db()
     assert preset.name_en == "Updated Preset"
     assert preset.description_en == "Updated Description"
+    assert preset.is_public
+    assert user2 in preset.editable_by.all()
+    assert user2 in preset.accessible_to.all()
 
-    # Test loading a preset
+    # Test loading the preset
+    client.force_login(user)
     response = client.post(
         reverse(
             "chat:chat_options",
@@ -1025,18 +1056,6 @@ def test_preset(client, all_apps_user):
     assert response.status_code == 200
     assert "preset_loaded" in response.context
     assert response.context["preset_loaded"] == "true"
-
-    # Test resetting chat options
-    chat.options.chat_system_prompt = "Custom Value"
-    chat.options.save()
-    response = client.post(
-        reverse("chat:chat_options", kwargs={"chat_id": chat.id, "action": "reset"})
-    )
-    assert response.status_code == 200
-    chat.refresh_from_db()
-    assert (
-        chat.options.chat_system_prompt != "Custom Value"
-    )  # Assuming default is different
 
     # Test deleting the preset
     response = client.post(

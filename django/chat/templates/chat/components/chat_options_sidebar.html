@@ -25,7 +25,8 @@
     <form class="overflow-y-auto overflow-x-hidden"
           id="chat-options"
           hx-trigger="optionsChanged"
-          hx-post="{% url 'chat:chat_options' chat_id=chat.id %}">
+          hx-post="{% url 'chat:chat_options' chat_id=chat.id %}"
+          hx-swap="none">
       {% csrf_token %}
       {{ options_form.mode }}
       <script src="{% static 'chat/js/chatOptions.js' %}"></script>
