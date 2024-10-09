@@ -67,6 +67,9 @@
         <button type="button"
                 class="btn btn-sm btn-outline-success"
                 hx-get="{% url 'librarian:document_start' document.id %}">{% trans "Re-process" %}</button>
+        <button type="button"
+                class="btn btn-sm btn-outline-success"
+                hx-get="{% url 'librarian:document_start_azure' document.id %}">{% trans "Force OCR" %}</button>
       {% endif %}
     </div>
   </div>

@@ -402,6 +402,16 @@ def document_start(request, document_id):
 
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
+def document_start_azure(request, document_id):
+    bind_contextvars(feature="librarian")
+
+    # Initiate celery task
+    document = get_object_or_404(Document, id=document_id)
+    document.process(force_azure=True)
+    return modal_view(request, item_type="document", item_id=document_id)
+
+
+@permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 def document_stop(request, document_id):
     # Stop celery task
     document = get_object_or_404(Document, id=document_id)

@@ -406,7 +406,7 @@ class Document(models.Model):
             logger.error(f"Failed to remove document from vector store: {e}")
         super().delete(*args, **kwargs)
 
-    def process(self):
+    def process(self, force_azure=False):
         from .tasks import process_document
 
         bind_contextvars(document_id=self.id)
@@ -416,7 +416,7 @@ class Document(models.Model):
             self.status = "ERROR"
             self.save()
             return
-        process_document.delay(self.id, get_language())
+        process_document.delay(self.id, get_language(), force_azure)
         self.celery_task_id = "tbd"
         self.status = "INIT"
         self.save()

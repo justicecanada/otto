@@ -2,6 +2,7 @@ from django.urls import path
 
 from librarian.views import (
     document_start,
+    document_start_azure,
     document_stop,
     download_document,
     modal_create_data_source,
@@ -82,6 +83,11 @@ urlpatterns = [
     # Document upload and processing
     path("modal/upload/to/<int:data_source_id>/", upload, name="upload"),
     path("document/<int:document_id>/start/", document_start, name="document_start"),
+    path(
+        "document/<int:document_id>/start/azure/",
+        document_start_azure,
+        name="document_start_azure",
+    ),
     path("document/<int:document_id>/stop/", document_stop, name="document_stop"),
     path(
         "document/<int:document_id>/download/",
