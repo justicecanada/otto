@@ -42,7 +42,7 @@ spec:
       containers:
         - name: celery-worker
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the latest image from Azure Container Registry
-          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--pool=gevent', '--concurrency=1000']  # Starts Celery worker
+          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--pool=gevent', '--concurrency=100']  # Starts Celery worker
           securityContext:
             allowPrivilegeEscalation: false  # Privilege escalation is disabled
             readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
