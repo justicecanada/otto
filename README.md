@@ -359,7 +359,6 @@ If things are even more messed up:
 For details, please see LICENSE.txt.
 
 We cannot use a more permissive license than GPL until we remove these dependencies:
-* PyMuPDF
 * html2text
 
 ### GPL 3 license

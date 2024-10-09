@@ -47,7 +47,7 @@ def process_document(document_id, language=None):
         with translation.override(language):
             process_document_helper(document, llm)
 
-    except SoftTimeLimitExceeded:
+    except:
         document.status = "ERROR"
         document.celery_task_id = None
         document.save()
