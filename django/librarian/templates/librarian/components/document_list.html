@@ -7,7 +7,7 @@
       <em class="small">{% trans "Select a data source to edit documents." %}</em>
     </div>
   {% else %}
-    <div class="row mb-1">
+    <div class="row mb-2">
       <div class="col pe-0">
         <form enctype="multipart/form-data"
               id="document-upload-form"
@@ -30,10 +30,10 @@
         </button>
       </div>
     </div>
-    <div class="row mb-3">
+    <div class="row mb-2">
       <div class="col pe-0">
         <button type="button"
-                class="btn btn-sm btn-outline-warning w-100"
+                class="btn btn-sm btn-outline-secondary w-100"
                 hx-get="{% url 'librarian:data_source_stop' selected_data_source.id %}">{% trans "Stop all" %}</button>
       </div>
       <div class="col ps-1 pe-0">
