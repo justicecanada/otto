@@ -28,8 +28,6 @@ TEMPERATURES = [
 ]
 LANGUAGES = [("en", _("English")), ("fr", _("French"))]
 
-User = get_user_model()
-
 
 class GroupedLibraryChoiceField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):
@@ -354,6 +352,8 @@ class ChatRenameForm(ModelForm):
 
 
 class PresetForm(forms.ModelForm):
+    User = get_user_model()
+
     class Meta:
         model = Preset
         fields = [
