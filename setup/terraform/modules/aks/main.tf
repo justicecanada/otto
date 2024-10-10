@@ -45,8 +45,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   # SC-8: Secure Internal Communication in AKS
   # AC-3 & CM-8(3): Network Policies for AKS
   network_profile {
-    network_plugin    = "azure"    # Azure CNI provides integration with Azure networking features
-    network_policy    = "azure"    # Azure network policies control traffic flow between pods
+    network_plugin    = "kubenet"    # Azure CNI provides integration with Azure networking features; Kubenet is simpler and will suffice in Sandbox; TODO: Change to "azure" after resolving issues.
+    #network_policy    = "azure"    # Azure network policies control traffic flow between pods; TODO: Enable network policy once rules are configured to work in environment.
     load_balancer_sku = "standard" # Standard SKU provides more features and better performance
   }
 
