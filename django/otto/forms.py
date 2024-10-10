@@ -50,7 +50,6 @@ class FeedbackForm(ModelForm):
         self.fields["modified_by"].initial = user
         self.fields["chat_message"].queryset = Message.objects.filter(id=message_id)
         self.fields["otto_version"].initial = settings.OTTO_VERSION
-
         if message_id is not None:
             self.initialize_chat_feedback(message_id)
         else:
@@ -65,7 +64,17 @@ class FeedbackForm(ModelForm):
                 lambda option: option[0] == "feedback", Feedback.FEEDBACK_TYPE_CHOICES
             )
         )
-        self.fields["app"].choices = [("chat", "Chat")]
+
+        chat_mode = Message.objects.get(id=message_id).mode
+        if chat_mode == "translate":
+            self.fields["app"].choices = [("translate", _("Translate"))]
+        elif chat_mode == "summarize":
+            self.fields["app"].choices = [("summarize", _("Summarize"))]
+        elif chat_mode == "qa":
+            self.fields["app"].choices = [("qa", _("QA"))]
+        else:
+            self.fields["app"].choices = [("chat", _("Chat"))]
+
         self.fields["chat_message"].initial = Message.objects.get(id=message_id)
 
 
