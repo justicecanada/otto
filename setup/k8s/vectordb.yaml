@@ -12,7 +12,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 16Gi
+      storage: 32Gi
 
 ---
 
@@ -54,6 +54,13 @@ spec:
                   key: VECTORDB_USER
           ports:
             - containerPort: 5432
+          resources:
+            requests:
+              cpu: "4"
+              memory: "16Gi"
+            limits:
+              cpu: "8"
+              memory: "32Gi"
           volumeMounts:
             - name: postgres-vector-volume-mount
               subPath: vectordb
