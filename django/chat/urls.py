@@ -79,14 +79,19 @@ urlpatterns = [
         name="get_presets",
     ),
     path(
-        "id/<str:chat_id>/options/presets/form/",
-        views.get_preset_form,
-        name="get_preset_form",
-    ),
-    path(
         "presets/<str:preset_id>/favourite/",
         views.set_preset_favourite,
         name="set_preset_favourite",
+    ),
+    path(
+        "id/<str:chat_id>/options/presets/<str:preset_id>/edit/",
+        views.edit_preset,
+        name="edit_preset",
+    ),
+    path(
+        "id/<str:chat_id>/options/presets/form/",
+        views.create_preset,
+        name="create_preset",
     ),
     path(
         "presets/<int:preset_id>/default/<str:chat_id>",

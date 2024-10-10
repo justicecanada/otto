@@ -26,21 +26,34 @@
           id="chat-options"
           hx-trigger="optionsChanged"
           hx-post="{% url 'chat:chat_options' chat_id=chat.id %}"
-          hx-swap="outerHTML"
-          hx-target="#option_presets">
+          hx-swap="none">
       {% csrf_token %}
       {{ options_form.mode }}
+      <script src="{% static 'chat/js/chatOptions.js' %}"></script>
+      {% include 'chat/components/chat_options_accordion.html' %}
+
       <div class="d-flex justify-content-between p-3 w-100">
         <span class="px-0" data-bs-toggle="modal" data-bs-target="#presets-modal">
           <button type="button"
                   class="btn btn-sm btn-outline-dark"
                   data-bs-toggle="tooltip"
                   data-bs-title="{% trans "Create preset from current settings" %}"
-                  hx-get="{% url 'chat:get_preset_form' chat_id=chat.id %}"
+                  hx-get="{% url 'chat:create_preset' chat_id=chat.id %}"
                   hx-target="#presets-modal-body"
                   hx-swap="innerHTML transition:true">
             <i class="bi bi-floppy2-fill"></i>
             <span class="visually-hidden">{% trans "Create preset from current settings" %}</span>
+          </button>
+        </span>
+        <span class="px-0">
+          <button type="button"
+                  class="btn btn-sm btn-outline-dark"
+                  data-bs-toggle="tooltip"
+                  data-bs-title="{% trans 'Reset settings to default' %}"
+                  hx-get="{% url 'chat:chat_options' chat_id=chat.id action='reset' %}"
+                  hx-target="#options-accordion"
+                  hx-swap="outerHTML">
+            <i class="bi bi-arrow-counterclockwise"></i>
           </button>
         </span>
         <span class="px-0" data-bs-toggle="modal" data-bs-target="#presets-modal">
@@ -54,12 +67,10 @@
                   hx-swap="innerHTML"
                   onclick="document.getElementById('presets-modal-body').innerHTML = '';">
             <span class="visually-hidden">{% trans "Open Presets Menu" %}</span>
-            <i class="bi bi-card-list"></i>
+            <i class="bi bi-folder"></i>
           </button>
         </span>
       </div>
-      <script src="{% static 'chat/js/chatOptions.js' %}"></script>
-      {% include 'chat/components/chat_options_accordion.html' %}
     </form>
   </div>
 </div>
