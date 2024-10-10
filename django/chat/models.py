@@ -15,6 +15,7 @@ from chat.prompts import (
     QA_PRE_INSTRUCTIONS,
     QA_PROMPT_TEMPLATE,
     QA_SYSTEM_PROMPT,
+    current_time_prompt,
 )
 from librarian.models import DataSource, Library, SavedFile
 from otto.models import SecurityLabel, User
@@ -22,7 +23,16 @@ from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
 
-DEFAULT_MODE = "qa"
+DEFAULT_MODE = "chat"
+
+
+def create_chat_data_source(user):
+    if not user.personal_library:
+        user.create_personal_library()
+    return DataSource.objects.create(
+        name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        library=user.personal_library,
+    )
 
 
 class ChatManager(models.Manager):
@@ -35,13 +45,8 @@ class ChatManager(models.Manager):
             default_preset=kwargs["user"].default_preset, mode=mode
         )
         kwargs["security_label_id"] = SecurityLabel.default_security_label().id
+        kwargs["data_source"] = create_chat_data_source(kwargs["user"])
         instance = super().create(*args, **kwargs)
-        # Create data source
-        DataSource.objects.create(
-            name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
-            library=instance.user.personal_library,
-            chat=instance,
-        )
         return instance
 
 
@@ -67,6 +72,14 @@ class Chat(models.Model):
 
     options = models.OneToOneField(
         "ChatOptions", on_delete=models.CASCADE, related_name="chat", null=True
+    )
+
+    data_source = models.OneToOneField(
+        "librarian.DataSource",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="chat",
     )
 
     def __str__(self):
@@ -95,6 +108,7 @@ class ChatOptionsManager(models.Manager):
             # Default Otto settings
             default_library = Library.objects.get_default_library()
             new_options = self.create(
+                chat_agent=False,
                 qa_library=default_library,
                 chat_system_prompt=_(DEFAULT_CHAT_PROMPT),
                 chat_model=settings.DEFAULT_CHAT_MODEL,
@@ -118,6 +132,16 @@ QA_SCOPE_CHOICES = [
     ("documents", _("Selected documents")),
 ]
 
+QA_MODE_CHOICES = [
+    ("rag", _("Use top sources only (fast, cheap)")),
+    ("summarize", _("Read entire documents (slow, expensive)")),
+]
+
+QA_SOURCE_ORDER_CHOICES = [
+    ("score", _("Relevance score")),
+    ("reading_order", _("Reading order")),
+]
+
 
 class ChatOptions(models.Model):
     """
@@ -135,6 +159,7 @@ class ChatOptions(models.Model):
     chat_model = models.CharField(max_length=255, default="gpt-4o")
     chat_temperature = models.FloatField(default=0.1)
     chat_system_prompt = models.TextField(blank=True)
+    chat_agent = models.BooleanField(default=True)
 
     # Summarize-specific options
     summarize_model = models.CharField(max_length=255, default="gpt-4o")
@@ -145,7 +170,7 @@ class ChatOptions(models.Model):
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
 
-    # Library QA-specific options
+    # QA-specific options
     qa_model = models.CharField(max_length=255, default="gpt-4o")
     qa_library = models.ForeignKey(
         "librarian.Library",
@@ -153,7 +178,8 @@ class ChatOptions(models.Model):
         null=True,
         related_name="qa_options",
     )
-    qa_scope = models.CharField(max_length=255, default="all", choices=QA_SCOPE_CHOICES)
+    qa_mode = models.CharField(max_length=20, default="rag", choices=QA_MODE_CHOICES)
+    qa_scope = models.CharField(max_length=20, default="all", choices=QA_SCOPE_CHOICES)
     qa_data_sources = models.ManyToManyField(
         "librarian.DataSource", related_name="qa_options"
     )
@@ -165,7 +191,9 @@ class ChatOptions(models.Model):
     qa_prompt_template = models.TextField(blank=True)
     qa_pre_instructions = models.TextField(blank=True)
     qa_post_instructions = models.TextField(blank=True)
-    qa_source_order = models.CharField(max_length=20, default="score")
+    qa_source_order = models.CharField(
+        max_length=20, default="score", choices=QA_SOURCE_ORDER_CHOICES
+    )
     qa_vector_ratio = models.FloatField(default=0.6)
     qa_answer_mode = models.CharField(max_length=20, default="combined")
     qa_prune = models.BooleanField(default=True)
@@ -179,7 +207,7 @@ class ChatOptions(models.Model):
         return ChatPromptTemplate(
             message_templates=[
                 ChatMessage(
-                    content=self.qa_system_prompt,
+                    content=current_time_prompt() + self.qa_system_prompt,
                     role=MessageRole.SYSTEM,
                 ),
                 ChatMessage(
@@ -357,7 +385,7 @@ class Message(models.Model):
 
     @property
     def sources(self):
-        return self.answersource_set.all().order_by("-node_score")
+        return self.answersource_set.all()
 
     @property
     def display_cost(self):

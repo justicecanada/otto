@@ -27,10 +27,15 @@ async def django_db_setup(django_db_setup, django_db_blocker):
                 "library_mini",
                 "cost_types",
             )
-            from django.conf import settings
+            # Process the Wikipedia document only
+            from chat.llm import OttoLLM
+            from librarian.models import Document
+            from librarian.tasks import process_document_helper
 
-            if not settings.IS_RUNNING_IN_GITHUB:
-                call_command("load_corporate_library")
+            test_document = Document.objects.get(
+                url="https://en.wikipedia.org/wiki/Glyph"
+            )
+            process_document_helper(test_document, OttoLLM())
 
     return await sync_to_async(_inner)()
 

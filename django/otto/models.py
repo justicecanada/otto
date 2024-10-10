@@ -389,6 +389,7 @@ FEATURE_CHOICES = [
     ("librarian", _("Librarian")),
     ("qa", _("Q&A")),
     ("chat", _("Chat")),
+    ("chat_agent", _("Chat agent")),
     ("translate", _("Translate")),
     ("summarize", _("Summarize")),
     ("template_wizard", _("Template wizard")),

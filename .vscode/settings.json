@@ -71,5 +71,10 @@
   ],
   // Linux
   "terminal.integrated.defaultProfile.linux": "zsh",
-  "python.REPL.enableREPLSmartSend": false
+  "python.REPL.enableREPLSmartSend": false,
+  "python.testing.pytestArgs": [
+    "django"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }

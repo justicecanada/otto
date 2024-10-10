@@ -153,6 +153,7 @@ async def htmx_stream(
     format: bool = True,
     dots: bool = False,
     source_nodes: list = [],
+    switch_mode: bool = False,
 ) -> AsyncGenerator:
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
@@ -193,8 +194,12 @@ async def htmx_stream(
     ##############################
     is_untitled_chat = chat.title.strip() == ""
     full_message = ""
+    dots_html = '<div class="typing"><span></span><span></span><span></span></div>'
     if dots:
-        dots = f'<div class="typing"><span></span><span></span><span></span></div>'
+        dots = dots_html
+    if switch_mode:
+        mode = chat.options.mode
+        mode_str = {"qa": _("Q&A"), "chat": _("Chat")}[mode]
 
     try:
         if response_generator:
@@ -203,7 +208,21 @@ async def htmx_stream(
             response_replacer = stream_to_replacer([response_str])
 
         # Stream the response text
+        first_message = True
         async for response in response_replacer:
+            if first_message and switch_mode:
+                full_message = render_to_string(
+                    "chat/components/mode_switch_message.html",
+                    {
+                        "mode": mode,
+                        "mode_str": mode_str,
+                        "library_id": chat.options.qa_library_id,
+                        "library_str": chat.options.qa_library.name,
+                    },
+                )
+                yield sse_string(full_message, format=False, dots=dots_html)
+                await asyncio.sleep(1)
+                first_message = False
             full_message = response
             if cache.get(f"stop_response_{message_id}", False):
                 break
@@ -211,6 +230,7 @@ async def htmx_stream(
             await asyncio.sleep(0.01)
 
         yield sse_string(full_message, format, dots=False, remove_stop=True)
+        await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
 
@@ -237,6 +257,7 @@ async def htmx_stream(
             )()
 
     except Exception as e:
+        message = await sync_to_async(Message.objects.get)(id=message_id)
         full_message = _("An error occurred:") + f"\n```\n{str(e)}\n```"
         message.text = full_message
         await sync_to_async(message.save)()
@@ -338,7 +359,6 @@ def summarize_long_text(
         },
     }
 
-    length_prompt_template = length_prompts[length][target_language]
     if custom_prompt and "{docs}" in custom_prompt:
         length_prompt_template = custom_prompt
     elif custom_prompt:
@@ -348,6 +368,8 @@ def summarize_long_text(
             + _("The original document is below, enclosed in triple quotes:")
             + "\n'''\n{docs}\n'''"
         )
+    else:
+        length_prompt_template = length_prompts[length][target_language]
     # Tree summarizer prompt requires certain variables
     # Note that we aren't passing in a query here, so the query will be empty
     length_prompt_template = length_prompt_template.replace(
@@ -373,3 +395,40 @@ async def summarize_long_text_async(
     return await sync_to_async(summarize_long_text)(
         text, llm, length, target_language, custom_prompt
     )
+
+
+def get_source_titles(sources):
+    return [
+        source.metadata.get("title", source.metadata["source"]) for source in sources
+    ]
+
+
+async def combine_response_generators(generators, titles):
+    streams = [{"stream": stream, "status": "running"} for stream in generators]
+    final_streams = [f"\n###### *{title}*\n" for title in titles]
+    while any([stream["status"] == "running" for stream in streams]):
+        for i, stream in enumerate(streams):
+            try:
+                if stream["status"] == "running":
+                    final_streams[i] += next(stream["stream"])
+            except StopIteration:
+                stream["status"] = "stopped"
+        yield ("\n\n---\n\n".join(final_streams))
+        await asyncio.sleep(0)
+
+
+async def combine_response_replacers(generators, titles):
+    streams = [{"stream": stream, "status": "running"} for stream in generators]
+    formatted_titles = [f"\n###### *{title}*\n" for title in titles]
+    partial_streams = ["" for _ in titles]
+    final_streams = ["" for _ in titles]
+    while any([stream["status"] == "running" for stream in streams]):
+        for i, stream in enumerate(streams):
+            try:
+                if stream["status"] == "running":
+                    partial_streams[i] = await stream["stream"].__anext__()
+                    final_streams[i] = formatted_titles[i] + partial_streams[i]
+            except StopAsyncIteration:
+                stream["status"] = "stopped"
+        yield ("\n\n---\n\n".join(final_streams))
+        await asyncio.sleep(0)

@@ -18,13 +18,4 @@
       {% block accordion_body %}{% endblock %}
     </div>
   </div>
-  {% if swap %}
-    {# Trigger saving settings #}
-    <script>
-  const hidden_mode_input = document.querySelector('#chat-options input[name="mode"]');
-  hidden_mode_input.value = mode;
-  // If the element is not null, dispatch a change event to trigger the form submission
-  if (element) hidden_mode_input.dispatchEvent(new Event('change'));
-    </script>
-  {% endif %}
 </div>

@@ -23,14 +23,11 @@ function scrollToBottom(smooth = true, force = false) {
 
 function handleModeChange(mode, element = null) {
   // Set the hidden input value to the selected mode
-  let hidden_mode_input = document.querySelector('#chat-options input[name="mode"]');
+  let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
-  // If the element is not null, dispatch a change event to trigger the form submission
-  if (element) hidden_mode_input.dispatchEvent(new Event('change'));
+  triggerOptionSave();
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
-  // Set the chat input dropdown to the selected mode
-  document.querySelector('#chat-action').value = mode;
 
   resizeOtherElements();
   // If the invoking element is an accordion-button we can stop
@@ -59,9 +56,8 @@ function updateAccordion(mode) {
 
 // Card links should change the mode dropdown and fire change event
 function clickCard(mode) {
-  document.querySelector('#chat-action').value = mode;
-  document.querySelector('#chat-action').dispatchEvent(new Event('change'));
   toggleAriaSelected(mode);
+  handleModeChange(mode);
   // Focus the chat input
   document.querySelector('#chat-prompt').focus();
 }
@@ -111,6 +107,7 @@ function showHideSidebars() {
 window.addEventListener('resize', showHideSidebars);
 // On page load...
 document.addEventListener("DOMContentLoaded", function () {
+  limitScopeSelect();
   showHideSidebars();
   document.querySelector('#prompt-form-container').classList.remove("d-none");
   resizeTextarea();
@@ -249,20 +246,17 @@ function copyCode(btn) {
 /** Copies the text from the user's prompt to the text input.
 *
 * @param {HTMLButtonElement} btn - the edit button of a user prompt.
-* @param {string} messageMode - a value representing an option in the chat-action dropdown
+* @param {string} messageMode - the current chat mode
 */
 function copyPromptToTextInput(btn, messageMode) {
   let message = btn.closest(".message-outer");
   let messageText = message.querySelector(".message-text").innerText;
 
   const inputArea = document.getElementById("chat-prompt");
-  const modeSelection = document.getElementById("chat-action");
 
   inputArea.value = messageText;
-  modeSelection.value = messageMode;
 
   inputArea.dispatchEvent(new Event('change'));
-  modeSelection.dispatchEvent(new Event('change'));
   inputArea.focus();
 }
 

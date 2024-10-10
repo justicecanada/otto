@@ -12,7 +12,7 @@ spec:
     - ReadWriteMany  # Allows multiple pods to read and write
   resources:
     requests:
-      storage: 2Gi  # Requests 2 GB of storage
+      storage: 16Gi
 
 ---
 
@@ -189,7 +189,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: azure-keyvault-secrets
-                key: entraclientsecretkey
+                key: entraclientsecretkey            
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"

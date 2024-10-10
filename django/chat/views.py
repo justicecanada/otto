@@ -28,7 +28,14 @@ from chat.metrics.feedback_metrics import (
     chat_negative_feedback_total,
     chat_positive_feedback_total,
 )
-from chat.models import Chat, ChatFile, ChatOptions, Message, Preset
+from chat.models import (
+    Chat,
+    ChatFile,
+    ChatOptions,
+    Message,
+    Preset,
+    create_chat_data_source,
+)
 from chat.utils import llm_response_to_html, title_chat
 from librarian.models import DataSource, Library
 from otto.models import App, SecurityLabel
@@ -296,14 +303,9 @@ def chat(request, chat_id):
     if not chat.options:
         chat.options = ChatOptions.objects.from_defaults(user=chat.user)
         chat.save()
-    if not request.user.personal_library:
-        request.user.create_personal_library()
-    if not DataSource.objects.filter(chat=chat).exists():
-        DataSource.objects.create(
-            name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
-            library=chat.user.personal_library,
-            chat=chat,
-        )
+    if not chat.data_source:
+        chat.data_source = create_chat_data_source(request.user)
+        chat.save()
     # END INSURANCE CODE
 
     mode = chat.options.mode
@@ -436,6 +438,8 @@ def init_upload(request, chat_id):
     """
     chat = Chat.objects.get(id=chat_id)
     mode = chat.options.mode
+    if mode == "chat":
+        mode = "qa"
     # Create the user's message in database
     logger.info("File upload initiated.", chat_id=chat_id, mode=mode)
     message = Message.objects.create(chat=chat, text="", is_bot=False, mode=mode)
@@ -489,6 +493,7 @@ def done_upload(request, message_id):
                     "options_form": ChatOptionsForm(
                         instance=chat.options, user=request.user
                     ),
+                    "mode": "qa",
                     "swap": "true",
                 },
             )
@@ -510,6 +515,7 @@ def done_upload(request, message_id):
     response.write(
         render_to_string("chat/components/chat_messages.html", context=context)
     )
+    response.write("<script>scrollToBottom(false, true);</script>")
     return response
 
 

@@ -18,7 +18,6 @@
       <p class="mb-1 h5 fw-normal">{% trans "Drop files anywhere" %}</p>
       <input type="file" name="file" id="chat-file-input" multiple>
     </button>
-    <input type="hidden" name="mode" id="chat-action-hidden">
   </form>
 </div>
 <script>
@@ -37,17 +36,14 @@
     hideOverlay();
   }
   function handleDragEnter(e) {
-    // If we're in "chat" or "qa" mode, don't do anything
-    // TODO: Allow temporary QA libraries for drag-drop into chat
-    let mode = document.querySelector('#chat-action').value;
-    if (mode == 'chat') {
-      return;
-    }
     // make sure we're dragging a file
     var dt = (e && e.dataTransfer);
     var isFile = (dt && dt.types && dt.types.length == 1 && dt.types[0] == "Files");
     if (isFile) {
-      // and, if so, show the overlay
+      // check if the mode is "chat"; if so, switch to QA mode
+      if (document.querySelector('#id_mode').value == 'chat') {
+        handleModeChange('qa');
+      }
       showOverlay();
     }
   }
@@ -77,11 +73,6 @@
   // Monitor the form #chat-file-form for changes
   let fileForm = document.querySelector('#chat-file-form');
   fileForm.addEventListener('change', function (e) {
-    // Copy the select[name='mode'] into the fileForm within a hidden input
-    let mode = document.querySelector('#chat-action').value;
-    let modeInput = document.querySelector('#chat-action-hidden');
-    modeInput.value = mode;
-
     // Send the init_file_upload event
     fileForm.dispatchEvent(new Event('init_file_upload'));
   });

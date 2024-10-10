@@ -1,9 +1,11 @@
 import urllib.parse
+import uuid
 
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 
 import markdown
@@ -22,6 +24,7 @@ from .utils import (
     get_law_url,
     get_other_lang_node,
     get_source_node,
+    htmx_sse_error,
     htmx_sse_response,
     num_tokens,
 )
@@ -88,7 +91,7 @@ def source(request, source_id):
 
 
 @app_access_required(app_name)
-def answer(request):
+def answer(request, query_uuid):
     bind_contextvars(feature="laws_query")
     from llama_index.core.schema import MetadataMode
 
@@ -98,16 +101,18 @@ def answer(request):
         message_templates=TEXT_QA_PROMPT_TMPL_MSGS
     ).partial_format(additional_instructions=additional_instructions)
 
-    # from llama_index.llms.groq import Groq
-
-    model = request.GET.get("model", settings.DEFAULT_CHAT_MODEL)
-    max_tokens = int(request.GET.get("context_tokens", 2000))
-    trim_redundant = bool(request.GET.get("trim_redundant", False))
-    query = urllib.parse.unquote_plus(request.GET.get("query", ""))
-    logger.debug(query)
+    query_info = cache.get(query_uuid)
+    if not query_info:
+        return StreamingHttpResponse(
+            streaming_content=htmx_sse_error(), content_type="text/event-stream"
+        )
+    sources = query_info["sources"]
+    query = query_info["query"]
+    trim_redundant = query_info["trim_redundant"]
+    model = query_info["model"]
+    max_tokens = query_info["context_tokens"]
 
     llm = OttoLLM(deployment=model, temperature=0)
-    sources = cache.get(f"sources_{query}")
     if not sources:
         generator = iter([_("Error generating AI response.")])
     else:
@@ -181,16 +186,32 @@ def answer(request):
         generator = streaming_response.response_gen
 
     return StreamingHttpResponse(
-        streaming_content=htmx_sse_response(generator, query, llm),
+        streaming_content=htmx_sse_response(generator, llm, query_uuid),
         content_type="text/event-stream",
     )
+
+
+@app_access_required(app_name)
+def existing_search(request, query_uuid):
+    """For back/forward navigation or (short-term) sharing of a search result page."""
+    query_info = cache.get(query_uuid)
+    if not query_info:
+        return redirect("laws:index")
+    context = {
+        "form": LawSearchForm(),
+        "hide_breadcrumbs": True,
+        "sources": sources_to_html(query_info["sources"]),
+        "query": query_info["query"],
+        "query_uuid": query_uuid,
+        "answer": query_info.get("answer", None),
+    }
+    return render(request, "laws/laws.html", context=context)
 
 
 @app_access_required(app_name)
 def search(request):
     bind_contextvars(feature="laws_query")
     if request.method != "POST":
-        # redirect to laws index
         return redirect("laws:index")
     try:
         from langdetect import detect
@@ -243,7 +264,7 @@ def search(request):
             top_k = int(request.POST.get("top_k", 25))
             trim_redundant = request.POST.get("trim_redundant", "on") == "on"
             model = request.POST.get("model", settings.DEFAULT_CHAT_MODEL)
-            context_tokens = request.POST.get("context_tokens", 2000)
+            context_tokens = int(request.POST.get("context_tokens", 2000))
             additional_instructions = request.POST.get("additional_instructions", "")
             # Need to escape the instructions so they can be passed in GET parameter
             additional_instructions = urllib.parse.quote_plus(additional_instructions)
@@ -376,45 +397,29 @@ def search(request):
             return render(request, "laws/search_result.html", context=context)
 
         # Cache sources so they can be retrieved in the AI answer function
-        cache.set(f"sources_{query}", sources, timeout=60)
-
-        # Pass options through to the AI answer function
-        url_encoded_query = urllib.parse.quote_plus(query)
-        answer_params = f"?query={url_encoded_query}"
-        if trim_redundant:
-            answer_params += f"&trim_redundant={trim_redundant}"
-        if model:
-            answer_params += f"&model={model}"
-        if context_tokens:
-            answer_params += f"&context_tokens={context_tokens}"
-        if additional_instructions:
-            answer_params += f"&additional_instructions={additional_instructions}"
+        query_uuid = uuid.uuid4()
+        query_info = {
+            "sources": sources,
+            "query": query,
+            "trim_redundant": trim_redundant,
+            "model": model,
+            "context_tokens": context_tokens,
+            "additional_instructions": additional_instructions,
+        }
+        cache.set(query_uuid, query_info, timeout=300)
 
         context = {
-            "sources": [
-                {
-                    "node_id": urllib.parse.quote_plus(s.node.node_id),
-                    "title": s.node.metadata["display_metadata"].split("\n")[0],
-                    "chunk": (
-                        s.node.metadata["chunk"]
-                        if not s.node.metadata["chunk"].endswith("/1")
-                        else None
-                    ),
-                    "headings": s.node.metadata.get("headings", None),
-                    "html": md.convert(s.node.text),
-                }
-                for s in sources
-            ],
+            "sources": sources_to_html(sources),
             "query": query,
+            "query_uuid": query_uuid,
             "disable_llm": disable_llm,
-            "answer_params": answer_params,
         }
     except Exception as e:
         context = {
             "sources": [],
             "query": query,
+            "query_uuid": query_uuid,
             "disable_llm": True,
-            "answer_params": "",
             "error": e,
         }
         return render(request, "laws/search_result.html", context=context)
@@ -424,8 +429,25 @@ def search(request):
         "laws/search_result.html",
         context=context,
     )
-    # URL-encode query and append to history URL
-    # history_url = "/laws/search/"
-    # history_url += f"?query={urllib.parse.quote_plus(query)}"
-    # response["HX-Push-Url"] = history_url
+
+    new_url = reverse("laws:existing_search", args=[str(query_uuid)])
+    response["HX-Push-Url"] = new_url
+
     return response
+
+
+def sources_to_html(sources):
+    return [
+        {
+            "node_id": urllib.parse.quote_plus(s.node.node_id),
+            "title": s.node.metadata["display_metadata"].split("\n")[0],
+            "chunk": (
+                s.node.metadata["chunk"]
+                if not s.node.metadata["chunk"].endswith("/1")
+                else None
+            ),
+            "headings": s.node.metadata.get("headings", None),
+            "html": md.convert(s.node.text),
+        }
+        for s in sources
+    ]
