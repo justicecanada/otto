@@ -23,7 +23,12 @@ spec:
         image: redis:7.0.11-bullseye        
         ports:
         - containerPort: 6379
-        # TODO: add resource limits
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
 
 ---
 

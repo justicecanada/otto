@@ -21,9 +21,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   # Configure the default node pool
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name                        = "default"
+    node_count                  = 1
+    vm_size                     = "Standard_D4s_v3"
+    temporary_name_for_rotation = "tempnodepool" # TODO: Remove this line after resolving issues
 
     # Set upgrade settings for the node pool
     upgrade_settings {
@@ -45,7 +46,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   # SC-8: Secure Internal Communication in AKS
   # AC-3 & CM-8(3): Network Policies for AKS
   network_profile {
-    network_plugin    = "kubenet"    # Azure CNI provides integration with Azure networking features; Kubenet is simpler and will suffice in Sandbox; TODO: Change to "azure" after resolving issues.
+    network_plugin = "kubenet" # Azure CNI provides integration with Azure networking features; Kubenet is simpler and will suffice in Sandbox; TODO: Change to "azure" after resolving issues.
     #network_policy    = "azure"    # Azure network policies control traffic flow between pods; TODO: Enable network policy once rules are configured to work in environment.
     load_balancer_sku = "standard" # Standard SKU provides more features and better performance
   }

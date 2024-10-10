@@ -103,8 +103,8 @@ spec:
               memory: "4Gi"
               cpu: "1"
             limits:
-              memory: "16Gi"
-              cpu: "4000m"
+              memory: "8Gi"
+              cpu: "2"
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
