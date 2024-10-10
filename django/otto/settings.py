@@ -66,7 +66,7 @@ AZURE_ACCOUNT_KEY = os.environ.get(
     "AZURE_ACCOUNT_KEY"
 )  # Azure as default storage requires this name to be AZURE_ACCOUNT_KEY
 
-# AC-2: Entra Integration
+# AC-2, AC-19: Entra Integration
 ENTRA_CLIENT_ID = os.environ.get("ENTRA_CLIENT_ID")
 ENTRA_CLIENT_SECRET = os.environ.get("ENTRA_CLIENT_SECRET")
 ENTRA_AUTHORITY = os.environ.get("ENTRA_AUTHORITY")
@@ -163,13 +163,15 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    # SC-10, SC-23: Django default session management
     "django.contrib.sessions.middleware.SessionMiddleware",
-    # AC-2: Authentication, AC-14: Limited Access
+    # AC-2, AC-3, IA-2, IA-6, IA-8: Authentication, AC-14: Limited Access
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    # AC-14: Limited Access to handle login flows: redirect to login page, use Azure login, accept terms to use
+    # AC-3 & AC-14: Limited Access to handle login flows: redirect to login page, use Azure login, accept terms to use
+    # AC-3(7), IA-8: Custom middleware for enforcing role-based access control
     "otto.utils.auth.RedirectToLoginMiddleware",
-    # AC-2 & AC-14: Azure AD Integration to protect entire site by default
+    # AC-2, AC-14, IA-2, IA-6, IA-8, SC-23: Azure AD Integration to protect entire site by default
     "azure_auth.middleware.AzureMiddleware",
     "otto.utils.auth.AcceptTermsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -346,14 +348,18 @@ X_FRAME_OPTIONS = "SAMEORIGIN"  # Required for iframe on same origin
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# SC-10: Session Timeout
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Security
 
 if SITE_URL.scheme == "https" and SITE_URL.port == None:
     CSRF_TRUSTED_ORIGINS = [urlunparse(SITE_URL)]
     SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True  # SC-23: Secure session cookies
     CSRF_COOKIE_SECURE = True
     USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

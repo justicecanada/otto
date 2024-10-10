@@ -64,6 +64,7 @@ class Chat(models.Model):
     # Last access time manually updated when chat is opened
     accessed_at = models.DateTimeField(auto_now_add=True)
 
+    # AC-20: Allows for the classification of information
     security_label = models.ForeignKey(
         SecurityLabel,
         on_delete=models.SET_NULL,
@@ -198,6 +199,7 @@ class ChatOptions(models.Model):
     qa_answer_mode = models.CharField(max_length=20, default="combined")
     qa_prune = models.BooleanField(default=True)
     qa_rewrite = models.BooleanField(default=False)
+    qa_granularity = models.IntegerField(default=768)
 
     @property
     def qa_prompt_combined(self):
@@ -370,7 +372,7 @@ class Message(models.Model):
     details = models.JSONField(default=dict)
     mode = models.CharField(max_length=255, default="chat")
     parent = models.OneToOneField(
-        "self", on_delete=models.CASCADE, null=True, related_name="child"
+        "self", on_delete=models.SET_NULL, null=True, related_name="child"
     )
 
     def __str__(self):
@@ -386,7 +388,7 @@ class Message(models.Model):
 
     @property
     def sources(self):
-        return self.answersource_set.all()
+        return self.answersource_set.all().order_by("id")
 
     @property
     def display_cost(self):
@@ -428,6 +430,7 @@ class AnswerSource(models.Model):
     node_score = models.FloatField(default=0.0)
     # Saved citation for cases where the source Document is deleted later
     saved_citation = models.TextField(blank=True)
+    group_number = models.IntegerField(default=0)
 
     def __str__(self):
         document_citation = self.citation

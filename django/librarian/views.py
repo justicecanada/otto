@@ -32,6 +32,7 @@ def get_editable_libraries(user):
     ]
 
 
+# AC-20: Implements role-based access control for interacting with data sources
 def modal_view(request, item_type=None, item_id=None, parent_id=None):
     """
     !!! This is not to be called directly, but rather through the wrapper functions
@@ -323,11 +324,13 @@ def modal_delete_library(request, library_id):
     return modal_view(request, item_type="library", item_id=library_id)
 
 
+# AC-20: Only authenticated and authorized users can interact with information sources
 @permission_required("librarian.edit_library", objectgetter(Library, "library_id"))
 def modal_create_data_source(request, library_id):
     return modal_view(request, item_type="data_source", parent_id=library_id)
 
 
+# AC-20: Only authenticated and authorized users can interact with information sources
 @permission_required(
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
@@ -342,6 +345,7 @@ def modal_delete_data_source(request, data_source_id):
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
 
+# AC-20: Only authenticated and authorized users can interact with information sources
 @permission_required(
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
@@ -349,6 +353,7 @@ def modal_create_document(request, data_source_id):
     return modal_view(request, item_type="document", parent_id=data_source_id)
 
 
+# AC-20: Only authenticated and authorized users can interact with information sources
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 def modal_edit_document(request, document_id):
     return modal_view(request, item_type="document", item_id=document_id)
@@ -359,6 +364,7 @@ def modal_delete_document(request, document_id):
     return modal_view(request, item_type="document", item_id=document_id)
 
 
+# AC-21: Only authenticated and authorized users can manage library users
 @permission_required(
     "librarian.manage_library_users", objectgetter(Library, "library_id")
 )
@@ -429,6 +435,7 @@ def upload(request, data_source_id):
     "librarian.download_document", objectgetter(Document, "document_id")
 )
 def download_document(request, document_id):
+    # AC-20: Provide an audit trail of interactions with external information sources
     logger.info("Downloading file for QA document", document_id=document_id)
     document = get_object_or_404(Document, pk=document_id)
     file_obj = document.file

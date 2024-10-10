@@ -14,13 +14,15 @@ terraform {
 # Azure Cognitive Account for OpenAI
 resource "azurerm_cognitive_account" "openai" {
   name                = var.name
-  location            = "canadaeast" # The models are not available in the Canada Central region
+
+  # SC-9(5): OpenAI Resource Exception and Safeguards
+  location            = "canadaeast"
   resource_group_name = var.resource_group_name
   kind                = "OpenAI"
   sku_name            = "S0"
 
   lifecycle {
-    ignore_changes = all
+    ignore_changes = all # SA-9(5): Prevent automatic updates 
   }
 
   tags       = var.tags

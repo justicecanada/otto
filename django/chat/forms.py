@@ -229,6 +229,9 @@ class ChatOptionsForm(ModelForm):
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_prune": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "qa_granularity": forms.HiddenInput(
+                attrs={"onchange": "triggerOptionSave();"}
+            ),
             "qa_rewrite": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
         }
 

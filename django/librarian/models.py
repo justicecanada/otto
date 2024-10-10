@@ -198,11 +198,13 @@ class Library(models.Model):
         return self.user_roles.filter(role="viewer").values_list("user", flat=True)
 
 
+# AC-20: Allows for fine-grained control over who can access and manage information sources
 class LibraryUserRole(models.Model):
     """
     Represents a user's role in a library.
     """
 
+    # AC-21: Allows for the assignment of different roles to users
     ROLE_CHOICES = [
         ("admin", "Admin"),
         ("contributor", "Contributor"),
@@ -250,6 +252,8 @@ class DataSource(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     order = models.IntegerField(default=0)
+
+    # AC-21: Allow users to categorize sensitive information
     security_label = models.ForeignKey(
         SecurityLabel,
         on_delete=models.SET_NULL,
