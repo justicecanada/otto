@@ -100,11 +100,11 @@ spec:
                 key: entraclientsecretkey
           resources:
             requests:
-              memory: "4Gi"
               cpu: "1"
+              memory: "6Gi"
             limits:
-              memory: "16Gi"
-              cpu: "4000m"
+              cpu: "1"
+              memory: "6Gi"
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
