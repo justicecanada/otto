@@ -89,6 +89,11 @@ class Chat(models.Model):
         self.accessed_at = timezone.now()
         self.save()
 
+    def delete(self, *args, **kwargs):
+        self.data_source.delete()
+        self.options.delete()
+        return super().delete(*args, **kwargs)
+
 
 class ChatOptionsManager(models.Manager):
     def from_defaults(self, mode=None, user=None):
