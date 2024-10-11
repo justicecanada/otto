@@ -480,6 +480,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
     chat = Chat.objects.get(id=chat_id)
     if action in ["reset", "load_preset"]:
         if action == "reset":
+            chat.options.delete()
             preset_options = ChatOptions.objects.from_defaults(
                 chat=chat,
             )
@@ -498,7 +499,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             preset = Preset.objects.get(id=int(preset_id))
             if not preset:
                 return HttpResponse(status=500)
-
+            chat.options.delete()
             new_options = ChatOptions.objects.from_defaults(chat=chat)
 
             # copy the options from the preset to the chat
