@@ -110,9 +110,6 @@ def process_document_helper(document, llm, force_azure=False):
         base_url=base_url,
         selector=document.selector,
     )
-    num_chunks = len(chunks)
-    document.num_chunks = num_chunks
-    document.save()
     if current_task:
         current_task.update_state(
             state="PROCESSING",
@@ -121,6 +118,8 @@ def process_document_helper(document, llm, force_azure=False):
             },
         )
     nodes = create_nodes(chunks, document)
+    document.num_chunks = len(nodes)
+    document.save()
 
     library_uuid = document.data_source.library.uuid_hex
     vector_store_index = llm.get_index(library_uuid)
