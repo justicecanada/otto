@@ -435,6 +435,7 @@ def data_source_stop(request, data_source_id):
 )
 def data_source_start(request, data_source_id):
     # Start all celery tasks for documents within this data source
+    bind_contextvars(feature="librarian")
     data_source = get_object_or_404(DataSource, id=data_source_id)
     for document in data_source.documents.all():
         document.process()
@@ -446,6 +447,7 @@ def data_source_start(request, data_source_id):
 )
 def data_source_start_azure(request, data_source_id):
     # Start all celery tasks for documents within this data source
+    bind_contextvars(feature="librarian")
     data_source = get_object_or_404(DataSource, id=data_source_id)
     for document in data_source.documents.all():
         document.process(force_azure=True)
