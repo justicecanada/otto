@@ -260,6 +260,13 @@ class DataSource(models.Model):
         null=True,
     )
 
+    chat = models.OneToOneField(
+        "chat.Chat",
+        on_delete=models.CASCADE,  # This will delete DataSource when Chat is deleted
+        related_name="data_source",
+        null=True,
+    )
+
     class Meta:
         ordering = ["order", "name"]
 
