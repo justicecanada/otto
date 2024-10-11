@@ -122,6 +122,10 @@
         <dt>{% trans "Extracted text" %}</dt>
         <dd>
           {{ document.truncated_text }}
+          {# Link to the full text, in a new window #}
+          <a href="{% url 'librarian:document_text' document.id %}"
+             target="_blank"
+              rel="noopener noreferrer">{% trans "View all" %}</a>
         </dd>
       {% endif %}
     </dl>
