@@ -42,7 +42,7 @@ spec:
       containers:
         - name: celery-worker
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the latest image from Azure Container Registry
-          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--pool=gevent', '--concurrency=1000']  # Starts Celery worker
+          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--pool=gevent', '--concurrency=32']  # Starts Celery worker
           securityContext:
             allowPrivilegeEscalation: false  # Privilege escalation is disabled
             readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
@@ -91,6 +91,13 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: entraclientsecretkey
+          resources:
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
           volumeMounts:
             - name: secrets  # Mounts secrets from Azure Key Vault
               mountPath: "/mnt/secrets-store"
@@ -189,7 +196,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: azure-keyvault-secrets
-                key: entraclientsecretkey            
+                key: entraclientsecretkey
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"

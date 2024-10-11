@@ -80,9 +80,9 @@ function limitScopeSelect() {
   let search_mode = document.getElementById('id_qa_mode').value;
   if (search_mode === "rag") {
     scope.value = 'all';
-    scope.removeAttribute('disabled');
+    // scope.removeAttribute('disabled');
   } else {
     scope.value = "documents";
-    scope.setAttribute('disabled', 'disabled');
+    // scope.setAttribute('disabled', 'disabled');
   }
 }

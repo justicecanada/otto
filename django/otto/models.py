@@ -404,7 +404,7 @@ class Cost(models.Model):
     """Tracks costs in US dollars for API calls"""
 
     # Required
-    cost_type = models.ForeignKey(CostType, on_delete=models.CASCADE)
+    cost_type = models.ForeignKey(CostType, on_delete=models.PROTECT, null=True)
     count = models.IntegerField(default=1)
 
     # Automatically added/calculated
@@ -412,20 +412,18 @@ class Cost(models.Model):
     usd_cost = models.DecimalField(max_digits=12, decimal_places=6)
 
     # Optional, for aggregation and reporting
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     feature = models.CharField(
         max_length=50, null=True, blank=True, choices=FEATURE_CHOICES
     )
 
     # Optional, for debugging purposes
     request_id = models.CharField(max_length=50, null=True, blank=True)
-    message = models.ForeignKey(
-        "chat.Message", on_delete=models.CASCADE, null=True, blank=True
-    )
+    message = models.ForeignKey("chat.Message", on_delete=models.SET_NULL, null=True)
     document = models.ForeignKey(
-        "librarian.Document", on_delete=models.CASCADE, null=True, blank=True
+        "librarian.Document", on_delete=models.SET_NULL, null=True
     )
-    law = models.ForeignKey("laws.Law", on_delete=models.CASCADE, null=True, blank=True)
+    law = models.ForeignKey("laws.Law", on_delete=models.SET_NULL, null=True)
 
     objects = CostManager()
 

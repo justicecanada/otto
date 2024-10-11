@@ -173,15 +173,12 @@ def pdf_to_markdown(content, chunk_size=768):
 def fast_pdf_to_text(content, chunk_size=768):
     # Note: This method is faster than using Azure Form Recognizer
     # Expected it to work well for more generic scenarios but not for scanned PDFs, images, and handwritten text
-    import fitz
+    import pypdfium2 as pdfium
 
-    pdf = fitz.open(stream=io.BytesIO(content))
+    pdf = pdfium.PdfDocument(content)
     text = ""
-    for page_number in range(pdf.page_count):
-        page = pdf.load_page(page_number)
-        text += page.get_text("text")
-    pdf.close()
-
+    for i, page in enumerate(pdf):
+        text += page.get_textpage().get_text_range() + "\n"
     # We don't split the text into chunks here because it's done in create_child_nodes()
     return text, [text]
 

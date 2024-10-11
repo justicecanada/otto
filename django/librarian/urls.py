@@ -1,7 +1,11 @@
 from django.urls import path
 
 from librarian.views import (
+    data_source_start,
+    data_source_start_azure,
+    data_source_stop,
     document_start,
+    document_start_azure,
     document_stop,
     download_document,
     modal_create_data_source,
@@ -82,7 +86,28 @@ urlpatterns = [
     # Document upload and processing
     path("modal/upload/to/<int:data_source_id>/", upload, name="upload"),
     path("document/<int:document_id>/start/", document_start, name="document_start"),
+    path(
+        "document/<int:document_id>/start/azure/",
+        document_start_azure,
+        name="document_start_azure",
+    ),
     path("document/<int:document_id>/stop/", document_stop, name="document_stop"),
+    # Batch document stop / processing (per data source)
+    path(
+        "data_source/<int:data_source_id>/stop/",
+        data_source_stop,
+        name="data_source_stop",
+    ),
+    path(
+        "data_source/<int:data_source_id>/start/",
+        data_source_start,
+        name="data_source_start",
+    ),
+    path(
+        "data_source/<int:data_source_id>/start/azure/",
+        data_source_start_azure,
+        name="data_source_start_azure",
+    ),
     path(
         "document/<int:document_id>/download/",
         download_document,

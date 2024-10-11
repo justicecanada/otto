@@ -7,7 +7,7 @@
       <em class="small">{% trans "Select a data source to edit documents." %}</em>
     </div>
   {% else %}
-    <div class="row mb-3">
+    <div class="row mb-2">
       <div class="col pe-0">
         <form enctype="multipart/form-data"
               id="document-upload-form"
@@ -29,6 +29,28 @@
           <i class="bi bi-link"></i> {% trans "Add URL" %}
         </button>
       </div>
+    </div>
+    <div class="row mb-2">
+      <div class="col pe-0">
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary w-100"
+                hx-get="{% url 'librarian:data_source_stop' selected_data_source.id %}">{% trans "Stop all" %}</button>
+      </div>
+      <div class="col ps-1 pe-0">
+        <button type="button"
+                class="btn btn-sm btn-outline-success w-100"
+                hx-get="{% url 'librarian:data_source_start' selected_data_source.id %}">
+          {% trans "Process all" %}
+        </button>
+      </div>
+      <div class="col ps-1">
+        <button type="button"
+                class="btn btn-sm btn-outline-success w-100"
+                hx-get="{% url 'librarian:data_source_start_azure' selected_data_source.id %}">
+          {% trans "Force OCR" %}
+        </button>
+      </div>
+ 
     </div>
     {% if documents %}
       {% include "librarian/components/items_list.html" with items=documents selected_item=selected_document listbox_label="documents-label" item_type="document" %}

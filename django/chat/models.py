@@ -26,12 +26,13 @@ logger = get_logger(__name__)
 DEFAULT_MODE = "chat"
 
 
-def create_chat_data_source(user):
+def create_chat_data_source(user, chat):
     if not user.personal_library:
         user.create_personal_library()
     return DataSource.objects.create(
         name=f"Chat {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}",
         library=user.personal_library,
+        chat=chat,
     )
 
 
@@ -41,12 +42,13 @@ class ChatManager(models.Manager):
             mode = kwargs.pop("mode")
         else:
             mode = DEFAULT_MODE
-        kwargs["options"] = ChatOptions.objects.from_defaults(
-            default_preset=kwargs["user"].default_preset, mode=mode
-        )
         kwargs["security_label_id"] = SecurityLabel.default_security_label().id
-        kwargs["data_source"] = create_chat_data_source(kwargs["user"])
         instance = super().create(*args, **kwargs)
+        ChatOptions.objects.from_defaults(
+            mode=mode,
+            chat=instance,
+        )
+        create_chat_data_source(kwargs["user"], instance)
         return instance
 
 
@@ -71,18 +73,6 @@ class Chat(models.Model):
         null=True,
     )
 
-    options = models.OneToOneField(
-        "ChatOptions", on_delete=models.CASCADE, related_name="chat", null=True
-    )
-
-    data_source = models.OneToOneField(
-        "librarian.DataSource",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="chat",
-    )
-
     def __str__(self):
         return f"Chat {self.id}: {self.title}"
 
@@ -92,19 +82,16 @@ class Chat(models.Model):
 
 
 class ChatOptionsManager(models.Manager):
-    def from_defaults(self, mode=None, default_preset=None):
+    def from_defaults(self, mode=None, chat=None):
         """
         If a user default exists, copy that into a new ChatOptions object.
         If not, create a new object with some default settings manually.
         Set the mode and chat FK in the new object.
         """
-        if default_preset:
-            new_options = default_preset.options
+        if chat and chat.user.default_preset:
+            new_options = chat.user.default_preset.options
             if new_options:
                 new_options.pk = None
-                if mode:
-                    new_options.mode = mode
-                new_options.save()
         else:
             # Default Otto settings
             default_library = Library.objects.get_default_library()
@@ -120,9 +107,11 @@ class ChatOptionsManager(models.Manager):
                 qa_post_instructions=_(QA_POST_INSTRUCTIONS),
                 qa_system_prompt=_(QA_SYSTEM_PROMPT),
             )
-            if mode:
-                new_options.mode = mode
-            new_options.save()
+        if mode:
+            new_options.mode = mode
+        if chat:
+            new_options.chat = chat
+        new_options.save()
 
         return new_options
 
@@ -151,8 +140,12 @@ class ChatOptions(models.Model):
 
     objects = ChatOptionsManager()
 
-    # Default case: ChatOptions object is associated with a particular chat.
-    # (Does not show up in the list of option presets for a user.)
+    chat = models.OneToOneField(
+        "Chat",
+        on_delete=models.CASCADE,  # This will delete ChatOptions when Chat is deleted
+        null=True,
+        related_name="options",
+    )
 
     mode = models.CharField(max_length=255, default=DEFAULT_MODE)
 
