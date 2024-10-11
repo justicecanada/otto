@@ -631,7 +631,7 @@ def chat_options(request, chat_id, action=None):
     def _copy_options(source_options, target_options):
         source_options = model_to_dict(source_options)
         # Remove the fields that are not part of the preset
-        for field in ["id", "user", "preset_name"]:
+        for field in ["id", "user", "preset_name", "chat"]:
             source_options.pop(field)
         # Update the preset options with the dictionary
         fk_fields = ["qa_library"]
