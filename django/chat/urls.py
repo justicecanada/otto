@@ -14,7 +14,6 @@ urlpatterns = [
     path("translate/", views.new_translate, name="translate"),
     path("qa/", views.new_qa, name="qa"),
     path("document-qa/", views.new_document_qa, name="document_qa"),
-    path("api/qa/", views.api_qa, name="api_qa"),
     path("id/<str:chat_id>/", views.chat, name="chat"),
     path("id/<str:chat_id>/upload/", views.init_upload, name="init_upload"),
     path(

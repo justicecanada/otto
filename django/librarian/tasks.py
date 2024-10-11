@@ -27,7 +27,7 @@ ten_minutes = 600
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def process_document(document_id, language=None):
+def process_document(document_id, language=None, force_azure=False):
     """
     Process a URL and save the content to a document.
     """
@@ -45,9 +45,9 @@ def process_document(document_id, language=None):
     llm = OttoLLM()
     try:
         with translation.override(language):
-            process_document_helper(document, llm)
+            process_document_helper(document, llm, force_azure)
 
-    except SoftTimeLimitExceeded:
+    except:
         document.status = "ERROR"
         document.celery_task_id = None
         document.save()
@@ -55,7 +55,7 @@ def process_document(document_id, language=None):
     llm.create_costs()
 
 
-def process_document_helper(document, llm):
+def process_document_helper(document, llm, force_azure=False):
     url = document.url
     file = document.file
     if not (url or file):
@@ -106,7 +106,7 @@ def process_document_helper(document, llm):
     document.extracted_text, chunks = extract_markdown(
         content,
         process_engine,
-        fast=True,
+        fast=not force_azure,
         base_url=base_url,
         selector=document.selector,
     )
