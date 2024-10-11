@@ -14,6 +14,7 @@ if [[ $input == "Y" || $input == "y" ]]; then
 else
         echo "OK, skipping."
 fi
+echo " >>> Chowning the project directory to the current user. This may take a minute."
 sudo chown -R $(whoami) django
 # Now run .devcontainer/post-create.sh
 bash .devcontainer/post-create.sh
