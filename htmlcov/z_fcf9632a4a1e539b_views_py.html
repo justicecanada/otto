@@ -54,9 +54,9 @@
             </div>
         </aside>
         <h2>
-            <span class="text">267 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">110<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">157<span class="text"> missing</span></button>
+            <span class="text">271 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">112<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">159<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_2d65b6d40d3ba790_celery_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-10-11 18:35 +0000
+            created at 2024-10-11 21:05 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -571,6 +571,14 @@
     <p class="mis show_mis"><span class="n"><a id="t489" href="#t489">489</a></span><span class="t">    <span class="nam">response</span> <span class="op">=</span> <span class="nam">HttpResponse</span><span class="op">(</span><span class="nam">file</span><span class="op">,</span> <span class="nam">content_type</span><span class="op">=</span><span class="nam">file_obj</span><span class="op">.</span><span class="nam">content_type</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t490" href="#t490">490</a></span><span class="t">    <span class="nam">response</span><span class="op">[</span><span class="str">"Content-Disposition"</span><span class="op">]</span> <span class="op">=</span> <span class="fst">f"</span><span class="fst">attachment; filename=</span><span class="op">{</span><span class="nam">document</span><span class="op">.</span><span class="nam">filename</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t491" href="#t491">491</a></span><span class="t">    <span class="key">return</span> <span class="nam">response</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t492" href="#t492">492</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t493" href="#t493">493</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t494" href="#t494">494</a></span><span class="t"><span class="op">@</span><span class="nam">permission_required</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t495" href="#t495">495</a></span><span class="t">    <span class="str">"librarian.download_document"</span><span class="op">,</span> <span class="nam">objectgetter</span><span class="op">(</span><span class="nam">Document</span><span class="op">,</span> <span class="str">"document_id"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t496" href="#t496">496</a></span><span class="t"><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t497" href="#t497">497</a></span><span class="t"><span class="key">def</span> <span class="nam">document_text</span><span class="op">(</span><span class="nam">request</span><span class="op">,</span> <span class="nam">document_id</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t498" href="#t498">498</a></span><span class="t">    <span class="nam">document</span> <span class="op">=</span> <span class="nam">get_object_or_404</span><span class="op">(</span><span class="nam">Document</span><span class="op">,</span> <span class="nam">pk</span><span class="op">=</span><span class="nam">document_id</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t499" href="#t499">499</a></span><span class="t">    <span class="key">return</span> <span class="nam">HttpResponse</span><span class="op">(</span><span class="nam">document</span><span class="op">.</span><span class="nam">extracted_text</span><span class="op">,</span> <span class="nam">content_type</span><span class="op">=</span><span class="str">"text/plain"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -580,7 +588,7 @@
             <a class="nav" href="z_2d65b6d40d3ba790_celery_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-10-11 18:35 +0000
+            created at 2024-10-11 21:05 +0000
         </p>
     </div>
 </footer>
