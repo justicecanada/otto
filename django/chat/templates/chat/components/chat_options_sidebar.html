@@ -4,7 +4,7 @@
 <div id="right-sidebar"
      class="chat-sidebar bg-light hidden"
      aria-label='{% trans "Options" %}'>
-  <div class="border-start h-100 position-relative">
+  <div class="border-start h-100 position-relative d-flex flex-column">
     <button id="right-sidebar-resize-handle" class="btn btn-none" type="button">
       <i class="bi bi-grip-vertical"></i>
       <span class="visually-hidden">{% trans "Drag or use the left and right arrows to resize." %}</span>
@@ -20,7 +20,7 @@
               style="margin-top: -4px"
               aria-label='{% trans "Close" %}'></button>
     </div>
-    <form class="overflow-y-auto overflow-x-hidden"
+    <form class="overflow-y-auto overflow-x-hidden flex-grow-1"
           id="chat-options"
           hx-trigger="optionsChanged"
           hx-post="{% url 'chat:chat_options' chat_id=chat.id %}"
@@ -29,52 +29,52 @@
       {{ options_form.mode }}
       <script src="{% static 'chat/js/chatOptions.js' %}"></script>
       {% include 'chat/components/chat_options_accordion.html' %}
-
-      <div class="d-flex p-3 w-100">
-        <span class="flex-grow-1 px-1"
-              data-bs-toggle="modal"
-              data-bs-target="#presets-modal">
-          <button type="button"
-                  class="btn btn-sm btn-outline-dark w-100"
-                  data-bs-toggle="tooltip"
-                  data-bs-title="{% trans "Create preset from current settings" %}"
-                  hx-get="{% url 'chat:create_preset' chat_id=chat.id %}"
-                  hx-target="#presets-modal-body"
-                  hx-swap="innerHTML transition:true">
-            <i class="bi bi-floppy2-fill"></i>
-            <span class="visually-hidden">{% trans "Create preset from current settings" %}</span>
-          </button>
-        </span>
-        <span class="flex-grow-1 px-1">
-          <button type="button"
-                  class="btn btn-sm btn-outline-dark w-100"
-                  data-bs-toggle="tooltip"
-                  data-bs-title="{% trans 'Reset settings to default' %}"
-                  hx-get="{% url 'chat:chat_options' chat_id=chat.id action='reset' %}"
-                  hx-target="#options-accordion"
-                  hx-swap="outerHTML">
-            <i class="bi bi-arrow-counterclockwise"></i>
-            <span class="visually-hidden">{% trans 'Reset settings to default' %}</span>
-          </button>
-        </span>
-        <span class="flex-grow-1 px-1"
-              data-bs-toggle="modal"
-              data-bs-target="#presets-modal">
-          <button type="button"
-                  id="presets-modal-button"
-                  class="btn btn-sm btn-outline-dark w-100"
-                  data-bs-toggle="tooltip"
-                  data-bs-title="{% trans "Open Presets Menu" %}"
-                  hx-get="{% url 'chat:get_presets' chat_id=chat.id %}"
-                  hx-target="#presets-modal-body"
-                  hx-swap="innerHTML"
-                  onclick="document.getElementById('presets-modal-body').innerHTML = '';">
-            <i class="bi bi-folder"></i>
-            <span class="visually-hidden">{% trans "Open Presets Menu" %}</span>
-          </button>
-        </span>
-      </div>
     </form>
+
+    <div class="d-flex p-3 w-100 border-top">
+      <span class="flex-grow-1 px-1"
+            data-bs-toggle="modal"
+            data-bs-target="#presets-modal">
+        <button type="button"
+                id="presets-modal-button"
+                class="btn btn-sm btn-outline-dark w-100"
+                data-bs-toggle="tooltip"
+                data-bs-title="{% trans "Open Presets Menu" %}"
+                hx-get="{% url 'chat:get_presets' chat_id=chat.id %}"
+                hx-target="#presets-modal-body"
+                hx-swap="innerHTML"
+                onclick="document.getElementById('presets-modal-body').innerHTML = '';">
+          <i class="bi bi-folder"></i>
+          <span class="visually-hidden">{% trans "Open Presets Menu" %}</span>
+        </button>
+      </span>
+      <span class="flex-grow-1 px-1"
+            data-bs-toggle="modal"
+            data-bs-target="#presets-modal">
+        <button type="button"
+                class="btn btn-sm btn-outline-dark w-100"
+                data-bs-toggle="tooltip"
+                data-bs-title="{% trans "Create preset from current settings" %}"
+                hx-get="{% url 'chat:create_preset' chat_id=chat.id %}"
+                hx-target="#presets-modal-body"
+                hx-swap="innerHTML transition:true">
+          <i class="bi bi-floppy2-fill"></i>
+          <span class="visually-hidden">{% trans "Create preset from current settings" %}</span>
+        </button>
+      </span>
+      <span class="flex-grow-1 px-1">
+        <button type="button"
+                class="btn btn-sm btn-outline-dark w-100"
+                data-bs-toggle="tooltip"
+                data-bs-title="{% trans 'Reset settings to default' %}"
+                hx-get="{% url 'chat:chat_options' chat_id=chat.id action='reset' %}"
+                hx-target="#options-accordion"
+                hx-swap="outerHTML">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          <span class="visually-hidden">{% trans 'Reset settings to default' %}</span>
+        </button>
+      </span>
+    </div>
   </div>
 </div>
 

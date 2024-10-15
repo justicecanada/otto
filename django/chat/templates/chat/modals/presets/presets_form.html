@@ -33,24 +33,24 @@
           <div id="en-content" class="language-content active">
             <div class="mb-3">
               <label class="form-label" for="id_name_en">
-                {% trans "Title (english)" %}<span style="color: red;">*</span>
+                {% trans "Title (English)" %}<span style="color: red;">*</span>
               </label>
               {{ form.name_en }}
             </div>
             <div class="mb-3">
-              <label class="form-group" for="id_description_en">{% trans "Description (english)" %}</label>
+              <label class="form-label" for="id_description_en">{% trans "Description (English)" %}</label>
               {{ form.description_en }}
             </div>
           </div>
           <div id="fr-content" class="language-content">
             <div class="mb-3">
               <label class="form-label" for="id_name_fr">
-                {% trans "Title (french)" %}<span style="color: red;">*</span>
+                {% trans "Title (French)" %}<span style="color: red;">*</span>
               </label>
               {{ form.name_fr }}
             </div>
             <div class="mb-3">
-              <label class="form-label" for="id_description_fr">{% trans "Description (french)" %}</label>
+              <label class="form-label" for="id_description_fr">{% trans "Description (French)" %}</label>
               {{ form.description_fr }}
             </div>
           </div>
@@ -67,10 +67,23 @@
             {{ form.editable_by }}
           </div>
           <div class="mb-3">
-            <label class="form-label" for="id_accessible_to">{% trans "Accessible To: " %}</label>
+            <label class="form-label" for="id_accessible_to">{% trans "Accessible to: " %}</label>
             {{ form.accessible_to }}
           </div>
         </div>
+        {% if preset_id %}
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input"
+                     type="checkbox"
+                     id="id_replace_with_settings"
+                     name="replace_with_settings"
+                     {% if replace_with_settings %}checked{% endif %}>
+
+              <label class="form-check-label" for="id_replace_with_settings">{% trans "Replace with current settings" %}</label>
+            </div>
+          </div>
+        {% endif %}
         <div id="error-message">
           {% if error_message %}<div class="alert alert-danger" role="alert">{{ error_message }}</div>{% endif %}
         </div>

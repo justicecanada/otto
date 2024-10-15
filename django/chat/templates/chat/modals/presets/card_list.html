@@ -4,7 +4,6 @@
   <div class="row px-3 pb-3">
     <div style="top: 0; bottom: 0; min-height: 300px">
       <div class="col-12 d-flex flex-column h-100">
-        <h2 class="fs-6 mb-3">{% trans "Available Presets" %}</h2>
         {% if presets|length == 0 %}
           {% include "chat/modals/presets/empty_card_list.html" %}
         {% else %}

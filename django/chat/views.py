@@ -124,13 +124,6 @@ def chat(request, chat_id):
     )
 
     # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
-<<<<<<< HEAD
-    # If database is completely wiped, this should all be removable
-    if not chat.options:
-        ChatOptions.objects.from_defaults(chat=chat)
-    if not chat.data_source:
-        create_chat_data_source(request.user, chat=chat)
-=======
     try:
         chat.options
     except:
@@ -141,7 +134,6 @@ def chat(request, chat_id):
     except:
         chat.data_source = create_chat_data_source(request.user, chat=chat)
         chat.save()
->>>>>>> main
     # END INSURANCE CODE
 
     mode = chat.options.mode
@@ -543,15 +535,19 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                     preset.owner = request.user
                     preset_id = preset.id
 
-                # # get chat object from chat_id
-                chat = Chat.objects.get(id=chat_id)
-                new_options = ChatOptions.objects.from_defaults()
+                replace_with_settings = request.POST.get("replace_with_settings", False)
 
-                # copy the options from the chat to the preset
-                _copy_options(chat.options, new_options)
+                # save the current chat settings
+                if replace_with_settings:
+                    # # get chat object from chat_id
+                    chat = Chat.objects.get(id=chat_id)
+                    new_options = ChatOptions.objects.from_defaults()
 
-                # Update preset options
-                preset.options = new_options
+                    # copy the options from the chat to the preset
+                    _copy_options(chat.options, new_options)
+
+                    # Update preset options
+                    preset.options = new_options
 
                 english_title = form.cleaned_data["name_en"]
                 french_title = form.cleaned_data["name_fr"]
@@ -564,9 +560,11 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                         {
                             "form": form,
                             "chat_id": chat_id,
+                            "preset_id": preset_id,
                             "error_message": _(
                                 "Please provide a title in either English or French."
                             ),
+                            "replace_with_settings": replace_with_settings,
                         },
                     )
 
@@ -594,6 +592,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                                 "error_message": _(
                                     "Please provide at least one user for the editable field or the accessible field."
                                 ),
+                                "replace_with_settings": replace_with_settings,
                             },
                         )
 
