@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_2d65b6d40d3ba790_celery_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.3">coverage.py v7.6.3</a>,
-            created at 2024-10-15 17:43 +0000
+            created at 2024-10-15 17:58 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -578,7 +578,9 @@
     <p class="pln"><span class="n"><a id="t496" href="#t496">496</a></span><span class="t"><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t497" href="#t497">497</a></span><span class="t"><span class="key">def</span> <span class="nam">document_text</span><span class="op">(</span><span class="nam">request</span><span class="op">,</span> <span class="nam">document_id</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t498" href="#t498">498</a></span><span class="t">    <span class="nam">document</span> <span class="op">=</span> <span class="nam">get_object_or_404</span><span class="op">(</span><span class="nam">Document</span><span class="op">,</span> <span class="nam">pk</span><span class="op">=</span><span class="nam">document_id</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t499" href="#t499">499</a></span><span class="t">    <span class="key">return</span> <span class="nam">HttpResponse</span><span class="op">(</span><span class="nam">document</span><span class="op">.</span><span class="nam">extracted_text</span><span class="op">,</span> <span class="nam">content_type</span><span class="op">=</span><span class="str">"text/plain"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t499" href="#t499">499</a></span><span class="t">    <span class="key">return</span> <span class="nam">HttpResponse</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t500" href="#t500">500</a></span><span class="t">        <span class="nam">document</span><span class="op">.</span><span class="nam">extracted_text</span><span class="op">,</span> <span class="nam">content_type</span><span class="op">=</span><span class="str">"text/plain; charset=utf-8"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t501" href="#t501">501</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -588,7 +590,7 @@
             <a class="nav" href="z_2d65b6d40d3ba790_celery_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.3">coverage.py v7.6.3</a>,
-            created at 2024-10-15 17:43 +0000
+            created at 2024-10-15 17:58 +0000
         </p>
     </div>
 </footer>
