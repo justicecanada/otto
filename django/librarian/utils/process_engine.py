@@ -327,11 +327,11 @@ def token_count(string: str, model: str = "gpt-4") -> int:
 def _convert_html_to_markdown(
     source_html, chunk_size=768, base_url=None, selector=None
 ):
-    from markdownify import MarkdownConverter
+    from markdownify import markdownify
 
-    # Create shorthand method for conversion
-    def md(soup, **options):
-        return MarkdownConverter(**options).convert_soup(soup)
+    def md(text):
+        """Wrapper to allow options to be passed to markdownify"""
+        return markdownify(text)
 
     model = settings.DEFAULT_CHAT_MODEL
 
