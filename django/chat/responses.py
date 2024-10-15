@@ -398,6 +398,7 @@ def qa_response(chat, response_message, switch_mode=False):
             llm.tree_summarize(
                 context=document.extracted_text,
                 query=user_message.text,
+                template=chat.options.qa_prompt_combined,
             )
             for document in filter_documents
         ]
