@@ -331,7 +331,7 @@ def _convert_html_to_markdown(
 
     def md(text):
         """Wrapper to allow options to be passed to markdownify"""
-        return markdownify(text)
+        return markdownify(text, heading_style="ATX", bullets="*", strong_em_symbol="_")
 
     model = settings.DEFAULT_CHAT_MODEL
 
@@ -346,6 +346,7 @@ def _convert_html_to_markdown(
     # return article.text
 
     soup = BeautifulSoup(source_html, "html.parser")
+    soup = soup.find("body")
 
     if selector:
         selected_html = soup.select_one(selector)
@@ -481,8 +482,10 @@ def _convert_html_to_markdown(
             nodes.append(md(f"{current_node}</table>").strip())
             current_node = ""
 
-    md = md(text).strip()
-    return md, nodes
+    print(text[:1000])
+    markdown = md(text).strip()
+    print(markdown[:1000])
+    return markdown, nodes
 
 
 def _pdf_to_html_using_azure(content):
