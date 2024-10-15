@@ -496,4 +496,6 @@ def download_document(request, document_id):
 )
 def document_text(request, document_id):
     document = get_object_or_404(Document, pk=document_id)
-    return HttpResponse(document.extracted_text, content_type="text/plain")
+    return HttpResponse(
+        document.extracted_text, content_type="text/plain; charset=utf-8"
+    )
