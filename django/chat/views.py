@@ -124,11 +124,24 @@ def chat(request, chat_id):
     )
 
     # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
+<<<<<<< HEAD
     # If database is completely wiped, this should all be removable
     if not chat.options:
         ChatOptions.objects.from_defaults(chat=chat)
     if not chat.data_source:
         create_chat_data_source(request.user, chat=chat)
+=======
+    try:
+        chat.options
+    except:
+        chat.options = ChatOptions.objects.from_defaults(user=chat.user, chat=chat)
+        chat.save()
+    try:
+        chat.data_source
+    except:
+        chat.data_source = create_chat_data_source(request.user, chat=chat)
+        chat.save()
+>>>>>>> main
     # END INSURANCE CODE
 
     mode = chat.options.mode

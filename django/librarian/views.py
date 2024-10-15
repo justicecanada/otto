@@ -489,3 +489,13 @@ def download_document(request, document_id):
     response = HttpResponse(file, content_type=file_obj.content_type)
     response["Content-Disposition"] = f"attachment; filename={document.filename}"
     return response
+
+
+@permission_required(
+    "librarian.download_document", objectgetter(Document, "document_id")
+)
+def document_text(request, document_id):
+    document = get_object_or_404(Document, pk=document_id)
+    return HttpResponse(
+        document.extracted_text, content_type="text/plain; charset=utf-8"
+    )

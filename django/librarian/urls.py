@@ -7,6 +7,7 @@ from librarian.views import (
     document_start,
     document_start_azure,
     document_stop,
+    document_text,
     download_document,
     modal_create_data_source,
     modal_create_document,
@@ -112,5 +113,10 @@ urlpatterns = [
         "document/<int:document_id>/download/",
         download_document,
         name="download_document",
+    ),
+    path(
+        "document/<int:document_id>/text/",
+        document_text,
+        name="document_text",
     ),
 ]
