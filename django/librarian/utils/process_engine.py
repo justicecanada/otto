@@ -12,9 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 from structlog import get_logger
 
-from chat.models import Message
-from librarian.models import Document
-from otto.models import Cost, User
+from otto.models import Cost
 
 logger = get_logger(__name__)
 
@@ -92,13 +90,6 @@ def create_nodes(chunks, document):
         node.text_template = "# {metadata_str}\ncontent:\n{content}\n\n"
 
     return new_nodes
-
-
-# def process(content, fast=True, summarize=True, force=False):
-
-#     if summarize:
-#         self.description = document_summary(md)
-#         self.generated_title = document_title(self.description)
 
 
 def guess_content_type(content):
@@ -336,7 +327,11 @@ def token_count(string: str, model: str = "gpt-4") -> int:
 def _convert_html_to_markdown(
     source_html, chunk_size=768, base_url=None, selector=None
 ):
-    import html2text
+    from markdownify import MarkdownConverter
+
+    # Create shorthand method for conversion
+    def md(soup, **options):
+        return MarkdownConverter(**options).convert_soup(soup)
 
     model = settings.DEFAULT_CHAT_MODEL
 
@@ -349,8 +344,6 @@ def _convert_html_to_markdown(
     # article.set_html(text)
     # article.parse()
     # return article.text
-    # TODO: Remove the following comments when completely sure the new approach works
-    # if text contains html, convert it to markdown
 
     soup = BeautifulSoup(source_html, "html.parser")
 
@@ -390,13 +383,6 @@ def _convert_html_to_markdown(
     # Remove all the line breaks, carriage returns, and tabs
     text = re.sub(r"[\n\r\t]", "", text)
 
-    h = html2text.HTML2Text()
-    h.ignore_images = True
-    h.skip_internal_links = True
-    h.body_width = 0
-    h.drop_white_space = True
-    h.footnote = False
-
     # Recreate the soup object from the cleaned text
     cleaned_soup = BeautifulSoup(text, "html.parser")
 
@@ -419,7 +405,7 @@ def _convert_html_to_markdown(
 
         # If it's a header, then append the current node and reset
         if node.name in header_node_names:
-            nodes.append(h.handle(current_node).strip())
+            nodes.append(md(current_node).strip())
 
             # Update the header map with the current header
             header_map[node.name] = str(node)
@@ -434,7 +420,7 @@ def _convert_html_to_markdown(
 
         # If it's a section or article node, then append the current node and reset
         elif node.name in section_node_names:
-            nodes.append(h.handle(current_node).strip())
+            nodes.append(md(current_node).strip())
             current_node = ""
 
         # If it's a text node, then accumulate the text until the chunk size is reached
@@ -442,7 +428,7 @@ def _convert_html_to_markdown(
             node_str = str(node)
 
             # Split the text by chunk size or if the node is a header
-            tentative_node = h.handle(f"{current_node}{node_str}").strip()
+            tentative_node = md(f"{current_node}{node_str}").strip()
             if token_count(tentative_node, model) > chunk_size:
                 nodes.append(tentative_node)
                 # Reset the current node and include the header again for context
@@ -455,7 +441,7 @@ def _convert_html_to_markdown(
 
             # Append the current node to the nodes list and reset the current node
             if current_node:
-                nodes.append(h.handle(current_node).strip())
+                nodes.append(md(current_node).strip())
                 current_node = ""
 
             # Find the table caption and append it to the current node
@@ -484,7 +470,7 @@ def _convert_html_to_markdown(
                 data_str = str(data_row)
 
                 # Split the table by chunk size
-                tentative_node = h.handle(f"{current_node}{data_str}</table>").strip()
+                tentative_node = md(f"{current_node}{data_str}</table>").strip()
                 if token_count(tentative_node, model) > chunk_size:
                     nodes.append(tentative_node)
                     current_node = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
@@ -492,10 +478,10 @@ def _convert_html_to_markdown(
                     current_node += data_str
 
             # Append the last mini table to the nodes list
-            nodes.append(h.handle(f"{current_node}</table>").strip())
+            nodes.append(md(f"{current_node}</table>").strip())
             current_node = ""
 
-    md = h.handle(text).strip()
+    md = md(text).strip()
     return md, nodes
 
 
@@ -504,7 +490,7 @@ def _pdf_to_html_using_azure(content):
     from azure.core.credentials import AzureKeyCredential
     from shapely.geometry import Polygon
 
-    # Note: This method handles scanned PDFs, images, and handwritten text better than pdfminer but costs money
+    # Note: This method handles scanned PDFs, images, and handwritten text but is $$$
 
     document_analysis_client = DocumentAnalysisClient(
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
