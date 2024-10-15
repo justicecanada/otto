@@ -3610,5 +3610,49 @@
     "Chat agent": {
         "fr": "",
         "fr_auto": "Agent de chat"
+    },
+    "Single answer": {
+        "fr": "",
+        "fr_auto": "Réponse unique"
+    },
+    "Granular answers": {
+        "fr": "",
+        "fr_auto": "Réponses granulaires"
+    },
+    "Granularity": {
+        "fr": "",
+        "fr_auto": "Granularité"
+    },
+    "Fine": {
+        "fr": "",
+        "fr_auto": "Fin"
+    },
+    "Coarse": {
+        "fr": "",
+        "fr_auto": "Grossier"
+    },
+    "Stop all": {
+        "fr": "",
+        "fr_auto": "Arrêtez tout"
+    },
+    "Process all": {
+        "fr": "",
+        "fr_auto": "Traiter tout"
+    },
+    "Force OCR": {
+        "fr": "",
+        "fr_auto": "Force OCR"
+    },
+    "Process": {
+        "fr": "",
+        "fr_auto": "Processus"
+    },
+    "View all": {
+        "fr": "",
+        "fr_auto": "Voir tout"
+    },
+    "QA": {
+        "fr": "",
+        "fr_auto": "AQ"
     }
 }

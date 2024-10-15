@@ -98,6 +98,7 @@ OPENAI_EMBEDDING_COST_PER_TOKEN = 0.0004 / 1000
 DEFAULT_CHAT_MODEL = "gpt-4o-mini"
 USD_TO_CAD = 1.36
 
+DEFAULT_MAX_DAILY_COST = 25  # allowance $CAD/user/day unless otherwise specified
 
 # Azure Cognitive Services
 AZURE_COGNITIVE_SERVICE_ENDPOINT = os.environ.get("AZURE_COGNITIVE_SERVICE_ENDPOINT")

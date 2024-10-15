@@ -1,0 +1,22 @@
+<div id="cost-bar-outer"
+     hx-get="{% url 'user_cost' %}"
+     hx-swap="outerHTML"
+     hx-trigger='load delay:60000ms'
+     data-bs-toggle="tooltip"
+     data-bs-placement="bottom"
+     data-bs-html="true"
+     data-bs-title="{{ cost_tooltip }}"
+     style="position: absolute;
+            bottom: 0px;
+            width: 100%;
+            height: 5px;
+            outline: solid 1px #666;
+            z-index: 1;
+            border-radius: 3px;
+            overflow: hidden">
+     <div id="cost-bar-inner"
+          class="bg-{{ cost_color }}"
+          style="width: {{ cost_width }}%;
+                 height: 5px;
+                 outline: solid 1px #666"></div>
+</div>

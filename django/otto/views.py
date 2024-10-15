@@ -654,3 +654,28 @@ def cost_dashboard(request):
         "cost_type_options": cost_type_options,
     }
     return render(request, "cost_dashboard.html", context)
+
+
+def user_cost(request):
+    today_cost = cad_cost(Cost.objects.get_user_cost_today(request.user))
+    daily_max = request.user.daily_max
+    last_7_days_cost = cad_cost(Cost.objects.get_user_cost_last_7_days(request.user))
+    cost_width = max(min(int(100 * today_cost / daily_max if daily_max else 0), 100), 1)
+    cost_color = "success"
+    if cost_width > 50:
+        cost_color = "warning"
+    if cost_width > 80:
+        cost_color = "danger"
+    cost_tooltip = (
+        f"${today_cost:.2f} / ${daily_max:.2f} {_('today')}<br>"
+        f"({_('Total last 7 days:')} ${last_7_days_cost:.2f})"
+    )
+    return render(
+        request,
+        "components/user_cost.html",
+        {
+            "cost_width": cost_width,
+            "cost_color": cost_color,
+            "cost_tooltip": cost_tooltip,
+        },
+    )

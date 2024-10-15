@@ -11,7 +11,7 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from otto.utils.common import display_cad_cost
+from otto.utils.common import cad_cost, display_cad_cost
 
 
 class CustomUserManager(BaseUserManager):
@@ -40,6 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
     accepted_terms_date = models.DateField(null=True)
     pilot = models.ForeignKey("Pilot", on_delete=models.SET_NULL, null=True, blank=True)
+    daily_max = models.IntegerField(default=settings.DEFAULT_MAX_DAILY_COST)
 
     objects = CustomUserManager()
 
@@ -74,7 +75,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.groups.all()
 
     @property
-    def total_cost(self):
+    def display_total_cost(self):
         return display_cad_cost(Cost.objects.get_user_cost(self))
 
     def __str__(self):
@@ -368,8 +369,16 @@ class CostManager(models.Manager):
         # Total cost for a user today
         return sum(
             cost.usd_cost
+            for cost in self.filter(user=user, date_incurred=datetime.date.today())
+        )
+
+    def get_user_cost_last_7_days(self, user):
+        # Total cost for a user in the last 7 days
+        return sum(
+            cost.usd_cost
             for cost in self.filter(
-                user=user, date_incurred__date=datetime.date.today()
+                user=user,
+                date_incurred__gte=datetime.date.today() - datetime.timedelta(days=7),
             )
         )
 
