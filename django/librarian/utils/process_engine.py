@@ -68,6 +68,9 @@ def create_nodes(chunks, document):
         metadata["title"] = document.title
     if document.url or document.filename:
         metadata["source"] = document.url or document.filename
+    if document.filename:
+        metadata["start-page"] = chunks.get()  # add
+        metadata["end-page"] = chunks.get()  # add
     document_node = TextNode(text="", id_=document_uuid, metadata=metadata)
     document_node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
         node_id=document_node.node_id
@@ -316,8 +319,15 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
         stuffed_texts.append(current_text)
 
     for i, text in enumerate(stuffed_texts):
+        page_numbers = re.findall(r"<page_(\d+)>", text)
+        if page_numbers:
+            start_page = min(map(int, page_numbers))
+            end_page = max(map(int, page_numbers))
+            page_range = f"{start_page}-{end_page}"
+        else:
+            page_range = "N/A"
         node = TextNode(text=text, id_=str(uuid.uuid4()))
-        node.metadata = dict(metadata, chunk_number=i)
+        node.metadata = dict(metadata, chunk_number=i, page_range=page_range)
         node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
             node_id=source_node_id
         )
@@ -370,8 +380,7 @@ def _convert_html_to_markdown(
     # return article.text
 
     soup = BeautifulSoup(source_html, "html.parser")
-    if soup.find("body"):
-        soup = soup.find("body")
+    soup = soup.find("body")
 
     if selector:
         selected_html = soup.select_one(selector)
@@ -610,7 +619,9 @@ def _pdf_to_html_using_azure(content):
     )
     html = ""
     for _, chunk in enumerate(chunks, 1):
+        html += f"<page_{chunk.get('page_number')}>\n"
         html += chunk.get("text")
+        html += f"</page_{chunk.get('page_number')}>\n"
 
     return html
 
