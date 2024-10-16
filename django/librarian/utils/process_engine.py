@@ -68,9 +68,9 @@ def create_nodes(chunks, document):
         metadata["title"] = document.title
     if document.url or document.filename:
         metadata["source"] = document.url or document.filename
-    if document.filename:
-        metadata["start-page"] = chunks.get()  # add
-        metadata["end-page"] = chunks.get()  # add
+    # if document.filename:
+    #     metadata["start-page"] = chunks.get()  # add
+    #     metadata["end-page"] = chunks.get()  # add
     document_node = TextNode(text="", id_=document_uuid, metadata=metadata)
     document_node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
         node_id=document_node.node_id
