@@ -267,6 +267,26 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
     def close_tags(html_string):
+        # Deal with partial page number tags, if any
+        # Find the first page tag (either opening or closing)
+        page_tag = re.search(r"<page \d+>|</page \d+>", html_string)
+        if page_tag:
+            # If it's not an opening tag, add an opening tag at the beginning
+            if not page_tag.group().startswith("<"):
+                html_string = f"<page1>{html_string}"
+            # Close the last opened tag, if not closed
+            opening_tags = re.findall(r"<page \d+>", html_string)
+            last_opening_tag = opening_tags[-1] if opening_tags else None
+            closing_tags = re.findall(r"</page \d+>", html_string)
+            last_closing_tag = closing_tags[-1] if closing_tags else None
+            # Check if last opening tag is not the same page number as the last closing tag
+            if last_opening_tag and last_closing_tag:
+                last_opening_tag_num = int(re.search(r"\d+", last_opening_tag).group())
+                last_closing_tag_num = int(re.search(r"\d+", last_closing_tag).group())
+                if last_opening_tag_num != last_closing_tag_num:
+                    # Add the closing tag
+                    html_string = f"{html_string}</page {last_opening_tag_num}>"
+
         soup = BeautifulSoup(html_string, "html.parser")
         return str(soup)
 
@@ -315,6 +335,8 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
             node_id=nodes[i].node_id
         )
 
+    logger.info("-------!!!!!!!!!!!!!")
+    logger.info(nodes)
     return nodes
 
 
