@@ -529,13 +529,15 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
                 if preset_id:
                     preset = get_object_or_404(Preset, id=preset_id, owner=request.user)
+                    replace_with_settings = request.POST.get(
+                        "replace_with_settings", False
+                    )
                 else:
                     # Create a new Preset object
                     preset = Preset()
                     preset.owner = request.user
                     preset_id = preset.id
-
-                replace_with_settings = request.POST.get("replace_with_settings", False)
+                    replace_with_settings = True
 
                 # save the current chat settings
                 if replace_with_settings:
