@@ -3610,5 +3610,145 @@
     "Chat agent": {
         "fr": "",
         "fr_auto": "Agent de chat"
+    },
+    "Shared with everyone": {
+        "fr": "",
+        "fr_auto": "Partagé avec tout le monde"
+    },
+    "Shared with specific users": {
+        "fr": "",
+        "fr_auto": "Partagé avec des utilisateurs spécifiques"
+    },
+    "Private": {
+        "fr": "",
+        "fr_auto": "Secteur privé"
+    },
+    "Open Presets Menu": {
+        "fr": "",
+        "fr_auto": "Ouvrir le menu des préréglages"
+    },
+    "Create preset from current settings": {
+        "fr": "",
+        "fr_auto": "Créer un préréglage à partir des paramètres actuels"
+    },
+    "Reset settings to default": {
+        "fr": "",
+        "fr_auto": "Réinitialiser les paramètres par défaut"
+    },
+    "Single answer": {
+        "fr": "",
+        "fr_auto": "Réponse unique"
+    },
+    "Granular answers": {
+        "fr": "",
+        "fr_auto": "Réponses granulaires"
+    },
+    "Granularity": {
+        "fr": "",
+        "fr_auto": "Granularité"
+    },
+    "Fine": {
+        "fr": "",
+        "fr_auto": "Fin"
+    },
+    "Coarse": {
+        "fr": "",
+        "fr_auto": "Grossier"
+    },
+    "Remove default": {
+        "fr": "",
+        "fr_auto": "Supprimer la valeur par défaut"
+    },
+    "Set as default": {
+        "fr": "",
+        "fr_auto": "Défini par défaut"
+    },
+    "No presets available": {
+        "fr": "",
+        "fr_auto": "Aucun préréglage disponible"
+    },
+    "Create a new preset to use your chat settings in other sessions or shared them with others.": {
+        "fr": "",
+        "fr_auto": "Créez un nouveau préréglage pour utiliser vos paramètres de chat dans d’autres sessions ou les partager avec d’autres."
+    },
+    "Remove from favourites": {
+        "fr": "",
+        "fr_auto": "Retirer des favoris"
+    },
+    "Add to favourites": {
+        "fr": "",
+        "fr_auto": "Ajouter aux favoris"
+    },
+    "Settings Presets": {
+        "fr": "",
+        "fr_auto": "Paramètres Préréglages"
+    },
+    "Settings presets": {
+        "fr": "",
+        "fr_auto": "Paramètres prédéfinis"
+    },
+    "Title (English)": {
+        "fr": "",
+        "fr_auto": "Titre (anglais)"
+    },
+    "Title (French)": {
+        "fr": "",
+        "fr_auto": "Titre (français)"
+    },
+    "Share with others": {
+        "fr": "",
+        "fr_auto": "Partager avec d’autres"
+    },
+    "Editable by: ": {
+        "fr": "",
+        "fr_auto": "Modifiable par : "
+    },
+    "Accessible to: ": {
+        "fr": "",
+        "fr_auto": "Accessible à : "
+    },
+    "Replace with current settings": {
+        "fr": "",
+        "fr_auto": "Remplacer par les paramètres actuels"
+    },
+    "Are you sure you want to delete this preset?": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir supprimer ce préréglage ?"
+    },
+    "Shared with others": {
+        "fr": "",
+        "fr_auto": "Partagé avec d’autres"
+    },
+    "Please provide a title in either English or French.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir un titre en anglais ou en français."
+    },
+    "Please provide at least one user for the editable field or the accessible field.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir au moins un utilisateur pour le champ modifiable ou le champ accessible."
+    },
+    "Stop all": {
+        "fr": "",
+        "fr_auto": "Arrêtez tout"
+    },
+    "Process all": {
+        "fr": "",
+        "fr_auto": "Traiter tout"
+    },
+    "Force OCR": {
+        "fr": "",
+        "fr_auto": "Force OCR"
+    },
+    "Process": {
+        "fr": "",
+        "fr_auto": "Processus"
+    },
+    "View all": {
+        "fr": "",
+        "fr_auto": "Voir tout"
+    },
+    "QA": {
+        "fr": "",
+        "fr_auto": "AQ"
     }
 }
