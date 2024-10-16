@@ -380,7 +380,8 @@ def _convert_html_to_markdown(
     # return article.text
 
     soup = BeautifulSoup(source_html, "html.parser")
-    soup = soup.find("body")
+    if soup.find("body"):
+        soup = soup.find("body")
 
     if selector:
         selected_html = soup.select_one(selector)
