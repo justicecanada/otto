@@ -169,7 +169,9 @@ def fast_pdf_to_text(content, chunk_size=768):
     pdf = pdfium.PdfDocument(content)
     text = ""
     for i, page in enumerate(pdf):
+        text += f"<page {i+1}>"
         text += page.get_textpage().get_text_range() + "\n"
+        text += f"</page {i+1}>"
     # We don't split the text into chunks here because it's done in create_child_nodes()
     return text, [text]
 
