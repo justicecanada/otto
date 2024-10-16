@@ -61,8 +61,14 @@ container_name       = "$TF_STATE_CONTAINER"
 key                  = "$TF_STATE_KEY"
 EOF
 
+# Set the Terraform log level to debug (optional)
+TF_LOG=DEBUG
+
+export TIMESTAMP=$(date +%Y%m%d%H%M%S)
+
 # Ensure terraform is initialized and upgraded
-terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure
+terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure > debug-$TIMESTAMP-init.txt 2>&1
 
 # Apply the Terraform configuration
-terraform apply -var-file=.tfvars
+terraform apply -var-file=.tfvars -auto-approve > debug-$TIMESTAMP-apply.txt 2>&1
+#terraform apply -var-file=.tfvars -auto-approve -parallelism=1 > debug-$TIMESTAMP-apply.txt 2>&1

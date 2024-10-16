@@ -52,3 +52,8 @@ variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the AKS cluster"
 }
+
+variable "app_subnet_id" {
+  type        = string
+  description = "The ID of the subnet for the application"
+}

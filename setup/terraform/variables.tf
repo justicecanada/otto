@@ -94,6 +94,21 @@ variable "djangodb_resource_name" {
   description = "Name of the Django DB resource"
 }
 
+variable "disk_backup_vault_name" {
+  description = "The name of the disk backup vault"
+  type        = string
+}
+
+variable "disk_backup_policy_name" {
+  description = "The name of the disk backup policy"
+  type        = string
+}
+
+variable "vnet_name" {
+  type        = string
+  description = "Name of the virtual network"
+}
+
 variable "entra_client_secret" {
   description = "Entra client secret"
   type        = string

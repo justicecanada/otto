@@ -147,6 +147,9 @@ export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
 export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}storage"
 export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
+export VNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-vnet"
+export DISK_BACKUP_VAULT_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-bk-vault"
+export DISK_BACKUP_POLICY_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-bk-policy"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
 
 
@@ -176,6 +179,9 @@ disk_name = "${DISK_NAME}"
 storage_name = "${STORAGE_NAME}"
 acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
+disk_backup_vault_name = "${DISK_BACKUP_VAULT_NAME}"
+disk_backup_policy_name = "${DISK_BACKUP_POLICY_NAME}"
+vnet_name = "${VNET_NAME}"
 gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}
 gpt_4_turbo_capacity = ${GPT_4_TURBO_CAPACITY}
 gpt_4o_capacity = ${GPT_4o_CAPACITY}

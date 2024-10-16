@@ -17,13 +17,13 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   # AC-22, IA-8, SC-2, SC-5: Configure the private cluster settings
   private_cluster_enabled = var.use_private_network
-  private_dns_zone_id     = var.use_private_network ? "System" : null
 
   # Configure the default node pool
   default_node_pool {
-    name       = "default"
-    node_count = 2
-    vm_size    = "Standard_D4s_v3"
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_D4s_v3"
+    vnet_subnet_id = var.app_subnet_id
 
     # Set upgrade settings for the node pool
     upgrade_settings {

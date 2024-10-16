@@ -55,3 +55,13 @@ variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the managed disks"
 }
+
+variable "disk_backup_vault_name" {
+  description = "The name of the disk backup vault"
+  type        = string
+}
+
+variable "disk_backup_policy_name" {
+  description = "The name of the disk backup policy"
+  type        = string
+}

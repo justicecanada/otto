@@ -85,7 +85,7 @@ resource "azurerm_managed_disk" "aks_hdd_disk" {
 
 # Create a Recovery Services Vault for backup
 resource "azurerm_data_protection_backup_vault" "disk_backup_vault" {
-  name                = "disk-backup-vault"
+  name                = var.disk_backup_vault_name
   resource_group_name = var.resource_group_name
   location            = var.location
   datastore_type      = "VaultStore"
@@ -103,7 +103,7 @@ data "azurerm_data_protection_backup_vault" "disk_backup_vault" {
 
 # Create a backup policy for the managed disks
 resource "azurerm_data_protection_backup_policy_disk" "disk_backup_policy" {
-  name     = "disk-backup-policy"
+  name     = var.disk_backup_policy_name
   vault_id = azurerm_data_protection_backup_vault.disk_backup_vault.id
 
   backup_repeating_time_intervals = ["R/2021-05-19T04:00:00+00:00/P1D"]
