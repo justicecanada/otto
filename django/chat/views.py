@@ -751,16 +751,15 @@ def edit_preset(request, chat_id, preset_id):
 def set_preset_default(request, chat_id: str, preset_id: int):
     try:
         preset = Preset.objects.get(id=preset_id)
-        preset = preset.set_as_default(request.user)
+        default = preset.set_as_default(request.user)
+        is_default = True if default is not None else False
         return render(
             request,
-            "chat/modals/presets/card_list.html",
+            "chat/modals/presets/default_icon.html",
             {
-                "presets": Preset.objects.get_accessible_presets(
-                    request.user, get_language()
-                ),
+                "preset": preset,
                 "chat_id": chat_id,
-                "user": request.user,
+                "is_default": is_default,
             },
         )
     except ValueError:
