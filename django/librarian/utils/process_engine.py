@@ -169,9 +169,9 @@ def fast_pdf_to_text(content, chunk_size=768):
     pdf = pdfium.PdfDocument(content)
     text = ""
     for i, page in enumerate(pdf):
-        text += f"<page {i+1}>\n"
+        text += f"<page_{i+1}>\n"
         text += page.get_textpage().get_text_range() + "\n"
-        text += f"</page {i+1}>\n"
+        text += f"</page_{i+1}>\n"
 
     # We don't split the text into chunks here because it's done in create_child_nodes()
     return text, [text]
@@ -269,15 +269,16 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
     def close_tags(html_string):
         # Deal with partial page number tags, if any
         # Find the first page tag (either opening or closing)
-        page_tag = re.search(r"<page \d+>|</page \d+>", html_string)
+        page_tag = re.search(r"<page_\d+>|</page_\d+>", html_string)
         if page_tag:
             # If it's not an opening tag, add an opening tag at the beginning
-            if not page_tag.group().startswith("<"):
-                html_string = f"<page1>{html_string}"
+            if not page_tag.group().startswith("<page_"):
+                first_page_num = int(re.search(r"\d+", page_tag.group()).group())
+                html_string = f"<page_{first_page_num}>\n{html_string}"
             # Close the last opened tag, if not closed
-            opening_tags = re.findall(r"<page \d+>", html_string)
+            opening_tags = re.findall(r"<page_\d+>", html_string)
             last_opening_tag = opening_tags[-1] if opening_tags else None
-            closing_tags = re.findall(r"</page \d+>", html_string)
+            closing_tags = re.findall(r"</page_\d+>", html_string)
             last_closing_tag = closing_tags[-1] if closing_tags else None
             # Check if last opening tag is not the same page number as the last closing tag
             if last_opening_tag and last_closing_tag:
@@ -285,7 +286,7 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
                 last_closing_tag_num = int(re.search(r"\d+", last_closing_tag).group())
                 if last_opening_tag_num != last_closing_tag_num:
                     # Add the closing tag
-                    html_string = f"{html_string}</page {last_opening_tag_num}>"
+                    html_string = f"{html_string}</page_{last_opening_tag_num}>"
 
         soup = BeautifulSoup(html_string, "html.parser")
         return str(soup)
@@ -335,8 +336,6 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
             node_id=nodes[i].node_id
         )
 
-    logger.info("-------!!!!!!!!!!!!!")
-    logger.info(nodes)
     return nodes
 
 
