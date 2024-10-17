@@ -46,7 +46,12 @@ def test_modify_user(client, basic_user, all_apps_user):
     user2 = basic_user(username="basic_user2", accept_terms=True)
     response = client.post(
         reverse("manage_users"),
-        data={"email": [user.id, user2.id], "group": [1, 2, 3]},
+        data={
+            "email": [user.id, user2.id],
+            "group": [1, 2, 3],
+            "weekly_max": 20,
+            "weekly_bonus": 10,
+        },
     )
     assert response.status_code == 200
     user.refresh_from_db()
