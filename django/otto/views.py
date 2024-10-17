@@ -219,7 +219,9 @@ def manage_users(request):
                 user.groups.add(*groups)
                 if "pilot" in form.cleaned_data:
                     user.pilot = form.cleaned_data["pilot"]
-                    user.save()
+                user.weekly_max = form.cleaned_data["weekly_max"]
+                user.weekly_bonus = form.cleaned_data["weekly_bonus"]
+                user.save()
         else:
             raise ValueError(form.errors)
 
@@ -240,7 +242,13 @@ def manage_users_form(request, user_id=None):
         logger.info("Accessing user roles form", update_user_id=user_id)
         user = User.objects.get(id=user_id)
         form = UserGroupForm(
-            initial={"email": [user], "group": user.groups.all(), "pilot": user.pilot}
+            initial={
+                "email": [user],
+                "group": user.groups.all(),
+                "pilot": user.pilot,
+                "weekly_max": user.weekly_max,
+                "weekly_bonus": user.weekly_bonus,
+            }
         )
     else:
         form = UserGroupForm()
@@ -354,14 +362,14 @@ def manage_pilots(request):
 @permission_required("otto.manage_users")
 def manage_pilots_form(request, pilot_id=None):
     if pilot_id and request.method == "DELETE":
-        pilot = Pilot.objects.get(id=pilot_id)
+        pilot = get_object_or_404(Pilot, pk=pilot_id)
         pilot.delete()
         response = HttpResponse()
         # Add hx-redirect header to trigger HTMX redirect
         response["hx-redirect"] = reverse("manage_pilots")
         return response
     if pilot_id:
-        pilot = Pilot.objects.get(id=pilot_id)
+        pilot = get_object_or_404(Pilot, pk=pilot_id)
         form = PilotForm(instance=pilot)
     else:
         form = PilotForm()
@@ -654,3 +662,25 @@ def cost_dashboard(request):
         "cost_type_options": cost_type_options,
     }
     return render(request, "cost_dashboard.html", context)
+
+
+def user_cost(request):
+    today_cost = cad_cost(Cost.objects.get_user_cost_today(request.user))
+    weekly_max = request.user.this_week_max
+    this_week_cost = cad_cost(Cost.objects.get_user_cost_this_week(request.user))
+    cost_percent = max(
+        min(int(100 * this_week_cost / weekly_max if weekly_max else 0), 100), 1
+    )
+    cost_tooltip = (
+        f"${this_week_cost:.2f} / ${weekly_max:.2f} {_('this week')}<br>"
+        f"(${today_cost:.2f} {_('today')})"
+    )
+    return render(
+        request,
+        "components/user_cost.html",
+        {
+            "cost_percent": cost_percent,
+            "cost_tooltip": cost_tooltip,
+            "cost_label": _("User costs"),
+        },
+    )

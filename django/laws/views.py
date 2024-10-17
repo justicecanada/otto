@@ -15,7 +15,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
-from otto.utils.decorators import app_access_required
+from otto.utils.decorators import app_access_required, budget_required
 
 from .forms import LawSearchForm
 from .models import Law
@@ -91,6 +91,7 @@ def source(request, source_id):
 
 
 @app_access_required(app_name)
+@budget_required
 def answer(request, query_uuid):
     bind_contextvars(feature="laws_query")
     from llama_index.core.schema import MetadataMode
@@ -209,6 +210,7 @@ def existing_search(request, query_uuid):
 
 
 @app_access_required(app_name)
+@budget_required
 def search(request):
     bind_contextvars(feature="laws_query")
     if request.method != "POST":

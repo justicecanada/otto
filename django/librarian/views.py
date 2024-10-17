@@ -12,7 +12,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from librarian.utils.process_engine import generate_hash
-from otto.utils.decorators import permission_required
+from otto.utils.decorators import budget_required, permission_required
 
 from .forms import (
     DataSourceDetailForm,
@@ -393,6 +393,7 @@ def create_temp_object(item_type):
 
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
+@budget_required
 def document_start(request, document_id):
     bind_contextvars(feature="librarian")
 
@@ -403,6 +404,7 @@ def document_start(request, document_id):
 
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
+@budget_required
 def document_start_azure(request, document_id):
     bind_contextvars(feature="librarian")
 
@@ -434,6 +436,7 @@ def data_source_stop(request, data_source_id):
 @permission_required(
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
+@budget_required
 def data_source_start(request, data_source_id):
     # Start all celery tasks for documents within this data source
     bind_contextvars(feature="librarian")
@@ -446,6 +449,7 @@ def data_source_start(request, data_source_id):
 @permission_required(
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
+@budget_required
 def data_source_start_azure(request, data_source_id):
     # Start all celery tasks for documents within this data source
     bind_contextvars(feature="librarian")
@@ -458,6 +462,7 @@ def data_source_start_azure(request, data_source_id):
 @permission_required(
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
+@budget_required
 def upload(request, data_source_id):
     """
     Handles POST request for (multiple) document upload
