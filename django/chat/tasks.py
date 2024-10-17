@@ -75,14 +75,22 @@ def translate_file(file_path, target_language):
         request_context = get_contextvars()
         out_message = Message.objects.get(id=request_context.get("message_id"))
         for document in result:
+            from django.core.files import File
+
+            from librarian.models import SavedFile
+
             if document.status == "Succeeded":
                 new_file = ChatFile.objects.create(
                     message=out_message,
                     filename=output_file_name,
                     content_type="?",
                 )
+                logger.info(f"Translation succeeded for {new_file.filename}")
                 with azure_storage.open(output_file_path) as f:
-                    new_file.saved_file.save(output_file_name, f)
+                    saved_file = SavedFile(file=File(f, name=output_file_name))
+                    saved_file.save()
+                    new_file.saved_file = saved_file
+                    new_file.save()
             else:
                 logger.error("Translation failed: ", error=document.error.message)
                 raise Exception(f"Translation failed:\n{document.error.message}")
