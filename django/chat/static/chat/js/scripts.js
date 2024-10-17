@@ -312,11 +312,11 @@ class FileUpload {
     reader.onload = async (e) => {
       const buffer = e.target.result;
       const hash = await this.sha256(buffer);
-      console.log(`SHA-256 hash for ${file.name}: ${hash}`);
-      this.upload_file(0, null, hash); // Call your upload method here
+      // console.log(`SHA-256 hash for ${file.name}: ${hash}`);
+      this.upload_file(0, null, hash);
     };
 
-    reader.readAsArrayBuffer(file); // Start reading the file
+    reader.readAsArrayBuffer(file);
   }
 
   upload_file(start, file_id, hash) {
@@ -436,7 +436,7 @@ function cancelChatRename() {
 }
 
 function updateQaModal() {
-  console.log('Updating QA modal');
+  // console.log('Updating QA modal');
   const qa_modal_elements = document.querySelectorAll('#advanced-qa-modal [data-inputname]');
   qa_modal_elements.forEach((modal_element) => {
     // Dataset attributes are lowercased
@@ -449,7 +449,7 @@ function updateQaModal() {
   });
 };
 function updateQaHiddenField(modal_element) {
-  console.log('Updating QA hidden field');
+  // console.log('Updating QA hidden field');
   // Dataset attributes are lowercased
   const hidden_field_name = modal_element.dataset.inputname;
   const hidden_field_element = document.querySelector(`input[name="${hidden_field_name}"]`);
