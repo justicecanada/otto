@@ -370,33 +370,6 @@ class Document(models.Model):
             return "Error"
         return None
 
-    # @property
-    # def page_range(self):
-    #     # answer_sources = self.answersource_set.all()
-    #     # page_numbers = [source.page_number for source in answer_sources if source.page_number is not None]
-    #     # if page_numbers:
-    #     #     min_page = min(page_numbers)
-    #     #     max_page = max(page_numbers)
-    #     #     if min_page == max_page:
-    #     #         return f"{min_page}"
-    #     #     else:
-    #     #     return f"{min_page}-{max_page}"
-    #     # return None
-    #     if self.extracted_text:
-    #         # Extract page numbers using regex
-    #         page_numbers = re.findall(r"<page_(\d+)>", self.extracted_text)
-    #         page_numbers = list(map(int, page_numbers))  # Convert to integers
-
-    #         # Calculate the page range
-    #         if page_numbers:
-    #             min_page = min(page_numbers)
-    #             max_page = max(page_numbers)
-    #             if min_page == max_page:
-    #                 return f"{min_page}"
-    #             else:
-    #                 return f"{min_page}-{max_page}"
-    #     return None
-
     @property
     def citation(self):
         return render_to_string(

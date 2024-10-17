@@ -628,12 +628,6 @@ def message_sources(request, message_id):
     import re
 
     message = Message.objects.get(id=message_id)
-
-    # return render(
-    #     request,
-    #     "chat/modals/sources_modal_inner.html",
-    #     {"message": message, "sources": message.sources},
-    # )
     sources = []
 
     for source in message.sources.all():
@@ -663,13 +657,7 @@ def message_sources(request, message_id):
             "min_page": min_page,
             "max_page": max_page,
         }
-        # source_dict = {
-        #     "citation": source.citation,
-        #     "document": source.document,
-        #     "node_text": source.node_text,
-        #     "group_number": source.group_number,
-        #     "page_numbers": page_numbers,
-        # }
+     
         sources.append(source_dict)
 
     return render(
