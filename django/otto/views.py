@@ -658,17 +658,19 @@ def cost_dashboard(request):
 
 def user_cost(request):
     today_cost = cad_cost(Cost.objects.get_user_cost_today(request.user))
-    daily_max = request.user.daily_max
-    last_7_days_cost = cad_cost(Cost.objects.get_user_cost_last_7_days(request.user))
-    cost_width = max(min(int(100 * today_cost / daily_max if daily_max else 0), 100), 1)
+    weekly_max = request.user.weekly_max_override or request.user.weekly_max
+    this_week_cost = cad_cost(Cost.objects.get_user_cost_this_week(request.user))
+    cost_width = max(
+        min(int(100 * today_cost / weekly_max if weekly_max else 0), 100), 1
+    )
     cost_color = "success"
     if cost_width > 50:
         cost_color = "warning"
     if cost_width > 80:
         cost_color = "danger"
     cost_tooltip = (
-        f"${today_cost:.2f} / ${daily_max:.2f} {_('today')}<br>"
-        f"({_('Total last 7 days:')} ${last_7_days_cost:.2f})"
+        f"${this_week_cost:.2f} / ${weekly_max:.2f} {_('this week')}<br>"
+        f"({_('Today:')} ${today_cost:.2f})"
     )
     return render(
         request,
