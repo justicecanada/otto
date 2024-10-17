@@ -7,16 +7,18 @@
      data-bs-html="true"
      data-bs-title="{{ cost_tooltip }}"
      style="position: absolute;
-            bottom: 0px;
-            width: 100%;
-            height: 5px;
-            outline: solid 1px #666;
-            z-index: 1;
-            border-radius: 3px;
-            overflow: hidden">
-     <div id="cost-bar-inner"
-          class="bg-{{ cost_color }}"
-          style="width: {{ cost_width }}%;
-                 height: 5px;
-                 outline: solid 1px #666"></div>
+            bottom: -3px;
+            width: calc(100% - 0.75rem);
+            margin-left: 0.25rem;
+            z-index: 1">
+       <meter aria-label="{{ cost_label }}"
+              id="cost-bar-inner"
+              class="w-100 d-block"
+              style="height: 12px"
+              min="0"
+              max="100"
+              low="33"
+              high="80"
+              optimum="0"
+              value="{{ cost_percent }}">{{ cost_tooltip }}</meter>
 </div>
