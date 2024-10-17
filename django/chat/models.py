@@ -398,3 +398,11 @@ class ChatFile(models.Model):
             self.saved_file.file.read(), process_engine, fast=fast
         )
         self.save()
+
+    def delete(self, *args, **kwargs):
+        file = self.saved_file
+        if file:
+            self.saved_file = None
+            self.save()
+            file.safe_delete()
+        return super().delete(*args, **kwargs)
