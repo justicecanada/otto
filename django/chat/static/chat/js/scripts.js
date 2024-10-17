@@ -260,10 +260,22 @@ function copyPromptToTextInput(btn, messageMode) {
   inputArea.focus();
 }
 
+// Hashing
+async function sha256(buffer) {
+  // hash the message
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+
+  // convert ArrayBuffer to Array
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+  // convert bytes to hex string                  
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
 
 // File upload (based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader)
 class FileUpload {
-
   constructor(input, upload_url, message_id) {
     this.input = input;
     this.upload_url = upload_url;
@@ -282,6 +294,12 @@ class FileUpload {
     this.initFileUpload(this.cur_file_idx);
   }
 
+  async sha256(buffer) {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
   initFileUpload(i) {
     var file = this.input.files[i];
     this.file = file;
@@ -289,10 +307,19 @@ class FileUpload {
     this.cur_filenum.innerHTML = i + 1;
     this.progress_container.classList.remove("d-none");
     scrollToBottom(false);
-    this.upload_file(0, null);
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const buffer = e.target.result;
+      const hash = await this.sha256(buffer);
+      console.log(`SHA-256 hash for ${file.name}: ${hash}`);
+      this.upload_file(0, null, hash); // Call your upload method here
+    };
+
+    reader.readAsArrayBuffer(file); // Start reading the file
   }
 
-  upload_file(start, file_id) {
+  upload_file(start, file_id, hash) {
     var end;
     var self = this;
     var formData = new FormData();
@@ -305,6 +332,7 @@ class FileUpload {
       end = 0;
     }
     formData.append('file', currentChunk);
+    formData.append('hash', hash);
     formData.append('filename', this.file.name);
     formData.append('end', end);
     formData.append('file_id', file_id);
@@ -343,6 +371,7 @@ class FileUpload {
         alert(xhr.statusText);
       },
       success: function (res) {
+        // TODO: Check if server says hash already exists. If so upload is "finished"
         if (nextChunk < self.file.size) {
           // upload file in chunks
           file_id = res.file_id;
