@@ -83,6 +83,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     def this_week_max(self):
         return self.weekly_max + self.weekly_bonus
 
+    @property
+    def is_over_budget(self):
+        return (
+            cad_cost(Cost.objects.get_user_cost_this_week(self)) >= self.this_week_max
+        )
+
     def __str__(self):
         return f"{self.lastname_firstname} ({self.email})"
 
