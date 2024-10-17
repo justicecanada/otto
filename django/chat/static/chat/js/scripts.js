@@ -260,22 +260,10 @@ function copyPromptToTextInput(btn, messageMode) {
   inputArea.focus();
 }
 
-// Hashing
-async function sha256(buffer) {
-  // hash the message
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-
-  // convert ArrayBuffer to Array
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-
-  // convert bytes to hex string                  
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
-}
-
 
 // File upload (based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader)
 class FileUpload {
+
   constructor(input, upload_url, message_id) {
     this.input = input;
     this.upload_url = upload_url;
@@ -371,7 +359,6 @@ class FileUpload {
         alert(xhr.statusText);
       },
       success: function (res) {
-        // TODO: Check if server says hash already exists. If so upload is "finished"
         if (nextChunk < self.file.size) {
           // upload file in chunks
           file_id = res.file_id;
