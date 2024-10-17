@@ -132,3 +132,31 @@ def test_manage_users_download(client, all_apps_user, basic_user):
     updated_users = User.objects.all().values_list("upn", "groups__name")
     assert sorted(list(users)) == sorted(list(updated_users))
     os.remove("users.csv")
+
+
+@pytest.mark.django_db
+def test_get_cost_dashboard(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("cost_dashboard"))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_get_manage_pilots(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("manage_pilots"))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_get_pilots_form(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("manage_pilots_form"))
+    assert response.status_code == 200
+
+    # Test with a pilot_id that doesn't exists
+    response = client.get(reverse("manage_pilots_form", kwargs={"pilot_id": 100}))
+    assert response.status_code == 404

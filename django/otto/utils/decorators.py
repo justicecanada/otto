@@ -113,7 +113,7 @@ def permission_required(
 def budget_required(func):
     @wraps(func)
     def wrapper(request, *args, **kwargs):
-        if not request.user.is_over_budget:
+        if request.user.is_over_budget:
             logger.info("User blocked due to budget overage", category="budget")
             Notification.objects.create(
                 user=request.user,

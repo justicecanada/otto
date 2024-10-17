@@ -362,14 +362,14 @@ def manage_pilots(request):
 @permission_required("otto.manage_users")
 def manage_pilots_form(request, pilot_id=None):
     if pilot_id and request.method == "DELETE":
-        pilot = Pilot.objects.get(id=pilot_id)
+        pilot = get_object_or_404(Pilot, pk=pilot_id)
         pilot.delete()
         response = HttpResponse()
         # Add hx-redirect header to trigger HTMX redirect
         response["hx-redirect"] = reverse("manage_pilots")
         return response
     if pilot_id:
-        pilot = Pilot.objects.get(id=pilot_id)
+        pilot = get_object_or_404(Pilot, pk=pilot_id)
         form = PilotForm(instance=pilot)
     else:
         form = PilotForm()
