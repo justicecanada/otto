@@ -41,7 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     accepted_terms_date = models.DateField(null=True)
     pilot = models.ForeignKey("Pilot", on_delete=models.SET_NULL, null=True, blank=True)
     weekly_max = models.IntegerField(default=settings.DEFAULT_WEEKLY_MAX)
-    weekly_max_override = models.IntegerField(null=True)  # Resets each Sunday to null
+    weekly_bonus = models.IntegerField(default=0)  # Resets each Sunday to 0
 
     objects = CustomUserManager()
 
@@ -78,6 +78,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def display_total_cost(self):
         return display_cad_cost(Cost.objects.get_user_cost(self))
+
+    @property
+    def this_week_max(self):
+        return self.weekly_max + self.weekly_bonus
 
     def __str__(self):
         return f"{self.lastname_firstname} ({self.email})"

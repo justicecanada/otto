@@ -219,7 +219,9 @@ def manage_users(request):
                 user.groups.add(*groups)
                 if "pilot" in form.cleaned_data:
                     user.pilot = form.cleaned_data["pilot"]
-                    user.save()
+                user.weekly_max = form.cleaned_data["weekly_max"]
+                user.weekly_bonus = form.cleaned_data["weekly_bonus"]
+                user.save()
         else:
             raise ValueError(form.errors)
 
@@ -240,7 +242,13 @@ def manage_users_form(request, user_id=None):
         logger.info("Accessing user roles form", update_user_id=user_id)
         user = User.objects.get(id=user_id)
         form = UserGroupForm(
-            initial={"email": [user], "group": user.groups.all(), "pilot": user.pilot}
+            initial={
+                "email": [user],
+                "group": user.groups.all(),
+                "pilot": user.pilot,
+                "weekly_max": user.weekly_max,
+                "weekly_bonus": user.weekly_bonus,
+            }
         )
     else:
         form = UserGroupForm()
@@ -658,7 +666,7 @@ def cost_dashboard(request):
 
 def user_cost(request):
     today_cost = cad_cost(Cost.objects.get_user_cost_today(request.user))
-    weekly_max = request.user.weekly_max_override or request.user.weekly_max
+    weekly_max = request.user.this_week_max
     this_week_cost = cad_cost(Cost.objects.get_user_cost_this_week(request.user))
     cost_percent = max(
         min(int(100 * this_week_cost / weekly_max if weekly_max else 0), 100), 1
