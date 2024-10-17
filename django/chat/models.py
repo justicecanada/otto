@@ -7,6 +7,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from rules import is_group_member
 from structlog import get_logger
 
 from chat.prompts import (
@@ -239,12 +240,19 @@ class PresetManager(models.Manager):
         ordering = ["-default", "-favourite"]
         if language:
             ordering.append(f"name_{language}")
-        return (
-            self.filter(
+
+        is_admin = is_group_member("Otto admin")(user)
+
+        # admins will have access to all presets
+        if is_admin:
+            presets = self.filter(is_deleted=False)
+        else:
+            presets = self.filter(
                 Q(owner=user) | Q(is_public=True) | Q(accessible_to=user),
                 is_deleted=False,
             )
-            .distinct()
+        return (
+            presets.distinct()
             .annotate(
                 favourite=Coalesce(
                     Q(favourited_by__in=[user]),

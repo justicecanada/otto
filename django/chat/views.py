@@ -43,6 +43,7 @@ from chat.models import (
 from chat.utils import change_mode_to_chat_qa, llm_response_to_html, title_chat
 from librarian.models import DataSource, Library
 from otto.models import App, SecurityLabel
+from otto.rules import is_admin
 from otto.utils.decorators import app_access_required, permission_required
 from otto.views import message_feedback
 
@@ -708,6 +709,7 @@ def get_presets(request, chat_id):
             ),
             "chat_id": chat_id,
             "user": request.user,
+            "is_admin": is_admin(request.user),
         },
     )
 

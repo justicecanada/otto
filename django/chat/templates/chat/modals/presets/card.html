@@ -32,7 +32,7 @@
             data-bs-dismiss="modal"
             hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
             hx-target="#options-accordion">{% trans "Load" %}</button>
-    {% if user in preset.editable_by.all or user == preset.owner %}
+    {% if user in preset.editable_by.all or user == preset.owner or is_admin %}
       <button type="button"
               class="btn btn-light fw-semibold flex-grow-1"
               hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
