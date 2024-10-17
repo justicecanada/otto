@@ -12,13 +12,18 @@
                 aria-controls="sources-{{ message.id }}-text-{{ forloop.counter }}">
           <span class="me-1">[{{ forloop.counter }}]</span>
           {{ source.citation|safe }}
+          {% if source.min_page is not None and source.max_page is not None %}
+            <span class="ms-1">(Pages: {{ source.min_page }}
+              {% if source.min_page != source.max_page %}-{{ source.max_page }}{% endif %}
+            )</span>
+          {% endif %}
         </button>
       </h2>
       <div id="sources-{{ message.id }}-text-{{ forloop.counter }}"
            class="accordion-collapse collapse">
         <div class="accordion-body scrolling-content" style="">
           {% if source.document %}<div class="float-end ps-3">{{ source.document.href|safe }}</div>{% endif %}
-
+ 
           <div style="white-space:pre-wrap;">{{ source.node_text|safe }}</div>
         </div>
       </div>

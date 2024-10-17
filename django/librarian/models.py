@@ -1,4 +1,5 @@
 import hashlib
+import re
 import uuid
 
 from django.conf import settings
@@ -372,7 +373,9 @@ class Document(models.Model):
     @property
     def citation(self):
         return render_to_string(
-            "librarian/components/document_citation.html", {"document": self}
+            "librarian/components/document_citation.html",
+            # {"document": self, "page_range": self.page_range},
+            {"document": self},
         )
 
     @property

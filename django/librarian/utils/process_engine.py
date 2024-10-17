@@ -75,8 +75,12 @@ def create_nodes(chunks, document):
 
     # Create chunk (child) nodes
     metadata["node_type"] = "chunk"
+    exclude_keys = ["page_range"]
     child_nodes = create_child_nodes(
-        chunks, source_node_id=document_node.node_id, metadata=metadata
+        chunks,
+        source_node_id=document_node.node_id,
+        metadata=metadata,
+        exclude_keys=exclude_keys,
     )
 
     # Update node properties
@@ -169,7 +173,10 @@ def fast_pdf_to_text(content, chunk_size=768):
     pdf = pdfium.PdfDocument(content)
     text = ""
     for i, page in enumerate(pdf):
+        text += f"<page_{i+1}>\n"
         text += page.get_textpage().get_text_range() + "\n"
+        text += f"</page_{i+1}>\n"
+
     # We don't split the text into chunks here because it's done in create_child_nodes()
     return text, [text]
 
@@ -259,11 +266,32 @@ def document_title(content):
     return title
 
 
-def create_child_nodes(text_strings, source_node_id, metadata=None):
+def create_child_nodes(text_strings, source_node_id, metadata=None, exclude_keys=None):
     from llama_index.core.node_parser import SentenceSplitter
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
     def close_tags(html_string):
+        # Deal with partial page number tags, if any
+        # Find the first page tag (either opening or closing)
+        page_tag = re.search(r"<page_\d+>|</page_\d+>", html_string)
+        if page_tag:
+            # If it's not an opening tag, add an opening tag at the beginning
+            if not page_tag.group().startswith("<page_"):
+                first_page_num = int(re.search(r"\d+", page_tag.group()).group())
+                html_string = f"<page_{first_page_num}>\n{html_string}"
+            # Close the last opened tag, if not closed
+            opening_tags = re.findall(r"<page_\d+>", html_string)
+            last_opening_tag = opening_tags[-1] if opening_tags else None
+            closing_tags = re.findall(r"</page_\d+>", html_string)
+            last_closing_tag = closing_tags[-1] if closing_tags else None
+            # Check if last opening tag is not the same page number as the last closing tag
+            if last_opening_tag and last_closing_tag:
+                last_opening_tag_num = int(re.search(r"\d+", last_opening_tag).group())
+                last_closing_tag_num = int(re.search(r"\d+", last_closing_tag).group())
+                if last_opening_tag_num != last_closing_tag_num:
+                    # Add the closing tag
+                    html_string = f"{html_string}</page_{last_opening_tag_num}>"
+
         soup = BeautifulSoup(html_string, "html.parser")
         return str(soup)
 
@@ -292,7 +320,9 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
         stuffed_texts.append(current_text)
 
     for i, text in enumerate(stuffed_texts):
+
         node = TextNode(text=text, id_=str(uuid.uuid4()))
+
         node.metadata = dict(metadata, chunk_number=i)
         node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
             node_id=source_node_id
@@ -586,7 +616,9 @@ def _pdf_to_html_using_azure(content):
     )
     html = ""
     for _, chunk in enumerate(chunks, 1):
+        html += f"<page_{chunk.get('page_number')}>\n"
         html += chunk.get("text")
+        html += f"</page_{chunk.get('page_number')}>\n"
 
     return html
 

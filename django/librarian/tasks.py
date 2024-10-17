@@ -118,6 +118,7 @@ def process_document_helper(document, llm, force_azure=False):
             },
         )
     nodes = create_nodes(chunks, document)
+
     document.num_chunks = len(nodes)
     document.save()
 
