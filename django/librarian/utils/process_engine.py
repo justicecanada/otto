@@ -75,8 +75,12 @@ def create_nodes(chunks, document):
 
     # Create chunk (child) nodes
     metadata["node_type"] = "chunk"
+    exclude_keys = ["page_range"]
     child_nodes = create_child_nodes(
-        chunks, source_node_id=document_node.node_id, metadata=metadata
+        chunks,
+        source_node_id=document_node.node_id,
+        metadata=metadata,
+        exclude_keys=exclude_keys,
     )
 
     # Update node properties
@@ -262,7 +266,7 @@ def document_title(content):
     return title
 
 
-def create_child_nodes(text_strings, source_node_id, metadata=None):
+def create_child_nodes(text_strings, source_node_id, metadata=None, exclude_keys=None):
     from llama_index.core.node_parser import SentenceSplitter
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
@@ -316,15 +320,26 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
         stuffed_texts.append(current_text)
 
     for i, text in enumerate(stuffed_texts):
-        page_numbers = re.findall(r"<page_(\d+)>", text)
-        if page_numbers:
-            start_page = min(map(int, page_numbers))
-            end_page = max(map(int, page_numbers))
-            page_range = f"{start_page}-{end_page}"
-        else:
-            page_range = "N/A"
+        # page_numbers = re.findall(r"<page_(\d+)>", text)
+        # chunk_metadata = dict(metadata, chunk_number=i)
+        # if page_numbers:
+        #     start_page = min(map(int, page_numbers))
+        #     end_page = max(map(int, page_numbers))
+        #     page_range = f"{start_page}-{end_page}"
+        #     chunk_metadata["page_range"] = page_range
+        #     node = TextNode(text=text, id_=str(uuid.uuid4()))
+        #     node.metadata = dict(chunk_metadata, chunk_number=i)
+
         node = TextNode(text=text, id_=str(uuid.uuid4()))
-        node.metadata = dict(metadata, chunk_number=i, page_range=page_range)
+        # node = TextNode(
+        #     text=text,
+        #     metadata=chunk_metadata,
+        #     excluded_llm_metadata_keys=exclude_keys,
+        #     excluded_embed_metadata_keys=exclude_keys,
+        # )
+        node.metadata = dict(metadata, chunk_number=i)
+        # node.metadata = dict(metadata, chunk_number=i, page_range=page_range)
+
         node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
             node_id=source_node_id
         )
