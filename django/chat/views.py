@@ -34,7 +34,11 @@ from chat.models import Chat, ChatFile, ChatOptions, Message, create_chat_data_s
 from chat.utils import change_mode_to_chat_qa, llm_response_to_html, title_chat
 from librarian.models import DataSource, Library
 from otto.models import App, SecurityLabel
-from otto.utils.decorators import app_access_required, permission_required
+from otto.utils.decorators import (
+    app_access_required,
+    budget_required,
+    permission_required,
+)
 from otto.views import message_feedback
 
 app_name = "chat"
@@ -202,6 +206,7 @@ def chat(request, chat_id):
 
 @require_POST
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+@budget_required
 def chat_message(request, chat_id):
     """
     Post a user message to the chat and initiate a streaming response
@@ -278,6 +283,7 @@ def delete_message(request, message_id):
 
 @require_GET
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+@budget_required
 def init_upload(request, chat_id):
     """
     Creates a file upload progress message in the chat and initiates the file upload

@@ -2,6 +2,7 @@ from functools import wraps
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -107,3 +108,28 @@ def permission_required(
         return _wrapped_view
 
     return decorator
+
+
+def budget_required(func):
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_over_budget:
+            logger.info("User blocked due to budget overage", category="budget")
+            Notification.objects.create(
+                user=request.user,
+                heading=_("Budget limit"),
+                text=_(
+                    "You have reached your weekly budget limit. Please contact an Otto administrator or wait until Sunday for the limit to reset."
+                ),
+                category="error",
+            )
+            if request.headers.get("HX-Request"):
+                response = HttpResponse(status=200)
+                response["HX-Redirect"] = request.headers.get("HX-Current-URL")
+            else:
+                response = HttpResponseRedirect(reverse("index"))
+            return response
+
+        return func(request, *args, **kwargs)
+
+    return wrapper
