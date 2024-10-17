@@ -38,7 +38,13 @@ PUBLIC_PATHS = [
     "/notifications",
 ]
 
-NO_TERMS_PATHS = PUBLIC_PATHS + ["/", "/accept_terms", "/i18n/setlang", "/feedback"]
+NO_TERMS_PATHS = PUBLIC_PATHS + [
+    "/",
+    "/accept_terms",
+    "/i18n/setlang",
+    "/feedback",
+    "/user_cost",
+]
 
 
 class RedirectToLoginMiddleware:
