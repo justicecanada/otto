@@ -3,6 +3,8 @@ import uuid
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -399,10 +401,10 @@ class ChatFile(models.Model):
         )
         self.save()
 
-    def delete(self, *args, **kwargs):
-        file = self.saved_file
-        if file:
-            self.saved_file = None
-            self.save()
-            file.safe_delete()
-        return super().delete(*args, **kwargs)
+
+@receiver(post_delete, sender=ChatFile)
+def delete_saved_file(sender, instance, **kwargs):
+    # NOTE: If file was uploaded to chat in Q&A mode, this won't delete unless
+    # document is also delete from librarian modal (or entire chat is deleted)
+    if instance.saved_file:
+        instance.saved_file.safe_delete()
