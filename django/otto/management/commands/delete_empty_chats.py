@@ -11,7 +11,7 @@ from chat.models import Chat
 
 
 class Command(BaseCommand):
-    help = "Delete empty chat files more than 1 day old."
+    help = "Delete empty chats more than 1 day old."
 
     def add_arguments(self, parser):
         # Delete all
