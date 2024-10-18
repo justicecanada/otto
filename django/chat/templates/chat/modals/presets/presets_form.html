@@ -3,7 +3,9 @@
 <div class="modal-body">
 
   <div class="d-flex flex-column">
-    <ul class="nav nav-tabs nav-fill" id="preset-edit-tabs" role="tablist">
+    <ul class="nav nav-tabs nav-fill mx-3"
+        id="preset-edit-tabs"
+        role="tablist">
       <li class="nav-item" role="presentation">
         <button id="en-preset-tab"
                 class="active nav-link"
@@ -26,7 +28,7 @@
       </li>
     </ul>
 
-    <div class="tab-content border-bottom pt-4">
+    <div class="tab-content rounded px-3 mb-3 border">
       <form class="g-3 mt-1 row" id="edit_preset_form" method="post">
         {% csrf_token %}
         <div class="col-12">
@@ -66,7 +68,7 @@
             <label class="form-label" for="id_editable_by">{% trans "Editable by: " %}</label>
             {{ form.editable_by }}
           </div>
-          <div class="mb-3">
+          <div>
             <label class="form-label" for="id_accessible_to">{% trans "Accessible to: " %}</label>
             {{ form.accessible_to }}
           </div>
@@ -92,7 +94,7 @@
   </div>
 
 
-  <div class="modal-footer">
+  <div class="modal-footer pb-0 pt-1 border-0">
     <div class="col-12">
       <div class="row">
         <div class="col-6">
