@@ -1,6 +1,7 @@
 # views.py
 from dataclasses import dataclass
 
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -486,7 +487,8 @@ def upload(request, data_source_id):
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )
-        document.process()
+        if not settings.IS_RUNNING_IN_GITHUB:
+            document.process()
     # Update the modal with the new documents
     request.method = "GET"
     return modal_view(request, item_type="data_source", item_id=data_source_id)

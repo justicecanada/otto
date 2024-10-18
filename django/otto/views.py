@@ -290,6 +290,12 @@ def manage_users_upload(request):
                                 pilot_id=pilot_id,
                                 name=pilot_id.replace("_", " ").capitalize(),
                             )
+                    # Check for weekly_max column
+                    weekly_max = row.get("weekly_max", None)
+                    try:
+                        weekly_max = int(weekly_max)
+                    except Exception as e:
+                        weekly_max = None
                     user, created = User.objects.get_or_create(upn=upn)
                     if created:
                         user.email = email
@@ -297,11 +303,16 @@ def manage_users_upload(request):
                         user.last_name = surname
                         if pilot_id:
                             user.pilot = pilot
+                        if weekly_max:
+                            user.weekly_max = weekly_max
                         user.save()
                     if not created:
                         user.groups.clear()
                         if pilot_id:
                             user.pilot = pilot
+                        if weekly_max:
+                            user.weekly_max = weekly_max
+                        if pilot_id or weekly_max:
                             user.save()
                     for role in row["roles"].split("|"):
                         role = role.strip()
@@ -326,13 +337,13 @@ def manage_users_download(request):
     response["Content-Disposition"] = 'attachment; filename="otto_users.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(["upn", "pilot_id", "roles"])
+    writer.writerow(["upn", "pilot_id", "roles", "weekly_max"])
 
     # Only get users who have roles
     for user in User.objects.filter(groups__isnull=False).order_by("last_name"):
         roles = "|".join(user.groups.values_list("name", flat=True))
         pilot_id = user.pilot.pilot_id if user.pilot else ""
-        writer.writerow([user.upn, pilot_id, roles])
+        writer.writerow([user.upn, pilot_id, roles, user.weekly_max])
 
     return response
 

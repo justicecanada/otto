@@ -65,7 +65,7 @@ async def django_db_setup(django_db_setup, django_db_blocker):
 def all_apps_user(db, django_user_model):
     def new_user(username="all_apps_user"):
         user = django_user_model.objects.create_user(
-            upn=f"{username}_upn",
+            upn=f"{username}.lastname@example.com",
             oid=f"{username}_oid",
             email=f"{username}@example.com",
         )
@@ -82,7 +82,7 @@ def all_apps_user(db, django_user_model):
 def basic_user(db, django_user_model):
     def new_user(username="basic_user", accept_terms=False):
         user = django_user_model.objects.create_user(
-            upn=f"{username}_upn",
+            upn=f"{username}.lastname@example.com",
             oid=f"{username}_oid",
             email=f"{username}@example.com",
             accepted_terms_date=datetime.now() if accept_terms else None,
