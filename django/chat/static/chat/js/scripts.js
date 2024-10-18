@@ -300,7 +300,7 @@ class FileUpload {
     reader.onload = async (e) => {
       const buffer = e.target.result;
       const hash = await this.sha256(buffer);
-      // console.log(`SHA-256 hash for ${file.name}: ${hash}`);
+      console.log(`SHA-256 hash for ${file.name}: ${hash}`);
       this.upload_file(0, null, hash);
     };
 

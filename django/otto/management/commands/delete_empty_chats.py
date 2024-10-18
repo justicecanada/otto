@@ -29,7 +29,7 @@ class Command(BaseCommand):
             chats = Chat.objects.filter(messages__isnull=True)
         else:
             chats = Chat.objects.filter(
-                created_at__lt=delete_from, messages__isnull=True
+                accessed_at__lt=delete_from, messages__isnull=True
             )
 
         num_chats = chats.count()

@@ -36,10 +36,7 @@ class Command(BaseCommand):
         else:
             delete_from = datetime.datetime.now() - datetime.timedelta(days=90)
 
-        if options["all"]:
-            chats = Chat.objects.all()
-        else:
-            chats = Chat.objects.filter(created_at__lt=delete_from)
+        chats = Chat.objects.filter(accessed_at__lt=delete_from)
 
         num_chats = chats.count()
         chats.delete()

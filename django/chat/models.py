@@ -406,5 +406,7 @@ class ChatFile(models.Model):
 def delete_saved_file(sender, instance, **kwargs):
     # NOTE: If file was uploaded to chat in Q&A mode, this won't delete unless
     # document is also delete from librarian modal (or entire chat is deleted)
-    if instance.saved_file:
+    try:
         instance.saved_file.safe_delete()
+    except Exception as e:
+        logger.error(f"Failed to delete saved file: {e}")

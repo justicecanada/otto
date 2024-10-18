@@ -112,6 +112,9 @@ def chat(request, chat_id):
         .first()
     )
 
+    chat.accessed_at = timezone.now()
+    chat.save()
+
     # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
     try:
         chat.options
@@ -384,6 +387,7 @@ def chunk_upload(request, message_id):
             if not existing_file:
                 file_obj.saved_file.file.save(fileName, request.FILES["file"])
             if int(end) or existing_file:
+                file_obj.saved_file.generate_hash()
                 return JsonResponse(
                     {"data": "Uploaded successfully", "file_id": file_obj.id}
                 )
