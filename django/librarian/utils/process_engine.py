@@ -75,8 +75,12 @@ def create_nodes(chunks, document):
 
     # Create chunk (child) nodes
     metadata["node_type"] = "chunk"
+    exclude_keys = ["page_range"]
     child_nodes = create_child_nodes(
-        chunks, source_node_id=document_node.node_id, metadata=metadata
+        chunks,
+        source_node_id=document_node.node_id,
+        metadata=metadata,
+        exclude_keys=exclude_keys,
     )
 
     # Update node properties
@@ -151,7 +155,9 @@ def extract_markdown(
     # Sometimes HTML to markdown will result in zero chunks, even though there is text
     if not md_chunks:
         md_chunks = [md]
-
+    print("---------------md----------------")
+    print(md)
+    print("---------------md end----------------")
     return md, md_chunks
 
 
@@ -169,7 +175,10 @@ def fast_pdf_to_text(content, chunk_size=768):
     pdf = pdfium.PdfDocument(content)
     text = ""
     for i, page in enumerate(pdf):
+        text += f"<page_{i+1}>\n"
         text += page.get_textpage().get_text_range() + "\n"
+        text += f"</page_{i+1}>\n"
+
     # We don't split the text into chunks here because it's done in create_child_nodes()
     return text, [text]
 
@@ -185,13 +194,121 @@ def text_to_markdown(content, chunk_size=768):
 
 
 def docx_to_markdown(content, chunk_size=768):
-    import mammoth
+    import io
 
-    with io.BytesIO(content) as docx_file:
-        result = mammoth.convert_to_html(docx_file)
-    html = result.value
+    from docx import Document
+
+    # Load the DOCX content
+    doc = Document(io.BytesIO(content))
+
+    text = ""
+    page_number = 1
+    for i, para in enumerate(doc.paragraphs):
+        if i % 10 == 0:  # Add a page tag every 10 paragraphs as a heuristic
+            text += f"<page_{page_number}>\n<p>"
+            page_number += 1
+        text += para.text + "\n"
+        if i % 10 == 9:  # Close the page tag every 10 paragraphs
+            text += f"</page_{page_number - 1}>\n<p>"
+
+    # Convert the extracted text to HTML
+    html = text
+    print("--------------JUST HTML-----------------")
+    print(html)
+    print("---------------------------------------------")
+
+    # Convert the modified HTML to Markdown
     md, nodes = _convert_html_to_markdown(html, chunk_size)
     return md, nodes
+
+    # import mammoth
+
+    # with io.BytesIO(content) as docx_file:
+    #     result = mammoth.convert_to_html(docx_file)
+    # html = result.value
+
+    # # Parse the HTML and add page tags
+    # soup = BeautifulSoup(html, "html.parser")
+    # paragraphs = soup.find_all("p")
+    # html_with_pages = ""
+    # page_number = 1
+    # for i, p in enumerate(paragraphs):
+    #     if i % 10 == 0:  # Add a page tag every 10 paragraphs as a heuristic
+    #         html_with_pages += f"<page_{page_number}>\n"
+    #         page_number += 1
+    #     html_with_pages += str(p)
+    #     if i % 10 == 9:  # Close the page tag every 10 paragraphs
+    #         html_with_pages += f"</page_{page_number - 1}>\n"
+    # print("-------------------------------")
+    # print(html_with_pages)
+    # print("-------------------------------")
+
+    # md, nodes = _convert_html_to_markdown(html_with_pages, chunk_size)
+    # return md, nodes
+
+    # import os
+    # import tempfile
+
+    # from django.conf import settings
+
+    # from azure.ai.formrecognizer import DocumentAnalysisClient
+    # from azure.core.credentials import AzureKeyCredential
+    # from bs4 import BeautifulSoup
+
+    # print(f"Content size: {len(content)} bytes")
+    # # Use Azure Document AI Read API to extract text and page numbers
+    # document_analysis_client = DocumentAnalysisClient(
+    #     endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+    #     credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+    # )
+
+    # poller = document_analysis_client.begin_analyze_document(
+    #     "prebuilt-read", document=io.BytesIO(content)
+    # )
+    # result = poller.result()
+
+    # num_pages = len(result.pages)
+    # print(f"Number of pages:::::::::: {num_pages}")
+    # # print(f"Result:::::::::: {result}")
+    # cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
+
+    # text = ""
+    # for i, page in enumerate(result.pages):
+    #     print(f"Page {i+1} object=============== {page}")
+    #     text += f"<page_{i+1}>\n"
+    #     for line in page.lines:
+    #         print("Line content==================== ", line.content)
+    #         text += line.content + "\n"
+    #     text += f"</page_{i+1}>\n"
+
+    # # Debug: Print the extracted text
+    # print("--------------EXTRACTED TEXT-----------------")
+    # print(text)
+    # print("---------------------------------------------")
+    # # Convert the extracted text to HTML
+    # html = text
+    # print("--------------JUST HTML-----------------")
+    # print(html)
+    # print("-------------------------------")
+
+    # # Parse the HTML and add page tags
+    # soup = BeautifulSoup(html, "html.parser")
+    # paragraphs = soup.find_all("p")
+    # html_with_pages = ""
+    # page_number = 1
+    # for i, p in enumerate(paragraphs):
+    #     if i % 10 == 0:  # Add a page tag every 10 paragraphs as a heuristic
+    #         html_with_pages += f"<page_{page_number}>\n"
+    #         page_number += 1
+    #     html_with_pages += str(p)
+    #     if i % 10 == 9:  # Close the page tag every 10 paragraphs
+    #         html_with_pages += f"</page_{page_number - 1}>\n"
+    # print("-------------------------------")
+    # print(html_with_pages)
+    # print("-------------------------------")
+    # # Convert the modified HTML to Markdown
+    # md, nodes = _convert_html_to_markdown(html_with_pages, chunk_size)
+    # return md, nodes
 
 
 def pptx_to_markdown(content, chunk_size=768):
@@ -259,11 +376,32 @@ def document_title(content):
     return title
 
 
-def create_child_nodes(text_strings, source_node_id, metadata=None):
+def create_child_nodes(text_strings, source_node_id, metadata=None, exclude_keys=None):
     from llama_index.core.node_parser import SentenceSplitter
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
     def close_tags(html_string):
+        # Deal with partial page number tags, if any
+        # Find the first page tag (either opening or closing)
+        page_tag = re.search(r"<page_\d+>|</page_\d+>", html_string)
+        if page_tag:
+            # If it's not an opening tag, add an opening tag at the beginning
+            if not page_tag.group().startswith("<page_"):
+                first_page_num = int(re.search(r"\d+", page_tag.group()).group())
+                html_string = f"<page_{first_page_num}>\n{html_string}"
+            # Close the last opened tag, if not closed
+            opening_tags = re.findall(r"<page_\d+>", html_string)
+            last_opening_tag = opening_tags[-1] if opening_tags else None
+            closing_tags = re.findall(r"</page_\d+>", html_string)
+            last_closing_tag = closing_tags[-1] if closing_tags else None
+            # Check if last opening tag is not the same page number as the last closing tag
+            if last_opening_tag and last_closing_tag:
+                last_opening_tag_num = int(re.search(r"\d+", last_opening_tag).group())
+                last_closing_tag_num = int(re.search(r"\d+", last_closing_tag).group())
+                if last_opening_tag_num != last_closing_tag_num:
+                    # Add the closing tag
+                    html_string = f"{html_string}</page_{last_opening_tag_num}>"
+
         soup = BeautifulSoup(html_string, "html.parser")
         return str(soup)
 
@@ -292,7 +430,9 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
         stuffed_texts.append(current_text)
 
     for i, text in enumerate(stuffed_texts):
+
         node = TextNode(text=text, id_=str(uuid.uuid4()))
+
         node.metadata = dict(metadata, chunk_number=i)
         node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
             node_id=source_node_id
@@ -344,8 +484,14 @@ def _convert_html_to_markdown(
     # article.set_html(text)
     # article.parse()
     # return article.text
-
+    print("-----------source html--------------")
+    print(source_html)
+    print("--------------------------------------")
     soup = BeautifulSoup(source_html, "html.parser")
+
+    print("-----------soup--------------")
+    print(soup)
+    print("--------------------------------------")
     if soup.find("body"):
         soup = soup.find("body")
 
@@ -387,6 +533,9 @@ def _convert_html_to_markdown(
 
     # Recreate the soup object from the cleaned text
     cleaned_soup = BeautifulSoup(text, "html.parser")
+    print("-----------cleaned_soup--------------")
+    print(cleaned_soup)
+    print("--------------------------------------")
 
     # Process paragraphs, lists, and tables
     nodes = []
@@ -483,9 +632,16 @@ def _convert_html_to_markdown(
             nodes.append(md(f"{current_node}</table>").strip())
             current_node = ""
 
-    print(text[:1000])
+    print("-----------text--------------")
+    print(text)
+    print("--------------------------------------")
     markdown = md(text).strip()
-    print(markdown[:1000])
+    print("-----------markdown--------------")
+    print(markdown)
+    print("--------------------------------------")
+    print("-----------nodes--------------")
+    print(nodes)
+    print("--------------------------------------")
     return markdown, nodes
 
 
@@ -586,7 +742,9 @@ def _pdf_to_html_using_azure(content):
     )
     html = ""
     for _, chunk in enumerate(chunks, 1):
+        html += f"<page_{chunk.get('page_number')}>\n"
         html += chunk.get("text")
+        html += f"</page_{chunk.get('page_number')}>\n"
 
     return html
 
