@@ -36,7 +36,7 @@ def test_modify_user(client, basic_user, all_apps_user):
     # Modify the basic_user
     response = client.post(
         reverse("manage_users"),
-        data={"email": [user.id], "group": [1, 2]},
+        data={"email": [user.id], "group": [1, 2], "weekly_max": 10, "weekly_bonus": 0},
     )
     assert response.status_code == 200
     user.refresh_from_db()
@@ -46,7 +46,12 @@ def test_modify_user(client, basic_user, all_apps_user):
     user2 = basic_user(username="basic_user2", accept_terms=True)
     response = client.post(
         reverse("manage_users"),
-        data={"email": [user.id, user2.id], "group": [1, 2, 3]},
+        data={
+            "email": [user.id, user2.id],
+            "group": [1, 2, 3],
+            "weekly_max": 20,
+            "weekly_bonus": 10,
+        },
     )
     assert response.status_code == 200
     user.refresh_from_db()
@@ -113,7 +118,9 @@ def test_manage_users_download(client, all_apps_user, basic_user):
     for group_id in np.random.choice(group_ids, min(4, len(group_ids)), replace=False):
         u.groups.add(group_id)
 
-    users = User.objects.all().values_list("upn", "groups__name")
+    users = User.objects.all().values_list(
+        "upn", "pilot_id", "groups__name", "weekly_max"
+    )
 
     response = client.get(reverse("download_users"))
     assert response.status_code == 200
@@ -129,6 +136,36 @@ def test_manage_users_download(client, all_apps_user, basic_user):
     assert response.status_code == 302
 
     # Check that the users are unchanged
-    updated_users = User.objects.all().values_list("upn", "groups__name")
+    updated_users = User.objects.all().values_list(
+        "upn", "pilot_id", "groups__name", "weekly_max"
+    )
     assert sorted(list(users)) == sorted(list(updated_users))
     os.remove("users.csv")
+
+
+@pytest.mark.django_db
+def test_get_cost_dashboard(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("cost_dashboard"))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_get_manage_pilots(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("manage_pilots"))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_get_pilots_form(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("manage_pilots_form"))
+    assert response.status_code == 200
+
+    # Test with a pilot_id that doesn't exists
+    response = client.get(reverse("manage_pilots_form", kwargs={"pilot_id": 100}))
+    assert response.status_code == 404

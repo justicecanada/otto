@@ -1,9 +1,12 @@
 import os
+import shutil
 from datetime import datetime
 from unittest.mock import MagicMock
 
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.management import call_command
+from django.test import override_settings
 
 import pytest
 import pytest_asyncio
@@ -12,6 +15,24 @@ from PIL import Image
 from reportlab.pdfgen import canvas
 
 pytest_plugins = ("pytest_asyncio",)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def set_test_media():
+    # Define the test media directory
+    test_media_dir = os.path.join(settings.BASE_DIR, "test_media")
+
+    # Ensure the test media directory is clean
+    if os.path.exists(test_media_dir):
+        shutil.rmtree(test_media_dir)
+    os.makedirs(test_media_dir)
+
+    # Use override_settings to set MEDIA_ROOT
+    with override_settings(MEDIA_ROOT=test_media_dir):
+        yield  # This allows the tests to run
+
+    # Cleanup after tests
+    shutil.rmtree(test_media_dir)
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -44,7 +65,7 @@ async def django_db_setup(django_db_setup, django_db_blocker):
 def all_apps_user(db, django_user_model):
     def new_user(username="all_apps_user"):
         user = django_user_model.objects.create_user(
-            upn=f"{username}_upn",
+            upn=f"{username}.lastname@example.com",
             oid=f"{username}_oid",
             email=f"{username}@example.com",
         )
@@ -61,7 +82,7 @@ def all_apps_user(db, django_user_model):
 def basic_user(db, django_user_model):
     def new_user(username="basic_user", accept_terms=False):
         user = django_user_model.objects.create_user(
-            upn=f"{username}_upn",
+            upn=f"{username}.lastname@example.com",
             oid=f"{username}_oid",
             email=f"{username}@example.com",
             accepted_terms_date=datetime.now() if accept_terms else None,

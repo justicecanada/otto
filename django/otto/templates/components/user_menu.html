@@ -1,6 +1,10 @@
 {% load i18n %}
 {% load rules %}
-<ul class="navbar-nav">
+<ul class="navbar-nav position-relative">
+  <div id="cost-bar-outer"
+       hx-get="{% url 'user_cost' %}"
+       hx-swap="outerHTML"
+       hx-trigger='load delay:100ms'></div>
   <li class="nav-item dropdown">
     <button class="btn btn-dark text-muted dropdown-toggle px-2 me-1"
             data-bs-toggle="dropdown"
@@ -31,3 +35,19 @@
     </ul>
   </li>
 </ul>
+<script>
+(function() {
+  let tooltip = null;
+  let bs_tooltip = null;
+  // On HTMX swap of the "user cost" widget, delete its tooltip
+  document.body.addEventListener("htmx:afterSwap", function(event) {
+    if (event.target.id !== "cost-bar-outer") {
+      return;
+    } else if (bs_tooltip) {
+      bs_tooltip.hide();
+    }
+    tooltip = document.querySelector("#cost-bar-outer");
+    bs_tooltip = new bootstrap.Tooltip(tooltip, {delay: {show: 50, hide: 300}});
+  });
+})();
+</script>

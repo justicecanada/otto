@@ -11,7 +11,7 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from otto.utils.common import display_cad_cost
+from otto.utils.common import cad_cost, display_cad_cost
 
 
 class CustomUserManager(BaseUserManager):
@@ -47,6 +47,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=True,
         related_name="default_for",
     )
+    weekly_max = models.IntegerField(default=settings.DEFAULT_WEEKLY_MAX)
+    weekly_bonus = models.IntegerField(default=0)  # Resets each Sunday to 0
 
     objects = CustomUserManager()
 
@@ -81,8 +83,18 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.groups.all()
 
     @property
-    def total_cost(self):
+    def display_total_cost(self):
         return display_cad_cost(Cost.objects.get_user_cost(self))
+
+    @property
+    def this_week_max(self):
+        return self.weekly_max + self.weekly_bonus
+
+    @property
+    def is_over_budget(self):
+        return (
+            cad_cost(Cost.objects.get_user_cost_this_week(self)) >= self.this_week_max
+        )
 
     def __str__(self):
         return f"{self.lastname_firstname} ({self.email})"
@@ -359,6 +371,27 @@ class CostManager(models.Manager):
         # Total cost for a user by feature
         return sum(cost.usd_cost for cost in self.filter(user=user, feature=feature))
 
+    def get_user_cost_today(self, user):
+        # Total cost for a user today
+        return sum(
+            cost.usd_cost
+            for cost in self.filter(user=user, date_incurred=datetime.date.today())
+        )
+
+    def get_user_cost_this_week(self, user):
+        """Total cost for a user this week to date (Sunday to Saturday)"""
+        week_start_date = datetime.date.today() - datetime.timedelta(
+            days=datetime.date.today().weekday()
+        )
+        return sum(
+            cost.usd_cost
+            for cost in self.filter(
+                user=user,
+                date_incurred__gte=week_start_date,
+                date_incurred__lte=datetime.date.today(),
+            )
+        )
+
     def get_total_cost(self):
         # Total cost for all users
         return sum(cost.usd_cost for cost in self.all())
@@ -370,15 +403,6 @@ class CostManager(models.Manager):
     def get_total_cost_by_feature(self, feature):
         # Total cost for all users by feature
         return sum(cost.usd_cost for cost in self.filter(feature=feature))
-
-    def get_user_cost_today(self, user):
-        # Total cost for a user today
-        return sum(
-            cost.usd_cost
-            for cost in self.filter(
-                user=user, date_incurred__date=datetime.date.today()
-            )
-        )
 
     def get_pilot_cost(self, pilot):
         # Total cost for a pilot
