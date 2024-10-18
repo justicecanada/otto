@@ -284,6 +284,12 @@ class FileUpload {
     this.initFileUpload(this.cur_file_idx);
   }
 
+  async sha256(buffer) {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
   initFileUpload(i) {
     var file = this.input.files[i];
     this.file = file;
@@ -291,10 +297,19 @@ class FileUpload {
     this.cur_filenum.innerHTML = i + 1;
     this.progress_container.classList.remove("d-none");
     scrollToBottom(false);
-    this.upload_file(0, null);
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const buffer = e.target.result;
+      const hash = await this.sha256(buffer);
+      console.log(`SHA-256 hash for ${file.name}: ${hash}`);
+      this.upload_file(0, null, hash);
+    };
+
+    reader.readAsArrayBuffer(file);
   }
 
-  upload_file(start, file_id) {
+  upload_file(start, file_id, hash) {
     var end;
     var self = this;
     var formData = new FormData();
@@ -307,6 +322,7 @@ class FileUpload {
       end = 0;
     }
     formData.append('file', currentChunk);
+    formData.append('hash', hash);
     formData.append('filename', this.file.name);
     formData.append('end', end);
     formData.append('file_id', file_id);
@@ -409,7 +425,7 @@ function cancelChatRename() {
 }
 
 function updateQaModal() {
-  console.log('Updating QA modal');
+  // console.log('Updating QA modal');
   const qa_modal_elements = document.querySelectorAll('#advanced-qa-modal [data-inputname]');
   qa_modal_elements.forEach((modal_element) => {
     // Dataset attributes are lowercased
@@ -422,7 +438,7 @@ function updateQaModal() {
   });
 };
 function updateQaHiddenField(modal_element) {
-  console.log('Updating QA hidden field');
+  // console.log('Updating QA hidden field');
   // Dataset attributes are lowercased
   const hidden_field_name = modal_element.dataset.inputname;
   const hidden_field_element = document.querySelector(`input[name="${hidden_field_name}"]`);

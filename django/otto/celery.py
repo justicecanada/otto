@@ -17,10 +17,10 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    # Sync entra users every day at 5 am UTC
+    # Sync entra users every day at 1 am UTC
     "sync-entra-users-every-morning": {
         "task": "otto.tasks.sync_users",
-        "schedule": crontab(hour=5, minute=0),
+        "schedule": crontab(hour=1, minute=0),
     },
     # Update laws every week on Saturdays at 5 am UTC
     "update-laws-every-week": {
@@ -32,6 +32,21 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.reset_weekly_bonus",
         "schedule": crontab(hour=0, minute=0, day_of_week=0),
     },
+    # Delete old chats (90 days retention) every day at 2 am UTC
+    "delete-old-chats-every-morning": {
+        "task": "otto.tasks.delete_old_chats",
+        "schedule": crontab(hour=2, minute=0),
+    },
+    # Delete empty chats every day at 2 am UTC
+    "delete-empty-chats-every-morning": {
+        "task": "otto.tasks.delete_empty_chats",
+        "schedule": crontab(hour=2, minute=0),
+    },
+    # Delete unused libraries every day at 3 am UTC
+    # "delete-unused-libraries-every-morning": {
+    #     "task": "otto.tasks.delete_unused_libraries",
+    #     "schedule": crontab(hour=3, minute=0),
+    # },
 }
 
 

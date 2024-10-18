@@ -1,6 +1,7 @@
 # views.py
 from dataclasses import dataclass
 
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -11,6 +12,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
+from librarian.utils.process_engine import generate_hash
 from otto.utils.decorators import budget_required, permission_required
 
 from .forms import (
@@ -470,12 +472,23 @@ def upload(request, data_source_id):
     bind_contextvars(feature="librarian")
 
     for file in request.FILES.getlist("file"):
-        file_obj = SavedFile.objects.create(content_type=file.content_type)
-        file_obj.file.save(file.name, file)
+        # Check if the file is already stored on the server
+        file_hash = generate_hash(file.read())
+        file_exists = SavedFile.objects.filter(sha256_hash=file_hash).exists()
+        if file_exists:
+            file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
+            logger.info(
+                f"Found existing SavedFile for {file.name}", saved_file_id=file_obj.id
+            )
+        else:
+            file_obj = SavedFile.objects.create(content_type=file.content_type)
+            file_obj.file.save(file.name, file)
+            file_obj.generate_hash()
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )
-        document.process()
+        if not settings.IS_RUNNING_IN_GITHUB:
+            document.process()
     # Update the modal with the new documents
     request.method = "GET"
     return modal_view(request, item_type="data_source", item_id=data_source_id)

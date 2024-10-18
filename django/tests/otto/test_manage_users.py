@@ -118,7 +118,9 @@ def test_manage_users_download(client, all_apps_user, basic_user):
     for group_id in np.random.choice(group_ids, min(4, len(group_ids)), replace=False):
         u.groups.add(group_id)
 
-    users = User.objects.all().values_list("upn", "groups__name")
+    users = User.objects.all().values_list(
+        "upn", "pilot_id", "groups__name", "weekly_max"
+    )
 
     response = client.get(reverse("download_users"))
     assert response.status_code == 200
@@ -134,7 +136,9 @@ def test_manage_users_download(client, all_apps_user, basic_user):
     assert response.status_code == 302
 
     # Check that the users are unchanged
-    updated_users = User.objects.all().values_list("upn", "groups__name")
+    updated_users = User.objects.all().values_list(
+        "upn", "pilot_id", "groups__name", "weekly_max"
+    )
     assert sorted(list(users)) == sorted(list(updated_users))
     os.remove("users.csv")
 
