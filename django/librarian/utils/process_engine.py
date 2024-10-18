@@ -155,7 +155,9 @@ def extract_markdown(
     # Sometimes HTML to markdown will result in zero chunks, even though there is text
     if not md_chunks:
         md_chunks = [md]
-
+    print("---------------md----------------")
+    print(md)
+    print("---------------md end----------------")
     return md, md_chunks
 
 
@@ -192,13 +194,121 @@ def text_to_markdown(content, chunk_size=768):
 
 
 def docx_to_markdown(content, chunk_size=768):
-    import mammoth
+    import io
 
-    with io.BytesIO(content) as docx_file:
-        result = mammoth.convert_to_html(docx_file)
-    html = result.value
+    from docx import Document
+
+    # Load the DOCX content
+    doc = Document(io.BytesIO(content))
+
+    text = ""
+    page_number = 1
+    for i, para in enumerate(doc.paragraphs):
+        if i % 10 == 0:  # Add a page tag every 10 paragraphs as a heuristic
+            text += f"<page_{page_number}>\n"
+            page_number += 1
+        text += para.text + "\n"
+        if i % 10 == 9:  # Close the page tag every 10 paragraphs
+            text += f"</page_{page_number - 1}>\n"
+
+    # Convert the extracted text to HTML
+    html = text
+    print("--------------JUST HTML-----------------")
+    print(html)
+    print("---------------------------------------------")
+
+    # Convert the modified HTML to Markdown
     md, nodes = _convert_html_to_markdown(html, chunk_size)
     return md, nodes
+
+    # import mammoth
+
+    # with io.BytesIO(content) as docx_file:
+    #     result = mammoth.convert_to_html(docx_file)
+    # html = result.value
+
+    # # Parse the HTML and add page tags
+    # soup = BeautifulSoup(html, "html.parser")
+    # paragraphs = soup.find_all("p")
+    # html_with_pages = ""
+    # page_number = 1
+    # for i, p in enumerate(paragraphs):
+    #     if i % 10 == 0:  # Add a page tag every 10 paragraphs as a heuristic
+    #         html_with_pages += f"<page_{page_number}>\n"
+    #         page_number += 1
+    #     html_with_pages += str(p)
+    #     if i % 10 == 9:  # Close the page tag every 10 paragraphs
+    #         html_with_pages += f"</page_{page_number - 1}>\n"
+    # print("-------------------------------")
+    # print(html_with_pages)
+    # print("-------------------------------")
+
+    # md, nodes = _convert_html_to_markdown(html_with_pages, chunk_size)
+    # return md, nodes
+
+    # import os
+    # import tempfile
+
+    # from django.conf import settings
+
+    # from azure.ai.formrecognizer import DocumentAnalysisClient
+    # from azure.core.credentials import AzureKeyCredential
+    # from bs4 import BeautifulSoup
+
+    # print(f"Content size: {len(content)} bytes")
+    # # Use Azure Document AI Read API to extract text and page numbers
+    # document_analysis_client = DocumentAnalysisClient(
+    #     endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+    #     credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+    # )
+
+    # poller = document_analysis_client.begin_analyze_document(
+    #     "prebuilt-read", document=io.BytesIO(content)
+    # )
+    # result = poller.result()
+
+    # num_pages = len(result.pages)
+    # print(f"Number of pages:::::::::: {num_pages}")
+    # # print(f"Result:::::::::: {result}")
+    # cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
+
+    # text = ""
+    # for i, page in enumerate(result.pages):
+    #     print(f"Page {i+1} object=============== {page}")
+    #     text += f"<page_{i+1}>\n"
+    #     for line in page.lines:
+    #         print("Line content==================== ", line.content)
+    #         text += line.content + "\n"
+    #     text += f"</page_{i+1}>\n"
+
+    # # Debug: Print the extracted text
+    # print("--------------EXTRACTED TEXT-----------------")
+    # print(text)
+    # print("---------------------------------------------")
+    # # Convert the extracted text to HTML
+    # html = text
+    # print("--------------JUST HTML-----------------")
+    # print(html)
+    # print("-------------------------------")
+
+    # # Parse the HTML and add page tags
+    # soup = BeautifulSoup(html, "html.parser")
+    # paragraphs = soup.find_all("p")
+    # html_with_pages = ""
+    # page_number = 1
+    # for i, p in enumerate(paragraphs):
+    #     if i % 10 == 0:  # Add a page tag every 10 paragraphs as a heuristic
+    #         html_with_pages += f"<page_{page_number}>\n"
+    #         page_number += 1
+    #     html_with_pages += str(p)
+    #     if i % 10 == 9:  # Close the page tag every 10 paragraphs
+    #         html_with_pages += f"</page_{page_number - 1}>\n"
+    # print("-------------------------------")
+    # print(html_with_pages)
+    # print("-------------------------------")
+    # # Convert the modified HTML to Markdown
+    # md, nodes = _convert_html_to_markdown(html_with_pages, chunk_size)
+    # return md, nodes
 
 
 def pptx_to_markdown(content, chunk_size=768):
@@ -374,8 +484,14 @@ def _convert_html_to_markdown(
     # article.set_html(text)
     # article.parse()
     # return article.text
-
+    print("-----------source html--------------")
+    print(source_html)
+    print("--------------------------------------")
     soup = BeautifulSoup(source_html, "html.parser")
+
+    print("-----------soup--------------")
+    print(soup)
+    print("--------------------------------------")
     if soup.find("body"):
         soup = soup.find("body")
 
@@ -417,6 +533,9 @@ def _convert_html_to_markdown(
 
     # Recreate the soup object from the cleaned text
     cleaned_soup = BeautifulSoup(text, "html.parser")
+    print("-----------cleaned_soup--------------")
+    print(cleaned_soup)
+    print("--------------------------------------")
 
     # Process paragraphs, lists, and tables
     nodes = []
@@ -512,10 +631,19 @@ def _convert_html_to_markdown(
             # Append the last mini table to the nodes list
             nodes.append(md(f"{current_node}</table>").strip())
             current_node = ""
-
+    # Ensure that <page_x> tags are preserved
+    text = re.sub(r"<page_(\d+)>", r"\n<page_\1>\n", text)
+    text = re.sub(r"</page_(\d+)>", r"\n</page_\1>\n", text)
+    print("-----------text--------------")
     print(text[:1000])
+    print("--------------------------------------")
     markdown = md(text).strip()
+    print("-----------markdown--------------")
     print(markdown[:1000])
+    print("--------------------------------------")
+    print("-----------nodes--------------")
+    print(nodes)
+    print("--------------------------------------")
     return markdown, nodes
 
 

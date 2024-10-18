@@ -117,6 +117,8 @@ def process_document_helper(document, llm, force_azure=False):
                 "status_text": _("Adding to library..."),
             },
         )
+    print("---------------------Extracted text----------------")
+    print(document.extracted_text)
     nodes = create_nodes(chunks, document)
 
     document.num_chunks = len(nodes)

@@ -13,9 +13,14 @@
           <span class="me-1">[{{ forloop.counter }}]</span>
           {{ source.citation|safe }}
           {% if source.min_page is not None and source.max_page is not None %}
-            <span class="ms-1">(Pages: {{ source.min_page }}
-              {% if source.min_page != source.max_page %}-{{ source.max_page }}{% endif %}
-            )</span>
+ 
+            <span class="ms-1">
+              {% if source.min_page == source.max_page %}
+                (Page: {{ source.min_page }})
+              {% else %}
+                (Pages: {{ source.min_page }}-{{ source.max_page }})
+              {% endif %}
+            </span>
           {% endif %}
         </button>
       </h2>
