@@ -340,7 +340,7 @@ def test_done_upload(client, all_apps_user):
 
 
 # TODO: Test chunk_upload (somewhat difficult)
-
+# See tests/otto/test_cleanup.py for a partial test of chunk upload
 
 # Test download_file view
 @pytest.mark.django_db

@@ -1,2 +1,2 @@
-upn,roles
-Firstname.Lastname@justice.gc.ca,AI assistant user|template wizard user | CFS Admin
+upn,pilot_id,roles,weekly_max
+Firstname.Lastname@justice.gc.ca,bac,AI assistant user|template wizard user | CFS Admin,100
