@@ -19,11 +19,10 @@
 
 </div>
 
-{% block page_script %}
-  <script>
+<script>
     (function () {      
       const tooltipTriggerList = document.querySelectorAll('#presets-modal-body > .modal-body [data-bs-toggle="tooltip"]');
       const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {delay: {show: 500, hide: 200}}));
     })();    
-  </script>
+</script>
 {% endblock %}
