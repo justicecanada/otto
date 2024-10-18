@@ -28,3 +28,13 @@ variable "entra_client_secret" {
   type        = string
   description = "The client secret of the ENTRA application"
 }
+
+variable "use_private_network" {
+  type        = bool
+  description = "Whether to use private networking for the Key Vaults"
+}
+
+variable "web_subnet_id" {
+  description = "The ID of the web subnet"
+  type        = string
+}

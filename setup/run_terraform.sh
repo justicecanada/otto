@@ -61,14 +61,37 @@ container_name       = "$TF_STATE_CONTAINER"
 key                  = "$TF_STATE_KEY"
 EOF
 
-# Set the Terraform log level to debug (optional)
-TF_LOG=DEBUG
+# Ask if the user wants to auto-approve the Terraform plan
+unset TF_CLI_ARGS_apply
+read -p "Auto-approve the Terraform plan? (y/N): " auto_approve
+if [[ $auto_approve =~ ^[Yy]$ ]]; then
+    # Set the auto-approve flag
+    export TF_CLI_ARGS_apply="-auto-approve"
+fi
 
-export TIMESTAMP=$(date +%Y%m%d%H%M%S)
+# Ask if the user wants to turn on debugging mode
+unset TF_LOG
+read -p "Enable Terraform debugging mode? (y/N): " enable_debug
+if [[ $enable_debug =~ ^[Yy]$ ]]; then
 
-# Ensure terraform is initialized and upgraded
-terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure > debug-$TIMESTAMP-init.txt 2>&1
+    # Set the Terraform log level to debug
+    export TF_LOG=DEBUG
 
-# Apply the Terraform configuration
-terraform apply -var-file=.tfvars -auto-approve > debug-$TIMESTAMP-apply.txt 2>&1
-#terraform apply -var-file=.tfvars -auto-approve -parallelism=1 > debug-$TIMESTAMP-apply.txt 2>&1
+    # Set the timestamp for debugging logs
+    export TIMESTAMP=$(date +%Y%m%d%H%M%S)
+
+    # Ensure terraform is initialized and upgraded
+    terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure > debug-$TIMESTAMP-init.txt 2>&1
+
+    # Apply the Terraform configuration
+    terraform apply -var-file=.tfvars > debug-$TIMESTAMP-apply.txt 2>&1
+
+else
+
+    # Ensure terraform is initialized and upgraded
+    terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure
+
+    # Apply the Terraform configuration
+    terraform apply -var-file=.tfvars
+
+fi

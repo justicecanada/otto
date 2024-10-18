@@ -1,13 +1,14 @@
 # SC-28: Storage account encryption by default using 256-bit AES encryption
 # SC-8: Azure Storage implicitly enables secure transfer
 resource "azurerm_storage_account" "storage" {
-  name                            = var.storage_name
-  resource_group_name             = var.resource_group_name
-  location                        = var.location # SA-9(5): Store data in a location that complies with data residency requirements
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  account_kind                    = "StorageV2"
-  public_network_access_enabled   = !var.use_private_network # AC-22, IA-8: Set to false for private access
+  name                          = var.storage_name
+  resource_group_name           = var.resource_group_name
+  location                      = var.location # SA-9(5): Store data in a location that complies with data residency requirements
+  account_tier                  = "Standard"
+  account_replication_type      = "LRS"
+  account_kind                  = "StorageV2"
+  public_network_access_enabled = !var.use_private_network # AC-22, IA-8: Set to false for private access
+
   default_to_oauth_authentication = true
   is_hns_enabled                  = true
 
@@ -30,6 +31,21 @@ resource "azurerm_storage_account" "storage" {
   }
 
   tags = var.tags
+}
+
+resource "azurerm_private_endpoint" "storage_blob" {
+  count               = var.use_private_network ? 1 : 0
+  name                = "${var.storage_name}-blob-endpoint"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.web_subnet_id
+
+  private_service_connection {
+    name                           = "${var.storage_name}-blob-connection"
+    private_connection_resource_id = azurerm_storage_account.storage.id
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
 }
 
 resource "azurerm_storage_management_policy" "lifecycle" {

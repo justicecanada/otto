@@ -2,16 +2,37 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "kv" {
   # SC-12: Centralized key management system
-  name                       = var.keyvault_name
-  location                   = var.location # SA-9(5): Store data in a location that complies with data residency requirements
-  resource_group_name        = var.resource_group_name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium" # SC-13: Premium SKU is FIPS 140-2 Level 2 compliant
-  enable_rbac_authorization  = true
-  purge_protection_enabled   = true
-  soft_delete_retention_days = 7
+  name                          = var.keyvault_name
+  location                      = var.location # SA-9(5): Store data in a location that complies with data residency requirements
+  resource_group_name           = var.resource_group_name
+  tenant_id                     = data.azurerm_client_config.current.tenant_id
+  sku_name                      = "premium" # SC-13: Premium SKU is FIPS 140-2 Level 2 compliant
+  enable_rbac_authorization     = true
+  purge_protection_enabled      = true
+  soft_delete_retention_days    = 7
+  public_network_access_enabled = !var.use_private_network
+
+  network_acls {
+    default_action = var.use_private_network ? "Deny" : "Allow"
+    bypass         = "AzureServices"
+  }
 
   tags = var.tags
+}
+
+resource "azurerm_private_endpoint" "keyvault" {
+  count               = var.use_private_network ? 1 : 0
+  name                = "${var.keyvault_name}-endpoint"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.web_subnet_id
+
+  private_service_connection {
+    name                           = "${var.keyvault_name}-connection"
+    private_connection_resource_id = azurerm_key_vault.kv.id
+    is_manual_connection           = false
+    subresource_names              = ["vault"]
+  }
 }
 
 resource "azurerm_role_assignment" "kv_role" {

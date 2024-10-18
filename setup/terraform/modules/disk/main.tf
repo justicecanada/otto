@@ -149,7 +149,7 @@ resource "azurerm_role_assignment" "backup_vault_key_vault_crypto_user" {
   principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
 }
 
-resource "time_sleep" "wait_300_seconds" {
+resource "time_sleep" "wait_30_seconds" {
   depends_on = [
     azurerm_data_protection_backup_vault.disk_backup_vault,
     azurerm_role_assignment.ssd_backup_vault_disk_backup_contributor,
@@ -159,7 +159,7 @@ resource "time_sleep" "wait_300_seconds" {
     azurerm_role_assignment.backup_vault_key_vault_crypto_user,
     azurerm_data_protection_backup_policy_disk.disk_backup_policy
   ]
-  create_duration = "300s"
+  create_duration = "30s"
 }
 
 # Protect the SSD managed disk with the backup policy
@@ -172,7 +172,7 @@ resource "azurerm_data_protection_backup_instance_disk" "ssd_disk_backup" {
   backup_policy_id             = azurerm_data_protection_backup_policy_disk.disk_backup_policy.id
 
   depends_on = [
-    time_sleep.wait_300_seconds,
+    time_sleep.wait_30_seconds,
     azurerm_role_assignment.ssd_backup_vault_disk_backup_contributor,
     azurerm_role_assignment.ssd_backup_vault_disk_snapshot_contributor,
     azurerm_role_assignment.backup_vault_key_vault_crypto_user,
@@ -192,7 +192,7 @@ resource "azurerm_data_protection_backup_instance_disk" "hdd_disk_backup" {
   backup_policy_id             = azurerm_data_protection_backup_policy_disk.disk_backup_policy.id
 
   depends_on = [
-    time_sleep.wait_300_seconds,
+    time_sleep.wait_30_seconds,
     azurerm_role_assignment.ssd_backup_vault_disk_backup_contributor,
     azurerm_role_assignment.ssd_backup_vault_disk_snapshot_contributor,
     azurerm_role_assignment.backup_vault_key_vault_crypto_user,

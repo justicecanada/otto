@@ -43,3 +43,8 @@ variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the Cosmos DB for PostgreSQL"
 }
+
+variable "db_subnet_id" {
+  description = "The ID of the database subnet"
+  type        = string
+}

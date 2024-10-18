@@ -13,7 +13,7 @@ terraform {
 
 # Azure Cognitive Account for OpenAI
 resource "azurerm_cognitive_account" "openai" {
-  name                = var.name
+  name = var.name
 
   # SC-9(5): OpenAI Resource Exception and Safeguards
   location            = "canadaeast"
@@ -46,7 +46,7 @@ resource "null_resource" "wait_for_openai_resource" {
 }
 
 resource "azapi_resource" "rai_policy" {
-  type                      = "Microsoft.CognitiveServices/accounts/raiPolicies@2024-04-01-preview"
+  type                      = "Microsoft.CognitiveServices/accounts/raiPolicies@2024-06-01-preview"
   name                      = "Unfiltered"
   parent_id                 = azurerm_cognitive_account.openai.id
   schema_validation_enabled = false
@@ -54,63 +54,87 @@ resource "azapi_resource" "rai_policy" {
   body = jsonencode({
     properties = {
       mode = "Default"
-      basePolicyName : "Microsoft.Default",
+      basePolicyName : "Microsoft.DefaultV2",
       contentFilters : [
         {
-          name : "hate",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Prompt"
+          "name" : "Violence",
+          "severityThreshold" : "Low",
+          "blocking" : true,
+          "enabled" : true,
+          "source" : "Prompt"
         },
         {
-          name : "sexual",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Prompt"
+          "name" : "Hate",
+          "severityThreshold" : "Low",
+          "blocking" : true,
+          "enabled" : true,
+          "source" : "Prompt"
         },
         {
-          name : "selfharm",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Prompt"
+          "name" : "Sexual",
+          "severityThreshold" : "Low",
+          "blocking" : true,
+          "enabled" : true,
+          "source" : "Prompt"
         },
         {
-          name : "violence",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Prompt"
+          "name" : "Selfharm",
+          "severityThreshold" : "Low",
+          "blocking" : true,
+          "enabled" : true,
+          "source" : "Prompt"
         },
         {
-          name : "hate",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Completion"
+          "name" : "Jailbreak",
+          "blocking" : false,
+          "enabled" : true,
+          "source" : "Prompt"
         },
         {
-          name : "sexual",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Completion"
+          "name" : "Indirect Attack",
+          "blocking" : false,
+          "enabled" : true,
+          "source" : "Prompt"
         },
         {
-          name : "selfharm",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Completion"
+          "name" : "Violence",
+          "severityThreshold" : "Low",
+          "blocking" : true,
+          "enabled" : true,
+          "source" : "Completion"
         },
         {
-          name : "violence",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Completion"
+          "name" : "Hate",
+          "severityThreshold" : "Low",
+          "blocking" : true,
+          "enabled" : true,
+          "source" : "Completion"
+        },
+        {
+          "name" : "Sexual",
+          "severityThreshold" : "Low",
+          "blocking" : true,
+          "enabled" : true,
+          "source" : "Completion"
+        },
+        {
+          "name" : "Selfharm",
+          "severityThreshold" : "Low",
+          "blocking" : true,
+          "enabled" : true,
+          "source" : "Completion"
+        },
+        {
+          "name" : "Protected Material Text",
+          "blocking" : false,
+          "enabled" : true,
+          "source" : "Completion"
+        },
+        {
+          "name" : "Protected Material Code",
+          "blocking" : false,
+          "enabled" : true,
+          "source" : "Completion"
         }
       ]
     }

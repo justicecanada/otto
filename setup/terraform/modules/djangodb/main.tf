@@ -32,6 +32,22 @@ resource "azurerm_cosmosdb_postgresql_cluster" "djangodb" {
   depends_on = [var.keyvault_id, random_password.djangodb_password]
 }
 
+# Create a private endpoint for the Cosmos DB for PostgreSQL cluster
+resource "azurerm_private_endpoint" "djangodb" {
+  count               = var.use_private_network ? 1 : 0
+  name                = "${var.resource_name}-endpoint"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.db_subnet_id
+
+  private_service_connection {
+    name                           = "${var.resource_name}-privateserviceconnection"
+    private_connection_resource_id = azurerm_cosmosdb_postgresql_cluster.djangodb.id
+    is_manual_connection           = false
+    subresource_names              = ["coordinator"]
+  }
+}
+
 # Store the generated password in the admin Key Vault
 resource "azurerm_key_vault_secret" "djangodb_password" {
   name         = "DJANGODB-PASSWORD"
