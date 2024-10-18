@@ -165,11 +165,10 @@
     if (isPublicCheckbox) {
       isPublicCheckbox.addEventListener('change', togglePublicFields);
       togglePublicFields(); // Set initial state
-    } else {
-      console.error('Checkbox not found');
     }
-
-    enTab.addEventListener('click', () => switchLanguage('en'));
-    frTab.addEventListener('click', () => switchLanguage('fr'));
+    if (enTab && frTab) {
+      enTab.addEventListener('click', () => switchLanguage('en'));
+      frTab.addEventListener('click', () => switchLanguage('fr'));
+    }
   });
 </script>
