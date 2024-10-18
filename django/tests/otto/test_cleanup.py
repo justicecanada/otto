@@ -6,6 +6,8 @@ This includes librarian, chat and general Otto tests.
 import os
 import time
 
+from django.conf import settings
+from django.core.management import call_command
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -186,10 +188,16 @@ def test_reset_weekly_bonus_task(client, all_apps_user):
     user = all_apps_user()
     user.weekly_bonus = 20
     user.save()
-    # Test the task
-    from otto.tasks import reset_weekly_bonus
+    if settings.IS_RUNNING_IN_GITHUB:
+        # No Redis, so we test the code directly
+        from otto.models import User
 
-    reset_weekly_bonus()
+        User.objects.update(weekly_bonus=0)
+    else:
+        # Test the task
+        from otto.tasks import reset_weekly_bonus
+
+        reset_weekly_bonus()
     # Check that the user has a new bonus
     user.refresh_from_db()
     assert user.weekly_bonus == 0
@@ -223,10 +231,14 @@ def test_delete_old_chats_task(client, all_apps_user):
     # Manually set the accessed_at time to 100 days ago
     chat.accessed_at = timezone.now() - timezone.timedelta(days=100)
     chat.save()
-    # Test the task
-    from otto.tasks import delete_old_chats
+    if settings.IS_RUNNING_IN_GITHUB:
+        # No Redis, so we test the code directly
+        call_command("delete_old_chats")
+    else:
+        # Test the task
+        from otto.tasks import delete_old_chats
 
-    delete_old_chats()
+        delete_old_chats()
     # Check that the chat is gone - there should now be no chats
     chat = Chat.objects.filter(id=chat_id).first()
     assert chat is None
@@ -238,7 +250,11 @@ def test_delete_old_chats_task(client, all_apps_user):
     assert chat is not None
     assert Chat.objects.count() == 1
     # Run the task again
-    delete_old_chats()
+    if settings.IS_RUNNING_IN_GITHUB:
+        # No Redis, so we test the code directly
+        call_command("delete_old_chats")
+    else:
+        delete_old_chats()
     # Check that the new chat is still there
     assert Chat.objects.count() == 1
 
@@ -267,9 +283,14 @@ def test_delete_empty_chats_task(client, all_apps_user):
     too_new_empty_chat = Chat.objects.create(user=user)
     too_new_empty_chat_id = too_new_empty_chat.id
     # Test the task
-    from otto.tasks import delete_empty_chats
+    if settings.IS_RUNNING_IN_GITHUB:
+        # No Redis, so we test the code directly
+        call_command("delete_empty_chats")
+    else:
+        # Test the task
+        from otto.tasks import delete_empty_chats
 
-    delete_empty_chats()
+        delete_empty_chats()
     # Check that the 2 day old empty chat is gone
     empty_chat = Chat.objects.filter(id=empty_chat_id).first()
     assert empty_chat is None
