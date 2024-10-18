@@ -1,6 +1,3 @@
-import json
-
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -12,7 +9,6 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from rules.contrib.views import objectgetter
@@ -32,9 +28,13 @@ from chat.metrics.feedback_metrics import (
 )
 from chat.models import Chat, ChatFile, ChatOptions, Message, create_chat_data_source
 from chat.utils import change_mode_to_chat_qa, llm_response_to_html, title_chat
-from librarian.models import DataSource, Library
-from otto.models import App, SecurityLabel
-from otto.utils.decorators import app_access_required, permission_required
+from librarian.models import Library, SavedFile
+from otto.models import SecurityLabel
+from otto.utils.decorators import (
+    app_access_required,
+    budget_required,
+    permission_required,
+)
 from otto.views import message_feedback
 
 app_name = "chat"
@@ -111,6 +111,9 @@ def chat(request, chat_id):
         .prefetch_related("options", "data_source")
         .first()
     )
+
+    chat.accessed_at = timezone.now()
+    chat.save()
 
     # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
     try:
@@ -202,6 +205,7 @@ def chat(request, chat_id):
 
 @require_POST
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+@budget_required
 def chat_message(request, chat_id):
     """
     Post a user message to the chat and initiate a streaming response
@@ -278,6 +282,7 @@ def delete_message(request, message_id):
 
 @require_GET
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+@budget_required
 def init_upload(request, chat_id):
     """
     Creates a file upload progress message in the chat and initiates the file upload
@@ -356,6 +361,9 @@ def chunk_upload(request, message_id):
     Returns JSON for the file upload progress
     Based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader
     """
+    hash = request.POST["hash"]
+    existing_file = SavedFile.objects.filter(sha256_hash=hash).first()
+
     file = request.FILES["file"].read()
     content_type = request.POST["content_type"]
     fileName = request.POST["filename"]
@@ -367,15 +375,18 @@ def chunk_upload(request, message_id):
         return JsonResponse({"data": "Invalid Request"})
     else:
         if file_id == "null":
-            file_obj = ChatFile.objects.create(
+            chat_file_arguments = dict(
                 message_id=message_id,
                 filename=fileName,
-                eof=int(end),
-                content_type=content_type,
             )
-            file_obj.saved_file.file.save(fileName, request.FILES["file"])
-            if int(end):
-                # TODO: Compare saved file hash with the hash sent by the client
+            if existing_file:
+                chat_file_arguments.update(saved_file=existing_file)
+            else:
+                chat_file_arguments.update(content_type=content_type, eof=int(end))
+            file_obj = ChatFile.objects.create(**chat_file_arguments)
+            if not existing_file:
+                file_obj.saved_file.file.save(fileName, request.FILES["file"])
+            if int(end) or existing_file:
                 file_obj.saved_file.generate_hash()
                 return JsonResponse(
                     {"data": "Uploaded successfully", "file_id": file_obj.id}

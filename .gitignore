@@ -46,3 +46,4 @@ crash.*.log
 
 test_streams.py
 test_async.py
+test_media

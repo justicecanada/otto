@@ -11,7 +11,7 @@ from PyPDF2 import PdfMerger
 
 from otto.secure_models import AccessKey
 from otto.utils.common import file_size_to_string
-from otto.utils.decorators import app_access_required
+from otto.utils.decorators import app_access_required, budget_required
 from text_extractor.models import OutputFile, UserRequest
 
 from .utils import (
@@ -32,6 +32,7 @@ def index(request):
     return render(request, "text_extractor/ocr.html", {"extensions": extensions})
 
 
+@budget_required
 def submit_document(request):
 
     if request.method == "POST":

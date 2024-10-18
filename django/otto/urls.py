@@ -47,6 +47,7 @@ urlpatterns = [
         name="manage_pilots_form",
     ),
     path("user_management/costs/", views.cost_dashboard, name="cost_dashboard"),
+    path("user_cost/", views.user_cost, name="user_cost"),
     path("accept_terms/", views.accept_terms, name="accept_terms"),
     path("feedback/", views.message_feedback, name="user_feedback"),
     path("feedback/<message_id>/", views.message_feedback, name="user_feedback"),

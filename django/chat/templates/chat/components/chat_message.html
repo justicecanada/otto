@@ -53,6 +53,12 @@
     </div>
   </div>
   {% include "chat/components/message_actions.html" %}
+  {% if update_cost_bar %}
+    <div hx-get="{% url 'user_cost' %}"
+         hx-swap="outerHTML"
+         hx-target="#cost-bar-outer"
+         hx-trigger='load delay:100ms'></div>
+  {% endif %}
 </div>
 
 <script>
@@ -65,7 +71,7 @@
 </script>
 
 {% if swap_oob %}
-  {# Update chat title and security label #}
+  {# Update chat title, security label and user costs widget #}
   {% if message.chat.title %}
     <span class="chat-title fw-semibold"
           id="current-chat-title"
