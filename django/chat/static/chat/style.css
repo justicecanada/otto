@@ -1126,10 +1126,10 @@ ul.errorlist {
 }
 
 :root {
-  --tab-border-color: 0.01rem solid #d5d5d5;
+  --preset-tab-border-color: 0.01rem solid #d5d5d5;
 }
 
-.nav-link {
+.preset-form-container .nav-link {
   color: var(--bs-body-color);
   font-size: 0.875rem;
   font-weight: 600;
@@ -1140,7 +1140,7 @@ ul.errorlist {
 
     &:not(.active) {
       background-color: var(--bs-light);
-      border-bottom: var(--tab-border-color);
+      border-bottom: var(--preset-tab-border-color);
     }
   }
 
@@ -1150,13 +1150,13 @@ ul.errorlist {
 
   &:not(.active) {
     background-color: #eaeaea;
-    border-bottom: var(--tab-border-color);
+    border-bottom: var(--preset-tab-border-color);
   }
 
   &.active {
-    border-top: var(--tab-border-color) !important;
-    border-left: var(--tab-border-color) !important;
-    border-right: var(--tab-border-color) !important;
+    border-top: var(--preset-tab-border-color) !important;
+    border-left: var(--preset-tab-border-color) !important;
+    border-right: var(--preset-tab-border-color) !important;
   }
 }
 
@@ -1183,22 +1183,27 @@ ul.errorlist {
   }
 }
 
-.language-content {
+.preset-form-container .language-content {
   display: none;
 }
 
-.language-content.active {
+.preset-form-container .language-content.active {
   display: block;
 }
 
-.form-check-input:checked {
+.preset-form-container form-check-input.form-check-input:checked {
   background-color: black;
   border-color: black;
 }
 
-.form-check-input:focus {
+.preset-form-container .form-check-input:focus {
   border-color: #a2a2a2;
   box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
+}
+
+.preset-form-container .modal-body {
+  max-height: 85vh !important;
+  overflow-y: auto;
 }
 
 #delete_preset {
@@ -1288,11 +1293,6 @@ ul.errorlist {
       color: transparent;
     }
   }
-}
-
-.modal-body {
-  max-height: 85vh !important;
-  overflow-y: auto;
 }
 
 .card-list {
