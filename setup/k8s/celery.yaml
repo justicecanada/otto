@@ -140,11 +140,6 @@ spec:
       labels:
         pod: celery-beat
     spec:
-      # The Celery worker and beat processes run as a non-root user (UID 1000)
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
       containers:
         - name: celery-beat
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the same image as the worker
