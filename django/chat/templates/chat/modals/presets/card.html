@@ -1,12 +1,20 @@
 {% load i18n %}
 {% load chat_tags %}
 {% load static %}
-
+{% get_current_language as LANGUAGE_CODE %}
 <li class="card" data-default="{{ preset.default }}">
   <div class="card-header align-items-center">
-    <div class="card-title my-auto text-truncate me-2 fw-semibold" style="line-height: 1.25rem; font-size: 0.875rem; letter-spacing: -0.025rem;"
-      {# TODO: change to billingual preset name #}
-      title="{{ preset.name_en }}">{{ preset.name_en }}</div>
+    <div class="card-title my-auto text-truncate me-2 fw-semibold"
+         style="line-height: 1.25rem;
+                font-size: 0.875rem;
+                letter-spacing: -0.025rem"
+         title="{% if LANGUAGE_CODE == 'en' %} {{ preset.name_en }} {% else %} {{ preset.name_fr }} {% endif %}">
+      {% if LANGUAGE_CODE == 'en' %}
+        {{ preset.name_en }}
+      {% else %}
+        {{ preset.name_fr }}
+      {% endif %}
+    </div>
     <div class="d-flex align-items-center">
       {% include "chat/modals/presets/shared_icon.html" %}
       {% include "chat/modals/presets/default_icon.html" %}
