@@ -205,11 +205,11 @@ def docx_to_markdown(content, chunk_size=768):
     page_number = 1
     for i, para in enumerate(doc.paragraphs):
         if i % 10 == 0:  # Add a page tag every 10 paragraphs as a heuristic
-            text += f"<page_{page_number}>\n"
+            text += f"<page_{page_number}>\n<p>"
             page_number += 1
         text += para.text + "\n"
         if i % 10 == 9:  # Close the page tag every 10 paragraphs
-            text += f"</page_{page_number - 1}>\n"
+            text += f"</page_{page_number - 1}>\n<p>"
 
     # Convert the extracted text to HTML
     html = text
@@ -631,15 +631,13 @@ def _convert_html_to_markdown(
             # Append the last mini table to the nodes list
             nodes.append(md(f"{current_node}</table>").strip())
             current_node = ""
-    # Ensure that <page_x> tags are preserved
-    text = re.sub(r"<page_(\d+)>", r"\n<page_\1>\n", text)
-    text = re.sub(r"</page_(\d+)>", r"\n</page_\1>\n", text)
+
     print("-----------text--------------")
-    print(text[:1000])
+    print(text)
     print("--------------------------------------")
     markdown = md(text).strip()
     print("-----------markdown--------------")
-    print(markdown[:1000])
+    print(markdown)
     print("--------------------------------------")
     print("-----------nodes--------------")
     print(nodes)
