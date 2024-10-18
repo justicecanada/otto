@@ -430,7 +430,8 @@ def data_source_stop(request, data_source_id):
     # Stop all celery tasks for documents within this data source
     data_source = get_object_or_404(DataSource, id=data_source_id)
     for document in data_source.documents.all():
-        document.stop()
+        if document.status in ["PENDING", "INIT", "PROCESSING"]:
+            document.stop()
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
 

@@ -137,11 +137,11 @@ document.addEventListener("DOMContentLoaded", function () {
 // On prompt form submit...
 document.addEventListener("htmx:afterSwap", function (event) {
   if (event.target.id != "messages-container") return;
-  if (event.detail.pathInfo.requestPath.includes('upload'))
-    return;
   if (document.querySelector("#no-messages-placeholder") !== null) {
     document.querySelector("#no-messages-placeholder").remove();
   }
+  if (event.detail.pathInfo.requestPath.includes('upload'))
+    return;
   document.querySelector("#chat-prompt").value = "";
   document.querySelector("#chat-prompt").focus();
   // Change height back to minimum
