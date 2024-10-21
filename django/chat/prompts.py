@@ -38,7 +38,7 @@ QA_PRE_INSTRUCTIONS = _(
     "\n"
     "I found the following information:\n"
     "\n"
-    "* <supporting direct quote> - <source link or filename (page number if known)>\n"
+    "* <supporting direct quote> - <source link or filename, if known> (page number, if known)\n"
     "...\n"
     "<succinct answer to question>\n"
     "\n"

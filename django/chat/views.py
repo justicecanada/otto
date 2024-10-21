@@ -656,19 +656,19 @@ def message_sources(request, message_id):
 
         def replace_page_tags(match):
             page_number = match.group(1)
-            return f"<strong>Page: {page_number}</strong>"
+            return f"<span class='fw-semibold'>Page {page_number}</span>"
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
 
         source_dict = {
             "citation": source.citation,
             "document": source.document,
-            "node_text": modified_text,  # source.node_text,
+            "node_text": modified_text,
             "group_number": source.group_number,
             "min_page": min_page,
             "max_page": max_page,
         }
-     
+
         sources.append(source_dict)
 
     return render(
