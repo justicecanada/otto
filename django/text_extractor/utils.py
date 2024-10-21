@@ -2,6 +2,7 @@ import io
 import math
 import os
 import tempfile
+import uuid
 from io import BytesIO
 
 from django.conf import settings
@@ -128,10 +129,12 @@ def dist(p1, p2):
 
 def create_searchable_pdf(input_file, add_header):
     # Create a temporary file and write the contents of the uploaded file to it
+    # input_file.name = shorten_input_name(input_file.name)
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
         for chunk in input_file.chunks():
             temp.write(chunk)
         temp_path = temp.name
+        print(temp_path)
 
     if input_file.name.lower().endswith(".pdf"):
         # image_pages = convert_from_path(temp_path)
@@ -285,3 +288,14 @@ def create_searchable_pdf(input_file, add_header):
         output.add_page(new_pdf_page.pages[0])
 
     return output, all_text
+
+
+def shorten_input_name(input_name, max_length=50):
+    base_name, file_extension = os.path.splitext(input_name)
+    if len(base_name) > max_length:
+        unique_id = str(uuid.uuid4())
+        shortened_base_name = (
+            base_name[: max_length - len(unique_id) - 1] + "_" + unique_id
+        )
+        return shortened_base_name + file_extension
+    return base_name + file_extension

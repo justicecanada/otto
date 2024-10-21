@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from io import BytesIO
 
+from django.core.exceptions import SuspiciousFileOperation
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, JsonResponse
@@ -19,6 +20,7 @@ from .utils import (
     create_searchable_pdf,
     create_toc_pdf,
     format_merged_file_name,
+    shorten_input_name,
 )
 
 app_name = "text_extractor"
@@ -88,13 +90,25 @@ def submit_document(request):
                     if idx > 0:  # Exclude TOC from file names to merge
                         file_names_to_merge.append(file_name)
                 else:
-                    file_id = f"{user_name}_{current_time}_OCR_{input_name}.pdf"
-                    text_id = f"{user_name}_{current_time}_{input_name}.txt"
-                    file_name = f"OCR_{input_name}.pdf"
-                    text_name = f"OCR_{input_name}.txt"
+                    print("length----", len(f"{user_name}_{current_time}_OCR_.pdf"))
+                    print("length of input name-----", len(input_name))
+                    max_length = 50  # 100 - len(f"{user_name}_{current_time}_OCR_.pdf")
+                    print("max length--------,", max_length)
+                    input_name_short = shorten_input_name(input_name, max_length)
+
+                    file_id = f"{user_name}_{current_time}_OCR_{input_name_short}.pdf"
+                    text_id = f"{user_name}_{current_time}_{input_name_short}.txt"
+                    file_name = f"OCR_{input_name_short}.pdf"
+                    text_name = f"OCR_{input_name_short}.txt"
 
                     content_file = ContentFile(pdf_bytes.getvalue(), name=file_id)
                     content_text = ContentFile(txt_file, name=text_id)
+
+                    # Ensure the filename is within the allowed length
+                    if len(file_id) > 1024 or len(text_id) > 1024:
+                        raise SuspiciousFileOperation(
+                            "MAX char 1024 reached: Generated filename is too long for Azure storage."
+                        )
 
                     output_file = OutputFile.objects.create(
                         access_key,
