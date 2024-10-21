@@ -250,7 +250,7 @@ async def htmx_stream(
 
         # Update message text with HTML formatting to pass to template
         message.text = llm_response_to_html(full_message)
-        context = {"message": message, "swap_oob": True}
+        context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
         # Save sources and security label
         if source_nodes:
@@ -479,7 +479,7 @@ def sort_by_max_score(groups):
         reverse=True,
     )
 
-  
+
 def change_mode_to_chat_qa(chat):
     chat.options.qa_library = chat.user.personal_library
     chat.options.qa_scope = "data_sources"

@@ -414,6 +414,11 @@ class Document(models.Model):
             self.remove_from_vector_store()
         except Exception as e:
             logger.error(f"Failed to remove document from vector store: {e}")
+        file = self.file
+        if file:
+            self.file = None
+            self.save()
+            file.safe_delete()
         super().delete(*args, **kwargs)
 
     def process(self, force_azure=False):
@@ -461,8 +466,17 @@ class SavedFile(models.Model):
         return self.file.name
 
     def generate_hash(self):
+        from librarian.utils.process_engine import generate_hash
+
         if self.file:
             with self.file.open("rb") as f:
-                sha256 = hashlib.sha256(f.read())
-                self.sha256_hash = sha256.hexdigest()
+                self.sha256_hash = generate_hash(f.read())
                 self.save()
+
+    def safe_delete(self):
+        if self.chat_files.exists() or self.documents.exists():
+            logger.info(f"File {self.file.name} has associated objects; not deleting")
+            return
+        if self.file:
+            self.file.delete(False)
+        self.delete()

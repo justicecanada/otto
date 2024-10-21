@@ -111,6 +111,16 @@ class UserGroupForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-control"}),
         to_field_name="name",
     )
+    weekly_max = forms.IntegerField(
+        label="Weekly budget ($ CAD)",
+        required=False,
+        widget=forms.NumberInput(attrs={"class": "form-control"}),
+    )
+    weekly_bonus = forms.IntegerField(
+        label="Additional budget (this week only)",
+        required=False,
+        widget=forms.NumberInput(attrs={"class": "form-control"}),
+    )
 
 
 class PilotForm(forms.ModelForm):
