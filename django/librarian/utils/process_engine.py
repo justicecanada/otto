@@ -75,19 +75,18 @@ def create_nodes(chunks, document):
 
     # Create chunk (child) nodes
     metadata["node_type"] = "chunk"
-    exclude_keys = ["page_range"]
+    exclude_keys = ["page_range", "node_type", "data_source_uuid", "chunk_number"]
     child_nodes = create_child_nodes(
         chunks,
         source_node_id=document_node.node_id,
         metadata=metadata,
-        exclude_keys=exclude_keys,
     )
 
     # Update node properties
     new_nodes = [document_node] + child_nodes
     for node in new_nodes:
-        node.excluded_llm_metadata_keys = ["data_source_uuid"]
-        node.excluded_embed_metadata_keys = ["data_source_uuid"]
+        node.excluded_llm_metadata_keys = exclude_keys
+        node.excluded_embed_metadata_keys = exclude_keys
         # The misspelling of "seperator" corresponds with the LlamaIndex codebase
         node.metadata_seperator = "\n"
         node.metadata_template = "{key}: {value}"
@@ -332,7 +331,7 @@ def document_title(content):
     return title
 
 
-def create_child_nodes(text_strings, source_node_id, metadata=None, exclude_keys=None):
+def create_child_nodes(text_strings, source_node_id, metadata=None):
     from llama_index.core.node_parser import SentenceSplitter
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
