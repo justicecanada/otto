@@ -154,9 +154,6 @@ def extract_markdown(
     # Sometimes HTML to markdown will result in zero chunks, even though there is text
     if not md_chunks:
         md_chunks = [md]
-    print("---------------md----------------")
-    print(md)
-    print("---------------md end----------------")
     return md, md_chunks
 
 
@@ -426,25 +423,21 @@ def _convert_html_to_markdown(
     Converts HTML to markdown. Returns a tuple (full markdown text, list of chunks).
     <page_x> tags are not parsed here, but are preserved in the markdown text.
     """
-    soup = BeautifulSoup(source_html, "html.parser")
-
+    page_open_tags = re.findall(r"<page_\d+>", source_html)
     # When page tags (e.g. "<page_1">) are present, run this step separately for each
     # of the page contents and combine the results
-    page_open_tags = re.findall(r"<page_\d+>", source_html)
     if page_open_tags:
         combined_md = ""
         combined_nodes = []
         for opening_tag in page_open_tags:
-            page_selector = opening_tag.replace("<", "").replace(">", "")
             closing_tag = opening_tag.replace("<", "</")
-            combined_md += f"{opening_tag}\n"
-            page_element = soup.find(page_selector)
-            page_html_contents = page_element.decode_contents() if page_element else ""
+            page_html_contents = re.search(
+                f"{opening_tag}(.*){closing_tag}", source_html, re.DOTALL
+            ).group(1)
             page_md, page_nodes = _convert_html_to_markdown(
                 page_html_contents, chunk_size, base_url
             )
-            combined_md += page_md
-            combined_md += f"\n{closing_tag}\n"
+            combined_md += f"{opening_tag}\n{page_md}\n{closing_tag}\n"
             combined_nodes += [
                 f"{opening_tag}\n{node}\n{closing_tag}"
                 for node in page_nodes
@@ -460,22 +453,7 @@ def _convert_html_to_markdown(
 
     model = settings.DEFAULT_CHAT_MODEL
 
-    ## Keeping this here for posterity, but it didn't work well in experiments
-    ## Used https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=4 as example:
-    ## It cut off the text randomly after a long html was passed in
-    ## It loses all the formatting (like headers)
-    ## It loses all the links and/or doesn't format them properly
-    # article = Article(" ", source_url=base_url)
-    # article.set_html(text)
-    # article.parse()
-    # return article.text
-    print("-----------source html--------------")
-    print(source_html)
-    print("--------------------------------------")
-
-    print("-----------soup--------------")
-    print(soup)
-    print("--------------------------------------")
+    soup = BeautifulSoup(source_html, "html.parser")
     if soup.find("body"):
         soup = soup.find("body")
 
@@ -517,9 +495,6 @@ def _convert_html_to_markdown(
 
     # Recreate the soup object from the cleaned text
     cleaned_soup = BeautifulSoup(text, "html.parser")
-    print("-----------cleaned_soup--------------")
-    print(cleaned_soup)
-    print("--------------------------------------")
 
     # Process paragraphs, lists, and tables
     nodes = []
@@ -537,7 +512,6 @@ def _convert_html_to_markdown(
     for node in cleaned_soup.find_all(
         header_node_names + text_node_names + table_node_names
     ):
-
         # If it's a header, then append the current node and reset
         if node.name in header_node_names:
             nodes.append(md(current_node).strip())
@@ -615,17 +589,11 @@ def _convert_html_to_markdown(
             # Append the last mini table to the nodes list
             nodes.append(md(f"{current_node}</table>").strip())
             current_node = ""
+    if current_node:
+        nodes.append(md(current_node).strip())
 
-    print("-----------text--------------")
-    print(text)
-    print("--------------------------------------")
     markdown = md(text).strip()
-    print("-----------markdown--------------")
-    print(markdown)
-    print("--------------------------------------")
-    print("-----------nodes--------------")
-    print(nodes)
-    print("--------------------------------------")
+    # print([node[:100] for node in nodes])
     return markdown, nodes
 
 
