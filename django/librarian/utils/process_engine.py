@@ -420,8 +420,38 @@ def token_count(string: str, model: str = "gpt-4") -> int:
 
 
 def _convert_html_to_markdown(
-    source_html, chunk_size=768, base_url=None, selector=None
-):
+    source_html: str, chunk_size: int = 768, base_url: str = None, selector: str = None
+) -> tuple:
+    """
+    Converts HTML to markdown. Returns a tuple (full markdown text, list of chunks).
+    <page_x> tags are not parsed here, but are preserved in the markdown text.
+    """
+    soup = BeautifulSoup(source_html, "html.parser")
+
+    # When page tags (e.g. "<page_1">) are present, run this step separately for each
+    # of the page contents and combine the results
+    page_open_tags = re.findall(r"<page_\d+>", source_html)
+    if page_open_tags:
+        combined_md = ""
+        combined_nodes = []
+        for opening_tag in page_open_tags:
+            page_selector = opening_tag.replace("<", "").replace(">", "")
+            closing_tag = opening_tag.replace("<", "</")
+            combined_md += f"{opening_tag}\n"
+            page_element = soup.find(page_selector)
+            page_html_contents = page_element.decode_contents() if page_element else ""
+            page_md, page_nodes = _convert_html_to_markdown(
+                page_html_contents, chunk_size, base_url
+            )
+            combined_md += page_md
+            combined_md += f"\n{closing_tag}\n"
+            combined_nodes += [
+                f"{opening_tag}\n{node}\n{closing_tag}"
+                for node in page_nodes
+                if len(node)
+            ]
+        return combined_md, combined_nodes
+
     from markdownify import markdownify
 
     def md(text):
@@ -442,7 +472,6 @@ def _convert_html_to_markdown(
     print("-----------source html--------------")
     print(source_html)
     print("--------------------------------------")
-    soup = BeautifulSoup(source_html, "html.parser")
 
     print("-----------soup--------------")
     print(soup)
@@ -696,10 +725,20 @@ def _pdf_to_html_using_azure(content):
         chunks, key=lambda item: (item.get("page_number"), item.get("y"), item.get("x"))
     )
     html = ""
+    cur_page = None
     for _, chunk in enumerate(chunks, 1):
-        html += f"<page_{chunk.get('page_number')}>\n"
+        page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
+        page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
+        prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
+        if chunk.get("page_number") != cur_page:
+            if cur_page is not None:
+                html += prev_end_tag
+            cur_page = chunk.get("page_number")
+            html += page_start_tag
         html += chunk.get("text")
-        html += f"</page_{chunk.get('page_number')}>\n"
+
+    if cur_page is not None and chunks:
+        html += page_end_tag
 
     return html
 
