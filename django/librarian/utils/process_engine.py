@@ -487,7 +487,7 @@ def _convert_html_to_markdown(
             if token_count(tentative_node, model) > chunk_size:
                 nodes.append(tentative_node)
                 # Reset the current node and include the header again for context
-                current_node = f"{header_str}{node_str}"
+                current_node = f"{header_str}"
             else:
                 current_node += node_str
 

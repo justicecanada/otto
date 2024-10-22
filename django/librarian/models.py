@@ -369,12 +369,6 @@ class Document(models.Model):
         return None
 
     @property
-    def citation(self):
-        return render_to_string(
-            "librarian/components/document_citation.html", {"document": self}
-        )
-
-    @property
     def href(self):
         return render_to_string(
             "librarian/components/document_href.html", {"document": self}
