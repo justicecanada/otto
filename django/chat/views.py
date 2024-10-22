@@ -644,16 +644,6 @@ def message_sources(request, message_id):
     for source in message.sources.all():
         source_text = str(source.node_text)
 
-        # Extract page numbers using regex
-        page_numbers = re.findall(r"<page_(\d+)>", source_text)
-        page_numbers = list(map(int, page_numbers))  # Convert to integers
-
-        if page_numbers:
-            min_page = min(page_numbers)
-            max_page = max(page_numbers)
-        else:
-            min_page = max_page = None
-
         def replace_page_tags(match):
             page_number = match.group(1)
             return f"<span class='fw-semibold'>Page {page_number}</span>"
@@ -665,8 +655,6 @@ def message_sources(request, message_id):
             "document": source.document,
             "node_text": modified_text,
             "group_number": source.group_number,
-            "min_page": min_page,
-            "max_page": max_page,
         }
 
         sources.append(source_dict)

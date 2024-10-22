@@ -12,13 +12,6 @@
                 aria-controls="sources-{{ message.id }}-text-{{ forloop.counter }}">
           <span class="me-1">[{{ forloop.counter }}]</span>
           {{ source.citation|safe }}
-          {% if source.min_page is not None and source.max_page is not None %}
-            {% if source.min_page == source.max_page %}
-              , page {{ source.min_page }}
-            {% else %}
-              , pages {{ source.min_page }}-{{ source.max_page }}
-            {% endif %}
-          {% endif %}
         </button>
       </h2>
       <div id="sources-{{ message.id }}-text-{{ forloop.counter }}"
