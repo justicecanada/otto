@@ -141,7 +141,7 @@ def get_process_engine_from_type(type):
         return "TEXT"
 
 
-def split_markdown(text_strings):
+def split_markdown(text_strings, chunk_size=768):
     if type(text_strings) == str:
         text_strings = [text_strings]
 
@@ -172,23 +172,33 @@ def split_markdown(text_strings):
         soup = BeautifulSoup(html_string, "html.parser")
         return str(soup)
 
-    splitter = SentenceSplitter(chunk_overlap=100, chunk_size=768)
+    splitter = SentenceSplitter(chunk_overlap=100, chunk_size=chunk_size)
 
     split_texts = []
     for i, text in enumerate(text_strings):
-        split_texts += [close_tags(t) for t in splitter.split_text(text)]
+        last_page_number = None
+        for t in splitter.split_text(text):
+            closed_text = close_tags(t)
+            # Edge case: Start and end of chunk are in the middle of a page
+            closing_tags = re.findall(r"</page_\d+>", closed_text)
+            if last_page_number and not closing_tags:
+                # If there was a closing tag on the last chunk, add it to the current chunk
+                closed_text = f"<page_{last_page_number}>\n{closed_text}\n</page_{last_page_number}>"
+            elif closing_tags:
+                last_page_number = int(re.search(r"\d+", closing_tags[-1]).group())
+            split_texts.append(closed_text)
 
-    # Now all the chunks are at most 768 tokens long, but some may be shorter
+    # Now all the chunks are at most `chunk_size` tokens long, but some may be shorter
     # We want to make them a uniform size, so we'll stuff them into the previous chunk
-    # (making sure the previous chunk doesn't exceed 768 tokens)
+    # (making sure the previous chunk doesn't exceed `chunk_size` tokens)
     stuffed_texts = []
     current_text = ""
     for text in split_texts:
-        if token_count(f"{current_text} {text}") > 768:
+        if token_count(f"{current_text}\n{text}") > chunk_size:
             stuffed_texts.append(current_text)
             current_text = text
         else:
-            current_text += f" {text}"
+            current_text += f"\n{text}"
 
     # Append the last stuffed text if it's not empty
     if current_text:
@@ -218,7 +228,7 @@ def extract_markdown(
         md = content.decode("utf-8")
 
     # Divide the markdown into chunks
-    return md, split_markdown(md)
+    return md, split_markdown(md, chunk_size)
 
 
 def pdf_to_markdown(content):
@@ -367,7 +377,7 @@ def token_count(string: str, model: str = "gpt-4") -> int:
     return num_tokens
 
 
-def remove_ignored_tags(text):
+def _remove_ignored_tags(text):
     # remove any javascript, css, images, svg, and comments from self.text
     text = re.sub(r"<script.*?</script>", "", text, flags=re.DOTALL)
     text = re.sub(r"<style.*?</style>", "", text, flags=re.DOTALL)
@@ -393,10 +403,7 @@ def remove_ignored_tags(text):
 def _convert_html_to_markdown(
     source_html: str, base_url: str = None, selector: str = None
 ) -> str:
-    """
-    Converts HTML to markdown.
-    <page_x> tags are not parsed here, but are preserved in the markdown text.
-    """
+    """Converts HTML to markdown, preserving <page_x> tags in the markdown output."""
     page_open_tags = re.findall(r"<page_\d+>", source_html)
     # When page tags (e.g. "<page_1">) are present, run this step separately for each
     # of the page contents and combine the results
@@ -432,7 +439,7 @@ def _convert_html_to_markdown(
                 absolute_url = urljoin(base_url, href)
                 anchor["href"] = absolute_url
 
-    text = remove_ignored_tags(str(soup))
+    text = _remove_ignored_tags(str(soup))
 
     markdown = markdownify_wrapper(text).strip()
     return markdown
