@@ -190,77 +190,13 @@ def text_to_markdown(content, chunk_size=768):
 
 
 def docx_to_markdown(content, chunk_size=768):
-    import io
+    import mammoth
 
-    from docx import Document
-
-    # Load the DOCX content
-    doc = Document(io.BytesIO(content))
-
-    # text = ""
-    # page_number = 1
-    # for i, para in enumerate(doc.paragraphs):
-    #     if i % 10 == 0:  # Add a page tag every 10 paragraphs as a heuristic
-    #         text += f"<page_{page_number}>\n"
-    #         page_number += 1
-    #     text += para.text + "\n"
-    #     if i % 10 == 9:  # Close the page tag every 10 paragraphs
-    #         text += f"</page_{page_number - 1}>\n"
-
-    # # Convert the extracted text to HTML
-    # html = text
-    # print("--------------JUST HTML-----------------")
-    # print(html)
-    # print("---------------------------------------------")
-
-    # # Convert the modified HTML to Markdown
-    # md, nodes = _convert_html_to_markdown(html, chunk_size)
-    # return md, nodes
-
-    text = ""
-    page_number = 1
-    for i, para in enumerate(doc.paragraphs):
-        if i % 10 == 0:  # Add a page tag every 10 paragraphs as a heuristic
-            text += f"<page_{page_number}>\n"
-            page_number += 1
-
-        # Check if the paragraph is a header
-        if para.style.name.startswith("Heading"):
-            level = para.style.name.split()[-1]  # Extract the heading level
-            text += f"<h{level}>{para.text}</h{level}>\n"
-        else:
-            text += f"<p>{para.text}</p>\n"
-
-        if i % 10 == 9:  # Close the page tag every 10 paragraphs
-            text += f"</page_{page_number - 1}>\n"
-
-    # Convert tables to HTML
-    for table in doc.tables:
-        text += "<table>\n"
-        for row in table.rows:
-            text += "<tr>\n"
-            for cell in row.cells:
-                text += f"<td>{cell.text}</td>\n"
-            text += "</tr>\n"
-        text += "</table>\n"
-    # Ensure that <page_x> tags are preserved
-    text = re.sub(r"<page_(\d+)>", r"\n<page_\1>\n", text)
-    text = re.sub(r"</page_(\d+)>", r"\n</page_\1>\n", text)
-
-    html = text
-    print("--------------JUST HTML-----------------")
-    print(html)
-    print("---------------------------------------------")
-
-    # Convert the modified HTML to Markdown
-    md, nodes = _convert_html_to_markdown(text, chunk_size)
+    with io.BytesIO(content) as docx_file:
+        result = mammoth.convert_to_html(docx_file)
+    html = result.value
+    md, nodes = _convert_html_to_markdown(html, chunk_size)
     return md, nodes
-
-    # import mammoth
-
-    # with io.BytesIO(content) as docx_file:
-    #     result = mammoth.convert_to_html(docx_file)
-    # html = result.value
 
 
 def pptx_to_markdown(content, chunk_size=768):
