@@ -206,8 +206,9 @@ def pptx_to_markdown(content, chunk_size=768):
     prs = pptx.Presentation(pptx_file)
 
     # extract text from each slide
-    html = ""
-    for slide in prs.slides:
+    all_html = ""
+    for i, slide in enumerate(prs.slides):
+        html = ""
         for shape in slide.shapes:
             if not shape.has_text_frame:
                 continue
@@ -216,9 +217,12 @@ def pptx_to_markdown(content, chunk_size=768):
                     html += f"<p>{run.text}</p>"
         for note in slide.notes_slide.notes_text_frame.paragraphs:
             for run in note.runs:
+                html += f"<h6>Presenter notes:</h6>"
                 html += f"<p>{run.text}</p>"
+        if html:
+            all_html += f"<page_{i+1}>\n{html}\n</page_{i+1}>\n"
 
-    md, nodes = _convert_html_to_markdown(html, chunk_size)
+    md, nodes = _convert_html_to_markdown(all_html, chunk_size)
     return md, nodes
 
 
@@ -385,7 +389,13 @@ def _convert_html_to_markdown(
 
     def md(text):
         """Wrapper to allow options to be passed to markdownify"""
-        return markdownify(text, heading_style="ATX", bullets="*", strong_em_symbol="_")
+        return markdownify(
+            text,
+            heading_style="ATX",
+            bullets="*",
+            strong_em_symbol="_",
+            escape_misc=False,
+        )
 
     model = settings.DEFAULT_CHAT_MODEL
 
