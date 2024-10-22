@@ -1,8 +1,8 @@
 Heading level 1, on page 1
-Paragraph page 1
+Paragraph page 1. Here is some more text to make Azure more confident that this is indeed a paragraph. And so on, and so on. Until the end of time.
  
 Heading level 2, on page 2
-Paragraph page 2
+Paragraph page 2, which also requires more text to make Azure more confident that this is indeed a paragraph. And so on, and so on. Until the end of time.
 Table header 1	Table header 2	Table header 3	Table header 4
 Data row 1, cell 1	Data row 1, cell 2	Data row 1, cell 3	Data row 1, cell 4
 Data row 2, cell 1	Data row 2, cell 2	Data row 2, cell 3	Data row 2, cell 4

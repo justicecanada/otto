@@ -20,39 +20,6 @@ skip_on_devops_pipeline = pytest.mark.skipif(
     settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
 )
 
-"""
-Primarily we want to test the functions in librarian/utils/process_engine.py
-
-Specifically the functions in extract_markdown:
-
-def extract_markdown(
-    content, process_engine, fast=False, base_url=None, chunk_size=768, selector=None
-):
-    if process_engine == "PDF" and fast:
-        md, md_chunks = fast_pdf_to_text(content, chunk_size)
-        if len(md) < 10:
-            # Fallback to Azure Document AI (fka Form Recognizer) if the fast method fails
-            # since that probably means it needs OCR
-            md, md_chunks = pdf_to_markdown(content, chunk_size)
-    elif process_engine == "PDF":
-        md, md_chunks = pdf_to_markdown(content, chunk_size)
-    elif process_engine == "WORD":
-        md, md_chunks = docx_to_markdown(content, chunk_size)
-    elif process_engine == "POWERPOINT":
-        md, md_chunks = pptx_to_markdown(content, chunk_size)
-    elif process_engine == "HTML":
-        md, md_chunks = html_to_markdown(
-            content.decode("utf-8"), chunk_size, base_url, selector
-        )
-    elif process_engine == "TEXT":
-        md, md_chunks = text_to_markdown(content.decode("utf-8"), chunk_size)
-
-    # Sometimes HTML to markdown will result in zero chunks, even though there is text
-    if not md_chunks:
-        md_chunks = [md]
-    return md, md_chunks
-"""
-
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -165,43 +132,6 @@ def test_detect_content_type():
         ("example.txt", "TEXT"),
         ("example.html", "HTML"),
     ]:
-        """
-                Test this code:
-
-
-        def guess_content_type(content):
-            # Check if the content is binary using filetype.guess
-            detected_type = filetype.guess(content)
-            if detected_type is not None:
-                return detected_type.mime
-
-            if isinstance(content, bytes):
-                return None  # Unknown
-
-            if content.startswith("<!DOCTYPE html>") or "<html" in content:
-                return "text/html"
-
-            if content.startswith("<?xml") or "<root" in content:
-                return "application/xml"
-
-            if content.startswith("{") or content.startswith("["):
-                return "application/json"
-
-            return "text/plain"
-
-
-        def get_process_engine_from_type(type):
-            if "officedocument.wordprocessingml.document" in type:
-                return "WORD"
-            elif "officedocument.presentationml.presentation" in type:
-                return "POWERPOINT"
-            elif "application/pdf" in type:
-                return "PDF"
-            elif "text/html" in type:
-                return "HTML"
-            else:
-                return "TEXT"
-        """
         with open(os.path.join(this_dir, f"test_files/{filename}"), "rb") as f:
             content = f.read()
             guessed_type = guess_content_type(content)

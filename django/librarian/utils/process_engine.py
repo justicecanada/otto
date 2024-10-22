@@ -629,9 +629,6 @@ def _pdf_to_html_using_azure(content):
         }
         p_chunks.append(chunk)
 
-    # Remove any duplicate chunks by looking at the text
-    p_chunks = list({chunk.get("text"): chunk for chunk in p_chunks}.values())
-
     chunks = table_chunks + p_chunks
 
     # Sort chunks by page number, then by y coordinate, then by x coordinate
@@ -653,6 +650,8 @@ def _pdf_to_html_using_azure(content):
 
     if cur_page is not None and chunks:
         html += page_end_tag
+
+    print(html)
 
     return html
 
