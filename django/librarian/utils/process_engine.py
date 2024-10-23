@@ -188,7 +188,8 @@ def split_markdown(markdown_text: str, chunk_size: int = 768) -> list:
         headings2 = {k: v for k, v in headings.items() if k < to_level}
         if not any(headings2.values()):
             return text.strip()
-        return f'({" > ".join([v for v in headings2.values() if v])}\n{text})'.strip()
+        headings_str = f'{" > ".join([v for v in headings2.values() if v])}'
+        return f"<headings>{headings_str}</headings>\n{text}".strip()
 
     def get_all_headings(text, existing_headings):
         lines = text.split("\n")
