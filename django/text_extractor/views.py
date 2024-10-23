@@ -88,9 +88,6 @@ def submit_document(request):
                     if idx > 0:  # Exclude TOC from file names to merge
                         file_names_to_merge.append(file_name)
                 else:
-
-                    # input_name_short = shorten_input_name(input_name, max_length)
-
                     file_id = f"{user_name}_{current_time}_OCR_{input_name}.pdf"
                     text_id = f"{user_name}_{current_time}_{input_name}.txt"
                     file_name = f"OCR_{input_name}.pdf"
