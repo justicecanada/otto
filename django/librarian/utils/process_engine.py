@@ -9,6 +9,7 @@ from django.utils import timezone
 
 import filetype
 import requests
+import tiktoken
 from bs4 import BeautifulSoup
 from markdownify import markdownify
 from structlog import get_logger
@@ -141,7 +142,9 @@ def get_process_engine_from_type(type):
         return "TEXT"
 
 
-def split_markdown(markdown_text: str, chunk_size: int = 768) -> list:
+def split_markdown(
+    markdown_text: str, chunk_size: int = 768, chunk_overlap=100
+) -> list:
     from llama_index.core.node_parser import SentenceSplitter
 
     def close_tags(html_string):
@@ -202,7 +205,73 @@ def split_markdown(markdown_text: str, chunk_size: int = 768) -> list:
                 min_level = min(min_level, level)
         return headings, min_level
 
-    splitter = SentenceSplitter(chunk_overlap=100, chunk_size=chunk_size)
+    def truncate_text_to_tokens(text, max_tokens):
+        tokenizer = tiktoken.get_encoding("cl100k_base")
+
+        # Encode the text into tokens
+        tokens = tokenizer.encode(text)
+
+        # Truncate the tokens if they exceed the max_tokens limit
+        if len(tokens) > max_tokens:
+            tokens = tokens[:max_tokens]
+
+        # Decode the tokens back into text
+        truncated_text = tokenizer.decode(tokens)
+        return truncated_text
+
+    def get_last_table_header(text: str, truncate_tokens: int = None) -> str:
+        """
+        Returns a string of the last table header found in markdown format.
+        This is what a table looks like in the input text:
+        | __Table header 1__ | Table header 2 | Table header 3 | Table header 4 |
+        | --- | --- | --- | --- |
+        | Data row 1, cell 1 | Data row 1, cell 2 | Data row 1, cell 3 | Data row 1, cell 4 |
+        | Data row 2, cell 1 | Data row 2, cell 2 | Data row 2, cell 3 | Data row 2, cell 4 |
+
+        Note that the text may or may not contain a table. It may contain table rows,
+        but no table headers.
+        It may contain text which isn't a table, then a table, then another table, then
+        more text. Etc.
+        """
+        # Remove the overlap since this would be repeated in next chunk anyway.
+        if truncate_tokens:
+            text = truncate_text_to_tokens(text, truncate_tokens)
+        last_table_row = ""
+        last_table_header = ""
+        lines = text.split("\n")
+        for line in lines:
+            if line.startswith("| ---") and line.endswith(" |") and last_table_row:
+                last_table_header = last_table_row
+                last_table_row = ""
+            elif line.startswith("| ") and line.endswith(" |"):
+                last_table_row = line
+        return last_table_header
+
+    def repeat_table_header_if_necessary(text: str, last_table_header: str) -> str:
+        """
+        Adds the last table header to the text if the text appears to start with
+        a continuation of the table.
+        """
+        if not last_table_header:
+            return text
+        lines = text.split("\n")
+        if len(lines) < 2:
+            return text
+        first_line_is_table_row = lines[0].startswith("| ") and lines[0].endswith(" |")
+        first_line_is_table_header = (
+            first_line_is_table_row
+            and lines[1].startswith("| ---")
+            and lines[1].endswith(" |")
+        )
+        if (
+            first_line_is_table_row
+            and not first_line_is_table_header
+            and last_table_header
+        ):
+            return f"{last_table_header}\n{text}"
+        return text
+
+    splitter = SentenceSplitter(chunk_overlap=chunk_overlap, chunk_size=chunk_size)
     last_page_number = None
     split_texts = []
     for t in splitter.split_text(markdown_text):
@@ -237,11 +306,16 @@ def split_markdown(markdown_text: str, chunk_size: int = 768) -> list:
     # Add previous headings to chunks under those heading
     current_headings = {i: None for i in range(1, 7)}
     headings_added_texts = []
+    last_table_header = None
     for text in stuffed_texts:
         current_headings, min_level = get_all_headings(text, current_headings)
-        headings_added_texts.append(
-            prepend_headings(current_headings, text, to_level=min_level)
+        # Repeat table headers if necessary
+        text = repeat_table_header_if_necessary(text, last_table_header)
+        last_table_header = get_last_table_header(
+            text, truncate_tokens=chunk_size - chunk_overlap
         )
+        text = prepend_headings(current_headings, text, to_level=min_level)
+        headings_added_texts.append(text)
 
     return headings_added_texts
 
@@ -366,8 +440,6 @@ def create_child_nodes(chunks, source_node_id, metadata=None):
 
 
 def token_count(string: str, model: str = "gpt-4") -> int:
-    import tiktoken
-
     """Returns the number of tokens in a text string."""
     encoding = tiktoken.encoding_for_model(model)
     num_tokens = len(encoding.encode(string))
