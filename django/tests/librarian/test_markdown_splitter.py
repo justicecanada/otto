@@ -72,3 +72,17 @@ def test_split_with_page_numbers_no_content_between_page_tags():
     expected_output = []
     result = markdown_splitter._split_with_page_numbers(markdown_text)
     assert result == expected_output
+
+
+# TODO: Overlap is causing issues with page tags closing. Need to fix this.
+# def test_split_with_page_numbers_overlap():
+#     markdown_splitter = MarkdownSplitter(chunk_size=30, chunk_overlap=15)
+#     markdown_text = """
+# <page_1>
+# # I'm a heading!
+# </page 1>
+# <page_2>
+# Blah blah blah, how about that text!
+# Here's some more text to put it over the limit.
+# </page_2>
+# """
