@@ -141,27 +141,23 @@ def get_process_engine_from_type(type):
         return "TEXT"
 
 
-def split_markdown(text_strings, chunk_size=768):
-    if type(text_strings) == str:
-        text_strings = [text_strings]
-
+def split_markdown(markdown_text: str, chunk_size: int = 768) -> list:
     from llama_index.core.node_parser import SentenceSplitter
 
     def close_tags(html_string):
         # Deal with partial page number tags, if any
         # Find the first page tag (either opening or closing)
-        page_tag = re.search(r"<page_\d+>|</page_\d+>", html_string)
-        if page_tag:
-            # If it's not an opening tag, add an opening tag at the beginning
-            if not page_tag.group().startswith("<page_"):
-                first_page_num = int(re.search(r"\d+", page_tag.group()).group())
+        first_page_tag = re.search(r"<page_\d+>|</page_\d+>", html_string)
+        if first_page_tag:
+            # If the first tag is a closing tag, add an opening tag at the beginning
+            if first_page_tag.group().startswith("</page_"):
+                first_page_num = int(re.search(r"\d+", first_page_tag.group()).group())
                 html_string = f"<page_{first_page_num}>\n{html_string}"
             # Close the last opened tag, if not closed
             opening_tags = re.findall(r"<page_\d+>", html_string)
             last_opening_tag = opening_tags[-1] if opening_tags else None
             closing_tags = re.findall(r"</page_\d+>", html_string)
             last_closing_tag = closing_tags[-1] if closing_tags else None
-            # Check if last opening tag is not the same page number as the last closing tag
             if last_opening_tag and last_closing_tag:
                 last_opening_tag_num = int(re.search(r"\d+", last_opening_tag).group())
                 last_closing_tag_num = int(re.search(r"\d+", last_closing_tag).group())
@@ -172,21 +168,54 @@ def split_markdown(text_strings, chunk_size=768):
         soup = BeautifulSoup(html_string, "html.parser")
         return str(soup)
 
-    splitter = SentenceSplitter(chunk_overlap=100, chunk_size=chunk_size)
+    def get_heading(line):
+        # Check if the line is a markdown header, meaning it starts with "# ", "# ", etc.
+        # Return the header level if it is a header, otherwise return None
+        match = re.match(r"^#{1,6} ", line)
+        if match:
+            return len(match.group()) - 1, line[match.end() :]
+        return None, None
 
+    def set_headings(headings, heading_level, heading_text):
+        # Operates on the headings dictionary in place
+        headings[heading_level] = heading_text
+        # Clear all the headers that are smaller than the current header
+        for i in range(heading_level + 1, 7):
+            headings[i] = None
+
+    def prepend_headings(headings, text, to_level=7):
+        # Prepend the headers to the text
+        headings2 = {k: v for k, v in headings.items() if k < to_level}
+        if not any(headings2.values()):
+            return text.strip()
+        return f'({" > ".join([v for v in headings2.values() if v])}\n{text})'.strip()
+
+    def get_all_headings(text, existing_headings):
+        lines = text.split("\n")
+        headings = existing_headings.copy()
+        min_level = 7
+        for line in lines:
+            level, heading_text = get_heading(line)
+            if level is not None:
+                set_headings(headings, level, heading_text)
+                min_level = min(min_level, level)
+        return headings, min_level
+
+    splitter = SentenceSplitter(chunk_overlap=100, chunk_size=chunk_size)
+    last_page_number = None
     split_texts = []
-    for i, text in enumerate(text_strings):
-        last_page_number = None
-        for t in splitter.split_text(text):
-            closed_text = close_tags(t)
-            # Edge case: Start and end of chunk are in the middle of a page
-            closing_tags = re.findall(r"</page_\d+>", closed_text)
-            if last_page_number and not closing_tags:
-                # If there was a closing tag on the last chunk, add it to the current chunk
-                closed_text = f"<page_{last_page_number}>\n{closed_text}\n</page_{last_page_number}>"
-            elif closing_tags:
-                last_page_number = int(re.search(r"\d+", closing_tags[-1]).group())
-            split_texts.append(closed_text)
+    for t in splitter.split_text(markdown_text):
+        closed_text = close_tags(t)
+        # Edge case: Start and end of chunk are in the middle of a page
+        closing_tags = re.findall(r"</page_\d+>", closed_text)
+        if last_page_number and not closing_tags:
+            # If there was a closing tag on the last chunk, add it to the current chunk
+            closed_text = (
+                f"<page_{last_page_number}>\n{closed_text}\n</page_{last_page_number}>"
+            )
+        elif closing_tags:
+            last_page_number = int(re.search(r"\d+", closing_tags[-1]).group())
+        split_texts.append(closed_text)
 
     # Now all the chunks are at most `chunk_size` tokens long, but some may be shorter
     # We want to make them a uniform size, so we'll stuff them into the previous chunk
@@ -204,7 +233,16 @@ def split_markdown(text_strings, chunk_size=768):
     if current_text:
         stuffed_texts.append(current_text)
 
-    return stuffed_texts
+    # Add previous headings to chunks under those heading
+    current_headings = {i: None for i in range(1, 7)}
+    headings_added_texts = []
+    for text in stuffed_texts:
+        current_headings, min_level = get_all_headings(text, current_headings)
+        headings_added_texts.append(
+            prepend_headings(current_headings, text, to_level=min_level)
+        )
+
+    return headings_added_texts
 
 
 def extract_markdown(
