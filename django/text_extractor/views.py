@@ -39,7 +39,6 @@ def submit_document(request):
 
     if request.method == "POST":
         files = request.FILES.getlist("file_upload")
-
         print(f"Received {len(files)} files")
         access_key = AccessKey(user=request.user)
 
@@ -74,12 +73,11 @@ def submit_document(request):
             current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
 
             for idx, file in enumerate(files):
-
+                file.name = shorten_input_name(file.name)
                 ocr_file, txt_file = create_searchable_pdf(file, merged and idx > 0)
                 all_texts.append(txt_file)
 
                 input_name, _ = os.path.splitext(file.name)
-
                 pdf_bytes = BytesIO()
                 ocr_file.write(pdf_bytes)
 
@@ -90,16 +88,13 @@ def submit_document(request):
                     if idx > 0:  # Exclude TOC from file names to merge
                         file_names_to_merge.append(file_name)
                 else:
-                    print("length----", len(f"{user_name}_{current_time}_OCR_.pdf"))
-                    print("length of input name-----", len(input_name))
-                    max_length = 50  # 100 - len(f"{user_name}_{current_time}_OCR_.pdf")
-                    print("max length--------,", max_length)
-                    input_name_short = shorten_input_name(input_name, max_length)
 
-                    file_id = f"{user_name}_{current_time}_OCR_{input_name_short}.pdf"
-                    text_id = f"{user_name}_{current_time}_{input_name_short}.txt"
-                    file_name = f"OCR_{input_name_short}.pdf"
-                    text_name = f"OCR_{input_name_short}.txt"
+                    # input_name_short = shorten_input_name(input_name, max_length)
+
+                    file_id = f"{user_name}_{current_time}_OCR_{input_name}.pdf"
+                    text_id = f"{user_name}_{current_time}_{input_name}.txt"
+                    file_name = f"OCR_{input_name}.pdf"
+                    text_name = f"OCR_{input_name}.txt"
 
                     content_file = ContentFile(pdf_bytes.getvalue(), name=file_id)
                     content_text = ContentFile(txt_file, name=text_id)
@@ -107,7 +102,7 @@ def submit_document(request):
                     # Ensure the filename is within the allowed length
                     if len(file_id) > 1024 or len(text_id) > 1024:
                         raise SuspiciousFileOperation(
-                            "MAX char 1024 reached: Generated filename is too long for Azure storage."
+                            "Maximum character reached: Generated filename is too long for Azure storage."
                         )
 
                     output_file = OutputFile.objects.create(
