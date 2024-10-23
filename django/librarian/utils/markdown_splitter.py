@@ -17,8 +17,7 @@ class MarkdownSplitter:
 
     def split_markdown(self, markdown_text: str) -> list:
         split_texts = self._split_with_page_numbers(markdown_text)
-        stuffed_texts = self._stuff_texts(split_texts)
-        headings_added_texts = self._repeat_headings(stuffed_texts)
+        headings_added_texts = self._repeat_headings(split_texts)
         return headings_added_texts
 
     def _split_with_page_numbers(self, markdown_text: str) -> list:
@@ -38,26 +37,9 @@ class MarkdownSplitter:
                 split_texts.append(closed_text)
         return split_texts
 
-    def _stuff_texts(self, split_texts: list) -> list:
-        stuffed_texts = []
-        current_text = ""
-        for text in split_texts:
-            if not text.strip():
-                continue
-            if self._token_count(f"{current_text}\n{text}") > self.chunk_size:
-                stuffed_texts.append(current_text)
-                current_text = text
-            elif current_text:
-                current_text += f"\n{text}"
-            else:
-                current_text = text
-        if current_text:
-            stuffed_texts.append(current_text)
-        return stuffed_texts
-
-    def _repeat_headings(self, stuffed_texts: list) -> list:
+    def _repeat_headings(self, split_texts: list) -> list:
         headings_added_texts = []
-        for text in stuffed_texts:
+        for text in split_texts:
             self.current_headings, min_level = self._get_all_headings(
                 text, self.current_headings
             )
