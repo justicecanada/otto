@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify
 from structlog import get_logger
 
+from librarian.utils.markdown_splitter import MarkdownSplitter
 from otto.models import Cost
 
 logger = get_logger(__name__)
@@ -142,184 +143,6 @@ def get_process_engine_from_type(type):
         return "TEXT"
 
 
-def split_markdown(
-    markdown_text: str, chunk_size: int = 768, chunk_overlap=100
-) -> list:
-    from llama_index.core.node_parser import SentenceSplitter
-
-    def close_tags(html_string):
-        # Deal with partial page number tags, if any
-        # Find the first page tag (either opening or closing)
-        first_page_tag = re.search(r"<page_\d+>|</page_\d+>", html_string)
-        if first_page_tag:
-            # If the first tag is a closing tag, add an opening tag at the beginning
-            if first_page_tag.group().startswith("</page_"):
-                first_page_num = int(re.search(r"\d+", first_page_tag.group()).group())
-                html_string = f"<page_{first_page_num}>\n{html_string}"
-            # Close the last opened tag, if not closed
-            opening_tags = re.findall(r"<page_\d+>", html_string)
-            last_opening_tag = opening_tags[-1] if opening_tags else None
-            closing_tags = re.findall(r"</page_\d+>", html_string)
-            last_closing_tag = closing_tags[-1] if closing_tags else None
-            if last_opening_tag and last_closing_tag:
-                last_opening_tag_num = int(re.search(r"\d+", last_opening_tag).group())
-                last_closing_tag_num = int(re.search(r"\d+", last_closing_tag).group())
-                if last_opening_tag_num != last_closing_tag_num:
-                    # Add the closing tag
-                    html_string = f"{html_string}</page_{last_opening_tag_num}>"
-
-        soup = BeautifulSoup(html_string, "html.parser")
-        return str(soup)
-
-    def get_heading(line):
-        # Check if the line is a markdown header, meaning it starts with "# ", "# ", etc.
-        # Return the header level if it is a header, otherwise return None
-        match = re.match(r"^#{1,6} ", line)
-        if match:
-            return len(match.group()) - 1, line[match.end() :]
-        return None, None
-
-    def set_headings(headings, heading_level, heading_text):
-        # Operates on the headings dictionary in place
-        headings[heading_level] = heading_text
-        # Clear all the headers that are smaller than the current header
-        for i in range(heading_level + 1, 7):
-            headings[i] = None
-
-    def prepend_headings(headings, text, to_level=7):
-        # Prepend the headers to the text
-        headings2 = {k: v for k, v in headings.items() if k < to_level}
-        if not any(headings2.values()):
-            return text.strip()
-        headings_str = f'{" > ".join([v for v in headings2.values() if v])}'
-        return f"<headings>{headings_str}</headings>\n{text}".strip()
-
-    def get_all_headings(text, existing_headings):
-        lines = text.split("\n")
-        headings = existing_headings.copy()
-        min_level = 7
-        for line in lines:
-            level, heading_text = get_heading(line)
-            if level is not None:
-                set_headings(headings, level, heading_text)
-                min_level = min(min_level, level)
-        return headings, min_level
-
-    def truncate_text_to_tokens(text, max_tokens):
-        tokenizer = tiktoken.get_encoding("cl100k_base")
-
-        # Encode the text into tokens
-        tokens = tokenizer.encode(text)
-
-        # Truncate the tokens if they exceed the max_tokens limit
-        if len(tokens) > max_tokens:
-            tokens = tokens[:max_tokens]
-
-        # Decode the tokens back into text
-        truncated_text = tokenizer.decode(tokens)
-        return truncated_text
-
-    def get_last_table_header(text: str, truncate_tokens: int = None) -> str:
-        """
-        Returns a string of the last table header found in markdown format.
-        This is what a table looks like in the input text:
-        | __Table header 1__ | Table header 2 | Table header 3 | Table header 4 |
-        | --- | --- | --- | --- |
-        | Data row 1, cell 1 | Data row 1, cell 2 | Data row 1, cell 3 | Data row 1, cell 4 |
-        | Data row 2, cell 1 | Data row 2, cell 2 | Data row 2, cell 3 | Data row 2, cell 4 |
-
-        Note that the text may or may not contain a table. It may contain table rows,
-        but no table headers.
-        It may contain text which isn't a table, then a table, then another table, then
-        more text. Etc.
-        """
-        # Remove the overlap since this would be repeated in next chunk anyway.
-        if truncate_tokens:
-            text = truncate_text_to_tokens(text, truncate_tokens)
-        last_table_row = ""
-        last_table_header = ""
-        lines = text.split("\n")
-        for line in lines:
-            if line.startswith("| ---") and line.endswith(" |") and last_table_row:
-                last_table_header = last_table_row
-                last_table_row = ""
-            elif line.startswith("| ") and line.endswith(" |"):
-                last_table_row = line
-        return last_table_header
-
-    def repeat_table_header_if_necessary(text: str, last_table_header: str) -> str:
-        """
-        Adds the last table header to the text if the text appears to start with
-        a continuation of the table.
-        """
-        if not last_table_header:
-            return text
-        lines = text.split("\n")
-        if len(lines) < 2:
-            return text
-        first_line_is_table_row = lines[0].startswith("| ") and lines[0].endswith(" |")
-        first_line_is_table_header = (
-            first_line_is_table_row
-            and lines[1].startswith("| ---")
-            and lines[1].endswith(" |")
-        )
-        if (
-            first_line_is_table_row
-            and not first_line_is_table_header
-            and last_table_header
-        ):
-            return f"{last_table_header}\n{text}"
-        return text
-
-    splitter = SentenceSplitter(chunk_overlap=chunk_overlap, chunk_size=chunk_size)
-    last_page_number = None
-    split_texts = []
-    for t in splitter.split_text(markdown_text):
-        closed_text = close_tags(t)
-        # Edge case: Start and end of chunk are in the middle of a page
-        closing_tags = re.findall(r"</page_\d+>", closed_text)
-        if last_page_number and not closing_tags:
-            # If there was a closing tag on the last chunk, add it to the current chunk
-            closed_text = (
-                f"<page_{last_page_number}>\n{closed_text}\n</page_{last_page_number}>"
-            )
-        elif closing_tags:
-            last_page_number = int(re.search(r"\d+", closing_tags[-1]).group())
-        split_texts.append(closed_text)
-
-    # Now all the chunks are at most `chunk_size` tokens long, but some may be shorter
-    # We want to make them a uniform size, so we'll stuff them into the previous chunk
-    # (making sure the previous chunk doesn't exceed `chunk_size` tokens)
-    stuffed_texts = []
-    current_text = ""
-    for text in split_texts:
-        if token_count(f"{current_text}\n{text}") > chunk_size:
-            stuffed_texts.append(current_text)
-            current_text = text
-        else:
-            current_text += f"\n{text}"
-
-    # Append the last stuffed text if it's not empty
-    if current_text:
-        stuffed_texts.append(current_text)
-
-    # Add previous headings to chunks under those heading
-    current_headings = {i: None for i in range(1, 7)}
-    headings_added_texts = []
-    last_table_header = None
-    for text in stuffed_texts:
-        current_headings, min_level = get_all_headings(text, current_headings)
-        # Repeat table headers if necessary
-        text = repeat_table_header_if_necessary(text, last_table_header)
-        last_table_header = get_last_table_header(
-            text, truncate_tokens=chunk_size - chunk_overlap
-        )
-        text = prepend_headings(current_headings, text, to_level=min_level)
-        headings_added_texts.append(text)
-
-    return headings_added_texts
-
-
 def extract_markdown(
     content, process_engine, fast=False, base_url=None, chunk_size=768, selector=None
 ):
@@ -341,7 +164,8 @@ def extract_markdown(
         md = content.decode("utf-8")
 
     # Divide the markdown into chunks
-    return md, split_markdown(md, chunk_size)
+    md_splitter = MarkdownSplitter(chunk_size=chunk_size, chunk_overlap=0)
+    return md, md_splitter.split_markdown(md)
 
 
 def pdf_to_markdown(content):

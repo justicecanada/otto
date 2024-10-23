@@ -5,11 +5,7 @@ from django.conf import settings
 
 import pytest
 
-from librarian.utils.process_engine import (
-    extract_markdown,
-    get_process_engine_from_type,
-    guess_content_type,
-)
+from librarian.utils.process_engine import extract_markdown
 from otto.models import Cost
 
 skip_on_github_actions = pytest.mark.skipif(
