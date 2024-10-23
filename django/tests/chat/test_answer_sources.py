@@ -60,6 +60,8 @@ def test_answer_sources(client, all_apps_user):
     retriever = llm.get_retriever(library.uuid_hex)
     source_nodes = retriever.retrieve("query")
     assert source_nodes
+    # Add some fake page numbers to one of the nodes (for testing)
+    source_nodes[0].node.text = f"<page_1>{source_nodes[0].node.text}</page_1>"
     # Save the sources and update the security label
     save_sources_and_update_security_label([source_nodes], response_message, chat)
     # Check that the sources are saved correctly
@@ -71,6 +73,11 @@ def test_answer_sources(client, all_apps_user):
 
     # Test the message_sources view
     client.force_login(user)
-    url = reverse("chat:message_sources", args=[message.id])
+    url = reverse("chat:message_sources", args=[response_message.id])
     response = client.get(url)
     assert response.status_code == 200
+    # Check that there are some sources in the HTML
+    html = response.content.decode("utf-8")
+    assert html.count('div class="accordion-body') == len(source_nodes)
+    # <page_1> tag should have been converted to "Page 1"
+    assert "Page 1" in html

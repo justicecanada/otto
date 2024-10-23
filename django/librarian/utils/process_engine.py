@@ -335,48 +335,6 @@ def pptx_to_markdown(content):
     return _convert_html_to_markdown(all_html)
 
 
-def document_summary(content):
-    from langchain.chains.summarize import load_summarize_chain
-    from langchain.schema import Document
-    from langchain_openai import AzureChatOpenAI
-
-    llm = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=settings.DEFAULT_CHAT_MODEL,
-        model=settings.DEFAULT_CHAT_MODEL,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.1,
-    )
-    content = content[:5000]
-    chain = load_summarize_chain(llm, chain_type="stuff")
-    doc = Document(page_content=content, metadata={"source": "userinput"})
-    summary = chain.run([doc])
-    return summary
-
-
-def document_title(content):
-    from langchain.schema import HumanMessage
-    from langchain_openai import AzureChatOpenAI
-
-    llm = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=settings.DEFAULT_CHAT_MODEL,
-        model=settings.DEFAULT_CHAT_MODEL,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.1,
-    )
-    prompt = "Generate a short title fewer than 50 characters."
-    content = content[:5000]
-    title = llm([HumanMessage(content=content), HumanMessage(content=prompt)]).content[
-        :254
-    ]
-    # Remove any double quotes wrapping the title, if any
-    title = re.sub(r'^"|"$', "", title)
-    return title
-
-
 def create_child_nodes(chunks, source_node_id, metadata=None):
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
