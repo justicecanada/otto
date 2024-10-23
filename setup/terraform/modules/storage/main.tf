@@ -38,7 +38,7 @@ resource "azurerm_private_endpoint" "storage_blob" {
   name                = "${var.storage_name}-blob-endpoint"
   location            = var.location
   resource_group_name = var.resource_group_name
-  subnet_id           = var.web_subnet_id
+  subnet_id           = var.app_subnet_id
 
   private_service_connection {
     name                           = "${var.storage_name}-blob-connection"

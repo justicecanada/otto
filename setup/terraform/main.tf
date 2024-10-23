@@ -44,7 +44,7 @@ module "keyvault" {
   entra_client_secret    = var.entra_client_secret
   tags                   = local.common_tags
   use_private_network    = var.use_private_network
-  web_subnet_id          = module.vnet.web_subnet_id
+  app_subnet_id          = module.vnet.app_subnet_id
 }
 
 # ACR module
@@ -87,7 +87,7 @@ module "storage" {
   wait_for_propagation   = module.keyvault.wait_for_propagation
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
-  web_subnet_id          = module.vnet.web_subnet_id
+  app_subnet_id          = module.vnet.app_subnet_id
 }
 
 data "azurerm_public_ip" "aks_outbound_ip" {
@@ -152,7 +152,7 @@ module "aks" {
   tags                   = local.common_tags
   admin_email            = var.admin_email
   use_private_network    = var.use_private_network
-  app_subnet_id          = module.vnet.app_subnet_id
+  web_subnet_id          = module.vnet.web_subnet_id
 }
 
 

@@ -59,28 +59,28 @@ resource "azapi_resource" "rai_policy" {
         {
           "name" : "Violence",
           "severityThreshold" : "Low",
-          "blocking" : true,
+          "blocking" : false,
           "enabled" : true,
           "source" : "Prompt"
         },
         {
           "name" : "Hate",
           "severityThreshold" : "Low",
-          "blocking" : true,
+          "blocking" : false,
           "enabled" : true,
           "source" : "Prompt"
         },
         {
           "name" : "Sexual",
           "severityThreshold" : "Low",
-          "blocking" : true,
+          "blocking" : false,
           "enabled" : true,
           "source" : "Prompt"
         },
         {
           "name" : "Selfharm",
           "severityThreshold" : "Low",
-          "blocking" : true,
+          "blocking" : false,
           "enabled" : true,
           "source" : "Prompt"
         },
@@ -99,28 +99,28 @@ resource "azapi_resource" "rai_policy" {
         {
           "name" : "Violence",
           "severityThreshold" : "Low",
-          "blocking" : true,
+          "blocking" : false,
           "enabled" : true,
           "source" : "Completion"
         },
         {
           "name" : "Hate",
           "severityThreshold" : "Low",
-          "blocking" : true,
+          "blocking" : false,
           "enabled" : true,
           "source" : "Completion"
         },
         {
           "name" : "Sexual",
           "severityThreshold" : "Low",
-          "blocking" : true,
+          "blocking" : false,
           "enabled" : true,
           "source" : "Completion"
         },
         {
           "name" : "Selfharm",
           "severityThreshold" : "Low",
-          "blocking" : true,
+          "blocking" : false,
           "enabled" : true,
           "source" : "Completion"
         },

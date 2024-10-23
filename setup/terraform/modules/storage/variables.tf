@@ -44,7 +44,7 @@ variable "use_private_network" {
   description = "Whether to use private networking for the storage account"
 }
 
-variable "web_subnet_id" {
-  description = "The ID of the web subnet"
+variable "app_subnet_id" {
+  description = "The ID of the app subnet"
   type        = string
 }

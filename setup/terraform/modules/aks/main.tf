@@ -23,7 +23,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     name           = "default"
     node_count     = 2
     vm_size        = "Standard_D4s_v3"
-    vnet_subnet_id = var.app_subnet_id
+    vnet_subnet_id = var.web_subnet_id
 
     # Set upgrade settings for the node pool
     upgrade_settings {
@@ -56,7 +56,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     log_analytics_workspace_id = azurerm_log_analytics_workspace.aks.id
   }
 
-  automatic_channel_upgrade = "stable"
+  #automatic_channel_upgrade = "stable"
 
   maintenance_window {
     allowed {
