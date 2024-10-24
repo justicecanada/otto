@@ -4,15 +4,13 @@
   <tr>
     <td>
       <i class="bi bi-filetype-pdf me-1 h5" style="color: red"></i>
-      <a href="{% url 'text_extractor:download_document' doc.pdf.file.file_id user_request_id %}"
-         class="link-dark"
-         target="_blank">{{ doc.pdf.file.file_name }} (PDF, {{ doc.pdf.size }})</a>
+      <a href="{% url 'text_extractor:download_document' doc.pdf.file.id user_request_id %}"
+         class="link-dark">{{ doc.pdf.file.file_name }} (PDF, {{ doc.pdf.size }})</a>
     </td>
     <td>
       <i class="bi bi-filetype-txt me-1 h5" style="color: slategray"></i>
-      <a href="{% url 'text_extractor:download_document' doc.txt.file.file_id user_request_id %}"
-         class="link-dark"
-         target="_blank">{{ doc.txt.file.file_name }} (TXT, {{ doc.txt.size }})</a>
+      <a href="{% url 'text_extractor:download_document' doc.txt.file.id user_request_id %}"
+         class="link-dark">{{ doc.txt.file.file_name }} (TXT, {{ doc.txt.size }})</a>
     </td>
   </tr>
 {% endfor %}
