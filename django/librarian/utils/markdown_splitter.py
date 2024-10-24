@@ -6,9 +6,10 @@ from llama_index.core.node_parser import SentenceSplitter
 
 
 class MarkdownSplitter:
-    def __init__(self, chunk_size=768, chunk_overlap=100):
+    def __init__(self, chunk_size=768, chunk_overlap=100, debug=False):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        self.debug = debug
         self.splitter = SentenceSplitter(
             chunk_overlap=chunk_overlap, chunk_size=chunk_size
         )
@@ -24,7 +25,11 @@ class MarkdownSplitter:
         last_page_number = None
         split_texts = []
         for t in self.splitter.split_text(markdown_text):
+            if self.debug:
+                print(f"\nClosing tags for chunk:\n---\n{t}\n---\n")
             closed_text = self._close_page_tags(t)
+            if self.debug:
+                print(f"\nAfter closing tags:\n---\n{closed_text}\n---\n")
             closing_tags = re.findall(r"</page_\d+>", closed_text)
             if last_page_number and not closing_tags:
                 closed_text = f"<page_{last_page_number}>\n{closed_text}\n</page_{last_page_number}>"
@@ -34,6 +39,10 @@ class MarkdownSplitter:
             lines = closed_text.split("\n")
             content_lines = [L for L in lines if not re.match(r"</?page_\d+>", L)]
             if "".join(content_lines).replace("\n", "").strip():
+                if self.debug:
+                    print(
+                        f"\nAfter all split_with_page_numbers logic:\n---\n{closed_text}\n---\n"
+                    )
                 split_texts.append(closed_text)
         return split_texts
 

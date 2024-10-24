@@ -42,19 +42,18 @@ Here's some more text to put it over the limit.
 
 
 def test_split_with_page_numbers_multiple_page_tags():
-    markdown_splitter = MarkdownSplitter(chunk_size=20, chunk_overlap=0)
+    markdown_splitter = MarkdownSplitter(chunk_size=40, chunk_overlap=0)
     markdown_text = """
 <page_1>
 # I'm a heading!
-</page 1>
+</page_1>
 <page_2>
 Blah blah blah, how about that text!
 Here's some more text to put it over the limit.
 </page_2>
 """
     expected_output = [
-        "<page_1>\n# I'm a heading!\n</page_1>",
-        "<page_2>\nBlah blah blah, how about that text!\n</page_2>",
+        "<page_1>\n# I'm a heading!\n</page_1>\n<page_2>\nBlah blah blah, how about that text!\n</page_2>",
         "<page_2>\nHere's some more text to put it over the limit.\n</page_2>",
     ]
     result = markdown_splitter._split_with_page_numbers(markdown_text)
@@ -74,15 +73,20 @@ def test_split_with_page_numbers_no_content_between_page_tags():
     assert result == expected_output
 
 
-# TODO: Overlap is causing issues with page tags closing. Need to fix this.
-# def test_split_with_page_numbers_overlap():
-#     markdown_splitter = MarkdownSplitter(chunk_size=30, chunk_overlap=15)
-#     markdown_text = """
-# <page_1>
-# # I'm a heading!
-# </page 1>
-# <page_2>
-# Blah blah blah, how about that text!
-# Here's some more text to put it over the limit.
-# </page_2>
-# """
+def test_split_with_page_numbers_overlap():
+    markdown_splitter = MarkdownSplitter(chunk_size=40, chunk_overlap=30, debug=True)
+    markdown_text = """
+<page_1>
+# I'm a heading!
+</page_1>
+<page_2>
+Blah blah blah, how about that text!
+Here's some more text to put it over the limit.
+</page_2>
+"""
+    expected_output = [
+        "<page_1>\n# I'm a heading!\n</page_1>\n<page_2>\nBlah blah blah, how about that text!\n</page_2>",
+        "<page_1>\n</page_1>\n<page_2>\nBlah blah blah, how about that text!\nHere's some more text to put it over the limit.\n</page_2>",
+    ]
+    result = markdown_splitter._split_with_page_numbers(markdown_text)
+    assert result == expected_output
