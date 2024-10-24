@@ -287,10 +287,6 @@ def create_searchable_pdf(input_file, add_header):
     return output, all_text
 
 
-def shorten_input_name(input_name, max_length=35):
+def shorten_input_name(input_name):
     base_name, file_extension = os.path.splitext(input_name)
-    if len(base_name) > max_length:
-        unique_id = str(uuid.uuid4())
-        shortened_base_name = base_name[:10] + "_" + unique_id
-        return shortened_base_name + file_extension
-    return base_name + file_extension
+    return str(uuid.uuid4()) + file_extension

@@ -73,7 +73,6 @@ def submit_document(request):
             current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
 
             for idx, file in enumerate(files):
-                file.name = shorten_input_name(file.name)
                 ocr_file, txt_file = create_searchable_pdf(file, merged and idx > 0)
                 all_texts.append(txt_file)
 
@@ -88,24 +87,19 @@ def submit_document(request):
                     if idx > 0:  # Exclude TOC from file names to merge
                         file_names_to_merge.append(file_name)
                 else:
-                    file_id = f"{user_name}_{current_time}_OCR_{input_name}.pdf"
-                    text_id = f"{user_name}_{current_time}_{input_name}.txt"
-                    file_name = f"OCR_{input_name}.pdf"
-                    text_name = f"OCR_{input_name}.txt"
+                    file_name = f"{input_name}_OCR.pdf"
+                    text_name = f"{input_name}_OCR.txt"
 
-                    content_file = ContentFile(pdf_bytes.getvalue(), name=file_id)
-                    content_text = ContentFile(txt_file, name=text_id)
-
-                    # Ensure the filename is within the allowed length
-                    if len(file_id) > 1024 or len(text_id) > 1024:
-                        raise SuspiciousFileOperation(
-                            "Maximum character reached: Generated filename is too long for Azure storage."
-                        )
+                    content_file = ContentFile(
+                        pdf_bytes.getvalue(), name=shorten_input_name(file_name)
+                    )
+                    content_text = ContentFile(
+                        txt_file, name=shorten_input_name(text_name)
+                    )
 
                     output_file = OutputFile.objects.create(
                         access_key,
                         file=content_file,
-                        file_id=file_id,
                         file_name=file_name,
                         user_request=user_request,
                     )
@@ -113,7 +107,6 @@ def submit_document(request):
                     output_text = OutputFile.objects.create(
                         access_key,
                         file=content_text,
-                        file_id=text_id,
                         file_name=text_name,
                         user_request=user_request,
                     )
@@ -138,19 +131,14 @@ def submit_document(request):
                 formatted_merged_name = format_merged_file_name(
                     file_names_to_merge, max_length=40
                 )
-                merged_file_id = (
-                    f"{user_name}_{current_time}_{formatted_merged_name}.pdf"
-                )
-                merged_text_id = (
-                    f"{user_name}_{current_time}_{formatted_merged_name}.txt"
-                )
                 merge_file_name = f"{formatted_merged_name}.pdf"
                 merged_text_name = f"{formatted_merged_name}.txt"
 
                 merged_pdf_bytes = BytesIO()
                 merger.write(merged_pdf_bytes)
                 merged_pdf_file = ContentFile(
-                    merged_pdf_bytes.getvalue(), name=merged_file_id
+                    merged_pdf_bytes.getvalue(),
+                    name=shorten_input_name(merge_file_name),
                 )
 
                 all_texts_bytes = BytesIO()
@@ -159,13 +147,13 @@ def submit_document(request):
                     all_texts_bytes.write(b"\n")
                 all_texts_bytes.seek(0)
                 all_texts_file = ContentFile(
-                    all_texts_bytes.getvalue(), name=merged_text_id
+                    all_texts_bytes.getvalue(),
+                    name=shorten_input_name(merged_text_name),
                 )
 
                 output_file = OutputFile.objects.create(
                     access_key,
                     file=merged_pdf_file,
-                    file_id=merged_file_id,
                     file_name=merge_file_name,
                     user_request=user_request,
                 )
@@ -173,7 +161,6 @@ def submit_document(request):
                 output_text = OutputFile.objects.create(
                     access_key,
                     file=all_texts_file,
-                    file_id=merged_text_id,
                     file_name=merged_text_name,
                     user_request=user_request,
                 )
@@ -219,9 +206,7 @@ def download_document(request, file_id, user_request_id):
     user_request = UserRequest.objects.get(access_key, id=user_request_id)
 
     try:
-        output_file = user_request.output_files.get(
-            access_key=access_key, file_id=file_id
-        )
+        output_file = user_request.output_files.get(access_key=access_key, id=file_id)
     except OutputFile.DoesNotExist:
         return render(request, "text_extractor/error_message.html")
 
