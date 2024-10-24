@@ -33,6 +33,11 @@ class MarkdownSplitter:
         line_split_texts = []
         current_tokens = 0
         current_text = ""
+        # TODO: This could be improved to avoid the following scenarios:
+        # 1. Chunk ends with a heading
+        # 2. Chunk ends with a table header (with or without underline row)
+        # Although this content would be repeated in the next chunk,
+        # it would improve retrieval to simply split right before these elements.
         for line in markdown_text.split("\n"):
             line_tokens = self._token_count(line)
             if current_tokens + line_tokens > self.chunk_size:
@@ -185,6 +190,12 @@ class MarkdownSplitter:
             min_level,
         )
 
+    def _is_table_row(self, line):
+        return line.startswith("| ") and line.endswith(" |")
+
+    def _is_table_underline(self, line):
+        return line.startswith("| ---") and line.endswith(" |")
+
     def _get_last_table_header(self, text: str) -> str:
         """
         Extracts the last table header from a markdown text.
@@ -192,12 +203,21 @@ class MarkdownSplitter:
         last_table_row = ""
         last_table_header = ""
         lines = text.split("\n")
+        # Remove the page number tags (Opening or closing)
+        lines = [line for line in lines if not re.match(r"</?page_\d+>", line)]
         for line in lines:
-            if line.startswith("| ---") and line.endswith(" |") and last_table_row:
+            if self._is_table_underline(line) and last_table_row:
                 last_table_header = last_table_row + "\n" + line
                 last_table_row = ""
-            elif line.startswith("| ") and line.endswith(" |"):
+            elif self._is_table_row(line):
                 last_table_row = line
+        # Edge case: table header is the last line
+        if (
+            len(lines) > 1
+            and self._is_table_row(lines[-1])
+            and not self._is_table_row(lines[-2])
+        ):
+            last_table_header = last_table_row
         return last_table_header
 
     def _repeat_table_header_if_necessary(
@@ -210,24 +230,34 @@ class MarkdownSplitter:
         """
         if not last_table_header:
             return text
+        original_text = text
+
+        # Remove page tags from the start of the text but keep them for later
         lines = text.split("\n")
-        # Remove lines that are page tags
-        lines = [line for line in lines if not re.match(r"</?page_\d+>", line)]
+        prepend_line = ""
+        if lines[0].startswith("<page_") and lines[0].endswith(">"):
+            prepend_line = lines[0] + "\n"
+            lines = lines[1:]
+            text = "\n".join(lines)
         if len(lines) < 2:
-            return text
+            return original_text
         first_line_is_table_row = lines[0].startswith("| ") and lines[0].endswith(" |")
+        if self.debug:
+            print(f"First line is table row: {first_line_is_table_row}")
         first_line_is_table_header = (
             first_line_is_table_row
             and lines[1].startswith("| ---")
             and lines[1].endswith(" |")
         )
+        if self.debug:
+            print(f"First line is table header: {first_line_is_table_header}")
         if (
             first_line_is_table_row
             and not first_line_is_table_header
             and last_table_header
         ):
-            return f"{last_table_header}\n{text}"
-        return text
+            return f"{prepend_line}{last_table_header}\n{text}"
+        return original_text
 
     def _repeat_headings(self, split_texts: List[str]) -> List[str]:
         """

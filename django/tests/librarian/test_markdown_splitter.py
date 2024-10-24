@@ -92,7 +92,7 @@ Here's some more text to put it over the limit.
     assert result == expected_output
 
 
-def test_close_page_tags():
+def test_close_page_tags_simple():
     # Case 1: No page tags
     markdown_splitter = MarkdownSplitter()
     html_string = "This is some text."
@@ -121,6 +121,8 @@ def test_close_page_tags():
     result = markdown_splitter._close_page_tags(html_string)
     assert result == expected_output
 
+
+def test_close_page_tags_complex_1():
     # Case 5: Multiple valid page tags
     markdown_splitter = MarkdownSplitter()
     html_string = """
@@ -175,6 +177,8 @@ This is some more text.
     result = markdown_splitter._close_page_tags(html_string)
     assert result == expected_output
 
+
+def test_close_page_tags_complex_2():
     # Case 8: Compound issues 1
     markdown_splitter = MarkdownSplitter()
     html_string = """
@@ -368,8 +372,7 @@ Some text.
     assert result == expected_output
 
 
-def test_get_all_headings():
-    markdown_splitter = MarkdownSplitter()
+def test_get_all_headings_1(markdown_splitter):
     text = """
 # Heading 1
 Some text.
@@ -405,7 +408,17 @@ Some more text.
         6: None,
     }
 
+
+def test_get_all_headings_2(markdown_splitter):
     # Test with no headings
+    existing_headings = {
+        1: None,
+        2: None,
+        3: None,
+        4: None,
+        5: None,
+        6: None,
+    }
     text = "Some text."
     expected_headings = {
         1: None,
@@ -419,6 +432,8 @@ Some more text.
     result = markdown_splitter._get_all_headings(text, existing_headings)
     assert result == (expected_headings, expected_headings, expected_min_level)
 
+
+def test_get_all_headings_3(markdown_splitter):
     # Test with some text that starts with higher level headings
     # then has a lower level heading
     existing_headings = {
@@ -463,7 +478,22 @@ Even more text.
     )
 
 
-def test_get_last_table_header():
+def test_table_heading_helpers():
+    markdown_splitter = MarkdownSplitter()
+    row = "| Header 1 | Header 2 |"
+    assert markdown_splitter._is_table_row(row)
+    assert not markdown_splitter._is_table_underline(row)
+
+    underline = "| --- | --- |"
+    assert markdown_splitter._is_table_row(underline)
+    assert markdown_splitter._is_table_underline(underline)
+
+    not_a_row = "This is not a table row."
+    assert not markdown_splitter._is_table_row(not_a_row)
+    assert not markdown_splitter._is_table_underline(not_a_row)
+
+
+def test_get_last_table_header_1():
     # Chunk overlap complicates the behaviour. First, test without it.
     # Case 1: No table headers
     markdown_splitter = MarkdownSplitter(chunk_overlap=0)
@@ -472,6 +502,8 @@ def test_get_last_table_header():
     result = markdown_splitter._get_last_table_header(text)
     assert result == expected_output
 
+
+def test_get_last_table_header_2(markdown_splitter):
     # Case 2: Chunk contains a single table only.
     text = """
 <page_1>
@@ -485,6 +517,8 @@ def test_get_last_table_header():
     result = markdown_splitter._get_last_table_header(text)
     assert result == expected_output
 
+
+def test_get_last_table_header_3(markdown_splitter):
     # Case 3: Chunk contains table cells but no headers.
     text = """
 <page_1>
@@ -496,6 +530,8 @@ def test_get_last_table_header():
     result = markdown_splitter._get_last_table_header(text)
     assert result == expected_output
 
+
+def test_get_last_table_header_4(markdown_splitter):
     # Case 4: Chunk contains table rows but no header.
     text = """
 <page_4>
@@ -506,6 +542,8 @@ def test_get_last_table_header():
     result = markdown_splitter._get_last_table_header(text)
     assert result == expected_output
 
+
+def test_get_last_table_header_5(markdown_splitter):
     # Case 5: Chunk contains text as well as a single table
     text = """
 <page_1>
@@ -519,6 +557,8 @@ Some text.
     result = markdown_splitter._get_last_table_header(text)
     assert result == expected_output
 
+
+def test_get_last_table_header_6(markdown_splitter):
     # Case 6: Chunk contains multiple tables
     text = """
 <page_1>
@@ -538,37 +578,27 @@ Another table:
     assert result == expected_output
 
 
-def test_repeat_table_header():
-    '''
-    def _repeat_table_header_if_necessary(
-        self, text: str, last_table_header: str
-    ) -> str:
-        """
-        Prepends the last table header to the text if:
-        * there is a previous table header AND
-        * the text starts with a table row but not a table header
-        """
-        if not last_table_header:
-            return text
-        lines = text.split("\n")
-        # Remove lines that are page tags
-        lines = [line for line in lines if not re.match(r"</?page_\d+>", line)]
-        if len(lines) < 2:
-            return text
-        first_line_is_table_row = lines[0].startswith("| ") and lines[0].endswith(" |")
-        first_line_is_table_header = (
-            first_line_is_table_row
-            and lines[1].startswith("| ---")
-            and lines[1].endswith(" |")
-        )
-        if (
-            first_line_is_table_row
-            and not first_line_is_table_header
-            and last_table_header
-        ):
-            return f"{last_table_header}\n{text}"
-        return text
-    '''
+def test_get_last_table_header_7(markdown_splitter):
+    # Case 7: Chunk contains only a header row as last row of chunk
+    text = """
+<page_2>
+Even more text.
+
+### Heading 3
+Some more text.
+
+# New heading 1
+
+| Header 3 | Header 4 |
+</page_2>
+""".strip()
+    expected_output = "| Header 3 | Header 4 |"
+    result = markdown_splitter._get_last_table_header(text)
+    print(result)
+    assert result == expected_output
+
+
+def test_repeat_table_header_1():
     markdown_splitter = MarkdownSplitter(chunk_size=40, chunk_overlap=20)
     # Get the chunks with _split_with_page_numbers
     text = """
@@ -580,7 +610,7 @@ def test_repeat_table_header():
 | Row 3 | Row 3 |
 | Row 4 | Row 4 |
 </page_1>
-"""
+""".strip()
     chunks = markdown_splitter._split_with_page_numbers(text)
     # The chunks should be split into two:
     # the first chunk containing the header and the first two rows
@@ -599,4 +629,223 @@ def test_repeat_table_header():
         chunks[1], last_table_header
     )
     expected_repeated_chunk = "<page_1>\n| Header 1 | Header 2 |\n| --- | --- |\n| Row 3 | Row 3 |\n| Row 4 | Row 4 |\n</page_1>"
-    # assert repeated_chunk == expected_repeated_chunk
+    assert repeated_chunk == expected_repeated_chunk
+
+
+def test_repeat_table_header_2(markdown_splitter):
+    # Test with two chunks that don't contain tables at all
+    chunks = "Some text.", "Some more text."
+    last_table_header = markdown_splitter._get_last_table_header(chunks[0])
+    repeated_chunk = markdown_splitter._repeat_table_header_if_necessary(
+        chunks[1], last_table_header
+    )
+    expected_repeated_chunk = "Some more text."
+    assert repeated_chunk == expected_repeated_chunk
+
+    # Same thing but with page tags
+    chunks = "<page_1>\nSome text.\n</page_1>", "<page_1>\nSome more text.\n</page_1>"
+    last_table_header = markdown_splitter._get_last_table_header(chunks[0])
+    repeated_chunk = markdown_splitter._repeat_table_header_if_necessary(
+        chunks[1], last_table_header
+    )
+    expected_repeated_chunk = "<page_1>\nSome more text.\n</page_1>"
+    assert repeated_chunk == expected_repeated_chunk
+
+
+def test_repeat_table_header_3(markdown_splitter):
+    # Test with a chunk that contains a table and a chunk that doesn't
+    chunk_1 = """
+<page_1>
+| Header 1 | Header 2 |
+| --- | --- |
+| Row 1 | Row 1 |
+| Row 2 | Row 2 |
+</page_1>
+""".strip()
+    chunk_2 = "Some text."
+    last_table_header = markdown_splitter._get_last_table_header(chunk_1)
+    repeated_chunk = markdown_splitter._repeat_table_header_if_necessary(
+        chunk_2, last_table_header
+    )
+    expected_repeated_chunk = "Some text."
+    assert repeated_chunk == expected_repeated_chunk
+
+
+def test_repeat_table_header_4(markdown_splitter):
+    # Test with two chunks each containing a distinct table
+    chunk_1 = """
+<page_1>
+| Header 1 | Header 2 |
+| --- | --- |
+| Row 1 | Row 1 |
+| Row 2 | Row 2 |
+</page_1>
+""".strip()
+    chunk_2 = """
+<page_1>
+| Header 3 | Header 4 |
+| --- | --- |
+| Row 3 | Row 3 |
+</page_1>
+""".strip()
+    last_table_header = markdown_splitter._get_last_table_header(chunk_1)
+    repeated_chunk = markdown_splitter._repeat_table_header_if_necessary(
+        chunk_2, last_table_header
+    )
+    expected_repeated_chunk = chunk_2
+    assert repeated_chunk == expected_repeated_chunk
+
+
+def test_repeat_table_header_5(markdown_splitter):
+    # Test with a chunk that contains multiple tables, and a chunk that continues the last table
+    chunk_1 = """
+<page_1>
+| Header 1 | Header 2 |
+| --- | --- |
+| Row 1 | Row 1 |
+| Row 2 | Row 2 |
+
+Some text.
+
+| Header 3 | Header 4 |
+| --- | --- |
+| Row 3 | Row 3 |
+</page_1>
+""".strip()
+    chunk_2 = """
+<page_1>
+| Row 4 | Row 4 |
+</page_1>
+""".strip()
+    last_table_header = markdown_splitter._get_last_table_header(chunk_1)
+    assert last_table_header == "| Header 3 | Header 4 |\n| --- | --- |"
+    repeated_chunk = markdown_splitter._repeat_table_header_if_necessary(
+        chunk_2, last_table_header
+    )
+    print(repeated_chunk)
+    expected_repeated_chunk = """
+<page_1>
+| Header 3 | Header 4 |
+| --- | --- |
+| Row 4 | Row 4 |
+</page_1>
+""".strip()
+    assert repeated_chunk == expected_repeated_chunk
+
+
+def test_repeat_headings():
+    """
+    Integrates several of the functions tested above.
+    """
+    markdown_splitter = MarkdownSplitter()
+    # Get the chunks with _split_with_page_numbers
+    split_texts = [
+        """
+<page_1>
+# Heading 1
+| Header 1 | Header 2 |
+| --- | --- |
+| Row 1 | Row 1 |
+| Row 2 | Row 2 |
+</page_1>
+""".strip(),
+        """
+<page_1>
+| Row 3 | Row 3 |
+| Row 4 | Row 4 |
+
+## Heading 2
+Some text.
+</page_1>
+<page_2>
+Some more text.
+</page_2>
+""".strip(),
+        """
+<page_2>
+Even more text.
+
+### Heading 3
+Some more text.
+
+# New heading 1
+
+| Header 3 | Header 4 |
+</page_2>
+""".strip(),
+        """
+<page_2>
+| --- | --- |
+| Row 5 | Row 5 |
+| Row 6 | Row 6 |
+</page_2>
+""".strip(),
+    ]
+    expected_texts = [
+        """
+<page_1>
+# Heading 1
+| Header 1 | Header 2 |
+| --- | --- |
+| Row 1 | Row 1 |
+| Row 2 | Row 2 |
+</page_1>
+""".strip(),
+        """
+<headings>Heading 1</headings>
+<page_1>
+| Header 1 | Header 2 |
+| --- | --- |
+| Row 3 | Row 3 |
+| Row 4 | Row 4 |
+
+## Heading 2
+Some text.
+</page_1>
+<page_2>
+Some more text.
+</page_2>
+""".strip(),
+        """
+<headings>Heading 1 > Heading 2</headings>
+<page_2>
+Even more text.
+
+### Heading 3
+Some more text.
+
+# New heading 1
+
+| Header 3 | Header 4 |
+</page_2>
+""".strip(),
+        """
+<headings>New heading 1</headings>
+<page_2>
+| Header 3 | Header 4 |
+| --- | --- |
+| Row 5 | Row 5 |
+| Row 6 | Row 6 |
+</page_2>
+""".strip(),
+    ]
+    result = markdown_splitter._repeat_headings(split_texts)
+    for i, text in enumerate(result):
+        print("\n\nCHUNK:\n", text)
+        assert text == expected_texts[i]
+
+
+def test_markdown_splitter_no_page_numbers():
+    """
+    End to end regression test of the MarkdownSplitter.split_markdown function.
+    Update the expected_output if the MarkdownSplitter implementation changes.
+    """
+    markdown_splitter = MarkdownSplitter(chunk_size=768, chunk_overlap=100)
+    text = """# Heading level 1, on page 1\n\nParagraph page 1. Here is some more text to make Azure more confident that this is indeed a paragraph. And so on, and so on. Until the end of time.\n\n## Heading level 2, on page 2\n\nParagraph page 2, which also requires more text to make Azure more confident that this is indeed a paragraph. And so on, and so on. Until the end of time.\n\n\n\n| __Table header 1__ | Table header 2 | Table header 3 | Table header 4 |\n| --- | --- | --- | --- |\n| Data row 1, cell 1 | Data row 1, cell 2 | Data row 1, cell 3 | Data row 1, cell 4 |\n| Data row 2, cell 1 | Data row 2, cell 2 | Data row 2, cell 3 | Data row 2, cell 4 |\n\n### Page 3 with lorem ipsum\n\nI digress. Here’s some Latin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas porttitor. Morbi lectus risus, iaculis vel, suscipit quis, luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet.\n\nMauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. Quisque volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam nec ante. Sed lacinia, urna non tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum ante quis turpis. Nulla facilisi. Ut fringilla. Suspendisse potenti. Nunc feugiat mi a tellus consequat imperdiet. Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. Sed lectus. Integer euismod lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, sem massa mattis sem, at interdum magna augue eget diam.\n\nVestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. Praesent blandit dolor. Sed non quam. In vel mi sit amet augue congue elementum. Morbi in ipsum sit amet pede facilisis laoreet. Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum tincidunt malesuada tellus. Ut ultrices ultrices enim. Curabitur sit amet mauris. Morbi in dui quis est pulvinar ullamcorper. Nulla facilisi. Integer lacinia sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit amet, augue. Proin sodales libero eget ante. Nulla quam. Aenean laoreet. Vestibulum nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. Ut orci risus, accumsan porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci.\n\n#### Page 4 with lorem ipsum\n\nI digress. Here’s some Latin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas porttitor. Morbi lectus risus, iaculis vel, suscipit quis, luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet.\n\nMauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. Quisque volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam nec ante. Sed lacinia, urna non tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum ante quis turpis. Nulla facilisi. Ut fringilla. Suspendisse potenti. Nunc feugiat mi a tellus consequat imperdiet. Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. Sed lectus. Integer euismod lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, sem massa mattis sem, at interdum magna augue eget diam.\n\nVestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. Praesent blandit dolor. Sed non quam. In vel mi sit amet augue congue elementum. Morbi in ipsum sit amet pede facilisis laoreet. Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum tincidunt malesuada tellus. Ut ultrices ultrices enim. Curabitur sit amet mauris. Morbi in dui quis est pulvinar ullamcorper. Nulla facilisi. Integer lacinia sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit amet, augue. Proin sodales libero eget ante. Nulla quam. Aenean laoreet. Vestibulum nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. Ut orci risus, accumsan porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci."""
+    expected_output = [
+        "# Heading level 1, on page 1\n\nParagraph page 1. Here is some more text to make Azure more confident that this is indeed a paragraph. And so on, and so on. Until the end of time.\n\n## Heading level 2, on page 2\n\nParagraph page 2, which also requires more text to make Azure more confident that this is indeed a paragraph. And so on, and so on. Until the end of time.\n\n\n\n| __Table header 1__ | Table header 2 | Table header 3 | Table header 4 |\n| --- | --- | --- | --- |\n| Data row 1, cell 1 | Data row 1, cell 2 | Data row 1, cell 3 | Data row 1, cell 4 |\n| Data row 2, cell 1 | Data row 2, cell 2 | Data row 2, cell 3 | Data row 2, cell 4 |\n\n### Page 3 with lorem ipsum\n\nI digress. Here’s some Latin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas porttitor. Morbi lectus risus, iaculis vel, suscipit quis, luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet.\n\nMauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. Quisque volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam nec ante. Sed lacinia, urna non tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum ante quis turpis. Nulla facilisi. Ut fringilla. Suspendisse potenti. Nunc feugiat mi a tellus consequat imperdiet. Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. Sed lectus. Integer euismod lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, sem massa mattis sem, at interdum magna augue eget diam.",
+        "<headings>Heading level 1, on page 1 > Heading level 2, on page 2 > Page 3 with lorem ipsum</headings>\nVestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. Praesent blandit dolor. Sed non quam. In vel mi sit amet augue congue elementum. Morbi in ipsum sit amet pede facilisis laoreet. Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum tincidunt malesuada tellus. Ut ultrices ultrices enim. Curabitur sit amet mauris. Morbi in dui quis est pulvinar ullamcorper. Nulla facilisi. Integer lacinia sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit amet, augue. Proin sodales libero eget ante. Nulla quam. Aenean laoreet. Vestibulum nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. Ut orci risus, accumsan porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci.\n\n#### Page 4 with lorem ipsum\n\nI digress. Here’s some Latin. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas porttitor. Morbi lectus risus, iaculis vel, suscipit quis, luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet.\n\nMauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. Quisque volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam nec ante. Sed lacinia, urna non tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum ante quis turpis. Nulla facilisi. Ut fringilla. Suspendisse potenti. Nunc feugiat mi a tellus consequat imperdiet. Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. Sed lectus. Integer euismod lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, sem massa mattis sem, at interdum magna augue eget diam.",
+        "<headings>Heading level 1, on page 1 > Heading level 2, on page 2 > Page 3 with lorem ipsum > Page 4 with lorem ipsum</headings>\nVestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. Praesent blandit dolor. Sed non quam. In vel mi sit amet augue congue elementum. Morbi in ipsum sit amet pede facilisis laoreet. Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum tincidunt malesuada tellus. Ut ultrices ultrices enim. Curabitur sit amet mauris. Morbi in dui quis est pulvinar ullamcorper. Nulla facilisi. Integer lacinia sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit amet, augue. Proin sodales libero eget ante. Nulla quam. Aenean laoreet. Vestibulum nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. Ut orci risus, accumsan porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci.",
+    ]
+    result = markdown_splitter.split_markdown(text)
+    assert result == expected_output
