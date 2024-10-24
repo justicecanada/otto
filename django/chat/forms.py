@@ -1,12 +1,13 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import HTMXAutoComplete
+from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 from data_fetcher.util import get_request
 
-from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions
+from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
 from librarian.models import DataSource, Document, Library
 
 CHAT_MODELS = [
@@ -164,7 +165,7 @@ class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions
         fields = "__all__"
-        exclude = ["chat", "user", "global_default", "preset_name"]
+        exclude = ["chat", "global_default"]
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
@@ -233,7 +234,7 @@ class ChatOptionsForm(ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("user", None)
+        user = kwargs.pop("user", None)
         super(ChatOptionsForm, self).__init__(*args, **kwargs)
         # Each of chat_model, summarize_model, qa_model
         # should be a choice field with the available models
@@ -274,7 +275,7 @@ class ChatOptionsForm(ModelForm):
             )
 
         self.fields["qa_library"] = GroupedLibraryChoiceField(
-            user=self.user,
+            user=user,
             empty_label=None,
             widget=forms.Select(
                 attrs={
@@ -348,3 +349,64 @@ class ChatRenameForm(ModelForm):
                 }
             )
         }
+
+
+class PresetForm(forms.ModelForm):
+    User = get_user_model()
+
+    class Meta:
+        model = Preset
+        fields = [
+            "name_en",
+            "name_fr",
+            "description_en",
+            "description_fr",
+            "is_public",
+            "editable_by",
+            "accessible_to",
+        ]
+
+        widgets = {
+            "name_en": forms.TextInput(attrs={"class": "form-control"}),
+            "name_fr": forms.TextInput(attrs={"class": "form-control"}),
+            "description_en": forms.Textarea(attrs={"class": "form-control"}),
+            "description_fr": forms.Textarea(attrs={"class": "form-control"}),
+            "is_public": forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input",
+                    "type": "checkbox",
+                }
+            ),
+        }
+
+    editable_by = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        label="Editable Email",
+        required=False,
+        widget=widgets.Autocomplete(
+            name="editable_by",
+            options={
+                "item_value": User.id,
+                "item_label": User.email,
+                "multiselect": True,
+                "minimum_search_length": 2,
+                "model": User,
+            },
+        ),
+    )
+
+    accessible_to = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        label="Email",
+        required=False,
+        widget=widgets.Autocomplete(
+            name="accessible_to",
+            options={
+                "item_value": User.id,
+                "item_label": User.email,
+                "multiselect": True,
+                "minimum_search_length": 2,
+                "model": User,
+            },
+        ),
+    )

@@ -2,12 +2,14 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
@@ -15,7 +17,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.forms import ChatOptionsForm, ChatRenameForm
+from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm
 from chat.llm import OttoLLM
 from chat.metrics.activity_metrics import (
     chat_new_session_started_total,
@@ -26,16 +28,26 @@ from chat.metrics.feedback_metrics import (
     chat_negative_feedback_total,
     chat_positive_feedback_total,
 )
-from chat.models import Chat, ChatFile, ChatOptions, Message, create_chat_data_source
+from chat.models import (
+    Chat,
+    ChatFile,
+    ChatOptions,
+    Message,
+    Preset,
+    create_chat_data_source,
+)
 from chat.utils import change_mode_to_chat_qa, llm_response_to_html, title_chat
-from librarian.models import Library, SavedFile
-from otto.models import SecurityLabel
+from librarian.models import DataSource, Library, SavedFile
+from otto.models import App, SecurityLabel
+from otto.rules import is_admin
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
     permission_required,
 )
 from otto.views import message_feedback
+
+from .models import Preset
 
 app_name = "chat"
 logger = get_logger(__name__)
@@ -190,10 +202,12 @@ def chat(request, chat_id):
         chat.options.qa_library = Library.objects.get_default_library()
         chat.options.save()
     form = ChatOptionsForm(instance=chat.options, user=request.user)
+    # TODO: Preset refactor: get accessible presets as list
+    options_preset = Preset.objects.filter(owner=request.user)
     context = {
         "chat": chat,
         "options_form": form,
-        "option_presets": ChatOptions.objects.filter(user=request.user),
+        "option_presets": options_preset,
         "chat_messages": messages,
         "hide_breadcrumbs": True,
         "user_chats": user_chats,
@@ -456,7 +470,7 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def chat_options(request, chat_id, action=None):
+def chat_options(request, chat_id, action=None, preset_id=None):
     """
     Save and load chat options.
     """
@@ -464,7 +478,7 @@ def chat_options(request, chat_id, action=None):
     def _copy_options(source_options, target_options):
         source_options = model_to_dict(source_options)
         # Remove the fields that are not part of the preset
-        for field in ["id", "user", "preset_name", "chat"]:
+        for field in ["id", "chat"]:
             source_options.pop(field)
         # Update the preset options with the dictionary
         fk_fields = ["qa_library"]
@@ -483,78 +497,133 @@ def chat_options(request, chat_id, action=None):
     chat = Chat.objects.get(id=chat_id)
     if action in ["reset", "load_preset"]:
         if action == "reset":
-            preset_options = ChatOptions.objects.from_defaults(user=request.user)
+            chat.options.delete()
+            preset_options = ChatOptions.objects.from_defaults(
+                chat=chat,
+            )
             logger.info("Resetting chat options to default.", chat_id=chat_id)
+
+            # Update the chat options with the default options
+            _copy_options(preset_options, chat.options)
         else:
-            # Check that the preset is not empty and exists
-            preset_name = request.POST.get("option_presets")
             logger.info(
                 "Loading chat options from a preset.",
                 chat_id=chat_id,
-                preset=preset_name,
+                preset=preset_id,
             )
-            if not preset_name:
+            if not preset_id:
                 return HttpResponse(status=500)
-            preset_options = ChatOptions.objects.filter(
-                user=request.user, preset_name=preset_name
-            ).first()
-            if not preset_options:
+            preset = Preset.objects.get(id=int(preset_id))
+            if not preset:
                 return HttpResponse(status=500)
-        # Update the chat options with the default options
-        chat_options = chat.options
-        _copy_options(preset_options, chat_options)
+            chat.options.delete()
+            new_options = ChatOptions.objects.from_defaults(chat=chat)
+
+            # copy the options from the preset to the chat
+            _copy_options(preset.options, new_options)
+
         return render(
             request,
             "chat/components/chat_options_accordion.html",
             {
                 "options_form": ChatOptionsForm(
-                    instance=chat_options, user=request.user
+                    instance=chat.options, user=request.user
                 ),
                 "preset_loaded": "true",
             },
         )
     elif action == "save_preset":
-        # Save the current chat options as a preset
-        preset_name = request.POST.get("option_presets")
-        logger.info(
-            "Saving chat options as a preset.", chat_id=chat_id, preset=preset_name
-        )
-        # Can't be blank
-        if not preset_name:
-            return HttpResponse(status=500)
-        # Get or create the preset
-        preset_options = ChatOptions.objects.filter(
-            user=request.user, preset_name=preset_name
-        ).first()
-        if not preset_options:
-            preset_options = ChatOptions.objects.create(
-                user=request.user, preset_name=preset_name
-            )
-        _copy_options(chat.options, preset_options)
-        # Replaces the preset dropdown with the saved one selected
-        return render(
-            request,
-            "chat/components/options_preset_dropdown.html",
-            {
-                "option_presets": ChatOptions.objects.filter(user=chat.user),
-                "selected_preset": preset_name,
-            },
-        )
+        if request.method == "POST":
+            # Determine which tab was selected
+            form = PresetForm(request.POST)
+
+            if form.is_valid():
+
+                if preset_id:
+                    preset = get_object_or_404(Preset, id=preset_id, owner=request.user)
+                    replace_with_settings = request.POST.get(
+                        "replace_with_settings", False
+                    )
+                else:
+                    # Create a new Preset object
+                    preset = Preset()
+                    preset.owner = request.user
+                    preset_id = preset.id
+                    replace_with_settings = True
+
+                # save the current chat settings
+                if replace_with_settings:
+                    # # get chat object from chat_id
+                    chat = Chat.objects.get(id=chat_id)
+                    new_options = ChatOptions.objects.from_defaults()
+
+                    # copy the options from the chat to the preset
+                    _copy_options(chat.options, new_options)
+
+                    # Update preset options
+                    preset.options = new_options
+
+                english_title = form.cleaned_data["name_en"]
+                french_title = form.cleaned_data["name_fr"]
+
+                # check if both titles are empty
+                if english_title == "" and french_title == "":
+                    return render(
+                        request,
+                        "chat/modals/presets/presets_form.html",
+                        {
+                            "form": form,
+                            "chat_id": chat_id,
+                            "preset_id": preset_id,
+                            "error_message": _(
+                                "Please provide a title in either English or French."
+                            ),
+                            "replace_with_settings": replace_with_settings,
+                        },
+                    )
+
+                # Set the fields based on the selected tab
+                preset.name_en = english_title
+                preset.name_fr = french_title
+                preset.description_en = form.cleaned_data["description_en"]
+                preset.description_fr = form.cleaned_data["description_fr"]
+
+                # Set the public status
+                preset.is_public = form.cleaned_data.get("is_public", False)
+
+                editable_by = form.cleaned_data.get("editable_by", [])
+                accessible_to = form.cleaned_data.get("accessible_to", [])
+
+                if preset.is_public:
+                    # check if editable_by and accessible_to are empty
+                    if not editable_by and not accessible_to:
+                        return render(
+                            request,
+                            "chat/modals/presets/presets_form.html",
+                            {
+                                "form": form,
+                                "chat_id": chat_id,
+                                "error_message": _(
+                                    "Please provide at least one user for the editable field or the accessible field."
+                                ),
+                                "replace_with_settings": replace_with_settings,
+                            },
+                        )
+
+                preset.save()
+
+                if preset.is_public:
+                    preset.editable_by.set(editable_by)
+                    preset.accessible_to.set(accessible_to)
+
+                return redirect("chat:get_presets", chat_id=chat_id)
+
+        return HttpResponse(status=500)
+
     elif action == "delete_preset":
-        # Delete the preset
-        preset_name = request.POST.get("option_presets")
-        logger.info(
-            "Deleting chat options preset.", chat_id=chat_id, preset=preset_name
-        )
-        if not preset_name:
-            return HttpResponse(status=500)
-        ChatOptions.objects.filter(user=request.user, preset_name=preset_name).delete()
-        # Replaces the preset dropdown with none selected
-        return render(
-            request,
-            "chat/components/options_preset_dropdown.html",
-            {"option_presets": ChatOptions.objects.filter(user=chat.user)},
-        )
+        preset = get_object_or_404(Preset, id=preset_id)
+        preset.delete()
+        return redirect("chat:get_presets", chat_id=chat_id)
     elif request.method == "POST":
         chat_options = chat.options
         chat_options_form = ChatOptionsForm(
@@ -565,14 +634,11 @@ def chat_options(request, chat_id, action=None):
             logger.error(chat_options_form.errors)
             return HttpResponse(status=500)
         chat_options_form.save()
+        # Return a simple success response
+        return HttpResponse(status=200)
 
-        # Replaces the preset dropdown with none selected
-        return render(
-            request,
-            "chat/components/options_preset_dropdown.html",
-            {"option_presets": ChatOptions.objects.filter(user=chat.user)},
-        )
-    return HttpResponse(status=500)
+    else:
+        return HttpResponse(status=500)
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
@@ -642,3 +708,73 @@ def message_sources(request, message_id):
         "chat/modals/sources_modal_inner.html",
         {"message": message, "sources": message.sources},
     )
+
+
+def get_presets(request, chat_id):
+    return render(
+        request,
+        "chat/modals/presets/card_list.html",
+        {
+            "presets": Preset.objects.get_accessible_presets(
+                request.user, get_language()
+            ),
+            "chat_id": chat_id,
+            "user": request.user,
+            "is_admin": is_admin(request.user),
+        },
+    )
+
+
+def set_preset_favourite(request, preset_id):
+    preset = Preset.objects.get(id=preset_id)
+    try:
+        is_favourite = preset.toggle_favourite(request.user)
+        return render(
+            request,
+            "chat/modals/presets/favourite.html",
+            context={"is_favourite": is_favourite, "preset": preset},
+        )
+    except ValueError:
+        # TODO: Preset refactor: show friendly error message
+        return HttpResponse(status=500)
+
+
+def create_preset(request, chat_id):
+
+    form = PresetForm()
+
+    return render(
+        request,
+        "chat/modals/presets/presets_form.html",
+        {"form": form, "chat_id": chat_id},
+    )
+
+
+def edit_preset(request, chat_id, preset_id):
+    preset = get_object_or_404(Preset, id=preset_id)
+    form = PresetForm(instance=preset)
+
+    return render(
+        request,
+        "chat/modals/presets/presets_form.html",
+        {"form": form, "preset": preset, "preset_id": preset_id, "chat_id": chat_id},
+    )
+
+
+def set_preset_default(request, chat_id: str, preset_id: int):
+    try:
+        preset = Preset.objects.get(id=preset_id)
+        default = preset.set_as_default(request.user)
+        is_default = True if default is not None else False
+        return render(
+            request,
+            "chat/modals/presets/default_icon.html",
+            {
+                "preset": preset,
+                "chat_id": chat_id,
+                "is_default": is_default,
+            },
+        )
+    except ValueError:
+        # TODO: Preset refactor: show friendly error message
+        logger.error("Error setting default preset")
