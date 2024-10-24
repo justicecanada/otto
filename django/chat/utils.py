@@ -126,19 +126,16 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
                     continue
                 document = Document.objects.get(uuid_hex=node.node.ref_doc_id)
                 score = node.score
-                source = AnswerSource(
+                source = AnswerSource.objects.create(
                     message=message,
                     document_id=document.id,
                     node_text=node.node.text,
                     node_score=score,
-                    saved_citation=document.citation,
                     group_number=i,
                 )
                 sources.append(source)
             except Exception as e:
                 print("Error saving source:", node, e)
-
-    AnswerSource.objects.bulk_create(sources)
 
     security_labels = [
         source.document.data_source.security_label.acronym for source in sources
