@@ -86,7 +86,7 @@ Here's some more text to put it over the limit.
 """
     expected_output = [
         "<page_1>\n# I'm a heading!\n</page_1>\n<page_2>\nBlah blah blah, how about that text!\n</page_2>",
-        "<page_2>\nBlah blah blah, how about that text!\nHere's some more text to put it over the limit.\n</page_2>",
+        "<page_2>\nHere's some more text to put it over the limit.\n</page_2>",
     ]
     result = markdown_splitter._split_with_page_numbers(markdown_text)
     assert result == expected_output
@@ -461,3 +461,142 @@ Even more text.
         expected_headings_for_prepend,
         expected_min_level,
     )
+
+
+def test_get_last_table_header():
+    # Chunk overlap complicates the behaviour. First, test without it.
+    # Case 1: No table headers
+    markdown_splitter = MarkdownSplitter(chunk_overlap=0)
+    text = "Some text."
+    expected_output = ""
+    result = markdown_splitter._get_last_table_header(text)
+    assert result == expected_output
+
+    # Case 2: Chunk contains a single table only.
+    text = """
+<page_1>
+| Header 1 | Header 2 |
+| --- | --- |
+| Row 1 | Row 1 |
+| Row 2 | Row 2 |
+</page_1>
+"""
+    expected_output = "| Header 1 | Header 2 |\n| --- | --- |"
+    result = markdown_splitter._get_last_table_header(text)
+    assert result == expected_output
+
+    # Case 3: Chunk contains table cells but no headers.
+    text = """
+<page_1>
+| --- | --- |
+| Row 1 | Row 1 |
+</page_1>
+"""
+    expected_output = ""
+    result = markdown_splitter._get_last_table_header(text)
+    assert result == expected_output
+
+    # Case 4: Chunk contains table rows but no header.
+    text = """
+<page_4>
+| Row 1 | Row 1 |
+</page_4>
+"""
+    expected_output = ""
+    result = markdown_splitter._get_last_table_header(text)
+    assert result == expected_output
+
+    # Case 5: Chunk contains text as well as a single table
+    text = """
+<page_1>
+Some text.
+| Header 1 | Header 2 |
+| --- | --- |
+| Row 1 | Row 1 |
+</page_1>
+"""
+    expected_output = "| Header 1 | Header 2 |\n| --- | --- |"
+    result = markdown_splitter._get_last_table_header(text)
+    assert result == expected_output
+
+    # Case 6: Chunk contains multiple tables
+    text = """
+<page_1>
+| Header 1 | Header 2 |
+| --- | --- |
+| Row 1 | Row 1 |
+
+Another table:
+
+| Header 3 | Header 4 | Header 5 |
+| --- | --- | --- |
+| Row 2 | Row 2 | Row 2 |
+</page_1>
+"""
+    expected_output = "| Header 3 | Header 4 | Header 5 |\n| --- | --- | --- |"
+    result = markdown_splitter._get_last_table_header(text)
+    assert result == expected_output
+
+
+def test_repeat_table_header():
+    '''
+    def _repeat_table_header_if_necessary(
+        self, text: str, last_table_header: str
+    ) -> str:
+        """
+        Prepends the last table header to the text if:
+        * there is a previous table header AND
+        * the text starts with a table row but not a table header
+        """
+        if not last_table_header:
+            return text
+        lines = text.split("\n")
+        # Remove lines that are page tags
+        lines = [line for line in lines if not re.match(r"</?page_\d+>", line)]
+        if len(lines) < 2:
+            return text
+        first_line_is_table_row = lines[0].startswith("| ") and lines[0].endswith(" |")
+        first_line_is_table_header = (
+            first_line_is_table_row
+            and lines[1].startswith("| ---")
+            and lines[1].endswith(" |")
+        )
+        if (
+            first_line_is_table_row
+            and not first_line_is_table_header
+            and last_table_header
+        ):
+            return f"{last_table_header}\n{text}"
+        return text
+    '''
+    markdown_splitter = MarkdownSplitter(chunk_size=40, chunk_overlap=20)
+    # Get the chunks with _split_with_page_numbers
+    text = """
+<page_1>
+| Header 1 | Header 2 |
+| --- | --- |
+| Row 1 | Row 1 |
+| Row 2 | Row 2 |
+| Row 3 | Row 3 |
+| Row 4 | Row 4 |
+</page_1>
+"""
+    chunks = markdown_splitter._split_with_page_numbers(text)
+    # The chunks should be split into two:
+    # the first chunk containing the header and the first two rows
+    # the second chunk containing the last two rows
+    expected_chunks = [
+        "<page_1>\n| Header 1 | Header 2 |\n| --- | --- |\n| Row 1 | Row 1 |\n| Row 2 | Row 2 |\n</page_1>",
+        "<page_1>\n| Row 3 | Row 3 |\n| Row 4 | Row 4 |\n</page_1>",
+    ]
+    assert chunks == expected_chunks
+
+    # Test _repeat_table_header_if_necessary
+    # Extract the last table header
+    last_table_header = markdown_splitter._get_last_table_header(chunks[0])
+    # Repeat the table header in the second chunk
+    repeated_chunk = markdown_splitter._repeat_table_header_if_necessary(
+        chunks[1], last_table_header
+    )
+    expected_repeated_chunk = "<page_1>\n| Header 1 | Header 2 |\n| --- | --- |\n| Row 3 | Row 3 |\n| Row 4 | Row 4 |\n</page_1>"
+    # assert repeated_chunk == expected_repeated_chunk

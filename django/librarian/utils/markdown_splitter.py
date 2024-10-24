@@ -11,9 +11,6 @@ class MarkdownSplitter:
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.debug = debug
-        self.splitter = SentenceSplitter(
-            chunk_overlap=chunk_overlap, chunk_size=chunk_size
-        )
         self.current_headings = {i: None for i in range(1, 7)}
         self.last_table_header = None
 
@@ -32,14 +29,36 @@ class MarkdownSplitter:
         Splits text into chunks while preserving <page_n> tags.
         Corrects missing or extra page tags due to splitting.
         """
+        # First, split by line breaks. This preserves table rows, header tags, etc.
+        line_split_texts = []
+        current_tokens = 0
+        current_text = ""
+        for line in markdown_text.split("\n"):
+            line_tokens = self._token_count(line)
+            if current_tokens + line_tokens > self.chunk_size:
+                line_split_texts.append(current_text)
+                current_text = ""
+                current_tokens = 0
+            current_text += line + "\n"
+            current_tokens += line_tokens
+        if current_text:
+            line_split_texts.append(current_text)
+
+        # Ensure each chunk is within token limits. Lines > chunk_size will get split.
+        sentence_split_texts = []
+        sentence_splitter = SentenceSplitter(
+            chunk_overlap=self.chunk_overlap, chunk_size=self.chunk_size
+        )
+        for text in line_split_texts:
+            sentence_split_texts.extend(sentence_splitter.split_text(text))
+
+        # Fix page tags.
         last_page_number = None
         split_texts = []
-        for t in self.splitter.split_text(markdown_text):
+        for t in sentence_split_texts:
             if self.debug:
                 print(f"\nClosing tags for chunk:\n---\n{t}\n---\n")
             closed_text = self._close_page_tags(t)
-            if self.debug:
-                print(f"\nAfter closing tags:\n---\n{closed_text}\n---\n")
             closing_tags = re.findall(r"</page_\d+>", closed_text)
             if last_page_number and not closing_tags:
                 closed_text = f"<page_{last_page_number}>\n{closed_text}\n</page_{last_page_number}>"
@@ -166,39 +185,16 @@ class MarkdownSplitter:
             min_level,
         )
 
-    def _repeat_headings(self, split_texts: list) -> list:
-        headings_added_texts = []
-        for text in split_texts:
-            self.current_headings, headings_for_prepend, min_level = (
-                self._get_all_headings(text, self.current_headings)
-            )
-            text = self._repeat_table_header_if_necessary(text, self.last_table_header)
-            self.last_table_header = self._get_last_table_header(
-                text, truncate_tokens=self.chunk_size - self.chunk_overlap
-            )
-            text = self._prepend_headings(
-                headings_for_prepend, text, to_level=min_level
-            )
-            headings_added_texts.append(text)
-        return headings_added_texts
-
-    def _truncate_text_to_tokens(self, text: str, max_tokens: int) -> str:
-        tokenizer = tiktoken.get_encoding("cl100k_base")
-        tokens = tokenizer.encode(text)
-        if len(tokens) > max_tokens:
-            tokens = tokens[:max_tokens]
-        truncated_text = tokenizer.decode(tokens)
-        return truncated_text
-
-    def _get_last_table_header(self, text: str, truncate_tokens: int = None) -> str:
-        if truncate_tokens:
-            text = self._truncate_text_to_tokens(text, truncate_tokens)
+    def _get_last_table_header(self, text: str) -> str:
+        """
+        Extracts the last table header from a markdown text.
+        """
         last_table_row = ""
         last_table_header = ""
         lines = text.split("\n")
         for line in lines:
             if line.startswith("| ---") and line.endswith(" |") and last_table_row:
-                last_table_header = last_table_row
+                last_table_header = last_table_row + "\n" + line
                 last_table_row = ""
             elif line.startswith("| ") and line.endswith(" |"):
                 last_table_row = line
@@ -207,9 +203,16 @@ class MarkdownSplitter:
     def _repeat_table_header_if_necessary(
         self, text: str, last_table_header: str
     ) -> str:
+        """
+        Prepends the last table header to the text if:
+        * there is a previous table header AND
+        * the text starts with a table row but not a table header
+        """
         if not last_table_header:
             return text
         lines = text.split("\n")
+        # Remove lines that are page tags
+        lines = [line for line in lines if not re.match(r"</?page_\d+>", line)]
         if len(lines) < 2:
             return text
         first_line_is_table_row = lines[0].startswith("| ") and lines[0].endswith(" |")
@@ -225,6 +228,26 @@ class MarkdownSplitter:
         ):
             return f"{last_table_header}\n{text}"
         return text
+
+    def _repeat_headings(self, split_texts: List[str]) -> List[str]:
+        """
+        Prepends table headers and headings at the start of the next chunk
+        when a table and/or section is split across chunks.
+        If a table is split across chunks, the header row is repeated.
+        if a section is split across chunks, parent headings are added as breadcrumbs.
+        """
+        headings_added_texts = []
+        for text in split_texts:
+            self.current_headings, headings_for_prepend, min_level = (
+                self._get_all_headings(text, self.current_headings)
+            )
+            text = self._repeat_table_header_if_necessary(text, self.last_table_header)
+            self.last_table_header = self._get_last_table_header(text)
+            text = self._prepend_headings(
+                headings_for_prepend, text, to_level=min_level
+            )
+            headings_added_texts.append(text)
+        return headings_added_texts
 
     def _token_count(self, text: str) -> int:
         tokenizer = tiktoken.get_encoding("cl100k_base")
