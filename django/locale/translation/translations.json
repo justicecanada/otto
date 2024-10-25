@@ -3766,5 +3766,17 @@
     "User costs": {
         "fr": "",
         "fr_auto": "Coûts d’utilisation"
+    },
+    "Make Private": {
+        "fr": "",
+        "fr_auto": "Rendre privé"
+    },
+    "Share with everyone": {
+        "fr": "",
+        "fr_auto": "Partager avec tout le monde"
+    },
+    "Privacy controls": {
+        "fr": "",
+        "fr_auto": "Contrôles de confidentialité"
     }
 }
