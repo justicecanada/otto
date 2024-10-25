@@ -575,6 +575,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                             "form": form,
                             "chat_id": chat_id,
                             "preset_id": preset_id,
+                            "is_admin": is_admin(request.user),
                             "error_message": _(
                                 "Please provide a title in either English or French."
                             ),
@@ -604,6 +605,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                             {
                                 "form": form,
                                 "chat_id": chat_id,
+                                "preset_id": preset_id,
+                                "is_admin": is_admin(request.user),
                                 "error_message": _(
                                     "Please provide at least one user for the editable field or the accessible field."
                                 ),
