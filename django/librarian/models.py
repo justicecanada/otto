@@ -1,4 +1,3 @@
-import hashlib
 import uuid
 
 from django.conf import settings
@@ -368,12 +367,6 @@ class Document(models.Model):
                 self.save()
             return "Error"
         return None
-
-    @property
-    def citation(self):
-        return render_to_string(
-            "librarian/components/document_citation.html", {"document": self}
-        )
 
     @property
     def href(self):
