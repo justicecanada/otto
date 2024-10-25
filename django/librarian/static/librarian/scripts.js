@@ -10,11 +10,18 @@ let librarianModalCloseHandler = null;
 
 updateLibrarianModalOnClose = (library_id) => {
   const modalEl = document.getElementById('editLibrariesModal');
-  const chatId = modalEl.getAttribute('data-chat-id');
   modalEl.removeEventListener('hidden.bs.modal', librarianModalCloseHandler);
   librarianModalCloseHandler = event => {
+    // Stop polling on element id="libraryModalPoller"
+    // by replacing it with empty div
+    const poller = document.getElementById('libraryModalPoller');
+    const newPoller = document.createElement('div');
+    newPoller.id = 'libraryModalPoller';
+    poller.parentNode.replaceChild(newPoller, poller);
+    // Update the QA library select
     const qa_library_select = document.getElementById("id_qa_library");
-    if (qa_library_select.value !== library_id) {
+    // Only update if the value is different (allow type coercion)
+    if (qa_library_select.value != library_id) {
       qa_library_select.value = library_id;
       qa_library_select.dispatchEvent(new Event('change'));
     }
