@@ -168,7 +168,7 @@ def create_searchable_pdf(input_file, add_header):
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
         credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
         headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
-        api_version="v4.0",  # "2024-07-31-preview",
+        api_version="2024-07-31-preview",
     )
     with open(temp_path, "rb") as f:
         poller = document_analysis_client.begin_analyze_document(
@@ -194,16 +194,6 @@ def create_searchable_pdf(input_file, add_header):
         output = output_with_header
 
     return output, all_text
-
-
-def create_header_page(page_size, header_text):
-    packet = io.BytesIO()
-    can = canvas.Canvas(packet, pagesize=page_size)
-    can.setFont(default_font, 10)
-    can.drawString(30, page_size[1] - 30, header_text)
-    can.save()
-    packet.seek(0)
-    return PdfReader(packet).pages[0]
 
     # Running OCR using Azure Form Recognizer Read API------
     # document_analysis_client = DocumentAnalysisClient(
@@ -326,6 +316,16 @@ def create_header_page(page_size, header_text):
     #     output.add_page(new_pdf_page.pages[0])
 
     # return output, all_text
+
+
+def create_header_page(page_size, header_text):
+    packet = io.BytesIO()
+    can = canvas.Canvas(packet, pagesize=page_size)
+    can.setFont(default_font, 10)
+    can.drawString(30, page_size[1] - 30, header_text)
+    can.save()
+    packet.seek(0)
+    return PdfReader(packet).pages[0]
 
 
 def shorten_input_name(input_name):
