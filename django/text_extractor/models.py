@@ -13,9 +13,8 @@ class UserRequest(SecureModel):
 
 
 class OutputFile(SecureModel):
-    file_id = models.CharField(max_length=255, null=True, blank=True)
     file = models.FileField(upload_to="ocr_output_files/")
-    file_name = models.CharField(max_length=255, null=True, blank=True)
+    file_name = models.TextField(default="tmp")
     user_request = models.ForeignKey(
         UserRequest, related_name="output_files", on_delete=models.CASCADE
     )
