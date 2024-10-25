@@ -1,3 +1,4 @@
+import re
 import uuid
 
 from django.conf import settings
@@ -5,6 +6,7 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -318,11 +320,29 @@ class Message(models.Model):
         ]
 
 
+class AnswerSourceManager(models.Manager):
+    def create(self, *args, **kwargs):
+        # Extract page numbers using regex
+        source_text = kwargs.get("node_text", "")
+        page_numbers = re.findall(r"<page_(\d+)>", source_text)
+        page_numbers = list(map(int, page_numbers))  # Convert to integers
+        if page_numbers:
+            kwargs["min_page"] = min(page_numbers)
+            kwargs["max_page"] = max(page_numbers)
+        # Create the object but don't save
+        instance = self.model(*args, **kwargs)
+        # Save the citation in case the source Document is deleted later
+        instance.saved_citation = instance.citation
+        instance.save()
+        return instance
+
+
 class AnswerSource(models.Model):
     """
     Node from a Document that was used to answer a question. Associated with Message.
     """
 
+    objects = AnswerSourceManager()
     message = models.ForeignKey("Message", on_delete=models.CASCADE)
     document = models.ForeignKey(
         "librarian.Document", on_delete=models.SET_NULL, null=True
@@ -332,6 +352,9 @@ class AnswerSource(models.Model):
     # Saved citation for cases where the source Document is deleted later
     saved_citation = models.TextField(blank=True)
     group_number = models.IntegerField(default=0)
+
+    min_page = models.IntegerField(null=True)
+    max_page = models.IntegerField(null=True)
 
     def __str__(self):
         document_citation = self.citation
@@ -345,7 +368,10 @@ class AnswerSource(models.Model):
 
     @property
     def citation(self):
-        return self.document.citation if self.document else self.saved_citation
+        return render_to_string(
+            "chat/components/source_citation.html",
+            {"document": self.document, "source": self},
+        )
 
 
 class ChatFileManager(models.Manager):

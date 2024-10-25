@@ -636,9 +636,31 @@ def set_security_label(request, chat_id, security_label_id):
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def message_sources(request, message_id):
+    import re
+
     message = Message.objects.get(id=message_id)
+    sources = []
+
+    for source in message.sources.all():
+        source_text = str(source.node_text)
+
+        def replace_page_tags(match):
+            page_number = match.group(1)
+            return f"<span class='fw-semibold'>Page {page_number}</span>"
+
+        modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+
+        source_dict = {
+            "citation": source.citation,
+            "document": source.document,
+            "node_text": modified_text,
+            "group_number": source.group_number,
+        }
+
+        sources.append(source_dict)
+
     return render(
         request,
         "chat/modals/sources_modal_inner.html",
-        {"message": message, "sources": message.sources},
+        {"message": message, "sources": sources},
     )
