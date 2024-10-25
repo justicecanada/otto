@@ -7,6 +7,7 @@ import os
 import time
 
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.urls import reverse
 from django.utils import timezone
@@ -17,6 +18,8 @@ import pytest
 from chat.models import Chat, ChatFile, Message
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
+from otto.secure_models import AccessKey
+from text_extractor.models import OutputFile, UserRequest
 
 
 @pytest.mark.django_db
@@ -300,3 +303,60 @@ def test_delete_empty_chats_task(client, all_apps_user):
     # Check that the too-new empty chat remains
     too_new_empty_chat = Chat.objects.filter(id=too_new_empty_chat_id).first()
     assert too_new_empty_chat is not None
+
+
+def test_delete_text_extractor_files_task(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a UserRequest
+    access_key = AccessKey.objects.create(user=user)
+    user_request = UserRequest.objects.create(
+        access_key=access_key, name="Test Request"
+    )
+    # Create an OutputFile
+    this_file_path = os.path.abspath(__file__)
+    with open(this_file_path, "rb") as f:
+        content = f.read()
+    # output_file1 created 25 hours ago
+    output_file1 = OutputFile.objects.create(
+        user_request=user_request,
+        file=ContentFile(content, name="test_file1.txt"),
+        file_name="test_file1.txt",
+    )
+    # Set the creation time to 24 hours ago
+    output_file1.created_at = timezone.now() - timezone.timedelta(hours=25)
+    output_file1.save()
+
+    # output_file2 created 1 hour ago
+    output_file2 = OutputFile.objects.create(
+        user_request=user_request,
+        file=ContentFile(content, name="test_file2.txt"),
+        file_name="test_file2.txt",
+    )
+    # Set the creation time to 24 hours ago
+    output_file2.created_at = timezone.now() - timezone.timedelta(hours=1)
+    output_file2.save()
+
+    # Run the delete_text_extractor_files task
+    if settings.IS_RUNNING_IN_GITHUB:
+        # No Redis, so we test the code directly
+        call_command("delete_text_extractor_files")
+    else:
+        # Test the task
+        from otto.tasks import delete_text_extractor_files
+
+        delete_text_extractor_files()
+
+    # Check that the old OutputFile is gone
+    output_files = OutputFile.objects.filter(file_name="test_file1.txt")
+    assert output_files.count() == 0
+
+    # Check that the new OutputFile still exists
+    output_files = OutputFile.objects.filter(file_name="test_file2.txt")
+    assert output_files.count() == 1
+
+    # Check media directory
+    folder = os.path.dirname(output_file1.file.path)
+    assert "test_file1.txt" not in os.listdir(folder)
+    assert "test_file2.txt" in os.listdir(folder)
