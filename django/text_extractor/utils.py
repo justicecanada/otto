@@ -2,6 +2,7 @@ import io
 import math
 import os
 import tempfile
+import uuid
 from io import BytesIO
 
 from django.conf import settings
@@ -134,7 +135,6 @@ def create_searchable_pdf(input_file, add_header):
         temp_path = temp.name
 
     if input_file.name.lower().endswith(".pdf"):
-        # image_pages = convert_from_path(temp_path)
         image_pages = convert_from_path(
             temp_path, dpi=100
         )  # Adjust DPI as needed for compression
@@ -285,3 +285,8 @@ def create_searchable_pdf(input_file, add_header):
         output.add_page(new_pdf_page.pages[0])
 
     return output, all_text
+
+
+def shorten_input_name(input_name):
+    base_name, file_extension = os.path.splitext(input_name)
+    return str(uuid.uuid4()) + file_extension

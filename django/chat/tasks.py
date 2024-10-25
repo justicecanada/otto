@@ -87,10 +87,7 @@ def translate_file(file_path, target_language):
                 )
                 logger.info(f"Translation succeeded for {new_file.filename}")
                 with azure_storage.open(output_file_path) as f:
-                    saved_file = SavedFile(file=File(f, name=output_file_name))
-                    saved_file.save()
-                    new_file.saved_file = saved_file
-                    new_file.save()
+                    new_file.saved_file.file.save(output_file_name, f)
             else:
                 logger.error("Translation failed: ", error=document.error.message)
                 raise Exception(f"Translation failed:\n{document.error.message}")
