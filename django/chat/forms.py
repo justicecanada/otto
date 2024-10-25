@@ -362,8 +362,8 @@ class PresetForm(forms.ModelForm):
             "description_en",
             "description_fr",
             "is_public",
-            "editable_by",
             "accessible_to",
+            "sharing_option",
         ]
 
         widgets = {
@@ -377,23 +377,8 @@ class PresetForm(forms.ModelForm):
                     "type": "checkbox",
                 }
             ),
+            "sharing_option": forms.RadioSelect,
         }
-
-    editable_by = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all(),
-        label="Editable Email",
-        required=False,
-        widget=widgets.Autocomplete(
-            name="editable_by",
-            options={
-                "item_value": User.id,
-                "item_label": User.email,
-                "multiselect": True,
-                "minimum_search_length": 2,
-                "model": User,
-            },
-        ),
-    )
 
     accessible_to = forms.ModelMultipleChoiceField(
         queryset=User.objects.all(),

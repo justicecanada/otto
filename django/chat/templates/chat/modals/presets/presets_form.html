@@ -57,17 +57,20 @@
             </div>
           </div>
         </div>
-        <div class="col-12">
-          <div class="form-check">
-            {{ form.is_public }}
-            <label class="form-check-label" for="id_is_public">{% trans "Share with others" %}</label>
+        {% if is_admin %}
+          <div class="col-12">
+            <label class="form-label" for="id_sharing">{% trans "Privacy controls" %}</label>
+            <div class="sharing-options">{{ form.sharing_option }}</div>
           </div>
-        </div>
+        {% else %}
+          <div class="col-12">
+            <div class="form-check">
+              {{ form.is_public }}
+              <label class="form-check-label" for="id_is_public">{% trans "Share with others" %}</label>
+            </div>
+          </div>
+        {% endif %}
         <div class="col-12" id="public_fields">
-          <div class="mb-3">
-            <label class="form-label" for="id_editable_by">{% trans "Editable by: " %}</label>
-            {{ form.editable_by }}
-          </div>
           <div>
             <label class="form-label" for="id_accessible_to">{% trans "Accessible to: " %}</label>
             {{ form.accessible_to }}
@@ -139,14 +142,22 @@
     const frTab = document.getElementById('fr-preset-tab');
     const enContent = document.getElementById('en-content');
     const frContent = document.getElementById('fr-content');
+    const sharingOption = document.getElementById('id_sharing_option');
+    const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
 
     function togglePublicFields() {
-      if (isPublicCheckbox.checked) {
-        publicFields.style.display = 'block';
+      if (isPublicCheckbox) {
+        // Non-admin view using is_public checkbox
+        publicFields.style.display = isPublicCheckbox.checked ? 'block' : 'none';
       } else {
-        publicFields.style.display = 'none';
+        // Admin view using sharing_option radio buttons
+        const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
+        if (selectedOption){
+            publicFields.style.display = selectedOption.value === 'others' ? 'block' : 'none';
+        }
       }
     }
+        
 
     function switchLanguage(lang) {
       if (lang === 'en') {
@@ -161,11 +172,18 @@
         enTab.classList.remove('active');
       }
     }
-
+   // Set up event listeners for sharing controls
     if (isPublicCheckbox) {
-      isPublicCheckbox.addEventListener('change', togglePublicFields);
-      togglePublicFields(); // Set initial state
+        // Non-admin view
+        isPublicCheckbox.addEventListener('change', togglePublicFields);
+    } else if (sharingOption) {
+        // Admin view
+        sharingOptionInputs.forEach(input => {
+            input.addEventListener('change', togglePublicFields);
+        });
     }
+    togglePublicFields(); // Set initial state
+
     if (enTab && frTab) {
       enTab.addEventListener('click', () => switchLanguage('en'));
       frTab.addEventListener('click', () => switchLanguage('fr'));

@@ -591,12 +591,13 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 # Set the public status
                 preset.is_public = form.cleaned_data.get("is_public", False)
 
-                editable_by = form.cleaned_data.get("editable_by", [])
+                preset.sharing_option = form.cleaned_data.get("sharing_option", None)
+
                 accessible_to = form.cleaned_data.get("accessible_to", [])
 
-                if preset.is_public:
-                    # check if editable_by and accessible_to are empty
-                    if not editable_by and not accessible_to:
+                if preset.is_public or preset.sharing_option == "others":
+                    # check if accessible_to is empty
+                    if not accessible_to:
                         return render(
                             request,
                             "chat/modals/presets/presets_form.html",
@@ -612,8 +613,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
                 preset.save()
 
-                if preset.is_public:
-                    preset.editable_by.set(editable_by)
+                if preset.is_public or preset.sharing_option == "others":
                     preset.accessible_to.set(accessible_to)
 
                 return redirect("chat:get_presets", chat_id=chat_id)
@@ -746,7 +746,7 @@ def create_preset(request, chat_id):
     return render(
         request,
         "chat/modals/presets/presets_form.html",
-        {"form": form, "chat_id": chat_id},
+        {"form": form, "chat_id": chat_id, "is_admin": is_admin(request.user)},
     )
 
 
@@ -757,7 +757,13 @@ def edit_preset(request, chat_id, preset_id):
     return render(
         request,
         "chat/modals/presets/presets_form.html",
-        {"form": form, "preset": preset, "preset_id": preset_id, "chat_id": chat_id},
+        {
+            "form": form,
+            "preset": preset,
+            "preset_id": preset_id,
+            "chat_id": chat_id,
+            "is_admin": is_admin(request.user),
+        },
     )
 
 

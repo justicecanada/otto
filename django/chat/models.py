@@ -289,16 +289,25 @@ class Preset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_public = models.BooleanField(default=False)
+
     accessible_to = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="accessible_presets"
-    )
-    editable_by = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="editable_presets"
     )
     favourited_by = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="favourited_presets"
     )
     is_deleted = models.BooleanField(default=False)
+
+    SHARING_OPTIONS = [
+        ("private", _("Make Private")),
+        ("everyone", _("Share with everyone")),
+        ("others", _("Share with others")),
+    ]
+    sharing_option = models.CharField(
+        max_length=10,
+        choices=SHARING_OPTIONS,
+        default="private",
+    )
 
     @property
     def shared_with(self):
