@@ -73,9 +73,9 @@ def test_document_submission_and_download(client, all_apps_user, mock_pdf_file):
     docs = response.context["ocr_docs"]
     assert len(docs) == 1
 
-    # There should be two properties on the doc: "pdf" and "txt". Each has a file_id
-    pdf_file_id = docs[0]["pdf"]["file"].file_id
-    txt_file_id = docs[0]["txt"]["file"].file_id
+    # There should be two properties on the doc: "pdf" and "txt". Each has an ID.
+    pdf_file_id = docs[0]["pdf"]["file"].id
+    txt_file_id = docs[0]["txt"]["file"].id
 
     # Make a GET request to the download_document view
     response = client.get(
@@ -98,9 +98,10 @@ def test_document_submission_and_download(client, all_apps_user, mock_pdf_file):
     assert "attachment" in response["Content-Disposition"].lower()
 
     # Try a random File ID; this should return the error message ("error" in the response)
+    import uuid
+
+    random_id = uuid.uuid4()
     response = client.get(
-        reverse(
-            "text_extractor:download_document", args=["random_file_id", user_request_id]
-        )
+        reverse("text_extractor:download_document", args=[random_id, user_request_id])
     )
     assert "error" in response.content.decode().lower()
