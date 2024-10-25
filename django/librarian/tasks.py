@@ -47,8 +47,11 @@ def process_document(document_id, language=None, force_azure=False):
         with translation.override(language):
             process_document_helper(document, llm, force_azure)
 
-    except:
+    except Exception as e:
         document.status = "ERROR"
+        print("Error processing document:", document.name)
+        print(e)
+        print("----")
         document.celery_task_id = None
         document.save()
 

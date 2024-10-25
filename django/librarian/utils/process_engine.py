@@ -164,8 +164,20 @@ def extract_markdown(
         md = content.decode("utf-8")
 
     # Divide the markdown into chunks
-    md_splitter = MarkdownSplitter(chunk_size=chunk_size, chunk_overlap=0)
-    return md, md_splitter.split_markdown(md)
+    try:
+        md_splitter = MarkdownSplitter(chunk_size=chunk_size, chunk_overlap=0)
+        md_chunks = md_splitter.split_markdown(md)
+    except Exception as e:
+        print("Error splitting markdown using MarkdownSplitter:")
+        print(e)
+        # Fallback to simpler method
+        from llama_index.core.node_parser import SentenceSplitter
+
+        sentence_splitter = SentenceSplitter(
+            chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
+        )
+        md_chunks = sentence_splitter.split_text(md)
+    return md, md_chunks
 
 
 def pdf_to_markdown(content):

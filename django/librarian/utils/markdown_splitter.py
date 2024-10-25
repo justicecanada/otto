@@ -63,7 +63,11 @@ class MarkdownSplitter:
         for t in sentence_split_texts:
             if self.debug:
                 print(f"\nClosing tags for chunk:\n---\n{t}\n---\n")
-            closed_text = self._close_page_tags(t)
+            try:
+                closed_text = self._close_page_tags(t)
+            except Exception as e:
+                print(f"Error closing page tags: {e}")
+                closed_text = t
             closing_tags = re.findall(r"</page_\d+>", closed_text)
             if last_page_number and not closing_tags:
                 closed_text = f"<page_{last_page_number}>\n{closed_text}\n</page_{last_page_number}>"
@@ -234,6 +238,8 @@ class MarkdownSplitter:
 
         # Remove page tags from the start of the text but keep them for later
         lines = text.split("\n")
+        if not lines:
+            return original_text
         prepend_line = ""
         if lines[0].startswith("<page_") and lines[0].endswith(">"):
             prepend_line = lines[0] + "\n"
