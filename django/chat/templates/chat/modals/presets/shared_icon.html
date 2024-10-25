@@ -1,13 +1,15 @@
 {% load i18n %}
 
-{% if preset.shared_with == "Private" %}
-  <i class="bi bi-person-fill-lock text-secondary me-1"
-     title="{% trans 'Private' %}"></i>
-{% elif preset.shared_with == "Shared with everyone" %}
+<span style="padding: .375rem .75rem;">
+  {% if preset.shared_with == "Private" %}
+    <i class="bi bi-person-fill-lock text-secondary"
+       title="{% trans 'Private' %}"></i>
+  {% elif preset.shared_with == "Shared with everyone" %}
  
-  <i class="bi bi-globe-am text-secondary me-1"
-     title="{% trans 'Shared with everyone' %}"></i>
-{% else %}
-  <i class="bi bi-people-fill text-secondary me-1"
-     title="{% trans 'Shared with others' %}"></i>
-{% endif %}
+    <i class="bi bi-globe-americas text-secondary"
+       title="{% trans 'Shared with everyone' %}"></i>
+  {% else %}
+    <i class="bi bi-people-fill text-secondary"
+       title="{% trans 'Shared with others' %}"></i>
+  {% endif %}
+</span>

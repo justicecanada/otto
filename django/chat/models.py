@@ -312,10 +312,10 @@ class Preset(models.Model):
     @property
     def shared_with(self):
         if self.is_public:
-            return _("Shared with everyone")
+            return "Shared with everyone"
         elif self.accessible_to.exists():
-            return _("Shared with specific users")
-        return _("Private")
+            return "Shared with others"
+        return "Private"
 
     def toggle_favourite(self, user: User):
         """Sets the favourite flag for the preset.

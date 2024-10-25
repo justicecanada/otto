@@ -235,9 +235,6 @@ div.user-message-text {
 
 pre .copy-button {
   position: absolute;
-  /* border-color: transparent; */
-  /* opacity: 1; */
-  /* transition: opacity 0.2s; */
   top: 4px;
   right: 4px;
 }
@@ -260,8 +257,6 @@ pre .copy-button:focus {
   background: var(--bs-light);
   opacity: 0;
   transition: linear 0.2s;
-  /* Delay showing by 200ms */
-  /* transition-delay: 200ms; */
 }
 
 .options-menu button {
@@ -438,7 +433,6 @@ form#dropzone-basic {
 
 #chat-outer {
   position: relative;
-  /* width: 100%; */
   background: #f8f9fa;
   top: 0;
   height: calc(100vh - 3rem);
@@ -514,18 +508,9 @@ form#dropzone-basic {
 
 #prompt-form textarea:focus,
 #send-button:focus {
-  /* outline: none !important; */
   box-shadow: none !important;
   border-color: var(--bs-border-color);
 }
-
-/* 
-#messages-container {
-  padding-bottom: 0.25rem;
-  position: relative;
-  width: 100%;
-  flex: 1;
-} */
 
 #chat-container .add-message-divider {
   position: absolute;
@@ -534,7 +519,6 @@ form#dropzone-basic {
   height: 10px;
   left: 0;
   margin-top: -6px;
-  /* box-shadow: white 0 0 5px; */
 }
 
 .message-blob {
@@ -673,14 +657,6 @@ div.message-text blockquote {
   text-align: right;
 }
 
-/* 
-#chat-container .offcanvas-body {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  padding-top: 0;
-  overflow-x: hidden;
-} */
-
 #chat-container .message-meta {
   font-size: smaller;
 }
@@ -701,7 +677,6 @@ footer .container {
 }
 
 div#prompt-form-container {
-  /* background: var(--bs-light); */
   z-index: 1;
   position: fixed;
   bottom: 0;
@@ -732,12 +707,6 @@ div#prompt-form-container {
 .message-text .progress-bar {
   background: rgb(80 34 189 / 45%);
 }
-
-/* 
-#chat-container>.container,
-#prompt-form-container>.container {
-  max-width: 1024px;
-} */
 
 .message-actions {
   margin-top: -6px;
@@ -829,9 +798,6 @@ div#chat-toolbar {
 }
 
 .sources-modal .accordion-body.scrolling-content {
-  /* max-height: 60vh;
-  overflow-y: auto; */
-  /* font-family: 'Consolas', monospace; */
   font-size: 0.95rem;
 }
 
@@ -1064,15 +1030,10 @@ div.message-text pre {
   cursor: pointer;
 }
 
-/* .list-group-item[role="option"]:hover {
-  background-color: var(--bs-light);
-} */
-
 .list-group-item[role="option"][aria-selected="true"] {
   background-color: rgb(237 245 254);
   z-index: 2;
   outline: solid 1px var(--bs-body-color);
-  /* font-weight: 500; */
 }
 
 .list-group-item[role="option"][aria-selected="true"]:not(:focus) {}
@@ -1136,7 +1097,8 @@ ul.errorlist {
 
   &:hover {
     color: var(--bs-gray-900);
-    font-weight: bold outline: none;
+    font-weight: bold;
+    outline: none;
 
     &:not(.active) {
       background-color: var(--bs-light);
@@ -1206,28 +1168,10 @@ ul.errorlist {
   overflow-y: auto;
 }
 
-#delete_preset {
-  color: red;
-  border-color: red;
-
-  &:hover {
-    background-color: red !important;
-    color: white !important;
-  }
-}
-
-
 .card {
   border: none;
   box-shadow: 2px 4px 10px -1px rgb(0 0 0 / 0.1), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important;
 }
-
-/* Do we want this?
-::selection {
-  color: var(--bs-white);
-  background: var(--bs-dark);
-}
-*/
 
 .card-header {
   display: flex;

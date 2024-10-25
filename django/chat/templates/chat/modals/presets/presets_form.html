@@ -1,7 +1,6 @@
 {% load i18n %}
 
 <div class="modal-body preset-form-container">
-
   <div class="d-flex flex-column">
     <ul class="nav nav-tabs nav-fill mx-3"
         id="preset-edit-tabs"
@@ -95,8 +94,6 @@
       </form>
     </div>
   </div>
-
-
   <div class="modal-footer pb-0 pt-1 border-0">
     <div class="col-12">
       <div class="row">
@@ -110,7 +107,7 @@
  
           {% if preset_id %}
             <button id="delete_preset"
-                    class="btn btn-outline-secondary w-25 flex-fill"
+                    class="btn btn-outline-danger w-25 flex-fill"
                     hx-get="{% url 'chat:chat_options' chat_id=chat_id action='delete_preset' preset_id=preset_id %}"
                     hx-target="#presets-modal-body"
                     hx-swap="innerHTML transition:true"
@@ -131,7 +128,6 @@
       </div>
     </div>
   </div>
-</div>
 </div>
 
 <script>

@@ -3655,7 +3655,6 @@
         "fr": "",
         "fr_auto": "Grossier"
     },
-<<<<<<< HEAD
     "Remove default": {
         "fr": "",
         "fr_auto": "Supprimer la valeur par défaut"
@@ -3728,8 +3727,6 @@
         "fr": "",
         "fr_auto": "Veuillez fournir au moins un utilisateur pour le champ modifiable ou le champ accessible."
     },
-=======
->>>>>>> main
     "Stop all": {
         "fr": "",
         "fr_auto": "Arrêtez tout"
@@ -3753,8 +3750,6 @@
     "QA": {
         "fr": "",
         "fr_auto": "AQ"
-<<<<<<< HEAD
-=======
     },
     "Modify user(s)": {
         "fr": "",
@@ -3771,6 +3766,5 @@
     "User costs": {
         "fr": "",
         "fr_auto": "Coûts d’utilisation"
->>>>>>> main
     }
 }
