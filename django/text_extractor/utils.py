@@ -164,127 +164,168 @@ def create_searchable_pdf(input_file, add_header):
             f"Unsupported file type:{input_file}. Supported extensions: .pdf or {img_extensions}"
         )
 
-    # Running OCR using Azure Form Recognizer Read API------
     document_analysis_client = DocumentAnalysisClient(
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
         credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
         headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
+        api_version="v4.0",  # "2024-07-31-preview",
     )
     with open(temp_path, "rb") as f:
         poller = document_analysis_client.begin_analyze_document(
-            "prebuilt-read", document=f
+            "prebuilt-read", document=f, output="pdf"
         )
 
-    ocr_results = poller.result()
+    result = poller.result()
+    pdf_content = document_analysis_client.get_analyze_result_pdf(result.id)
 
-    print(
-        f"Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages."
-    )
     all_text = []
-    for page in ocr_results.pages:
+    for page in result.pages:
         for line in page.lines:
             all_text.append(line.content)
-
     all_text = "\n".join(all_text)
-
-    # Generate OCR overlay layer
-    output = PdfWriter()
-
-    for page_id, page in enumerate(ocr_results.pages):
-        ocr_overlay = io.BytesIO()
-        # Calculate overlay PDF page size
-        if image_pages[page_id].height > image_pages[page_id].width:
-            page_scale = float(image_pages[page_id].height) / pagesizes.letter[1]
-        else:
-            page_scale = float(image_pages[page_id].width) / pagesizes.letter[1]
-
-        page_width = float(image_pages[page_id].width) / page_scale
-        page_height = float(image_pages[page_id].height) / page_scale
-
-        scale = (page_width / page.width + page_height / page.height) / 2.0
-        pdf_canvas = canvas.Canvas(ocr_overlay, pagesize=(page_width, page_height))
-
-        # Add image into PDF page
-        pdf_canvas.drawInlineImage(
-            image_pages[page_id],
-            0,
-            0,
-            width=page_width,
-            height=page_height,
-            preserveAspectRatio=True,
-        )
-
-        text = pdf_canvas.beginText()
-        # Set text rendering mode to invisible
-        text.setTextRenderMode(3)
-
-        for word in page.words:
-            # Calculate optimal font size
-            desired_text_width = (
-                max(
-                    dist(word.polygon[0], word.polygon[1]),
-                    dist(word.polygon[3], word.polygon[2]),
-                )
-                * scale
-            )
-            desired_text_height = (
-                max(
-                    dist(word.polygon[1], word.polygon[2]),
-                    dist(word.polygon[0], word.polygon[3]),
-                )
-                * scale
-            )
-            font_size = desired_text_height
-            actual_text_width = pdf_canvas.stringWidth(
-                word.content, default_font, font_size
-            )
-
-            # Calculate text rotation angle
-            text_angle = math.atan2(
-                (
-                    word.polygon[1].y
-                    - word.polygon[0].y
-                    + word.polygon[2].y
-                    - word.polygon[3].y
-                )
-                / 2.0,
-                (
-                    word.polygon[1].x
-                    - word.polygon[0].x
-                    + word.polygon[2].x
-                    - word.polygon[3].x
-                )
-                / 2.0,
-            )
-            text.setFont(default_font, font_size)
-            text.setTextTransform(
-                math.cos(text_angle),
-                -math.sin(text_angle),
-                math.sin(text_angle),
-                math.cos(text_angle),
-                word.polygon[3].x * scale,
-                page_height - word.polygon[3].y * scale,
-            )
-            text.setHorizScale(desired_text_width / actual_text_width * 100)
-            text.textOut(word.content + " ")
-
-        # add header
-        if add_header:
+    output = PdfReader(io.BytesIO(pdf_content))
+    # Add header if required
+    if add_header:
+        output_with_header = PdfWriter()
+        for page in output.pages:
+            page_obj = output_with_header.add_page(page)
             header_text = f"Filename: {str(input_file)}"
-            pdf_canvas.setFont(default_font, 10)
-            pdf_canvas.drawString(30, page_height - 30, header_text)
-
-        pdf_canvas.drawText(text)
-        pdf_canvas.save()
-
-        # Move to the beginning of the buffer
-        ocr_overlay.seek(0)
-
-        # Create a new PDF page
-        new_pdf_page = PdfReader(ocr_overlay)  # changed
-        output.add_page(new_pdf_page.pages[0])
+            page_obj.merge_page(create_header_page(page.mediabox, header_text))
+        output = output_with_header
 
     return output, all_text
+
+
+def create_header_page(page_size, header_text):
+    packet = io.BytesIO()
+    can = canvas.Canvas(packet, pagesize=page_size)
+    can.setFont(default_font, 10)
+    can.drawString(30, page_size[1] - 30, header_text)
+    can.save()
+    packet.seek(0)
+    return PdfReader(packet).pages[0]
+
+    # Running OCR using Azure Form Recognizer Read API------
+    # document_analysis_client = DocumentAnalysisClient(
+    #     endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+    #     credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+    #     headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
+    # )
+    # with open(temp_path, "rb") as f:
+    #     poller = document_analysis_client.begin_analyze_document(
+    #         "prebuilt-read", document=f
+    #     )
+
+    # ocr_results = poller.result()
+
+    # print(
+    #     f"Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages."
+    # )
+    # all_text = []
+    # for page in ocr_results.pages:
+    #     for line in page.lines:
+    #         all_text.append(line.content)
+
+    # all_text = "\n".join(all_text)
+
+    # # Generate OCR overlay layer
+    # output = PdfWriter()
+
+    # for page_id, page in enumerate(ocr_results.pages):
+    #     ocr_overlay = io.BytesIO()
+    #     # Calculate overlay PDF page size
+    #     if image_pages[page_id].height > image_pages[page_id].width:
+    #         page_scale = float(image_pages[page_id].height) / pagesizes.letter[1]
+    #     else:
+    #         page_scale = float(image_pages[page_id].width) / pagesizes.letter[1]
+
+    #     page_width = float(image_pages[page_id].width) / page_scale
+    #     page_height = float(image_pages[page_id].height) / page_scale
+
+    #     scale = (page_width / page.width + page_height / page.height) / 2.0
+    #     pdf_canvas = canvas.Canvas(ocr_overlay, pagesize=(page_width, page_height))
+
+    #     # Add image into PDF page
+    #     pdf_canvas.drawInlineImage(
+    #         image_pages[page_id],
+    #         0,
+    #         0,
+    #         width=page_width,
+    #         height=page_height,
+    #         preserveAspectRatio=True,
+    #     )
+
+    #     text = pdf_canvas.beginText()
+    #     # Set text rendering mode to invisible
+    #     text.setTextRenderMode(3)
+
+    #     for word in page.words:
+    #         # Calculate optimal font size
+    #         desired_text_width = (
+    #             max(
+    #                 dist(word.polygon[0], word.polygon[1]),
+    #                 dist(word.polygon[3], word.polygon[2]),
+    #             )
+    #             * scale
+    #         )
+    #         desired_text_height = (
+    #             max(
+    #                 dist(word.polygon[1], word.polygon[2]),
+    #                 dist(word.polygon[0], word.polygon[3]),
+    #             )
+    #             * scale
+    #         )
+    #         font_size = desired_text_height
+    #         actual_text_width = pdf_canvas.stringWidth(
+    #             word.content, default_font, font_size
+    #         )
+
+    #         # Calculate text rotation angle
+    #         text_angle = math.atan2(
+    #             (
+    #                 word.polygon[1].y
+    #                 - word.polygon[0].y
+    #                 + word.polygon[2].y
+    #                 - word.polygon[3].y
+    #             )
+    #             / 2.0,
+    #             (
+    #                 word.polygon[1].x
+    #                 - word.polygon[0].x
+    #                 + word.polygon[2].x
+    #                 - word.polygon[3].x
+    #             )
+    #             / 2.0,
+    #         )
+    #         text.setFont(default_font, font_size)
+    #         text.setTextTransform(
+    #             math.cos(text_angle),
+    #             -math.sin(text_angle),
+    #             math.sin(text_angle),
+    #             math.cos(text_angle),
+    #             word.polygon[3].x * scale,
+    #             page_height - word.polygon[3].y * scale,
+    #         )
+    #         text.setHorizScale(desired_text_width / actual_text_width * 100)
+    #         text.textOut(word.content + " ")
+
+    #     # add header
+    #     if add_header:
+    #         header_text = f"Filename: {str(input_file)}"
+    #         pdf_canvas.setFont(default_font, 10)
+    #         pdf_canvas.drawString(30, page_height - 30, header_text)
+
+    #     pdf_canvas.drawText(text)
+    #     pdf_canvas.save()
+
+    #     # Move to the beginning of the buffer
+    #     ocr_overlay.seek(0)
+
+    #     # Create a new PDF page
+    #     new_pdf_page = PdfReader(ocr_overlay)  # changed
+    #     output.add_page(new_pdf_page.pages[0])
+
+    # return output, all_text
 
 
 def shorten_input_name(input_name):

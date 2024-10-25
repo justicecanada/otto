@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 import pytest
@@ -15,7 +17,7 @@ skip_on_devops_pipeline = pytest.mark.skipif(
 )
 
 
-# These tests are failing on GitHub and DevOps due to authorization issues
+# # These tests are failing on GitHub and DevOps due to authorization issues
 @skip_on_github_actions
 @skip_on_devops_pipeline
 def test_merged_document_submission(client, all_apps_user, mock_pdf_file):
@@ -104,3 +106,64 @@ def test_document_submission_and_download(client, all_apps_user, mock_pdf_file):
         )
     )
     assert "error" in response.content.decode().lower()
+
+
+# new tests:
+# @pytest.fixture
+# def user(db):
+#     return User.objects.create_user(username="testuser", password="12345")
+
+
+# @pytest.fixture
+# def client_logged_in(client, user):
+#     client.force_login(user)
+#     return client
+
+
+# @pytest.fixture
+# def access_key(user):
+#     return AccessKey.objects.create(user=user)
+
+
+# @pytest.fixture
+# def user_request(access_key):
+#     return UserRequest.objects.create(access_key=access_key)
+
+
+# def test_submit_document(client_logged_in, access_key):
+#     url = reverse("submit_document")
+#     file_content = b"This is a test file."
+#     file = SimpleUploadedFile("test.pdf", file_content, content_type="application/pdf")
+#     response = client_logged_in.post(
+#         url, {"file_upload": [file], "merge_docs_checkbox": False}
+#     )
+
+#     assert response.status_code == 200
+#     assert "text_extractor/completed_documents.html" in [
+#         t.name for t in response.templates
+#     ]
+
+#     user_request = UserRequest.objects.get(access_key=access_key)
+#     output_files = OutputFile.objects.filter(user_request=user_request)
+#     assert output_files.count() == 2  # One PDF and one TXT file
+
+#     for output_file in output_files:
+#         assert os.path.exists(output_file.file.path)
+
+
+# def test_download_document(client_logged_in, user_request):
+#     file_content = b"This is a test file."
+#     file = SimpleUploadedFile("test.pdf", file_content, content_type="application/pdf")
+#     output_file = OutputFile.objects.create(
+#         user_request=user_request, file=file, file_name="test.pdf"
+#     )
+
+#     url = reverse("download_document", args=[output_file.id, user_request.id])
+#     response = client_logged_in.get(url)
+
+#     assert response.status_code == 200
+#     assert (
+#         response["Content-Disposition"]
+#         == f'attachment; filename="{output_file.file_name}"'
+#     )
+#     assert response.content == file_content
