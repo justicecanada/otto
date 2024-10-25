@@ -608,7 +608,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                                 "preset_id": preset_id,
                                 "is_admin": is_admin(request.user),
                                 "error_message": _(
-                                    "Please provide at least one user for the editable field or the accessible field."
+                                    "Please provide at least one user for the accessible field."
                                 ),
                                 "replace_with_settings": replace_with_settings,
                             },

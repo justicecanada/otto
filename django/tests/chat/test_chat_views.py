@@ -342,6 +342,7 @@ def test_done_upload(client, all_apps_user):
 # TODO: Test chunk_upload (somewhat difficult)
 # See tests/otto/test_cleanup.py for a partial test of chunk upload
 
+
 # Test download_file view
 @pytest.mark.django_db
 def test_download_file(client, all_apps_user):
@@ -859,7 +860,7 @@ def test_preset(client, all_apps_user):
             "name_en": "New Preset",
             "description_en": "Preset Description",
             "is_public": False,
-            "editable_by": [],
+            "sharing_option": "private",
             "accessible_to": [],
         },
     )
@@ -883,14 +884,17 @@ def test_preset(client, all_apps_user):
             "name_en": "Updated Preset",
             "description_en": "Updated Description",
             "is_public": True,
-            "editable_by": [],
+            "sharing_option": "private",
             "accessible_to": [],
         },
     )
 
     assert response.status_code == 200
-    # the user did not provide any users for the editable field or the accessible field with is_public=True
-    assert "Please provide at least one user for the editable field or the accessible field." in response.content.decode("utf-8")
+    # the user did not provide any users for the accessible field with is_public=True
+    assert (
+        "Please provide at least one user for the accessible field."
+        in response.content.decode("utf-8")
+    )
     # the new preset should not have been updated since there was an error
     preset.refresh_from_db()
     assert preset.name_en == "New Preset"
@@ -908,7 +912,7 @@ def test_preset(client, all_apps_user):
             "name_en": "Updated Preset",
             "description_en": "Updated Description",
             "is_public": True,
-            "editable_by": [user2.id],
+            "sharing_option": "private",
             "accessible_to": [user2.id],
         },
     )
@@ -917,7 +921,6 @@ def test_preset(client, all_apps_user):
     assert preset.name_en == "Updated Preset"
     assert preset.description_en == "Updated Description"
     assert preset.is_public
-    assert user2 in preset.editable_by.all()
     assert user2 in preset.accessible_to.all()
 
     # Test loading the preset

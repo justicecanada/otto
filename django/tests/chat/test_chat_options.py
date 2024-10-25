@@ -69,7 +69,7 @@ def test_chat_options(client, all_apps_user):
         "name_fr": "IA Cowboy",
         "description_en": "A Cowboy AI preset",
         "is_public": False,
-        "editable_by": [],
+        "sharing_option": "private",
         "accessible_to": [],
     }
     response = client.post(
