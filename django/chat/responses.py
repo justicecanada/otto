@@ -440,6 +440,12 @@ def qa_response(chat, response_message, switch_mode=False):
         input = response_message.parent.text
         source_nodes = retriever.retrieve(input)
 
+        # For debugging: Shows how nodes are presented to the LLM
+        # from llama_index.core.schema import MetadataMode
+
+        # for node in source_nodes:
+        #     print(node.get_content(metadata_mode=MetadataMode.LLM))
+
         if len(source_nodes) == 0:
             response_str = _(
                 "Sorry, I couldn't find any information about that. Try selecting a different library or data source."

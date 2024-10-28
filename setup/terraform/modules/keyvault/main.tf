@@ -79,7 +79,7 @@ resource "azurerm_key_vault_secret" "entra_client_secret" {
 
 resource "random_password" "vectordb_password" {
   length  = 16
-  special = true
+  special = false
 }
 
 resource "azurerm_key_vault_secret" "vectordb_password" {

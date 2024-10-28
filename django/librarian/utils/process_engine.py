@@ -9,12 +9,26 @@ from django.utils import timezone
 
 import filetype
 import requests
+import tiktoken
 from bs4 import BeautifulSoup
+from markdownify import markdownify
 from structlog import get_logger
 
+from librarian.utils.markdown_splitter import MarkdownSplitter
 from otto.models import Cost
 
 logger = get_logger(__name__)
+
+
+def markdownify_wrapper(text):
+    """Wrapper to allow options to be passed to markdownify"""
+    return markdownify(
+        text,
+        heading_style="ATX",
+        bullets="*",
+        strong_em_symbol="_",
+        escape_misc=False,
+    )
 
 
 def fetch_from_url(url):
@@ -76,14 +90,17 @@ def create_nodes(chunks, document):
     # Create chunk (child) nodes
     metadata["node_type"] = "chunk"
     child_nodes = create_child_nodes(
-        chunks, source_node_id=document_node.node_id, metadata=metadata
+        chunks,
+        source_node_id=document_node.node_id,
+        metadata=metadata,
     )
 
     # Update node properties
     new_nodes = [document_node] + child_nodes
+    exclude_keys = ["page_range", "node_type", "data_source_uuid", "chunk_number"]
     for node in new_nodes:
-        node.excluded_llm_metadata_keys = ["data_source_uuid"]
-        node.excluded_embed_metadata_keys = ["data_source_uuid"]
+        node.excluded_llm_metadata_keys = exclude_keys
+        node.excluded_embed_metadata_keys = exclude_keys
         # The misspelling of "seperator" corresponds with the LlamaIndex codebase
         node.metadata_seperator = "\n"
         node.metadata_template = "{key}: {value}"
@@ -130,38 +147,45 @@ def extract_markdown(
     content, process_engine, fast=False, base_url=None, chunk_size=768, selector=None
 ):
     if process_engine == "PDF" and fast:
-        md, md_chunks = fast_pdf_to_text(content, chunk_size)
+        md = fast_pdf_to_text(content)
         if len(md) < 10:
             # Fallback to Azure Document AI (fka Form Recognizer) if the fast method fails
             # since that probably means it needs OCR
-            md, md_chunks = pdf_to_markdown(content, chunk_size)
+            md = pdf_to_markdown(content)
     elif process_engine == "PDF":
-        md, md_chunks = pdf_to_markdown(content, chunk_size)
+        md = pdf_to_markdown(content)
     elif process_engine == "WORD":
-        md, md_chunks = docx_to_markdown(content, chunk_size)
+        md = docx_to_markdown(content)
     elif process_engine == "POWERPOINT":
-        md, md_chunks = pptx_to_markdown(content, chunk_size)
+        md = pptx_to_markdown(content)
     elif process_engine == "HTML":
-        md, md_chunks = html_to_markdown(
-            content.decode("utf-8"), chunk_size, base_url, selector
-        )
+        md = html_to_markdown(content.decode("utf-8"), base_url, selector)
     elif process_engine == "TEXT":
-        md, md_chunks = text_to_markdown(content.decode("utf-8"), chunk_size)
+        md = content.decode("utf-8")
 
-    # Sometimes HTML to markdown will result in zero chunks, even though there is text
-    if not md_chunks:
-        md_chunks = [md]
+    # Divide the markdown into chunks
+    try:
+        md_splitter = MarkdownSplitter(chunk_size=chunk_size, chunk_overlap=0)
+        md_chunks = md_splitter.split_markdown(md)
+    except Exception as e:
+        print("Error splitting markdown using MarkdownSplitter:")
+        print(e)
+        # Fallback to simpler method
+        from llama_index.core.node_parser import SentenceSplitter
 
+        sentence_splitter = SentenceSplitter(
+            chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
+        )
+        md_chunks = sentence_splitter.split_text(md)
     return md, md_chunks
 
 
-def pdf_to_markdown(content, chunk_size=768):
+def pdf_to_markdown(content):
     html = _pdf_to_html_using_azure(content)
-    md, nodes = _convert_html_to_markdown(html, chunk_size)
-    return md, nodes
+    return _convert_html_to_markdown(html)
 
 
-def fast_pdf_to_text(content, chunk_size=768):
+def fast_pdf_to_text(content):
     # Note: This method is faster than using Azure Form Recognizer
     # Expected it to work well for more generic scenarios but not for scanned PDFs, images, and handwritten text
     import pypdfium2 as pdfium
@@ -169,130 +193,66 @@ def fast_pdf_to_text(content, chunk_size=768):
     pdf = pdfium.PdfDocument(content)
     text = ""
     for i, page in enumerate(pdf):
+        text += f"<page_{i+1}>\n"
         text += page.get_textpage().get_text_range() + "\n"
-    # We don't split the text into chunks here because it's done in create_child_nodes()
-    return text, [text]
+        text += f"</page_{i+1}>\n"
+
+    return text
 
 
-def html_to_markdown(content, chunk_size=768, base_url=None, selector=None):
-    md, nodes = _convert_html_to_markdown(content, chunk_size, base_url, selector)
-    return md, nodes
+def html_to_markdown(content, base_url=None, selector=None):
+    return _convert_html_to_markdown(content, base_url, selector)
 
 
-def text_to_markdown(content, chunk_size=768):
-    # We don't split the text into chunks here because it's done in create_child_nodes()
-    return content, [content]
-
-
-def docx_to_markdown(content, chunk_size=768):
+def docx_to_markdown(content):
     import mammoth
 
     with io.BytesIO(content) as docx_file:
         result = mammoth.convert_to_html(docx_file)
     html = result.value
-    md, nodes = _convert_html_to_markdown(html, chunk_size)
-    return md, nodes
+
+    return _convert_html_to_markdown(html)
 
 
-def pptx_to_markdown(content, chunk_size=768):
+def pptx_to_markdown(content):
     import pptx
 
     pptx_file = io.BytesIO(content)
     prs = pptx.Presentation(pptx_file)
 
     # extract text from each slide
-    html = ""
-    for slide in prs.slides:
+    all_html = ""
+    for i, slide in enumerate(prs.slides):
+        html = ""
         for shape in slide.shapes:
             if not shape.has_text_frame:
                 continue
             for paragraph in shape.text_frame.paragraphs:
+                html += "<p>"
                 for run in paragraph.runs:
-                    html += f"<p>{run.text}</p>"
-        for note in slide.notes_slide.notes_text_frame.paragraphs:
-            for run in note.runs:
-                html += f"<p>{run.text}</p>"
+                    html += run.text
+                html += "</p>"
+        if len(slide.notes_slide.notes_text_frame.paragraphs) > 0:
+            html += f"<h6>Presenter notes:</h6>"
+            for note in slide.notes_slide.notes_text_frame.paragraphs:
+                html += "<p>"
+                for run in note.runs:
+                    html += run.text
+                html += "</p>"
+        if html:
+            all_html += f"<page_{i+1}>\n{html}\n</page_{i+1}>\n"
 
-    md, nodes = _convert_html_to_markdown(html, chunk_size)
-    return md, nodes
-
-
-def document_summary(content):
-    from langchain.chains.summarize import load_summarize_chain
-    from langchain.schema import Document
-    from langchain_openai import AzureChatOpenAI
-
-    llm = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=settings.DEFAULT_CHAT_MODEL,
-        model=settings.DEFAULT_CHAT_MODEL,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.1,
-    )
-    content = content[:5000]
-    chain = load_summarize_chain(llm, chain_type="stuff")
-    doc = Document(page_content=content, metadata={"source": "userinput"})
-    summary = chain.run([doc])
-    return summary
+    return _convert_html_to_markdown(all_html)
 
 
-def document_title(content):
-    from langchain.schema import HumanMessage
-    from langchain_openai import AzureChatOpenAI
-
-    llm = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=settings.DEFAULT_CHAT_MODEL,
-        model=settings.DEFAULT_CHAT_MODEL,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.1,
-    )
-    prompt = "Generate a short title fewer than 50 characters."
-    content = content[:5000]
-    title = llm([HumanMessage(content=content), HumanMessage(content=prompt)]).content[
-        :254
-    ]
-    # Remove any double quotes wrapping the title, if any
-    title = re.sub(r'^"|"$', "", title)
-    return title
-
-
-def create_child_nodes(text_strings, source_node_id, metadata=None):
-    from llama_index.core.node_parser import SentenceSplitter
+def create_child_nodes(chunks, source_node_id, metadata=None):
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
-    def close_tags(html_string):
-        soup = BeautifulSoup(html_string, "html.parser")
-        return str(soup)
-
-    splitter = SentenceSplitter(chunk_overlap=100, chunk_size=768)
-
-    # Create TextNode objects
     nodes = []
-    split_texts = []
-    for i, text in enumerate(text_strings):
-        split_texts += [close_tags(t) for t in splitter.split_text(text)]
+    for i, text in enumerate(chunks):
 
-    # Now all the chunks are at most 768 tokens long, but many are much shorter
-    # We want to make them a uniform size, so we'll stuff them into the previous chunk
-    # (making sure the previous chunk doesn't exceed 768 tokens)
-    stuffed_texts = []
-    current_text = ""
-    for text in split_texts:
-        if token_count(f"{current_text} {text}") > 768:
-            stuffed_texts.append(current_text)
-            current_text = text
-        else:
-            current_text += " " + text
-
-    # Append the last stuffed text if it's not empty
-    if current_text:
-        stuffed_texts.append(current_text)
-
-    for i, text in enumerate(stuffed_texts):
         node = TextNode(text=text, id_=str(uuid.uuid4()))
+
         node.metadata = dict(metadata, chunk_number=i)
         node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
             node_id=source_node_id
@@ -300,7 +260,7 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
         nodes.append(node)
 
     # Handle the case when there's only one or zero elements
-    if len(text_strings) < 2:
+    if len(chunks) < 2:
         return nodes
 
     # Set relationships
@@ -316,34 +276,52 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
 
 
 def token_count(string: str, model: str = "gpt-4") -> int:
-    import tiktoken
-
     """Returns the number of tokens in a text string."""
     encoding = tiktoken.encoding_for_model(model)
     num_tokens = len(encoding.encode(string))
     return num_tokens
 
 
+def _remove_ignored_tags(text):
+    # remove any javascript, css, images, svg, and comments from self.text
+    text = re.sub(r"<script.*?</script>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<style.*?</style>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+    text = re.sub(r"<img.*?>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<svg.*?</svg>", "", text, flags=re.DOTALL)
+    # remove any attribute tags that start with javascript:
+    text = re.sub(r"<[^>]+javascript:.*?>", "", text, flags=re.DOTALL)
+    # remove any empty html tags from self.text
+    text = re.sub(r"<[^/>][^>]*>\s*</[^>]+>", "", text, flags=re.DOTALL)
+
+    # remove any header/footer/nav tags and the content within them
+    text = re.sub(r"<header.*?</header>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<footer.*?</footer>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<nav.*?</nav>", "", text, flags=re.DOTALL)
+
+    # Remove all the line breaks, carriage returns, and tabs
+    text = re.sub(r"[\n\r\t]", "", text)
+
+    return text
+
+
 def _convert_html_to_markdown(
-    source_html, chunk_size=768, base_url=None, selector=None
-):
-    from markdownify import markdownify
-
-    def md(text):
-        """Wrapper to allow options to be passed to markdownify"""
-        return markdownify(text, heading_style="ATX", bullets="*", strong_em_symbol="_")
-
-    model = settings.DEFAULT_CHAT_MODEL
-
-    ## Keeping this here for posterity, but it didn't work well in experiments
-    ## Used https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=4 as example:
-    ## It cut off the text randomly after a long html was passed in
-    ## It loses all the formatting (like headers)
-    ## It loses all the links and/or doesn't format them properly
-    # article = Article(" ", source_url=base_url)
-    # article.set_html(text)
-    # article.parse()
-    # return article.text
+    source_html: str, base_url: str = None, selector: str = None
+) -> str:
+    """Converts HTML to markdown, preserving <page_x> tags in the markdown output."""
+    page_open_tags = re.findall(r"<page_\d+>", source_html)
+    # When page tags (e.g. "<page_1">) are present, run this step separately for each
+    # of the page contents and combine the results
+    if page_open_tags:
+        combined_md = ""
+        for opening_tag in page_open_tags:
+            closing_tag = opening_tag.replace("<", "</")
+            page_html_contents = re.search(
+                f"{opening_tag}(.*){closing_tag}", source_html, re.DOTALL
+            ).group(1)
+            page_md = _convert_html_to_markdown(page_html_contents, base_url)
+            combined_md += f"{opening_tag}\n{page_md}\n{closing_tag}\n"
+        return combined_md
 
     soup = BeautifulSoup(source_html, "html.parser")
     if soup.find("body"):
@@ -366,127 +344,10 @@ def _convert_html_to_markdown(
                 absolute_url = urljoin(base_url, href)
                 anchor["href"] = absolute_url
 
-    # remove any javascript, css, images, svg, and comments from self.text
-    text = re.sub(r"<script.*?</script>", "", str(soup), flags=re.DOTALL)
-    text = re.sub(r"<style.*?</style>", "", text, flags=re.DOTALL)
-    text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
-    text = re.sub(r"<img.*?>", "", text, flags=re.DOTALL)
-    text = re.sub(r"<svg.*?</svg>", "", text, flags=re.DOTALL)
-    # remove any attribute tags that start with javascript:
-    text = re.sub(r"<[^>]+javascript:.*?>", "", text, flags=re.DOTALL)
-    # remove any empty html tags from self.text
-    text = re.sub(r"<[^/>][^>]*>\s*</[^>]+>", "", text, flags=re.DOTALL)
+    text = _remove_ignored_tags(str(soup))
 
-    # remove any header/footer/nav tags and the content within them
-    text = re.sub(r"<header.*?</header>", "", text, flags=re.DOTALL)
-    text = re.sub(r"<footer.*?</footer>", "", text, flags=re.DOTALL)
-    text = re.sub(r"<nav.*?</nav>", "", text, flags=re.DOTALL)
-
-    # Remove all the line breaks, carriage returns, and tabs
-    text = re.sub(r"[\n\r\t]", "", text)
-
-    # Recreate the soup object from the cleaned text
-    cleaned_soup = BeautifulSoup(text, "html.parser")
-
-    # Process paragraphs, lists, and tables
-    nodes = []
-
-    # Elements that are typically text
-    header_node_names = ["h1", "h2", "h3", "h4", "h5", "h6"]
-    section_node_names = ["section", "article"]
-    text_node_names = ["p", "ul", "ol"]
-    table_node_names = ["table"]
-
-    # Accumulate text nodes until the chunk size is reached
-    current_node = ""
-    header_str = ""
-    header_map = {f"h{i}": "" for i in range(1, 7)}
-    for node in cleaned_soup.find_all(
-        header_node_names + text_node_names + table_node_names
-    ):
-
-        # If it's a header, then append the current node and reset
-        if node.name in header_node_names:
-            nodes.append(md(current_node).strip())
-
-            # Update the header map with the current header
-            header_map[node.name] = str(node)
-
-            # Clear all the headers that are smaller than the current header
-            for i in range(int(node.name[1]) + 1, 7):
-                header_map[f"h{i}"] = ""
-
-            # Create the header string from the header map
-            header_str = "".join(header_map.values())
-            current_node = header_str
-
-        # If it's a section or article node, then append the current node and reset
-        elif node.name in section_node_names:
-            nodes.append(md(current_node).strip())
-            current_node = ""
-
-        # If it's a text node, then accumulate the text until the chunk size is reached
-        elif node.name in text_node_names:
-            node_str = str(node)
-
-            # Split the text by chunk size or if the node is a header
-            tentative_node = md(f"{current_node}{node_str}").strip()
-            if token_count(tentative_node, model) > chunk_size:
-                nodes.append(tentative_node)
-                # Reset the current node and include the header again for context
-                current_node = f"{header_str}{node_str}"
-            else:
-                current_node += node_str
-
-        # If it's a table node, then split the table by chunk size
-        elif node.name in table_node_names:
-
-            # Append the current node to the nodes list and reset the current node
-            if current_node:
-                nodes.append(md(current_node).strip())
-                current_node = ""
-
-            # Find the table caption and append it to the current node
-            caption = node.select_one("caption")
-            caption_str = str(caption) if caption else ""
-
-            thead = node.select_one("thead")
-            thead_str = str(thead) if thead else ""
-
-            # if no thead, iterate through all the rows and find a row that has ONLY th tags as children
-            if not thead:
-                for row in node.find_all("tr"):
-                    if all([child.name == "th" for child in row.children]):
-                        thead_str = str(row)
-                        break
-
-            # Iterate through all other rows and append them to the data rows list
-            data_rows = []
-            for row in node.find_all("tr"):
-                if str(row) not in thead_str:
-                    data_rows.append(row)
-
-            # Split the table by chunk size, preserving the header for each mini table
-            current_node = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
-            for data_row in data_rows:
-                data_str = str(data_row)
-
-                # Split the table by chunk size
-                tentative_node = md(f"{current_node}{data_str}</table>").strip()
-                if token_count(tentative_node, model) > chunk_size:
-                    nodes.append(tentative_node)
-                    current_node = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
-                else:
-                    current_node += data_str
-
-            # Append the last mini table to the nodes list
-            nodes.append(md(f"{current_node}</table>").strip())
-            current_node = ""
-
-    print(text[:1000])
-    markdown = md(text).strip()
-    print(markdown[:1000])
-    return markdown, nodes
+    markdown = markdownify_wrapper(text).strip()
+    return markdown
 
 
 def _pdf_to_html_using_azure(content):
@@ -575,9 +436,6 @@ def _pdf_to_html_using_azure(content):
         }
         p_chunks.append(chunk)
 
-    # Remove any duplicate chunks by looking at the text
-    p_chunks = list({chunk.get("text"): chunk for chunk in p_chunks}.values())
-
     chunks = table_chunks + p_chunks
 
     # Sort chunks by page number, then by y coordinate, then by x coordinate
@@ -585,29 +443,19 @@ def _pdf_to_html_using_azure(content):
         chunks, key=lambda item: (item.get("page_number"), item.get("y"), item.get("x"))
     )
     html = ""
+    cur_page = None
     for _, chunk in enumerate(chunks, 1):
+        page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
+        page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
+        prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
+        if chunk.get("page_number") != cur_page:
+            if cur_page is not None:
+                html += prev_end_tag
+            cur_page = chunk.get("page_number")
+            html += page_start_tag
         html += chunk.get("text")
 
+    if cur_page is not None and chunks:
+        html += page_end_tag
+
     return html
-
-    # def _fetch_from_file(self, force=False):
-    #     # Logic for ChatFile fetch
-    #     from chat.models import ChatFile
-
-    #     file_obj = ChatFile.objects.get(id=self.reference)
-    #     self._set_process_engine_from_type(file_obj.content_type)
-    #     self.source_name = file_obj.name
-    #     return file_obj.file.read()
-
-    # Selection of hashing code from my other (incomplete) PR
-
-    # sha256_hash = models.CharField(max_length=64, null=True, blank=True, db_index=True)
-    # def generate_hash(self):
-    #     if self.file:
-    #         with self.file.open("rb") as f:
-    #             sha256 = hashlib.sha256(f.read())
-    #             self.sha256_hash = sha256.hexdigest()
-    #             self.save()
-
-    # self.fetched_from_source_at = timezone.now()
-    # """
