@@ -7,6 +7,8 @@ import os
 import time
 
 from django.conf import settings
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.urls import reverse
@@ -18,7 +20,7 @@ import pytest
 from chat.models import Chat, ChatFile, Message
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
-from otto.secure_models import AccessKey
+from otto.secure_models import AccessControl, AccessKey
 from text_extractor.models import OutputFile, UserRequest
 
 
@@ -305,38 +307,64 @@ def test_delete_empty_chats_task(client, all_apps_user):
     assert too_new_empty_chat is not None
 
 
+@pytest.mark.django_db
 def test_delete_text_extractor_files_task(client, all_apps_user):
+
     user = all_apps_user()
     client.force_login(user)
-
     # Create a UserRequest
-    access_key = AccessKey.objects.create(user=user)
+    access_key = AccessKey(user=user)
+    OutputFile.objects.all(access_key=access_key).delete()
+    # Grant the necessary permissions to the user for UserRequest
+    content_type_user_request = ContentType.objects.get_for_model(UserRequest)
+    permission_user_request = Permission.objects.get(
+        codename="add_userrequest", content_type=content_type_user_request
+    )
+    user.user_permissions.add(permission_user_request)
+
     user_request = UserRequest.objects.create(
         access_key=access_key, name="Test Request"
     )
+
+    # Grant the permissions to the user for OutputFile
+    content_type_output_file = ContentType.objects.get_for_model(OutputFile)
+    permission_output_file_add = Permission.objects.get(
+        codename="add_outputfile", content_type=content_type_output_file
+    )
+    permission_output_file_delete = Permission.objects.get(
+        codename="delete_outputfile", content_type=content_type_output_file
+    )
+    user.user_permissions.add(permission_output_file_add)
+    user.user_permissions.add(permission_output_file_delete)
+    # Verify current time
+    current_time = timezone.now()
+    print(f"Current time: {current_time}")
     # Create an OutputFile
     this_file_path = os.path.abspath(__file__)
     with open(this_file_path, "rb") as f:
         content = f.read()
-    # output_file1 created 25 hours ago
+
     output_file1 = OutputFile.objects.create(
+        access_key=access_key,
         user_request=user_request,
         file=ContentFile(content, name="test_file1.txt"),
         file_name="test_file1.txt",
     )
-    # Set the creation time to 24 hours ago
-    output_file1.created_at = timezone.now() - timezone.timedelta(hours=25)
-    output_file1.save()
-
+    # Set the creation time to 40 hours ago
+    output_file1.created_at = current_time - timezone.timedelta(hours=40)
+    output_file1.save(access_key=access_key)
+    print(f"Output file 1 created_at: {output_file1.created_at}")
     # output_file2 created 1 hour ago
     output_file2 = OutputFile.objects.create(
+        access_key=access_key,
         user_request=user_request,
         file=ContentFile(content, name="test_file2.txt"),
         file_name="test_file2.txt",
     )
-    # Set the creation time to 24 hours ago
-    output_file2.created_at = timezone.now() - timezone.timedelta(hours=1)
-    output_file2.save()
+
+    # Set the creation time to 5 min ago
+    output_file2.created_at = current_time - timezone.timedelta(minutes=5)
+    output_file2.save(access_key=access_key)
 
     # Run the delete_text_extractor_files task
     if settings.IS_RUNNING_IN_GITHUB:
@@ -349,14 +377,19 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
         delete_text_extractor_files()
 
     # Check that the old OutputFile is gone
-    output_files = OutputFile.objects.filter(file_name="test_file1.txt")
-    assert output_files.count() == 0
+    old_output_files = OutputFile.objects.filter(
+        access_key=access_key, file_name="test_file1.txt"
+    )
+    assert old_output_files.count() == 0
 
-    # Check that the new OutputFile still exists
-    output_files = OutputFile.objects.filter(file_name="test_file2.txt")
-    assert output_files.count() == 1
+    # # # Check that the new OutputFile still exists
+    new_output_files = OutputFile.objects.filter(
+        access_key=access_key, file_name="test_file2.txt"
+    )
+    assert new_output_files.count() == 1
 
     # Check media directory
-    folder = os.path.dirname(output_file1.file.path)
-    assert "test_file1.txt" not in os.listdir(folder)
-    assert "test_file2.txt" in os.listdir(folder)
+    media_folder = os.path.join(settings.MEDIA_ROOT, "ocr_output_files")
+    print(f"Files in media folder: {os.listdir(media_folder)}")
+    assert "test_file1.txt" not in os.listdir(media_folder)
+    assert "test_file2.txt" in os.listdir(media_folder)
