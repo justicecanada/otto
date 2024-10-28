@@ -59,80 +59,80 @@ resource "azapi_resource" "rai_policy" {
         {
           "name" : "Violence",
           "severityThreshold" : "Low",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Prompt"
         },
         {
           "name" : "Hate",
           "severityThreshold" : "Low",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Prompt"
         },
         {
           "name" : "Sexual",
           "severityThreshold" : "Low",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Prompt"
         },
         {
           "name" : "Selfharm",
           "severityThreshold" : "Low",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Prompt"
         },
         {
           "name" : "Jailbreak",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Prompt"
         },
         {
           "name" : "Indirect Attack",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Prompt"
         },
         {
           "name" : "Violence",
           "severityThreshold" : "Low",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Completion"
         },
         {
           "name" : "Hate",
           "severityThreshold" : "Low",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Completion"
         },
         {
           "name" : "Sexual",
           "severityThreshold" : "Low",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Completion"
         },
         {
           "name" : "Selfharm",
           "severityThreshold" : "Low",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Completion"
         },
         {
           "name" : "Protected Material Text",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Completion"
         },
         {
           "name" : "Protected Material Code",
-          "blocking" : false,
+          "blocking" : true,
           "enabled" : true,
           "source" : "Completion"
         }

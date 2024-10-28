@@ -108,6 +108,34 @@ variable "vnet_name" {
   type        = string
   description = "Name of the virtual network"
 }
+variable "vnet_ip_range" {
+  type        = string
+  description = "IP range of the virtual network"
+}
+variable "web_subnet_name" {
+  type        = string
+  description = "Name of the web subnet"
+}
+variable "web_subnet_ip_range" {
+  type        = string
+  description = "IP range of the web subnet"
+}
+variable "app_subnet_name" {
+  type        = string
+  description = "Name of the app subnet"
+}
+variable "app_subnet_ip_range" {
+  type        = string
+  description = "IP range of the app subnet"
+}
+variable "db_subnet_name" {
+  type        = string
+  description = "Name of the database subnet"
+}
+variable "db_subnet_ip_range" {
+  type        = string
+  description = "IP range of the database subnet"
+}
 
 variable "entra_client_secret" {
   description = "Entra client secret"

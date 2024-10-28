@@ -114,6 +114,15 @@ export ORGANIZATION
 export ALLOWED_IPS
 export USE_PRIVATE_NETWORK
 
+export VNET_NAME
+export VNET_IP_RANGE
+export WEB_SUBNET_NAME
+export WEB_SUBNET_IP_RANGE
+export APP_SUBNET_NAME
+export APP_SUBNET_IP_RANGE
+export DB_SUBNET_NAME
+export DB_SUBNET_IP_RANGE
+
 export APP_NAME
 export ENVIRONMENT
 export LOCATION
@@ -147,7 +156,10 @@ export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
 export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}storage"
 export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
-export VNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-vnet"
+#export VNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-vnet"
+#export WEB_SUBNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-subnet-web"
+#export APP_SUBNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-subnet-app"
+#export DB_SUBNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-subnet-db"
 export DISK_BACKUP_VAULT_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-bk-vault"
 export DISK_BACKUP_POLICY_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-bk-policy"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
@@ -182,6 +194,13 @@ djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
 disk_backup_vault_name = "${DISK_BACKUP_VAULT_NAME}"
 disk_backup_policy_name = "${DISK_BACKUP_POLICY_NAME}"
 vnet_name = "${VNET_NAME}"
+vnet_ip_range = "${VNET_IP_RANGE}"
+web_subnet_name = "${WEB_SUBNET_NAME}"
+web_subnet_ip_range = "${WEB_SUBNET_IP_RANGE}"
+app_subnet_name = "${APP_SUBNET_NAME}"
+app_subnet_ip_range = "${APP_SUBNET_IP_RANGE}"
+db_subnet_name = "${DB_SUBNET_NAME}"
+db_subnet_ip_range = "${DB_SUBNET_IP_RANGE}"
 gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}
 gpt_4_turbo_capacity = ${GPT_4_TURBO_CAPACITY}
 gpt_4o_capacity = ${GPT_4o_CAPACITY}

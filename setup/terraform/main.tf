@@ -28,6 +28,13 @@ data "azuread_group" "acr_publishers" {
 module "vnet" {
   source              = "./modules/vnet"
   vnet_name           = var.vnet_name
+  vnet_ip_range       = var.vnet_ip_range
+  web_subnet_name     = var.web_subnet_name
+  web_subnet_ip_range = var.web_subnet_ip_range
+  app_subnet_name     = var.app_subnet_name
+  app_subnet_ip_range = var.app_subnet_ip_range
+  db_subnet_name      = var.db_subnet_name
+  db_subnet_ip_range  = var.db_subnet_ip_range
   location            = var.location
   resource_group_name = module.resource_group.name
   tags                = local.common_tags
