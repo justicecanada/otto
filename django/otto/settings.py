@@ -269,7 +269,6 @@ if os.environ.get("DJANGODB_ENGINE") is not None:
         "ENGINE": os.environ.get("DJANGODB_ENGINE"),
         "NAME": os.environ.get("DJANGODB_NAME"),
         "USER": os.environ.get("DJANGODB_USER"),
-        # CosmosDB can't have the password quoted; it seems to handle this natively. TODO: Investigate to understand better
         "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
         "HOST": os.environ.get("DJANGODB_HOST"),
     }
@@ -284,8 +283,7 @@ if os.environ.get("VECTORDB_ENGINE") is not None:
         "ENGINE": os.environ.get("VECTORDB_ENGINE"),
         "NAME": os.environ.get("VECTORDB_NAME"),
         "USER": os.environ.get("VECTORDB_USER"),
-        # Passwords for Postgres need to be quoted to handle special characters
-        "PASSWORD": quote(os.environ.get("VECTORDB_PASSWORD", "")),
+        "PASSWORD": os.environ.get("VECTORDB_PASSWORD", ""),
         "HOST": os.environ.get("VECTORDB_HOST"),
     }
 
