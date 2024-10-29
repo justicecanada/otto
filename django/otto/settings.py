@@ -112,6 +112,7 @@ AZURE_CONTAINER = os.environ.get(
 )  # Azure as default storage requires this name to be AZURE_STORAGE_CONTAINER
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
+print("Running in debug mode:", DEBUG)
 DEBUG_PROPAGATE_EXCEPTIONS = True
 
 ALLOWED_HOSTS = [SITE_URL.hostname, "localhost", "127.0.0.1"]
@@ -162,13 +163,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     # SC-10, SC-23: Django default session management
     "django.contrib.sessions.middleware.SessionMiddleware",
     # AC-2, AC-3, IA-2, IA-6, IA-8: Authentication, AC-14: Limited Access
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     # AC-3 & AC-14: Limited Access to handle login flows: redirect to login page, use Azure login, accept terms to use
     # AC-3(7), IA-8: Custom middleware for enforcing role-based access control
     "otto.utils.auth.RedirectToLoginMiddleware",
@@ -269,7 +270,6 @@ if os.environ.get("DJANGODB_ENGINE") is not None:
         "ENGINE": os.environ.get("DJANGODB_ENGINE"),
         "NAME": os.environ.get("DJANGODB_NAME"),
         "USER": os.environ.get("DJANGODB_USER"),
-        # CosmosDB can't have the password quoted; it seems to handle this natively. TODO: Investigate to understand better
         "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
         "HOST": os.environ.get("DJANGODB_HOST"),
     }
@@ -284,8 +284,7 @@ if os.environ.get("VECTORDB_ENGINE") is not None:
         "ENGINE": os.environ.get("VECTORDB_ENGINE"),
         "NAME": os.environ.get("VECTORDB_NAME"),
         "USER": os.environ.get("VECTORDB_USER"),
-        # Passwords for Postgres need to be quoted to handle special characters
-        "PASSWORD": quote(os.environ.get("VECTORDB_PASSWORD", "")),
+        "PASSWORD": os.environ.get("VECTORDB_PASSWORD", ""),
         "HOST": os.environ.get("VECTORDB_HOST"),
     }
 
@@ -326,21 +325,7 @@ LOCALE_PATHS = [
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
-
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-
-
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATIC_URL = "/static/"
-# forever-cacheable files and compression support
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-# Extra places for collectstatic to find static files.
-STATICFILES_DIRS = []
-
 
 X_FRAME_OPTIONS = "SAMEORIGIN"  # Required for iframe on same origin
 
@@ -371,6 +356,14 @@ else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.1/howto/static-files/
+
+STATIC_ROOT = os.path.join(BASE_DIR, os.environ.get("STATIC_ROOT", "staticfiles"))
+STATIC_URL = "/static/"
+# forever-cacheable files and compression support
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 # Default Storage needs to be a local directory for append to work
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
@@ -386,6 +379,19 @@ AZURE_STORAGE = AzureStorage(
 MEDIA_ROOT = os.path.join(BASE_DIR, os.environ.get("MEDIA_ROOT", "media"))
 if not os.path.exists(MEDIA_ROOT):
     os.makedirs(MEDIA_ROOT)
+
+STORAGES = {
+    # Normal disk storage
+    "default": {
+        "BACKEND": DEFAULT_FILE_STORAGE,
+        "LOCATION": MEDIA_ROOT,
+    },
+    # Static files storage
+    "staticfiles": {
+        "BACKEND": STATICFILES_STORAGE,
+        "LOCATION": STATIC_ROOT,
+    },
+}
 
 AUTH_USER_MODEL = "otto.User"
 

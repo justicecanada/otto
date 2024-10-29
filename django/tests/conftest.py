@@ -22,13 +22,16 @@ def set_test_media():
     # Define the test media directory
     test_media_dir = os.path.join(settings.BASE_DIR, "test_media")
 
+    storages = settings.STORAGES.copy()
+    storages["default"]["LOCATION"] = test_media_dir
+
     # Ensure the test media directory is clean
     if os.path.exists(test_media_dir):
         shutil.rmtree(test_media_dir)
     os.makedirs(test_media_dir)
 
     # Use override_settings to set MEDIA_ROOT
-    with override_settings(MEDIA_ROOT=test_media_dir):
+    with override_settings(STORAGES=storages, MEDIA_ROOT=test_media_dir):
         yield  # This allows the tests to run
 
     # Cleanup after tests
