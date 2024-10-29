@@ -125,13 +125,11 @@
 
 <script>
   document.body.addEventListener('htmx:afterSettle', function() {
-    const isPublicCheckbox = document.getElementById('id_is_public');
     const publicFields = document.getElementById('public_fields');
     const enTab = document.getElementById('en-preset-tab');
     const frTab = document.getElementById('fr-preset-tab');
     const enContent = document.getElementById('en-content');
     const frContent = document.getElementById('fr-content');
-    const sharingOption = document.getElementById('id_sharing_option');
     const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
 
     function togglePublicFields() {
