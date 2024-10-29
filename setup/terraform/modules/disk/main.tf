@@ -167,42 +167,42 @@ resource "time_sleep" "wait_30_seconds" {
   create_duration = "30s"
 }
 
-# Protect the SSD managed disk with the backup policy
-resource "azurerm_data_protection_backup_instance_disk" "ssd_disk_backup" {
-  name                         = "ssd-disk-backup"
-  location                     = var.location
-  vault_id                     = azurerm_data_protection_backup_vault.disk_backup_vault.id
-  disk_id                      = azurerm_managed_disk.aks_ssd_disk.id
-  snapshot_resource_group_name = var.resource_group_name
-  backup_policy_id             = azurerm_data_protection_backup_policy_disk.disk_backup_policy.id
+# # Protect the SSD managed disk with the backup policy
+# resource "azurerm_data_protection_backup_instance_disk" "ssd_disk_backup" {
+#   name                         = "ssd-disk-backup"
+#   location                     = var.location
+#   vault_id                     = azurerm_data_protection_backup_vault.disk_backup_vault.id
+#   disk_id                      = azurerm_managed_disk.aks_ssd_disk.id
+#   snapshot_resource_group_name = var.resource_group_name
+#   backup_policy_id             = azurerm_data_protection_backup_policy_disk.disk_backup_policy.id
 
-  depends_on = [
-    time_sleep.wait_30_seconds,
-    azurerm_role_assignment.ssd_backup_vault_disk_backup_contributor,
-    azurerm_role_assignment.ssd_backup_vault_disk_snapshot_contributor,
-    azurerm_role_assignment.backup_vault_key_vault_crypto_user,
-    azurerm_managed_disk.aks_ssd_disk,
-    azurerm_data_protection_backup_vault.disk_backup_vault,
-    azurerm_data_protection_backup_policy_disk.disk_backup_policy
-  ]
-}
+#   depends_on = [
+#     time_sleep.wait_30_seconds,
+#     azurerm_role_assignment.ssd_backup_vault_disk_backup_contributor,
+#     azurerm_role_assignment.ssd_backup_vault_disk_snapshot_contributor,
+#     azurerm_role_assignment.backup_vault_key_vault_crypto_user,
+#     azurerm_managed_disk.aks_ssd_disk,
+#     azurerm_data_protection_backup_vault.disk_backup_vault,
+#     azurerm_data_protection_backup_policy_disk.disk_backup_policy
+#   ]
+# }
 
-# Protect the HDD managed disk with the backup policy
-resource "azurerm_data_protection_backup_instance_disk" "hdd_disk_backup" {
-  name                         = "hdd-disk-backup"
-  location                     = var.location
-  vault_id                     = azurerm_data_protection_backup_vault.disk_backup_vault.id
-  disk_id                      = azurerm_managed_disk.aks_hdd_disk.id
-  snapshot_resource_group_name = var.resource_group_name
-  backup_policy_id             = azurerm_data_protection_backup_policy_disk.disk_backup_policy.id
+# # Protect the HDD managed disk with the backup policy
+# resource "azurerm_data_protection_backup_instance_disk" "hdd_disk_backup" {
+#   name                         = "hdd-disk-backup"
+#   location                     = var.location
+#   vault_id                     = azurerm_data_protection_backup_vault.disk_backup_vault.id
+#   disk_id                      = azurerm_managed_disk.aks_hdd_disk.id
+#   snapshot_resource_group_name = var.resource_group_name
+#   backup_policy_id             = azurerm_data_protection_backup_policy_disk.disk_backup_policy.id
 
-  depends_on = [
-    time_sleep.wait_30_seconds,
-    azurerm_role_assignment.ssd_backup_vault_disk_backup_contributor,
-    azurerm_role_assignment.ssd_backup_vault_disk_snapshot_contributor,
-    azurerm_role_assignment.backup_vault_key_vault_crypto_user,
-    azurerm_managed_disk.aks_ssd_disk,
-    azurerm_data_protection_backup_vault.disk_backup_vault,
-    azurerm_data_protection_backup_policy_disk.disk_backup_policy
-  ]
-}
+#   depends_on = [
+#     time_sleep.wait_30_seconds,
+#     azurerm_role_assignment.ssd_backup_vault_disk_backup_contributor,
+#     azurerm_role_assignment.ssd_backup_vault_disk_snapshot_contributor,
+#     azurerm_role_assignment.backup_vault_key_vault_crypto_user,
+#     azurerm_managed_disk.aks_ssd_disk,
+#     azurerm_data_protection_backup_vault.disk_backup_vault,
+#     azurerm_data_protection_backup_policy_disk.disk_backup_policy
+#   ]
+# }

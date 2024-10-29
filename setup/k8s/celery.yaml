@@ -18,7 +18,7 @@ spec:
 
 # Deployment for Celery Worker
 apiVersion: apps/v1
-kind: Deployment
+kind: Deployment # Celery worker is stateless and can be easily scaled without needing stable network identities
 metadata:
   name: celery-worker
   namespace: otto
@@ -121,10 +121,9 @@ spec:
 
 ---
 
-
 # Deployment for Celery Beat (scheduler)
 apiVersion: apps/v1
-kind: Deployment
+kind: Deployment # Stateless and functions independently, scheduling tasks without requiring persistent storage
 metadata:
   name: celery-beat
   namespace: otto

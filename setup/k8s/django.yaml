@@ -32,11 +32,12 @@ spec:
 
 # SC-13: Secure key management using Azure Key Vault (FIPS 140-2 compliant)
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet # Required for stable network identity
 metadata:
-  name: django-deployment
+  name: django-app
   namespace: otto
 spec:
+  serviceName: "django-service"  # Required for stable network identity
   replicas: 1
   selector:
     matchLabels:
@@ -131,7 +132,7 @@ spec:
 ---
 
 apiVersion: v1
-kind: Service
+kind: Service # Exposes the Django application to other components within the cluster
 metadata:
   name: django-service
   namespace: otto

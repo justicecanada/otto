@@ -126,13 +126,13 @@ resource "azapi_resource" "rai_policy" {
         },
         {
           "name" : "Protected Material Text",
-          "blocking" : true,
+          "blocking" : false,
           "enabled" : true,
           "source" : "Completion"
         },
         {
           "name" : "Protected Material Code",
-          "blocking" : true,
+          "blocking" : false,
           "enabled" : true,
           "source" : "Completion"
         }

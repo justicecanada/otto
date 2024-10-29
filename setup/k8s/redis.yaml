@@ -1,13 +1,12 @@
 # CM-8 & CM-9: Defines the application's components within the AKS cluster
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet # Required for stable network identity
 metadata:
-  name: redis-deployment
-  labels:
-    deployment: redis
+  name: redis
   namespace: otto
 spec:
+  serviceName: "redis-service"  # Required for stable network identity
   selector:
     matchLabels:
       pod: redis
@@ -28,7 +27,7 @@ spec:
 ---
 
 apiVersion: v1
-kind: Service
+kind: Service # Exposes the Redis instance to other components within the cluster 
 metadata:
   name: redis-service  
   namespace: otto
