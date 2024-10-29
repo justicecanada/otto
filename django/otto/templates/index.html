@@ -45,4 +45,27 @@
     {% endfor %}
   </div>
 
+  <button type="button"
+          class="btn btn-outline position-fixed bottom-0 end-0 m-3"
+          onclick="driverObj.drive();">
+    <i class="bi bi-question-circle"></i>
+  </button>
+{% endblock %}
+
+{% block page_script %}
+  <script>
+      let driver =  window.driver.js.driver;
+      let driverObj = driver({
+        showProgress: true,
+        popoverClass: "bs-popover-auto",
+        prevBtnText: "{% trans 'Previous' %}",
+        nextBtnText: "{{ _('Next') }}",
+        doneBtnText: "{{ _('Done') }}",
+        steps: [
+          { element: "#otto-version", popover: { title: 'Test', description: 'This is the version of Otto you are currently using.' } },
+          { element: "#app-list", popover: { title: 'Test', description: 'This is the version of Otto you are currently using.' } },
+          { element: "#cost-bar-inner", popover: { title: 'Test', description: 'Something about each user being limited by cost.', side: 'bottom', align: 'start' } }
+        ]
+      });
+  </script>
 {% endblock %}

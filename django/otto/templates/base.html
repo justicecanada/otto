@@ -11,6 +11,7 @@
           content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <script src="{% static 'thirdparty/htmx.min.js' %}"></script>
     <script src="{% static 'thirdparty/idiomorph-ext.min.js' %}"></script>
+ 
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet"
@@ -21,6 +22,9 @@
             crossorigin="anonymous"></script>
     <script src="{% static 'thirdparty/bootstrap.bundle.min.js' %}"
             crossorigin="anonymous"></script>
+    <script src="{% static 'thirdparty/driver1.0.1.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'thirdparty/css/driver1.0.1.css' %}" />
+ 
 
     {% block page_css %}{% endblock %}
 
@@ -67,6 +71,7 @@
               {% include 'components/user_menu.html' %}
               {% include 'components/notifications.html' %}
               {% include 'components/feedback_icon.html' %}
+              {% include 'components/language_toggle.html' %}
             </div>
           {% endif %}
 
@@ -107,6 +112,7 @@
     // the following will add the csrf token to .post and .ajax requests
     const csrftoken = Cookies.get("csrftoken");
     $(document).ready(function () {
+
       function csrfSafeMethod(method) {
         // these HTTP methods do not require CSRF protection
         return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
