@@ -405,6 +405,6 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
 
     # Check media directory
     media_folder = os.path.join(settings.MEDIA_ROOT, "ocr_output_files")
-    print(f"Files in media folder: {os.listdir(media_folder)}")
+    # print(f"Files in media folder: {os.listdir(media_folder)}")
     assert "test_file1.txt" not in os.listdir(media_folder)
     assert "test_file2.txt" in os.listdir(media_folder)
