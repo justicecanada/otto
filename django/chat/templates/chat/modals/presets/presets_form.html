@@ -56,19 +56,12 @@
             </div>
           </div>
         </div>
-        {% if is_admin %}
-          <div class="col-12">
-            <label class="form-label" for="id_sharing">{% trans "Privacy controls" %}</label>
-            <div class="sharing-options">{{ form.sharing_option }}</div>
+        <div class="col-12">
+          <label class="form-label" for="id_sharing">{% trans "Privacy controls" %}</label>
+          <div class="sharing-options d-flex gap-4">
+            {% for radio in form.sharing_option %}<div class="form-check">{{ radio }}</div>{% endfor %}
           </div>
-        {% else %}
-          <div class="col-12">
-            <div class="form-check">
-              {{ form.is_public }}
-              <label class="form-check-label" for="id_is_public">{% trans "Share with others" %}</label>
-            </div>
-          </div>
-        {% endif %}
+        </div>
         <div class="col-12" id="public_fields">
           <div>
             <label class="form-label" for="id_accessible_to">{% trans "Accessible to: " %}</label>
@@ -142,17 +135,12 @@
     const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
 
     function togglePublicFields() {
-      if (isPublicCheckbox) {
-        // Non-admin view using is_public checkbox
-        publicFields.style.display = isPublicCheckbox.checked ? 'block' : 'none';
-      } else {
-        // Admin view using sharing_option radio buttons
-        const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
-        if (selectedOption){
-            publicFields.style.display = selectedOption.value === 'others' ? 'block' : 'none';
-        }
+      const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
+      if (selectedOption){
+          publicFields.style.display = selectedOption.value === 'others' ? 'block' : 'none';
       }
     }
+    
         
 
     function switchLanguage(lang) {
@@ -168,16 +156,11 @@
         enTab.classList.remove('active');
       }
     }
-   // Set up event listeners for sharing controls
-    if (isPublicCheckbox) {
-        // Non-admin view
-        isPublicCheckbox.addEventListener('change', togglePublicFields);
-    } else if (sharingOption) {
-        // Admin view
-        sharingOptionInputs.forEach(input => {
-            input.addEventListener('change', togglePublicFields);
-        });
-    }
+
+    sharingOptionInputs.forEach(input => {
+        input.addEventListener('change', togglePublicFields);
+    });
+
     togglePublicFields(); // Set initial state
 
     if (enTab && frTab) {

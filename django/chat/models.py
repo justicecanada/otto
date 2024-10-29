@@ -252,7 +252,7 @@ class PresetManager(models.Manager):
             presets = self.filter(is_deleted=False)
         else:
             presets = self.filter(
-                Q(owner=user) | Q(is_public=True) | Q(accessible_to=user),
+                Q(owner=user) | Q(accessible_to=user) | Q(sharing_option="everyone"),
                 is_deleted=False,
             )
         return (
@@ -273,6 +273,13 @@ class PresetManager(models.Manager):
         )
 
 
+SHARING_OPTIONS = [
+    ("private", _("Make Private")),
+    ("everyone", _("Share with everyone")),
+    ("others", _("Share with others")),
+]
+
+
 class Preset(models.Model):
     """
     A preset of options for a chat
@@ -290,7 +297,6 @@ class Preset(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_public = models.BooleanField(default=False)
 
     accessible_to = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="accessible_presets"
@@ -300,11 +306,6 @@ class Preset(models.Model):
     )
     is_deleted = models.BooleanField(default=False)
 
-    SHARING_OPTIONS = [
-        ("private", _("Make Private")),
-        ("everyone", _("Share with everyone")),
-        ("others", _("Share with others")),
-    ]
     sharing_option = models.CharField(
         max_length=10,
         choices=SHARING_OPTIONS,
@@ -313,9 +314,9 @@ class Preset(models.Model):
 
     @property
     def shared_with(self):
-        if self.is_public:
+        if self.sharing_option == "everyone":
             return "Shared with everyone"
-        elif self.accessible_to.exists():
+        elif self.sharing_option == "others":
             return "Shared with others"
         return "Private"
 

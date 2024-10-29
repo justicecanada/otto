@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 from data_fetcher.util import get_request
+from rules import is_group_member
 
 from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
 from librarian.models import DataSource, Document, Library
@@ -361,7 +362,6 @@ class PresetForm(forms.ModelForm):
             "name_fr",
             "description_en",
             "description_fr",
-            "is_public",
             "accessible_to",
             "sharing_option",
         ]
@@ -395,3 +395,18 @@ class PresetForm(forms.ModelForm):
             },
         ),
     )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if user and is_group_member("Otto admin")(user):
+            self.fields["sharing_option"].choices = [
+                ("private", _("Make Private")),
+                ("everyone", _("Share with everyone")),
+                ("others", _("Share with others")),
+            ]
+        else:
+            self.fields["sharing_option"].choices = [
+                ("private", _("Make Private")),
+                ("others", _("Share with others")),
+            ]

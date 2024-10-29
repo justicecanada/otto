@@ -534,8 +534,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         )
     elif action == "save_preset":
         if request.method == "POST":
-            # Determine which tab was selected
-            form = PresetForm(request.POST)
+            form = PresetForm(data=request.POST, user=request.user)
 
             if form.is_valid():
 
@@ -575,7 +574,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                             "form": form,
                             "chat_id": chat_id,
                             "preset_id": preset_id,
-                            "is_admin": is_admin(request.user),
                             "error_message": _(
                                 "Please provide a title in either English or French."
                             ),
@@ -589,35 +587,33 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 preset.description_en = form.cleaned_data["description_en"]
                 preset.description_fr = form.cleaned_data["description_fr"]
 
-                # Set the public status
-                preset.is_public = form.cleaned_data.get("is_public", False)
-
                 preset.sharing_option = form.cleaned_data.get("sharing_option", None)
 
                 accessible_to = form.cleaned_data.get("accessible_to", [])
 
-                if preset.is_public or preset.sharing_option == "others":
-                    # check if accessible_to is empty
-                    if not accessible_to:
-                        return render(
-                            request,
-                            "chat/modals/presets/presets_form.html",
-                            {
-                                "form": form,
-                                "chat_id": chat_id,
-                                "preset_id": preset_id,
-                                "is_admin": is_admin(request.user),
-                                "error_message": _(
-                                    "Please provide at least one user for the accessible field."
-                                ),
-                                "replace_with_settings": replace_with_settings,
-                            },
-                        )
+                # Check if the preset is shared with others but no users are selected
+                if preset.sharing_option == "others" and not accessible_to:
+                    return render(
+                        request,
+                        "chat/modals/presets/presets_form.html",
+                        {
+                            "form": form,
+                            "chat_id": chat_id,
+                            "preset_id": preset_id,
+                            "error_message": _(
+                                "Please provide at least one user for the accessible field."
+                            ),
+                            "replace_with_settings": replace_with_settings,
+                        },
+                    )
 
                 preset.save()
 
-                if preset.is_public or preset.sharing_option == "others":
-                    preset.accessible_to.set(accessible_to)
+                # clear the accessible_to field if the user changes the sharing option to private
+                if preset.sharing_option == "private" and len(accessible_to) > 0:
+                    accessible_to = []
+
+                preset.accessible_to.set(accessible_to)
 
                 return redirect("chat:get_presets", chat_id=chat_id)
 
@@ -766,18 +762,18 @@ def set_preset_favourite(request, preset_id):
 
 def create_preset(request, chat_id):
 
-    form = PresetForm()
+    form = PresetForm(user=request.user)
 
     return render(
         request,
         "chat/modals/presets/presets_form.html",
-        {"form": form, "chat_id": chat_id, "is_admin": is_admin(request.user)},
+        {"form": form, "chat_id": chat_id},
     )
 
 
 def edit_preset(request, chat_id, preset_id):
     preset = get_object_or_404(Preset, id=preset_id)
-    form = PresetForm(instance=preset)
+    form = PresetForm(instance=preset, user=request.user)
 
     return render(
         request,
@@ -787,7 +783,6 @@ def edit_preset(request, chat_id, preset_id):
             "preset": preset,
             "preset_id": preset_id,
             "chat_id": chat_id,
-            "is_admin": is_admin(request.user),
         },
     )
 

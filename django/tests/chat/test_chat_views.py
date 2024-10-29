@@ -8,6 +8,7 @@ from django.utils import timezone
 import pytest
 from asgiref.sync import sync_to_async
 
+from chat.forms import PresetForm
 from chat.llm import OttoLLM
 from chat.models import Chat, ChatFile, ChatOptions, Message, Preset
 from chat.utils import htmx_stream, title_chat
@@ -846,10 +847,27 @@ def test_summarize_qa_response(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_preset(client, all_apps_user):
+def test_preset(client, basic_user, all_apps_user):
+    user = basic_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    # Instantiate the form with a regular user
+    form = PresetForm(user=user)
+    assert form.fields["sharing_option"].choices == [
+        ("private", "Make Private"),
+        ("others", "Share with others"),
+    ]
     user = all_apps_user()
     client.force_login(user)
     chat = Chat.objects.create(user=user)
+    # Instantiate the form with a user with admin rights
+    form = PresetForm(user=user)
+    assert form.fields["sharing_option"].choices == [
+        ("private", "Make Private"),
+        ("everyone", "Share with everyone"),
+        ("others", "Share with others"),
+    ]
 
     # Test saving a new preset
     response = client.post(
@@ -859,7 +877,6 @@ def test_preset(client, all_apps_user):
         data={
             "name_en": "New Preset",
             "description_en": "Preset Description",
-            "is_public": False,
             "sharing_option": "private",
             "accessible_to": [],
         },
@@ -883,14 +900,13 @@ def test_preset(client, all_apps_user):
         data={
             "name_en": "Updated Preset",
             "description_en": "Updated Description",
-            "is_public": True,
-            "sharing_option": "private",
+            "sharing_option": "others",
             "accessible_to": [],
         },
     )
 
     assert response.status_code == 200
-    # the user did not provide any users for the accessible field with is_public=True
+    # the user did not provide any users for the accessible field with sharing_option=others
     assert (
         "Please provide at least one user for the accessible field."
         in response.content.decode("utf-8")
@@ -911,8 +927,7 @@ def test_preset(client, all_apps_user):
         data={
             "name_en": "Updated Preset",
             "description_en": "Updated Description",
-            "is_public": True,
-            "sharing_option": "private",
+            "sharing_option": "others",
             "accessible_to": [user2.id],
         },
     )
@@ -920,7 +935,7 @@ def test_preset(client, all_apps_user):
     preset.refresh_from_db()
     assert preset.name_en == "Updated Preset"
     assert preset.description_en == "Updated Description"
-    assert preset.is_public
+    assert preset.sharing_option == "others"
     assert user2 in preset.accessible_to.all()
 
     # Test loading the preset
