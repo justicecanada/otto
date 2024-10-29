@@ -3778,5 +3778,25 @@
     "Privacy controls": {
         "fr": "",
         "fr_auto": "Contrôles de confidentialité"
+    },
+    "Given the information from multiple sources and not prior knowledge, answer the query in markdown format with liberal use of **bold**.\nOutput format:\n\nI found the following information:\n\n* <supporting direct quote> - <source link or filename, if known> (page number, if known)\n...\n<succinct answer to question>\n\nIf you can't find the answer in the sources, just say so. Don't try to provide irrelevant references or made up answers.": {
+        "fr": "",
+        "fr_auto": "Compte tenu de l’information provenant de sources multiples et non de connaissances préalables, répondez à la requête en format de démarque avec l’utilisation libérale de **bold**.\nFormat de sortie :\n\nJ’ai trouvé les informations suivantes :\n\n* <soute de devis direct> - lien <source ou nom de fichier, s’il est connu> (numéro de page, s’il est connu)\n...\n<succinct réponse à la question>\n\nSi vous ne trouvez pas la réponse dans les sources, dites-le simplement. N’essayez pas de fournir des références non pertinentes ou des réponses inventées."
+    },
+    "Please provide at least one user for the accessible field.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir au moins un utilisateur pour le champ accessible."
+    },
+    "Cancelled": {
+        "fr": "",
+        "fr_auto": "Annulé"
+    },
+    "Queued": {
+        "fr": "",
+        "fr_auto": "En file d’attente"
+    },
+    "Processed": {
+        "fr": "",
+        "fr_auto": "Traitées"
     }
 }
