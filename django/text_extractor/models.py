@@ -18,7 +18,6 @@ class OutputFile(SecureModel):
     user_request = models.ForeignKey(
         UserRequest, related_name="output_files", on_delete=models.CASCADE
     )
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def get_permission_parents(self):
         return [self.user_request]

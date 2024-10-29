@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from django_extensions.management.utils import signalcommand
 
 from otto.secure_models import AccessKey
-from text_extractor.models import OutputFile
+from text_extractor.models import OutputFile, UserRequest
 
 
 class Command(BaseCommand):
@@ -18,17 +18,16 @@ class Command(BaseCommand):
         now = datetime.now()
         cutoff = now - timedelta(hours=24)
         access_key = AccessKey(bypass=True)
-        old_files = OutputFile.objects.filter(
+
+        # Filter and delete old user requests
+        old_requests = UserRequest.objects.filter(
             access_key=access_key, created_at__lt=cutoff
         )
-
-        for output_file in old_files:
-            file_path = output_file.file.path
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"Deleted file: {file_path}, created_at: {output_file.created_at}"
-                    )
+        print(f"---------------Found {old_requests.count()} user requests to delete")
+        for user_request in old_requests:
+            user_request.delete(access_key=access_key)
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Deleted user request: {user_request.id}, created_at: {user_request.created_at}"
                 )
-            output_file.delete(access_key=access_key)
+            )
