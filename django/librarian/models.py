@@ -31,6 +31,12 @@ STATUS_CHOICES = [
     ("BLOCKED", "Stopped"),
 ]
 
+PDF_EXTRACTION_CHOICES = [
+    ("default", "Otto default (text only)"),
+    ("azure_ocr", "Azure Read (OCR)"),
+    ("azure_layout", "Azure Layout (OCR + tables)"),
+]
+
 
 def generate_uuid_hex():
     # We use the hex for compatibility with LlamaIndex table names
@@ -284,7 +290,8 @@ class DataSource(models.Model):
 
 class Document(models.Model):
     """
-    Result of a WebCrawl or direct upload.
+    Result of adding a URL or uploading a file to chat or librarian modal.
+    Corresponds to a document in the vector store.
     """
 
     class Meta:
@@ -343,6 +350,22 @@ class Document(models.Model):
     # Filename stored here instead of in the File object since one file (hash)
     # may be uploaded under different filenames
     filename = models.CharField(max_length=255, null=True, blank=True)
+
+    # Specific to PDF documents.
+    # The extraction method *that was used* to extract text from the PDF
+    pdf_extraction_method = models.CharField(
+        max_length=40, null=True, blank=True, choices=PDF_EXTRACTION_CHOICES
+    )
+    # Page range to extract from PDF (e.g. "1-3, 5, 7-9")
+    pdf_page_range = models.CharField(max_length=255, null=True, blank=True)
+    # Crop box for PDF extraction (left, right, top, bottom) - ratio of page size
+    pdf_crop_left = models.FloatField(null=True, blank=True)
+    pdf_crop_right = models.FloatField(null=True, blank=True)
+    pdf_crop_top = models.FloatField(null=True, blank=True)
+    pdf_crop_bottom = models.FloatField(null=True, blank=True)
+    # The number of detected / extracted pages in the PDF (for debugging / confirmation)
+    pdf_num_pages_detected = models.IntegerField(null=True, blank=True)
+    pdf_num_pages_extracted = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
