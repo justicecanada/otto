@@ -7,7 +7,7 @@ import os
 import time
 
 from django.conf import settings
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.core.management import call_command
@@ -310,16 +310,26 @@ def test_delete_empty_chats_task(client, all_apps_user):
 @pytest.mark.django_db(transaction=True)
 def test_delete_text_extractor_files_task(client, all_apps_user):
 
+    # Ensure the "Otto admin" group exists
+    group, created = Group.objects.get_or_create(name="Otto admin")
+
     user = all_apps_user()
     client.force_login(user)
     # Create a UserRequest
     access_key = AccessKey(user=user)
+
+    UserRequest.objects.all(access_key=access_key).delete()
     OutputFile.objects.all(access_key=access_key).delete()
+
     # Grant the necessary permissions to the user for UserRequest
     content_type_user_request = ContentType.objects.get_for_model(UserRequest)
-    permission_user_request = Permission.objects.get(
-        codename="add_userrequest", content_type=content_type_user_request
+    permission_user_request, created = Permission.objects.get_or_create(
+        codename="add_userrequest",
+        content_type=content_type_user_request,
+        name="Can add user request",
     )
+    group.permissions.add(permission_user_request)
+    user.groups.add(group)
     user.user_permissions.add(permission_user_request)
 
     user_request1 = UserRequest.objects.create(
@@ -331,11 +341,15 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
 
     # Grant the permissions to the user for OutputFile
     content_type_output_file = ContentType.objects.get_for_model(OutputFile)
-    permission_output_file_add = Permission.objects.get(
-        codename="add_outputfile", content_type=content_type_output_file
+    permission_output_file_add, created = Permission.objects.get_or_create(
+        codename="add_outputfile",
+        content_type=content_type_output_file,
+        name="Can add output file",
     )
-    permission_output_file_delete = Permission.objects.get(
-        codename="delete_outputfile", content_type=content_type_output_file
+    permission_output_file_delete, created = Permission.objects.get_or_create(
+        codename="delete_outputfile",
+        content_type=content_type_output_file,
+        name="Can delete output file",
     )
     user.user_permissions.add(permission_output_file_add)
     user.user_permissions.add(permission_output_file_delete)
