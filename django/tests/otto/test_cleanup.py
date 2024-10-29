@@ -307,7 +307,7 @@ def test_delete_empty_chats_task(client, all_apps_user):
     assert too_new_empty_chat is not None
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_delete_text_extractor_files_task(client, all_apps_user):
 
     user = all_apps_user()
@@ -390,3 +390,21 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
         access_key=access_key, name="Test Request 2"
     )
     assert new_user_requests.count() == 1
+
+    # Check that the associated OutputFile for the old UserRequest is gone
+    old_output_files = OutputFile.objects.filter(
+        access_key=access_key, file_name="test_file1.txt"
+    )
+    assert old_output_files.count() == 0
+
+    # Check that the associated OutputFile for the new UserRequest still exists
+    new_output_files = OutputFile.objects.filter(
+        access_key=access_key, file_name="test_file2.txt"
+    )
+    assert new_output_files.count() == 1
+
+    # Check media directory
+    media_folder = os.path.join(settings.MEDIA_ROOT, "ocr_output_files")
+    print(f"Files in media folder: {os.listdir(media_folder)}")
+    assert "test_file1.txt" not in os.listdir(media_folder)
+    assert "test_file2.txt" in os.listdir(media_folder)
