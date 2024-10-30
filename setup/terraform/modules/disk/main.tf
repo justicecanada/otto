@@ -88,84 +88,84 @@ resource "azurerm_managed_disk" "aks_hdd_disk" {
 #  - Fix encryption issues
 #  - Resolve soft-delete retention policy issues (when running through Terraform, low priority)
 
-# Create a Recovery Services Vault for backup
-resource "azurerm_data_protection_backup_vault" "disk_backup_vault" {
-  name                = var.disk_backup_vault_name
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
+# # Create a Recovery Services Vault for backup
+# resource "azurerm_data_protection_backup_vault" "disk_backup_vault" {
+#   name                = var.disk_backup_vault_name
+#   resource_group_name = var.resource_group_name
+#   location            = var.location
+#   datastore_type      = "VaultStore"
+#   redundancy          = "LocallyRedundant"
 
-  identity {
-    type = "SystemAssigned"
-  }
-}
+#   identity {
+#     type = "SystemAssigned"
+#   }
+# }
 
-data "azurerm_data_protection_backup_vault" "disk_backup_vault" {
-  name                = azurerm_data_protection_backup_vault.disk_backup_vault.name
-  resource_group_name = var.resource_group_name
-}
+# data "azurerm_data_protection_backup_vault" "disk_backup_vault" {
+#   name                = azurerm_data_protection_backup_vault.disk_backup_vault.name
+#   resource_group_name = var.resource_group_name
+# }
 
-# Create a backup policy for the managed disks
-resource "azurerm_data_protection_backup_policy_disk" "disk_backup_policy" {
-  name     = var.disk_backup_policy_name
-  vault_id = azurerm_data_protection_backup_vault.disk_backup_vault.id
+# # Create a backup policy for the managed disks
+# resource "azurerm_data_protection_backup_policy_disk" "disk_backup_policy" {
+#   name     = var.disk_backup_policy_name
+#   vault_id = azurerm_data_protection_backup_vault.disk_backup_vault.id
 
-  backup_repeating_time_intervals = ["R/2021-05-19T04:00:00+00:00/P1D"]
-  default_retention_duration      = "P7D"
+#   backup_repeating_time_intervals = ["R/2021-05-19T04:00:00+00:00/P1D"]
+#   default_retention_duration      = "P7D"
 
-  retention_rule {
-    name     = "Weekly"
-    duration = "P7D"
-    priority = 20
-    criteria {
-      absolute_criteria = "FirstOfWeek"
-    }
-  }
-}
+#   retention_rule {
+#     name     = "Weekly"
+#     duration = "P7D"
+#     priority = 20
+#     criteria {
+#       absolute_criteria = "FirstOfWeek"
+#     }
+#   }
+# }
 
-resource "azurerm_role_assignment" "ssd_backup_vault_disk_backup_contributor" {
-  scope                = azurerm_managed_disk.aks_ssd_disk.id
-  role_definition_name = "Disk Backup Reader"
-  principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
-}
+# resource "azurerm_role_assignment" "ssd_backup_vault_disk_backup_contributor" {
+#   scope                = azurerm_managed_disk.aks_ssd_disk.id
+#   role_definition_name = "Disk Backup Reader"
+#   principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
+# }
 
-resource "azurerm_role_assignment" "hdd_backup_vault_disk_backup_contributor" {
-  scope                = azurerm_managed_disk.aks_hdd_disk.id
-  role_definition_name = "Disk Backup Reader"
-  principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
-}
+# resource "azurerm_role_assignment" "hdd_backup_vault_disk_backup_contributor" {
+#   scope                = azurerm_managed_disk.aks_hdd_disk.id
+#   role_definition_name = "Disk Backup Reader"
+#   principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
+# }
 
-resource "azurerm_role_assignment" "ssd_backup_vault_disk_snapshot_contributor" {
-  scope                = azurerm_managed_disk.aks_ssd_disk.id
-  role_definition_name = "Disk Snapshot Contributor"
-  principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
-}
+# resource "azurerm_role_assignment" "ssd_backup_vault_disk_snapshot_contributor" {
+#   scope                = azurerm_managed_disk.aks_ssd_disk.id
+#   role_definition_name = "Disk Snapshot Contributor"
+#   principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
+# }
 
-resource "azurerm_role_assignment" "hdd_backup_vault_disk_snapshot_contributor" {
-  scope                = azurerm_managed_disk.aks_hdd_disk.id
-  role_definition_name = "Disk Snapshot Contributor"
-  principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
-}
+# resource "azurerm_role_assignment" "hdd_backup_vault_disk_snapshot_contributor" {
+#   scope                = azurerm_managed_disk.aks_hdd_disk.id
+#   role_definition_name = "Disk Snapshot Contributor"
+#   principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
+# }
 
-resource "azurerm_role_assignment" "backup_vault_key_vault_crypto_user" {
-  scope                = var.keyvault_id
-  role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
-}
+# resource "azurerm_role_assignment" "backup_vault_key_vault_crypto_user" {
+#   scope                = var.keyvault_id
+#   role_definition_name = "Key Vault Crypto Service Encryption User"
+#   principal_id         = data.azurerm_data_protection_backup_vault.disk_backup_vault.identity[0].principal_id
+# }
 
-resource "time_sleep" "wait_30_seconds" {
-  depends_on = [
-    azurerm_data_protection_backup_vault.disk_backup_vault,
-    azurerm_role_assignment.ssd_backup_vault_disk_backup_contributor,
-    azurerm_role_assignment.hdd_backup_vault_disk_backup_contributor,
-    azurerm_role_assignment.ssd_backup_vault_disk_snapshot_contributor,
-    azurerm_role_assignment.hdd_backup_vault_disk_snapshot_contributor,
-    azurerm_role_assignment.backup_vault_key_vault_crypto_user,
-    azurerm_data_protection_backup_policy_disk.disk_backup_policy
-  ]
-  create_duration = "30s"
-}
+# resource "time_sleep" "wait_30_seconds" {
+#   depends_on = [
+#     azurerm_data_protection_backup_vault.disk_backup_vault,
+#     azurerm_role_assignment.ssd_backup_vault_disk_backup_contributor,
+#     azurerm_role_assignment.hdd_backup_vault_disk_backup_contributor,
+#     azurerm_role_assignment.ssd_backup_vault_disk_snapshot_contributor,
+#     azurerm_role_assignment.hdd_backup_vault_disk_snapshot_contributor,
+#     azurerm_role_assignment.backup_vault_key_vault_crypto_user,
+#     azurerm_data_protection_backup_policy_disk.disk_backup_policy
+#   ]
+#   create_duration = "30s"
+# }
 
 # # Protect the SSD managed disk with the backup policy
 # resource "azurerm_data_protection_backup_instance_disk" "ssd_disk_backup" {
