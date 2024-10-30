@@ -9,6 +9,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from PyPDF2 import PdfMerger
+from structlog.contextvars import bind_contextvars
 
 from otto.secure_models import AccessKey
 from otto.utils.common import display_cad_cost, file_size_to_string
@@ -74,6 +75,9 @@ def submit_document(request):
             current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
 
             for idx, file in enumerate(files):
+                bind_contextvars(
+                    feature="text_extractor"
+                )  # for keeping track in dashboard
                 ocr_file, txt_file, cost = create_searchable_pdf(
                     file, merged and idx > 0
                 )
