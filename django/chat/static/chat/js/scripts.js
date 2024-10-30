@@ -448,18 +448,22 @@ function updateQaHiddenField(modal_element) {
   }
 };
 
-function toggleSlider(value) {
-  var slider = document.getElementById('qa_granularity_slider');
-  var sliderInput = document.getElementById('qa_granularity-modal');
+function toggleGranularOptions(value) {
+  var gran_slider = document.getElementById('qa_granularity_slider');
+  var gran = document.getElementById('qa_granularity-modal');
+
+  var pruning_toggle = document.getElementById('qa_pruning');
 
   if (value === 'per-source') {
-    slider.style.display = 'flex';
+    gran_slider.style.display = 'flex';
+    pruning_toggle.style.display = '';
   } else {
-    slider.style.display = 'none';
-    sliderInput.value = 768; // Reset slider value to 768 when "combined" is selected
+    gran_slider.style.display = 'none';
+    gran.value = 768; // Reset slider value to 768 when "combined" is selected
+    pruning_toggle.style.display = 'none';
   }
 
-  updateQaHiddenField(sliderInput);
+  updateQaHiddenField(gran);
 }
 
 
