@@ -495,33 +495,13 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         target_options.save()
 
     chat = Chat.objects.get(id=chat_id)
-    if action in ["reset", "load_preset"]:
-        if action == "reset":
-            chat.options.delete()
-            preset_options = ChatOptions.objects.from_defaults(
-                chat=chat,
-            )
-            logger.info("Resetting chat options to default.", chat_id=chat_id)
+    if action == "reset":
+        # chat.options.delete()
+        preset_options = ChatOptions.objects.from_defaults()
+        logger.info("Resetting chat options to default.", chat_id=chat_id)
 
-            # Update the chat options with the default options
-            _copy_options(preset_options, chat.options)
-        else:
-            logger.info(
-                "Loading chat options from a preset.",
-                chat_id=chat_id,
-                preset=preset_id,
-            )
-            if not preset_id:
-                return HttpResponse(status=500)
-            preset = Preset.objects.get(id=int(preset_id))
-            if not preset:
-                return HttpResponse(status=500)
-            chat.options.delete()
-            new_options = ChatOptions.objects.from_defaults(chat=chat)
-
-            # copy the options from the preset to the chat
-            _copy_options(preset.options, new_options)
-
+        # Update the chat options with the default options
+        _copy_options(preset_options, chat.options)
         return render(
             request,
             "chat/components/chat_options_accordion.html",
@@ -529,6 +509,34 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 "options_form": ChatOptionsForm(
                     instance=chat.options, user=request.user
                 ),
+                "preset_loaded": "true",
+            },
+        )
+
+    elif action == "load_preset":
+        logger.info(
+            "Loading chat options from a preset.",
+            chat_id=chat_id,
+            preset=preset_id,
+        )
+        if not preset_id:
+            return HttpResponse(status=500)
+        preset = Preset.objects.get(id=int(preset_id))
+        if not preset:
+            return HttpResponse(status=500)
+        chat.options.delete()
+        new_options = ChatOptions.objects.from_defaults(chat=chat)
+
+        # copy the options from the preset to the chat
+        _copy_options(preset.options, new_options)
+
+        chat_options_form = ChatOptionsForm(instance=new_options, user=request.user)
+
+        return render(
+            request,
+            "chat/components/chat_options_accordion.html",
+            {
+                "options_form": chat_options_form,
                 "preset_loaded": "true",
             },
         )
@@ -625,8 +633,18 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         return redirect("chat:get_presets", chat_id=chat_id)
     elif request.method == "POST":
         chat_options = chat.options
+        post_data = request.POST.copy()
+
+        # In case of duplicate values, remove them by taking the first value from each list
+        for key in post_data:
+            if (
+                isinstance(post_data.getlist(key), list)
+                and len(post_data.getlist(key)) > 1
+            ):
+                post_data.setlist(key, [post_data.getlist(key)[0]])
+
         chat_options_form = ChatOptionsForm(
-            request.POST, instance=chat_options, user=request.user
+            post_data, instance=chat_options, user=request.user
         )
         # Check for errors and print them to console
         if not chat_options_form.is_valid():
