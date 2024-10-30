@@ -151,8 +151,10 @@ def extract_markdown(
     chunk_size=768,
     selector=None,
 ):
+    enable_markdown = True
     if process_engine == "PDF":
         if pdf_method == "default":
+            enable_markdown = False
             md = pdf_to_text_pdfium(content)
             if len(md) < 10:
                 # Fallback to Azure Document Intelligence Read API to OCR
@@ -160,6 +162,7 @@ def extract_markdown(
         elif pdf_method == "azure_layout":
             md = pdf_to_markdown_azure_layout(content)
         elif pdf_method == "azure_read":
+            enable_markdown = False
             md = pdf_to_text_azure_read(content)
     elif process_engine == "WORD":
         md = docx_to_markdown(content)
@@ -168,11 +171,17 @@ def extract_markdown(
     elif process_engine == "HTML":
         md = html_to_markdown(content.decode("utf-8"), base_url, selector)
     elif process_engine == "TEXT":
+        enable_markdown = False
         md = content.decode("utf-8")
+
+    # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
+    md = re.sub(r"\n{3,}", "\n\n", md.strip())
 
     # Divide the markdown into chunks
     try:
-        md_splitter = MarkdownSplitter(chunk_size=chunk_size, chunk_overlap=0)
+        md_splitter = MarkdownSplitter(
+            chunk_size=chunk_size, chunk_overlap=0, enable_markdown=enable_markdown
+        )
         md_chunks = md_splitter.split_markdown(md)
     except Exception as e:
         print("Error splitting markdown using MarkdownSplitter:")
@@ -472,7 +481,6 @@ def pdf_to_text_azure_read(content: bytes) -> str:
 
     from azure.ai.formrecognizer import DocumentAnalysisClient
     from azure.core.credentials import AzureKeyCredential
-    from shapely.geometry import Polygon
 
     document_analysis_client = DocumentAnalysisClient(
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
@@ -486,36 +494,17 @@ def pdf_to_text_azure_read(content: bytes) -> str:
     cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
 
     p_chunks = []
-    for paragraph in result.paragraphs:
-        paragraph_page_number = paragraph.bounding_regions[0].page_number
-        paragraph_polygon = Polygon(
-            [(point.x, point.y) for point in paragraph.bounding_regions[0].polygon]
-        )
+    for page in result.pages:
+        for line in page.lines:
+            chunk = {
+                "page_number": page.page_number,
+                "text": line.content + "\n",
+            }
+            p_chunks.append(chunk)
 
-        # If text contains words like :selected:, :checked:, or :unchecked:, then skip it
-        if any(
-            word in paragraph.content
-            for word in [":selected:", ":checked:", ":unchecked:"]
-        ):
-            continue
-
-        # Create Chunk object and append to chunks list
-        chunk = {
-            "page_number": paragraph_page_number,
-            "x": paragraph_polygon.bounds[0],
-            "y": paragraph_polygon.bounds[1],
-            "text": paragraph.content + "\n\n",
-        }
-        p_chunks.append(chunk)
-
-    # Sort chunks by page number, then by y coordinate, then by x coordinate
-    chunks = sorted(
-        p_chunks,
-        key=lambda item: (item.get("page_number"), item.get("y"), item.get("x")),
-    )
     text = ""
     cur_page = None
-    for _, chunk in enumerate(chunks, 1):
+    for _, chunk in enumerate(p_chunks, 1):
         page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
         page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
         prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
@@ -526,7 +515,7 @@ def pdf_to_text_azure_read(content: bytes) -> str:
             text = text.strip() + page_start_tag
         text += chunk.get("text")
 
-    if cur_page is not None and chunks:
+    if cur_page is not None and p_chunks:
         text = text.strip() + page_end_tag
 
     return text
