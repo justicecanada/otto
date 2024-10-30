@@ -129,6 +129,8 @@ def process_document_helper(document, llm, pdf_method="default"):
     nodes = create_nodes(chunks, document)
 
     document.num_chunks = len(nodes)
+    if document.content_type == "application/pdf":
+        document.pdf_extraction_method = pdf_method
     document.save()
 
     library_uuid = document.data_source.library.uuid_hex

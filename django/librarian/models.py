@@ -32,9 +32,9 @@ STATUS_CHOICES = [
 ]
 
 PDF_EXTRACTION_CHOICES = [
-    ("default", "Otto default (text only)"),
-    ("azure_ocr", "Azure Read (OCR)"),
-    ("azure_layout", "Azure Layout (OCR + tables)"),
+    ("default", _("text only")),
+    ("azure_read", _("OCR")),
+    ("azure_layout", _("layout & OCR")),
 ]
 
 
@@ -374,6 +374,11 @@ class Document(models.Model):
     @property
     def name(self):
         return self.title or self.filename or self.url or "Untitled document"
+
+    @property
+    def pdf_method(self):
+        method = self.pdf_extraction_method
+        return dict(PDF_EXTRACTION_CHOICES).get(method, method)
 
     @property
     def celery_status_message(self):
