@@ -25,7 +25,6 @@ class Migration(migrations.Migration):
                     ("template_wizard", "Template wizard"),
                     ("laws_query", "Legislation search"),
                     ("laws_load", "Legislation loading"),
-                    ("case_prep", "Case prep assistant"),
                     ("text_extractor", "Text extractor"),
                 ],
                 max_length=50,
