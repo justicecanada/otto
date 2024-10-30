@@ -139,6 +139,8 @@ def get_process_engine_from_type(type):
         return "PDF"
     elif "text/html" in type:
         return "HTML"
+    elif "text/markdown" in type:
+        return "MARKDOWN"
     else:
         return "TEXT"
 
@@ -170,6 +172,8 @@ def extract_markdown(
         md = pptx_to_markdown(content)
     elif process_engine == "HTML":
         md = html_to_markdown(content.decode("utf-8"), base_url, selector)
+    elif process_engine == "MARKDOWN":
+        md = content.decode("utf-8")
     elif process_engine == "TEXT":
         enable_markdown = False
         md = content.decode("utf-8")

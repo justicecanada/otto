@@ -79,6 +79,8 @@ def process_document_helper(document, llm, pdf_method="default"):
                 },
             )
         content, content_type = fetch_from_url(url)
+        if "text" in content_type and url.endswith(".md"):
+            content_type = "text/markdown"
         document.url_content_type = content_type
     else:
         logger.info("Processing file", file=file)
@@ -92,6 +94,10 @@ def process_document_helper(document, llm, pdf_method="default"):
             )
         content = file.file.read()
         content_type = file.content_type
+        if ("text" in content_type or not content_type) and file.file.name.endswith(
+            ".md"
+        ):
+            content_type = "text/markdown"
 
     if current_task:
         current_task.update_state(
