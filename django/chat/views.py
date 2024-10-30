@@ -525,6 +525,9 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         if not preset:
             return HttpResponse(status=500)
 
+        # Update the chat options with the preset options
+        _copy_options(preset.options, chat.options)
+
         chat_options_form = ChatOptionsForm(instance=preset.options, user=request.user)
 
         return render(
