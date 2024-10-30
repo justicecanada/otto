@@ -411,7 +411,7 @@ class ChatFile(models.Model):
     def __str__(self):
         return f"File {self.id}: {self.filename}"
 
-    def extract_text(self, fast=True):
+    def extract_text(self, pdf_method="default"):
 
         from librarian.utils.process_engine import (
             extract_markdown,
@@ -423,7 +423,7 @@ class ChatFile(models.Model):
 
         process_engine = get_process_engine_from_type(self.saved_file.content_type)
         self.text, _ = extract_markdown(
-            self.saved_file.file.read(), process_engine, fast=fast
+            self.saved_file.file.read(), process_engine, pdf_method=pdf_method
         )
         self.save()
 

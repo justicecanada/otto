@@ -395,23 +395,12 @@ def create_temp_object(item_type):
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 @budget_required
-def document_start(request, document_id):
+def document_start(request, document_id, pdf_method="default"):
     bind_contextvars(feature="librarian")
 
     # Initiate celery task
     document = get_object_or_404(Document, id=document_id)
-    document.process()
-    return modal_view(request, item_type="document", item_id=document_id)
-
-
-@permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
-@budget_required
-def document_start_azure(request, document_id):
-    bind_contextvars(feature="librarian")
-
-    # Initiate celery task
-    document = get_object_or_404(Document, id=document_id)
-    document.process(force_azure=True)
+    document.process(pdf_method=pdf_method)
     return modal_view(request, item_type="document", item_id=document_id)
 
 
@@ -439,25 +428,12 @@ def data_source_stop(request, data_source_id):
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
 @budget_required
-def data_source_start(request, data_source_id):
+def data_source_start(request, data_source_id, pdf_method="default"):
     # Start all celery tasks for documents within this data source
     bind_contextvars(feature="librarian")
     data_source = get_object_or_404(DataSource, id=data_source_id)
     for document in data_source.documents.all():
-        document.process()
-    return modal_view(request, item_type="data_source", item_id=data_source_id)
-
-
-@permission_required(
-    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
-)
-@budget_required
-def data_source_start_azure(request, data_source_id):
-    # Start all celery tasks for documents within this data source
-    bind_contextvars(feature="librarian")
-    data_source = get_object_or_404(DataSource, id=data_source_id)
-    for document in data_source.documents.all():
-        document.process(force_azure=True)
+        document.process(pdf_method=pdf_method)
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
 

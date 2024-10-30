@@ -27,7 +27,7 @@ ten_minutes = 600
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def process_document(document_id, language=None, force_azure=False):
+def process_document(document_id, language=None, pdf_method="default"):
     """
     Process a URL and save the content to a document.
     """
@@ -45,7 +45,7 @@ def process_document(document_id, language=None, force_azure=False):
     llm = OttoLLM()
     try:
         with translation.override(language):
-            process_document_helper(document, llm, force_azure)
+            process_document_helper(document, llm, pdf_method)
 
     except Exception as e:
         document.status = "ERROR"
@@ -58,7 +58,7 @@ def process_document(document_id, language=None, force_azure=False):
     llm.create_costs()
 
 
-def process_document_helper(document, llm, force_azure=False):
+def process_document_helper(document, llm, pdf_method="default"):
     url = document.url
     file = document.file
     if not (url or file):
@@ -109,7 +109,7 @@ def process_document_helper(document, llm, force_azure=False):
     document.extracted_text, chunks = extract_markdown(
         content,
         process_engine,
-        fast=not force_azure,
+        pdf_method=pdf_method,
         base_url=base_url,
         selector=document.selector,
     )

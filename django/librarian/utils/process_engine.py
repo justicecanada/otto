@@ -144,16 +144,23 @@ def get_process_engine_from_type(type):
 
 
 def extract_markdown(
-    content, process_engine, fast=False, base_url=None, chunk_size=768, selector=None
+    content,
+    process_engine,
+    pdf_method="default",
+    base_url=None,
+    chunk_size=768,
+    selector=None,
 ):
-    if process_engine == "PDF" and fast:
-        md = fast_pdf_to_text(content)
-        if len(md) < 10:
-            # Fallback to Azure Document AI (fka Form Recognizer) if the fast method fails
-            # since that probably means it needs OCR
-            md = pdf_to_markdown(content)
-    elif process_engine == "PDF":
-        md = pdf_to_markdown(content)
+    if process_engine == "PDF":
+        if pdf_method == "default":
+            md = pdf_to_text_pdfium(content)
+            if len(md) < 10:
+                # Fallback to Azure Document Intelligence Read API to OCR
+                md = pdf_to_text_azure_read(content)
+        elif pdf_method == "azure_layout":
+            md = pdf_to_markdown_azure_layout(content)
+        elif pdf_method == "azure_read":
+            md = pdf_to_text_azure_read(content)
     elif process_engine == "WORD":
         md = docx_to_markdown(content)
     elif process_engine == "POWERPOINT":
@@ -180,12 +187,12 @@ def extract_markdown(
     return md, md_chunks
 
 
-def pdf_to_markdown(content):
-    html = _pdf_to_html_using_azure(content)
+def pdf_to_markdown_azure_layout(content):
+    html = _pdf_to_html_azure_layout(content)
     return _convert_html_to_markdown(html)
 
 
-def fast_pdf_to_text(content):
+def pdf_to_text_pdfium(content):
     # Note: This method is faster than using Azure Form Recognizer
     # Expected it to work well for more generic scenarios but not for scanned PDFs, images, and handwritten text
     import pypdfium2 as pdfium
@@ -350,7 +357,7 @@ def _convert_html_to_markdown(
     return markdown
 
 
-def _pdf_to_html_using_azure(content):
+def _pdf_to_html_azure_layout(content):
     from azure.ai.formrecognizer import DocumentAnalysisClient
     from azure.core.credentials import AzureKeyCredential
     from shapely.geometry import Polygon
@@ -459,3 +466,67 @@ def _pdf_to_html_using_azure(content):
         html += page_end_tag
 
     return html
+
+
+def pdf_to_text_azure_read(content: bytes) -> str:
+
+    from azure.ai.formrecognizer import DocumentAnalysisClient
+    from azure.core.credentials import AzureKeyCredential
+    from shapely.geometry import Polygon
+
+    document_analysis_client = DocumentAnalysisClient(
+        endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+        credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+    )
+
+    poller = document_analysis_client.begin_analyze_document("prebuilt-read", content)
+    result = poller.result()
+
+    num_pages = len(result.pages)
+    cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
+
+    p_chunks = []
+    for paragraph in result.paragraphs:
+        paragraph_page_number = paragraph.bounding_regions[0].page_number
+        paragraph_polygon = Polygon(
+            [(point.x, point.y) for point in paragraph.bounding_regions[0].polygon]
+        )
+
+        # If text contains words like :selected:, :checked:, or :unchecked:, then skip it
+        if any(
+            word in paragraph.content
+            for word in [":selected:", ":checked:", ":unchecked:"]
+        ):
+            continue
+
+        # Create Chunk object and append to chunks list
+        chunk = {
+            "page_number": paragraph_page_number,
+            "x": paragraph_polygon.bounds[0],
+            "y": paragraph_polygon.bounds[1],
+            "text": paragraph.content + "\n\n",
+        }
+        p_chunks.append(chunk)
+
+    # Sort chunks by page number, then by y coordinate, then by x coordinate
+    chunks = sorted(
+        p_chunks,
+        key=lambda item: (item.get("page_number"), item.get("y"), item.get("x")),
+    )
+    text = ""
+    cur_page = None
+    for _, chunk in enumerate(chunks, 1):
+        page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
+        page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
+        prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
+        if chunk.get("page_number") != cur_page:
+            if cur_page is not None:
+                text = text.strip() + prev_end_tag
+            cur_page = chunk.get("page_number")
+            text = text.strip() + page_start_tag
+        text += chunk.get("text")
+
+    if cur_page is not None and chunks:
+        text = text.strip() + page_end_tag
+
+    return text

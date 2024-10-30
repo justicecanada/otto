@@ -158,10 +158,7 @@ class Library(models.Model):
         self.reset(recreate=False)
         super().delete(*args, **kwargs)
 
-    def process_all(
-        self,
-        force=True,
-    ):
+    def process_all(self):
         for ds in self.data_sources.all():
             for document in ds.documents.all():
                 document.process()
@@ -283,7 +280,7 @@ class DataSource(models.Model):
             document.delete()
         super().delete()
 
-    def process_all(self, force=True):
+    def process_all(self):
         for document in self.documents.all():
             document.process()
 
@@ -434,7 +431,7 @@ class Document(models.Model):
             file.safe_delete()
         super().delete(*args, **kwargs)
 
-    def process(self, force_azure=False):
+    def process(self, pdf_method="default"):
         from .tasks import process_document
 
         bind_contextvars(document_id=self.id)
@@ -444,7 +441,7 @@ class Document(models.Model):
             self.status = "ERROR"
             self.save()
             return
-        process_document.delay(self.id, get_language(), force_azure)
+        process_document.delay(self.id, get_language(), pdf_method)
         self.celery_task_id = "tbd"
         self.status = "INIT"
         self.save()

@@ -66,10 +66,19 @@
       {% else %}
         <button type="button"
                 class="btn btn-sm btn-outline-success"
-                hx-get="{% url 'librarian:document_start' document.id %}">{% trans "Process" %}</button>
+                hx-get="{% url 'librarian:document_start' document.id 'default' %}">
+          {% trans "Process (default)" %}
+        </button>
         <button type="button"
                 class="btn btn-sm btn-outline-success"
-                hx-get="{% url 'librarian:document_start_azure' document.id %}">{% trans "Force OCR" %}</button>
+                hx-get="{% url 'librarian:document_start' document.id 'azure_read' %}">
+          {% trans "Azure Read" %}
+        </button>
+        <button type="button"
+                class="btn btn-sm btn-outline-success"
+                hx-get="{% url 'librarian:document_start' document.id 'azure_layout' %}">
+          {% trans "Azure Layout" %}
+        </button>
       {% endif %}
     </div>
   </div>
