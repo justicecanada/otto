@@ -9,19 +9,22 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="advanced-qa-modal-title">
-          <span>{% trans "Advanced Q&A settings" %}</span>
+          <span>{% trans "Advanced Q&A settings" %}
+
+          </span>
         </h5>
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label='{% trans "Close" %} '></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label='{% trans "Close" %}
+           '></button>
       </div>
       <div class="modal-body">
         <div class="row">
           <div class="col-md-3 mb-2">
             <label for="qa_vector_ratio-modal"
                    class="col-form-label col-form-label-sm"
-                   id="vector-ratio-label">{% trans "Keyword ↔ Vector" %}</label>
+                   id="vector-ratio-label">
+              {% trans "Keyword ↔ Vector" %}
+
+            </label>
             <div class="row">
               <div class="col pe-0">
                 <input type="range"
@@ -47,8 +50,11 @@
               </div>
             </div>
           </div>
-          <div class="col-md-2 mb-2">
-            <label for="qa_topk-modal" class="col-form-label col-form-label-sm">{% trans "Maximum sources" %}</label>
+          <div class="col-md-2 mb-2  qa_rag_option">
+            <label for="qa_topk-modal" class="col-form-label col-form-label-sm">
+              {% trans "Maximum sources" %}
+
+            </label>
             <input type="number"
                    class="form-control form-control-sm"
                    id="qa_topk-modal"
@@ -57,34 +63,54 @@
                    data-inputname="qa_topk"
                    oninput="updateQaHiddenField(this);">
           </div>
-          <div class="col-md-2 mb-2">
-            <label for="qa_source_order-modal" class="col-form-label col-form-label-sm">{% trans "Order sources by" %}</label>
+          <div class="col-md-2 mb-2  qa_rag_option">
+            <label for="qa_source_order-modal" class="col-form-label col-form-label-sm">
+              {% trans "Order sources by" %}
+
+            </label>
             <select class="form-select form-select-sm"
                     id="qa_source_order-modal"
                     data-inputname="qa_source_order"
                     oninput="updateQaHiddenField(this);">
-              <option value="score">{% trans "Relevance (score)" %}</option>
-              <option value="reading_order">{% trans "Reading order" %}</option>
+              <option value="score">
+                {% trans "Relevance (score)" %}
+
+              </option>
+              <option value="reading_order">
+                {% trans "Reading order" %}
+
+              </option>
             </select>
           </div>
-          <div class="col-md-3 mb-2">
-            <label for="qa_answer_mode-modal" class="col-form-label col-form-label-sm">{% trans "Answer granularity" %}</label>
+          <div class="col-md-3 mb-2 qa_rag_option">
+            <label for="qa_answer_mode-modal" class="col-form-label col-form-label-sm">
+              {% trans "Answer granularity" %}
+
+            </label>
             <select class="form-select form-select-sm"
                     id="qa_answer_mode-modal"
                     data-inputname="qa_answer_mode"
                     oninput="updateQaHiddenField(this); toggleSlider(this.value);">
-              <option value="combined">{% trans "Single answer" %}</option>
-              <option value="per-source">{% trans "Granular answers" %}</option>
+              <option value="combined">
+                {% trans "Single answer" %}
+
+              </option>
+              <option value="per-source">
+                {% trans "Granular answers" %}
+
+              </option>
             </select>
 
-            <div class="row"
-                 id="qa_granularity_slider"
-                 style="{% if chat.options.qa_answer_mode == 'combined' %} display: none;
-                        {% endif %}">
+            <div class="row" id="qa_granularity_slider" style="{% if chat.options.qa_answer_mode == 'combined' %}
+               display: none; {% endif %}
+               ">
               <div class="col pe-0 text-center">
                 <label for="qa_granularity-modal"
                        class="col-form-label col-form-label-sm mb-0"
-                       id="granularity-label">{% trans "Granularity" %}</label>
+                       id="granularity-label">
+                  {% trans "Granularity" %}
+
+                </label>
                 <input type="range"
                        class="form-range my-1"
                        id="qa_granularity-modal"
@@ -95,13 +121,17 @@
                        value="768"
                        onchange="updateQaHiddenField(this);">
                 <div class="d-flex justify-content-between mt-0 align-items-end">
-                  <span class="col-form-label-sm small">{% trans "Fine" %}</span>
-                  <span class="col-form-label-sm small">{% trans "Coarse" %}</span>
+                  <span class="col-form-label-sm small">{% trans "Fine" %}
+
+                  </span>
+                  <span class="col-form-label-sm small">{% trans "Coarse" %}
+
+                  </span>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-md-2 mb-2 pt-3">
+          <div class="col-md-2 mb-2 pt-3 qa_rag_option">
             <div class="form-check form-switch col ms-2">
               <input class="form-check-input small"
                      type="checkbox"
@@ -110,7 +140,10 @@
                      value="true"
                      checked
                      onchange="this.value = this.checked ? 'true' : 'false'; updateQaHiddenField(this);">
-              <label class="form-check-label small" for="qa_prune-modal">{% trans "Remove irrelevant sources" %}</label>
+              <label class="form-check-label small" for="qa_prune-modal">
+                {% trans "Remove irrelevant sources" %}
+
+              </label>
             </div>
             <div class="form-check form-switch col-auto ms-2">
               <input class="form-check-input small"
@@ -118,7 +151,10 @@
                      role="switch"
                      id="qa_rewrite-modal"
                      disabled>
-              <label class="form-check-label small" for="qa_rewrite-modal">{% trans "Rewrite queries for search" %}</label>
+              <label class="form-check-label small" for="qa_rewrite-modal">
+                {% trans "Rewrite queries for search" %}
+
+              </label>
             </div>
           </div>
         </div>
@@ -127,9 +163,14 @@
 
         <div class="row">
           <div class="col-lg-4 mb-2">
-            <label for="qa_system_prompt-modal" class="col-form-label-sm pb-0">{% trans "System prompt" %}</label>
+            <label for="qa_system_prompt-modal" class="col-form-label-sm pb-0">
+              {% trans "System prompt" %}
+
+            </label>
             <p class="text-secondary small mb-2">
-              <em>{% trans "(Optional) Define AI model's role, background information, rules to follow, examples." %}</em>
+              <em>{% trans "(Optional) Define AI model's role, background information, rules to follow, examples." %}
+
+              </em>
             </p>
             <textarea class="form-control form-control-sm"
                       autocomplete="off"
@@ -142,9 +183,14 @@
                       rows="20"></textarea>
           </div>
           <div class="col-lg-4 mb-2">
-            <label for="qa_pre_instructions-modal" class="col-form-label-sm pb-0">{% trans "Pre-query instructions" %}</label>
+            <label for="qa_pre_instructions-modal" class="col-form-label-sm pb-0">
+              {% trans "Pre-query instructions" %}
+
+            </label>
             <p class="text-secondary small mb-2">
-              <em>{% trans "(Recommended) What model should with context and query, formatting instructions." %}</em>
+              <em>{% trans "(Recommended) What model should with context and query, formatting instructions." %}
+
+              </em>
             </p>
             <textarea class="form-control form-control-sm"
                       autocomplete="off"
@@ -157,9 +203,14 @@
                       rows="20"></textarea>
           </div>
           <div class="col-lg-4 mb-2">
-            <label for="qa_post_instructions-modal" class="col-form-label-sm pb-0">{% trans "Post-query instructions" %}</label>
+            <label for="qa_post_instructions-modal" class="col-form-label-sm pb-0">
+              {% trans "Post-query instructions" %}
+
+            </label>
             <p class="text-secondary small mb-2">
-              <em>{% trans "(Optional) Final reminders of desired behaviour. Keep this short." %}</em>
+              <em>{% trans "(Optional) Final reminders of desired behaviour. Keep this short." %}
+
+              </em>
             </p>
             <textarea class="form-control form-control-sm"
                       autocomplete="off"

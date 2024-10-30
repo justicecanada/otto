@@ -461,3 +461,27 @@ function toggleSlider(value) {
 
   updateQaHiddenField(sliderInput);
 }
+
+
+function toggleRagOptions(value) {
+  var ragOptions = document.querySelectorAll('.qa_rag_option');
+
+  ragOptions.forEach(function (option) {
+    if (value === 'summarize') {
+      option.style.display = 'none';
+    } else {
+      option.style.display = '';
+    }
+  });
+}
+
+// Hide RAG-only Q+A options in advanced modal on page load if applicable
+document.addEventListener("DOMContentLoaded", function () {
+  const ragOptions = document.querySelectorAll(".qa_rag_option");
+  const mode = document.getElementById("id_qa_mode");
+  ragOptions.forEach(function (option) {
+    if (mode.value === "summarize") {
+      option.style.display = "none";
+    }
+  });
+});
