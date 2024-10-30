@@ -17,6 +17,8 @@ from reportlab.lib import pagesizes
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
+from otto.models import Cost
+
 default_font = "Helvetica"
 img_extensions = (".tif", ".tiff", ".jpg", ".jpeg", ".png", ".bmp")
 
@@ -284,7 +286,24 @@ def create_searchable_pdf(input_file, add_header):
         new_pdf_page = PdfReader(ocr_overlay)  # changed
         output.add_page(new_pdf_page.pages[0])
 
-    return output, all_text
+    # Calculate token counts
+    input_token_count = len(all_text.split())
+    output_token_count = len(all_text.split())
+    embed_token_count = 0  # Assuming no embedding tokens for this example
+
+    # Create cost objects
+    usd_cost = 0
+    if input_token_count > 0:
+        c1 = Cost.objects.new(cost_type="doc-ai-read", count=input_token_count)
+        usd_cost += c1.usd_cost
+    if output_token_count > 0:
+        c2 = Cost.objects.new(cost_type="doc-ai-read", count=output_token_count)
+        usd_cost += c2.usd_cost
+    if embed_token_count > 0:
+        c3 = Cost.objects.new(cost_type="embedding", count=embed_token_count)
+        usd_cost += c3.usd_cost
+
+    return output, all_text, usd_cost
 
 
 def shorten_input_name(input_name):

@@ -11,7 +11,7 @@ from django.shortcuts import render
 from PyPDF2 import PdfMerger
 
 from otto.secure_models import AccessKey
-from otto.utils.common import file_size_to_string
+from otto.utils.common import display_cad_cost, file_size_to_string
 from otto.utils.decorators import app_access_required, budget_required
 from text_extractor.models import OutputFile, UserRequest
 
@@ -51,6 +51,7 @@ def submit_document(request):
 
         completed_documents = []
         all_texts = []
+        total_cost = 0
 
         merged = request.POST.get("merge_docs_checkbox", False)
         merger = PdfMerger() if merged else None
@@ -73,7 +74,10 @@ def submit_document(request):
             current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
 
             for idx, file in enumerate(files):
-                ocr_file, txt_file = create_searchable_pdf(file, merged and idx > 0)
+                ocr_file, txt_file, cost = create_searchable_pdf(
+                    file, merged and idx > 0
+                )
+                total_cost += cost
                 all_texts.append(txt_file)
 
                 input_name, _ = os.path.splitext(file.name)
@@ -179,10 +183,11 @@ def submit_document(request):
                         },
                     }
                 )
-
+            formatted_total_cost = display_cad_cost(total_cost)
             context = {
                 "ocr_docs": completed_documents,
                 "user_request_id": user_request.id,
+                "total_cost": formatted_total_cost,
             }
             user_request.save(access_key)
 
