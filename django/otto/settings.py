@@ -152,7 +152,6 @@ INSTALLED_APPS = [
     "librarian",
     "chat",
     "laws",
-    "case_prep",
     "template_wizard",
     # Third-party apps
     "channels",

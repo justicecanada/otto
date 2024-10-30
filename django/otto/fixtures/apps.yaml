@@ -73,23 +73,6 @@
           url: laws:index
           category: other
 
-- model: otto.App
-  fields:
-    handle: case_prep
-    name_en: Case prep assistant
-    name_fr: Assistante à la préparation des dossiers
-    visible_to_all: false
-    prod_ready: true
-    user_group: Case prep user
-    features:
-      - fields:
-          short_name: "case_prep"
-          name_en: Case prep assistant
-          name_fr: Assistante à la préparation des dossiers
-          description_en: Compile a book of documents and get prepared for a court case.
-          description_fr: Compilez un livre de documents et préparez-vous à un procès.
-          url: case_prep:index
-          category: other
 
 - model: otto.App
   fields:
