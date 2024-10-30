@@ -2,7 +2,6 @@ import os
 from datetime import datetime
 from io import BytesIO
 
-from django.core.exceptions import SuspiciousFileOperation
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, JsonResponse
@@ -71,8 +70,6 @@ def submit_document(request):
                     None,
                 )
                 files.insert(0, toc_file)
-
-            current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
 
             for idx, file in enumerate(files):
                 bind_contextvars(
