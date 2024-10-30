@@ -33,11 +33,12 @@
 | django/librarian/utils/markdown\_splitter.py                           |      170 |       10 |     94% |65, 68-70, 81, 116, 128, 242, 252, 259 |
 | django/librarian/utils/process\_engine.py                              |      269 |       43 |     84% |39, 42-44, 49, 114-130, 135, 137, 139, 154, 170-179, 240, 264, 280-282, 331-335, 341-345, 393-394, 428 |
 | django/librarian/views.py                                              |      286 |      143 |     50% |67-112, 119-141, 143-147, 154, 157-160, 173-191, 195-198, 217-233, 246-255, 287-296, 311, 318-320, 326, 332, 340, 347, 355, 361, 366, 374, 399-404, 410-415, 421-423, 431-435, 444-448, 457-461, 492, 503-510, 517-518 |
-| django/otto/celery.py                                                  |       16 |        1 |     94% |        55 |
+| django/otto/celery.py                                                  |       16 |        1 |     94% |        59 |
 | django/otto/context\_processors.py                                     |        3 |        0 |    100% |           |
 | django/otto/forms.py                                                   |       57 |        4 |     93% |72, 74, 158-159 |
 | django/otto/management/commands/delete\_empty\_chats.py                |       19 |        1 |     95% |        29 |
 | django/otto/management/commands/delete\_old\_chats.py                  |       20 |        2 |     90% |    31, 35 |
+| django/otto/management/commands/delete\_text\_extractor\_files.py      |       18 |        0 |    100% |           |
 | django/otto/management/commands/reset\_app\_data.py                    |      124 |       20 |     84% |67-72, 90, 104-109, 129-134, 155-160, 174-175, 180-183, 198-203, 214 |
 | django/otto/metrics/activity\_metrics.py                               |        2 |        0 |    100% |           |
 | django/otto/metrics/feedback\_metrics.py                               |        3 |        0 |    100% |           |
@@ -45,7 +46,7 @@
 | django/otto/rules.py                                                   |      121 |       18 |     85% |25, 42, 51, 89, 121, 149-153, 165, 167, 173, 178, 184, 188-189, 194 |
 | django/otto/secure\_models.py                                          |      248 |       63 |     75% |21-22, 61, 86-100, 129-130, 135-136, 149-154, 183-224, 248, 268-269, 307, 337, 350, 359, 378, 393, 398, 403, 409-415, 418, 423, 437, 442, 447, 491-498, 517, 536-537, 549-552 |
 | django/otto/settings.py                                                |      150 |       22 |     85% |37-39, 49-50, 206-215, 279-280, 346-352, 381, 421, 478-479 |
-| django/otto/tasks.py                                                   |       21 |       21 |      0% |      1-35 |
+| django/otto/tasks.py                                                   |       24 |       24 |      0% |      1-40 |
 | django/otto/templatetags/filters.py                                    |       10 |        0 |    100% |           |
 | django/otto/templatetags/tags.py                                       |       10 |        1 |     90% |        18 |
 | django/otto/translation.py                                             |       17 |        0 |    100% |           |
@@ -61,10 +62,10 @@
 | django/template\_wizard/views.py                                       |       69 |       17 |     75% |63-70, 96, 146-153, 165-200 |
 | django/template\_wizard/wizards/canlii\_wizard/utils.py                |      398 |      357 |     10% |81-143, 148-163, 172-180, 184-235, 239-251, 256-273, 278-294, 298-303, 307-394, 399-660, 665-974, 979-1200 |
 | django/template\_wizard/wizards/canlii\_wizard/views.py                |      128 |      100 |     22% |50, 54-99, 112-117, 132-156, 161-213, 225-253, 258-291, 296-304 |
-| django/text\_extractor/models.py                                       |       13 |        2 |     85% |    12, 23 |
+| django/text\_extractor/models.py                                       |       13 |        1 |     92% |        23 |
 | django/text\_extractor/utils.py                                        |      153 |       86 |     44% |49-72, 113-114, 132-287, 291-292 |
 | django/text\_extractor/views.py                                        |      102 |       82 |     20% |31-34, 40-201, 205-218 |
-|                                                              **TOTAL** | **6160** | **2038** | **67%** |           |
+|                                                              **TOTAL** | **6181** | **2040** | **67%** |           |
 
 
 ## Setup coverage badge
