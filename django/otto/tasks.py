@@ -33,3 +33,8 @@ def delete_empty_chats():
 @shared_task
 def delete_unused_libraries():
     call_command("delete_unused_libraries")
+
+
+@shared_task
+def delete_text_extractor_files():
+    call_command("delete_text_extractor_files")
