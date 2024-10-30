@@ -153,7 +153,7 @@ export COGNITIVE_SERVICES_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,
 export OPENAI_SERVICE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-openai"
 export AKS_CLUSTER_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-aks"
 export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
-export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}storage"
+export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}store"
 export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
 #export VNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-vnet"
@@ -170,6 +170,27 @@ export TF_STATE_RESOURCE_GROUP="TerraformStateRG"
 export TF_STATE_STORAGE_ACCOUNT="tfstate${APP_NAME,,}${ENVIRONMENT,,}"
 export TF_STATE_CONTAINER="tfstate"
 export TF_STATE_KEY="${RESOURCE_GROUP_NAME}.tfstate"
+
+
+# Check for existing storage accounts and update STORAGE_NAME if necessary (ensures uniqueness)
+existing_storage=$(az storage account list --resource-group "$RESOURCE_GROUP_NAME" --query "[?starts_with(name, '${STORAGE_NAME}')].name" -o tsv)
+
+if [ -n "$existing_storage" ]; then
+    echo "Existing storage account found: $existing_storage"
+    export STORAGE_NAME="$existing_storage"
+else
+    # Generate a unique suffix based on the current date and time
+    datetime_suffix=$(date '+%Y%m%d')
+    export STORAGE_NAME="${STORAGE_NAME}${datetime_suffix}"
+    echo "No existing storage account found. New STORAGE_NAME: $STORAGE_NAME"
+fi
+
+# If STORAGE_NAME is less than 3 characters or greater than 24 characters, throw an error
+if [ ${#STORAGE_NAME} -lt 3 ] || [ ${#STORAGE_NAME} -gt 24 ]; then
+    echo "Error: STORAGE_NAME must be between 3 and 24 characters in length."
+    return
+fi
+
 
 # Create terraform/.tfvars file
 cat > terraform/.tfvars <<EOF
