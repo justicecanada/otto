@@ -132,7 +132,9 @@
             </div>
           </div>
           <div class="col-md-2 mb-2 pt-3 qa_rag_option">
-            <div class="form-check form-switch col ms-2">
+            <div class="form-check form-switch col ms-2" id="qa_pruning" style="{% if chat.options.qa_answer_mode == 'combined' %}
+               display: none; {% endif %}
+               ">
               <input class="form-check-input small"
                      type="checkbox"
                      id="qa_prune-modal"
