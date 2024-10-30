@@ -31,33 +31,83 @@
       </div>
     </div>
     <div class="row mb-2">
-      <div class="col pe-0">
-        <button type="button"
-                class="btn btn-sm btn-outline-secondary w-100"
-                hx-get="{% url 'librarian:data_source_stop' selected_data_source.id %}">{% trans "Stop" %}</button>
+      <div class="col">
+        <div class="btn-group w-100">
+          <button type="button"
+                  class="btn btn-sm btn-outline-success dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false">{% trans "Bulk actions" %}</button>
+          <ul class="dropdown-menu">
+            <li>
+              <h6 class="dropdown-header">{% trans "Process all, including completed" %}</h6>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'all' %}">
+                <span>{% trans "Text only" %}</span>
+                <span class="text-muted">{% trans "(default, $)" %}</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'all' %}">
+                <span>{% trans "PDF OCR" %}</span>
+                <span class="text-muted">{% trans "(more robust, $$)" %}</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'all' %}">
+                <span>{% trans "PDF layout & OCR" %}</span>
+                <span class="text-muted">{% trans "(best, $$$)" %}</span>
+              </a>
+            </li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li>
+              <h6 class="dropdown-header">{% trans "Process incomplete only" %}</h6>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'incomplete' %}">
+                <span>{% trans "Text only" %}</span>
+                <span class="text-muted">{% trans "(default, $)" %}</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'incomplete' %}">
+                <span>{% trans "PDF OCR" %}</span>
+                <span class="text-muted">{% trans "(more robust, $$)" %}</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'incomplete' %}">
+                <span>{% trans "PDF layout & OCR" %}</span>
+                <span class="text-muted">{% trans "(best, $$$)" %}</span>
+              </a>
+            </li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:data_source_stop' selected_data_source.id %}">
+                <span>{% trans "Stop all processing" %}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="col ps-1 pe-0">
-        <button type="button"
-                class="btn btn-sm btn-outline-success w-100"
-                hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' %}">
-          {% trans "Process" %}
-        </button>
-      </div>
-      <div class="col ps-1 pe-0">
-        <button type="button"
-                class="btn btn-sm btn-outline-success w-100"
-                hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' %}">
-          {% trans "Read API" %}
-        </button>
-      </div>
-      <div class="col ps-1">
-        <button type="button"
-                class="btn btn-sm btn-outline-success w-100"
-                hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' %}">
-          {% trans "Layout" %}
-        </button>
-      </div>
- 
     </div>
     {% if documents %}
       {% include "librarian/components/items_list.html" with items=documents selected_item=selected_document listbox_label="documents-label" item_type="document" %}

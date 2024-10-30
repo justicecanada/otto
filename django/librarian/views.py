@@ -428,12 +428,23 @@ def data_source_stop(request, data_source_id):
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
 @budget_required
-def data_source_start(request, data_source_id, pdf_method="default"):
+def data_source_start(request, data_source_id, pdf_method="default", scope="all"):
     # Start all celery tasks for documents within this data source
     bind_contextvars(feature="librarian")
     data_source = get_object_or_404(DataSource, id=data_source_id)
-    for document in data_source.documents.all():
-        document.process(pdf_method=pdf_method)
+    if scope == "all":
+        for document in data_source.documents.all():
+            if document.status in ["PENDING", "INIT", "PROCESSING"]:
+                document.stop()
+            document.process(pdf_method=pdf_method)
+    elif scope == "incomplete":
+        for document in data_source.documents.all():
+            if document.status in ["PENDING", "INIT", "PROCESSING"]:
+                document.stop()
+            if document.status not in ["SUCCESS"]:
+                document.process(pdf_method=pdf_method)
+    else:
+        raise ValueError(f"Invalid scope: {scope}")
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
 

@@ -97,7 +97,7 @@ urlpatterns = [
         name="data_source_stop",
     ),
     path(
-        "data_source/<int:data_source_id>/start/<str:pdf_method>",
+        "data_source/<int:data_source_id>/start/<str:pdf_method>/<str:scope>",
         data_source_start,
         name="data_source_start",
     ),

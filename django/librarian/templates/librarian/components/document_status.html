@@ -63,21 +63,44 @@
         <button type="button"
                 class="btn btn-sm btn-outline-secondary"
                 hx-get="{% url 'librarian:document_stop' document.id %}">{% trans "Stop" %}</button>
+      {% elif document.content_type == "application/pdf" %}
+        <div class="btn-group">
+          <button type="button"
+                  class="btn btn-sm btn-outline-success dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false">{% trans "Process document" %}</button>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:document_start' document.id 'default' %}">
+                <span>{% trans "Text only" %}</span>
+                <span class="text-muted">{% trans "(default, $)" %}</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:document_start' document.id 'azure_read' %}">
+                <span>{% trans "PDF OCR" %}</span>
+                <span class="text-muted">{% trans "(more robust, $$)" %}</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:document_start' document.id 'azure_layout' %}">
+                <span>{% trans "PDF layout & OCR" %}</span>
+                <span class="text-muted">{% trans "(best, $$$)" %}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
       {% else %}
         <button type="button"
                 class="btn btn-sm btn-outline-success"
                 hx-get="{% url 'librarian:document_start' document.id 'default' %}">
-          {% trans "Process (default)" %}
-        </button>
-        <button type="button"
-                class="btn btn-sm btn-outline-success"
-                hx-get="{% url 'librarian:document_start' document.id 'azure_read' %}">
-          {% trans "Azure Read" %}
-        </button>
-        <button type="button"
-                class="btn btn-sm btn-outline-success"
-                hx-get="{% url 'librarian:document_start' document.id 'azure_layout' %}">
-          {% trans "Azure Layout" %}
+          {% trans "Process document" %}
         </button>
       {% endif %}
     </div>
