@@ -524,13 +524,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         preset = Preset.objects.get(id=int(preset_id))
         if not preset:
             return HttpResponse(status=500)
-        chat.options.delete()
-        new_options = ChatOptions.objects.from_defaults(chat=chat)
 
-        # copy the options from the preset to the chat
-        _copy_options(preset.options, new_options)
-
-        chat_options_form = ChatOptionsForm(instance=new_options, user=request.user)
+        chat_options_form = ChatOptionsForm(instance=preset.options, user=request.user)
 
         return render(
             request,
