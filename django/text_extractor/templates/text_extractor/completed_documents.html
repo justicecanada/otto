@@ -12,12 +12,6 @@
       <a href="{% url 'text_extractor:download_document' doc.txt.file.id user_request_id %}"
          class="link-dark">{{ doc.txt.file.file_name }} (TXT, {{ doc.txt.size }})</a>
     </td>
-    <td>
-      {% if not total_cost %}
-        <p>{{ doc.cost }}</p>
-      {% else %}
-        <p>{{ total_cost }}</p>
-      {% endif %}
-    </td>
+    <td style="white-space: nowrap;">{{ doc.cost }}</td>
   </tr>
 {% endfor %}

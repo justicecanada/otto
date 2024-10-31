@@ -182,19 +182,13 @@ def submit_document(request):
                             "file": output_text,
                             "size": file_size_to_string(output_text.file.size),
                         },
+                        "cost": display_cad_cost(total_cost),
                     }
                 )
-                formatted_total_cost = display_cad_cost(total_cost)
-                context = {
-                    "ocr_docs": completed_documents,
-                    "user_request_id": user_request.id,
-                    "total_cost": formatted_total_cost,
-                }
-            else:
-                context = {
-                    "ocr_docs": completed_documents,
-                    "user_request_id": user_request.id,
-                }
+            context = {
+                "ocr_docs": completed_documents,
+                "user_request_id": user_request.id,
+            }
             user_request.save(access_key)
 
             return render(request, "text_extractor/completed_documents.html", context)
