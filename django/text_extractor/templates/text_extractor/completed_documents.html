@@ -13,7 +13,11 @@
          class="link-dark">{{ doc.txt.file.file_name }} (TXT, {{ doc.txt.size }})</a>
     </td>
     <td>
-      <p>{{ total_cost }}</p>
+      {% if not total_cost %}
+        <p>{{ doc.cost }}</p>
+      {% else %}
+        <p>{{ total_cost }}</p>
+      {% endif %}
     </td>
   </tr>
 {% endfor %}

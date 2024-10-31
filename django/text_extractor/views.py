@@ -36,6 +36,7 @@ def index(request):
 
 @budget_required
 def submit_document(request):
+    bind_contextvars(feature="text_extractor")  # for keeping track in dashboard
 
     if request.method == "POST":
         files = request.FILES.getlist("file_upload")
@@ -72,9 +73,7 @@ def submit_document(request):
                 files.insert(0, toc_file)
 
             for idx, file in enumerate(files):
-                bind_contextvars(
-                    feature="text_extractor"
-                )  # for keeping track in dashboard
+
                 ocr_file, txt_file, cost = create_searchable_pdf(
                     file, merged and idx > 0
                 )
@@ -128,6 +127,7 @@ def submit_document(request):
                                 "file": output_text,
                                 "size": file_size_to_string(output_text.file.size),
                             },
+                            "cost": display_cad_cost(cost),
                         }
                     )
 
@@ -184,12 +184,17 @@ def submit_document(request):
                         },
                     }
                 )
-            formatted_total_cost = display_cad_cost(total_cost)
-            context = {
-                "ocr_docs": completed_documents,
-                "user_request_id": user_request.id,
-                "total_cost": formatted_total_cost,
-            }
+                formatted_total_cost = display_cad_cost(total_cost)
+                context = {
+                    "ocr_docs": completed_documents,
+                    "user_request_id": user_request.id,
+                    "total_cost": formatted_total_cost,
+                }
+            else:
+                context = {
+                    "ocr_docs": completed_documents,
+                    "user_request_id": user_request.id,
+                }
             user_request.save(access_key)
 
             return render(request, "text_extractor/completed_documents.html", context)
