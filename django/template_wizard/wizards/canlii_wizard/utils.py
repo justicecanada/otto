@@ -171,6 +171,7 @@ def extract_text_from_pdf(pdf_file):
     for i, page in enumerate(pdf):
         text_page = page.get_textpage()
         text += text_page.get_text_range() + "\n"
+        # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
         text_page.close()
     pdf.close()
     return text

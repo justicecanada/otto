@@ -216,6 +216,7 @@ def pdf_to_text_pdfium(content):
         text += f"<page_{i+1}>\n"
         text += text_page.get_text_range() + "\n"
         text += f"</page_{i+1}>\n"
+        # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
         text_page.close()
     pdf.close()
 
