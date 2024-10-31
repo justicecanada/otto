@@ -178,10 +178,8 @@ def create_searchable_pdf(input_file, add_header):
         )
 
     ocr_results = poller.result()
-
-    print(
-        f"Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages."
-    )
+    num_pages = len(ocr_results.pages)
+    print(f"Azure Form Recognizer finished OCR text for {num_pages} pages.")
     all_text = []
     for page in ocr_results.pages:
         for line in page.lines:
@@ -285,8 +283,6 @@ def create_searchable_pdf(input_file, add_header):
         # Create a new PDF page
         new_pdf_page = PdfReader(ocr_overlay)  # changed
         output.add_page(new_pdf_page.pages[0])
-
-    num_pages = len(ocr_results.pages)
 
     # Create a single cost object based on the number of pages
     cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
