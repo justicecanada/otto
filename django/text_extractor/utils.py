@@ -284,11 +284,8 @@ def create_searchable_pdf(input_file, add_header):
         new_pdf_page = PdfReader(ocr_overlay)  # changed
         output.add_page(new_pdf_page.pages[0])
 
-    # Create a single cost object based on the number of pages
     cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
-    usd_cost = cost.usd_cost
-
-    return output, all_text, usd_cost
+    return output, all_text, cost.usd_cost
 
 
 def shorten_input_name(input_name):

@@ -73,7 +73,6 @@ def submit_document(request):
                 files.insert(0, toc_file)
 
             for idx, file in enumerate(files):
-
                 ocr_file, txt_file, cost = create_searchable_pdf(
                     file, merged and idx > 0
                 )
@@ -185,6 +184,7 @@ def submit_document(request):
                         "cost": display_cad_cost(total_cost),
                     }
                 )
+
             context = {
                 "ocr_docs": completed_documents,
                 "user_request_id": user_request.id,
