@@ -431,7 +431,7 @@ class ChatFile(models.Model):
 @receiver(post_delete, sender=ChatFile)
 def delete_saved_file(sender, instance, **kwargs):
     # NOTE: If file was uploaded to chat in Q&A mode, this won't delete unless
-    # document is also delete from librarian modal (or entire chat is deleted)
+    # document is also deleted from librarian modal (or entire chat is deleted)
     try:
         instance.saved_file.safe_delete()
     except Exception as e:

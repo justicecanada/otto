@@ -275,10 +275,10 @@ class DataSource(models.Model):
     def __str__(self):
         return self.name
 
-    def delete(self):
+    def delete(self, *args, **kwargs):
         for document in self.documents.all():
             document.delete()
-        super().delete()
+        super().delete(*args, **kwargs)
 
     def process_all(self):
         for document in self.documents.all():

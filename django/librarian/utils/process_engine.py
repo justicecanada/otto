@@ -206,16 +206,18 @@ def pdf_to_markdown_azure_layout(content):
 
 
 def pdf_to_text_pdfium(content):
-    # Note: This method is faster than using Azure Form Recognizer
-    # Expected it to work well for more generic scenarios but not for scanned PDFs, images, and handwritten text
+    # Fast and cheap, but no OCR or layout analysis
     import pypdfium2 as pdfium
 
-    pdf = pdfium.PdfDocument(content)
     text = ""
+    pdf = pdfium.PdfDocument(content)
     for i, page in enumerate(pdf):
+        text_page = page.get_textpage()
         text += f"<page_{i+1}>\n"
-        text += page.get_textpage().get_text_range() + "\n"
+        text += text_page.get_text_range() + "\n"
         text += f"</page_{i+1}>\n"
+        text_page.close()
+    pdf.close()
 
     return text
 
