@@ -47,6 +47,10 @@ app.conf.beat_schedule = {
     #     "task": "otto.tasks.delete_unused_libraries",
     #     "schedule": crontab(hour=3, minute=0),
     # },
+    "delete-text-extractor-files-every-day": {
+        "task": "otto.tasks.delete_text_extractor_files",
+        "schedule": crontab(hour=0, minute=0),
+    },
 }
 
 
