@@ -79,7 +79,7 @@ def process_document_helper(document, llm, pdf_method="default"):
                 },
             )
         content, content_type = fetch_from_url(url)
-        if "text" in content_type and url.endswith(".md"):
+        if ("text" in content_type or not content_type) and url.endswith(".md"):
             content_type = "text/markdown"
         document.url_content_type = content_type
     else:

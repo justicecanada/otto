@@ -353,16 +353,6 @@ class Document(models.Model):
     pdf_extraction_method = models.CharField(
         max_length=40, null=True, blank=True, choices=PDF_EXTRACTION_CHOICES
     )
-    # Page range to extract from PDF (e.g. "1-3, 5, 7-9")
-    pdf_page_range = models.CharField(max_length=255, null=True, blank=True)
-    # Crop box for PDF extraction (left, right, top, bottom) - ratio of page size
-    pdf_crop_left = models.FloatField(null=True, blank=True)
-    pdf_crop_right = models.FloatField(null=True, blank=True)
-    pdf_crop_top = models.FloatField(null=True, blank=True)
-    pdf_crop_bottom = models.FloatField(null=True, blank=True)
-    # The number of detected / extracted pages in the PDF (for debugging / confirmation)
-    pdf_num_pages_detected = models.IntegerField(null=True, blank=True)
-    pdf_num_pages_extracted = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
