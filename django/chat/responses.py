@@ -158,7 +158,7 @@ def summarize_response(chat, response_message):
         responses = []
         for file in files:
             if not file.text:
-                file.extract_text(fast=True)
+                file.extract_text(pdf_method="default")
             responses.append(
                 summarize_long_text(
                     file.text,
