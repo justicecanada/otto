@@ -47,7 +47,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-2 mb-2">
+          <div class="col-md-2 mb-2  qa_rag_option">
             <label for="qa_topk-modal" class="col-form-label col-form-label-sm">{% trans "Maximum sources" %}</label>
             <input type="number"
                    class="form-control form-control-sm"
@@ -57,7 +57,7 @@
                    data-inputname="qa_topk"
                    oninput="updateQaHiddenField(this);">
           </div>
-          <div class="col-md-2 mb-2">
+          <div class="col-md-2 mb-2  qa_rag_option">
             <label for="qa_source_order-modal" class="col-form-label col-form-label-sm">{% trans "Order sources by" %}</label>
             <select class="form-select form-select-sm"
                     id="qa_source_order-modal"
@@ -67,12 +67,12 @@
               <option value="reading_order">{% trans "Reading order" %}</option>
             </select>
           </div>
-          <div class="col-md-3 mb-2">
+          <div class="col-md-3 mb-2 qa_rag_option">
             <label for="qa_answer_mode-modal" class="col-form-label col-form-label-sm">{% trans "Answer granularity" %}</label>
             <select class="form-select form-select-sm"
                     id="qa_answer_mode-modal"
                     data-inputname="qa_answer_mode"
-                    oninput="updateQaHiddenField(this); toggleSlider(this.value);">
+                    oninput="updateQaHiddenField(this); toggleGranularOptions(this.value);">
               <option value="combined">{% trans "Single answer" %}</option>
               <option value="per-source">{% trans "Granular answers" %}</option>
             </select>
@@ -101,8 +101,11 @@
               </div>
             </div>
           </div>
-          <div class="col-md-2 mb-2 pt-3">
-            <div class="form-check form-switch col ms-2">
+          <div class="col-md-2 mb-2 pt-3 qa_rag_option">
+            <div class="form-check form-switch col ms-2"
+                 id="qa_pruning"
+                 style="{% if chat.options.qa_answer_mode == 'combined' %} display: none;
+                        {% endif %}">
               <input class="form-check-input small"
                      type="checkbox"
                      id="qa_prune-modal"
