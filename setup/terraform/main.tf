@@ -115,6 +115,7 @@ module "djangodb" {
   wait_for_propagation = module.keyvault.wait_for_propagation
   use_private_network  = var.use_private_network
   db_subnet_id         = module.vnet.db_subnet_id
+  admin_email          = var.admin_email
 }
 
 # Cognitive Services module

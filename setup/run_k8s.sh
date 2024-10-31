@@ -51,8 +51,27 @@ kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-we
 echo "Waiting for NGINX Ingress Controller to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/ingress-nginx-controller -n ingress-nginx
 
-# Apply the namespace for Otto
+
+# Apply the Velero CRDs and Velero
+echo "Applying Velero CRDs and Velero..."
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_backups.yaml
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_backupstoragelocations.yaml
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_deletebackuprequests.yaml
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_downloadrequests.yaml
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_podvolumebackups.yaml
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_podvolumerestores.yaml
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_restores.yaml
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_schedules.yaml
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_serverstatusrequests.yaml
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_volumesnapshotlocations.yaml
+kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/rbac/role.yaml
+
+
+# Apply the namespaces
 kubectl apply -f namespace.yaml
+
+# Apply the Velero resources, substituting environment variables where required
+envsubst < velero.yaml | kubectl apply -f -
 
 # Apply the Cluster Issuer for Let's Encrypt which will automatically provision certificates for the Ingress resources
 kubectl apply -f letsencrypt-cluster-issuer.yaml

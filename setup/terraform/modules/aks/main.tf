@@ -130,6 +130,13 @@ resource "azurerm_role_assignment" "acr_pull_kubelet" {
   principal_type       = "ServicePrincipal"
 }
 
+resource "azurerm_role_assignment" "aks_storage_contributor" {
+  scope                = var.storage_account_id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  depends_on           = [azurerm_kubernetes_cluster.aks]
+}
+
 # AU-4(1): AKS cluster is configured to use Azure Monitor for logging
 # AU-6: Comprehensive audit logging
 # AU-7: Integration with Azure Monitor provides audit reduction and report generation capabilities
@@ -174,9 +181,7 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   }
 }
 
-locals {
-  admin_email_list = split(",", var.admin_email)
-}
+locals { admin_email_list = split(",", var.admin_email) }
 
 # SC-5(3): Create an action group for AKS alerts
 resource "azurerm_monitor_action_group" "aks_alerts" {

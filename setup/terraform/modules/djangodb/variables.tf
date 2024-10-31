@@ -48,3 +48,8 @@ variable "db_subnet_id" {
   description = "The ID of the database subnet"
   type        = string
 }
+
+variable "admin_email" {
+  description = "The email address of the admin user"
+  type        = string
+}

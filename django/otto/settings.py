@@ -136,7 +136,7 @@ INSTALLED_APPS = [
     "django_structlog",
     "modeltranslation",
     "django_prometheus",
-    "django.contrib.admin",
+    # "django.contrib.admin", # Do not enable admin in production
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",

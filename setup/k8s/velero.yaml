@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velero
+  
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: velero
+  namespace: velero
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: velero
+  template:
+    metadata:
+      labels:
+        app: velero
+    spec:
+      serviceAccountName: velero
+      containers:
+        - name: velero
+          image: velero/velero:v1.12.0
+          command:
+            - /velero
+          args:
+            - server
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+      volumes:
+        - name: plugins
+          emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: velero
+  namespace: velero
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: velero
+subjects:
+  - kind: ServiceAccount
+    name: velero
+    namespace: velero
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: azure
+  namespace: velero
+spec:
+  provider: azure
+  objectStorage:
+    bucket: backups
+  credential:
+    name: azure-credential
+    key: cloud
+  config:
+    resourceGroup: ${RESOURCE_GROUP}
+    storageAccount: ${STORAGE_NAME}
+
+---
+
+apiVersion: velero.io/v1
+kind: VolumeSnapshotLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: azure
+
+---
+
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: otto-backup-schedule
+  namespace: velero
+spec:
+  schedule: "0 1 * * *"  # Backup daily at 1:00 AM
+  template:
+    snapshotVolumes: true
+    includeClusterResources: null
+    storageLocation: azure
+    includedNamespaces:
+    - otto
+    includedResources:
+    - persistentvolumeclaims
+    - persistentvolumes
+    labelSelector:
+      matchLabels:
+        app: django-app
+    ttl: "720h"  # Retention period of 30 days
+    volumeSnapshotLocations:
+    - azure

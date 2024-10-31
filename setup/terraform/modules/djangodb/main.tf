@@ -99,3 +99,77 @@ resource "azurerm_monitor_diagnostic_setting" "djangodb_diagnostics" {
 
   depends_on = [azurerm_cosmosdb_postgresql_cluster.djangodb]
 }
+
+
+
+locals { admin_email_list = split(",", var.admin_email) }
+
+# SC-5(3): Create an action group for AKS alerts
+resource "azurerm_monitor_action_group" "cosmos_alerts" {
+  name                = "${var.resource_name}-alert-group"
+  resource_group_name = var.resource_group_name
+  short_name          = "cosmosalerts"
+
+  dynamic "email_receiver" {
+    for_each = local.admin_email_list
+    content {
+      name                    = "admin${index(local.admin_email_list, email_receiver.value) + 1}"
+      email_address           = trimspace(email_receiver.value)
+      use_common_alert_schema = true
+    }
+  }
+}
+
+resource "azurerm_monitor_metric_alert" "cosmos_db_cpu_alert" {
+  name                = "${var.resource_name}-high-cpu-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_cosmosdb_postgresql_cluster.djangodb.id]
+
+  criteria {
+    metric_namespace = "Microsoft.DBforPostgreSQL/serverGroupsv2"
+    metric_name      = "cpu_percent"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 80
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.cosmos_alerts.id
+  }
+}
+
+resource "azurerm_monitor_metric_alert" "cosmos_db_memory_alert" {
+  name                = "${var.resource_name}-high-memory-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_cosmosdb_postgresql_cluster.djangodb.id]
+
+  criteria {
+    metric_namespace = "Microsoft.DBforPostgreSQL/serverGroupsv2"
+    metric_name      = "memory_percent"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 80
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.cosmos_alerts.id
+  }
+}
+
+resource "azurerm_monitor_metric_alert" "cosmos_db_disk_alert" {
+  name                = "${var.resource_name}-high-disk-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_cosmosdb_postgresql_cluster.djangodb.id]
+
+  criteria {
+    metric_namespace = "Microsoft.DBforPostgreSQL/serverGroupsv2"
+    metric_name      = "storage_percent"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 80
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.cosmos_alerts.id
+  }
+}

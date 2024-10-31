@@ -1,28 +1,30 @@
 #!/bin/sh
 
-echo "Running database migrations..."
-{ python manage.py migrate || { echo "Error: Migrate failed"; exit 1; } }
+# Wait for the database to be ready
+echo "Waiting for database..."
+{ python manage.py wait_for_db || { echo "Error: Wait for database failed"; exit 1; } }
 
+# Run migrations
+echo "Running migrations..."
+{ python manage.py migrate --noinput || { echo "Error: Migrate failed"; exit 1; } }
+
+# Collect static files
+echo "Collecting static files..."
+{ python manage.py collectstatic --noinput --clear || { echo "Error: Collect static files failed"; exit 1; } }
+
+# Reset app data
 echo "Resetting app data..."
 { python manage.py reset_app_data apps terms groups library_mini security_labels cost_types || { echo "Error: Reset app data failed"; exit 1; } }
 
+# Load initial data
 echo "Loading corporate library..."
 { python manage.py load_corporate_library --force || { echo "Error: Load corporate library failed"; exit 1; } }
 
+# Load laws XML
 echo "Loading laws XML..."
 { python manage.py load_laws_xml --reset --small || { echo "Error: Load laws XML failed"; exit 1; } }
 
-echo "Cleaning static files..."
-if [ -d "staticfiles" ]; then
-    rm -rf staticfiles/*
-    echo "Static files cleaned successfully."
-else
-    echo "staticfiles directory does not exist. Skipping cleaning."
-fi
-
-echo "Collecting static files..."
-{ python manage.py collectstatic --noinput || { echo "Error: Collect static files failed"; exit 1; } }
-
+# Load users
 echo "Syncing users..."
 { python manage.py sync_users || { echo "Error: Sync users failed"; exit 1; } }
 
@@ -39,4 +41,4 @@ if [ -n "$OTTO_ADMIN" ]; then
     done
 fi
 
-echo "Setup completed successfully!"
+echo "Initial setup completed successfully!"
