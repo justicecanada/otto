@@ -17,6 +17,7 @@ skip_on_devops_pipeline = pytest.mark.skipif(
 
 
 # These tests are failing on GitHub and DevOps due to authorization issues
+@skip_on_github_actions
 @skip_on_devops_pipeline
 def test_merged_document_submission(client, all_apps_user, mock_pdf_file):
     user = all_apps_user()
@@ -51,6 +52,7 @@ def test_merged_document_submission(client, all_apps_user, mock_pdf_file):
 
 
 # These tests are failing on GitHub and DevOps due to authorization issues
+@skip_on_github_actions
 @skip_on_devops_pipeline
 def test_document_submission_and_download(client, all_apps_user, mock_pdf_file):
     user = all_apps_user()
