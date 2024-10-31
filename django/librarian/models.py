@@ -31,6 +31,12 @@ STATUS_CHOICES = [
     ("BLOCKED", "Stopped"),
 ]
 
+PDF_EXTRACTION_CHOICES = [
+    ("default", _("text only")),
+    ("azure_read", _("OCR")),
+    ("azure_layout", _("layout & OCR")),
+]
+
 
 def generate_uuid_hex():
     # We use the hex for compatibility with LlamaIndex table names
@@ -152,10 +158,7 @@ class Library(models.Model):
         self.reset(recreate=False)
         super().delete(*args, **kwargs)
 
-    def process_all(
-        self,
-        force=True,
-    ):
+    def process_all(self):
         for ds in self.data_sources.all():
             for document in ds.documents.all():
                 document.process()
@@ -272,19 +275,20 @@ class DataSource(models.Model):
     def __str__(self):
         return self.name
 
-    def delete(self):
+    def delete(self, *args, **kwargs):
         for document in self.documents.all():
             document.delete()
-        super().delete()
+        super().delete(*args, **kwargs)
 
-    def process_all(self, force=True):
+    def process_all(self):
         for document in self.documents.all():
             document.process()
 
 
 class Document(models.Model):
     """
-    Result of a WebCrawl or direct upload.
+    Result of adding a URL or uploading a file to chat or librarian modal.
+    Corresponds to a document in the vector store.
     """
 
     class Meta:
@@ -344,6 +348,12 @@ class Document(models.Model):
     # may be uploaded under different filenames
     filename = models.CharField(max_length=255, null=True, blank=True)
 
+    # Specific to PDF documents.
+    # The extraction method *that was used* to extract text from the PDF
+    pdf_extraction_method = models.CharField(
+        max_length=40, null=True, blank=True, choices=PDF_EXTRACTION_CHOICES
+    )
+
     def __str__(self):
         return self.name
 
@@ -354,6 +364,11 @@ class Document(models.Model):
     @property
     def name(self):
         return self.title or self.filename or self.url or "Untitled document"
+
+    @property
+    def pdf_method(self):
+        method = self.pdf_extraction_method
+        return dict(PDF_EXTRACTION_CHOICES).get(method, method)
 
     @property
     def celery_status_message(self):
@@ -411,7 +426,7 @@ class Document(models.Model):
             file.safe_delete()
         super().delete(*args, **kwargs)
 
-    def process(self, force_azure=False):
+    def process(self, pdf_method="default"):
         from .tasks import process_document
 
         bind_contextvars(document_id=self.id)
@@ -421,7 +436,7 @@ class Document(models.Model):
             self.status = "ERROR"
             self.save()
             return
-        process_document.delay(self.id, get_language(), force_azure)
+        process_document.delay(self.id, get_language(), pdf_method)
         self.celery_task_id = "tbd"
         self.status = "INIT"
         self.save()
