@@ -318,16 +318,15 @@ Before you begin, ensure you have met the following requirements:
 
 Run the following script and follow the prompts:
 
-The script will prompt you to enter three pieces of information:
-- **Registry Name:** Enter the name of your Azure Container Registry (ACR) instance.
-- **Version Number:** Enter the version number for the Docker image (e.g., v1.0.0).
+The script will prompt you to enter two pieces of information:
+- **Subscription ID:** Enter the Azure subscription in which the Azure Container Registry (ACR) exists.
+- **Registry Name:** Enter the name of your ACR instance.
 
 The script will:
-- Generate a unique build number based on the current date and time.
 - Create a version.yaml file with the provided information.
 - Copy the version.yaml file into the Docker build context.
 - Log in to your Azure Container Registry.
-- Build the Docker image with a specific tag based on the version and build number.
+- Build the Docker image with a specific tag based on the git hash.
 - Tag the Docker image as latest.
 - Push both the versioned and latest tags to Azure Container Registry.
 - Clean up the temporary version.yaml file.
