@@ -496,12 +496,14 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
     chat = Chat.objects.get(id=chat_id)
     if action == "reset":
-        # chat.options.delete()
-        preset_options = ChatOptions.objects.from_defaults()
+        # Check if chat.options already exists
+        if hasattr(chat, "options") and chat.options:
+            # Delete the existing ChatOptions object
+            chat.options.delete()
+
+        chat.options = ChatOptions.objects.from_defaults(chat=chat)
         logger.info("Resetting chat options to default.", chat_id=chat_id)
 
-        # Update the chat options with the default options
-        _copy_options(preset_options, chat.options)
         return render(
             request,
             "chat/components/chat_options_accordion.html",
@@ -558,15 +560,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
                 # save the current chat settings
                 if replace_with_settings:
-                    # # get chat object from chat_id
-                    chat = Chat.objects.get(id=chat_id)
-                    new_options = ChatOptions.objects.from_defaults()
-
                     # copy the options from the chat to the preset
-                    _copy_options(chat.options, new_options)
-
-                    # Update preset options
-                    preset.options = new_options
+                    _copy_options(chat.options, preset.options)
 
                 english_title = form.cleaned_data["name_en"]
                 french_title = form.cleaned_data["name_fr"]
