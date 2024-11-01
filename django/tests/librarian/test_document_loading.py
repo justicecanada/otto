@@ -4,6 +4,7 @@ import re
 from django.conf import settings
 
 import pytest
+from structlog import get_logger
 
 from librarian.utils.process_engine import extract_markdown
 from otto.models import Cost
@@ -17,6 +18,8 @@ skip_on_devops_pipeline = pytest.mark.skipif(
 )
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
+
+logger = get_logger(__name__)
 
 
 def check_page_numbers_for_example(md, md_chunks):
@@ -80,7 +83,7 @@ def test_extract_pptx():
     with open(os.path.join(this_dir, "test_files/example.pptx"), "rb") as f:
         content = f.read()
         md, md_chunks = extract_markdown(content, "POWERPOINT")
-        print(md)
+        logger.debug(md)
         # The powerpoint has the same slide numbers etc. as the PDF
         check_page_numbers_for_example(md, md_chunks)
 

@@ -210,25 +210,25 @@ class Command(BaseCommand):
         ]
 
         try:
-            print(
+            logger.debug(
                 f"Average faithfulness: {100 * sum(faithfulness_scores) / len(faithfulness_scores):.2f}%"
             )
         except ZeroDivisionError:
-            print("No faithfulness scores available.")
+            logger.error("No faithfulness scores available.")
 
         try:
-            print(
+            logger.debug(
                 f"Average correctness: {100 * sum(correctness_scores) / len(correctness_scores):.2f}%"
             )
         except ZeroDivisionError:
-            print("No correctness scores available.")
+            logger.error("No correctness scores available.")
 
         try:
-            print(
+            logger.debug(
                 f"Average % sources found: {100 * sum(sources_found) / len(sources_found):.2f}%"
             )
         except ZeroDivisionError:
-            print("No sources found scores available.")
+            logger.error("No sources found scores available.")
 
         user.delete()
 

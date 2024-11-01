@@ -4,6 +4,9 @@ from typing import List, Tuple
 import tiktoken
 from bs4 import BeautifulSoup
 from llama_index.core.node_parser import SentenceSplitter
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 class MarkdownSplitter:
@@ -62,11 +65,11 @@ class MarkdownSplitter:
         split_texts = []
         for t in sentence_split_texts:
             if self.debug:
-                print(f"\nClosing tags for chunk:\n---\n{t}\n---\n")
+                logger.debug(f"\nClosing tags for chunk:\n---\n{t}\n---\n")
             try:
                 closed_text = self._close_page_tags(t)
             except Exception as e:
-                print(f"Error closing page tags: {e}")
+                logger.error(f"Error closing page tags: {e}")
                 closed_text = t
             closing_tags = re.findall(r"</page_\d+>", closed_text)
             if last_page_number and not closing_tags:
@@ -78,7 +81,7 @@ class MarkdownSplitter:
             content_lines = [L for L in lines if not re.match(r"</?page_\d+>", L)]
             if "".join(content_lines).replace("\n", "").strip():
                 if self.debug:
-                    print(
+                    logger.debug(
                         f"\nAfter all split_with_page_numbers logic:\n---\n{closed_text}\n---\n"
                     )
                 split_texts.append(closed_text)
@@ -113,7 +116,7 @@ class MarkdownSplitter:
                 last_opening_tag_num = int(re.search(r"\d+", last_opening_tag).group())
                 last_closing_tag_num = int(re.search(r"\d+", last_closing_tag).group())
                 if self.debug:
-                    print(
+                    logger.debug(
                         f"\nLast opening tag: {last_opening_tag_num}, last closing tag: {last_closing_tag_num}"
                     )
                 # Missing closing tag at end?
@@ -125,7 +128,7 @@ class MarkdownSplitter:
         soup = BeautifulSoup(html_string.strip() + "\n", "html.parser")
         output = str(soup).strip()
         if self.debug:
-            print(f"\nAfter _close_tags:\n---\n{output}\n---\n")
+            logger.debug(f"\nAfter _close_tags:\n---\n{output}\n---\n")
         return output
 
     def _get_heading(self, line: str) -> Tuple[int, str]:
@@ -249,14 +252,14 @@ class MarkdownSplitter:
             return original_text
         first_line_is_table_row = lines[0].startswith("| ") and lines[0].endswith(" |")
         if self.debug:
-            print(f"First line is table row: {first_line_is_table_row}")
+            logger.debug(f"First line is table row: {first_line_is_table_row}")
         first_line_is_table_header = (
             first_line_is_table_row
             and lines[1].startswith("| ---")
             and lines[1].endswith(" |")
         )
         if self.debug:
-            print(f"First line is table header: {first_line_is_table_header}")
+            logger.debug(f"First line is table header: {first_line_is_table_header}")
         if (
             first_line_is_table_row
             and not first_line_is_table_header

@@ -49,9 +49,8 @@ def process_document(document_id, language=None, force_azure=False):
 
     except Exception as e:
         document.status = "ERROR"
-        print("Error processing document:", document.name)
-        print(e)
-        print("----")
+        logger.debug("Error processing document:", document.name)
+        logger.error(e)
         document.celery_task_id = None
         document.save()
 
@@ -148,8 +147,8 @@ def process_document_helper(document, llm, force_azure=False):
                 vector_store_index.insert_nodes(nodes[i : i + batch_size])
                 break
             except Exception as e:
-                print(f"Error inserting nodes: {e}")
-                print("Retrying...")
+                logger.error(f"Error inserting nodes: {e}")
+                logger.debug("Retrying...")
                 time.sleep(2**j)
 
     # Done!

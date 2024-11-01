@@ -168,8 +168,8 @@ def extract_markdown(
         md_splitter = MarkdownSplitter(chunk_size=chunk_size, chunk_overlap=0)
         md_chunks = md_splitter.split_markdown(md)
     except Exception as e:
-        print("Error splitting markdown using MarkdownSplitter:")
-        print(e)
+        logger.debug("Error splitting markdown using MarkdownSplitter:")
+        logger.error(e)
         # Fallback to simpler method
         from llama_index.core.node_parser import SentenceSplitter
 

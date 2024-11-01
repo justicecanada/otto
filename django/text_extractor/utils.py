@@ -16,6 +16,9 @@ from PyPDF2 import PdfReader, PdfWriter
 from reportlab.lib import pagesizes
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 default_font = "Helvetica"
 img_extensions = (".tif", ".tiff", ".jpg", ".jpeg", ".png", ".bmp")
@@ -177,7 +180,7 @@ def create_searchable_pdf(input_file, add_header):
 
     ocr_results = poller.result()
 
-    print(
+    logger.debug(
         f"Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages."
     )
     all_text = []
