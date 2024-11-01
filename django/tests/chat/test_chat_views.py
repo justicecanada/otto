@@ -857,20 +857,22 @@ def test_update_qa_options_from_librarian(client, all_apps_user):
         reverse("chat:update_from_librarian", args=[chat.id, library.id])
     )
     assert response.status_code == 200
+    chat.options.refresh_from_db()
     assert chat.options.qa_library == library
     assert chat.options.qa_data_sources.count() == 0
     assert chat.options.qa_documents.count() == 0
 
     # Try switching to same library. Nothing should change
     # Let's set a data source and document just to test that they are NOT cleared in this case
-    data_source = DataSource.objects.create(name="Test Data Source")
+    data_source = DataSource.objects.create(name="Test Data Source", library=library)
     chat.options.qa_data_sources.add(data_source)
-    document = Document.objects.create(title="Test Document")
+    document = Document.objects.create(data_source=data_source)
     chat.options.qa_documents.add(document)
     response = client.get(
         reverse("chat:update_from_librarian", args=[chat.id, library.id])
     )
     assert response.status_code == 200
+    chat.options.refresh_from_db()
     assert chat.options.qa_library == library
     assert chat.options.qa_data_sources.count() == 1
     assert chat.options.qa_documents.count() == 1
@@ -879,6 +881,7 @@ def test_update_qa_options_from_librarian(client, all_apps_user):
     response = client.get(reverse("chat:update_from_librarian", args=[chat.id, 999]))
     assert response.status_code == 200
     # This should reset to default library and clear data sources and documents
+    chat.options.refresh_from_db()
     assert chat.options.qa_library == Library.objects.get_default_library()
     assert chat.options.qa_data_sources.count() == 0
     assert chat.options.qa_documents.count() == 0
@@ -889,6 +892,8 @@ def test_update_qa_options_from_librarian(client, all_apps_user):
         reverse("chat:update_from_librarian", args=[chat.id, library.id])
     )
     assert response.status_code == 200
+    chat.options.refresh_from_db()
+    # This should reset to default library and clear data sources and documents
     assert chat.options.qa_library == Library.objects.get_default_library()
     assert chat.options.qa_data_sources.count() == 0
     assert chat.options.qa_documents.count() == 0
