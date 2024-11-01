@@ -367,6 +367,10 @@ def _convert_html_to_markdown(
                 absolute_url = urljoin(base_url, href)
                 anchor["href"] = absolute_url
 
+    # Replace <caption> elements with <h6> so that they get capture in breadcrumbs
+    for caption in soup.find_all("caption"):
+        caption.name = "h6"
+
     text = _remove_ignored_tags(str(soup))
 
     markdown = markdownify_wrapper(text).strip()

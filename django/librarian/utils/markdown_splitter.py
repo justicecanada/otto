@@ -164,7 +164,7 @@ class MarkdownSplitter:
         """
         Converts the headings dictionary into a breadcrumb trail (Heading 1 > Heading 2)
         and prepends it to the text, wrapped in a <headings> tag.
-        Only includes headings above the specified level.
+        Only includes headings under the specified level.
         """
         headings2 = {k: v for k, v in headings.items() if k < to_level}
         if not any(headings2.values()):
@@ -180,12 +180,14 @@ class MarkdownSplitter:
         Returns a tuple with:
         * updated copy of headings dictionary (state at the end of the text),
         * headings to prepend (usually the same as the updated headings),
-        * the minimum level of the headings to prepend
-        Note on "minimum": "# This" is level 1, "## This" is level 2, etc.
+        * the maximum level of the headings to prepend
+        Note on "maximum": "# This" is level 1, "## This" is level 2, etc.
         """
         lines = text.split("\n")
         headings = existing_headings.copy()
-        min_level = 7
+        # Headings is a dictionary with keys 1-6 and values as the heading text.
+        existing_level = max([0] + [k for k, v in existing_headings.items() if v])
+        max_level = 7
         last_level = 0
         headings_for_prepend = None
         for line in lines:
@@ -195,12 +197,19 @@ class MarkdownSplitter:
                     headings_for_prepend = existing_headings
                 self._set_headings(headings, level, heading_text)
                 if not headings_for_prepend:
-                    min_level = min(min_level, level)
+                    max_level = min(max_level, level)
                 last_level = level
+        # If first line is NOT a heading, repeat the previous same level heading
+        if lines[0].startswith("<page_") and lines[0].endswith(">"):
+            lines = lines[1:]
+        first_line_level, first_line_heading = self._get_heading(lines[0])
+        if first_line_level is None and existing_level == max_level:
+            headings_for_prepend = existing_headings
+            max_level = max_level + 1
         return (
             headings,
             headings_for_prepend if headings_for_prepend else headings,
-            min_level,
+            max_level,
         )
 
     def _is_table_row(self, line):
@@ -283,13 +292,13 @@ class MarkdownSplitter:
         """
         headings_added_texts = []
         for text in split_texts:
-            self.current_headings, headings_for_prepend, min_level = (
+            self.current_headings, headings_for_prepend, max_level = (
                 self._get_all_headings(text, self.current_headings)
             )
             text = self._repeat_table_header_if_necessary(text, self.last_table_header)
             self.last_table_header = self._get_last_table_header(text)
             text = self._prepend_headings(
-                headings_for_prepend, text, to_level=min_level
+                headings_for_prepend, text, to_level=max_level
             )
             headings_added_texts.append(text)
         return headings_added_texts

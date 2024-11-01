@@ -781,7 +781,27 @@ Some more text.
 | --- | --- |
 | Row 5 | Row 5 |
 | Row 6 | Row 6 |
+
+# New heading 1b
+
+Text again. "New heading 1" should still be in breadcrumbs.
 </page_2>
+""".strip(),
+        """
+<page_2>
+# New heading 1c
+
+</page_2>
+<page_3>
+This time, "New heading 1b" should NOT be in breadcrumbs.
+</page_3>
+""".strip(),
+        """
+<page_3>
+## New heading 2
+
+This time, "New heading 1c" should be in breadcrumbs, but not "New heading 2".
+</page_3>
 """.strip(),
     ]
     expected_texts = [
@@ -829,7 +849,28 @@ Some more text.
 | --- | --- |
 | Row 5 | Row 5 |
 | Row 6 | Row 6 |
+
+# New heading 1b
+
+Text again. "New heading 1" should still be in breadcrumbs.
 </page_2>
+""".strip(),
+        """
+<page_2>
+# New heading 1c
+
+</page_2>
+<page_3>
+This time, "New heading 1b" should NOT be in breadcrumbs.
+</page_3>
+""".strip(),
+        """
+<headings>New heading 1c</headings>
+<page_3>
+## New heading 2
+
+This time, "New heading 1c" should be in breadcrumbs, but not "New heading 2".
+</page_3>
 """.strip(),
     ]
     result = markdown_splitter._repeat_headings(split_texts)
