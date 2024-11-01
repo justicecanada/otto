@@ -25,7 +25,7 @@
     </div>
     <div class="d-flex align-items-center">
       {% include "chat/modals/presets/shared_icon.html" %}
-      {% include "chat/modals/presets/default_icon.html" %}
+      <div id="default-button-{{ preset.id }}">{% include "chat/modals/presets/default_icon.html" %}</div>
       {% include "chat/modals/presets/favourite.html" %}
     </div>
   </div>
