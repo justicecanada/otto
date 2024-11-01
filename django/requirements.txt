@@ -41,7 +41,7 @@ openai==1.43.0
 llama-index-core==0.11.6
 llama-index-llms-azure-openai==0.2.1
 llama-index-vector-stores-postgres==0.2.1
-llama-index-llms-openai==0.2.2
+llama-index-llms-openai==0.2.16
 llama-index-embeddings-azure-openai==0.2.5
 langchain-core==0.2.38
 langchain-openai==0.1.23
