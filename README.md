@@ -60,9 +60,9 @@
 | django/template\_wizard/wizards/canlii\_wizard/utils.py                |      401 |      360 |     10% |81-143, 148-163, 167-177, 181-232, 236-248, 253-270, 275-291, 295-300, 304-391, 396-657, 662-971, 976-1197 |
 | django/template\_wizard/wizards/canlii\_wizard/views.py                |      128 |      100 |     22% |50, 54-99, 112-117, 132-156, 161-213, 225-253, 258-291, 296-304 |
 | django/text\_extractor/models.py                                       |       13 |        1 |     92% |        23 |
-| django/text\_extractor/utils.py                                        |      153 |       86 |     44% |49-72, 113-114, 132-287, 291-292 |
-| django/text\_extractor/views.py                                        |      102 |       82 |     20% |31-34, 40-201, 205-218 |
-|                                                              **TOTAL** | **6005** | **1952** | **67%** |           |
+| django/text\_extractor/utils.py                                        |      156 |       88 |     44% |51-74, 115-116, 134-288, 292-293 |
+| django/text\_extractor/views.py                                        |      104 |       84 |     19% |31-34, 39-206, 210-223 |
+|                                                              **TOTAL** | **6010** | **1956** | **67%** |           |
 
 
 ## Setup coverage badge
