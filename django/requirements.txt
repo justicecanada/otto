@@ -43,7 +43,7 @@ llama-index-llms-azure-openai==0.2.1
 llama-index-vector-stores-postgres==0.2.1
 llama-index-llms-openai==0.2.2
 llama-index-embeddings-azure-openai==0.2.5
-langchain-core==0.2.38
+langchain-core==0.3.15
 langchain-openai==0.1.23
 langchain-community==0.2.16
 tiktoken==0.7.0
