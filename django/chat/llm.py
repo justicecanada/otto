@@ -233,6 +233,7 @@ class OttoLLM:
             model=self.model,
             temperature=self.temperature,
             callback_manager=self._callback_manager,
+            additional_kwargs={"stop": ["<|userstopped|>", "Poe"]},
         )
 
     def _get_embed_model(self) -> AzureOpenAIEmbedding | MockEmbedding:
