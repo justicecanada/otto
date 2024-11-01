@@ -800,18 +800,40 @@ def edit_preset(request, chat_id, preset_id):
 
 def set_preset_default(request, chat_id: str, preset_id: int):
     try:
-        preset = Preset.objects.get(id=preset_id)
-        default = preset.set_as_default(request.user)
+        new_preset = Preset.objects.get(id=preset_id)
+        old_default = Preset.objects.filter(default_for=request.user).first()
+
+        default = new_preset.set_as_default(request.user)
         is_default = True if default is not None else False
-        return render(
-            request,
+
+        new_html = render_to_string(
             "chat/modals/presets/default_icon.html",
             {
-                "preset": preset,
+                "preset": new_preset,
                 "chat_id": chat_id,
                 "is_default": is_default,
             },
+            request=request,
         )
+
+        response = (
+            f'<div id="default-button-{preset_id}" hx-swap-oob="true">{new_html}</div>'
+        )
+
+        if old_default and old_default.id != preset_id:
+            old_html = render_to_string(
+                "chat/modals/presets/default_icon.html",
+                {
+                    "preset": old_default,
+                    "chat_id": chat_id,
+                    "is_default": False,
+                },
+                request=request,
+            )
+            response += f'<div id="default-button-{old_default.id}" hx-swap-oob="true">{old_html}</div>'
+
+        return HttpResponse(response)
+
     except ValueError:
-        # TODO: Preset refactor: show friendly error message
         logger.error("Error setting default preset")
+        return HttpResponse(status=500)
