@@ -2,16 +2,16 @@ import os
 from datetime import datetime
 from io import BytesIO
 
-from django.core.exceptions import SuspiciousFileOperation
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from PyPDF2 import PdfMerger
+from structlog.contextvars import bind_contextvars
 
 from otto.secure_models import AccessKey
-from otto.utils.common import file_size_to_string
+from otto.utils.common import display_cad_cost, file_size_to_string
 from otto.utils.decorators import app_access_required, budget_required
 from text_extractor.models import OutputFile, UserRequest
 
@@ -36,6 +36,7 @@ def index(request):
 
 @budget_required
 def submit_document(request):
+    bind_contextvars(feature="text_extractor")  # for keeping track in dashboard
 
     if request.method == "POST":
         files = request.FILES.getlist("file_upload")
@@ -51,6 +52,7 @@ def submit_document(request):
 
         completed_documents = []
         all_texts = []
+        total_cost = 0
 
         merged = request.POST.get("merge_docs_checkbox", False)
         merger = PdfMerger() if merged else None
@@ -70,10 +72,11 @@ def submit_document(request):
                 )
                 files.insert(0, toc_file)
 
-            current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-
             for idx, file in enumerate(files):
-                ocr_file, txt_file = create_searchable_pdf(file, merged and idx > 0)
+                ocr_file, txt_file, cost = create_searchable_pdf(
+                    file, merged and idx > 0
+                )
+                total_cost += cost
                 all_texts.append(txt_file)
 
                 input_name, _ = os.path.splitext(file.name)
@@ -123,6 +126,7 @@ def submit_document(request):
                                 "file": output_text,
                                 "size": file_size_to_string(output_text.file.size),
                             },
+                            "cost": display_cad_cost(cost),
                         }
                     )
 
@@ -177,6 +181,7 @@ def submit_document(request):
                             "file": output_text,
                             "size": file_size_to_string(output_text.file.size),
                         },
+                        "cost": display_cad_cost(total_cost),
                     }
                 )
 

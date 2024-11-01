@@ -114,7 +114,7 @@ def mock_pdf_file():
 def mock_pdf_file2():
     filename = "temp_file2.pdf"
     c = canvas.Canvas(filename)
-    for i in range(10):  # Create 3 pages
+    for i in range(10):  # Create 10 pages
         c.drawString(100, 100, f"Page {i+1}")
         c.showPage()
     c.save()
