@@ -670,7 +670,7 @@ def message_sources(request, message_id):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def update_from_librarian(request, chat_id, library_id):
+def update_qa_options_from_librarian(request, chat_id, library_id):
     # (See librarian/scripts.js)
     chat = Chat.objects.get(id=chat_id)
     original_library = chat.options.qa_library
