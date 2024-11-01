@@ -196,6 +196,7 @@ async def htmx_stream(
     ##############################
     is_untitled_chat = chat.title.strip() == ""
     full_message = ""
+    generation_stopped = False
     dots_html = '<div class="typing"><span></span><span></span><span></span></div>'
     if dots:
         dots = dots_html
@@ -225,9 +226,14 @@ async def htmx_stream(
                 yield sse_string(full_message, format=False, dots=dots_html)
                 await asyncio.sleep(1)
                 first_message = False
-            full_message = response
-            if cache.get(f"stop_response_{message_id}", False):
-                break
+
+            if not cache.get(f"stop_response_{message_id}", False):
+                full_message = response
+            elif not generation_stopped:
+                generation_stopped = True
+                message = await sync_to_async(Message.objects.get)(id=message_id)
+                message.text = full_message
+                await sync_to_async(message.save)()
             yield sse_string(full_message, format, dots)
             await asyncio.sleep(0.01)
 
