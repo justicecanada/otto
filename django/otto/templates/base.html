@@ -40,15 +40,17 @@
         <a href="#main-content-wrapper"
            class="btn btn-primary position-absolute visually-hidden-focusable ms-2">{% trans "Skip to main content" %}</a>
         <div class="container-fluid">
-          <a class="navbar-brand text-white" href="{% url 'index' %}">
-            <img src="{% static 'otto.png' %}"
-                 width="30"
-                 height="30"
-                 class="d-inline-block align-top"
-                 alt="Otto logo" />
-            Otto
-            <small class="text-muted" id="otto-version">{{ otto_version }}</small>
-          </a>
+          <div>
+            <a class="navbar-brand text-white me-0" href="{% url 'index' %}">
+              <img src="{% static 'otto.png' %}"
+                   width="30"
+                   height="30"
+                   class="d-inline-block align-top"
+                   alt="Otto logo" />
+              Otto
+            </a>
+            {{ otto_version|safe }}
+          </div>
 
           {% include 'components/search.html' %}
  

@@ -3,6 +3,7 @@ from django.urls import reverse
 
 import pytest
 
+from otto.models import Cost
 from text_extractor.views import *
 
 pytest_plugins = ("pytest_asyncio",)
@@ -21,6 +22,7 @@ skip_on_devops_pipeline = pytest.mark.skipif(
 def test_merged_document_submission(client, all_apps_user, mock_pdf_file):
     user = all_apps_user()
     client.force_login(user)
+    num_costs = Cost.objects.count()
 
     response = client.get(reverse("text_extractor:index"))
     assert response.status_code == 200
@@ -41,6 +43,13 @@ def test_merged_document_submission(client, all_apps_user, mock_pdf_file):
     assert "ocr_docs" in response.context
     assert "user_request_id" in response.context
 
+    # TODO: Why is the TOC page being OCR'd? This incurs cost but is not needed.
+    # assert Cost.objects.count() == num_costs + 1
+
+    last_cost = Cost.objects.order_by("id").last()
+    assert last_cost.feature == "text_extractor"
+    assert last_cost.count == 3  # 3 pages
+
 
 # These tests are failing on GitHub and DevOps due to authorization issues
 @skip_on_github_actions
@@ -48,6 +57,7 @@ def test_merged_document_submission(client, all_apps_user, mock_pdf_file):
 def test_document_submission_and_download(client, all_apps_user, mock_pdf_file):
     user = all_apps_user()
     client.force_login(user)
+    num_costs = Cost.objects.count()
 
     response = client.get(reverse("text_extractor:index"))
     assert response.status_code == 200
@@ -67,6 +77,12 @@ def test_document_submission_and_download(client, all_apps_user, mock_pdf_file):
     # Check if the response contains the expected context data
     assert "ocr_docs" in response.context
     assert "user_request_id" in response.context
+
+    assert Cost.objects.count() == num_costs + 1
+
+    last_cost = Cost.objects.order_by("id").last()
+    assert last_cost.feature == "text_extractor"
+    assert last_cost.count == 3  # 3 pages
 
     # Test the download view: "download_document/<str:file_id>/<str:user_request_id>",
     user_request_id = response.context["user_request_id"]

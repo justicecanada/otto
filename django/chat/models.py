@@ -411,7 +411,7 @@ class ChatFile(models.Model):
     def __str__(self):
         return f"File {self.id}: {self.filename}"
 
-    def extract_text(self, fast=True):
+    def extract_text(self, pdf_method="default"):
 
         from librarian.utils.process_engine import (
             extract_markdown,
@@ -423,7 +423,7 @@ class ChatFile(models.Model):
 
         process_engine = get_process_engine_from_type(self.saved_file.content_type)
         self.text, _ = extract_markdown(
-            self.saved_file.file.read(), process_engine, fast=fast
+            self.saved_file.file.read(), process_engine, pdf_method=pdf_method
         )
         self.save()
 
@@ -431,7 +431,7 @@ class ChatFile(models.Model):
 @receiver(post_delete, sender=ChatFile)
 def delete_saved_file(sender, instance, **kwargs):
     # NOTE: If file was uploaded to chat in Q&A mode, this won't delete unless
-    # document is also delete from librarian modal (or entire chat is deleted)
+    # document is also deleted from librarian modal (or entire chat is deleted)
     try:
         instance.saved_file.safe_delete()
     except Exception as e:
