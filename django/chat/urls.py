@@ -56,6 +56,11 @@ urlpatterns = [
         name="chat_options",
     ),
     path(
+        "id/<str:chat_id>/options/set_qa_library/<int:library_id>",
+        views.update_from_librarian,
+        name="update_from_librarian",
+    ),
+    path(
         "id/<str:chat_id>/set_security_label/<str:security_label_id>",
         views.set_security_label,
         name="set_security_label",

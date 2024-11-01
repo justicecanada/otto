@@ -19,12 +19,7 @@ updateLibrarianModalOnClose = (library_id) => {
     newPoller.id = 'libraryModalPoller';
     poller.parentNode.replaceChild(newPoller, poller);
     // Update the QA library select
-    const qa_library_select = document.getElementById("id_qa_library");
-    // Only update if the value is different (allow type coercion)
-    if (qa_library_select.value != library_id) {
-      qa_library_select.value = library_id;
-      qa_library_select.dispatchEvent(new Event('change'));
-    }
+    htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion'});
   };
   modalEl.addEventListener('hidden.bs.modal', librarianModalCloseHandler);
 };
