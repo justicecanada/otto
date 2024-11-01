@@ -366,18 +366,21 @@ def chunk_upload(request, message_id):
 
     file = request.FILES["file"].read()
     content_type = request.POST["content_type"]
-    fileName = request.POST["filename"]
+    file_name = request.POST["filename"]
     file_id = request.POST["file_id"]
     end = request.POST["end"]
     nextSlice = request.POST["nextSlice"]
 
-    if file == "" or fileName == "" or file_id == "" or end == "" or nextSlice == "":
+    if ("text" in content_type or not content_type) and file_name.endswith(".md"):
+        content_type = "text/markdown"
+
+    if file == "" or file_name == "" or file_id == "" or end == "" or nextSlice == "":
         return JsonResponse({"data": "Invalid Request"})
     else:
         if file_id == "null":
             chat_file_arguments = dict(
                 message_id=message_id,
-                filename=fileName,
+                filename=file_name,
             )
             if existing_file:
                 chat_file_arguments.update(saved_file=existing_file)
@@ -385,7 +388,7 @@ def chunk_upload(request, message_id):
                 chat_file_arguments.update(content_type=content_type, eof=int(end))
             file_obj = ChatFile.objects.create(**chat_file_arguments)
             if not existing_file:
-                file_obj.saved_file.file.save(fileName, request.FILES["file"])
+                file_obj.saved_file.file.save(file_name, request.FILES["file"])
             if int(end) or existing_file:
                 file_obj.saved_file.generate_hash()
                 return JsonResponse(

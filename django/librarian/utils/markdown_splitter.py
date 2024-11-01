@@ -10,12 +10,15 @@ logger = get_logger(__name__)
 
 
 class MarkdownSplitter:
-    def __init__(self, chunk_size=768, chunk_overlap=100, debug=False):
+    def __init__(
+        self, chunk_size=768, chunk_overlap=100, enable_markdown=True, debug=False
+    ):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.debug = debug
         self.current_headings = {i: None for i in range(1, 7)}
         self.last_table_header = None
+        self.enable_markdown = enable_markdown
 
     def split_markdown(self, markdown_text: str) -> List[str]:
         """
@@ -24,8 +27,9 @@ class MarkdownSplitter:
         Repeats table headers when a table is split across chunks.
         """
         split_texts = self._split_with_page_numbers(markdown_text)
-        headings_added_texts = self._repeat_headings(split_texts)
-        return headings_added_texts
+        if self.enable_markdown:
+            split_texts = self._repeat_headings(split_texts)
+        return split_texts
 
     def _split_with_page_numbers(self, markdown_text: str) -> List[str]:
         """
@@ -124,9 +128,11 @@ class MarkdownSplitter:
                     html_string = (
                         f"{html_string.strip()}\n</page_{last_opening_tag_num}>"
                     )
+        output = html_string.strip()
         # Catch any additional issues with HTML tags
-        soup = BeautifulSoup(html_string.strip() + "\n", "html.parser")
-        output = str(soup).strip()
+        if self.enable_markdown:
+            soup = BeautifulSoup(output + "\n", "html.parser")
+            output = str(soup).strip()
         if self.debug:
             logger.debug(f"\nAfter _close_tags:\n---\n{output}\n---\n")
         return output

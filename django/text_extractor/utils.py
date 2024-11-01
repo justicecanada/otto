@@ -20,6 +20,8 @@ from structlog import get_logger
 
 logger = get_logger(__name__)
 
+from otto.models import Cost
+
 default_font = "Helvetica"
 img_extensions = (".tif", ".tiff", ".jpg", ".jpeg", ".png", ".bmp")
 
@@ -180,6 +182,7 @@ def create_searchable_pdf(input_file, add_header):
 
     ocr_results = poller.result()
 
+    num_pages = len(ocr_results.pages)
     logger.debug(
         f"Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages."
     )
@@ -287,7 +290,8 @@ def create_searchable_pdf(input_file, add_header):
         new_pdf_page = PdfReader(ocr_overlay)  # changed
         output.add_page(new_pdf_page.pages[0])
 
-    return output, all_text
+    cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
+    return output, all_text, cost.usd_cost
 
 
 def shorten_input_name(input_name):
