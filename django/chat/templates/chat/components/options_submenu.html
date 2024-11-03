@@ -4,14 +4,14 @@
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#options-accordion-{{ options_section_id }}"
-            aria-expanded="true"
+            aria-expanded="{% if options_form.mode.value == options_section_id %}true{% else %}false{% endif %}"
             aria-controls="options-accordion-{{ options_section_id }}"
             onclick="handleModeChange('{{ options_section_id }}', this)">
       {% block accordion_title %}{% endblock %}
     </button>
   </h5>
   <div id="options-accordion-{{ options_section_id }}"
-       class="accordion-collapse collapse{% if swap %} show{% endif %}"
+       class="accordion-collapse collapse{% if swap or options_form.mode.value == options_section_id %} show{% endif %}"
        data-bs-parent="#options-accordion"
        {% if swap %}hx-swap-oob="true" hx-ext="morph"{% endif %}>
     <div class="accordion-body bg-light p-0 pb-2">
