@@ -344,7 +344,7 @@ def done_upload(request, message_id):
 
     if mode == "qa":
         # usage metrics
-        print("QA upload")
+        logger.debug("QA upload")
         chat_request_type_total.labels(user=request.user.upn, type="qa upload")
         response.write(change_mode_to_chat_qa(chat))
 

@@ -7,9 +7,12 @@ from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 from data_fetcher.util import get_request
 from rules import is_group_member
+from structlog import get_logger
 
 from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
 from librarian.models import DataSource, Document, Library
+
+logger = get_logger(__name__)
 
 CHAT_MODELS = [
     ("gpt-4o-mini", _("GPT-4o-mini (Global)")),
@@ -36,11 +39,11 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         if not self.user:
             raise ValueError("User must be provided to GroupedLibraryChoiceField")
         super().__init__(queryset=Library.objects.all(), *args, **kwargs)
-        print(f"GroupedLibraryChoiceField initialized with user: {self.user}")
-        print(f"Initial queryset count: {self.queryset.count()}")
+        logger.debug(f"GroupedLibraryChoiceField initialized with user: {self.user}")
+        logger.debug(f"Initial queryset count: {self.queryset.count()}")
 
     def get_grouped_choices(self):
-        print(f"get_grouped_choices called for user: {self.user}")
+        logger.debug(f"get_grouped_choices called for user: {self.user}")
         if not self.user:
             raise ValueError("User must be provided to GroupedLibraryChoiceField")
 
@@ -69,10 +72,10 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
             if libs
         ]
 
-        print(
+        logger.debug(
             f"Returning {len(choices)} groups with a total of {sum(len(options) for _, options in choices)} options"
         )
-        print(f"Choices: {choices}")
+        logger.debug(f"Choices: {choices}")
         return choices
 
     def label_from_instance(self, obj):

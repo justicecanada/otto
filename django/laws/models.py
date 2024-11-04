@@ -42,8 +42,8 @@ class LawManager(models.Manager):
             obj = existing_law.first()
             en_hash_changed = obj.sha_256_hash_en != sha_256_hash_en
             fr_hash_changed = obj.sha_256_hash_fr != sha_256_hash_fr
-            print(f"en_hash_changed: {en_hash_changed}")
-            print(f"fr_hash_changed: {fr_hash_changed}")
+            logger.debug(f"en_hash_changed: {en_hash_changed}")
+            logger.debug(f"fr_hash_changed: {fr_hash_changed}")
         else:
             obj = self.model()
 
