@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
-from PyPDF2 import PdfMerger
+from pypdf import PdfWriter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
@@ -57,7 +57,7 @@ def submit_document(request):
         total_cost = 0
 
         merged = request.POST.get("merge_docs_checkbox", False)
-        merger = PdfMerger() if merged else None
+        merger = PdfWriter() if merged else None
         file_names_to_merge = []
 
         try:
