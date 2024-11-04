@@ -13,6 +13,9 @@
       handleModeChange(mode);
       setTimeout(updateQaSourceForms, 100);
     }
+    if ("{{ trigger_library_change }}" === "true") {
+      document.getElementById("id_qa_library").dispatchEvent(new Event('change'));
+    }
   })();
 
   updateQaSourceForms();

@@ -7,16 +7,24 @@ import os
 import time
 
 from django.conf import settings
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
+from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 import pytest
+from structlog import get_logger
 
 from chat.models import Chat, ChatFile, Message
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
+from otto.secure_models import AccessControl, AccessKey
+from text_extractor.models import OutputFile, UserRequest
+
+logger = get_logger(__name__)
 
 
 @pytest.mark.django_db
@@ -300,3 +308,120 @@ def test_delete_empty_chats_task(client, all_apps_user):
     # Check that the too-new empty chat remains
     too_new_empty_chat = Chat.objects.filter(id=too_new_empty_chat_id).first()
     assert too_new_empty_chat is not None
+
+
+@pytest.mark.django_db(transaction=True)
+def test_delete_text_extractor_files_task(client, all_apps_user):
+
+    # Ensure the "Otto admin" group exists
+    group, created = Group.objects.get_or_create(name="Otto admin")
+
+    user = all_apps_user()
+    client.force_login(user)
+    # Create a UserRequest
+    access_key = AccessKey(user=user)
+
+    UserRequest.objects.all(access_key=access_key).delete()
+    OutputFile.objects.all(access_key=access_key).delete()
+
+    # Grant the necessary permissions to the user for UserRequest
+    content_type_user_request = ContentType.objects.get_for_model(UserRequest)
+    permission_user_request, created = Permission.objects.get_or_create(
+        codename="add_userrequest",
+        content_type=content_type_user_request,
+        name="Can add user request",
+    )
+    group.permissions.add(permission_user_request)
+    user.groups.add(group)
+    user.user_permissions.add(permission_user_request)
+
+    user_request1 = UserRequest.objects.create(
+        access_key=access_key, name="Test Request 1"
+    )
+    user_request2 = UserRequest.objects.create(
+        access_key=access_key, name="Test Request 2"
+    )
+
+    # Grant the permissions to the user for OutputFile
+    content_type_output_file = ContentType.objects.get_for_model(OutputFile)
+    permission_output_file_add, created = Permission.objects.get_or_create(
+        codename="add_outputfile",
+        content_type=content_type_output_file,
+        name="Can add output file",
+    )
+    permission_output_file_delete, created = Permission.objects.get_or_create(
+        codename="delete_outputfile",
+        content_type=content_type_output_file,
+        name="Can delete output file",
+    )
+    user.user_permissions.add(permission_output_file_add)
+    user.user_permissions.add(permission_output_file_delete)
+    # Verify current time
+    current_time = timezone.now()
+    logger.debug(f"Current time: {current_time}")
+    # Create an OutputFile
+    this_file_path = os.path.abspath(__file__)
+    with open(this_file_path, "rb") as f:
+        content = f.read()
+
+    output_file1 = OutputFile.objects.create(
+        access_key=access_key,
+        user_request=user_request1,
+        file=ContentFile(content, name="test_file1.txt"),
+        file_name="test_file1.txt",
+    )
+    # Set the creation time to 40 hours ago
+    user_request1.created_at = current_time - timezone.timedelta(hours=40)
+    user_request1.save(access_key=access_key)
+    logger.debug(f"User request 1 created_at: {user_request1.created_at}")
+
+    output_file2 = OutputFile.objects.create(
+        access_key=access_key,
+        user_request=user_request2,
+        file=ContentFile(content, name="test_file2.txt"),
+        file_name="test_file2.txt",
+    )
+    # Set the creation time to 5 min ago
+    user_request2.created_at = current_time - timezone.timedelta(minutes=5)
+    user_request2.save(access_key=access_key)
+    logger.debug(f"User request 2 created_at: {user_request2.created_at}")
+
+    # Run the delete_text_extractor_files task
+    if settings.IS_RUNNING_IN_GITHUB:
+        # No Redis, so we test the code directly
+        call_command("delete_text_extractor_files")
+    else:
+        # Test the task
+        from otto.tasks import delete_text_extractor_files
+
+        delete_text_extractor_files()
+
+    # Check that the old UserRequest is gone
+    old_user_requests = UserRequest.objects.filter(
+        access_key=access_key, name="Test Request 1"
+    )
+    assert old_user_requests.count() == 0
+
+    # Check that the new UserRequest still exists
+    new_user_requests = UserRequest.objects.filter(
+        access_key=access_key, name="Test Request 2"
+    )
+    assert new_user_requests.count() == 1
+
+    # Check that the associated OutputFile for the old UserRequest is gone
+    old_output_files = OutputFile.objects.filter(
+        access_key=access_key, file_name="test_file1.txt"
+    )
+    assert old_output_files.count() == 0
+
+    # Check that the associated OutputFile for the new UserRequest still exists
+    new_output_files = OutputFile.objects.filter(
+        access_key=access_key, file_name="test_file2.txt"
+    )
+    assert new_output_files.count() == 1
+
+    # Check media directory
+    media_folder = os.path.join(settings.MEDIA_ROOT, "ocr_output_files")
+    logger.debug(f"Files in media folder: {os.listdir(media_folder)}")
+    assert "test_file1.txt" not in os.listdir(media_folder)
+    assert "test_file2.txt" in os.listdir(media_folder)

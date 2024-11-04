@@ -27,7 +27,7 @@ ten_minutes = 600
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def process_document(document_id, language=None, force_azure=False):
+def process_document(document_id, language=None, pdf_method="default"):
     """
     Process a URL and save the content to a document.
     """
@@ -45,20 +45,19 @@ def process_document(document_id, language=None, force_azure=False):
     llm = OttoLLM()
     try:
         with translation.override(language):
-            process_document_helper(document, llm, force_azure)
+            process_document_helper(document, llm, pdf_method)
 
     except Exception as e:
         document.status = "ERROR"
-        print("Error processing document:", document.name)
-        print(e)
-        print("----")
+        logger.debug("Error processing document:", document.name)
+        logger.error(e)
         document.celery_task_id = None
         document.save()
 
     llm.create_costs()
 
 
-def process_document_helper(document, llm, force_azure=False):
+def process_document_helper(document, llm, pdf_method="default"):
     url = document.url
     file = document.file
     if not (url or file):
@@ -79,6 +78,8 @@ def process_document_helper(document, llm, force_azure=False):
                 },
             )
         content, content_type = fetch_from_url(url)
+        if ("text" in content_type or not content_type) and url.endswith(".md"):
+            content_type = "text/markdown"
         document.url_content_type = content_type
     else:
         logger.info("Processing file", file=file)
@@ -92,6 +93,10 @@ def process_document_helper(document, llm, force_azure=False):
             )
         content = file.file.read()
         content_type = file.content_type
+        if ("text" in content_type or not content_type) and file.file.name.endswith(
+            ".md"
+        ):
+            content_type = "text/markdown"
 
     if current_task:
         current_task.update_state(
@@ -109,7 +114,7 @@ def process_document_helper(document, llm, force_azure=False):
     document.extracted_text, chunks = extract_markdown(
         content,
         process_engine,
-        fast=not force_azure,
+        pdf_method=pdf_method,
         base_url=base_url,
         selector=document.selector,
     )
@@ -123,6 +128,8 @@ def process_document_helper(document, llm, force_azure=False):
     nodes = create_nodes(chunks, document)
 
     document.num_chunks = len(nodes)
+    if document.content_type == "application/pdf":
+        document.pdf_extraction_method = pdf_method
     document.save()
 
     library_uuid = document.data_source.library.uuid_hex
@@ -148,8 +155,8 @@ def process_document_helper(document, llm, force_azure=False):
                 vector_store_index.insert_nodes(nodes[i : i + batch_size])
                 break
             except Exception as e:
-                print(f"Error inserting nodes: {e}")
-                print("Retrying...")
+                logger.error(f"Error inserting nodes: {e}")
+                logger.debug("Retrying...")
                 time.sleep(2**j)
 
     # Done!

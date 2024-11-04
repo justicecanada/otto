@@ -40,6 +40,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
     accepted_terms_date = models.DateField(null=True)
     pilot = models.ForeignKey("Pilot", on_delete=models.SET_NULL, null=True, blank=True)
+    default_preset = models.ForeignKey(
+        "chat.Preset",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="default_for",
+    )
     weekly_max = models.IntegerField(default=settings.DEFAULT_WEEKLY_MAX)
     weekly_bonus = models.IntegerField(default=0)  # Resets each Sunday to 0
 
@@ -260,7 +267,7 @@ class Feedback(models.Model):
         default=_("Please select an option"),
     )
     app = models.TextField(max_length=200, blank=False)
-    otto_version = models.CharField(max_length=12, null=False)
+    otto_version = models.CharField(max_length=50, null=False)
     feedback_message = models.TextField(blank=False)
     chat_message = models.ForeignKey(
         "chat.Message", null=True, on_delete=models.SET_NULL, related_name="message"
@@ -412,7 +419,6 @@ FEATURE_CHOICES = [
     ("template_wizard", _("Template wizard")),
     ("laws_query", _("Legislation search")),
     ("laws_load", _("Legislation loading")),
-    ("case_prep", _("Case prep assistant")),
     ("text_extractor", _("Text extractor")),
 ]
 

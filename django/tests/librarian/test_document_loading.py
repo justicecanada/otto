@@ -4,6 +4,7 @@ import re
 from django.conf import settings
 
 import pytest
+from structlog import get_logger
 
 from librarian.utils.process_engine import extract_markdown
 from otto.models import Cost
@@ -17,6 +18,8 @@ skip_on_devops_pipeline = pytest.mark.skipif(
 )
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
+
+logger = get_logger(__name__)
 
 
 def check_page_numbers_for_example(md, md_chunks):
@@ -54,23 +57,36 @@ def test_extract_pdf():
     # Load a PDF file in "fast" mode (pypdfium)
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "PDF", fast=True)
+        md, md_chunks = extract_markdown(content, "PDF", pdf_method="default")
         check_page_numbers_for_example(md, md_chunks)
 
     # Load a PDF file in "fast" mode (pypdfium) with a chunk size of 256
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "PDF", fast=True, chunk_size=256)
+        md, md_chunks = extract_markdown(
+            content, "PDF", pdf_method="default", chunk_size=256
+        )
         check_page_numbers_for_example(md, md_chunks)
 
 
 @pytest.mark.django_db
-def test_extract_pdf_azure():
+def test_extract_pdf_azure_read():
     # Load a PDF file in "slow" mode (Azure Form Recognizer)
     cost_count = Cost.objects.count()
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "PDF", fast=False)
+        md, md_chunks = extract_markdown(content, "PDF", pdf_method="azure_read")
+        check_page_numbers_for_example(md, md_chunks)
+    assert Cost.objects.count() == cost_count + 1
+
+
+@pytest.mark.django_db
+def test_extract_pdf_azure_layout():
+    # Load a PDF file in "slow" mode (Azure Form Recognizer)
+    cost_count = Cost.objects.count()
+    with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
+        content = f.read()
+        md, md_chunks = extract_markdown(content, "PDF", pdf_method="azure_layout")
         check_page_numbers_for_example(md, md_chunks)
     assert Cost.objects.count() == cost_count + 1
 
@@ -80,7 +96,7 @@ def test_extract_pptx():
     with open(os.path.join(this_dir, "test_files/example.pptx"), "rb") as f:
         content = f.read()
         md, md_chunks = extract_markdown(content, "POWERPOINT")
-        print(md)
+        logger.debug(md)
         # The powerpoint has the same slide numbers etc. as the PDF
         check_page_numbers_for_example(md, md_chunks)
 

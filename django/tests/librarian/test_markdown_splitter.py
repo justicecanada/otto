@@ -1,6 +1,9 @@
 import pytest
+from structlog import get_logger
 
 from librarian.utils.markdown_splitter import MarkdownSplitter
+
+logger = get_logger(__name__)
 
 
 @pytest.fixture
@@ -323,7 +326,7 @@ def test_prepend_headings():
 Some text.
 """.strip()
     result = markdown_splitter._prepend_headings(headings, text)
-    print(result)
+    logger.debug(result)
     assert result == expected_output
 
     # Test with a lower to_level
@@ -470,7 +473,7 @@ Even more text.
     }
     expected_min_level = 3
     result = markdown_splitter._get_all_headings(text, existing_headings)
-    print(result)
+    logger.debug(result)
     assert result == (
         expected_headings,
         expected_headings_for_prepend,
@@ -594,7 +597,7 @@ Some more text.
 """.strip()
     expected_output = "| Header 3 | Header 4 |"
     result = markdown_splitter._get_last_table_header(text)
-    print(result)
+    logger.debug(result)
     assert result == expected_output
 
 
@@ -722,7 +725,7 @@ Some text.
     repeated_chunk = markdown_splitter._repeat_table_header_if_necessary(
         chunk_2, last_table_header
     )
-    print(repeated_chunk)
+    logger.debug(repeated_chunk)
     expected_repeated_chunk = """
 <page_1>
 | Header 3 | Header 4 |
@@ -778,7 +781,27 @@ Some more text.
 | --- | --- |
 | Row 5 | Row 5 |
 | Row 6 | Row 6 |
+
+# New heading 1b
+
+Text again. "New heading 1" should still be in breadcrumbs.
 </page_2>
+""".strip(),
+        """
+<page_2>
+# New heading 1c
+
+</page_2>
+<page_3>
+This time, "New heading 1b" should NOT be in breadcrumbs.
+</page_3>
+""".strip(),
+        """
+<page_3>
+## New heading 2
+
+This time, "New heading 1c" should be in breadcrumbs, but not "New heading 2".
+</page_3>
 """.strip(),
     ]
     expected_texts = [
@@ -826,12 +849,33 @@ Some more text.
 | --- | --- |
 | Row 5 | Row 5 |
 | Row 6 | Row 6 |
+
+# New heading 1b
+
+Text again. "New heading 1" should still be in breadcrumbs.
 </page_2>
+""".strip(),
+        """
+<page_2>
+# New heading 1c
+
+</page_2>
+<page_3>
+This time, "New heading 1b" should NOT be in breadcrumbs.
+</page_3>
+""".strip(),
+        """
+<headings>New heading 1c</headings>
+<page_3>
+## New heading 2
+
+This time, "New heading 1c" should be in breadcrumbs, but not "New heading 2".
+</page_3>
 """.strip(),
     ]
     result = markdown_splitter._repeat_headings(split_texts)
     for i, text in enumerate(result):
-        print("\n\nCHUNK:\n", text)
+        logger.debug(f"\n\nCHUNK:\n{text}")
         assert text == expected_texts[i]
 
 

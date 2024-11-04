@@ -139,37 +139,57 @@ def get_process_engine_from_type(type):
         return "PDF"
     elif "text/html" in type:
         return "HTML"
+    elif "text/markdown" in type:
+        return "MARKDOWN"
     else:
         return "TEXT"
 
 
 def extract_markdown(
-    content, process_engine, fast=False, base_url=None, chunk_size=768, selector=None
+    content,
+    process_engine,
+    pdf_method="default",
+    base_url=None,
+    chunk_size=768,
+    selector=None,
 ):
-    if process_engine == "PDF" and fast:
-        md = fast_pdf_to_text(content)
-        if len(md) < 10:
-            # Fallback to Azure Document AI (fka Form Recognizer) if the fast method fails
-            # since that probably means it needs OCR
-            md = pdf_to_markdown(content)
-    elif process_engine == "PDF":
-        md = pdf_to_markdown(content)
+    enable_markdown = True
+    if process_engine == "PDF":
+        if pdf_method == "default":
+            enable_markdown = False
+            md = pdf_to_text_pdfium(content)
+            if len(md) < 10:
+                # Fallback to Azure Document Intelligence Read API to OCR
+                md = pdf_to_text_azure_read(content)
+        elif pdf_method == "azure_layout":
+            md = pdf_to_markdown_azure_layout(content)
+        elif pdf_method == "azure_read":
+            enable_markdown = False
+            md = pdf_to_text_azure_read(content)
     elif process_engine == "WORD":
         md = docx_to_markdown(content)
     elif process_engine == "POWERPOINT":
         md = pptx_to_markdown(content)
     elif process_engine == "HTML":
         md = html_to_markdown(content.decode("utf-8"), base_url, selector)
-    elif process_engine == "TEXT":
+    elif process_engine == "MARKDOWN":
         md = content.decode("utf-8")
+    elif process_engine == "TEXT":
+        enable_markdown = False
+        md = content.decode("utf-8")
+
+    # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
+    md = re.sub(r"\n{3,}", "\n\n", md.strip())
 
     # Divide the markdown into chunks
     try:
-        md_splitter = MarkdownSplitter(chunk_size=chunk_size, chunk_overlap=0)
+        md_splitter = MarkdownSplitter(
+            chunk_size=chunk_size, chunk_overlap=0, enable_markdown=enable_markdown
+        )
         md_chunks = md_splitter.split_markdown(md)
     except Exception as e:
-        print("Error splitting markdown using MarkdownSplitter:")
-        print(e)
+        logger.debug("Error splitting markdown using MarkdownSplitter:")
+        logger.error(e)
         # Fallback to simpler method
         from llama_index.core.node_parser import SentenceSplitter
 
@@ -180,22 +200,25 @@ def extract_markdown(
     return md, md_chunks
 
 
-def pdf_to_markdown(content):
-    html = _pdf_to_html_using_azure(content)
+def pdf_to_markdown_azure_layout(content):
+    html = _pdf_to_html_azure_layout(content)
     return _convert_html_to_markdown(html)
 
 
-def fast_pdf_to_text(content):
-    # Note: This method is faster than using Azure Form Recognizer
-    # Expected it to work well for more generic scenarios but not for scanned PDFs, images, and handwritten text
+def pdf_to_text_pdfium(content):
+    # Fast and cheap, but no OCR or layout analysis
     import pypdfium2 as pdfium
 
-    pdf = pdfium.PdfDocument(content)
     text = ""
+    pdf = pdfium.PdfDocument(content)
     for i, page in enumerate(pdf):
+        text_page = page.get_textpage()
         text += f"<page_{i+1}>\n"
-        text += page.get_textpage().get_text_range() + "\n"
+        text += text_page.get_text_range() + "\n"
         text += f"</page_{i+1}>\n"
+        # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
+        text_page.close()
+    pdf.close()
 
     return text
 
@@ -344,13 +367,17 @@ def _convert_html_to_markdown(
                 absolute_url = urljoin(base_url, href)
                 anchor["href"] = absolute_url
 
+    # Replace <caption> elements with <h6> so that they get capture in breadcrumbs
+    for caption in soup.find_all("caption"):
+        caption.name = "h6"
+
     text = _remove_ignored_tags(str(soup))
 
     markdown = markdownify_wrapper(text).strip()
     return markdown
 
 
-def _pdf_to_html_using_azure(content):
+def _pdf_to_html_azure_layout(content):
     from azure.ai.formrecognizer import DocumentAnalysisClient
     from azure.core.credentials import AzureKeyCredential
     from shapely.geometry import Polygon
@@ -459,3 +486,47 @@ def _pdf_to_html_using_azure(content):
         html += page_end_tag
 
     return html
+
+
+def pdf_to_text_azure_read(content: bytes) -> str:
+
+    from azure.ai.formrecognizer import DocumentAnalysisClient
+    from azure.core.credentials import AzureKeyCredential
+
+    document_analysis_client = DocumentAnalysisClient(
+        endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+        credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+    )
+
+    poller = document_analysis_client.begin_analyze_document("prebuilt-read", content)
+    result = poller.result()
+
+    num_pages = len(result.pages)
+    cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
+
+    p_chunks = []
+    for page in result.pages:
+        for line in page.lines:
+            chunk = {
+                "page_number": page.page_number,
+                "text": line.content + "\n",
+            }
+            p_chunks.append(chunk)
+
+    text = ""
+    cur_page = None
+    for _, chunk in enumerate(p_chunks, 1):
+        page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
+        page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
+        prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
+        if chunk.get("page_number") != cur_page:
+            if cur_page is not None:
+                text = text.strip() + prev_end_tag
+            cur_page = chunk.get("page_number")
+            text = text.strip() + page_start_tag
+        text += chunk.get("text")
+
+    if cur_page is not None and p_chunks:
+        text = text.strip() + page_end_tag
+
+    return text

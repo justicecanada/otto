@@ -29,14 +29,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 logger = logging.getLogger("azure.identity")
 logger.setLevel(logging.ERROR)
 
-OTTO_VERSION = "v0"
+OTTO_BUILD_DATE = ""
+OTTO_VERSION_HASH = ""
 
 # Load the version from the version.yaml file
 version_file_path = os.path.join(BASE_DIR, "version.yaml")
 if os.path.exists(version_file_path):
     with open(version_file_path, "r") as file:
         data = yaml.safe_load(file)
-        OTTO_VERSION = data.get("version")
+        OTTO_VERSION_HASH = data.get("github_hash", "")
+        OTTO_BUILD_DATE = data.get("build_date", "")
 
 # Load environment variables from .env file
 load_dotenv(os.path.join(BASE_DIR, ".env"))
@@ -152,7 +154,6 @@ INSTALLED_APPS = [
     "librarian",
     "chat",
     "laws",
-    "case_prep",
     "template_wizard",
     # Third-party apps
     "channels",
@@ -176,12 +177,12 @@ MIDDLEWARE = [
     # AC-2, AC-14, IA-2, IA-6, IA-8, SC-23: Azure AD Integration to protect entire site by default
     "azure_auth.middleware.AzureMiddleware",
     "otto.utils.auth.AcceptTermsMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "data_fetcher.middleware.GlobalRequestMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
     # AU-6: Aupports structured logging, facilitating the review and analysis of audit records for inappropriate or unusual activity
     "django_structlog.middlewares.RequestMiddleware",

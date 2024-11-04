@@ -2,16 +2,17 @@ import os
 from datetime import datetime
 from io import BytesIO
 
-from django.core.exceptions import SuspiciousFileOperation
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
-from PyPDF2 import PdfMerger
+from pypdf import PdfWriter
+from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
 from otto.secure_models import AccessKey
-from otto.utils.common import file_size_to_string
+from otto.utils.common import display_cad_cost, file_size_to_string
 from otto.utils.decorators import app_access_required, budget_required
 from text_extractor.models import OutputFile, UserRequest
 
@@ -24,6 +25,7 @@ from .utils import (
 )
 
 app_name = "text_extractor"
+logger = get_logger(__name__)
 
 
 @app_access_required(app_name)
@@ -36,10 +38,11 @@ def index(request):
 
 @budget_required
 def submit_document(request):
+    bind_contextvars(feature="text_extractor")  # for keeping track in dashboard
 
     if request.method == "POST":
         files = request.FILES.getlist("file_upload")
-        print(f"Received {len(files)} files")
+        logger.debug(f"Received {len(files)} files")
         access_key = AccessKey(user=request.user)
 
         UserRequest.grant_create_to(access_key)
@@ -51,9 +54,10 @@ def submit_document(request):
 
         completed_documents = []
         all_texts = []
+        total_cost = 0
 
         merged = request.POST.get("merge_docs_checkbox", False)
-        merger = PdfMerger() if merged else None
+        merger = PdfWriter() if merged else None
         file_names_to_merge = []
 
         try:
@@ -70,10 +74,11 @@ def submit_document(request):
                 )
                 files.insert(0, toc_file)
 
-            current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-
             for idx, file in enumerate(files):
-                ocr_file, txt_file = create_searchable_pdf(file, merged and idx > 0)
+                ocr_file, txt_file, cost = create_searchable_pdf(
+                    file, merged and idx > 0
+                )
+                total_cost += cost
                 all_texts.append(txt_file)
 
                 input_name, _ = os.path.splitext(file.name)
@@ -123,6 +128,7 @@ def submit_document(request):
                                 "file": output_text,
                                 "size": file_size_to_string(output_text.file.size),
                             },
+                            "cost": display_cad_cost(cost),
                         }
                     )
 
@@ -177,6 +183,7 @@ def submit_document(request):
                             "file": output_text,
                             "size": file_size_to_string(output_text.file.size),
                         },
+                        "cost": display_cad_cost(total_cost),
                     }
                 )
 
@@ -192,8 +199,8 @@ def submit_document(request):
             # Improve error logging
             import traceback
 
-            print(f"ERROR: {str(e)}")
-            print(traceback.format_exc())
+            logger.error(f"ERROR: {str(e)}")
+            logger.error(traceback.format_exc())
             return render(
                 request, "text_extractor/error_message.html", {"error_message": str(e)}
             )
