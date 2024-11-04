@@ -276,8 +276,12 @@ class DataSource(models.Model):
         return self.name
 
     def delete(self, *args, **kwargs):
-        for document in self.documents.all():
-            document.delete()
+        from .tasks import delete_documents_from_vector_store
+
+        delete_documents_from_vector_store.delay(
+            [document.uuid_hex for document in self.documents],
+            self.library.uuid_hex,
+        )
         super().delete(*args, **kwargs)
 
     def process_all(self):
@@ -409,16 +413,12 @@ class Document(models.Model):
         else:
             return self.url_content_type
 
-    def remove_from_vector_store(self):
-        idx = llm.get_index(self.data_source.library.uuid_hex)
-        idx.delete_ref_doc(self.uuid_hex, delete_from_docstore=True)
-
     def delete(self, *args, **kwargs):
-        logger.info(f"Deleting document {str(self)} from vector store.")
-        try:
-            self.remove_from_vector_store()
-        except Exception as e:
-            logger.error(f"Failed to remove document from vector store: {e}")
+        from .tasks import delete_documents_from_vector_store
+
+        delete_documents_from_vector_store.delay(
+            [self.uuid_hex], self.data_source.library.uuid_hex
+        )
         file = self.file
         if file:
             self.file = None
