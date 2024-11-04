@@ -15,6 +15,7 @@ from otto.utils.common import display_cad_cost, file_size_to_string
 from otto.utils.decorators import app_access_required, budget_required
 from text_extractor.models import OutputFile, UserRequest
 
+from .tasks import process_ocr_document
 from .utils import (
     calculate_start_pages,
     create_searchable_pdf,
