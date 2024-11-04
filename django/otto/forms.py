@@ -49,7 +49,7 @@ class FeedbackForm(ModelForm):
         self.fields["modified_by"].queryset = User.objects.filter(id=user.id)
         self.fields["modified_by"].initial = user
         self.fields["chat_message"].queryset = Message.objects.filter(id=message_id)
-        self.fields["otto_version"].initial = settings.OTTO_VERSION
+        self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
         if message_id is not None:
             self.initialize_chat_feedback(message_id)
         else:

@@ -3798,5 +3798,81 @@
     "Processed": {
         "fr": "",
         "fr_auto": "Traitées"
+    },
+    "text only": {
+        "fr": "",
+        "fr_auto": "texte seulement"
+    },
+    "OCR": {
+        "fr": "",
+        "fr_auto": "OCR"
+    },
+    "layout & OCR": {
+        "fr": "",
+        "fr_auto": "mise en page & OCR"
+    },
+    "Bulk actions": {
+        "fr": "",
+        "fr_auto": "Actions en bloc"
+    },
+    "Process all, including completed": {
+        "fr": "",
+        "fr_auto": "Traiter tout, y compris terminé"
+    },
+    "Text only": {
+        "fr": "",
+        "fr_auto": "Texte seulement"
+    },
+    "(default, $)": {
+        "fr": "",
+        "fr_auto": "(par défaut, $)"
+    },
+    "PDF OCR": {
+        "fr": "",
+        "fr_auto": "PDF OCR"
+    },
+    "(more robust, $$)": {
+        "fr": "",
+        "fr_auto": "(plus robuste, $$)"
+    },
+    "PDF layout & OCR": {
+        "fr": "",
+        "fr_auto": "Mise en page PDF & OCR"
+    },
+    "(best, $$$)": {
+        "fr": "",
+        "fr_auto": "(meilleur, $$$)"
+    },
+    "Process incomplete only": {
+        "fr": "",
+        "fr_auto": "Processus incomplet seulement"
+    },
+    "Stop all processing": {
+        "fr": "",
+        "fr_auto": "Arrêter tout traitement"
+    },
+    "You can only upload a maximum of": {
+        "fr": "",
+        "fr_auto": "Vous ne pouvez télécharger qu’un maximum de"
+    },
+    "files per data source.": {
+        "fr": "",
+        "fr_auto": "par source de données."
+    },
+    "files remaining.": {
+        "fr": "",
+        "fr_auto": "dossiers restants."
+    },
+    "You can only upload a total file size of": {
+        "fr": "",
+        "fr_auto": "Vous pouvez uniquement télécharger une taille de fichier totale de"
+    },
+    "at one time.": {
+        "fr": "",
+        "fr_auto": "en même temps."
+    },
+    "Process document": {
+        "fr": "",
+        "fr_auto": "Document de processus"
     }
 }

@@ -187,7 +187,7 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "limitScopeSelect(); updateQaSourceForms(); triggerOptionSave();",
+                    "onchange": "limitScopeSelect(); updateQaSourceForms(); toggleRagOptions(this.value); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(

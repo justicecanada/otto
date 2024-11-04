@@ -380,18 +380,21 @@ def chunk_upload(request, message_id):
 
     file = request.FILES["file"].read()
     content_type = request.POST["content_type"]
-    fileName = request.POST["filename"]
+    file_name = request.POST["filename"]
     file_id = request.POST["file_id"]
     end = request.POST["end"]
     nextSlice = request.POST["nextSlice"]
 
-    if file == "" or fileName == "" or file_id == "" or end == "" or nextSlice == "":
+    if ("text" in content_type or not content_type) and file_name.endswith(".md"):
+        content_type = "text/markdown"
+
+    if file == "" or file_name == "" or file_id == "" or end == "" or nextSlice == "":
         return JsonResponse({"data": "Invalid Request"})
     else:
         if file_id == "null":
             chat_file_arguments = dict(
                 message_id=message_id,
-                filename=fileName,
+                filename=file_name,
             )
             if existing_file:
                 chat_file_arguments.update(saved_file=existing_file)
@@ -399,7 +402,7 @@ def chunk_upload(request, message_id):
                 chat_file_arguments.update(content_type=content_type, eof=int(end))
             file_obj = ChatFile.objects.create(**chat_file_arguments)
             if not existing_file:
-                file_obj.saved_file.file.save(fileName, request.FILES["file"])
+                file_obj.saved_file.file.save(file_name, request.FILES["file"])
             if int(end) or existing_file:
                 file_obj.saved_file.generate_hash()
                 return JsonResponse(
@@ -837,3 +840,29 @@ def set_preset_default(request, chat_id: str, preset_id: int):
     except ValueError:
         logger.error("Error setting default preset")
         return HttpResponse(status=500)
+
+
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def update_qa_options_from_librarian(request, chat_id, library_id):
+    # (See librarian/scripts.js)
+    chat = Chat.objects.get(id=chat_id)
+    original_library = chat.options.qa_library
+    library = Library.objects.filter(id=library_id).first()
+    # If library doesn't exist, or user doesn't have access to it, reset to default library
+    if not library or not request.user.has_perm("librarian.view_library", library):
+        library = Library.objects.get_default_library()
+    chat.options.qa_library = library
+    if library != original_library:
+        chat.options.qa_data_sources.clear()
+        chat.options.qa_documents.clear()
+    chat.options.save()
+    # Now return the updated chat options form for swapping
+    return render(
+        request,
+        "chat/components/chat_options_accordion.html",
+        {
+            "options_form": ChatOptionsForm(instance=chat.options, user=request.user),
+            "preset_loaded": "true",
+            "trigger_library_change": "true" if library != original_library else None,
+        },
+    )

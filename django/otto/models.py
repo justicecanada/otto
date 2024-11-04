@@ -267,7 +267,7 @@ class Feedback(models.Model):
         default=_("Please select an option"),
     )
     app = models.TextField(max_length=200, blank=False)
-    otto_version = models.CharField(max_length=12, null=False)
+    otto_version = models.CharField(max_length=50, null=False)
     feedback_message = models.TextField(blank=False)
     chat_message = models.ForeignKey(
         "chat.Message", null=True, on_delete=models.SET_NULL, related_name="message"
@@ -419,7 +419,6 @@ FEATURE_CHOICES = [
     ("template_wizard", _("Template wizard")),
     ("laws_query", _("Legislation search")),
     ("laws_load", _("Legislation loading")),
-    ("case_prep", _("Case prep assistant")),
     ("text_extractor", _("Text extractor")),
 ]
 

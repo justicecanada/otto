@@ -85,6 +85,3 @@
     {% endif %}
   </div>
 </form>
-{# Quirk: The JS below often doesn't run when content swapped in with HTMX morph #}
-{# So we also call the updateLibrarianModalOnClose function from list_item.html #}
-{% if form.instance.id %}<script>updateLibrarianModalOnClose({{ form.instance.id }});</script>{% endif %}

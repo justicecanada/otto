@@ -21,7 +21,6 @@ urlpatterns = [
     # path("admin/", admin.site.urls),
     path("librarian/", include("librarian.urls")),
     path("laws/", include("laws.urls")),
-    path("case_prep/", include("case_prep.urls")),
     path("text_extractor/", include("text_extractor.urls")),
     path("template_wizard/", include("template_wizard.urls")),
     path("user_management/", views.manage_users, name="manage_users"),
