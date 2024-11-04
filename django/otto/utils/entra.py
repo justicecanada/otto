@@ -120,6 +120,7 @@ async def sync_users_with_entra_async():
     await set_inactive_users_async(users)
 
 
+# AC-2(3): Inactive Accounts
 async def set_inactive_users_async(users):
     logger.info("Setting Inactive Users...")
     users_upn = [user.upn for user in users]
