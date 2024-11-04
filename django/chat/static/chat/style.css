@@ -235,9 +235,6 @@ div.user-message-text {
 
 pre .copy-button {
   position: absolute;
-  /* border-color: transparent; */
-  /* opacity: 1; */
-  /* transition: opacity 0.2s; */
   top: 4px;
   right: 4px;
 }
@@ -260,8 +257,6 @@ pre .copy-button:focus {
   background: var(--bs-light);
   opacity: 0;
   transition: linear 0.2s;
-  /* Delay showing by 200ms */
-  /* transition-delay: 200ms; */
 }
 
 .options-menu button {
@@ -438,7 +433,6 @@ form#dropzone-basic {
 
 #chat-outer {
   position: relative;
-  /* width: 100%; */
   background: #f8f9fa;
   top: 0;
   height: calc(100vh - 3rem);
@@ -514,18 +508,9 @@ form#dropzone-basic {
 
 #prompt-form textarea:focus,
 #send-button:focus {
-  /* outline: none !important; */
   box-shadow: none !important;
   border-color: var(--bs-border-color);
 }
-
-/* 
-#messages-container {
-  padding-bottom: 0.25rem;
-  position: relative;
-  width: 100%;
-  flex: 1;
-} */
 
 #chat-container .add-message-divider {
   position: absolute;
@@ -534,7 +519,6 @@ form#dropzone-basic {
   height: 10px;
   left: 0;
   margin-top: -6px;
-  /* box-shadow: white 0 0 5px; */
 }
 
 .message-blob {
@@ -673,14 +657,6 @@ div.message-text blockquote {
   text-align: right;
 }
 
-/* 
-#chat-container .offcanvas-body {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  padding-top: 0;
-  overflow-x: hidden;
-} */
-
 #chat-container .message-meta {
   font-size: smaller;
 }
@@ -701,7 +677,6 @@ footer .container {
 }
 
 div#prompt-form-container {
-  /* background: var(--bs-light); */
   z-index: 1;
   position: fixed;
   bottom: 0;
@@ -732,12 +707,6 @@ div#prompt-form-container {
 .message-text .progress-bar {
   background: rgb(80 34 189 / 45%);
 }
-
-/* 
-#chat-container>.container,
-#prompt-form-container>.container {
-  max-width: 1024px;
-} */
 
 .message-actions {
   margin-top: -6px;
@@ -829,9 +798,6 @@ div#chat-toolbar {
 }
 
 .sources-modal .accordion-body.scrolling-content {
-  /* max-height: 60vh;
-  overflow-y: auto; */
-  /* font-family: 'Consolas', monospace; */
   font-size: 0.95rem;
 }
 
@@ -1064,15 +1030,10 @@ div.message-text pre {
   cursor: pointer;
 }
 
-/* .list-group-item[role="option"]:hover {
-  background-color: var(--bs-light);
-} */
-
 .list-group-item[role="option"][aria-selected="true"] {
   background-color: rgb(237 245 254);
   z-index: 2;
   outline: solid 1px var(--bs-body-color);
-  /* font-weight: 500; */
 }
 
 .list-group-item[role="option"][aria-selected="true"]:not(:focus) {}
@@ -1123,4 +1084,176 @@ ul.errorlist {
 .btn-outline-initially-black:not(:hover):not(:focus) {
   color: var(--bs-black);
   border-color: var(--bs-black) !important;
+}
+
+:root {
+  --preset-tab-border-color: 0.01rem solid #d5d5d5;
+}
+
+.preset-form-container .nav-link {
+  color: var(--bs-body-color);
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  &:hover {
+    color: var(--bs-gray-900);
+    font-weight: bold;
+    outline: none;
+
+    &:not(.active) {
+      background-color: var(--bs-light);
+      border-bottom: var(--preset-tab-border-color);
+    }
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 0.15rem rgba(66, 70, 73, 0.5);
+  }
+
+  &:not(.active) {
+    background-color: #eaeaea;
+    border-bottom: var(--preset-tab-border-color);
+  }
+
+  &.active {
+    border-top: var(--preset-tab-border-color) !important;
+    border-left: var(--preset-tab-border-color) !important;
+    border-right: var(--preset-tab-border-color) !important;
+  }
+}
+
+.card-footer {
+  display: flex !important;
+  gap: 1rem;
+  background-color: transparent;
+  border-top: none;
+  padding-top: 0;
+  padding-bottom: .65rem;
+
+  button {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    flex-grow: 1;
+
+    &:hover {
+      background-color: var(--bs-light) !important;
+    }
+
+    &:only-child {
+      flex-basis: 100%;
+    }
+  }
+}
+
+.preset-form-container .language-content {
+  display: none;
+}
+
+.preset-form-container .language-content.active {
+  display: block;
+}
+
+.preset-form-container form-check-input.form-check-input:checked {
+  background-color: black;
+  border-color: black;
+}
+
+.preset-form-container .form-check-input:focus {
+  border-color: #a2a2a2;
+  box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
+}
+
+.preset-form-container .modal-body {
+  max-height: 85vh !important;
+  overflow-y: auto;
+}
+
+.card {
+  border: none;
+  box-shadow: 2px 4px 10px -1px rgb(0 0 0 / 0.1), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: transparent;
+  border-bottom: none;
+  padding-bottom: 0;
+  padding-top: .45rem;
+
+  button {
+    background-color: transparent;
+    border: none;
+
+    i.bi.bi-heart-fill {
+      border-color: var(--app-color-red-1);
+      color: var(--app-color-red-1);
+    }
+
+    &:hover {
+      i.bi.bi-heart {
+        border-color: var(--app-color-red-1);
+        color: var(--app-color-red-1);
+      }
+
+      i.bi.bi-star {
+        border-color: var(--app-color-yellow-1);
+        color: var(--app-color-yellow-1);
+      }
+
+      i.bi.bi-heart,
+      i.bi.bi-heart-fill {
+        text-shadow: 0px 0px 7px var(--app-color-red-1);
+      }
+
+      i.bi.bi-star,
+      i.bi.bi-star-fill {
+        text-shadow: 0px 0px 7px var(--app-color-yellow-2);
+      }
+
+      background-color: transparent !important;
+
+    }
+
+    &:focus-visible {
+      background-color: var(--bg-light-gray);
+      border: none !important;
+      outline: none !important;
+      box-shadow: none;
+
+      &i.bi.bi-heart,
+      &i.bi.bi-heart-fill {
+        border: solid 1px var(--app-color-red-1);
+        background-color: var(--app-color-red-1-hover);
+      }
+
+      &i.bi.bi-start,
+      &i.bi.bi-star-fill {
+        border: solid 1px var(--app-color-yellow-1);
+        background-color: var(--app-color-yellow-2);
+      }
+
+      color: transparent;
+    }
+  }
+}
+
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.btn-ghost {
+  background-color: transparent !important;
+  border: none !important;
+
+  &:focus-visible {
+    outline-style: solid !important;
+    outline-color: black !important;
+    outline-width: 2px !important;
+  }
 }

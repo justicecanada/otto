@@ -3611,6 +3611,30 @@
         "fr": "",
         "fr_auto": "Agent de chat"
     },
+    "Shared with everyone": {
+        "fr": "",
+        "fr_auto": "Partagé avec tout le monde"
+    },
+    "Shared with specific users": {
+        "fr": "",
+        "fr_auto": "Partagé avec des utilisateurs spécifiques"
+    },
+    "Private": {
+        "fr": "",
+        "fr_auto": "Secteur privé"
+    },
+    "Open Presets Menu": {
+        "fr": "",
+        "fr_auto": "Ouvrir le menu des préréglages"
+    },
+    "Create preset from current settings": {
+        "fr": "",
+        "fr_auto": "Créer un préréglage à partir des paramètres actuels"
+    },
+    "Reset settings to default": {
+        "fr": "",
+        "fr_auto": "Réinitialiser les paramètres par défaut"
+    },
     "Single answer": {
         "fr": "",
         "fr_auto": "Réponse unique"
@@ -3630,6 +3654,78 @@
     "Coarse": {
         "fr": "",
         "fr_auto": "Grossier"
+    },
+    "Remove default": {
+        "fr": "",
+        "fr_auto": "Supprimer la valeur par défaut"
+    },
+    "Set as default": {
+        "fr": "",
+        "fr_auto": "Défini par défaut"
+    },
+    "No presets available": {
+        "fr": "",
+        "fr_auto": "Aucun préréglage disponible"
+    },
+    "Create a new preset to use your chat settings in other sessions or shared them with others.": {
+        "fr": "",
+        "fr_auto": "Créez un nouveau préréglage pour utiliser vos paramètres de chat dans d’autres sessions ou les partager avec d’autres."
+    },
+    "Remove from favourites": {
+        "fr": "",
+        "fr_auto": "Retirer des favoris"
+    },
+    "Add to favourites": {
+        "fr": "",
+        "fr_auto": "Ajouter aux favoris"
+    },
+    "Settings Presets": {
+        "fr": "",
+        "fr_auto": "Paramètres Préréglages"
+    },
+    "Settings presets": {
+        "fr": "",
+        "fr_auto": "Paramètres prédéfinis"
+    },
+    "Title (English)": {
+        "fr": "",
+        "fr_auto": "Titre (anglais)"
+    },
+    "Title (French)": {
+        "fr": "",
+        "fr_auto": "Titre (français)"
+    },
+    "Share with others": {
+        "fr": "",
+        "fr_auto": "Partager avec d’autres"
+    },
+    "Editable by: ": {
+        "fr": "",
+        "fr_auto": "Modifiable par : "
+    },
+    "Accessible to: ": {
+        "fr": "",
+        "fr_auto": "Accessible à : "
+    },
+    "Replace with current settings": {
+        "fr": "",
+        "fr_auto": "Remplacer par les paramètres actuels"
+    },
+    "Are you sure you want to delete this preset?": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir supprimer ce préréglage ?"
+    },
+    "Shared with others": {
+        "fr": "",
+        "fr_auto": "Partagé avec d’autres"
+    },
+    "Please provide a title in either English or French.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir un titre en anglais ou en français."
+    },
+    "Please provide at least one user for the editable field or the accessible field.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir au moins un utilisateur pour le champ modifiable ou le champ accessible."
     },
     "Stop all": {
         "fr": "",
@@ -3670,5 +3766,113 @@
     "User costs": {
         "fr": "",
         "fr_auto": "Coûts d’utilisation"
+    },
+    "Make Private": {
+        "fr": "",
+        "fr_auto": "Rendre privé"
+    },
+    "Share with everyone": {
+        "fr": "",
+        "fr_auto": "Partager avec tout le monde"
+    },
+    "Privacy controls": {
+        "fr": "",
+        "fr_auto": "Contrôles de confidentialité"
+    },
+    "Given the information from multiple sources and not prior knowledge, answer the query in markdown format with liberal use of **bold**.\nOutput format:\n\nI found the following information:\n\n* <supporting direct quote> - <source link or filename, if known> (page number, if known)\n...\n<succinct answer to question>\n\nIf you can't find the answer in the sources, just say so. Don't try to provide irrelevant references or made up answers.": {
+        "fr": "",
+        "fr_auto": "Compte tenu de l’information provenant de sources multiples et non de connaissances préalables, répondez à la requête en format de démarque avec l’utilisation libérale de **bold**.\nFormat de sortie :\n\nJ’ai trouvé les informations suivantes :\n\n* <soute de devis direct> - lien <source ou nom de fichier, s’il est connu> (numéro de page, s’il est connu)\n...\n<succinct réponse à la question>\n\nSi vous ne trouvez pas la réponse dans les sources, dites-le simplement. N’essayez pas de fournir des références non pertinentes ou des réponses inventées."
+    },
+    "Please provide at least one user for the accessible field.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir au moins un utilisateur pour le champ accessible."
+    },
+    "Cancelled": {
+        "fr": "",
+        "fr_auto": "Annulé"
+    },
+    "Queued": {
+        "fr": "",
+        "fr_auto": "En file d’attente"
+    },
+    "Processed": {
+        "fr": "",
+        "fr_auto": "Traitées"
+    },
+    "text only": {
+        "fr": "",
+        "fr_auto": "texte seulement"
+    },
+    "OCR": {
+        "fr": "",
+        "fr_auto": "OCR"
+    },
+    "layout & OCR": {
+        "fr": "",
+        "fr_auto": "mise en page & OCR"
+    },
+    "Bulk actions": {
+        "fr": "",
+        "fr_auto": "Actions en bloc"
+    },
+    "Process all, including completed": {
+        "fr": "",
+        "fr_auto": "Traiter tout, y compris terminé"
+    },
+    "Text only": {
+        "fr": "",
+        "fr_auto": "Texte seulement"
+    },
+    "(default, $)": {
+        "fr": "",
+        "fr_auto": "(par défaut, $)"
+    },
+    "PDF OCR": {
+        "fr": "",
+        "fr_auto": "PDF OCR"
+    },
+    "(more robust, $$)": {
+        "fr": "",
+        "fr_auto": "(plus robuste, $$)"
+    },
+    "PDF layout & OCR": {
+        "fr": "",
+        "fr_auto": "Mise en page PDF & OCR"
+    },
+    "(best, $$$)": {
+        "fr": "",
+        "fr_auto": "(meilleur, $$$)"
+    },
+    "Process incomplete only": {
+        "fr": "",
+        "fr_auto": "Processus incomplet seulement"
+    },
+    "Stop all processing": {
+        "fr": "",
+        "fr_auto": "Arrêter tout traitement"
+    },
+    "You can only upload a maximum of": {
+        "fr": "",
+        "fr_auto": "Vous ne pouvez télécharger qu’un maximum de"
+    },
+    "files per data source.": {
+        "fr": "",
+        "fr_auto": "par source de données."
+    },
+    "files remaining.": {
+        "fr": "",
+        "fr_auto": "dossiers restants."
+    },
+    "You can only upload a total file size of": {
+        "fr": "",
+        "fr_auto": "Vous pouvez uniquement télécharger une taille de fichier totale de"
+    },
+    "at one time.": {
+        "fr": "",
+        "fr_auto": "en même temps."
+    },
+    "Process document": {
+        "fr": "",
+        "fr_auto": "Document de processus"
     }
 }
