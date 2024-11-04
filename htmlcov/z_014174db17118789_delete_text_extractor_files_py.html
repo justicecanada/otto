@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_014174db17118789_reset_app_data_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-11-04 21:50 +0000
+            created at 2024-11-04 22:01 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -105,14 +105,13 @@
     <p class="run"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t">        <span class="nam">old_requests</span> <span class="op">=</span> <span class="nam">UserRequest</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">filter</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t">            <span class="nam">access_key</span><span class="op">=</span><span class="nam">access_key</span><span class="op">,</span> <span class="nam">created_at__lt</span><span class="op">=</span><span class="nam">cutoff</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t">        <span class="com"># print(f"---------------Found {old_requests.count()} user requests to delete")</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">        <span class="key">for</span> <span class="nam">user_request</span> <span class="key">in</span> <span class="nam">old_requests</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">            <span class="nam">user_request</span><span class="op">.</span><span class="nam">delete</span><span class="op">(</span><span class="nam">access_key</span><span class="op">=</span><span class="nam">access_key</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">stdout</span><span class="op">.</span><span class="nam">write</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">                <span class="nam">self</span><span class="op">.</span><span class="nam">style</span><span class="op">.</span><span class="nam">SUCCESS</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t">                    <span class="fst">f"</span><span class="fst">Deleted user request: </span><span class="op">{</span><span class="nam">user_request</span><span class="op">.</span><span class="nam">id</span><span class="op">}</span><span class="fst">, created_at: </span><span class="op">{</span><span class="nam">user_request</span><span class="op">.</span><span class="nam">created_at</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t">                <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t">        <span class="key">for</span> <span class="nam">user_request</span> <span class="key">in</span> <span class="nam">old_requests</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">            <span class="nam">user_request</span><span class="op">.</span><span class="nam">delete</span><span class="op">(</span><span class="nam">access_key</span><span class="op">=</span><span class="nam">access_key</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">stdout</span><span class="op">.</span><span class="nam">write</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">                <span class="nam">self</span><span class="op">.</span><span class="nam">style</span><span class="op">.</span><span class="nam">SUCCESS</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">                    <span class="fst">f"</span><span class="fst">Deleted user request: </span><span class="op">{</span><span class="nam">user_request</span><span class="op">.</span><span class="nam">id</span><span class="op">}</span><span class="fst">, created_at: </span><span class="op">{</span><span class="nam">user_request</span><span class="op">.</span><span class="nam">created_at</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t">                <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -122,7 +121,7 @@
             <a class="nav" href="z_014174db17118789_reset_app_data_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-11-04 21:50 +0000
+            created at 2024-11-04 22:01 +0000
         </p>
     </div>
 </footer>
