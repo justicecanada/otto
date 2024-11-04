@@ -108,7 +108,7 @@ def _get_en_fr_law_file_paths(laws_dir, eng_law_ids=[]):
             )
             logger.debug(f"(EN: {en_file_path}, FR: {fr_file_path})")
 
-    logger.debug(len(file_paths), "laws found in both languages")
+    logger.debug(f"{len(file_paths)} laws found in both languages")
     return file_paths
 
 

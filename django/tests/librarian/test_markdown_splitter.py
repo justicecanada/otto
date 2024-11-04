@@ -875,7 +875,7 @@ This time, "New heading 1c" should be in breadcrumbs, but not "New heading 2".
     ]
     result = markdown_splitter._repeat_headings(split_texts)
     for i, text in enumerate(result):
-        logger.debug("\n\nCHUNK:\n", text)
+        logger.debug(f"\n\nCHUNK:\n{text}")
         assert text == expected_texts[i]
 
 
