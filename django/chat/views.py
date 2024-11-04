@@ -557,6 +557,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 else:
                     # Create a new Preset object
                     preset = Preset()
+                    preset.options = ChatOptions.objects.create()
                     preset.owner = request.user
                     preset_id = preset.id
                     replace_with_settings = True
