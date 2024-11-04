@@ -51,6 +51,10 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.delete_text_extractor_files",
         "schedule": crontab(hour=0, minute=0),
     },
+    "cleanup-vector-store-every-morning": {
+        "task": "otto.tasks.cleanup_vector_store",
+        "schedule": crontab(hour=3, minute=0),
+    },
 }
 
 
