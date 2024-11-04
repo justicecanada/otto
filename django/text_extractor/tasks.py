@@ -9,21 +9,15 @@ from otto.secure_models import AccessKey
 from otto.utils.common import display_cad_cost, file_size_to_string
 from text_extractor.models import OutputFile, UserRequest
 
-from .utils import (
-    calculate_start_pages,
-    create_searchable_pdf,
-    create_toc_pdf,
-    format_merged_file_name,
-    shorten_input_name,
-)
+from .utils import create_searchable_pdf, shorten_input_name
 
 
 @shared_task
-def process_ocr_document(file, user_request_id, access_key_id, merged, idx):
-    access_key = AccessKey.objects.get(id=access_key_id)
-    user_request = UserRequest.objects.get(id=user_request_id)
-
-    ocr_file, txt_file, cost = create_searchable_pdf(file, merged and idx > 0)
+def process_ocr_document(file_path, user_request_pk, user_id, merged, idx):
+    access_key = AccessKey(user_id=user_id)
+    user_request = UserRequest.objects.get(pk=user_request_pk)
+    with open(file_path, "rb") as file:
+        ocr_file, txt_file, cost = create_searchable_pdf(file, merged and idx > 0)
     input_name, _ = os.path.splitext(file.name)
     pdf_bytes = BytesIO()
     ocr_file.write(pdf_bytes)
