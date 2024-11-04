@@ -68,18 +68,16 @@ module "acr" {
 
 # Disk module
 module "disk" {
-  source                  = "./modules/disk"
-  disk_name               = var.disk_name
-  resource_group_name     = module.resource_group.name
-  location                = var.location
-  tags                    = local.common_tags
-  aks_cluster_id          = module.aks.aks_cluster_id
-  keyvault_id             = module.keyvault.keyvault_id
-  cmk_id                  = module.keyvault.cmk_id
-  disk_backup_vault_name  = var.disk_backup_vault_name
-  disk_backup_policy_name = var.disk_backup_policy_name
-  wait_for_propagation    = module.keyvault.wait_for_propagation
-  use_private_network     = var.use_private_network
+  source               = "./modules/disk"
+  disk_name            = var.disk_name
+  resource_group_name  = module.resource_group.name
+  location             = var.location
+  tags                 = local.common_tags
+  aks_cluster_id       = module.aks.aks_cluster_id
+  keyvault_id          = module.keyvault.keyvault_id
+  cmk_id               = module.keyvault.cmk_id
+  wait_for_propagation = module.keyvault.wait_for_propagation
+  use_private_network  = var.use_private_network
 }
 
 # Storage module
@@ -95,27 +93,12 @@ module "storage" {
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
   app_subnet_id          = module.vnet.app_subnet_id
+  backup_container_name  = var.backup_container_name
 }
 
 data "azurerm_public_ip" "aks_outbound_ip" {
   name                = split("/", module.aks.outbound_ip_resource_id)[8]
   resource_group_name = split("/", module.aks.outbound_ip_resource_id)[4]
-}
-
-# DjangoDB module
-module "djangodb" {
-  source               = "./modules/djangodb"
-  resource_name        = var.djangodb_resource_name
-  resource_group_name  = module.resource_group.name
-  location             = var.location
-  tags                 = local.common_tags
-  storage_account_id   = module.storage.storage_account_id
-  keyvault_id          = module.keyvault.keyvault_id
-  aks_ip_address       = data.azurerm_public_ip.aks_outbound_ip.ip_address
-  wait_for_propagation = module.keyvault.wait_for_propagation
-  use_private_network  = var.use_private_network
-  db_subnet_id         = module.vnet.db_subnet_id
-  admin_email          = var.admin_email
 }
 
 # Cognitive Services module
@@ -163,6 +146,13 @@ module "aks" {
   web_subnet_id          = module.vnet.web_subnet_id
 }
 
+# Velero module
+module "velero" {
+  source              = "./modules/velero"
+  resource_group_name = module.resource_group.name
+  location            = var.location
+  oidc_issuer_url     = module.aks.oidc_issuer_url
+}
 
 # CM-8 & CM-9: Diagnostic settings for Key Vault
 resource "azurerm_monitor_diagnostic_setting" "key_vault" {

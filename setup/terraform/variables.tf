@@ -94,16 +94,6 @@ variable "djangodb_resource_name" {
   description = "Name of the Django DB resource"
 }
 
-variable "disk_backup_vault_name" {
-  description = "The name of the disk backup vault"
-  type        = string
-}
-
-variable "disk_backup_policy_name" {
-  description = "The name of the disk backup policy"
-  type        = string
-}
-
 variable "vnet_name" {
   type        = string
   description = "Name of the virtual network"
@@ -176,4 +166,10 @@ variable "admin_email" {
 variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the infrastructure"
+}
+
+variable "backup_container_name" {
+  description = "Name of the backup container"
+  type        = string
+  default     = "backups"
 }

@@ -1,21 +1,5 @@
 # CM-8 & CM-9: Defines the application's components within the AKS cluster
-
 # SC-13: Ensure secure key management practices
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-vector-pvc
-  namespace: otto
-spec:
-  storageClassName: otto-managed-csi  # Use Azure Managed Disks
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 32Gi
-
----
-
 apiVersion: apps/v1
 kind: StatefulSet # Manages the deployment and scaling of stateful applications with stable identities
 metadata:
@@ -65,22 +49,28 @@ spec:
               cpu: "1"
               memory: "4Gi"
           volumeMounts:
-            - name: postgres-vector-volume-mount
-              subPath: vectordb
-              mountPath: /var/lib/postgresql/data # Data directory for PostgreSQL
+            - name: postgres-vector-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres
             - name: secrets
               mountPath: "/mnt/secrets-store"
               readOnly: true
       volumes:
-        - name: postgres-vector-volume-mount
-          persistentVolumeClaim:
-            claimName: postgres-vector-pvc
         - name: secrets
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
               secretProviderClass: "azure-keyvault"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-vector-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "otto-managed-csi"
+      resources:
+        requests:
+          storage: 32Gi
 
 ---
 
@@ -114,10 +104,26 @@ spec:
 
 ---
 
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgbouncer-service
+  namespace: otto
+spec:
+  selector:
+    app: pgbouncer
+  ports:
+    - protocol: TCP
+      port: 6432
+      targetPort: 6432
+
+---
+
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: pgvector-autoscaler
+  namespace: otto
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

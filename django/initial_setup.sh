@@ -18,7 +18,7 @@ echo "Resetting app data..."
 
 # Load initial data
 echo "Loading corporate library..."
-{ python manage.py load_corporate_library --force || { echo "Error: Load corporate library failed"; exit 1; } }
+{ python manage.py load_corporate_library || { echo "Error: Load corporate library failed"; exit 1; } }
 
 # Load laws XML
 echo "Loading laws XML..."

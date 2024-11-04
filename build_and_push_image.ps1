@@ -52,3 +52,7 @@ docker push ${IMAGE_NAME}:latest
 
 # Optionally, you can clean up the temporary file
 Remove-Item -Path $tempFile
+
+# Explain to the user what will trigger the AKS to pull the new image
+Write-Host "To trigger AKS to pull the new image, run the following command:"
+Write-Host "kubectl rollout restart statefulset django-app -n otto"

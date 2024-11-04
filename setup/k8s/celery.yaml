@@ -71,11 +71,6 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: storageaccountkey
-          - name: DJANGODB_HOST
-            valueFrom:
-              secretKeyRef:
-                name: azure-keyvault-secrets
-                key: djangodbhostkey
           - name: DJANGODB_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -171,11 +166,6 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: storageaccountkey
-          - name: DJANGODB_HOST
-            valueFrom:
-              secretKeyRef:
-                name: azure-keyvault-secrets
-                key: djangodbhostkey
           - name: DJANGODB_PASSWORD
             valueFrom:
               secretKeyRef:

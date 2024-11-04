@@ -15,6 +15,9 @@ resource "azurerm_kubernetes_cluster" "aks" {
   kubernetes_version  = "1.29.7"
   dns_prefix          = var.aks_cluster_name
 
+  oidc_issuer_enabled       = true # OIDC issuer is enabled for AKS cluster authentication with Azure AD
+  workload_identity_enabled = true # Workload identity allows the AKS cluster to use managed identities for Azure resources
+
   # AC-22, IA-8, SC-2, SC-5: Configure the private cluster settings
   private_cluster_enabled = var.use_private_network
 
@@ -56,7 +59,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     log_analytics_workspace_id = azurerm_log_analytics_workspace.aks.id
   }
 
-  #automatic_channel_upgrade = "stable"
+  automatic_channel_upgrade = "stable"
 
   maintenance_window {
     allowed {
@@ -130,7 +133,8 @@ resource "azurerm_role_assignment" "acr_pull_kubelet" {
   principal_type       = "ServicePrincipal"
 }
 
-resource "azurerm_role_assignment" "aks_storage_contributor" {
+# This role assignment grants the AKS kubelet identity access to blob storage
+resource "azurerm_role_assignment" "aks_storage_blob_data_contributor" {
   scope                = var.storage_account_id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id

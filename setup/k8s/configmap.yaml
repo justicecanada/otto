@@ -88,8 +88,9 @@ data:
   STATIC_ROOT: "/data/static"
 
   DJANGODB_ENGINE: "django.db.backends.postgresql_psycopg2"
-  DJANGODB_NAME: "citus"
-  DJANGODB_USER: "citus"
+  DJANGODB_HOST: "postgres-django-service"
+  DJANGODB_NAME: "django"
+  DJANGODB_USER: "postgres"
 
   VECTORDB_ENGINE: "django.db.backends.postgresql_psycopg2"
   VECTORDB_HOST: "postgres-vector-service"

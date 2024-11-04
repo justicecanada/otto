@@ -52,26 +52,29 @@ echo "Waiting for NGINX Ingress Controller to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/ingress-nginx-controller -n ingress-nginx
 
 
-# Apply the Velero CRDs and Velero
-echo "Applying Velero CRDs and Velero..."
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_backups.yaml
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_backupstoragelocations.yaml
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_deletebackuprequests.yaml
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_downloadrequests.yaml
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_podvolumebackups.yaml
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_podvolumerestores.yaml
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_restores.yaml
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_schedules.yaml
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_serverstatusrequests.yaml
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/crd/v1/bases/velero.io_volumesnapshotlocations.yaml
-kubectl apply -f https://raw.githubusercontent.com/vmware-tanzu/velero/v1.12.0/config/rbac/role.yaml
+# Install Velero
+echo "Installing Velero..."
 
+# Get the Velero identity client ID and apply the Velero namespace and service account
+export VELERO_IDENTITY_CLIENT_ID="$(az identity show -g $RESOURCE_GROUP_NAME -n velero --subscription $SUBSCRIPTION_ID --query clientId -otsv)"
+envsubst < velero.yaml | kubectl apply -f -
+
+# Install Velero with the Azure provider and wait for it to complete
+# velero uninstall --force
+velero install \
+    --provider azure \
+    --service-account-name velero \
+    --pod-labels azure.workload.identity/use=true \
+    --plugins velero/velero-plugin-for-microsoft-azure:v1.10.0 \
+    --bucket $BACKUP_CONTAINER_NAME \
+    --no-secret \
+    --backup-location-config useAAD="true",resourceGroup=$RESOURCE_GROUP_NAME,storageAccount=$STORAGE_NAME,subscriptionId=$SUBSCRIPTION_ID \
+    --snapshot-location-config apiTimeout=30,resourceGroup=$RESOURCE_GROUP_NAME,subscriptionId=$SUBSCRIPTION_ID \
+    --wait
+    
 
 # Apply the namespaces
 kubectl apply -f namespace.yaml
-
-# Apply the Velero resources, substituting environment variables where required
-envsubst < velero.yaml | kubectl apply -f -
 
 # Apply the Cluster Issuer for Let's Encrypt which will automatically provision certificates for the Ingress resources
 kubectl apply -f letsencrypt-cluster-issuer.yaml
@@ -82,6 +85,7 @@ envsubst < configmap.yaml | kubectl apply -f -
 envsubst < secrets.yaml | kubectl apply -f -
 envsubst < storageclass.yaml | kubectl apply -f -
 envsubst < vectordb.yaml | kubectl apply -f -
+envsubst < djangodb.yaml | kubectl apply -f -
 envsubst < django.yaml | kubectl apply -f -
 envsubst < redis.yaml | kubectl apply -f -
 envsubst < celery.yaml | kubectl apply -f -
@@ -114,7 +118,7 @@ read -p "Do you want to run the initial setup? (y/N) " -e -r
 # If yes, run the initial setup
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     export COORDINATOR_POD=$(kubectl get pods -n otto -l app=django-app -o jsonpath='{.items[0].metadata.name}')
-    kubectl exec -it $COORDINATOR_POD -n otto -- env OTTO_ADMIN="${OTTO_ADMIN}" /otto/initial_setup.sh
+    kubectl exec -it $COORDINATOR_POD -n otto -- env OTTO_ADMIN="${OTTO_ADMIN}" /django/initial_setup.sh
 fi
 
 

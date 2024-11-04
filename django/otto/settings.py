@@ -275,11 +275,6 @@ if os.environ.get("DJANGODB_ENGINE") is not None:
         "HOST": os.environ.get("DJANGODB_HOST"),
     }
 
-    # Add the PORT and SSLMODE for CosmosDB, which only exist for DEV, UAT, and PROD
-    if ENVIRONMENT in ["DEV", "UAT", "PROD"]:
-        DATABASES["default"]["PORT"] = os.environ.get("DJANGODB_PORT")
-        DATABASES["default"]["SSLMODE"] = "require"
-
 if os.environ.get("VECTORDB_ENGINE") is not None:
     DATABASES["vector_db"] = {
         "ENGINE": os.environ.get("VECTORDB_ENGINE"),

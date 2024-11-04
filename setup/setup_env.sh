@@ -153,42 +153,56 @@ export COGNITIVE_SERVICES_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,
 export OPENAI_SERVICE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-openai"
 export AKS_CLUSTER_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-aks"
 export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
-export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}store"
+export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}store" # Base name for the storage account
 export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
-#export VNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-vnet"
-#export WEB_SUBNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-subnet-web"
-#export APP_SUBNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-subnet-app"
-#export DB_SUBNET_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-subnet-db"
-export DISK_BACKUP_VAULT_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-bk-vault"
-export DISK_BACKUP_POLICY_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-bk-policy"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
 
+export BACKUP_CONTAINER_NAME="velero-backup"
 
 # Set the Terraform state variables
 export TF_STATE_RESOURCE_GROUP="TerraformStateRG"
-export TF_STATE_STORAGE_ACCOUNT="tfstate${APP_NAME,,}${ENVIRONMENT,,}"
+export TF_STATE_STORAGE_ACCOUNT="tfstate${APP_NAME,,}${ENVIRONMENT,,}" # Base name for the TF storage account
 export TF_STATE_CONTAINER="tfstate"
 export TF_STATE_KEY="${RESOURCE_GROUP_NAME}.tfstate"
 
 
-# Check for existing storage accounts and update STORAGE_NAME if necessary (ensures uniqueness)
-existing_storage=$(az storage account list --resource-group "$RESOURCE_GROUP_NAME" --query "[?starts_with(name, '${STORAGE_NAME}')].name" -o tsv)
+# Function to get or generate a unique storage account name
+get_unique_storage_name() {
+    local base_name=$1
+    local resource_group=$2
 
-if [ -n "$existing_storage" ]; then
-    echo "Existing storage account found: $existing_storage"
-    export STORAGE_NAME="$existing_storage"
-else
-    # Generate a unique suffix based on the current date and time
-    datetime_suffix=$(date '+%Y%m%d')
-    export STORAGE_NAME="${STORAGE_NAME}${datetime_suffix}"
-    echo "No existing storage account found. New STORAGE_NAME: $STORAGE_NAME"
-fi
+    # Check for existing storage accounts
+    local existing_storage=$(az storage account list --resource-group "$resource_group" --query "[?starts_with(name, '${base_name}')].name" -o tsv)
 
-# If STORAGE_NAME is less than 3 characters or greater than 24 characters, throw an error
-if [ ${#STORAGE_NAME} -lt 3 ] || [ ${#STORAGE_NAME} -gt 24 ]; then
-    echo "Error: STORAGE_NAME must be between 3 and 24 characters in length."
-    return
+    if [ -n "$existing_storage" ]; then
+        echo "$existing_storage"
+    else
+        # Generate a unique suffix based on the current date and time
+        local datetime_suffix=$(date '+%Y%m%d')
+        local new_storage_name="${base_name}${datetime_suffix}"
+        echo "No existing storage account found. New storage name: $new_storage_name"
+        echo "$new_storage_name"
+    fi
+}
+
+# Function to validate storage account name
+validate_storage_name() {
+    local storage_name=$1
+    if [ ${#storage_name} -lt 3 ] || [ ${#storage_name} -gt 24 ]; then
+        echo "Error: Storage account name must be between 3 and 24 characters in length."
+        return 1
+    fi
+    return 0
+}
+
+# Make sure the storage account names are unique
+export TF_STATE_STORAGE_ACCOUNT=$(get_unique_storage_name "$TF_STATE_STORAGE_ACCOUNT" "$TF_STATE_RESOURCE_GROUP")
+export STORAGE_NAME=$(get_unique_storage_name "$STORAGE_NAME" "$RESOURCE_GROUP_NAME")
+
+if ! validate_storage_name "$TF_STATE_STORAGE_ACCOUNT" || ! validate_storage_name "$STORAGE_NAME"; then
+    echo "Invalid storage account name. Exiting."
+    exit 1
 fi
 
 
@@ -212,8 +226,6 @@ disk_name = "${DISK_NAME}"
 storage_name = "${STORAGE_NAME}"
 acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
-disk_backup_vault_name = "${DISK_BACKUP_VAULT_NAME}"
-disk_backup_policy_name = "${DISK_BACKUP_POLICY_NAME}"
 vnet_name = "${VNET_NAME}"
 vnet_ip_range = "${VNET_IP_RANGE}"
 web_subnet_name = "${WEB_SUBNET_NAME}"
@@ -229,4 +241,5 @@ gpt_4o_mini_capacity = ${GPT_4o_MINI_CAPACITY}
 text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
 admin_email = "${ADMIN_EMAIL}"
 use_private_network = "${USE_PRIVATE_NETWORK}"
+backup_container_name = "${BACKUP_CONTAINER_NAME}"
 EOF

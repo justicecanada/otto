@@ -1,58 +1,27 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: velero
-  
----
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: velero
-  namespace: velero
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: velero
-  template:
-    metadata:
-      labels:
-        app: velero
-    spec:
-      serviceAccountName: velero
-      containers:
-        - name: velero
-          image: velero/velero:v1.12.0
-          command:
-            - /velero
-          args:
-            - server
-          volumeMounts:
-            - name: plugins
-              mountPath: /plugins
-      volumes:
-        - name: plugins
-          emptyDir: {}
 
 ---
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: velero
   namespace: velero
+  annotations:
+    azure.workload.identity/client-id: ${VELERO_IDENTITY_CLIENT_ID}
 
 ---
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: velero
 subjects:
-  - kind: ServiceAccount
-    name: velero
-    namespace: velero
+- kind: ServiceAccount
+  name: velero
+  namespace: velero
 roleRef:
   kind: ClusterRole
   name: cluster-admin
@@ -61,52 +30,41 @@ roleRef:
 ---
 
 apiVersion: velero.io/v1
-kind: BackupStorageLocation
+kind: Schedule
 metadata:
-  name: azure
+  name: daily-full-backup
   namespace: velero
 spec:
-  provider: azure
-  objectStorage:
-    bucket: backups
-  credential:
-    name: azure-credential
-    key: cloud
-  config:
-    resourceGroup: ${RESOURCE_GROUP}
-    storageAccount: ${STORAGE_NAME}
-
----
-
-apiVersion: velero.io/v1
-kind: VolumeSnapshotLocation
-metadata:
-  name: default
-  namespace: velero
-spec:
-  provider: azure
+  schedule: 0 1 * * * # Run at 1 AM daily
+  template:
+    csiSnapshotTimeout: 0s
+    excludedNamespaces:
+    - kube-system
+    - velero
+    includeClusterResources: true
+    includedNamespaces:
+    - '*'
+    ttl: 720h # Retain backups for 30 days
+  useOwnerReferencesInBackup: false
 
 ---
 
 apiVersion: velero.io/v1
 kind: Schedule
 metadata:
-  name: otto-backup-schedule
+  creationTimestamp: null
+  name: hourly-incremental-postgres-backup
   namespace: velero
 spec:
-  schedule: "0 1 * * *"  # Backup daily at 1:00 AM
+  schedule: 0 * * * * # Run every hour
   template:
-    snapshotVolumes: true
-    includeClusterResources: null
-    storageLocation: azure
     includedNamespaces:
     - otto
     includedResources:
     - persistentvolumeclaims
     - persistentvolumes
-    labelSelector:
-      matchLabels:
-        app: django-app
-    ttl: "720h"  # Retention period of 30 days
-    volumeSnapshotLocations:
-    - azure
+    snapshotVolumes: true
+    storageLocation: default
+    ttl: 48h # Retain backups for 2 days
+  useOwnerReferencesInBackup: false
+

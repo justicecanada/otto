@@ -1,0 +1,88 @@
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+# SC-13: Ensure secure key management practices
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-django-db
+  namespace: otto
+spec:
+  serviceName: "postgres-django-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-django-db
+  template:
+    metadata:
+      labels:
+        app: postgres-django-db
+        tier: backend
+    spec:
+      containers:
+        - name: postgres-django-db
+          image: postgres:16
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: azure-keyvault-secrets
+                  key: djangodbpasswordkey
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: otto-configmap
+                  key: DJANGODB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: otto-configmap
+                  key: DJANGODB_USER
+            - name: POSTGRES_MAX_CONNECTIONS
+              value: "500"
+          ports:
+            - containerPort: 5432
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2Gi"
+            limits:
+              cpu: "1"
+              memory: "4Gi"
+          volumeMounts:
+            - name: postgres-django-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres
+            - name: secrets
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+      volumes:
+        - name: secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "azure-keyvault"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-django-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "otto-managed-csi"
+      resources:
+        requests:
+          storage: 16Gi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-django-service
+  namespace: otto
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres-django-db
+  ports:
+  - port: 5432
+    targetPort: 5432
