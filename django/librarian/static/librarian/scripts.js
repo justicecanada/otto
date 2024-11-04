@@ -6,28 +6,24 @@ function toggleWarning(public_checkbox) {
   }
 }
 
-let librarianModalCloseHandler = null;
-
-updateLibrarianModalOnClose = (library_id) => {
-  const modalEl = document.getElementById('editLibrariesModal');
-  modalEl.removeEventListener('hidden.bs.modal', librarianModalCloseHandler);
-  librarianModalCloseHandler = event => {
-    // Stop polling on element id="libraryModalPoller"
-    // by replacing it with empty div
-    const poller = document.getElementById('libraryModalPoller');
-    const newPoller = document.createElement('div');
-    newPoller.id = 'libraryModalPoller';
-    poller.parentNode.replaceChild(newPoller, poller);
-    // Update the QA library select
-    const qa_library_select = document.getElementById("id_qa_library");
-    // Only update if the value is different (allow type coercion)
-    if (qa_library_select.value != library_id) {
-      qa_library_select.value = library_id;
-      qa_library_select.dispatchEvent(new Event('change'));
-    }
-  };
-  modalEl.addEventListener('hidden.bs.modal', librarianModalCloseHandler);
+let librarianModalCloseHandler = event => {
+  // Stop polling on element id="libraryModalPoller"
+  // by replacing it with empty div
+  const poller = document.getElementById('libraryModalPoller');
+  const newPoller = document.createElement('div');
+  newPoller.id = 'libraryModalPoller';
+  poller.parentNode.replaceChild(newPoller, poller);
+  // Fake library ID which won't exist. If passed through, this will reset the QA library to the default.
+  let library_id = 99999999999999999999;
+  const selected_library_li = document.querySelector("#librarian-libraries li.list-group-item[aria-selected='true']");
+  if (selected_library_li) {
+    library_id = selected_library_li.getAttribute('data-library-id');
+  }
+  // Update the QA library select
+  htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion'});
 };
+const modalEl = document.getElementById('editLibrariesModal');
+modalEl.addEventListener('hidden.bs.modal', librarianModalCloseHandler);
 
 const MAX_FILES_PER_DATA_SOURCE = 100;
 const MAX_SIZE_MB = 300;
