@@ -12,7 +12,7 @@ from azure.core.credentials import AzureKeyCredential
 from pdf2image import convert_from_path
 from PIL import Image, ImageSequence
 from PIL.Image import Resampling
-from PyPDF2 import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 from reportlab.lib import pagesizes
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
