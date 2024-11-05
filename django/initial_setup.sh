@@ -7,7 +7,7 @@ echo "Resetting app data..."
 { python manage.py reset_app_data apps terms groups library_mini security_labels cost_types || { echo "Error: Reset app data failed"; exit 1; } }
 
 echo "Loading corporate library..."
-{ python manage.py load_corporate_library --force || { echo "Error: Load corporate library failed"; exit 1; } }
+{ python manage.py load_corporate_library || { echo "Error: Load corporate library failed"; exit 1; } }
 
 echo "Loading laws XML..."
 { python manage.py load_laws_xml --reset --small || { echo "Error: Load laws XML failed"; exit 1; } }
