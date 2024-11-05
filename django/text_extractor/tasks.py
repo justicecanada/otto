@@ -1,6 +1,7 @@
 import os
 from io import BytesIO
 
+from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 
 from celery import shared_task
@@ -13,53 +14,17 @@ from .utils import create_searchable_pdf, shorten_input_name
 
 
 @shared_task
-def process_ocr_document(file_path, user_request_pk, user_id, merged, idx):
-    access_key = AccessKey(user_id=user_id)
-    user_request = UserRequest.objects.get(pk=user_request_pk)
+def process_ocr_document(file_path, merged, idx, total_cost, all_texts):
+    # user = User.objects.get(pk=user_id)
+    # access_key = AccessKey(user=user)
+    # user_request = UserRequest.objects.get(pk=user_request_pk)
     with open(file_path, "rb") as file:
         ocr_file, txt_file, cost = create_searchable_pdf(file, merged and idx > 0)
+    total_cost += cost
+    all_texts.append(txt_file)
+
     input_name, _ = os.path.splitext(file.name)
     pdf_bytes = BytesIO()
     ocr_file.write(pdf_bytes)
 
-    if merged:
-        file_name = input_name
-        pdf_bytes.seek(0)
-        return file_name, pdf_bytes, txt_file, cost
-    else:
-        file_name = f"{input_name}_OCR.pdf"
-        text_name = f"{input_name}_OCR.txt"
-
-        content_file = ContentFile(
-            pdf_bytes.getvalue(), name=shorten_input_name(file_name)
-        )
-        content_text = ContentFile(txt_file, name=shorten_input_name(text_name))
-
-        output_file = OutputFile.objects.create(
-            access_key=access_key,
-            file=content_file,
-            file_name=file_name,
-            user_request=user_request,
-        )
-
-        output_text = OutputFile.objects.create(
-            access_key=access_key,
-            file=content_text,
-            file_name=text_name,
-            user_request=user_request,
-        )
-
-        output_file.save(access_key)
-        output_text.save(access_key)
-
-        return {
-            "pdf": {
-                "file": output_file,
-                "size": file_size_to_string(output_file.file.size),
-            },
-            "txt": {
-                "file": output_text,
-                "size": file_size_to_string(output_text.file.size),
-            },
-            "cost": display_cad_cost(cost),
-        }
+    return pdf_bytes, txt_file, cost, input_name, total_cost, all_texts

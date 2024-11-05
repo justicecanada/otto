@@ -82,9 +82,12 @@ def submit_document(request):
                         temp_file.write(chunk)
                     temp_file_path = temp_file.name
                 result = process_ocr_document.delay(
-                    temp_file_path, user_request.pk, access_key.user.id, merged, idx
+                    temp_file_path, merged, idx, total_cost, all_texts
                 )
-                result_data = result.get()
+                pdf_bytes, txt_file, cost, input_name, total_cost, all_texts = (
+                    result.get()
+                )
+
                 # ocr_file, txt_file, cost = create_searchable_pdf(
                 #     file, merged and idx > 0
                 # )
@@ -96,55 +99,51 @@ def submit_document(request):
                 # ocr_file.write(pdf_bytes)
 
                 if merged:
-                    # file_name = input_name
-                    file_name, pdf_bytes, txt_file, cost = result_data
-                    total_cost += cost
-                    all_texts.append(txt_file)
+                    file_name = input_name
                     pdf_bytes.seek(0)
                     merger.append(pdf_bytes)
                     if idx > 0:  # Exclude TOC from file names to merge
                         file_names_to_merge.append(file_name)
+
                 else:
-                    completed_documents.append(result_data)
-                    # file_name = f"{input_name}_OCR.pdf"
-                    # text_name = f"{input_name}_OCR.txt"
+                    file_name = f"{input_name}_OCR.pdf"
+                    text_name = f"{input_name}_OCR.txt"
 
-                    # content_file = ContentFile(
-                    #     pdf_bytes.getvalue(), name=shorten_input_name(file_name)
-                    # )
-                    # content_text = ContentFile(
-                    #     txt_file, name=shorten_input_name(text_name)
-                    # )
+                    content_file = ContentFile(
+                        pdf_bytes.getvalue(), name=shorten_input_name(file_name)
+                    )
+                    content_text = ContentFile(
+                        txt_file, name=shorten_input_name(text_name)
+                    )
+                    output_file = OutputFile.objects.create(
+                        access_key,
+                        file=content_file,
+                        file_name=file_name,
+                        user_request=user_request,
+                    )
 
-                    # output_file = OutputFile.objects.create(
-                    #     access_key,
-                    #     file=content_file,
-                    #     file_name=file_name,
-                    #     user_request=user_request,
-                    # )
+                    output_text = OutputFile.objects.create(
+                        access_key,
+                        file=content_text,
+                        file_name=text_name,
+                        user_request=user_request,
+                    )
 
-                    # output_text = OutputFile.objects.create(
-                    #     access_key,
-                    #     file=content_text,
-                    #     file_name=text_name,
-                    #     user_request=user_request,
-                    # )
-
-                    # output_file.save(access_key)
-                    # output_text.save(access_key)
-                    # completed_documents.append(
-                    #     {
-                    #         "pdf": {
-                    #             "file": output_file,
-                    #             "size": file_size_to_string(output_file.file.size),
-                    #         },
-                    #         "txt": {
-                    #             "file": output_text,
-                    #             "size": file_size_to_string(output_text.file.size),
-                    #         },
-                    #         "cost": display_cad_cost(cost),
-                    #     }
-                    # )
+                    output_file.save(access_key)
+                    output_text.save(access_key)
+                    completed_documents.append(
+                        {
+                            "pdf": {
+                                "file": output_file,
+                                "size": file_size_to_string(output_file.file.size),
+                            },
+                            "txt": {
+                                "file": output_text,
+                                "size": file_size_to_string(output_text.file.size),
+                            },
+                            "cost": display_cad_cost(cost),
+                        }
+                    )
 
             if merged:
 
