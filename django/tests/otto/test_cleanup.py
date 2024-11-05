@@ -16,12 +16,15 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 import pytest
+from structlog import get_logger
 
 from chat.models import Chat, ChatFile, Message
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
 from otto.secure_models import AccessControl, AccessKey
 from text_extractor.models import OutputFile, UserRequest
+
+logger = get_logger(__name__)
 
 
 @pytest.mark.django_db
@@ -355,7 +358,7 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
     user.user_permissions.add(permission_output_file_delete)
     # Verify current time
     current_time = timezone.now()
-    print(f"Current time: {current_time}")
+    logger.debug(f"Current time: {current_time}")
     # Create an OutputFile
     this_file_path = os.path.abspath(__file__)
     with open(this_file_path, "rb") as f:
@@ -370,7 +373,7 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
     # Set the creation time to 40 hours ago
     user_request1.created_at = current_time - timezone.timedelta(hours=40)
     user_request1.save(access_key=access_key)
-    print(f"User request 1 created_at: {user_request1.created_at}")
+    logger.debug(f"User request 1 created_at: {user_request1.created_at}")
 
     output_file2 = OutputFile.objects.create(
         access_key=access_key,
@@ -381,7 +384,7 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
     # Set the creation time to 5 min ago
     user_request2.created_at = current_time - timezone.timedelta(minutes=5)
     user_request2.save(access_key=access_key)
-    print(f"User request 2 created_at: {user_request2.created_at}")
+    logger.debug(f"User request 2 created_at: {user_request2.created_at}")
 
     # Run the delete_text_extractor_files task
     if settings.IS_RUNNING_IN_GITHUB:
@@ -419,6 +422,6 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
 
     # Check media directory
     media_folder = os.path.join(settings.MEDIA_ROOT, "ocr_output_files")
-    # print(f"Files in media folder: {os.listdir(media_folder)}")
+    logger.debug(f"Files in media folder: {os.listdir(media_folder)}")
     assert "test_file1.txt" not in os.listdir(media_folder)
     assert "test_file2.txt" in os.listdir(media_folder)

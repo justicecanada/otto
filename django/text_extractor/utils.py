@@ -12,10 +12,13 @@ from azure.core.credentials import AzureKeyCredential
 from pdf2image import convert_from_path
 from PIL import Image, ImageSequence
 from PIL.Image import Resampling
-from PyPDF2 import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 from reportlab.lib import pagesizes
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 from otto.models import Cost
 
@@ -178,8 +181,11 @@ def create_searchable_pdf(input_file, add_header):
         )
 
     ocr_results = poller.result()
+
     num_pages = len(ocr_results.pages)
-    print(f"Azure Form Recognizer finished OCR text for {num_pages} pages.")
+    logger.debug(
+        f"Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages."
+    )
     all_text = []
     for page in ocr_results.pages:
         for line in page.lines:
