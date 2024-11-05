@@ -1,6 +1,7 @@
 import time
 import urllib.parse
 from datetime import datetime
+from typing import List
 
 from django.utils import translation
 from django.utils.translation import gettext as _
@@ -168,12 +169,14 @@ def process_document_helper(document, llm, pdf_method="default"):
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def delete_documents_from_vector_store(document_uuids, library_uuid):
+def delete_documents_from_vector_store(
+    document_uuids: List[str], library_uuid: str
+) -> None:
     llm = OttoLLM()
     logger.info(f"Deleting documents from vector store:\n{document_uuids}")
     for document_uuid in document_uuids:
         try:
             idx = llm.get_index(library_uuid)
-            idx.delete_ref_docs(document_uuid, delete_from_docstore=True)
+            idx.delete_ref_doc(document_uuid, delete_from_docstore=True)
         except Exception as e:
             logger.error(f"Failed to remove documents from vector store: {e}")

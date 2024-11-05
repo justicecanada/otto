@@ -1,3 +1,6 @@
+import os
+import time
+
 from django.conf import settings
 from django.urls import reverse
 
@@ -14,6 +17,8 @@ skip_on_github_actions = pytest.mark.skipif(
 skip_on_devops_pipeline = pytest.mark.skipif(
     settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
 )
+
+this_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 @pytest.mark.django_db
@@ -109,13 +114,70 @@ def test_modal_edit_library_get(client, all_apps_user, basic_user):
 
 
 @pytest.mark.django_db
-def test_delete_chat_data_source(client, all_apps_user):
-    from chat.models import Chat, Message
+def test_chat_data_source(client, all_apps_user):
+    from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
+
+    from chat.llm import OttoLLM
+    from chat.models import Chat
+    from librarian.tasks import (
+        delete_documents_from_vector_store,
+        process_document_helper,
+    )
 
     user = all_apps_user()
     client.force_login(user)
-    # Create a chat by hitting the chat route
-    url = reverse("chat:new_chat")
-    chat = Chat.objects.filter(user=user).last()
-    assert chat is not None
-    # Add a message to the chat
+    chat = Chat.objects.create(user=user)
+    # Ensure that a data source was created
+    data_source = DataSource.objects.filter(chat=chat).first()
+    assert data_source is not None
+    # Upload a file to the data source
+    # Don't automatically start processing; we will trigger it manually to avoid using Celery
+    url = reverse("librarian:upload", kwargs={"data_source_id": data_source.id})
+    with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
+        response = client.post(url, {"file": f})
+        assert response.status_code == 200
+    # Ensure that a document was created
+    document = Document.objects.filter(data_source=data_source).first()
+    assert document is not None
+
+    # Get the file path of the uploaded file
+    file_path = document.file.file.path
+
+    llm = OttoLLM(mock_embedding=True)
+    process_document_helper(document, llm)
+
+    # Ensure that the document was processed - that is, text nodes exist in vector DB
+    filters = MetadataFilters(
+        filters=[
+            MetadataFilter(
+                key="node_type",
+                value="document",
+                operator="!=",
+            ),
+            MetadataFilter(
+                key="doc_id",
+                value=[document.uuid_hex],
+                operator="in",
+            ),
+        ]
+    )
+    retriever = llm.get_retriever(user.personal_library.uuid_hex, filters)
+    nodes = retriever.retrieve("What is this about?")
+    assert len(nodes) > 0
+
+    # Now, delete the chat.
+    chat.delete()
+    # Ensure that the data source and document were deleted
+    assert not DataSource.objects.filter(id=data_source.id).exists()
+    assert not Document.objects.filter(id=document.id).exists()
+    # The Celery delete methods won't have actually worked, so call them manually
+    delete_documents_from_vector_store(
+        [document.uuid_hex], user.personal_library.uuid_hex
+    )
+    # Ensure that the nodes were deleted
+    time.sleep(1)
+    nodes = retriever.retrieve("What is this about?")
+    assert len(nodes) == 0
+
+    # Check that the file is also deleted
+    # assert not os.path.exists(file_path)
