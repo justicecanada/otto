@@ -855,7 +855,7 @@ def test_preset(client, basic_user, all_apps_user):
     # Instantiate the form with a regular user
     form = PresetForm(user=user)
     assert form.fields["sharing_option"].choices == [
-        ("private", "Make Private"),
+        ("private", "Make private"),
         ("others", "Share with others"),
     ]
     user = all_apps_user()
@@ -864,7 +864,7 @@ def test_preset(client, basic_user, all_apps_user):
     # Instantiate the form with a user with admin rights
     form = PresetForm(user=user)
     assert form.fields["sharing_option"].choices == [
-        ("private", "Make Private"),
+        ("private", "Make private"),
         ("everyone", "Share with everyone"),
         ("others", "Share with others"),
     ]
