@@ -44,7 +44,7 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
 
 - **Azure OpenAI Content Filter Modifications:** 
   - This step is required only once per subscription.
-  - Visit [this link](https://aka.ms/oai/rai/exceptions) to request an exemption from the default content filtering.
+  - Visit [this link](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUMlBQNkZMR0lFRldORTdVQzQ0TEI5Q1ExOSQlQCN0PWcu) to request an exemption from the default content filtering. (Note: Do not use aka.ms/oai/rai/exceptions as that will be route the request through US government channels.)
   - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing information where standard content filtering is not appropriate.
   - Wait for Microsoft's approval before proceeding with the deployment.
   
