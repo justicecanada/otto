@@ -26,7 +26,12 @@ from text_extractor.models import OutputFile, UserRequest
 
 logger = get_logger(__name__)
 
+skip_on_github_actions = pytest.mark.skipif(
+    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
+)
 
+
+@skip_on_github_actions
 @pytest.mark.django_db
 def test_redundant_librarian_upload(client, all_apps_user):
     """
