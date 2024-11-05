@@ -88,12 +88,14 @@ data:
   STATIC_ROOT: "/data/static"
 
   DJANGODB_ENGINE: "django.db.backends.postgresql_psycopg2"
-  DJANGODB_HOST: "postgres-django-service"
+  DJANGODB_HOST: "postgres-django-service" # TODO: Change this to use pgBouncer
+  DJANGODB_PORT: "5432"
   DJANGODB_NAME: "django"
   DJANGODB_USER: "postgres"
 
   VECTORDB_ENGINE: "django.db.backends.postgresql_psycopg2"
-  VECTORDB_HOST: "postgres-vector-service"
+  VECTORDB_HOST: "postgres-vector-service" # TODO: Change this to use pgBouncer
+  VECTORDB_PORT: "5432"
   VECTORDB_NAME: "llama_index"
   VECTORDB_USER: "postgres"
 

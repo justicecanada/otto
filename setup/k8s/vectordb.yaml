@@ -7,7 +7,7 @@ metadata:
   namespace: otto
 spec:
   serviceName: "postgres-vector-service"  # Required for stable network identity
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: postgres-vector-db
@@ -43,10 +43,10 @@ spec:
             - containerPort: 5432
           resources:
             requests:
-              cpu: "1"
+              cpu: "500m"
               memory: "4Gi"
             limits:
-              cpu: "1"
+              cpu: "500m"
               memory: "4Gi"
           volumeMounts:
             - name: postgres-vector-storage
@@ -71,51 +71,6 @@ spec:
       resources:
         requests:
           storage: 32Gi
-
----
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: pgbouncer
-  namespace: otto
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: pgbouncer
-  template:
-    metadata:
-      labels:
-        app: pgbouncer
-    spec:
-      containers:
-      - name: pgbouncer
-        image: edoburu/pgbouncer:1.15.0
-        env:
-        - name: DB_HOST
-          value: "postgres-vector-service"
-        - name: DB_PORT
-          value: "5432"
-        - name: POOL_MODE
-          value: "transaction"
-        - name: MAX_CLIENT_CONN
-          value: "1000"
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: pgbouncer-service
-  namespace: otto
-spec:
-  selector:
-    app: pgbouncer
-  ports:
-    - protocol: TCP
-      port: 6432
-      targetPort: 6432
 
 ---
 
@@ -153,3 +108,96 @@ spec:
   ports:
   - port: 5432
     targetPort: 5432
+
+# ---
+
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: pgbouncer-vector-config
+#   namespace: otto
+# data:
+#   pgbouncer.ini: |
+#     [databases]
+#     * = host=postgres-vector-service port=5432
+
+#     [pgbouncer]
+#     listen_addr = 0.0.0.0
+#     listen_port = 6432
+#     auth_type = md5
+#     auth_file = /etc/pgbouncer/userlist.txt
+#     pool_mode = transaction
+#     max_client_conn = 1000
+#     default_pool_size = 100
+#     reserve_pool_size = 50
+#     reserve_pool_timeout = 5
+#     server_reset_query = DISCARD ALL
+#     server_check_query = select 1
+#     server_check_delay = 30
+#     ignore_startup_parameters = extra_float_digits
+
+#   userlist.txt: |
+#     "$(POSTGRES_USER)" "$(POSTGRES_PASSWORD)"
+
+# ---
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: pgbouncer-vector
+#   namespace: otto
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: pgbouncer-vector
+#   template:
+#     metadata:
+#       labels:
+#         app: pgbouncer-vector
+#     spec:
+#       containers:
+#       - name: pgbouncer
+#         image: edoburu/pgbouncer:1.18.0
+#         ports:
+#         - containerPort: 6432
+#         env:
+#         - name: POSTGRES_USER
+#           valueFrom:
+#             configMapKeyRef:
+#               name: otto-configmap
+#               key: VECTORDB_USER
+#         - name: POSTGRES_PASSWORD
+#           valueFrom:
+#             secretKeyRef:
+#               name: azure-keyvault-secrets
+#               key: vectordbpasswordkey
+#         volumeMounts:
+#         - name: pgbouncer-config
+#           mountPath: /etc/pgbouncer
+#         resources:
+#           requests:
+#             cpu: "500m"
+#             memory: "512Mi"
+#           limits:
+#             cpu: "500m"
+#             memory: "512Mi"
+#       volumes:
+#       - name: pgbouncer-config
+#         configMap:
+#           name: pgbouncer-vector-config
+
+# ---
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: pgbouncer-vector-service
+#   namespace: otto
+# spec:
+#   selector:
+#     app: pgbouncer-vector
+#   ports:
+#     - protocol: TCP
+#       port: 6432
+#       targetPort: 6432
