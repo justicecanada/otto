@@ -76,11 +76,37 @@ velero install \
 # Apply the namespaces
 kubectl apply -f namespace.yaml
 
-# Apply the Cluster Issuer for Let's Encrypt which will automatically provision certificates for the Ingress resources
-kubectl apply -f letsencrypt-cluster-issuer.yaml
+# Check if the TLS secret already exists
+CREATE_CERT=false
+if kubectl get secret tls-secret -n otto >/dev/null 2>&1; then
+    echo "TLS secret exists. Checking validity..."
+    
+    # Extract certificate expiration date
+    EXPIRY=$(kubectl get secret tls-secret -n otto -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -enddate | cut -d= -f2)
+    EXPIRY_EPOCH=$(date -d "${EXPIRY}" +%s)
+    CURRENT_EPOCH=$(date +%s)
+    
+    # Check if the certificate is still valid (not expired)
+    if [ ${CURRENT_EPOCH} -lt ${EXPIRY_EPOCH} ]; then
+        echo "TLS certificate is valid until ${EXPIRY}. Skipping certificate creation."
+    else
+        echo "TLS certificate has expired. Renewing certificate..."
+        kubectl delete secret tls-secret -n otto
+        CREATE_CERT=true
+    fi
+else
+    echo "TLS secret does not exist. Will create a new certificate."
+    CREATE_CERT=true
+fi
+
+# If the certificate needs to be created, apply the ClusterIssuer and Ingress
+if [ "$CREATE_CERT" = true ]; then
+    echo "Applying ClusterIssuer and Ingress to trigger certificate creation."
+    kubectl apply -f letsencrypt-cluster-issuer.yaml
+    envsubst < ingress.yaml | kubectl apply -f -
+fi
 
 # Apply the Kubernetes resources related to Otto, substituting environment variables where required
-envsubst < ingress.yaml | kubectl apply -f -
 envsubst < configmap.yaml | kubectl apply -f -
 envsubst < secrets.yaml | kubectl apply -f -
 envsubst < storageclass.yaml | kubectl apply -f -
