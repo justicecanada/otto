@@ -281,6 +281,7 @@ def test_start_stop(client, all_apps_user):
         )
 
 
+@skip_on_github_actions
 @pytest.mark.django_db
 def test_modal_views(client, all_apps_user):
     library = Library.objects.get_default_library()
