@@ -116,6 +116,6 @@ def test_delete_chat_data_source(client, all_apps_user):
     client.force_login(user)
     # Create a chat by hitting the chat route
     url = reverse("chat:new_chat")
-    chat = Chat.objects.filter(users=user).last()
+    chat = Chat.objects.filter(user=user).last()
     assert chat is not None
     # Add a message to the chat
