@@ -85,6 +85,11 @@ class Chat(models.Model):
         self.accessed_at = timezone.now()
         self.save()
 
+    def delete(self, *args, **kwargs):
+        if hasattr(self, "data_source") and self.data_source:
+            self.data_source.delete()
+        super().delete(*args, **kwargs)
+
 
 class ChatOptionsManager(models.Manager):
     def from_defaults(self, mode=None, chat=None):

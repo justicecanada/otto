@@ -129,6 +129,7 @@ def test_chat_data_source(client, all_apps_user):
     chat = Chat.objects.create(user=user)
     # Ensure that a data source was created
     data_source = DataSource.objects.filter(chat=chat).first()
+    data_source_id = data_source.id
     assert data_source is not None
     # Upload a file to the data source
     # Don't automatically start processing; we will trigger it manually to avoid using Celery
@@ -138,6 +139,7 @@ def test_chat_data_source(client, all_apps_user):
         assert response.status_code == 200
     # Ensure that a document was created
     document = Document.objects.filter(data_source=data_source).first()
+    document_id = document.id
     assert document is not None
 
     # Get the file path of the uploaded file
@@ -168,8 +170,8 @@ def test_chat_data_source(client, all_apps_user):
     # Now, delete the chat.
     chat.delete()
     # Ensure that the data source and document were deleted
-    assert not DataSource.objects.filter(id=data_source.id).exists()
-    assert not Document.objects.filter(id=document.id).exists()
+    assert not DataSource.objects.filter(id=data_source_id).exists()
+    assert not Document.objects.filter(id=document_id).exists()
     # The Celery delete methods won't have actually worked, so call them manually
     delete_documents_from_vector_store(
         [document.uuid_hex], user.personal_library.uuid_hex
@@ -180,4 +182,4 @@ def test_chat_data_source(client, all_apps_user):
     assert len(nodes) == 0
 
     # Check that the file is also deleted
-    # assert not os.path.exists(file_path)
+    assert not os.path.exists(file_path)

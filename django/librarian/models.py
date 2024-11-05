@@ -3,6 +3,8 @@ import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import get_language
@@ -279,7 +281,7 @@ class DataSource(models.Model):
         from .tasks import delete_documents_from_vector_store
 
         delete_documents_from_vector_store.delay(
-            [document.uuid_hex for document in self.documents],
+            [document.uuid_hex for document in self.documents.all()],
             self.library.uuid_hex,
         )
         super().delete(*args, **kwargs)
@@ -419,11 +421,6 @@ class Document(models.Model):
         delete_documents_from_vector_store.delay(
             [self.uuid_hex], self.data_source.library.uuid_hex
         )
-        file = self.file
-        if file:
-            self.file = None
-            self.save()
-            file.safe_delete()
         super().delete(*args, **kwargs)
 
     def process(self, pdf_method="default"):
@@ -485,3 +482,11 @@ class SavedFile(models.Model):
         if self.file:
             self.file.delete(False)
         self.delete()
+
+
+@receiver(post_delete, sender=Document)
+def delete_saved_file(sender, instance, **kwargs):
+    try:
+        instance.file.safe_delete()
+    except Exception as e:
+        logger.error(f"Failed to delete document file: {e}")
