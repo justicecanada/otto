@@ -14,6 +14,7 @@ from asgiref.sync import sync_to_async
 from llama_index.core import PromptTemplate
 from llama_index.core.prompts import PromptType
 from newspaper import Article
+from structlog import get_logger
 
 from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
@@ -21,6 +22,7 @@ from chat.models import AnswerSource, Chat, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS
 from otto.models import SecurityLabel
 
+logger = get_logger(__name__)
 # Markdown instance
 md = markdown.Markdown(
     extensions=["fenced_code", "nl2br", "tables", "extra"], tab_length=2
@@ -135,7 +137,7 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
                 )
                 sources.append(source)
             except Exception as e:
-                print("Error saving source:", node, e)
+                logger.debug("Error saving source:", node, e)
 
     security_labels = [
         source.document.data_source.security_label.acronym for source in sources

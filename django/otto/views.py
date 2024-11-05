@@ -682,9 +682,8 @@ def user_cost(request):
     cost_percent = max(
         min(int(100 * this_week_cost / weekly_max if weekly_max else 0), 100), 1
     )
-    cost_tooltip = (
-        f"${this_week_cost:.2f} / ${weekly_max:.2f} {_('this week')}<br>"
-        f"(${today_cost:.2f} {_('today')})"
+    cost_tooltip = "${:.2f} / ${:.2f} {}<br>(${:.2f} {})".format(
+        this_week_cost, weekly_max, _("this week"), today_cost, _("today")
     )
     return render(
         request,
