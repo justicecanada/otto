@@ -404,12 +404,12 @@ class PresetForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if user and is_group_member("Otto admin")(user):
             self.fields["sharing_option"].choices = [
-                ("private", _("Make Private")),
+                ("private", _("Make private")),
                 ("everyone", _("Share with everyone")),
                 ("others", _("Share with others")),
             ]
         else:
             self.fields["sharing_option"].choices = [
-                ("private", _("Make Private")),
+                ("private", _("Make private")),
                 ("others", _("Share with others")),
             ]

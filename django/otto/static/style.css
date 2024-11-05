@@ -4,6 +4,33 @@
   flex-direction: row;
 }
 
+#user-menu .dropdown-item {
+
+  &:focus,
+  &:focus-visible,
+  &:hover {
+    background-color: #4d5154 !important;
+  }
+
+  &:focus-visible {
+    outline: none !important;
+  }
+}
+
+#language-toggle {
+
+  text-decoration: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 4px #373b3e !important;
+    background-color: #4d5154 !important;
+  }
+}
+
+#navbar-dropdown>*+* {
+  margin-left: 0.5rem;
+}
+
 /* Make the footer div centered, small, and bottom of the page */
 #footer {
   bottom: 0;

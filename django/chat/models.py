@@ -274,7 +274,7 @@ class PresetManager(models.Manager):
 
 
 SHARING_OPTIONS = [
-    ("private", _("Make Private")),
+    ("private", _("Make private")),
     ("everyone", _("Share with everyone")),
     ("others", _("Share with others")),
 ]

@@ -1090,6 +1090,11 @@ ul.errorlist {
   --preset-tab-border-color: 0.01rem solid #d5d5d5;
 }
 
+ul#preset-edit-tabs {
+  border-bottom: none;
+  z-index: 1;
+}
+
 .preset-form-container .nav-link {
   color: var(--bs-body-color);
   font-size: 0.875rem;
@@ -1097,7 +1102,6 @@ ul.errorlist {
 
   &:hover {
     color: var(--bs-gray-900);
-    font-weight: bold;
     outline: none;
 
     &:not(.active) {
@@ -1113,6 +1117,7 @@ ul.errorlist {
   &:not(.active) {
     background-color: #eaeaea;
     border-bottom: var(--preset-tab-border-color);
+    font-weight: 400;
   }
 
   &.active {
