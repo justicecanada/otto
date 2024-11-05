@@ -18,5 +18,5 @@ class Command(BaseCommand):
 
     @signalcommand
     def handle(self, *args, **options):
-        Library.objects.get(name="Corporate").process_all(force=options["force"])
+        Library.objects.get(name="Corporate").process_all()
         self.stdout.write(self.style.SUCCESS("Corporate library loaded successfully."))
