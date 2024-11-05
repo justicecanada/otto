@@ -38,13 +38,13 @@
         <button type="button"
                 id="presets-modal-button"
                 class="btn btn-sm btn-outline-dark w-100"
-                title="{% trans "Open Presets Menu" %}"
+                title="{% trans "Open presets menu" %}"
                 hx-get="{% url 'chat:get_presets' chat_id=chat.id %}"
                 hx-target="#presets-modal-body"
                 hx-swap="innerHTML"
                 onclick="document.getElementById('presets-modal-body').innerHTML = '';">
           <i class="bi bi-folder"></i>
-          <span class="visually-hidden">{% trans "Open Presets Menu" %}</span>
+          <span class="visually-hidden">{% trans "Open presets menu" %}</span>
         </button>
       </span>
       <span class="flex-grow-1 px-1"
