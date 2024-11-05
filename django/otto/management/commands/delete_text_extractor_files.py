@@ -23,7 +23,6 @@ class Command(BaseCommand):
         old_requests = UserRequest.objects.filter(
             access_key=access_key, created_at__lt=cutoff
         )
-        # print(f"---------------Found {old_requests.count()} user requests to delete")
         for user_request in old_requests:
             user_request.delete(access_key=access_key)
             self.stdout.write(
