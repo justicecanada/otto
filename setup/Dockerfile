@@ -21,5 +21,8 @@ RUN curl -Lo velero-v1.14.1-linux-amd64.tar.gz https://github.com/vmware-tanzu/v
 # Set working directory
 WORKDIR /workspace
 
+# Add alias for kubectl
+RUN echo "alias k='kubectl'" >> ~/.bashrc
+
 # Default command
 CMD ["/bin/bash"]
