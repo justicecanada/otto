@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_e2d4b8de6ea89f47_template_wizard_activity_metrics_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-11-04 22:01 +0000
+            created at 2024-11-05 15:35 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -764,19 +764,18 @@
     <p class="run"><span class="n"><a id="t682" href="#t682">682</a></span><span class="t">    <span class="nam">cost_percent</span> <span class="op">=</span> <span class="nam">max</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t683" href="#t683">683</a></span><span class="t">        <span class="nam">min</span><span class="op">(</span><span class="nam">int</span><span class="op">(</span><span class="num">100</span> <span class="op">*</span> <span class="nam">this_week_cost</span> <span class="op">/</span> <span class="nam">weekly_max</span> <span class="key">if</span> <span class="nam">weekly_max</span> <span class="key">else</span> <span class="num">0</span><span class="op">)</span><span class="op">,</span> <span class="num">100</span><span class="op">)</span><span class="op">,</span> <span class="num">1</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t684" href="#t684">684</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t685" href="#t685">685</a></span><span class="t">    <span class="nam">cost_tooltip</span> <span class="op">=</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t686" href="#t686">686</a></span><span class="t">        <span class="fst">f"</span><span class="fst">$</span><span class="op">{</span><span class="nam">this_week_cost</span><span class="op">:</span><span class="fst">.2f</span><span class="op">}</span><span class="fst"> / $</span><span class="op">{</span><span class="nam">weekly_max</span><span class="op">:</span><span class="fst">.2f</span><span class="op">}</span><span class="fst"> </span><span class="op">{</span><span class="nam">_</span><span class="op">(</span><span class="str">'this week'</span><span class="op">)</span><span class="op">}</span><span class="fst">&lt;br></span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t687" href="#t687">687</a></span><span class="t">        <span class="fst">f"</span><span class="fst">($</span><span class="op">{</span><span class="nam">today_cost</span><span class="op">:</span><span class="fst">.2f</span><span class="op">}</span><span class="fst"> </span><span class="op">{</span><span class="nam">_</span><span class="op">(</span><span class="str">'today'</span><span class="op">)</span><span class="op">}</span><span class="fst">)</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t688" href="#t688">688</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t689" href="#t689">689</a></span><span class="t">    <span class="key">return</span> <span class="nam">render</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t690" href="#t690">690</a></span><span class="t">        <span class="nam">request</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t691" href="#t691">691</a></span><span class="t">        <span class="str">"components/user_cost.html"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t692" href="#t692">692</a></span><span class="t">        <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t693" href="#t693">693</a></span><span class="t">            <span class="str">"cost_percent"</span><span class="op">:</span> <span class="nam">cost_percent</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t694" href="#t694">694</a></span><span class="t">            <span class="str">"cost_tooltip"</span><span class="op">:</span> <span class="nam">cost_tooltip</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t695" href="#t695">695</a></span><span class="t">            <span class="str">"cost_label"</span><span class="op">:</span> <span class="nam">_</span><span class="op">(</span><span class="str">"User costs"</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t696" href="#t696">696</a></span><span class="t">        <span class="op">}</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t697" href="#t697">697</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t685" href="#t685">685</a></span><span class="t">    <span class="nam">cost_tooltip</span> <span class="op">=</span> <span class="str">"${:.2f} / ${:.2f} {}&lt;br>(${:.2f} {})"</span><span class="op">.</span><span class="nam">format</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t686" href="#t686">686</a></span><span class="t">        <span class="nam">this_week_cost</span><span class="op">,</span> <span class="nam">weekly_max</span><span class="op">,</span> <span class="nam">_</span><span class="op">(</span><span class="str">"this week"</span><span class="op">)</span><span class="op">,</span> <span class="nam">today_cost</span><span class="op">,</span> <span class="nam">_</span><span class="op">(</span><span class="str">"today"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t687" href="#t687">687</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t688" href="#t688">688</a></span><span class="t">    <span class="key">return</span> <span class="nam">render</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t689" href="#t689">689</a></span><span class="t">        <span class="nam">request</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t690" href="#t690">690</a></span><span class="t">        <span class="str">"components/user_cost.html"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t691" href="#t691">691</a></span><span class="t">        <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t692" href="#t692">692</a></span><span class="t">            <span class="str">"cost_percent"</span><span class="op">:</span> <span class="nam">cost_percent</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t693" href="#t693">693</a></span><span class="t">            <span class="str">"cost_tooltip"</span><span class="op">:</span> <span class="nam">cost_tooltip</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t694" href="#t694">694</a></span><span class="t">            <span class="str">"cost_label"</span><span class="op">:</span> <span class="nam">_</span><span class="op">(</span><span class="str">"User costs"</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t695" href="#t695">695</a></span><span class="t">        <span class="op">}</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t696" href="#t696">696</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -786,7 +785,7 @@
             <a class="nav" href="z_e2d4b8de6ea89f47_template_wizard_activity_metrics_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-11-04 22:01 +0000
+            created at 2024-11-05 15:35 +0000
         </p>
     </div>
 </footer>
