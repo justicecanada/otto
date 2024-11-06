@@ -1,8 +1,12 @@
+import os
+import time
+
 from django.conf import settings
 from django.urls import reverse
 
 import pytest
 
+from chat.models import Chat
 from librarian.forms import LibraryDetailForm
 from librarian.models import DataSource, Document, Library
 from librarian.views import get_editable_libraries
@@ -14,6 +18,8 @@ skip_on_github_actions = pytest.mark.skipif(
 skip_on_devops_pipeline = pytest.mark.skipif(
     settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
 )
+
+this_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 @pytest.mark.django_db
@@ -108,190 +114,302 @@ def test_modal_edit_library_get(client, all_apps_user, basic_user):
     assert response.status_code == 302
 
 
-# @pytest.mark.django_db
-# def test_modal_edit_library_post(client, all_apps_user, library):
-#     client.force_login(all_apps_user())
-#     url = reverse("librarian:modal_edit_library", kwargs={"library_id": library.id})
-#     response = client.post(url, {"name_en": "Updated Library", "is_public": True})
-#     assert response.status_code == 200  # or 302 if it redirects after update
-
-
-# @pytest.mark.django_db
-# def test_modal_delete_library(client, all_apps_user, library):
-#     client.force_login(all_apps_user())
-#     url = reverse("librarian:modal_delete_library", kwargs={"library_id": library.id})
-#     response = client.delete(url)
-#     assert response.status_code == 200  # or 302 if it redirects after deletion
-
-
-# # Tests for permission checks
-# @pytest.mark.django_db
-# def test_modal_create_library_post_no_permission(client, basic_user):
-#     client.force_login(basic_user())
-#     url = reverse("librarian:modal_create_library")
-#     response = client.post(url, {"name_en": "New Library", "is_public": True})
-#     assert response.status_code == 403
-
-
-# @pytest.mark.django_db
-# def test_modal_edit_library_post_no_permission(client, basic_user, library):
-#     client.force_login(basic_user())
-#     url = reverse("librarian:modal_edit_library", kwargs={"library_id": library.id})
-#     response = client.post(url, {"name_en": "Updated Library", "is_public": True})
-#     assert response.status_code == 403
-
-
-# @pytest.mark.django_db
-# def test_modal_delete_library_no_permission(client, basic_user, library):
-#     client.force_login(basic_user())
-#     url = reverse("librarian:modal_delete_library", kwargs={"library_id": library.id})
-#     response = client.delete(url)
-#     assert response.status_code == 403
-
-
-# TODO: These all need to be rewritten for the new librarian / Celery rewrite
-"""
-@pytest.mark.django_db
 @skip_on_github_actions
-def test_library(client, all_apps_user):
-    user = all_apps_user()
-    client.force_login(user)
-
-    # Create a library
-    Library.objects.create(
-        name="Test Library 1",
-        description="Library description",
-        vector_store_table="test_library_1",
-        modified_by=user,
-    )
-
-    # Get the library
-    library = Library.objects.get(name="Test Library 1")
-
-    # Assert that the library was created
-    assert library.description == "Library description"
-
-    # Test that changing the vector_store_table to an invalid value raises a ValidationError
-    with pytest.raises(ValidationError):
-        library.vector_store_table = "invalid vector table"
-        library.save()
-
-    # Test that changing the vector_store_table to a valid value does not raise a ValidationError
-    library.vector_store_table = "valid_vector_table"
-    library.save()
-
-    # Test that the library can be updated
-    library.name = "Updated Library"
-    library.save()
-
-    # Assert that the library was updated
-    assert library.name == "Updated Library"
-
-    library_pk = library.pk
-
-    # Test that the library can be deleted
-    library.delete()
-
-    # Assert that the library was deleted
-    assert Library.objects.filter(pk=library_pk).count() == 0
-
-
 @pytest.mark.django_db
-def test_data_source(client, all_apps_user):
+def test_chat_data_source(client, all_apps_user):
+    from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
+
+    from chat.llm import OttoLLM
+    from librarian.tasks import (
+        delete_documents_from_vector_store,
+        process_document_helper,
+    )
+
     user = all_apps_user()
     client.force_login(user)
+    chat = Chat.objects.create(user=user)
+    # Ensure that a data source was created
+    data_source = DataSource.objects.filter(chat=chat).first()
+    data_source_id = data_source.id
+    assert data_source is not None
+    # Upload a file to the data source
+    url = reverse("librarian:upload", kwargs={"data_source_id": data_source.id})
+    with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
+        response = client.post(url, {"file": f})
+        assert response.status_code == 200
+    # Ensure that a document was created
+    document = Document.objects.filter(data_source=data_source).first()
+    document_id = document.id
+    assert document is not None
 
-    # Create a library
-    library = Library.objects.create(
-        name="Test Library 2",
-        description="Library description",
-        vector_store_table="test_library_2",
-        modified_by=user,
+    # Get the file path of the uploaded file
+    file_path = document.file.file.path
+
+    llm = OttoLLM(mock_embedding=True)
+    process_document_helper(document, llm)
+
+    # Ensure that the document was processed - that is, text nodes exist in vector DB
+    filters = MetadataFilters(
+        filters=[
+            MetadataFilter(
+                key="node_type",
+                value="document",
+                operator="!=",
+            ),
+            MetadataFilter(
+                key="doc_id",
+                value=[document.uuid_hex],
+                operator="in",
+            ),
+        ]
     )
+    retriever = llm.get_retriever(user.personal_library.uuid_hex, filters)
+    nodes = retriever.retrieve("What is this about?")
+    assert len(nodes) > 0
 
-    # Create a data source associated with the library
-    data_source = DataSource.objects.create(
-        name="Test DataSource",
-        library=library,
-        modified_by=user,
+    assert document.pdf_method == "text only"
+    assert document.truncated_text.startswith(document.extracted_text[:10])
+    assert "$" in document.display_cost
+
+    # Test downloading document
+    response = client.get(
+        reverse("librarian:download_document", kwargs={"document_id": document_id})
     )
-
-    assert data_source.security_label == SecurityLabel.default_security_label()
-
-    # Retrieve the created data source
-    retrieved_data_source = DataSource.objects.get(name="Test DataSource")
-
-    # Assert the data source was created and associated with the library
-    assert retrieved_data_source.name == "Test DataSource"
-    assert retrieved_data_source.library == library
-
-    # Test updating the data source
-    retrieved_data_source.name = "Updated DataSource"
-    retrieved_data_source.save()
-
-    # Assert that the data source was updated
-    assert retrieved_data_source.name == "Updated DataSource"
-
-    ds_pk = retrieved_data_source.pk
-    # Test that the data source can be deleted
-    retrieved_data_source.delete()
-
-    # Assert that the data source was deleted
-    assert DataSource.objects.filter(pk=ds_pk).count() == 0
-
-
-# Test behavior upon Library deletion
-@pytest.mark.django_db
-@skip_on_github_actions
-def test_data_source_deletion_on_library_delete(client, all_apps_user):
-    user = all_apps_user()
-    client.force_login(user)
-
-    library = Library.objects.create(
-        name="Test Library 4",
-        description="Library description",
-        vector_store_table="test_library_4",
-        modified_by=user,
+    assert response.status_code == 200
+    # It should be a file
+    assert (
+        response["Content-Disposition"] == f"attachment; filename={document.filename}"
     )
-
-    data_source = DataSource.objects.create(
-        name="Test DataSource XYZ",
-        library=library,
-        modified_by=user,
+    # Test getting the text of the document
+    response = client.get(
+        reverse("librarian:document_text", kwargs={"document_id": document_id})
     )
+    assert response.status_code == 200
+    assert response.content == document.extracted_text.encode("utf-8")
 
-    # Deleting the library and checking if DataSource gets deleted as well
-    library.delete()
-    assert DataSource.objects.filter(name="Test DataSource XYZ").count() == 0
+    # Now, delete the chat.
+    chat.delete()
+    # Ensure that the data source and document were deleted
+    assert not DataSource.objects.filter(id=data_source_id).exists()
+    assert not Document.objects.filter(id=document_id).exists()
+    # The Celery delete methods won't have actually worked, so call them manually
+    delete_documents_from_vector_store(
+        [document.uuid_hex], user.personal_library.uuid_hex
+    )
+    # Ensure that the nodes were deleted
+    time.sleep(1)
+    nodes = retriever.retrieve("What is this about?")
+    assert len(nodes) == 0
+
+    # Check that the file is also deleted
+    assert not os.path.exists(file_path)
 
 
 @skip_on_github_actions
-def test_fetch_and_process_data_source(client, all_apps_user):
+@pytest.mark.django_db
+def test_start_stop(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
+    chat = Chat.objects.create(user=user)
+    # Ensure that a data source was created
+    data_source = DataSource.objects.filter(chat=chat).first()
+    data_source_id = data_source.id
+    assert data_source is not None
+    # Upload a file to the data source
+    url = reverse("librarian:upload", kwargs={"data_source_id": data_source.id})
+    with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
+        response = client.post(url, {"file": f})
+        assert response.status_code == 200
+    # Ensure that a document was created
+    document = Document.objects.filter(data_source=data_source).first()
+    document_id = document.id
+    assert document is not None
+
+    # Try start and stop processing
+    # Start processing
+    response = client.get(
+        reverse(
+            "librarian:document_start",
+            kwargs={"document_id": document_id, "pdf_method": "default"},
+        )
+    )
+    assert response.status_code == 200
+    # Stop processing
+    response = client.get(
+        reverse("librarian:document_stop", kwargs={"document_id": document_id})
+    )
+    assert response.status_code == 200
+    # Start processing for all documents in data source
+    response = client.get(
+        reverse(
+            "librarian:data_source_start",
+            kwargs={
+                "data_source_id": data_source_id,
+                "pdf_method": "default",
+                "scope": "all",
+            },
+        )
+    )
+    assert response.status_code == 200
+    # Stop processing for all documents in data source
+    response = client.get(
+        reverse("librarian:data_source_stop", kwargs={"data_source_id": data_source_id})
+    )
+    assert response.status_code == 200
+    # Start processing for incomplete documents only
+    response = client.get(
+        reverse(
+            "librarian:data_source_start",
+            kwargs={
+                "data_source_id": data_source_id,
+                "pdf_method": "default",
+                "scope": "incomplete",
+            },
+        )
+    )
+    assert response.status_code == 200
+    # Try with an invalid scope - this should raise an exception
+    with pytest.raises(ValueError):
+        response = client.get(
+            reverse(
+                "librarian:data_source_start",
+                kwargs={
+                    "data_source_id": data_source_id,
+                    "pdf_method": "default",
+                    "scope": "invalid",
+                },
+            )
+        )
+
+
+@skip_on_github_actions
+@pytest.mark.django_db
+def test_modal_views(client, all_apps_user):
+    library = Library.objects.get_default_library()
+    user = all_apps_user()
+    client.force_login(user)
+    data_source = DataSource.objects.create(library=library)
+    # Create a document
+    document = Document.objects.create(data_source=data_source, url="http://google.ca")
+    # Poll for status updates
+    url = reverse(
+        "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
+    )
+    response = client.get(url)
+    assert response.status_code == 200
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document.id},
+    )
+    response = client.get(url)
+    assert response.status_code == 200
+    """
+    path(
+        "modal/library/<int:library_id>/data_source/create/",
+        modal_create_data_source,
+        name="modal_create_data_source",
+    ),
+    """
+    url = reverse(
+        "librarian:modal_create_data_source", kwargs={"library_id": library.id}
+    )
+    response = client.get(url)
+    assert response.status_code == 200
+    """
+    path(
+        "modal/data_source/<int:data_source_id>/edit/",
+        modal_edit_data_source,
+        name="modal_edit_data_source",
+    ),
+    """
+    url = reverse(
+        "librarian:modal_edit_data_source", kwargs={"data_source_id": data_source.id}
+    )
+    response = client.get(url)
+    assert response.status_code == 200
+    """
+    path(
+        "modal/data_source/<int:data_source_id>/document/create/",
+        modal_create_document,
+        name="modal_create_document",
+    ),
+    """
+    url = reverse(
+        "librarian:modal_create_document", kwargs={"data_source_id": data_source.id}
+    )
+    response = client.get(url)
+    assert response.status_code == 200
+    """
+    path(
+        "modal/document/<int:document_id>/edit/",
+        modal_edit_document,
+        name="modal_edit_document",
+    ),
+    """
+    url = reverse("librarian:modal_edit_document", kwargs={"document_id": document.id})
+    response = client.get(url)
+    assert response.status_code == 200
+    """
+    path(
+        "modal/document/<int:document_id>/delete/",
+        modal_delete_document,
+        name="modal_delete_document",
+    ),
+    """
+    url = reverse(
+        "librarian:modal_delete_document", kwargs={"document_id": document.id}
+    )
+    response = client.delete(url)
+    assert response.status_code == 200
+    # Check the document object is deleted
+    assert not Document.objects.filter(id=document.id).exists()
+
+    """
+    path(
+        "modal/data_source/<int:data_source_id>/delete/",
+        modal_delete_data_source,
+        name="modal_delete_data_source",
+    ),
+    """
+    url = reverse(
+        "librarian:modal_delete_data_source", kwargs={"data_source_id": data_source.id}
+    )
+    response = client.delete(url)
+    assert response.status_code == 200
+    # Check the data source object is deleted
+    assert not DataSource.objects.filter(id=data_source.id).exists()
 
     # Create a library
-    library = Library.objects.create(
-        name="Test Library 6",
-        description="Library description",
-        vector_store_table="test_library_6",
-        modified_by=user,
+    from librarian.models import LibraryUserRole
+
+    tmp_library = Library.objects.create(name_en="Test Library")
+    role = LibraryUserRole.objects.create(user=user, library=tmp_library, role="admin")
+    """
+    path(
+        "modal/library/<int:library_id>/users/",
+        modal_manage_library_users,
+        name="modal_manage_library_users",
+    ),
+    """
+    url = reverse(
+        "librarian:modal_manage_library_users", kwargs={"library_id": library.id}
     )
-
-    # Create a data source associated with the library
-    data_source = DataSource.objects.create(
-        name="Test DataSource",
-        library=library,
-        modified_by=user,
+    response = client.get(url)
+    # POST-only route
+    assert response.status_code == 405
+    # Delete the library
+    """
+    path(
+        "modal/library/<int:library_id>/delete/",
+        modal_delete_library,
+        name="modal_delete_library",
+    ),
+    """
+    url = reverse(
+        "librarian:modal_delete_library", kwargs={"library_id": tmp_library.id}
     )
-
-    # Discover content for the data source
-    data_source.discover_content()
-
-    # Fetch and process the data source
-    data_source.fetch_and_process()
-
-    # Confirm that documents exist in the database after the fetch and process
-    assert Document.objects.filter(data_source=data_source).exists()
-
-"""
+    response = client.delete(url)
+    assert response.status_code == 200
+    # Check the library object is deleted
+    assert not Library.objects.filter(id=tmp_library.id).exists()
+    assert not LibraryUserRole.objects.filter(id=role.id).exists()

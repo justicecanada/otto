@@ -277,6 +277,7 @@ def test_chat_routes(client, all_apps_user):
 
 
 # Test delete_chat view
+@skip_on_github_actions
 @pytest.mark.django_db
 def test_delete_chat(client, all_apps_user):
     user = all_apps_user()
