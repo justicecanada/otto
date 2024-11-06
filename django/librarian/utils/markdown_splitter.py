@@ -4,6 +4,9 @@ from typing import List, Tuple
 import tiktoken
 from bs4 import BeautifulSoup
 from llama_index.core.node_parser import SentenceSplitter
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 class MarkdownSplitter:
@@ -66,11 +69,11 @@ class MarkdownSplitter:
         split_texts = []
         for t in sentence_split_texts:
             if self.debug:
-                print(f"\nClosing tags for chunk:\n---\n{t}\n---\n")
+                logger.debug(f"\nClosing tags for chunk:\n---\n{t}\n---\n")
             try:
                 closed_text = self._close_page_tags(t)
             except Exception as e:
-                print(f"Error closing page tags: {e}")
+                logger.error(f"Error closing page tags: {e}")
                 closed_text = t
             closing_tags = re.findall(r"</page_\d+>", closed_text)
             if last_page_number and not closing_tags:
@@ -82,7 +85,7 @@ class MarkdownSplitter:
             content_lines = [L for L in lines if not re.match(r"</?page_\d+>", L)]
             if "".join(content_lines).replace("\n", "").strip():
                 if self.debug:
-                    print(
+                    logger.debug(
                         f"\nAfter all split_with_page_numbers logic:\n---\n{closed_text}\n---\n"
                     )
                 split_texts.append(closed_text)
@@ -117,7 +120,7 @@ class MarkdownSplitter:
                 last_opening_tag_num = int(re.search(r"\d+", last_opening_tag).group())
                 last_closing_tag_num = int(re.search(r"\d+", last_closing_tag).group())
                 if self.debug:
-                    print(
+                    logger.debug(
                         f"\nLast opening tag: {last_opening_tag_num}, last closing tag: {last_closing_tag_num}"
                     )
                 # Missing closing tag at end?
@@ -131,7 +134,7 @@ class MarkdownSplitter:
             soup = BeautifulSoup(output + "\n", "html.parser")
             output = str(soup).strip()
         if self.debug:
-            print(f"\nAfter _close_tags:\n---\n{output}\n---\n")
+            logger.debug(f"\nAfter _close_tags:\n---\n{output}\n---\n")
         return output
 
     def _get_heading(self, line: str) -> Tuple[int, str]:
@@ -161,7 +164,7 @@ class MarkdownSplitter:
         """
         Converts the headings dictionary into a breadcrumb trail (Heading 1 > Heading 2)
         and prepends it to the text, wrapped in a <headings> tag.
-        Only includes headings above the specified level.
+        Only includes headings under the specified level.
         """
         headings2 = {k: v for k, v in headings.items() if k < to_level}
         if not any(headings2.values()):
@@ -177,12 +180,14 @@ class MarkdownSplitter:
         Returns a tuple with:
         * updated copy of headings dictionary (state at the end of the text),
         * headings to prepend (usually the same as the updated headings),
-        * the minimum level of the headings to prepend
-        Note on "minimum": "# This" is level 1, "## This" is level 2, etc.
+        * the maximum level of the headings to prepend
+        Note on "maximum": "# This" is level 1, "## This" is level 2, etc.
         """
         lines = text.split("\n")
         headings = existing_headings.copy()
-        min_level = 7
+        # Headings is a dictionary with keys 1-6 and values as the heading text.
+        existing_level = max([0] + [k for k, v in existing_headings.items() if v])
+        max_level = 7
         last_level = 0
         headings_for_prepend = None
         for line in lines:
@@ -192,12 +197,19 @@ class MarkdownSplitter:
                     headings_for_prepend = existing_headings
                 self._set_headings(headings, level, heading_text)
                 if not headings_for_prepend:
-                    min_level = min(min_level, level)
+                    max_level = min(max_level, level)
                 last_level = level
+        # If first line is NOT a heading, repeat the previous same level heading
+        if lines[0].startswith("<page_") and lines[0].endswith(">"):
+            lines = lines[1:]
+        first_line_level, first_line_heading = self._get_heading(lines[0])
+        if first_line_level is None and existing_level == max_level:
+            headings_for_prepend = existing_headings
+            max_level = max_level + 1
         return (
             headings,
             headings_for_prepend if headings_for_prepend else headings,
-            min_level,
+            max_level,
         )
 
     def _is_table_row(self, line):
@@ -255,14 +267,14 @@ class MarkdownSplitter:
             return original_text
         first_line_is_table_row = lines[0].startswith("| ") and lines[0].endswith(" |")
         if self.debug:
-            print(f"First line is table row: {first_line_is_table_row}")
+            logger.debug(f"First line is table row: {first_line_is_table_row}")
         first_line_is_table_header = (
             first_line_is_table_row
             and lines[1].startswith("| ---")
             and lines[1].endswith(" |")
         )
         if self.debug:
-            print(f"First line is table header: {first_line_is_table_header}")
+            logger.debug(f"First line is table header: {first_line_is_table_header}")
         if (
             first_line_is_table_row
             and not first_line_is_table_header
@@ -280,13 +292,13 @@ class MarkdownSplitter:
         """
         headings_added_texts = []
         for text in split_texts:
-            self.current_headings, headings_for_prepend, min_level = (
+            self.current_headings, headings_for_prepend, max_level = (
                 self._get_all_headings(text, self.current_headings)
             )
             text = self._repeat_table_header_if_necessary(text, self.last_table_header)
             self.last_table_header = self._get_last_table_header(text)
             text = self._prepend_headings(
-                headings_for_prepend, text, to_level=min_level
+                headings_for_prepend, text, to_level=max_level
             )
             headings_added_texts.append(text)
         return headings_added_texts

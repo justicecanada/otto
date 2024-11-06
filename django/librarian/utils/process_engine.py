@@ -188,8 +188,8 @@ def extract_markdown(
         )
         md_chunks = md_splitter.split_markdown(md)
     except Exception as e:
-        print("Error splitting markdown using MarkdownSplitter:")
-        print(e)
+        logger.debug("Error splitting markdown using MarkdownSplitter:")
+        logger.error(e)
         # Fallback to simpler method
         from llama_index.core.node_parser import SentenceSplitter
 
@@ -366,6 +366,10 @@ def _convert_html_to_markdown(
             if href and not href.startswith("http"):
                 absolute_url = urljoin(base_url, href)
                 anchor["href"] = absolute_url
+
+    # Replace <caption> elements with <h6> so that they get capture in breadcrumbs
+    for caption in soup.find_all("caption"):
+        caption.name = "h6"
 
     text = _remove_ignored_tags(str(soup))
 

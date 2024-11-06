@@ -38,3 +38,8 @@ def delete_unused_libraries():
 @shared_task
 def delete_text_extractor_files():
     call_command("delete_text_extractor_files")
+
+
+@shared_task
+def cleanup_vector_store():
+    call_command("cleanup_vector_store")

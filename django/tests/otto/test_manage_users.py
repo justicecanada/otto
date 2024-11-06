@@ -83,8 +83,8 @@ def test_manage_users_upload(client, all_apps_user):
 
     # Test with a csv file ("users.csv" in this directory)
     """
-    upn,roles
-    Firstname.Lastname@justice.gc.ca,AI assistant user|template wizard user | CFS Admin
+    upn,pilot_id,roles,weekly_max
+    Firstname.Lastname@justice.gc.ca,bac,AI assistant user|template wizard user,100
     """
     this_dir = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(this_dir, "users.csv"), "rb") as file:
@@ -95,7 +95,7 @@ def test_manage_users_upload(client, all_apps_user):
     new_user = User.objects.filter(upn="Firstname.Lastname@justice.gc.ca")
     assert new_user.exists()
     new_user = new_user.first()
-    assert new_user.groups.count() == 3
+    assert new_user.groups.count() == 2
     assert new_user.first_name == "Firstname"
     assert new_user.last_name == "Lastname"
     assert new_user.email == "Firstname.Lastname@justice.gc.ca"
