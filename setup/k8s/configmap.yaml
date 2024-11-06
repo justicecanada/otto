@@ -110,3 +110,46 @@ data:
   REDIS_HOST: "redis-service"  
   ENTRA_CLIENT_ID: "${ENTRA_CLIENT_ID}"
   ENTRA_AUTHORITY: "${ENTRA_AUTHORITY}"
+
+  # Shared environment variables
+  DJANGO_ENV_VARS: |-
+    - name: DJANGO_SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: azure-keyvault-secrets
+          key: djangosecretkey
+    - name: DJANGODB_HOST
+      valueFrom:
+        secretKeyRef:
+          name: azure-keyvault-secrets
+          key: djangodbhostkey
+    - name: DJANGODB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: azure-keyvault-secrets
+          key: djangodbpasswordkey
+    - name: VECTORDB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: azure-keyvault-secrets
+          key: vectordbpasswordkey
+    - name: AZURE_OPENAI_KEY
+      valueFrom:
+        secretKeyRef:
+          name: azure-keyvault-secrets
+          key: openaiservicekey
+    - name: AZURE_COGNITIVE_SERVICE_KEY
+      valueFrom:
+        secretKeyRef:
+          name: azure-keyvault-secrets
+          key: cognitiveservicekey
+    - name: AZURE_ACCOUNT_KEY
+      valueFrom:
+        secretKeyRef:
+          name: azure-keyvault-secrets
+          key: storageaccountkey
+    - name: ENTRA_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: azure-keyvault-secrets
+          key: entraclientsecretkey
