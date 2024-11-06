@@ -83,12 +83,10 @@ def submit_document(request):
                     for chunk in file.chunks():
                         temp_file.write(chunk)
                     temp_file_path = temp_file.name
-                result = process_ocr_document.delay(
-                    temp_file_path, merged, idx, total_cost, all_texts
-                )
-                pdf_bytes, txt_file, cost, input_name, total_cost, all_texts = (
-                    result.get()
-                )
+                result = process_ocr_document.delay(temp_file_path, merged, idx)
+                pdf_bytes, txt_file, cost, input_name = result.get()
+                total_cost += cost
+                all_texts.append(txt_file)
 
                 # ocr_file, txt_file, cost = create_searchable_pdf(
                 #     file, merged and idx > 0
