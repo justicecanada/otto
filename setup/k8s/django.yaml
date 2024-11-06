@@ -159,10 +159,10 @@ spec:
           resources:
             requests:
               cpu: "1"
-              memory: "6Gi"
+              memory: "4Gi"
             limits:
               cpu: "1"
-              memory: "6Gi"
+              memory: "8Gi"
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
