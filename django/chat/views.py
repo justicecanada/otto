@@ -38,6 +38,7 @@ from chat.models import (
 )
 from chat.utils import change_mode_to_chat_qa, llm_response_to_html, title_chat
 from librarian.models import DataSource, Library, SavedFile
+from librarian.utils.process_engine import guess_content_type
 from otto.models import App, SecurityLabel
 from otto.rules import is_admin
 from otto.utils.decorators import (
@@ -385,8 +386,7 @@ def chunk_upload(request, message_id):
     end = request.POST["end"]
     nextSlice = request.POST["nextSlice"]
 
-    if ("text" in content_type or not content_type) and file_name.endswith(".md"):
-        content_type = "text/markdown"
+    content_type = guess_content_type(file, content_type, file_name)
 
     if file == "" or file_name == "" or file_id == "" or end == "" or nextSlice == "":
         return JsonResponse({"data": "Invalid Request"})

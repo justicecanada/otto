@@ -1,6 +1,7 @@
 import hashlib
 import io
 import re
+import subprocess
 import uuid
 from urllib.parse import urljoin
 
@@ -34,9 +35,7 @@ def markdownify_wrapper(text):
 def fetch_from_url(url):
     try:
         r = requests.get(url, allow_redirects=True)
-        content_type = r.headers.get("content-type")
-        if content_type is None:
-            content_type = guess_content_type(r.content)
+        content_type = guess_content_type(r.content, r.headers.get("content-type"), url)
         return r.content, content_type
 
     except Exception as e:
@@ -109,14 +108,17 @@ def create_nodes(chunks, document):
     return new_nodes
 
 
-def guess_content_type(content):
-    # Check if the content is binary using filetype.guess
-    detected_type = filetype.guess(content)
-    if detected_type is not None:
-        return detected_type.mime
+def guess_content_type(
+    content: str | bytes, content_type: str = None, path: str = ""
+) -> str:
 
-    if isinstance(content, bytes):
-        return None  # Unknown
+    if isinstance(content, bytes) and not content_type:
+        if path.endswith(".msg"):
+            return "application/vnd.ms-outlook"
+        return None  # Unknown binary content
+
+    if "text" in content_type and path.endswith(".md"):
+        return "text/markdown"
 
     if content.startswith("<!DOCTYPE html>") or "<html" in content:
         return "text/html"
@@ -135,6 +137,8 @@ def get_process_engine_from_type(type):
         return "WORD"
     elif "officedocument.presentationml.presentation" in type:
         return "POWERPOINT"
+    elif "application/vnd.ms-outlook" in type:
+        return "OUTLOOK"
     elif "application/pdf" in type:
         return "PDF"
     elif "text/html" in type:
@@ -174,6 +178,9 @@ def extract_markdown(
         md = html_to_markdown(content.decode("utf-8"), base_url, selector)
     elif process_engine == "MARKDOWN":
         md = content.decode("utf-8")
+    elif process_engine == "OUTLOOK":
+        enable_markdown = False
+        md = msg_to_markdown(content)
     elif process_engine == "TEXT":
         enable_markdown = False
         md = content.decode("utf-8")
@@ -225,6 +232,24 @@ def pdf_to_text_pdfium(content):
 
 def html_to_markdown(content, base_url=None, selector=None):
     return _convert_html_to_markdown(content, base_url, selector)
+
+
+def msg_to_markdown(content):
+    # Get the text using extract_msg command line, e.g.
+    # python -m extract_msg --dump-stdout temporary_file.msg --html
+    # We know we have a bytes object, so we can write it to a temporary file
+    with open("temporary_file.msg", "wb") as f:
+        f.write(content)
+    try:
+        md = subprocess.check_output(
+            ["python", "-m", "extract_msg", "--dump-stdout", "temporary_file.msg"]
+        ).decode("utf-8")
+    except Exception as e:
+        logger.error(f"Failed to extract text from Outlook email: {e}")
+        md = ""
+    finally:
+        subprocess.run(["rm", "temporary_file.msg"])
+    return md
 
 
 def docx_to_markdown(content):

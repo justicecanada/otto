@@ -142,32 +142,3 @@ def test_extract_text():
         assert "Paragraph page 1" in md
         assert "<page_1>" not in md_chunks[0]
         assert "Paragraph page 1" in md_chunks[0]
-
-
-# TODO: I get the sense the "guess_content_type" function doesn't really work.
-# However this isn't really used many places (only when getting a URL that isn't HTML)
-# Will leave for another ticket to fix this and better test it.
-# def test_detect_content_type():
-#     for filename, process_engine in [
-#         ("example.docx", "WORD"),
-#         ("example.pptx", "POWERPOINT"),
-#         ("example.pdf", "PDF"),
-#         ("example.txt", "TEXT"),
-#         ("example.html", "HTML"),
-#     ]:
-#         file_path = os.path.join(this_dir, f"test_files/{filename}")
-#         with open(file_path, "rb") as f:
-#             content = f.read()
-#             guessed_type = guess_content_type(content)
-
-#             if guessed_type is not None:
-#                 guessed_process_engine = get_process_engine_from_type(guessed_type)
-#                 assert guessed_process_engine == process_engine
-
-#             # https://stackoverflow.com/questions/43580/how-to-find-the-mime-type-of-a-file-in-python
-#             import mimetypes
-
-#             guessed_type = mimetypes.guess_type(file_path)
-#             print(filename, guessed_type)
-#             guessed_process_engine = get_process_engine_from_type(guessed_type)
-#             assert guessed_process_engine == process_engine

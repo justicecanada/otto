@@ -19,6 +19,7 @@ from librarian.utils.process_engine import (
     extract_markdown,
     fetch_from_url,
     get_process_engine_from_type,
+    guess_content_type,
 )
 from otto.models import User
 
@@ -80,8 +81,7 @@ def process_document_helper(document, llm, pdf_method="default"):
                 },
             )
         content, content_type = fetch_from_url(url)
-        if ("text" in content_type or not content_type) and url.endswith(".md"):
-            content_type = "text/markdown"
+        content_type = guess_content_type(content, content_type, document.url)
         document.url_content_type = content_type
     else:
         logger.info("Processing file", file=file)
@@ -94,11 +94,7 @@ def process_document_helper(document, llm, pdf_method="default"):
                 },
             )
         content = file.file.read()
-        content_type = file.content_type
-        if ("text" in content_type or not content_type) and file.file.name.endswith(
-            ".md"
-        ):
-            content_type = "text/markdown"
+        content_type = guess_content_type(content, file.content_type, document.filename)
 
     if current_task:
         current_task.update_state(
