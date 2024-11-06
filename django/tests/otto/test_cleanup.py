@@ -99,6 +99,7 @@ def test_redundant_librarian_upload(client, all_apps_user):
     len(os.listdir(folder)) == 0
 
 
+@skip_on_github_actions
 @pytest.mark.django_db
 def test_redundant_chat_upload(client, all_apps_user):
     """

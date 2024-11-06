@@ -114,6 +114,7 @@ def test_modal_edit_library_get(client, all_apps_user, basic_user):
     assert response.status_code == 302
 
 
+@skip_on_github_actions
 @pytest.mark.django_db
 def test_chat_data_source(client, all_apps_user):
     from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
