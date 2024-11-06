@@ -46,6 +46,36 @@ spec:
       labels:
         app: django-app
     spec:
+      initContainers:
+      - name: init-migrate
+        image: ${ACR_NAME}.azurecr.io/otto:latest
+        command: ["python", "manage.py", "migrate"]
+        envFrom:
+          - configMapRef:
+              name: otto-configmap
+        volumeMounts:
+          - name: secrets
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
+          - name: staticfiles-pv-storage
+            mountPath: "/data/static"
+          - name: media-pv-storage
+            mountPath: "/data/media"
+      - name: init-collectstatic
+        image: ${ACR_NAME}.azurecr.io/otto:latest
+        command: ["python", "manage.py", "collectstatic", "--noinput"]
+        envFrom:
+          - configMapRef:
+              name: otto-configmap
+        volumeMounts:
+          - name: secrets
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
+          - name: staticfiles-pv-storage
+            mountPath: "/data/static"
+          - name: media-pv-storage
+            mountPath: "/data/media"
+
       containers:
         # SC-2: Secure configuration of the container
         - name: django-app-container
@@ -113,6 +143,24 @@ spec:
               mountPath: "/data/static"
             - name: media-pv-storage
               mountPath: "/data/media"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
       volumes:
       # SC-13: Integration with Azure Key Vault for secure secret management
       - name: secrets
