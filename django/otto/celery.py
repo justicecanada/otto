@@ -43,6 +43,7 @@ app.conf.beat_schedule = {
         "schedule": crontab(hour=2, minute=0),
     },
     # Delete unused libraries every day at 3 am UTC
+    # Actually let's NOT do this yet. Too risky. Needs clearer definition of "unused"
     # "delete-unused-libraries-every-morning": {
     #     "task": "otto.tasks.delete_unused_libraries",
     #     "schedule": crontab(hour=3, minute=0),
@@ -50,6 +51,10 @@ app.conf.beat_schedule = {
     "delete-text-extractor-files-every-day": {
         "task": "otto.tasks.delete_text_extractor_files",
         "schedule": crontab(hour=0, minute=0),
+    },
+    "cleanup-vector-store-every-morning": {
+        "task": "otto.tasks.cleanup_vector_store",
+        "schedule": crontab(hour=3, minute=0),
     },
 }
 

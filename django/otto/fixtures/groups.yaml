@@ -10,14 +10,3 @@
   pk: 2
   fields:
     name: Data steward
-
-# App-specific groups (other than app access, which are in apps.yaml)
-- model: auth.Group
-  pk: 3
-  fields:
-    name: CFS admin
-
-- model: auth.Group
-  pk: 4
-  fields:
-    name: Litigation briefing user

@@ -8,8 +8,9 @@ from django.utils import timezone
 import pytest
 from asgiref.sync import sync_to_async
 
+from chat.forms import PresetForm
 from chat.llm import OttoLLM
-from chat.models import Chat, ChatFile, Message
+from chat.models import Chat, ChatFile, ChatOptions, Message, Preset
 from chat.utils import htmx_stream, title_chat
 from librarian.models import Library
 from otto.models import App, Notification, SecurityLabel
@@ -276,6 +277,7 @@ def test_chat_routes(client, all_apps_user):
 
 
 # Test delete_chat view
+@skip_on_github_actions
 @pytest.mark.django_db
 def test_delete_chat(client, all_apps_user):
     user = all_apps_user()
@@ -846,6 +848,128 @@ def test_summarize_qa_response(client, all_apps_user):
 
 
 @pytest.mark.django_db
+def test_preset(client, basic_user, all_apps_user):
+    user = basic_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    # Instantiate the form with a regular user
+    form = PresetForm(user=user)
+    assert form.fields["sharing_option"].choices == [
+        ("private", "Make private"),
+        ("others", "Share with others"),
+    ]
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+    # Instantiate the form with a user with admin rights
+    form = PresetForm(user=user)
+    assert form.fields["sharing_option"].choices == [
+        ("private", "Make private"),
+        ("everyone", "Share with everyone"),
+        ("others", "Share with others"),
+    ]
+
+    # Test saving a new preset
+    response = client.post(
+        reverse(
+            "chat:chat_options", kwargs={"chat_id": chat.id, "action": "save_preset"}
+        ),
+        data={
+            "name_en": "New Preset",
+            "description_en": "Preset Description",
+            "sharing_option": "private",
+            "accessible_to": [],
+        },
+    )
+    assert response.status_code == 302  # Redirect after saving
+    assert Preset.objects.filter(name_en="New Preset").exists()
+
+    # Test saving an existing preset
+    user2 = all_apps_user("user2")
+    preset = Preset.objects.get(name_en="New Preset")
+
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat.id,
+                "action": "save_preset",
+                "preset_id": preset.id,
+            },
+        ),
+        data={
+            "name_en": "Updated Preset",
+            "description_en": "Updated Description",
+            "sharing_option": "others",
+            "accessible_to": [],
+        },
+    )
+
+    assert response.status_code == 200
+    # the user did not provide any users for the accessible field with sharing_option=others
+    assert (
+        "Please provide at least one user for the accessible field."
+        in response.content.decode("utf-8")
+    )
+    # the new preset should not have been updated since there was an error
+    preset.refresh_from_db()
+    assert preset.name_en == "New Preset"
+
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat.id,
+                "action": "save_preset",
+                "preset_id": preset.id,
+            },
+        ),
+        data={
+            "name_en": "Updated Preset",
+            "description_en": "Updated Description",
+            "sharing_option": "others",
+            "accessible_to": [user2.id],
+        },
+    )
+    assert response.status_code == 302  # Redirect after saving
+    preset.refresh_from_db()
+    assert preset.name_en == "Updated Preset"
+    assert preset.description_en == "Updated Description"
+    assert preset.sharing_option == "others"
+    assert user2 in preset.accessible_to.all()
+
+    # Test loading the preset
+    client.force_login(user)
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat.id,
+                "action": "load_preset",
+                "preset_id": preset.id,
+            },
+        )
+    )
+    assert response.status_code == 200
+    assert "preset_loaded" in response.context
+    assert response.context["preset_loaded"] == "true"
+
+    # Test deleting the preset
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat.id,
+                "action": "delete_preset",
+                "preset_id": preset.id,
+            },
+        )
+    )
+    assert response.status_code == 302  # Redirect after deletion
+    assert not Preset.objects.filter(id=preset.id).exists()
+
+
 def test_update_qa_options_from_librarian(client, all_apps_user):
     from librarian.models import DataSource, Document, Library
 

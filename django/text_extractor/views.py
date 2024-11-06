@@ -8,7 +8,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
-from PyPDF2 import PdfMerger
+from pypdf import PdfWriter
+from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from otto.secure_models import AccessKey
@@ -26,6 +27,7 @@ from .utils import (
 )
 
 app_name = "text_extractor"
+logger = get_logger(__name__)
 
 
 @app_access_required(app_name)
@@ -42,7 +44,7 @@ def submit_document(request):
 
     if request.method == "POST":
         files = request.FILES.getlist("file_upload")
-        print(f"Received {len(files)} files")
+        logger.debug(f"Received {len(files)} files")
         access_key = AccessKey(user=request.user)
 
         UserRequest.grant_create_to(access_key)
@@ -57,7 +59,7 @@ def submit_document(request):
         total_cost = 0
 
         merged = request.POST.get("merge_docs_checkbox", False)
-        merger = PdfMerger() if merged else None
+        merger = PdfWriter() if merged else None
         file_names_to_merge = []
 
         try:
@@ -212,8 +214,8 @@ def submit_document(request):
             # Improve error logging
             import traceback
 
-            print(f"ERROR: {str(e)}")
-            print(traceback.format_exc())
+            logger.error(f"ERROR: {str(e)}")
+            logger.error(traceback.format_exc())
             return render(
                 request, "text_extractor/error_message.html", {"error_message": str(e)}
             )
