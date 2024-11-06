@@ -117,7 +117,7 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 print("Running in debug mode:", DEBUG)
 DEBUG_PROPAGATE_EXCEPTIONS = True
 
-ALLOWED_HOSTS = [SITE_URL.hostname, "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [SITE_URL.hostname, "localhost", "127.0.0.1", "django-service"]
 
 # AC-2: Entra Integration Helper App Configuration
 AUTHENTICATION_BACKENDS = [
