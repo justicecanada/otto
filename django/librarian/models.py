@@ -101,7 +101,7 @@ class Library(models.Model):
     is_personal_library = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ["-is_personal_library", "-is_public", "order", "name"]
+        ordering = ["-is_personal_library", "-is_public", "order", "-created_at"]
         verbose_name_plural = "Libraries"
 
     def clean(self):
@@ -272,7 +272,7 @@ class DataSource(models.Model):
     )
 
     class Meta:
-        ordering = ["order", "name"]
+        ordering = ["order", "-created_at"]
 
     def __str__(self):
         return self.name

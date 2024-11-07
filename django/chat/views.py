@@ -386,8 +386,6 @@ def chunk_upload(request, message_id):
     end = request.POST["end"]
     nextSlice = request.POST["nextSlice"]
 
-    content_type = guess_content_type(file, content_type, file_name)
-
     if file == "" or file_name == "" or file_id == "" or end == "" or nextSlice == "":
         return JsonResponse({"data": "Invalid Request"})
     else:

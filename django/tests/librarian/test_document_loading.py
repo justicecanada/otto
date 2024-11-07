@@ -142,3 +142,15 @@ def test_extract_text():
         assert "Paragraph page 1" in md
         assert "<page_1>" not in md_chunks[0]
         assert "Paragraph page 1" in md_chunks[0]
+
+
+def test_extract_outlook_msg():
+    # Load an Outlook MSG file
+    with open(os.path.join(this_dir, "test_files/elephants.msg"), "rb") as f:
+        content = f.read()
+        md, md_chunks = extract_markdown(content, "OUTLOOK_MSG")
+        assert not "<page_1>" in md
+        assert len(md) > 0
+        assert len(md_chunks) > 0
+        assert "Elephants" in md
+        assert "jules.kuehn@justice.gc.ca" in md.lower()

@@ -2,6 +2,7 @@ import hashlib
 import io
 import re
 import subprocess
+import tempfile
 import uuid
 from urllib.parse import urljoin
 
@@ -112,24 +113,51 @@ def guess_content_type(
     content: str | bytes, content_type: str = None, path: str = ""
 ) -> str:
 
-    if isinstance(content, bytes) and not content_type:
+    # We consider these content types to be reliable and do not need further guessing
+    trusted_content_types = [
+        "application/pdf",
+        "application/xml",
+        "application/vnd.ms-outlook",
+        "text/html",
+        "text/markdown",
+    ]
+
+    if content_type in trusted_content_types:
+        return content_type
+
+    if hasattr(content, "read"):
+        content = content.read()
+
+    if isinstance(content, bytes):
+        # Explicitly handle Outlook emails
         if path.endswith(".msg"):
             return "application/vnd.ms-outlook"
-        return None  # Unknown binary content
 
-    if "text" in content_type and path.endswith(".md"):
-        return "text/markdown"
+        # Use filetype library to guess the content type
+        kind = filetype.guess(content)
+        if kind and not path.endswith(".md"):
+            return kind.mime
 
-    if content.startswith("<!DOCTYPE html>") or "<html" in content:
-        return "text/html"
+        # Fallback to manual checks if filetype library fails
+        try:
+            content = content.decode("utf-8", errors="ignore")
+        except UnicodeDecodeError:
+            return content_type  # Unable to decode binary content
 
-    if content.startswith("<?xml") or "<root" in content:
-        return "application/xml"
+    if isinstance(content, str):
+        if "text" in content_type and path.endswith(".md"):
+            return "text/markdown"
 
-    if content.startswith("{") or content.startswith("["):
-        return "application/json"
+        if content.startswith("<!DOCTYPE html>") or "<html" in content:
+            return "text/html"
 
-    return "text/plain"
+        if content.startswith("<?xml") or "<root" in content:
+            return "application/xml"
+
+        if content.startswith("{") or content.startswith("["):
+            return "application/json"
+
+    return content_type or "text/plain"
 
 
 def get_process_engine_from_type(type):
@@ -138,7 +166,7 @@ def get_process_engine_from_type(type):
     elif "officedocument.presentationml.presentation" in type:
         return "POWERPOINT"
     elif "application/vnd.ms-outlook" in type:
-        return "OUTLOOK"
+        return "OUTLOOK_MSG"
     elif "application/pdf" in type:
         return "PDF"
     elif "text/html" in type:
@@ -178,12 +206,18 @@ def extract_markdown(
         md = html_to_markdown(content.decode("utf-8"), base_url, selector)
     elif process_engine == "MARKDOWN":
         md = content.decode("utf-8")
-    elif process_engine == "OUTLOOK":
+    elif process_engine == "OUTLOOK_MSG":
         enable_markdown = False
         md = msg_to_markdown(content)
-    elif process_engine == "TEXT":
+    else:
         enable_markdown = False
-        md = content.decode("utf-8")
+        try:
+            md = content.decode("utf-8")
+        except Exception as e:
+            logger.error("Error extracting content to markdown:", e)
+            return "", []
+
+    md = remove_nul_characters(md)
 
     # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
     md = re.sub(r"\n{3,}", "\n\n", md.strip())
@@ -234,22 +268,27 @@ def html_to_markdown(content, base_url=None, selector=None):
     return _convert_html_to_markdown(content, base_url, selector)
 
 
+def remove_nul_characters(text):
+    """Remove NUL (0x00) characters from the text."""
+    return text.replace("\x00", "")
+
+
 def msg_to_markdown(content):
-    # Get the text using extract_msg command line, e.g.
-    # python -m extract_msg --dump-stdout temporary_file.msg --html
-    # We know we have a bytes object, so we can write it to a temporary file
-    with open("temporary_file.msg", "wb") as f:
-        f.write(content)
-    try:
-        md = subprocess.check_output(
-            ["python", "-m", "extract_msg", "--dump-stdout", "temporary_file.msg"]
-        ).decode("utf-8")
-    except Exception as e:
-        logger.error(f"Failed to extract text from Outlook email: {e}")
-        md = ""
-    finally:
-        subprocess.run(["rm", "temporary_file.msg"])
-    return md
+    with tempfile.NamedTemporaryFile(suffix=".msg") as temp_file:
+        temp_file.write(content)
+        temp_file_path = temp_file.name
+        try:
+            md = subprocess.check_output(
+                ["python", "-m", "extract_msg", "--dump-stdout", temp_file_path]
+            ).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Command failed with exit code {e.returncode}")
+            logger.error(f"Output: {e.output.decode('utf-8')}")
+            md = ""
+        except Exception as e:
+            logger.error(f"Failed to extract text from Outlook email: {e}")
+            md = ""
+        return md
 
 
 def docx_to_markdown(content):
