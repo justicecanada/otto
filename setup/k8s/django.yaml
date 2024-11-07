@@ -46,6 +46,64 @@ spec:
       labels:
         app: django-app
     spec:
+      initContainers:
+      - name: init-migrate-collectstatic
+        image: ${ACR_NAME}.azurecr.io/otto:latest
+        command: ["sh", "-c", "echo 'Starting collectstatic'; python manage.py collectstatic --noinput; echo 'Collectstatic completed'; echo 'Starting migrate'; python manage.py migrate --noinput; echo 'Migrate completed'"]
+        envFrom:
+          - configMapRef:
+              name: otto-configmap
+        env:
+          # SC-12 & SC-13: Secure storage and retrieval of cryptographic keys
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangosecretkey
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbhostkey
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: djangodbpasswordkey
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: vectordbpasswordkey
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: openaiservicekey
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: cognitiveservicekey
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: storageaccountkey
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: azure-keyvault-secrets
+                key: entraclientsecretkey
+        volumeMounts:
+          - name: secrets
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
+          - name: staticfiles-pv-storage
+            mountPath: "/data/static"
+          - name: media-pv-storage
+            mountPath: "/data/media"
+
       containers:
         # SC-2: Secure configuration of the container
         - name: django-app-container
@@ -101,10 +159,10 @@ spec:
           resources:
             requests:
               cpu: "1"
-              memory: "6Gi"
+              memory: "4Gi"
             limits:
               cpu: "1"
-              memory: "6Gi"
+              memory: "8Gi"
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
@@ -113,6 +171,30 @@ spec:
               mountPath: "/data/static"
             - name: media-pv-storage
               mountPath: "/data/media"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+              httpHeaders:
+              - name: Host
+                value: django-service
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+              httpHeaders:
+              - name: Host
+                value: django-service
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
       volumes:
       # SC-13: Integration with Azure Key Vault for secure secret management
       - name: secrets
