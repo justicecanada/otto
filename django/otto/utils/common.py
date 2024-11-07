@@ -1,5 +1,9 @@
 from django.conf import settings
 
+from structlog import get_logger
+
+logger = get_logger(__name__)
+
 
 def file_size_to_string(filesize):
     from django.utils.translation import gettext_lazy as _
@@ -34,5 +38,6 @@ def set_costs(object):
     """
     Sums cost.usd_cost from the object's cost_set and assigns total to object.usd_cost
     """
+    logger.info([cost.usd_cost for cost in object.cost_set.all()])
     object.usd_cost = sum([cost.usd_cost for cost in object.cost_set.all()])
     object.save()
