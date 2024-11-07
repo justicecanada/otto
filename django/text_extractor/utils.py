@@ -133,17 +133,27 @@ def dist(p1, p2):
 
 
 def create_searchable_pdf(input_file, add_header):
+    # Reset the file pointer to the beginning
+    input_file.seek(0)
     # Create a temporary file and write the contents of the uploaded file to it
+    # with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
+    #     for chunk in input_file.chunks():
+    #         temp.write(chunk)
+    #     temp_path = temp.name
+    #     print("temp path is --------", temp_path)
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
-        for chunk in input_file.chunks():
-            temp.write(chunk)
+        temp.write(input_file.read())
         temp_path = temp.name
+        print("temp path is --------", temp_path)
 
     if input_file.name.lower().endswith(".pdf"):
+        print("---------converting pdf to images----------")
+        print(f"Processing PDF: {temp_path}")
         image_pages = convert_from_path(
             temp_path, dpi=100
         )  # Adjust DPI as needed for compression
-
+        print(f"Converted PDF to images: {temp_path}")
+        print("----------DONE converting pdf to images-----------")
         # Save the compressed images to a new temporary file
         with tempfile.NamedTemporaryFile(
             delete=False, suffix=".pdf"
