@@ -1,6 +1,9 @@
+import csv
 import hashlib
 import io
 import re
+import subprocess
+import tempfile
 import uuid
 from urllib.parse import urljoin
 
@@ -8,6 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 
 import filetype
+import openpyxl  # Add this import for handling Excel files
 import requests
 import tiktoken
 from bs4 import BeautifulSoup
@@ -34,9 +38,7 @@ def markdownify_wrapper(text):
 def fetch_from_url(url):
     try:
         r = requests.get(url, allow_redirects=True)
-        content_type = r.headers.get("content-type")
-        if content_type is None:
-            content_type = guess_content_type(r.content)
+        content_type = guess_content_type(r.content, r.headers.get("content-type"), url)
         return r.content, content_type
 
     except Exception as e:
@@ -109,25 +111,61 @@ def create_nodes(chunks, document):
     return new_nodes
 
 
-def guess_content_type(content):
-    # Check if the content is binary using filetype.guess
-    detected_type = filetype.guess(content)
-    if detected_type is not None:
-        return detected_type.mime
+def guess_content_type(
+    content: str | bytes, content_type: str = None, path: str = ""
+) -> str:
+
+    # We consider these content types to be reliable and do not need further guessing
+    trusted_content_types = [
+        "application/pdf",
+        "application/xml",
+        "application/vnd.ms-outlook",
+        "text/html",
+        "text/markdown",
+        "text/csv",
+        "application/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "officedocument.spreadsheetml.sheet",
+        "officedocument.wordprocessingml.document",
+        "officedocument.presentationml.presentation",
+    ]
+
+    if content_type in trusted_content_types:
+        return content_type
+
+    if hasattr(content, "read"):
+        content = content.read()
 
     if isinstance(content, bytes):
-        return None  # Unknown
+        # Explicitly handle Outlook emails
+        if path.endswith(".msg"):
+            return "application/vnd.ms-outlook"
 
-    if content.startswith("<!DOCTYPE html>") or "<html" in content:
-        return "text/html"
+        # Use filetype library to guess the content type
+        kind = filetype.guess(content)
+        if kind and not path.endswith(".md"):
+            return kind.mime
 
-    if content.startswith("<?xml") or "<root" in content:
-        return "application/xml"
+        # Fallback to manual checks if filetype library fails
+        try:
+            content = content.decode("utf-8", errors="ignore")
+        except UnicodeDecodeError:
+            return content_type  # Unable to decode binary content
 
-    if content.startswith("{") or content.startswith("["):
-        return "application/json"
+    if isinstance(content, str):
+        if "text" in content_type and path.endswith(".md"):
+            return "text/markdown"
 
-    return "text/plain"
+        if content.startswith("<!DOCTYPE html>") or "<html" in content:
+            return "text/html"
+
+        if content.startswith("<?xml") or "<root" in content:
+            return "application/xml"
+
+        if content.startswith("{") or content.startswith("["):
+            return "application/json"
+
+    return content_type or "text/plain"
 
 
 def get_process_engine_from_type(type):
@@ -135,12 +173,18 @@ def get_process_engine_from_type(type):
         return "WORD"
     elif "officedocument.presentationml.presentation" in type:
         return "POWERPOINT"
+    elif "application/vnd.ms-outlook" in type:
+        return "OUTLOOK_MSG"
     elif "application/pdf" in type:
         return "PDF"
     elif "text/html" in type:
         return "HTML"
     elif "text/markdown" in type:
         return "MARKDOWN"
+    elif "text/csv" in type or "application/csv" in type:
+        return "CSV"
+    elif "spreadsheet" in type:
+        return "EXCEL"
     else:
         return "TEXT"
 
@@ -174,9 +218,22 @@ def extract_markdown(
         md = html_to_markdown(content.decode("utf-8"), base_url, selector)
     elif process_engine == "MARKDOWN":
         md = content.decode("utf-8")
-    elif process_engine == "TEXT":
+    elif process_engine == "OUTLOOK_MSG":
         enable_markdown = False
-        md = content.decode("utf-8")
+        md = msg_to_markdown(content)
+    elif process_engine == "CSV":
+        md = csv_to_markdown(content)
+    elif process_engine == "EXCEL":
+        md = excel_to_markdown(content)
+    else:
+        enable_markdown = False
+        try:
+            md = content.decode("utf-8")
+        except Exception as e:
+            logger.error("Error extracting content to markdown:", e)
+            return "", []
+
+    md = remove_nul_characters(md)
 
     # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
     md = re.sub(r"\n{3,}", "\n\n", md.strip())
@@ -225,6 +282,29 @@ def pdf_to_text_pdfium(content):
 
 def html_to_markdown(content, base_url=None, selector=None):
     return _convert_html_to_markdown(content, base_url, selector)
+
+
+def remove_nul_characters(text):
+    """Remove NUL (0x00) characters from the text."""
+    return text.replace("\x00", "")
+
+
+def msg_to_markdown(content):
+    with tempfile.NamedTemporaryFile(suffix=".msg") as temp_file:
+        temp_file.write(content)
+        temp_file_path = temp_file.name
+        try:
+            md = subprocess.check_output(
+                ["python", "-m", "extract_msg", "--dump-stdout", temp_file_path]
+            ).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Command failed with exit code {e.returncode}")
+            logger.error(f"Output: {e.output.decode('utf-8')}")
+            md = ""
+        except Exception as e:
+            logger.error(f"Failed to extract text from Outlook email: {e}")
+            md = ""
+        return md
 
 
 def docx_to_markdown(content):
@@ -530,3 +610,44 @@ def pdf_to_text_azure_read(content: bytes) -> str:
         text = text.strip() + page_end_tag
 
     return text
+
+
+def csv_to_markdown(content):
+    """Convert CSV content to markdown table."""
+    with io.StringIO(content.decode("utf-8")) as csv_file:
+        reader = csv.reader(csv_file)
+        rows = list(reader)
+
+    if not rows:
+        return ""
+
+    header = rows[0]
+    table = [
+        "| " + " | ".join(header) + " |",
+        "| " + " | ".join(["---"] * len(header)) + " |",
+    ]
+    for row in rows[1:]:
+        table.append("| " + " | ".join(row) + " |")
+
+    return "\n".join(table)
+
+
+def excel_to_markdown(content):
+    """Convert Excel content to markdown tables."""
+    workbook = openpyxl.load_workbook(io.BytesIO(content))
+    markdown = ""
+    for sheet in workbook.sheetnames:
+        markdown += f"# {sheet}\n\n"
+        sheet_obj = workbook[sheet]
+        rows = list(sheet_obj.values)
+        if not rows:
+            continue
+        header = rows[0]
+        table = [
+            "| " + " | ".join(map(str, header)) + " |",
+            "| " + " | ".join(["---"] * len(header)) + " |",
+        ]
+        for row in rows[1:]:
+            table.append("| " + " | ".join(map(str, row)) + " |")
+        markdown += "\n".join(table) + "\n\n"
+    return markdown
