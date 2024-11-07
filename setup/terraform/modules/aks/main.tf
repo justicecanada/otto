@@ -302,7 +302,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "privileged_access_den
   }
   
   action {
-    action_groups = azurerm_monitor_action_group.aks_alerts.id
+    action_groups = [azurerm_monitor_action_group.aks_alerts.id]
   }
 
 }
@@ -335,7 +335,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "privileged_access_ale
   }
   
   action {
-    action_groups = azurerm_monitor_action_group.aks_alerts.id
+    action_groups = [azurerm_monitor_action_group.aks_alerts.id]
   }
 
 }
