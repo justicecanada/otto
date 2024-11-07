@@ -86,7 +86,6 @@ def llm_response_to_html(llm_response_str):
         "img": ["src", "alt", "title"],
         "a": ["href", "alt", "title"],
         "pre": ["class"],
-        "code": ["class"],
         "span": ["class"],
     }
     clean_html = bleach.clean(raw_html, allowed_tags, allowed_attributes)
