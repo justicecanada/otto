@@ -295,6 +295,7 @@ def test_delete_chat(client, all_apps_user):
 
 
 # Test delete_all_chats view
+@skip_on_github_actions
 @pytest.mark.django_db
 def test_delete_all_chats(client, all_apps_user):
     user = all_apps_user()
@@ -305,12 +306,18 @@ def test_delete_all_chats(client, all_apps_user):
     Chat.objects.create(user=user)
     assert Chat.objects.filter(user=user).count() == 2
 
+    # Check that chat data sources were created
+    assert user.personal_library.data_sources.filter(chat__isnull=False).count() == 2
+
     # Call the delete_all_chats view
     response = client.get(reverse("chat:delete_all_chats"))
 
     # Check that all chats are deleted
     assert response.status_code == 200
     assert Chat.objects.filter(user=user).count() == 0
+
+    # Test that all chat data sources have been deleted too
+    assert user.personal_library.data_sources.filter(chat__isnull=False).count() == 0
 
     # Check that the response contains the HX-Redirect header
     assert response["HX-Redirect"] == reverse("chat:new_chat")

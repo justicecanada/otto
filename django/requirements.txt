@@ -81,3 +81,6 @@ celery==5.5.0rc1
 redis==5.0.8
 django-redis==5.4.0
 django-celery-beat==2.7.0
+
+# GPL-licensed: Use only through CLI to maintain Otto's MIT license ------------
+extract_msg==0.52.0

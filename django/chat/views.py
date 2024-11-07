@@ -38,6 +38,7 @@ from chat.models import (
 )
 from chat.utils import change_mode_to_chat_qa, llm_response_to_html, title_chat
 from librarian.models import DataSource, Library, SavedFile
+from librarian.utils.process_engine import guess_content_type
 from otto.models import App, SecurityLabel
 from otto.rules import is_admin
 from otto.utils.decorators import (
@@ -97,13 +98,11 @@ def delete_chat(request, chat_id, current_chat=None):
 @app_access_required("chat")
 def delete_all_chats(request):
 
-    # delete all chats for the user
-    chat = Chat.objects.filter(user=request.user)
-    chat.delete()
+    for chat in Chat.objects.filter(user=request.user):
+        chat.delete()
 
     logger.info("all chats deleted")
 
-    # redirect user to new chat
     response = HttpResponse()
     response["HX-Redirect"] = reverse("chat:new_chat")
     return response
@@ -384,9 +383,6 @@ def chunk_upload(request, message_id):
     file_id = request.POST["file_id"]
     end = request.POST["end"]
     nextSlice = request.POST["nextSlice"]
-
-    if ("text" in content_type or not content_type) and file_name.endswith(".md"):
-        content_type = "text/markdown"
 
     if file == "" or file_name == "" or file_id == "" or end == "" or nextSlice == "":
         return JsonResponse({"data": "Invalid Request"})
