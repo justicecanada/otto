@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_5aabb7febf6ec373_tasks_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-11-07 20:11 +0000
+            created at 2024-11-07 21:42 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -410,11 +410,11 @@
     <p class="pln"><span class="n"><a id="t328" href="#t328">328</a></span><span class="t">        <span class="op">)</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t329" href="#t329">329</a></span><span class="t">        <span class="key">while</span> <span class="nam">processing_count</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t330" href="#t330">330</a></span><span class="t">            <span class="key">if</span> <span class="nam">adding_url</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t331" href="#t331">331</a></span><span class="t">                <span class="key">yield</span> <span class="nam">_</span><span class="op">(</span><span class="str">"Adding to the Q&amp;A library..."</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t331" href="#t331">331</a></span><span class="t">                <span class="key">yield</span> <span class="nam">_</span><span class="op">(</span><span class="str">"Adding to the Q&amp;A library"</span><span class="op">)</span> <span class="op">+</span> <span class="str">"..."</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t332" href="#t332">332</a></span><span class="t">            <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t333" href="#t333">333</a></span><span class="t">                <span class="key">yield</span> <span class="nam">_</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t334" href="#t334">334</a></span><span class="t">                    <span class="str">"Adding to the Q&amp;A library"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t335" href="#t335">335</a></span><span class="t">                <span class="op">)</span> <span class="op">+</span> <span class="fst">f"</span><span class="fst"> (</span><span class="op">{</span><span class="nam">len</span><span class="op">(</span><span class="nam">files</span><span class="op">)</span><span class="op">-</span><span class="nam">processing_count</span><span class="op">+</span><span class="num">1</span><span class="op">}</span><span class="fst">/</span><span class="op">{</span><span class="nam">len</span><span class="op">(</span><span class="nam">files</span><span class="op">)</span><span class="op">}</span><span class="fst">)...</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t333" href="#t333">333</a></span><span class="t">                <span class="key">yield</span> <span class="nam">_</span><span class="op">(</span><span class="str">"Adding to the Q&amp;A library"</span><span class="op">)</span> <span class="op">+</span> <span class="fst">f"</span><span class="fst"> (</span><span class="op">{</span><span class="nam">processing_count</span><span class="op">}</span><span class="fst"> </span><span class="fst">"</span> <span class="op">+</span> <span class="nam">_</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t334" href="#t334">334</a></span><span class="t">                    <span class="str">"file(s) still processing"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t335" href="#t335">335</a></span><span class="t">                <span class="op">)</span> <span class="op">+</span> <span class="str">"...)"</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t336" href="#t336">336</a></span><span class="t">            <span class="key">await</span> <span class="nam">asyncio</span><span class="op">.</span><span class="nam">sleep</span><span class="op">(</span><span class="num">0.5</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t337" href="#t337">337</a></span><span class="t">            <span class="nam">processing_count</span> <span class="op">=</span> <span class="key">await</span> <span class="nam">sync_to_async</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t338" href="#t338">338</a></span><span class="t">                <span class="key">lambda</span><span class="op">:</span> <span class="nam">ds</span><span class="op">.</span><span class="nam">documents</span><span class="op">.</span><span class="nam">filter</span><span class="op">(</span><span class="nam">status__in</span><span class="op">=</span><span class="op">[</span><span class="str">"INIT"</span><span class="op">,</span> <span class="str">"PROCESSING"</span><span class="op">]</span><span class="op">)</span><span class="op">.</span><span class="nam">count</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -734,7 +734,7 @@
             <a class="nav" href="z_5aabb7febf6ec373_tasks_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-11-07 20:11 +0000
+            created at 2024-11-07 21:42 +0000
         </p>
     </div>
 </footer>
