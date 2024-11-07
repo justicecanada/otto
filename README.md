@@ -53,7 +53,7 @@
 | django/otto/utils/common.py                                            |       19 |        1 |     95% |        22 |
 | django/otto/utils/decorators.py                                        |       60 |        4 |     93% |24-25, 65, 87 |
 | django/otto/utils/logging.py                                           |       15 |        0 |    100% |           |
-| django/otto/views.py                                                   |      329 |       76 |     77% |41, 46-60, 101, 111-122, 169, 226, 278-281, 297-298, 312, 322-325, 354-364, 376-381, 384, 393, 395-398, 400-401, 403-406, 428, 436, 445, 512, 514, 516, 532-538, 548, 550, 552, 557-577, 616, 625-634 |
+| django/otto/views.py                                                   |      331 |       77 |     77% |40, 45, 50-64, 105, 115-126, 173, 230, 282-285, 301-302, 316, 326-329, 358-368, 380-385, 388, 397, 399-402, 404-405, 407-410, 432, 440, 449, 516, 518, 520, 536-542, 552, 554, 556, 561-581, 620, 629-638 |
 | django/template\_wizard/metrics/template\_wizard\_activity\_metrics.py |        2 |        0 |    100% |           |
 | django/template\_wizard/models.py                                      |        9 |        0 |    100% |           |
 | django/template\_wizard/translation.py                                 |        0 |        0 |    100% |           |
@@ -63,7 +63,7 @@
 | django/text\_extractor/models.py                                       |       13 |        1 |     92% |        23 |
 | django/text\_extractor/utils.py                                        |      158 |       88 |     44% |54-77, 118-119, 137-294, 298-299 |
 | django/text\_extractor/views.py                                        |      106 |       84 |     21% |33-36, 41-208, 212-225 |
-|                                                              **TOTAL** | **6211** | **2128** | **66%** |           |
+|                                                              **TOTAL** | **6213** | **2129** | **66%** |           |
 
 
 ## Setup coverage badge
