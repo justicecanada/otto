@@ -4,6 +4,7 @@ import re
 from django.conf import settings
 
 import pytest
+from openpyxl import Workbook
 from structlog import get_logger
 
 from librarian.utils.process_engine import extract_markdown
@@ -174,3 +175,58 @@ def test_extract_csv():
     for chunk in md_chunks:
         assert "| Column1 | Column2 | Column3 |" in chunk.split("\n")[0]
         assert chunk.count("| Column1 | Column2 | Column3 |") == 1
+
+
+def test_extract_excel():
+    # Generate an Excel file with 3 sheets and 300 rows each
+    wb = Workbook()
+    sheets = ["SheetA", "SheetB", "SheetC"]
+    for sheet_name in sheets:
+        ws = wb.create_sheet(title=sheet_name)
+        ws.append(
+            [f"{sheet_name}Column1", f"{sheet_name}Column2", f"{sheet_name}Column3"]
+        )
+        for i in range(1, 301):
+            ws.append(
+                [
+                    f"{sheet_name}Row{i}Col1",
+                    f"{sheet_name}Row{i}Col2",
+                    f"{sheet_name}Row{i}Col3",
+                ]
+            )
+    wb.remove(wb["Sheet"])  # Remove the default sheet created by openpyxl
+    excel_path = os.path.join(this_dir, "test_files/example.xlsx")
+    wb.save(excel_path)
+
+    # Load the generated Excel file
+    with open(excel_path, "rb") as f:
+        content = f.read()
+
+    md, md_chunks = extract_markdown(content, "EXCEL")
+    assert len(md) > 0
+    assert len(md_chunks) > 1
+    for sheet_name in sheets:
+        assert f"# {sheet_name}" in md
+        assert (
+            f"| {sheet_name}Column1 | {sheet_name}Column2 | {sheet_name}Column3 |" in md
+        )
+
+    # Now, in each chunk, if a sheet_name is present, the corresponding h1 should be present
+    # AND the table header should be present
+    for chunk in md_chunks:
+        num_sheets_in_chunk = 0
+        for sheet_name in sheets:
+            if sheet_name in chunk:
+                num_sheets_in_chunk += 1
+                assert (
+                    f"# {sheet_name}" in chunk
+                    or f"<headings>{sheet_name}</headings>" in chunk
+                )
+                assert (
+                    f"| {sheet_name}Column1 | {sheet_name}Column2 | {sheet_name}Column3 |"
+                    in chunk
+                )
+        assert num_sheets_in_chunk > 0
+
+    # Clean up the generated Excel file
+    os.remove(excel_path)

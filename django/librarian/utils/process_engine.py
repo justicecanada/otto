@@ -11,6 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 
 import filetype
+import openpyxl  # Add this import for handling Excel files
 import requests
 import tiktoken
 from bs4 import BeautifulSoup
@@ -123,6 +124,10 @@ def guess_content_type(
         "text/markdown",
         "text/csv",
         "application/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "officedocument.spreadsheetml.sheet",
+        "officedocument.wordprocessingml.document",
+        "officedocument.presentationml.presentation",
     ]
 
     if content_type in trusted_content_types:
@@ -178,6 +183,8 @@ def get_process_engine_from_type(type):
         return "MARKDOWN"
     elif "text/csv" in type or "application/csv" in type:
         return "CSV"
+    elif "spreadsheet" in type:
+        return "EXCEL"
     else:
         return "TEXT"
 
@@ -216,6 +223,8 @@ def extract_markdown(
         md = msg_to_markdown(content)
     elif process_engine == "CSV":
         md = csv_to_markdown(content)
+    elif process_engine == "EXCEL":
+        md = excel_to_markdown(content)
     else:
         enable_markdown = False
         try:
@@ -621,3 +630,24 @@ def csv_to_markdown(content):
         table.append("| " + " | ".join(row) + " |")
 
     return "\n".join(table)
+
+
+def excel_to_markdown(content):
+    """Convert Excel content to markdown tables."""
+    workbook = openpyxl.load_workbook(io.BytesIO(content))
+    markdown = ""
+    for sheet in workbook.sheetnames:
+        markdown += f"# {sheet}\n\n"
+        sheet_obj = workbook[sheet]
+        rows = list(sheet_obj.values)
+        if not rows:
+            continue
+        header = rows[0]
+        table = [
+            "| " + " | ".join(map(str, header)) + " |",
+            "| " + " | ".join(["---"] * len(header)) + " |",
+        ]
+        for row in rows[1:]:
+            table.append("| " + " | ".join(map(str, row)) + " |")
+        markdown += "\n".join(table) + "\n\n"
+    return markdown
