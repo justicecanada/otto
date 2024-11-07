@@ -9,7 +9,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/whitelist-source-range: "${ALLOWED_IPS}" # AC-22, IA-8, SA-9(5), SC-5: Whitelisting IP addresses
     nginx.ingress.kubernetes.io/proxy-body-size: "51200m"
-    cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer # SC-8: Ensure the integrity of transmitted data    
+    ${CERT_MANAGER_ANNOTATION}    
     # SC-10: Network Disconnect - Add timeout configurations
     nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"  # 30 minutes
     nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"  # 30 minutes
@@ -18,6 +18,7 @@ spec:
   ingressClassName: nginx
   # AC-19, SC-8, SC-13, SC-23: TLS configuration for secure communication
   # IA-2(8): Helps protect against replay attacks by securing the communication channel 
+  # SC-8: Ensure the integrity of transmitted data
   tls:
   - hosts:
     - ${HOST_NAME}

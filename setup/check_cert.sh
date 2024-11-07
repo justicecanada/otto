@@ -1,5 +1,10 @@
 #!/bin/bash
 
+export CERT_SUBSCRIPTION_ID #=86ca3d9f-ad5e-4c04-8dea-af9a9802e459
+export CERT_KEYVAULT_NAME #="otto-cert-kv"
+export CERT_NAME #="otto-cert"
+export CERT_CHOICE #="1"
+
 # Function to check the existing certificate
 check_existing_certificate() {
     if kubectl get secret tls-secret -n otto >/dev/null 2>&1; then
@@ -54,24 +59,6 @@ check_existing_certificate() {
     fi
 }
 
-# Function to list Azure subscriptions
-list_subscriptions() {
-    az account list --query "[].{name:name, id:id}" -o table
-}
-
-# Function to list Key Vaults in a subscription
-list_key_vaults() {
-    local subscription_id=$1
-    az keyvault list --subscription $subscription_id --query "[].{name:name, resourceGroup:resourceGroup}" -o table
-}
-
-# Function to list certificates in a Key Vault
-list_certificates() {
-    local keyvault_name=$1
-    az keyvault certificate list --vault-name $keyvault_name --query "[].{name:name}" -o table
-}
-
-# Main script
 echo "Checking existing certificate..."
 check_existing_certificate
 
@@ -80,67 +67,4 @@ echo "Do you want to:"
 echo "1) Use a CA-signed certificate from Azure Key Vault"
 echo "2) Generate a new Let's Encrypt certificate"
 echo "3) Skip certificate creation"
-read -p "Enter your choice (1 or 3): " choice
-
-if [ "$choice" == "1" ]; then
-    echo "Listing available Azure subscriptions..."
-    list_subscriptions
-    read -p "Enter the subscription ID: " subscription_id
-    
-    echo "Listing Key Vaults in the selected subscription..."
-    list_key_vaults $subscription_id
-    read -p "Enter the Key Vault name: " keyvault_name
-    
-    echo "Listing certificates in the selected Key Vault..."
-    list_certificates $keyvault_name
-    read -p "Enter the certificate name: " cert_name
-    
-    # Here you would add the logic to retrieve the certificate from Key Vault
-    # and create the Kubernetes secret
-    echo "Retrieving certificate $cert_name from Key Vault $keyvault_name..."
-
-
-    # Retrieve the certificate in base64 format
-    cert_data=$(az keyvault certificate show --vault-name $keyvault_name --name $cert_name --query "cer" -o tsv)
-
-    # Create a properly formatted PEM certificate
-    echo "-----BEGIN CERTIFICATE-----" > temp_cert.pem
-    echo "$cert_data" | fold -w 64 >> temp_cert.pem
-    echo "-----END CERTIFICATE-----" >> temp_cert.pem
-
-    # Retrieve the private key
-    key_data=$(az keyvault secret show --vault-name $keyvault_name --name $cert_name --query "value" -o tsv)
-
-    # Ensure the key is in PEM format
-    if [[ $key_data != -----BEGIN*PRIVATE*KEY----- ]]; then
-    echo "-----BEGIN PRIVATE KEY-----" > temp_key.pem
-    echo "$key_data" | fold -w 64 >> temp_key.pem
-    echo "-----END PRIVATE KEY-----" >> temp_key.pem
-    else
-    echo "$key_data" > temp_key.pem
-    fi
-    
-    # Delete the existing Kubernetes secret if it exists
-    kubectl delete secret tls-secret -n otto --ignore-not-found
-
-    # Create a Kubernetes TLS secret using the certificate data
-    kubectl create secret tls tls-secret -n otto --cert=temp_cert.pem --key=temp_key.pem --dry-run=client -o yaml | kubectl apply -f -
-    
-    # Clean up temporary files
-    rm temp_cert.pem temp_key.pem
-
-    # Update the Ingress to use the new secret
-    kubectl patch ingress otto-ingress -n otto --type=json \
-    -p='[{"op": "replace", "path": "/spec/tls/0/secretName", "value": "tls-secret"}]'
-
-    echo "Certificate applied to Kubernetes secret 'tls-secret' and Ingress updated"
-    
-    
-elif [ "$choice" == "2" ]; then
-    echo "Proceeding with Let's Encrypt certificate generation..."
-    # Add your Let's Encrypt certificate generation logic here
-    
-else
-    echo "Invalid choice. Exiting."
-    exit 1
-fi
+read -p "Enter your choice (1 or 3): " CERT_CHOICE

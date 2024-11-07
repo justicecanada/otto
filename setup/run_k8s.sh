@@ -3,6 +3,7 @@
 # CM-8 & CM-9: Automate the deployment process, ensuring the inventory remains current and consistent
 
 source setup_env.sh
+source check_cert.sh
 
 cd k8s
 
@@ -39,14 +40,6 @@ export AKS_IDENTITY_ID=$(
 # Apply the NGINX Ingress Controller and patch the service to use the public IP address and DNS label
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
 
-# Apply the Cert-Manager CRDs and Cert-Manager
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.crds.yaml
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
-
-# Wait for cert-manager webhook to be ready
-echo "Waiting for cert-manager webhook to be ready..."
-kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-webhook -n cert-manager
-
 # Wait for the NGINX Ingress Controller to be ready
 echo "Waiting for NGINX Ingress Controller to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/ingress-nginx-controller -n ingress-nginx
@@ -72,38 +65,68 @@ velero install \
     --snapshot-location-config apiTimeout=30,resourceGroup=$RESOURCE_GROUP_NAME,subscriptionId=$SUBSCRIPTION_ID \
     --wait
     
-
-# Apply the namespaces
+# Apply the namespace for Otto
 kubectl apply -f namespace.yaml
 
-# Check if the TLS secret already exists
-CREATE_CERT=false
-if kubectl get secret tls-secret -n otto >/dev/null 2>&1; then
-    echo "TLS secret exists. Checking validity..."
-    
-    # Extract certificate expiration date
-    EXPIRY=$(kubectl get secret tls-secret -n otto -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -enddate | cut -d= -f2)
-    EXPIRY_EPOCH=$(date -d "${EXPIRY}" +%s)
-    CURRENT_EPOCH=$(date +%s)
-    
-    # Check if the certificate is still valid (not expired)
-    if [ ${CURRENT_EPOCH} -lt ${EXPIRY_EPOCH} ]; then
-        echo "TLS certificate is valid until ${EXPIRY}. Skipping certificate creation."
-    else
-        echo "TLS certificate has expired. Renewing certificate..."
-        kubectl delete secret tls-secret -n otto
-        CREATE_CERT=true
-    fi
-else
-    echo "TLS secret does not exist. Will create a new certificate."
-    CREATE_CERT=true
-fi
+if [ "$CERT_CHOICE" == "1" ]; then
+    echo "Using CA-signed certificate from Azure Key Vault..."
 
-# If the certificate needs to be created, apply the ClusterIssuer and Ingress
-if [ "$CREATE_CERT" = true ]; then
-    echo "Applying ClusterIssuer and Ingress to trigger certificate creation."
-    kubectl apply -f letsencrypt-cluster-issuer.yaml
+    echo "Listing available Azure subscriptions..."
+    az account list --query "[].{SubscriptionId:id, name:name}" -o table
+    read -p "Enter the subscription ID: " CERT_SUBSCRIPTION_ID
+    
+    echo "Listing Key Vaults in the selected subscription..."
+    az keyvault list --subscription $CERT_SUBSCRIPTION_ID --query "[].{name:name, resourceGroup:resourceGroup}" -o table
+    read -p "Enter the Key Vault name: " CERT_KEYVAULT_NAME
+    
+    echo "Listing certificates in the selected Key Vault..."
+    az keyvault certificate list --vault-name $CERT_KEYVAULT_NAME --query "[].{name:name}" -o table
+    read -p "Enter the certificate name: " CERT_NAME
+
+    # If the role assignment for the AKS cluster identity does not exist, create it
+    if ! az role assignment list --assignee $AKS_IDENTITY_ID --role "Key Vault Secrets User" --scope /subscriptions/$CERT_SUBSCRIPTION_ID/resourcegroups/ottocertrg/providers/microsoft.keyvault/vaults/$CERT_KEYVAULT_NAME &>/dev/null; then
+        az role assignment create \
+            --assignee $AKS_IDENTITY_ID \
+            --role "Key Vault Secrets User" \
+            --scope /subscriptions/$CERT_SUBSCRIPTION_ID/resourcegroups/ottocertrg/providers/microsoft.keyvault/vaults/$CERT_KEYVAULT_NAME
+    fi
+
+    # Remove any existing Let's Encrypt related resources
+    kubectl delete -f letsencrypt-cluster-issuer.yaml --ignore-not-found
+    kubectl delete secret tls-secret -n otto --ignore-not-found
+    kubectl delete namespace cert-manager --ignore-not-found
+    
+    # Apply the SecretProviderClass for Azure Key Vault
+    envsubst < tls-secret.yaml | kubectl apply -f -
+
+    # Apply the Ingress without the ClusterIssuer annotation
+    export CERT_MANAGER_ANNOTATION=""
     envsubst < ingress.yaml | kubectl apply -f -
+
+elif [ "$CERT_CHOICE" == "2" ]; then  
+    echo "Proceeding with Let's Encrypt certificate generation..."
+        
+    # Apply the Cert-Manager CRDs and Cert-Manager
+    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.crds.yaml
+    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+
+    # Wait for cert-manager webhook to be ready
+    echo "Waiting for cert-manager webhook to be ready..."
+    kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-webhook -n cert-manager
+
+    # Remove any existing Azure Key Vault related resources
+    kubectl delete secretproviderclass azure-tls-secret -n otto --ignore-not-found
+    kubectl delete secret tls-secret -n otto --ignore-not-found
+
+    # Create the ClusterIssuer for Let's Encrypt
+    kubectl apply -f letsencrypt-cluster-issuer.yaml
+
+    # Apply the Ingress with the ClusterIssuer annotation
+    export CERT_MANAGER_ANNOTATION="cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer"
+    envsubst < ingress.yaml | kubectl apply -f -
+
+else
+    echo "Skipping certificate creation."
 fi
 
 # Apply the Kubernetes resources related to Otto, substituting environment variables where required
