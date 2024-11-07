@@ -11,7 +11,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import models
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -34,6 +34,10 @@ from otto.utils.decorators import permission_required
 logger = get_logger(__name__)
 
 User = get_user_model()
+
+
+def health_check(request):
+    return JsonResponse({"status": "ok"})
 
 
 def welcome(request):
