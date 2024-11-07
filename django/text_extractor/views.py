@@ -77,26 +77,16 @@ def submit_document(request):
                 files.insert(0, toc_file)
 
             for idx, file in enumerate(files):
-                with tempfile.NamedTemporaryFile(
-                    delete=False, suffix=".pdf"
-                ) as temp_file:
-                    for chunk in file.chunks():
-                        temp_file.write(chunk)
-                    temp_file_path = temp_file.name
-                result = process_ocr_document.delay(temp_file_path, merged, idx)
-                pdf_bytes, txt_file, cost, input_name = result.get()
+                file_content = file.read()
+                # celery task starts here:
+                result = process_ocr_document.delay(
+                    file_content, file.name, merged, idx
+                )
+                pdf_bytes_content, txt_file, cost, input_name = result.get()
+
+                pdf_bytes = BytesIO(pdf_bytes_content)
                 total_cost += cost
                 all_texts.append(txt_file)
-
-                # ocr_file, txt_file, cost = create_searchable_pdf(
-                #     file, merged and idx > 0
-                # )
-                # total_cost += cost
-                # all_texts.append(txt_file)
-
-                # input_name, _ = os.path.splitext(file.name)
-                # pdf_bytes = BytesIO()
-                # ocr_file.write(pdf_bytes)
 
                 if merged:
                     file_name = input_name
