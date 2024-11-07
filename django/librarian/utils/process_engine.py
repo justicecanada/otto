@@ -1,3 +1,4 @@
+import csv
 import hashlib
 import io
 import re
@@ -120,6 +121,8 @@ def guess_content_type(
         "application/vnd.ms-outlook",
         "text/html",
         "text/markdown",
+        "text/csv",
+        "application/csv",
     ]
 
     if content_type in trusted_content_types:
@@ -173,6 +176,8 @@ def get_process_engine_from_type(type):
         return "HTML"
     elif "text/markdown" in type:
         return "MARKDOWN"
+    elif "text/csv" in type or "application/csv" in type:
+        return "CSV"
     else:
         return "TEXT"
 
@@ -209,6 +214,8 @@ def extract_markdown(
     elif process_engine == "OUTLOOK_MSG":
         enable_markdown = False
         md = msg_to_markdown(content)
+    elif process_engine == "CSV":
+        md = csv_to_markdown(content)
     else:
         enable_markdown = False
         try:
@@ -594,3 +601,23 @@ def pdf_to_text_azure_read(content: bytes) -> str:
         text = text.strip() + page_end_tag
 
     return text
+
+
+def csv_to_markdown(content):
+    """Convert CSV content to markdown table."""
+    with io.StringIO(content.decode("utf-8")) as csv_file:
+        reader = csv.reader(csv_file)
+        rows = list(reader)
+
+    if not rows:
+        return ""
+
+    header = rows[0]
+    table = [
+        "| " + " | ".join(header) + " |",
+        "| " + " | ".join(["---"] * len(header)) + " |",
+    ]
+    for row in rows[1:]:
+        table.append("| " + " | ".join(row) + " |")
+
+    return "\n".join(table)

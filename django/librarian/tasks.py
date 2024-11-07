@@ -52,7 +52,7 @@ def process_document(document_id, language=None, pdf_method="default"):
 
     except Exception as e:
         document.status = "ERROR"
-        logger.debug("Error processing document:", document.name)
+        logger.debug("Error processing document: %s", document.name)
         logger.error(e)
         document.celery_task_id = None
         document.save()

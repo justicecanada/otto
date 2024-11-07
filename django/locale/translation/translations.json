@@ -3882,5 +3882,9 @@
     "today": {
         "fr": "aujourd’hui",
         "fr_auto": "Aujourd’hui"
+    },
+    "file(s) still processing": {
+        "fr": "",
+        "fr_auto": "fichier(s) toujours en cours de traitement"
     }
 }
