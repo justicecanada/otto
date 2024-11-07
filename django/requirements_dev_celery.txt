@@ -1,3 +1,2 @@
 # Only needed for local development, not in production ---------------------------------
 watchdog==4.0.1
-poppler-utils==20.09.0
