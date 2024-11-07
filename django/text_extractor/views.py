@@ -77,12 +77,20 @@ def submit_document(request):
                 files.insert(0, toc_file)
 
             for idx, file in enumerate(files):
+                file.seek(0)
                 file_content = file.read()
-                # celery task starts here:
+                file.seek(0)
+                # Task with celery:
                 result = process_ocr_document.delay(
                     file_content, file.name, merged, idx
                 )
+
                 pdf_bytes_content, txt_file, cost, input_name = result.get()
+
+                # Task without celery: (keep this for debugging in future)
+                # pdf_bytes_content, txt_file, cost, input_name = process_ocr_document(
+                #     file_content, file.name, merged, idx
+                # )
 
                 pdf_bytes = BytesIO(pdf_bytes_content)
                 total_cost += cost
