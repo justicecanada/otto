@@ -135,21 +135,48 @@ def submit_document(request):
 
 
 def add_extracted_files(output_file, access_key):
-    total_cost = 0
-    merger = PdfWriter() if output_file.user_request.merged else None
-    file_names_to_merge = []
-
     # Update the OutputFile objects with the generated PDF and TXT files
     # Set the celery task IDs to [] when finished
-    for task_id in output_file.celery_task_ids:
-        result = process_ocr_document.AsyncResult(task_id)
-        pdf_bytes_content, txt_file, cost, input_name = result.get()
 
-    output_file.pdf_file = None  # create the file from celery output here
-    output_file.txt_file = None  # create the file from celery output here
-    output_file.celery_task_ids = []
-    output_file.save()
-    output_file.cost = "$0"  # placeholder
+    total_cost = 0
+
+    if len(output_file.celery_task_ids) == 1:  # OR not merged
+        # Single file processing
+        task_id = output_file.celery_task_ids[0]
+        result = process_ocr_document.AsyncResult(task_id)
+        pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+
+        output_name = shorten_input_name(
+            input_name
+        )  # check if input name has extension
+        # Assign content directly
+        output_file.pdf_file = ContentFile(
+            pdf_bytes_content, name=f"{output_name}_OCR.pdf"
+        )
+
+        output_file.txt_file = ContentFile(
+            txt_file_content.encode("utf-8"),
+            name=shorten_input_name(f"{output_name}_OCR.txt"),
+        )
+
+        total_cost += cost
+        output_file.cost = display_cad_cost(total_cost)
+        output_file.save(access_key=access_key)
+
+    else:  # merged TO-DO
+        for task_id in output_file.celery_task_ids:
+            result = process_ocr_document.AsyncResult(task_id)
+            pdf_bytes_content, txt_file, cost, input_name = result.get()
+
+        output_file.pdf_file = ContentFile(
+            pdf_bytes_content.getvalue(), name=shorten_input_name(input_name + ".pdf")
+        )  # create the file from celery output here
+        output_file.txt_file = ContentFile(
+            txt_file.getvalue(), name=shorten_input_name(input_name + ".txt")
+        )  # create the file from celery output here
+        output_file.celery_task_ids = []
+        output_file.save(access_key=access_key)
+        output_file.cost = "$0"  # placeholder display_cad_cost(total_cost)
 
     return output_file
 
