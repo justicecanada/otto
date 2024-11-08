@@ -282,3 +282,69 @@ resource "azurerm_monitor_metric_alert" "aks_connection_count_alert" {
     action_group_id = azurerm_monitor_action_group.aks_alerts.id
   }
 }
+
+# AC-6(10): Restricting privileged function
+# AU-6: Audit review, analysis, and reporting
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "privileged_access_denied_alert" {
+  name                = "${var.aks_cluster_name}-privileged-access-denied-alert"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  description         = "Alerts when privileged access is denied in the Django application"
+  evaluation_frequency = "PT15M"
+  window_duration = "PT15M"
+  scopes = [azurerm_kubernetes_cluster.aks.id]
+  # Critical Alert
+  severity            = 0
+  enabled             = true  
+  criteria {
+    query        = <<QUERY
+      ContainerLogV2
+      | where ContainerName == "django-app-container" 
+        and LogMessage.admin == "true" 
+        and LogMessage.category == "security" 
+        and LogMessage.event == "User does not have permission"        
+      | summarize Count = count()
+    QUERY
+    time_aggregation_method = "Total"
+    operator         = "GreaterThan"
+    threshold        = 0
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.aks_alerts.id]
+  }
+
+}
+
+# AC-6(9): Least privilege
+# AU-6: Audit review, analysis, and reporting
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "privileged_access_alert" {
+  name                = "${var.aks_cluster_name}-privileged-access-alert"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  description         = "Alerts when an authorized user executes a privileged function in the Django application"
+  evaluation_frequency = "PT15M"
+  window_duration = "PT15M"
+  scopes = [azurerm_kubernetes_cluster.aks.id]
+  # Informational Alert
+  severity            = 3
+  enabled             = true  
+  criteria {
+    query        = <<QUERY
+      ContainerLogV2
+      | where ContainerName == "django-app-container" 
+      and LogMessage.admin == "true" 
+      and LogMessage.category == "security" 
+      and LogMessage.event <> "User does not have permission"
+      | summarize Count = count()
+    QUERY
+    time_aggregation_method = "Total"
+    operator         = "GreaterThan"
+    threshold        = 0
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.aks_alerts.id]
+  }
+
+}
