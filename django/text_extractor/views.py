@@ -42,166 +42,112 @@ def index(request):
 def submit_document(request):
     bind_contextvars(feature="text_extractor")
 
-    if request.method == "POST":
-        files = request.FILES.getlist("file_upload")
-        logger.debug(f"Received {len(files)} files")
-        access_key = AccessKey(user=request.user)
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method."}, status=400)
 
-        UserRequest.grant_create_to(access_key)
-        OutputFile.grant_create_to(access_key)
-        user_request = UserRequest.objects.create(access_key=access_key)
+    files = request.FILES.getlist("file_upload")
+    logger.debug(f"Received {len(files)} files")
+    access_key = AccessKey(user=request.user)
 
-        user_name = request.user.username
-        user_request.name = user_name
+    UserRequest.grant_create_to(access_key)
+    OutputFile.grant_create_to(access_key)
+    user_request = UserRequest.objects.create(access_key=access_key)
 
-        completed_documents = []
-        all_texts = []
-        total_cost = 0
+    user_name = request.user.username
+    user_request.name = user_name
 
-        merged = request.POST.get("merge_docs_checkbox", False)
-        merger = PdfWriter() if merged else None
-        file_names_to_merge = []
+    completed_documents = []
+    all_texts = []
+    total_cost = 0
 
-        try:
-            if merged:
-                start_pages = calculate_start_pages(files)
-                toc_pdf_bytes = create_toc_pdf(files, start_pages)
-                toc_file = InMemoryUploadedFile(
-                    toc_pdf_bytes,
-                    "file",
-                    "toc.pdf",
-                    "application/pdf",
-                    toc_pdf_bytes.getbuffer().nbytes,
-                    None,
-                )
-                files.insert(0, toc_file)
+    merged = request.POST.get("merge_docs_checkbox", False)
+    merger = PdfWriter() if merged else None
+    file_names_to_merge = []
 
-            # Create OutputFile objects with placeholder content
-            output_files = []
-            for idx, file in enumerate(files):
-                file.seek(0)
-                file_content = file.read()
-                file.seek(0)
+    try:
+        if merged:
+            start_pages = calculate_start_pages(files)
+            toc_pdf_bytes = create_toc_pdf(files, start_pages)
+            toc_file = InMemoryUploadedFile(
+                toc_pdf_bytes,
+                "file",
+                "toc.pdf",
+                "application/pdf",
+                toc_pdf_bytes.getbuffer().nbytes,
+                None,
+            )
+            files.insert(0, toc_file)
 
-                file_name = f"{file.name}_OCR.pdf"
-                text_name = f"{file.name}_OCR.txt"
+        # Create OutputFile objects with placeholder content
+        output_files = []
+        for idx, file in enumerate(files):
+            file.seek(0)
+            file_content = file.read()
+            file.seek(0)
 
-                # empty bytes content files
-                content_file = ContentFile(b"", name=shorten_input_name(file_name))
-                content_text = ContentFile(b"", name=shorten_input_name(text_name))
+            file_name = f"{file.name}_OCR.pdf"
+            text_name = f"{file.name}_OCR.txt"
 
-                output_file = OutputFile.objects.create(
-                    access_key=access_key,
-                    file=content_file,
-                    file_name=file_name,
-                    user_request=user_request,
-                )
+            # empty bytes content files
+            content_file = ContentFile(b"", name=shorten_input_name(file_name))
+            content_text = ContentFile(b"", name=shorten_input_name(text_name))
 
-                output_text = OutputFile.objects.create(
-                    access_key=access_key,
-                    file=content_text,
-                    file_name=text_name,
-                    user_request=user_request,
-                )
+            output_file = OutputFile.objects.create(
+                access_key=access_key,
+                file=content_file,
+                file_name=file_name,
+                user_request=user_request,
+            )
 
-                output_files.append((output_file, output_text, file_content, file.name))
+            output_text = OutputFile.objects.create(
+                access_key=access_key,
+                file=content_text,
+                file_name=text_name,
+                user_request=user_request,
+            )
 
-            # Process files with Celery and collect task IDs
-            task_ids = []
-            for idx, (output_file, output_text, file_content, file_name) in enumerate(
-                output_files
-            ):
-                result = process_ocr_document.delay(
-                    file_content, file_name, merged, idx
-                )
-                task_ids.append(result.id)
+            output_files.append((output_file, output_text, file_content, file.name))
 
-                # Update OutputFile with task ID
-                output_file.celery_task_ids = [result.id]
-                output_file.save(access_key=access_key)
+        # Process files with Celery and collect task IDs
+        task_ids = []
+        for idx, (output_file, output_text, file_content, file_name) in enumerate(
+            output_files
+        ):
+            result = process_ocr_document.delay(file_content, file_name, merged, idx)
+            task_ids.append(result.id)
 
-            # Wait for tasks to complete and update OutputFile objects
-            for idx, (output_file, output_text, file_content, file_name) in enumerate(
-                output_files
-            ):
-                result = process_ocr_document.AsyncResult(task_ids[idx])
-                pdf_bytes_content, txt_file, cost, input_name = result.get()
+            # Update OutputFile with task ID
+            output_file.celery_task_ids = [result.id]
+            output_file.save(access_key=access_key)
 
-                pdf_bytes = BytesIO(pdf_bytes_content)
-                total_cost += cost
-                all_texts.append(txt_file)
+        # Wait for tasks to complete and update OutputFile objects
+        for idx, (output_file, output_text, file_content, file_name) in enumerate(
+            output_files
+        ):
+            result = process_ocr_document.AsyncResult(task_ids[idx])
+            pdf_bytes_content, txt_file, cost, input_name = result.get()
 
-                if merged:
-                    pdf_bytes.seek(0)
-                    merger.append(pdf_bytes)
-                    if idx > 0:  # Exclude TOC from file names to merge
-                        file_names_to_merge.append(file_name)
-                else:
-                    # Set the file content directly
-                    output_file.file = ContentFile(
-                        pdf_bytes.getvalue(), name=shorten_input_name(file_name)
-                    )
-                    output_text.file = ContentFile(
-                        txt_file, name=shorten_input_name(text_name)
-                    )
-
-                    output_file.save(access_key=access_key)
-                    output_text.save(access_key=access_key)
-
-                    completed_documents.append(
-                        {
-                            "pdf": {
-                                "file": output_file,
-                                "size": file_size_to_string(output_file.file.size),
-                            },
-                            "txt": {
-                                "file": output_text,
-                                "size": file_size_to_string(output_text.file.size),
-                            },
-                            "cost": display_cad_cost(cost),
-                        }
-                    )
+            pdf_bytes = BytesIO(pdf_bytes_content)
+            total_cost += cost
+            all_texts.append(txt_file)
 
             if merged:
-                formatted_merged_name = format_merged_file_name(
-                    file_names_to_merge, max_length=40
+                pdf_bytes.seek(0)
+                merger.append(pdf_bytes)
+                if idx > 0:  # Exclude TOC from file names to merge
+                    file_names_to_merge.append(file_name)
+            else:
+                # Set the file content directly
+                output_file.file = ContentFile(
+                    pdf_bytes.getvalue(), name=shorten_input_name(file_name)
                 )
-                merge_file_name = f"{formatted_merged_name}.pdf"
-                merged_text_name = f"{formatted_merged_name}.txt"
-
-                merged_pdf_bytes = BytesIO()
-                merger.write(merged_pdf_bytes)
-                merged_pdf_file = ContentFile(
-                    merged_pdf_bytes.getvalue(),
-                    name=shorten_input_name(merge_file_name),
-                )
-
-                all_texts_bytes = BytesIO()
-                for text in all_texts:
-                    all_texts_bytes.write(text.encode())
-                    all_texts_bytes.write(b"\n")
-                all_texts_bytes.seek(0)
-                all_texts_file = ContentFile(
-                    all_texts_bytes.getvalue(),
-                    name=shorten_input_name(merged_text_name),
-                )
-
-                output_file = OutputFile.objects.create(
-                    access_key=access_key,
-                    file=merged_pdf_file,
-                    file_name=merge_file_name,
-                    user_request=user_request,
-                )
-
-                output_text = OutputFile.objects.create(
-                    access_key=access_key,
-                    file=all_texts_file,
-                    file_name=merged_text_name,
-                    user_request=user_request,
+                output_text.file = ContentFile(
+                    txt_file, name=shorten_input_name(text_name)
                 )
 
                 output_file.save(access_key=access_key)
                 output_text.save(access_key=access_key)
+
                 completed_documents.append(
                     {
                         "pdf": {
@@ -212,29 +158,81 @@ def submit_document(request):
                             "file": output_text,
                             "size": file_size_to_string(output_text.file.size),
                         },
-                        "cost": display_cad_cost(total_cost),
+                        "cost": display_cad_cost(cost),
                     }
                 )
 
-            context = {
-                "ocr_docs": completed_documents,
-                "user_request_id": user_request.id,
-            }
-            user_request.save(access_key)
-
-            return render(request, "text_extractor/completed_documents.html", context)
-
-        except Exception as e:
-            # Improve error logging
-            import traceback
-
-            logger.error(f"ERROR: {str(e)}")
-            logger.error(traceback.format_exc())
-            return render(
-                request, "text_extractor/error_message.html", {"error_message": str(e)}
+        if merged:
+            formatted_merged_name = format_merged_file_name(
+                file_names_to_merge, max_length=40
             )
-    else:
-        return JsonResponse({"error": "Invalid request method."}, status=400)
+            merge_file_name = f"{formatted_merged_name}.pdf"
+            merged_text_name = f"{formatted_merged_name}.txt"
+
+            merged_pdf_bytes = BytesIO()
+            merger.write(merged_pdf_bytes)
+            merged_pdf_file = ContentFile(
+                merged_pdf_bytes.getvalue(),
+                name=shorten_input_name(merge_file_name),
+            )
+
+            all_texts_bytes = BytesIO()
+            for text in all_texts:
+                all_texts_bytes.write(text.encode())
+                all_texts_bytes.write(b"\n")
+            all_texts_bytes.seek(0)
+            all_texts_file = ContentFile(
+                all_texts_bytes.getvalue(),
+                name=shorten_input_name(merged_text_name),
+            )
+
+            output_file = OutputFile.objects.create(
+                access_key=access_key,
+                file=merged_pdf_file,
+                file_name=merge_file_name,
+                user_request=user_request,
+            )
+
+            output_text = OutputFile.objects.create(
+                access_key=access_key,
+                file=all_texts_file,
+                file_name=merged_text_name,
+                user_request=user_request,
+            )
+
+            output_file.save(access_key=access_key)
+            output_text.save(access_key=access_key)
+            completed_documents.append(
+                {
+                    "pdf": {
+                        "file": output_file,
+                        "size": file_size_to_string(output_file.file.size),
+                    },
+                    "txt": {
+                        "file": output_text,
+                        "size": file_size_to_string(output_text.file.size),
+                    },
+                    "cost": display_cad_cost(total_cost),
+                }
+            )
+
+        context = {
+            "ocr_docs": completed_documents,
+            "user_request_id": user_request.id,
+        }
+        user_request.save(access_key)
+
+        return render(request, "text_extractor/completed_documents.html", context)
+
+    except Exception as e:
+        # Improve error logging
+        import traceback
+
+        logger.error(f"ERROR: {str(e)}")
+        logger.error(traceback.format_exc())
+        return render(
+            request, "text_extractor/error_message.html", {"error_message": str(e)}
+        )
 
 
 def download_document(request, file_id, user_request_id):
