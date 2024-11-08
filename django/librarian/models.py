@@ -3,6 +3,8 @@ import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import get_language
@@ -99,7 +101,7 @@ class Library(models.Model):
     is_personal_library = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ["-is_personal_library", "-is_public", "order", "name"]
+        ordering = ["-is_personal_library", "-is_public", "order", "-created_at"]
         verbose_name_plural = "Libraries"
 
     def clean(self):
@@ -270,14 +272,18 @@ class DataSource(models.Model):
     )
 
     class Meta:
-        ordering = ["order", "name"]
+        ordering = ["order", "-created_at"]
 
     def __str__(self):
         return self.name
 
     def delete(self, *args, **kwargs):
-        for document in self.documents.all():
-            document.delete()
+        from .tasks import delete_documents_from_vector_store
+
+        delete_documents_from_vector_store.delay(
+            [document.uuid_hex for document in self.documents.all()],
+            self.library.uuid_hex,
+        )
         super().delete(*args, **kwargs)
 
     def process_all(self):
@@ -409,21 +415,12 @@ class Document(models.Model):
         else:
             return self.url_content_type
 
-    def remove_from_vector_store(self):
-        idx = llm.get_index(self.data_source.library.uuid_hex)
-        idx.delete_ref_doc(self.uuid_hex, delete_from_docstore=True)
-
     def delete(self, *args, **kwargs):
-        logger.info(f"Deleting document {str(self)} from vector store.")
-        try:
-            self.remove_from_vector_store()
-        except Exception as e:
-            logger.error(f"Failed to remove document from vector store: {e}")
-        file = self.file
-        if file:
-            self.file = None
-            self.save()
-            file.safe_delete()
+        from .tasks import delete_documents_from_vector_store
+
+        delete_documents_from_vector_store.delay(
+            [self.uuid_hex], self.data_source.library.uuid_hex
+        )
         super().delete(*args, **kwargs)
 
     def process(self, pdf_method="default"):
@@ -485,3 +482,11 @@ class SavedFile(models.Model):
         if self.file:
             self.file.delete(False)
         self.delete()
+
+
+@receiver(post_delete, sender=Document)
+def delete_saved_file(sender, instance, **kwargs):
+    try:
+        instance.file.safe_delete()
+    except Exception as e:
+        logger.error(f"Failed to delete document file: {e}")

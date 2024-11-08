@@ -10,6 +10,7 @@ from azure_auth.views import azure_auth_callback
 from . import views
 
 urlpatterns = [
+    path("healthz/", views.health_check, name="health_check"),
     path("", views.index, name="index"),
     path("search/", views.topnav_search_inner, name="search_inner"),
     path("welcome/", views.welcome, name="welcome"),

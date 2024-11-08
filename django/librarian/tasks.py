@@ -1,6 +1,7 @@
 import time
 import urllib.parse
 from datetime import datetime
+from typing import List
 
 from django.utils import translation
 from django.utils.translation import gettext as _
@@ -18,12 +19,14 @@ from librarian.utils.process_engine import (
     extract_markdown,
     fetch_from_url,
     get_process_engine_from_type,
+    guess_content_type,
 )
 from otto.models import User
 
 logger = get_logger(__name__)
 
 ten_minutes = 600
+one_minute = 60
 
 
 @shared_task(soft_time_limit=ten_minutes)
@@ -49,7 +52,7 @@ def process_document(document_id, language=None, pdf_method="default"):
 
     except Exception as e:
         document.status = "ERROR"
-        logger.debug("Error processing document:", document.name)
+        logger.debug("Error processing document: %s", document.name)
         logger.error(e)
         document.celery_task_id = None
         document.save()
@@ -78,8 +81,7 @@ def process_document_helper(document, llm, pdf_method="default"):
                 },
             )
         content, content_type = fetch_from_url(url)
-        if ("text" in content_type or not content_type) and url.endswith(".md"):
-            content_type = "text/markdown"
+        content_type = guess_content_type(content, content_type, document.url)
         document.url_content_type = content_type
     else:
         logger.info("Processing file", file=file)
@@ -92,11 +94,7 @@ def process_document_helper(document, llm, pdf_method="default"):
                 },
             )
         content = file.file.read()
-        content_type = file.content_type
-        if ("text" in content_type or not content_type) and file.file.name.endswith(
-            ".md"
-        ):
-            content_type = "text/markdown"
+        content_type = guess_content_type(content, file.content_type, document.filename)
 
     if current_task:
         current_task.update_state(
@@ -164,3 +162,17 @@ def process_document_helper(document, llm, pdf_method="default"):
     document.fetched_at = datetime.now()
     document.celery_task_id = None
     document.save()
+
+
+@shared_task(soft_time_limit=ten_minutes)
+def delete_documents_from_vector_store(
+    document_uuids: List[str], library_uuid: str
+) -> None:
+    llm = OttoLLM()
+    logger.info(f"Deleting documents from vector store:\n{document_uuids}")
+    for document_uuid in document_uuids:
+        try:
+            idx = llm.get_index(library_uuid)
+            idx.delete_ref_doc(document_uuid, delete_from_docstore=True)
+        except Exception as e:
+            logger.error(f"Failed to remove documents from vector store: {e}")

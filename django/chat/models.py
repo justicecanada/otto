@@ -23,6 +23,7 @@ from chat.prompts import (
     current_time_prompt,
 )
 from librarian.models import DataSource, Library, SavedFile
+from librarian.utils.process_engine import guess_content_type
 from otto.models import SecurityLabel, User
 from otto.utils.common import display_cad_cost, set_costs
 
@@ -84,6 +85,11 @@ class Chat(models.Model):
     def access(self):
         self.accessed_at = timezone.now()
         self.save()
+
+    def delete(self, *args, **kwargs):
+        if hasattr(self, "data_source") and self.data_source:
+            self.data_source.delete()
+        super().delete(*args, **kwargs)
 
 
 class ChatOptionsManager(models.Manager):
@@ -533,11 +539,16 @@ class ChatFile(models.Model):
         if not self.saved_file:
             return
 
-        process_engine = get_process_engine_from_type(self.saved_file.content_type)
-        self.text, _ = extract_markdown(
-            self.saved_file.file.read(), process_engine, pdf_method=pdf_method
-        )
-        self.save()
+        with self.saved_file.file.open("rb") as file:
+            content = file.read()
+            content_type = guess_content_type(
+                content, self.saved_file.content_type, self.filename
+            )
+            process_engine = get_process_engine_from_type(content_type)
+            self.text, _ = extract_markdown(
+                content, process_engine, pdf_method=pdf_method
+            )
+            self.save()
 
 
 @receiver(post_delete, sender=ChatFile)
