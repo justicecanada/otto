@@ -258,11 +258,12 @@ def translate_response(chat, response_message):
         # Initiate the Celery task for translating each file with Azure
         task_ids = []
         for file in files:
-            # file is a django ChatFile object with property "file" that is a FileField
-            # We need the path of the file to pass to the Celery task
-            file_path = file.saved_file.file.path
-            task = translate_file.delay(file_path, language)
-            task_ids.append(task.id)
+            if not cache.get(f"stop_response_{response_message.id}", False):
+                # file is a django ChatFile object with property "file" that is a FileField
+                # We need the path of the file to pass to the Celery task
+                file_path = file.saved_file.file.path
+                task = translate_file.delay(file_path, language)
+                task_ids.append(task.id)
         return StreamingHttpResponse(
             # No cost because file translation costs are calculated in Celery task
             streaming_content=htmx_stream(
