@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres-django-db
-  namespace: otto
+  namespace: otto  
 spec:
   serviceName: "postgres-django-service"
   replicas: 1
@@ -15,7 +15,7 @@ spec:
     metadata:
       labels:
         app: postgres-django-db
-        tier: backend
+        tier: backend    
     spec:
       containers:
         - name: postgres-django-db

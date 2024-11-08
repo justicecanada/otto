@@ -43,28 +43,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/cont
 # Wait for the NGINX Ingress Controller to be ready
 echo "Waiting for NGINX Ingress Controller to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/ingress-nginx-controller -n ingress-nginx
-
-
-# Install Velero
-echo "Installing Velero..."
-
-# Get the Velero identity client ID and apply the Velero namespace and service account
-export VELERO_IDENTITY_CLIENT_ID="$(az identity show -g $RESOURCE_GROUP_NAME -n velero --subscription $SUBSCRIPTION_ID --query clientId -otsv)"
-envsubst < velero.yaml | kubectl apply -f -
-
-# Install Velero with the Azure provider and wait for it to complete
-# velero uninstall --force
-velero install \
-    --provider azure \
-    --service-account-name velero \
-    --pod-labels azure.workload.identity/use=true \
-    --plugins velero/velero-plugin-for-microsoft-azure:v1.10.0 \
-    --bucket $BACKUP_CONTAINER_NAME \
-    --no-secret \
-    --backup-location-config useAAD="true",resourceGroup=$RESOURCE_GROUP_NAME,storageAccount=$STORAGE_NAME,subscriptionId=$SUBSCRIPTION_ID \
-    --snapshot-location-config apiTimeout=30,resourceGroup=$RESOURCE_GROUP_NAME,subscriptionId=$SUBSCRIPTION_ID \
-    --wait
-    
+  
 # Apply the namespace for Otto
 kubectl apply -f namespace.yaml
 
@@ -152,14 +131,27 @@ check_deployments_ready() {
     return 0
 }
 
-# Wait for the deployments (except those containing "celery") to be ready
-echo "Waiting for deployments to be ready..."
-while ! check_deployments_ready; do
-    echo "Not all deployments are ready yet. Waiting for 10 seconds..."
+check_statefulsets_ready() {
+    local statefulsets=$(kubectl get statefulsets -n otto -o name)
+    for statefulset in $statefulsets; do
+        local ready=$(kubectl get $statefulset -n otto -o jsonpath='{.status.readyReplicas}')
+        local desired=$(kubectl get $statefulset -n otto -o jsonpath='{.spec.replicas}')
+        if [[ "$ready" != "$desired" ]]; then
+            return 1
+        fi
+    done
+    return 0
+}
+
+# Wait for both deployments and statefulsets to be ready
+echo "Waiting for deployments and statefulsets to be ready..."
+while ! (check_deployments_ready && check_statefulsets_ready); do
+    echo "Not all deployments and statefulsets are ready yet. Waiting for 10 seconds..."
     sleep 10
 done
 
-echo "All deployments are ready."
+echo "All deployments and statefulsets are ready!"
+
 
 # Prompt the user if they want to run the initial setup
 read -p "Do you want to run the initial setup? (y/N) " -e -r

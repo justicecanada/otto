@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: StatefulSet # Manages the deployment and scaling of stateful applications with stable identities
 metadata:
   name: postgres-vector-db
-  namespace: otto
+  namespace: otto 
 spec:
   serviceName: "postgres-vector-service"  # Required for stable network identity
   replicas: 1
