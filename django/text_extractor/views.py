@@ -67,14 +67,6 @@ def submit_document(request):
             formatted_merged_name = format_merged_file_name(
                 file_names_to_merge, max_length=40
             )
-            merged_output_file = OutputFile.objects.create(
-                access_key=access_key,
-                pdf_file=None,
-                txt_file=None,
-                file_name=formatted_merged_name,
-                user_request=user_request,
-            )
-            output_files = [merged_output_file]
             # Add Table of Contents as first file
             start_pages = calculate_start_pages(files)
             toc_pdf_bytes = create_toc_pdf(files, start_pages)
@@ -97,27 +89,37 @@ def submit_document(request):
 
             if merged:
                 task_ids.append(result.id)
-                continue
-
-            output_files.append(
-                OutputFile.objects.create(
-                    access_key=access_key,
-                    pdf_file=None,
-                    txt_file=None,
-                    file_name=f"{file.name.rsplit('.', 1)[0]}_OCR",
-                    user_request=user_request,
-                    celery_task_ids=[result.id],
+            else:
+                output_files.append(
+                    OutputFile.objects.create(
+                        access_key=access_key,
+                        pdf_file=None,
+                        txt_file=None,
+                        file_name=f"{file.name.rsplit('.', 1)[0]}_OCR",
+                        user_request=user_request,
+                        celery_task_ids=[result.id],
+                    )
                 )
+
+        if merged:
+            merged_output_file = OutputFile.objects.create(
+                access_key=access_key,
+                pdf_file=None,
+                txt_file=None,
+                file_name=formatted_merged_name,
+                user_request=user_request,
+                celery_task_ids=task_ids,
             )
+            output_files = [merged_output_file]
 
         for output_file in output_files:
             output_file.status = "PENDING"
+
         context = {
             "output_files": output_files,
             "user_request_id": user_request.id,
             "poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id]),
         }
-        print(context)
 
         return render(request, "text_extractor/completed_documents.html", context)
 
@@ -132,40 +134,25 @@ def submit_document(request):
         )
 
 
-def poll_tasks(request, user_request_id):
-    print("poll tasks route")
-    access_key = AccessKey(user=request.user)
-    user_request = UserRequest.objects.get(access_key, id=user_request_id)
-    output_files = user_request.output_files.filter(access_key=access_key)
-    for output_file in output_files:
-        print(output_file.file_name)
-    for output_file in output_files:
-        output_file_statuses = []
-        for task_id in output_file.celery_task_ids:
-            result = process_ocr_document.AsyncResult(task_id)
-            output_file_statuses.append(result.status)
-        if all(status == "SUCCESS" for status in output_file_statuses):
-            output_file.status = "SUCCESS"
-        elif any(status == "FAILURE" for status in output_file_statuses):
-            output_file.status = "FAILURE"
-        else:
-            output_file.status = "PENDING"
+def add_extracted_files(output_file, access_key):
+    total_cost = 0
+    merger = PdfWriter() if output_file.user_request.merged else None
+    file_names_to_merge = []
 
-    context = {
-        "output_files": output_files,
-        "user_request_id": user_request.id,
-    }
-    if any(output_file.status == "PENDING" for output_file in output_files):
-        context.update(
-            {"poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id])}
-        )
-    print(context)
-    return render(request, "text_extractor/completed_documents.html", context)
+    # Update the OutputFile objects with the generated PDF and TXT files
+    # Set the celery task IDs to [] when finished
+    for task_id in output_file.celery_task_ids:
+        result = process_ocr_document.AsyncResult(task_id)
+        pdf_bytes_content, txt_file, cost, input_name = result.get()
 
-    # all_texts = []
-    # total_cost = 0
-    # merger = PdfWriter() if user_request.merged else None
-    # file_names_to_merge = []
+    output_file.pdf_file = None  # create the file from celery output here
+    output_file.txt_file = None  # create the file from celery output here
+    output_file.celery_task_ids = []
+    output_file.save()
+    output_file.cost = "$0"  # placeholder
+
+    return output_file
+
     # try:
     #     # Wait for tasks to complete and update OutputFile objects
     #     for idx, (output_file, output_text, file_content, file_name) in enumerate(
@@ -273,18 +260,50 @@ def poll_tasks(request, user_request_id):
     #     )
 
 
-def download_document(request, file_id, user_request_id):
+def poll_tasks(request, user_request_id):
     access_key = AccessKey(user=request.user)
     user_request = UserRequest.objects.get(access_key, id=user_request_id)
+    output_files = user_request.output_files.filter(access_key=access_key)
+    for output_file in output_files:
+        output_file_statuses = []
+        for task_id in output_file.celery_task_ids:
+            result = process_ocr_document.AsyncResult(task_id)
+            output_file_statuses.append(result.status)
+        if all(status == "SUCCESS" for status in output_file_statuses):
+            output_file.status = "SUCCESS"
+            output_file = add_extracted_files(output_file, access_key)
+        elif any(status == "FAILURE" for status in output_file_statuses):
+            output_file.status = "FAILURE"
+        else:
+            output_file.status = "PENDING"
+
+    context = {
+        "output_files": output_files,
+        "user_request_id": user_request.id,
+    }
+
+    if any(output_file.status == "PENDING" for output_file in output_files):
+        context.update(
+            {"poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id])}
+        )
+    return render(request, "text_extractor/completed_documents.html", context)
+
+
+def download_document(request, file_id, file_type):
+    access_key = AccessKey(user=request.user)
 
     try:
-        output_file = user_request.output_files.get(access_key=access_key, id=file_id)
+        output_file = OutputFile.objects.get(access_key=access_key, id=file_id)
     except OutputFile.DoesNotExist:
         return render(request, "text_extractor/error_message.html")
 
-    with output_file.file.open("rb") as file:
+    if file_type == "pdf":
+        file = output_file.pdf_file
+    elif file_type == "txt":
+        file = output_file.txt_file
+    with file.open("rb") as file:
         response = HttpResponse(file.read(), content_type="application/octet-stream")
         response["Content-Disposition"] = (
-            f'attachment; filename="{output_file.file_name}"'
+            f'attachment; filename="{output_file.file_name}.{file_type}"'
         )
         return response

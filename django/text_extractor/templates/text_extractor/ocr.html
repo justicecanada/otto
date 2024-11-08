@@ -18,7 +18,7 @@
         enctype="multipart/form-data"
         hx-post="{% url 'text_extractor:submit_document' %}"
         hx-target="#completed_documents_body"
-        hx-swap="beforeend"
+        hx-swap="innerHTML"
         id="submit_document_form"
         hx-indicator="#spinner"
         onsubmit="document.getElementById('submit').disabled = true;">
@@ -71,6 +71,7 @@
             <th scope="col">{% trans "Document name" %}</th>
             <th scope="col">{% trans "Status" %}</th>
             <th scope="col">{% trans "Cost" %}</th>
+            <th scope="col">{% trans "Results" %}</th>
           </tr>
         </thead>
         <tbody id="completed_documents_body">

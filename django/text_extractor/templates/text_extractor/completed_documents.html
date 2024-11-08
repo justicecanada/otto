@@ -2,28 +2,33 @@
 
 {% for output_file in output_files %}
   {% if output_file.pdf_file %}
-    {# We know that the task is done if the file exists! #}
+    {# This means the file is done and we can add the download links #}
     <tr>
       <td>
-        {# column1: Document#}
+        {# column1: Document #}
         {{ output_file.file_name }}
- 
-        <a href="{% url 'text_extractor:download_document' doc.pdf.file.id user_request_id %}"
+      </td>
+      <td>
+        {# column2: Status #}
+        {{ output_file.status }}
+      </td>
+      <td>
+        {# column3: Cost #}
+        {{ output_file.cost }}
+      </td>
+      <td>
+        {# column4: Results #}
+        <a href="{% url 'text_extractor:download_document' output_file.id 'pdf' %}"
            class="link-dark">
           <i class="bi bi-filetype-pdf me-1 h5" style="color: red"></i>
           (PDF, {{ output_document.pdf_size }})
         </a>
-        <a href="{% url 'text_extractor:download_document' doc.txt.file.id user_request_id %}"
+        <a href="{% url 'text_extractor:download_document' output_file.id 'txt' %}"
            class="link-dark">
           <i class="bi bi-filetype-txt me-1 h5" style="color: slategray"></i>
           (TXT, {{ output_document.txt_size }})
         </a>
       </td>
-      <td>
-        {# column2: Status #}
-        {% trans "Done" %}
-      </td>
-      <td style="white-space: nowrap;">{{ output_document.cost }}</td>
     </tr>
   {% else %}
     <tr>
@@ -36,6 +41,7 @@
         {{ output_file.status }}
       </td>
       <td></td>
+      <td></td>
     </tr>
   {% endif %}
 {% endfor %}
@@ -44,6 +50,7 @@
       id="poller"
       hx-get="{{ poll_url }}"
       hx-trigger="load delay:2s"
+      hx-indicator="none"
       hx-swap="innerHTML"
       hx-target="#completed_documents_body"></tr>
 {% endif %}
