@@ -3886,5 +3886,9 @@
     "file(s) still processing": {
         "fr": "",
         "fr_auto": "fichier(s) toujours en cours de traitement"
+    },
+    "Stop Output <br> WARNING: stopping will not reduce costs": {
+        "fr": "Arrêtez la sortie <br> ATTENTION : l’arrêt ne réduira pas les coûts",
+        "fr_auto": "Arrêtez la sortie <br> ATTENTION : l’arrêt ne réduira pas les coûts"
     }
 }

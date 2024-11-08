@@ -7,6 +7,6 @@
           hx-get="{% url 'chat:stop_response' message_id=message.id %}"
           hx-swap="none">
     <i class="bi bi-stop-circle"></i>
-    <span class="d-none d-md-inline">{% trans "Stop" %}</span>
+    <span class="d-none d-md-inline">{% trans "Stop Output <br> WARNING: stopping will not reduce costs" %}</span>
   </button>
 </div>
