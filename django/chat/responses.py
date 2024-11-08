@@ -403,6 +403,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 template=chat.options.qa_prompt_combined,
             )
             for document in filter_documents
+            if not cache.get(f"stop_response_{response_message.id}", False)
         ]
         response_replacer = combine_response_replacers(
             summary_responses, document_titles
@@ -527,6 +528,7 @@ def qa_response(chat, response_message, switch_mode=False):
             responses = [
                 synthesizer.synthesize(query=input, nodes=sources).response_gen
                 for sources in source_groups
+                if not cache.get(f"stop_response_{response_message.id}", False)
             ]
             response_replacer = combine_response_generators(
                 responses,
