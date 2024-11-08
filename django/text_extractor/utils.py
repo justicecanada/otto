@@ -139,14 +139,6 @@ def create_searchable_pdf(input_file, add_header):
     print(f"Input file size: {len(file_content)} bytes")
 
     # Create a temporary file and write the contents of the uploaded file to it
-
-    # without celery:
-    # with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
-    #     for chunk in input_file.chunks():
-    #         temp.write(chunk)
-    #     temp_path = temp.name
-
-    # with celery:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
         temp.write(file_content)
         temp_path = temp.name

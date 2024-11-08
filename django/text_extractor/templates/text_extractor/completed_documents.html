@@ -1,17 +1,41 @@
 {% load i18n %}
 
-{% for doc in ocr_docs %}
-  <tr>
-    <td>
-      <i class="bi bi-filetype-pdf me-1 h5" style="color: red"></i>
-      <a href="{% url 'text_extractor:download_document' doc.pdf.file.id user_request_id %}"
-         class="link-dark">{{ doc.pdf.file.file_name }} (PDF, {{ doc.pdf.size }})</a>
-    </td>
-    <td>
-      <i class="bi bi-filetype-txt me-1 h5" style="color: slategray"></i>
-      <a href="{% url 'text_extractor:download_document' doc.txt.file.id user_request_id %}"
-         class="link-dark">{{ doc.txt.file.file_name }} (TXT, {{ doc.txt.size }})</a>
-    </td>
-    <td style="white-space: nowrap;">{{ doc.cost }}</td>
-  </tr>
+{% for output_file in output_files %}
+  {% if output_file.pdf_file %}
+    {# We know that the task is done if the file exists! #}
+    <tr>
+      <td>
+        {# column1: Document#}
+        {{ output_file.file_name }}
+ 
+        <a href="{% url 'text_extractor:download_document' doc.pdf.file.id user_request_id %}"
+           class="link-dark">
+          <i class="bi bi-filetype-pdf me-1 h5" style="color: red"></i>
+          (PDF, {{ output_document.pdf_size }})
+        </a>
+        <a href="{% url 'text_extractor:download_document' doc.txt.file.id user_request_id %}"
+           class="link-dark">
+          <i class="bi bi-filetype-txt me-1 h5" style="color: slategray"></i>
+          (TXT, {{ output_document.txt_size }})
+        </a>
+      </td>
+      <td>
+        {# column2: Status #}
+        {% trans "Done" %}
+      </td>
+      <td style="white-space: nowrap;">{{ output_document.cost }}</td>
+    </tr>
+  {% else %}
+    <tr>
+      <td>
+        {# column1: Document #}
+        {{ output_file.file_name }}
+      </td>
+      <td>
+        {# column2: Status #}
+        {% trans "Processing" %}
+      </td>
+      <td></td>
+    </tr>
+  {% endif %}
 {% endfor %}
