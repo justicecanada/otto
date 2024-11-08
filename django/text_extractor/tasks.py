@@ -1,17 +1,11 @@
 import os
 from io import BytesIO
 
-from django.contrib.auth import get_user_model
-from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from celery import shared_task
 
-from otto.secure_models import AccessKey
-from otto.utils.common import display_cad_cost, file_size_to_string
-from text_extractor.models import OutputFile, UserRequest
-
-from .utils import create_searchable_pdf, shorten_input_name
+from .utils import create_searchable_pdf
 
 
 # passing the OCR method to celery

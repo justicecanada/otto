@@ -33,7 +33,7 @@
       </td>
       <td>
         {# column2: Status #}
-        {% trans "Processing" %}
+        {{ output_file.status }}
       </td>
       <td></td>
     </tr>
@@ -42,10 +42,8 @@
 {% if poll_url %}
   <tr class="d-none"
       id="poller"
-      hx-disinherit="*"
       hx-get="{{ poll_url }}"
-      hx-trigger="every 2s"
-      hx-ext="none"
-      hx-swap="none"
-      hx-swap-oob="true"></tr>
+      hx-trigger="load delay:2s"
+      hx-swap="innerHTML"
+      hx-target="#completed_documents_body"></tr>
 {% endif %}

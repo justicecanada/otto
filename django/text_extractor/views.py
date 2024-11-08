@@ -110,11 +110,14 @@ def submit_document(request):
                 )
             )
 
+        for output_file in output_files:
+            output_file.status = "PENDING"
         context = {
             "output_files": output_files,
             "user_request_id": user_request.id,
             "poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id]),
         }
+        print(context)
 
         return render(request, "text_extractor/completed_documents.html", context)
 
@@ -130,16 +133,34 @@ def submit_document(request):
 
 
 def poll_tasks(request, user_request_id):
+    print("poll tasks route")
     access_key = AccessKey(user=request.user)
     user_request = UserRequest.objects.get(access_key, id=user_request_id)
     output_files = user_request.output_files.filter(access_key=access_key)
-    celery_task_ids = []
     for output_file in output_files:
-        celery_task_ids.extend(output_file.celery_task_ids)
-    for task_id in celery_task_ids:
-        result = process_ocr_document.AsyncResult(task_id)
-        print(result.state)
-    return HttpResponse(200)
+        print(output_file.file_name)
+    for output_file in output_files:
+        output_file_statuses = []
+        for task_id in output_file.celery_task_ids:
+            result = process_ocr_document.AsyncResult(task_id)
+            output_file_statuses.append(result.status)
+        if all(status == "SUCCESS" for status in output_file_statuses):
+            output_file.status = "SUCCESS"
+        elif any(status == "FAILURE" for status in output_file_statuses):
+            output_file.status = "FAILURE"
+        else:
+            output_file.status = "PENDING"
+
+    context = {
+        "output_files": output_files,
+        "user_request_id": user_request.id,
+    }
+    if any(output_file.status == "PENDING" for output_file in output_files):
+        context.update(
+            {"poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id])}
+        )
+    print(context)
+    return render(request, "text_extractor/completed_documents.html", context)
 
     # all_texts = []
     # total_cost = 0
