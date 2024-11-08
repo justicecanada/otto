@@ -39,3 +39,13 @@
     </tr>
   {% endif %}
 {% endfor %}
+{% if poll_url %}
+  <tr class="d-none"
+      id="poller"
+      hx-disinherit="*"
+      hx-get="{{ poll_url }}"
+      hx-trigger="every 2s"
+      hx-ext="none"
+      hx-swap="none"
+      hx-swap-oob="true"></tr>
+{% endif %}
