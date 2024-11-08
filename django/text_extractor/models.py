@@ -18,6 +18,7 @@ class OutputFile(SecureModel):
     user_request = models.ForeignKey(
         UserRequest, related_name="output_files", on_delete=models.CASCADE
     )
+    celery_task_ids = models.JSONField(default=list, blank=True, null=True)
 
     def get_permission_parents(self):
         return [self.user_request]
