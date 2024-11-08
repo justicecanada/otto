@@ -1,9 +1,5 @@
 from django.conf import settings
 
-from structlog import get_logger
-
-logger = get_logger(__name__)
-
 
 def file_size_to_string(filesize):
     from django.utils.translation import gettext_lazy as _
