@@ -1,54 +1,18 @@
 data "azurerm_subscription" "current" {}
 
-# Define the custom role for Velero
-resource "azurerm_role_definition" "velero" {
-  name        = "Velero"
-  scope       = data.azurerm_subscription.current.id
-  description = "Velero related permissions to perform backups, restores and deletions"
-
-  permissions {
-    actions = [
-      "Microsoft.Compute/disks/read",
-      "Microsoft.Compute/disks/write",
-      "Microsoft.Compute/disks/endGetAccess/action",
-      "Microsoft.Compute/disks/beginGetAccess/action",
-      "Microsoft.Compute/snapshots/read",
-      "Microsoft.Compute/snapshots/write",
-      "Microsoft.Compute/snapshots/delete",
-      "Microsoft.Storage/storageAccounts/listkeys/action",
-      "Microsoft.Storage/storageAccounts/regeneratekey/action",
-      "Microsoft.Storage/storageAccounts/read",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/delete",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/read",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/write",
-      "Microsoft.Storage/storageAccounts/blobServices/generateUserDelegationKey/action"
-    ]
-    data_actions = [
-      "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/delete",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/write",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/move/action",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/add/action"
-    ]
-  }
-
-  assignable_scopes = [
-    data.azurerm_subscription.current.id
-  ]
-}
-
 # Create a managed identity for Velero
 resource "azurerm_user_assigned_identity" "velero" {
   resource_group_name = var.resource_group_name
   location            = var.location
-  name                = "velero"
+  name                = var.velero_identity_name
 }
 
-# Role assignment for Velero
-resource "azurerm_role_assignment" "velero" {
-  scope                = data.azurerm_subscription.current.id
-  role_definition_name = azurerm_role_definition.velero.name
+# Assign the Contributor role to the managed identity
+resource "azurerm_role_assignment" "velero_storage_contributor" {
+  scope                = var.storage_account_id
+  role_definition_name = "Contributor"
   principal_id         = azurerm_user_assigned_identity.velero.principal_id
+  depends_on           = [azurerm_user_assigned_identity.velero]
 }
 
 # Create federated identity credential

@@ -194,3 +194,6 @@ else
     echo "The site URL is: $SITE_URL"
 
 fi
+
+# Run the Velero setup script
+source check_velero.sh

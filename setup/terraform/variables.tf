@@ -173,3 +173,9 @@ variable "backup_container_name" {
   type        = string
   default     = "backups"
 }
+
+variable "velero_identity_name" {
+  description = "Name of the Velero managed identity"
+  type        = string
+  default     = "velero"
+}

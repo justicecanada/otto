@@ -148,10 +148,12 @@ module "aks" {
 
 # Velero module
 module "velero" {
-  source              = "./modules/velero"
-  resource_group_name = module.resource_group.name
-  location            = var.location
-  oidc_issuer_url     = module.aks.oidc_issuer_url
+  source               = "./modules/velero"
+  resource_group_name  = module.resource_group.name
+  velero_identity_name = var.velero_identity_name
+  location             = var.location
+  oidc_issuer_url      = module.aks.oidc_issuer_url
+  storage_account_id   = module.storage.storage_account_id
 }
 
 # CM-8 & CM-9: Diagnostic settings for Key Vault
