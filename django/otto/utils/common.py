@@ -38,6 +38,5 @@ def set_costs(object):
     """
     Sums cost.usd_cost from the object's cost_set and assigns total to object.usd_cost
     """
-    logger.info([cost.usd_cost for cost in object.cost_set.all()])
     object.usd_cost = sum([cost.usd_cost for cost in object.cost_set.all()])
     object.save()
