@@ -9,6 +9,10 @@
 <script>
   (function (){
     if ("{{ preset_loaded }}" === "true" || "{{ swap }}" === "true") {
+      let prompt = "{{ options_form.prompt.value }}";
+      if (prompt != "") {
+        document.getElementById("chat-prompt").value = prompt;
+      }
       let mode = "{{ options_form.mode.value }}";
       handleModeChange(mode);
       setTimeout(updateQaSourceForms, 100);

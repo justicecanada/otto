@@ -172,6 +172,7 @@ class ChatOptionsForm(ModelForm):
         exclude = ["chat", "global_default"]
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "prompt": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
                 choices=TEMPERATURES,
                 attrs={
