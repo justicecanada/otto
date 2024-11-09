@@ -113,7 +113,6 @@ envsubst < configmap.yaml | kubectl apply -f -
 envsubst < secrets.yaml | kubectl apply -f -
 envsubst < storageclass.yaml | kubectl apply -f -
 envsubst < vectordb.yaml | kubectl apply -f -
-envsubst < djangodb.yaml | kubectl apply -f -
 envsubst < django.yaml | kubectl apply -f -
 envsubst < redis.yaml | kubectl apply -f -
 envsubst < celery.yaml | kubectl apply -f -
@@ -194,6 +193,3 @@ else
     echo "The site URL is: $SITE_URL"
 
 fi
-
-# Run the Velero setup script
-source check_velero.sh

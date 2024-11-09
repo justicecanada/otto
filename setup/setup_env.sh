@@ -156,10 +156,7 @@ export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
 export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}store" # Base name for the storage account
 export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
-export VELERO_IDENTITY_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-velero"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
-
-export BACKUP_CONTAINER_NAME="velero-backup"
 
 # Set the Terraform state variables
 export TF_STATE_RESOURCE_GROUP="TerraformStateRG"
@@ -227,7 +224,6 @@ disk_name = "${DISK_NAME}"
 storage_name = "${STORAGE_NAME}"
 acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
-velero_identity_name = "${VELERO_IDENTITY_NAME}"
 vnet_name = "${VNET_NAME}"
 vnet_ip_range = "${VNET_IP_RANGE}"
 web_subnet_name = "${WEB_SUBNET_NAME}"
@@ -243,5 +239,4 @@ gpt_4o_mini_capacity = ${GPT_4o_MINI_CAPACITY}
 text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
 admin_email = "${ADMIN_EMAIL}"
 use_private_network = "${USE_PRIVATE_NETWORK}"
-backup_container_name = "${BACKUP_CONTAINER_NAME}"
 EOF

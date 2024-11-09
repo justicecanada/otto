@@ -143,11 +143,3 @@ resource "azurerm_storage_account_customer_managed_key" "storage_cmk" {
 
   depends_on = [null_resource.wait_for_storage_permission_propagation]
 }
-
-resource "azurerm_storage_container" "velero_backup" {
-  name                  = var.backup_container_name
-  storage_account_name  = azurerm_storage_account.storage.name
-  container_access_type = "private"
-
-  depends_on = [azurerm_storage_account.storage]
-}

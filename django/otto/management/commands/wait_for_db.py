@@ -11,11 +11,17 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("Waiting for database...")
         db_conn = None
+        timeout_limit = 30  # 5 minutes
         while not db_conn:
             try:
                 db_conn = connections["default"]
             except OperationalError:
-                self.stdout.write("Database unavailable, waiting 1 second...")
-                time.sleep(1)
+                self.stdout.write("Database unavailable, waiting 10 seconds...")
+                time.sleep(10)
+                timeout_limit -= 1
+
+            if timeout_limit == 0:
+                self.stdout.write(self.style.ERROR("Database unavailable!"))
+                raise OperationalError("Database unavailable!")
 
         self.stdout.write(self.style.SUCCESS("Database available!"))
