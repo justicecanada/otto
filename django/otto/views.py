@@ -45,6 +45,10 @@ def welcome(request):
     return render(request, "welcome.html", {"next_url": request.GET.get("next", "/")})
 
 
+def error_403(request):
+    return render(request, "403.html")
+
+
 def login(request: HttpRequest):
     # Wraps azure_auth login to allow for language selection
     lang_code = request.GET.get("lang")

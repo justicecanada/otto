@@ -12,6 +12,7 @@ from . import views
 urlpatterns = [
     path("healthz/", views.health_check, name="health_check"),
     path("", views.index, name="index"),
+    path("403", views.error_403, name="error_403"),
     path("search/", views.topnav_search_inner, name="search_inner"),
     path("welcome/", views.welcome, name="welcome"),
     # AC-2: Entra Integration Helper App Configuration
