@@ -889,6 +889,7 @@ def test_preset(client, basic_user, all_apps_user):
             "description_en": "Preset Description",
             "sharing_option": "private",
             "accessible_to": [],
+            "prompt": "",
         },
     )
     assert response.status_code == 302  # Redirect after saving
@@ -912,6 +913,7 @@ def test_preset(client, basic_user, all_apps_user):
             "description_en": "Updated Description",
             "sharing_option": "others",
             "accessible_to": [],
+            "prompt": "",
         },
     )
 
@@ -939,6 +941,7 @@ def test_preset(client, basic_user, all_apps_user):
             "description_en": "Updated Description",
             "sharing_option": "others",
             "accessible_to": [user2.id],
+            "prompt": "",
         },
     )
     assert response.status_code == 302  # Redirect after saving
