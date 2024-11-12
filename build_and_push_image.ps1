@@ -30,8 +30,8 @@ Copy-Item -Path $tempFile -Destination "./django/version.yaml"
 $IMAGE_NAME = "$($REGISTRY_NAME).azurecr.io/otto"
 $SPECIFIC_TAG = $GITHUB_HASH
 
-# Inform the user that, if the image doesn't exist in the Docker cache, they will need to be off the JUS network to pull the base image
-Write-Host "If the image doesn't exist in the Docker cache, you will need to be off the JUS network to pull the base image."
+# Inform the user that, if the image doesn't exist in the Docker cache, they might need to be off the JUS network to pull the base image
+Write-Host "If the image doesn't exist in the Docker cache, you might need to be off the JUS network to pull the base image."
 $continue = Read-Host -Prompt "Do you want to continue? (y/N)"
 if ($continue -ne "y") {
     exit

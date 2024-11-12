@@ -24,11 +24,6 @@ variable "admin_group_object_ids" {
   description = "List of object IDs of the admin Azure AD groups"
 }
 
-variable "entra_client_secret" {
-  type        = string
-  description = "The client secret of the ENTRA application"
-}
-
 variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the Key Vaults"

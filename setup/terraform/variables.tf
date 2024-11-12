@@ -127,12 +127,6 @@ variable "db_subnet_ip_range" {
   description = "IP range of the database subnet"
 }
 
-variable "entra_client_secret" {
-  description = "Entra client secret"
-  type        = string
-  sensitive   = true
-}
-
 variable "gpt_35_turbo_capacity" {
   description = "GPT-3.5 Turbo quota limit"
   type        = number

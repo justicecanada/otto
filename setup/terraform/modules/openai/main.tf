@@ -29,20 +29,12 @@ resource "azurerm_cognitive_account" "openai" {
   depends_on = [var.keyvault_id]
 }
 
-resource "azurerm_key_vault_secret" "openai_key" {
-  name         = "OPENAI-SERVICE-KEY"
-  value        = azurerm_cognitive_account.openai.primary_access_key
-  key_vault_id = var.keyvault_id
-
-  depends_on = [var.wait_for_propagation]
-}
-
 # A delay is required to avoid a 409 conflict error when adding deployments concurrently
 resource "null_resource" "wait_for_openai_resource" {
   provisioner "local-exec" {
     command = "sleep 60"
   }
-  depends_on = [azurerm_key_vault_secret.openai_key, azurerm_cognitive_account.openai]
+  depends_on = [azurerm_cognitive_account.openai]
 }
 
 resource "azapi_resource" "rai_policy" {

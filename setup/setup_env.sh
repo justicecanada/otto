@@ -159,11 +159,11 @@ export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}
 export VELERO_IDENTITY_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-velero"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
 
-export BACKUP_CONTAINER_NAME="velero-backup"
+export BACKUP_CONTAINER_NAME="backups"
 
 # Set the Terraform state variables
 export TF_STATE_RESOURCE_GROUP="TerraformStateRG"
-export TF_STATE_STORAGE_ACCOUNT="tfstate${APP_NAME,,}${ENVIRONMENT,,}" # Base name for the TF storage account
+export TF_STATE_STORAGE_ACCOUNT="tfstate${APP_NAME,,}" # Base name for the TF storage account
 export TF_STATE_CONTAINER="tfstate"
 export TF_STATE_KEY="${RESOURCE_GROUP_NAME}.tfstate"
 
@@ -173,16 +173,31 @@ get_unique_storage_name() {
     local base_name=$1
     local resource_group=$2
 
-    # Check for existing storage accounts
-    local existing_storage=$(az storage account list --resource-group "$resource_group" --query "[?starts_with(name, '${base_name}')].name" -o tsv)
+    # Set a variable that indicates whether a new name is needed or not
+    local new_name_needed=0
 
-    if [ -n "$existing_storage" ]; then
+    # Check if the resource group exists
+    if ! az group show --name "$resource_group" --only-show-errors &>/dev/null; then
+        new_name_needed=1
+    else
+        # Check for existing storage accounts
+        local existing_storage=$(az storage account list --resource-group "$resource_group" --query "[?starts_with(name, '${base_name}')].name" -o tsv)
+
+        # If a storage account doesn't exist, set the flag to create a new one
+        if [ -z "$existing_storage" ]; then
+            new_name_needed=1
+        fi
+    fi
+
+    if [ $new_name_needed -eq 0 ]; then
+        # Return the existing storage account name
         echo "$existing_storage"
     else
-        # Generate a unique suffix based on the current date and time
-        local datetime_suffix=$(date '+%Y%m%d')
-        local new_storage_name="${base_name}${datetime_suffix}"
-        echo "No existing storage account found. New storage name: $new_storage_name"
+        # Generate a 5-digit alphanumeric random string
+        local random_suffix=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)
+        local new_storage_name="${base_name}${random_suffix}"
+
+        # Return the new storage account name
         echo "$new_storage_name"
     fi
 }

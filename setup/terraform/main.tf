@@ -48,7 +48,6 @@ module "keyvault" {
   location               = var.location
   keyvault_name          = var.keyvault_name
   admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
-  entra_client_secret    = var.entra_client_secret
   tags                   = local.common_tags
   use_private_network    = var.use_private_network
   app_subnet_id          = module.vnet.app_subnet_id
@@ -146,15 +145,16 @@ module "aks" {
   web_subnet_id          = module.vnet.web_subnet_id
 }
 
-# Velero module
-module "velero" {
-  source               = "./modules/velero"
-  resource_group_name  = module.resource_group.name
-  velero_identity_name = var.velero_identity_name
-  location             = var.location
-  oidc_issuer_url      = module.aks.oidc_issuer_url
-  storage_account_id   = module.storage.storage_account_id
-}
+# TODO: Uncomment Velero after the change request is approved
+# # Velero module
+# module "velero" {
+#   source               = "./modules/velero"
+#   resource_group_name  = module.resource_group.name
+#   velero_identity_name = var.velero_identity_name
+#   location             = var.location
+#   oidc_issuer_url      = module.aks.oidc_issuer_url
+#   storage_account_id   = module.storage.storage_account_id
+# }
 
 # CM-8 & CM-9: Diagnostic settings for Key Vault
 resource "azurerm_monitor_diagnostic_setting" "key_vault" {

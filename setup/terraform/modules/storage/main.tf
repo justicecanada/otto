@@ -81,10 +81,18 @@ resource "azurerm_storage_management_policy" "lifecycle" {
   }
 }
 
-resource "azurerm_storage_container" "container" {
+resource "azurerm_storage_container" "storage_container" {
   name                  = var.storage_container_name
   storage_account_name  = azurerm_storage_account.storage.name
   container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "backups_container" {
+  name                  = var.backup_container_name
+  storage_account_name  = azurerm_storage_account.storage.name
+  container_access_type = "private"
+
+  depends_on = [azurerm_storage_account.storage]
 }
 
 # Add a delay to allow for the storage to be created 
@@ -93,15 +101,6 @@ resource "null_resource" "wait_for_storage_account" {
     command = "sleep 120"
   }
   depends_on = [var.keyvault_id, azurerm_storage_account.storage, var.wait_for_propagation]
-}
-
-# SC-13: Secure storage of storage account key in Key Vault
-resource "azurerm_key_vault_secret" "storage_key" {
-  name         = "STORAGE-KEY"
-  value        = azurerm_storage_account.storage.primary_access_key
-  key_vault_id = var.keyvault_id
-
-  depends_on = [null_resource.wait_for_storage_account]
 }
 
 # Assign "Key Vault Crypto Service Encryption User" role
@@ -142,12 +141,4 @@ resource "azurerm_storage_account_customer_managed_key" "storage_cmk" {
   key_name           = var.cmk_name
 
   depends_on = [null_resource.wait_for_storage_permission_propagation]
-}
-
-resource "azurerm_storage_container" "velero_backup" {
-  name                  = var.backup_container_name
-  storage_account_name  = azurerm_storage_account.storage.name
-  container_access_type = "private"
-
-  depends_on = [azurerm_storage_account.storage]
 }

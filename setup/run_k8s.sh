@@ -195,5 +195,6 @@ else
 
 fi
 
-# Run the Velero setup script
-source check_velero.sh
+# TODO: Uncomment Velero after the change request is approved
+# # Run the Velero setup script
+# source check_velero.sh
