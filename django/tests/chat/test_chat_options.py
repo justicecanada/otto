@@ -70,7 +70,7 @@ def test_chat_options(client, all_apps_user):
         "description_en": "A Cowboy AI preset",
         "sharing_option": "private",
         "accessible_to": [],
-        "prompt": "",
+        "prompt": "Please tell me a joke about cows.",
     }
     response = client.post(
         reverse(
@@ -103,6 +103,8 @@ def test_chat_options(client, all_apps_user):
 
     # The chat options accordion should be returned, including the system prompt
     assert "You are a cowboy-themed AI" in response.content.decode("utf-8")
+    # The user message prompt should be returned too
+    assert "Please tell me a joke about cows." in response.content.decode("utf-8")
 
     new_chat = Chat.objects.get(id=new_chat.id)
     assert (

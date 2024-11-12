@@ -541,7 +541,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         )
     elif action == "save_preset":
         if request.method == "POST":
-            prompt = request.POST.get("prompt", None)
             form = PresetForm(data=request.POST, user=request.user)
 
             if form.is_valid():
@@ -562,7 +561,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 if replace_with_settings:
                     # copy the options from the chat to the preset
                     _copy_options(chat.options, preset.options)
-                    preset.options.prompt = prompt
+                    preset.options.prompt = request.POST.get("prompt", "")
                     preset.options.save()
 
                 english_title = form.cleaned_data["name_en"]
