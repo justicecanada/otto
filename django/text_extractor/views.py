@@ -145,14 +145,10 @@ def add_extracted_files(output_file, access_key):
         # double check if input name has extension, maybe this is already done
         output_name = shorten_input_name(input_name)
 
-        # Assign content directly
-        output_file.pdf_file = ContentFile(
-            pdf_bytes_content, name=f"{output_name}_OCR.pdf"
-        )
-
+        output_file.pdf_file = ContentFile(pdf_bytes_content, name=f"{output_name}.pdf")
         output_file.txt_file = ContentFile(
             txt_file_content.encode("utf-8"),
-            name=shorten_input_name(f"{output_name}_OCR.txt"),
+            name=shorten_input_name(f"{output_name}.txt"),
         )
 
         total_cost += cost
@@ -197,7 +193,6 @@ def add_extracted_files(output_file, access_key):
         merged_pdf_bytes_io.seek(0)  # Reset pointer to the start
 
         # Assign merged PDF and text content to output_file
-        # Assign merged PDF and text content to output_file
         merged_pdf_content = merged_pdf_bytes_io.read()
         output_file.pdf_file = ContentFile(
             merged_pdf_content, name=shorten_input_name("merged_output.pdf")
@@ -211,8 +206,6 @@ def add_extracted_files(output_file, access_key):
     output_file.celery_task_ids = []
     output_file.cost = display_cad_cost(total_cost)
     output_file.save(access_key=access_key)
-    output_file.txt_size = file_size_to_string(output_file.txt_file.size)
-    output_file.pdf_size = file_size_to_string(output_file.pdf_file.size)
 
     return output_file
 
@@ -233,6 +226,10 @@ def poll_tasks(request, user_request_id):
             output_file.status = "FAILURE"
         else:
             output_file.status = result.status
+
+    for output_file in output_files:
+        output_file.txt_size = file_size_to_string(output_file.txt_file.size)
+        output_file.pdf_size = file_size_to_string(output_file.pdf_file.size)
 
     context = {
         "output_files": output_files,
