@@ -89,6 +89,18 @@ resource "azurerm_key_vault_secret" "vectordb_password" {
   depends_on   = [null_resource.wait_for_permission_propagation]
 }
 
+resource "random_password" "djangodb_password" {
+  length  = 16
+  special = false
+}
+
+resource "azurerm_key_vault_secret" "djangodb_password" {
+  name         = "DJANGODB-PASSWORD"
+  value        = random_password.djangodb_password.result
+  key_vault_id = azurerm_key_vault.kv.id
+  depends_on   = [null_resource.wait_for_permission_propagation]
+}
+
 resource "random_password" "django_secret_key" {
   length = 50
 }

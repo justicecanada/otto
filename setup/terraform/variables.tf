@@ -167,3 +167,15 @@ variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the infrastructure"
 }
+
+variable "backup_container_name" {
+  description = "Name of the backup container"
+  type        = string
+  default     = "backups"
+}
+
+variable "velero_identity_name" {
+  description = "Name of the Velero managed identity"
+  type        = string
+  default     = "velero"
+}

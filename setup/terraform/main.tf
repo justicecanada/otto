@@ -93,25 +93,12 @@ module "storage" {
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
   app_subnet_id          = module.vnet.app_subnet_id
+  backup_container_name  = var.backup_container_name
 }
 
 data "azurerm_public_ip" "aks_outbound_ip" {
   name                = split("/", module.aks.outbound_ip_resource_id)[8]
   resource_group_name = split("/", module.aks.outbound_ip_resource_id)[4]
-}
-
-# DjangoDB module
-module "djangodb" {
-  source               = "./modules/djangodb"
-  resource_name        = var.djangodb_resource_name
-  resource_group_name  = module.resource_group.name
-  location             = var.location
-  tags                 = local.common_tags
-  storage_account_id   = module.storage.storage_account_id
-  keyvault_id          = module.keyvault.keyvault_id
-  aks_ip_address       = data.azurerm_public_ip.aks_outbound_ip.ip_address
-  wait_for_propagation = module.keyvault.wait_for_propagation
-  use_private_network  = var.use_private_network
 }
 
 # Cognitive Services module
@@ -157,6 +144,16 @@ module "aks" {
   admin_email            = var.admin_email
   use_private_network    = var.use_private_network
   web_subnet_id          = module.vnet.web_subnet_id
+}
+
+# Velero module
+module "velero" {
+  source               = "./modules/velero"
+  resource_group_name  = module.resource_group.name
+  velero_identity_name = var.velero_identity_name
+  location             = var.location
+  oidc_issuer_url      = module.aks.oidc_issuer_url
+  storage_account_id   = module.storage.storage_account_id
 }
 
 # CM-8 & CM-9: Diagnostic settings for Key Vault
