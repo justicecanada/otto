@@ -243,7 +243,7 @@ def poll_tasks(request, user_request_id):
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
         else:
-            output_file.status = "PENDING..."
+            output_file.status = "PENDING"
 
     context = {
         "output_files": output_files,
