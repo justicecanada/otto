@@ -201,12 +201,10 @@ def chat(request, chat_id):
         chat.options.qa_library = Library.objects.get_default_library()
         chat.options.save()
     form = ChatOptionsForm(instance=chat.options, user=request.user)
-    # TODO: Preset refactor: get accessible presets as list
-    options_preset = Preset.objects.filter(owner=request.user)
     context = {
         "chat": chat,
         "options_form": form,
-        "option_presets": options_preset,
+        "prompt": chat.options.prompt,
         "chat_messages": messages,
         "hide_breadcrumbs": True,
         "user_chats": user_chats,
@@ -511,6 +509,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                     instance=chat.options, user=request.user
                 ),
                 "preset_loaded": "true",
+                "prompt": chat.options.prompt,
             },
         )
 
@@ -537,6 +536,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             {
                 "options_form": chat_options_form,
                 "preset_loaded": "true",
+                "prompt": preset.options.prompt,
             },
         )
     elif action == "save_preset":
@@ -544,7 +544,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             form = PresetForm(data=request.POST, user=request.user)
 
             if form.is_valid():
-
                 if preset_id:
                     preset = get_object_or_404(Preset, id=preset_id, owner=request.user)
                     replace_with_settings = request.POST.get(
@@ -562,6 +561,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 if replace_with_settings:
                     # copy the options from the chat to the preset
                     _copy_options(chat.options, preset.options)
+                    preset.options.prompt = request.POST.get("prompt", "")
+                    preset.options.save()
 
                 english_title = form.cleaned_data["name_en"]
                 french_title = form.cleaned_data["name_fr"]

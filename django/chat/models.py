@@ -160,6 +160,9 @@ class ChatOptions(models.Model):
 
     mode = models.CharField(max_length=255, default=DEFAULT_MODE)
 
+    # Prompt is only saved/restored for presets
+    prompt = models.TextField(blank=True)
+
     # Chat-specific options
     chat_model = models.CharField(max_length=255, default="gpt-4o")
     chat_temperature = models.FloatField(default=0.1)
@@ -370,6 +373,9 @@ class Preset(models.Model):
         else:
             logger.error("User must be set to set user default.")
             raise ValueError("User must be set to set user default")
+
+    def __str__(self):
+        return f"Preset {self.id}: {self.name_en}"
 
 
 class Message(models.Model):
