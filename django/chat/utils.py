@@ -198,6 +198,9 @@ async def htmx_stream(
     ##############################
     is_untitled_chat = chat.title.strip() == ""
     full_message = ""
+    stop_warning_message = _(
+        "Response stopped early. Costs may still be incurred after stopping."
+    )
     generation_stopped = False
     dots_html = '<div class="typing"><span></span><span></span><span></span></div>'
     if dots:
@@ -233,6 +236,7 @@ async def htmx_stream(
                 full_message = response
             elif not generation_stopped:
                 generation_stopped = True
+                full_message = f"{full_message}\n\n*{stop_warning_message}*"
                 message = await sync_to_async(Message.objects.get)(id=message_id)
                 message.text = full_message
                 await sync_to_async(message.save)()

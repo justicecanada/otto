@@ -3887,8 +3887,8 @@
         "fr": "",
         "fr_auto": "fichier(s) toujours en cours de traitement"
     },
-    "Stop Output <br> WARNING: stopping may not reduce costs": {
-        "fr": "Arrêtez la sortie <br> AVERTISSEMENT : l’arrêt peut ne pas réduire les coûts",
-        "fr_auto": ""
+    "Response stopped early. Costs may still be incurred after stopping.": {
+        "fr": "",
+        "fr_auto": "La réponse s’est arrêtée tôt. Des coûts peuvent encore être engagés après l’arrêt."
     }
 }
