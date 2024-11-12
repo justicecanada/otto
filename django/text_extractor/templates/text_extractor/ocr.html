@@ -59,7 +59,7 @@
 
     <div id="error_message" role="alert"></div>
  
-    <div class="mt-5 d-none"
+    <div class="mt-5 {% if not show_output %}d-none{% endif %}"
          id="completed-documents"
          aria-live="polite"
          aria-atomic="true">
@@ -72,7 +72,17 @@
             <th scope="col" width="50%">{% trans "Document name" %}</th>
             <th scope="col" width="20%">{% trans "Status" %}</th>
             <th scope="col" width="10%">{% trans "Cost" %}</th>
-            <th scope="col" width="20%">{% trans "Download results" %}</th>
+            <th scope="col" width="20%">
+              <span class="visually-hidden">{% trans "Results" %}</span>
+              <a class="ms-1 d-none fw-normal icon-link"
+                 id="download-all-files"
+                 type="button"
+                 href="#"
+                 onclick="downloadAllFiles();">
+                <i class="bi bi-download h5"></i>
+                {% trans "Download all files..." %}
+              </a>
+            </th>
           </tr>
         </thead>
         <tbody id="completed_documents_body">
@@ -83,8 +93,14 @@
   </div>
 
   <script>
-  
-
+function downloadAllFiles() {
+  const downloadLinks = document.querySelectorAll('td a.icon-link');
+  downloadLinks.forEach((link, index) => {
+    setTimeout(() => {
+      link.click();
+    }, index * 100); // delay is necessary to download multiple files
+  });
+}
 // event listener for when the documents are completed the spinner is hidden and file input is cleared
 document.getElementById('completed_documents_body').addEventListener('htmx:afterSwap', function() {
   document.getElementById('file-upload-field').value = '';
@@ -107,6 +123,5 @@ document.getElementById('file-upload-field').addEventListener('change', function
   // make sure the error button is removed
   document.getElementById('error_message').classList.add('d-none');
 });
-
   </script>
 {% endblock %}

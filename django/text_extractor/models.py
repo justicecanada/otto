@@ -16,6 +16,7 @@ class UserRequest(SecureModel):
 class OutputFile(SecureModel):
     pdf_file = models.FileField(upload_to="ocr_output_files/", blank=True, null=True)
     txt_file = models.FileField(upload_to="ocr_output_files/", blank=True, null=True)
+    usd_cost = models.FloatField(default=0.0)
     # Appropriate extension will be appended to the filename when downloaded
     file_name = models.TextField(default="tmp")
     user_request = models.ForeignKey(

@@ -8,7 +8,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from otto.secure_models import AccessKey
-from otto.utils.common import file_size_to_string
+from otto.utils.common import display_cad_cost, file_size_to_string
 from otto.utils.decorators import app_access_required, budget_required
 from text_extractor.models import OutputFile, UserRequest
 
@@ -146,14 +146,17 @@ def poll_tasks(request, user_request_id):
             output_file.status = result.status
 
     for output_file in output_files:
-        if output_file.txt_file:
-            output_file.txt_size = file_size_to_string(output_file.txt_file.size)
         if output_file.pdf_file:
-            output_file.pdf_size = file_size_to_string(output_file.pdf_file.size)
+            output_file.cost = display_cad_cost(output_file.usd_cost)
+            if output_file.txt_file:
+                output_file.txt_size = file_size_to_string(output_file.txt_file.size)
+            if output_file.pdf_file:
+                output_file.pdf_size = file_size_to_string(output_file.pdf_file.size)
 
     context = {
         "output_files": output_files,
-        "user_request_id": user_request.id,
+        # If this fragment is loaded from browser back/forward, we want to refresh the page
+        "refresh_on_load": True,
     }
 
     if any(
@@ -162,7 +165,24 @@ def poll_tasks(request, user_request_id):
         context.update(
             {"poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id])}
         )
-    return render(request, "text_extractor/completed_documents.html", context)
+    else:
+        context.update({"show_download_all_button": True})
+
+    # In an HTMX request, we just want the updated rows.
+    if request.headers.get("HX-Request") == "true":
+        return render(request, "text_extractor/completed_documents.html", context)
+
+    # Otherwise, render the whole page with the updated rows.
+    from text_extractor.utils import img_extensions
+
+    context.update(
+        {
+            "extensions": ", ".join(list(img_extensions) + [".pdf"]),
+            "show_output": True,
+            "refresh_on_load": False,
+        }
+    )
+    return render(request, "text_extractor/ocr.html", context)
 
 
 def download_document(request, file_id, file_type):

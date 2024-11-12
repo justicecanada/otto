@@ -381,7 +381,7 @@ def add_extracted_files(output_file, access_key):
 
     # Clear the task IDs and update cost
     output_file.celery_task_ids = []
-    output_file.cost = display_cad_cost(total_cost)
+    output_file.usd_cost = total_cost
     output_file.save(access_key=access_key)
 
     return output_file
