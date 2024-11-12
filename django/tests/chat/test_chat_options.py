@@ -70,6 +70,7 @@ def test_chat_options(client, all_apps_user):
         "description_en": "A Cowboy AI preset",
         "sharing_option": "private",
         "accessible_to": [],
+        "prompt": "",
     }
     response = client.post(
         reverse(
