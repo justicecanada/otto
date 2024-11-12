@@ -27,6 +27,7 @@
           hx-swap="none">
       {% csrf_token %}
       {{ options_form.mode }}
+      {% if prompt %}<script>document.querySelector('#chat-prompt').value = '{{ prompt }}';</script>{% endif %}
       <script src="{% static 'chat/js/chatOptions.js' %}"></script>
       {% include 'chat/components/chat_options_accordion.html' %}
     </form>
