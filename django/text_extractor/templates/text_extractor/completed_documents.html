@@ -19,16 +19,21 @@
       <td>
         {# column4: Results #}
         <a href="{% url 'text_extractor:download_document' output_file.id 'pdf' %}"
-           class="link-dark">
+           class="link-dark me-3">
           <i class="bi bi-filetype-pdf me-1 h5" style="color: red"></i>
-          (PDF, {{ output_document.pdf_size }})
+          PDF
         </a>
+        <span class="badge bg-danger">{{ output_file.pdf_size }}</span>
         <a href="{% url 'text_extractor:download_document' output_file.id 'txt' %}"
            class="link-dark">
           <i class="bi bi-filetype-txt me-1 h5" style="color: slategray"></i>
-          (TXT, {{ output_document.txt_size }})
+          TXT
         </a>
+        <span class="badge bg-secondary">{{ output_file.txt_size }}</span>
       </td>
+    </tr>
+    <tr class="ms-3">
+      <td colspan="4" class="text-center text-warning">Please download your files before refreshing the page.</td>
     </tr>
   {% else %}
     <tr>

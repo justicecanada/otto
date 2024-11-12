@@ -10,7 +10,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from pypdf import PdfWriter
+from pypdf import PdfReader, PdfWriter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
@@ -169,7 +169,13 @@ def add_extracted_files(output_file, access_key):
 
         for task_id in output_file.celery_task_ids:
             result = process_ocr_document.AsyncResult(task_id)
-            pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+            try:
+                pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+            except Exception as e:
+                output_file.status = "FAILURE"
+                output_file.save(access_key=access_key)
+                logger.error(f"Task {task_id} failed with error: {e}")
+                continue  # Skip this task and continue with others
 
             # Accumulate total cost
             total_cost += cost
@@ -180,6 +186,44 @@ def add_extracted_files(output_file, access_key):
             # create contentfile for pdf and txt
             # add costs
             # save the model
+            # Merge PDF content
+            try:
+                pdf_reader = PdfReader(BytesIO(pdf_bytes_content))
+                for page in pdf_reader.pages:
+                    merged_pdf_writer.add_page(page)
+            except Exception as e:
+                logger.error(f"Failed to parse PDF from task {task_id}: {e}")
+                continue  # Skip this PDF and continue with others
+
+            # Accumulate text content
+            merged_text_content += txt_file_content + "\n"
+
+        # Write merged PDF to BytesIO
+        merged_pdf_bytes_io = BytesIO()
+        try:
+            merged_pdf_writer.write(merged_pdf_bytes_io)
+        except Exception as e:
+            logger.error(f"Failed to write merged PDF: {e}")
+            output_file.status = "FAILURE"
+            output_file.save(access_key=access_key)
+            raise e
+        merged_pdf_bytes_io.seek(0)  # Reset pointer to the start
+
+        # Assign merged PDF and text content to output_file
+        # Assign merged PDF and text content to output_file
+        merged_pdf_content = merged_pdf_bytes_io.read()
+        output_file.pdf_file = ContentFile(
+            merged_pdf_content, name=shorten_input_name("merged_output.pdf")
+        )
+        output_file.txt_file = ContentFile(
+            merged_text_content.encode("utf-8"),
+            name=shorten_input_name("merged_output.txt"),
+        )
+
+        # Clear the task IDs and update cost
+        output_file.celery_task_ids = []
+        output_file.cost = display_cad_cost(total_cost)
+        output_file.save(access_key=access_key)
 
     return output_file
 
