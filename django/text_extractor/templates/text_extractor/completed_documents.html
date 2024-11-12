@@ -32,9 +32,7 @@
         <span class="badge bg-secondary">{{ output_file.txt_size }}</span>
       </td>
     </tr>
-    <tr class="ms-3">
-      <td colspan="4" class="text-center text-warning">Please download your files before refreshing the page.</td>
-    </tr>
+ 
   {% else %}
     <tr>
       <td>
@@ -49,6 +47,7 @@
       <td></td>
     </tr>
   {% endif %}
+
 {% endfor %}
 {% if poll_url %}
   <tr class="d-none"
@@ -58,4 +57,10 @@
       hx-indicator="none"
       hx-swap="innerHTML"
       hx-target="#completed_documents_body"></tr>
+{% else %}
+  <tr class="ms-3">
+    <td colspan="4" class="text-center text-warning">
+      Please download your files before refreshing the page or uploading new files.
+    </td>
+  </tr>
 {% endif %}
