@@ -161,7 +161,7 @@ class ChatOptions(models.Model):
     mode = models.CharField(max_length=255, default=DEFAULT_MODE)
 
     # Prompt is only saved/restored for presets
-    prompt = models.TextField(blank=True)
+    prompt = models.TextField(blank=True, default="")
 
     # Chat-specific options
     chat_model = models.CharField(max_length=255, default="gpt-4o")
