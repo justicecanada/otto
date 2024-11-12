@@ -24,9 +24,10 @@
         onsubmit="document.getElementById('submit').disabled = true;">
     {% csrf_token %}
     <div class="container pt-5">
-      <h2 class="h3 mb-4" id="upload-label">{% trans "Upload scanned PDFs or images" %}</h2>
+      <h2 class="h3" id="upload-label">{% trans "Upload scanned PDFs or images" %}</h2>
+      <p class="text-secondary mb-4">{% trans "Maximum 2000 files / 300mb total" %}</p>
       <div class="mb-4">
-        <input class="form-control form-control"
+        <input class="form-control"
                id="file-upload-field"
                name="file_upload"
                type="file"
@@ -62,16 +63,16 @@
          id="completed-documents"
          aria-live="polite"
          aria-atomic="true">
-      <hr class="mb-5">
+      <hr class="m-0">
       {# "Completed documents" also includes in-progress now that we're using celery #}
-      <h2 class="h3">{% trans "Output documents" %}</h2>
+      <h2 class="h3 mt-4 pt-2 mb-3">{% trans "Output documents" %}</h2>
       <table class="table">
         <thead>
           <tr>
-            <th scope="col">{% trans "Document name" %}</th>
-            <th scope="col">{% trans "Status" %}</th>
-            <th scope="col">{% trans "Cost" %}</th>
-            <th scope="col">{% trans "Results" %}</th>
+            <th scope="col" width="50%">{% trans "Document name" %}</th>
+            <th scope="col" width="20%">{% trans "Status" %}</th>
+            <th scope="col" width="10%">{% trans "Cost" %}</th>
+            <th scope="col" width="20%">{% trans "Download results" %}</th>
           </tr>
         </thead>
         <tbody id="completed_documents_body">

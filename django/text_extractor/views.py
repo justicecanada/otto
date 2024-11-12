@@ -1,6 +1,3 @@
-import os
-import tempfile
-from datetime import datetime
 from io import BytesIO
 
 from django.core.files.base import ContentFile
@@ -22,7 +19,6 @@ from text_extractor.models import OutputFile, UserRequest
 from .tasks import process_ocr_document
 from .utils import (
     calculate_start_pages,
-    create_searchable_pdf,
     create_toc_pdf,
     format_merged_file_name,
     shorten_input_name,
@@ -160,10 +156,8 @@ def add_extracted_files(output_file, access_key):
         )
 
         total_cost += cost
-        output_file.cost = display_cad_cost(total_cost)
-        output_file.save(access_key=access_key)
 
-    else:  # merged TO-DO
+    else:
         merged_pdf_writer = PdfWriter()
         merged_text_content = ""
 
@@ -180,13 +174,6 @@ def add_extracted_files(output_file, access_key):
             # Accumulate total cost
             total_cost += cost
 
-            # TO DO:
-            # get the formatted name
-            # get the formatted files
-            # create contentfile for pdf and txt
-            # add costs
-            # save the model
-            # Merge PDF content
             try:
                 pdf_reader = PdfReader(BytesIO(pdf_bytes_content))
                 for page in pdf_reader.pages:
@@ -220,10 +207,12 @@ def add_extracted_files(output_file, access_key):
             name=shorten_input_name("merged_output.txt"),
         )
 
-        # Clear the task IDs and update cost
-        output_file.celery_task_ids = []
-        output_file.cost = display_cad_cost(total_cost)
-        output_file.save(access_key=access_key)
+    # Clear the task IDs and update cost
+    output_file.celery_task_ids = []
+    output_file.cost = display_cad_cost(total_cost)
+    output_file.save(access_key=access_key)
+    output_file.txt_size = file_size_to_string(output_file.txt_file.size)
+    output_file.pdf_size = file_size_to_string(output_file.pdf_file.size)
 
     return output_file
 
@@ -243,14 +232,16 @@ def poll_tasks(request, user_request_id):
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
         else:
-            output_file.status = "PENDING"
+            output_file.status = result.status
 
     context = {
         "output_files": output_files,
         "user_request_id": user_request.id,
     }
 
-    if any(output_file.status == "PENDING" for output_file in output_files):
+    if any(
+        output_file.status in ["PENDING", "PROCESSING"] for output_file in output_files
+    ):
         context.update(
             {"poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id])}
         )
