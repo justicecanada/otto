@@ -8,6 +8,7 @@
 </div>
 <script>
   (function (){
+    {% if prompt %}document.querySelector('#chat-prompt').value = '{{ prompt }}'{% endif %}
     if ("{{ preset_loaded }}" === "true" || "{{ swap }}" === "true") {
       let prompt = "{{ options_form.prompt.value }}";
       if (prompt != "") {

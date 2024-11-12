@@ -128,7 +128,7 @@
 </div>
 
 <script>
-  document.body.addEventListener('htmx:afterSettle', function() {
+  document.querySelector('#presets-modal').addEventListener('htmx:afterSettle', function() {
     const publicFields = document.getElementById('public_fields');
     const enTab = document.getElementById('en-preset-tab');
     const frTab = document.getElementById('fr-preset-tab');
@@ -142,8 +142,6 @@
           publicFields.style.display = selectedOption.value === 'others' ? 'block' : 'none';
       }
     }
-    
-        
 
     function switchLanguage(lang) {
       if (lang === 'en') {
