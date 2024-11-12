@@ -374,6 +374,9 @@ class Preset(models.Model):
             logger.error("User must be set to set user default.")
             raise ValueError("User must be set to set user default")
 
+    def __str__(self):
+        return f"Preset {self.id}: {self.name_en}"
+
 
 class Message(models.Model):
     """
