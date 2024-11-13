@@ -27,7 +27,16 @@ from chat.models import Message
 from otto.forms import FeedbackForm, PilotForm, UserGroupForm
 from otto.metrics.activity_metrics import otto_access_total
 from otto.metrics.feedback_metrics import otto_feedback_submitted_with_comment_total
-from otto.models import FEATURE_CHOICES, App, Cost, CostType, Feature, Pilot, UsageTerm
+from otto.models import (
+    FEATURE_CHOICES,
+    App,
+    Cost,
+    CostType,
+    Feature,
+    Feedback,
+    Pilot,
+    UsageTerm,
+)
 from otto.utils.common import cad_cost, display_cad_cost
 from otto.utils.decorators import permission_required
 
@@ -171,6 +180,20 @@ def message_feedback(request: HttpRequest, message_id=None):
 @login_required
 def feedback_success(request):
     return render(request, "feedback_success.html")
+
+
+@permission_required("otto.manage_users")
+def feedback_dashboard(request):
+    from django.db.models import Q
+
+    feedback = Message.objects.filter(~Q(feedback=0))
+    feedback_messages = Feedback.objects.all().order_by("-created_at")
+
+    context = {
+        "feedback": feedback,
+        "feedback_messages": feedback_messages,
+    }
+    return render(request, "feedback_dashboard.html", context)
 
 
 @login_required

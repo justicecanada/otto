@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load filters %}
+{% load autocomplete %}
+{% load static %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
+  </li>
+{% endblock %}
+
+{% block page_css %}
+  {# Script embedded here because it is required in the content_container block #}
+  <script src="{% static 'thirdparty/chart.umd.min.js' %}"></script>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "Feedback dashboard - Otto" %}
+{% endblock %}
+
+{% block content_container %}
+  <div>
+    <div class="container py-3 px-0">
+      <h1 class="mb-3 mt-2 fs-2">{% trans "Feedback dashboard" %}</h1>
+
+      <div class="row">
+        <div class="container my-3">
+          <div class="row g-0 border rounded">
+            <!-- TODO: Style bottom border and end border of the cards responsively -->
+            <!-- Stat 1 -->
+            <div class="col-12 col-xl-3 col-lg-6 p-4 border-end border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <p class="text-muted fs-6 fw-semibold mb-1">{% trans "Total Received" %}</p>
+                <span class="fs-6 fw-semibold">+12%</span>
+              </div>
+              <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">2345</p>
+            </div>
+            <!-- Stat 1 -->
+            <div class="col-12 col-xl-3 col-lg-6  p-4 border-end border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <p class="text-muted fw-semibold mb-1">{% trans "Positive" %}</p>
+                <span class="fw-semibold">+12%</span>
+              </div>
+              <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">2345</p>
+            </div>
+            <!-- Stat 1 -->
+            <div class="col-12 col-xl-3 col-lg-6  p-4 border-end border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <p class="text-muted fs-6 fw-semibold mb-1">{% trans "Negative" %}</p>
+                <span class="fs-6 fw-semibold">+12%</span>
+              </div>
+              <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">2345</p>
+            </div>
+            <!-- Stat 1 -->
+            <div class="col-12 col-xl-3 col-lg-6  p-4 border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <p class="text-muted fs-6 fw-semibold mb-1">{% trans "Feedback with comment" %}</p>
+                <span class="fs-6 fw-semibold">+12%</span>
+              </div>
+              <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">2345</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+ 
+      <div class="row mt-3">
+        <h2 class="mb-3 fs-5 fw-semibold" style="letter-spacing: -0.025em">{% trans "Latest feedback" %}</h2>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th class="col-2">{% trans "Application" %}</th>
+                <th class="col-8">{% trans "Message" %}</th>
+                <th class="col-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+
+              {% for feedback in feedback_messages %}
+                <tr data-bs-toggle="collapse"
+                    data-bs-target="#collapse-{{ feedback.id }}"
+                    aria-expanded="false"
+                    aria-controls="collapse-{{ feedback.id }}"
+                    style="cursor: pointer">
+                  <td class="align-middle col-2">
+                    <span class="me-2 fw-semibold">{{ feedback.app|upper }}</span>
+                  </td>
+                  <td class="align-middle col-8">{{ feedback.chat_message }}</td>
+                  <td class="align-middle text-end col-2">
+                    <div class="d-flex flex-column justify-content-center gap-1">
+                      <span class="mt-1 badge fw-semibold px-2 py-1 m-0 border"
+                            style="background-color: hsl(210, 20%, 98%);
+                                   border-color: rgb(229, 231, 235) !important;
+                                   color: rgb(75, 85, 99);
+                                   letter-spacing:-0.025em;
+                                   line-height: 16px">
+                        <a href="https://github.com/justicecanada/otto/commit/{{ feedback.otto_version }}"
+                           target="_blank"
+                           class="text-muted text-decoration-none">{{ feedback.otto_version }}</a>
+                      </span>
+                      <span class="align-middle text-muted fw-semibold fs-6">{{ feedback.created_at }}</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr class="collapse" id="collapse-{{ feedback.id }}">
+                  <td colspan="3">
+ 
+                    <div class="row">
+                      {# mail icon #}
+                      <div class="col-6">
+                        <a href="mailto:{{ feedback.modified_by.email }}?subject=Follow%20up%20on%20Otto%20feedback"
+                           class="text-decoration-none">
+                          <i class="bi bi-envelope-fill text-dark"></i>
+                        </a>
+                      </div>
+                      <span class="col-6  ms-0">
+                        {# Positive or negative pill #}
+                        <span class="badge bg-success text-white">{{ feedback.feedback_type }}</span>
+                      </span>
+                      <p>
+                        <strong>{% trans "Details: " %} {{ feedback.feedback_message }}</strong>
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+ 
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block page_script %}{% endblock %}
