@@ -1047,21 +1047,6 @@ div.message-text pre {
   font-size: 0.875rem;
 }
 
-.icn-spinner {
-  animation: spin-animation 1.1s infinite;
-  display: inline-block;
-}
-
-@keyframes spin-animation {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 ul.errorlist {
   border: solid 1px var(--bs-danger-border-subtle);
   border-radius: 5px;

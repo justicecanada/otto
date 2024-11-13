@@ -334,3 +334,18 @@ div.phac_aspc_form_autocomplete .results .item {
   background: #f8d7da;
   border-color: #f5c6cb;
 }
+
+.icn-spinner {
+  animation: spin-animation 1.1s infinite;
+  display: inline-block;
+}
+
+@keyframes spin-animation {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
