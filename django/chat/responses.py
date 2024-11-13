@@ -273,6 +273,7 @@ def translate_response(chat, response_message):
                 response_replacer=file_translation_generator(task_ids),
                 dots=True,
                 format=False,  # Because the generator already returns HTML
+                remove_stop=True,
             ),
             content_type="text/event-stream",
         )
@@ -365,6 +366,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 llm,
                 response_replacer=add_files_to_library(),
                 dots=True,
+                remove_stop=True,
             ),
             content_type="text/event-stream",
         )
