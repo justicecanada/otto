@@ -169,7 +169,7 @@ class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions
         fields = "__all__"
-        exclude = ["chat", "global_default"]
+        exclude = ["chat", "global_default", "prompt"]
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
