@@ -10,8 +10,8 @@
     description_fr: Appels API au modèle turbo Azure OpenAI GPT-3.5 (entrée)
     unit_name: tokens
     unit_name_fr: jetons
-    unit_cost: 0.0005
-    unit_quantity: 1000
+    unit_cost: 0.5
+    unit_quantity: 1000000
 - model: otto.CostType
   pk: 2
   fields:
@@ -22,8 +22,8 @@
     description_fr: Appels API au modèle turbo Azure OpenAI GPT-3.5 (sortie)
     unit_name: tokens
     unit_name_fr: jetons
-    unit_cost: 0.0005
-    unit_quantity: 1000
+    unit_cost: 1.5
+    unit_quantity: 1000000
 - model: otto.CostType
   pk: 3
   fields:
@@ -34,8 +34,8 @@
     description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o (entrée)
     unit_name: tokens
     unit_name_fr: jetons
-    unit_cost: 0.005
-    unit_quantity: 1000
+    unit_cost: 5
+    unit_quantity: 1000000
 - model: otto.CostType
   pk: 4
   fields:
@@ -46,8 +46,8 @@
     description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o (sortie)
     unit_name: tokens
     unit_name_fr: jetons
-    unit_cost: 0.015
-    unit_quantity: 1000
+    unit_cost: 15
+    unit_quantity: 1000000
 - model: otto.CostType
   pk: 5
   fields:
@@ -58,8 +58,8 @@
     description_fr: Appels API au modèle Azure OpenAI GPT-4-Turbo (entrée)
     unit_name: tokens
     unit_name_fr: jetons
-    unit_cost: 0.01
-    unit_quantity: 1000
+    unit_cost: 10
+    unit_quantity: 1000000
 - model: otto.CostType
   pk: 6
   fields:
@@ -70,8 +70,8 @@
     description_fr: Appels API au modèle Azure OpenAI GPT-4-Turbo (sortie)
     unit_name: tokens
     unit_name_fr: jetons
-    unit_cost: 0.03
-    unit_quantity: 1000
+    unit_cost: 30
+    unit_quantity: 1000000
 - model: otto.CostType
   pk: 7
   fields:
@@ -156,8 +156,8 @@
     description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o-mini (entrée)
     unit_name: tokens
     unit_name_fr: jetons
-    unit_cost: 0.00015
-    unit_quantity: 1000
+    unit_cost: 0.15
+    unit_quantity: 1000000
 - model: otto.CostType
   pk: 14
   fields:
@@ -168,5 +168,5 @@
     description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o-mini (sortie)
     unit_name: tokens
     unit_name_fr: jetons
-    unit_cost: 0.0006
-    unit_quantity: 1000
+    unit_cost: 0.6
+    unit_quantity: 1000000
