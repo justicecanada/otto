@@ -164,7 +164,7 @@ def chat(request, chat_id):
         user_chat.current_chat = user_chat.id == chat.id
         if user_chat.title.strip() == "":
             if not llm:
-                llm = OttoLLM("gpt-35")
+                llm = OttoLLM()
             user_chat.title = title_chat(user_chat.id, llm=llm)
             if not user_chat.current_chat:
                 user_chat.save()
