@@ -243,7 +243,12 @@ async def htmx_stream(
                 message = await sync_to_async(Message.objects.get)(id=message_id)
                 message.text = full_message
                 await sync_to_async(message.save)()
-            yield sse_string(full_message, format, dots, remove_stop=remove_stop)
+            yield sse_string(
+                full_message,
+                format,
+                dots,
+                remove_stop=remove_stop or generation_stopped,
+            )
             await asyncio.sleep(0.01)
 
         yield sse_string(full_message, format, dots=False, remove_stop=True)
