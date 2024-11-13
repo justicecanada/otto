@@ -1,5 +1,11 @@
+from io import BytesIO
+from unittest.mock import MagicMock, patch
+
+from django.core.files.base import ContentFile
+
 import pytest
 
+from text_extractor.models import OutputFile
 from text_extractor.utils import *
 
 
@@ -98,3 +104,107 @@ def test_calculate_start_pages_multiple_files(
         files = [mock_pdf_file, mock_pdf_file2, mock_image_file]
         result = calculate_start_pages(files)
         assert result == expected, f"Expected {expected}, got {result}"
+
+
+@pytest.mark.django_db
+@patch("text_extractor.utils.process_ocr_document.AsyncResult")
+@patch("text_extractor.utils.ContentFile")
+@patch("text_extractor.models.OutputFile.save")
+def test_add_extracted_files_single_task_id(
+    mock_save, mock_content_file, mock_async_result
+):
+    # Setup
+    mock_result = MagicMock()
+    mock_result.get.return_value = (
+        b"pdf_content",
+        "txt_content",
+        10.0,
+        "input_name.pdf",
+    )
+    mock_async_result.return_value = mock_result
+
+    output_file = MagicMock()
+    output_file.celery_task_ids = ["task_id_1"]
+    access_key = MagicMock()
+
+    # Call the function
+    add_extracted_files(output_file, access_key)
+
+    # Assertions
+    mock_async_result.assert_called_once_with("task_id_1")
+    mock_result.get.assert_called_once()
+    mock_content_file.assert_any_call(b"pdf_content", name="input_name.pdf")
+    mock_content_file.assert_any_call(
+        "txt_content".encode("utf-8"), name="input_name.txt"
+    )
+    output_file.save.assert_called_once_with(access_key=access_key)
+    assert output_file.usd_cost == 10.0
+    assert output_file.celery_task_ids == []
+
+
+@pytest.mark.django_db
+@patch("text_extractor.utils.process_ocr_document.AsyncResult")
+@patch("text_extractor.utils.ContentFile")
+@patch("text_extractor.models.OutputFile.save")
+def test_add_extracted_files_multiple_task_ids(
+    mock_save, mock_content_file, mock_async_result
+):
+    # Setup
+    mock_result_1 = MagicMock()
+    mock_result_1.get.return_value = (
+        b"pdf_content_1",
+        "txt_content_1",
+        5.0,
+        "input_name_1.pdf",
+    )
+    mock_result_2 = MagicMock()
+    mock_result_2.get.return_value = (
+        b"pdf_content_2",
+        "txt_content_2",
+        7.0,
+        "input_name_2.pdf",
+    )
+    mock_async_result.side_effect = [mock_result_1, mock_result_2]
+
+    output_file = MagicMock()
+    output_file.celery_task_ids = ["task_id_1", "task_id_2"]
+    access_key = MagicMock()
+
+    # Call the function
+    add_extracted_files(output_file, access_key)
+
+    # Assertions
+    assert mock_async_result.call_count == 2
+    assert mock_result_1.get.call_count == 1
+    assert mock_result_2.get.call_count == 1
+    assert mock_content_file.call_count == 2  # Called twice for PDF and TXT
+    output_file.save.assert_called_with(access_key=access_key)
+    assert output_file.usd_cost == 12.0
+    assert output_file.celery_task_ids == []
+
+
+@pytest.mark.django_db
+@patch("text_extractor.utils.process_ocr_document.AsyncResult")
+@patch("text_extractor.utils.ContentFile")
+@patch("text_extractor.models.OutputFile.save")
+def test_add_extracted_files_task_failure(
+    mock_save, mock_content_file, mock_async_result
+):
+    # Setup
+    mock_result = MagicMock()
+    mock_result.get.side_effect = Exception("Task failed")
+    mock_async_result.return_value = mock_result
+
+    output_file = MagicMock()
+    output_file.celery_task_ids = ["task_id_1"]
+    access_key = MagicMock()
+
+    # Call the function
+    with pytest.raises(Exception):
+        add_extracted_files(output_file, access_key)
+
+    # Assertions
+    mock_async_result.assert_called_once_with("task_id_1")
+    mock_result.get.assert_called_once()
+    output_file.save.assert_called_with(access_key=access_key)
+    assert output_file.status == "FAILURE"
