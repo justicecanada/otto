@@ -3886,5 +3886,17 @@
     "file(s) still processing": {
         "fr": "",
         "fr_auto": "fichier(s) toujours en cours de traitement"
+    },
+    "Avoid gendered pronouns": {
+        "fr": "",
+        "fr_auto": "Évitez les pronoms genrés"
+    },
+    "Additional instructions": {
+        "fr": "",
+        "fr_auto": "Instructions supplémentaires"
+    },
+    "(overrides all previous settings)": {
+        "fr": "",
+        "fr_auto": "(remplace tous les paramètres précédents)"
     }
 }
