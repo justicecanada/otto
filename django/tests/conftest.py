@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.test import override_settings
 
@@ -149,3 +150,37 @@ def mock_unsupported_file():
 class MockFile:
     def __init__(self, name, total_page_num):
         self.name = name
+
+
+@pytest.fixture
+def process_ocr_document_mock(mocker):
+    # Mock the Celery task's delay method
+    mock_delay = mocker.patch("text_extractor.views.process_ocr_document.delay")
+    mock_task = MagicMock()
+    mock_task.id = "mock_task_id"
+    mock_delay.return_value = mock_task
+
+    # Mock the AsyncResult
+    mock_async_result = mocker.patch(
+        "text_extractor.views.process_ocr_document.AsyncResult"
+    )
+    mock_result_instance = MagicMock()
+    # Set the return value of result.get()
+    mock_result_instance.get.return_value = (
+        b"pdf_bytes_content",  # pdf_bytes_content
+        "txt_file_content",  # txt_file_content
+        0.05,  # cost
+        "input_name",  # input_name
+    )
+    mock_async_result.return_value = mock_result_instance
+
+    return mock_delay, mock_async_result
+
+
+@pytest.fixture
+def content_file_mock(mocker):
+    original_content_file = ContentFile
+    mock_content_file = mocker.patch(
+        "django.core.files.base.ContentFile", side_effect=original_content_file
+    )
+    return mock_content_file
