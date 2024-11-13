@@ -306,7 +306,7 @@ def shorten_input_name(input_name):
 
 
 def add_extracted_files(output_file, access_key):
-    from text_extractor.tasks import process_ocr_document
+    from .tasks import process_ocr_document
 
     # Update the OutputFile objects with the generated PDF and TXT files
     # Set the celery task IDs to [] when finished
