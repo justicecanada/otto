@@ -25,6 +25,10 @@
            for="{{ options_form.summarize_gender_neutral.auto_id }}">{% trans "Avoid gendered pronouns" %}</label>
   </div>
 
+  <label for="{{ options_form.summarize_instructions.auto_id }}"
+         class="form-label px-3 mt-2 mb-1 small">{% trans "Additional instructions" %}</label>
+  <div class="px-3">{{ options_form.summarize_instructions }}</div>
+
   <label for="{{ options_form.summarize_prompt.auto_id }}"
          class="form-label px-3 mt-2 mb-1 small">
     {% trans "Custom summarize prompt" %}

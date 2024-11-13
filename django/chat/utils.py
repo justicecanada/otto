@@ -328,6 +328,7 @@ def summarize_long_text(
     target_language="en",
     custom_prompt=None,
     gender_neutral=True,
+    instructions=None,
 ):
 
     gender_neutral_instructions = {
@@ -425,6 +426,10 @@ Résumé détaillé :
             length_prompt_template = length_prompt_template.replace(
                 "</instruction>",
                 gender_neutral_instructions[target_language] + "\n</instruction>",
+            )
+        if instructions:
+            length_prompt_template = length_prompt_template.replace(
+                "</instruction>", instructions + "\n</instruction>"
             )
 
     # Tree summarizer prompt requires certain variables

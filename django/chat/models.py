@@ -173,6 +173,7 @@ class ChatOptions(models.Model):
     summarize_model = models.CharField(max_length=255, default="gpt-4o")
     summarize_style = models.CharField(max_length=255, default="short")
     summarize_language = models.CharField(max_length=255, default="en")
+    summarize_instructions = models.TextField(blank=True)
     summarize_prompt = models.TextField(blank=True)
     summarize_gender_neutral = models.BooleanField(default=True)
 
