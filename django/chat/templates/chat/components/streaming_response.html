@@ -7,4 +7,6 @@
     <div class="typing"><span></span><span></span><span></span></div>
 <!-- djlint:on -->
 </div>
-{% include "chat/components/stop_button.html" %}
+{% if not hide_stop_button %}
+  {% include "chat/components/stop_button.html" %}
+{% endif %}
