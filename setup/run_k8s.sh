@@ -117,7 +117,11 @@ envsubst < djangodb.yaml | kubectl apply -f -
 envsubst < django.yaml | kubectl apply -f -
 envsubst < redis.yaml | kubectl apply -f -
 envsubst < celery.yaml | kubectl apply -f -
-kubectl apply -f backups.yaml # Do not do envsubst on this file b/c it contains variables in the script
+
+# Apply the Backup and Media Sync jobs
+# Do not use envsubst on these files as they contain variables in the script
+kubectl apply -f db-backups.yaml
+kubectl apply -f media-sync.yaml
 
 # Function to check if all deployments (except those containing "celery") are ready
 check_deployments_ready() {
