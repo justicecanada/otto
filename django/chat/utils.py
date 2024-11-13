@@ -332,8 +332,8 @@ def summarize_long_text(
 ):
 
     gender_neutral_instructions = {
-        "en": "Use gender-neutral pronouns or avoid personal pronouns for clarity, unless the document clearly indicates the person's gender.",
-        "fr": "Utilisez des pronoms neutres ou évitez les pronoms personnels pour plus de clarté, sauf si le document indique clairement le genre de la personne.",
+        "en": "Avoid personal pronouns unless the person's gender is clearly indicated.",
+        "fr": "Évitez les pronoms personnels sauf si le genre de la personne est clairement indiqué.",
     }
 
     if len(text) == 0:
