@@ -200,4 +200,3 @@ spec:
 #     - protocol: TCP
 #       port: 6432
 #       targetPort: 6432
-

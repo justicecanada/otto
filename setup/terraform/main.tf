@@ -89,6 +89,7 @@ module "storage" {
   keyvault_id            = module.keyvault.keyvault_id
   cmk_name               = module.keyvault.cmk_name
   wait_for_propagation   = module.keyvault.wait_for_propagation
+  admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
   app_subnet_id          = module.vnet.app_subnet_id

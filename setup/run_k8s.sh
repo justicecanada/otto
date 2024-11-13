@@ -117,6 +117,7 @@ envsubst < djangodb.yaml | kubectl apply -f -
 envsubst < django.yaml | kubectl apply -f -
 envsubst < redis.yaml | kubectl apply -f -
 envsubst < celery.yaml | kubectl apply -f -
+kubectl apply -f backups.yaml # Do not do envsubst on this file b/c it contains variables in the script
 
 # Function to check if all deployments (except those containing "celery") are ready
 check_deployments_ready() {
@@ -181,7 +182,7 @@ if [ -n "$DNS_LABEL" ]; then
     # Replace <public-ip-resource-id> with the actual ID you obtained
     az network public-ip update \
         --ids $PUBLIC_IP_RESOURCE_ID \
-        --dns-name ${DNS_LABEL}
+        --dns-name ${DNS_LABEL} > /dev/null
 
     # Inform the user that the DNS label has been set and that it can take a few minutes to propagate
     echo "The DNS label has been set. Once propagation completes in a few minutes, you can access the site at $SITE_URL."

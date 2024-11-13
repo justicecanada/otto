@@ -142,3 +142,11 @@ resource "azurerm_storage_account_customer_managed_key" "storage_cmk" {
 
   depends_on = [null_resource.wait_for_storage_permission_propagation]
 }
+
+# Assign "Storage Blob Data Owner" role to the admin group
+resource "azurerm_role_assignment" "storage_admin" {
+  for_each             = toset(var.admin_group_object_ids)
+  scope                = azurerm_storage_account.storage.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = each.value
+}

@@ -39,6 +39,11 @@ variable "storage_container_name" {
   type        = string
 }
 
+variable "admin_group_object_ids" {
+  type        = list(string)
+  description = "List of object IDs of the admin Azure AD groups"
+}
+
 variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the storage account"

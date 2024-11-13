@@ -2,7 +2,7 @@ FROM python:3.11-slim-bullseye
 
 WORKDIR /django
 
-RUN apt-get update && apt-get install -y postgresql-client poppler-utils curl
+RUN apt-get update && apt-get install -y postgresql-client poppler-utils
 
 COPY requirements*.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check --no-cache-dir install \
@@ -10,10 +10,6 @@ RUN pip3 --disable-pip-version-check --no-cache-dir install \
     && rm -rf /tmp/pip-tmp
 
 COPY . /django
-
-# Copy backup script and make it executable
-COPY backup_db.sh /django/backup_db.sh
-RUN chmod +x /django/backup_db.sh
 
 RUN chmod 0755 /django/entrypoint.sh
 
