@@ -147,6 +147,8 @@ def summarize_response(chat, response_message):
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
     summary_length = chat.options.summarize_style
+    gender_neutral = chat.options.summarize_gender_neutral
+    instructions = chat.options.summarize_instructions
     custom_summarize_prompt = chat.options.summarize_prompt
     target_language = chat.options.summarize_language
     model = chat.options.summarize_model
@@ -166,6 +168,8 @@ def summarize_response(chat, response_message):
                     summary_length,
                     target_language,
                     custom_summarize_prompt,
+                    gender_neutral,
+                    instructions,
                 )
             )
         return StreamingHttpResponse(
@@ -199,6 +203,8 @@ def summarize_response(chat, response_message):
                 summary_length,
                 target_language,
                 custom_summarize_prompt,
+                gender_neutral,
+                instructions,
             )
             return StreamingHttpResponse(
                 streaming_content=htmx_stream(
