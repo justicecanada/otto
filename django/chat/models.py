@@ -174,6 +174,7 @@ class ChatOptions(models.Model):
     summarize_style = models.CharField(max_length=255, default="short")
     summarize_language = models.CharField(max_length=255, default="en")
     summarize_prompt = models.TextField(blank=True)
+    summarize_gender_neutral = models.BooleanField(default=True)
 
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")

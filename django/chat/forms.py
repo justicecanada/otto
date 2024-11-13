@@ -186,6 +186,13 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "triggerOptionSave();",
                 },
             ),
+            "summarize_gender_neutral": forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input small",
+                    "onchange": "triggerOptionSave();",
+                    "style": "filter: saturate(0); margin-top: 6px;",
+                }
+            ),
             "qa_mode": forms.Select(
                 choices=QA_MODE_CHOICES,
                 attrs={

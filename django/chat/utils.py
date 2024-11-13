@@ -327,7 +327,13 @@ def summarize_long_text(
     length="short",
     target_language="en",
     custom_prompt=None,
+    gender_neutral=True,
 ):
+
+    gender_neutral_instructions = {
+        "en": "Use gender-neutral pronouns or avoid personal pronouns for clarity, unless the document clearly indicates the person's gender.",
+        "fr": "Utilisez des pronoms neutres ou évitez les pronoms personnels pour plus de clarté, sauf si le document indique clairement le genre de la personne.",
+    }
 
     if len(text) == 0:
         return _("No text provided.")
@@ -378,8 +384,9 @@ Rewrite the text (in English) as a detailed summary, using multiple paragraphs i
 
 Some rules to follow:
 * Simply rewrite; do not say "This document is about..." etc. Include *all* important details.
-* There is no length limit - be as detailed as possible. However, **do not extrapolate** on the text. The summary must be factual and not introduce any new ideas.
-* The summary must not be longer than the input text. If document is short, just output the document verbatim.
+* There is no length limit - be as detailed as possible.
+* **Never extrapolate** on the text. The summary must be factual and not introduce any new ideas.
+* If document is short, just output the document verbatim.
 </instruction>
 Detailed summary:
 """,
@@ -391,8 +398,9 @@ Réécrivez le texte (en anglais) sous forme de résumé détaillé, en utilisan
 
 Quelques règles à suivre :
 * Réécrivez simplement ; ne dites pas "Ce document concerne..." etc. Incluez *tous* les détails importants.
-* Il n'y a pas de limite de longueur : soyez aussi détaillé que possible. Cependant, **n'extrapolez pas** sur le texte. Le résumé doit être factuel et ne pas introduire de nouvelles idées.
-* Le résumé ne doit pas être plus long que le texte saisi. Si le document est court, affichez-le tel quel.
+* Il n'y a pas de limite de longueur : soyez aussi détaillé que possible.
+* **Ne faites jamais d'extrapolation** sur le texte. Le résumé doit être factuel et ne doit pas introduire de nouvelles idées.
+* Si le document est court, affichez-le tel quel.
 </instruction>
 Résumé détaillé :
 """,
@@ -413,6 +421,12 @@ Résumé détaillé :
         )
     else:
         length_prompt_template = length_prompts[length][target_language]
+        if gender_neutral:
+            length_prompt_template = length_prompt_template.replace(
+                "</instruction>",
+                gender_neutral_instructions[target_language] + "\n</instruction>",
+            )
+
     # Tree summarizer prompt requires certain variables
     # Note that we aren't passing in a query here, so the query will be empty
     length_prompt_template = length_prompt_template.replace(
