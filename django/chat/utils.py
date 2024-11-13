@@ -158,6 +158,7 @@ async def htmx_stream(
     dots: bool = False,
     source_nodes: list = [],
     switch_mode: bool = False,
+    remove_stop: bool = False,
 ) -> AsyncGenerator:
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
@@ -198,6 +199,10 @@ async def htmx_stream(
     ##############################
     is_untitled_chat = chat.title.strip() == ""
     full_message = ""
+    stop_warning_message = _(
+        "Response stopped early. Costs may still be incurred after stopping."
+    )
+    generation_stopped = False
     dots_html = '<div class="typing"><span></span><span></span><span></span></div>'
     if dots:
         dots = dots_html
@@ -224,13 +229,26 @@ async def htmx_stream(
                         "library_str": chat.options.qa_library.name,
                     },
                 )
-                yield sse_string(full_message, format=False, dots=dots_html)
+                yield sse_string(
+                    full_message, format=False, dots=dots_html, remove_stop=remove_stop
+                )
                 await asyncio.sleep(1)
                 first_message = False
-            full_message = response
-            if cache.get(f"stop_response_{message_id}", False):
-                break
-            yield sse_string(full_message, format, dots)
+
+            if remove_stop or not cache.get(f"stop_response_{message_id}", False):
+                full_message = response
+            elif not generation_stopped:
+                generation_stopped = True
+                full_message = f"{full_message}<p><em>{stop_warning_message}</em></p>"
+                message = await sync_to_async(Message.objects.get)(id=message_id)
+                message.text = full_message
+                await sync_to_async(message.save)()
+            yield sse_string(
+                full_message,
+                format,
+                dots,
+                remove_stop=remove_stop or generation_stopped,
+            )
             await asyncio.sleep(0.01)
 
         yield sse_string(full_message, format, dots=False, remove_stop=True)

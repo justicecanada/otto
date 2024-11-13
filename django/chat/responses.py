@@ -161,17 +161,18 @@ def summarize_response(chat, response_message):
         for file in files:
             if not file.text:
                 file.extract_text(pdf_method="default")
-            responses.append(
-                summarize_long_text(
-                    file.text,
-                    llm,
-                    summary_length,
-                    target_language,
-                    custom_summarize_prompt,
-                    gender_neutral,
-                    instructions,
+            if not cache.get(f"stop_response_{response_message.id}", False):
+                responses.append(
+                    summarize_long_text(
+                        file.text,
+                        llm,
+                        summary_length,
+                        target_language,
+                        custom_summarize_prompt,
+                        gender_neutral,
+                        instructions,
+                    )
                 )
-            )
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
@@ -277,6 +278,7 @@ def translate_response(chat, response_message):
                 response_replacer=file_translation_generator(task_ids),
                 dots=True,
                 format=False,  # Because the generator already returns HTML
+                remove_stop=True,
             ),
             content_type="text/event-stream",
         )
@@ -369,6 +371,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 llm,
                 response_replacer=add_files_to_library(),
                 dots=True,
+                remove_stop=True,
             ),
             content_type="text/event-stream",
         )
@@ -407,6 +410,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 template=chat.options.qa_prompt_combined,
             )
             for document in filter_documents
+            if not cache.get(f"stop_response_{response_message.id}", False)
         ]
         response_replacer = combine_response_replacers(
             summary_responses, document_titles
@@ -531,6 +535,7 @@ def qa_response(chat, response_message, switch_mode=False):
             responses = [
                 synthesizer.synthesize(query=input, nodes=sources).response_gen
                 for sources in source_groups
+                if not cache.get(f"stop_response_{response_message.id}", False)
             ]
             response_replacer = combine_response_generators(
                 responses,

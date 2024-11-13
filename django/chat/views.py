@@ -357,6 +357,8 @@ def done_upload(request, message_id):
             response_init_message,
         ],
         "mode": mode,
+        # You can't really stop file translations or QA uploads, so don't show the button
+        "hide_stop_button": mode in ["translate", "qa"],
     }
     response.write(
         render_to_string("chat/components/chat_messages.html", context=context)
