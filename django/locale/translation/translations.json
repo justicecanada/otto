@@ -3886,5 +3886,29 @@
     "file(s) still processing": {
         "fr": "",
         "fr_auto": "fichier(s) toujours en cours de traitement"
+    },
+    "Plain text": {
+        "fr": "",
+        "fr_auto": "Texte brut"
+    },
+    "Maximum 2000 files / 300mb total": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
+    },
+    "Output documents": {
+        "fr": "",
+        "fr_auto": "Documents de sortie"
+    },
+    "Document name": {
+        "fr": "",
+        "fr_auto": "Nom du document"
+    },
+    "Status": {
+        "fr": "",
+        "fr_auto": "État d’avancement"
+    },
+    "Download all files...": {
+        "fr": "",
+        "fr_auto": "Téléchargez tous les fichiers..."
     }
 }

@@ -6,6 +6,7 @@ import uuid
 from io import BytesIO
 
 from django.conf import settings
+from django.core.files.base import ContentFile
 
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
@@ -17,6 +18,8 @@ from reportlab.lib import pagesizes
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from structlog import get_logger
+
+from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
 
@@ -133,10 +136,13 @@ def dist(p1, p2):
 
 
 def create_searchable_pdf(input_file, add_header):
+    # Reset the file pointer to the beginning
+    input_file.seek(0)
+    file_content = input_file.read()
+
     # Create a temporary file and write the contents of the uploaded file to it
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
-        for chunk in input_file.chunks():
-            temp.write(chunk)
+        temp.write(file_content)
         temp_path = temp.name
 
     if input_file.name.lower().endswith(".pdf"):
@@ -297,3 +303,85 @@ def create_searchable_pdf(input_file, add_header):
 def shorten_input_name(input_name):
     base_name, file_extension = os.path.splitext(input_name)
     return str(uuid.uuid4()) + file_extension
+
+
+def add_extracted_files(output_file, access_key):
+    from .tasks import process_ocr_document
+
+    # Update the OutputFile objects with the generated PDF and TXT files
+    # Set the celery task IDs to [] when finished
+
+    total_cost = 0
+
+    if len(output_file.celery_task_ids) == 1:
+        # Single file processing/ not merged
+        task_id = output_file.celery_task_ids[0]
+        result = process_ocr_document.AsyncResult(task_id)
+        pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+
+        # double check if input name has extension, maybe this is already done
+        output_name = shorten_input_name(input_name)
+
+        output_file.pdf_file = ContentFile(pdf_bytes_content, name=f"{output_name}.pdf")
+        output_file.txt_file = ContentFile(
+            txt_file_content.encode("utf-8"),
+            name=shorten_input_name(f"{output_name}.txt"),
+        )
+
+        total_cost += cost
+
+    else:
+        merged_pdf_writer = PdfWriter()
+        merged_text_content = ""
+
+        for task_id in output_file.celery_task_ids:
+            result = process_ocr_document.AsyncResult(task_id)
+            try:
+                pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+            except Exception as e:
+                output_file.status = "FAILURE"
+                output_file.save(access_key=access_key)
+                logger.error(f"Task {task_id} failed with error: {e}")
+                continue  # Skip this task and continue with others
+
+            # Accumulate total cost
+            total_cost += cost
+
+            try:
+                pdf_reader = PdfReader(BytesIO(pdf_bytes_content))
+                for page in pdf_reader.pages:
+                    merged_pdf_writer.add_page(page)
+            except Exception as e:
+                logger.error(f"Failed to parse PDF from task {task_id}: {e}")
+                continue  # Skip this PDF and continue with others
+
+            # Accumulate text content
+            merged_text_content += txt_file_content + "\n"
+
+        # Write merged PDF to BytesIO
+        merged_pdf_bytes_io = BytesIO()
+        try:
+            merged_pdf_writer.write(merged_pdf_bytes_io)
+        except Exception as e:
+            logger.error(f"Failed to write merged PDF: {e}")
+            output_file.status = "FAILURE"
+            output_file.save(access_key=access_key)
+            raise e
+        merged_pdf_bytes_io.seek(0)  # Reset pointer to the start
+
+        # Assign merged PDF and text content to output_file
+        merged_pdf_content = merged_pdf_bytes_io.read()
+        output_file.pdf_file = ContentFile(
+            merged_pdf_content, name=shorten_input_name("merged_output.pdf")
+        )
+        output_file.txt_file = ContentFile(
+            merged_text_content.encode("utf-8"),
+            name=shorten_input_name("merged_output.txt"),
+        )
+
+    # Clear the task IDs and update cost
+    output_file.celery_task_ids = []
+    output_file.usd_cost = total_cost
+    output_file.save(access_key=access_key)
+
+    return output_file
