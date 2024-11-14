@@ -50,7 +50,8 @@ spec:
       initContainers:
       - name: init-migrate-collectstatic
         image: ${ACR_NAME}.azurecr.io/otto:latest
-        command: ["sh", "-c", "echo 'Starting collectstatic'; python manage.py collectstatic --noinput; echo 'Collectstatic completed'; echo 'Starting migrate'; python manage.py migrate --noinput; echo 'Migrate completed'"]
+        command: ["/bin/bash"]
+        args: ["-c", "/django/migrate-collectstatic.sh"]
         envFrom:
           - configMapRef:
               name: otto-configmap

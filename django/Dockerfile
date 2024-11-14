@@ -11,7 +11,6 @@ RUN pip3 --disable-pip-version-check --no-cache-dir install \
 
 COPY . /django
 
-RUN chmod 0755 /django/entrypoint.sh
+RUN chmod 0755 /django/migrate-collectstatic.sh
 
-ENTRYPOINT ["/django/entrypoint.sh"]
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]

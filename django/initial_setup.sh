@@ -1,17 +1,5 @@
 #!/bin/sh
 
-# Wait for the database to be ready
-echo "Waiting for database..."
-{ python manage.py wait_for_db || { echo "Error: Wait for database failed"; exit 1; } }
-
-# Run migrations
-echo "Running migrations..."
-{ python manage.py migrate --noinput || { echo "Error: Migrate failed"; exit 1; } }
-
-# Collect static files
-echo "Collecting static files..."
-{ python manage.py collectstatic --noinput --clear || { echo "Error: Collect static files failed"; exit 1; } }
-
 # Reset app data
 echo "Resetting app data..."
 { python manage.py reset_app_data apps terms groups library_mini security_labels cost_types || { echo "Error: Reset app data failed"; exit 1; } }

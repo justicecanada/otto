@@ -11,5 +11,3 @@ echo "Running migrations..."
 # Collect static files
 echo "Collecting static files..."
 { python manage.py collectstatic --noinput --clear || { echo "Error: Collect static files failed"; exit 1; } }
-
-exec "$@"

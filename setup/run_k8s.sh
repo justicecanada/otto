@@ -5,6 +5,7 @@ ENV_FILE=""
 SUBSCRIPTION=""
 INIT_SCRIPT=""
 CERT_CHOICE=""
+SET_DNS_LABEL=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -23,6 +24,10 @@ while [[ $# -gt 0 ]]; do
         ;;
         --cert-choice)
         CERT_CHOICE="$2"
+        shift 2
+        ;;
+        --set-dns-label)
+        SET_DNS_LABEL="$2"
         shift 2
         ;;
         *)
@@ -206,35 +211,45 @@ fi
 
 # If the DNS_LABEL is set, update the DNS label for the public IP. This is only necessary if not using a custom domain.
 if [ -n "$DNS_LABEL" ]; then
-    echo "DNS label is set to ${DNS_LABEL}. Proceeding with DNS label update."
 
-    # Get the AKS cluster managed resource group
-    export MC_RESOURCE_GROUP=$(az aks show --resource-group $RESOURCE_GROUP_NAME --name $AKS_CLUSTER_NAME --query nodeResourceGroup -o tsv)
+    # If SET_DNS_LABEL is not set, prompt the user
+    if [[ -z "$SET_DNS_LABEL" ]]; then
+        read -p "Do you want to set the DNS label for the public IP to ${DNS_LABEL}? (y/N): " SET_DNS_LABEL
+    fi
 
-    # Find the LoadBalancer service and capture the external IP
-    EXTERNAL_IP=$(kubectl get svc -A -o jsonpath='{.items[?(@.spec.type=="LoadBalancer")].status.loadBalancer.ingress[0].ip}')
-    echo "Load Balancer External IP: $EXTERNAL_IP"
+    # If the user confirms, proceed with setting the DNS label
+    if [[ $SET_DNS_LABEL =~ ^[Yy]$ ]]; then
 
-    # Replace <your-external-ip> with the actual external IP you captured
-    PUBLIC_IP_RESOURCE_ID=$(az network public-ip list --resource-group $MC_RESOURCE_GROUP --query "[?ipAddress=='$EXTERNAL_IP'].id" -o tsv)
-    echo "Public IP Resource ID: $PUBLIC_IP_RESOURCE_ID"
+        # Get the AKS cluster managed resource group
+        export MC_RESOURCE_GROUP=$(az aks show --resource-group $RESOURCE_GROUP_NAME --name $AKS_CLUSTER_NAME --query nodeResourceGroup -o tsv)
 
-    # Replace <public-ip-resource-id> with the actual ID you obtained
-    az network public-ip update \
-        --ids $PUBLIC_IP_RESOURCE_ID \
-        --dns-name ${DNS_LABEL} > /dev/null
+        # Find the LoadBalancer service and capture the external IP
+        EXTERNAL_IP=$(kubectl get svc -A -o jsonpath='{.items[?(@.spec.type=="LoadBalancer")].status.loadBalancer.ingress[0].ip}')
+        echo "Load Balancer External IP: $EXTERNAL_IP"
 
-    # Inform the user that the DNS label has been set and that it can take a few minutes to propagate
-    echo "The DNS label has been set. Once propagation completes in a few minutes, you can access the site at $SITE_URL."
-    
+        # Replace <your-external-ip> with the actual external IP you captured
+        PUBLIC_IP_RESOURCE_ID=$(az network public-ip list --resource-group $MC_RESOURCE_GROUP --query "[?ipAddress=='$EXTERNAL_IP'].id" -o tsv)
+        echo "Public IP Resource ID: $PUBLIC_IP_RESOURCE_ID"
+
+        # Replace <public-ip-resource-id> with the actual ID you obtained
+        az network public-ip update \
+            --ids $PUBLIC_IP_RESOURCE_ID \
+            --dns-name ${DNS_LABEL} > /dev/null
+
+        # Inform the user that the DNS label has been set and that it can take a few minutes to propagate
+        echo "The DNS label has been set. Once propagation completes in a few minutes, you can access the site."
+
+    fi
+
 else
 
     # If the DNS_LABEL is not set, inform the user to update the DNS entries manually
-    echo "Please update the DNS entries to point to the external IP of the Load Balancer."
+    echo "Please ensure the DNS entries point to the external IP of the Load Balancer."
     echo "The external IP of the Load Balancer is: $EXTERNAL_IP"
-    echo "The site URL is: $SITE_URL"
 
 fi
+
+echo "The site URL is: $SITE_URL"
 
 # TODO: Uncomment Velero after the change request is approved
 # # Run the Velero setup script
