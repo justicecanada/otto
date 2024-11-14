@@ -3954,5 +3954,13 @@
     "Text extractor - Otto": {
         "fr": "",
         "fr_auto": "Extracteur de texte - Otto"
+    },
+    "Last refreshed from the": {
+        "fr": "",
+        "fr_auto": "Dernière actualisation à partir de l'"
+    },
+    "repository on": {
+        "fr": "",
+        "fr_auto": "référentiel sur"
     }
 }
