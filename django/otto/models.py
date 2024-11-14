@@ -260,6 +260,13 @@ class Feedback(models.Model):
         ("issue", _("Issue")),
     ]
 
+    FEEBACK_STATUS_CHOICES = [
+        ("new", _("New")),
+        ("in_progress", _("In progress")),
+        ("resolved", _("Resolved")),
+        ("closed", _("Closed")),
+    ]
+
     feedback_type = models.CharField(
         max_length=50,
         choices=FEEDBACK_TYPE_CHOICES,
