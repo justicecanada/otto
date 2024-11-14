@@ -76,11 +76,11 @@ check_existing_certificate() {
     fi
 }
 
-echo "Checking existing certificate..."
-check_existing_certificate
-
 # If CERT_CHOICE is blank, prompt the user to select an option
 if [[ -z "$CERT_CHOICE" ]]; then
+    echo "Checking existing certificate..."
+    check_existing_certificate
+
     echo
     echo "Do you want to:"
     echo "1) Use a CA-signed certificate from Azure Key Vault"

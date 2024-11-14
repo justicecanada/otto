@@ -88,6 +88,7 @@ deletionPolicy: Delete
 #   namespace: velero
 # spec:
 #   schedule: 0 1 * * * # Run at 1 AM daily
+#   timeZone: "America/Toronto"  # Specify Toronto timezone
 #   template:
 #     csiSnapshotTimeout: 0s
 #     excludedNamespaces:
