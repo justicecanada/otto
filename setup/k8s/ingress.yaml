@@ -7,7 +7,7 @@ metadata:
   namespace: otto
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
-    source-range: "${ALLOWED_IPS}" # AC-22, IA-8, SA-9(5), SC-5: Whitelisting IP addresses
+    nginx.ingress.kubernetes.io/whitelist-source-range: "${ALLOWED_IPS}" # AC-22, IA-8, SA-9(5), SC-5: Whitelisting IP addresses
     nginx.ingress.kubernetes.io/proxy-body-size: "300m"
     cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer # SC-8: Ensure the integrity of transmitted data    
     # SC-10: Network Disconnect - Add timeout configurations
