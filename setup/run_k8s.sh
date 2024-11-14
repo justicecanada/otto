@@ -1,9 +1,42 @@
 #!/bin/bash
 
+# Default values
+ENV_FILE=""
+SUBSCRIPTION=""
+INIT_SCRIPT=""
+CERT_CHOICE=""
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --env-file)
+        ENV_FILE="$2"
+        shift 2
+        ;;
+        --subscription)
+        SUBSCRIPTION="$2"
+        shift 2
+        ;;
+        --init-script)
+        INIT_SCRIPT="$2"
+        shift 2
+        ;;
+        --cert-choice)
+        CERT_CHOICE="$2"
+        shift 2
+        ;;
+        *)
+        # Unknown option
+        echo "Unknown option: $1"
+        exit 1
+        ;;
+    esac
+done
+
 # CM-8 & CM-9: Automate the deployment process, ensuring the inventory remains current and consistent
 
-source setup_env.sh
-source check_cert.sh
+source setup_env.sh --env-file "$ENV_FILE" --subscription "$SUBSCRIPTION" --skip-confirm "y"
+source check_cert.sh --cert-choice "$CERT_CHOICE"
 
 cd k8s
 
@@ -159,10 +192,13 @@ echo "All deployments and statefulsets are ready!"
 
 
 # Prompt the user if they want to run the initial setup
-read -p "Do you want to run the initial setup? (y/N) " -e -r
+# If the INIT_SCRIPT is not set, prompt the user
+if [[ -z "$INIT_SCRIPT" ]]; then
+    read -p "Do you want to run the initial setup? (y/N): " INIT_SCRIPT
+fi
 
-# If yes, run the initial setup
-if [[ $REPLY =~ ^[Yy]$ ]]; then
+# If initial setup is confirmed, run the initial setup script
+if [[ $INIT_SCRIPT =~ ^[Yy]$ ]]; then
     export COORDINATOR_POD=$(kubectl get pods -n otto -l app=django-app -o jsonpath='{.items[0].metadata.name}')
     kubectl exec -it $COORDINATOR_POD -n otto -- env OTTO_ADMIN="${OTTO_ADMIN}" /django/initial_setup.sh
 fi

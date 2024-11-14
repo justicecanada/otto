@@ -1,5 +1,34 @@
 #!/bin/bash
 
+# Default values
+ENV_FILE=""
+SUBSCRIPTION=""
+SKIP_CONFIRM=""
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --env-file)
+        ENV_FILE="$2"
+        shift 2
+        ;;
+        --subscription)
+        SUBSCRIPTION="$2"
+        shift 2
+        ;;
+        --skip-confirm)
+        SKIP_CONFIRM="$2"
+        shift 2
+        ;;
+        *)
+        # Unknown option
+        echo "Unknown option: $1"
+        exit 1
+        ;;
+    esac
+done
+
+
 # Ensure Azure CLI is logged in
 if ! az account show &>/dev/null; then
     echo "Not logged in to Azure. Please log in."
@@ -12,46 +41,54 @@ if ! az account get-access-token --query "expiresOn" -o tsv &>/dev/null; then
     az login --scope https://storage.azure.com/.default
 fi
 
-# CM-9: Prompt user to select an environment
-echo "Available environments:"
-env_files=($(ls .env* 2>/dev/null | sort))
+# If ENV_FILE is not provided, prompt user to select one
+if [[ -z "$ENV_FILE" ]]; then
 
-# Check if any .env files were found
-if [ ${#env_files[@]} -eq 0 ]; then
-    echo "No environment files found."
-    exit 1
+    # CM-9: Prompt user to select an environment
+    echo "Available environments:"
+    env_files=($(ls .env* 2>/dev/null | sort))
+
+    # Check if any .env files were found
+    if [ ${#env_files[@]} -eq 0 ]; then
+        echo "No environment files found."
+        exit 1
+    fi
+
+    for i in "${!env_files[@]}"; do 
+        echo "$((i+1)). ${env_files[$i]}"
+    done
+
+    while true; do
+        read -p "Select an environment (enter the number): " selection
+        if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le "${#env_files[@]}" ]; then
+            ENV_FILE="${env_files[$((selection-1))]}"
+            echo "Selected environment: $ENV_FILE"
+            break
+        else
+            echo "Invalid selection. Please choose a number from the list above."
+        fi
+    done
+
 fi
 
-for i in "${!env_files[@]}"; do 
-    echo "$((i+1)). ${env_files[$i]}"
-done
+# If SUBSCRIPTION is not provided, prompt user to select one
+if [[ -z "$SUBSCRIPTION" ]]; then
+    echo "Available subscriptions:"
+    az account list --query "[].{SubscriptionId:id, Name:name}" --output table
+    while true; do
+        read -p "Enter the Subscription ID you want to use: " SUBSCRIPTION
+        if az account show --subscription "$SUBSCRIPTION" &>/dev/null; then
+            break
+        else
+            echo "Invalid Subscription ID. Please try again."
+        fi
+    done
+fi
 
-while true; do
-    read -p "Select an environment (enter the number): " selection
-    if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le "${#env_files[@]}" ]; then
-        ENV_FILE="${env_files[$((selection-1))]}"
-        echo "Selected environment: $ENV_FILE"
-        break
-    else
-        echo "Invalid selection. Please choose a number from the list above."
-    fi
-done
-
-# List available subscriptions and prompt user to select one
-echo "Available subscriptions:"
-az account list --query "[].{SubscriptionId:id, Name:name}" --output table
-
-while true; do
-    read -p "Enter the Subscription ID you want to use: " SUBSCRIPTION_ID
-    if az account show --subscription "$SUBSCRIPTION_ID" &>/dev/null; then
-        az account set --subscription "$SUBSCRIPTION_ID"
-        export SUBSCRIPTION_ID
-        echo "Subscription set to: $SUBSCRIPTION_ID"
-        break
-    else
-        echo "Invalid Subscription ID. Please try again."
-    fi
-done
+# Set the subscription
+az account set --subscription "$SUBSCRIPTION"
+export SUBSCRIPTION_ID="$SUBSCRIPTION"
+echo "Subscription set to: $SUBSCRIPTION_ID"
 
 # Display selected environment file contents
 echo "Selected environment file contents:"
@@ -59,17 +96,17 @@ echo "----------------------------"
 cat "$ENV_FILE"
 echo "----------------------------"
 
-# Ask user if values are correct
-read -p "Are all the values correct? (y/N): " confirm
-
-if [[ ! $confirm =~ ^[Yy]$ ]]; then
-    # Ask the user if they want to open nano to edit the file
-    read -p "Do you want to edit the $ENV_FILE file in nano? (y/N): " edit_confirm
-    if [[ $edit_confirm =~ ^[Yy]$ ]]; then
-        nano "$ENV_FILE"
-    else
-        echo "Please update the $ENV_FILE file with the correct values and run the script again."
-        exit 1
+# If SKIP_CONFIRM is not 'y', ask for confirmation
+if [[ "$SKIP_CONFIRM" != "y" ]]; then
+    read -p "Are all the values correct? (y/N): " confirm
+    if [[ ! $confirm =~ ^[Yy]$ ]]; then
+        read -p "Do you want to edit the $ENV_FILE file in nano? (y/N): " edit_confirm
+        if [[ $edit_confirm =~ ^[Yy]$ ]]; then
+            nano "$ENV_FILE"
+        else
+            echo "Please update the $ENV_FILE file with the correct values and run the script again."
+            exit 1
+        fi
     fi
 fi
 

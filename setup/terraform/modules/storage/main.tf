@@ -1,3 +1,27 @@
+resource "azurerm_user_assigned_identity" "storage_identity" {
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  name                = "${var.storage_name}-identity"
+  tags                = var.tags
+}
+
+resource "azurerm_key_vault_key" "storage_cmk" {
+  # SC-12 & SC-13: Customer-managed keys for storage encryption
+  key_vault_id = var.keyvault_id
+  name         = var.cmk_name
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
 # SC-28: Storage account encryption by default using 256-bit AES encryption
 # SC-8: Azure Storage implicitly enables secure transfer
 resource "azurerm_storage_account" "storage" {
@@ -13,7 +37,8 @@ resource "azurerm_storage_account" "storage" {
   is_hns_enabled                  = true
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.storage_identity.id]
   }
 
   blob_properties {
@@ -25,10 +50,15 @@ resource "azurerm_storage_account" "storage" {
     }
   }
 
-  network_rules {
-    default_action = var.use_private_network ? "Deny" : "Allow"
-    bypass         = ["AzureServices"]
+  customer_managed_key {
+    key_vault_key_id          = azurerm_key_vault_key.storage_cmk.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.storage_identity.id
   }
+
+  # network_rules {
+  #   default_action = var.use_private_network ? "Deny" : "Allow"
+  #   bypass         = ["AzureServices"]
+  # }
 
   tags = var.tags
 }
@@ -103,22 +133,25 @@ resource "null_resource" "wait_for_storage_account" {
   depends_on = [var.keyvault_id, azurerm_storage_account.storage, var.wait_for_propagation]
 }
 
+# Assign "Storage Blob Data Owner" role to the user-assigned identity
+resource "azurerm_role_assignment" "storage_identity_data_owner" {
+  scope                = azurerm_storage_account.storage.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_user_assigned_identity.storage_identity.principal_id
+}
+
 # Assign "Key Vault Crypto Service Encryption User" role
 resource "azurerm_role_assignment" "storage_key_vault_crypto_user" {
   scope                = var.keyvault_id
   role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = azurerm_storage_account.storage.identity[0].principal_id
-
-  depends_on = [null_resource.wait_for_storage_account]
+  principal_id         = azurerm_user_assigned_identity.storage_identity.principal_id
 }
 
 # Assign "Key Vault Secrets User" role
 resource "azurerm_role_assignment" "storage_key_vault_secrets_user" {
   scope                = var.keyvault_id
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = azurerm_storage_account.storage.identity[0].principal_id
-
-  depends_on = [null_resource.wait_for_storage_account]
+  principal_id         = azurerm_user_assigned_identity.storage_identity.principal_id
 }
 
 # Add a delay to allow for the permissions to propagate
@@ -127,20 +160,9 @@ resource "null_resource" "wait_for_storage_permission_propagation" {
     command = "sleep 120"
   }
   depends_on = [
-    null_resource.wait_for_storage_account,
     azurerm_role_assignment.storage_key_vault_crypto_user,
     azurerm_role_assignment.storage_key_vault_secrets_user
   ]
-}
-
-# Update storage account to use the Key Vault Key for encryption
-resource "azurerm_storage_account_customer_managed_key" "storage_cmk" {
-  # SC-12 & SC-13: Customer-managed keys for storage encryption
-  storage_account_id = azurerm_storage_account.storage.id
-  key_vault_id       = var.keyvault_id
-  key_name           = var.cmk_name
-
-  depends_on = [null_resource.wait_for_storage_permission_propagation]
 }
 
 # Assign "Storage Blob Data Owner" role to the admin group

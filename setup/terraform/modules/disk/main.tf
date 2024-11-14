@@ -11,6 +11,7 @@ resource "azurerm_disk_encryption_set" "des" {
   location            = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   resource_group_name = var.resource_group_name
   key_vault_key_id    = var.cmk_id
+  tags                = var.tags
 
   identity {
     type = "SystemAssigned"

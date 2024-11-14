@@ -1,9 +1,26 @@
 #!/bin/bash
 
-export CERT_SUBSCRIPTION_ID #=86ca3d9f-ad5e-4c04-8dea-af9a9802e459
-export CERT_KEYVAULT_NAME #="otto-cert-kv"
-export CERT_NAME #="otto-cert"
-export CERT_CHOICE #="1"
+# Default values
+
+export CERT_SUBSCRIPTION_ID
+export CERT_KEYVAULT_NAME
+export CERT_NAME
+export CERT_CHOICE=""
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --cert-choice)
+        CERT_CHOICE="$2"
+        shift 2
+        ;;
+        *)
+        # Unknown option
+        echo "Unknown option: $1"
+        exit 1
+        ;;
+    esac
+done
 
 # Function to check the existing certificate
 check_existing_certificate() {
@@ -62,9 +79,13 @@ check_existing_certificate() {
 echo "Checking existing certificate..."
 check_existing_certificate
 
-echo
-echo "Do you want to:"
-echo "1) Use a CA-signed certificate from Azure Key Vault"
-echo "2) Generate a new Let's Encrypt certificate"
-echo "3) Skip certificate creation"
-read -p "Enter your choice (1 or 3): " CERT_CHOICE
+# If CERT_CHOICE is blank, prompt the user to select an option
+if [[ -z "$CERT_CHOICE" ]]; then
+    echo
+    echo "Do you want to:"
+    echo "1) Use a CA-signed certificate from Azure Key Vault"
+    echo "2) Generate a new Let's Encrypt certificate"
+    echo "3) Skip certificate creation"
+
+    read -p "Enter your choice (1 to 3): " CERT_CHOICE
+fi

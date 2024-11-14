@@ -1,5 +1,44 @@
 #!/bin/bash
 
+# Default values
+AUTO_APPROVE=""
+ENABLE_DEBUG=""
+ENV_FILE=""
+SUBSCRIPTION=""
+SKIP_CONFIRM=""
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --auto-approve)
+        AUTO_APPROVE="$2"
+        shift 2
+        ;;
+        --enable-debug)
+        ENABLE_DEBUG="$2"
+        shift 2
+        ;;
+        --env-file)
+        ENV_FILE="$2"
+        shift 2
+        ;;
+        --subscription)
+        SUBSCRIPTION="$2"
+        shift 2
+        ;;
+        --skip-confirm)
+        SKIP_CONFIRM="$2"
+        shift 2
+        ;;
+        *)
+        # Unknown option
+        echo "Unknown option: $1"
+        exit 1
+        ;;
+    esac
+done
+
+
 # CM-8 & CM-9: Automate the deployment process, ensuring the inventory remains current and consistent
 
 # Function to clean up temporary files
@@ -10,12 +49,15 @@ cleanup() {
 trap cleanup EXIT
 
 # Source setup_env.sh to set environment variables and create .tfvars
-source setup_env.sh
+source setup_env.sh --env-file "$ENV_FILE" --subscription "$SUBSCRIPTION" --skip-confirm "$SKIP_CONFIRM"
 
 # Ask if the user wants to auto-approve the Terraform plan
 unset TF_CLI_ARGS_apply
-read -p "Auto-approve the Terraform plan? (y/N): " auto_approve
-if [[ $auto_approve =~ ^[Yy]$ ]]; then
+if [[ -z "$AUTO_APPROVE" ]]; then
+    read -p "Auto-approve the Terraform plan? (y/N): " AUTO_APPROVE
+fi
+
+if [[ $AUTO_APPROVE =~ ^[Yy]$ ]]; then
     # Set the auto-approve flag
     export TF_CLI_ARGS_apply="-auto-approve"
 fi
@@ -92,11 +134,39 @@ container_name       = "$TF_STATE_CONTAINER"
 key                  = "$TF_STATE_KEY"
 EOF
 
-# Ensure terraform is initialized and upgraded
-terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure
 
-# Apply the Terraform configuration
-terraform apply -var-file=.tfvars
+# If ENABLE_DEBUG is blank, prompt the user if they want to enable debugging mode.
+unset TF_LOG
+if [[ -z "$ENABLE_DEBUG" ]]; then
+    read -p "Enable Terraform debugging mode? (y/N): " ENABLE_DEBUG
+fi
+
+if [[ $ENABLE_DEBUG =~ ^[Yy]$ ]]; then
+
+    # Set the Terraform log level to debug
+    export TF_LOG=DEBUG
+
+    # Set the timestamp for debugging logs
+    export TIMESTAMP=$(date +%Y%m%d%H%M%S)
+
+    # Make sure the debug directory exists
+    mkdir -p .terraform/debug
+
+    # Ensure terraform is initialized and upgraded
+    terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure > ".terraform/debug/$TIMESTAMP-init.txt" 2>&1
+
+    # Apply the Terraform configuration
+    terraform apply -var-file=.tfvars > ".terraform/debug/$TIMESTAMP-apply.txt" 2>&1
+
+else
+
+    # Ensure terraform is initialized and upgraded
+    terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure
+
+    # Apply the Terraform configuration
+    terraform apply -var-file=.tfvars
+
+fi
 
 # Make sure the secrets are set
 source ../check_secrets.sh

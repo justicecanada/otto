@@ -5,6 +5,7 @@ resource "azurerm_log_analytics_workspace" "aks" {
   resource_group_name = var.resource_group_name
   sku                 = "PerGB2018"
   retention_in_days   = 30
+  tags                = var.tags
 }
 
 # Define the Azure Kubernetes Service (AKS) cluster
@@ -192,6 +193,7 @@ resource "azurerm_monitor_action_group" "aks_alerts" {
   name                = "${var.aks_cluster_name}-alert-group"
   resource_group_name = var.resource_group_name
   short_name          = "aksalerts"
+  tags                = var.tags
 
   dynamic "email_receiver" {
     for_each = local.admin_email_list
@@ -208,6 +210,7 @@ resource "azurerm_monitor_metric_alert" "aks_network_alert" {
   name                = "${var.aks_cluster_name}-network-spike-alert"
   resource_group_name = var.resource_group_name
   scopes              = [azurerm_kubernetes_cluster.aks.id]
+  tags                = var.tags
 
   criteria {
     metric_namespace = "Microsoft.ContainerService/managedClusters"
@@ -225,11 +228,13 @@ resource "azurerm_monitor_metric_alert" "aks_network_alert" {
   window_size = "PT5M"
 }
 
+
 # SC-5, SC-5(3): CPU usage alert: Notifies when CPU reaches an abnormally high level, which could be caused by a DDoS attack
 resource "azurerm_monitor_metric_alert" "aks_cpu_alert" {
   name                = "${var.aks_cluster_name}-high-cpu-alert"
   resource_group_name = var.resource_group_name
   scopes              = [azurerm_kubernetes_cluster.aks.id]
+  tags                = var.tags
 
   criteria {
     metric_namespace = "Microsoft.ContainerService/managedClusters"
@@ -244,109 +249,125 @@ resource "azurerm_monitor_metric_alert" "aks_cpu_alert" {
   }
 }
 
+# SC-5, SC-5(3): Request rate alert: Notifies when the request rate is abnormally high
+resource "azurerm_monitor_metric_alert" "aks_request_rate_alert" {
+  name                = "${var.aks_cluster_name}-high-request-rate-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_kubernetes_cluster.aks.id]
+  tags                = var.tags
 
-# TODO: Uncomment the following alerts after fixing the issues that came up
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "kube_pod_status_ready"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 1000 # Adjust based on your normal traffic
+  }
 
-# # SC-5, SC-5(3): Request rate alert: Notifies when the request rate is abnormally high
-# resource "azurerm_monitor_metric_alert" "aks_request_rate_alert" {
-#   name                = "${var.aks_cluster_name}-high-request-rate-alert"
-#   resource_group_name = var.resource_group_name
-#   scopes              = [azurerm_kubernetes_cluster.aks.id]
+  action {
+    action_group_id = azurerm_monitor_action_group.aks_alerts.id
+  }
+}
 
-#   criteria {
-#     metric_namespace = "Microsoft.ContainerService/managedClusters"
-#     metric_name      = "kube_pod_status_ready"
-#     aggregation      = "Total"
-#     operator         = "GreaterThan"
-#     threshold        = 1000 # Adjust based on your normal traffic
-#   }
+# SC-5, SC-5(3): Connection count alert: Notifies when the number of connections to the cluster is abnormally high
+resource "azurerm_monitor_metric_alert" "aks_connection_count_alert" {
+  name                = "${var.aks_cluster_name}-high-connection-count-alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_kubernetes_cluster.aks.id]
+  tags                = var.tags
 
-#   action {
-#     action_group_id = azurerm_monitor_action_group.aks_alerts.id
-#   }
-# }
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "kube_node_status_condition"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 5000 # Adjust based on your expected connection limits
+  }
 
-# # SC-5, SC-5(3): Connection count alert: Notifies when the number of connections to the cluster is abnormally high
-# resource "azurerm_monitor_metric_alert" "aks_connection_count_alert" {
-#   name                = "${var.aks_cluster_name}-high-connection-count-alert"
-#   resource_group_name = var.resource_group_name
-#   scopes              = [azurerm_kubernetes_cluster.aks.id]
+  action {
+    action_group_id = azurerm_monitor_action_group.aks_alerts.id
+  }
+}
 
-#   criteria {
-#     metric_namespace = "Microsoft.ContainerService/managedClusters"
-#     metric_name      = "kube_node_status_condition"
-#     aggregation      = "Total"
-#     operator         = "GreaterThan"
-#     threshold        = 5000 # Adjust based on your expected connection limits
-#   }
+# AC-6(10): Restricting privileged function
+# AU-6: Audit review, analysis, and reporting
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "privileged_access_denied_alert" {
+  name                 = "${var.aks_cluster_name}-privileged-access-denied-alert"
+  resource_group_name  = var.resource_group_name
+  location             = var.location
+  description          = "Alerts when privileged access is denied in the Django application"
+  evaluation_frequency = "PT15M"
+  window_duration      = "PT15M"
+  scopes               = [azurerm_kubernetes_cluster.aks.id]
+  tags                 = var.tags
+  severity             = 0 # Severe Alert
+  enabled              = true
 
-#   action {
-#     action_group_id = azurerm_monitor_action_group.aks_alerts.id
-#   }
-# }
+  criteria {
+    query                   = <<QUERY
+      ContainerLogV2
+      | where ContainerName == "django-app-container" 
+        and LogMessage.admin == "true" 
+        and LogMessage.category == "security" 
+        and LogMessage.event == "User does not have permission"        
+      | summarize Count = count()
+    QUERY
+    time_aggregation_method = "Total"
+    operator                = "GreaterThan"
+    threshold               = 0
+    metric_measure_column   = "Count"
 
-# # AC-6(10): Restricting privileged function
-# # AU-6: Audit review, analysis, and reporting
-# resource "azurerm_monitor_scheduled_query_rules_alert_v2" "privileged_access_denied_alert" {
-#   name                = "${var.aks_cluster_name}-privileged-access-denied-alert"
-#   resource_group_name = var.resource_group_name
-#   location            = var.location
-#   description         = "Alerts when privileged access is denied in the Django application"
-#   evaluation_frequency = "PT15M"
-#   window_duration = "PT15M"
-#   scopes = [azurerm_kubernetes_cluster.aks.id]
-#   # Critical Alert
-#   severity            = 0
-#   enabled             = true  
-#   criteria {
-#     query        = <<QUERY
-#       ContainerLogV2
-#       | where ContainerName == "django-app-container" 
-#         and LogMessage.admin == "true" 
-#         and LogMessage.category == "security" 
-#         and LogMessage.event == "User does not have permission"        
-#       | summarize Count = count()
-#     QUERY
-#     time_aggregation_method = "Total"
-#     operator         = "GreaterThan"
-#     threshold        = 0
-#   }
+    failing_periods {
+      number_of_evaluation_periods             = 1
+      minimum_failing_periods_to_trigger_alert = 1
+    }
+  }
 
-#   action {
-#     action_groups = [azurerm_monitor_action_group.aks_alerts.id]
-#   }
+  auto_mitigation_enabled = true
 
-# }
+  action {
+    action_groups = [azurerm_monitor_action_group.aks_alerts.id]
+  }
 
-# # AC-6(9): Least privilege
-# # AU-6: Audit review, analysis, and reporting
-# resource "azurerm_monitor_scheduled_query_rules_alert_v2" "privileged_access_alert" {
-#   name                = "${var.aks_cluster_name}-privileged-access-alert"
-#   resource_group_name = var.resource_group_name
-#   location            = var.location
-#   description         = "Alerts when an authorized user executes a privileged function in the Django application"
-#   evaluation_frequency = "PT15M"
-#   window_duration = "PT15M"
-#   scopes = [azurerm_kubernetes_cluster.aks.id]
-#   # Informational Alert
-#   severity            = 3
-#   enabled             = true  
-#   criteria {
-#     query        = <<QUERY
-#       ContainerLogV2
-#       | where ContainerName == "django-app-container" 
-#       and LogMessage.admin == "true" 
-#       and LogMessage.category == "security" 
-#       and LogMessage.event <> "User does not have permission"
-#       | summarize Count = count()
-#     QUERY
-#     time_aggregation_method = "Total"
-#     operator         = "GreaterThan"
-#     threshold        = 0
-#   }
+}
 
-#   action {
-#     action_groups = [azurerm_monitor_action_group.aks_alerts.id]
-#   }
+# AC-6(9): Least privilege
+# AU-6: Audit review, analysis, and reporting
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "privileged_access_alert" {
+  name                 = "${var.aks_cluster_name}-privileged-access-alert"
+  resource_group_name  = var.resource_group_name
+  location             = var.location
+  description          = "Alerts when an authorized user executes a privileged function in the Django application"
+  evaluation_frequency = "PT15M"
+  window_duration      = "PT15M"
+  scopes               = [azurerm_kubernetes_cluster.aks.id]
+  tags                 = var.tags
+  severity             = 3 # Informational Alert
+  enabled              = true
 
-# }
+  criteria {
+    query                   = <<QUERY
+      ContainerLogV2
+      | where ContainerName == "django-app-container" 
+      and LogMessage.admin == "true" 
+      and LogMessage.category == "security" 
+      and LogMessage.event <> "User does not have permission"
+      | summarize Count = count()
+    QUERY
+    time_aggregation_method = "Total"
+    operator                = "GreaterThan"
+    threshold               = 0
+    metric_measure_column   = "Count"
+
+    failing_periods {
+      number_of_evaluation_periods             = 1
+      minimum_failing_periods_to_trigger_alert = 1
+    }
+  }
+
+  auto_mitigation_enabled = true
+
+  action {
+    action_groups = [azurerm_monitor_action_group.aks_alerts.id]
+  }
+}
