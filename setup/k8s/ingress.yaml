@@ -7,31 +7,25 @@ metadata:
   namespace: otto
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/whitelist-source-range: "${ALLOWED_IPS}" # AC-22, IA-8, SA-9(5), SC-5: Whitelisting IP addresses
+    nginx.ingress.kubernetes.io/whitelist-source-range: 199.212.215.11/32 # AC-22, IA-8, SA-9(5), SC-5: Whitelisting IP addresses
     nginx.ingress.kubernetes.io/proxy-body-size: "300m"
     cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer # SC-8: Ensure the integrity of transmitted data    
     # SC-10: Network Disconnect - Add timeout configurations
     nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"  # 30 minutes
     nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"  # 30 minutes
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"  # 1 minute
-    # VPN Error page
     nginx.ingress.kubernetes.io/custom-http-errors: "403"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      error_page 403 /django-403/;
-      location = /django-403 {
-        proxy_pass http://django-service:80/403/;
-        internal;
-      }
+    nginx.ingress.kubernetes.io/default-backend: nginx-errors     
 spec:
   ingressClassName: nginx
   # AC-19, SC-8, SC-13, SC-23: TLS configuration for secure communication
   # IA-2(8): Helps protect against replay attacks by securing the communication channel 
   tls:
   - hosts:
-    - ${HOST_NAME}
+    - otto-sandbox.canadacentral.cloudapp.azure.com 
     secretName: tls-secret
   rules:
-  - host: ${HOST_NAME}
+  - host: otto-sandbox.canadacentral.cloudapp.azure.com 
     http:
       paths:
       - path: /
