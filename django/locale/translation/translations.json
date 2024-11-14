@@ -3926,5 +3926,33 @@
     "Download all files...": {
         "fr": "",
         "fr_auto": "Téléchargez tous les fichiers..."
+    },
+    "Source not available (document deleted or modified since message)": {
+        "fr": "",
+        "fr_auto": "Source non disponible (document supprimé ou modifié depuis le message)"
+    },
+    "Legislation search - Otto": {
+        "fr": "",
+        "fr_auto": "Recherche de législation - Otto"
+    },
+    "Otto: Justice Canada's AI toolkit": {
+        "fr": "",
+        "fr_auto": "Otto : Trousse d’outils sur l’IA de Justice Canada"
+    },
+    "Manage pilots - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer les pilotes - Otto"
+    },
+    "Manage users - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer les utilisateurs - Otto"
+    },
+    "Template wizard - Otto": {
+        "fr": "",
+        "fr_auto": "Assistant de modèle - Otto"
+    },
+    "Text extractor - Otto": {
+        "fr": "",
+        "fr_auto": "Extracteur de texte - Otto"
     }
 }
