@@ -134,12 +134,21 @@ data:
           <div class="text-center">
             <p class="fs-6 fw-bold mb-0">403</p>
             <h1 class="fw-bolder">Forbidden / Refuser</h1>
-            <p class="text-muted">
-              You do not have permission to access this page. Make sure to connect to the Justice network (VPN) before acessing Otto.
-            </p>
-            <p class="text-muted">
-              Vous n'avez pas l'autorisation d'accéder à cette page. Assurez-vous de vous connecter au réseau du ministère (VPN) avant d'accéder à Otto.
-            </p>            
+            <div class="row justify-content-center mt-5">
+              <div class="col-md-5 my-auto">
+                <p class="text-muted">
+                  You do not have permission to access this page. Make sure to connect to the Justice network (VPN) before acessing Otto.
+                </p>
+              </div>
+              <div class="col-md-1 d-flex justify-content-center align-items-center">
+                <div class="vr my-1"></div>
+              </div>
+              <div class="col-md-5 my-auto">
+                <p class="text-muted">
+                  Vous n'avez pas l'autorisation d'accéder à cette page. Assurez-vous de vous connecter au réseau du ministère (VPN) avant d'accéder à Otto.
+                </p>
+              </div>
+            </div>         
           </div>
         </main>
       </body>
