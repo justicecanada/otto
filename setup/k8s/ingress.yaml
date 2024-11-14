@@ -14,6 +14,8 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"  # 30 minutes
     nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"  # 30 minutes
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"  # 1 minute
+    nginx.ingress.kubernetes.io/custom-http-errors: "403"
+    nginx.ingress.kubernetes.io/default-backend: nginx-errors     
 spec:
   ingressClassName: nginx
   # AC-19, SC-8, SC-13, SC-23: TLS configuration for secure communication
