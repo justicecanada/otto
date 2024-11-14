@@ -98,7 +98,10 @@ OPENAI_COST_PER_TOKEN = 0.0020 / 1000
 OPENAI_EMBEDDING_COST_PER_TOKEN = 0.0004 / 1000
 
 DEFAULT_CHAT_MODEL = "gpt-4o-mini"
-USD_TO_CAD = 1.36
+DEFAULT_QA_MODEL = "gpt-4o-mini"
+DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
+DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
+USD_TO_CAD = 1.38
 
 DEFAULT_WEEKLY_MAX = 20  # allowance $CAD/user/week unless otherwise specified
 

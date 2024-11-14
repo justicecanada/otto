@@ -219,16 +219,18 @@ async def test_htmx_stream_stop(client, all_apps_user):
     )
     # Iterate over the response_stream generator
     final_output = ""
-    first = True
+    message_counter = 0
     async for yielded_output in response_stream:
-        if first:
+        if message_counter == 0:
             assert "first thing" in yielded_output
+        elif message_counter == 1:
+            assert "second thing" in yielded_output
             # Stop the stream by requesting chat:stop_response
             response = await sync_to_async(client.get)(
                 reverse("chat:stop_response", args=[response_message.id])
             )
-            first = False
             assert response.status_code == 200
+        message_counter += 1
         # Output should start with "data: " for Server-Sent Events
         assert yielded_output.startswith("data: ")
         # Output should end with a double newline

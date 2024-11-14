@@ -111,8 +111,8 @@ class ChatOptionsManager(models.Manager):
                 qa_library=default_library,
                 chat_system_prompt=_(DEFAULT_CHAT_PROMPT),
                 chat_model=settings.DEFAULT_CHAT_MODEL,
-                qa_model=settings.DEFAULT_CHAT_MODEL,
-                summarize_model=settings.DEFAULT_CHAT_MODEL,
+                qa_model=settings.DEFAULT_QA_MODEL,
+                summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
                 qa_prompt_template=_(QA_PROMPT_TEMPLATE),
                 qa_pre_instructions=_(QA_PRE_INSTRUCTIONS),
                 qa_post_instructions=_(QA_POST_INSTRUCTIONS),
@@ -173,7 +173,9 @@ class ChatOptions(models.Model):
     summarize_model = models.CharField(max_length=255, default="gpt-4o")
     summarize_style = models.CharField(max_length=255, default="short")
     summarize_language = models.CharField(max_length=255, default="en")
+    summarize_instructions = models.TextField(blank=True)
     summarize_prompt = models.TextField(blank=True)
+    summarize_gender_neutral = models.BooleanField(default=True)
 
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
@@ -393,7 +395,7 @@ class Message(models.Model):
     feedback_comment = models.TextField(blank=True)
     is_bot = models.BooleanField(default=False)
     bot_name = models.CharField(max_length=255, blank=True)
-    usd_cost = models.DecimalField(max_digits=10, decimal_places=4, default=0)
+    usd_cost = models.DecimalField(max_digits=10, decimal_places=4, null=True)
     pinned = models.BooleanField(default=False)
     # Flexible JSON field for mode-specific details such as translation target language
     details = models.JSONField(default=dict)

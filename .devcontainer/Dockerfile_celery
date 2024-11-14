@@ -1,5 +1,10 @@
 FROM python:3.11-slim-bullseye
 
+RUN apt-get update && apt-get install -y \
+    poppler-utils \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+    
 COPY django/requirements*.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check --no-cache-dir install \
     -r /tmp/pip-tmp/requirements.txt -r /tmp/pip-tmp/requirements_dev_celery.txt \
