@@ -90,14 +90,15 @@ az account set --subscription "$SUBSCRIPTION"
 export SUBSCRIPTION_ID="$SUBSCRIPTION"
 echo "Subscription set to: $SUBSCRIPTION_ID"
 
-# Display selected environment file contents
-echo "Selected environment file contents:"
-echo "----------------------------"
-cat "$ENV_FILE"
-echo "----------------------------"
-
 # If SKIP_CONFIRM is not 'y', ask for confirmation
 if [[ "$SKIP_CONFIRM" != "y" ]]; then
+
+    # Display selected environment file contents
+    echo "Selected environment file contents:"
+    echo "----------------------------"
+    cat "$ENV_FILE"
+    echo "----------------------------"
+    
     read -p "Are all the values correct? (y/N): " confirm
     if [[ ! $confirm =~ ^[Yy]$ ]]; then
         read -p "Do you want to edit the $ENV_FILE file in nano? (y/N): " edit_confirm
