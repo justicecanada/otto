@@ -3926,5 +3926,9 @@
     "Download all files...": {
         "fr": "",
         "fr_auto": "Téléchargez tous les fichiers..."
+    },
+    "You do not have permission to access this page. Make sure to connect to the Justice network before acessing Otto.": {
+        "fr": "Vous n'avez pas l'autorisation d'accéder à cette page. Assurez-vous de vous connecter au réseau du ministère (VPN) avant d'accéder à Otto.",
+        "fr_auto": "Vous n’êtes pas autorisé à accéder à cette page. Assurez-vous de vous connecter au réseau justice avant d’accéder à Otto."
     }
 }
