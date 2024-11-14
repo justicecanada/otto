@@ -69,10 +69,13 @@
       </div>
 
  
-      <div class="row mt-3">
-        <h2 class="mb-3 fs-5 fw-semibold" style="letter-spacing: -0.025em">{% trans "Latest feedback" %}</h2>
+      <div class="row mt-3 border rounded g-0 pt-3">
+        <h2 class="mb-3 fs-5 ps-2 fw-semibold" style="letter-spacing: -0.025em">{% trans "Latest feedback" %}</h2>
+        <p class="mb-3 ps-2 text-muted">
+          {% trans "Click on a row to view more information about the feedback received, to flag the feedback as \"addressed\" or to contact the user directly." %}
+        </p>
         <div class="table-responsive">
-          <table class="table table-hover">
+          <table class="table">
             <thead>
               <tr>
                 <th class="col-2">{% trans "Application" %}</th>
@@ -89,9 +92,13 @@
                     aria-controls="collapse-{{ feedback.id }}"
                     style="cursor: pointer">
                   <td class="align-middle col-2">
-                    <span class="me-2 fw-semibold">{{ feedback.app|upper }}</span>
+                    <div class="d-flex flex-column justify-content-center gap-1">
+                      <span class="me-2 fw-semibold">{{ feedback.app|upper }}</span>
+                      <span class="badge bg-success text-white">{{ feedback.addressed }}</span>
+                    </div>
+ 
                   </td>
-                  <td class="align-middle col-8">{{ feedback.chat_message }}</td>
+                  <td class="align-middle col-8">{{ feedback.feedback_message }}</td>
                   <td class="align-middle text-end col-2">
                     <div class="d-flex flex-column justify-content-center gap-1">
                       <span class="mt-1 badge fw-semibold px-2 py-1 m-0 border"
@@ -109,20 +116,33 @@
                   </td>
                 </tr>
                 <tr class="collapse" id="collapse-{{ feedback.id }}">
-                  <td colspan="3">
- 
-                    <div class="row">
-                      {# mail icon #}
-                      <div class="col-6">
+                  <td colspan="3" class="bg-light col-12">
+                    <div class="d-flex flex-column w-100 pt-2">
+                      <div class="d-flex justify-content-between flex-1">
+                        <span class="fw-semibold">{{ feedback.modified_by.first_name }} {{ feedback.modified_by.last_name }}</span>
+                        <span class="text-muted fs-6">{{ feedback.modified_by.email }}</span>
+                      </div>
+                      <div class="d-flex justify-content-between flex-1">
                         <a href="mailto:{{ feedback.modified_by.email }}?subject=Follow%20up%20on%20Otto%20feedback"
                            class="text-decoration-none">
                           <i class="bi bi-envelope-fill text-dark"></i>
                         </a>
+                        <span class="badge bg-success text-white">{{ feedback.feedback_type }}</span>
                       </div>
-                      <span class="col-6  ms-0">
+
+                      <div class="d-flex justify-content-between flex-1">
+
+                        {# mail icon #}
+                        <a href="mailto:{{ feedback.modified_by.email }}?subject=Follow%20up%20on%20Otto%20feedback"
+                           class="text-decoration-none">
+                          <i class="bi bi-envelope-fill text-dark"></i>
+                        </a>
+ 
+ 
                         {# Positive or negative pill #}
                         <span class="badge bg-success text-white">{{ feedback.feedback_type }}</span>
-                      </span>
+ 
+                      </div>
                       <p>
                         <strong>{% trans "Details: " %} {{ feedback.feedback_message }}</strong>
                       </p>

@@ -272,6 +272,7 @@ class Feedback(models.Model):
     chat_message = models.ForeignKey(
         "chat.Message", null=True, on_delete=models.SET_NULL, related_name="message"
     )
+    addressed = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_by = models.ForeignKey(
