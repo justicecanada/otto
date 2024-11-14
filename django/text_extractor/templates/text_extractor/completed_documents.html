@@ -1,17 +1,91 @@
 {% load i18n %}
 
-{% for doc in ocr_docs %}
+{% for output_file in output_files %}
   <tr>
     <td>
-      <i class="bi bi-filetype-pdf me-1 h5" style="color: red"></i>
-      <a href="{% url 'text_extractor:download_document' doc.pdf.file.id user_request_id %}"
-         class="link-dark">{{ doc.pdf.file.file_name }} (PDF, {{ doc.pdf.size }})</a>
+      {# column1: Document #}
+      {{ output_file.file_name }}
     </td>
     <td>
-      <i class="bi bi-filetype-txt me-1 h5" style="color: slategray"></i>
-      <a href="{% url 'text_extractor:download_document' doc.txt.file.id user_request_id %}"
-         class="link-dark">{{ doc.txt.file.file_name }} (TXT, {{ doc.txt.size }})</a>
+      {# column2: Status #}
+      {% if output_file.status == "PENDING" %}
+        {# Grey circle #}
+        <div class="document-status document-status-{{ document.status }}">
+          <i class="bi bi-circle text-secondary small me-1" aria-hidden="true"></i>
+          <span>{% trans 'Queued' %}...</span>
+        </div>
+      {% elif output_file.status == "PROCESSING" %}
+        {# Blue spinner #}
+        <div class="document-status document-status-{{ document.status }}">
+          <span class="me-1">
+            <i class="bi bi-arrow-repeat text-primary small icn-spinner"
+               aria-hidden="true"></i>
+          </span>
+          <span>
+            {% if document.celery_status_message %}
+              {{ document.celery_status_message }}
+            {% else %}
+              {% trans 'Processing' %}...
+            {% endif %}
+          </span>
+        </div>
+      {% elif output_file.status == "SUCCESS" %}
+        {# Green checkmark #}
+        <div class="document-status document-status-{{ document.status }}">
+          <i class="bi bi-check-circle-fill text-success small me-1"
+             aria-hidden="true"></i>
+          <span>{% trans 'Processed' %}</span>
+          {% if document.content_type == "application/pdf" %}
+            {% if document.pdf_method %}<span class="text-muted">({{ document.pdf_method }})</span>{% endif %}
+          {% endif %}
+        </div>
+      {% elif output_file.status == "FAILURE" %}
+        {# Red exclamation mark #}
+        <div class="document-status document-status-{{ document.status }}">
+          <i class="bi bi-exclamation-circle-fill text-danger small me-1"
+             aria-hidden="true"></i>
+          <span>{% trans 'Error' %}</span>
+        </div>
+      {% endif %}
     </td>
-    <td style="white-space: nowrap;">{{ doc.cost }}</td>
+    <td>
+      {# column3: Cost #}
+      {{ output_file.cost }}
+    </td>
+    <td>
+      {% if output_file.pdf_file %}
+        {# column4: Results #}
+        <a href="{% url 'text_extractor:download_document' output_file.id 'pdf' %}"
+           class="me-3 text-nowrap icon-link">
+          <i class="bi bi-filetype-pdf h5 text-danger"></i>
+        PDF ({{ output_file.pdf_size }})</a>
+      {% endif %}
+      {% if output_file.txt_file %}
+        <a href="{% url 'text_extractor:download_document' output_file.id 'txt' %}"
+           class="text-nowrap icon-link">
+          <i class="bi bi-filetype-txt h5 text-muted"></i>
+        {% trans "Plain text" %} ({{ output_file.txt_size }})</a>
+      {% endif %}
+    </td>
   </tr>
 {% endfor %}
+{% if poll_url %}
+  <tr class="d-none"
+      id="poller"
+      hx-get="{{ poll_url }}"
+      hx-trigger="load delay:1s"
+      hx-swap="innerHTML"
+      hx-indicator="none"
+      hx-target="#completed_documents_body"></tr>
+{% endif %}
+{% if show_download_all_button %}
+  <script>document.querySelector("#download-all-files").classList.remove("d-none");</script>
+{% endif %}
+{% if user_request_id %}
+  {# Push URL to history for this specific user request #}
+  <script>history.replaceState(null, '', "{% url 'text_extractor:poll_tasks' user_request_id=user_request_id %}");</script>
+{% endif %}
+{% if refresh_on_load %}
+  {# Refresh the page immediately #}
+  <script>window.location.reload();</script>
+{% endif %}

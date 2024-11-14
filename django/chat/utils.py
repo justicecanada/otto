@@ -158,6 +158,7 @@ async def htmx_stream(
     dots: bool = False,
     source_nodes: list = [],
     switch_mode: bool = False,
+    remove_stop: bool = False,
 ) -> AsyncGenerator:
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
@@ -198,6 +199,10 @@ async def htmx_stream(
     ##############################
     is_untitled_chat = chat.title.strip() == ""
     full_message = ""
+    stop_warning_message = _(
+        "Response stopped early. Costs may still be incurred after stopping."
+    )
+    generation_stopped = False
     dots_html = '<div class="typing"><span></span><span></span><span></span></div>'
     if dots:
         dots = dots_html
@@ -224,13 +229,26 @@ async def htmx_stream(
                         "library_str": chat.options.qa_library.name,
                     },
                 )
-                yield sse_string(full_message, format=False, dots=dots_html)
+                yield sse_string(
+                    full_message, format=False, dots=dots_html, remove_stop=remove_stop
+                )
                 await asyncio.sleep(1)
                 first_message = False
-            full_message = response
-            if cache.get(f"stop_response_{message_id}", False):
-                break
-            yield sse_string(full_message, format, dots)
+
+            if remove_stop or not cache.get(f"stop_response_{message_id}", False):
+                full_message = response
+            elif not generation_stopped:
+                generation_stopped = True
+                full_message = f"{full_message}<p><em>{stop_warning_message}</em></p>"
+                message = await sync_to_async(Message.objects.get)(id=message_id)
+                message.text = full_message
+                await sync_to_async(message.save)()
+            yield sse_string(
+                full_message,
+                format,
+                dots,
+                remove_stop=remove_stop or generation_stopped,
+            )
             await asyncio.sleep(0.01)
 
         yield sse_string(full_message, format, dots=False, remove_stop=True)
@@ -243,7 +261,7 @@ async def htmx_stream(
         await sync_to_async(message.save)()
 
         if is_untitled_chat:
-            title_llm = OttoLLM("gpt-35")
+            title_llm = OttoLLM()
             await sync_to_async(title_chat)(chat.id, force_title=False, llm=title_llm)
             await sync_to_async(title_llm.create_costs)()
 
@@ -327,39 +345,84 @@ def summarize_long_text(
     length="short",
     target_language="en",
     custom_prompt=None,
+    gender_neutral=True,
+    instructions=None,
 ):
+
+    gender_neutral_instructions = {
+        "en": "Avoid personal pronouns unless the person's gender is clearly indicated.",
+        "fr": "Évitez les pronoms personnels sauf si le genre de la personne est clairement indiqué.",
+    }
 
     if len(text) == 0:
         return _("No text provided.")
 
     length_prompts = {
         "short": {
-            "en": "{docs}\n\nTL;DR (in English, in three or four sentences):\n",
-            "fr": "{docs}\n\nTL;DR (en français, en trois ou quatre phrases):\n",
+            "en": """<document>
+{docs}
+</document>
+<instruction>
+Write a TL;DR summary of document in English - 3 or 4 sentences max. If document is shorter than this, just output the document verbatim.
+</instruction>
+TL;DR:
+""",
+            "fr": """<document>
+{docs}
+</document>
+<instruction>
+Écrivez un résumé "TL;DR" en français - 3 ou 4 phrases maximum. Si le document est plus court, affichez-le tel quel.
+</instruction>
+Résumé :
+""",
         },
         "medium": {
-            "en": "Rewrite the text (in English) in a medium sized summary format and make sure the length is around two or three paragraphs.\n\n Document: {docs}",
-            "fr": "Réécrivez le texte (en français) dans un format de résumé de taille moyenne et assurez-vous que la longueur est de deux ou trois paragraphes.\n\n Document: {docs}",
+            "en": """<document>
+{docs}
+</document>
+<instruction>
+Rewrite the text (in English) in a medium sized summary format and make sure the length is around two or three paragraphs. If document is shorter than this, just output the document verbatim.
+</instruction>
+Summary:
+""",
+            "fr": """<document>
+{docs}
+</document>
+<instruction>
+Réécrivez le texte (en anglais) sous forme de résumé moyen et assurez-vous que la longueur est d'environ deux ou trois paragraphes. Si le document est plus court, affichez-le tel quel.
+</instruction>
+Résumé :
+""",
         },
         "long": {
-            "en": (
-                "Rewrite the text (in English) as a detailed summary, using multiple paragraphs if necessary. (If the input is short, output 1 paragraph only)\n\n"
-                "Some rules to follow:\n"
-                '* Simply rewrite; do not say "This document is about..." etc. Include *all* important details.\n'
-                "* There is no length limit - be as detailed as possible. However, **do not extrapolate** on the text. The summary must be factual and not introduce any new ideas.\n"
-                "* The summary must not be longer than the input text.\n\n"
-                "Please rewrite the following document."
-                "\n\n Document: {docs}"
-            ),
-            "fr": (
-                "Réécrivez le texte (en anglais) sous forme de résumé détaillé, en utilisant plusieurs paragraphes si nécessaire. (Si la saisie est courte, affichez 1 seul paragraphe)\n\n"
-                "Quelques règles à suivre :\n"
-                '* Réécrivez simplement ; ne dites pas "Ce document concerne..." etc. Incluez *tous* les détails importants.\n'
-                "* Il n'y a pas de limite de longueur : soyez aussi détaillé que possible. Cependant, **n'extrapolez pas** sur le texte. Le résumé doit être factuel et ne pas introduire de nouvelles idées.\n"
-                "* Le résumé ne doit pas être plus long que le texte saisi.\n\n"
-                "Veuillez réécrire le document suivant."
-                "\n\n Document: {docs}"
-            ),
+            "en": """<document>
+{docs}
+</document>
+<instruction>
+Rewrite the text (in English) as a detailed summary, using multiple paragraphs if necessary. (If the input is short, output 1 paragraph only)
+
+Some rules to follow:
+* Simply rewrite; do not say "This document is about..." etc. Include *all* important details.
+* There is no length limit - be as detailed as possible.
+* **Never extrapolate** on the text. The summary must be factual and not introduce any new ideas.
+* If document is short, just output the document verbatim.
+</instruction>
+Detailed summary:
+""",
+            "fr": """<document>
+{docs}
+</document>
+<instruction>
+Réécrivez le texte (en anglais) sous forme de résumé détaillé, en utilisant plusieurs paragraphes si nécessaire. (Si la saisie est courte, affichez 1 seul paragraphe)
+
+Quelques règles à suivre :
+* Réécrivez simplement ; ne dites pas "Ce document concerne..." etc. Incluez *tous* les détails importants.
+* Il n'y a pas de limite de longueur : soyez aussi détaillé que possible.
+* **Ne faites jamais d'extrapolation** sur le texte. Le résumé doit être factuel et ne doit pas introduire de nouvelles idées.
+* Si le document est court, affichez-le tel quel.
+</instruction>
+Résumé détaillé :
+""",
         },
     }
 
@@ -367,13 +430,26 @@ def summarize_long_text(
         length_prompt_template = custom_prompt
     elif custom_prompt:
         length_prompt_template = (
-            custom_prompt
-            + "\n\n"
-            + _("The original document is below, enclosed in triple quotes:")
-            + "\n'''\n{docs}\n'''"
+            """
+<document>
+{docs}
+</document>
+<instruction>
+"""
+            + f"{custom_prompt}\n</instruction>"
         )
     else:
         length_prompt_template = length_prompts[length][target_language]
+        if gender_neutral:
+            length_prompt_template = length_prompt_template.replace(
+                "</instruction>",
+                gender_neutral_instructions[target_language] + "\n</instruction>",
+            )
+        if instructions:
+            length_prompt_template = length_prompt_template.replace(
+                "</instruction>", instructions + "\n</instruction>"
+            )
+
     # Tree summarizer prompt requires certain variables
     # Note that we aren't passing in a query here, so the query will be empty
     length_prompt_template = length_prompt_template.replace(

@@ -200,13 +200,6 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
-            "chat_agent": forms.CheckboxInput(
-                attrs={
-                    "class": "form-check-input small",
-                    "onchange": "triggerOptionSave();",
-                    "style": "filter: saturate(0); margin-top: 6px;",
-                }
-            ),
             # QA advanced options are shown in a different form so they can be hidden
             "qa_system_prompt": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
@@ -269,12 +262,26 @@ class ChatOptionsForm(ModelForm):
         for field in [
             "chat_system_prompt",
             "summarize_prompt",
+            "summarize_instructions",
         ]:
             self.fields[field].widget = forms.Textarea(
                 attrs={
                     "class": "form-control form-control-sm",
                     "rows": 5,
                     "onkeyup": "triggerOptionSave();",
+                }
+            )
+
+        # Toggles
+        for field in [
+            "chat_agent",
+            "summarize_gender_neutral",
+        ]:
+            self.fields[field].widget = forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input small",
+                    "onchange": "triggerOptionSave();",
+                    "style": "filter: saturate(0); margin-top: 6px;",
                 }
             )
 

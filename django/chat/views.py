@@ -164,7 +164,7 @@ def chat(request, chat_id):
         user_chat.current_chat = user_chat.id == chat.id
         if user_chat.title.strip() == "":
             if not llm:
-                llm = OttoLLM("gpt-35")
+                llm = OttoLLM()
             user_chat.title = title_chat(user_chat.id, llm=llm)
             if not user_chat.current_chat:
                 user_chat.save()
@@ -357,6 +357,8 @@ def done_upload(request, message_id):
             response_init_message,
         ],
         "mode": mode,
+        # You can't really stop file translations or QA uploads, so don't show the button
+        "hide_stop_button": mode in ["translate", "qa"],
     }
     response.write(
         render_to_string("chat/components/chat_messages.html", context=context)

@@ -373,7 +373,7 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
     output_file1 = OutputFile.objects.create(
         access_key=access_key,
         user_request=user_request1,
-        file=ContentFile(content, name="test_file1.txt"),
+        txt_file=ContentFile(content, name="test_file1.txt"),
         file_name="test_file1.txt",
     )
     # Set the creation time to 40 hours ago
@@ -384,7 +384,7 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
     output_file2 = OutputFile.objects.create(
         access_key=access_key,
         user_request=user_request2,
-        file=ContentFile(content, name="test_file2.txt"),
+        pdf_file=ContentFile(content, name="test_file2.txt"),
         file_name="test_file2.txt",
     )
     # Set the creation time to 5 min ago
