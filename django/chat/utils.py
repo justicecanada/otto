@@ -123,7 +123,6 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
     sources = []
     for i, group in enumerate(source_nodes):
         for node in group:
-            print(node.__dict__)
             try:
                 if node.node.text == "":
                     continue
