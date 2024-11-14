@@ -361,7 +361,9 @@ class FileUpload {
         alert(xhr.statusText);
       },
       success: function (res) {
-        if (nextChunk < self.file.size) {
+        if (res.data === "Invalid request") {
+          alert(res.data);
+        } else if (nextChunk < self.file.size && res.data !== "Uploaded successfully") {
           // upload file in chunks
           file_id = res.file_id;
           self.upload_file(nextChunk, file_id);
