@@ -176,6 +176,15 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: entraclientsecretkey
+          resources:
+            # Celery workers handle background tasks, needing moderate CPU and memory.
+            # Reduced memory allocation to balance resources across components.
+            requests:
+              cpu: "500m"
+              memory: "2Gi"
+            limits:
+              cpu: "1"
+              memory: "3Gi"
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"

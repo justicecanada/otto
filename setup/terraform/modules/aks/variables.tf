@@ -57,3 +57,18 @@ variable "web_subnet_id" {
   type        = string
   description = "The ID of the subnet for the web app"
 }
+
+variable "approved_cpu_quota" {
+  type        = number
+  description = "The approved vCPU quota for the AKS cluster"
+}
+
+variable "vm_size" {
+  type        = string
+  description = "The size of VM to use for the AKS cluster"
+}
+
+variable "vm_cpu_count" {
+  type        = number
+  description = "The number of vCPUs in the selected VM size"
+}

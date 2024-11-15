@@ -143,6 +143,9 @@ module "aks" {
   tags                   = local.common_tags
   admin_email            = var.admin_email
   use_private_network    = var.use_private_network
+  vm_size                = var.vm_size
+  vm_cpu_count          = var.vm_cpu_count
+  approved_cpu_quota    = var.approved_cpu_quota
   web_subnet_id          = module.vnet.web_subnet_id
 }
 

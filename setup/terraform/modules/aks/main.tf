@@ -8,6 +8,10 @@ resource "azurerm_log_analytics_workspace" "aks" {
   tags                = var.tags
 }
 
+locals {
+  max_node_count = floor(var.approved_cpu_quota / var.vm_cpu_count)
+}
+
 # Define the Azure Kubernetes Service (AKS) cluster
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_cluster_name
@@ -22,37 +26,46 @@ resource "azurerm_kubernetes_cluster" "aks" {
   # AC-22, IA-8, SC-2, SC-5: Configure the private cluster settings
   private_cluster_enabled = var.use_private_network
 
-  # Configure the default node pool
+  # Cluster-level autoscaling configuration:
+  # - vm_size: Defines CPU and memory for each node (e.g., "Standard_D4s_v3")
+  # - min_count and max_count: Set lower and upper bounds for node count
+  # - enable_auto_scaling: Activates autoscaler for this node pool
+  #
+  # Autoscaler adds nodes when pods can't be scheduled due to resource constraints,
+  # and removes underutilized nodes when pods can be rescheduled.
+  #
+  # Fine-tune behavior with auto_scaler_profile settings in AKS cluster resource.
+  # Pod-level autoscaling: See HorizontalPodAutoscaler in K8s manifests.
+  # Container resource limits: Defined in individual deployment files.
+
   default_node_pool {
     name                = "default"
-    node_count          = 2
-    vm_size             = "Standard_D4s_v3"
+    vm_size             = var.vm_size
     enable_auto_scaling = true
     min_count           = 1
-    max_count           = 2
+    max_count           = local.max_node_count
     vnet_subnet_id      = var.web_subnet_id
 
-    # Set upgrade settings for the node pool
     upgrade_settings {
-      max_surge = "10%"
+      max_surge = "10%" # Max nodes that can be added during an upgrade
     }
   }
 
   auto_scaler_profile {
-    balance_similar_node_groups      = true
-    expander                         = "random"
-    max_graceful_termination_sec     = 600
-    max_node_provisioning_time       = "15m"
-    max_unready_nodes                = 3
-    max_unready_percentage           = 45
-    new_pod_scale_up_delay           = "10s"
-    scale_down_delay_after_add       = "10m"
-    scale_down_delay_after_delete    = "10s"
-    scale_down_delay_after_failure   = "3m"
-    scan_interval                    = "10s"
-    scale_down_unneeded              = "10m"
-    scale_down_unready               = "20m"
-    scale_down_utilization_threshold = 0.5
+    balance_similar_node_groups      = true     # Attempts to balance the size of similarly labeled node groups
+    expander                         = "random" # Chooses a random node group when scaling out
+    max_graceful_termination_sec     = 600      # Maximum time to wait for pod termination when scaling down (10 minutes)
+    max_node_provisioning_time       = "15m"    # Maximum time to wait for a node to be provisioned
+    max_unready_nodes                = 3        # Maximum number of unready nodes before affecting cluster operations
+    max_unready_percentage           = 45       # Maximum percentage of unready nodes before affecting cluster operations
+    new_pod_scale_up_delay           = "10s"    # Delay before scaling up for newly created pods
+    scale_down_delay_after_add       = "10m"    # Wait time after adding nodes before considering scale down
+    scale_down_delay_after_delete    = "10s"    # Wait time after deleting nodes before considering further scale down
+    scale_down_delay_after_failure   = "3m"     # Wait time after a failed scale down before retrying
+    scan_interval                    = "10s"    # How often the autoscaler checks the cluster state
+    scale_down_unneeded              = "10m"    # How long a node should be unneeded before it's considered for scale down
+    scale_down_unready               = "20m"    # How long an unready node should be unneeded before it's considered for scale down
+    scale_down_utilization_threshold = 0.5      # Node utilization level below which it's considered for scale down (50%)
   }
 
   # Set the identity type to SystemAssigned

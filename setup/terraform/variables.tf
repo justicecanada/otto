@@ -173,3 +173,21 @@ variable "velero_identity_name" {
   type        = string
   default     = "velero"
 }
+
+variable "approved_cpu_quota" {
+  type        = number
+  description = "The approved vCPU quota for the AKS cluster"
+  default     = 10
+}
+
+variable "vm_size" {
+  type        = string
+  description = "The size of VM to use for the AKS cluster"
+  default     = "Standard_D4s_v3" # General-purpose VM with 4 vCPUs, 16 GiB RAM, and 32 GiB temporary storage
+}
+
+variable "vm_cpu_count" {
+  type        = number
+  description = "The number of vCPUs in the selected VM size"
+  default     = 4 # Standard_D4s_v3 has 4 vCPUs
+}

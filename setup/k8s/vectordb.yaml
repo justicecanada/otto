@@ -42,12 +42,15 @@ spec:
           ports:
             - containerPort: 5432
           resources:
+            # Database requires stable resources. Somewhat equal requests and limits prevent resource contention.
+            # Increased the CPU limit to allow for query spikes.
+            # Memory remains relatively consistent to ensure stable performance.
             requests:
               cpu: "500m"
-              memory: "4Gi"
+              memory: "2Gi"
             limits:
-              cpu: "500m"
-              memory: "4Gi"
+              cpu: "1"
+              memory: "3Gi"
           volumeMounts:
             - name: postgres-vector-storage
               mountPath: /var/lib/postgresql/data

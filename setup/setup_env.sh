@@ -173,6 +173,8 @@ export DJANGO_DEBUG
 export OTTO_ADMIN
 export ADMIN_EMAIL
 
+export APPROVED_CPU_QUOTA
+
 export GPT_35_TURBO_CAPACITY
 export GPT_4_TURBO_CAPACITY
 export GPT_4o_CAPACITY
@@ -281,6 +283,7 @@ storage_name = "${STORAGE_NAME}"
 acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
 velero_identity_name = "${VELERO_IDENTITY_NAME}"
+approved_cpu_quota = "${APPROVED_CPU_QUOTA}"
 vnet_name = "${VNET_NAME}"
 vnet_ip_range = "${VNET_IP_RANGE}"
 web_subnet_name = "${WEB_SUBNET_NAME}"

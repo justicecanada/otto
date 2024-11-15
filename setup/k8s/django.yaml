@@ -149,11 +149,14 @@ spec:
                 name: azure-keyvault-secrets
                 key: entraclientsecretkey
           resources:
+            # Django is the main application server, requiring substantial resources.
+            # High CPU limit to allow for bursts during high load periods.
+            # High memory limit allows for handling concurrent requests and caching.
             requests:
               cpu: "1"
               memory: "4Gi"
             limits:
-              cpu: "1"
+              cpu: "2"
               memory: "8Gi"
           volumeMounts:
             - name: secrets
