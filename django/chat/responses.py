@@ -355,7 +355,7 @@ def qa_response(chat, response_message, switch_mode=False):
             existing_document = Document.objects.filter(
                 data_source=chat.data_source,
                 filename=file.filename,
-                file__sha256_hash=file.hash,
+                file__sha256_hash=file.saved_file.sha256_hash,
             ).first()
             # Skip if filename and hash are the same, and processing status is SUCCESS
             if existing_document:

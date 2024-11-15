@@ -472,7 +472,7 @@ def upload(request, data_source_id):
             existing_document = Document.objects.filter(
                 data_source_id=data_source_id,
                 filename=file.name,
-                file__sha256_hash=file.hash,
+                file__sha256_hash=file_hash,
             ).first()
             # Skip if filename and hash are the same, and processing status is SUCCESS
             if existing_document:
