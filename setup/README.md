@@ -88,6 +88,24 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
      - Copy and securely store the client secret value.
   - Use the Application (client) ID and client secret in your Terraform script or application configuration.
 
+- **Increase Resource Quota Limits**
+  - To allow proper scaling of the infrastructure, increase the default vCPU quota in Azure:
+    - Log in to the [Azure Portal](https://portal.azure.com).
+    - Search for and select "Quotas" in the top search bar.
+    - On the Quotas page, select "Compute" from the provider dropdown.
+    - Find and select "Total Regional vCPUs" for the deployment region.
+    - Click "New quota request" at the top of the page.
+    - Choose "Enter a new limit" and set the new value:
+      - For DEV environment: 16 vCPUs
+      - For UAT and PROD environments: 64 vCPUs or higher, based on the scaling needs
+    - Submit the request.
+  - Important Notes:
+    - Quota increase requests typically process within hours but may take up to 2 business days.
+    - Be prepared to justify larger quota increases if automatic approval is not granted.
+    - Increasing quotas doesn't incur costs; you're only charged for resources you use.
+    - Monitor resource usage and adjust quotas as needed to ensure proper application scaling.
+      
+
 ## Deployment Steps
 
 ### 1. Open Azure Cloud Shell and access the Otto repository:
