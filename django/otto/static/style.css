@@ -162,6 +162,7 @@ div.app-card-other:hover {
 #top-nav {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
+  height: 46px;
 }
 
 #top-nav-search-input input {
@@ -172,7 +173,7 @@ div#top-nav-search {
   left: 50%;
   width: 500px;
   margin-left: -250px;
-  zoom: 0.81;
+  zoom: 0.82;
   top: 0.25rem;
 }
 
