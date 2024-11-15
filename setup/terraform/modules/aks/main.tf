@@ -24,15 +24,35 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   # Configure the default node pool
   default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_D4s_v3"
-    vnet_subnet_id = var.web_subnet_id
+    name                = "default"
+    node_count          = 2
+    vm_size             = "Standard_D4s_v3"
+    enable_auto_scaling = true
+    min_count           = 1
+    max_count           = 2
+    vnet_subnet_id      = var.web_subnet_id
 
     # Set upgrade settings for the node pool
     upgrade_settings {
       max_surge = "10%"
     }
+  }
+
+  auto_scaler_profile {
+    balance_similar_node_groups      = true
+    expander                         = "random"
+    max_graceful_termination_sec     = 600
+    max_node_provisioning_time       = "15m"
+    max_unready_nodes                = 3
+    max_unready_percentage           = 45
+    new_pod_scale_up_delay           = "10s"
+    scale_down_delay_after_add       = "10m"
+    scale_down_delay_after_delete    = "10s"
+    scale_down_delay_after_failure   = "3m"
+    scan_interval                    = "10s"
+    scale_down_unneeded              = "10m"
+    scale_down_unready               = "20m"
+    scale_down_utilization_threshold = 0.5
   }
 
   # Set the identity type to SystemAssigned
