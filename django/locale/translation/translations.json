@@ -695,10 +695,6 @@
         "fr": "",
         "fr_auto": "Général (Otto)"
     },
-    "Otto: Powering legal excellence through data-driven innovation": {
-        "fr": "",
-        "fr_auto": "Otto : Alimenter l’excellence juridique grâce à l’innovation axée sur les données"
-    },
     "Provide feedback or report an issue using the form below.": {
         "fr": "",
         "fr_auto": "Fournissez des commentaires ou signalez un problème à l’aide du formulaire ci-dessous."
@@ -3935,10 +3931,6 @@
         "fr": "",
         "fr_auto": "Recherche de législation - Otto"
     },
-    "Otto: Justice Canada's AI toolkit": {
-        "fr": "",
-        "fr_auto": "Otto : Trousse d’outils sur l’IA de Justice Canada"
-    },
     "Manage pilots - Otto": {
         "fr": "",
         "fr_auto": "Gérer les pilotes - Otto"
@@ -3962,5 +3954,17 @@
     "repository on": {
         "fr": "",
         "fr_auto": "référentiel sur"
+    },
+    "Otto: AI and data science tools for Department of Justice Canada": {
+        "fr": "",
+        "fr_auto": "Otto : Outils d’IA et de science des données pour le ministère de la Justice du Canada"
+    },
+    "AI and data science tools for Department of Justice Canada": {
+        "fr": "",
+        "fr_auto": "Outils d’IA et de science des données pour le ministère de la Justice du Canada"
+    },
+    "Downloads": {
+        "fr": "",
+        "fr_auto": "Téléchargements"
     }
 }
