@@ -163,8 +163,10 @@ def poll_tasks(request, user_request_id):
         context.update(
             {"poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id])}
         )
-    else:
-        context.update({"show_download_all_button": True})
+    # else:
+    #     "Download all" doesn't work in prod. Disabling for now.
+    #     TODO: Zipped download of all files
+    #     context.update({"show_download_all_button": True})
 
     # In an HTMX request, we just want the updated rows.
     if request.headers.get("HX-Request") == "true":
