@@ -75,7 +75,6 @@
       hx-get="{{ poll_url }}"
       hx-trigger="load delay:1s"
       hx-swap="innerHTML"
-      hx-indicator="none"
       hx-target="#completed_documents_body"></tr>
 {% endif %}
 {% if show_download_all_button %}
@@ -85,10 +84,12 @@
   <script>window.location.href = "{% url 'text_extractor:poll_tasks' user_request_id=user_request_id %}";</script>
 {% endif %}
 <script>
-// If arriving at a page fragment via browser back-forward, refresh.
-// A page fragment will not have the #top-nav element
-let is_page_fragment = document.getElementById('top-nav') === null;
-if (performance.navigation.type === 2 && is_page_fragment) {
-  location.reload();
-}
+(function () {
+  // If arriving at a page fragment via browser back-forward, refresh.
+  // A page fragment will not have the #top-nav element
+  let is_page_fragment = document.getElementById('top-nav') === null;
+  if (performance.navigation.type === 2 && is_page_fragment) {
+    location.reload();
+  }
+})();
 </script>

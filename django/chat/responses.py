@@ -352,6 +352,16 @@ def qa_response(chat, response_message, switch_mode=False):
 
     if len(files) > 0 or adding_url:
         for file in files:
+            existing_document = Document.objects.filter(
+                data_source=chat.data_source,
+                filename=file.filename,
+                file__sha256_hash=file.hash,
+            ).first()
+            # Skip if filename and hash are the same, and processing status is SUCCESS
+            if existing_document:
+                if existing_document.status != "SUCCESS":
+                    existing_document.process()
+                continue
             document = Document.objects.create(
                 data_source=chat.data_source,
                 file=file.saved_file,
@@ -359,10 +369,15 @@ def qa_response(chat, response_message, switch_mode=False):
             )
             document.process()
         if adding_url:
-            document = Document.objects.create(
-                data_source=chat.data_source,
-                url=user_message.text,
-            )
+            existing_document = Document.objects.filter(
+                data_source=chat.data_source, url=user_message.text
+            ).first()
+            if not existing_document:
+                document = Document.objects.create(
+                    data_source=chat.data_source,
+                    url=user_message.text,
+                )
+            # URLs are always re-processed
             document.process()
         return StreamingHttpResponse(
             streaming_content=htmx_stream(

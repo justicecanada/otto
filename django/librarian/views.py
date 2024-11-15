@@ -468,10 +468,25 @@ def upload(request, data_source_id):
             logger.info(
                 f"Found existing SavedFile for {file.name}", saved_file_id=file_obj.id
             )
+            # Check if identical document already exists in the DataSource
+            existing_document = Document.objects.filter(
+                data_source_id=data_source_id,
+                filename=file.name,
+                file__sha256_hash=file.hash,
+            ).first()
+            # Skip if filename and hash are the same, and processing status is SUCCESS
+            if existing_document:
+                if (
+                    existing_document.status != "SUCCESS"
+                    and not settings.IS_RUNNING_IN_GITHUB
+                ):
+                    existing_document.process()
+                continue
         else:
             file_obj = SavedFile.objects.create(content_type=file.content_type)
             file_obj.file.save(file.name, file)
             file_obj.generate_hash()
+
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )
