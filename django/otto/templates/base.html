@@ -15,19 +15,20 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet"
           href="{% static 'thirdparty/css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'style.css' %}" />
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
-    <script src="{% static 'thirdparty/jquery3.7.1.min.js' %}"
-            crossorigin="anonymous"></script>
+    <link rel="stylesheet"
+          href="{% static 'thirdparty/css/bootstrap-icons.min.css' %}" />
     <script src="{% static 'thirdparty/bootstrap.bundle.min.js' %}"
             crossorigin="anonymous"></script>
 
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
     {% block page_css %}{% endblock %}
 
     <script src="{% static 'thirdparty/js-cookie-3.0.1.min.js' %}"></script>
     <title>
       {% block page_title %}
-        {% trans "Otto: Powering legal excellence through data-driven innovation" %}
+        {% trans "Otto: Justice Canada's AI toolkit" %}
       {% endblock %}
     </title>
   </head>
@@ -106,32 +107,36 @@
     </div>
 
     <script>
-    // the following will add the csrf token to .post and .ajax requests
+    // the following will add the csrf token to fetch requests
     const csrftoken = Cookies.get("csrftoken");
-    $(document).ready(function () {
-      function csrfSafeMethod(method) {
-        // these HTTP methods do not require CSRF protection
-        return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
+
+    function csrfSafeMethod(method) {
+      // these HTTP methods do not require CSRF protection
+      return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
+    }
+
+    function setCSRFToken(headers) {
+      if (!csrfSafeMethod(headers.method) && !headers.crossDomain) {
+      headers.set("X-CSRFToken", csrftoken);
       }
-      $.ajaxSetup({
-        beforeSend: function (xhr, settings) {
-          if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-          }
-        },
-      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
       document.body.addEventListener("htmx:configRequest", (event) => {
-        //htmx.logAll();
-        event.detail.headers["X-CSRFToken"] = "{{ csrf_token }}";
+      event.detail.headers["X-CSRFToken"] = "{{ csrf_token }}";
       });
+
+      const originalFetch = window.fetch;
+      window.fetch = async (input, init = {}) => {
+      setCSRFToken(init.headers || new Headers());
+      return originalFetch(input, init);
+      };
     });
     </script>
 
     {% block page_script %}{% endblock %}
 
     <!-- icons -->
-    <link rel="stylesheet"
-          href="{% static 'thirdparty/css/bootstrap-icons.min.css' %}" />
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
       <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
       <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />

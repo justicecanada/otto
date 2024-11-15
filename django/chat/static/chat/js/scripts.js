@@ -291,7 +291,7 @@ class FileUpload {
   }
 
   initFileUpload(i) {
-    var file = this.input.files[i];
+    const file = this.input.files[i];
     this.file = file;
     this.cur_filename.innerHTML = file.name;
     this.cur_filenum.innerHTML = i + 1;
@@ -310,17 +310,12 @@ class FileUpload {
   }
 
   upload_file(start, file_id, hash) {
-    var end;
-    var self = this;
-    var formData = new FormData();
-    var nextChunk = start + this.max_chunk_size + 1;
-    var currentChunk = this.file.slice(start, nextChunk);
-    var uploadedChunk = start + currentChunk.size;
-    if (uploadedChunk >= this.file.size) {
-      end = 1;
-    } else {
-      end = 0;
-    }
+    const formData = new FormData();
+    const nextChunk = start + this.max_chunk_size + 1;
+    const currentChunk = this.file.slice(start, nextChunk);
+    const uploadedChunk = start + currentChunk.size;
+    const end = (uploadedChunk >= this.file.size) ? 1 : 0;
+
     formData.append('file', currentChunk);
     formData.append('hash', hash);
     formData.append('filename', this.file.name);
@@ -328,63 +323,58 @@ class FileUpload {
     formData.append('file_id', file_id);
     formData.append('nextSlice', nextChunk);
     formData.append('content_type', this.file.type);
-    $.ajaxSetup({
-      headers: {
-        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', this.upload_url, true);
+    xhr.setRequestHeader("X-CSRFToken", document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percent = (this.file.size < this.max_chunk_size)
+          ? Math.round((e.loaded / e.total) * 100)
+          : Math.round((uploadedChunk / this.file.size) * 100);
+        this.progress_bar.style.width = percent + "%";
+        this.progress_bar.parentElement.setAttribute("aria-valuenow", percent);
       }
     });
-    $.ajax({
-      xhr: function () {
-        var xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener('progress', function (e) {
-          if (e.lengthComputable) {
-            if (self.file.size < self.max_chunk_size) {
-              var percent = Math.round((e.loaded / e.total) * 100);
-            } else {
-              var percent = Math.round((uploadedChunk / self.file.size) * 100);
-            }
-            self.progress_bar.style.width = percent + "%";
-            self.progress_bar.parentElement.setAttribute("aria-valuenow", percent);
-          }
-        });
-        return xhr;
-      },
 
-      url: this.upload_url,
-      type: 'POST',
-      dataType: 'json',
-      cache: false,
-      processData: false,
-      contentType: false,
-      data: formData,
-      error: function (xhr) {
-        alert(xhr.statusText);
-      },
-      success: function (res) {
-        if (nextChunk < self.file.size) {
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const res = JSON.parse(xhr.responseText);
+        if (res.data === "Invalid request") {
+          alert(res.data);
+        } else if (nextChunk < this.file.size && res.data !== "Uploaded successfully") {
           // upload file in chunks
-          file_id = res.file_id;
-          self.upload_file(nextChunk, file_id);
+          this.upload_file(nextChunk, res.file_id, hash);
         } else {
           // Upload finished. Upload the next file, if there is one
-          self.cur_file_idx++;
-          if (self.cur_file_idx < self.input.files.length) {
+          this.cur_file_idx++;
+          if (this.cur_file_idx < this.input.files.length) {
             // Replace the progress bar with a new one
-            let new_progress = self.progress_bar.parentElement.cloneNode(true);
+            const new_progress = this.progress_bar.parentElement.cloneNode(true);
             new_progress.querySelector('.progress-bar').style.width = "0%";
             new_progress.setAttribute("aria-valuenow", 0);
-            self.progress_bar.parentElement.replaceWith(new_progress);
-            self.progress_bar = new_progress.querySelector('.progress-bar');
-            self.initFileUpload(self.cur_file_idx);
+            this.progress_bar.parentElement.replaceWith(new_progress);
+            this.progress_bar = new_progress.querySelector('.progress-bar');
+            this.initFileUpload(this.cur_file_idx);
           } else {
             // All files uploaded! Trigger the final response
-            htmx.trigger(`#message_${self.message_id} .progress-container`, "done_upload");
+            htmx.trigger(`#message_${this.message_id} .progress-container`, "done_upload");
           }
         }
+      } else {
+        alert(xhr.statusText);
       }
-    });
-  };
+    };
+
+    xhr.onerror = () => {
+      alert(xhr.statusText);
+    };
+
+    xhr.send(formData);
+  }
 }
+
 
 function closeSidebar(sidebarID, resizePrompt = true) {
   document.querySelector("#" + sidebarID).classList.add("hidden");

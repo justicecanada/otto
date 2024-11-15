@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block page_title %}
-  {% trans "Manage pilots" %}
+  {% trans "Manage pilots - Otto" %}
 {% endblock %}
 
 {% block content_container %}
@@ -131,6 +131,8 @@
 {% endblock %}
 
 {% block page_script %}
+  <script src="{% static 'thirdparty/jquery3.7.1.min.js' %}"
+          crossorigin="anonymous"></script>
   <script src="{% static 'thirdparty/datatables.min.js' %}"></script>
   <script>
   $(document).ready(function() {

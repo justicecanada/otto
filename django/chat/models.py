@@ -2,7 +2,7 @@ import re
 import uuid
 
 from django.conf import settings
-from django.db import models
+from django.db import connections, models
 from django.db.models import BooleanField, Q, Value
 from django.db.models.functions import Coalesce
 from django.db.models.signals import post_delete
@@ -449,7 +449,7 @@ class Message(models.Model):
 class AnswerSourceManager(models.Manager):
     def create(self, *args, **kwargs):
         # Extract page numbers using regex
-        source_text = kwargs.get("node_text", "")
+        source_text = kwargs.pop("node_text", "")
         page_numbers = re.findall(r"<page_(\d+)>", source_text)
         page_numbers = list(map(int, page_numbers))  # Convert to integers
         if page_numbers:
@@ -473,7 +473,7 @@ class AnswerSource(models.Model):
     document = models.ForeignKey(
         "librarian.Document", on_delete=models.SET_NULL, null=True
     )
-    node_text = models.TextField()
+    node_id = models.CharField(max_length=255, blank=True)
     node_score = models.FloatField(default=0.0)
     # Saved citation for cases where the source Document is deleted later
     saved_citation = models.TextField(blank=True)
@@ -483,8 +483,7 @@ class AnswerSource(models.Model):
     max_page = models.IntegerField(null=True)
 
     def __str__(self):
-        document_citation = self.citation
-        return f"{document_citation} ({self.node_score:.2f}):\n{self.node_text[:144]}"
+        return f"{self.citation} ({self.node_score:.2f})"
 
     @property
     def html(self):
@@ -498,6 +497,22 @@ class AnswerSource(models.Model):
             "chat/components/source_citation.html",
             {"document": self.document, "source": self},
         )
+
+    @property
+    def node_text(self):
+        """
+        Lookup the node text from the vector DB
+        """
+        if self.document:
+            table_id = self.document.data_source.library.uuid_hex
+            with connections["vector_db"].cursor() as cursor:
+                cursor.execute(
+                    f"SELECT text FROM data_{table_id} WHERE node_id = '{self.node_id}'"
+                )
+                row = cursor.fetchone()
+                if row:
+                    return row[0]
+        return _("Source not available (document deleted or modified since message)")
 
 
 class ChatFileManager(models.Manager):

@@ -132,6 +132,7 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
                     message=message,
                     document_id=document.id,
                     node_text=node.node.text,
+                    node_id=node.id_,
                     node_score=score,
                     group_number=i,
                 )

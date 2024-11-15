@@ -385,7 +385,7 @@ def chunk_upload(request, message_id):
     nextSlice = request.POST["nextSlice"]
 
     if file == "" or file_name == "" or file_id == "" or end == "" or nextSlice == "":
-        return JsonResponse({"data": "Invalid Request"})
+        return JsonResponse({"data": "Invalid request"})
     else:
         if file_id == "null":
             chat_file_arguments = dict(
@@ -409,7 +409,7 @@ def chunk_upload(request, message_id):
         else:
             file_obj = ChatFile.objects.get(id=file_id)
             if not file_obj or file_obj.saved_file.eof:
-                return JsonResponse({"data": "Invalid Request"})
+                return JsonResponse({"data": "Invalid request"})
             # Append the chunk to the file with write mode ab+
             with open(file_obj.saved_file.file.path, "ab+") as f:
                 f.seek(int(nextSlice))
@@ -417,6 +417,7 @@ def chunk_upload(request, message_id):
             file_obj.saved_file.eof = int(end)
             file_obj.save()
             if int(end):
+                file_obj.saved_file.generate_hash()
                 return JsonResponse(
                     {
                         "data": "Uploaded successfully",
