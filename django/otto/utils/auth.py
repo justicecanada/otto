@@ -36,6 +36,7 @@ PUBLIC_PATHS = [
     "/welcome",
     "/search",
     "/notifications",
+    "/healthz",
 ]
 
 NO_TERMS_PATHS = PUBLIC_PATHS + [
