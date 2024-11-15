@@ -155,8 +155,6 @@ def poll_tasks(request, user_request_id):
 
     context = {
         "output_files": output_files,
-        # If this fragment is loaded from browser back/forward, we want to refresh the page
-        "refresh_on_load": True,
     }
 
     if any(

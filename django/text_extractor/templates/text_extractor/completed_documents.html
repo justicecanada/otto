@@ -82,10 +82,13 @@
   <script>document.querySelector("#download-all-files").classList.remove("d-none");</script>
 {% endif %}
 {% if user_request_id %}
-  {# Push URL to history for this specific user request #}
-  <script>history.replaceState(null, '', "{% url 'text_extractor:poll_tasks' user_request_id=user_request_id %}");</script>
+  <script>window.location.href = "{% url 'text_extractor:poll_tasks' user_request_id=user_request_id %}";</script>
 {% endif %}
-{% if refresh_on_load %}
-  {# Refresh the page immediately #}
-  <script>window.location.reload();</script>
-{% endif %}
+<script>
+// If arriving at a page fragment via browser back-forward, refresh.
+// A page fragment will not have the #top-nav element
+let is_page_fragment = document.getElementById('top-nav') === null;
+if (performance.navigation.type === 2 && is_page_fragment) {
+  location.reload();
+}
+</script>
