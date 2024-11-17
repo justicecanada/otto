@@ -60,7 +60,7 @@ variable "web_subnet_id" {
 
 variable "approved_cpu_quota" {
   type        = number
-  description = "The approved vCPU quota for the AKS cluster"
+  description = "The approved CPU quota for the AKS cluster"
 }
 
 variable "vm_size" {
@@ -70,5 +70,5 @@ variable "vm_size" {
 
 variable "vm_cpu_count" {
   type        = number
-  description = "The number of vCPUs in the selected VM size"
+  description = "The number of CPUs in the selected VM size"
 }

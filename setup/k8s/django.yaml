@@ -38,7 +38,6 @@ metadata:
   namespace: otto
 spec:
   serviceName: "django-service"  # Required for stable network identity
-  replicas: 1
   selector:
     matchLabels:
       app: django-app
@@ -153,11 +152,11 @@ spec:
             # High CPU limit to allow for bursts during high load periods.
             # High memory limit allows for handling concurrent requests and caching.
             requests:
-              cpu: "1"
-              memory: "4Gi"
+              cpu: "${DJANGO_CPU_MIN}"
+              memory: "${DJANGO_MEMORY_MIN}Gi"
             limits:
-              cpu: "2"
-              memory: "8Gi"
+              cpu: "${DJANGO_CPU_MAX}"
+              memory: "${DJANGO_MEMORY_MAX}Gi"
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
@@ -219,3 +218,47 @@ spec:
       targetPort: 8000
   selector:
     app: django-app
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: django-hpa
+  namespace: otto
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: django-app
+  minReplicas: ${DJANGO_REPLICAS_MIN}
+  maxReplicas: ${DJANGO_REPLICAS_MAX}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 50
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max

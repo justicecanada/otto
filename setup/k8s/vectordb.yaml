@@ -46,11 +46,11 @@ spec:
             # Increased the CPU limit to allow for query spikes.
             # Memory remains relatively consistent to ensure stable performance.
             requests:
-              cpu: "500m"
-              memory: "2Gi"
+              cpu: "${VECTORDB_CPU_MIN}"
+              memory: "${VECTORDB_MEMORY_MIN}Gi"
             limits:
-              cpu: "1"
-              memory: "3Gi"
+              cpu: "${VECTORDB_CPU_MAX}"
+              memory: "${VECTORDB_MEMORY_MAX}Gi"
           volumeMounts:
             - name: postgres-vector-storage
               mountPath: /var/lib/postgresql/data
@@ -58,6 +58,30 @@ spec:
             - name: secrets
               mountPath: "/mnt/secrets-store"
               readOnly: true
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 30
       volumes:
         - name: secrets
           csi:
@@ -87,8 +111,8 @@ spec:
     apiVersion: apps/v1
     kind: StatefulSet
     name: postgres-vector-db
-  minReplicas: 1
-  maxReplicas: 2
+  minReplicas: ${VECTORDB_REPLICAS_MIN}
+  maxReplicas: ${VECTORDB_REPLICAS_MAX}
   metrics:
   - type: Resource
     resource:

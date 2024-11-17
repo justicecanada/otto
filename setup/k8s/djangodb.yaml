@@ -46,11 +46,11 @@ spec:
             # Increased the CPU limit to allow for query spikes.
             # Memory remains relatively consistent to ensure stable performance.
             requests:
-              cpu: "500m"
-              memory: "2Gi"
+              cpu: "${DJANGODB_CPU_MIN}"
+              memory: "${DJANGODB_MEMORY_MIN}Gi"
             limits:
-              cpu: "1"
-              memory: "3Gi"
+              cpu: "${DJANGODB_CPU_MAX}"
+              memory: "${DJANGODB_MEMORY_MAX}Gi"
           volumeMounts:
             - name: postgres-django-storage
               mountPath: /var/lib/postgresql/data
@@ -58,6 +58,30 @@ spec:
             - name: secrets
               mountPath: "/mnt/secrets-store"
               readOnly: true
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 30
       volumes:
         - name: secrets
           csi:
@@ -87,8 +111,8 @@ spec:
     apiVersion: apps/v1
     kind: StatefulSet
     name: postgres-django-db
-  minReplicas: 1
-  maxReplicas: 2
+  minReplicas: ${DJANGODB_REPLICAS_MIN}
+  maxReplicas: ${DJANGODB_REPLICAS_MAX}
   metrics:
   - type: Resource
     resource:
@@ -96,6 +120,7 @@ spec:
       target:
         type: Utilization
         averageUtilization: 70
+
 ---
 
 apiVersion: v1
