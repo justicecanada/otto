@@ -148,6 +148,8 @@ fi
 
 # Apply the Kubernetes resources related to Otto, substituting environment variables where required
 envsubst < configmap.yaml | kubectl apply -f -
+envsubst < nginx-errors.yaml | kubectl apply -f -
+envsubst < ingress.yaml | kubectl apply -f -
 envsubst < secrets.yaml | kubectl apply -f -
 envsubst < storageclass.yaml | kubectl apply -f -
 envsubst < vectordb.yaml | kubectl apply -f -

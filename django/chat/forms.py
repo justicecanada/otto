@@ -27,8 +27,8 @@ SUMMARIZE_STYLES = [
 ]
 TEMPERATURES = [
     (0.1, _("Precise")),
-    (0.7, _("Balanced")),
-    (1.2, _("Creative")),
+    (0.5, _("Balanced")),
+    (1.0, _("Creative")),
 ]
 LANGUAGES = [("en", _("English")), ("fr", _("French"))]
 

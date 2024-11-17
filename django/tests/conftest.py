@@ -17,6 +17,8 @@ from reportlab.pdfgen import canvas
 
 pytest_plugins = ("pytest_asyncio",)
 
+this_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 @pytest.fixture(scope="function", autouse=True)
 def set_test_media():
@@ -63,6 +65,24 @@ async def django_db_setup(django_db_setup, django_db_blocker):
             process_document_helper(test_document, OttoLLM())
 
     return await sync_to_async(_inner)()
+
+
+@pytest.fixture()
+def load_example_pdf(django_db_blocker):
+    from chat.llm import OttoLLM
+    from librarian.models import DataSource, Document, SavedFile
+    from librarian.tasks import process_document_helper
+
+    with open(os.path.join(this_dir, "librarian/test_files/example.pdf"), "rb") as f:
+        with django_db_blocker.unblock():
+            pdf_file = ContentFile(f.read(), name="example.pdf")
+            saved_file = SavedFile.objects.create(file=pdf_file)
+            d = Document.objects.create(
+                file=saved_file,
+                filename="example.pdf",
+                data_source=DataSource.objects.get(name_en="Wikipedia"),
+            )
+            process_document_helper(d, OttoLLM())
 
 
 @pytest.fixture()

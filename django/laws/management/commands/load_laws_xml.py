@@ -19,7 +19,7 @@ from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from laws.models import Law, token_counter
-from otto.models import Cost
+from otto.models import Cost, OttoStatus
 from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
@@ -879,6 +879,10 @@ class Command(BaseCommand):
             f"Total time to load XML files: {time.time() - start_time:.2f} seconds"
         )
         logger.debug(f"Total cost: {display_cad_cost(total_cost)}")
+
+        otto_status = OttoStatus.objects.singleton()
+        otto_status.laws_last_refreshed = datetime.now()
+        otto_status.save()
 
 
 def get_sha_256_hash(file_path):
