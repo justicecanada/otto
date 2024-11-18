@@ -43,26 +43,29 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
     """
     response_message = Message.objects.get(id=message_id)
-    chat = response_message.chat
-    mode = chat.options.mode
+    try:
+        chat = response_message.chat
+        mode = chat.options.mode
 
-    # For costing and logging. Contextvars are accessible anytime during the request
-    # including in async functions (i.e. htmx_stream) and Celery tasks.
-    bind_contextvars(message_id=message_id, feature=mode)
+        # For costing and logging. Contextvars are accessible anytime during the request
+        # including in async functions (i.e. htmx_stream) and Celery tasks.
+        bind_contextvars(message_id=message_id, feature=mode)
 
-    agent_enabled = not skip_agent and mode == "chat" and chat.options.chat_agent
-    if agent_enabled:
-        return chat_agent(chat, response_message)
-    if mode == "chat":
-        return chat_response(chat, response_message, switch_mode=switch_mode)
-    if mode == "summarize":
-        return summarize_response(chat, response_message)
-    if mode == "translate":
-        return translate_response(chat, response_message)
-    if mode == "qa":
-        return qa_response(chat, response_message, switch_mode=switch_mode)
-    else:
-        return error_response(chat, response_message)
+        agent_enabled = not skip_agent and mode == "chat" and chat.options.chat_agent
+        if agent_enabled:
+            return chat_agent(chat, response_message)
+        if mode == "chat":
+            return chat_response(chat, response_message, switch_mode=switch_mode)
+        if mode == "summarize":
+            return summarize_response(chat, response_message)
+        if mode == "translate":
+            return translate_response(chat, response_message)
+        if mode == "qa":
+            return qa_response(chat, response_message, switch_mode=switch_mode)
+        else:
+            return error_response(chat, response_message, _("Invalid mode."))
+    except Exception as e:
+        return error_response(chat, response_message, e)
 
 
 def chat_response(
@@ -575,17 +578,20 @@ def qa_response(chat, response_message, switch_mode=False):
     )
 
 
-def error_response(chat, response_message):
+def error_response(chat, response_message, error_message=None):
     """
     Send an error message to the user.
     """
     llm = OttoLLM()
+    response_str = _("There was an error processing your request.")
+    if error_message:
+        response_str += f"\n\n```\n{error_message}\n```"
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
             llm,
-            response_str=_("Sorry, this isn't working right now."),
+            response_str=response_str,
         ),
         content_type="text/event-stream",
     )
@@ -598,7 +604,7 @@ def chat_agent(chat, response_message):
     bind_contextvars(feature="chat_agent")
     user_message = response_message.parent
     if user_message is None:
-        return error_response(chat, response_message)
+        return error_response(chat, response_message, _("No user message found."))
 
     user_text = user_message.text
     if len(user_text) > 500:
