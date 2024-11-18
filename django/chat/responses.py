@@ -398,6 +398,7 @@ def qa_response(chat, response_message, switch_mode=False):
 
     # Apply filters if we are in qa mode and specific data sources are selected
     qa_scope = chat.options.qa_scope
+    filter_documents = None
     if qa_scope == "data_sources":
         data_sources = chat.options.qa_data_sources.all()
         filter_documents = Document.objects.filter(data_source__in=data_sources)
@@ -421,7 +422,11 @@ def qa_response(chat, response_message, switch_mode=False):
 
     # Summarize mode
     if chat.options.qa_mode == "summarize":
-        # Use summarization on each of the filter_documents
+        # Use summarization on each of the documents
+        if not filter_documents:
+            filter_documents = Document.objects.filter(
+                data_source__library=chat.options.qa_library
+            )
         document_titles = [document.name for document in filter_documents]
         summary_responses = [
             llm.tree_summarize(
