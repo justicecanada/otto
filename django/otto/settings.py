@@ -102,7 +102,6 @@ DEFAULT_QA_MODEL = "gpt-4o-mini"
 DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
 DEFAULT_LAWS_MODEL = "gpt-4o"
-USD_TO_CAD = 1.38
 
 DEFAULT_WEEKLY_MAX = 20  # allowance $CAD/user/week unless otherwise specified
 

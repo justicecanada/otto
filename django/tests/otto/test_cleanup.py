@@ -4,6 +4,7 @@ This includes librarian, chat and general Otto tests.
 """
 
 import os
+import shutil
 import time
 
 from django.conf import settings
@@ -73,7 +74,22 @@ def test_redundant_librarian_upload(client, all_apps_user):
     # Check SavedFile NOT created
     saved_files = SavedFile.objects.all()
     assert saved_files.count() == 1
-    # Check Document created
+    # A document should NOT have been created since hash, filename and data source are the same
+    documents = data_source.documents.all()
+    assert documents.count() == 1
+    # Now, change the filename and upload again
+    # First, copy this file to a different name
+    new_file_path = os.path.join(os.path.dirname(this_file_path), "new_file_name.txt")
+    shutil.copy(this_file_path, new_file_path)
+    with open(new_file_path, "rb") as f:
+        response = client.post(upload_url, {"file": f})
+        assert response.status_code == 200
+    # Delete the file
+    os.remove(new_file_path)
+    # Check SavedFile NOT created
+    saved_files = SavedFile.objects.all()
+    assert saved_files.count() == 1
+    # A document should have been created since the filename is different
     documents = data_source.documents.all()
     assert documents.count() == 2
     # Check that both documents reference the same SavedFile
