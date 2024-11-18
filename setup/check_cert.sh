@@ -82,10 +82,13 @@ if [[ -z "$CERT_CHOICE" ]]; then
     check_existing_certificate
 
     echo
-    echo "Do you want to:"
-    echo "1) Use a CA-signed certificate from Azure Key Vault"
-    echo "2) Generate a new Let's Encrypt certificate"
-    echo "3) Skip certificate creation"
 
-    read -p "Enter your choice (1 to 3): " CERT_CHOICE
+    if [[ "$USE_PRIVATE_NETWORK" == "true" ]]; then
+        echo "Private network is in use. A CA-signed certificate is expected."
+        read -p "Do you want to import and apply a CA-signed certificate? (y/N): " CERT_CHOICE
+    else
+        echo "Public network is in use. A Let's Encrypt certificate is expected."
+        read -p "Do you want to generate and apply a new Let's Encrypt certificate? (y/N): " CERT_CHOICE
+    fi
+
 fi

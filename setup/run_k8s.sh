@@ -85,62 +85,64 @@ kubectl wait --for=condition=available --timeout=300s deployment/ingress-nginx-c
 # Apply the namespace for Otto
 kubectl apply -f namespace.yaml
 
-if [ "$CERT_CHOICE" == "1" ]; then
-    echo "Using CA-signed certificate from Azure Key Vault..."
+if [[ $CERT_CHOICE =~ ^[Yy]$ ]]; then
 
-    echo "Listing available Azure subscriptions..."
-    az account list --query "[].{SubscriptionId:id, name:name}" -o table
-    read -p "Enter the subscription ID: " CERT_SUBSCRIPTION_ID
-    
-    echo "Listing Key Vaults in the selected subscription..."
-    az keyvault list --subscription $CERT_SUBSCRIPTION_ID --query "[].{name:name, resourceGroup:resourceGroup}" -o table
-    read -p "Enter the Key Vault name: " CERT_KEYVAULT_NAME
-    
-    echo "Listing certificates in the selected Key Vault..."
-    az keyvault certificate list --vault-name $CERT_KEYVAULT_NAME --query "[].{name:name}" -o table
-    read -p "Enter the certificate name: " CERT_NAME
+    if [[ "$USE_PRIVATE_NETWORK" == "true" ]]; then
+        echo "Using CA-signed certificate from Azure Key Vault..."
 
-    # If the role assignment for the AKS cluster identity does not exist, create it
-    if ! az role assignment list --assignee $AKS_IDENTITY_ID --role "Key Vault Secrets User" --scope /subscriptions/$CERT_SUBSCRIPTION_ID/resourcegroups/ottocertrg/providers/microsoft.keyvault/vaults/$CERT_KEYVAULT_NAME &>/dev/null; then
-        az role assignment create \
-            --assignee $AKS_IDENTITY_ID \
-            --role "Key Vault Secrets User" \
-            --scope /subscriptions/$CERT_SUBSCRIPTION_ID/resourcegroups/ottocertrg/providers/microsoft.keyvault/vaults/$CERT_KEYVAULT_NAME
-    fi
-
-    # Remove any existing Let's Encrypt related resources
-    kubectl delete -f letsencrypt-cluster-issuer.yaml --ignore-not-found
-    kubectl delete secret tls-secret -n otto --ignore-not-found
-    kubectl delete namespace cert-manager --ignore-not-found
-    
-    # Apply the SecretProviderClass for Azure Key Vault
-    envsubst < tls-secret.yaml | kubectl apply -f -
-
-    # Apply the Ingress without the ClusterIssuer annotation
-    export CERT_MANAGER_ANNOTATION=""
-    envsubst < ingress.yaml | kubectl apply -f -
-
-elif [ "$CERT_CHOICE" == "2" ]; then  
-    echo "Proceeding with Let's Encrypt certificate generation..."
+        echo "Listing available Azure subscriptions..."
+        az account list --query "[].{SubscriptionId:id, name:name}" -o table
+        read -p "Enter the subscription ID: " CERT_SUBSCRIPTION_ID
         
-    # Apply the Cert-Manager CRDs and Cert-Manager
-    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.crds.yaml
-    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+        echo "Listing Key Vaults in the selected subscription..."
+        az keyvault list --subscription $CERT_SUBSCRIPTION_ID --query "[].{name:name, resourceGroup:resourceGroup}" -o table
+        read -p "Enter the Key Vault name: " CERT_KEYVAULT_NAME
+        
+        echo "Listing certificates in the selected Key Vault..."
+        az keyvault certificate list --vault-name $CERT_KEYVAULT_NAME --query "[].{name:name}" -o table
+        read -p "Enter the certificate name: " CERT_NAME
 
-    # Wait for cert-manager webhook to be ready
-    echo "Waiting for cert-manager webhook to be ready..."
-    kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-webhook -n cert-manager
+        # If the role assignment for the AKS cluster identity does not exist, create it
+        if ! az role assignment list --assignee $AKS_IDENTITY_ID --role "Key Vault Secrets User" --scope /subscriptions/$CERT_SUBSCRIPTION_ID/resourcegroups/ottocertrg/providers/microsoft.keyvault/vaults/$CERT_KEYVAULT_NAME &>/dev/null; then
+            az role assignment create \
+                --assignee $AKS_IDENTITY_ID \
+                --role "Key Vault Secrets User" \
+                --scope /subscriptions/$CERT_SUBSCRIPTION_ID/resourcegroups/ottocertrg/providers/microsoft.keyvault/vaults/$CERT_KEYVAULT_NAME
+        fi
 
-    # Remove any existing Azure Key Vault related resources
-    kubectl delete secretproviderclass azure-tls-secret -n otto --ignore-not-found
-    kubectl delete secret tls-secret -n otto --ignore-not-found
+        # Remove any existing Let's Encrypt related resources
+        kubectl delete -f letsencrypt-cluster-issuer.yaml --ignore-not-found
+        kubectl delete secret tls-secret -n otto --ignore-not-found
+        kubectl delete namespace cert-manager --ignore-not-found
+        
+        # Apply the SecretProviderClass for Azure Key Vault
+        envsubst < tls-secret.yaml | kubectl apply -f -
 
-    # Create the ClusterIssuer for Let's Encrypt
-    kubectl apply -f letsencrypt-cluster-issuer.yaml
+        # Apply the Ingress without the ClusterIssuer annotation (to use the CA-signed certificate)
+        envsubst < ingress-private.yaml | kubectl apply -f -
 
-    # Apply the Ingress with the ClusterIssuer annotation
-    export CERT_MANAGER_ANNOTATION="cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer"
-    envsubst < ingress.yaml | kubectl apply -f -
+    else
+
+        echo "Proceeding with Let's Encrypt certificate generation..."
+            
+        # Apply the Cert-Manager CRDs and Cert-Manager
+        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.crds.yaml
+        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+
+        # Wait for cert-manager webhook to be ready
+        echo "Waiting for cert-manager webhook to be ready..."
+        kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-webhook -n cert-manager
+
+        # Remove any existing Azure Key Vault related resources
+        kubectl delete secretproviderclass azure-tls-secret -n otto --ignore-not-found
+        kubectl delete secret tls-secret -n otto --ignore-not-found
+
+        # Create the ClusterIssuer for Let's Encrypt
+        kubectl apply -f letsencrypt-cluster-issuer.yaml
+
+        # Apply the Ingress with the ClusterIssuer annotation (to use the Let's Encrypt certificate)
+        envsubst < ingress.yaml | kubectl apply -f -
+    fi
 
 else
     echo "Skipping certificate creation."

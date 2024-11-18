@@ -190,3 +190,24 @@ Once inside the container, follow the same deployment steps as outlined in the C
 
 > [!NOTE]
 >  When testing locally, ensure you have the necessary Azure credentials and permissions configured within your development environment.
+
+
+## Appendix: Running Scripts with Parameters
+
+To run terraform and pass parameters:
+
+```bash
+bash run_terraform.sh --env-file .env.dev --subscription OttoDev --skip-confirm y --auto-approve y --enable-debug n
+```
+
+To run k8s and pass parameters:
+
+```bash
+bash run_k8s.sh --env-file .env.dev --subscription OttoDev --cert-choice n --init-script n --set-dns-label n
+```
+
+To run build_and_push and pass parameters:
+
+```bash
+./build_and_push_image.ps1 -subscription OttoDev -acr jusdevottoacr -skipNetworkCheck y
+```
