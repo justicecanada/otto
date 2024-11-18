@@ -1,6 +1,8 @@
 import asyncio
+import uuid
 from itertools import groupby
 
+from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -584,8 +586,18 @@ def error_response(chat, response_message, error_message=None):
     """
     llm = OttoLLM()
     response_str = _("There was an error processing your request.")
-    if error_message:
-        response_str += f"\n\n```\n{error_message}\n```"
+    error_id = str(uuid.uuid4())[:7]
+
+    if error_message and settings.DEBUG:
+        response_str += f"\n\n```\n{error_message}\n```\n\n"
+    response_str += f" _({_('Error ID')}: {error_id})_"
+    logger.error(
+        "Error processing chat response",
+        error_id=error_id,
+        message_id=response_message.id,
+        chat_id=chat.id,
+        error=error_message,
+    )
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,

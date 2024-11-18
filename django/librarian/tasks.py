@@ -1,8 +1,11 @@
 import time
+import traceback
 import urllib.parse
+import uuid
 from datetime import datetime
 from typing import List
 
+from django.conf import settings
 from django.utils import translation
 from django.utils.translation import gettext as _
 
@@ -52,12 +55,19 @@ def process_document(document_id, language=None, pdf_method="default"):
 
     except Exception as e:
         document.status = "ERROR"
-        import traceback
-
-        document.status_details = traceback.format_exc()
-        logger.debug("Error processing document: %s", document.name)
-        logger.error(e)
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"Error processing document: {document.name}",
+            document_id=document.id,
+            error_id=error_id,
+            error=full_error,
+        )
         document.celery_task_id = None
+        if settings.DEBUG:
+            document.status_details = full_error + f" ({_('Error ID')}: {error_id})"
+        else:
+            document.status_details = f"({_('Error ID')}: {error_id})"
         document.save()
 
     llm.create_costs()
