@@ -158,15 +158,3 @@ data:
       </body>
     </html>
 
-
----
-
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  # This is the default name for the ConfigMap referenced in the Ingress Controller
-  name: ingress-nginx-controller
-  namespace: ingress-nginx
-data:
-  use-gzip: "true"
-  gzip-min-length: "1024"

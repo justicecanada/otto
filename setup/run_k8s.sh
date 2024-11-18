@@ -77,6 +77,7 @@ export AKS_IDENTITY_ID=$(
 
 # Apply the NGINX Ingress Controller and patch the service to use the public IP address and DNS label
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+kubectl patch configmap ingress-nginx-controller -n ingress-nginx --type=merge -p '{"data":{"use-gzip":"true", "gzip-min-length":"1024"}}'
 
 # Wait for the NGINX Ingress Controller to be ready
 echo "Waiting for NGINX Ingress Controller to be ready..."
@@ -118,9 +119,6 @@ if [[ $CERT_CHOICE =~ ^[Yy]$ ]]; then
         # Apply the SecretProviderClass for Azure Key Vault
         envsubst < tls-secret.yaml | kubectl apply -f -
 
-        # Apply the Ingress without the ClusterIssuer annotation (to use the CA-signed certificate)
-        envsubst < ingress-private.yaml | kubectl apply -f -
-
     else
 
         echo "Proceeding with Let's Encrypt certificate generation..."
@@ -139,9 +137,6 @@ if [[ $CERT_CHOICE =~ ^[Yy]$ ]]; then
 
         # Create the ClusterIssuer for Let's Encrypt
         kubectl apply -f letsencrypt-cluster-issuer.yaml
-
-        # Apply the Ingress with the ClusterIssuer annotation (to use the Let's Encrypt certificate)
-        envsubst < ingress.yaml | kubectl apply -f -
     fi
 
 else
@@ -149,9 +144,17 @@ else
 fi
 
 # Apply the Kubernetes resources related to Otto, substituting environment variables where required
+
 envsubst < configmap.yaml | kubectl apply -f -
 envsubst < nginx-errors.yaml | kubectl apply -f -
-envsubst < ingress.yaml | kubectl apply -f -
+
+# Apply the Ingress resource, substituting environment variables where required
+if [[ "$USE_PRIVATE_NETWORK" == "true" ]]; then
+    envsubst < ingress-private.yaml | kubectl apply -f -
+else
+    envsubst < ingress-public.yaml | kubectl apply -f -
+fi
+
 envsubst < secrets.yaml | kubectl apply -f -
 envsubst < storageclass.yaml | kubectl apply -f -
 envsubst < vectordb.yaml | kubectl apply -f -
