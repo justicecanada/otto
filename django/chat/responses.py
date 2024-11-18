@@ -1,6 +1,6 @@
 import asyncio
+import traceback
 import uuid
-from itertools import groupby
 
 from django.conf import settings
 from django.core.cache import cache
@@ -596,7 +596,7 @@ def error_response(chat, response_message, error_message=None):
         error_id=error_id,
         message_id=response_message.id,
         chat_id=chat.id,
-        error=error_message,
+        error=traceback.format_exc(),
     )
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
