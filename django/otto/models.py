@@ -257,14 +257,23 @@ class Notification(models.Model):
 class Feedback(models.Model):
     FEEDBACK_TYPE_CHOICES = [
         ("feedback", _("Feedback")),
-        ("issue", _("Issue")),
+        ("bug", _("Bug")),
+        ("question", _("Question")),
+        ("feature_request", _("Feature request")),
+        ("other", _("Other")),
     ]
 
-    FEEBACK_STATUS_CHOICES = [
+    FEEDBACK_STATUS_CHOICES = [
         ("new", _("New")),
         ("in_progress", _("In progress")),
         ("resolved", _("Resolved")),
         ("closed", _("Closed")),
+    ]
+
+    PRIOTITY_CHOICES = [
+        ("low", _("Low")),
+        ("medium", _("Medium")),
+        ("high", _("High")),
     ]
 
     feedback_type = models.CharField(
@@ -273,14 +282,18 @@ class Feedback(models.Model):
         blank=False,
         default=_("Please select an option"),
     )
+    status = models.CharField(
+        max_length=16, choices=FEEDBACK_STATUS_CHOICES, blank=False, default="new"
+    )
+    priority = models.CharField(
+        max_length=16, choices=PRIOTITY_CHOICES, blank=False, default="low"
+    )
     app = models.TextField(max_length=200, blank=False)
     otto_version = models.CharField(max_length=50, null=False)
     feedback_message = models.TextField(blank=False)
     chat_message = models.ForeignKey(
         "chat.Message", null=True, on_delete=models.SET_NULL, related_name="message"
     )
-    addressed = models.BooleanField(default=False)
-
     created_at = models.DateTimeField(auto_now_add=True)
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING

@@ -29,7 +29,6 @@ class FeedbackForm(ModelForm):
     class Meta:
         model = Feedback
         fields = [
-            "feedback_type",
             "feedback_message",
             "modified_by",
             "app",
@@ -38,7 +37,6 @@ class FeedbackForm(ModelForm):
         ]
 
         labels = {
-            "feedback_type": _("Do you want to provide feedback or report an issue?"),
             "feedback_message": _(
                 "If you have any specific suggestions or want to report an issue share them with us below:"
             ),

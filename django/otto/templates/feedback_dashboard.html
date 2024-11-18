@@ -13,9 +13,6 @@
 {% endblock %}
 
 {% block page_css %}
-  {# Script embedded here because it is required in the content_container block #}
-  <script src="{% static 'thirdparty/chart.umd.min.js' %}"></script>
-
   <style>
 
   .badge {    
@@ -27,14 +24,12 @@
       border-color: rgb(229, 231, 235) !important;
       color: rgb(75, 85, 99);
     }
-
     &.badge-completed {
       background-color: hsl(138, 76%, 97%);
       border-color: hsl(142, 49%, 85%) !important;
       color: hsl(142, 72%, 29%);      
     }
   }
-
   .feedback-message{
     overflow: hidden;    
     text-overflow: ellipsis;
@@ -42,9 +37,18 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
   }
+  .active {
+    border-left: 4px solid var(--app-color-purple-1);
+  }  
 
+  tbody tr:nth-last-child(3){
+    border-bottom-width: 0 !important;
 
-  
+    td {
+      border-bottom-width: 0 !important;
+    }
+  }
+
   </style>
 {% endblock %}
 
@@ -66,7 +70,7 @@
           {% trans "Click on a row to view more information about the feedback received, to flag the feedback as \"addressed\" or to contact the user directly." %}
         </p>
         <div class="table-responsive">
-          <table class="table">
+          <table class="table mb-0" id="feedback-table">
             <thead>
               <tr>
                 <th class="col-2">{% trans "Application" %}</th>
@@ -75,12 +79,13 @@
               </tr>
             </thead>
             <tbody>
-
               {% for feedback in feedback_messages %}
                 <tr data-bs-toggle="collapse"
                     data-bs-target="#collapse-{{ feedback.id }}"
                     aria-expanded="false"
                     aria-controls="collapse-{{ feedback.id }}"
+                    onclick="this.classList.toggle('active')"
+                    class="feedback-summary px-2 py-4"
                     style="cursor: pointer">
                   <td class="align-middle text-start col-2">
                     <div class="d-flex flex-column justify-content-center gap-1">
@@ -95,11 +100,7 @@
                   <td class="align-middle text-end col-2">
                     <div class="d-flex flex-column justify-content-center align-items-end gap-1">
                       <div class="badge badge-completed w-50 border">Completed</div>
-                      <span class="mt-1 badge badge-neutral fw-semibold px-2 py-1 m-0 border">
-                        <a href="https://github.com/justicecanada/otto/commit/{{ feedback.otto_version }}"
-                           target="_blank"
-                           class="text-reset text-decoration-none">{{ feedback.otto_version }}</a>
-                      </span>
+
                     </div>
                   </td>
                 </tr>

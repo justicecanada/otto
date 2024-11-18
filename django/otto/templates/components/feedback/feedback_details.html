@@ -1,35 +1,115 @@
 {% load i18n %}
-<tr class="collapse" id="collapse-{{ feedback.id }}">
-  <td colspan="3" class="bg-light col-12">
-    <div class="d-flex flex-column w-100 pt-2">
-      <div class="d-flex justify-content-between flex-1">
-        <span class="fw-semibold">{{ feedback.modified_by.first_name }} {{ feedback.modified_by.last_name }}</span>
-        <span class="text-muted fs-6">{{ feedback.modified_by.email }}</span>
-      </div>
-      <div class="d-flex justify-content-between flex-1">
-        <a href="mailto:{{ feedback.modified_by.email }}?subject=Follow%20up%20on%20Otto%20feedback"
-           class="text-decoration-none">
-          <i class="bi bi-envelope-fill text-dark"></i>
-        </a>
-        <span class="badge bg-success text-white">{{ feedback.feedback_type }}</span>
+
+{% block page_css %}
+  <style>
+    .details {
+      border-top-width: 1px;
+      border-bottom-width: 1px !important;
+      border-bottom-color: var(--app-color-purple-1) !important;
+
+      td {        
+        background: color-mix(in srgb, var(--bg-light-gray) 30%, white);        
+      }
+    }
+  </style>
+{% endblock %}
+
+<tr class="collapse details" id="collapse-{{ feedback.id }}">
+  <td colspan="3" class="col-12">
+    <div class="container p-3">
+      <div class="row justify-content-between">
+        <div class="col">
+          <div class="fw-semibold">
+            <i class="bi bi-person-circle me-2" style="color: rgb(156, 163, 175)"></i>
+            <span class="text-muted">{{ feedback.modified_by.first_name }} {{ feedback.modified_by.last_name }}</span>
+          </div>
+        </div>
+        <div class="col-auto">
+          <a href="mailto:{{ feedback.modified_by.email }}?subject=Follow%20up%20on%20Otto%20feedback"
+             class="text-decoration-none fw-semibold"
+             style="line-height: 24px;
+                    color: rgb(156, 163, 175)">
+            <i class="bi bi-envelope-fill me-2"></i>
+            <span class="text-muted">{{ feedback.modified_by.email }}</span>
+          </a>
+ 
+        </div>
+ 
       </div>
 
-      <div class="d-flex justify-content-between flex-1">
-
-        {# mail icon #}
-        <a href="mailto:{{ feedback.modified_by.email }}?subject=Follow%20up%20on%20Otto%20feedback"
-           class="text-decoration-none">
-          <i class="bi bi-envelope-fill text-dark"></i>
-        </a>
+      <div class="row mt-4 justify-content-between">
+        <div class="col-6 mb-1">
+          <span class="fs-6 fw-semibold text-muted">{% trans 'Feedback' %}:</span>
  
- 
-        {# Positive or negative pill #}
-        <span class="badge bg-success text-white">{{ feedback.feedback_type }}</span>
- 
+        </div>
+        <div class="col-6 mb-1 text-end">
+          <a href=""
+             target="_blank"
+             class="text-decoration-none"
+             style="color: rgb(156, 163, 175)">
+            <i class="bi bi-info-circle me-2"></i>
+            <span class="text-muted">{% trans 'View feeback context' %}</span>
+          </a>
+        </div>
+        <div class="col-12 d-flex">
+          <span class="border px-2 py-4 rounded w-100">{{ feedback.feedback_message }}</span>
+        </div>
       </div>
-      <p>
-        <strong>{% trans "Details: " %} {{ feedback.feedback_message }}</strong>
-      </p>
-    </div>
-  </td>
+      <div class="row mt-4">
+        <div class="col-12 mb-1">
+          <span class="fs-6 fw-semibold text-muted">{% trans 'Administrative Details' %}</span>
+          <p class="text-muted mb-2">Use this section to provide additional details to the feedback provided by the user.</p>
+        </div>
+        <div class="col-8">
+          <span class="fw-semibold text-muted" style="font-size: .85rem;">{% trans 'Notes' %}</span>
+          <form action="" class="input-group">
+            <div class="form-floating">
+              <textarea id="feeback-note-{{ feedback.id }}"
+                        class="form-control fs-6"
+                        placeholder="{% trans 'Add notes or addition details.' %}"
+                        style="height: 100px"></textarea>
+              <label class="text-muted" for="feeback-note-{{ feedback.id }}">{% trans 'Add notes or addition details.' %}</label>
+            </div>
+            <button class="btn btn-light border input-group-text" type="button">
+              <i class="bi bi-send me-2"></i>
+            </button>
+          </form>
+        </div>
+        <div class="col-4 ">
+          <span class="fw-semibold text-muted" style="font-size: .85rem;">{% trans 'Metadata' %}</span>
+          <div class="border rounded">
+            <form class="py-2 px-2">
+              <div class="row mb-1 justify-content-between">
+                <label for="feedback-type-{{ feedback.id }}"
+                       class="col-sm-2 col-form-label text-muted fw-semibold">{% trans 'Type' %}</label>
+                <div class="col-sm-8">
+                  <select class="form-select" id="feedback-type-{{ feedback.id }}">
+                    <option value="1"></option>
+                    <option value="2"></option>
+                  </select>
+                </div>
+              </div>
+              <div class="row mb-1 justify-content-between">
+                <label for="feedback-status-{{ feedback.id }}"
+                       class="col-sm-2 col-form-label text-muted fw-semibold">{% trans 'Status' %}</label>
+                <div class="col-sm-8">
+                  <select class="form-select" id="feedback-status-{{ feedback.id }}">
+                    <option value="1"></option>
+                    <option value="2"></option>
+                  </select>
+                </div>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </td>
+  </div>
 </tr>
+
+<!--    {# <span class="mt-1 badge badge-neutral fw-semibold px-2 py-1 m-0 border">
+                        <a href="https://github.com/justicecanada/otto/commit/{{ feedback.otto_version }}"
+                           target="_blank"
+                           class="text-reset text-decoration-none">{{ feedback.otto_version }}</a>
+                      </span> #}               </td> -->
