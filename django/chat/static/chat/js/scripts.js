@@ -115,8 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
   updateAccordion(mode);
   document.querySelector("#chat-prompt").focus();
   for (block of document.querySelectorAll("pre code")) {
-    block.classList.add("language-txt");
-    hljs.highlightElement(block);
+    window.Prism.highlightElement(block);
     block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
   }
   if (document.querySelector("#no-messages-placeholder") === null) {
@@ -153,8 +152,7 @@ document.addEventListener("htmx:afterSwap", function (event) {
 document.addEventListener("htmx:sseMessage", function (event) {
   if (!(event.target.id.startsWith("response-"))) return;
   for (block of event.target.querySelectorAll("pre code")) {
-    block.classList.add("language-txt");
-    hljs.highlightElement(block);
+    window.Prism.highlightElement(block);
     block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
   }
   scrollToBottom(false, false);
@@ -163,8 +161,7 @@ document.addEventListener("htmx:sseMessage", function (event) {
 document.addEventListener("htmx:oobAfterSwap", function (event) {
   if (!(event.target.id.startsWith("message_"))) return;
   for (block of event.target.querySelectorAll("pre code")) {
-    block.classList.add("language-txt");
-    hljs.highlightElement(block);
+    window.Prism.highlightElement(block);
     block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
   }
   scrollToBottom(false, false);
@@ -489,3 +486,62 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+
+// md_math.use(window.katex);
+function addWorkingMessage() {
+  const messages = document.querySelectorAll('.message-outer.bot .message-text');
+
+  messages.forEach(function (message) {
+    message.querySelectorAll("p").forEach(function (paragraph) {
+      // Regex to capture content inside [ ... ] with <br> formatting
+      const regex = /\[\s*<br>\s*([\s\S]*?)\s*<br>\s*\]/g;
+      // looks for math operators or LaTeX commands
+      const mathRegex = /([+\-=\^]|\\(frac|sqrt|sum|prod|int|cdot|pm|leq|geq))/; // 
+      // looks for invalid characters that arn't numbers, letters or LaTeX commands
+      const invalidCharRegex = /[^a-zA-Z0-9+\-=\^\\(frac|sqrt|sum|prod|int|cdot|pm|leq|geq)\s{}]/;
+      const textContent = paragraph.innerHTML; // Use innerHTML for HTML-based matching
+
+      [...textContent.matchAll(regex)].forEach(match => {
+        const content = match[1];
+        console.log('Matched content:', content);
+        // Validate it contains math operators or LaTeX commands
+        if (!invalidCharRegex.test(content)) {
+
+          try {
+            const span = document.createElement('span');
+            window.katex.render(content, span, {
+              throwOnError: true,
+              displayMode: true
+            });
+            paragraph.innerHTML = paragraph.innerHTML.replace(match[0], span.outerHTML);
+          } catch (error) {
+            console.log('Error rendering LaTeX:', content, error);
+          }
+        } else {
+          console.log('Invalid LaTeX characters:', content);
+        }
+
+      });
+    });
+  });
+}
+
+// Call the function after chat messages are loaded
+document.addEventListener("DOMContentLoaded", function () {
+  addWorkingMessage();
+});
+
+document.addEventListener("htmx:afterSwap", function (event) {
+  if (event.target.id === "messages-container") {
+    addWorkingMessage();
+  }
+});
+
+// Call the function after the message stream is completely over
+document.addEventListener("htmx:oobAfterSwap", function (event) {
+  if (event.target.id.startsWith("message_")) {
+    addWorkingMessage();
+  }
+});
+
