@@ -231,7 +231,7 @@ def extract_markdown(
             md = content.decode("utf-8")
         except Exception as e:
             logger.error("Error extracting content to markdown:", e)
-            return "", []
+            raise e
 
     md = remove_nul_characters(md)
 

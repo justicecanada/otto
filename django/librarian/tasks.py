@@ -52,6 +52,9 @@ def process_document(document_id, language=None, pdf_method="default"):
 
     except Exception as e:
         document.status = "ERROR"
+        import traceback
+
+        document.status_details = traceback.format_exc()
         logger.debug("Error processing document: %s", document.name)
         logger.error(e)
         document.celery_task_id = None
