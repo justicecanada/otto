@@ -75,7 +75,7 @@ ensure_tf_state_storage() {
             --name "$TF_STATE_RESOURCE_GROUP" \
             --location "$LOCATION" \
             --tags $TAGS \
-            --only-show-errors
+            --only-show-errors &>/dev/null
     else
         echo "Resource group $TF_STATE_RESOURCE_GROUP already exists."
     fi
@@ -96,7 +96,7 @@ ensure_tf_state_storage() {
             --min-tls-version TLS1_2 \
             --allow-blob-public-access false \
             --tags $TAGS \
-            --only-show-errors
+            --only-show-errors &>/dev/null
     else
         echo "Storage account $TF_STATE_STORAGE_ACCOUNT already exists."
     fi
@@ -112,7 +112,7 @@ ensure_tf_state_storage() {
             --name "$TF_STATE_CONTAINER" \
             --account-name "$TF_STATE_STORAGE_ACCOUNT" \
             --auth-mode login \
-            --only-show-errors
+            --only-show-errors &>/dev/null
     else
         echo "Blob container $TF_STATE_CONTAINER already exists."
     fi
