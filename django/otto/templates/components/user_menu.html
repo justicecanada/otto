@@ -10,25 +10,17 @@
             data-bs-toggle="dropdown"
             aria-expanded="false">{{ request.user.full_name }}</button>
     <ul class="dropdown-menu dropdown-menu-end">
-      <li>
-        <a href="{% url 'user_feedback' %}"
-           class="dropdown-item text-nowrap text-decoration-none">{% trans "Provide feedback" %}</a>
-      </li>
-
       {% has_perm "otto.manage_users" request.user as can_manage_users %}
       {% if can_manage_users %}
-        <li>
-          <hr class="dropdown-divider">
-        </li>
         <li>
           <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
           <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
           <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
         </li>
+        <li>
+          <hr class="dropdown-divider">
+        </li>
       {% endif %}
-      <li>
-        <hr class="dropdown-divider">
-      </li>
       <li>
         <a href="{% url 'azure_auth:logout' %}" class="dropdown-item">{% trans "Logout" %}</a>
       </li>
