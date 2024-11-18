@@ -56,6 +56,11 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.cleanup_vector_store",
         "schedule": crontab(hour=3, minute=0),
     },
+    # Update USD to CAD exchange rate every Sunday at 2 am UTC
+    "update-exchange-rate-every-week": {
+        "task": "otto.tasks.update_exchange_rate",
+        "schedule": crontab(hour=2, minute=0, day_of_week=6),
+    },
 }
 
 
