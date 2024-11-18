@@ -147,6 +147,8 @@ def summarize_response(chat, response_message):
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
     summary_length = chat.options.summarize_style
+    gender_neutral = chat.options.summarize_gender_neutral
+    instructions = chat.options.summarize_instructions
     custom_summarize_prompt = chat.options.summarize_prompt
     target_language = chat.options.summarize_language
     model = chat.options.summarize_model
@@ -159,15 +161,18 @@ def summarize_response(chat, response_message):
         for file in files:
             if not file.text:
                 file.extract_text(pdf_method="default")
-            responses.append(
-                summarize_long_text(
-                    file.text,
-                    llm,
-                    summary_length,
-                    target_language,
-                    custom_summarize_prompt,
+            if not cache.get(f"stop_response_{response_message.id}", False):
+                responses.append(
+                    summarize_long_text(
+                        file.text,
+                        llm,
+                        summary_length,
+                        target_language,
+                        custom_summarize_prompt,
+                        gender_neutral,
+                        instructions,
+                    )
                 )
-            )
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
@@ -199,6 +204,8 @@ def summarize_response(chat, response_message):
                 summary_length,
                 target_language,
                 custom_summarize_prompt,
+                gender_neutral,
+                instructions,
             )
             return StreamingHttpResponse(
                 streaming_content=htmx_stream(
@@ -271,6 +278,7 @@ def translate_response(chat, response_message):
                 response_replacer=file_translation_generator(task_ids),
                 dots=True,
                 format=False,  # Because the generator already returns HTML
+                remove_stop=True,
             ),
             content_type="text/event-stream",
         )
@@ -344,6 +352,16 @@ def qa_response(chat, response_message, switch_mode=False):
 
     if len(files) > 0 or adding_url:
         for file in files:
+            existing_document = Document.objects.filter(
+                data_source=chat.data_source,
+                filename=file.filename,
+                file__sha256_hash=file.saved_file.sha256_hash,
+            ).first()
+            # Skip if filename and hash are the same, and processing status is SUCCESS
+            if existing_document:
+                if existing_document.status != "SUCCESS":
+                    existing_document.process()
+                continue
             document = Document.objects.create(
                 data_source=chat.data_source,
                 file=file.saved_file,
@@ -351,10 +369,15 @@ def qa_response(chat, response_message, switch_mode=False):
             )
             document.process()
         if adding_url:
-            document = Document.objects.create(
-                data_source=chat.data_source,
-                url=user_message.text,
-            )
+            existing_document = Document.objects.filter(
+                data_source=chat.data_source, url=user_message.text
+            ).first()
+            if not existing_document:
+                document = Document.objects.create(
+                    data_source=chat.data_source,
+                    url=user_message.text,
+                )
+            # URLs are always re-processed
             document.process()
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
@@ -363,6 +386,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 llm,
                 response_replacer=add_files_to_library(),
                 dots=True,
+                remove_stop=True,
             ),
             content_type="text/event-stream",
         )
@@ -401,6 +425,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 template=chat.options.qa_prompt_combined,
             )
             for document in filter_documents
+            if not cache.get(f"stop_response_{response_message.id}", False)
         ]
         response_replacer = combine_response_replacers(
             summary_responses, document_titles
@@ -525,6 +550,7 @@ def qa_response(chat, response_message, switch_mode=False):
             responses = [
                 synthesizer.synthesize(query=input, nodes=sources).response_gen
                 for sources in source_groups
+                if not cache.get(f"stop_response_{response_message.id}", False)
             ]
             response_replacer = combine_response_generators(
                 responses,

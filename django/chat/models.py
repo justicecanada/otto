@@ -2,7 +2,7 @@ import re
 import uuid
 
 from django.conf import settings
-from django.db import models
+from django.db import connections, models
 from django.db.models import BooleanField, Q, Value
 from django.db.models.functions import Coalesce
 from django.db.models.signals import post_delete
@@ -111,8 +111,8 @@ class ChatOptionsManager(models.Manager):
                 qa_library=default_library,
                 chat_system_prompt=_(DEFAULT_CHAT_PROMPT),
                 chat_model=settings.DEFAULT_CHAT_MODEL,
-                qa_model=settings.DEFAULT_CHAT_MODEL,
-                summarize_model=settings.DEFAULT_CHAT_MODEL,
+                qa_model=settings.DEFAULT_QA_MODEL,
+                summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
                 qa_prompt_template=_(QA_PROMPT_TEMPLATE),
                 qa_pre_instructions=_(QA_PRE_INSTRUCTIONS),
                 qa_post_instructions=_(QA_POST_INSTRUCTIONS),
@@ -160,6 +160,9 @@ class ChatOptions(models.Model):
 
     mode = models.CharField(max_length=255, default=DEFAULT_MODE)
 
+    # Prompt is only saved/restored for presets
+    prompt = models.TextField(blank=True, default="")
+
     # Chat-specific options
     chat_model = models.CharField(max_length=255, default="gpt-4o")
     chat_temperature = models.FloatField(default=0.1)
@@ -170,7 +173,9 @@ class ChatOptions(models.Model):
     summarize_model = models.CharField(max_length=255, default="gpt-4o")
     summarize_style = models.CharField(max_length=255, default="short")
     summarize_language = models.CharField(max_length=255, default="en")
+    summarize_instructions = models.TextField(blank=True)
     summarize_prompt = models.TextField(blank=True)
+    summarize_gender_neutral = models.BooleanField(default=True)
 
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
@@ -371,6 +376,9 @@ class Preset(models.Model):
             logger.error("User must be set to set user default.")
             raise ValueError("User must be set to set user default")
 
+    def __str__(self):
+        return f"Preset {self.id}: {self.name_en}"
+
 
 class Message(models.Model):
     """
@@ -387,7 +395,7 @@ class Message(models.Model):
     feedback_comment = models.TextField(blank=True)
     is_bot = models.BooleanField(default=False)
     bot_name = models.CharField(max_length=255, blank=True)
-    usd_cost = models.DecimalField(max_digits=10, decimal_places=4, default=0)
+    usd_cost = models.DecimalField(max_digits=10, decimal_places=4, null=True)
     pinned = models.BooleanField(default=False)
     # Flexible JSON field for mode-specific details such as translation target language
     details = models.JSONField(default=dict)
@@ -441,7 +449,7 @@ class Message(models.Model):
 class AnswerSourceManager(models.Manager):
     def create(self, *args, **kwargs):
         # Extract page numbers using regex
-        source_text = kwargs.get("node_text", "")
+        source_text = kwargs.pop("node_text", "")
         page_numbers = re.findall(r"<page_(\d+)>", source_text)
         page_numbers = list(map(int, page_numbers))  # Convert to integers
         if page_numbers:
@@ -465,7 +473,7 @@ class AnswerSource(models.Model):
     document = models.ForeignKey(
         "librarian.Document", on_delete=models.SET_NULL, null=True
     )
-    node_text = models.TextField()
+    node_id = models.CharField(max_length=255, blank=True)
     node_score = models.FloatField(default=0.0)
     # Saved citation for cases where the source Document is deleted later
     saved_citation = models.TextField(blank=True)
@@ -475,8 +483,7 @@ class AnswerSource(models.Model):
     max_page = models.IntegerField(null=True)
 
     def __str__(self):
-        document_citation = self.citation
-        return f"{document_citation} ({self.node_score:.2f}):\n{self.node_text[:144]}"
+        return f"{self.citation} ({self.node_score:.2f})"
 
     @property
     def html(self):
@@ -490,6 +497,22 @@ class AnswerSource(models.Model):
             "chat/components/source_citation.html",
             {"document": self.document, "source": self},
         )
+
+    @property
+    def node_text(self):
+        """
+        Lookup the node text from the vector DB
+        """
+        if self.document:
+            table_id = self.document.data_source.library.uuid_hex
+            with connections["vector_db"].cursor() as cursor:
+                cursor.execute(
+                    f"SELECT text FROM data_{table_id} WHERE node_id = '{self.node_id}'"
+                )
+                row = cursor.fetchone()
+                if row:
+                    return row[0]
+        return _("Source not available (document deleted or modified since message)")
 
 
 class ChatFileManager(models.Manager):

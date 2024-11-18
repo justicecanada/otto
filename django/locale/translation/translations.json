@@ -3886,5 +3886,81 @@
     "file(s) still processing": {
         "fr": "",
         "fr_auto": "fichier(s) toujours en cours de traitement"
+    },
+    "Response stopped early. Costs may still be incurred after stopping.": {
+        "fr": "",
+        "fr_auto": "La réponse s’est arrêtée tôt. Des coûts peuvent encore être engagés après l’arrêt."
+    },
+    "Avoid personal pronouns": {
+        "fr": "",
+        "fr_auto": "Évitez les pronoms personnels"
+    },
+    "Additional instructions": {
+        "fr": "",
+        "fr_auto": "Instructions supplémentaires"
+    },
+    "(overrides all previous settings)": {
+        "fr": "",
+        "fr_auto": "(remplace tous les paramètres précédents)"
+    },
+    "Plain text": {
+        "fr": "",
+        "fr_auto": "Texte brut"
+    },
+    "Maximum 2000 files / 300mb total": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
+    },
+    "Output documents": {
+        "fr": "",
+        "fr_auto": "Documents de sortie"
+    },
+    "Document name": {
+        "fr": "",
+        "fr_auto": "Nom du document"
+    },
+    "Status": {
+        "fr": "",
+        "fr_auto": "État d’avancement"
+    },
+    "Download all files...": {
+        "fr": "",
+        "fr_auto": "Téléchargez tous les fichiers..."
+    },
+    "Source not available (document deleted or modified since message)": {
+        "fr": "",
+        "fr_auto": "Source non disponible (document supprimé ou modifié depuis le message)"
+    },
+    "Legislation search - Otto": {
+        "fr": "",
+        "fr_auto": "Recherche de législation - Otto"
+    },
+    "Otto: Justice Canada's AI toolkit": {
+        "fr": "",
+        "fr_auto": "Otto : Trousse d’outils sur l’IA de Justice Canada"
+    },
+    "Manage pilots - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer les pilotes - Otto"
+    },
+    "Manage users - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer les utilisateurs - Otto"
+    },
+    "Template wizard - Otto": {
+        "fr": "",
+        "fr_auto": "Assistant de modèle - Otto"
+    },
+    "Text extractor - Otto": {
+        "fr": "",
+        "fr_auto": "Extracteur de texte - Otto"
+    },
+    "Last refreshed from the": {
+        "fr": "",
+        "fr_auto": "Dernière actualisation à partir de l'"
+    },
+    "repository on": {
+        "fr": "",
+        "fr_auto": "référentiel sur"
     }
 }

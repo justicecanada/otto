@@ -475,3 +475,16 @@ class Pilot(models.Model):
     @property
     def total_cost(self):
         return display_cad_cost(Cost.objects.get_pilot_cost(self))
+
+
+class OttoStatusManager(models.Manager):
+    def singleton(self):
+        return self.get_or_create(pk=1)[0]
+
+
+class OttoStatus(models.Model):
+    """Misc. information, e.g. when updates occurred. Use as singleton."""
+
+    objects = OttoStatusManager()
+    laws_last_refreshed = models.DateTimeField(null=True, blank=True)
+    exchange_rate = models.FloatField(null=False, blank=False, default=1.38)

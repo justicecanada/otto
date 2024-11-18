@@ -27,8 +27,8 @@ SUMMARIZE_STYLES = [
 ]
 TEMPERATURES = [
     (0.1, _("Precise")),
-    (0.7, _("Balanced")),
-    (1.2, _("Creative")),
+    (0.5, _("Balanced")),
+    (1.0, _("Creative")),
 ]
 LANGUAGES = [("en", _("English")), ("fr", _("French"))]
 
@@ -169,7 +169,7 @@ class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions
         fields = "__all__"
-        exclude = ["chat", "global_default"]
+        exclude = ["chat", "global_default", "prompt"]
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
@@ -199,13 +199,6 @@ class ChatOptionsForm(ModelForm):
                     "class": "form-select form-select-sm",
                     "onchange": "updateQaSourceForms(); triggerOptionSave();",
                 },
-            ),
-            "chat_agent": forms.CheckboxInput(
-                attrs={
-                    "class": "form-check-input small",
-                    "onchange": "triggerOptionSave();",
-                    "style": "filter: saturate(0); margin-top: 6px;",
-                }
             ),
             # QA advanced options are shown in a different form so they can be hidden
             "qa_system_prompt": forms.HiddenInput(
@@ -269,12 +262,26 @@ class ChatOptionsForm(ModelForm):
         for field in [
             "chat_system_prompt",
             "summarize_prompt",
+            "summarize_instructions",
         ]:
             self.fields[field].widget = forms.Textarea(
                 attrs={
                     "class": "form-control form-control-sm",
                     "rows": 5,
                     "onkeyup": "triggerOptionSave();",
+                }
+            )
+
+        # Toggles
+        for field in [
+            "chat_agent",
+            "summarize_gender_neutral",
+        ]:
+            self.fields[field].widget = forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input small",
+                    "onchange": "triggerOptionSave();",
+                    "style": "filter: saturate(0); margin-top: 6px;",
                 }
             )
 
