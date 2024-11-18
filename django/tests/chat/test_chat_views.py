@@ -1,4 +1,4 @@
-import json
+import asyncio
 import tempfile
 
 from django.conf import settings
@@ -23,6 +23,17 @@ skip_on_github_actions = pytest.mark.skipif(
 skip_on_devops_pipeline = pytest.mark.skipif(
     settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
 )
+
+
+async def final_response_helper(stream):
+    content = b""
+    async for chunk in stream:
+        content = chunk
+    return content
+
+
+def final_response(stream):
+    return asyncio.run(final_response_helper(stream))
 
 
 @pytest.mark.django_db
@@ -1033,3 +1044,33 @@ def test_update_qa_options_from_librarian(client, all_apps_user):
     assert chat.options.qa_library == Library.objects.get_default_library()
     assert chat.options.qa_data_sources.count() == 0
     assert chat.options.qa_documents.count() == 0
+
+
+@pytest.mark.django_db
+def test_chat_message_error(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("chat:chat_with_ai"), follow=True)
+    # Find the newest user chat
+    chat_id = Chat.objects.filter(user=user).order_by("-created_at").first().id
+    # Change the chat options temperature to an invalid value
+    chat = Chat.objects.get(id=chat_id)
+    chat.options.chat_temperature = 5
+    chat.options.save()
+    response = client.post(
+        reverse("chat:chat_message", args=[chat_id]),
+        data={"user-message": "Hello"},
+    )
+    assert response.status_code == 200
+    assert "Hello" in response.content.decode("utf-8")
+
+    message = Message.objects.filter(chat_id=chat_id).first()
+    assert message.text == "Hello"
+
+    # Now get the bot response - we should get a pretty error message here
+    response = client.get(reverse("chat:chat_response", args=[message.id + 1]))
+    assert response.status_code == 200
+    # We should have a StreamingHttpResponse object.
+    # Iterate over the response to get the content
+    content = final_response(response.streaming_content)
+    assert "Error ID" in content.decode("utf-8")
