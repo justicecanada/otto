@@ -29,7 +29,12 @@ function render_markdown(element) {
       to_parse = false;
     }
     if (to_parse) {
-      markdown_text.parentElement.innerHTML = md.render(to_parse);
+      const parent = markdown_text.parentElement;
+      parent.innerHTML = md.render(to_parse);
+      // Add the "copy code" button to code blocks
+      for (block of parent.querySelectorAll("pre code")) {
+        block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
+      }
     }
   }
 }
