@@ -3962,5 +3962,21 @@
     "repository on": {
         "fr": "",
         "fr_auto": "référentiel sur"
+    },
+    "Invalid mode.": {
+        "fr": "",
+        "fr_auto": "Mode non valide."
+    },
+    "There was an error processing your request.": {
+        "fr": "",
+        "fr_auto": "Il y a eu une erreur de traitement de votre demande."
+    },
+    "No user message found.": {
+        "fr": "",
+        "fr_auto": "Aucun message de l’utilisateur trouvé."
+    },
+    "Downloads": {
+        "fr": "",
+        "fr_auto": "Téléchargements"
     }
 }
