@@ -1,4 +1,6 @@
 import asyncio
+import html
+import json
 import sys
 from itertools import groupby
 from typing import AsyncGenerator, Generator
@@ -37,11 +39,9 @@ def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
 
 
 def llm_response_to_html(llm_response_str):
-    return "<div class='markdown-text'>" + llm_response_str + "</div>"
+    return f'<div class="markdown-text" data-md="{html.escape(json.dumps(llm_response_str))}"></div>'
     s = str(llm_response_str)
     # When message has uneven # of '```' then add a closing '```' on a newline
-    if s.count("```") % 2 == 1:
-        s += "\n```"
     raw_html = md.convert(s)
     # return raw_html
     allowed_tags = [
@@ -189,6 +189,7 @@ async def htmx_stream(
             message = llm_response_to_html(message)
         if dots:
             message += dots
+        # out_string = "event: htmx_swap\ndata: "
         out_string = "data: "
         out_string += sse_joiner.join(message.split("\n"))
         if remove_stop:
@@ -289,7 +290,7 @@ async def htmx_stream(
         context = {"message": message, "swap_oob": True}
 
     # Render the message template, wrapped in SSE format
-    print(context["message"].text)
+    context["message"].json = json.dumps(full_message)
     out_str = sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context
@@ -297,7 +298,6 @@ async def htmx_stream(
         format=False,
         remove_stop=True,
     )
-    print(out_str)
     yield out_str
 
 

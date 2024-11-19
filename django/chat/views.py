@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -145,7 +147,7 @@ def chat(request, chat_id):
     messages = Message.objects.filter(chat=chat).order_by("id")
     for message in messages:
         if message.is_bot:
-            message.text = llm_response_to_html(message.text)
+            message.json = json.dumps(message.text)
         else:
             message.text = message.text.strip()
 

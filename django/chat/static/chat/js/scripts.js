@@ -16,7 +16,15 @@ function render_markdown(element) {
   // Render markdown in the element
   const markdown_text = element.querySelector(".markdown-text");
   if (markdown_text) {
-    markdown_text.parentElement.innerHTML = md.render(markdown_text.innerHTML);
+    let to_parse = markdown_text.dataset.md;
+    try {
+      to_parse = JSON.parse(to_parse);
+    } catch (e) {
+      to_parse = false;
+    }
+    if (to_parse) {
+      markdown_text.parentElement.innerHTML = md.render(to_parse);
+    }
   }
 }
 
@@ -130,7 +138,7 @@ window.addEventListener('resize', showHideSidebars);
 // On page load...
 document.addEventListener("DOMContentLoaded", function () {
   // Markdown rendering
-  document.querySelectorAll(".message-text").forEach(function (element) {
+  document.querySelectorAll("div.message-text").forEach(function (element) {
     render_markdown(element);
   });
   limitScopeSelect();
