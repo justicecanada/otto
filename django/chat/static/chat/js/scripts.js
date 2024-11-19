@@ -12,6 +12,8 @@ const md = markdownit({
   }
 });
 
+md.use(katexPlugin);
+
 function checkTruncation(element) {
   if (element && (element.offsetHeight < element.scrollHeight)) {
     element.closest('.message-outer').classList.add('truncate');
