@@ -7,7 +7,7 @@ from django.utils.translation import gettext as _
 import tiktoken
 from asgiref.sync import sync_to_async
 
-from chat.utils import llm_response_to_html
+from chat.utils import wrap_llm_response
 from otto.utils.common import display_cad_cost
 
 
@@ -93,7 +93,7 @@ def format_html_response(full_message, sse_joiner):
     tmp_full_message = full_message.replace("```markdown", "").replace("`", "")
 
     # Parse Markdown of full_message to HTML
-    message_html = llm_response_to_html(tmp_full_message)
+    message_html = wrap_llm_response(tmp_full_message)
     message_html_lines = message_html.split("\n")
     if len(full_message) > 1:
         formatted_response = (
@@ -151,7 +151,7 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
     except Exception as e:
         error = str(e)
         full_message = _("An error occurred:") + f"\n```\n{error}\n```"
-        message_html = llm_response_to_html(full_message)
+        message_html = wrap_llm_response(full_message)
         message_html_lines = message_html.split("\n")
 
     cost = await sync_to_async(llm.create_costs)()

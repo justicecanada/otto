@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -38,10 +37,9 @@ from chat.models import (
     Preset,
     create_chat_data_source,
 )
-from chat.utils import change_mode_to_chat_qa, llm_response_to_html, title_chat
-from librarian.models import DataSource, Library, SavedFile
-from librarian.utils.process_engine import guess_content_type
-from otto.models import App, SecurityLabel
+from chat.utils import change_mode_to_chat_qa, title_chat
+from librarian.models import Library, SavedFile
+from otto.models import SecurityLabel
 from otto.rules import is_admin
 from otto.utils.decorators import (
     app_access_required,
@@ -254,6 +252,7 @@ def chat_message(request, chat_id):
     user_message = Message.objects.create(
         chat=chat, text=user_message_text, is_bot=False, mode=mode
     )
+    user_message.is_new_user_message = True
     response_message = Message.objects.create(
         chat=chat, text="", is_bot=True, mode=mode, parent=user_message
     )

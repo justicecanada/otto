@@ -9,7 +9,6 @@ from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
-import bleach
 import markdown
 import tiktoken
 from asgiref.sync import sync_to_async
@@ -38,60 +37,8 @@ def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
     return num_tokens
 
 
-def llm_response_to_html(llm_response_str):
+def wrap_llm_response(llm_response_str):
     return f'<div class="markdown-text" data-md="{html.escape(json.dumps(llm_response_str))}"></div>'
-    s = str(llm_response_str)
-    # When message has uneven # of '```' then add a closing '```' on a newline
-    raw_html = md.convert(s)
-    # return raw_html
-    allowed_tags = [
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6",
-        "b",
-        "i",
-        "strong",
-        "em",
-        "tt",
-        "p",
-        "br",
-        "span",
-        "div",
-        "blockquote",
-        "code",
-        "pre",
-        "hr",
-        "ul",
-        "ol",
-        "li",
-        "dd",
-        "dt",
-        "img",
-        "a",
-        "sub",
-        "sup",
-        "table",
-        "thead",
-        "th",
-        "tbody",
-        "tr",
-        "td",
-        "tfoot",
-        "dl",
-    ]
-    allowed_attributes = {
-        "*": ["id"],
-        "img": ["src", "alt", "title"],
-        "a": ["href", "alt", "title"],
-        "pre": ["class"],
-        "code": ["class"],
-        "span": ["class"],
-    }
-    clean_html = bleach.clean(raw_html, allowed_tags, allowed_attributes)
-    return clean_html
 
 
 def url_to_text(url):
@@ -186,7 +133,7 @@ async def htmx_stream(
     def sse_string(message: str, format=True, dots=False, remove_stop=False) -> str:
         sse_joiner = "\ndata: "
         if format:
-            message = llm_response_to_html(message)
+            message = wrap_llm_response(message)
         if dots:
             message += dots
         # out_string = "event: htmx_swap\ndata: "
@@ -269,7 +216,7 @@ async def htmx_stream(
             await sync_to_async(title_llm.create_costs)()
 
         # Update message text with HTML formatting to pass to template
-        message.text = llm_response_to_html(full_message)
+        message.text = wrap_llm_response(full_message)
         context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
         # Save sources and security label
@@ -286,7 +233,7 @@ async def htmx_stream(
         full_message = _("An error occurred:") + f"\n```\n{str(e)}\n```"
         message.text = full_message
         await sync_to_async(message.save)()
-        message.text = llm_response_to_html(full_message)
+        message.text = wrap_llm_response(full_message)
         context = {"message": message, "swap_oob": True}
 
     # Render the message template, wrapped in SSE format
