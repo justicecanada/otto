@@ -37,6 +37,7 @@ def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
 
 
 def llm_response_to_html(llm_response_str):
+    return "<div class='markdown-text'>" + llm_response_str + "</div>"
     s = str(llm_response_str)
     # When message has uneven # of '```' then add a closing '```' on a newline
     if s.count("```") % 2 == 1:
@@ -288,13 +289,16 @@ async def htmx_stream(
         context = {"message": message, "swap_oob": True}
 
     # Render the message template, wrapped in SSE format
-    yield sse_string(
+    print(context["message"].text)
+    out_str = sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context
         ),
         format=False,
         remove_stop=True,
     )
+    print(out_str)
+    yield out_str
 
 
 def title_chat(chat_id, llm, force_title=True):

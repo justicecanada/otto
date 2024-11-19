@@ -1,3 +1,25 @@
+const md = markdownit({
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return '<pre><code class="hljs">' +
+          hljs.highlight(str, {language: lang, ignoreIllegals: true}).value +
+          '</code></pre>';
+      } catch (__) { }
+    }
+
+    return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
+  }
+});
+
+function render_markdown(element) {
+  // Render markdown in the element
+  const markdown_text = element.querySelector(".markdown-text");
+  if (markdown_text) {
+    markdown_text.parentElement.innerHTML = md.render(markdown_text.innerHTML);
+  }
+}
+
 // Chat window UI
 let preventAutoScrolling = false;
 
@@ -107,6 +129,10 @@ function showHideSidebars() {
 window.addEventListener('resize', showHideSidebars);
 // On page load...
 document.addEventListener("DOMContentLoaded", function () {
+  // Markdown rendering
+  document.querySelectorAll(".message-text").forEach(function (element) {
+    render_markdown(element);
+  });
   limitScopeSelect();
   showHideSidebars();
   document.querySelector('#prompt-form-container').classList.remove("d-none");
@@ -114,11 +140,6 @@ document.addEventListener("DOMContentLoaded", function () {
   let mode = document.querySelector('#chat-outer').classList[0];
   updateAccordion(mode);
   document.querySelector("#chat-prompt").focus();
-  for (block of document.querySelectorAll("pre code")) {
-    block.classList.add("language-txt");
-    hljs.highlightElement(block);
-    block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
-  }
   if (document.querySelector("#no-messages-placeholder") === null) {
     setTimeout(scrollToBottom, 100);
   }
@@ -152,21 +173,13 @@ document.addEventListener("htmx:afterSwap", function (event) {
 // When streaming response is updated
 document.addEventListener("htmx:sseMessage", function (event) {
   if (!(event.target.id.startsWith("response-"))) return;
-  for (block of event.target.querySelectorAll("pre code")) {
-    block.classList.add("language-txt");
-    hljs.highlightElement(block);
-    block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
-  }
+  render_markdown(event.target);
   scrollToBottom(false, false);
 });
 // When streaming response is finished
 document.addEventListener("htmx:oobAfterSwap", function (event) {
   if (!(event.target.id.startsWith("message_"))) return;
-  for (block of event.target.querySelectorAll("pre code")) {
-    block.classList.add("language-txt");
-    hljs.highlightElement(block);
-    block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
-  }
+  render_markdown(event.target);
   scrollToBottom(false, false);
 });
 // When prompt input is focused, Enter sends message, unless Shift+Enter (newline)
