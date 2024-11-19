@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">239 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">195<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">44<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">197<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">42<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_5aabb7febf6ec373_views_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-11-18 17:38 +0000
+            created at 2024-11-19 02:08 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -361,8 +361,8 @@
     <p class="pln"><span class="n"><a id="t279" href="#t279">279</a></span><span class="t">                <span class="nam">SecurityLabel</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">all</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t280" href="#t280">280</a></span><span class="t">            <span class="op">)</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t281" href="#t281">281</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t282" href="#t282">282</a></span><span class="t">    <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t">        <span class="nam">message</span> <span class="op">=</span> <span class="key">await</span> <span class="nam">sync_to_async</span><span class="op">(</span><span class="nam">Message</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">get</span><span class="op">)</span><span class="op">(</span><span class="nam">id</span><span class="op">=</span><span class="nam">message_id</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t282" href="#t282">282</a></span><span class="t">    <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t">        <span class="nam">message</span> <span class="op">=</span> <span class="key">await</span> <span class="nam">sync_to_async</span><span class="op">(</span><span class="nam">Message</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">get</span><span class="op">)</span><span class="op">(</span><span class="nam">id</span><span class="op">=</span><span class="nam">message_id</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t284" href="#t284">284</a></span><span class="t">        <span class="nam">full_message</span> <span class="op">=</span> <span class="nam">_</span><span class="op">(</span><span class="str">"An error occurred:"</span><span class="op">)</span> <span class="op">+</span> <span class="fst">f"</span><span class="fst">\n```\n</span><span class="op">{</span><span class="nam">str</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span><span class="op">}</span><span class="fst">\n```</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t285" href="#t285">285</a></span><span class="t">        <span class="nam">message</span><span class="op">.</span><span class="nam">text</span> <span class="op">=</span> <span class="nam">full_message</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t286" href="#t286">286</a></span><span class="t">        <span class="key">await</span> <span class="nam">sync_to_async</span><span class="op">(</span><span class="nam">message</span><span class="op">.</span><span class="nam">save</span><span class="op">)</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -661,7 +661,7 @@
             <a class="nav" href="z_5aabb7febf6ec373_views_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-11-18 17:38 +0000
+            created at 2024-11-19 02:08 +0000
         </p>
     </div>
 </footer>
