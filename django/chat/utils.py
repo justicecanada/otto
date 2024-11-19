@@ -231,6 +231,9 @@ async def htmx_stream(
     except Exception as e:
         message = await sync_to_async(Message.objects.get)(id=message_id)
         full_message = _("An error occurred:") + f"\n```\n{str(e)}\n```"
+        import traceback
+
+        traceback.print_exc()
         message.text = full_message
         await sync_to_async(message.save)()
         message.text = wrap_llm_response(full_message)
@@ -477,6 +480,9 @@ async def combine_response_replacers(generators, titles):
                     partial_streams[i] = await stream["stream"].__anext__()
                     final_streams[i] = formatted_titles[i] + partial_streams[i]
             except StopAsyncIteration:
+                stream["status"] = "stopped"
+            except Exception as e:
+                final_streams[i] = formatted_titles[i] + f"```{str(e)}```"
                 stream["status"] = "stopped"
         yield ("\n\n---\n\n".join(final_streams))
         await asyncio.sleep(0)
