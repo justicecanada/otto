@@ -104,6 +104,40 @@ function showHideSidebars() {
   }
   resizePromptContainer();
 }
+
+// this function looks for math content and renders it using KaTeX
+// to find them it does a two step process
+// 1. looks for content  [ ... ] with <br> formatting which is usually what gpt uses for math equations
+// 2. validates that we don't have a false positive by checking for invalid characters
+function detectAndRenderMath() {
+  const messages = document.querySelectorAll('.message-outer.bot .message-text');
+
+  messages.forEach(function (message) {
+    message.querySelectorAll("p").forEach(function (paragraph) {
+      // Regex to capture content inside [ ... ] with <br> formatting
+      const regex = /\[\s*<br>\s*([\s\S]*?)\s*<br>\s*\]/g;
+      // looks for invalid characters that arn't numbers, lower-cased variables, or LaTeX commands
+      const invalidCharRegex = /[^a-z0-9+\-=\^\\(frac|sqrt|sum|prod|int|cdot|pm|leq|geq)\s{}]/;
+      const textContent = paragraph.innerHTML; // Use innerHTML for HTML-based matching
+
+      [...textContent.matchAll(regex)].forEach(match => {
+        const content = match[1];
+        // Validate that we don't have a false positive
+        if (!invalidCharRegex.test(content)) {
+          try {
+            const span = document.createElement('span');
+            window.katex.render(content, span, {
+              throwOnError: true,
+              displayMode: true
+            });
+            paragraph.innerHTML = paragraph.innerHTML.replace(match[0], span.outerHTML);
+          } catch (error) { }
+        }
+      });
+    });
+  });
+}
+
 window.addEventListener('resize', showHideSidebars);
 // On page load...
 document.addEventListener("DOMContentLoaded", function () {
@@ -118,6 +152,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.Prism.highlightElement(block);
     block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
   }
+  detectAndRenderMath();
   if (document.querySelector("#no-messages-placeholder") === null) {
     setTimeout(scrollToBottom, 100);
   }
@@ -155,6 +190,7 @@ document.addEventListener("htmx:sseMessage", function (event) {
     window.Prism.highlightElement(block);
     block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
   }
+  detectAndRenderMath();
   scrollToBottom(false, false);
 });
 // When streaming response is finished
@@ -164,6 +200,7 @@ document.addEventListener("htmx:oobAfterSwap", function (event) {
     window.Prism.highlightElement(block);
     block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
   }
+  detectAndRenderMath();
   scrollToBottom(false, false);
 });
 // When prompt input is focused, Enter sends message, unless Shift+Enter (newline)
@@ -477,61 +514,4 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-
-// md_math.use(window.katex);
-function addWorkingMessage() {
-  const messages = document.querySelectorAll('.message-outer.bot .message-text');
-
-  messages.forEach(function (message) {
-    message.querySelectorAll("p").forEach(function (paragraph) {
-      // Regex to capture content inside [ ... ] with <br> formatting
-      const regex = /\[\s*<br>\s*([\s\S]*?)\s*<br>\s*\]/g;
-      // looks for math operators or LaTeX commands
-      const mathRegex = /([+\-=\^]|\\(frac|sqrt|sum|prod|int|cdot|pm|leq|geq))/; // 
-      // looks for invalid characters that arn't numbers, letters or LaTeX commands
-      const invalidCharRegex = /[^a-zA-Z0-9+\-=\^\\(frac|sqrt|sum|prod|int|cdot|pm|leq|geq)\s{}]/;
-      const textContent = paragraph.innerHTML; // Use innerHTML for HTML-based matching
-
-      [...textContent.matchAll(regex)].forEach(match => {
-        const content = match[1];
-        console.log('Matched content:', content);
-        // Validate it contains math operators or LaTeX commands
-        if (!invalidCharRegex.test(content)) {
-
-          try {
-            const span = document.createElement('span');
-            window.katex.render(content, span, {
-              throwOnError: true,
-              displayMode: true
-            });
-            paragraph.innerHTML = paragraph.innerHTML.replace(match[0], span.outerHTML);
-          } catch (error) {
-            console.log('Error rendering LaTeX:', content, error);
-          }
-        } else {
-          console.log('Invalid LaTeX characters:', content);
-        }
-
-      });
-    });
-  });
-}
-
-// Call the function after chat messages are loaded
-document.addEventListener("DOMContentLoaded", function () {
-  addWorkingMessage();
-});
-
-document.addEventListener("htmx:afterSwap", function (event) {
-  if (event.target.id === "messages-container") {
-    addWorkingMessage();
-  }
-});
-
-// Call the function after the message stream is completely over
-document.addEventListener("htmx:oobAfterSwap", function (event) {
-  if (event.target.id.startsWith("message_")) {
-    addWorkingMessage();
-  }
-});
 
