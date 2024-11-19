@@ -341,11 +341,9 @@ def qa_response(chat, response_message, switch_mode=False):
         )()
         while processing_count:
             if adding_url:
-                yield _("Adding to the Q&A library") + "..."
+                yield f'<p>{_("Adding to the Q&A library")}...</p>'
             else:
-                yield _("Adding to the Q&A library") + f" ({processing_count} " + _(
-                    "file(s) still processing"
-                ) + "...)"
+                yield f'<p>{_("Adding to the Q&A library")} ({processing_count} {_("file(s) still processing")}...)</p>'
             await asyncio.sleep(0.5)
             processing_count = await sync_to_async(
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
@@ -390,6 +388,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 response_message.id,
                 llm,
                 response_replacer=add_files_to_library(),
+                format=False,
                 dots=True,
                 remove_stop=True,
             ),
