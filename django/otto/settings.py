@@ -162,6 +162,7 @@ INSTALLED_APPS = [
     "channels",
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
+    "lex_experiment",
     "django_celery_beat",
 ]
 
