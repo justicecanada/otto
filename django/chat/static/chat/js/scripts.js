@@ -116,9 +116,9 @@ function detectAndRenderMath() {
     message.querySelectorAll("p").forEach(function (paragraph) {
       // Regex to capture content inside [ ... ] with <br> formatting
       const regex = /\[\s*<br>\s*([\s\S]*?)\s*<br>\s*\]/g;
-      // looks for invalid characters that arn't numbers, lower-cased variables, or LaTeX commands
-      const invalidCharRegex = /[^a-z0-9+\-=\^\\(frac|sqrt|sum|prod|int|cdot|pm|leq|geq)\s{}]/;
-      const textContent = paragraph.innerHTML; // Use innerHTML for HTML-based matching
+      // looks for invalid characters that arn't numbers, letters, commas and underscores (e.g y_1, y_2) or LaTeX commands (e.g. \frac{})
+      const invalidCharRegex = /[^a-zA-Z0-9_+\-=(),\^\s\\{}]/;
+      const textContent = paragraph.innerHTML;
 
       [...textContent.matchAll(regex)].forEach(match => {
         const content = match[1];
