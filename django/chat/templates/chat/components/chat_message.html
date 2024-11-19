@@ -63,19 +63,6 @@
   {% endif %}
 </div>
 
-<script>
-(function () {
-  function checkTruncation() {
-    let element = document.querySelector('#message_{{message.id}} .message-text');
-    if (element && (element.offsetHeight < element.scrollHeight)) {
-      element.closest('.message-outer').classList.add('truncate');
-    }
-  }
-  checkTruncation();
-  setTimeout(checkTruncation, 100);
-})();
-</script>
-
 {% if swap_oob %}
   {# Update chat title, security label and user costs widget #}
   {% if message.chat.title %}

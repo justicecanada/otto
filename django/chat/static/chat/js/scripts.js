@@ -12,6 +12,12 @@ const md = markdownit({
   }
 });
 
+function checkTruncation(element) {
+  if (element && (element.offsetHeight < element.scrollHeight)) {
+    element.closest('.message-outer').classList.add('truncate');
+  }
+}
+
 function render_markdown(element) {
   // Render markdown in the element
   const markdown_text = element.querySelector(".markdown-text");
@@ -140,6 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Markdown rendering
   document.querySelectorAll("div.message-text").forEach(function (element) {
     render_markdown(element);
+    checkTruncation(element);
   });
   limitScopeSelect();
   showHideSidebars();
@@ -171,6 +178,10 @@ document.addEventListener("htmx:afterSwap", function (event) {
   }
   if (event.detail.pathInfo.requestPath.includes('upload'))
     return;
+  // Check truncation
+  document.querySelectorAll("div.message-text").forEach(function (element) {
+    checkTruncation(element);
+  });
   document.querySelector("#chat-prompt").value = "";
   document.querySelector("#chat-prompt").focus();
   // Change height back to minimum
