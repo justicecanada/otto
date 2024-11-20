@@ -1,71 +1,83 @@
 {% load i18n %}
 
 {% for output_file in output_files %}
+ 
   <tr>
     <td>
       {# column1: Document #}
       {{ output_file.file_name }}
     </td>
     <td>
-      {# column2: Status #}
-      {% if output_file.status == "PENDING" %}
-        {# Grey circle #}
-        <div class="document-status document-status-{{ document.status }}">
-          <i class="bi bi-circle text-secondary small me-1" aria-hidden="true"></i>
-          <span>{% trans 'Queued' %}...</span>
-        </div>
-      {% elif output_file.status == "PROCESSING" %}
-        {# Blue spinner #}
-        <div class="document-status document-status-{{ document.status }}">
-          <span class="me-1">
-            <i class="bi bi-arrow-repeat text-primary small icn-spinner"
-               aria-hidden="true"></i>
+      <p>answer</p>
+    </td>
+    <td>
+      <p>answer</p>
+    </td>
+    <td>
+      <p>answer</p>
+    </td>
+    <td>
+      <p>answer</p>
+    </td>
+    <td>
+      <p>answer</p>
+    </td>
+    <td>
+      <p>answer</p>
+    </td>
+    <td>
+      <p>answer</p>
+    </td>
+    <td>
+      <p>answer</p>
+    </td>
+    <td>
+      <p>answer</p>
+    </td>
+    <td>
+      <p>answer</p>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="11" style="text-align: right;">
+      <span class="ms-3"><strong>Cost:</strong> {{ output_file.cost }}</span>
+      <span><strong>Status:</strong>
+        {% if output_file.status == "PENDING" %}
+          <span class="document-status document-status-{{ output_file.status }}">
+            <i class="bi bi-circle text-secondary small me-1" aria-hidden="true"></i>
+            <span>{% trans 'Queued' %}...</span>
           </span>
-          <span>
-            {% if document.celery_status_message %}
-              {{ document.celery_status_message }}
-            {% else %}
-              {% trans 'Processing' %}...
+        {% elif output_file.status == "PROCESSING" %}
+          <span class="document-status document-status-{{ output_file.status }}">
+            <span class="me-1">
+              <i class="bi bi-arrow-repeat text-primary small icn-spinner"
+                 aria-hidden="true"></i>
+            </span>
+            <span>
+              {% if output_file.celery_status_message %}
+                {{ output_file.celery_status_message }}
+              {% else %}
+                {% trans 'Processing' %}...
+              {% endif %}
+            </span>
+          </span>
+        {% elif output_file.status == "SUCCESS" %}
+          <span class="document-status document-status-{{ output_file.status }}">
+            <i class="bi bi-check-circle-fill text-success small me-1"
+               aria-hidden="true"></i>
+            <span>{% trans 'Processed' %}</span>
+            {% if output_file.content_type == "application/pdf" %}
+              {% if output_file.pdf_method %}<span class="text-muted">({{ output_file.pdf_method }})</span>{% endif %}
             {% endif %}
           </span>
-        </div>
-      {% elif output_file.status == "SUCCESS" %}
-        {# Green checkmark #}
-        <div class="document-status document-status-{{ document.status }}">
-          <i class="bi bi-check-circle-fill text-success small me-1"
-             aria-hidden="true"></i>
-          <span>{% trans 'Processed' %}</span>
-          {% if document.content_type == "application/pdf" %}
-            {% if document.pdf_method %}<span class="text-muted">({{ document.pdf_method }})</span>{% endif %}
-          {% endif %}
-        </div>
-      {% elif output_file.status == "FAILURE" %}
-        {# Red exclamation mark #}
-        <div class="document-status document-status-{{ document.status }}">
-          <i class="bi bi-exclamation-circle-fill text-danger small me-1"
-             aria-hidden="true"></i>
-          <span>{% trans 'Error' %}</span>
-        </div>
-      {% endif %}
-    </td>
-    <td>
-      {# column3: Cost #}
-      {{ output_file.cost }}
-    </td>
-    <td>
-      {% if output_file.pdf_file %}
-        {# column4: Results #}
-        <a href="{% url 'lex_experiment:download_document' output_file.id 'pdf' %}"
-           class="me-3 text-nowrap icon-link">
-          <i class="bi bi-filetype-pdf h5 text-danger"></i>
-        PDF ({{ output_file.pdf_size }})</a>
-      {% endif %}
-      {% if output_file.txt_file %}
-        <a href="{% url 'lex_experiment:download_document' output_file.id 'txt' %}"
-           class="text-nowrap icon-link">
-          <i class="bi bi-filetype-txt h5 text-muted"></i>
-        {% trans "Plain text" %} ({{ output_file.txt_size }})</a>
-      {% endif %}
+        {% elif output_file.status == "FAILURE" %}
+          <span class="document-status document-status-{{ output_file.status }}">
+            <i class="bi bi-exclamation-circle-fill text-danger small me-1"
+               aria-hidden="true"></i>
+            <span>{% trans 'Error' %}</span>
+          </span>
+        {% endif %}
+      </span>
     </td>
   </tr>
 {% endfor %}

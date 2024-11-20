@@ -68,27 +68,29 @@
       <h2 class="h3 mt-4 pt-2 mb-3">{% trans "Output documents" %}</h2>
       <table class="table">
         <thead>
+
           <tr>
-            <th scope="col" width="50%">{% trans "Document name" %}</th>
-            <th scope="col" width="20%">{% trans "Status" %}</th>
-            <th scope="col" width="10%">{% trans "Cost" %}</th>
-            <th scope="col" width="20%">
-              {% trans "Downloads" %}
-              <a class="ms-1 d-none fw-normal icon-link"
-                 id="download-all-files"
-                 type="button"
-                 href="#"
-                 onclick="downloadAllFiles();">
-                <i class="bi bi-download h5"></i>
-                {% trans "Download all files..." %}
-              </a>
-            </th>
+            <th scope="col" width="10%">{% trans "Document" %}</th>
+            <th scope="col" width="10%">{% trans "Tax Court No." %}</th>
+            <th scope="col" width="10%">{% trans "Appellant's Name" %}</th>
+            <th scope="col" width="10%">{% trans "Appellant's Address" %}</th>
+            <th scope="col" width="10%">{% trans "Tax Court Level" %}</th>
+            <th scope="col" width="10%">{% trans "Filed Date of NoA" %}</th>
+            <th scope="col" width="10%">{% trans "Representative's Name" %}</th>
+            <th scope="col" width="10%">{% trans "Representative's Address" %}</th>
+            <th scope="col" width="5%">{% trans "Taxation Years" %}</th>
+            <th scope="col" width="5%">{% trans "Total Tax Amount" %}</th>
+            <th scope="col" width="10%">{% trans "Sections Referred" %}</th>
+ 
+ 
           </tr>
+
         </thead>
         <tbody id="completed_documents_body">
           {% include 'lex_experiment/completed_documents.html' %}
         </tbody>
       </table>
+ 
     </div>
   </div>
 
