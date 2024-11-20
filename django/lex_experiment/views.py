@@ -26,16 +26,16 @@ logger = get_logger(__name__)
 
 @app_access_required(app_name)
 def index(request):
-    from text_extractor.utils import img_extensions
+    from lex_experiment.utils import img_extensions
 
     extensions = ", ".join(list(img_extensions) + [".pdf"])
-    return render(request, "text_extractor/ocr.html", {"extensions": extensions})
+    return render(request, "lex_experiment/ocr.html", {"extensions": extensions})
 
 
 @app_access_required(app_name)
 @budget_required
 def submit_document(request):
-    bind_contextvars(feature="text_extractor")
+    bind_contextvars(feature="lex_experiment")
 
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request method."}, status=400)
@@ -123,7 +123,7 @@ def submit_document(request):
         logger.error(f"ERROR: {str(e)}")
         logger.error(traceback.format_exc())
         return render(
-            request, "text_extractor/error_message.html", {"error_message": str(e)}
+            request, "lex_experiment/error_message.html", {"error_message": str(e)}
         )
 
 
@@ -170,10 +170,10 @@ def poll_tasks(request, user_request_id):
 
     # In an HTMX request, we just want the updated rows.
     if request.headers.get("HX-Request") == "true":
-        return render(request, "text_extractor/completed_documents.html", context)
+        return render(request, "lex_experiment/completed_documents.html", context)
 
     # Otherwise, render the whole page with the updated rows.
-    from text_extractor.utils import img_extensions
+    from lex_experiment.utils import img_extensions
 
     context.update(
         {
@@ -182,7 +182,7 @@ def poll_tasks(request, user_request_id):
             "refresh_on_load": False,
         }
     )
-    return render(request, "text_extractor/ocr.html", context)
+    return render(request, "lex_experiment/ocr.html", context)
 
 
 def download_document(request, file_id, file_type):
@@ -191,7 +191,7 @@ def download_document(request, file_id, file_type):
     try:
         output_file = OutputFile.objects.get(access_key=access_key, id=file_id)
     except OutputFile.DoesNotExist:
-        return render(request, "text_extractor/error_message.html")
+        return render(request, "lex_experiment/error_message.html")
 
     if file_type == "pdf":
         file = output_file.pdf_file

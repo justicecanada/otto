@@ -9,7 +9,7 @@
 {% block breadcrumb %}
   {{ block.super }}
   <li class="breadcrumb-item">
-    <a href="{% url 'text_extractor:index' %}">{% trans "Text extractor" %}</a>
+    <a href="{% url 'lex_experiment:index' %}">{% trans "Lex Experiment" %}</a>
   </li>
 {% endblock %}
 
@@ -17,7 +17,7 @@
   <div class="container pt-5">
     <form method="post"
           enctype="multipart/form-data"
-          hx-post="{% url 'text_extractor:submit_document' %}"
+          hx-post="{% url 'lex_experiment:submit_document' %}"
           hx-target="#completed_documents_body"
           hx-swap="innerHTML"
           id="submit_document_form"
@@ -86,7 +86,7 @@
           </tr>
         </thead>
         <tbody id="completed_documents_body">
-          {% include 'text_extractor/completed_documents.html' %}
+          {% include 'lex_experiment/completed_documents.html' %}
         </tbody>
       </table>
     </div>

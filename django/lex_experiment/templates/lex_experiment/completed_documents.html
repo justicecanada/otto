@@ -55,13 +55,13 @@
     <td>
       {% if output_file.pdf_file %}
         {# column4: Results #}
-        <a href="{% url 'text_extractor:download_document' output_file.id 'pdf' %}"
+        <a href="{% url 'lex_experiment:download_document' output_file.id 'pdf' %}"
            class="me-3 text-nowrap icon-link">
           <i class="bi bi-filetype-pdf h5 text-danger"></i>
         PDF ({{ output_file.pdf_size }})</a>
       {% endif %}
       {% if output_file.txt_file %}
-        <a href="{% url 'text_extractor:download_document' output_file.id 'txt' %}"
+        <a href="{% url 'lex_experiment:download_document' output_file.id 'txt' %}"
            class="text-nowrap icon-link">
           <i class="bi bi-filetype-txt h5 text-muted"></i>
         {% trans "Plain text" %} ({{ output_file.txt_size }})</a>
@@ -81,7 +81,7 @@
   <script>document.querySelector("#download-all-files").classList.remove("d-none");</script>
 {% endif %}
 {% if user_request_id %}
-  <script>window.location.href = "{% url 'text_extractor:poll_tasks' user_request_id=user_request_id %}";</script>
+  <script>window.location.href = "{% url 'lex_experiment:poll_tasks' user_request_id=user_request_id %}";</script>
 {% endif %}
 <script>
 (function () {
