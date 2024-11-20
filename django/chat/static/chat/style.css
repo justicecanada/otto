@@ -216,15 +216,6 @@ div.pre-line {
   white-space: pre-line;
 }
 
-div.message pre code {
-  padding: 10px;
-  display: block;
-  border: solid 1px rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.5);
-  overflow-x: auto;
-}
-
 div.message-text pre {
   position: relative;
 }
@@ -645,7 +636,11 @@ div.message-text blockquote {
 }
 
 
-.message-text pre code {
+.message-text pre code,
+.message-text pre code.hljs {
+  padding: 10px;
+  display: block;
+  overflow-x: auto;
   border: solid 1px rgba(0, 0, 0, 0.2);
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.5);
@@ -1246,4 +1241,9 @@ ul#preset-edit-tabs {
     outline-color: black !important;
     outline-width: 2px !important;
   }
+}
+
+math[display="block"] {
+  margin-top: 1rem;
+  padding-bottom: 1rem;
 }
