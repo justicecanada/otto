@@ -24,6 +24,7 @@ from .forms import (
 from .models import DataSource, Document, Library, SavedFile
 
 logger = get_logger(__name__)
+IN_PROGRESS_STATUSES = ["PENDING", "INIT", "PROCESSING"]
 
 
 def get_editable_libraries(user):
@@ -232,11 +233,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         else:
             return HttpResponse(status=405)
 
-    # Poll for updates when a data source is selected that has processing documents
-    # (with status "INIT" or "PROCESSING")
+    # Poll for updates when a data source is selected that has in-progress documents
     try:
         poll = selected_data_source.documents.filter(
-            status__in=["INIT", "PROCESSING"]
+            status__in=IN_PROGRESS_STATUSES
         ).exists()
     except:
         poll = False
@@ -287,7 +287,7 @@ def poll_status(request, data_source_id, document_id=None):
     documents = Document.objects.filter(data_source_id=data_source_id)
     poll = False
     try:
-        poll = documents.filter(status__in=["INIT", "PROCESSING"]).exists()
+        poll = documents.filter(status__in=[IN_PROGRESS_STATUSES]).exists()
     except:
         poll = False
     poll_url = request.path if poll else None

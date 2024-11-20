@@ -13,20 +13,23 @@ def file_size_to_string(filesize):
 
 
 def display_cad_cost(usd_cost):
+    from otto.models import OttoStatus # Need to do it here to avoid circular imports
     """
     Converts a USD cost to CAD and returns a formatted string
     """
-    approx_cost_cad = float(usd_cost) * settings.USD_TO_CAD
+    approx_cost_cad = float(usd_cost) * OttoStatus.objects.singleton().exchange_rate
     if approx_cost_cad < 0.01:
         return "< $0.01"
     return f"${approx_cost_cad:.2f}"
 
 
 def cad_cost(usd_cost):
+    from otto.models import OttoStatus # Need to do it here to avoid circular imports
+
     """
     Converts a USD cost to CAD and returns a float
     """
-    approx_cost_cad = float(usd_cost) * settings.USD_TO_CAD
+    approx_cost_cad = float(usd_cost) * OttoStatus.objects.singleton().exchange_rate
     return approx_cost_cad
 
 
