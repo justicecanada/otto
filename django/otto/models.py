@@ -87,6 +87,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         return display_cad_cost(Cost.objects.get_user_cost(self))
 
     @property
+    def total_cost(self):
+        return f"{cad_cost(Cost.objects.get_user_cost(self)):.2f}"
+
+    @property
     def this_week_max(self):
         return self.weekly_max + self.weekly_bonus
 
