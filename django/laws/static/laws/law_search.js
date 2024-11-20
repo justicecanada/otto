@@ -144,3 +144,19 @@ function render_markdown(element) {
     }
   }
 }
+
+// When streaming response is updated
+document.addEventListener("htmx:sseMessage", function (event) {
+  if (!(event.target.id === "answer-sse")) return;
+  render_markdown(event.target);
+});
+
+// When streaming response is finished
+document.addEventListener("htmx:oobAfterSwap", function (event) {
+  if (!(event.target.id === "answer-sse")) return;
+  render_markdown(event.target);
+});
+// When page loaded with existing answer
+document.addEventListener("DOMContentLoaded", function () {
+  render_markdown(document.querySelector("#answer"));
+});

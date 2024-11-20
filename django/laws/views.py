@@ -153,13 +153,13 @@ def answer(request, query_uuid):
                             sources[parent_index].node.get_content(
                                 metadata_mode=MetadataMode.LLM
                             ),
-                            "gpt-4-turbo-preview",
+                            "gpt-4o",
                         )
                         if total_tokens + parent_tokens <= max_tokens:
                             source = sources.pop(parent_index)
             source_tokens = num_tokens(
                 source.node.get_content(metadata_mode=MetadataMode.LLM),
-                "gpt-4-turbo-preview",
+                "gpt-4o",
             )
             if total_tokens + source_tokens <= max_tokens:
                 trimmed_sources.append(source)

@@ -86,30 +86,19 @@ def process_bold_blocks(text, is_in_bold_block, bold_block):
     return is_in_bold_block, bold_block
 
 
-def format_html_response(full_message, sse_joiner):
+def sse_string(llm_string, extra_html=""):
+    sse_joiner = "\ndata: "
+
     # Prevent code-format output
     # NOTE: the first replace is necessary to remove the word "markdown" that
     # sometimes appears after triple backticks
-    tmp_full_message = full_message.replace("```markdown", "").replace("`", "")
+    llm_string = llm_string.replace("```markdown", "").replace("`", "")
 
-    # Parse Markdown of full_message to HTML
-    message_html = wrap_llm_response(tmp_full_message)
-    message_html_lines = message_html.split("\n")
-    if len(full_message) > 1:
-        formatted_response = (
-            f"data: <div>{sse_joiner.join(message_html_lines)}</div>\n\n"
-        )
-
-    else:
-        formatted_response = None
-
-    return (message_html_lines, formatted_response)
+    return f"data: <div>{wrap_llm_response(llm_string)}</div>\n\n"
 
 
 async def htmx_sse_response(response_gen, llm, query_uuid):
-    sse_joiner = "\ndata: "
     full_message = ""
-    message_html_lines = []
     try:
         is_in_bold_block = False
         bold_block = ""
@@ -129,11 +118,8 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
             elif not is_in_bold_block:
                 full_message += text
 
-            message_html_lines, formatted_response = format_html_response(
-                full_message, sse_joiner
-            )
-            if formatted_response is not None:
-                yield formatted_response
+            if full_message:
+                yield sse_string(full_message)
             await asyncio.sleep(0.01)
 
         # After the loop, handle any remaining bold block
@@ -143,29 +129,23 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
             if bold_block.strip() == "**":
                 bold_block = ""
             full_message += bold_block
-            message_html_lines, formatted_response = format_html_response(
-                full_message, sse_joiner
-            )
-            if formatted_response is not None:
-                yield formatted_response
+            if full_message:
+                yield sse_string(full_message)
     except Exception as e:
         error = str(e)
         full_message = _("An error occurred:") + f"\n```\n{error}\n```"
-        message_html = wrap_llm_response(full_message)
-        message_html_lines = message_html.split("\n")
 
     cost = await sync_to_async(llm.create_costs)()
     display_cost = await sync_to_async(display_cad_cost)(cost)
     cost_div = f"<div class='mb-2 text-muted' style='font-size:0.875rem !important;'>{display_cost}</div>"
+    markdown_div = sse_string(full_message).split("data: ", 1)[1].replace("\n", "")
     if query_uuid:
         query_info = cache.get(query_uuid)
-        query_info["answer"] = "\n".join(message_html_lines + [cost_div])
+        query_info["answer"] = f"{markdown_div}{cost_div}"
         cache.set(query_uuid, query_info, timeout=300)
 
     yield (
-        f"data: <div hx-swap-oob='true' id='answer-sse'>"
-        f"<div>{sse_joiner.join(message_html_lines)}</div>"
-        f"{cost_div}</div>\n\n"
+        f"data: <div hx-swap-oob='true' id='answer-sse'>{markdown_div}{cost_div}</div>\n\n"
     )
 
 

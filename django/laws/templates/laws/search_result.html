@@ -5,8 +5,8 @@
     <div class="card-body pb-1">
       <h3 class="h6 mb-2 text-success">{% trans "AI-generated answer &mdash; may contain inaccuracies" %}</h3>
       <div id="answer">
-        {% if answer_json %}
-          <div class="markdown-text" data-md="{{ answer_json }}"></div>
+        {% if answer %}
+          {{ answer|safe }}
         {% else %}
           <div hx-ext="sse"
                sse-connect="{% url 'laws:answer' query_uuid %}"
@@ -20,8 +20,8 @@
               <span></span><span></span><span></span>
             </div>
           </div>
-        </div>
-      {% endif %}
+        {% endif %}
+      </div>
     </div>
   </div>
 {% endif %}
