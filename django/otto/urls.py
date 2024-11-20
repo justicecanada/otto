@@ -50,7 +50,7 @@ urlpatterns = [
     path("user_cost/", views.user_cost, name="user_cost"),
     path("accept_terms/", views.accept_terms, name="accept_terms"),
     path("feedback/", views.message_feedback, name="user_feedback"),
-    path("feedback/<message_id>/", views.message_feedback, name="user_feedback"),
+    path("feedback/<int:message_id>/", views.message_feedback, name="user_feedback"),
     path("feedback_success/", views.feedback_success, name="feedback_success"),
     path(
         "user_management/feedback", views.feedback_dashboard, name="feedback_dashboard"

@@ -146,7 +146,11 @@ def accept_terms(request):
 @csrf_protect
 @login_required
 def message_feedback(request: HttpRequest, message_id=None):
+    if message_id == "None":
+        message_id = None
     if request.method == "POST":
+        from django.contrib import messages
+
         form = FeedbackForm(request.user, message_id, request.POST)
 
         if form.is_valid():
@@ -158,16 +162,18 @@ def message_feedback(request: HttpRequest, message_id=None):
                 user=request.user.username
             ).inc()
 
-            if message_id is None:
-                return redirect("feedback_success")
-            else:
-                return HttpResponse()
+            messages.success(
+                request,
+                _("Feedback submitted successfully."),
+            )
+            return HttpResponse(status=200)
+        else:
+            return HttpResponse(form.errors, status=400)
     else:
         form = FeedbackForm(request.user, message_id)
-
     return render(
         request,
-        "feedback.html",
+        "components/feedback/feedback_modal_content.html",
         {
             "form": form,
             "message_id": message_id,

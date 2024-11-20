@@ -21,7 +21,7 @@
     </button>
     <button type="button"
             hx-get="{% url 'chat:thumbs_feedback' message_id=message.id feedback=-1 %}"
-            hx-target="#modal-body"
+            hx-target="#feedback-modal-body"
             hx-trigger="click"
             class="btn btn-link m-0 ms-1 p-0 text-muted thumb-message-button thumb-down {% if message.feedback == -1 %}clicked{% endif %}"
             onclick="thumbMessage(this);"

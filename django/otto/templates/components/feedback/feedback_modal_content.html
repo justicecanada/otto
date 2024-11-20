@@ -1,0 +1,16 @@
+{% load i18n %}
+
+<form method="post"
+      id="feedback-form"
+      hx-post="{% if message_id %}{% url 'user_feedback' message_id=message_id %}{% else %}{% url 'user_feedback' %}{% endif %}"
+      hx-target="this"
+      hx-swap="outerHTML">
+        <div id="feedback-modal-body" class="modal-body">{% include 'components/feedback/feedback_form_elements.html' %}</div>
+        <div class="modal-footer">
+                <button type="button"
+                        id="cancelButton"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="submit" id="feedback-submit-button" class="btn btn-primary">{% trans "Submit" %}</button>
+        </div>
+</form>

@@ -1,7 +1,13 @@
 {% load i18n %}
-<a href="{% url 'user_feedback' %}"
-   class="text-muted mx-2 ps-1"
-   title="{% trans 'Leave feedback' %}">
+
+<button type="button"
+        data-bs-toggle="modal"
+        data-bs-target="#modal"
+        hx-get="{% url 'user_feedback' %}"
+        hx-trigger="click"
+        hx-target="#feedback-modal-body"
+        hx-swap="innerHTML"
+        class="btn btn-dark text-muted mx-2 ps-1"
+        title="{% trans 'Leave feedback' %}">
   <i class="bi bi-exclamation-square"></i>
-  <span class="visually-hidden">Submit feedback</span>
-</a>
+</button>
