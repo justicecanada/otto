@@ -282,7 +282,7 @@ def translate_response(chat, response_message):
                 llm,
                 response_replacer=file_translation_generator(task_ids),
                 dots=True,
-                format=False,  # Because the generator already returns HTML
+                wrap_markdown=False,  # Because the generator already returns HTML
                 remove_stop=True,
             ),
             content_type="text/event-stream",
@@ -341,11 +341,9 @@ def qa_response(chat, response_message, switch_mode=False):
         )()
         while processing_count:
             if adding_url:
-                yield _("Adding to the Q&A library") + "..."
+                yield f'<p>{_("Adding to the Q&A library")}...</p>'
             else:
-                yield _("Adding to the Q&A library") + f" ({processing_count} " + _(
-                    "file(s) still processing"
-                ) + "...)"
+                yield f'<p>{_("Adding to the Q&A library")} ({processing_count} {_("file(s) still processing")}...)</p>'
             await asyncio.sleep(0.5)
             processing_count = await sync_to_async(
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
@@ -390,6 +388,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 response_message.id,
                 llm,
                 response_replacer=add_files_to_library(),
+                wrap_markdown=False,
                 dots=True,
                 remove_stop=True,
             ),

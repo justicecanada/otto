@@ -4,22 +4,26 @@
   <div class="card mb-5 blockquote border-success" id="answer-container">
     <div class="card-body pb-1">
       <h3 class="h6 mb-2 text-success">{% trans "AI-generated answer &mdash; may contain inaccuracies" %}</h3>
-      {% if answer %}
-        {{ answer|safe }}
-      {% else %}
-        <div hx-ext="sse"
-             sse-connect="{% url 'laws:answer' query_uuid %}"
-             sse-swap="message"
-             id="answer-sse">
-          <!-- djlint:off -->
-                    {% comment %} Spans below require to make CSS "typing dots" bounce {% endcomment %}
-                    <p>&nbsp;</p>
-                  <div class="typing"><span></span><span></span><span></span></div>
-        <!-- djlint:on -->
+      <div id="answer">
+        {% if answer %}
+          {{ answer|safe }}
+        {% else %}
+          <div hx-ext="sse"
+               sse-connect="{% url 'laws:answer' query_uuid %}"
+               sse-swap="message"
+               id="answer-sse">
+            <!-- djlint:off -->
+            <!-- djlint:on -->
+            {% comment %} Spans below require to make CSS "typing dots" bounce {% endcomment %}
+            <p>&nbsp;</p>
+            <div class="typing">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        {% endif %}
       </div>
-    {% endif %}
+    </div>
   </div>
-</div>
 {% endif %}
 {% if error %}
   <div class="alert alert-danger">
