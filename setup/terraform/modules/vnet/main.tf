@@ -3,6 +3,7 @@ resource "azurerm_virtual_network" "vnet" {
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = [var.vnet_ip_range]
+  dns_servers         = ["10.250.255.4", "10.250.255.5"]
 
   tags = var.tags
 }
