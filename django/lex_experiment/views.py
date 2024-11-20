@@ -18,6 +18,7 @@ from .utils import (
     calculate_start_pages,
     create_toc_pdf,
     format_merged_file_name,
+    lex_prompts,
 )
 
 app_name = "lex_experiment"
@@ -128,6 +129,7 @@ def submit_document(request):
 
 
 def poll_tasks(request, user_request_id):
+    all_docs_results = {}
     access_key = AccessKey(user=request.user)
     user_request = UserRequest.objects.get(access_key, id=user_request_id)
     output_files = user_request.output_files.filter(access_key=access_key)
@@ -140,6 +142,10 @@ def poll_tasks(request, user_request_id):
             output_file.status = "SUCCESS"
             if not output_file.pdf_file:
                 output_file = add_extracted_files(output_file, access_key)
+            question_results = lex_prompts(output_file.txt_file.read().decode("utf-8"))
+            all_docs_results[output_file.file_name] = question_results
+            print("all_docs_results", all_docs_results)
+            print("all_docs_results length", len(all_docs_results))
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
         else:
@@ -180,6 +186,7 @@ def poll_tasks(request, user_request_id):
             "extensions": ", ".join(list(img_extensions) + [".pdf"]),
             "show_output": True,
             "refresh_on_load": False,
+            "all_docs_results": all_docs_results,
         }
     )
     return render(request, "lex_experiment/ocr.html", context)
