@@ -130,13 +130,14 @@ async def htmx_stream(
     """
 
     # Helper function to format a string as an SSE message
-    def sse_string(message: str, format=True, dots=False, remove_stop=False) -> str:
+    def sse_string(
+        message: str, wrap_markdown=True, dots=False, remove_stop=False
+    ) -> str:
         sse_joiner = "\ndata: "
-        if format:
+        if wrap_markdown:
             message = wrap_llm_response(message)
         if dots:
             message += dots
-        # out_string = "event: htmx_swap\ndata: "
         out_string = "data: "
         out_string += sse_joiner.join(message.split("\n"))
         if remove_stop:
@@ -180,7 +181,10 @@ async def htmx_stream(
                     },
                 )
                 yield sse_string(
-                    full_message, format=False, dots=dots_html, remove_stop=remove_stop
+                    full_message,
+                    wrap_markdown=False,
+                    dots=dots_html,
+                    remove_stop=remove_stop,
                 )
                 await asyncio.sleep(1)
                 first_message = False
@@ -230,7 +234,7 @@ async def htmx_stream(
 
     except Exception as e:
         message = await sync_to_async(Message.objects.get)(id=message_id)
-        full_message = _("An error occurred:") + f"\n```\n{str(e)}\n```"
+        full_message = _("An error occurred.")
         import traceback
 
         traceback.print_exc()
@@ -241,14 +245,13 @@ async def htmx_stream(
 
     # Render the message template, wrapped in SSE format
     context["message"].json = json.dumps(full_message)
-    out_str = sse_string(
+    yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context
         ),
-        format=False,
+        wrap_markdown=False,
         remove_stop=True,
     )
-    yield out_str
 
 
 def title_chat(chat_id, llm, force_title=True):
@@ -482,7 +485,9 @@ async def combine_response_replacers(generators, titles):
             except StopAsyncIteration:
                 stream["status"] = "stopped"
             except Exception as e:
-                final_streams[i] = formatted_titles[i] + f"```{str(e)}```"
+                final_streams[i] = (
+                    formatted_titles[i] + f'_{_("Error generating response.")}_'
+                )
                 stream["status"] = "stopped"
         yield ("\n\n---\n\n".join(final_streams))
         await asyncio.sleep(0)
