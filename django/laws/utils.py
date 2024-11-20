@@ -66,71 +66,30 @@ def get_law_url(law, request_lang):
         return f"https://laws-lois.justice.gc.ca/fra/reglements/{ref}/"
 
 
-def process_bold_blocks(text, is_in_bold_block, bold_block):
-    trimmed_text = text.strip()
-    if trimmed_text.startswith("**"):
-        if is_in_bold_block:
-            # End of bold block
-            bold_block += text
-            is_in_bold_block = False
-        else:
-            # Start of a new bold block
-            is_in_bold_block = True
-            bold_block = text
-    else:
-        if is_in_bold_block:
-            bold_block += text
-        else:
-            bold_block = None
-
-    return is_in_bold_block, bold_block
-
-
-def sse_string(llm_string, extra_html=""):
-    sse_joiner = "\ndata: "
-
+def format_llm_string(llm_string, wrap_sse=True):
     # Prevent code-format output
     # NOTE: the first replace is necessary to remove the word "markdown" that
     # sometimes appears after triple backticks
     llm_string = llm_string.replace("```markdown", "").replace("`", "")
-
-    return f"data: <div>{wrap_llm_response(llm_string)}</div>\n\n"
+    # Prevent asterisks from unfinished bolding from being rendered
+    if llm_string.count("**") % 2 == 1:
+        if llm_string.endswith("**"):
+            llm_string = llm_string[:-2]
+        else:
+            llm_string += "**"
+    if wrap_sse:
+        return f"data: <div>{wrap_llm_response(llm_string)}</div>\n\n"
+    return wrap_llm_response(llm_string)
 
 
 async def htmx_sse_response(response_gen, llm, query_uuid):
     full_message = ""
     try:
-        is_in_bold_block = False
-        bold_block = ""
-
         for text in response_gen:
-            is_in_bold_block, bold_block_output = process_bold_blocks(
-                text, is_in_bold_block, bold_block
-            )
-
-            if bold_block_output is not None:
-                if is_in_bold_block:
-                    bold_block = bold_block_output
-                else:
-                    full_message += bold_block_output
-                    bold_block = ""
-
-            elif not is_in_bold_block:
-                full_message += text
-
+            full_message += text
             if full_message:
-                yield sse_string(full_message)
+                yield format_llm_string(full_message)
             await asyncio.sleep(0.01)
-
-        # After the loop, handle any remaining bold block
-        if is_in_bold_block and bold_block:
-            if not bold_block.strip().endswith("**"):
-                bold_block += "**"
-            if bold_block.strip() == "**":
-                bold_block = ""
-            full_message += bold_block
-            if full_message:
-                yield sse_string(full_message)
     except Exception as e:
         error = str(e)
         full_message = _("An error occurred:") + f"\n```\n{error}\n```"
@@ -138,7 +97,7 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
     cost = await sync_to_async(llm.create_costs)()
     display_cost = await sync_to_async(display_cad_cost)(cost)
     cost_div = f"<div class='mb-2 text-muted' style='font-size:0.875rem !important;'>{display_cost}</div>"
-    markdown_div = sse_string(full_message).split("data: ", 1)[1].replace("\n", "")
+    markdown_div = format_llm_string(full_message, wrap_sse=False)
     if query_uuid:
         query_info = cache.get(query_uuid)
         query_info["answer"] = f"{markdown_div}{cost_div}"

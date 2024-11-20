@@ -158,5 +158,6 @@ document.addEventListener("htmx:oobAfterSwap", function (event) {
 });
 // When page loaded with existing answer
 document.addEventListener("DOMContentLoaded", function () {
-  render_markdown(document.querySelector("#answer"));
+  const answer = document.querySelector("#answer");
+  if (answer) render_markdown(answer);
 });
