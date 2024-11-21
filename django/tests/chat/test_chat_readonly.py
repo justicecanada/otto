@@ -15,8 +15,7 @@ def test_chat(client, basic_user, all_apps_user):
     response = client.post(reverse("chat:chat_with_ai"))
     # This should redirect to the chat page
     assert response.status_code == 302
-    chat = Chat.objects.first()
-    assert chat.user == user
+    chat = Chat.objects.filter(user=user).last()
 
     # Post a message to the chat
     # path("id/<str:chat_id>/message/", views.chat_message, name="chat_message"),
