@@ -24,7 +24,13 @@ from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
 
 from chat.models import Message
-from otto.forms import FeedbackForm, PilotForm, UserGroupForm
+from otto.forms import (
+    FeedbackForm,
+    FeedbackMetadataForm,
+    FeedbackNoteForm,
+    PilotForm,
+    UserGroupForm,
+)
 from otto.metrics.activity_metrics import otto_access_total
 from otto.metrics.feedback_metrics import otto_feedback_submitted_with_comment_total
 from otto.models import (
@@ -192,14 +198,56 @@ def feedback_success(request):
 def feedback_dashboard(request):
     from django.db.models import Q
 
-    feedback = Message.objects.filter(~Q(feedback=0))
-    feedback_messages = Feedback.objects.all().order_by("-created_at")
+    # filter only the top 10 comments
+    feedback_messages = Feedback.objects.all().order_by("-created_at")[:10]
+    # load the feedback messages with a FeedbackFormType
+    feedback_info = [
+        {
+            "feedback": f,
+            "form": {
+                "notes": FeedbackNoteForm(instance=f, auto_id=f"{f.id}_%s"),
+                "metadata": FeedbackMetadataForm(instance=f, auto_id=f"{f.id}_%s"),
+            },
+        }
+        for f in feedback_messages
+    ]
+
+    priority_choices = Feedback.PRIOTITY_CHOICES
+    feedback_status_choices = Feedback.FEEDBACK_STATUS_CHOICES
+    feedback_type_choices = Feedback.FEEDBACK_TYPE_CHOICES
 
     context = {
-        "feedback": feedback,
-        "feedback_messages": feedback_messages,
+        "feedback_info": feedback_info,
+        "priority_choices": priority_choices,
+        "feedback_status_choices": feedback_status_choices,
+        "feedback_type_choices": feedback_type_choices,
     }
     return render(request, "feedback_dashboard.html", context)
+
+
+def feedback_dashboard_update(request, feedback_id, form_type):
+    path = request.get_full_path()
+    feedback = Feedback.objects.get(id=feedback_id)
+
+    if request.method == "POST":
+        if form_type == "metadata":
+            form = FeedbackMetadataForm(request.POST, instance=feedback)
+        else:
+            form = FeedbackNoteForm(request.POST, instance=feedback)
+        if form.is_valid():
+            form.cleaned_data["modified_by"] = request.user
+            form.cleaned_data["modified_at"] = timezone.now()
+            form.save()
+            messages.success(
+                request,
+                _("Feedback updated successfully."),
+            )
+            return HttpResponse(status=200)
+        else:
+            messages.error(request, form.errors)
+    else:
+        form = FeedbackMetadataForm()
+    return render(request, "components/feedback_modal.html", {"form": form})
 
 
 @login_required

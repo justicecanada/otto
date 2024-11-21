@@ -70,6 +70,48 @@ class FeedbackForm(ModelForm):
             self.fields["chat_message"].initial = Message.objects.get(id=message_id)
 
 
+class FeedbackMetadataForm(ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ["feedback_type", "status"]
+
+        labels = {
+            "feedback_type": _("Type"),
+            "status": _("Status"),
+        }
+
+        widgets = {
+            "feedback_type": forms.Select(
+                attrs={"class": "form-select"},
+                choices=Feedback.FEEDBACK_TYPE_CHOICES,
+            ),
+            "status": forms.Select(
+                attrs={"class": "form-select"},
+                choices=Feedback.FEEDBACK_STATUS_CHOICES,
+            ),
+        }
+
+
+class FeedbackNoteForm(ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ["admin_notes"]
+
+        labels = {
+            "admin_notes": _("Add notes or addition details."),
+        }
+
+        widgets = {
+            "admin_notes": forms.Textarea(
+                attrs={
+                    "class": "form-control fs-6",
+                    "style": "height: 102px",
+                    "placeholder": _("Add notes or addition details."),
+                },
+            ),
+        }
+
+
 # AC-16 & AC-16(2): Enables the modification of user roles and group memberships
 class UserGroupForm(forms.Form):
     email = forms.ModelMultipleChoiceField(

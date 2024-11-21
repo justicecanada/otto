@@ -56,6 +56,11 @@ urlpatterns = [
         "user_management/feedback", views.feedback_dashboard, name="feedback_dashboard"
     ),
     path(
+        "user_management/feedback/<int:feedback_id>/<str:form_type>",
+        views.feedback_dashboard_update,
+        name="feedback_dashboard_update",
+    ),
+    path(
         "notifications/<int:notification_id>/", views.notification, name="notification"
     ),
     path("notifications/", views.notifications, name="notifications"),

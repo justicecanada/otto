@@ -79,18 +79,18 @@
               </tr>
             </thead>
             <tbody>
-              {% for feedback in feedback_messages %}
+              {% for info in feedback_info %}
                 <tr data-bs-toggle="collapse"
-                    data-bs-target="#collapse-{{ feedback.id }}"
+                    data-bs-target="#collapse-{{ info.feedback.id }}"
                     aria-expanded="false"
-                    aria-controls="collapse-{{ feedback.id }}"
+                    aria-controls="collapse-{{ info.feedback.id }}"
                     onclick="this.classList.toggle('active')"
                     class="feedback-summary px-2 py-4"
                     style="cursor: pointer">
                   <td class="align-middle text-start col-2">
                     <div class="d-flex flex-column justify-content-center gap-1">
-                      <span class="fw-semibold align-middle">{{ feedback.app|upper }}</span>
-                      <span class="text-muted" style="font-size: .85rem;">{{ feedback.created_at|timesince }} ago</span>
+                      <span class="fw-semibold align-middle">{{ info.feedback.app|upper }}</span>
+                      <span class="text-muted" style="font-size: .85rem;">{{ info.feedback.created_at|timesince }} ago</span>
                     </div>
                   </td>
 
@@ -104,7 +104,7 @@
                     </div>
                   </td>
                 </tr>
-                {% include 'components/feedback/feedback_details.html' %}
+                {% include 'components/feedback/feedback_details.html' with feedback=info.feedback form=info.form %}
               {% endfor %}
  
             </tbody>
