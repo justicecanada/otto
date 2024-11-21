@@ -1,6 +1,5 @@
-
 - mode: qa
-  vector_store_table: Corporate
+  library_name: Corporate
   history:
   - user: Do the marks in Japanese characters count as glyphs?
   responses: 
@@ -10,7 +9,7 @@
 
 
 - mode: qa
-  vector_store_table: Corporate
+  library_name: Corporate
   history:
   - user: What is a Glyph
   responses: 
@@ -19,7 +18,7 @@
   - A __glyph__ ([/ɡlɪf/](/wiki/Help:IPA/English "Help:IPA/English") [_GLIF_](/wiki/Help:Pronunciation_respelling_key "Help:Pronunciation respelling key")) is any kind of purposeful mark.
 
 - mode: qa
-  vector_store_table: Corporate
+  library_name: Corporate
   history:
   - user: When might a character be comprised of multiple glyphs?
   responses: 
@@ -29,7 +28,7 @@
   - Older models of [typewriters](/wiki/Typewriter "Typewriter") required the use of multiple glyphs to depict a single character, as an overstruck [apostrophe](/wiki/Apostrophe "Apostrophe") and [period](/wiki/Full_stop "Full stop") to create an [exclamation mark](/wiki/Exclamation_mark "Exclamation mark").
 
 - mode: qa
-  vector_store_table: Corporate
+  library_name: Corporate
   history:
   - user: "Why do birds suddenly appear every time you are near?"
   responses:

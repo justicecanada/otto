@@ -267,8 +267,8 @@ def _test_qa_response(eval_instance, user):
                 last_message = Message.objects.create(
                     chat=chat, text=message["ai"], is_bot=True
                 )
-            if "vector_store_table" in eval_instance:
-                library = Library.objects.get(name=eval_instance["vector_store_table"])
+            if "library_name" in eval_instance:
+                library = Library.objects.get(name=eval_instance["library_name"])
 
         if library is not None:
             chat_options.qa_library = library
