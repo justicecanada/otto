@@ -111,3 +111,53 @@ function findSimilar(el) {
   // Submit the form
   document.getElementById('basic-search-button').click();
 }
+
+const md = markdownit({
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return '<pre><code class="hljs">' +
+          hljs.highlight(str, {language: lang, ignoreIllegals: true}).value +
+          '</code></pre>';
+      } catch (__) { }
+    }
+
+    return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
+  }
+});
+
+md.use(katexPlugin);
+
+function render_markdown(element) {
+  // Render markdown in the element
+  const markdown_text = element.querySelector(".markdown-text");
+  if (markdown_text) {
+    let to_parse = markdown_text.dataset.md;
+    try {
+      to_parse = JSON.parse(to_parse);
+    } catch (e) {
+      to_parse = false;
+    }
+    if (to_parse) {
+      const parent = markdown_text.parentElement;
+      parent.innerHTML = md.render(to_parse);
+    }
+  }
+}
+
+// When streaming response is updated
+document.addEventListener("htmx:sseMessage", function (event) {
+  if (!(event.target.id === "answer-sse")) return;
+  render_markdown(event.target);
+});
+
+// When streaming response is finished
+document.addEventListener("htmx:oobAfterSwap", function (event) {
+  if (!(event.target.id === "answer-sse")) return;
+  render_markdown(event.target);
+});
+// When page loaded with existing answer
+document.addEventListener("DOMContentLoaded", function () {
+  const answer = document.querySelector("#answer");
+  if (answer) render_markdown(answer);
+});

@@ -68,11 +68,14 @@
   {% include "chat/modals/presets/modal.html" %}
   {% include "librarian/modal_outer.html" %}
 
-  <link rel="stylesheet"
-        href="{% static 'chat/thirdparty/css/highlight.js-11.8.0.min.css' %}">
-  <script src="{% static 'chat/thirdparty/js/highlight.js-11.8.0.min.js' %}"></script>
+  <script src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
+  <script src="{% static 'thirdparty/katex.min.js' %}"></script>
+  <script src="{% static 'thirdparty/markdown-it-katex.js' %}"></script>
+  <script src="{% static 'thirdparty/highlight.js' %}"></script>
 
   <script src="{% static 'chat/js/scripts.js' %}"></script>
   <script src="{% static 'librarian/scripts.js' %}"></script>
 
+  <link rel="stylesheet" href="{% static 'thirdparty/css/highlightjs.css' %}">
+  <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
 {% endblock %}
