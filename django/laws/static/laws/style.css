@@ -111,10 +111,6 @@ button#basic-search-button {
   height: -webkit-fill-available;
 }
 
-#answer-sse * {
-  font-size: 20px !important;
-}
-
 #basic-search-input {
   /* Accommodate the search and clear buttons */
   padding-right: 5.4rem !important;
@@ -151,4 +147,8 @@ button#basic-search-button {
 #source-details-inner dt {
   font-weight: normal;
   font-style: italic;
+}
+
+#answer ul {
+  margin-bottom: 1.25rem;
 }
