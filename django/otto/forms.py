@@ -31,9 +31,11 @@ class FeedbackForm(ModelForm):
         fields = [
             "feedback_message",
             "modified_by",
+            "created_by",
             "app",
             "chat_message",
             "otto_version",
+            "url_context",
         ]
 
         labels = {
@@ -44,6 +46,8 @@ class FeedbackForm(ModelForm):
 
     def __init__(self, user, message_id, *args, **kwargs):
         super(FeedbackForm, self).__init__(*args, **kwargs)
+        self.fields["created_by"].queryset = User.objects.filter(id=user.id)
+        self.fields["created_by"].initial = user
         self.fields["modified_by"].queryset = User.objects.filter(id=user.id)
         self.fields["modified_by"].initial = user
         self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH

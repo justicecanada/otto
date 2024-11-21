@@ -4,6 +4,7 @@
       id="feedback-form"
       hx-post="{% if message_id %}{% url 'user_feedback' message_id=message_id %}{% else %}{% url 'user_feedback' %}{% endif %}"
       hx-target="this"
+      onsubmit="document.getElementById('id_url_context').value = window.location.href"
       hx-swap="outerHTML">
         <div id="feedback-modal-body" class="modal-body">{% include 'components/feedback/feedback_form_elements.html' %}</div>
         <div class="modal-footer">

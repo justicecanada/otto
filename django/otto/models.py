@@ -280,7 +280,7 @@ class Feedback(models.Model):
         max_length=50,
         choices=FEEDBACK_TYPE_CHOICES,
         blank=False,
-        default=_("Please select an option"),
+        default="feedback",
     )
     status = models.CharField(
         max_length=16, choices=FEEDBACK_STATUS_CHOICES, blank=False, default="new"
@@ -291,6 +291,7 @@ class Feedback(models.Model):
     app = models.TextField(max_length=200, blank=False)
     otto_version = models.CharField(max_length=50, null=False)
     feedback_message = models.TextField(blank=False)
+    url_context = models.CharField(max_length=2048, blank=True)
     chat_message = models.ForeignKey(
         "chat.Message", null=True, on_delete=models.SET_NULL, related_name="message"
     )
@@ -309,6 +310,12 @@ class Feedback(models.Model):
         null=True,
         related_name="modified_feedback",
     )
+
+    def status_display(self):
+        return dict(self.FEEDBACK_STATUS_CHOICES)[self.status]
+
+    def feedback_type_display(self):
+        return dict(self.FEEDBACK_TYPE_CHOICES)[self.feedback_type]
 
 
 class SecurityLabel(models.Model):

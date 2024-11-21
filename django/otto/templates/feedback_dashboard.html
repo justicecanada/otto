@@ -17,17 +17,36 @@
 
   .badge {    
     line-height: 16px !important;
-    font-weight: 600;
+    font-size: .75rem;
+    font-weight: 500;
+    padding: 0.125rem 0.375rem !important;
 
-    &.badge-neutral {
+    &.badge-neutral{
       background-color: hsl(210, 20%, 98%);
       border-color: rgb(229, 231, 235) !important;
       color: rgb(75, 85, 99);
     }
-    &.badge-completed {
+    &.badge-resolved {
       background-color: hsl(138, 76%, 97%);
       border-color: hsl(142, 49%, 85%) !important;
       color: hsl(142, 72%, 29%);      
+    }
+
+    &.badge-new {
+      background-color: hsl(226, 100%, 97%);
+      border-color: hsl(236, 74%, 92%) !important;
+      color: hsl(245, 58%, 51%);      
+    }
+    &.badge-in-progress {
+      background-color: hsl(270, 100%, 98%);
+      border-color: hsl(273, 73%, 93%) !important;
+      color: hsl(268, 32%, 52%);      
+    }
+
+    &.badge-closed {
+      background-color: hsl(327, 73%, 97%);
+      border-color: hsl(331, 62%, 93%) !important;
+      color: hsl(335, 78%, 42%);      
     }
   }
   .feedback-message{
@@ -87,22 +106,21 @@
                     onclick="this.classList.toggle('active')"
                     class="feedback-summary px-2 py-4"
                     style="cursor: pointer">
-                  <td class="align-middle text-start col-2">
-                    <div class="d-flex flex-column justify-content-center gap-1">
-                      <span class="fw-semibold align-middle">{{ info.feedback.app|upper }}</span>
-                      <span class="text-muted" style="font-size: .85rem;">{{ info.feedback.created_at|timesince }} ago</span>
+                  <td class="w-full col-2">
+                    <div class="d-flex w-full align-items-center">
+                      {% include 'components/feedback/feedback_type_icon.html' %}
+                      <div class="d-flex flex-column flex-grow-1 ms-2 justify-content-center gap-1">
+                        <span class="fw-semibold align-middle" style="font-size: 1.1rem;">{{ info.feedback.app|title }}</span>
+                        <small class="text-muted" style="font-size: .75rem;">{{ info.feedback.created_at|timesince }}</small>
+                      </div>
                     </div>
+ 
                   </td>
 
                   <td class="align-middle col-8">
-                    <span class="feedback-message">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Alias, pariatur velit animi incidunt adipisci quam. Vero cupiditate libero quasi deleniti impedit, quas quo non deserunt ad incidunt? Beatae, non molestias. Lorem ipsum dolor sit amet consectetur adipisicing elit. Maiores necessitatibus perferendis molestiae quas, molestias esse modi facere id accusantium ipsum explicabo debitis! Totam, iste laboriosam sunt dolore in quidem veritatis.</span>
+                    <span class="feedback-message">{{ info.feedback.feedback_message }}</span>
                   </td>
-                  <td class="align-middle text-end col-2">
-                    <div class="d-flex flex-column justify-content-center align-items-end gap-1">
-                      <div class="badge badge-completed w-50 border">Completed</div>
-
-                    </div>
-                  </td>
+                  <td class="align-middle text-end col-2">{% include 'components/feedback/feedback_type_status.html' %}</td>
                 </tr>
                 {% include 'components/feedback/feedback_details.html' with feedback=info.feedback form=info.form %}
               {% endfor %}

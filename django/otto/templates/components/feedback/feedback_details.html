@@ -17,38 +17,17 @@
 <tr class="collapse details" id="collapse-{{ feedback.id }}">
   <td colspan="3" class="col-12">
     <div class="container p-3">
-      <div class="row justify-content-between">
-        <div class="col">
-          <div class="fw-semibold">
-            <i class="bi bi-person-circle me-2" style="color: rgb(156, 163, 175)"></i>
-            <span class="text-muted">{{ feedback.modified_by.first_name }} {{ feedback.modified_by.last_name }}</span>
-          </div>
-        </div>
-        <div class="col-auto">
-          <a href="mailto:{{ feedback.modified_by.email }}?subject=Follow%20up%20on%20Otto%20feedback"
-             class="text-decoration-none fw-semibold"
-             style="line-height: 24px;
-                    color: rgb(156, 163, 175)">
-            <i class="bi bi-envelope-fill me-2"></i>
-            <span class="text-muted">{{ feedback.modified_by.email }}</span>
-          </a>
- 
-        </div>
- 
-      </div>
-
-      <div class="row mt-4 justify-content-between">
+      <div class="row">
         <div class="col-6 mb-1">
           <span class="fs-6 fw-semibold text-muted">{% trans 'Feedback' %}:</span>
- 
         </div>
-        <div class="col-6 mb-1 text-end">
-          <a href=""
+        <div class="col-6 mb-1 text-end fw-semibold fs-6">
+          <a href="{{ feedback.url_context }}"
              target="_blank"
-             class="text-decoration-none"
+             class="text-decoration-none text-reset fw-semibold small"
              style="color: rgb(156, 163, 175)">
-            <i class="bi bi-info-circle me-2"></i>
-            <span class="text-muted">{% trans 'View feedback context' %}</span>
+            <span class="text-decoration-underline">{% trans 'View feedback in context' %}</span>
+            <i class="bi bi-box-arrow-up-right ms-1"></i>
           </a>
         </div>
         <div class="col-12 d-flex">
@@ -56,8 +35,36 @@
         </div>
       </div>
       <div class="row mt-4">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center px-2 py-2">
+            <div class="d-flex fw-semibold">
+              <i class="bi bi-person-circle me-2" style="color: rgb(156, 163, 175)"></i>
+              <span class="text-muted">{{ feedback.created_by.first_name }} {{ feedback.created_by.last_name }}</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <i class="text-muted bi bi-envelope-fill me-2"></i>
+              <a href="mailto:{{ feedback.created_by.email }}?subject=Follow%20up%20on%20Otto%20feedback"
+                 class="fw-semibold"
+                 style="line-height: 24px;
+                        color: rgb(156, 163, 175)">
+                <span class="text-muted">{{ feedback.created_by.email }}</span>
+              </a>
+            </div>
+            <div class="d-flex align-items-center">
+              <i class="text-muted bi bi-github me-2"></i>
+              <span class="mt-1 badge badge-neutral fw-semibold px-2 py-1 m-0 border">
+                <a href="https://github.com/justicecanada/otto/commit/{{ feedback.otto_version }}"
+                   target="_blank"
+                   class="text-reset text-decoration-none">{{ feedback.otto_version }}</a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr>
+      <div class="row mt-2">
         <div class="col-12 mb-1">
-          <span class="fs-6 fw-semibold text-muted">{% trans 'Administrative Details' %}</span>
+          <span class="fs-6 fw-semibold text-muted">{% trans 'Administrative details' %}</span>
           <p class="text-muted mb-2">
             {% trans 'Use this section to provide additional details to the feedback provided by the user.' %}
           </p>
