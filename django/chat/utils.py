@@ -86,7 +86,6 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
                 )
                 sources.append(source)
             except Exception as e:
-                print(e)
                 logger.debug("Error saving source:", node, e)
 
     security_labels = [
@@ -234,7 +233,6 @@ async def htmx_stream(
             )()
 
     except Exception as e:
-        print(e)
         message = await sync_to_async(Message.objects.get)(id=message_id)
         full_message = _("An error occurred.")
         import traceback
