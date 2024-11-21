@@ -255,7 +255,7 @@ def _create_test_user():
 def _test_qa_response(eval_instance, user):
     try:
         # Create chat and build chat history
-        chat = Chat.objects.create(user = user, mode = eval_instance["mode"])
+        chat = Chat.objects.create(user=user, mode=eval_instance["mode"])
         chat.save()
         chat_options = ChatOptions.objects.get(chat=chat)
         for message in eval_instance["history"]:
@@ -268,9 +268,7 @@ def _test_qa_response(eval_instance, user):
                     chat=chat, text=message["ai"], is_bot=True
                 )
             if "vector_store_table" in eval_instance:
-                library = Library.objects.get(
-                    name=eval_instance["vector_store_table"]
-                )
+                library = Library.objects.get(name=eval_instance["vector_store_table"])
 
         if library is not None:
             chat_options.qa_library = library
@@ -294,7 +292,9 @@ def _test_qa_response(eval_instance, user):
             chat.save()
             chat.refresh_from_db()
             response = qa_response(chat, response_message)
-            list(response) # Need to exhaust the StreamingHttpResponse generator for message text to update
+            list(
+                response
+            )  # Need to exhaust the StreamingHttpResponse generator for message text to update
             response_message.refresh_from_db()
             response_str = response_message.text
             source_nodes = Message.objects.get(id=response_message.id).sources.all()
@@ -305,10 +305,7 @@ def _test_qa_response(eval_instance, user):
         else:
             logger.debug(f"Mode {eval_instance['mode']} not recognized, skipping...")
             return {}
-        response_sources = [
-            source_node.node_text
-            for source_node in source_nodes
-        ]
+        response_sources = [source_node.node_text for source_node in source_nodes]
 
         from concurrent.futures import ThreadPoolExecutor
 
