@@ -233,7 +233,7 @@ async def test_htmx_stream_stop(client, all_apps_user):
         chat,
         response_message.id,
         response_replacer=stream_generator(),
-        format=False,
+        wrap_markdown=False,
         llm=llm,
     )
     # Iterate over the response_stream generator
