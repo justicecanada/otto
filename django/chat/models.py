@@ -82,10 +82,6 @@ class Chat(models.Model):
     def __str__(self):
         return f"Chat {self.id}: {self.title}"
 
-    def access(self):
-        self.accessed_at = timezone.now()
-        self.save()
-
     def delete(self, *args, **kwargs):
         if hasattr(self, "data_source") and self.data_source:
             self.data_source.delete()
