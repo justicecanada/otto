@@ -1,6 +1,6 @@
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: How do I access quicklaw
   responses: 
@@ -9,7 +9,7 @@
   - When you are connected to the JUS network, simply go to [iFolio](https://ifolio.justice.gc.ca/search) or the [Library Services Community Site.](/co/libs-sbib/SitePages/Home.aspx) You will find direct links to legal databases like Quicklaw, Westlaw, or HeinOnline. On iFolio, look for links under the **Online Access** menu or use the search box to find what you are looking for.
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: do I need a library card
   responses: 
@@ -18,7 +18,7 @@
   - You need a library card to borrow print items from the library collection.
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: what services does the library provide
   responses: 
@@ -27,7 +27,7 @@
   - Les employés du ministère de la Justice ont accès à une vaste gamme de ressources électroniques, notamment de la jurisprudence, des textes législatifs, des articles et des livres électroniques.
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: How many days of vacation leave I have after 18 years of service as EC classification
   responses: 
@@ -37,7 +37,7 @@
   - "Article 24: vacation leave with pay"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: what is the salary of EC-3 in 2022
   responses: 
@@ -47,7 +47,7 @@
   - "EC-03 - Annual Rates of Pay (in dollars)**"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: what are the reason I can take family leave
   responses: 

@@ -1,5 +1,5 @@
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: "Who is Ebrahim Adeeb?"
   responses:
@@ -9,7 +9,7 @@
   - "Ebrahim Adeeb| EC-06| Non-Manager| Senior Analyst/Researcher| 25468| Indeterminate| Beiling Yan"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: Who is Ebrahim Adeeb?
   - ai: Ebrahim Adeeb is a non-managerial employee at the Business Analytics Centre.
@@ -21,7 +21,7 @@
   - Ebrahim Adeeb| EC-06| Non-Manager| Senior Analyst/Researcher| 25468| Indeterminate| Beiling Yan
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: Who does Ebrahim report to?
   responses: 
@@ -31,7 +31,7 @@
   - Ebrahim Adeeb| EC-06| Non-Manager| Senior Analyst/Researcher| 25468| Indeterminate| Beiling Yan
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: What is the Business Analytics Centre?
   responses: 
@@ -40,7 +40,7 @@
   - The purpose of the Business Analytics Centre is
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: How do I access quicklaw
   responses: 
@@ -49,7 +49,7 @@
   - When you are connected to the JUS network, simply go to [iFolio](https://ifolio.justice.gc.ca/search) or the [Library Services Community Site.](/co/libs-sbib/SitePages/Home.aspx) You will find direct links to legal databases like Quicklaw, Westlaw, or HeinOnline. On iFolio, look for links under the **Online Access** menu or use the search box to find what you are looking for.
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: do I need a library card
   responses: 
@@ -58,7 +58,7 @@
   - You need a library card to borrow print items from the library collection.
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: what services does the library provide
   responses: 
@@ -67,7 +67,7 @@
   - Les employés du ministère de la Justice ont accès à une vaste gamme de ressources électroniques, notamment de la jurisprudence, des textes législatifs, des articles et des livres électroniques.
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: How many days of vacation leave I have after 18 years of service as EC classification
   responses: 
@@ -77,7 +77,7 @@
   - "Article 24: vacation leave with pay"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: what is the salary of EC-3 in 2022
   responses: 
@@ -87,7 +87,7 @@
   - "EC-03 - Annual Rates of Pay (in dollars)**"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: what are the reason I can take family leave
   responses: 
@@ -96,16 +96,16 @@
   - "Here are some examples of situations which could be covered by Leave with Pay for Other Reasons"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: what do you know?
   responses: 
-  - The corporate library at Justice Canada is a comprehensive resource encompassing details about the corporate hierarchy, employee roles, HR processes, technical support, and organizational strategies. It serves as a centralized hub, providing employees with essential information for navigating the intricacies of the organization.
+  - The Corporate library at Justice Canada is a comprehensive resource encompassing details about the Corporate hierarchy, employee roles, HR processes, technical support, and organizational strategies. It serves as a centralized hub, providing employees with essential information for navigating the intricacies of the organization.
   sources:
-  - "The corporate library at Justice Canada is"
+  - "The Corporate library at Justice Canada is"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: Can you provide information on how to file a leave with income averaging request?
   responses: 
@@ -121,7 +121,7 @@
   - "If you’re interested in a special work arrangement allowing you to take an extended leave without pay while averaging your income over a 12-month period, watch the video."
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: Can you provide information on how to file a leave with income averaging request?
     ai: "To file a leave with income averaging request, you would need to complete an application form. The form collects employee data, including personal information, and requires you to agree not to work for the federal Public Service during the leave period. The form also includes sections for estimating salary and allowances, as well as approval from the Responsibility Centre Manager. Once completed, you should provide a photocopy of the form to the employee."
@@ -132,7 +132,7 @@
   - "Managers have the responsibility to ensure that the leave they are authorizing is the appropriate type of leave in accordance with the collective agreement or Terms and Conditions of Employment BEFORE the leave is authorized."
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: how much am i covered for dental insurance?
   responses: 
@@ -142,7 +142,7 @@
   - "Two thousand five hundred dollars ($2,500) for all benefits payable with respect to eligible orthodontic services"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: What mandatory metadata needs to be included for documents of business value?
   responses: 
@@ -151,7 +151,7 @@
   - "This document explains that if there are no default metadata in the library, all fields will be blank. Mandatory metadata fields must be filled in order to save a document in the Digital Workspace"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: What is the scope of the collections?
   responses: 
@@ -160,7 +160,7 @@
   - "In February 2023, _Justipedia_ contained more than 120,000 opinions, 24,000 pleadings and facta and over 119,000 decisions (however, please note that it is easy to exclude decisions from your search results – see question 18). Moreover, _Justipedia_ contains over 450 annotated legislations, several training documents, as well as videos and several other documents and features."
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: how to enter timekeeping in LEX
   responses: 
@@ -169,7 +169,7 @@
   - "Timekeeping Business Rules The following business rules apply to timekeeping"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: what is the purpose of cross referencing files
   responses: 
@@ -178,7 +178,7 @@
     - "The document explains that there is a way to find duplicates in the system. The DW team can provide a list of duplicate documents and set rules to clean up repositories and keep only the latest version of duplicates."
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: "how i submit a maternity leave"
   responses: 
@@ -199,7 +199,7 @@
     - "Administrative processes related to maternity and parental leave and allowances"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: how to calculate performance pay?
   responses: 
@@ -211,7 +211,7 @@
     - "Performance pay administration plan for LP-01, LP-02 and LP-03 levels"
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: "What is the name of our timekeeping system?"
   responses: 
@@ -221,7 +221,7 @@
   
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: "What is the name of our timekeeping system?"
   - ai: "The name of our timekeeping system is LEX."
@@ -232,35 +232,35 @@
   - LEX%20User%20Manual%20V2.1.pdf
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: "Who will win the next US election?"
   responses:
   - "Sorry, I couldn't find any information about that."
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: "Who won the last US election?"
   responses:
   - "Sorry, I couldn't find any information about that."
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: "Who won the last US election?"
   responses:
   - "Sorry, I couldn't find any information about that."
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: "Why do birds suddenly appear every time you are near?"
   responses:
   - "Sorry, I couldn't find any information about that."
 
 - mode: qa
-  vector_store_table: corporate
+  vector_store_table: Corporate
   history:
   - user: "Who is Paul Graham?"
   responses:

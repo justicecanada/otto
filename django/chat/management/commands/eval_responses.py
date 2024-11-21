@@ -255,9 +255,9 @@ def _create_test_user():
 def _test_qa_response(eval_instance, user):
     try:
         # Create chat and build chat history
-        chat = Chat(user=user)
+        chat = Chat.objects.create(user = user, mode = eval_instance["mode"])
         chat.save()
-        chat_options = ChatOptions.objects.create(chat=chat, mode=eval_instance["mode"])
+        chat_options = ChatOptions.objects.get(chat=chat)
         for message in eval_instance["history"]:
             if message.get("user", None):
                 last_message = Message.objects.create(
@@ -269,7 +269,7 @@ def _test_qa_response(eval_instance, user):
                 )
             if "vector_store_table" in eval_instance:
                 library = Library.objects.get(
-                    vector_store_table=eval_instance["vector_store_table"]
+                    name=eval_instance["vector_store_table"]
                 )
 
         if library is not None:
@@ -291,7 +291,10 @@ def _test_qa_response(eval_instance, user):
         logger.debug(f"(Expected answer: {expected_answer})")
         if eval_instance["mode"] == "qa":
             chat.save()
-            response_str, source_nodes = qa_response(chat, response_message, eval=True)
+            response = qa_response(chat, response_message)
+            response_str = list(response)[-1].decode()
+            response_message.save()
+            source_nodes = Message.objects.get(id=response_message.id).sources.all()
             logger.info(f"Response from Otto: {response_str}")
         elif eval_instance["mode"] == "chat":
             response_str = chat_response(chat, response_message, eval=True)
@@ -300,7 +303,7 @@ def _test_qa_response(eval_instance, user):
             logger.debug(f"Mode {eval_instance['mode']} not recognized, skipping...")
             return {}
         response_sources = [
-            str(source_node.node.metadata) + "\n" + source_node.node.text
+            source_node.node_text
             for source_node in source_nodes
         ]
 

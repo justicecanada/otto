@@ -75,6 +75,7 @@ pypdf==5.1.0
 reportlab==4.2.0
 pyreadstat==1.2.7
 openpyxl==3.1.5
+matplotlib==3.9.2
 
 # Redis/Celery -----------------------------------------------------------------
 celery==5.5.0rc1

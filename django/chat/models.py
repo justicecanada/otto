@@ -222,7 +222,7 @@ class ChatOptions(models.Model):
                     role=MessageRole.SYSTEM,
                 ),
                 ChatMessage(
-                    content=self.qa_prompt_template,
+                    content=f"{self.qa_prompt_template}",
                     role=MessageRole.USER,
                 ),
             ]
