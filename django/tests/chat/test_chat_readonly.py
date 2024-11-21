@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils import timezone
 
 import pytest
 
@@ -34,7 +35,7 @@ def test_chat(client, basic_user, all_apps_user):
     # path("id/<str:chat_id>/", views.chat, name="chat"),
     response = client.get(reverse("chat:chat", kwargs={"chat_id": chat.id}))
     assert response.status_code == 200
-    assert str(chat.id) in str(response.url)
+    assert str(chat.id) in response.request["PATH_INFO"]
     assert "Hello, world!" in response.content.decode()
     # Also check that there is a chat prompt (not readonly)
     assert "chat-prompt" in response.content.decode()
@@ -42,12 +43,15 @@ def test_chat(client, basic_user, all_apps_user):
 
     # Now, login as a different user
     user = basic_user()
+    # Accept terms
+    user.accepted_terms_date = timezone.now()
+    user.save()
     client.force_login(user)
     # Get the chat
     response = client.get(reverse("chat:chat", kwargs={"chat_id": chat.id}))
     assert response.status_code == 200
-    assert str(chat.id) in str(response.url)
+    assert str(chat.id) in response.request["PATH_INFO"]
     assert "Hello, world!" in response.content.decode()
     # Check that there is no chat prompt (readonly)
     assert "chat-prompt" not in response.content.decode()
-    assert "read only" in response.content.decode().lower()
+    assert "read-only" in response.content.decode().lower()
