@@ -83,10 +83,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.groups.all()
 
     @property
-    def display_total_cost(self):
-        return display_cad_cost(Cost.objects.get_user_cost(self))
-
-    @property
     def total_cost(self):
         return f"{cad_cost(Cost.objects.get_user_cost(self)):.2f}"
 
