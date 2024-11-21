@@ -3978,5 +3978,13 @@
     "Downloads": {
         "fr": "",
         "fr_auto": "Téléchargements"
+    },
+    "Read-only": {
+        "fr": "",
+        "fr_auto": "Lecture seule"
+    },
+    "An error occurred.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite."
     }
 }
