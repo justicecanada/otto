@@ -103,7 +103,7 @@ async def htmx_stream(
     response_generator: Generator = None,
     response_replacer: AsyncGenerator = None,
     response_str: str = "",
-    format: bool = True,
+    wrap_markdown: bool = True,
     dots: bool = False,
     source_nodes: list = [],
     switch_mode: bool = False,
@@ -123,7 +123,7 @@ async def htmx_stream(
     If dots is True, typing dots will be added to the end of the response.
 
     The function typically expects markdown responses from LLM, but can also handle
-    HTML responses from other sources. Set format=False to disable markdown parsing.
+    HTML responses from other sources. Set wrap_markdown=False for plain HTML output.
 
     By default, the response will be saved as a Message object in the database after
     the response is finished. Set save_message=False to disable this behavior.
@@ -199,13 +199,13 @@ async def htmx_stream(
                 await sync_to_async(message.save)()
             yield sse_string(
                 full_message,
-                format,
+                wrap_markdown,
                 dots,
                 remove_stop=remove_stop or generation_stopped,
             )
             await asyncio.sleep(0.01)
 
-        yield sse_string(full_message, format, dots=False, remove_stop=True)
+        yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
         await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
@@ -219,8 +219,9 @@ async def htmx_stream(
             await sync_to_async(title_chat)(chat.id, force_title=False, llm=title_llm)
             await sync_to_async(title_llm.create_costs)()
 
-        # Update message text with HTML formatting to pass to template
-        message.text = wrap_llm_response(full_message)
+        # Update message text with markdown wrapper to pass to template
+        if wrap_markdown:
+            message.text = wrap_llm_response(full_message)
         context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
         # Save sources and security label
