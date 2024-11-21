@@ -285,15 +285,18 @@ def _test_qa_response(eval_instance, user):
         response_message = Message.objects.create(
             chat=chat, is_bot=True, parent=last_message
         )
+        response_message.save()
 
         # Get response from appropriate chat function
         logger.debug(f"Asking Otto: {last_message.text}")
         logger.debug(f"(Expected answer: {expected_answer})")
         if eval_instance["mode"] == "qa":
             chat.save()
+            chat.refresh_from_db()
             response = qa_response(chat, response_message)
-            response_str = list(response)[-1].decode()
-            response_message.save()
+            list(response) # Need to exhaust the StreamingHttpResponse generator for message text to update
+            response_message.refresh_from_db()
+            response_str = response_message.text
             source_nodes = Message.objects.get(id=response_message.id).sources.all()
             logger.info(f"Response from Otto: {response_str}")
         elif eval_instance["mode"] == "chat":
