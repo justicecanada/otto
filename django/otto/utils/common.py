@@ -46,7 +46,7 @@ def get_app_from_path(path):
 
     parsed_url = urlparse(path)
     path = parsed_url.path.strip("/").split("/")
-    if path:
-        return path[0]
-    else:
-        return "otto"
+    # If the path is empty or the result is empty, return "otto"
+    if not path or not path[0]:
+        return "Otto"
+    return path[0]
