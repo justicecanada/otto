@@ -103,7 +103,7 @@
           short_name: "lex_experiment"
           name_en: LEX Experiment
           name_fr: Expérience LEX
-          description_en: This app is a hybrid between Text Extractor and Q&A, aimed to help LEX users find out important information from Notice of Appeals.
-          description_fr: Cette application est un hybride entre Extracteur de Texte et Questions-Réponses, visant à aider les utilisateurs de LEX à trouver des informations importantes dans les Avis d'Appel.
+          description_en: A hybrid solution combining Text Extraction and Q&A functionalities, designed to assist LEX users in efficiently retrieving critical information from Notices of Appeal.
+          description_fr: Une solution hybride combinant les fonctionnalités d'extraction de texte et de questions-réponses, conçue pour aider les utilisateurs de LEX à récupérer efficacement des informations cruciales à partir des avis d'appel.
           url: lex_experiment:index
           category: other
