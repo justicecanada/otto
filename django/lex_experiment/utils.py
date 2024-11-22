@@ -1,3 +1,4 @@
+import concurrent.futures
 import io
 import math
 import os
@@ -388,35 +389,22 @@ def add_extracted_files(output_file, access_key):
     return output_file
 
 
-def send_prompt_to_azure(question, content):
+def lex_prompts(content):
     client = AzureOpenAI(
         api_key=settings.AZURE_OPENAI_KEY,
         api_version=settings.AZURE_OPENAI_VERSION,
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
     )
     model_str = settings.DEFAULT_CHAT_MODEL
-    system_prompt = "You are a legal professional who is tasked with reviewing a case and writing legal documents. You're going to extract and write information from the following content and will only use the facts provided in the content I provide you. When providing responses, please use paragraphs instead of bullet points. Do not include question marks or exclamation marks, and ensure a constant professional style of writing throughout all your responses."
+    system_prompt = "You are a legal professional tasked with reviewing a legal document. Your job is to extract and write down specific information from the content provided. Use only the facts presented in the content. When extracting information, write only the relevant details without any additional context or explanation. If the information is not found, simply state 'Not found' without providing further details."
 
-    response = client.chat.completions.create(
-        model=model_str,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": "### Content: " + content},
-            {"role": "user", "content": "### Question: " + question},
-        ],
-        temperature=0.1,  # set this to a low value, such as 0.2, to make the output more focused and deterministic. This will reduce the randomness in the generated response
+    client = AzureOpenAI(
+        api_key=settings.AZURE_OPENAI_KEY,
+        api_version=settings.AZURE_OPENAI_VERSION,
+        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
     )
-    return response
+    model_str = settings.DEFAULT_CHAT_MODEL
 
-
-def lex_prompts(text):
-
-    # for now we don't edit the text but we might need to in the future
-    content = text
-
-    import concurrent.futures
-
-    # Define the questions
     questions = [
         "What is the Tax Court of Canada Court No.?",
         "What is the Appellant or Appellants Name?",
@@ -430,17 +418,19 @@ def lex_prompts(text):
         "What section or subsections are referred to in the Notice of Appeal?",
     ]
 
-    # Define the content (replace with actual content)
-    content = "Your content here"
-
-    # Function to get the answer for a question
     def get_answer(question):
-        response = send_prompt_to_azure(question, content)
+        response = client.chat.completions.create(
+            model=model_str,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": "### Content: " + content},
+                {"role": "user", "content": "### Question: " + question},
+            ],
+            temperature=0.1,
+        )
         return response.choices[0].message.content
 
-    # Use ThreadPoolExecutor to send the questions concurrently
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Map the questions to the get_answer function
         results = list(executor.map(get_answer, questions))
 
     return [
