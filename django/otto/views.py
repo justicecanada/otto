@@ -281,7 +281,7 @@ def manage_users_upload(request):
                         email = upn
                     except ValidationError as e:
                         email = ""
-                        logger.error(f"Invalid email address {upn}: {e}")
+                        logger.error(f"UPN must be an email address ({upn}): {e}")
                         continue
                     # Get or create the pilot
                     pilot_id = row.get("pilot_id", None)
@@ -300,7 +300,17 @@ def manage_users_upload(request):
                         weekly_max = int(weekly_max)
                     except Exception as e:
                         weekly_max = None
-                    user, created = User.objects.get_or_create(upn=upn)
+                    user = User.objects.filter(upn__iexact=upn).first()
+                    if not user:
+                        user = User.objects.create_user(
+                            upn=upn,
+                            email=email,
+                            first_name=given_name,
+                            last_name=surname,
+                        )
+                        created = True
+                    else:
+                        created = False
                     if created:
                         user.email = email
                         user.first_name = given_name
