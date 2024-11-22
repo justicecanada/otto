@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from lex_experiment.models import OutputFile, UserRequest
+from lex_experiment.models import OutputFileLex, UserRequestLex
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
@@ -39,9 +39,9 @@ def submit_document(request):
     logger.debug(f"Received {len(files)} files")
     access_key = AccessKey(user=request.user)
 
-    UserRequest.grant_create_to(access_key)
-    OutputFile.grant_create_to(access_key)
-    user_request = UserRequest.objects.create(
+    UserRequestLex.grant_create_to(access_key)
+    OutputFileLex.grant_create_to(access_key)
+    user_request = UserRequestLex.objects.create(
         access_key=access_key, merged=False, name=request.user.username[:255]
     )
     output_files = []
@@ -57,7 +57,7 @@ def submit_document(request):
             result = process_ocr_document.delay(file_content, file.name, idx)
 
             output_files.append(
-                OutputFile.objects.create(
+                OutputFileLex.objects.create(
                     access_key=access_key,
                     pdf_file=None,
                     txt_file=None,
@@ -92,7 +92,7 @@ def submit_document(request):
 def poll_tasks(request, user_request_id):
     all_docs_results = {}
     access_key = AccessKey(user=request.user)
-    user_request = UserRequest.objects.get(access_key, id=user_request_id)
+    user_request = UserRequestLex.objects.get(access_key, id=user_request_id)
     output_files = user_request.output_files.filter(access_key=access_key)
     for output_file in output_files:
         output_file_statuses = []
@@ -105,8 +105,6 @@ def poll_tasks(request, user_request_id):
                 output_file = add_extracted_files(output_file, access_key)
             question_results = lex_prompts(output_file.txt_file.read().decode("utf-8"))
             all_docs_results[output_file.file_name] = question_results
-            print("all_docs_results", all_docs_results)
-            print("all_docs_results length", len(all_docs_results))
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
         else:
@@ -157,8 +155,8 @@ def download_document(request, file_id, file_type):
     access_key = AccessKey(user=request.user)
 
     try:
-        output_file = OutputFile.objects.get(access_key=access_key, id=file_id)
-    except OutputFile.DoesNotExist:
+        output_file = OutputFileLex.objects.get(access_key=access_key, id=file_id)
+    except OutputFileLex.DoesNotExist:
         return render(request, "lex_experiment/error_message.html")
 
     if file_type == "pdf":
