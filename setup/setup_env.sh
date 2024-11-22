@@ -143,6 +143,8 @@ export DNS_LABEL
 export SITE_URL
 export HOST_NAME=${SITE_URL#https://}
 
+export CORPORATE_PUBLIC_IP=$(curl -s ifconfig.me)
+
 export ENV_VERSION
 export INTENDED_USE
 export ADMIN_GROUP_NAMES
@@ -335,4 +337,5 @@ text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
 admin_email = "${ADMIN_EMAIL}"
 use_private_network = "${USE_PRIVATE_NETWORK}"
 backup_container_name = "${BACKUP_CONTAINER_NAME}"
+corporate_public_ip = "${CORPORATE_PUBLIC_IP}"
 EOF

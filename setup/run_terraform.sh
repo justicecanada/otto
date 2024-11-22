@@ -141,6 +141,12 @@ if [[ -z "$ENABLE_DEBUG" ]]; then
     read -p "Enable Terraform debugging mode? (y/N): " ENABLE_DEBUG
 fi
 
+# Verify $CORPORATE_PUBLIC_IP is not empty
+if [ -z "$CORPORATE_PUBLIC_IP" ]; then
+    echo "CORPORATE_PUBLIC_IP is empty. Please set the environment variable."
+    exit 1
+fi
+
 if [[ $ENABLE_DEBUG =~ ^[Yy]$ ]]; then
 
     # Set the Terraform log level to debug
@@ -170,3 +176,4 @@ fi
 
 # Make sure the secrets are set
 source ../check_secrets.sh
+

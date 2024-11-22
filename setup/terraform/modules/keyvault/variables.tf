@@ -33,3 +33,18 @@ variable "app_subnet_id" {
   description = "The ID of the app subnet"
   type        = string
 }
+
+variable "web_subnet_id" {
+  description = "The ID of the web subnet"
+  type        = string
+}
+
+variable "db_subnet_id" {
+  description = "The ID of the database subnet"
+  type        = string
+}
+
+variable "corporate_public_ip" {
+  description = "The public IP address of the corporate network"
+  type        = string
+}

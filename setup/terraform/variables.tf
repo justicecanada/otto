@@ -191,3 +191,12 @@ variable "vm_cpu_count" {
   description = "The number of CPUs in the selected VM size"
   default     = 4 # Standard_D4s_v3 has 4 CPUs
 }
+
+variable "corporate_public_ip" {
+  description = "The public IP address of the corporate network"
+  type        = string
+  validation {
+    condition     = can(regex("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$", var.corporate_public_ip))
+    error_message = "The corporate_public_ip value must be a valid IPv4 address."
+  }
+}

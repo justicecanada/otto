@@ -45,41 +45,54 @@ if ! check_secret "DJANGO-SECRET-KEY"; then
     unset secret_key
 fi
 
+
 # Check and set STORAGE-KEY
-storage_key=$(az storage account keys list --account-name "$STORAGE_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query '[0].value' -o tsv)
-if ! check_secret "STORAGE-KEY"; then
-    set_secret "STORAGE-KEY" "$storage_key"
+if ! az storage account show --name "$STORAGE_NAME" --resource-group "$RESOURCE_GROUP_NAME" &>/dev/null; then
+    echo "Storage account $STORAGE_NAME does not exist."
 else
-    current_storage_key=$(get_secret_value "STORAGE-KEY")
-    if [ "$storage_key" != "$current_storage_key" ]; then
+    storage_key=$(az storage account keys list --account-name "$STORAGE_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query '[0].value' -o tsv)
+    if ! check_secret "STORAGE-KEY"; then
         set_secret "STORAGE-KEY" "$storage_key"
+    else
+        current_storage_key=$(get_secret_value "STORAGE-KEY")
+        if [ "$storage_key" != "$current_storage_key" ]; then
+            set_secret "STORAGE-KEY" "$storage_key"
+        fi
+        unset current_storage_key
     fi
-    unset current_storage_key
+    unset storage_key
 fi
-unset storage_key
 
 # Check and set OPENAI-SERVICE-KEY
-openai_key=$(az cognitiveservices account keys list --name "$OPENAI_SERVICE_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query 'key1' -o tsv)
-if ! check_secret "OPENAI-SERVICE-KEY"; then
-    set_secret "OPENAI-SERVICE-KEY" "$openai_key"
+if ! az cognitiveservices account show --name "$OPENAI_SERVICE_NAME" --resource-group "$RESOURCE_GROUP_NAME" &>/dev/null; then
+    echo "OpenAI service $OPENAI_SERVICE_NAME does not exist."
 else
-    current_openai_key=$(get_secret_value "OPENAI-SERVICE-KEY")
-    if [ "$openai_key" != "$current_openai_key" ]; then
+    openai_key=$(az cognitiveservices account keys list --name "$OPENAI_SERVICE_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query 'key1' -o tsv)
+    if ! check_secret "OPENAI-SERVICE-KEY"; then
         set_secret "OPENAI-SERVICE-KEY" "$openai_key"
+    else
+        current_openai_key=$(get_secret_value "OPENAI-SERVICE-KEY")
+        if [ "$openai_key" != "$current_openai_key" ]; then
+            set_secret "OPENAI-SERVICE-KEY" "$openai_key"
+        fi
+        unset current_openai_key
     fi
-    unset current_openai_key
+    unset openai_key
 fi
-unset openai_key
 
 # Check and set COGNITIVE-SERVICE-KEY
-cognitive_key=$(az cognitiveservices account keys list --name "$COGNITIVE_SERVICES_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query 'key1' -o tsv)
-if ! check_secret "COGNITIVE-SERVICE-KEY"; then
-    set_secret "COGNITIVE-SERVICE-KEY" "$cognitive_key"
+if ! az cognitiveservices account show --name "$COGNITIVE_SERVICES_NAME" --resource-group "$RESOURCE_GROUP_NAME" &>/dev/null; then
+    echo "Cognitive service $COGNITIVE_SERVICES_NAME does not exist."
 else
-    current_cognitive_key=$(get_secret_value "COGNITIVE-SERVICE-KEY")
-    if [ "$cognitive_key" != "$current_cognitive_key" ]; then
+    cognitive_key=$(az cognitiveservices account keys list --name "$COGNITIVE_SERVICES_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query 'key1' -o tsv)
+    if ! check_secret "COGNITIVE-SERVICE-KEY"; then
         set_secret "COGNITIVE-SERVICE-KEY" "$cognitive_key"
+    else
+        current_cognitive_key=$(get_secret_value "COGNITIVE-SERVICE-KEY")
+        if [ "$cognitive_key" != "$current_cognitive_key" ]; then
+            set_secret "COGNITIVE-SERVICE-KEY" "$cognitive_key"
+        fi
+        unset current_cognitive_key
     fi
-    unset current_cognitive_key
+    unset cognitive_key
 fi
-unset cognitive_key

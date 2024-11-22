@@ -24,7 +24,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   workload_identity_enabled = true # Workload identity allows the AKS cluster to use managed identities for Azure resources
 
   # AC-22, IA-8, SC-2, SC-5: Configure the private cluster settings
-  private_cluster_enabled = var.use_private_network
+  # TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
+  #private_cluster_enabled = var.use_private_network
 
   # Cluster-level autoscaling configuration:
   # - vm_size: Defines CPU and memory for each node (e.g., "Standard_D4s_v3")

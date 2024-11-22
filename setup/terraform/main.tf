@@ -51,6 +51,9 @@ module "keyvault" {
   tags                   = local.common_tags
   use_private_network    = var.use_private_network
   app_subnet_id          = module.vnet.app_subnet_id
+  web_subnet_id          = module.vnet.web_subnet_id
+  db_subnet_id           = module.vnet.db_subnet_id
+  corporate_public_ip    = var.corporate_public_ip
 }
 
 # ACR module
@@ -67,16 +70,23 @@ module "acr" {
 
 # Disk module
 module "disk" {
-  source               = "./modules/disk"
-  disk_name            = var.disk_name
-  resource_group_name  = module.resource_group.name
-  location             = var.location
-  tags                 = local.common_tags
-  aks_cluster_id       = module.aks.aks_cluster_id
-  keyvault_id          = module.keyvault.keyvault_id
-  cmk_id               = module.keyvault.cmk_id
-  wait_for_propagation = module.keyvault.wait_for_propagation
-  use_private_network  = var.use_private_network
+  source                    = "./modules/disk"
+  disk_name                 = var.disk_name
+  resource_group_name       = module.resource_group.name
+  location                  = var.location
+  tags                      = local.common_tags
+  aks_cluster_id            = module.aks.aks_cluster_id
+  keyvault_id               = module.keyvault.keyvault_id
+  cmk_id                    = module.keyvault.cmk_id
+  wait_for_propagation      = module.keyvault.wait_for_propagation
+  use_private_network       = var.use_private_network
+  corporate_ip              = var.corporate_public_ip
+  app_subnet_id             = module.vnet.app_subnet_id
+  web_subnet_id             = module.vnet.web_subnet_id
+  db_subnet_id              = module.vnet.db_subnet_id
+  web_subnet_address_prefix = module.vnet.web_subnet_address_prefix
+  app_subnet_address_prefix = module.vnet.app_subnet_address_prefix
+  db_subnet_address_prefix  = module.vnet.db_subnet_address_prefix
 }
 
 # Storage module
@@ -92,7 +102,10 @@ module "storage" {
   admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
+  corporate_public_ip    = var.corporate_public_ip
   app_subnet_id          = module.vnet.app_subnet_id
+  web_subnet_id          = module.vnet.web_subnet_id
+  db_subnet_id           = module.vnet.db_subnet_id
   backup_container_name  = var.backup_container_name
 }
 
@@ -144,8 +157,8 @@ module "aks" {
   admin_email            = var.admin_email
   use_private_network    = var.use_private_network
   vm_size                = var.vm_size
-  vm_cpu_count          = var.vm_cpu_count
-  approved_cpu_quota    = var.approved_cpu_quota
+  vm_cpu_count           = var.vm_cpu_count
+  approved_cpu_quota     = var.approved_cpu_quota
   web_subnet_id          = module.vnet.web_subnet_id
 }
 

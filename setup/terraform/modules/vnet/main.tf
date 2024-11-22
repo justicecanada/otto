@@ -3,7 +3,8 @@ resource "azurerm_virtual_network" "vnet" {
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = [var.vnet_ip_range]
-  dns_servers         = ["10.250.255.4", "10.250.255.5"]
+  # Corporate DNS servers and Google DNS servers
+  dns_servers = ["10.250.255.4", "10.250.255.5", "8.8.8.8", "8.8.4.4"]
 
   tags = var.tags
 }
@@ -25,6 +26,7 @@ resource "azurerm_subnet" "app_subnet" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.app_subnet_ip_range]
+  service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage"]
 
   private_endpoint_network_policies             = "Disabled"
   private_link_service_network_policies_enabled = true
