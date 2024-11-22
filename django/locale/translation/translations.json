@@ -3982,5 +3982,13 @@
     "An error occurred.": {
         "fr": "",
         "fr_auto": "Une erreur s’est produite."
+    },
+    "Read each document separately  (slow, $$)": {
+        "fr": "",
+        "fr_auto": "Lisez chaque document séparément (lent, $$)"
+    },
+    "Read all documents at once (slowest, $$)": {
+        "fr": "",
+        "fr_auto": "Lire tous les documents en même temps (le plus lent, $$)"
     }
 }

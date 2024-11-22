@@ -420,25 +420,39 @@ def qa_response(chat, response_message, switch_mode=False):
         )
 
     # Summarize mode
-    if chat.options.qa_mode == "summarize":
-        # Use summarization on each of the documents
+    if chat.options.qa_mode in ["summarize", "summarize_combined"]:
         if not filter_documents:
             filter_documents = Document.objects.filter(
                 data_source__library=chat.options.qa_library
             )
         document_titles = [document.name for document in filter_documents]
-        summary_responses = [
-            llm.tree_summarize(
-                context=document.extracted_text,
+        if chat.options.qa_mode == "summarize_combined":
+            # Combine all documents into one text, including the titles
+            combined_documents = "\n\n---\n\n".join(
+                [
+                    f"# {title}\n\n{document.extracted_text}"
+                    for title, document in zip(document_titles, filter_documents)
+                ]
+            )
+            response_replacer = llm.tree_summarize(
+                context=combined_documents,
                 query=user_message.text,
                 template=chat.options.qa_prompt_combined,
             )
-            for document in filter_documents
-            if not cache.get(f"stop_response_{response_message.id}", False)
-        ]
-        response_replacer = combine_response_replacers(
-            summary_responses, document_titles
-        )
+        else:
+            # Use summarization on each of the documents
+            summary_responses = [
+                llm.tree_summarize(
+                    context=document.extracted_text,
+                    query=user_message.text,
+                    template=chat.options.qa_prompt_combined,
+                )
+                for document in filter_documents
+                if not cache.get(f"stop_response_{response_message.id}", False)
+            ]
+            response_replacer = combine_response_replacers(
+                summary_responses, document_titles
+            )
         response_generator = None
         source_groups = None
 
