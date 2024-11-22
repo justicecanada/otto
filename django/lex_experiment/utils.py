@@ -10,6 +10,7 @@ from django.core.files.base import ContentFile
 
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
+from openai import AzureOpenAI
 from pdf2image import convert_from_path
 from PIL import Image, ImageSequence
 from PIL.Image import Resampling
@@ -385,3 +386,64 @@ def add_extracted_files(output_file, access_key):
     output_file.save(access_key=access_key)
 
     return output_file
+
+
+def send_prompt_to_azure(question, content):
+    client = AzureOpenAI(
+        api_key=settings.AZURE_OPENAI_KEY,
+        api_version=settings.AZURE_OPENAI_VERSION,
+        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+    )
+    model_str = settings.DEFAULT_CHAT_MODEL
+    system_prompt = "You are a legal professional who is tasked with reviewing a case and writing legal documents. You're going to extract and write information from the following content and will only use the facts provided in the content I provide you. When providing responses, please use paragraphs instead of bullet points. Do not include question marks or exclamation marks, and ensure a constant professional style of writing throughout all your responses."
+
+    response = client.chat.completions.create(
+        model=model_str,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": "### Content: " + content},
+            {"role": "user", "content": "### Question: " + question},
+        ],
+        temperature=0.1,  # set this to a low value, such as 0.2, to make the output more focused and deterministic. This will reduce the randomness in the generated response
+    )
+    return response
+
+
+def lex_prompts(text):
+
+    # for now we don't edit the text but we might need to in the future
+    content = text
+
+    import concurrent.futures
+
+    # Define the questions
+    questions = [
+        "What is the Tax Court of Canada Court No.?",
+        "What is the Appellant or Appellants Name?",
+        "What is the Appellant's address?",
+        "What is the Tax Court of Canada Class Level?",
+        "What is the filed date of the Notice of Appeal?",
+        "What is the Representative's name?",
+        "What is the Representative's address?",
+        "What are the taxation years?",
+        "What is the total tax amount?",
+        "What section or subsections are referred to in the Notice of Appeal?",
+    ]
+
+    # Define the content (replace with actual content)
+    content = "Your content here"
+
+    # Function to get the answer for a question
+    def get_answer(question):
+        response = send_prompt_to_azure(question, content)
+        return response.choices[0].message.content
+
+    # Use ThreadPoolExecutor to send the questions concurrently
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Map the questions to the get_answer function
+        results = list(executor.map(get_answer, questions))
+
+    return [
+        {"question": question, "answer": answer}
+        for question, answer in zip(questions, results)
+    ]
