@@ -3,8 +3,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.forms import ModelForm
-from django.utils.translation import get_language
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from autocomplete import widgets
 

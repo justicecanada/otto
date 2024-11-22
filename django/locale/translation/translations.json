@@ -3982,5 +3982,141 @@
     "An error occurred.": {
         "fr": "",
         "fr_auto": "Une erreur s’est produite."
+    },
+    "Add notes or addition details.": {
+        "fr": "",
+        "fr_auto": "Ajoutez des notes ou des détails d’ajout."
+    },
+    "Bug": {
+        "fr": "",
+        "fr_auto": "Bogue"
+    },
+    "Question": {
+        "fr": "",
+        "fr_auto": "Question :"
+    },
+    "Feature request": {
+        "fr": "",
+        "fr_auto": "Demande de fonctionnalité"
+    },
+    "New": {
+        "fr": "",
+        "fr_auto": "Nouveau"
+    },
+    "In progress": {
+        "fr": "",
+        "fr_auto": "En cours"
+    },
+    "Resolved": {
+        "fr": "",
+        "fr_auto": "Résolu"
+    },
+    "Closed": {
+        "fr": "",
+        "fr_auto": "Fermé"
+    },
+    "Low": {
+        "fr": "",
+        "fr_auto": "Faible"
+    },
+    "High": {
+        "fr": "",
+        "fr_auto": "Élevée"
+    },
+    "Latest feedback": {
+        "fr": "",
+        "fr_auto": "Derniers commentaires"
+    },
+    "Click on a row to view more information about the feedback received, to flag the feedback as \\": {
+        "fr": "",
+        "fr_auto": "Cliquez sur une ligne pour afficher plus d’informations sur les commentaires reçus, pour marquer les commentaires comme \\"
+    },
+    "ago": {
+        "fr": "",
+        "fr_auto": "il y a longtemps"
+    },
+    "No results available.": {
+        "fr": "",
+        "fr_auto": "Aucun résultat disponible."
+    },
+    "Feedback results page navigation.": {
+        "fr": "",
+        "fr_auto": "Navigation dans la page des résultats des commentaires."
+    },
+    "First": {
+        "fr": "",
+        "fr_auto": "Premièrement"
+    },
+    "Last": {
+        "fr": "",
+        "fr_auto": "Dernier"
+    },
+    "View feedback in context": {
+        "fr": "",
+        "fr_auto": "Voir les commentaires dans leur contexte"
+    },
+    "Administrative details": {
+        "fr": "",
+        "fr_auto": "Détails administratifs"
+    },
+    "Use this section to provide additional details to the feedback provided by the user.": {
+        "fr": "",
+        "fr_auto": "Utilisez cette section pour fournir des détails supplémentaires aux commentaires fournis par l’utilisateur."
+    },
+    "Save note": {
+        "fr": "",
+        "fr_auto": "Enregistrer la note"
+    },
+    "Total received": {
+        "fr": "",
+        "fr_auto": "Total reçu"
+    },
+    "Total resolved": {
+        "fr": "",
+        "fr_auto": "Total résolu"
+    },
+    "Total negative chat comment(s)": {
+        "fr": "",
+        "fr_auto": "Total des commentaires négatifs de chat (s)"
+    },
+    "Most active app": {
+        "fr": "",
+        "fr_auto": "Application la plus active"
+    },
+    "Feedback dashboard": {
+        "fr": "",
+        "fr_auto": "Tableau de bord des commentaires"
+    },
+    "Feedback dashboard - Otto": {
+        "fr": "",
+        "fr_auto": "Tableau de bord des commentaires - Huit"
+    },
+    "Export data": {
+        "fr": "",
+        "fr_auto": "Exporter des données"
+    },
+    "View filter options": {
+        "fr": "",
+        "fr_auto": "Afficher les options de filtre"
+    },
+    "Feedback Type": {
+        "fr": "",
+        "fr_auto": "Type de rétroaction"
+    },
+    "App": {
+        "fr": "",
+        "fr_auto": "L’application"
+    },
+    "Apply Filters": {
+        "fr": "",
+        "fr_auto": "Appliquer des filtres"
+    },
+    "Feedback submitted successfully.": {
+        "fr": "",
+        "fr_auto": "Commentaires soumis avec succès."
+    },
+    "Feedback updated successfully.": {
+        "fr": "",
+        "fr_auto": "Les commentaires ont été mis à jour avec succès."
     }
 }
