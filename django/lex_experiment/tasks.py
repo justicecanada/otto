@@ -10,7 +10,7 @@ from .utils import create_searchable_pdf
 
 # passing the OCR method to celery
 @shared_task
-def process_ocr_document(file_content, file_name, merged, idx):
+def process_ocr_document(file_content, file_name, idx):
     if current_task:
         current_task.update_state(state="PROCESSING")
     try:
@@ -22,7 +22,7 @@ def process_ocr_document(file_content, file_name, merged, idx):
             size=len(file_content),
             charset=None,
         )
-        ocr_file, txt_file, cost = create_searchable_pdf(file, merged and idx > 0)
+        ocr_file, txt_file, cost = create_searchable_pdf(file)
 
         input_name, _ = os.path.splitext(file.name)
         pdf_bytes = BytesIO()

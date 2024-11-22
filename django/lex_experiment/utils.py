@@ -31,57 +31,6 @@ default_font = "Helvetica"
 img_extensions = (".tif", ".tiff", ".jpg", ".jpeg", ".png", ".bmp")
 
 
-def format_merged_file_name(file_names_to_merge, max_length=35):
-
-    # sort files by shortest name to longest name
-    file_names_to_merge.sort(key=len)
-
-    joined_file_names = ""
-    extra_files = 0
-    for file_name in file_names_to_merge:
-        if len(joined_file_names) + len(file_name) <= max_length:
-            joined_file_names += file_name + "_"
-        else:
-            extra_files += 1
-    joined_file_names = joined_file_names.rstrip("_")
-    if len(joined_file_names) == 0:
-        merged_file_name = (
-            f"Merged_{extra_files}_files" if extra_files > 1 else "Merged_1_file"
-        )
-    elif extra_files > 0:
-        merged_file_name = f"Merged_{joined_file_names}_and_{extra_files}_more"
-    else:
-        merged_file_name = f"Merged_{joined_file_names}"
-    return merged_file_name
-
-
-def create_toc_pdf(file_names, start_pages):
-    default_font = "Times-Roman"
-    toc_pdf_bytes = BytesIO()
-    c = canvas.Canvas(toc_pdf_bytes, pagesize=A4)
-    y_position = 750
-    c.setFont(default_font, 12)
-    c.drawString(30, y_position, "Table of Contents/Table des matières")
-    y_position -= 30
-
-    for index, file in enumerate(file_names, start=1):
-        file_name = file.name  # Adjust based on your file object properties
-        c.drawString(50, y_position, file_name)  # Draw the file name
-        c.drawRightString(
-            550, y_position, str(start_pages[file_name])
-        )  # Draw the page number right-aligned
-        y_position -= 20
-        if y_position < 50:  # Start a new page if there's no room
-            c.showPage()
-            c.setFont(default_font, 12)
-            y_position = 750
-
-    c.showPage()
-    c.save()
-    toc_pdf_bytes.seek(0)
-    return toc_pdf_bytes
-
-
 def get_page_count(file):
     extension = os.path.splitext(file.name)[1].lower()
     if extension == ".pdf":
@@ -137,7 +86,7 @@ def dist(p1, p2):
     return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
 
-def create_searchable_pdf(input_file, add_header):
+def create_searchable_pdf(input_file):
     # Reset the file pointer to the beginning
     input_file.seek(0)
     file_content = input_file.read()
@@ -282,12 +231,6 @@ def create_searchable_pdf(input_file, add_header):
             text.setHorizScale(desired_text_width / actual_text_width * 100)
             text.textOut(word.content + " ")
 
-        # add header
-        if add_header:
-            header_text = f"Filename: {str(input_file)}"
-            pdf_canvas.setFont(default_font, 10)
-            pdf_canvas.drawString(30, page_height - 30, header_text)
-
         pdf_canvas.drawText(text)
         pdf_canvas.save()
 
@@ -331,55 +274,6 @@ def add_extracted_files(output_file, access_key):
         )
 
         total_cost += cost
-
-    else:
-        merged_pdf_writer = PdfWriter()
-        merged_text_content = ""
-
-        for task_id in output_file.celery_task_ids:
-            result = process_ocr_document.AsyncResult(task_id)
-            try:
-                pdf_bytes_content, txt_file_content, cost, input_name = result.get()
-            except Exception as e:
-                output_file.status = "FAILURE"
-                output_file.save(access_key=access_key)
-                logger.error(f"Task {task_id} failed with error: {e}")
-                continue  # Skip this task and continue with others
-
-            # Accumulate total cost
-            total_cost += cost
-
-            try:
-                pdf_reader = PdfReader(BytesIO(pdf_bytes_content))
-                for page in pdf_reader.pages:
-                    merged_pdf_writer.add_page(page)
-            except Exception as e:
-                logger.error(f"Failed to parse PDF from task {task_id}: {e}")
-                continue  # Skip this PDF and continue with others
-
-            # Accumulate text content
-            merged_text_content += txt_file_content + "\n"
-
-        # Write merged PDF to BytesIO
-        merged_pdf_bytes_io = BytesIO()
-        try:
-            merged_pdf_writer.write(merged_pdf_bytes_io)
-        except Exception as e:
-            logger.error(f"Failed to write merged PDF: {e}")
-            output_file.status = "FAILURE"
-            output_file.save(access_key=access_key)
-            raise e
-        merged_pdf_bytes_io.seek(0)  # Reset pointer to the start
-
-        # Assign merged PDF and text content to output_file
-        merged_pdf_content = merged_pdf_bytes_io.read()
-        output_file.pdf_file = ContentFile(
-            merged_pdf_content, name=shorten_input_name("merged_output.pdf")
-        )
-        output_file.txt_file = ContentFile(
-            merged_text_content.encode("utf-8"),
-            name=shorten_input_name("merged_output.txt"),
-        )
 
     # Clear the task IDs and update cost
     output_file.celery_task_ids = []
