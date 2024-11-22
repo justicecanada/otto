@@ -155,7 +155,8 @@ document.addEventListener("DOMContentLoaded", function () {
     render_markdown(element);
     checkTruncation(element);
   });
-  limitScopeSelect();
+  // The following line is causing problems. Keeping as a comment in case removing it causes other problems.
+  // limitScopeSelect();
   showHideSidebars();
   document.querySelector('#prompt-form-container').classList.remove("d-none");
   resizeTextarea();
