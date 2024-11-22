@@ -212,10 +212,10 @@ def manage_users(request):
     if request.method == "POST":
         form = UserGroupForm(request.POST)
         if form.is_valid():
-            # The form contains users (multiple choice, named "email" but value is "id")
+            # The form contains users (multiple choice, named "upn" but value is "id")
             # and groups (multiple choice, named "group" but value is "id")
             # We want to add the selected groups to the selected users
-            users = form.cleaned_data["email"]
+            users = form.cleaned_data["upn"]
             groups = form.cleaned_data["group"]
             for user in users:
                 logger.info("Updating user groups", user=user, groups=groups)
