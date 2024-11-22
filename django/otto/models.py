@@ -254,6 +254,27 @@ class Notification(models.Model):
         return f"{self.heading} - {self.text[:50]}"
 
 
+class FeedbackManager(models.Manager):
+    def get_feedback_stats(self):
+        from django.db.models import Count
+
+        total_feedback_count = self.all().count()
+        negative_chat_comment = self.filter(chat_message__feedback=-1).count()
+        resolved_feedback_count = self.filter(status="resolved").count()
+        most_active = (
+            self.values("app")
+            .annotate(feedback_count=Count("id"))
+            .order_by("-feedback_count")
+            .first()
+        )
+        return {
+            "total": total_feedback_count,
+            "negative": negative_chat_comment,
+            "resolved": resolved_feedback_count,
+            "most_active": most_active,
+        }
+
+
 class Feedback(models.Model):
     FEEDBACK_TYPE_CHOICES = [
         ("feedback", _("Feedback")),
@@ -310,6 +331,8 @@ class Feedback(models.Model):
         null=True,
         related_name="modified_feedback",
     )
+
+    objects = FeedbackManager()
 
     def status_display(self):
         return dict(self.FEEDBACK_STATUS_CHOICES)[self.status]

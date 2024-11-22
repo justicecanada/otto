@@ -56,7 +56,7 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
   }
-  .active {
+  tr.active {
     border-left: 4px solid var(--app-color-purple-1);
   }  
 
@@ -79,56 +79,33 @@
   <div>
     <div class="container py-3 px-0">
       <h1 class="mb-3 mt-2 fs-2">{% trans "Feedback dashboard" %}</h1>
+      <div hx-get="{% url 'feedback_stats' %}"
+           hx-trigger="load"
+           hx-swap="innerHTML">{% include 'components/feedback/feedback_stats.html' %}</div>
+      <div id="feedback-container">
+        <!-- Feedback Filter container -->
+        <!-- <div class="row mt-3">
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+              <h2 class="mb-3 fs-5 ps-2 fw-semibold" style="letter-spacing: -0 .025em"></h2>
+              <div class="d-flex gap ms-2">
+                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#feedbackFilterModal">
+                  <i class="bi bi-funnel"></i>
+                </button>
+                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#feedbackExportModal">
+                  <i class="bi bi-file arrow-up"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div> -->
 
-      {% include 'components/feedback/feedback_stats.html' %}
-
- 
-      <div class="row mt-3 border rounded g-0 pt-3">
-        <h2 class="mb-3 fs-5 ps-2 fw-semibold" style="letter-spacing: -0.025em">{% trans "Latest feedback" %}</h2>
-        <p class="mb-3 ps-2 text-muted">
-          {% trans "Click on a row to view more information about the feedback received, to flag the feedback as \"addressed\" or to contact the user directly." %}
-        </p>
-        <div class="table-responsive">
-          <table class="table mb-0" id="feedback-table">
-            <thead>
-              <tr>
-                <th class="col-2">{% trans "Application" %}</th>
-                <th class="col-8">{% trans "Message" %}</th>
-                <th class="col-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for info in feedback_info %}
-                <tr data-bs-toggle="collapse"
-                    data-bs-target="#collapse-{{ info.feedback.id }}"
-                    aria-expanded="false"
-                    aria-controls="collapse-{{ info.feedback.id }}"
-                    onclick="this.classList.toggle('active')"
-                    class="feedback-summary px-2 py-4"
-                    style="cursor: pointer">
-                  <td class="w-full col-2">
-                    <div class="d-flex w-full align-items-center">
-                      {% include 'components/feedback/feedback_type_icon.html' %}
-                      <div class="d-flex flex-column flex-grow-1 ms-2 justify-content-center gap-1">
-                        <span class="fw-semibold align-middle" style="font-size: 1.1rem;">{{ info.feedback.app|title }}</span>
-                        <small class="text-muted" style="font-size: .75rem;">{{ info.feedback.created_at|timesince }}</small>
-                      </div>
-                    </div>
- 
-                  </td>
-
-                  <td class="align-middle col-8">
-                    <span class="feedback-message">{{ info.feedback.feedback_message }}</span>
-                  </td>
-                  <td class="align-middle text-end col-2">{% include 'components/feedback/feedback_type_status.html' %}</td>
-                </tr>
-                {% include 'components/feedback/feedback_details.html' with feedback=info.feedback form=info.form %}
-              {% endfor %}
- 
-            </tbody>
-          </table>
-        </div>
+        <div hx-get="{% url 'feedback_list' page_number=current_page_number %}"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             id="feedback-list-container">{% include 'components/feedback/dashboard/feedback_list.html' %}</div>
       </div>
+ 
     </div>
   </div>
 {% endblock %}

@@ -1,0 +1,87 @@
+{% load i18n %}
+
+<nav class="mt-4"
+     aria-label="{% trans 'Feedback results page navigation.' %}">
+  <ul class="pagination justify-content-center">
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link"
+           href="#"
+           hx-get="{% url 'feedback_list' page_number=1 %}"
+           hx-push-url="{% url 'feedback_dashboard' page_number=1 %}"
+           hx-trigger="click"
+           hx-target="#feedback-list-container"
+           aria-label="First">
+          <span aria-hidden="true">{% trans 'First' %}</span>
+        </a>
+      </li>
+      <li class="page-item">
+        <a class="page-link"
+           href="#"
+           hx-get="{% url 'feedback_list' page_number=page_obj.previous_page_number %}"
+           hx-push-url="{% url 'feedback_dashboard' page_number=page_obj.previous_page_number %}"
+           hx-trigger="click"
+           hx-target="#feedback-list-container"
+           aria-label="Previous">
+          <span aria-hidden="true">{% trans 'Previous' %}</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">{% trans 'First' %}</span>
+      </li>
+      <li class="page-item disabled">
+        <span class="page-link">{% trans 'Previous' %}</span>
+      </li>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <li class="page-item active">
+          <span class="page-link">{{ num }}</span>
+        </li>
+      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+          <button class="page-link"
+                  href="#"
+                  hx-get="{% url 'feedback_list' page_number=num %}"
+                  hx-push-url="{% url 'feedback_dashboard' page_number=num %}"
+                  hx-trigger="click"
+                  hx-target="#feedback-list-container">{{ num }}</button>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link"
+           href="#"
+           hx-get="{% url 'feedback_list' page_number=page_obj.next_page_number %}"
+           hx-push-url="{% url 'feedback_dashboard' page_number=page_obj.next_page_number %}"
+           hx-trigger="click"
+           hx-target="#feedback-list-container"
+           aria-label="Next">
+          <span aria-hidden="true">{% trans 'Next' %}</span>
+        </a>
+      </li>
+      <li class="page-item">
+        <a class="page-link"
+           href="#"
+           hx-get="{% url 'feedback_list' page_number=page_obj.paginator.num_pages %}"
+           hx-push-url="{% url 'feedback_dashboard' page_number=page_obj.paginator.num_pages %}"
+           hx-trigger="click"
+           hx-target="#feedback-list-container"
+           aria-label="Last">
+          <span aria-hidden="true">{% trans 'Last' %}</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">{% trans 'Next' %}</span>
+      </li>
+      <li class="page-item disabled">
+        <span class="page-link">{% trans 'Last' %}</span>
+      </li>
+    {% endif %}
+  </ul>
+</nav>

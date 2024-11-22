@@ -40,6 +40,7 @@ from otto.models import (
     CostType,
     Feature,
     Feedback,
+    FeedbackManager,
     Pilot,
     UsageTerm,
 )
@@ -157,17 +158,17 @@ def message_feedback(request: HttpRequest, message_id=None):
     if request.method == "POST":
         from django.contrib import messages
 
+        from otto.utils.common import get_app_from_path
+
         form = FeedbackForm(request.user, message_id, request.POST)
 
         if form.is_valid():
+            feedback_saved = form.save(commit=False)
             date_and_time = timezone.now().strftime("%Y%m%d-%H%M%S")
-            form.cleaned_data["created_at"] = date_and_time
-            form.save()
-
-            otto_feedback_submitted_with_comment_total.labels(
-                user=request.user.username
-            ).inc()
-
+            feedback_saved.created_at = date_and_time
+            if feedback_saved.chat_message is None:
+                feedback_saved.app = get_app_from_path(feedback_saved.url_context)
+            feedback_saved.save()
             messages.success(
                 request,
                 _("Feedback submitted successfully."),
@@ -189,18 +190,30 @@ def message_feedback(request: HttpRequest, message_id=None):
     )
 
 
-@login_required
-def feedback_success(request):
-    return render(request, "feedback_success.html")
+@permission_required("otto.manage_users")
+def feedback_dashboard(request, page_number=None):
+    if page_number is None:
+        page_number = 1
+    return render(
+        request, "feedback_dashboard.html", {"current_page_number": page_number}
+    )
 
 
 @permission_required("otto.manage_users")
-def feedback_dashboard(request):
-    from django.db.models import Q
+def feedback_stats(request):
+    stats = Feedback.objects.get_feedback_stats()
+    return render(request, "components/feedback/feedback_stats.html", {"stats": stats})
 
-    # filter only the top 10 comments
-    feedback_messages = Feedback.objects.all().order_by("-created_at")[:10]
-    # load the feedback messages with a FeedbackFormType
+
+@permission_required("otto.manage_users")
+def feedback_list(request, page_number=None):
+    from django.core.paginator import Paginator
+
+    feedback_messages = Feedback.objects.all().order_by("-created_at")
+
+    paginator = Paginator(feedback_messages, 10)
+    page_obj = paginator.get_page(page_number)
+
     feedback_info = [
         {
             "feedback": f,
@@ -209,7 +222,7 @@ def feedback_dashboard(request):
                 "metadata": FeedbackMetadataForm(instance=f, auto_id=f"{f.id}_%s"),
             },
         }
-        for f in feedback_messages
+        for f in page_obj
     ]
 
     priority_choices = Feedback.PRIOTITY_CHOICES
@@ -221,10 +234,12 @@ def feedback_dashboard(request):
         "priority_choices": priority_choices,
         "feedback_status_choices": feedback_status_choices,
         "feedback_type_choices": feedback_type_choices,
+        "page_obj": page_obj,
     }
-    return render(request, "feedback_dashboard.html", context)
+    return render(request, "components/feedback/dashboard/feedback_list.html", context)
 
 
+@permission_required("otto.manage_users")
 def feedback_dashboard_update(request, feedback_id, form_type):
     path = request.get_full_path()
     feedback = Feedback.objects.get(id=feedback_id)
