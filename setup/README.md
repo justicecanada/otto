@@ -203,7 +203,8 @@ bash run_terraform.sh --env-file .env.dev --subscription OttoDev --skip-confirm 
 To run k8s and pass parameters:
 
 ```bash
-bash run_k8s.sh --env-file .env.dev --subscription OttoDev --cert-choice n --init-script n --set-dns-label n
+# Other options for cert-choice: skip, create, import
+bash run_k8s.sh --env-file .env.dev --subscription OttoDev --cert-choice skip --init-script n --set-dns-label n
 ```
 
 To run build_and_push and pass parameters:

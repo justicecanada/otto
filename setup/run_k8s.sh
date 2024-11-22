@@ -86,61 +86,60 @@ kubectl wait --for=condition=available --timeout=300s deployment/ingress-nginx-c
 # Apply the namespace for Otto
 kubectl apply -f namespace.yaml
 
-if [[ $CERT_CHOICE =~ ^[Yy]$ ]]; then
+if [[ "$CERT_CHOICE" == "import" ]]; then
+    echo "Importing a trusted SSL certificate from Azure Key Vault..."
 
-    if [[ "$USE_PRIVATE_NETWORK" == "true" ]]; then
-        echo "Using CA-signed certificate from Azure Key Vault..."
+    echo "Listing available Azure subscriptions..."
+    az account list --query "[].{SubscriptionId:id, name:name}" -o table
+    read -p "Enter the subscription ID: " CERT_SUBSCRIPTION_ID
+    
+    echo "Listing Key Vaults in the selected subscription..."
+    az keyvault list --subscription $CERT_SUBSCRIPTION_ID --query "[].{name:name, resourceGroup:resourceGroup}" -o table
+    read -p "Enter the Key Vault name: " CERT_KEYVAULT_NAME
+    
+    echo "Listing certificates in the selected Key Vault..."
+    az keyvault certificate list --vault-name $CERT_KEYVAULT_NAME --query "[].{name:name}" -o table
+    read -p "Enter the certificate name: " CERT_NAME
 
-        echo "Listing available Azure subscriptions..."
-        az account list --query "[].{SubscriptionId:id, name:name}" -o table
-        read -p "Enter the subscription ID: " CERT_SUBSCRIPTION_ID
-        
-        echo "Listing Key Vaults in the selected subscription..."
-        az keyvault list --subscription $CERT_SUBSCRIPTION_ID --query "[].{name:name, resourceGroup:resourceGroup}" -o table
-        read -p "Enter the Key Vault name: " CERT_KEYVAULT_NAME
-        
-        echo "Listing certificates in the selected Key Vault..."
-        az keyvault certificate list --vault-name $CERT_KEYVAULT_NAME --query "[].{name:name}" -o table
-        read -p "Enter the certificate name: " CERT_NAME
-
-        # If the role assignment for the AKS cluster identity does not exist, create it
-        if ! az role assignment list --assignee $AKS_IDENTITY_ID --role "Key Vault Secrets User" --scope /subscriptions/$CERT_SUBSCRIPTION_ID/resourcegroups/ottocertrg/providers/microsoft.keyvault/vaults/$CERT_KEYVAULT_NAME &>/dev/null; then
-            az role assignment create \
-                --assignee $AKS_IDENTITY_ID \
-                --role "Key Vault Secrets User" \
-                --scope /subscriptions/$CERT_SUBSCRIPTION_ID/resourcegroups/ottocertrg/providers/microsoft.keyvault/vaults/$CERT_KEYVAULT_NAME
-        fi
-
-        # Remove any existing Let's Encrypt related resources
-        kubectl delete -f letsencrypt-cluster-issuer.yaml --ignore-not-found
-        kubectl delete secret tls-secret -n otto --ignore-not-found
-        kubectl delete namespace cert-manager --ignore-not-found
-        
-        # Apply the SecretProviderClass for Azure Key Vault
-        envsubst < tls-secret.yaml | kubectl apply -f -
-
-    else
-
-        echo "Proceeding with Let's Encrypt certificate generation..."
-            
-        # Apply the Cert-Manager CRDs and Cert-Manager
-        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.crds.yaml
-        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
-
-        # Wait for cert-manager webhook to be ready
-        echo "Waiting for cert-manager webhook to be ready..."
-        kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-webhook -n cert-manager
-
-        # Remove any existing Azure Key Vault related resources
-        kubectl delete secretproviderclass azure-tls-secret -n otto --ignore-not-found
-        kubectl delete secret tls-secret -n otto --ignore-not-found
-
-        # Create the ClusterIssuer for Let's Encrypt
-        kubectl apply -f letsencrypt-cluster-issuer.yaml
+    # If the role assignment for the AKS cluster identity does not exist, create it
+    if ! az role assignment list --assignee $AKS_IDENTITY_ID --role "Key Vault Secrets User" --scope /subscriptions/$CERT_SUBSCRIPTION_ID/resourcegroups/ottocertrg/providers/microsoft.keyvault/vaults/$CERT_KEYVAULT_NAME &>/dev/null; then
+        az role assignment create \
+            --assignee $AKS_IDENTITY_ID \
+            --role "Key Vault Secrets User" \
+            --scope /subscriptions/$CERT_SUBSCRIPTION_ID/resourcegroups/ottocertrg/providers/microsoft.keyvault/vaults/$CERT_KEYVAULT_NAME
     fi
 
+    # Remove any existing Let's Encrypt related resources
+    kubectl delete -f letsencrypt-cluster-issuer.yaml --ignore-not-found
+    kubectl delete secret tls-secret -n otto --ignore-not-found
+    kubectl delete namespace cert-manager --ignore-not-found
+    
+    # Apply the SecretProviderClass for Azure Key Vault
+    envsubst < tls-secret.yaml | kubectl apply -f -
+
+elif [[ "$CERT_CHOICE" == "create" ]]; then
+    echo "Generating a Let's Encrypt certificate..."
+        
+    # Apply the Cert-Manager CRDs and Cert-Manager
+    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.crds.yaml
+    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+
+    # Wait for cert-manager webhook to be ready
+    echo "Waiting for cert-manager webhook to be ready..."
+    kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-webhook -n cert-manager
+
+    # Remove any existing Azure Key Vault related resources
+    kubectl delete secretproviderclass azure-tls-secret -n otto --ignore-not-found
+    kubectl delete secret tls-secret -n otto --ignore-not-found
+
+    # Create the ClusterIssuer for Let's Encrypt
+    kubectl apply -f letsencrypt-cluster-issuer.yaml
+
+elif [[ "$CERT_CHOICE" == "skip" ]]; then
+    echo "Skipping certificate operations."
 else
-    echo "Skipping certificate creation."
+    echo "Invalid certificate choice. Please choose 'create', 'import', or 'skip'."
+    exit 1
 fi
 
 # Apply the Kubernetes resources related to Otto, substituting environment variables where required

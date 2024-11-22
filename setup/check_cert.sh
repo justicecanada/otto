@@ -82,13 +82,23 @@ if [[ -z "$CERT_CHOICE" ]]; then
     check_existing_certificate
 
     echo
-
-    if [[ "$USE_PRIVATE_NETWORK" == "true" ]]; then
-        echo "Private network is in use. A CA-signed certificate is expected."
-        read -p "Do you want to import and apply a CA-signed certificate? (y/N): " CERT_CHOICE
-    else
-        echo "Public network is in use. A Let's Encrypt certificate is expected."
-        read -p "Do you want to generate and apply a new Let's Encrypt certificate? (y/N): " CERT_CHOICE
-    fi
-
+    echo "Certificate options:"
+    echo "1. create - Generate and apply a new Let's Encrypt certificate"
+    echo "2. import - Import and apply a trusted SSL certificate"
+    echo "3. skip - Skip certificate operations"
+    read -p "Enter your choice (create/import/skip): " CERT_CHOICE
 fi
+
+# Convert user input to lowercase
+CERT_CHOICE=$(echo "$CERT_CHOICE" | tr '[:upper:]' '[:lower:]')
+
+# Validate user input
+case "$CERT_CHOICE" in
+    create|import|skip)
+        echo "Selected option: $CERT_CHOICE"
+        ;;
+    *)
+        echo "Invalid option. Please choose create, import, or skip."
+        exit 1
+        ;;
+esac
