@@ -249,7 +249,7 @@ async def htmx_stream(
         context = {"message": message, "swap_oob": True}
 
     # Render the message template, wrapped in SSE format
-    context["message"].json = json.dumps(full_message)
+    context["message"].json = json.dumps(str(full_message))
     yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context

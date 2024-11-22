@@ -380,6 +380,8 @@ def qa_response(chat, response_message, switch_mode=False):
                     data_source=chat.data_source,
                     url=user_message.text,
                 )
+            else:
+                document = existing_document
             # URLs are always re-processed
             document.process()
         return StreamingHttpResponse(
