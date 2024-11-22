@@ -155,7 +155,8 @@ document.addEventListener("DOMContentLoaded", function () {
     render_markdown(element);
     checkTruncation(element);
   });
-  limitScopeSelect();
+  // The following line is causing problems. Keeping as a comment in case removing it causes other problems.
+  // limitScopeSelect();
   showHideSidebars();
   document.querySelector('#prompt-form-container').classList.remove("d-none");
   resizeTextarea();
@@ -341,7 +342,7 @@ class FileUpload {
     reader.onload = async (e) => {
       const buffer = e.target.result;
       const hash = await this.sha256(buffer);
-      console.log(`SHA-256 hash for ${file.name}: ${hash}`);
+      // console.log(`SHA-256 hash for ${file.name}: ${hash}`);
       this.upload_file(0, null, hash);
     };
 
@@ -460,7 +461,7 @@ function updateQaModal() {
     // Dataset attributes are lowercased
     const hidden_input_name = modal_element.dataset.inputname;
     const hidden_field_element = document.querySelector(`input[name="${hidden_input_name}"]`);
-    console.log(hidden_input_name, hidden_field_element);
+    // console.log(hidden_input_name, hidden_field_element);
     if (hidden_field_element) {
       modal_element.value = hidden_field_element.value;
     }

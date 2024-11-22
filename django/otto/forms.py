@@ -80,15 +80,15 @@ class FeedbackForm(ModelForm):
 
 # AC-16 & AC-16(2): Enables the modification of user roles and group memberships
 class UserGroupForm(forms.Form):
-    email = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all(),
-        label="Email",
+    upn = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all().order_by("upn"),
+        label="UPN",
         required=True,
         widget=widgets.Autocomplete(
-            name="email",
+            name="upn",
             options={
                 "item_value": User.id,
-                "item_label": User.email,
+                "item_label": User.upn,
                 "multiselect": True,
                 "minimum_search_length": 2,
                 "model": User,
@@ -115,7 +115,7 @@ class UserGroupForm(forms.Form):
         label="Weekly budget ($ CAD)",
         required=True,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
-        initial=0,
+        initial=20,
     )
     weekly_bonus = forms.IntegerField(
         label="Additional budget (this week only)",
