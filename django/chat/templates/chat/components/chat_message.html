@@ -8,6 +8,8 @@
     <span class="message-author me-1">
       {% if message.is_bot %}
         Otto
+      {% elif chat_author %}
+        {{ chat_author.full_name }}
       {% else %}
         {{ request.user.full_name }}
       {% endif %}
@@ -34,8 +36,11 @@
       {% elif message.num_files %}
         <div class="message-text">{% include "chat/components/message_files.html" %}</div>
       {% elif message.is_bot %}
-        <div class="message-text">{{ message.text|safe }}</div>
+        <div class="message-text">
+          <div class="markdown-text" data-md="{{ message.json }}"></div>
+        </div>
       {% else %}
+        {# There cannot be any space between div.message-text and its contents (whitespace: pre-wrap) #}
         <div class="message-text">{{ message.text|escape }}</div>
       {% endif %}
       <div class="row">
@@ -60,19 +65,6 @@
          hx-trigger='load delay:100ms'></div>
   {% endif %}
 </div>
-
-<script>
-(function () {
-  function checkTruncation() {
-    let element = document.querySelector('#message_{{message.id}} .message-text');
-    if (element && (element.offsetHeight < element.scrollHeight)) {
-      element.closest('.message-outer').classList.add('truncate');
-    }
-  }
-  checkTruncation();
-  setTimeout(checkTruncation, 100);
-})();
-</script>
 
 {% if swap_oob %}
   {# Update chat title, security label and user costs widget #}

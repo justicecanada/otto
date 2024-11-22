@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
         # Find the user and make them an admin
         try:
-            user = User.objects.get(upn__iexact=upn)
+            user = User.objects.filter(upn__iexact=upn).first()
             user.make_otto_admin()
             self.stdout.write(
                 self.style.SUCCESS(

@@ -82,10 +82,6 @@ class Chat(models.Model):
     def __str__(self):
         return f"Chat {self.id}: {self.title}"
 
-    def access(self):
-        self.accessed_at = timezone.now()
-        self.save()
-
     def delete(self, *args, **kwargs):
         if hasattr(self, "data_source") and self.data_source:
             self.data_source.delete()
@@ -135,7 +131,8 @@ QA_SCOPE_CHOICES = [
 
 QA_MODE_CHOICES = [
     ("rag", _("Use top sources only (fast, cheap)")),
-    ("summarize", _("Read entire documents (slow, expensive)")),
+    ("summarize", _("Full documents, separate answers ($)")),
+    ("summarize_combined", _("Full documents, combined answer ($)")),
 ]
 
 QA_SOURCE_ORDER_CHOICES = [

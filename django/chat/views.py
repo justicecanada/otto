@@ -1,8 +1,9 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -36,10 +37,9 @@ from chat.models import (
     Preset,
     create_chat_data_source,
 )
-from chat.utils import change_mode_to_chat_qa, llm_response_to_html, title_chat
-from librarian.models import DataSource, Library, SavedFile
-from librarian.utils.process_engine import guess_content_type
-from otto.models import App, SecurityLabel
+from chat.utils import change_mode_to_chat_qa, title_chat
+from librarian.models import Library, SavedFile
+from otto.models import SecurityLabel
 from otto.rules import is_admin
 from otto.utils.decorators import (
     app_access_required,
@@ -108,10 +108,10 @@ def delete_all_chats(request):
     return response
 
 
-@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def chat(request, chat_id):
     """
-    Get or create the chat based on the provided chat ID
+    Get the chat based on the provided chat ID.
+    Returns read-only view if user does not have access.
     """
 
     logger.info("Chat session retrieved.", chat_id=chat_id)
@@ -125,6 +125,24 @@ def chat(request, chat_id):
 
     chat.accessed_at = timezone.now()
     chat.save()
+
+    # Get chat messages ready
+    messages = Message.objects.filter(chat=chat).order_by("id")
+    for message in messages:
+        if message.is_bot:
+            message.json = json.dumps(message.text)
+        else:
+            message.text = message.text.strip()
+
+    if not request.user.has_perm("chat.access_chat", chat):
+        context = {
+            "chat": chat,
+            "chat_messages": messages,
+            "hide_breadcrumbs": True,
+            "read_only": True,
+            "chat_author": chat.user,
+        }
+        return render(request, "chat/chat_readonly.html", context=context)
 
     # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
     try:
@@ -140,14 +158,6 @@ def chat(request, chat_id):
     # END INSURANCE CODE
 
     mode = chat.options.mode
-
-    # Get chat messages ready
-    messages = Message.objects.filter(chat=chat).order_by("id")
-    for message in messages:
-        if message.is_bot:
-            message.text = llm_response_to_html(message.text)
-        else:
-            message.text = message.text.strip()
 
     # Get sidebar chat history list.
     # Don't show empty chats - these will be deleted automatically later.
@@ -252,6 +262,7 @@ def chat_message(request, chat_id):
     user_message = Message.objects.create(
         chat=chat, text=user_message_text, is_bot=False, mode=mode
     )
+    user_message.is_new_user_message = True
     response_message = Message.objects.create(
         chat=chat, text="", is_bot=True, mode=mode, parent=user_message
     )
@@ -631,14 +642,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
     elif request.method == "POST":
         chat_options = chat.options
         post_data = request.POST.copy()
-
-        # In case of duplicate values, remove them by taking the first value from each list
-        for key in post_data:
-            if (
-                isinstance(post_data.getlist(key), list)
-                and len(post_data.getlist(key)) > 1
-            ):
-                post_data.setlist(key, [post_data.getlist(key)[0]])
 
         chat_options_form = ChatOptionsForm(
             post_data, instance=chat_options, user=request.user

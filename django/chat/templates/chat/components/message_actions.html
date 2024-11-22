@@ -8,41 +8,43 @@
           title='{% trans "Copy" %}'>
     <i class="bi bi-clipboard"></i><i class="bi bi-clipboard-fill"></i>
   </button>
-  {% if message.is_bot %}
-    <button type="button"
-            hx-get="{% url 'chat:thumbs_feedback' message_id=message.id feedback=1 %}"
-            hx-trigger="click"
-            hx-swap="none"
-            class="btn btn-link m-0 ms-1 p-0 text-muted thumb-message-button thumb-up {% if message.feedback == 1 %}clicked{% endif %}"
-            onclick="thumbMessage(this);"
-            title='{% trans "Like" %}'>
-      <i class="bi bi-hand-thumbs-up"></i>
-      <i class="bi bi-hand-thumbs-up-fill"></i>
-    </button>
-    <button type="button"
-            hx-get="{% url 'chat:thumbs_feedback' message_id=message.id feedback=-1 %}"
-            hx-target="#modal-body"
-            hx-trigger="click"
-            class="btn btn-link m-0 ms-1 p-0 text-muted thumb-message-button thumb-down {% if message.feedback == -1 %}clicked{% endif %}"
-            onclick="thumbMessage(this);"
-            title='{% trans "Dislike" %}'>
-      <i class="bi bi-hand-thumbs-down"></i><i class="bi bi-hand-thumbs-down-fill"></i>
-    </button>
-  {% else %}
+  {% if not read_only %}
+    {% if message.is_bot %}
+      <button type="button"
+              hx-get="{% url 'chat:thumbs_feedback' message_id=message.id feedback=1 %}"
+              hx-trigger="click"
+              hx-swap="none"
+              class="btn btn-link m-0 ms-1 p-0 text-muted thumb-message-button thumb-up {% if message.feedback == 1 %}clicked{% endif %}"
+              onclick="thumbMessage(this);"
+              title='{% trans "Like" %}'>
+        <i class="bi bi-hand-thumbs-up"></i>
+        <i class="bi bi-hand-thumbs-up-fill"></i>
+      </button>
+      <button type="button"
+              hx-get="{% url 'chat:thumbs_feedback' message_id=message.id feedback=-1 %}"
+              hx-target="#modal-body"
+              hx-trigger="click"
+              class="btn btn-link m-0 ms-1 p-0 text-muted thumb-message-button thumb-down {% if message.feedback == -1 %}clicked{% endif %}"
+              onclick="thumbMessage(this);"
+              title='{% trans "Dislike" %}'>
+        <i class="bi bi-hand-thumbs-down"></i><i class="bi bi-hand-thumbs-down-fill"></i>
+      </button>
+    {% else %}
+      <button type="button"
+              class="btn btn-link m-0 ms-1 p-0 text-muted"
+              title='{% trans "Edit in new prompt" %}'
+              onclick="copyPromptToTextInput(this, '{{ message.mode }}' )">
+        <i class="bi bi-pencil"></i>
+      </button>
+    {% endif %}
     <button type="button"
             class="btn btn-link m-0 ms-1 p-0 text-muted"
-            title='{% trans "Edit in new prompt" %}'
-            onclick="copyPromptToTextInput(this, '{{ message.mode }}' )">
-      <i class="bi bi-pencil"></i>
+            hx-delete="{% url 'chat:delete_message' message.id %}"
+            hx-target="closest div.message-outer"
+            title="{% trans 'Delete message' %}">
+      <i class="bi bi-trash"></i>
     </button>
   {% endif %}
-  <button type="button"
-          class="btn btn-link m-0 ms-1 p-0 text-muted"
-          hx-delete="{% url 'chat:delete_message' message.id %}"
-          hx-target="closest div.message-outer"
-          title="{% trans 'Delete message' %}">
-    <i class="bi bi-trash"></i>
-  </button>
   {% if "." in message.usd_cost|stringformat:"f" %}
     <span class="message-cost ms-1">{{ message.display_cost }}</span>
   {% endif %}
