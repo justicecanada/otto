@@ -88,33 +88,6 @@
     </div>
   </div>
 
-  <div class="mt-5 {% if not show_output %}d-none{% endif %}"
-       id="lex-results">
-    <hr class="m-0">
-    <h2 class="h3 mt-4 pt-2 mb-3">{% trans "Extracted Information" %}</h2>
-
-    {% for file_name, results in all_docs_results.items %}
-      <h4>{{ file_name }}</h4>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">{% trans "Question" %}</th>
-            <th scope="col">{% trans "Answer" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in results %}
-            <tr>
-              <td>{{ item.question }}</td>
-              <td>{{ item.answer }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-    {% endfor %}
-  </div>
-
   <script>
 function downloadAllFiles() {
   const downloadLinks = document.querySelectorAll('td a.icon-link');
