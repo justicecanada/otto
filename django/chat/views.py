@@ -642,14 +642,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         chat_options = chat.options
         post_data = request.POST.copy()
 
-        # In case of duplicate values, remove them by taking the first value from each list
-        for key in post_data:
-            if (
-                isinstance(post_data.getlist(key), list)
-                and len(post_data.getlist(key)) > 1
-            ):
-                post_data.setlist(key, [post_data.getlist(key)[0]])
-
         chat_options_form = ChatOptionsForm(
             post_data, instance=chat_options, user=request.user
         )
