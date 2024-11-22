@@ -430,11 +430,15 @@ def qa_response(chat, response_message, switch_mode=False):
         document_titles = [document.name for document in filter_documents]
         if chat.options.qa_mode == "summarize_combined":
             # Combine all documents into one text, including the titles
-            combined_documents = "\n\n---\n\n".join(
-                [
-                    f"# {title}\n\n{document.extracted_text}"
-                    for title, document in zip(document_titles, filter_documents)
-                ]
+            combined_documents = (
+                "<document>\n"
+                + "\n</document>\n<document>\n".join(
+                    [
+                        f"# {title}\n---\n{document.extracted_text}"
+                        for title, document in zip(document_titles, filter_documents)
+                    ]
+                )
+                + "\n</document>"
             )
             response_replacer = llm.tree_summarize(
                 context=combined_documents,

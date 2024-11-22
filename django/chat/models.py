@@ -131,8 +131,8 @@ QA_SCOPE_CHOICES = [
 
 QA_MODE_CHOICES = [
     ("rag", _("Use top sources only (fast, cheap)")),
-    ("summarize", _("Read each document separately  (slow, $$)")),
-    ("summarize_combined", _("Read all documents at once (slowest, $$)")),
+    ("summarize", _("Full documents, separate answers ($)")),
+    ("summarize_combined", _("Full documents, combined answer ($)")),
 ]
 
 QA_SOURCE_ORDER_CHOICES = [

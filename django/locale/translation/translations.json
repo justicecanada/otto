@@ -3990,5 +3990,13 @@
     "Read all documents at once (slowest, $$)": {
         "fr": "",
         "fr_auto": "Lire tous les documents en même temps (le plus lent, $$)"
+    },
+    "Full documents, separate answers ($)": {
+        "fr": "",
+        "fr_auto": "Documents complets, réponses séparées ($)"
+    },
+    "Full documents, combined answer ($)": {
+        "fr": "",
+        "fr_auto": "Documents complets, réponse combinée ($)"
     }
 }
