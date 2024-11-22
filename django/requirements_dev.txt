@@ -9,3 +9,4 @@ watchdog==4.0.1
 rich==13.7.1
 django-livereload-server==0.5.1
 pytest-mock==3.14.0
+matplotlib==3.9.2

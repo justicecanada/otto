@@ -230,8 +230,7 @@ def extract_markdown(
         try:
             md = content.decode("utf-8")
         except Exception as e:
-            logger.error("Error extracting content to markdown:", e)
-            return "", []
+            raise e
 
     md = remove_nul_characters(md)
 
@@ -270,9 +269,11 @@ def pdf_to_text_pdfium(content):
     pdf = pdfium.PdfDocument(content)
     for i, page in enumerate(pdf):
         text_page = page.get_textpage()
-        text += f"<page_{i+1}>\n"
-        text += text_page.get_text_range() + "\n"
-        text += f"</page_{i+1}>\n"
+        text_content = text_page.get_text_range()
+        if text_content:
+            text += f"<page_{i+1}>\n"
+            text += text_content + "\n"
+            text += f"</page_{i+1}>\n"
         # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
         text_page.close()
     pdf.close()

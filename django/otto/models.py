@@ -83,8 +83,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.groups.all()
 
     @property
-    def display_total_cost(self):
-        return display_cad_cost(Cost.objects.get_user_cost(self))
+    def total_cost(self):
+        return f"{cad_cost(Cost.objects.get_user_cost(self)):.2f}"
 
     @property
     def this_week_max(self):
@@ -405,10 +405,14 @@ class CostManager(models.Manager):
             # Optional fields from request context
             feature=request_context.get("feature"),
             request_id=request_context.get("request_id"),
-            user=User.objects.get(id=user_id) if user_id else None,
-            message=Message.objects.get(id=message_id) if message_id else None,
-            document=Document.objects.get(id=document_id) if document_id else None,
-            law=Law.objects.get(id=law_id) if law_id else None,
+            user=User.objects.filter(id=user_id).first() if user_id else None,
+            message=(
+                Message.objects.filter(id=message_id).first() if message_id else None
+            ),
+            document=(
+                Document.objects.filter(id=document_id).first() if document_id else None
+            ),
+            law=Law.objects.filter(id=law_id).first() if law_id else None,
         )
 
         # Recalculate document and message costs, if applicable
@@ -537,3 +541,16 @@ class Pilot(models.Model):
     @property
     def total_cost(self):
         return display_cad_cost(Cost.objects.get_pilot_cost(self))
+
+
+class OttoStatusManager(models.Manager):
+    def singleton(self):
+        return self.get_or_create(pk=1)[0]
+
+
+class OttoStatus(models.Model):
+    """Misc. information, e.g. when updates occurred. Use as singleton."""
+
+    objects = OttoStatusManager()
+    laws_last_refreshed = models.DateTimeField(null=True, blank=True)
+    exchange_rate = models.FloatField(null=False, blank=False, default=1.38)

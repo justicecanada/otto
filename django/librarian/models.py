@@ -303,8 +303,8 @@ class Document(models.Model):
     uuid_hex = models.CharField(
         default=generate_uuid_hex, editable=False, unique=True, max_length=32
     )
-    sha256_hash = models.CharField(max_length=64, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    status_details = models.TextField(null=True, blank=True)
     celery_task_id = models.CharField(max_length=50, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

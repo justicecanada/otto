@@ -695,10 +695,6 @@
         "fr": "",
         "fr_auto": "Général (Otto)"
     },
-    "Otto: Powering legal excellence through data-driven innovation": {
-        "fr": "",
-        "fr_auto": "Otto : Alimenter l’excellence juridique grâce à l’innovation axée sur les données"
-    },
     "Provide feedback or report an issue using the form below.": {
         "fr": "",
         "fr_auto": "Fournissez des commentaires ou signalez un problème à l’aide du formulaire ci-dessous."
@@ -3891,9 +3887,9 @@
         "fr": "",
         "fr_auto": "La réponse s’est arrêtée tôt. Des coûts peuvent encore être engagés après l’arrêt."
     },
-    "Avoid gendered pronouns": {
+    "Avoid personal pronouns": {
         "fr": "",
-        "fr_auto": "Évitez les pronoms genrés"
+        "fr_auto": "Évitez les pronoms personnels"
     },
     "Additional instructions": {
         "fr": "",
@@ -3926,5 +3922,65 @@
     "Download all files...": {
         "fr": "",
         "fr_auto": "Téléchargez tous les fichiers..."
+    },
+    "Source not available (document deleted or modified since message)": {
+        "fr": "",
+        "fr_auto": "Source non disponible (document supprimé ou modifié depuis le message)"
+    },
+    "Legislation search - Otto": {
+        "fr": "",
+        "fr_auto": "Recherche de législation - Otto"
+    },
+    "Manage pilots - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer les pilotes - Otto"
+    },
+    "Manage users - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer les utilisateurs - Otto"
+    },
+    "Template wizard - Otto": {
+        "fr": "",
+        "fr_auto": "Assistant de modèle - Otto"
+    },
+    "Text extractor - Otto": {
+        "fr": "",
+        "fr_auto": "Extracteur de texte - Otto"
+    },
+    "Last refreshed from the": {
+        "fr": "",
+        "fr_auto": "Dernière actualisation à partir de l'"
+    },
+    "repository on": {
+        "fr": "",
+        "fr_auto": "référentiel sur"
+    },
+    "Invalid mode.": {
+        "fr": "",
+        "fr_auto": "Mode non valide."
+    },
+    "There was an error processing your request.": {
+        "fr": "",
+        "fr_auto": "Il y a eu une erreur de traitement de votre demande."
+    },
+    "No user message found.": {
+        "fr": "",
+        "fr_auto": "Aucun message de l’utilisateur trouvé."
+    },
+    "Downloads": {
+        "fr": "",
+        "fr_auto": "Téléchargements"
+    },
+    "Read-only": {
+        "fr": "",
+        "fr_auto": "Lecture seule"
+    },
+    "Empowering Justice efficiency with data and AI": {
+        "fr": "",
+        "fr_auto": "Renforcer l’efficacité de la justice avec les données et l’IA"
+    },
+    "An error occurred.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite."
     }
 }

@@ -43,3 +43,7 @@ def delete_text_extractor_files():
 @shared_task
 def cleanup_vector_store():
     call_command("cleanup_vector_store")
+
+@shared_task
+def update_exchange_rate():
+    call_command("update_exchange_rate")

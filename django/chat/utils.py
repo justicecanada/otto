@@ -1,4 +1,6 @@
 import asyncio
+import html
+import json
 import sys
 from itertools import groupby
 from typing import AsyncGenerator, Generator
@@ -7,7 +9,6 @@ from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
-import bleach
 import markdown
 import tiktoken
 from asgiref.sync import sync_to_async
@@ -36,61 +37,8 @@ def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
     return num_tokens
 
 
-def llm_response_to_html(llm_response_str):
-    s = str(llm_response_str)
-    # When message has uneven # of '```' then add a closing '```' on a newline
-    if s.count("```") % 2 == 1:
-        s += "\n```"
-    raw_html = md.convert(s)
-    # return raw_html
-    allowed_tags = [
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6",
-        "b",
-        "i",
-        "strong",
-        "em",
-        "tt",
-        "p",
-        "br",
-        "span",
-        "div",
-        "blockquote",
-        "code",
-        "pre",
-        "hr",
-        "ul",
-        "ol",
-        "li",
-        "dd",
-        "dt",
-        "img",
-        "a",
-        "sub",
-        "sup",
-        "table",
-        "thead",
-        "th",
-        "tbody",
-        "tr",
-        "td",
-        "tfoot",
-        "dl",
-    ]
-    allowed_attributes = {
-        "*": ["id"],
-        "img": ["src", "alt", "title"],
-        "a": ["href", "alt", "title"],
-        "pre": ["class"],
-        "code": ["class"],
-        "span": ["class"],
-    }
-    clean_html = bleach.clean(raw_html, allowed_tags, allowed_attributes)
-    return clean_html
+def wrap_llm_response(llm_response_str):
+    return f'<div class="markdown-text" data-md="{html.escape(json.dumps(llm_response_str))}"></div>'
 
 
 def url_to_text(url):
@@ -132,6 +80,7 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
                     message=message,
                     document_id=document.id,
                     node_text=node.node.text,
+                    node_id=node.id_,
                     node_score=score,
                     group_number=i,
                 )
@@ -154,7 +103,7 @@ async def htmx_stream(
     response_generator: Generator = None,
     response_replacer: AsyncGenerator = None,
     response_str: str = "",
-    format: bool = True,
+    wrap_markdown: bool = True,
     dots: bool = False,
     source_nodes: list = [],
     switch_mode: bool = False,
@@ -174,17 +123,19 @@ async def htmx_stream(
     If dots is True, typing dots will be added to the end of the response.
 
     The function typically expects markdown responses from LLM, but can also handle
-    HTML responses from other sources. Set format=False to disable markdown parsing.
+    HTML responses from other sources. Set wrap_markdown=False for plain HTML output.
 
     By default, the response will be saved as a Message object in the database after
     the response is finished. Set save_message=False to disable this behavior.
     """
 
     # Helper function to format a string as an SSE message
-    def sse_string(message: str, format=True, dots=False, remove_stop=False) -> str:
+    def sse_string(
+        message: str, wrap_markdown=True, dots=False, remove_stop=False
+    ) -> str:
         sse_joiner = "\ndata: "
-        if format:
-            message = llm_response_to_html(message)
+        if wrap_markdown:
+            message = wrap_llm_response(message)
         if dots:
             message += dots
         out_string = "data: "
@@ -230,7 +181,10 @@ async def htmx_stream(
                     },
                 )
                 yield sse_string(
-                    full_message, format=False, dots=dots_html, remove_stop=remove_stop
+                    full_message,
+                    wrap_markdown=False,
+                    dots=dots_html,
+                    remove_stop=remove_stop,
                 )
                 await asyncio.sleep(1)
                 first_message = False
@@ -245,13 +199,13 @@ async def htmx_stream(
                 await sync_to_async(message.save)()
             yield sse_string(
                 full_message,
-                format,
+                wrap_markdown,
                 dots,
                 remove_stop=remove_stop or generation_stopped,
             )
             await asyncio.sleep(0.01)
 
-        yield sse_string(full_message, format, dots=False, remove_stop=True)
+        yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
         await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
@@ -265,8 +219,9 @@ async def htmx_stream(
             await sync_to_async(title_chat)(chat.id, force_title=False, llm=title_llm)
             await sync_to_async(title_llm.create_costs)()
 
-        # Update message text with HTML formatting to pass to template
-        message.text = llm_response_to_html(full_message)
+        # Update message text with markdown wrapper to pass to template
+        if wrap_markdown:
+            message.text = wrap_llm_response(full_message)
         context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
         # Save sources and security label
@@ -280,18 +235,22 @@ async def htmx_stream(
 
     except Exception as e:
         message = await sync_to_async(Message.objects.get)(id=message_id)
-        full_message = _("An error occurred:") + f"\n```\n{str(e)}\n```"
+        full_message = _("An error occurred.")
+        import traceback
+
+        traceback.print_exc()
         message.text = full_message
         await sync_to_async(message.save)()
-        message.text = llm_response_to_html(full_message)
+        message.text = wrap_llm_response(full_message)
         context = {"message": message, "swap_oob": True}
 
     # Render the message template, wrapped in SSE format
+    context["message"].json = json.dumps(full_message)
     yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context
         ),
-        format=False,
+        wrap_markdown=False,
         remove_stop=True,
     )
 
@@ -525,6 +484,11 @@ async def combine_response_replacers(generators, titles):
                     partial_streams[i] = await stream["stream"].__anext__()
                     final_streams[i] = formatted_titles[i] + partial_streams[i]
             except StopAsyncIteration:
+                stream["status"] = "stopped"
+            except Exception as e:
+                final_streams[i] = (
+                    formatted_titles[i] + f'_{_("Error generating response.")}_'
+                )
                 stream["status"] = "stopped"
         yield ("\n\n---\n\n".join(final_streams))
         await asyncio.sleep(0)

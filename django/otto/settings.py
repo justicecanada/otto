@@ -80,7 +80,7 @@ AZURE_AUTH = {
     "SCOPES": ["User.Read"],
     "AUTHORITY": ENTRA_AUTHORITY,
     "USERNAME_ATTRIBUTE": "userPrincipalName",  # The AAD attribute or ID token claim you want to use as the value for the user model `USERNAME_FIELD`
-    "PUBLIC_PATHS": [os.environ.get("ENTRA_REDIRECT_URI"), "/welcome/", "/healthz/"],
+    "PUBLIC_PATHS": [os.environ.get("ENTRA_REDIRECT_URI"), "/welcome/", "/healthz"],
     "USER_MAPPING_FN": "otto.utils.auth.map_entra_to_django_user",  # Optional, path to the function used to map the AAD to Django attributes
 }
 LOGIN_URL = "/azure_auth/login"
@@ -101,7 +101,7 @@ DEFAULT_CHAT_MODEL = "gpt-4o-mini"
 DEFAULT_QA_MODEL = "gpt-4o-mini"
 DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
-USD_TO_CAD = 1.38
+DEFAULT_LAWS_MODEL = "gpt-4o"
 
 DEFAULT_WEEKLY_MAX = 20  # allowance $CAD/user/week unless otherwise specified
 

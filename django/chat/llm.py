@@ -181,7 +181,7 @@ class OttoLLM:
             text_search_config="english",
             perform_setup=True,
             hnsw_kwargs=(
-                {"hnsw_ef_construction": 300, "hnsw_m": 25, "hnsw_ef_search": 300}
+                {"hnsw_ef_construction": 500, "hnsw_m": 48, "hnsw_ef_search": 500}
                 if hnsw
                 else None
             ),

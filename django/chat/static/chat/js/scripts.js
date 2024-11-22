@@ -1,3 +1,46 @@
+const md = markdownit({
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return '<pre><code class="hljs">' +
+          hljs.highlight(str, {language: lang, ignoreIllegals: true}).value +
+          '</code></pre>';
+      } catch (__) { }
+    }
+
+    return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
+  }
+});
+
+md.use(katexPlugin);
+
+function checkTruncation(element) {
+  if (element && (element.offsetHeight < element.scrollHeight)) {
+    element.closest('.message-outer').classList.add('truncate');
+  }
+}
+
+function render_markdown(element) {
+  // Render markdown in the element
+  const markdown_text = element.querySelector(".markdown-text");
+  if (markdown_text) {
+    let to_parse = markdown_text.dataset.md;
+    try {
+      to_parse = JSON.parse(to_parse);
+    } catch (e) {
+      to_parse = false;
+    }
+    if (to_parse) {
+      const parent = markdown_text.parentElement;
+      parent.innerHTML = md.render(to_parse);
+      // Add the "copy code" button to code blocks
+      for (block of parent.querySelectorAll("pre code")) {
+        block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
+      }
+    }
+  }
+}
+
 // Chat window UI
 let preventAutoScrolling = false;
 
@@ -107,6 +150,11 @@ function showHideSidebars() {
 window.addEventListener('resize', showHideSidebars);
 // On page load...
 document.addEventListener("DOMContentLoaded", function () {
+  // Markdown rendering
+  document.querySelectorAll("div.message-text").forEach(function (element) {
+    render_markdown(element);
+    checkTruncation(element);
+  });
   limitScopeSelect();
   showHideSidebars();
   document.querySelector('#prompt-form-container').classList.remove("d-none");
@@ -114,11 +162,6 @@ document.addEventListener("DOMContentLoaded", function () {
   let mode = document.querySelector('#chat-outer').classList[0];
   updateAccordion(mode);
   document.querySelector("#chat-prompt").focus();
-  for (block of document.querySelectorAll("pre code")) {
-    block.classList.add("language-txt");
-    hljs.highlightElement(block);
-    block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
-  }
   if (document.querySelector("#no-messages-placeholder") === null) {
     setTimeout(scrollToBottom, 100);
   }
@@ -142,6 +185,10 @@ document.addEventListener("htmx:afterSwap", function (event) {
   }
   if (event.detail.pathInfo.requestPath.includes('upload'))
     return;
+  // Check truncation
+  document.querySelectorAll("div.message-text").forEach(function (element) {
+    checkTruncation(element);
+  });
   document.querySelector("#chat-prompt").value = "";
   document.querySelector("#chat-prompt").focus();
   // Change height back to minimum
@@ -152,21 +199,13 @@ document.addEventListener("htmx:afterSwap", function (event) {
 // When streaming response is updated
 document.addEventListener("htmx:sseMessage", function (event) {
   if (!(event.target.id.startsWith("response-"))) return;
-  for (block of event.target.querySelectorAll("pre code")) {
-    block.classList.add("language-txt");
-    hljs.highlightElement(block);
-    block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
-  }
+  render_markdown(event.target);
   scrollToBottom(false, false);
 });
 // When streaming response is finished
 document.addEventListener("htmx:oobAfterSwap", function (event) {
   if (!(event.target.id.startsWith("message_"))) return;
-  for (block of event.target.querySelectorAll("pre code")) {
-    block.classList.add("language-txt");
-    hljs.highlightElement(block);
-    block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
-  }
+  render_markdown(event.target);
   scrollToBottom(false, false);
 });
 // When prompt input is focused, Enter sends message, unless Shift+Enter (newline)
@@ -291,7 +330,7 @@ class FileUpload {
   }
 
   initFileUpload(i) {
-    var file = this.input.files[i];
+    const file = this.input.files[i];
     this.file = file;
     this.cur_filename.innerHTML = file.name;
     this.cur_filenum.innerHTML = i + 1;
@@ -310,17 +349,12 @@ class FileUpload {
   }
 
   upload_file(start, file_id, hash) {
-    var end;
-    var self = this;
-    var formData = new FormData();
-    var nextChunk = start + this.max_chunk_size + 1;
-    var currentChunk = this.file.slice(start, nextChunk);
-    var uploadedChunk = start + currentChunk.size;
-    if (uploadedChunk >= this.file.size) {
-      end = 1;
-    } else {
-      end = 0;
-    }
+    const formData = new FormData();
+    const nextChunk = start + this.max_chunk_size + 1;
+    const currentChunk = this.file.slice(start, nextChunk);
+    const uploadedChunk = start + currentChunk.size;
+    const end = (uploadedChunk >= this.file.size) ? 1 : 0;
+
     formData.append('file', currentChunk);
     formData.append('hash', hash);
     formData.append('filename', this.file.name);
@@ -328,63 +362,58 @@ class FileUpload {
     formData.append('file_id', file_id);
     formData.append('nextSlice', nextChunk);
     formData.append('content_type', this.file.type);
-    $.ajaxSetup({
-      headers: {
-        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', this.upload_url, true);
+    xhr.setRequestHeader("X-CSRFToken", document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percent = (this.file.size < this.max_chunk_size)
+          ? Math.round((e.loaded / e.total) * 100)
+          : Math.round((uploadedChunk / this.file.size) * 100);
+        this.progress_bar.style.width = percent + "%";
+        this.progress_bar.parentElement.setAttribute("aria-valuenow", percent);
       }
     });
-    $.ajax({
-      xhr: function () {
-        var xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener('progress', function (e) {
-          if (e.lengthComputable) {
-            if (self.file.size < self.max_chunk_size) {
-              var percent = Math.round((e.loaded / e.total) * 100);
-            } else {
-              var percent = Math.round((uploadedChunk / self.file.size) * 100);
-            }
-            self.progress_bar.style.width = percent + "%";
-            self.progress_bar.parentElement.setAttribute("aria-valuenow", percent);
-          }
-        });
-        return xhr;
-      },
 
-      url: this.upload_url,
-      type: 'POST',
-      dataType: 'json',
-      cache: false,
-      processData: false,
-      contentType: false,
-      data: formData,
-      error: function (xhr) {
-        alert(xhr.statusText);
-      },
-      success: function (res) {
-        if (nextChunk < self.file.size) {
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const res = JSON.parse(xhr.responseText);
+        if (res.data === "Invalid request") {
+          alert(res.data);
+        } else if (nextChunk < this.file.size && res.data !== "Uploaded successfully") {
           // upload file in chunks
-          file_id = res.file_id;
-          self.upload_file(nextChunk, file_id);
+          this.upload_file(nextChunk, res.file_id, hash);
         } else {
           // Upload finished. Upload the next file, if there is one
-          self.cur_file_idx++;
-          if (self.cur_file_idx < self.input.files.length) {
+          this.cur_file_idx++;
+          if (this.cur_file_idx < this.input.files.length) {
             // Replace the progress bar with a new one
-            let new_progress = self.progress_bar.parentElement.cloneNode(true);
+            const new_progress = this.progress_bar.parentElement.cloneNode(true);
             new_progress.querySelector('.progress-bar').style.width = "0%";
             new_progress.setAttribute("aria-valuenow", 0);
-            self.progress_bar.parentElement.replaceWith(new_progress);
-            self.progress_bar = new_progress.querySelector('.progress-bar');
-            self.initFileUpload(self.cur_file_idx);
+            this.progress_bar.parentElement.replaceWith(new_progress);
+            this.progress_bar = new_progress.querySelector('.progress-bar');
+            this.initFileUpload(this.cur_file_idx);
           } else {
             // All files uploaded! Trigger the final response
-            htmx.trigger(`#message_${self.message_id} .progress-container`, "done_upload");
+            htmx.trigger(`#message_${this.message_id} .progress-container`, "done_upload");
           }
         }
+      } else {
+        alert(xhr.statusText);
       }
-    });
-  };
+    };
+
+    xhr.onerror = () => {
+      alert(xhr.statusText);
+    };
+
+    xhr.send(formData);
+  }
 }
+
 
 function closeSidebar(sidebarID, resizePrompt = true) {
   document.querySelector("#" + sidebarID).classList.add("hidden");

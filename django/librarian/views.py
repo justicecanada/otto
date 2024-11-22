@@ -24,6 +24,7 @@ from .forms import (
 from .models import DataSource, Document, Library, SavedFile
 
 logger = get_logger(__name__)
+IN_PROGRESS_STATUSES = ["PENDING", "INIT", "PROCESSING"]
 
 
 def get_editable_libraries(user):
@@ -232,11 +233,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         else:
             return HttpResponse(status=405)
 
-    # Poll for updates when a data source is selected that has processing documents
-    # (with status "INIT" or "PROCESSING")
+    # Poll for updates when a data source is selected that has in-progress documents
     try:
         poll = selected_data_source.documents.filter(
-            status__in=["INIT", "PROCESSING"]
+            status__in=IN_PROGRESS_STATUSES
         ).exists()
     except:
         poll = False
@@ -287,7 +287,7 @@ def poll_status(request, data_source_id, document_id=None):
     documents = Document.objects.filter(data_source_id=data_source_id)
     poll = False
     try:
-        poll = documents.filter(status__in=["INIT", "PROCESSING"]).exists()
+        poll = documents.filter(status__in=[IN_PROGRESS_STATUSES]).exists()
     except:
         poll = False
     poll_url = request.path if poll else None
@@ -468,10 +468,25 @@ def upload(request, data_source_id):
             logger.info(
                 f"Found existing SavedFile for {file.name}", saved_file_id=file_obj.id
             )
+            # Check if identical document already exists in the DataSource
+            existing_document = Document.objects.filter(
+                data_source_id=data_source_id,
+                filename=file.name,
+                file__sha256_hash=file_hash,
+            ).first()
+            # Skip if filename and hash are the same, and processing status is SUCCESS
+            if existing_document:
+                if (
+                    existing_document.status != "SUCCESS"
+                    and not settings.IS_RUNNING_IN_GITHUB
+                ):
+                    existing_document.process()
+                continue
         else:
             file_obj = SavedFile.objects.create(content_type=file.content_type)
             file_obj.file.save(file.name, file)
             file_obj.generate_hash()
+
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )

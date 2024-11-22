@@ -151,13 +151,15 @@ class UserGroupForm(forms.Form):
     )
     weekly_max = forms.IntegerField(
         label="Weekly budget ($ CAD)",
-        required=False,
+        required=True,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
+        initial=0,
     )
     weekly_bonus = forms.IntegerField(
         label="Additional budget (this week only)",
-        required=False,
+        required=True,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
+        initial=0,
     )
 
 
