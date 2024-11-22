@@ -140,6 +140,7 @@ def chat(request, chat_id):
             "chat_messages": messages,
             "hide_breadcrumbs": True,
             "read_only": True,
+            "chat_author": chat.user,
         }
         return render(request, "chat/chat_readonly.html", context=context)
 
