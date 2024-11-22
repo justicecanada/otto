@@ -1,49 +1,79 @@
 {% load i18n %}
 
-<div class="row mt-3 border rounded g-0 pt-3">
+{% block page_css %}
+
+  <style>
+    .accordion-body {
+      background-color: hsl(210, 20%, 98%) !important;
+    }
+    .accordion-button {
+      height: 80px;
+      &::after,
+      &.collapsed::after{
+        margin-left: 1rem !important;
+        margin-right: 1rem;
+      }
+      &:not(.collapsed) {
+        background-color: transparent !important;   
+        box-shadow: inset 0 calc(-1* var(--bs-accordion-border-width)) 0 var(--app-color-purple-1)
+      }
+
+      &:focus {
+        border-color: var(--app-color-purple-1) !important;
+        box-shadow: 0 0 0 0.10rem var(--app-color-purple-1) !important;
+      }
+    }
+  </style>
+
+{% endblock page_css %}
+
+<div class="row mt-3 g-0 pt-3">
   <h2 class="mb-3 fs-5 ps-2 fw-semibold" style="letter-spacing: -0.025em">{% trans "Latest feedback" %}</h2>
   <p class="mb-3 ps-2 text-muted">
     {% trans "Click on a row to view more information about the feedback received, to flag the feedback as \"addressed\" or to contact the user directly." %}
   </p>
-  <div class="table-responsive">
-    <table class="table mb-0" id="feedback-table">
-      <thead>
-        <tr>
-          <th class="col-2">{% trans "Application" %}</th>
-          <th class="col-8">{% trans "Message" %}</th>
-          <th class="col-2"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for info in feedback_info %}
-          <tr data-bs-toggle="collapse"
-              data-bs-target="#collapse-{{ info.feedback.id }}"
-              aria-expanded="false"
-              aria-controls="collapse-{{ info.feedback.id }}"
-              onclick="this.classList.toggle('active')"
-              class="feedback-summary px-2 py-4"
-              style="cursor: pointer">
-            <td class="w-full col-2">
-              <div class="d-flex w-full align-items-center">
-                {% include 'components/feedback/feedback_type_icon.html' %}
-                <div class="d-flex flex-column flex-grow-1 ms-2 justify-content-center gap-1">
-                  <span class="fw-semibold align-middle" style="font-size: 1.1rem;">{{ info.feedback.app|title }}</span>
-                  <small class="text-muted text-truncate" style="font-size: .75rem;">{{ info.feedback.created_at|timesince }} {% trans 'ago' %}</small>
-                </div>
+  {% if feedback_info|length > 0 %}
+    <div class="accordion" id="feedback-accordion">
+      {% for info in feedback_info %}
+        <div class="accordion-item">
+          <h3 class="accordion-header" id="heading-{{ info.feedback.id }}">
+            <button class="accordion-button collapsed p-0"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse-{{ info.feedback.id }}"
+                    aria-expanded="false"
+                    aria-controls="collapse-{{ info.feedback.id }}">
+              <div class="row align-items-center w-100 g-0">
+                <span class="d-flex col-3">
+                  <span class="my-auto ms-1">{% include 'components/feedback/feedback_type_icon.html' %}</span>
+                  <div class="d-flex flex-column flex-grow-1 ms-2 justify-content-center gap-1">
+                    <span class="fw-semibold align-middle" style="font-size: 1.1rem;">{{ info.feedback.app|title }}</span>
+                    <small class="text-muted text-truncate" style="font-size: .75rem;">{{ info.feedback.created_at|timesince }} {% trans 'ago' %}</small>
+                  </div>
+                </span>
+                <span class="feedback-message col-8 lh-base">{{ info.feedback.feedback_message }}</span>
+                <span class="col-1 text-end">{% include 'components/feedback/feedback_type_status.html' %}</span>
               </div>
  
-            </td>
-
-            <td class="align-middle col-8">
-              <span class="feedback-message">{{ info.feedback.feedback_message }}</span>
-            </td>
-            <td class="align-middle text-end col-2">{% include 'components/feedback/feedback_type_status.html' %}</td>
-          </tr>
-          {% include 'components/feedback/feedback_details.html' with feedback=info.feedback form=info.form %}
-        {% endfor %}
- 
-      </tbody>
-    </table>
-  </div>
+            </button>
+          </h3>
+          <div id="collapse-{{ info.feedback.id }}"
+               class="accordion-collapse collapse"
+               aria-labelledby="heading-{{ info.feedback.id }}">
+            <div class="accordion-body">
+              {% include 'components/feedback/feedback_details.html' with feedback=info.feedback form=info.form %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% include "components/feedback/dashboard/pagination.html" %}
+  {% else %}
+    <div class="d-flex justify-content-center align-items-center w-100 py-5">
+      <div class="text-center">
+        <i class="bi bi-emoji-frown fs-1 text-muted"></i>
+        <p class="text-muted mt-3">{% trans 'No results available.' %}</p>
+      </div>
+    </div>
+  {% endif %}
 </div>
-{% include "components/feedback/dashboard/pagination.html" %}

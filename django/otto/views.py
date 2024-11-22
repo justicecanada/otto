@@ -194,9 +194,19 @@ def message_feedback(request: HttpRequest, message_id=None):
 def feedback_dashboard(request, page_number=None):
     if page_number is None:
         page_number = 1
-    return render(
-        request, "feedback_dashboard.html", {"current_page_number": page_number}
-    )
+
+    apps = Feedback.objects.values_list("app", flat=True).distinct()
+    feedback_status_choices = Feedback.FEEDBACK_STATUS_CHOICES
+    feedback_type_choices = Feedback.FEEDBACK_TYPE_CHOICES
+
+    context = {
+        "apps": apps,
+        "feedback_status_choices": feedback_status_choices,
+        "feedback_type_choices": feedback_type_choices,
+        "current_page_number": page_number,
+    }
+
+    return render(request, "feedback_dashboard.html", context)
 
 
 @permission_required("otto.manage_users")
@@ -211,6 +221,19 @@ def feedback_list(request, page_number=None):
 
     feedback_messages = Feedback.objects.all().order_by("-created_at")
 
+    if request.method == "POST":
+        feedback_type = request.POST.get("feedback_type")
+        status = request.POST.get("status")
+        app = request.POST.get("app")
+
+        if feedback_type and feedback_type != "all":
+            feedback_messages = feedback_messages.filter(feedback_type=feedback_type)
+        if status and status != "all":
+            feedback_messages = feedback_messages.filter(status=status)
+        if app and app != "all":
+            feedback_messages = feedback_messages.filter(app=app)
+
+    # Get 10 feedback messages per page
     paginator = Paginator(feedback_messages, 10)
     page_obj = paginator.get_page(page_number)
 
@@ -224,16 +247,8 @@ def feedback_list(request, page_number=None):
         }
         for f in page_obj
     ]
-
-    priority_choices = Feedback.PRIOTITY_CHOICES
-    feedback_status_choices = Feedback.FEEDBACK_STATUS_CHOICES
-    feedback_type_choices = Feedback.FEEDBACK_TYPE_CHOICES
-
     context = {
         "feedback_info": feedback_info,
-        "priority_choices": priority_choices,
-        "feedback_status_choices": feedback_status_choices,
-        "feedback_type_choices": feedback_type_choices,
         "page_obj": page_obj,
     }
     return render(request, "components/feedback/dashboard/feedback_list.html", context)
@@ -263,6 +278,48 @@ def feedback_dashboard_update(request, feedback_id, form_type):
     else:
         form = FeedbackMetadataForm()
     return render(request, "components/feedback_modal.html", {"form": form})
+
+
+@permission_required("otto.manage_users")
+def feedback_download(request):
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="otto_feedback.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(
+        [
+            "created_at",
+            "user",
+            "app",
+            "message",
+            "status",
+            "type",
+            "last_modified_by",
+            "last_modified_on",
+            "notes",
+            "version",
+            "url_context",
+        ]
+    )
+
+    # Get all feedback messages from the row headers above
+    for feedback in Feedback.objects.all().order_by("-created_at"):
+        writer.writerow(
+            [
+                feedback.created_at,
+                feedback.created_by,
+                feedback.app,
+                feedback.feedback_message,
+                feedback.status,
+                feedback.feedback_type,
+                feedback.modified_by,
+                feedback.modified_on,
+                feedback.admin_notes,
+                feedback.otto_version,
+                feedback.url_context,
+            ],
+        )
+    return response
 
 
 @login_required

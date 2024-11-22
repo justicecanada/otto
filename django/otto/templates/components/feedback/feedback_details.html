@@ -6,16 +6,12 @@
       border-top-width: 1px;
       border-bottom-width: 1px !important;
       border-bottom-color: var(--app-color-purple-1) !important;
-
-      td {        
-        background: color-mix(in srgb, var(--bg-light-gray) 30%, white);        
-      }
     }
   </style>
 {% endblock %}
 
-<tr class="collapse details" id="collapse-{{ feedback.id }}">
-  <td colspan="3" class="col-12">
+<div class="collapse details" id="collapse-{{ feedback.id }}">
+  <div colspan="3" class="col-12">
     <div class="container p-3">
       <div class="row">
         <div class="col-6 mb-1">
@@ -111,9 +107,9 @@
 
         </div>
       </div>
-    </td>
+    </div>
   </div>
-</tr>
+</div>
 
 <!--    {# <span class="mt-1 badge badge-neutral fw-semibold px-2 py-1 m-0 border">
                         <a href="https://github.com/justicecanada/otto/commit/{{ feedback.otto_version }}"

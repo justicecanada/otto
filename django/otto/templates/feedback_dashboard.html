@@ -68,6 +68,10 @@
     }
   }
 
+  .htmx-request.spinner ~ div {
+    display: none;
+  }
+
   </style>
 {% endblock %}
 
@@ -87,21 +91,59 @@
         <div class="row mt-3">
           <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
- 
-              <button class="btn btn-outline-dark"
+              <a href="{% url 'feedback_download' %}"
+                 class="btn btn-outline-dark align-middle">
+                <i class="bi bi-file-arrow-down"></i>
+                <span class="ms-2">{% trans 'Export data' %}</span>
+              </a>
+              <button class="btn btn-outline-dark align-middle"
                       type="button"
-                      data-bs-toggle="modal"
-                      data-bs-target="#modal">
-                <i class="bi bi-file arrow-up"></i>
-              </button>
-              <button class="btn btn-outline-dark"
-                      type="button"
-                      data-bs-toggle="modal"
-                      data-bs-target="#modal">
+                      data-bs-toggle="collapse"
+                      data-bs-target="#filters"
+                      aria-expanded="false"
+                      aria-controls="filters">
                 <i class="bi bi-funnel"></i>
+                <span class="ms-2">{% trans 'View filter options' %}</span>
               </button>
             </div>
           </div>
+        </div>
+        <div id="filters" class="collapse mt-4">
+          <form class="card card-body bg-light"
+                hx-post="{% url 'feedback_list' %}"
+                hx-target="#feedback-list-container"
+                hx-swap="innerHTML">
+            <h2 class="mb-3 fs-5 ps-2 fw-semibold" style="letter-spacing: -0.025em">{% trans "Filters" %}</h2>
+ 
+            <div class="row">
+              <div class="col-md-4">
+                <label for="feedback_type" class="form-label">{% trans "Feedback Type" %}</label>
+                <select id="feedback_type" name="feedback_type" class="form-select">
+                  <option value="all">{% trans "All" %}</option>
+                  {% for value, label in feedback_type_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="status" class="form-label">{% trans "Status" %}</label>
+                <select id="status" name="status" class="form-select">
+                  <option value="all">{% trans "All" %}</option>
+                  {% for value, label in feedback_status_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="app" class="form-label">{% trans "App" %}</label>
+                <select id="app" name="app" class="form-select">
+                  <option value="all">{% trans "All" %}</option>
+                  {% for app in apps %}<option value="{{ app }}">{{ app }}</option>{% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="mt-4 text-end">
+              <button type="submit" class="btn btn-dark">{% trans "Apply Filters" %}</button>
+            </div>
+ 
+          </form>
         </div>
 
         <div hx-get="{% url 'feedback_list' page_number=current_page_number %}"
@@ -114,7 +156,7 @@
             <span class="spinner-border" aria-hidden="true"></span>
             <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
           </div>
-          {% include 'components/feedback/dashboard/feedback_list.html' %}
+          {% include 'components/feedback/dashboard/feedback_list.html' with feedback_status_choices=feedback_status_choices feedback_type_choices=feedback_type_choices %}
         </div>
       </div>
  
