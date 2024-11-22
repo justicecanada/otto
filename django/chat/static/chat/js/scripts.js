@@ -206,6 +206,9 @@ document.addEventListener("htmx:sseMessage", function (event) {
 // When streaming response is finished
 document.addEventListener("htmx:oobAfterSwap", function (event) {
   if (!(event.target.id.startsWith("message_"))) return;
+  // Update the page title
+  const new_page_title = document.querySelector("#current-chat-title").dataset.pagetitle;
+  document.title = new_page_title;
   render_markdown(event.target);
   scrollToBottom(false, false);
 });
