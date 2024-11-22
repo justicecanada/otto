@@ -104,6 +104,8 @@ def poll_tasks(request, user_request_id):
             if not output_file.pdf_file:
                 output_file = add_extracted_files(output_file, access_key)
             question_results = lex_prompts(output_file.txt_file.read().decode("utf-8"))
+            output_file.answers = [res["answer"] for res in question_results]
+            output_file.save(access_key=access_key)
             all_docs_results[output_file.file_name] = question_results
             print("all_docs_results", all_docs_results)
             print("all_docs_results length", len(all_docs_results))

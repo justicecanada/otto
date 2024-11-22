@@ -7,36 +7,11 @@
       {# column1: Document #}
       {{ output_file.file_name }}
     </td>
-    <td>
-      <p>answer</p>
-    </td>
-    <td>
-      <p>answer</p>
-    </td>
-    <td>
-      <p>answer</p>
-    </td>
-    <td>
-      <p>answer</p>
-    </td>
-    <td>
-      <p>answer</p>
-    </td>
-    <td>
-      <p>answer</p>
-    </td>
-    <td>
-      <p>answer</p>
-    </td>
-    <td>
-      <p>answer</p>
-    </td>
-    <td>
-      <p>answer</p>
-    </td>
-    <td>
-      <p>answer</p>
-    </td>
+    {% for answer in output_file.answers %}
+      <td>
+        <p>{{ answer }}</p>
+      </td>
+    {% endfor %}
   </tr>
   <tr>
     <td colspan="11" style="text-align: right;">

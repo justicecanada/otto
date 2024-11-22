@@ -33,6 +33,7 @@ class OutputFile(SecureModel):
         related_name="lex_experiment_outputfile_controls",  # Unique related_name
         blank=True,
     )
+    answers = models.JSONField(default=list, blank=True, null=True)
 
     def get_permission_parents(self):
         return [self.user_request]
