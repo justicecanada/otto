@@ -209,6 +209,11 @@ document.addEventListener("htmx:oobAfterSwap", function (event) {
   render_markdown(event.target);
   scrollToBottom(false, false);
 });
+// Title updated
+document.addEventListener("htmx:oobAfterSwap", function (event) {
+  if (!(event.detail?.target?.id === "current-chat-title")) return;
+  updatePageTitle();
+});
 // When prompt input is focused, Enter sends message, unless Shift+Enter (newline)
 document.addEventListener("keydown", function (event) {
   if (document.activeElement.id === "chat-prompt" && event.key === "Enter" && !event.shiftKey) {
