@@ -77,7 +77,7 @@ add_perm("chat.access_chat", can_access_chat)
 add_perm("chat.access_message", can_access_message)
 add_perm("chat.access_file", can_access_file)
 
-# Template wizard
+# Template Wizard
 add_perm(
     "template_wizard.access_lex_wizard",
     is_group_member("Litigation briefing user") | is_admin,

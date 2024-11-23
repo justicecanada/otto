@@ -407,7 +407,7 @@
         "fr": "",
         "fr_auto": "Envoyer"
     },
-    "AI assistant feedback": {
+    "AI Assistant feedback": {
         "fr": "",
         "fr_auto": "Commentaires des assistants d’IA"
     },
@@ -451,7 +451,7 @@
         "fr": "",
         "fr_auto": "Avertissement"
     },
-    "Safe use of the AI assistant": {
+    "Safe use of the AI Assistant": {
         "fr": "",
         "fr_auto": "Utilisation sécuritaire de l’assistant IA"
     },
@@ -651,7 +651,7 @@
         "fr": "",
         "fr_auto": "Mise à jour"
     },
-    "AI assistant": {
+    "AI Assistant": {
         "fr": "",
         "fr_auto": "Assistant IA"
     },
@@ -891,7 +891,7 @@
         "fr": "",
         "fr_auto": "Suivant : Générer un rapport"
     },
-    "Template wizard": {
+    "Template Wizard": {
         "fr": "",
         "fr_auto": "Assistant de modèle"
     },
@@ -2579,7 +2579,7 @@
         "fr": "",
         "fr_auto": "Désolé, nous avons rencontré une erreur."
     },
-    "Text extractor": {
+    "Text Extractor": {
         "fr": "",
         "fr_auto": "Extracteur de texte"
     },
@@ -3303,7 +3303,7 @@
         "fr": "",
         "fr_auto": "Modifier l’utilisateur"
     },
-    "AI assistant - Otto": {
+    "AI Assistant - Otto": {
         "fr": "",
         "fr_auto": "Assistant IA - Otto"
     },
@@ -3939,11 +3939,11 @@
         "fr": "",
         "fr_auto": "Gérer les utilisateurs - Otto"
     },
-    "Template wizard - Otto": {
+    "Template Wizard - Otto": {
         "fr": "",
         "fr_auto": "Assistant de modèle - Otto"
     },
-    "Text extractor - Otto": {
+    "Text Extractor - Otto": {
         "fr": "",
         "fr_auto": "Extracteur de texte - Otto"
     },

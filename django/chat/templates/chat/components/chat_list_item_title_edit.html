@@ -22,12 +22,11 @@
 
 {% block page_script %}
     <script>
-        htmx.onLoad((element) => {            
-            if(element instanceof HTMLFormElement) {                
+        htmx.onLoad((element) => {
+            if(element instanceof HTMLFormElement) {
                 const input = document.getElementById('{{ form.title.id_for_label }}');                
-                input.setSelectionRange(-1, -1);                            
-                input.focus()                                
-            }                
-        });        
+                input.focus();
+            }
+        });
     </script>
 {% endblock page_script %}

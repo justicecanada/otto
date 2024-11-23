@@ -211,7 +211,7 @@ class App(models.Model):
 class Feature(models.Model):
 
     CATEGORY_CHOICES = [
-        ("ai_assistant", _("AI assistant")),
+        ("ai_assistant", _("AI Assistant")),
         ("monitoring", _("Monitoring")),
         ("reporting", _("Reporting")),
         ("other", _("Other")),
@@ -420,10 +420,10 @@ FEATURE_CHOICES = [
     ("chat_agent", _("Chat agent")),
     ("translate", _("Translate")),
     ("summarize", _("Summarize")),
-    ("template_wizard", _("Template wizard")),
+    ("template_wizard", _("Template Wizard")),
     ("laws_query", _("Legislation search")),
     ("laws_load", _("Legislation loading")),
-    ("text_extractor", _("Text extractor")),
+    ("text_extractor", _("Text Extractor")),
 ]
 
 
