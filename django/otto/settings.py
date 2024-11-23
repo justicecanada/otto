@@ -354,7 +354,7 @@ SESSION_SAVE_EVERY_REQUEST = True
 if SITE_URL.scheme == "https" and SITE_URL.port == None:
     CSRF_TRUSTED_ORIGINS = [urlunparse(SITE_URL)]
     SECURE_SSL_REDIRECT = True
-    SECURE_REDIRECT_EXEMPT = [r"^healthz$"]
+    SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
     SESSION_COOKIE_SECURE = True  # SC-23: Secure session cookies
     CSRF_COOKIE_SECURE = True
     USE_X_FORWARDED_HOST = True
