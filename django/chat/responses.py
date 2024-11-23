@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.http import HttpResponse, StreamingHttpResponse
 from django.template.loader import render_to_string
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
@@ -263,7 +263,10 @@ def translate_response(chat, response_message):
             if len(task_ids) == len(files):
                 yield "<p>" + _("Translating file") + f" 1/{len(files)}...</p>"
             else:
-                yield await sync_to_async(file_msg)(response_message, len(files))
+                if any(task.state == "SUCCESS" for task in task_ids):
+                    yield await sync_to_async(file_msg)(response_message, len(files))
+                else:
+                    raise Exception(_("Error translating files."))
 
     if len(files) > 0:
         # Initiate the Celery task for translating each file with Azure
