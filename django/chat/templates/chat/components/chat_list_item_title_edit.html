@@ -4,7 +4,7 @@
       hx-target="closest li"
       hx-swap="outerHTML"
       hx-trigger="keyup[key=='Enter']"
-      onsubmit="event.preventDefault();"
+      onsubmit="event.preventDefault();renameChatHandler();"
       class="row d-flex py-2 border-bottom">
     <div class="col">
         <label for="{{ form.title.id_for_label }}" class="visually-hidden">{% trans "Edit chat title" %}</label>
@@ -28,5 +28,9 @@
                 input.focus();
             }
         });
+        function renameChatHandler() {
+            const input = document.getElementById('{{ form.title.id_for_label }}');
+            updatePageTitle(input.value + " - " + '{% trans "AI Assistant - Otto" %}');
+        }
     </script>
 {% endblock page_script %}

@@ -209,11 +209,6 @@ document.addEventListener("htmx:oobAfterSwap", function (event) {
   render_markdown(event.target);
   scrollToBottom(false, false);
 });
-// When page title is updated
-document.addEventListener("htmx:oobAfterSwap", function (event) {
-  if (!event.target?.id == "current-chat-title") return;
-  updatePageTitle();
-});
 // When prompt input is focused, Enter sends message, unless Shift+Enter (newline)
 document.addEventListener("keydown", function (event) {
   if (document.activeElement.id === "chat-prompt" && event.key === "Enter" && !event.shiftKey) {
@@ -526,7 +521,11 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-function updatePageTitle() {
+function updatePageTitle(title = null) {
+  if (title) {
+    document.title = title;
+    return;
+  }
   const new_page_title = document.querySelector("#current-chat-title").dataset.pagetitle;
   if (new_page_title) document.title = new_page_title;
 }
