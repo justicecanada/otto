@@ -421,7 +421,7 @@ FEATURE_CHOICES = [
     ("translate", _("Translate")),
     ("summarize", _("Summarize")),
     ("template_wizard", _("Template Wizard")),
-    ("laws_query", _("Legislation search")),
+    ("laws_query", _("Legislation Search")),
     ("laws_load", _("Legislation loading")),
     ("text_extractor", _("Text Extractor")),
 ]
