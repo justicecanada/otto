@@ -97,10 +97,10 @@ spec:
                 key: entraclientsecretkey
         resources:
           requests:
-            cpu: "500m"
-            memory: "4Gi"
+            cpu: "1"
+            memory: "3Gi"
           limits:
-            cpu: "500m"
+            cpu: "1"
             memory: "4Gi"
         volumeMounts:
           - name: secrets
@@ -165,10 +165,10 @@ spec:
                 key: entraclientsecretkey
           resources:
             requests:
-              cpu: "500m"
-              memory: "4Gi"
-            limits:
               cpu: "1"
+              memory: "3Gi"
+            limits:
+              cpu: "2"
               memory: "8Gi"
           volumeMounts:
             - name: secrets
