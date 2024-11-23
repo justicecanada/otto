@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 // On prompt form submit...
 document.addEventListener("htmx:afterSwap", function (event) {
-  if (event.target.id != "messages-container") return;
+  if (event.detail?.target?.id != "messages-container") return;
   if (document.querySelector("#no-messages-placeholder") !== null) {
     document.querySelector("#no-messages-placeholder").remove();
   }
@@ -199,13 +199,13 @@ document.addEventListener("htmx:afterSwap", function (event) {
 });
 // When streaming response is updated
 document.addEventListener("htmx:sseMessage", function (event) {
-  if (!(event.target.id.startsWith("response-"))) return;
+  if (!(event.target.id?.startsWith("response-"))) return;
   render_markdown(event.target);
   scrollToBottom(false, false);
 });
 // When streaming response is finished
 document.addEventListener("htmx:oobAfterSwap", function (event) {
-  if (!(event.target.id.startsWith("message_"))) return;
+  if (!(event.detail?.target?.id?.startsWith("message_"))) return;
   render_markdown(event.target);
   scrollToBottom(false, false);
 });
@@ -519,3 +519,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+
+function updatePageTitle(title = null) {
+  if (title) {
+    document.title = title;
+    return;
+  }
+  const new_page_title = document.querySelector("#current-chat-title").dataset.pagetitle;
+  if (new_page_title) document.title = new_page_title;
+}
