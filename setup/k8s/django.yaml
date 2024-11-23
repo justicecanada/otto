@@ -95,13 +95,13 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: entraclientsecretkey
-          resources:
-            requests:
-              cpu: "500m"
-              memory: "4Gi"
-            limits:
-              cpu: "500m"
-              memory: "4Gi"
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "4Gi"
+          limits:
+            cpu: "500m"
+            memory: "4Gi"
         volumeMounts:
           - name: secrets
             mountPath: "/mnt/secrets-store"
