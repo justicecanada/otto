@@ -13,7 +13,7 @@ from otto.utils.common import display_cad_cost, file_size_to_string
 from otto.utils.decorators import app_access_required, budget_required
 
 from .tasks import process_ocr_document
-from .utils import add_extracted_files, calculate_start_pages, lex_prompts
+from .utils import add_extracted_files, lex_prompts
 
 app_name = "lex_experiment"
 logger = get_logger(__name__)
@@ -105,8 +105,11 @@ def poll_tasks(request, user_request_id):
             output_file.status = "SUCCESS"
             if not output_file.pdf_file:
                 output_file = add_extracted_files(output_file, access_key)
-            question_results = lex_prompts(output_file.txt_file.read().decode("utf-8"))
+            question_results, cost_llm = lex_prompts(
+                output_file.txt_file.read().decode("utf-8")
+            )
             output_file.answers = [res["answer"] for res in question_results]
+            output_file.usd_cost += cost_llm
             output_file.save(access_key=access_key)
             all_docs_results[output_file.file_name] = question_results
         elif any(status == "FAILURE" for status in output_file_statuses):
@@ -155,21 +158,21 @@ def poll_tasks(request, user_request_id):
     return render(request, "lex_experiment/lex_experiment.html", context)
 
 
-def download_document(request, file_id, file_type):
-    access_key = AccessKey(user=request.user)
+# def download_document(request, file_id, file_type):
+#     access_key = AccessKey(user=request.user)
 
-    try:
-        output_file = OutputFileLex.objects.get(access_key=access_key, id=file_id)
-    except OutputFileLex.DoesNotExist:
-        return render(request, "lex_experiment/error_message.html")
+#     try:
+#         output_file = OutputFileLex.objects.get(access_key=access_key, id=file_id)
+#     except OutputFileLex.DoesNotExist:
+#         return render(request, "lex_experiment/error_message.html")
 
-    if file_type == "pdf":
-        file = output_file.pdf_file
-    elif file_type == "txt":
-        file = output_file.txt_file
-    with file.open("rb") as file:
-        response = HttpResponse(file.read(), content_type="application/octet-stream")
-        response["Content-Disposition"] = (
-            f'attachment; filename="{output_file.file_name}.{file_type}"'
-        )
-        return response
+#     if file_type == "pdf":
+#         file = output_file.pdf_file
+#     elif file_type == "txt":
+#         file = output_file.txt_file
+#     with file.open("rb") as file:
+#         response = HttpResponse(file.read(), content_type="application/octet-stream")
+#         response["Content-Disposition"] = (
+#             f'attachment; filename="{output_file.file_name}.{file_type}"'
+#         )
+#         return response

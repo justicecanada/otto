@@ -21,6 +21,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from structlog import get_logger
 
+from chat.llm import OttoLLM
 from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
@@ -30,29 +31,29 @@ from otto.models import Cost
 default_font = "Helvetica"
 img_extensions = (".tif", ".tiff", ".jpg", ".jpeg", ".png", ".bmp")
 
+##Note: May need in future depending on user requirements
+# def get_page_count(file):
+#     extension = os.path.splitext(file.name)[1].lower()
+#     if extension == ".pdf":
+#         reader = PdfReader(file)
+#         return len(reader.pages)
+#     elif extension in img_extensions:
+#         # For image files, consider each file as one page
+#         return 1
+#     else:
+#         raise ValueError(f"Unsupported file type: {extension}")
 
-def get_page_count(file):
-    extension = os.path.splitext(file.name)[1].lower()
-    if extension == ".pdf":
-        reader = PdfReader(file)
-        return len(reader.pages)
-    elif extension in img_extensions:
-        # For image files, consider each file as one page
-        return 1
-    else:
-        raise ValueError(f"Unsupported file type: {extension}")
 
+# def calculate_start_pages(files):
+#     start_pages = {}
+#     current_page = 2  # Start numbering from 2, bec 1 is table of contents
 
-def calculate_start_pages(files):
-    start_pages = {}
-    current_page = 2  # Start numbering from 2, bec 1 is table of contents
+#     for file in files:
+#         file_name = file.name  # Adjust based on your file object properties
+#         start_pages[file_name] = current_page
+#         current_page += get_page_count(file)
 
-    for file in files:
-        file_name = file.name  # Adjust based on your file object properties
-        start_pages[file_name] = current_page
-        current_page += get_page_count(file)
-
-    return start_pages
+#     return start_pages
 
 
 def resize_image_to_a4(img, dpi=150):
@@ -285,6 +286,7 @@ def add_extracted_files(output_file, access_key):
 
 
 def lex_prompts(content):
+    llm = OttoLLM()
     client = AzureOpenAI(
         api_key=settings.AZURE_OPENAI_KEY,
         api_version=settings.AZURE_OPENAI_VERSION,
@@ -328,7 +330,11 @@ def lex_prompts(content):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         results = list(executor.map(get_answer, questions))
 
+    # Calculate the cost based on the number of API calls
+    num_api_calls = len(questions)
+    cost = llm.create_costs()
+
     return [
         {"question": question, "answer": answer}
         for question, answer in zip(questions, results)
-    ]
+    ], (cost.usd_cost if cost else 0)
