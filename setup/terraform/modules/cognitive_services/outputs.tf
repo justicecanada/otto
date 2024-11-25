@@ -19,8 +19,3 @@ output "secondary_access_key" {
   description = "The secondary access key for the Cognitive Services account"
   sensitive   = true
 }
-
-output "secret_id" {
-  value       = azurerm_key_vault_secret.cognitive_services_key.id
-  description = "The ID of the Key Vault Secret containing the Cognitive Services key"
-}

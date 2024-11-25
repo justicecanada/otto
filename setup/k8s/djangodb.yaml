@@ -1,42 +1,42 @@
 # CM-8 & CM-9: Defines the application's components within the AKS cluster
 # SC-13: Ensure secure key management practices
 apiVersion: apps/v1
-kind: StatefulSet # Manages the deployment and scaling of stateful applications with stable identities
+kind: StatefulSet
 metadata:
-  name: postgres-vector-db
-  namespace: otto 
+  name: postgres-django-db
+  namespace: otto  
 spec:
-  serviceName: "postgres-vector-service"  # Required for stable network identity
+  serviceName: "postgres-django-service"
   replicas: 1
   selector:
     matchLabels:
-      app: postgres-vector-db
+      app: postgres-django-db
   template:
     metadata:
       labels:
-        app: postgres-vector-db
-        tier: backend
+        app: postgres-django-db
+        tier: backend    
     spec:
       containers:
-        - name: postgres-vector-db
-          image: pgvector/pgvector:pg16
+        - name: postgres-django-db
+          image: postgres:16
           imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: azure-keyvault-secrets
-                  key: vectordbpasswordkey
+                  key: djangodbpasswordkey
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
                   name: otto-configmap
-                  key: VECTORDB_NAME
+                  key: DJANGODB_NAME
             - name: POSTGRES_USER
               valueFrom:
                 configMapKeyRef:
                   name: otto-configmap
-                  key: VECTORDB_USER
+                  key: DJANGODB_USER
             - name: POSTGRES_MAX_CONNECTIONS
               value: "500"
           ports:
@@ -46,13 +46,13 @@ spec:
             # Increased the CPU limit to allow for query spikes.
             # Memory remains relatively consistent to ensure stable performance.
             requests:
-              cpu: "${VECTORDB_CPU_MIN}"
-              memory: "${VECTORDB_MEMORY_MIN}Gi"
+              cpu: "${DJANGODB_CPU_MIN}"
+              memory: "${DJANGODB_MEMORY_MIN}Gi"
             limits:
-              cpu: "${VECTORDB_CPU_MAX}"
-              memory: "${VECTORDB_MEMORY_MAX}Gi"
+              cpu: "${DJANGODB_CPU_MAX}"
+              memory: "${DJANGODB_MEMORY_MAX}Gi"
           volumeMounts:
-            - name: postgres-vector-storage
+            - name: postgres-django-storage
               mountPath: /var/lib/postgresql/data
               subPath: postgres
             - name: secrets
@@ -91,28 +91,28 @@ spec:
               secretProviderClass: "azure-keyvault"
   volumeClaimTemplates:
   - metadata:
-      name: postgres-vector-storage
+      name: postgres-django-storage
     spec:
       accessModes: [ "ReadWriteOnce" ]
       storageClassName: "otto-managed-csi"
       resources:
         requests:
-          storage: 32Gi
+          storage: 16Gi
 
 ---
 
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: pgvector-vector-autoscaler
+  name: pgvector-django-autoscaler
   namespace: otto
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: StatefulSet
-    name: postgres-vector-db
-  minReplicas: ${VECTORDB_REPLICAS_MIN}
-  maxReplicas: ${VECTORDB_REPLICAS_MAX}
+    name: postgres-django-db
+  minReplicas: ${DJANGODB_REPLICAS_MIN}
+  maxReplicas: ${DJANGODB_REPLICAS_MAX}
   metrics:
   - type: Resource
     resource:
@@ -124,14 +124,14 @@ spec:
 ---
 
 apiVersion: v1
-kind: Service # Exposes the Postgres vector database to other components within the cluster
+kind: Service
 metadata:
-  name: postgres-vector-service
+  name: postgres-django-service
   namespace: otto
 spec:
   type: ClusterIP
   selector:
-    app: postgres-vector-db
+    app: postgres-django-db
   ports:
   - port: 5432
     targetPort: 5432
@@ -141,12 +141,12 @@ spec:
 # apiVersion: v1
 # kind: ConfigMap
 # metadata:
-#   name: pgbouncer-vector-config
+#   name: pgbouncer-django-config
 #   namespace: otto
 # data:
 #   pgbouncer.ini: |
 #     [databases]
-#     * = host=postgres-vector-service port=5432
+#     * = host=postgres-django-service port=5432
 
 #     [pgbouncer]
 #     listen_addr = 0.0.0.0
@@ -171,17 +171,17 @@ spec:
 # apiVersion: apps/v1
 # kind: Deployment
 # metadata:
-#   name: pgbouncer-vector
+#   name: pgbouncer-django
 #   namespace: otto
 # spec:
 #   replicas: 1
 #   selector:
 #     matchLabels:
-#       app: pgbouncer-vector
+#       app: pgbouncer-django
 #   template:
 #     metadata:
 #       labels:
-#         app: pgbouncer-vector
+#         app: pgbouncer-django
 #     spec:
 #       containers:
 #       - name: pgbouncer
@@ -193,12 +193,12 @@ spec:
 #           valueFrom:
 #             configMapKeyRef:
 #               name: otto-configmap
-#               key: VECTORDB_USER
+#               key: DJANGODB_USER
 #         - name: POSTGRES_PASSWORD
 #           valueFrom:
 #             secretKeyRef:
 #               name: azure-keyvault-secrets
-#               key: vectordbpasswordkey
+#               key: djangodbpasswordkey
 #         volumeMounts:
 #         - name: pgbouncer-config
 #           mountPath: /etc/pgbouncer
@@ -212,18 +212,18 @@ spec:
 #       volumes:
 #       - name: pgbouncer-config
 #         configMap:
-#           name: pgbouncer-vector-config
+#           name: pgbouncer-django-config
 
 # ---
 
 # apiVersion: v1
 # kind: Service
 # metadata:
-#   name: pgbouncer-vector-service
+#   name: pgbouncer-django-service
 #   namespace: otto
 # spec:
 #   selector:
-#     app: pgbouncer-vector
+#     app: pgbouncer-django
 #   ports:
 #     - protocol: TCP
 #       port: 6432
