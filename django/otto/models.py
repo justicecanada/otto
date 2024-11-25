@@ -83,8 +83,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.groups.all()
 
     @property
-    def display_total_cost(self):
-        return display_cad_cost(Cost.objects.get_user_cost(self))
+    def total_cost(self):
+        return f"{cad_cost(Cost.objects.get_user_cost(self)):.2f}"
 
     @property
     def this_week_max(self):
@@ -211,7 +211,7 @@ class App(models.Model):
 class Feature(models.Model):
 
     CATEGORY_CHOICES = [
-        ("ai_assistant", _("AI assistant")),
+        ("ai_assistant", _("AI Assistant")),
         ("monitoring", _("Monitoring")),
         ("reporting", _("Reporting")),
         ("other", _("Other")),
@@ -420,8 +420,8 @@ FEATURE_CHOICES = [
     ("chat_agent", _("Chat agent")),
     ("translate", _("Translate")),
     ("summarize", _("Summarize")),
-    ("template_wizard", _("Template wizard")),
-    ("laws_query", _("Legislation search")),
+    ("template_wizard", _("Template Wizard")),
+    ("laws_query", _("Legislation Search")),
     ("laws_load", _("Legislation loading")),
     ("text_extractor", _("Text extractor")),
     ("lex_experiment", _("Lex experiment")),

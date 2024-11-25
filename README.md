@@ -1,26 +1,47 @@
-# What is Otto
+# Otto
 
-Otto is a suite of AI services developed by data specialists at Justice Canada with the goal of helping legal professionals improve the efficiency and accuracy of legal research, analysis, and decision-making.
+Otto is a platform designed to host a wide range of AI tools, data visualizations, and interactive solutions that address various efficiency needs across Justice Canada. Developed by data specialists, Otto streamlines processes, makes delivering valuable solutions easier, and enhances overall productivity for legal professionals.
+
+Born out of the need to tackle data challenges that didn't fit neatly into existing corporate systems, Otto serves as a flexible hosting environment for:
+
+- AI-powered tools for legal research and analysis
+- Interactive data visualizations and dashboards
+- Specialized data processing and management applications
+- Custom-built solutions for specific departmental needs
+
+**Key Features and Benefits**
+
+Otto is designed to:
+
+- **Empower Data Specialists**: Host and deploy diverse AI tools, specialized visuals, reports, and data applications.
+- **Enhance Accessibility**: Provide non-technical users with simple, centralized interfaces to interact with complex AI and data tools.
+- **Promote Agility**: Reduce hurdles in delivering solutions to users, enabling rapid implementation of new tools and visualizations.
+- **Foster Innovation**: Encourage the development and implementation of cutting-edge AI and data solutions.
+- **Build Community**: Serve as an open-source platform that encourages collaboration from developers across Justice Canada.
+- **Adapt Flexibly**: Meet the changing needs of the Justice department with scalable capacity to handle varying demand.
+- **Ensure Security**: Protect data and ensure compliance with Justice department standards.
+
+As a platform for AI and data services, Otto helps legal professionals improve the efficiency and accuracy of legal research, analysis, and decision-making. It's an open-source, flexible tool for creating, hosting, and deploying a wide array of data and AI applications within the Justice Canada ecosystem.
 
 ## Table of Contents
 
-- [What is Otto](#what-is-otto)
-  - [Table of Contents](#table-of-contents)
-  - [Development setup](#development-setup)
-    - [Apply database migrations and fixtures, then run Django server](#loading-app-data)
-    - [Generate Translations](#generate-translations)
-    - [Load Legislation](#load-legislation)
-  - [Contributing](#contributing)
-    - [Translations](#translations)
-      - [1. Model Level Translations](#1-model-level-translations)
-      - [2. Python Code Level](#2-python-code-level)
-      - [3. Template Level](#3-template-level)
-    - [Running tests and seeing the coverage](#running-tests-and-seeing-the-coverage)
-    - [Writing tests](#writing-tests)
-    - [Logging](#logging)
-  - [Deploy to Azure](#deploy-to-azure)
-  - [Resetting the database](#if-all-else-fails)
-  - [License and contact](#license-and-contact)
+- [About Otto](#otto)
+- [Table of Contents](#table-of-contents)
+- [Development setup](#development-setup)
+  - [Apply database migrations and fixtures, then run Django server](#loading-app-data)
+  - [Generate Translations](#generate-translations)
+  - [Load Legislation](#load-legislation)
+- [Contributing](#contributing)
+  - [Translations](#translations)
+    - [1. Model Level Translations](#1-model-level-translations)
+    - [2. Python Code Level](#2-python-code-level)
+    - [3. Template Level](#3-template-level)
+  - [Running tests and seeing the coverage](#running-tests-and-seeing-the-coverage)
+  - [Writing tests](#writing-tests)
+  - [Logging](#logging)
+- [Deploy to Azure](#deploy-to-azure)
+- [Resetting the database](#if-all-else-fails)
+- [License and contact](#license-and-contact)
 
 
 ## Development setup

@@ -212,10 +212,10 @@ def manage_users(request):
     if request.method == "POST":
         form = UserGroupForm(request.POST)
         if form.is_valid():
-            # The form contains users (multiple choice, named "email" but value is "id")
+            # The form contains users (multiple choice, named "upn" but value is "id")
             # and groups (multiple choice, named "group" but value is "id")
             # We want to add the selected groups to the selected users
-            users = form.cleaned_data["email"]
+            users = form.cleaned_data["upn"]
             groups = form.cleaned_data["group"]
             for user in users:
                 logger.info("Updating user groups", user=user, groups=groups)
@@ -247,7 +247,7 @@ def manage_users_form(request, user_id=None):
         user = User.objects.get(id=user_id)
         form = UserGroupForm(
             initial={
-                "email": [user],
+                "upn": [user],
                 "group": user.groups.all(),
                 "pilot": user.pilot,
                 "weekly_max": user.weekly_max,
@@ -281,7 +281,7 @@ def manage_users_upload(request):
                         email = upn
                     except ValidationError as e:
                         email = ""
-                        logger.error(f"Invalid email address {upn}: {e}")
+                        logger.error(f"UPN must be an email address ({upn}): {e}")
                         continue
                     # Get or create the pilot
                     pilot_id = row.get("pilot_id", None)
@@ -300,7 +300,17 @@ def manage_users_upload(request):
                         weekly_max = int(weekly_max)
                     except Exception as e:
                         weekly_max = None
-                    user, created = User.objects.get_or_create(upn=upn)
+                    user = User.objects.filter(upn__iexact=upn).first()
+                    if not user:
+                        user = User.objects.create_user(
+                            upn=upn,
+                            email=email,
+                            first_name=given_name,
+                            last_name=surname,
+                        )
+                        created = True
+                    else:
+                        created = False
                     if created:
                         user.email = email
                         user.first_name = given_name

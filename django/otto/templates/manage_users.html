@@ -53,7 +53,7 @@
           <thead>
             <tr>
               {# <th>{% trans "Name" %}</th> #}
-              <th>{% trans "Email" %}</th>
+              <th>{% trans "UPN" %}</th>
               <th>{% trans "Last login" %}</th>
               <th>{% trans "Costs" %}</th>
               <th>{% trans "Roles" %}</th>
@@ -65,12 +65,17 @@
             {% for u in users %}
               <tr>
                 {# <th>{{ u.lastname_firstname }}</th> #}
-                <th>{{ u.email }}</th>
+                <th>{{ u.upn }}</th>
                 <td>
                   {% comment %}ISO date is for sorting to work properly{% endcomment %}
-                  <span class="d-none">{{ u.last_login|iso_date }}</span>{{ u.last_login }}
+                  <span class="d-none">{{ u.last_login|iso_date }}</span>
+                  {% if u.last_login %}
+                    {{ u.last_login }}
+                  {% else %}
+                    -
+                  {% endif %}
                 </td>
-                <td>{{ u.display_total_cost }}</td>
+                <td>${{ u.total_cost }}</td>
                 <td>
                   {% for role in u.roles %}
                     {% if role.name == "Otto admin" %}
@@ -156,7 +161,7 @@
                 <tr>
                   <td>ApprovedApps.User@justice.gc.ca</td>
                   <td>lsb_drafting</td>
-                  <td>AI assistant user|Template wizard user|Legislation search user</td>
+                  <td>AI Assistant user|Template Wizard user|Legislation Search user</td>
                 </tr>
               </table>
               <p>{% trans "The file must be in English as shown above." %}</p>

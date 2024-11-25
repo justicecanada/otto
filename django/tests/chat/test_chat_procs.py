@@ -160,7 +160,7 @@ async def test_htmx_stream_response_replacer(basic_user):
         chat,
         message.id,
         response_replacer=stream_generator(),
-        format=False,
+        wrap_markdown=False,
         llm=llm,
     )
     # Iterate over the response_stream generator

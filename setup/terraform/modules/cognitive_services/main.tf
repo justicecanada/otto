@@ -20,12 +20,3 @@ resource "azurerm_role_assignment" "cognitive_services_blob_contributor" {
   principal_id         = azurerm_cognitive_account.cognitive_services.identity[0].principal_id
   depends_on           = [azurerm_cognitive_account.cognitive_services]
 }
-
-# SC-13: Secure storage of Cognitive Services key in Key Vault
-resource "azurerm_key_vault_secret" "cognitive_services_key" {
-  name         = "COGNITIVE-SERVICE-KEY"
-  value        = azurerm_cognitive_account.cognitive_services.primary_access_key
-  key_vault_id = var.keyvault_id
-  depends_on   = [azurerm_cognitive_account.cognitive_services, var.wait_for_propagation]
-}
-

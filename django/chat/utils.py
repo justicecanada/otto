@@ -38,7 +38,7 @@ def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
 
 
 def wrap_llm_response(llm_response_str):
-    return f'<div class="markdown-text" data-md="{html.escape(json.dumps(llm_response_str))}"></div>'
+    return f'<div class="markdown-text" data-md="{html.escape(json.dumps(str(llm_response_str)))}"></div>'
 
 
 def url_to_text(url):
@@ -103,7 +103,7 @@ async def htmx_stream(
     response_generator: Generator = None,
     response_replacer: AsyncGenerator = None,
     response_str: str = "",
-    format: bool = True,
+    wrap_markdown: bool = True,
     dots: bool = False,
     source_nodes: list = [],
     switch_mode: bool = False,
@@ -123,7 +123,7 @@ async def htmx_stream(
     If dots is True, typing dots will be added to the end of the response.
 
     The function typically expects markdown responses from LLM, but can also handle
-    HTML responses from other sources. Set format=False to disable markdown parsing.
+    HTML responses from other sources. Set wrap_markdown=False for plain HTML output.
 
     By default, the response will be saved as a Message object in the database after
     the response is finished. Set save_message=False to disable this behavior.
@@ -193,19 +193,23 @@ async def htmx_stream(
                 full_message = response
             elif not generation_stopped:
                 generation_stopped = True
-                full_message = f"{full_message}<p><em>{stop_warning_message}</em></p>"
+                if wrap_markdown:
+                    stop_warning_message = f"\n\n_{stop_warning_message}_"
+                else:
+                    stop_warning_message = f"<p><em>{stop_warning_message}</em></p>"
+                full_message = f"{full_message}{stop_warning_message}"
                 message = await sync_to_async(Message.objects.get)(id=message_id)
                 message.text = full_message
                 await sync_to_async(message.save)()
             yield sse_string(
                 full_message,
-                format,
+                wrap_markdown,
                 dots,
                 remove_stop=remove_stop or generation_stopped,
             )
             await asyncio.sleep(0.01)
 
-        yield sse_string(full_message, format, dots=False, remove_stop=True)
+        yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
         await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
@@ -219,8 +223,9 @@ async def htmx_stream(
             await sync_to_async(title_chat)(chat.id, force_title=False, llm=title_llm)
             await sync_to_async(title_llm.create_costs)()
 
-        # Update message text with HTML formatting to pass to template
-        message.text = wrap_llm_response(full_message)
+        # Update message text with markdown wrapper to pass to template
+        if wrap_markdown:
+            message.text = wrap_llm_response(full_message)
         context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
         # Save sources and security label
@@ -244,7 +249,7 @@ async def htmx_stream(
         context = {"message": message, "swap_oob": True}
 
     # Render the message template, wrapped in SSE format
-    context["message"].json = json.dumps(full_message)
+    context["message"].json = json.dumps(str(full_message))
     yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context

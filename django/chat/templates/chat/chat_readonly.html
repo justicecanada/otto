@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block body_classes %}chat{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{% static 'chat/style.css' %}">
+{% endblock %}
+
+{% block page_title %}
+  {% include "chat/components/chat_title.html" %}
+{% endblock %}
+
+{% block content_container %}
+  <main id="chat-outer" class="{{ mode }}">
+    <div id="chat-flexbox" class="d-flex justify-content-between mb-3">
+      <div id="chat-container" class="flex-grow-1">
+        <div class="position-fixed end-0 pe-3 pt-1 chat-sidebar-toggle text-muted"
+             style="z-index:1"
+             id="right-sidebar-toggle">
+          <span class="d-xl-inline d-none fw-semibold">{% trans "Read-only" %}</span>
+          <i class="bi bi-file-lock2"
+             style="font-size: 1.5rem;
+                    position: relative;
+                    top: 3px"></i>
+        </div>
+        <div class="container px-5">
+          <div id="messages-container" class="py-3 px-2">{% include 'chat/components/chat_messages.html' %}</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
+  <script src="{% static 'thirdparty/katex.min.js' %}"></script>
+  <script src="{% static 'thirdparty/markdown-it-katex.js' %}"></script>
+  <script src="{% static 'thirdparty/highlight.js' %}"></script>
+
+  <script src="{% static 'chat/js/scripts.js' %}"></script>
+  <script src="{% static 'librarian/scripts.js' %}"></script>
+
+  <link rel="stylesheet" href="{% static 'thirdparty/css/highlightjs.css' %}">
+  <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
+{% endblock %}

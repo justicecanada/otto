@@ -24,7 +24,27 @@ variable "admin_group_object_ids" {
   description = "List of object IDs of the admin Azure AD groups"
 }
 
-variable "entra_client_secret" {
+variable "use_private_network" {
+  type        = bool
+  description = "Whether to use private networking for the Key Vaults"
+}
+
+variable "app_subnet_id" {
+  description = "The ID of the app subnet"
   type        = string
-  description = "The client secret of the ENTRA application"
+}
+
+variable "web_subnet_id" {
+  description = "The ID of the web subnet"
+  type        = string
+}
+
+variable "db_subnet_id" {
+  description = "The ID of the database subnet"
+  type        = string
+}
+
+variable "corporate_public_ip" {
+  description = "The public IP address of the corporate network"
+  type        = string
 }

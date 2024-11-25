@@ -1,0 +1,103 @@
+# Create a namespace for Velero resources to isolate its components
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velero
+
+---
+# Create a ServiceAccount for Velero to operate under
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: velero
+  namespace: velero
+  annotations:
+    # Specify the Azure Workload Identity client ID, enabling Velero to securely authenticate with Azure services without storing credentials in the cluster
+    azure.workload.identity/client-id: ${VELERO_IDENTITY_CLIENT_ID}
+
+---
+# Create a ClusterRoleBinding to grant Velero cluster-wide permissions
+# This allows Velero to access and manage all resources in the cluster, which is necessary for comprehensive backups and restores
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: velero
+subjects:
+- kind: ServiceAccount
+  name: velero
+  namespace: velero
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Define a VolumeSnapshotClass for Azure Disk CSI driver
+# This enables Velero to create consistent snapshots of persistent volumes, crucial for backing up stateful applications
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: azure-disk-csi-snapclass
+  labels:
+    # Identify this as a Velero-compatible snapshot class, allowing Velero to automatically use it when creating volume snapshots
+    velero.io/csi-volumesnapshot-class: "true"
+# Specify the CSI driver to use for creating snapshots
+driver: disk.csi.azure.com
+# Set the deletion policy to automatically remove snapshots when they're no longer needed to manage storage costs and cleanup
+deletionPolicy: Delete
+
+# ---
+# # Define the BackupStorageLocation for Azure Blob Storage to store Velero backups in Azure Blob Storage
+# # This ensures backups are stored in a durable, scalable, and cost-effective storage solution
+# apiVersion: velero.io/v1
+# kind: BackupStorageLocation
+# metadata:
+#   name: azure-blob
+#   namespace: velero
+# spec:
+#   provider: azure
+#   objectStorage:
+#     bucket: ${BACKUP_CONTAINER_NAME}
+#   config:
+#     resourceGroup: ${RESOURCE_GROUP_NAME}
+#     storageAccount: ${STORAGE_ACCOUNT_NAME}
+#     subscriptionId: ${SUBSCRIPTION_ID}
+
+# ---
+# # Define the VolumeSnapshotLocation for Azure to store Velero snapshots in Azure Blob Storage
+# # This ensures snapshots are stored in the same location as backups, simplifying management and reducing costs
+# apiVersion: velero.io/v1
+# kind: VolumeSnapshotLocation
+# metadata:
+#   name: azure-snapshot
+#   namespace: velero
+# spec:
+#   provider: azure
+#   config:
+#     resourceGroup: ${RESOURCE_GROUP_NAME}
+#     subscriptionId: ${SUBSCRIPTION_ID}
+#     incremental: "true"
+
+# ---
+# # Create a daily full backup schedule for Velero
+# # This ensures a comprehensive backup of the entire cluster is taken every day
+# apiVersion: velero.io/v1
+# kind: Schedule
+# metadata:
+#   name: daily-full-backup
+#   namespace: velero
+# spec:
+#   schedule: 0 1 * * * # Run at 1 AM daily
+#   timeZone: "America/Toronto"  # Specify Toronto timezone
+#   template:
+#     csiSnapshotTimeout: 0s
+#     excludedNamespaces:
+#     - kube-system
+#     - velero
+#     includeClusterResources: true
+#     includedNamespaces:
+#     - '*'
+#     ttl: 720h # Retain backups for 30 days
+#   useOwnerReferencesInBackup: false
+
+# # TODO: Implement database-specific backup strategy

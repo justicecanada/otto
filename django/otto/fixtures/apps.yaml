@@ -1,10 +1,10 @@
 - model: otto.App
   fields:
     handle: chat
-    name_en: AI assistant
+    name_en: AI Assistant
     name_fr: Assistant IA
     prod_ready: true
-    user_group: AI assistant user
+    user_group: AI Assistant user
     features:
       - fields:
           short_name: "chat"
@@ -42,14 +42,14 @@
 - model: otto.App
   fields:
     handle: template_wizard
-    name_en: Template wizard
+    name_en: Template Wizard
     name_fr: Assistant de modèle
     prod_ready: true
-    user_group: Template wizard user
+    user_group: Template Wizard user
     features:
       - fields:
           short_name: "template_wizard"
-          name_en: Template wizard
+          name_en: Template Wizard
           name_fr: Assistant de modèle
           description_en: Extract information from multiple sources and automatically populate templates.
           description_fr: Extraire des informations de plusieurs sources et remplir automatiquement des modèles.
@@ -59,14 +59,14 @@
 - model: otto.App
   fields:
     handle: laws
-    name_en: Legislation search
+    name_en: Legislation Search
     name_fr: Recherche législative
     prod_ready: true
-    user_group: Legislation search user
+    user_group: Legislation Search user
     features:
       - fields:
           short_name: "laws"
-          name_en: Legislation search
+          name_en: Legislation Search
           name_fr: Recherche législative
           description_en: Search acts and regulations using natural language. Find relevant sections of laws.
           description_fr: Recherchez des lois et des règlements en utilisant un langage naturel. Trouvez des sections pertinentes des lois.
@@ -77,14 +77,14 @@
 - model: otto.App
   fields:
     handle: text_extractor
-    name_en: Text extractor
+    name_en: Text Extractor
     name_fr: Extracteur de texte
     prod_ready: true
-    user_group: OCR user
+    user_group: Text Extractor user
     features:
       - fields:
           short_name: "text_extractor"
-          name_en: Text extractor
+          name_en: Text Extractor
           name_fr: Extracteur de texte
           description_en: Extract text and handwriting from scanned PDF and images with AI-enabled OCR.
           description_fr: Extrait de texte et d'écriture manuscrite à partir de PDF numérisés et d'images avec OCR activé par l'IA.

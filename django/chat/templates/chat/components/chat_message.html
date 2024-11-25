@@ -8,6 +8,8 @@
     <span class="message-author me-1">
       {% if message.is_bot %}
         Otto
+      {% elif chat_author %}
+        {{ chat_author.full_name }}
       {% else %}
         {{ request.user.full_name }}
       {% endif %}
@@ -69,7 +71,10 @@
   {% if message.chat.title %}
     <span class="chat-title fw-semibold"
           id="current-chat-title"
-          hx-swap-oob="true">{{ message.chat.title }}</span>
+          hx-swap-oob="true"
+          data-pagetitle='{% with chat=message.chat %}{% include "chat/components/chat_title.html" %}{% endwith %}'>
+      {{ message.chat.title }}
+    </span>
   {% endif %}
   {% if security_labels %}
     {% include "chat/components/chat_security_label.html" with chat=message.chat %}
