@@ -95,7 +95,7 @@ CERT_CHOICE=$(echo "$CERT_CHOICE" | tr '[:upper:]' '[:lower:]')
 # Validate user input
 case "$CERT_CHOICE" in
     create|import|skip)
-        echo "Selected option: $CERT_CHOICE"
+        echo "Selected certificate option: $CERT_CHOICE"
         ;;
     *)
         echo "Invalid option. Please choose create, import, or skip."

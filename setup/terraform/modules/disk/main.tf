@@ -10,6 +10,7 @@ resource "azurerm_disk_access" "disk_access" {
   name                = "disk-access-${var.disk_name}"
   resource_group_name = var.resource_group_name
   location            = var.location
+  tags                = var.tags
 }
 
 resource "azurerm_disk_encryption_set" "des" {
@@ -105,6 +106,8 @@ resource "azurerm_private_endpoint" "disk_access_endpoint" {
     is_manual_connection           = false
     subresource_names              = ["disks"]
   }
+
+  tags = var.tags
 }
 
 # Create a Network Security Group (NSG) to control access to the disks
@@ -172,6 +175,8 @@ resource "azurerm_network_security_group" "disk_nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  tags = var.tags
 }
 
 # Associate the NSG with the subnet where the private endpoints are located
