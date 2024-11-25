@@ -14,7 +14,7 @@ class LexOcrConfig(AppConfig):
         from django.core.files.storage import default_storage as storage
 
         # Define the path for the ocr_output_files directory
-        ocr_output_path = os.path.join(settings.MEDIA_ROOT, "lex_output_files")
+        ocr_output_path = os.path.join(settings.MEDIA_ROOT, "output_files")
 
         # Check if the directory exists, and create it if it doesn't
         if not storage.exists(ocr_output_path):
