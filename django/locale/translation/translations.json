@@ -3971,8 +3971,6 @@
         "fr": "",
         "fr_auto": "Téléchargements"
     },
-<<<<<<< HEAD
-=======
     "Read-only": {
         "fr": "",
         "fr_auto": "Lecture seule"
@@ -3981,12 +3979,10 @@
         "fr": "",
         "fr_auto": "Renforcer l’efficacité de la justice avec les données et l’IA"
     },
->>>>>>> origin/main
     "An error occurred.": {
         "fr": "",
         "fr_auto": "Une erreur s’est produite."
     },
-<<<<<<< HEAD
     "LEX Experiment - Otto": {
         "fr": "",
         "fr_auto": "Expérience LEX - Otto"
@@ -4046,14 +4042,6 @@
     "Lex experiment": {
         "fr": "",
         "fr_auto": "Expérience lex"
-=======
-    "Read each document separately  (slow, $$)": {
-        "fr": "",
-        "fr_auto": "Lisez chaque document séparément (lent, $$)"
-    },
-    "Read all documents at once (slowest, $$)": {
-        "fr": "",
-        "fr_auto": "Lire tous les documents en même temps (le plus lent, $$)"
     },
     "Full documents, separate answers ($)": {
         "fr": "",
@@ -4062,6 +4050,17 @@
     "Full documents, combined answer ($)": {
         "fr": "",
         "fr_auto": "Documents complets, réponse combinée ($)"
->>>>>>> origin/main
+    },
+    "Error translating files.": {
+        "fr": "",
+        "fr_auto": "Erreur de traduction des fichiers."
+    },
+    "Text extractor": {
+        "fr": "",
+        "fr_auto": "Extracteur de texte"
+    },
+    "UPN": {
+        "fr": "",
+        "fr_auto": "L’UPN"
     }
 }
