@@ -86,6 +86,7 @@ def dist(p1, p2):
     return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
 
+# TODO - decide if LEX users want to output a ocr pdf of their files, if not we can remove some of the code from this function
 def create_searchable_pdf(input_file):
     # Reset the file pointer to the beginning
     input_file.seek(0)
