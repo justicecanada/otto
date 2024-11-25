@@ -749,6 +749,7 @@ def message_sources(request, message_id):
     )
 
 
+@permission_required("chat.access_preset", objectgetter(Preset, "preset_id"))
 def get_presets(request, chat_id):
     return render(
         request,

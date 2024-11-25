@@ -73,9 +73,19 @@ def can_access_file(user, file):
     return file.message.chat.user == user
 
 
+@predicate
+def can_access_preset(user, preset):
+    return (
+        user == preset.owner
+        or user in preset.accessible_to.all()
+        or preset.shared_with() == "Shared with everyone"
+    )
+
+
 add_perm("chat.access_chat", can_access_chat)
 add_perm("chat.access_message", can_access_message)
 add_perm("chat.access_file", can_access_file)
+add_perm("chat.access_preset", can_access_preset)
 
 # Template wizard
 add_perm(
@@ -206,12 +216,3 @@ add_perm("librarian.edit_document", can_edit_document)
 add_perm("librarian.delete_document", can_delete_document)
 add_perm("librarian.manage_library_users", can_manage_library_users)
 add_perm("librarian.download_document", can_download_document)
-
-
-@predicate
-def can_access_preset(user, preset):
-    return (
-        user == preset.owner
-        or user in preset.accessible_to.all()
-        or preset.shared_with() == "Shared with everyone"
-    )
