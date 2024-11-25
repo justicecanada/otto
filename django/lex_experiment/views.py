@@ -24,7 +24,9 @@ def index(request):
     from lex_experiment.utils import img_extensions
 
     extensions = ", ".join(list(img_extensions) + [".pdf"])
-    return render(request, "lex_experiment/ocr.html", {"extensions": extensions})
+    return render(
+        request, "lex_experiment/lex_experiment.html", {"extensions": extensions}
+    )
 
 
 @app_access_required(app_name)
@@ -150,7 +152,7 @@ def poll_tasks(request, user_request_id):
             "all_docs_results": all_docs_results,
         }
     )
-    return render(request, "lex_experiment/ocr.html", context)
+    return render(request, "lex_experiment/lex_experiment.html", context)
 
 
 def download_document(request, file_id, file_type):
