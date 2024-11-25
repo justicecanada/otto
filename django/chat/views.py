@@ -749,7 +749,7 @@ def message_sources(request, message_id):
     )
 
 
-@permission_required("chat.access_preset", objectgetter(Preset, "preset_id"))
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def get_presets(request, chat_id):
     return render(
         request,
@@ -765,6 +765,7 @@ def get_presets(request, chat_id):
     )
 
 
+@permission_required("chat.access_preset", objectgetter(Preset, "preset_id"))
 def set_preset_favourite(request, preset_id):
     preset = Preset.objects.get(id=preset_id)
     try:
@@ -790,6 +791,7 @@ def create_preset(request, chat_id):
     )
 
 
+@permission_required("chat.edit_preset", objectgetter(Preset, "preset_id"))
 def edit_preset(request, chat_id, preset_id):
     preset = get_object_or_404(Preset, id=preset_id)
     form = PresetForm(instance=preset, user=request.user)
@@ -806,6 +808,7 @@ def edit_preset(request, chat_id, preset_id):
     )
 
 
+@permission_required("chat.access_preset", objectgetter(Preset, "preset_id"))
 def set_preset_default(request, chat_id: str, preset_id: int):
     try:
         new_preset = Preset.objects.get(id=preset_id)
