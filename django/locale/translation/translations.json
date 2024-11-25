@@ -3978,5 +3978,69 @@
     "Downloads": {
         "fr": "",
         "fr_auto": "Téléchargements"
+    },
+    "An error occurred.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite."
+    },
+    "LEX Experiment - Otto": {
+        "fr": "",
+        "fr_auto": "Expérience LEX - Otto"
+    },
+    "Lex Experiment": {
+        "fr": "",
+        "fr_auto": "Expérience Lex"
+    },
+    "Information Extracted": {
+        "fr": "",
+        "fr_auto": "Informations extraites"
+    },
+    "Document": {
+        "fr": "",
+        "fr_auto": "Le document"
+    },
+    "Tax Court No.": {
+        "fr": "",
+        "fr_auto": "Cour de l’impôt No."
+    },
+    "Appellant's Name": {
+        "fr": "",
+        "fr_auto": "Nom de l’appelant"
+    },
+    "Appellant's Address": {
+        "fr": "",
+        "fr_auto": "Adresse de l’appelant"
+    },
+    "Tax Court Level": {
+        "fr": "",
+        "fr_auto": "Niveau de la Cour de l’impôt"
+    },
+    "Filed Date of NoA": {
+        "fr": "",
+        "fr_auto": "Date de dépôt de l’AA"
+    },
+    "Representative's Name": {
+        "fr": "",
+        "fr_auto": "Nom du représentant"
+    },
+    "Representative's Address": {
+        "fr": "",
+        "fr_auto": "Allocution du représentant"
+    },
+    "Taxation Years": {
+        "fr": "",
+        "fr_auto": "Années d’imposition"
+    },
+    "Total Tax Amount": {
+        "fr": "",
+        "fr_auto": "Montant total de la taxe"
+    },
+    "Sections Referred": {
+        "fr": "",
+        "fr_auto": "Sections renvoyées"
+    },
+    "Lex experiment": {
+        "fr": "",
+        "fr_auto": "Expérience lex"
     }
 }
