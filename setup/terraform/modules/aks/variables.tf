@@ -18,6 +18,11 @@ variable "admin_group_object_ids" {
   type        = list(string)
 }
 
+variable "log_analytics_readers_group_object_ids" {
+  description = "The list of objects IDs of the Log Analytics readers Azure AD group"
+  type        = list(string)
+}
+
 variable "keyvault_id" {
   description = "The ID of the keyvault"
   type        = string
