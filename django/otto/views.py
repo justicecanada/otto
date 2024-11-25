@@ -17,7 +17,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import check_for_language, get_language
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 
 from azure_auth.views import azure_auth_login as azure_auth_login
@@ -708,3 +708,10 @@ def user_cost(request):
             "cost_label": _("User costs"),
         },
     )
+
+
+@csrf_exempt
+def stress_test(request):
+    # Simulate some load, e.g., database query, heavy computation, etc.
+    # For simplicity, we'll just return a basic response
+    return HttpResponse("Stress test response")
