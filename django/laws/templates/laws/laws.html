@@ -17,13 +17,13 @@
 {% endblock %}
 
 {% block page_title %}
-  {% trans "Legislation search - Otto" %}
+  {% trans "Legislation Search - Otto" %}
 {% endblock %}
 
 {% block breadcrumb %}
   {{ block.super }}
   <li class="breadcrumb-item">
-    <a href="{% url 'laws:index' %}">{% trans "Legislation search" %}</a>
+    <a href="{% url 'laws:index' %}">{% trans "Legislation Search" %}</a>
   </li>
 {% endblock %}
 
@@ -31,7 +31,7 @@
   <div id="laws-outer">
     <div class="container py-3 px-0" id="search-container">
       <h2 class="mb-4 px-4 mt-2">
-        <a href="{% url 'laws:index' %}" class="text-decoration-none text-body">{% trans "Legislation search" %}</a>
+        <a href="{% url 'laws:index' %}" class="text-decoration-none text-body">{% trans "Legislation Search" %}</a>
       </h2>
 
       <ul class="nav nav-tabs px-3 border-bottom-0">

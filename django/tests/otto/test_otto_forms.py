@@ -17,7 +17,7 @@ def test_feedback_form_is_valid(all_apps_user):
         data={
             "feedback_type": Feedback.FEEDBACK_TYPE_CHOICES[0][0],
             "feedback_message": "Test Message",
-            "app": "AI assistant",
+            "app": "AI Assistant",
             "chat_message_id": -1,
             "modified_by": user,
             "created_at": date_and_time,
