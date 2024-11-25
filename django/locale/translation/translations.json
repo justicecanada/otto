@@ -3916,7 +3916,7 @@
         "fr_auto": "Nom du document"
     },
     "Status": {
-        "fr": "",
+        "fr": "État",
         "fr_auto": "État d’avancement"
     },
     "Download all files...": {
@@ -3992,39 +3992,39 @@
         "fr_auto": "Bogue"
     },
     "Question": {
-        "fr": "",
+        "fr": "Question",
         "fr_auto": "Question :"
     },
     "Feature request": {
-        "fr": "",
+        "fr": "Demande de fonctionnalité",
         "fr_auto": "Demande de fonctionnalité"
     },
     "New": {
-        "fr": "",
+        "fr": "Nouveau",
         "fr_auto": "Nouveau"
     },
     "In progress": {
-        "fr": "",
+        "fr": "En cours",
         "fr_auto": "En cours"
     },
     "Resolved": {
-        "fr": "",
+        "fr": "Résolu",
         "fr_auto": "Résolu"
     },
     "Closed": {
-        "fr": "",
+        "fr": "Fermé",
         "fr_auto": "Fermé"
     },
     "Low": {
-        "fr": "",
+        "fr": "Faible",
         "fr_auto": "Faible"
     },
     "High": {
-        "fr": "",
+        "fr": "Élevée",
         "fr_auto": "Élevée"
     },
     "Latest feedback": {
-        "fr": "",
+        "fr": "Derniers commentaires",
         "fr_auto": "Derniers commentaires"
     },
     "Click on a row to view more information about the feedback received, to flag the feedback as \\": {
@@ -4036,7 +4036,7 @@
         "fr_auto": "il y a longtemps"
     },
     "No results available.": {
-        "fr": "",
+        "fr": "Aucun résultat disponible.",
         "fr_auto": "Aucun résultat disponible."
     },
     "Feedback results page navigation.": {
@@ -4044,19 +4044,19 @@
         "fr_auto": "Navigation dans la page des résultats des commentaires."
     },
     "First": {
-        "fr": "",
+        "fr": "Première",
         "fr_auto": "Premièrement"
     },
     "Last": {
-        "fr": "",
+        "fr": "Dernière",
         "fr_auto": "Dernier"
     },
     "View feedback in context": {
-        "fr": "",
+        "fr": "Voir les commentaires dans leur contexte",
         "fr_auto": "Voir les commentaires dans leur contexte"
     },
     "Administrative details": {
-        "fr": "",
+        "fr": "Détails administratifs",
         "fr_auto": "Détails administratifs"
     },
     "Use this section to provide additional details to the feedback provided by the user.": {
@@ -4104,11 +4104,11 @@
         "fr_auto": "Type de rétroaction"
     },
     "App": {
-        "fr": "",
+        "fr": "Application",
         "fr_auto": "L’application"
     },
     "Apply Filters": {
-        "fr": "",
+        "fr": "Appliquer les filtres",
         "fr_auto": "Appliquer des filtres"
     },
     "Feedback submitted successfully.": {
@@ -4116,7 +4116,11 @@
         "fr_auto": "Commentaires soumis avec succès."
     },
     "Feedback updated successfully.": {
-        "fr": "",
+        "fr": "Les commentaires ont été mis à jour avec succès.",
         "fr_auto": "Les commentaires ont été mis à jour avec succès."
+    },
+    "N/A": {
+        "fr": "",
+        "fr_auto": "S.O."
     }
 }

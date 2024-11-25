@@ -47,6 +47,10 @@
               </a>
             </div>
             <div class="d-flex align-items-center">
+              <i class="bi bi-person-workspace me-2"></i>
+              <span class="text-muted">{{ feedback.created_by.pilot_name }}</span>
+            </div>
+            <div class="d-flex align-items-center">
               <i class="text-muted bi bi-github me-2"></i>
               <span class="mt-1 badge badge-neutral fw-semibold px-2 py-1 m-0 border">
                 <a href="https://github.com/justicecanada/otto/commit/{{ feedback.otto_version }}"
@@ -110,9 +114,3 @@
     </div>
   </div>
 </div>
-
-<!--    {# <span class="mt-1 badge badge-neutral fw-semibold px-2 py-1 m-0 border">
-                        <a href="https://github.com/justicecanada/otto/commit/{{ feedback.otto_version }}"
-                           target="_blank"
-                           class="text-reset text-decoration-none">{{ feedback.otto_version }}</a>
-                      </span> #}               </td> -->

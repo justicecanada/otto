@@ -96,6 +96,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             cad_cost(Cost.objects.get_user_cost_this_week(self)) >= self.this_week_max
         )
 
+    @property
+    def pilot_name(self):
+        return self.pilot.name if self.pilot else _("N/A")
+
     def __str__(self):
         return f"{self.lastname_firstname} ({self.email})"
 
