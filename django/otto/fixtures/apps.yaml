@@ -97,7 +97,7 @@
     name_en: LEX experiment
     name_fr: Expérience LEX
     prod_ready: true
-    user_group: AI Assistant User
+    user_group: LEX experiment user
     features:
       - fields:
           short_name: "lex_experiment"
