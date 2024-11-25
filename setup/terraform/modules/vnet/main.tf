@@ -15,6 +15,7 @@ resource "azurerm_subnet" "web_subnet" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.web_subnet_ip_range]
+  service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage"]
 
   private_endpoint_network_policies             = "Disabled"
   private_link_service_network_policies_enabled = true
@@ -38,6 +39,7 @@ resource "azurerm_subnet" "db_subnet" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.db_subnet_ip_range]
+  service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage"]
 
   private_endpoint_network_policies             = "Disabled"
   private_link_service_network_policies_enabled = true
