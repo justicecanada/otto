@@ -37,7 +37,7 @@ PUBLIC_PATHS = [
     "/search",
     "/notifications",
     "/healthz",
-    "/stress_test",
+    "/load_test",
 ]
 
 NO_TERMS_PATHS = PUBLIC_PATHS + [

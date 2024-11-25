@@ -711,7 +711,7 @@ def user_cost(request):
 
 
 @csrf_exempt
-def stress_test(request):
+def load_test(request):
     # Simulate some load, e.g., database query, heavy computation, etc.
     query_params = request.GET.dict()
     logger.info("Stress test request", query_params=query_params)
@@ -731,12 +731,11 @@ def stress_test(request):
             library = Library.objects.first()
             user_can_edit = user.has_perm("librarian.edit_library", library)
             return HttpResponse(f"User {user} can edit library: {user_can_edit}")
-    if "query_vector_db" in query_params:
+    if "query_laws" in query_params:
         from chat.llm import OttoLLM
-        from librarian.models import Library
 
         llm = OttoLLM()
-        retriever = llm.get_retriever(Library.objects.first().uuid_hex)
+        retriever = llm.get_retriever("laws_lois__")
         nodes = retriever.retrieve("query string")
         return HttpResponse(f"Retrieved {len(nodes)} nodes")
 

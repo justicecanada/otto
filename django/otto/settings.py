@@ -85,8 +85,8 @@ AZURE_AUTH = {
         "/welcome/",
         "/healthz",
         "/healthz/",
-        "/stress_test",
-        "/stress_test/",
+        "/load_test",
+        "/load_test/",
     ],
     "USER_MAPPING_FN": "otto.utils.auth.map_entra_to_django_user",  # Optional, path to the function used to map the AAD to Django attributes
 }
