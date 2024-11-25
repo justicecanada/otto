@@ -253,16 +253,10 @@ class PresetManager(models.Manager):
         if language:
             ordering.append(f"name_{language}")
 
-        is_admin = is_group_member("Otto admin")(user)
-
-        # admins will have access to all presets
-        if is_admin:
-            presets = self.filter(is_deleted=False)
-        else:
-            presets = self.filter(
-                Q(owner=user) | Q(accessible_to=user) | Q(sharing_option="everyone"),
-                is_deleted=False,
-            )
+        presets = self.filter(
+            Q(owner=user) | Q(accessible_to=user) | Q(sharing_option="everyone"),
+            is_deleted=False,
+        )
         return (
             presets.distinct()
             .annotate(

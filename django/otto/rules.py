@@ -206,3 +206,12 @@ add_perm("librarian.edit_document", can_edit_document)
 add_perm("librarian.delete_document", can_delete_document)
 add_perm("librarian.manage_library_users", can_manage_library_users)
 add_perm("librarian.download_document", can_download_document)
+
+
+@predicate
+def can_access_preset(user, preset):
+    return (
+        user == preset.owner
+        or user in preset.accessible_to.all()
+        or preset.shared_with() == "Shared with everyone"
+    )
