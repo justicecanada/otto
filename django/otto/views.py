@@ -713,5 +713,31 @@ def user_cost(request):
 @csrf_exempt
 def stress_test(request):
     # Simulate some load, e.g., database query, heavy computation, etc.
-    # For simplicity, we'll just return a basic response
+    query_params = request.GET.dict()
+    logger.info("Stress test request", query_params=query_params)
+    if "error" in query_params:
+        raise ValueError("Stress test error raising")
+    if "sleep" in query_params:
+        import time
+
+        time.sleep(int(query_params["sleep"]))
+    if "user_library_permissions" in query_params:
+        from librarian.models import Library
+
+        users = User.objects.all()
+        for user in users:
+
+            # Check if the user can edit the first library
+            library = Library.objects.first()
+            user_can_edit = user.has_perm("librarian.edit_library", library)
+            return HttpResponse(f"User {user} can edit library: {user_can_edit}")
+    if "query_vector_db" in query_params:
+        from chat.llm import OttoLLM
+        from librarian.models import Library
+
+        llm = OttoLLM()
+        retriever = llm.get_retriever(Library.objects.first().uuid_hex)
+        nodes = retriever.retrieve("query string")
+        return HttpResponse(f"Retrieved {len(nodes)} nodes")
+
     return HttpResponse("Stress test response")
