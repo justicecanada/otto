@@ -356,6 +356,7 @@ class ChatRenameForm(ModelForm):
                     "class": "form-control form-control-sm",
                     "onkeyup": "if (event.key === 'Escape') { cancelChatRename(); }",
                     "onblur": "cancelChatRename();",
+                    "onfocus": "this.select();",
                     "placeholder": _("Untitled chat"),
                 }
             )

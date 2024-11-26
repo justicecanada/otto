@@ -91,6 +91,13 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: entraclientsecretkey
+        resources:
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+          limits:
+            cpu: "1"
+            memory: "4Gi"
         volumeMounts:
           - name: secrets
             mountPath: "/mnt/secrets-store"
@@ -167,26 +174,26 @@ spec:
               mountPath: "/data/media"
           readinessProbe:
             httpGet:
-              path: /healthz
-              port: 8000
-              httpHeaders:
-              - name: Host
-                value: django-service
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /healthz
+              path: /healthz/
               port: 8000
               httpHeaders:
               - name: Host
                 value: django-service
             initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz/
+              port: 8000
+              httpHeaders:
+              - name: Host
+                value: django-service
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 10
             successThreshold: 1
             failureThreshold: 5
       volumes:

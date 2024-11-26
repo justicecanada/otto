@@ -20,7 +20,7 @@ def test_laws_index(client, all_apps_user):
     client.force_login(all_apps_user())
     response = client.get(reverse("laws:index"))
     assert response.status_code == 200
-    assert "Legislation search" in response.content.decode()
+    assert "Legislation Search" in response.content.decode()
 
 
 @pytest.mark.django_db
