@@ -751,6 +751,7 @@ def load_test(request):
         nodes = retriever.retrieve("query string")
         end_time = timezone.now()
         total_time = (end_time - start_time).total_seconds()
+        llm.create_costs()
         return HttpResponse(f"Retrieved {len(nodes)} nodes in {total_time:.2f} seconds")
     if "celery_sleep" in query_params:
         from otto.tasks import sleep_seconds
@@ -764,11 +765,17 @@ def load_test(request):
             i = Inspect(app=current_app)
             active_tasks = i.active()
             scheduled_tasks = i.scheduled()
+            reserved_tasks = i.reserved()
             active_task_list = next(iter(active_tasks.values()), [])
             scheduled_task_list = next(iter(scheduled_tasks.values()), [])
+            reserved_task_list = next(iter(reserved_tasks.values()), [])
 
             return HttpResponse(
-                f"Added task to queue.<hr>Active:<br>{len(active_task_list)}<hr>Scheduled:<br>{len(scheduled_task_list)}"
+                (
+                    f"Added task to queue.<hr>Active:<br>{len(active_task_list)}"
+                    f"<hr>Scheduled:<br>{len(scheduled_task_list)}"
+                    f"<hr>Reserved:<br>{len(reserved_task_list)}"
+                )
             )
         return HttpResponse("Added task to queue")
     if "llm_call" in query_params:

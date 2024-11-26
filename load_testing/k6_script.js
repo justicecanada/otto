@@ -1,8 +1,9 @@
 import {check, sleep} from 'k6';
+import http from 'k6/http';
 
 export const options = {
   // A number specifying the number of VUs to run concurrently.
-  vus: 100,
+  vus: 20,
   // A string specifying the total duration of the test run.
   duration: '10s',
 };
@@ -18,10 +19,10 @@ export default function () {
   // let res = http.get(`${base_url}/load_test/?user_library_permissions`); // Simple Django DB query
   // let res = http.get(`${base_url}/load_test/?user_library_permissions&heavy`); // Heavy Django DB query (takes 40s on local)
   // let res = http.get(`${base_url}/load_test/?sleep=10`); // Sleep for 10 seconds. Can be combined with other parameters.
-  // let res = http.get(`${base_url}/load_test/?celery_sleep=10`); // Adds a mock celery task that just sleeps for 10 seconds
+  // let res = http.get(`${base_url}/load_test/?celery_sleep=30`); // Adds a mock celery task that just sleeps for 10 seconds
   // let res = http.get(`${base_url}/load_test/?celery_sleep=10&show_queue`); // Returns the task queue lengths in the response
   // let res = http.get(`${base_url}/load_test/?error`); // Raise an error in Django (returns 500)
-  // let res = http.get(`${base_url}/load_test/?query_laws`); // Large vector DB query
+  let res = http.get(`${base_url}/load_test/?query_laws`); // Large vector DB query
   // let res = http.get(`${base_url}/load_test/?llm_call`); // LLM call
   // let res = http.get(`${base_url}/load_test/?llm_call=gpt-4o`); // Specific LLM deployment
   // let res = http.get(`${base_url}/load_test/?embed_text`); // Embedding request
