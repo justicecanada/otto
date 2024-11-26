@@ -888,7 +888,6 @@ def test_preset(client, basic_user, all_apps_user):
         ("others", "Share with others"),
     ]
     user = all_apps_user()
-    user2 = all_apps_user("user2")
     client.force_login(user)
     chat = Chat.objects.create(user=user)
     # Instantiate the form with a user with admin rights
@@ -916,6 +915,7 @@ def test_preset(client, basic_user, all_apps_user):
     assert Preset.objects.filter(name_en="New Preset").exists()
 
     # Try to load the private preset as user2
+    user2 = all_apps_user("user2")
     client.force_login(user2)
     chat2 = Chat.objects.create(user=user2)
     preset = Preset.objects.get(name_en="New Preset")
