@@ -809,7 +809,7 @@ def load_test(request):
 
 @permission_required("otto.enable_load_testing")
 def enable_load_testing(request):
-    cache.set("load_testing_enabled", True)
+    cache.set("load_testing_enabled", True, timeout=3600)
     return render(request, "components/user_menu.html", {})
 
 

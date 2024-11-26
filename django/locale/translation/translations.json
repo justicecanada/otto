@@ -4022,5 +4022,9 @@
     "UPN": {
         "fr": "",
         "fr_auto": "L’UPN"
+    },
+    "Enable load test URL for 1 hour": {
+        "fr": "",
+        "fr_auto": "Activer l’URL du test de charge pendant 1 heure"
     }
 }
