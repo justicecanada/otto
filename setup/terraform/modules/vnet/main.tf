@@ -17,8 +17,7 @@ resource "azurerm_subnet" "web_subnet" {
   address_prefixes     = [var.web_subnet_ip_range]
 
   # Enable service endpoints for Key Vault, Storage, and Container Registry so that the AKS cluster can access these services
-  # This is typically only required when the AKS is using Azure CNI networking rather than Kubenet
-  # service_endpoints = ["Microsoft.KeyVault", "Microsoft.Storage", "Microsoft.ContainerRegistry"]
+  service_endpoints = ["Microsoft.KeyVault", "Microsoft.Storage", "Microsoft.ContainerRegistry"]
 
   private_endpoint_network_policies             = "Disabled"
   private_link_service_network_policies_enabled = true
