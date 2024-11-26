@@ -752,19 +752,21 @@ def load_test(request):
         from otto.tasks import sleep_seconds
 
         sleep_seconds.delay(int(query_params["celery_sleep"]))
-        # Check how many items are in the queue
-        from celery import current_app
-        from celery.app.control import Inspect
+        if "show_queue" in query_params:
+            # Check how many items are in the queue
+            from celery import current_app
+            from celery.app.control import Inspect
 
-        i = Inspect(app=current_app)
-        active_tasks = i.active()
-        scheduled_tasks = i.scheduled()
-        active_task_list = next(iter(active_tasks.values()), [])
-        scheduled_task_list = next(iter(scheduled_tasks.values()), [])
+            i = Inspect(app=current_app)
+            active_tasks = i.active()
+            scheduled_tasks = i.scheduled()
+            active_task_list = next(iter(active_tasks.values()), [])
+            scheduled_task_list = next(iter(scheduled_tasks.values()), [])
 
-        return HttpResponse(
-            f"Added task to queue.<hr>Active:<br>{len(active_task_list)}<hr>Scheduled:<br>{len(scheduled_task_list)}"
-        )
+            return HttpResponse(
+                f"Added task to queue.<hr>Active:<br>{len(active_task_list)}<hr>Scheduled:<br>{len(scheduled_task_list)}"
+            )
+        return HttpResponse("Added task to queue")
     if "llm_call" in query_params:
         if query_params.get("llm_call"):
             llm = OttoLLM(query_params["llm_call"])
@@ -781,7 +783,7 @@ def load_test(request):
                 f"<pre style='max-width: 500px;text-wrap: auto;'>{response}</pre>"
             )
         )
-    if "embed_text":
+    if "embed_text" in query_params:
         llm = OttoLLM()
         test_text = "This is a test text for embedding. " * 1000
         embedding = llm.embed_model.get_text_embedding(test_text)
