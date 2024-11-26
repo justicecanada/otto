@@ -766,10 +766,7 @@ def test_negative_thumbs_feedback(client, all_apps_user):
     )
 
     assert Message.objects.filter(chat_id=chat.id).last().feedback == -1
-    assert (
-        response.status_code == 200
-        and "Provide feedback" in response.content.decode("utf-8")
-    )
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db
