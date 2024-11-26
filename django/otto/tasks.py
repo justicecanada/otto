@@ -1,3 +1,5 @@
+import time
+
 from django.core.cache import cache
 from django.core.management import call_command
 
@@ -49,3 +51,13 @@ def cleanup_vector_store():
 @shared_task
 def update_exchange_rate():
     call_command("update_exchange_rate")
+
+
+# LOAD TESTING TASKS
+
+
+@shared_task
+def sleep_seconds(seconds):
+    print("Sleeping for", seconds, "seconds")
+    time.sleep(seconds)
+    return True

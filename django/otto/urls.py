@@ -47,16 +47,8 @@ urlpatterns = [
         name="manage_pilots_form",
     ),
     path("user_management/costs/", views.cost_dashboard, name="cost_dashboard"),
-    path(
-        "command/enable-load-testing/",
-        views.enable_load_testing,
-        name="enable_load_testing",
-    ),
-    path(
-        "command/disable-load-testing/",
-        views.disable_load_testing,
-        name="disable_load_testing",
-    ),
+    path("load_test/enable", views.enable_load_testing, name="enable_load_testing"),
+    path("load_test/disable", views.disable_load_testing, name="disable_load_testing"),
     path("load_test/", views.load_test, name="load_test"),
     path("user_cost/", views.user_cost, name="user_cost"),
     path("accept_terms/", views.accept_terms, name="accept_terms"),

@@ -23,7 +23,9 @@ from django.views.decorators.http import require_POST
 
 from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
+from chat.llm import OttoLLM
 from chat.models import Message
 from otto.forms import FeedbackForm, PilotForm, UserGroupForm
 from otto.metrics.activity_metrics import otto_access_total
@@ -713,6 +715,7 @@ def user_cost(request):
 
 @csrf_exempt
 def load_test(request):
+    bind_contextvars(feature="load_test")
     start_time = timezone.now()
     if not cache.get("load_testing_enabled", False):
         return HttpResponse("Load testing is disabled", status=403)
@@ -739,14 +742,59 @@ def load_test(request):
             f"Checked each user library permissions in {total_time:.2f} seconds"
         )
     if "query_laws" in query_params:
-        from chat.llm import OttoLLM
-
         llm = OttoLLM()
         retriever = llm.get_retriever("laws_lois__")
         nodes = retriever.retrieve("query string")
         end_time = timezone.now()
         total_time = (end_time - start_time).total_seconds()
         return HttpResponse(f"Retrieved {len(nodes)} nodes in {total_time:.2f} seconds")
+    if "celery_sleep" in query_params:
+        from otto.tasks import sleep_seconds
+
+        sleep_seconds.delay(int(query_params["celery_sleep"]))
+        # Check how many items are in the queue
+        from celery import current_app
+        from celery.app.control import Inspect
+
+        i = Inspect(app=current_app)
+        active_tasks = i.active()
+        scheduled_tasks = i.scheduled()
+        active_task_list = next(iter(active_tasks.values()), [])
+        scheduled_task_list = next(iter(scheduled_tasks.values()), [])
+
+        return HttpResponse(
+            f"Added task to queue.<hr>Active:<br>{len(active_task_list)}<hr>Scheduled:<br>{len(scheduled_task_list)}"
+        )
+    if "llm_call" in query_params:
+        if query_params.get("llm_call"):
+            llm = OttoLLM(query_params["llm_call"])
+        else:
+            llm = OttoLLM()
+        response = llm.complete("Write a 5 paragraph essay on AI ethics.")
+        cost = llm.create_costs()
+        end_time = timezone.now()
+        total_time = (end_time - start_time).total_seconds()
+        return HttpResponse(
+            (
+                f"LLM call took {total_time:.2f} seconds and cost ${cost:.4f} USD.<hr>"
+                "<strong>Response:</strong><br>"
+                f"<pre style='max-width: 500px;text-wrap: auto;'>{response}</pre>"
+            )
+        )
+    if "embed_text":
+        llm = OttoLLM()
+        test_text = "This is a test text for embedding. " * 1000
+        embedding = llm.embed_model.get_text_embedding(test_text)
+        end_time = timezone.now()
+        total_time = (end_time - start_time).total_seconds()
+        cost = llm.create_costs()
+        return HttpResponse(
+            (
+                f"Embedding took {total_time:.2f} seconds and cost ${cost:.6f} USD.<hr>"
+                "<strong>Embedding:</strong><br>"
+                f"<pre style='max-width: 500px;text-wrap: auto;'>{embedding}</pre>"
+            )
+        )
 
     return HttpResponse(
         f"Response took {(timezone.now() - start_time).total_seconds():.2f} seconds"
@@ -755,15 +803,11 @@ def load_test(request):
 
 @permission_required("otto.enable_load_testing")
 def enable_load_testing(request):
-    # Enable load testing
     cache.set("load_testing_enabled", True)
-
-    return render(request, "components/disable_load_test_link.html", {})
+    return render(request, "components/user_menu.html", {})
 
 
 @permission_required("otto.enable_load_testing")
 def disable_load_testing(request):
-    # Disable load testing
     cache.set("load_testing_enabled", False)
-
-    return render(request, "components/enable_load_test_link.html", {})
+    return render(request, "components/user_menu.html", {})
