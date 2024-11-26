@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.http import HttpResponse, StreamingHttpResponse
 from django.template.loader import render_to_string
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
@@ -263,7 +263,10 @@ def translate_response(chat, response_message):
             if len(task_ids) == len(files):
                 yield "<p>" + _("Translating file") + f" 1/{len(files)}...</p>"
             else:
-                yield await sync_to_async(file_msg)(response_message, len(files))
+                if any(task.state == "SUCCESS" for task in task_ids):
+                    yield await sync_to_async(file_msg)(response_message, len(files))
+                else:
+                    raise Exception(_("Error translating files."))
 
     if len(files) > 0:
         # Initiate the Celery task for translating each file with Azure
@@ -380,6 +383,8 @@ def qa_response(chat, response_message, switch_mode=False):
                     data_source=chat.data_source,
                     url=user_message.text,
                 )
+            else:
+                document = existing_document
             # URLs are always re-processed
             document.process()
         return StreamingHttpResponse(
@@ -420,25 +425,43 @@ def qa_response(chat, response_message, switch_mode=False):
         )
 
     # Summarize mode
-    if chat.options.qa_mode == "summarize":
-        # Use summarization on each of the documents
+    if chat.options.qa_mode in ["summarize", "summarize_combined"]:
         if not filter_documents:
             filter_documents = Document.objects.filter(
                 data_source__library=chat.options.qa_library
             )
         document_titles = [document.name for document in filter_documents]
-        summary_responses = [
-            llm.tree_summarize(
-                context=document.extracted_text,
+        if chat.options.qa_mode == "summarize_combined":
+            # Combine all documents into one text, including the titles
+            combined_documents = (
+                "<document>\n"
+                + "\n</document>\n<document>\n".join(
+                    [
+                        f"# {title}\n---\n{document.extracted_text}"
+                        for title, document in zip(document_titles, filter_documents)
+                    ]
+                )
+                + "\n</document>"
+            )
+            response_replacer = llm.tree_summarize(
+                context=combined_documents,
                 query=user_message.text,
                 template=chat.options.qa_prompt_combined,
             )
-            for document in filter_documents
-            if not cache.get(f"stop_response_{response_message.id}", False)
-        ]
-        response_replacer = combine_response_replacers(
-            summary_responses, document_titles
-        )
+        else:
+            # Use summarization on each of the documents
+            summary_responses = [
+                llm.tree_summarize(
+                    context=document.extracted_text,
+                    query=user_message.text,
+                    template=chat.options.qa_prompt_combined,
+                )
+                for document in filter_documents
+                if not cache.get(f"stop_response_{response_message.id}", False)
+            ]
+            response_replacer = combine_response_replacers(
+                summary_responses, document_titles
+            )
         response_generator = None
         source_groups = None
 

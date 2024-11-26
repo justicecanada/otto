@@ -32,12 +32,12 @@ spec:
 
 # SC-13: Secure key management using Azure Key Vault (FIPS 140-2 compliant)
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet # Required for stable network identity
 metadata:
-  name: django-deployment
+  name: django-app
   namespace: otto
 spec:
-  replicas: 1
+  serviceName: "django-service"  # Required for stable network identity
   selector:
     matchLabels:
       app: django-app
@@ -49,7 +49,8 @@ spec:
       initContainers:
       - name: init-migrate-collectstatic
         image: ${ACR_NAME}.azurecr.io/otto:latest
-        command: ["sh", "-c", "echo 'Starting collectstatic'; python manage.py collectstatic --noinput; echo 'Collectstatic completed'; echo 'Starting migrate'; python manage.py migrate --noinput; echo 'Migrate completed'"]
+        command: ["/bin/bash"]
+        args: ["-c", "/django/migrate-collectstatic.sh"]
         envFrom:
           - configMapRef:
               name: otto-configmap
@@ -60,11 +61,6 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: djangosecretkey
-          - name: DJANGODB_HOST
-            valueFrom:
-              secretKeyRef:
-                name: azure-keyvault-secrets
-                key: djangodbhostkey
           - name: DJANGODB_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -95,6 +91,13 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: entraclientsecretkey
+        resources:
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+          limits:
+            cpu: "1"
+            memory: "4Gi"
         volumeMounts:
           - name: secrets
             mountPath: "/mnt/secrets-store"
@@ -121,11 +124,6 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: djangosecretkey
-          - name: DJANGODB_HOST
-            valueFrom:
-              secretKeyRef:
-                name: azure-keyvault-secrets
-                key: djangodbhostkey
           - name: DJANGODB_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -157,12 +155,15 @@ spec:
                 name: azure-keyvault-secrets
                 key: entraclientsecretkey
           resources:
+            # Django is the main application server, requiring substantial resources.
+            # High CPU limit to allow for bursts during high load periods.
+            # High memory limit allows for handling concurrent requests and caching.
             requests:
-              cpu: "1"
-              memory: "4Gi"
+              cpu: "${DJANGO_CPU_MIN}"
+              memory: "${DJANGO_MEMORY_MIN}Gi"
             limits:
-              cpu: "1"
-              memory: "8Gi"
+              cpu: "${DJANGO_CPU_MAX}"
+              memory: "${DJANGO_MEMORY_MAX}Gi"
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
@@ -173,26 +174,26 @@ spec:
               mountPath: "/data/media"
           readinessProbe:
             httpGet:
-              path: /healthz
-              port: 8000
-              httpHeaders:
-              - name: Host
-                value: django-service
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /healthz
+              path: /healthz/
               port: 8000
               httpHeaders:
               - name: Host
                 value: django-service
             initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz/
+              port: 8000
+              httpHeaders:
+              - name: Host
+                value: django-service
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 10
             successThreshold: 1
             failureThreshold: 5
       volumes:
@@ -213,7 +214,7 @@ spec:
 ---
 
 apiVersion: v1
-kind: Service
+kind: Service # Exposes the Django application to other components within the cluster
 metadata:
   name: django-service
   namespace: otto
@@ -224,3 +225,47 @@ spec:
       targetPort: 8000
   selector:
     app: django-app
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: django-hpa
+  namespace: otto
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: django-app
+  minReplicas: ${DJANGO_REPLICAS_MIN}
+  maxReplicas: ${DJANGO_REPLICAS_MAX}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 50
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max

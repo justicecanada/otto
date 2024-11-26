@@ -668,6 +668,11 @@ class Command(BaseCommand):
             help="Resets the database before loading",
         )
         parser.add_argument(
+            "--accept_reset",
+            action="store_true",
+            help="Accept the reset of the database",
+        )
+        parser.add_argument(
             "--debug",
             action="store_true",
             help="Write node markdown to source directories. Does not alter database.",
@@ -704,13 +709,15 @@ class Command(BaseCommand):
         total_cost = 0
         full = options.get("full", False)
         reset = options.get("reset", False)
+        accept_reset = options.get("accept_reset", False)
         if reset:
-            # Confirm the user wants to delete all laws
-            print("This will delete all laws in the database. Are you sure?")
-            response = input("Type 'yes' to confirm: ")
-            if response != "yes":
-                print("Aborted")
-                return
+            if not accept_reset:
+                # Confirm the user wants to delete all laws
+                print("This will delete all laws in the database. Are you sure?")
+                response = input("Type 'yes' to confirm: ")
+                if response != "yes":
+                    print("Aborted")
+                    return
         small = options.get("small", False)
         const_only = options.get("const_only", False)
         force_update = options.get("force_update", False)

@@ -18,14 +18,13 @@ spec:
 
 # Deployment for Celery Worker
 apiVersion: apps/v1
-kind: Deployment
+kind: Deployment # Celery worker is stateless and can be easily scaled without needing stable network identities
 metadata:
   name: celery-worker
   namespace: otto
   labels:
     deployment: celery-worker
 spec:
-  replicas: 1  # Runs one instance of the worker
   selector:
     matchLabels:
       pod: celery-worker
@@ -34,15 +33,10 @@ spec:
       labels:
         pod: celery-worker
     spec:
-      # The Celery worker and beat processes run as a non-root user (UID 1000)
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
       containers:
         - name: celery-worker
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the latest image from Azure Container Registry
-          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--pool=gevent', '--concurrency=32']  # Starts Celery worker
+          command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--pool=gevent', '--concurrency=256']  # Starts Celery worker
           securityContext:
             allowPrivilegeEscalation: false  # Privilege escalation is disabled
             readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
@@ -76,11 +70,6 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: storageaccountkey
-          - name: DJANGODB_HOST
-            valueFrom:
-              secretKeyRef:
-                name: azure-keyvault-secrets
-                key: djangodbhostkey
           - name: DJANGODB_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -93,11 +82,11 @@ spec:
                 key: entraclientsecretkey
           resources:
             requests:
-              cpu: "500m"
-              memory: "4Gi"
+              cpu: "${CELERY_CPU_MIN}"
+              memory: "${CELERY_MEMORY_MIN}Gi"
             limits:
-              cpu: "1"
-              memory: "4Gi"
+              cpu: "${CELERY_CPU_MAX}"
+              memory: "${CELERY_MEMORY_MAX}Gi"
           volumeMounts:
             - name: secrets  # Mounts secrets from Azure Key Vault
               mountPath: "/mnt/secrets-store"
@@ -106,6 +95,22 @@ spec:
               mountPath: "/data/media"  # Mounts shared storage for media
             - name: tmp
               mountPath: /tmp # A writable /tmp directory is provided for temporary files
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - celery -A otto inspect ping -d celery@$HOSTNAME
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - celery -A otto inspect ping -d celery@$HOSTNAME
+            initialDelaySeconds: 30
+            periodSeconds: 20
       volumes:
       - name: secrets
         csi:
@@ -118,13 +123,40 @@ spec:
           claimName: media-pvc  # References the PVC defined earlier
       - name: tmp
         emptyDir: {}
+---
+
+# HorizontalPodAutoscaler for Celery Worker
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: celery-worker-hpa
+  namespace: otto
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: celery-worker
+  minReplicas: ${CELERY_REPLICAS_MIN}
+  maxReplicas: ${CELERY_REPLICAS_MAX}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
 
 ---
 
-
 # Deployment for Celery Beat (scheduler)
 apiVersion: apps/v1
-kind: Deployment
+kind: Deployment # Stateless and functions independently, scheduling tasks without requiring persistent storage
 metadata:
   name: celery-beat
   namespace: otto
@@ -177,11 +209,6 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: storageaccountkey
-          - name: DJANGODB_HOST
-            valueFrom:
-              secretKeyRef:
-                name: azure-keyvault-secrets
-                key: djangodbhostkey
           - name: DJANGODB_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -192,6 +219,16 @@ spec:
               secretKeyRef:
                 name: azure-keyvault-secrets
                 key: entraclientsecretkey
+          resources:
+            # Celery Beat is a scheduler that sends tasks to the queue at specified intervals so doesn't need as many resources as Celery Workers.
+            # It doesn't execute tasks; it only schedules them, so doesn't need to scale or handle spikes like Celery Workers do.
+            # Something like 100m-200m CPU and 256Mi-512Mi memory would likely be sufficient for most use cases.
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "512Mi"
           volumeMounts:
             - name: secrets
               mountPath: "/mnt/secrets-store"
@@ -200,6 +237,22 @@ spec:
               mountPath: "/data/media"
             - name: tmp
               mountPath: /tmp  # Mounts the writable directory for the schedule file
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - celery -A otto inspect ping -d celery@$HOSTNAME
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - ps aux | grep [c]elery
+            initialDelaySeconds: 30
+            periodSeconds: 20
       volumes:
       - name: secrets
         csi:

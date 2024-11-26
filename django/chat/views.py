@@ -123,6 +123,8 @@ def chat(request, chat_id):
         .first()
     )
 
+    if not chat:
+        return new_chat(request)
     chat.accessed_at = timezone.now()
     chat.save()
 
@@ -140,6 +142,7 @@ def chat(request, chat_id):
             "chat_messages": messages,
             "hide_breadcrumbs": True,
             "read_only": True,
+            "chat_author": chat.user,
         }
         return render(request, "chat/chat_readonly.html", context=context)
 
@@ -641,14 +644,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
     elif request.method == "POST":
         chat_options = chat.options
         post_data = request.POST.copy()
-
-        # In case of duplicate values, remove them by taking the first value from each list
-        for key in post_data:
-            if (
-                isinstance(post_data.getlist(key), list)
-                and len(post_data.getlist(key)) > 1
-            ):
-                post_data.setlist(key, [post_data.getlist(key)[0]])
 
         chat_options_form = ChatOptionsForm(
             post_data, instance=chat_options, user=request.user

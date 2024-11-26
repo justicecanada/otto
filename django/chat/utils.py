@@ -38,7 +38,7 @@ def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
 
 
 def wrap_llm_response(llm_response_str):
-    return f'<div class="markdown-text" data-md="{html.escape(json.dumps(llm_response_str))}"></div>'
+    return f'<div class="markdown-text" data-md="{html.escape(json.dumps(str(llm_response_str)))}"></div>'
 
 
 def url_to_text(url):
@@ -193,7 +193,11 @@ async def htmx_stream(
                 full_message = response
             elif not generation_stopped:
                 generation_stopped = True
-                full_message = f"{full_message}<p><em>{stop_warning_message}</em></p>"
+                if wrap_markdown:
+                    stop_warning_message = f"\n\n_{stop_warning_message}_"
+                else:
+                    stop_warning_message = f"<p><em>{stop_warning_message}</em></p>"
+                full_message = f"{full_message}{stop_warning_message}"
                 message = await sync_to_async(Message.objects.get)(id=message_id)
                 message.text = full_message
                 await sync_to_async(message.save)()
@@ -245,7 +249,7 @@ async def htmx_stream(
         context = {"message": message, "swap_oob": True}
 
     # Render the message template, wrapped in SSE format
-    context["message"].json = json.dumps(full_message)
+    context["message"].json = json.dumps(str(full_message))
     yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context

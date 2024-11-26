@@ -1,0 +1,111 @@
+# # List the cronjobs
+# kubectl get cronjobs -n otto
+
+# # List the jobs
+# kubectl get jobs -n otto
+
+# # List the configmaps
+# kubectl get configmaps -n otto
+
+# # Apply the configuration
+# kubectl apply -f media-sync.yaml
+
+# # Trigger the job manually
+# kubectl create job --from=cronjob/media-sync-cron media-sync-cron-test-1 -n otto
+
+# # Check the logs of the job
+# kubectl logs job/media-sync-cron-test-1 -n otto -f
+
+# # Delete the job
+# kubectl delete job media-sync-cron-test-1 -n otto
+
+# # Delete the configmap
+# kubectl delete configmap azcopy-sync-script -n otto
+
+# # Delete the cronjob
+# kubectl delete cronjob media-sync-cron -n otto
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: azcopy-sync-script
+  namespace: otto
+data:
+  azcopy_sync.sh: |
+    #!/bin/bash
+    set -e
+      
+    # Install wget and other necessary tools
+    echo "Installing wget and other necessary tools"
+    tdnf install -y wget tar sudo
+
+    # Install AzCopy
+    echo "Installing AzCopy"
+    wget https://aka.ms/downloadazcopy-v10-linux -O azcopy.tar.gz
+    tar -xvf azcopy.tar.gz
+    sudo cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
+    sudo chmod 755 /usr/bin/azcopy
+    rm -rf azcopy_linux_amd64_* azcopy.tar.gz
+
+    EXPIRY_DATE=$(date -u -d "30 minutes" '+%Y-%m-%dT%H:%MZ')
+
+    # Generate SAS token
+    AZURE_SAS_TOKEN=$(az storage container generate-sas \
+        --account-name $AZURE_STORAGE_ACCOUNT_NAME \
+        --account-key $AZURE_STORAGE_ACCOUNT_KEY \
+        --name $BACKUP_CONTAINER_NAME \
+        --permissions acdlrw \
+        --expiry $EXPIRY_DATE \
+        --https-only \
+        --output tsv)
+
+    # Set variables
+    SOURCE_PATH="/data/media/"
+    DESTINATION_URL="https://${AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${BACKUP_CONTAINER_NAME}/media/?${AZURE_SAS_TOKEN}"
+
+    # Sync media files to Azure Storage
+    echo "Syncing media files to Azure Storage"
+    azcopy sync "$SOURCE_PATH" "$DESTINATION_URL" --recursive
+
+---
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: media-sync-cron
+  namespace: otto
+spec:
+  schedule: "0 2 * * *"  # Run daily at 2:00 AM
+  timeZone: "America/Toronto"  # Specify Toronto timezone
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: media-sync
+            image: mcr.microsoft.com/azure-cli:cbl-mariner2.0
+            command: ["/bin/bash"]
+            args: ["/scripts/azcopy_sync.sh"]
+            envFrom:
+              - configMapRef:
+                  name: otto-configmap
+            env:
+              - name: AZURE_STORAGE_ACCOUNT_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: azure-keyvault-secrets
+                    key: storageaccountkey
+            volumeMounts:
+            - name: script-volume
+              mountPath: /scripts
+            - name: media-pv-storage
+              mountPath: /data/media
+          restartPolicy: OnFailure
+          volumes:
+          - name: script-volume
+            configMap:
+              name: azcopy-sync-script
+              defaultMode: 0755
+          - name: media-pv-storage
+            persistentVolumeClaim:
+              claimName: media-pvc
