@@ -35,6 +35,7 @@ module "vnet" {
   app_subnet_ip_range = var.app_subnet_ip_range
   db_subnet_name      = var.db_subnet_name
   db_subnet_ip_range  = var.db_subnet_ip_range
+  corporate_ip        = var.corporate_public_ip
   location            = var.location
   resource_group_name = module.resource_group.name
   tags                = local.common_tags
@@ -160,6 +161,7 @@ module "aks" {
   vm_cpu_count           = var.vm_cpu_count
   approved_cpu_quota     = var.approved_cpu_quota
   web_subnet_id          = module.vnet.web_subnet_id
+  vnet_id                = module.vnet.vnet_id
 }
 
 # TODO: Uncomment Velero after the change request is approved

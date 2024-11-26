@@ -46,3 +46,8 @@ variable "tags" {
   type        = map(string)
   description = "A mapping of tags to assign to the resource"
 }
+
+variable "corporate_ip" {
+  type        = string
+  description = "IP address of the corporate network"
+}

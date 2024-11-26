@@ -83,9 +83,9 @@ if [[ -z "$CERT_CHOICE" ]]; then
 
     echo
     echo "Certificate options:"
-    echo "1. create - Generate and apply a new Let's Encrypt certificate"
-    echo "2. import - Import and apply a trusted SSL certificate"
-    echo "3. skip - Skip certificate operations"
+    echo "  create - Generate and apply a new Let's Encrypt certificate"
+    echo "  import - Import and apply a trusted SSL certificate"
+    echo "  skip - Skip certificate operations"
     read -p "Enter your choice (create/import/skip): " CERT_CHOICE
 fi
 
@@ -99,6 +99,6 @@ case "$CERT_CHOICE" in
         ;;
     *)
         echo "Invalid option. Please choose create, import, or skip."
-        exit 1
+        return 1
         ;;
 esac
