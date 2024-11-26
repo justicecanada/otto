@@ -256,7 +256,6 @@ def feedback_list(request, page_number=None):
 
 @permission_required("otto.manage_users")
 def feedback_dashboard_update(request, feedback_id, form_type):
-    path = request.get_full_path()
     feedback = Feedback.objects.get(id=feedback_id)
 
     if request.method == "POST":
@@ -276,8 +275,7 @@ def feedback_dashboard_update(request, feedback_id, form_type):
         else:
             messages.error(request, form.errors)
     else:
-        form = FeedbackMetadataForm()
-    return render(request, "components/feedback_modal.html", {"form": form})
+        return HttpResponse(status=405)
 
 
 @permission_required("otto.manage_users")

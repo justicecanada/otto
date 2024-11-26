@@ -6,6 +6,24 @@ from otto.models import Feedback
 
 
 @pytest.mark.django_db
+def test_feedback_dashboard_view(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    response = client.get(reverse("feedback_dashboard"))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_feedback_stats_view(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    response = client.get(reverse("feedback_stats"))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
 def test_feedback_list_view(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
@@ -99,6 +117,21 @@ def test_feedback_dashboard_update_notes(client, all_apps_user):
 
     feedback.refresh_from_db()
     assert feedback.admin_notes == "Updated notes"
+
+
+@pytest.mark.django_db
+def test_feedback_dashboard_update(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    feedback = Feedback.objects.create(
+        created_by=user,
+        feedback_message="Test feedback",
+        feedback_type="bug",
+        status="new",
+    )
+    url = reverse("feedback_dashboard_update", args=[feedback.id, "metadata"])
+    response = client.get(url)
+    assert response.status_code == 405
 
 
 @pytest.mark.django_db
