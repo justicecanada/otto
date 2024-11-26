@@ -56,7 +56,7 @@ variable "use_private_network" {
   description = "Whether to use private networking for the managed disks"
 }
 
-variable "corporate_ip" {
+variable "corporate_public_ip" {
   description = "The public IP address of the corporate network"
   type        = string
 }

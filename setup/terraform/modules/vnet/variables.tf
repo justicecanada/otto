@@ -47,7 +47,7 @@ variable "tags" {
   description = "A mapping of tags to assign to the resource"
 }
 
-variable "corporate_ip" {
+variable "corporate_public_ip" {
   type        = string
   description = "IP address of the corporate network"
 }

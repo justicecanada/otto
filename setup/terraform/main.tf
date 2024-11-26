@@ -35,7 +35,7 @@ module "vnet" {
   app_subnet_ip_range = var.app_subnet_ip_range
   db_subnet_name      = var.db_subnet_name
   db_subnet_ip_range  = var.db_subnet_ip_range
-  corporate_ip        = var.corporate_public_ip
+  corporate_public_ip = var.corporate_public_ip
   location            = var.location
   resource_group_name = module.resource_group.name
   tags                = local.common_tags
@@ -81,7 +81,7 @@ module "disk" {
   cmk_id                    = module.keyvault.cmk_id
   wait_for_propagation      = module.keyvault.wait_for_propagation
   use_private_network       = var.use_private_network
-  corporate_ip              = var.corporate_public_ip
+  corporate_public_ip       = var.corporate_public_ip
   app_subnet_id             = module.vnet.app_subnet_id
   web_subnet_id             = module.vnet.web_subnet_id
   db_subnet_id              = module.vnet.db_subnet_id
@@ -162,6 +162,7 @@ module "aks" {
   approved_cpu_quota     = var.approved_cpu_quota
   web_subnet_id          = module.vnet.web_subnet_id
   vnet_id                = module.vnet.vnet_id
+  corporate_public_ip    = var.corporate_public_ip
 }
 
 # TODO: Uncomment Velero after the change request is approved

@@ -18,6 +18,21 @@ resource "azurerm_user_assigned_identity" "aks_identity" {
   name                = "${var.aks_cluster_name}-identity"
 }
 
+# Create a private DNS zone for AKS
+resource "azurerm_private_dns_zone" "aks_dns" {
+  name                = "privatelink.canadacentral.azmk8s.io"
+  resource_group_name = var.resource_group_name
+}
+
+# Link the private DNS zone to the virtual network
+resource "azurerm_private_dns_zone_virtual_network_link" "aks_dns_link" {
+  name                  = "${var.aks_cluster_name}-dns-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.aks_dns.name
+  virtual_network_id    = var.vnet_id
+  registration_enabled  = false
+}
+
 # Define the Azure Kubernetes Service (AKS) cluster
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_cluster_name
@@ -30,8 +45,14 @@ resource "azurerm_kubernetes_cluster" "aks" {
   workload_identity_enabled = true # Workload identity allows the AKS cluster to use managed identities for Azure resources
 
   # AC-22, IA-8, SC-2, SC-5: Configure the private cluster settings
-  # TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
-  #private_cluster_enabled = var.use_private_network
+  private_cluster_enabled = var.use_private_network
+  private_dns_zone_id     = azurerm_private_dns_zone.aks_dns.id
+
+  # Network access configuration
+  api_server_access_profile {
+    # Restrict access to the AKS API server to the corporate network
+    authorized_ip_ranges = [var.corporate_public_ip] # Justice Canada IP range
+  }
 
   # Cluster-level autoscaling configuration:
   # - vm_size: Defines CPU and memory for each node (e.g., "Standard_D4s_v3")

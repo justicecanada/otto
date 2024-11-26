@@ -62,7 +62,7 @@ resource "azurerm_network_security_group" "nsg" {
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = "${var.corporate_ip}/32"
+    source_address_prefix      = "${var.corporate_public_ip}/32"
     destination_address_prefix = "*"
   }
 
