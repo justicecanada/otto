@@ -49,9 +49,3 @@ def cleanup_vector_store():
 @shared_task
 def update_exchange_rate():
     call_command("update_exchange_rate")
-
-
-@shared_task
-def disable_load_testing():
-    cache.set("load_testing_enabled", False)
-    return "Load testing routes disabled"
