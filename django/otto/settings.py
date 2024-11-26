@@ -80,7 +80,12 @@ AZURE_AUTH = {
     "SCOPES": ["User.Read"],
     "AUTHORITY": ENTRA_AUTHORITY,
     "USERNAME_ATTRIBUTE": "userPrincipalName",  # The AAD attribute or ID token claim you want to use as the value for the user model `USERNAME_FIELD`
-    "PUBLIC_PATHS": [os.environ.get("ENTRA_REDIRECT_URI"), "/welcome/", "/healthz"],
+    "PUBLIC_PATHS": [
+        os.environ.get("ENTRA_REDIRECT_URI"),
+        "/welcome/",
+        "/healthz",
+        "/healthz/",
+    ],
     "USER_MAPPING_FN": "otto.utils.auth.map_entra_to_django_user",  # Optional, path to the function used to map the AAD to Django attributes
 }
 LOGIN_URL = "/azure_auth/login"
@@ -141,7 +146,7 @@ INSTALLED_APPS = [
     "django_structlog",
     "modeltranslation",
     "django_prometheus",
-    "django.contrib.admin",
+    # "django.contrib.admin", # Do not enable admin in production
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -278,11 +283,6 @@ if os.environ.get("DJANGODB_ENGINE") is not None:
         "HOST": os.environ.get("DJANGODB_HOST"),
     }
 
-    # Add the PORT and SSLMODE for CosmosDB, which only exist for DEV, UAT, and PROD
-    if ENVIRONMENT in ["DEV", "UAT", "PROD"]:
-        DATABASES["default"]["PORT"] = os.environ.get("DJANGODB_PORT")
-        DATABASES["default"]["SSLMODE"] = "require"
-
 if os.environ.get("VECTORDB_ENGINE") is not None:
     DATABASES["vector_db"] = {
         "ENGINE": os.environ.get("VECTORDB_ENGINE"),
@@ -349,6 +349,7 @@ SESSION_SAVE_EVERY_REQUEST = True
 if SITE_URL.scheme == "https" and SITE_URL.port == None:
     CSRF_TRUSTED_ORIGINS = [urlunparse(SITE_URL)]
     SECURE_SSL_REDIRECT = True
+    SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
     SESSION_COOKIE_SECURE = True  # SC-23: Secure session cookies
     CSRF_COOKIE_SECURE = True
     USE_X_FORWARDED_HOST = True

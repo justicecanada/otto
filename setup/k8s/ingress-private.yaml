@@ -1,0 +1,42 @@
+# SC-2, CM-8, CM-9: Defines the application's components within the AKS cluster
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress # The ingress controller is responsible for routing external traffic to the services
+metadata:
+  name: otto-ingress
+  namespace: otto
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-body-size: "300m"
+    # SC-10: Network Disconnect - Add timeout configurations
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"  # 30 minutes
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"  # 30 minutes
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"  # 1 minute
+    nginx.ingress.kubernetes.io/custom-http-errors: "403"
+    nginx.ingress.kubernetes.io/default-backend: nginx-errors
+    kubernetes.io/ingress.class: nginx # Specifies that this Ingress should be handled by the NGINX ingress controller
+
+    # AC-22, IA-8, SA-9(5), SC-5: Restricting access to the application to internal traffic only
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true" # Tells Azure to create an internal load balancer instead of a public one
+    service.beta.kubernetes.io/azure-load-balancer-internal-subnet: "${WEB_SUBNET_NAME}" # Specifies the subnet where the internal load balancer should be created
+    service.beta.kubernetes.io/azure-load-balancer-ipv4: "${AKS_CLUSTER_IP}" # Sets the specific private IP address for the load balancer
+spec:
+  ingressClassName: nginx
+  # AC-19, SC-8, SC-13, SC-23: TLS configuration for secure communication
+  # IA-2(8): Helps protect against replay attacks by securing the communication channel 
+  # SC-8: Ensure the integrity of transmitted data
+  tls:
+  - hosts:
+    - ${HOST_NAME}
+    secretName: tls-secret
+  rules:
+  - host: ${HOST_NAME}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: django-service
+            port:
+              number: 80

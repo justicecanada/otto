@@ -44,7 +44,7 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
 
 - **Azure OpenAI Content Filter Modifications:** 
   - This step is required only once per subscription.
-  - Visit [this link](https://aka.ms/oai/rai/exceptions) to request an exemption from the default content filtering.
+  - Visit [this link](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUMlBQNkZMR0lFRldORTdVQzQ0TEI5Q1ExOSQlQCN0PWcu) to request an exemption from the default content filtering. (Note: Do not use aka.ms/oai/rai/exceptions as that will be route the request through US government channels.)
   - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing information where standard content filtering is not appropriate.
   - Wait for Microsoft's approval before proceeding with the deployment.
   
@@ -87,6 +87,24 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
      - Click "Add."
      - Copy and securely store the client secret value.
   - Use the Application (client) ID and client secret in your Terraform script or application configuration.
+
+- **Increase Resource Quota Limits**
+  - To allow proper scaling of the infrastructure, increase the default vCPU quota in Azure:
+    - Log in to the [Azure Portal](https://portal.azure.com).
+    - Search for and select "Quotas" in the top search bar.
+    - On the Quotas page, select "Compute" from the provider dropdown.
+    - Find and select "Total Regional vCPUs" for the deployment region.
+    - Click "New quota request" at the top of the page.
+    - Choose "Enter a new limit" and set the new value:
+      - For DEV environment: 16 vCPUs
+      - For UAT and PROD environments: 64 vCPUs or higher, based on the scaling needs
+    - Submit the request.
+  - Important Notes:
+    - Quota increase requests typically process within hours but may take up to 2 business days.
+    - Be prepared to justify larger quota increases if automatic approval is not granted.
+    - Increasing quotas doesn't incur costs; you're only charged for resources you use.
+    - Monitor resource usage and adjust quotas as needed to ensure proper application scaling.
+      
 
 ## Deployment Steps
 
@@ -172,3 +190,25 @@ Once inside the container, follow the same deployment steps as outlined in the C
 
 > [!NOTE]
 >  When testing locally, ensure you have the necessary Azure credentials and permissions configured within your development environment.
+
+
+## Appendix: Running Scripts with Parameters
+
+To run terraform and pass parameters:
+
+```bash
+bash run_terraform.sh --env-file .env.dev --subscription OttoDev --skip-confirm y --auto-approve y --enable-debug n
+```
+
+To run k8s and pass parameters:
+
+```bash
+# Other options for cert-choice: skip, create, import
+bash run_k8s.sh --env-file .env.dev --subscription OttoDev --cert-choice skip --init-script n --set-dns-label n
+```
+
+To run build_and_push and pass parameters:
+
+```bash
+./build_and_push_image.ps1 -subscription OttoDev -acr jusdevottoacr -skipNetworkCheck y
+```

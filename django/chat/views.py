@@ -123,6 +123,8 @@ def chat(request, chat_id):
         .first()
     )
 
+    if not chat:
+        return new_chat(request)
     chat.accessed_at = timezone.now()
     chat.save()
 

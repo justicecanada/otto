@@ -247,7 +247,7 @@ def manage_users_form(request, user_id=None):
         user = User.objects.get(id=user_id)
         form = UserGroupForm(
             initial={
-                "email": [user],
+                "upn": [user],
                 "group": user.groups.all(),
                 "pilot": user.pilot,
                 "weekly_max": user.weekly_max,

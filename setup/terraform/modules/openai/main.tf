@@ -13,7 +13,7 @@ terraform {
 
 # Azure Cognitive Account for OpenAI
 resource "azurerm_cognitive_account" "openai" {
-  name                = var.name
+  name = var.name
 
   # SC-9(5): OpenAI Resource Exception and Safeguards
   location            = "canadaeast"
@@ -29,24 +29,16 @@ resource "azurerm_cognitive_account" "openai" {
   depends_on = [var.keyvault_id]
 }
 
-resource "azurerm_key_vault_secret" "openai_key" {
-  name         = "OPENAI-SERVICE-KEY"
-  value        = azurerm_cognitive_account.openai.primary_access_key
-  key_vault_id = var.keyvault_id
-
-  depends_on = [var.wait_for_propagation]
-}
-
 # A delay is required to avoid a 409 conflict error when adding deployments concurrently
 resource "null_resource" "wait_for_openai_resource" {
   provisioner "local-exec" {
     command = "sleep 60"
   }
-  depends_on = [azurerm_key_vault_secret.openai_key, azurerm_cognitive_account.openai]
+  depends_on = [azurerm_cognitive_account.openai]
 }
 
 resource "azapi_resource" "rai_policy" {
-  type                      = "Microsoft.CognitiveServices/accounts/raiPolicies@2024-04-01-preview"
+  type                      = "Microsoft.CognitiveServices/accounts/raiPolicies@2024-06-01-preview"
   name                      = "Unfiltered"
   parent_id                 = azurerm_cognitive_account.openai.id
   schema_validation_enabled = false
@@ -54,63 +46,87 @@ resource "azapi_resource" "rai_policy" {
   body = jsonencode({
     properties = {
       mode = "Default"
-      basePolicyName : "Microsoft.Default",
+      basePolicyName : "Microsoft.DefaultV2",
       contentFilters : [
         {
-          name : "hate",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Prompt"
+          "name" : "Violence",
+          "severityThreshold" : "Low",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Prompt"
         },
         {
-          name : "sexual",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Prompt"
+          "name" : "Hate",
+          "severityThreshold" : "Low",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Prompt"
         },
         {
-          name : "selfharm",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Prompt"
+          "name" : "Sexual",
+          "severityThreshold" : "Low",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Prompt"
         },
         {
-          name : "violence",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Prompt"
+          "name" : "Selfharm",
+          "severityThreshold" : "Low",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Prompt"
         },
         {
-          name : "hate",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Completion"
+          "name" : "Jailbreak",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Prompt"
         },
         {
-          name : "sexual",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Completion"
+          "name" : "Indirect Attack",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Prompt"
         },
         {
-          name : "selfharm",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Completion"
+          "name" : "Violence",
+          "severityThreshold" : "Low",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Completion"
         },
         {
-          name : "violence",
-          allowedContentLevel : "Medium",
-          blocking : false,
-          enabled : false,
-          source : "Completion"
+          "name" : "Hate",
+          "severityThreshold" : "Low",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Completion"
+        },
+        {
+          "name" : "Sexual",
+          "severityThreshold" : "Low",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Completion"
+        },
+        {
+          "name" : "Selfharm",
+          "severityThreshold" : "Low",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Completion"
+        },
+        {
+          "name" : "Protected Material Text",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Completion"
+        },
+        {
+          "name" : "Protected Material Code",
+          "blocking" : false,
+          "enabled" : false,
+          "source" : "Completion"
         }
       ]
     }

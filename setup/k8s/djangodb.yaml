@@ -1,0 +1,230 @@
+# CM-8 & CM-9: Defines the application's components within the AKS cluster
+# SC-13: Ensure secure key management practices
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-django-db
+  namespace: otto  
+spec:
+  serviceName: "postgres-django-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-django-db
+  template:
+    metadata:
+      labels:
+        app: postgres-django-db
+        tier: backend    
+    spec:
+      containers:
+        - name: postgres-django-db
+          image: postgres:16
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: azure-keyvault-secrets
+                  key: djangodbpasswordkey
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: otto-configmap
+                  key: DJANGODB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: otto-configmap
+                  key: DJANGODB_USER
+            - name: POSTGRES_MAX_CONNECTIONS
+              value: "500"
+          ports:
+            - containerPort: 5432
+          resources:
+            # Database requires stable resources. Somewhat equal requests and limits prevent resource contention.
+            # Increased the CPU limit to allow for query spikes.
+            # Memory remains relatively consistent to ensure stable performance.
+            requests:
+              cpu: "${DJANGODB_CPU_MIN}"
+              memory: "${DJANGODB_MEMORY_MIN}Gi"
+            limits:
+              cpu: "${DJANGODB_CPU_MAX}"
+              memory: "${DJANGODB_MEMORY_MAX}Gi"
+          volumeMounts:
+            - name: postgres-django-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres
+            - name: secrets
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 30
+      volumes:
+        - name: secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "azure-keyvault"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-django-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "otto-managed-csi"
+      resources:
+        requests:
+          storage: 16Gi
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pgvector-django-autoscaler
+  namespace: otto
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: postgres-django-db
+  minReplicas: ${DJANGODB_REPLICAS_MIN}
+  maxReplicas: ${DJANGODB_REPLICAS_MAX}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-django-service
+  namespace: otto
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres-django-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+
+# ---
+
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: pgbouncer-django-config
+#   namespace: otto
+# data:
+#   pgbouncer.ini: |
+#     [databases]
+#     * = host=postgres-django-service port=5432
+
+#     [pgbouncer]
+#     listen_addr = 0.0.0.0
+#     listen_port = 6432
+#     auth_type = md5
+#     auth_file = /etc/pgbouncer/userlist.txt
+#     pool_mode = transaction
+#     max_client_conn = 1000
+#     default_pool_size = 100
+#     reserve_pool_size = 50
+#     reserve_pool_timeout = 5
+#     server_reset_query = DISCARD ALL
+#     server_check_query = select 1
+#     server_check_delay = 30
+#     ignore_startup_parameters = extra_float_digits
+
+#   userlist.txt: |
+#     "$(POSTGRES_USER)" "$(POSTGRES_PASSWORD)"
+
+# ---
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: pgbouncer-django
+#   namespace: otto
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: pgbouncer-django
+#   template:
+#     metadata:
+#       labels:
+#         app: pgbouncer-django
+#     spec:
+#       containers:
+#       - name: pgbouncer
+#         image: edoburu/pgbouncer:1.18.0
+#         ports:
+#         - containerPort: 6432
+#         env:
+#         - name: POSTGRES_USER
+#           valueFrom:
+#             configMapKeyRef:
+#               name: otto-configmap
+#               key: DJANGODB_USER
+#         - name: POSTGRES_PASSWORD
+#           valueFrom:
+#             secretKeyRef:
+#               name: azure-keyvault-secrets
+#               key: djangodbpasswordkey
+#         volumeMounts:
+#         - name: pgbouncer-config
+#           mountPath: /etc/pgbouncer
+#         resources:
+#           requests:
+#             cpu: "500m"
+#             memory: "512Mi"
+#           limits:
+#             cpu: "500m"
+#             memory: "512Mi"
+#       volumes:
+#       - name: pgbouncer-config
+#         configMap:
+#           name: pgbouncer-django-config
+
+# ---
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: pgbouncer-django-service
+#   namespace: otto
+# spec:
+#   selector:
+#     app: pgbouncer-django
+#   ports:
+#     - protocol: TCP
+#       port: 6432
+#       targetPort: 6432

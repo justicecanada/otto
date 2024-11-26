@@ -38,18 +38,16 @@ add_perm("otto.view_github_link", is_admin)
 @predicate
 def can_view_app(user, app):
     if is_admin(user):
-        return app.prod_ready or not settings.IS_PROD
+        return True
     if settings.IS_PROD:
-        return app.prod_ready and (app.visible_to_all or can_access_app(user, app))
+        return app.visible_to_all or can_access_app(user, app)
     return app.visible_to_all or can_access_app(user, app)
 
 
 @predicate
 def can_access_app(user, app):
     if is_admin(user):
-        return app.prod_ready or not settings.IS_PROD
-    if settings.IS_PROD:
-        return app.prod_ready and is_group_member(app.user_group.name)(user)
+        return True
     return is_group_member(app.user_group.name)(user)
 
 
@@ -92,7 +90,8 @@ add_perm("chat.access_message", can_access_message)
 add_perm("chat.access_file", can_access_file)
 add_perm("chat.access_preset", can_access_preset)
 add_perm("chat.edit_preset", can_edit_preset)
-# Template wizard
+
+# Template Wizard
 add_perm(
     "template_wizard.access_lex_wizard",
     is_group_member("Litigation briefing user") | is_admin,

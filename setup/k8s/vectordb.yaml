@@ -1,27 +1,12 @@
 # CM-8 & CM-9: Defines the application's components within the AKS cluster
-
 # SC-13: Ensure secure key management practices
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-vector-pvc
-  namespace: otto
-spec:
-  storageClassName: managed-csi
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 32Gi
-
----
-
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet # Manages the deployment and scaling of stateful applications with stable identities
 metadata:
-  name: postgres-vector-deployment
-  namespace: otto
+  name: postgres-vector-db
+  namespace: otto 
 spec:
+  serviceName: "postgres-vector-service"  # Required for stable network identity
   replicas: 1
   selector:
     matchLabels:
@@ -57,34 +42,89 @@ spec:
           ports:
             - containerPort: 5432
           resources:
+            # Database requires stable resources. Somewhat equal requests and limits prevent resource contention.
+            # Increased the CPU limit to allow for query spikes.
+            # Memory remains relatively consistent to ensure stable performance.
             requests:
-              cpu: "500m"
-              memory: "4Gi"
+              cpu: "${VECTORDB_CPU_MIN}"
+              memory: "${VECTORDB_MEMORY_MIN}Gi"
             limits:
-              cpu: "1"
-              memory: "4Gi"
+              cpu: "${VECTORDB_CPU_MAX}"
+              memory: "${VECTORDB_MEMORY_MAX}Gi"
           volumeMounts:
-            - name: postgres-vector-volume-mount
-              subPath: vectordb
+            - name: postgres-vector-storage
               mountPath: /var/lib/postgresql/data
+              subPath: postgres
             - name: secrets
               mountPath: "/mnt/secrets-store"
               readOnly: true
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 30
       volumes:
-        - name: postgres-vector-volume-mount
-          persistentVolumeClaim:
-            claimName: postgres-vector-pvc
         - name: secrets
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
               secretProviderClass: "azure-keyvault"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-vector-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "otto-managed-csi"
+      resources:
+        requests:
+          storage: 32Gi
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pgvector-vector-autoscaler
+  namespace: otto
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: postgres-vector-db
+  minReplicas: ${VECTORDB_REPLICAS_MIN}
+  maxReplicas: ${VECTORDB_REPLICAS_MAX}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
 
 ---
 
 apiVersion: v1
-kind: Service
+kind: Service # Exposes the Postgres vector database to other components within the cluster
 metadata:
   name: postgres-vector-service
   namespace: otto
@@ -95,3 +135,96 @@ spec:
   ports:
   - port: 5432
     targetPort: 5432
+
+# ---
+
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: pgbouncer-vector-config
+#   namespace: otto
+# data:
+#   pgbouncer.ini: |
+#     [databases]
+#     * = host=postgres-vector-service port=5432
+
+#     [pgbouncer]
+#     listen_addr = 0.0.0.0
+#     listen_port = 6432
+#     auth_type = md5
+#     auth_file = /etc/pgbouncer/userlist.txt
+#     pool_mode = transaction
+#     max_client_conn = 1000
+#     default_pool_size = 100
+#     reserve_pool_size = 50
+#     reserve_pool_timeout = 5
+#     server_reset_query = DISCARD ALL
+#     server_check_query = select 1
+#     server_check_delay = 30
+#     ignore_startup_parameters = extra_float_digits
+
+#   userlist.txt: |
+#     "$(POSTGRES_USER)" "$(POSTGRES_PASSWORD)"
+
+# ---
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: pgbouncer-vector
+#   namespace: otto
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: pgbouncer-vector
+#   template:
+#     metadata:
+#       labels:
+#         app: pgbouncer-vector
+#     spec:
+#       containers:
+#       - name: pgbouncer
+#         image: edoburu/pgbouncer:1.18.0
+#         ports:
+#         - containerPort: 6432
+#         env:
+#         - name: POSTGRES_USER
+#           valueFrom:
+#             configMapKeyRef:
+#               name: otto-configmap
+#               key: VECTORDB_USER
+#         - name: POSTGRES_PASSWORD
+#           valueFrom:
+#             secretKeyRef:
+#               name: azure-keyvault-secrets
+#               key: vectordbpasswordkey
+#         volumeMounts:
+#         - name: pgbouncer-config
+#           mountPath: /etc/pgbouncer
+#         resources:
+#           requests:
+#             cpu: "500m"
+#             memory: "512Mi"
+#           limits:
+#             cpu: "500m"
+#             memory: "512Mi"
+#       volumes:
+#       - name: pgbouncer-config
+#         configMap:
+#           name: pgbouncer-vector-config
+
+# ---
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: pgbouncer-vector-service
+#   namespace: otto
+# spec:
+#   selector:
+#     app: pgbouncer-vector
+#   ports:
+#     - protocol: TCP
+#       port: 6432
+#       targetPort: 6432
