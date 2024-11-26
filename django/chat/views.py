@@ -40,7 +40,7 @@ from chat.models import (
 from chat.utils import change_mode_to_chat_qa, title_chat
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
-from otto.rules import is_admin
+from otto.rules import can_access_preset, is_admin
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -506,6 +506,11 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         target_options.save()
 
     chat = Chat.objects.get(id=chat_id)
+    # if we are loading a preset, check if the user has access to it
+    if preset_id and not can_access_preset(
+        request.user, Preset.objects.get(id=preset_id)
+    ):
+        return HttpResponse(status=403)
     if action == "reset":
         # Check if chat.options already exists
         if hasattr(chat, "options") and chat.options:
@@ -780,6 +785,7 @@ def set_preset_favourite(request, preset_id):
         return HttpResponse(status=500)
 
 
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def create_preset(request, chat_id):
 
     form = PresetForm(user=request.user)
