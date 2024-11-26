@@ -1,13 +1,14 @@
 import csv
 import io
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import models
@@ -15,7 +16,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import check_for_language, get_language
+from django.utils.translation import check_for_language
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
@@ -712,31 +713,57 @@ def user_cost(request):
 
 @csrf_exempt
 def load_test(request):
-    # Simulate some load, e.g., database query, heavy computation, etc.
+    start_time = timezone.now()
+    if not cache.get("load_testing_enabled", False):
+        return HttpResponse("Load testing is disabled", status=403)
     query_params = request.GET.dict()
-    logger.info("Stress test request", query_params=query_params)
+    logger.info("Load test request", query_params=query_params)
     if "error" in query_params:
-        raise ValueError("Stress test error raising")
+        raise ValueError("Load test error raising")
     if "sleep" in query_params:
         import time
 
         time.sleep(int(query_params["sleep"]))
     if "user_library_permissions" in query_params:
+        # Super heavy Django DB query, currently takes about 40s on local
         from librarian.models import Library
 
         users = User.objects.all()
         for user in users:
-
             # Check if the user can edit the first library
             library = Library.objects.first()
             user_can_edit = user.has_perm("librarian.edit_library", library)
-            return HttpResponse(f"User {user} can edit library: {user_can_edit}")
+        end_time = timezone.now()
+        total_time = (end_time - start_time).total_seconds()
+        return HttpResponse(
+            f"Checked each user library permissions in {total_time:.2f} seconds"
+        )
     if "query_laws" in query_params:
         from chat.llm import OttoLLM
 
         llm = OttoLLM()
         retriever = llm.get_retriever("laws_lois__")
         nodes = retriever.retrieve("query string")
-        return HttpResponse(f"Retrieved {len(nodes)} nodes")
+        end_time = timezone.now()
+        total_time = (end_time - start_time).total_seconds()
+        return HttpResponse(f"Retrieved {len(nodes)} nodes in {total_time:.2f} seconds")
 
-    return HttpResponse("Stress test response")
+    return HttpResponse(
+        f"Response took {(timezone.now() - start_time).total_seconds():.2f} seconds"
+    )
+
+
+@permission_required("otto.enable_load_testing")
+def enable_load_testing(request):
+    # Enable load testing
+    cache.set("load_testing_enabled", True)
+
+    return render(request, "components/disable_load_test_link.html", {})
+
+
+@permission_required("otto.enable_load_testing")
+def disable_load_testing(request):
+    # Disable load testing
+    cache.set("load_testing_enabled", False)
+
+    return render(request, "components/enable_load_test_link.html", {})

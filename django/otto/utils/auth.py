@@ -1,8 +1,11 @@
 from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import path, reverse
 
 from structlog import get_logger
+
+from otto.views import load_test
 
 logger = get_logger(__name__)
 

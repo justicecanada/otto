@@ -36,6 +36,13 @@ add_perm("otto.view_github_link", is_admin)
 
 
 @predicate
+def can_enable_load_testing(user):
+    if settings.IS_PROD:
+        return False
+    return is_admin(user)
+
+
+@predicate
 def can_view_app(user, app):
     if is_admin(user):
         return True
@@ -53,6 +60,7 @@ def can_access_app(user, app):
 
 add_perm("otto.view_app", can_view_app)
 add_perm("otto.access_app", can_access_app)
+add_perm("otto.enable_load_testing", can_enable_load_testing)
 
 
 # AI Assistant

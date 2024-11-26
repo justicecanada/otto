@@ -11,7 +11,6 @@ from . import views
 
 urlpatterns = [
     path("healthz/", views.health_check, name="health_check"),
-    path("load_test/", views.load_test, name="load_test"),
     path("", views.index, name="index"),
     path("search/", views.topnav_search_inner, name="search_inner"),
     path("welcome/", views.welcome, name="welcome"),
@@ -48,6 +47,17 @@ urlpatterns = [
         name="manage_pilots_form",
     ),
     path("user_management/costs/", views.cost_dashboard, name="cost_dashboard"),
+    path(
+        "command/enable-load-testing/",
+        views.enable_load_testing,
+        name="enable_load_testing",
+    ),
+    path(
+        "command/disable-load-testing/",
+        views.disable_load_testing,
+        name="disable_load_testing",
+    ),
+    path("load_test/", views.load_test, name="load_test"),
     path("user_cost/", views.user_cost, name="user_cost"),
     path("accept_terms/", views.accept_terms, name="accept_terms"),
     path("feedback/", views.message_feedback, name="user_feedback"),

@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.core.management import call_command
 
 from celery import shared_task
@@ -44,6 +45,13 @@ def delete_text_extractor_files():
 def cleanup_vector_store():
     call_command("cleanup_vector_store")
 
+
 @shared_task
 def update_exchange_rate():
     call_command("update_exchange_rate")
+
+
+@shared_task
+def disable_load_testing():
+    cache.set("load_testing_enabled", False)
+    return "Load testing routes disabled"

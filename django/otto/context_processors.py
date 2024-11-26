@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.cache import cache
 
 
 def otto_version(request):
@@ -15,4 +16,7 @@ def otto_version(request):
             v{build_date}</a>/{settings.ENVIRONMENT.lower()}
     </small>
     """
-    return {"otto_version": version_html}
+    return {
+        "otto_version": version_html,
+        "load_test_enabled": cache.get("load_testing_enabled", False),
+    }

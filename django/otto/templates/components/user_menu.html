@@ -26,6 +26,7 @@
       </li>
 
       {% has_perm "otto.manage_users" request.user as can_manage_users %}
+      {% has_perm "otto.enable_load_testing" request.user as can_enable_load_testing %}
       {% if can_manage_users %}
         <li>
           <hr class="dropdown-divider">
@@ -33,6 +34,18 @@
         <li>
           <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
           <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
+        </li>
+      {% endif %}
+      {% if can_enable_load_testing %}
+        <li>
+          <hr class="dropdown-divider">
+        </li>
+        <li>
+          {% if load_test_enabled %}
+            {% include "components/disable_load_test_link.html" %}
+          {% else %}
+            {% include "components/enable_load_test_link.html" %}
+          {% endif %}
         </li>
       {% endif %}
       <li>
