@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -109,7 +111,7 @@ def poll_tasks(request, user_request_id):
                 output_file.txt_file.read().decode("utf-8")
             )
             output_file.answers = [res["answer"] for res in question_results]
-            output_file.usd_cost += cost_llm
+            output_file.usd_cost = Decimal(output_file.usd_cost) + Decimal(cost_llm)
             output_file.save(access_key=access_key)
             all_docs_results[output_file.file_name] = question_results
         elif any(status == "FAILURE" for status in output_file_statuses):

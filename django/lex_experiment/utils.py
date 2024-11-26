@@ -286,7 +286,7 @@ def add_extracted_files(output_file, access_key):
 
 
 def lex_prompts(content):
-    llm = OttoLLM()
+
     client = AzureOpenAI(
         api_key=settings.AZURE_OPENAI_KEY,
         api_version=settings.AZURE_OPENAI_VERSION,
@@ -332,7 +332,9 @@ def lex_prompts(content):
 
     # Calculate the cost based on the number of API calls
     num_api_calls = len(questions)
-    cost = llm.create_costs()
+    cost = Cost.objects.new(cost_type="gpt-4o-mini-in", count=num_api_calls)
+    # llm = OttoLLM()
+    # cost = llm.create_costs()
 
     return [
         {"question": question, "answer": answer}
