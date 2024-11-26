@@ -729,9 +729,13 @@ def load_test(request):
         time.sleep(int(query_params["sleep"]))
     if "user_library_permissions" in query_params:
         # Super heavy Django DB query, currently takes about 40s on local
+        # (only if "heavy" query param is present)
         from librarian.models import Library
 
-        users = User.objects.all()
+        if "heavy" in query_params:
+            users = User.objects.all()
+        else:
+            users = [User.objects.first()]
         for user in users:
             # Check if the user can edit the first library
             library = Library.objects.first()
