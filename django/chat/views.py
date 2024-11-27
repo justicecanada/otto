@@ -40,7 +40,7 @@ from chat.models import (
 from chat.utils import change_mode_to_chat_qa, title_chat
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
-from otto.rules import can_access_preset, is_admin
+from otto.rules import can_access_preset
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -767,7 +767,6 @@ def get_presets(request, chat_id):
             ),
             "chat_id": chat_id,
             "user": request.user,
-            "is_admin": is_admin(request.user),
         },
     )
 
