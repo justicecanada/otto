@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.SUCCESS("Translations cleaned successfully.")
                 )
-            except CommandError as e:
+            except Exception as e:
                 self.stderr.write(e)
                 return
 
