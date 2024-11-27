@@ -128,6 +128,14 @@ def guess_content_type(
         "officedocument.spreadsheetml.sheet",
         "officedocument.wordprocessingml.document",
         "officedocument.presentationml.presentation",
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/bmp",
+        "image/tiff",
+        "image/tif",
+        "image/heif",
+        "image/heic",
     ]
 
     if content_type in trusted_content_types:
@@ -169,7 +177,9 @@ def guess_content_type(
 
 
 def get_process_engine_from_type(type):
-    if "officedocument.wordprocessingml.document" in type:
+    if "image" in type:
+        return "IMAGE"
+    elif "officedocument.wordprocessingml.document" in type:
         return "WORD"
     elif "officedocument.presentationml.presentation" in type:
         return "POWERPOINT"
@@ -198,7 +208,10 @@ def extract_markdown(
     selector=None,
 ):
     enable_markdown = True
-    if process_engine == "PDF":
+    if process_engine == "IMAGE":
+        enable_markdown = False
+        md = pdf_to_text_azure_read(content)
+    elif process_engine == "PDF":
         if pdf_method == "default":
             enable_markdown = False
             md = pdf_to_text_pdfium(content)
