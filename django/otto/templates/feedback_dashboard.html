@@ -85,7 +85,7 @@
       <h1 class="mb-3 mt-2 fs-2">{% trans "Feedback dashboard" %}</h1>
       <div hx-get="{% url 'feedback_stats' %}"
            hx-trigger="load"
-           hx-swap="innerHTML">{% include 'components/feedback/feedback_stats.html' %}</div>
+           hx-swap="innerHTML">{% include 'components/feedback/dashboard/feedback_stats.html' %}</div>
       <div id="feedback-container">
         <!-- Feedback Filter container -->
         <div class="row mt-3">

@@ -45,14 +45,14 @@
                     aria-controls="collapse-{{ info.feedback.id }}">
               <div class="row align-items-center w-100 g-0">
                 <span class="d-flex col-3">
-                  <span class="my-auto ms-1">{% include 'components/feedback/feedback_type_icon.html' %}</span>
+                  <span class="my-auto ms-1">{% include 'components/feedback/dashboard/feedback_type_icon.html' %}</span>
                   <div class="d-flex flex-column flex-grow-1 ms-2 justify-content-center gap-1">
                     <span class="fw-semibold align-middle" style="font-size: 1.1rem;">{{ info.feedback.app|title }}</span>
                     <small class="text-muted text-truncate" style="font-size: .75rem;">{{ info.feedback.created_at|timesince }} {% trans 'ago' %}</small>
                   </div>
                 </span>
                 <span class="feedback-message col-8 lh-base">{{ info.feedback.feedback_message }}</span>
-                <span class="col-1 text-end">{% include 'components/feedback/feedback_type_status.html' %}</span>
+                <span class="col-1 text-end">{% include 'components/feedback/dashboard/feedback_type_status.html' %}</span>
               </div>
  
             </button>
@@ -61,13 +61,13 @@
                class="accordion-collapse collapse"
                aria-labelledby="heading-{{ info.feedback.id }}">
             <div class="accordion-body">
-              {% include 'components/feedback/feedback_details.html' with feedback=info.feedback form=info.form %}
+              {% include 'components/feedback/dashboard/feedback_details.html' with feedback=info.feedback form=info.form %}
             </div>
           </div>
         </div>
       {% endfor %}
     </div>
-    {% include "components/feedback/dashboard/pagination.html" %}
+    {% include "components/feedback/dashboard/feedback_pagination.html" %}
   {% else %}
     <div class="d-flex justify-content-center align-items-center w-100 py-5">
       <div class="text-center">

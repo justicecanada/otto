@@ -152,7 +152,7 @@ def accept_terms(request):
 
 @csrf_protect
 @login_required
-def message_feedback(request: HttpRequest, message_id=None):
+def feedback_message(request: HttpRequest, message_id=None):
     if message_id == "None":
         message_id = None
     if request.method == "POST":
@@ -212,7 +212,9 @@ def feedback_dashboard(request, page_number=None):
 @permission_required("otto.manage_users")
 def feedback_stats(request):
     stats = Feedback.objects.get_feedback_stats()
-    return render(request, "components/feedback/feedback_stats.html", {"stats": stats})
+    return render(
+        request, "components/feedback/dashboard/feedback_stats.html", {"stats": stats}
+    )
 
 
 @permission_required("otto.manage_users")

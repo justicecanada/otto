@@ -49,8 +49,8 @@ urlpatterns = [
     path("user_management/costs/", views.cost_dashboard, name="cost_dashboard"),
     path("user_cost/", views.user_cost, name="user_cost"),
     path("accept_terms/", views.accept_terms, name="accept_terms"),
-    path("feedback/", views.message_feedback, name="user_feedback"),
-    path("feedback/<int:message_id>/", views.message_feedback, name="user_feedback"),
+    path("feedback/", views.feedback_message, name="user_feedback"),
+    path("feedback/<int:message_id>/", views.feedback_message, name="user_feedback"),
     path(
         "user_management/feedback", views.feedback_dashboard, name="feedback_dashboard"
     ),

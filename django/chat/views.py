@@ -46,7 +46,7 @@ from otto.utils.decorators import (
     budget_required,
     permission_required,
 )
-from otto.views import message_feedback
+from otto.views import feedback_message
 
 from .models import Preset
 
@@ -477,7 +477,7 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         logger.error("An error occured while providing a chat feedback.", error=e)
 
     if feedback == -1:
-        return message_feedback(request, message_id)
+        return feedback_message(request, message_id)
 
     return HttpResponse()
 
