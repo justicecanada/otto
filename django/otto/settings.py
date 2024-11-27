@@ -152,6 +152,7 @@ INSTALLED_APPS = [
     "laws",
     "case_prep",
     "template_wizard",
+    "chronology_email",
     # Third-party apps
     "channels",
     "django_cleanup.apps.CleanupConfig",

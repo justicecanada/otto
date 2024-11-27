@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block page_title %}
+  {% trans "Upload Emails" %}
+{% endblock %}
+
+{% block content_container %}
+  <div class="container mt-4">
+    <h2>{% trans "Upload .msg Files" %}</h2>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">New Thread</button>
+    </form>
+
+    {% if emails_by_thread %}
+      <h3>Email Threads</h3>
+      <div>
+        {% for thread_id, thread_data in emails_by_thread.items %}
+          <div class="card my-3">
+            <div class="card-header">
+              <p>
+                <strong>Thread ID:</strong> {{ thread_id }}
+              </p>
+              <div style="display: flex;
+                          justify-content: space-between;
+                          align-items: center">
+                <div>
+                  <p>
+                    <strong>Total Emails:</strong> {{ thread_data.total_emails }}
+                  </p>
+                  <p>
+                    <strong>Unique Participants:</strong> {{ thread_data.unique_participants }}
+                  </p>
+                </div>
+                <div>
+                  <p>
+                    <strong>Total Attachments:</strong> {{ thread_data.total_attachments }}
+                  </p>
+                  <p>
+                    <strong>Last Email Date:</strong> {{ thread_data.last_email_date }}
+                  </p>
+                </div>
+                <div>
+                  <button onclick="toggleThread('{{ thread_id }}')" class="btn btn-link p-0">
+                    <span id="toggle-icon-{{ thread_id }}">▼</span>
+                  </button>
+                  <button onclick="toggleUploadForm('{{ thread_id }}')"
+                          class="btn btn-primary btn-sm">+</button>
+                  <form action="{% url 'chronology_email:delete_thread' thread_id=thread_id %}"
+                        method="post"
+                        style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">-</button>
+                  </form>
+                </div>
+              </div>
+              <form id="upload-form-{{ thread_id }}"
+                    action="{% url 'chronology_email:add_emails_to_thread' thread_id=thread_id %}"
+                    method="post"
+                    enctype="multipart/form-data"
+                    style="display: none;
+                           margin-top: 10px">
+                {% csrf_token %}
+                <label for="msg-files-{{ thread_id }}">Add .msg Files:</label>
+                <input type="file"
+                       name="msg_files"
+                       id="msg-files-{{ thread_id }}"
+                       multiple
+                       required>
+                <button type="submit" class="btn btn-success btn-sm">Upload</button>
+              </form>
+            </div>
+            <div id="thread-{{ thread_id }}" class="card-body" style="display:none;">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Sender</th>
+                    <th>Receiver</th>
+                    <th>Sent Date</th>
+                    <th>Preview</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for email in thread_data.emails %}
+                    <tr>
+                      <td>{{ email.sender }}</td>
+                      <td>{{ email.receiver }}</td>
+                      <td>{{ email.sent_date }}</td>
+                      <td>{{ email.preview_text }}</td>
+                      <td>
+                        <form action="{% url 'chronology_email:delete_email' email.id %}"
+                              method="post"
+                              style="display:inline">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-danger btn-sm">X</button>
+                        </form>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <script>
+    function toggleThread(threadId) {
+        const threadElement = document.getElementById("thread-" + threadId);
+        const toggleIcon = document.getElementById("toggle-icon-" + threadId);
+        
+        if (threadElement.style.display === "none") {
+            threadElement.style.display = "block";
+            toggleIcon.innerText = "▲";
+        } else {
+            threadElement.style.display = "none";
+            toggleIcon.innerText = "▼";
+        }
+    }
+
+    function toggleUploadForm(threadId) {
+        const formElement = document.getElementById("upload-form-" + threadId);
+        formElement.style.display = formElement.style.display === "none" ? "block" : "none";
+    }
+  </script>
+{% endblock %}

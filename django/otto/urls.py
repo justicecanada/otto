@@ -19,6 +19,7 @@ urlpatterns = [
     path("azure_auth/", include("azure_auth.urls")),
     path("accounts/login/callback/", azure_auth_callback, name="callback"),
     # path("admin/", admin.site.urls),
+    path("chronology_email/", include("chronology_email.urls")),
     path("librarian/", include("librarian.urls")),
     path("laws/", include("laws.urls")),
     path("case_prep/", include("case_prep.urls")),

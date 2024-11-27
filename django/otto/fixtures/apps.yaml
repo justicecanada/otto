@@ -123,5 +123,5 @@
           name_fr: chronologie des e-mails
           description_en: Upload and organize emails.
           description_fr: Téléchargez et organisez les e-mails.
-          url: case_prep:index
+          url: chronology_email:index
           category: other
