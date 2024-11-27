@@ -425,6 +425,7 @@ FEATURE_CHOICES = [
     ("laws_load", _("Legislation loading")),
     ("text_extractor", _("Text extractor")),
     ("lex_experiment", _("Lex experiment")),
+    ("load_test", _("Load test")),
 ]
 
 

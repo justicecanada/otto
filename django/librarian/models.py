@@ -218,7 +218,9 @@ class LibraryUserRole(models.Model):
     library = models.ForeignKey(
         Library, on_delete=models.CASCADE, related_name="user_roles"
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="library_roles"
+    )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
     class Meta:

@@ -24,6 +24,11 @@ data "azuread_group" "acr_publishers" {
   display_name = trimspace(each.value)
 }
 
+data "azuread_group" "log_analytics_readers" {
+  for_each     = toset(split(",", var.log_analytics_readers_group_name))
+  display_name = trimspace(each.value)
+}
+
 # VNet module
 module "vnet" {
   source              = "./modules/vnet"
@@ -149,6 +154,7 @@ module "aks" {
   location               = var.location
   resource_group_name    = module.resource_group.name
   admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
+  log_analytics_readers_group_object_ids = values(data.azuread_group.log_analytics_readers)[*].object_id
   keyvault_id            = module.keyvault.keyvault_id
   acr_id                 = module.acr.acr_id
   disk_encryption_set_id = module.disk.disk_encryption_set_id
