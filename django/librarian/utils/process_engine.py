@@ -209,6 +209,7 @@ def extract_markdown(
 ):
     enable_markdown = True
     if process_engine == "IMAGE":
+        content = resize_to_azure_requirements(content)
         enable_markdown = False
         md = pdf_to_text_azure_read(content)
     elif process_engine == "PDF":
@@ -665,3 +666,34 @@ def excel_to_markdown(content):
             table.append("| " + " | ".join(map(str, row)) + " |")
         markdown += "\n".join(table) + "\n\n"
     return markdown
+
+
+def resize_to_azure_requirements(content):
+    from PIL import Image
+
+    with io.BytesIO(content) as image_file:
+        image = Image.open(image_file)
+        width, height = image.size
+        if width < 50 or height < 50:
+            # Resize to at least 50 pixels
+            if width <= height:
+                new_width = 50
+                new_height = int(height * (50 / width))
+            else:
+                new_height = 50
+                new_width = int(width * (50 / height))
+        elif width > 10000 or height > 10000:
+            # Resize to max 10000 pixels
+            if width >= height:
+                new_width = 10000
+                new_height = int(height * (10000 / width))
+            else:
+                new_height = 10000
+                new_width = int(width * (10000 / height))
+        # Resize
+        image = image.resize((new_width, new_height))
+        with io.BytesIO() as output:
+            image.save(output, format="PNG")
+            content = output.getvalue()
+            return content
+    return content

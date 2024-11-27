@@ -157,6 +157,18 @@ def test_extract_outlook_msg():
         assert "jules.kuehn@justice.gc.ca" in md.lower()
 
 
+@pytest.mark.django_db
+def test_extract_png():
+    # Load a PNG file
+    with open(os.path.join(this_dir, "test_files/ocr-test.png"), "rb") as f:
+        content = f.read()
+        md, md_chunks = extract_markdown(content, "IMAGE")
+        assert len(md) > 0
+        assert len(md_chunks) == 1
+        assert "Elephant" in md
+        assert "Elephant" in md_chunks[0]
+
+
 def test_extract_csv():
     # Create a simple, but long CSV content
     csv_content = "Column1,Column2,Column3\n" + "\n".join(
