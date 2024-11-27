@@ -24,7 +24,7 @@
           hx-indicator="#spinner"
           onsubmit="document.getElementById('submit').disabled = true;">
       {% csrf_token %}
-      <h2 class="h3" id="upload-label">{% trans "Upload scanned PDFs or images" %}</h2>
+      <h2 class="h3" id="upload-label">{% trans "Upload scanned Notice(s) of Appeal" %}</h2>
       <p class="text-secondary mb-4">{% trans "Maximum 2000 files / 300mb total" %}</p>
       <div class="mb-4">
         <input class="form-control"
@@ -40,7 +40,7 @@
       </div>
       <div class="row mb-4">
         <div class="col-auto">
-          <button type="submit" class="btn btn-primary" id="submit" disabled="">{% trans "Submit" %}</button>
+          <button type="submit" class="btn btn-primary" id="submit" disabled="">{% trans "Extract Information" %}</button>
         </div>
         <div class="col" style="margin-top:2px;">
           <div class="spinner text-primary" role="status" id="spinner">
@@ -64,17 +64,17 @@
         <thead>
 
           <tr>
-            <th scope="col" width="10%">{% trans "Document" %}</th>
-            <th scope="col" width="10%">{% trans "Tax Court No." %}</th>
+            <th scope="col" width="10%">{% trans "Document Name" %}</th>
+            <th scope="col" width="5%">{% trans "Tax Court No." %}</th>
             <th scope="col" width="10%">{% trans "Appellant's Name" %}</th>
             <th scope="col" width="10%">{% trans "Appellant's Address" %}</th>
-            <th scope="col" width="10%">{% trans "Tax Court Level" %}</th>
-            <th scope="col" width="10%">{% trans "Filed Date of NoA" %}</th>
-            <th scope="col" width="10%">{% trans "Representative's Name" %}</th>
+            <th scope="col" width="5%">{% trans "Tax Court Level" %}</th>
+            <th scope="col" width="5%">{% trans "Filed Date" %}</th>
+            <th scope="col" width="5%">{% trans "Representative's Name" %}</th>
             <th scope="col" width="10%">{% trans "Representative's Address" %}</th>
             <th scope="col" width="5%">{% trans "Taxation Years" %}</th>
-            <th scope="col" width="5%">{% trans "Total Tax Amount" %}</th>
-            <th scope="col" width="10%">{% trans "Sections Referred" %}</th>
+            <th scope="col" width="15%">{% trans "Total Tax Amount" %}</th>
+            <th scope="col" width="20%">{% trans "Sections Referred" %}</th>
  
  
           </tr>
