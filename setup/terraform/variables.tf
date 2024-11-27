@@ -46,7 +46,7 @@ variable "acr_publishers_group_name" {
 variable "log_analytics_readers_group_name" {
   type        = string
   description = "Comma-separated list of group names for Log Analytics readers"
-  
+
 }
 
 variable "resource_group_name" {
@@ -198,11 +198,3 @@ variable "vm_cpu_count" {
   default     = 4 # Standard_D4s_v3 has 4 CPUs
 }
 
-variable "corporate_public_ip" {
-  description = "The public IP address of the corporate network"
-  type        = string
-  validation {
-    condition     = can(regex("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$", var.corporate_public_ip))
-    error_message = "The corporate_public_ip value must be a valid IPv4 address."
-  }
-}

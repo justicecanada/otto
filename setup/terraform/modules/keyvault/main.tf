@@ -11,19 +11,11 @@ resource "azurerm_key_vault" "kv" {
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
 
-  # TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
-  # public_network_access_enabled = !var.use_private_network
-
-  # TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
-  # network_acls {
-  #   default_action = var.use_private_network ? "Deny" : "Allow"
-  #   bypass         = "AzureServices"
-  # }
+  public_network_access_enabled = !var.use_private_network
 
   network_acls {
-    default_action             = "Deny"
+    default_action             = var.use_private_network ? "Deny" : "Allow"
     bypass                     = "AzureServices"
-    ip_rules                   = [var.corporate_public_ip]                                # Allow access from the corporate network for management purposes
     virtual_network_subnet_ids = [var.app_subnet_id, var.web_subnet_id, var.db_subnet_id] # Allow access from the app, web, and database subnets
   }
 

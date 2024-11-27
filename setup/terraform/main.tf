@@ -58,7 +58,6 @@ module "keyvault" {
   app_subnet_id          = module.vnet.app_subnet_id
   web_subnet_id          = module.vnet.web_subnet_id
   db_subnet_id           = module.vnet.db_subnet_id
-  corporate_public_ip    = var.corporate_public_ip
 }
 
 # ACR module
@@ -85,7 +84,6 @@ module "disk" {
   cmk_id                    = module.keyvault.cmk_id
   wait_for_propagation      = module.keyvault.wait_for_propagation
   use_private_network       = var.use_private_network
-  corporate_ip              = var.corporate_public_ip
   app_subnet_id             = module.vnet.app_subnet_id
   web_subnet_id             = module.vnet.web_subnet_id
   db_subnet_id              = module.vnet.db_subnet_id
@@ -107,7 +105,6 @@ module "storage" {
   admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
-  corporate_public_ip    = var.corporate_public_ip
   app_subnet_id          = module.vnet.app_subnet_id
   web_subnet_id          = module.vnet.web_subnet_id
   db_subnet_id           = module.vnet.db_subnet_id
@@ -149,23 +146,24 @@ module "openai" {
 
 # AKS module
 module "aks" {
-  source                 = "./modules/aks"
-  aks_cluster_name       = var.aks_cluster_name
-  location               = var.location
-  resource_group_name    = module.resource_group.name
-  admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
+  source                                 = "./modules/aks"
+  aks_cluster_name                       = var.aks_cluster_name
+  location                               = var.location
+  resource_group_name                    = module.resource_group.name
+  admin_group_object_ids                 = values(data.azuread_group.admin_groups)[*].object_id
   log_analytics_readers_group_object_ids = values(data.azuread_group.log_analytics_readers)[*].object_id
-  keyvault_id            = module.keyvault.keyvault_id
-  acr_id                 = module.acr.acr_id
-  disk_encryption_set_id = module.disk.disk_encryption_set_id
-  storage_account_id     = module.storage.storage_account_id
-  tags                   = local.common_tags
-  admin_email            = var.admin_email
-  use_private_network    = var.use_private_network
-  vm_size                = var.vm_size
-  vm_cpu_count           = var.vm_cpu_count
-  approved_cpu_quota     = var.approved_cpu_quota
-  web_subnet_id          = module.vnet.web_subnet_id
+  keyvault_id                            = module.keyvault.keyvault_id
+  acr_id                                 = module.acr.acr_id
+  disk_encryption_set_id                 = module.disk.disk_encryption_set_id
+  storage_account_id                     = module.storage.storage_account_id
+  tags                                   = local.common_tags
+  admin_email                            = var.admin_email
+  use_private_network                    = var.use_private_network
+  vm_size                                = var.vm_size
+  vm_cpu_count                           = var.vm_cpu_count
+  approved_cpu_quota                     = var.approved_cpu_quota
+  vnet_id                                = module.vnet.vnet_id
+  web_subnet_id                          = module.vnet.web_subnet_id
 }
 
 # TODO: Uncomment Velero after the change request is approved

@@ -44,7 +44,3 @@ variable "db_subnet_id" {
   type        = string
 }
 
-variable "corporate_public_ip" {
-  description = "The public IP address of the corporate network"
-  type        = string
-}

@@ -234,7 +234,7 @@ export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
 export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}store" # Base name for the storage account
 export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
-export VELERO_IDENTITY_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-velero"
+#export VELERO_IDENTITY_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-velero"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
 
 export BACKUP_CONTAINER_NAME="backups"
@@ -321,7 +321,6 @@ disk_name = "${DISK_NAME}"
 storage_name = "${STORAGE_NAME}"
 acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
-velero_identity_name = "${VELERO_IDENTITY_NAME}"
 approved_cpu_quota = "${APPROVED_CPU_QUOTA}"
 vnet_name = "${VNET_NAME}"
 vnet_ip_range = "${VNET_IP_RANGE}"
@@ -339,5 +338,4 @@ text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
 admin_email = "${ADMIN_EMAIL}"
 use_private_network = "${USE_PRIVATE_NETWORK}"
 backup_container_name = "${BACKUP_CONTAINER_NAME}"
-corporate_public_ip = "${CORPORATE_PUBLIC_IP}"
 EOF

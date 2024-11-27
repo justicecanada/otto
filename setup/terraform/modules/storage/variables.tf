@@ -64,11 +64,6 @@ variable "db_subnet_id" {
   type        = string
 }
 
-variable "corporate_public_ip" {
-  description = "The public IP address of the corporate network"
-  type        = string
-}
-
 variable "backup_container_name" {
   description = "The name of the backup container to create in the storage account"
   type        = string

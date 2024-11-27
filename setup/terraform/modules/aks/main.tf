@@ -12,6 +12,27 @@ locals {
   max_node_count = floor(var.approved_cpu_quota / var.vm_cpu_count)
 }
 
+resource "azurerm_user_assigned_identity" "aks_identity" {
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  name                = "${var.aks_cluster_name}-identity"
+}
+
+# Create a private DNS zone for AKS
+resource "azurerm_private_dns_zone" "aks_dns" {
+  name                = "privatelink.canadacentral.azmk8s.io"
+  resource_group_name = var.resource_group_name
+}
+
+# Link the private DNS zone to the virtual network
+resource "azurerm_private_dns_zone_virtual_network_link" "aks_dns_link" {
+  name                  = "${var.aks_cluster_name}-dns-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.aks_dns.name
+  virtual_network_id    = var.vnet_id
+  registration_enabled  = false
+}
+
 # Define the Azure Kubernetes Service (AKS) cluster
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_cluster_name
@@ -24,8 +45,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   workload_identity_enabled = true # Workload identity allows the AKS cluster to use managed identities for Azure resources
 
   # AC-22, IA-8, SC-2, SC-5: Configure the private cluster settings
-  # TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
-  #private_cluster_enabled = var.use_private_network
+  private_cluster_enabled = var.use_private_network
+  private_dns_zone_id     = azurerm_private_dns_zone.aks_dns.id
 
   # Cluster-level autoscaling configuration:
   # - vm_size: Defines CPU and memory for each node (e.g., "Standard_D4s_v3")
@@ -69,9 +90,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
     scale_down_utilization_threshold = 0.5      # Node utilization level below which it's considered for scale down (50%)
   }
 
-  # Set the identity type to SystemAssigned
+  # Assign the identity to the AKS cluster
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.aks_identity.id]
   }
 
   # SC-12 & SC-13: Enabling Azure Key Vault secrets provider for secure key management
@@ -83,9 +105,28 @@ resource "azurerm_kubernetes_cluster" "aks" {
   # SC-8: Secure Internal Communication in AKS
   # AC-3 & CM-8(3): Network Policies for AKS
   network_profile {
-    network_plugin = "kubenet" # Azure CNI provides integration with Azure networking features; Kubenet is simpler and will suffice in Sandbox; TODO: Change to "azure" after resolving issues.
-    #network_policy    = "azure"    # Azure network policies control traffic flow between pods; TODO: Enable network policy once rules are configured to work in environment.
-    load_balancer_sku = "standard" # Standard SKU provides more features and better performance
+    # Use kubenet for simplified networking and efficient IP address usage
+    # Suitable for clusters with limited IP address space and primarily internal pod communication
+    network_plugin = "kubenet"
+
+    # Pod CIDR specifies the IP range from which pod IPs are allocated
+    # This range is internal to the cluster and not routable outside, so it's safe to reuse across environments
+    # 10.244.0.0/16 provides ample space for pod IPs and is a commonly used default
+    pod_cidr = "10.244.0.0/16"
+
+    # Service CIDR defines the IP range for internal Kubernetes services
+    # This range is also internal to the cluster and not routable outside, making it safe to reuse
+    # 10.0.0.0/16 is a standard choice that doesn't typically conflict with other network ranges
+    service_cidr = "10.0.0.0/16"
+
+    # DNS service IP must be within the service CIDR range
+    # 10.0.0.10 is a conventional choice that works well with the 10.0.0.0/16 service CIDR
+    # Safe to reuse as it's only used internally within the cluster
+    dns_service_ip = "10.0.0.10"
+
+    # Outbound type determines how outbound traffic is handled
+    # "loadBalancer" is the default and recommended for most scenarios
+    outbound_type = "loadBalancer"
   }
 
   oms_agent {
@@ -120,13 +161,13 @@ resource "azurerm_kubernetes_cluster" "aks" {
   tags = var.tags
 
   # Specify dependencies
-  depends_on = [var.acr_id]
+  depends_on = [var.acr_id, azurerm_role_assignment.aks_network_contributor]
 }
 
 resource "azurerm_role_assignment" "aks_des_reader" {
   scope                = var.disk_encryption_set_id
   role_definition_name = "Reader"
-  principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
+  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
 
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
@@ -134,9 +175,20 @@ resource "azurerm_role_assignment" "aks_des_reader" {
 resource "azurerm_role_assignment" "aks_vm_contributor" {
   scope                = var.disk_encryption_set_id
   role_definition_name = "Virtual Machine Contributor"
-  principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
+  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
 
   depends_on = [azurerm_kubernetes_cluster.aks]
+}
+
+# Data for resource_group_id
+data "azurerm_resource_group" "rg" {
+  name = var.resource_group_name
+}
+
+resource "azurerm_role_assignment" "aks_network_contributor" {
+  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
+  role_definition_name = "Network Contributor"
+  scope                = data.azurerm_resource_group.rg.id
 }
 
 resource "azurerm_role_assignment" "rbac_cluster_admin" {
@@ -146,7 +198,17 @@ resource "azurerm_role_assignment" "rbac_cluster_admin" {
   scope                = azurerm_kubernetes_cluster.aks.id
 }
 
-resource "azurerm_role_assignment" "kv_secrets_provider_user" {
+# Role assignment for the AKS kubelet identity
+resource "azurerm_role_assignment" "aks_kubelet_identity_kv_secrets_user" {
+  # SC-12: RBAC for AKS to access Key Vault secrets
+  principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  role_definition_name = "Key Vault Secrets User"
+  scope                = var.keyvault_id
+  principal_type       = "ServicePrincipal"
+}
+
+# Role assignment for the AKS secrets provider identity
+resource "azurerm_role_assignment" "aks_secrets_provider_identity_kv_secrets_user" {
   # SC-12: RBAC for AKS to access Key Vault secrets
   principal_id         = azurerm_kubernetes_cluster.aks.key_vault_secrets_provider[0].secret_identity[0].object_id
   role_definition_name = "Key Vault Secrets User"
@@ -154,8 +216,17 @@ resource "azurerm_role_assignment" "kv_secrets_provider_user" {
   principal_type       = "ServicePrincipal"
 }
 
+# ## Kubelet Identity
+# The kubelet identity is crucial for node-level operations, including accessing Azure resources like Key Vault. It's essential for pods that need to directly access secrets.
+# 
+# ## Secrets Provider Identity
+# This identity is specifically used by the Azure Key Vault Provider for Secrets Store CSI Driver. It's responsible for accessing Key Vault secrets and mounting them as volumes in pods.
+# 
+# ## User-Assigned Managed Identity (Cluster Identity)
+# The AKS cluster's user-assigned managed identity is used for cluster-level operations and management tasks and does not typically require direct access to secrets.
+
 resource "azurerm_role_assignment" "acr_pull" {
-  principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
+  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
   role_definition_name = "AcrPull"
   scope                = var.acr_id
   principal_type       = "ServicePrincipal"

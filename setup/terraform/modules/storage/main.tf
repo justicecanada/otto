@@ -50,14 +50,13 @@ resource "azurerm_key_vault_key" "storage_cmk" {
 # SC-28: Storage account encryption by default using 256-bit AES encryption
 # SC-8: Azure Storage implicitly enables secure transfer
 resource "azurerm_storage_account" "storage" {
-  name                     = var.storage_name
-  resource_group_name      = var.resource_group_name
-  location                 = var.location # SA-9(5): Store data in a location that complies with data residency requirements
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  account_kind             = "StorageV2"
-  # TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
-  # public_network_access_enabled = !var.use_private_network # AC-22, IA-8: Set to false for private access
+  name                          = var.storage_name
+  resource_group_name           = var.resource_group_name
+  location                      = var.location # SA-9(5): Store data in a location that complies with data residency requirements
+  account_tier                  = "Standard"
+  account_replication_type      = "LRS"
+  account_kind                  = "StorageV2"
+  public_network_access_enabled = !var.use_private_network # AC-22, IA-8: Set to false for private access
 
   default_to_oauth_authentication = true
   is_hns_enabled                  = true
@@ -81,17 +80,10 @@ resource "azurerm_storage_account" "storage" {
     user_assigned_identity_id = azurerm_user_assigned_identity.storage_identity.id
   }
 
-  # TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
-  # network_rules {
-  #   default_action = var.use_private_network ? "Deny" : "Allow"
-  #   bypass         = ["AzureServices"]
-  # }
-
   network_rules {
-    default_action             = "Deny"
+    default_action             = var.use_private_network ? "Deny" : "Allow"
     bypass                     = ["AzureServices"]
-    ip_rules                   = [var.corporate_public_ip] # Allow access from the corporate network for management purposes
-    virtual_network_subnet_ids = [var.app_subnet_id]       # Allow access from the app subnets
+    virtual_network_subnet_ids = [var.app_subnet_id] # Allow access from the app subnets
   }
 
   tags = var.tags

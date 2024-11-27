@@ -7,7 +7,7 @@ resource "null_resource" "wait_for_purge_protection" {
 }
 
 resource "azurerm_disk_access" "disk_access" {
-  name                = "disk-access-${var.disk_name}"
+  name                = "${var.disk_name}-disk-access"
   resource_group_name = var.resource_group_name
   location            = var.location
   tags                = var.tags
@@ -108,79 +108,4 @@ resource "azurerm_private_endpoint" "disk_access_endpoint" {
   }
 
   tags = var.tags
-}
-
-# Create a Network Security Group (NSG) to control access to the disks
-resource "azurerm_network_security_group" "disk_nsg" {
-  name                = "${var.disk_name}-nsg"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-
-  security_rule {
-    name                       = "AllowCorporateIP"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "${var.corporate_ip}/32"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "AllowWebSubnet"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = var.web_subnet_address_prefix
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "AllowAppSubnet"
-    priority                   = 120
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = var.app_subnet_address_prefix
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "AllowDbSubnet"
-    priority                   = 130
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = var.db_subnet_address_prefix
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "DenyAllInbound"
-    priority                   = 4096
-    direction                  = "Inbound"
-    access                     = "Deny"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-
-  tags = var.tags
-}
-
-# Associate the NSG with the subnet where the private endpoints are located
-resource "azurerm_subnet_network_security_group_association" "disk_nsg_association" {
-  subnet_id                 = var.app_subnet_id
-  network_security_group_id = azurerm_network_security_group.disk_nsg.id
 }
