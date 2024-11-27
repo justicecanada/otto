@@ -1,21 +1,21 @@
 from decimal import Decimal
 
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from lex_experiment.models import OutputFileLex, UserRequestLex
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from otto.secure_models import AccessKey
 from otto.utils.common import display_cad_cost, file_size_to_string
 from otto.utils.decorators import app_access_required, budget_required
+from text_extractor.models import OutputFile, UserRequest
+from text_extractor.tasks import process_ocr_document
+from text_extractor.utils import add_extracted_files
 
-from .tasks import process_ocr_document
-from .utils import add_extracted_files, lex_prompts
+from .utils import lex_prompts
 
 app_name = "lex_experiment"
 logger = get_logger(__name__)
@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 @app_access_required(app_name)
 def index(request):
-    from lex_experiment.utils import img_extensions
+    from text_extractor.utils import img_extensions
 
     extensions = ", ".join(list(img_extensions) + [".pdf"])
     return render(
@@ -43,9 +43,9 @@ def submit_document(request):
     logger.debug(f"Received {len(files)} files")
     access_key = AccessKey(user=request.user)
 
-    UserRequestLex.grant_create_to(access_key)
-    OutputFileLex.grant_create_to(access_key)
-    user_request = UserRequestLex.objects.create(
+    UserRequest.grant_create_to(access_key)
+    OutputFile.grant_create_to(access_key)
+    user_request = UserRequest.objects.create(
         access_key=access_key, merged=False, name=request.user.username[:255]
     )
     output_files = []
@@ -58,10 +58,10 @@ def submit_document(request):
             file_content = file.read()
             file.seek(0)
 
-            result = process_ocr_document.delay(file_content, file.name, idx)
+            result = process_ocr_document.delay(file_content, file.name, False, idx)
 
             output_files.append(
-                OutputFileLex.objects.create(
+                OutputFile.objects.create(
                     access_key=access_key,
                     pdf_file=None,
                     txt_file=None,
@@ -94,9 +94,8 @@ def submit_document(request):
 
 
 def poll_tasks(request, user_request_id):
-    all_docs_results = {}
     access_key = AccessKey(user=request.user)
-    user_request = UserRequestLex.objects.get(access_key, id=user_request_id)
+    user_request = UserRequest.objects.get(access_key, id=user_request_id)
     output_files = user_request.output_files.filter(access_key=access_key)
     for output_file in output_files:
         output_file_statuses = []
@@ -113,7 +112,6 @@ def poll_tasks(request, user_request_id):
             output_file.answers = [res["answer"] for res in question_results]
             output_file.usd_cost = Decimal(output_file.usd_cost) + Decimal(cost_llm)
             output_file.save(access_key=access_key)
-            all_docs_results[output_file.file_name] = question_results
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
         else:
@@ -147,34 +145,13 @@ def poll_tasks(request, user_request_id):
         return render(request, "lex_experiment/completed_documents.html", context)
 
     # Otherwise, render the whole page with the updated rows.
-    from lex_experiment.utils import img_extensions
+    from text_extractor.utils import img_extensions
 
     context.update(
         {
             "extensions": ", ".join(list(img_extensions) + [".pdf"]),
             "show_output": True,
             "refresh_on_load": False,
-            "all_docs_results": all_docs_results,
         }
     )
     return render(request, "lex_experiment/lex_experiment.html", context)
-
-
-# def download_document(request, file_id, file_type):
-#     access_key = AccessKey(user=request.user)
-
-#     try:
-#         output_file = OutputFileLex.objects.get(access_key=access_key, id=file_id)
-#     except OutputFileLex.DoesNotExist:
-#         return render(request, "lex_experiment/error_message.html")
-
-#     if file_type == "pdf":
-#         file = output_file.pdf_file
-#     elif file_type == "txt":
-#         file = output_file.txt_file
-#     with file.open("rb") as file:
-#         response = HttpResponse(file.read(), content_type="application/octet-stream")
-#         response["Content-Disposition"] = (
-#             f'attachment; filename="{output_file.file_name}.{file_type}"'
-#         )
-#         return response
