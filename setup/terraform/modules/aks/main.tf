@@ -48,11 +48,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
   private_cluster_enabled = var.use_private_network
   private_dns_zone_id     = azurerm_private_dns_zone.aks_dns.id
 
-  # Network access configuration
-  api_server_access_profile {
-    # Restrict access to the AKS API server to the corporate network
-    authorized_ip_ranges = [var.corporate_public_ip] # Justice Canada IP range
-  }
+  # # Network access configuration
+  # api_server_access_profile {
+  #   # Restrict access to the AKS API server to the corporate network
+  #   authorized_ip_ranges = [var.corporate_public_ip] # Justice Canada IP range
+  # }
 
   # Cluster-level autoscaling configuration:
   # - vm_size: Defines CPU and memory for each node (e.g., "Standard_D4s_v3")

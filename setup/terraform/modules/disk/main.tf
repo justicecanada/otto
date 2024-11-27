@@ -7,7 +7,7 @@ resource "null_resource" "wait_for_purge_protection" {
 }
 
 resource "azurerm_disk_access" "disk_access" {
-  name                = "disk-access-${var.disk_name}"
+  name                = "${var.disk_name}-disk-access"
   resource_group_name = var.resource_group_name
   location            = var.location
   tags                = var.tags
