@@ -43,6 +43,12 @@ variable "acr_publishers_group_name" {
   description = "Comma-separated list of group names for ACR publishers"
 }
 
+variable "log_analytics_readers_group_name" {
+  type        = string
+  description = "Comma-separated list of group names for Log Analytics readers"
+  
+}
+
 variable "resource_group_name" {
   type        = string
   description = "Name of the resource group"
