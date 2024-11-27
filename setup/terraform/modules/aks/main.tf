@@ -176,6 +176,14 @@ resource "azurerm_role_assignment" "aks_storage_blob_data_contributor" {
   depends_on           = [azurerm_kubernetes_cluster.aks]
 }
 
+resource "azurerm_role_assignment" "aks_log_analytics_reader" {
+  for_each             = toset(var.log_analytics_readers_group_object_ids)
+  principal_id         = each.value
+  role_definition_name = "Log Analytics Reader"
+  scope                = azurerm_log_analytics_workspace.aks.id
+  depends_on           = [azurerm_kubernetes_cluster.aks]
+}
+
 # AU-4(1): AKS cluster is configured to use Azure Monitor for logging
 # AU-6: Comprehensive audit logging
 # AU-7: Integration with Azure Monitor provides audit reduction and report generation capabilities
