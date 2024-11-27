@@ -528,7 +528,7 @@ class ChatFile(models.Model):
     message = models.ForeignKey(
         "Message", on_delete=models.CASCADE, related_name="files"
     )
-    filename = models.CharField(max_length=255)
+    filename = models.CharField(max_length=500)
     saved_file = models.ForeignKey(
         SavedFile,
         on_delete=models.SET_NULL,
