@@ -33,7 +33,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--clean",
-            help="Removes all translations with no manual translations.",
+            help="Removes all translations with no manual translations in .json file.",
             action="store_true",
         )
 
@@ -48,11 +48,6 @@ class Command(BaseCommand):
             raise CommandError(
                 "Type '%s help %s' for usage information."
                 % (os.path.basename(sys.argv[0]), sys.argv[1])
-            )
-
-        if clean and no_translation:
-            raise CommandError(
-                "The --clean argument cannot be used with the --no-translation argument."
             )
 
         if not no_po:
