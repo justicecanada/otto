@@ -690,10 +690,15 @@ def resize_to_azure_requirements(content):
             else:
                 new_height = 10000
                 new_width = int(width * (10000 / height))
-        # Resize
+        else:
+            return content
+        # Edge case: insanely wide or tall images. Don't maintain proportions.
+        new_width = min(new_width, 10000)
+        new_height = min(new_height, 10000)
+        new_width = max(new_width, 50)
+        new_height = max(new_height, 50)
         image = image.resize((new_width, new_height))
         with io.BytesIO() as output:
             image.save(output, format="PNG")
             content = output.getvalue()
             return content
-    return content

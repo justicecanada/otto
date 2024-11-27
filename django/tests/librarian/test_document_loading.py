@@ -169,6 +169,44 @@ def test_extract_png():
         assert "Elephant" in md_chunks[0]
 
 
+def test_resize_to_azure_requirements():
+    import io
+
+    from PIL import Image
+
+    from librarian.utils.process_engine import resize_to_azure_requirements
+
+    def create_image(width, height):
+        image = Image.new("RGB", (width, height), color="white")
+        with io.BytesIO() as output:
+            image.save(output, format="PNG")
+            return output.getvalue()
+
+    small_image = create_image(30, 40)
+    small_image_2 = create_image(60, 30)
+    medium_image = create_image(100, 100)
+    large_image = create_image(12000, 1000)
+    large_image_2 = create_image(1000, 12000)
+    wide_image = create_image(12000, 40)
+    tall_image = create_image(40, 12000)
+
+    for image in [
+        small_image,
+        small_image_2,
+        medium_image,
+        large_image,
+        large_image_2,
+        wide_image,
+        tall_image,
+    ]:
+        resized_image = resize_to_azure_requirements(image)
+        assert resized_image is not None
+        # Check that width and height are both within range (50, 10000)
+        image = Image.open(io.BytesIO(resized_image))
+        assert 50 <= image.width <= 10000
+        assert 50 <= image.height <= 10000
+
+
 def test_extract_csv():
     # Create a simple, but long CSV content
     csv_content = "Column1,Column2,Column3\n" + "\n".join(
