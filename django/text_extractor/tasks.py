@@ -5,7 +5,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from celery import current_task, shared_task
 
-from .utils import create_searchable_pdf
+from text_extractor.utils import create_searchable_pdf
 
 
 # passing the OCR method to celery
