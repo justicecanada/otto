@@ -2,7 +2,7 @@
 {% load chat_tags %}
 {% load static %}
 {% load rules %}
-{% has_perm "chat.edit_preset" user as can_edit_preset %}
+{% has_perm "chat.edit_preset" user preset as can_edit_preset %}
 {% get_current_language as LANGUAGE_CODE %}
 <li class="card" data-default="{{ preset.default }}">
   <div class="card-header align-items-center">
