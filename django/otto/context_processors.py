@@ -3,7 +3,7 @@ from django.core.cache import cache
 
 
 def otto_version(request):
-    if settings.OTTO_BUILD_DATE:
+    if not settings.OTTO_BUILD_DATE:
         version_html = settings.ENVIRONMENT.lower()
     else:
         hash = settings.OTTO_VERSION_HASH
