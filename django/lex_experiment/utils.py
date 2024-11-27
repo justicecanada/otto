@@ -58,8 +58,6 @@ def lex_prompts(content):
     # Calculate the cost based on the number of API calls
     num_api_calls = len(questions)
     cost = Cost.objects.new(cost_type="gpt-4o-mini-in", count=num_api_calls)
-    # llm = OttoLLM()
-    # cost = llm.create_costs()
 
     return [
         {"question": question, "answer": answer}
