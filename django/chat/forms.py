@@ -190,7 +190,7 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "updateQaSourceForms(); toggleRagOptions(this.value); triggerOptionSave();",
+                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this.value); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(
