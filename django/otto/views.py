@@ -12,7 +12,7 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import models
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseServerError, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -722,7 +722,7 @@ def load_test(request):
     query_params = request.GET.dict()
     logger.info("Load test request", query_params=query_params)
     if "error" in query_params:
-        raise ValueError("Load test error raising")
+        return HttpResponseServerError("Error requested")
     if "sleep" in query_params:
         import time
 
@@ -783,7 +783,12 @@ def load_test(request):
             llm = OttoLLM(query_params["llm_call"])
         else:
             llm = OttoLLM()
-        response = llm.complete("Write a 5 paragraph essay on AI ethics.")
+        if "long_response" in query_params:
+            response = llm.complete("Write a 5 paragraph essay on AI ethics.")
+        else:
+            response = llm.complete(
+                "What is 'Hello' in French? Respond with the translated word only."
+            )
         cost = llm.create_costs()
         end_time = timezone.now()
         total_time = (end_time - start_time).total_seconds()
@@ -796,7 +801,9 @@ def load_test(request):
         )
     if "embed_text" in query_params:
         llm = OttoLLM()
-        test_text = "This is a test text for embedding. " * 1000
+        test_text = "This is a test text for embedding. " * (
+            100 if "long_input" in query_params else 1
+        )
         embedding = llm.embed_model.get_text_embedding(test_text)
         end_time = timezone.now()
         total_time = (end_time - start_time).total_seconds()

@@ -23,10 +23,11 @@ export default function () {
   // let res = http.get(`${base_url}/load_test/?celery_sleep=10&show_queue`); // Returns the task queue lengths in the response
   // let res = http.get(`${base_url}/load_test/?error`); // Raise an error in Django (returns 500)
   let res = http.get(`${base_url}/load_test/?query_laws`); // Large vector DB query
-  // let res = http.get(`${base_url}/load_test/?llm_call`); // LLM call
+  // let res = http.get(`${base_url}/load_test/?llm_call`); // LLM call for 1 word response
+  // let res = http.get(`${base_url}/load_test/?llm_call&long_response`); // LLM call for 5 paragraph essay
   // let res = http.get(`${base_url}/load_test/?llm_call=gpt-4o`); // Specific LLM deployment
-  // let res = http.get(`${base_url}/load_test/?embed_text`); // Embedding request
-  // let res = http.get(`${base_url}/load_test/?celery_sleep=5`); // Add mock Celery task and see queue lengths
+  // let res = http.get(`${base_url}/load_test/?embed_text`); // Embedding request with short input
+  // let res = http.get(`${base_url}/load_test/?embed_text&long_input`); // Embedding request with long input
   check(res, {
     'status is 200': (r) => r.status === 200,
   });
