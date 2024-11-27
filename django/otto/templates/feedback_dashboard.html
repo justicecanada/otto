@@ -156,12 +156,10 @@
             <span class="spinner-border" aria-hidden="true"></span>
             <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
           </div>
-          {% include 'components/feedback/dashboard/feedback_list.html' with feedback_status_choices=feedback_status_choices feedback_type_choices=feedback_type_choices %}
+          {% include 'components/feedback/dashboard/feedback_list.html' %}
         </div>
       </div>
  
     </div>
   </div>
 {% endblock %}
-
-{% block page_script %}{% endblock %}

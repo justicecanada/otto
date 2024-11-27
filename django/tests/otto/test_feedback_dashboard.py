@@ -24,23 +24,20 @@ def test_feedback_stats_view(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_feedback_list_view(client, all_apps_user):
+def test_feedback_list_view(client, all_apps_user, basic_feedback):
     user = all_apps_user()
     client.force_login(user)
 
-    # Create some feedback objects for testing
-    feedback_other_new = Feedback.objects.create(
-        created_by=user,
-        feedback_message="Test feedback 1",
-        status="new",
-        feedback_type="other",
-    )
-    feedback_bug_resolved = Feedback.objects.create(
-        created_by=user,
-        feedback_message="Test feedback 2",
-        status="resolved",
-        feedback_type="bug",
-    )
+    feedback_other_new = basic_feedback(user)
+    feedback_other_new.status = "new"
+    feedback_other_new.feedback_type = "other"
+    feedback_other_new.save()
+
+    feedback_bug_resolved = basic_feedback(user)
+    feedback_bug_resolved.status = "resolved"
+    feedback_bug_resolved.feedback_type = "bug"
+    feedback_bug_resolved.app = "chat"
+    feedback_bug_resolved.save()
 
     response = client.get(reverse("feedback_list"))
 
@@ -70,16 +67,14 @@ def test_feedback_list_view(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_feedback_dashboard_update_metadata(client, all_apps_user):
+def test_feedback_dashboard_update_metadata(client, all_apps_user, basic_feedback):
     user = all_apps_user()
     client.force_login(user)
 
-    feedback = Feedback.objects.create(
-        created_by=user,
-        feedback_message="Test feedback",
-        status="new",
-        feedback_type="bug",
-    )
+    feedback = basic_feedback(user)
+    feedback.status = "new"
+    feedback.feedback_type = "bug"
+    feedback.save()
 
     url = reverse("feedback_dashboard_update", args=[feedback.id, "metadata"])
     data = {
@@ -96,16 +91,12 @@ def test_feedback_dashboard_update_metadata(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_feedback_dashboard_update_notes(client, all_apps_user):
+def test_feedback_dashboard_update_notes(client, all_apps_user, basic_feedback):
     user = all_apps_user()
     client.force_login(user)
 
-    feedback = Feedback.objects.create(
-        created_by=user,
-        feedback_message="Test feedback",
-        status="new",
-        feedback_type="bug",
-    )
+    feedback = basic_feedback(user)
+    feedback.save()
 
     url = reverse("feedback_dashboard_update", args=[feedback.id, "notes"])
     data = {
@@ -120,46 +111,38 @@ def test_feedback_dashboard_update_notes(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_feedback_dashboard_update(client, all_apps_user):
+def test_feedback_dashboard_update(client, all_apps_user, basic_feedback):
     user = all_apps_user()
     client.force_login(user)
-    feedback = Feedback.objects.create(
-        created_by=user,
-        feedback_message="Test feedback",
-        feedback_type="bug",
-        status="new",
-    )
+    feedback = basic_feedback(user)
+    feedback.save()
     url = reverse("feedback_dashboard_update", args=[feedback.id, "metadata"])
     response = client.get(url)
     assert response.status_code == 405
 
 
 @pytest.mark.django_db
-def test_feedback_download_view(client, all_apps_user):
+def test_feedback_download_view(client, all_apps_user, basic_feedback):
     user = all_apps_user()
     client.force_login(user)
 
-    # Create some feedback objects for testing
-    feedback1 = Feedback.objects.create(
-        created_by=user,
-        feedback_message="Test feedback 1",
-        status="new",
-        feedback_type="other",
-        app="Otto",
-        admin_notes="Note 1",
-        otto_version="1.0",
-        url_context="/app1",
-    )
-    feedback2 = Feedback.objects.create(
-        created_by=user,
-        feedback_message="Test feedback 2",
-        status="resolved",
-        feedback_type="bug",
-        app="Otto",
-        admin_notes="Note 2",
-        otto_version="1.1",
-        url_context="/app2",
-    )
+    feedback1 = basic_feedback(user)
+    feedback1.status = "new"
+    feedback1.feedback_type = "other"
+    feedback1.app = "Otto"
+    feedback1.admin_notes = "Note 1"
+    feedback1.otto_version = "1.0"
+    feedback1.url_context = "/app1"
+    feedback1.save()
+
+    feedback2 = basic_feedback(user)
+    feedback2.status = "resolved"
+    feedback2.feedback_type = "bug"
+    feedback2.app = "Otto"
+    feedback2.admin_notes = "Note 2"
+    feedback2.otto_version = "1.1"
+    feedback2.url_context = "/app2"
+    feedback2.save()
 
     response = client.get(reverse("feedback_download"))
 

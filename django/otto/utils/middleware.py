@@ -4,6 +4,7 @@ from django.template.loader import render_to_string
 from django.utils.deprecation import MiddlewareMixin
 
 
+# Code referenced: https://github.com/bblanchon/django-htmx-messages-framework/tree/oob
 class HtmxMessageMiddleware(MiddlewareMixin):
     """
     Middleware that moves messages into the HX-Trigger header when request is made with HTMX
