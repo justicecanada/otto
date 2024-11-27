@@ -4138,5 +4138,17 @@
     "N/A": {
         "fr": "",
         "fr_auto": "S.O."
+    },
+    "Error translating files.": {
+        "fr": "",
+        "fr_auto": "Erreur de traduction des fichiers."
+    },
+    "Last modified:": {
+        "fr": "",
+        "fr_auto": "Dernière modification :"
+    },
+    "UPN": {
+        "fr": "",
+        "fr_auto": "L’UPN"
     }
 }
