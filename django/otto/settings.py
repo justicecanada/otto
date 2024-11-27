@@ -29,14 +29,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 logger = logging.getLogger("azure.identity")
 logger.setLevel(logging.ERROR)
 
-OTTO_VERSION = "v0"
+OTTO_BUILD_DATE = ""
+OTTO_VERSION_HASH = ""
 
 # Load the version from the version.yaml file
 version_file_path = os.path.join(BASE_DIR, "version.yaml")
 if os.path.exists(version_file_path):
     with open(version_file_path, "r") as file:
         data = yaml.safe_load(file)
-        OTTO_VERSION = data.get("version")
+        OTTO_VERSION_HASH = data.get("github_hash", "")
+        OTTO_BUILD_DATE = data.get("build_date", "")
 
 # Load environment variables from .env file
 load_dotenv(os.path.join(BASE_DIR, ".env"))
@@ -78,7 +80,14 @@ AZURE_AUTH = {
     "SCOPES": ["User.Read"],
     "AUTHORITY": ENTRA_AUTHORITY,
     "USERNAME_ATTRIBUTE": "userPrincipalName",  # The AAD attribute or ID token claim you want to use as the value for the user model `USERNAME_FIELD`
-    "PUBLIC_PATHS": [os.environ.get("ENTRA_REDIRECT_URI"), "/welcome/"],
+    "PUBLIC_PATHS": [
+        os.environ.get("ENTRA_REDIRECT_URI"),
+        "/welcome/",
+        "/healthz",
+        "/healthz/",
+        "/load_test",
+        "/load_test/",
+    ],
     "USER_MAPPING_FN": "otto.utils.auth.map_entra_to_django_user",  # Optional, path to the function used to map the AAD to Django attributes
 }
 LOGIN_URL = "/azure_auth/login"
@@ -96,7 +105,10 @@ OPENAI_COST_PER_TOKEN = 0.0020 / 1000
 OPENAI_EMBEDDING_COST_PER_TOKEN = 0.0004 / 1000
 
 DEFAULT_CHAT_MODEL = "gpt-4o-mini"
-USD_TO_CAD = 1.36
+DEFAULT_QA_MODEL = "gpt-4o-mini"
+DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
+DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
+DEFAULT_LAWS_MODEL = "gpt-4o"
 
 DEFAULT_WEEKLY_MAX = 20  # allowance $CAD/user/week unless otherwise specified
 
@@ -112,9 +124,10 @@ AZURE_CONTAINER = os.environ.get(
 )  # Azure as default storage requires this name to be AZURE_STORAGE_CONTAINER
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
+print("Running in debug mode:", DEBUG)
 DEBUG_PROPAGATE_EXCEPTIONS = True
 
-ALLOWED_HOSTS = [SITE_URL.hostname, "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [SITE_URL.hostname, "localhost", "127.0.0.1", "django-service"]
 
 # AC-2: Entra Integration Helper App Configuration
 AUTHENTICATION_BACKENDS = [
@@ -135,7 +148,7 @@ INSTALLED_APPS = [
     "django_structlog",
     "modeltranslation",
     "django_prometheus",
-    "django.contrib.admin",
+    # "django.contrib.admin", # Do not enable admin in production
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -151,7 +164,6 @@ INSTALLED_APPS = [
     "librarian",
     "chat",
     "laws",
-    "case_prep",
     "template_wizard",
     # Third-party apps
     "channels",
@@ -162,25 +174,25 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     # SC-10, SC-23: Django default session management
     "django.contrib.sessions.middleware.SessionMiddleware",
     # AC-2, AC-3, IA-2, IA-6, IA-8: Authentication, AC-14: Limited Access
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     # AC-3 & AC-14: Limited Access to handle login flows: redirect to login page, use Azure login, accept terms to use
     # AC-3(7), IA-8: Custom middleware for enforcing role-based access control
     "otto.utils.auth.RedirectToLoginMiddleware",
     # AC-2, AC-14, IA-2, IA-6, IA-8, SC-23: Azure AD Integration to protect entire site by default
     "azure_auth.middleware.AzureMiddleware",
     "otto.utils.auth.AcceptTermsMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "data_fetcher.middleware.GlobalRequestMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
     # AU-6: Aupports structured logging, facilitating the review and analysis of audit records for inappropriate or unusual activity
     "django_structlog.middlewares.RequestMiddleware",
@@ -269,23 +281,16 @@ if os.environ.get("DJANGODB_ENGINE") is not None:
         "ENGINE": os.environ.get("DJANGODB_ENGINE"),
         "NAME": os.environ.get("DJANGODB_NAME"),
         "USER": os.environ.get("DJANGODB_USER"),
-        # CosmosDB can't have the password quoted; it seems to handle this natively. TODO: Investigate to understand better
         "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
         "HOST": os.environ.get("DJANGODB_HOST"),
     }
-
-    # Add the PORT and SSLMODE for CosmosDB, which only exist for DEV, UAT, and PROD
-    if ENVIRONMENT in ["DEV", "UAT", "PROD"]:
-        DATABASES["default"]["PORT"] = os.environ.get("DJANGODB_PORT")
-        DATABASES["default"]["SSLMODE"] = "require"
 
 if os.environ.get("VECTORDB_ENGINE") is not None:
     DATABASES["vector_db"] = {
         "ENGINE": os.environ.get("VECTORDB_ENGINE"),
         "NAME": os.environ.get("VECTORDB_NAME"),
         "USER": os.environ.get("VECTORDB_USER"),
-        # Passwords for Postgres need to be quoted to handle special characters
-        "PASSWORD": quote(os.environ.get("VECTORDB_PASSWORD", "")),
+        "PASSWORD": os.environ.get("VECTORDB_PASSWORD", ""),
         "HOST": os.environ.get("VECTORDB_HOST"),
     }
 
@@ -326,21 +331,7 @@ LOCALE_PATHS = [
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
-
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-
-
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATIC_URL = "/static/"
-# forever-cacheable files and compression support
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-# Extra places for collectstatic to find static files.
-STATICFILES_DIRS = []
-
 
 X_FRAME_OPTIONS = "SAMEORIGIN"  # Required for iframe on same origin
 
@@ -360,6 +351,7 @@ SESSION_SAVE_EVERY_REQUEST = True
 if SITE_URL.scheme == "https" and SITE_URL.port == None:
     CSRF_TRUSTED_ORIGINS = [urlunparse(SITE_URL)]
     SECURE_SSL_REDIRECT = True
+    SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
     SESSION_COOKIE_SECURE = True  # SC-23: Secure session cookies
     CSRF_COOKIE_SECURE = True
     USE_X_FORWARDED_HOST = True
@@ -370,6 +362,14 @@ else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.1/howto/static-files/
+
+STATIC_ROOT = os.path.join(BASE_DIR, os.environ.get("STATIC_ROOT", "staticfiles"))
+STATIC_URL = "/static/"
+# forever-cacheable files and compression support
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default Storage needs to be a local directory for append to work
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
@@ -386,6 +386,19 @@ AZURE_STORAGE = AzureStorage(
 MEDIA_ROOT = os.path.join(BASE_DIR, os.environ.get("MEDIA_ROOT", "media"))
 if not os.path.exists(MEDIA_ROOT):
     os.makedirs(MEDIA_ROOT)
+
+STORAGES = {
+    # Normal disk storage
+    "default": {
+        "BACKEND": DEFAULT_FILE_STORAGE,
+        "LOCATION": MEDIA_ROOT,
+    },
+    # Static files storage
+    "staticfiles": {
+        "BACKEND": STATICFILES_STORAGE,
+        "LOCATION": STATIC_ROOT,
+    },
+}
 
 AUTH_USER_MODEL = "otto.User"
 

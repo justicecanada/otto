@@ -31,12 +31,13 @@
     </div>
     <div class="p-3">
       <button type="button"
-              class="btn btn-outline-danger btn-outline-initially-black w-100"
+              class="btn btn-outline-danger btn-outline-initially-black w-100 d-flex justify-content-center align-items-center"
               id="delete-all-chats"
               hx-target="#chat-history-list"
               hx-post="{% url 'chat:delete_all_chats' %}"
               hx-confirm='{% trans "Are you sure you want to delete all chats? This action is irreversible." %}'>
-        <i class="bi bi-trash me-2"></i>{% trans "Delete all chats" %}
+        <i class="bi bi-trash me-2"></i>
+        <span>{% trans "Delete all chats" %}</span>
       </button>
     </div>
   </div>

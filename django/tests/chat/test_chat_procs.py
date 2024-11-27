@@ -6,47 +6,9 @@ from bs4 import BeautifulSoup as bs
 
 from chat.llm import OttoLLM
 from chat.models import Chat, Message
-from chat.utils import (
-    htmx_stream,
-    llm_response_to_html,
-    summarize_long_text_async,
-    url_to_text,
-)
+from chat.utils import htmx_stream, summarize_long_text_async, url_to_text
 
 pytest_plugins = ("pytest_asyncio",)
-
-tags_outside_backticks = """
-<div>Here is some text</div>
-<div>Here is some more text</div>
-"""
-
-tags_inside_triple_backticks = """
-<div>Here is some text</div>
-```
-<div>Here is some more text</div>
-```
-"""
-
-tags_inside_single_backticks = """
-<div>Here is some text</div>
-`<div>Here is some more text</div>`
-"""
-
-markdown_list = """
-* Item 1
-* Item 2
-"""
-
-
-def test_llm_response_formatter():
-
-    # Test that markdown is parsed
-    html = llm_response_to_html(markdown_list)
-    soup = bs(html, "html.parser")
-    assert soup.find_all("li")
-    assert soup.find_all("ul")
-    assert soup.find_all("li")[0].text == "Item 1"
-    assert soup.find_all("li")[1].text == "Item 2"
 
 
 def test_url_to_text():
@@ -198,7 +160,7 @@ async def test_htmx_stream_response_replacer(basic_user):
         chat,
         message.id,
         response_replacer=stream_generator(),
-        format=False,
+        wrap_markdown=False,
         llm=llm,
     )
     # Iterate over the response_stream generator

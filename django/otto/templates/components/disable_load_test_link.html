@@ -1,0 +1,6 @@
+{% load i18n %}
+<button class="dropdown-item fw-semibold"
+        type="button"
+        hx-get="{% url 'disable_load_testing' %}"
+        hx-target="#user-menu"
+        hx-swap="outerHTML">{% trans "Disable load test URL" %}</button>

@@ -7,7 +7,7 @@ import pytest
 from asgiref.sync import sync_to_async
 
 from chat.forms import ChatOptionsForm
-from chat.models import Chat, ChatFile, ChatOptions, Message
+from chat.models import Chat, ChatFile, ChatOptions, Message, Preset
 from chat.utils import htmx_stream, title_chat
 from librarian.models import Library
 
@@ -64,14 +64,28 @@ def test_chat_options(client, all_apps_user):
         new_chat.options.chat_system_prompt == options_form_data["chat_system_prompt"]
     )
 
-    # Try saving this as a preset
-    options_form_data["option_presets"] = "Cowboy AI"
+    preset_form_data = {
+        "name_en": "Cowboy AI",
+        "name_fr": "IA Cowboy",
+        "description_en": "A Cowboy AI preset",
+        "sharing_option": "private",
+        "accessible_to": [],
+        "prompt": "Please tell me a joke about cows.",
+    }
     response = client.post(
-        reverse("chat:chat_options", args=[new_chat.id, "save_preset"]),
-        options_form_data,
+        reverse(
+            "chat:chat_options",
+            kwargs={"chat_id": new_chat.id, "action": "save_preset"},
+        ),
+        preset_form_data,
     )
-    # The response should contain the new preset
-    assert "Cowboy AI" in response.content.decode("utf-8")
+
+    # the response should be a redirect
+    assert response.status_code == 302
+
+    # a new preset should have been created
+    assert Preset.objects.filter(name_en="Cowboy AI").exists()
+    preset = Preset.objects.get(name_en="Cowboy AI")
 
     # Try creating a new chat then loading the preset
     response = client.get(reverse("chat:chat_with_ai"), follow=True)
@@ -84,13 +98,14 @@ def test_chat_options(client, all_apps_user):
 
     # Load the preset
     response = client.post(
-        reverse("chat:chat_options", args=[new_chat.id, "load_preset"]),
-        options_form_data,
+        reverse("chat:chat_options", args=[new_chat.id, "load_preset", preset.id])
     )
 
     # The chat options accordion should be returned, including the system prompt
     assert "You are a cowboy-themed AI" in response.content.decode("utf-8")
-    # Check that the chat options have been updated in the database
+    # The user message prompt should be returned too
+    assert "Please tell me a joke about cows." in response.content.decode("utf-8")
+
     new_chat = Chat.objects.get(id=new_chat.id)
     assert (
         new_chat.options.chat_system_prompt == options_form_data["chat_system_prompt"]
@@ -99,18 +114,18 @@ def test_chat_options(client, all_apps_user):
     # Reset the chat options
     response = client.post(
         reverse("chat:chat_options", args=[new_chat.id, "reset"]),
-        options_form_data,
+        preset_form_data,
     )
     assert response.status_code == 200
 
     # Finally, delete the Cowboy AI preset
     response = client.post(
-        reverse("chat:chat_options", args=[new_chat.id, "delete_preset"]),
-        options_form_data,
+        reverse("chat:chat_options", args=[new_chat.id, "delete_preset", preset.id]),
+        preset_form_data,
     )
 
-    # The response should not contain the new preset
-    assert "Cowboy AI" not in response.content.decode("utf-8")
+    # the response should be a redirect
+    assert response.status_code == 302
 
     # Check that the Cowboy AI chat option preset has been deleted
-    assert not ChatOptions.objects.filter(preset_name="Cowboy AI", user=user).exists()
+    assert not Preset.objects.filter(name_en="Cowboy AI").exists()

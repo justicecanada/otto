@@ -36,11 +36,11 @@
         "fr_auto": "Lors de la préparation du contenu, veuillez tenir compte des suggestions suivantes pour améliorer la qualité de l'intégration :"
     },
     "Avoid using colloquial language or jargon that may not be understood by the chatbot": {
-        "fr": "",
+        "fr": "Évitez d'utiliser un langage familier ou un jargon qui pourrait ne pas être compris par l'agent conversationel.",
         "fr_auto": "Évitez d'utiliser un langage familier ou un jargon qui pourrait ne pas être compris par le chatbot."
     },
     "Include clear and concise headings or titles to help the chatbot understand the structure of the document": {
-        "fr": "",
+        "fr": "Incluez des titres clairs et concis pour aider l'agent conversationel à comprendre la structure du document.",
         "fr_auto": "Incluez des titres clairs et concis pour aider le chatbot à comprendre la structure du document."
     },
     "Avoid using tables or images that may not be easily converted into text for embedding": {
@@ -52,7 +52,7 @@
         "fr_auto": "Veiller à ce que le texte soit bien formaté et facile à lire, sans symboles ou caractères superflus."
     },
     "Avoid using abbreviations that may be ambiguous or unclear to the chatbot": {
-        "fr": "",
+        "fr": "Évitez d'utiliser des abréviations qui peuvent être ambiguës pour l'agent conversationel.",
         "fr_auto": "Évitez d'utiliser des abréviations qui peuvent être ambiguës pour le chatbot."
     },
     "Court File Number:": {
@@ -260,7 +260,7 @@
         "fr_auto": "Saisissez du texte ou téléchargez des fichiers à traduire en anglais ou en français."
     },
     "Upload one or more files to the chat to start Document Q&A.": {
-        "fr": "Téléchargez un ou plusieurs fichiers sur le chat pour commencer à demander les documents.",
+        "fr": "Téléchargez un ou plusieurs fichiers pour commencer à poser des question sur vos documents.",
         "fr_auto": "Téléchargez un ou plusieurs fichiers sur le chat pour commencer à demander les documents."
     },
     "Ask questions about the department to receive answers from trusted sources.": {
@@ -328,15 +328,15 @@
         "fr_auto": "Basculez la barre latérale historique des discussions"
     },
     "Toggle chat options sidebar": {
-        "fr": "",
+        "fr": "Basculer la barre latérale des options de clavardage",
         "fr_auto": "Basculer la barre latérale des options de chat"
     },
     "Chat history": {
-        "fr": "",
+        "fr": "Historique du clavardage",
         "fr_auto": "Historique des discussions"
     },
     "New chat": {
-        "fr": "",
+        "fr": "Nouveau clavardage",
         "fr_auto": "Nouveau chat"
     },
     "Close": {
@@ -407,7 +407,7 @@
         "fr": "",
         "fr_auto": "Envoyer"
     },
-    "AI assistant feedback": {
+    "AI Assistant feedback": {
         "fr": "",
         "fr_auto": "Commentaires des assistants d’IA"
     },
@@ -424,7 +424,7 @@
         "fr_auto": "Enregistrer"
     },
     "Load": {
-        "fr": "",
+        "fr": "Utiliser",
         "fr_auto": "Charge"
     },
     "Reset to Otto defaults": {
@@ -451,7 +451,7 @@
         "fr": "",
         "fr_auto": "Avertissement"
     },
-    "Safe use of the AI assistant": {
+    "Safe use of the AI Assistant": {
         "fr": "",
         "fr_auto": "Utilisation sécuritaire de l’assistant IA"
     },
@@ -480,11 +480,11 @@
         "fr_auto": "Cet outil ne remplace pas les conseils juridiques professionnels. Évitez de l’utiliser pour des décisions ayant des implications juridiques."
     },
     "\n            <strong>Chat</strong> is a general-purpose AI-powered tool for writing assistance and text formatting. Please note that this tool is provided solely for enhancing your writing process and refining your ideas using natural language.          \n          ": {
-        "fr": "",
+        "fr": "\n<strong>Discutez</strong> est un outil polyvalent alimenté par l’IA pour l’aide à la rédaction et la mise en forme du texte. Veuillez noter que cet outil est fourni uniquement pour améliorer votre processus d’écriture et affiner vos idées en utilisant un langage naturel.          \n          ",
         "fr_auto": "\n<strong>Chat</strong> est un outil polyvalent alimenté par l’IA pour l’aide à la rédaction et la mise en forme du texte. Veuillez noter que cet outil est fourni uniquement pour améliorer votre processus d’écriture et affiner vos idées en utilisant un langage naturel.          \n          "
     },
     "We kindly advise you to refrain from using Chat as a means to seek factual information, conduct research, or request data. Its primary purpose is to offer writing suggestions, grammar corrections, and structure recommendations, ensuring your content is well-crafted and coherent.": {
-        "fr": "",
+        "fr": "Nous vous conseillons de vous abstenir d’utiliser 'Dicuter' avec l’IA comme un moyen de rechercher des informations factuelles, de mener des recherches ou de demander des données. Son objectif principal est d’offrir des suggestions d’écriture, des corrections grammaticales et des recommandations de structure, en veillant à ce que votre contenu soit bien conçu et cohérent.",
         "fr_auto": "Nous vous conseillons de vous abstenir d’utiliser chat avec l’IA comme un moyen de rechercher des informations factuelles, de mener des recherches ou de demander des données. Son objectif principal est d’offrir des suggestions d’écriture, des corrections grammaticales et des recommandations de structure, en veillant à ce que votre contenu soit bien conçu et cohérent."
     },
     "\n            <strong>Summarize</strong> is an AI-powered tool to facilitate the creation of concise summaries from various document formats, including PDFs, Word docs, and PowerPoint presentations. You may also input free text for summarization, or enter a URL for a web page.\n          ": {
@@ -612,7 +612,7 @@
         "fr_auto": "Effacer"
     },
     "Chat settings": {
-        "fr": "",
+        "fr": "Paramètres de clavardage",
         "fr_auto": "Paramètres de chat"
     },
     "Cancel": {
@@ -651,7 +651,7 @@
         "fr": "",
         "fr_auto": "Mise à jour"
     },
-    "AI assistant": {
+    "AI Assistant": {
         "fr": "",
         "fr_auto": "Assistant IA"
     },
@@ -694,10 +694,6 @@
     "General (Otto)": {
         "fr": "",
         "fr_auto": "Général (Otto)"
-    },
-    "Otto: Powering legal excellence through data-driven innovation": {
-        "fr": "",
-        "fr_auto": "Otto : Alimenter l’excellence juridique grâce à l’innovation axée sur les données"
     },
     "Provide feedback or report an issue using the form below.": {
         "fr": "",
@@ -895,7 +891,7 @@
         "fr": "",
         "fr_auto": "Suivant : Générer un rapport"
     },
-    "Template wizard": {
+    "Template Wizard": {
         "fr": "",
         "fr_auto": "Assistant de modèle"
     },
@@ -928,7 +924,7 @@
         "fr_auto": " :"
     },
     "**Error:** The chat is too long for this AI model.\n\nYou can try: \n1. Starting a new chat\n2. Using summarize mode, which can handle longer texts\n3. Using a different model\n": {
-        "fr": "",
+        "fr": "**Erreur :** La discussion est trop longue pour ce modèle d’IA.\n\nVous pouvez essayer : \n1. Démarrage d’une nouvelle session\n2. Utilisation du mode résumé, qui peut gérer des textes plus longs\n3. Utilisation d’un modèle différent\n",
         "fr_auto": "**Erreur :** Le chat est trop long pour ce modèle d’IA.\n\nVous pouvez essayer : \n1. Démarrage d’un nouveau chat\n2. Utilisation du mode résumé, qui peut gérer des textes plus longs\n3. Utilisation d’un modèle différent\n"
     },
     "Sorry, I couldn't find any information about that.": {
@@ -960,7 +956,7 @@
         "fr_auto": "Chat vide"
     },
     "Untitled chat": {
-        "fr": "",
+        "fr": "Clavardage sans titre",
         "fr_auto": "Chat sans titre"
     },
     "No text provided.": {
@@ -1735,7 +1731,7 @@
         "fr": "",
         "fr_auto": "examiner les recommandations récupérées automatiquement pour assurer le bijuridisme au besoin."
     },
-    "Legislation search": {
+    "Legislation Search": {
         "fr": "",
         "fr_auto": "Recherche de législation"
     },
@@ -2376,7 +2372,7 @@
         "fr_auto": "Traduction d’un fichier"
     },
     "Chat files are deleted after 7 days": {
-        "fr": "",
+        "fr": "Les fichiers de clavardage sont supprimés après 7 jours",
         "fr_auto": "Les fichiers de chat sont supprimés après 7 jours"
     },
     "deleted": {
@@ -2456,7 +2452,7 @@
         "fr_auto": "Résumé des documents"
     },
     "The document summarization feature allows you to generate a summary for any document in your case files. The summary will be created in a new chat session, where you can ask follow-up questions about the content of the document.": {
-        "fr": "",
+        "fr": "La fonction de résumé de document vous permet de générer un résumé pour n’importe quel document dans vos fichiers de cas. Le résumé sera créé dans une nouvelle session de clavardage, où vous pourrez poser des questions de suivi sur le contenu du document.",
         "fr_auto": "La fonction de résumé de document vous permet de générer un résumé pour n’importe quel document dans vos fichiers de cas. Le résumé sera créé dans une nouvelle session de chat, où vous pourrez poser des questions de suivi sur le contenu du document."
     },
     "This feature aims to help you quickly understand the key points of each document and enable you to interact with the document's content more effectively. Select a document, and Otto will generate a concise summary that you can expand upon by asking specific questions.": {
@@ -2583,7 +2579,7 @@
         "fr": "",
         "fr_auto": "Désolé, nous avons rencontré une erreur."
     },
-    "Text extractor": {
+    "Text Extractor": {
         "fr": "",
         "fr_auto": "Extracteur de texte"
     },
@@ -2624,7 +2620,7 @@
         "fr_auto": "Partagé avec moi"
     },
     "Chat upload": {
-        "fr": "",
+        "fr": "Téléversement de clavardage",
         "fr_auto": "Téléchargement de chat"
     },
     "Ask questions about documents": {
@@ -2688,7 +2684,7 @@
         "fr_auto": "Contrôles d’accès"
     },
     "Delete chat": {
-        "fr": "",
+        "fr": "Supprimer le clavardage",
         "fr_auto": "Supprimer le chat"
     },
     "Click for more information about the connection information format.": {
@@ -3060,7 +3056,7 @@
         "fr_auto": "Renommer"
     },
     "Edit chat title": {
-        "fr": "",
+        "fr": "Modifier le titre du clavardage",
         "fr_auto": "Modifier le titre du chat"
     },
     "\n      Uploaded %(num_files)s file%(s)s\n    ": {
@@ -3095,8 +3091,8 @@
         "fr": "",
         "fr_auto": "Ce site Web empêche Otto de récupérer du texte. Essayez de copier et coller la page Web ici."
     },
-    "You are a general-purpose AI chatbot. You follow these rules:\n\n1. Your name is 'Otto', an AI who works for the Department of Justice Canada.\n\n2. If the user asks any question regarding Canada's laws and regulations, you must inform them of the [Legislation search app](/laws/), a tool in Otto built to be better suited for finding relevant and accurate laws and regulations in Canada. Make sure to mention the tool at the beginning of your response and in the form of a markdown link.3. You do not have access to the internet or other knowledge bases. If you are asked about very specific facts, especially one about the Government of Canada or laws, you always caveat your response, e.g., 'I am a pre-trained AI and do not have access to the internet, so my answers might not be correct. Based on my training data, I expect that...'\n\n4. If you are asked a question about Department of Justice or other Government of Canada / HR policies, you inform users of Otto's 'Q&A' mode which can provide more accurate information.\n\n5. You answer in markdown format to provide clear and readable responses.\n\n": {
-        "fr": "Vous êtes un chatbot IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de [l’application de recherche Législation](/laws/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. Assurez-vous de mentionner l’outil au début de votre réponse et sous la forme d’un lien de démarque.3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Si on vous pose une question sur le ministère de la Justice ou d’autres politiques du gouvernement du Canada / RH, vous informez les utilisateurs du mode « Q&A » d’Otto qui peut fournir des informations plus précises.\n\n5. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.\n\n",
+    "You are a general-purpose AI chatbot. You follow these rules:\n\n1. Your name is 'Otto', an AI who works for the Department of Justice Canada.\n\n2. If the user asks any question regarding Canada's laws and regulations, you must inform them of the [Legislation Search app](/laws/), a tool in Otto built to be better suited for finding relevant and accurate laws and regulations in Canada. Make sure to mention the tool at the beginning of your response and in the form of a markdown link.3. You do not have access to the internet or other knowledge bases. If you are asked about very specific facts, especially one about the Government of Canada or laws, you always caveat your response, e.g., 'I am a pre-trained AI and do not have access to the internet, so my answers might not be correct. Based on my training data, I expect that...'\n\n4. If you are asked a question about Department of Justice or other Government of Canada / HR policies, you inform users of Otto's 'Q&A' mode which can provide more accurate information.\n\n5. You answer in markdown format to provide clear and readable responses.\n\n": {
+        "fr": "Vous êtes un agent conversationel IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de [l’application de recherche Législation](/laws/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. Assurez-vous de mentionner l’outil au début de votre réponse et sous la forme d’un lien de démarque.3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Si on vous pose une question sur le ministère de la Justice ou d’autres politiques du gouvernement du Canada / RH, vous informez les utilisateurs du mode « Q&A » d’Otto qui peut fournir des informations plus précises.\n\n5. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.\n\n",
         "fr_auto": "Vous êtes un chatbot IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de [l’application de recherche Législation](/laws/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. Assurez-vous de mentionner l’outil au début de votre réponse et sous la forme d’un lien de démarque.3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Si on vous pose une question sur le ministère de la Justice ou d’autres politiques du gouvernement du Canada / RH, vous informez les utilisateurs du mode « Q&A » d’Otto qui peut fournir des informations plus précises.\n\n5. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.\n\n"
     },
     "GPT-4o (Global)": {
@@ -3224,11 +3220,11 @@
         "fr_auto": "Otton"
     },
     "Are you sure you want to delete all chats? This action is irreversible.": {
-        "fr": "",
+        "fr": "Êtes-vous sûr de vouloir supprimer toutes les sessions de clavardages ? Cette action est irréversible.",
         "fr_auto": "Êtes-vous sûr de vouloir supprimer tous les chats ? Cette action est irréversible."
     },
     "Delete all chats": {
-        "fr": "",
+        "fr": "Supprimer toutes les sessions de clavardages",
         "fr_auto": "Supprimer tous les chats"
     },
     "No text to summarize.": {
@@ -3307,7 +3303,7 @@
         "fr": "",
         "fr_auto": "Modifier l’utilisateur"
     },
-    "AI assistant - Otto": {
+    "AI Assistant - Otto": {
         "fr": "",
         "fr_auto": "Assistant IA - Otto"
     },
@@ -3547,8 +3543,8 @@
         "fr": "",
         "fr_auto": "Cote de pertinence"
     },
-    "You are a general-purpose AI chatbot. You follow these rules:\n\n1. Your name is 'Otto', an AI who works for the Department of Justice Canada.\n\n2. If the user asks any question regarding Canada's laws and regulations, you must inform them of the [Legislation search app](/laws/), a tool in Otto built to be better suited for finding relevant and accurate laws and regulations in Canada. If relevant, add a markdown link to the Legislation search app.\n\n3. You do not have access to the internet or other knowledge bases. If you are asked about very specific facts, especially one about the Government of Canada or laws, you always caveat your response, e.g., 'I am a pre-trained AI and do not have access to the internet, so my answers might not be correct. Based on my training data, I expect that...'\n\n4. You answer in markdown format to provide clear and readable responses.": {
-        "fr": "",
+    "You are a general-purpose AI chatbot. You follow these rules:\n\n1. Your name is 'Otto', an AI who works for the Department of Justice Canada.\n\n2. If the user asks any question regarding Canada's laws and regulations, you must inform them of the [Legislation Search app](/laws/), a tool in Otto built to be better suited for finding relevant and accurate laws and regulations in Canada. If relevant, add a markdown link to the Legislation Search app.\n\n3. You do not have access to the internet or other knowledge bases. If you are asked about very specific facts, especially one about the Government of Canada or laws, you always caveat your response, e.g., 'I am a pre-trained AI and do not have access to the internet, so my answers might not be correct. Based on my training data, I expect that...'\n\n4. You answer in markdown format to provide clear and readable responses.": {
+        "fr": "Vous êtes un agent d'IA conversationel à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de l’application de recherche [Législation] (/lois/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. S’il y a lieu, ajoutez un lien de démarque à l’application de recherche Législation.\n\n3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.",
         "fr_auto": "Vous êtes un chatbot IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de l’application de recherche [Législation] (/lois/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. S’il y a lieu, ajoutez un lien de démarque à l’application de recherche Législation.\n\n3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles."
     },
     "Current date: {time}": {
@@ -3584,7 +3580,7 @@
         "fr_auto": "Supprimer le message"
     },
     "Switched mode to": {
-        "fr": "",
+        "fr": "Mode changé en",
         "fr_auto": "Mode commuté vers"
     },
     "Selected library:": {
@@ -3592,7 +3588,7 @@
         "fr_auto": "Bibliothèque sélectionnée :"
     },
     "Detect best mode (Chat or Q&A)": {
-        "fr": "",
+        "fr": "Détecter le meilleur mode (Clavardage ou Q&R)",
         "fr_auto": "Détecter le meilleur mode (Chat ou Q&A)"
     },
     "Search mode": {
@@ -3608,8 +3604,32 @@
         "fr_auto": "Bibliothèque personnelle"
     },
     "Chat agent": {
-        "fr": "",
+        "fr": "Agent de clavardage",
         "fr_auto": "Agent de chat"
+    },
+    "Shared with everyone": {
+        "fr": "Partager avec tous les utilisateurs",
+        "fr_auto": "Partagé avec tout le monde"
+    },
+    "Shared with specific users": {
+        "fr": "",
+        "fr_auto": "Partagé avec des utilisateurs spécifiques"
+    },
+    "Private": {
+        "fr": "Privé",
+        "fr_auto": "Secteur privé"
+    },
+    "Open presets menu": {
+        "fr": "",
+        "fr_auto": "Ouvrir le menu des préréglages"
+    },
+    "Create preset from current settings": {
+        "fr": "",
+        "fr_auto": "Créer un préréglage à partir des paramètres actuels"
+    },
+    "Reset settings to default": {
+        "fr": "",
+        "fr_auto": "Réinitialiser les paramètres par défaut"
     },
     "Single answer": {
         "fr": "",
@@ -3631,20 +3651,92 @@
         "fr": "",
         "fr_auto": "Grossier"
     },
-    "Stop all": {
+    "Remove default": {
         "fr": "",
+        "fr_auto": "Supprimer la valeur par défaut"
+    },
+    "Set as default": {
+        "fr": "",
+        "fr_auto": "Défini par défaut"
+    },
+    "No presets available": {
+        "fr": "",
+        "fr_auto": "Aucun préréglage disponible"
+    },
+    "Create a new preset to use your chat settings in other sessions or shared them with others.": {
+        "fr": "Créez un nouveau préréglage pour utiliser vos paramètres de clavardage dans d’autres sessions ou les partager avec d’autres utilisateurs.",
+        "fr_auto": "Créez un nouveau préréglage pour utiliser vos paramètres de chat dans d’autres sessions ou les partager avec d’autres."
+    },
+    "Remove from favourites": {
+        "fr": "",
+        "fr_auto": "Retirer des favoris"
+    },
+    "Add to favourites": {
+        "fr": "",
+        "fr_auto": "Ajouter aux favoris"
+    },
+    "Settings Presets": {
+        "fr": "Paramètres de Préréglages",
+        "fr_auto": "Paramètres de Préréglages"
+    },
+    "Settings presets": {
+        "fr": "Paramètres de préréglages",
+        "fr_auto": "Paramètres prédéfinis"
+    },
+    "Title (English)": {
+        "fr": "",
+        "fr_auto": "Titre (anglais)"
+    },
+    "Title (French)": {
+        "fr": "",
+        "fr_auto": "Titre (français)"
+    },
+    "Share with others": {
+        "fr": "Partagé avec d’autres utilisateurs",
+        "fr_auto": "Partager avec d’autres"
+    },
+    "Editable by: ": {
+        "fr": "",
+        "fr_auto": "Modifiable par : "
+    },
+    "Accessible to: ": {
+        "fr": "",
+        "fr_auto": "Accessible à : "
+    },
+    "Replace with current settings": {
+        "fr": "",
+        "fr_auto": "Remplacer par les paramètres actuels"
+    },
+    "Are you sure you want to delete this preset?": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir supprimer ce préréglage ?"
+    },
+    "Shared with others": {
+        "fr": "Partagé avec d’autres utilisateurs",
+        "fr_auto": "Partagé avec d’autres"
+    },
+    "Please provide a title in either English or French.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir un titre en anglais ou en français."
+    },
+    "Please provide at least one user for the editable field or the accessible field.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir au moins un utilisateur pour le champ modifiable ou le champ accessible."
+    },
+    "Stop all": {
+        "fr": "Tout arrêter",
         "fr_auto": "Arrêtez tout"
     },
     "Process all": {
-        "fr": "",
+        "fr": "Tout traiter",
         "fr_auto": "Traiter tout"
     },
     "Force OCR": {
-        "fr": "",
+        "fr": "Forcer la ROC",
         "fr_auto": "Force OCR"
     },
     "Process": {
-        "fr": "",
+        "fr": "Traiter",
         "fr_auto": "Processus"
     },
     "View all": {
@@ -3652,7 +3744,7 @@
         "fr_auto": "Voir tout"
     },
     "QA": {
-        "fr": "",
+        "fr": "Q&R",
         "fr_auto": "AQ"
     },
     "Modify user(s)": {
@@ -3670,5 +3762,269 @@
     "User costs": {
         "fr": "",
         "fr_auto": "Coûts d’utilisation"
+    },
+    "Make private": {
+        "fr": "",
+        "fr_auto": "Rendre privé"
+    },
+    "Share with everyone": {
+        "fr": "Partager avec tous les utilisateurs",
+        "fr_auto": "Partager avec tout le monde"
+    },
+    "Privacy controls": {
+        "fr": "",
+        "fr_auto": "Contrôles de confidentialité"
+    },
+    "Given the information from multiple sources and not prior knowledge, answer the query in markdown format with liberal use of **bold**.\nOutput format:\n\nI found the following information:\n\n* <supporting direct quote> - <source link or filename, if known> (page number, if known)\n...\n<succinct answer to question>\n\nIf you can't find the answer in the sources, just say so. Don't try to provide irrelevant references or made up answers.": {
+        "fr": "",
+        "fr_auto": "Compte tenu de l’information provenant de sources multiples et non de connaissances préalables, répondez à la requête en format de démarque avec l’utilisation libérale de **bold**.\nFormat de sortie :\n\nJ’ai trouvé les informations suivantes :\n\n* <soute de devis direct> - lien <source ou nom de fichier, s’il est connu> (numéro de page, s’il est connu)\n...\n<succinct réponse à la question>\n\nSi vous ne trouvez pas la réponse dans les sources, dites-le simplement. N’essayez pas de fournir des références non pertinentes ou des réponses inventées."
+    },
+    "Please provide at least one user for the accessible field.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir au moins un utilisateur pour le champ accessible."
+    },
+    "Cancelled": {
+        "fr": "",
+        "fr_auto": "Annulé"
+    },
+    "Queued": {
+        "fr": "",
+        "fr_auto": "En file d’attente"
+    },
+    "Processed": {
+        "fr": "",
+        "fr_auto": "Traitées"
+    },
+    "text only": {
+        "fr": "",
+        "fr_auto": "texte seulement"
+    },
+    "OCR": {
+        "fr": "ROC",
+        "fr_auto": "OCR"
+    },
+    "layout & OCR": {
+        "fr": "mise en page & ROC",
+        "fr_auto": "mise en page & OCR"
+    },
+    "Bulk actions": {
+        "fr": "",
+        "fr_auto": "Actions en bloc"
+    },
+    "Process all, including completed": {
+        "fr": "Tout traiter, y compris terminé",
+        "fr_auto": "Traiter tout, y compris terminé"
+    },
+    "Text only": {
+        "fr": "",
+        "fr_auto": "Texte seulement"
+    },
+    "(default, $)": {
+        "fr": "",
+        "fr_auto": "(par défaut, $)"
+    },
+    "PDF OCR": {
+        "fr": "ROC PDF",
+        "fr_auto": "PDF OCR"
+    },
+    "(more robust, $$)": {
+        "fr": "",
+        "fr_auto": "(plus robuste, $$)"
+    },
+    "PDF layout & OCR": {
+        "fr": "Mise en page PDF & ROC",
+        "fr_auto": "Mise en page PDF & OCR"
+    },
+    "(best, $$$)": {
+        "fr": "",
+        "fr_auto": "(meilleur, $$$)"
+    },
+    "Process incomplete only": {
+        "fr": "Seulement les traitements incomplets",
+        "fr_auto": "Processus incomplet seulement"
+    },
+    "Stop all processing": {
+        "fr": "",
+        "fr_auto": "Arrêter tout traitement"
+    },
+    "You can only upload a maximum of": {
+        "fr": "",
+        "fr_auto": "Vous ne pouvez télécharger qu’un maximum de"
+    },
+    "files per data source.": {
+        "fr": "",
+        "fr_auto": "par source de données."
+    },
+    "files remaining.": {
+        "fr": "",
+        "fr_auto": "dossiers restants."
+    },
+    "You can only upload a total file size of": {
+        "fr": "",
+        "fr_auto": "Vous pouvez uniquement télécharger une taille de fichier totale de"
+    },
+    "at one time.": {
+        "fr": "",
+        "fr_auto": "en même temps."
+    },
+    "Process document": {
+        "fr": "Traiter le document",
+        "fr_auto": "Document de processus"
+    },
+    "this week": {
+        "fr": "",
+        "fr_auto": "cette semaine"
+    },
+    "today": {
+        "fr": "aujourd’hui",
+        "fr_auto": "Aujourd’hui"
+    },
+    "file(s) still processing": {
+        "fr": "",
+        "fr_auto": "fichier(s) toujours en cours de traitement"
+    },
+    "Response stopped early. Costs may still be incurred after stopping.": {
+        "fr": "",
+        "fr_auto": "La réponse s’est arrêtée tôt. Des coûts peuvent encore être engagés après l’arrêt."
+    },
+    "Avoid personal pronouns": {
+        "fr": "",
+        "fr_auto": "Évitez les pronoms personnels"
+    },
+    "Additional instructions": {
+        "fr": "",
+        "fr_auto": "Instructions supplémentaires"
+    },
+    "(overrides all previous settings)": {
+        "fr": "",
+        "fr_auto": "(remplace tous les paramètres précédents)"
+    },
+    "Plain text": {
+        "fr": "",
+        "fr_auto": "Texte brut"
+    },
+    "Maximum 2000 files / 300mb total": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
+    },
+    "Output documents": {
+        "fr": "",
+        "fr_auto": "Documents de sortie"
+    },
+    "Document name": {
+        "fr": "",
+        "fr_auto": "Nom du document"
+    },
+    "Status": {
+        "fr": "",
+        "fr_auto": "État d’avancement"
+    },
+    "Download all files...": {
+        "fr": "",
+        "fr_auto": "Téléchargez tous les fichiers..."
+    },
+    "Source not available (document deleted or modified since message)": {
+        "fr": "",
+        "fr_auto": "Source non disponible (document supprimé ou modifié depuis le message)"
+    },
+    "Legislation Search - Otto": {
+        "fr": "",
+        "fr_auto": "Recherche de législation - Otto"
+    },
+    "Manage pilots - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer les pilotes - Otto"
+    },
+    "Manage users - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer les utilisateurs - Otto"
+    },
+    "Template Wizard - Otto": {
+        "fr": "",
+        "fr_auto": "Assistant de modèle - Otto"
+    },
+    "Text Extractor - Otto": {
+        "fr": "",
+        "fr_auto": "Extracteur de texte - Otto"
+    },
+    "Last refreshed from the": {
+        "fr": "",
+        "fr_auto": "Dernière actualisation à partir de l'"
+    },
+    "repository on": {
+        "fr": "",
+        "fr_auto": "référentiel sur"
+    },
+    "Invalid mode.": {
+        "fr": "",
+        "fr_auto": "Mode non valide."
+    },
+    "There was an error processing your request.": {
+        "fr": "",
+        "fr_auto": "Il y a eu une erreur de traitement de votre demande."
+    },
+    "No user message found.": {
+        "fr": "",
+        "fr_auto": "Aucun message de l’utilisateur trouvé."
+    },
+    "Downloads": {
+        "fr": "",
+        "fr_auto": "Téléchargements"
+    },
+    "Read-only": {
+        "fr": "",
+        "fr_auto": "Lecture seule"
+    },
+    "Empowering Justice efficiency with data and AI": {
+        "fr": "",
+        "fr_auto": "Renforcer l’efficacité de la justice avec les données et l’IA"
+    },
+    "An error occurred.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite."
+    },
+    "Read each document separately  (slow, $$)": {
+        "fr": "",
+        "fr_auto": "Lisez chaque document séparément (lent, $$)"
+    },
+    "Read all documents at once (slowest, $$)": {
+        "fr": "",
+        "fr_auto": "Lire tous les documents en même temps (le plus lent, $$)"
+    },
+    "Full documents, separate answers ($)": {
+        "fr": "",
+        "fr_auto": "Documents complets, réponses séparées ($)"
+    },
+    "Full documents, combined answer ($)": {
+        "fr": "",
+        "fr_auto": "Documents complets, réponse combinée ($)"
+    },
+    "Error translating files.": {
+        "fr": "",
+        "fr_auto": "Erreur de traduction des fichiers."
+    },
+    "Load test": {
+        "fr": "",
+        "fr_auto": "Essai de charge"
+    },
+    "Disable load test URL": {
+        "fr": "",
+        "fr_auto": "Désactiver l’URL du test de chargement"
+    },
+    "Enable load test URL": {
+        "fr": "",
+        "fr_auto": "Activer l’URL du test de charge"
+    },
+    "Load testing URL is enabled": {
+        "fr": "",
+        "fr_auto": "L’URL de test de chargement est activée"
+    },
+    "UPN": {
+        "fr": "",
+        "fr_auto": "L’UPN"
+    },
+    "Enable load test URL for 1 hour": {
+        "fr": "",
+        "fr_auto": "Activer l’URL du test de charge pendant 1 heure"
     }
 }

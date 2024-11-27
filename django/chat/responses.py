@@ -1,12 +1,14 @@
 import asyncio
-from itertools import groupby
+import traceback
+import uuid
 
+from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.http import HttpResponse, StreamingHttpResponse
 from django.template.loader import render_to_string
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
@@ -43,26 +45,29 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
     """
     response_message = Message.objects.get(id=message_id)
-    chat = response_message.chat
-    mode = chat.options.mode
+    try:
+        chat = response_message.chat
+        mode = chat.options.mode
 
-    # For costing and logging. Contextvars are accessible anytime during the request
-    # including in async functions (i.e. htmx_stream) and Celery tasks.
-    bind_contextvars(message_id=message_id, feature=mode)
+        # For costing and logging. Contextvars are accessible anytime during the request
+        # including in async functions (i.e. htmx_stream) and Celery tasks.
+        bind_contextvars(message_id=message_id, feature=mode)
 
-    agent_enabled = not skip_agent and mode == "chat" and chat.options.chat_agent
-    if agent_enabled:
-        return chat_agent(chat, response_message)
-    if mode == "chat":
-        return chat_response(chat, response_message, switch_mode=switch_mode)
-    if mode == "summarize":
-        return summarize_response(chat, response_message)
-    if mode == "translate":
-        return translate_response(chat, response_message)
-    if mode == "qa":
-        return qa_response(chat, response_message, switch_mode=switch_mode)
-    else:
-        return error_response(chat, response_message)
+        agent_enabled = not skip_agent and mode == "chat" and chat.options.chat_agent
+        if agent_enabled:
+            return chat_agent(chat, response_message)
+        if mode == "chat":
+            return chat_response(chat, response_message, switch_mode=switch_mode)
+        if mode == "summarize":
+            return summarize_response(chat, response_message)
+        if mode == "translate":
+            return translate_response(chat, response_message)
+        if mode == "qa":
+            return qa_response(chat, response_message, switch_mode=switch_mode)
+        else:
+            return error_response(chat, response_message, _("Invalid mode."))
+    except Exception as e:
+        return error_response(chat, response_message, e)
 
 
 def chat_response(
@@ -147,6 +152,8 @@ def summarize_response(chat, response_message):
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
     summary_length = chat.options.summarize_style
+    gender_neutral = chat.options.summarize_gender_neutral
+    instructions = chat.options.summarize_instructions
     custom_summarize_prompt = chat.options.summarize_prompt
     target_language = chat.options.summarize_language
     model = chat.options.summarize_model
@@ -158,16 +165,19 @@ def summarize_response(chat, response_message):
         responses = []
         for file in files:
             if not file.text:
-                file.extract_text(fast=True)
-            responses.append(
-                summarize_long_text(
-                    file.text,
-                    llm,
-                    summary_length,
-                    target_language,
-                    custom_summarize_prompt,
+                file.extract_text(pdf_method="default")
+            if not cache.get(f"stop_response_{response_message.id}", False):
+                responses.append(
+                    summarize_long_text(
+                        file.text,
+                        llm,
+                        summary_length,
+                        target_language,
+                        custom_summarize_prompt,
+                        gender_neutral,
+                        instructions,
+                    )
                 )
-            )
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
@@ -199,6 +209,8 @@ def summarize_response(chat, response_message):
                 summary_length,
                 target_language,
                 custom_summarize_prompt,
+                gender_neutral,
+                instructions,
             )
             return StreamingHttpResponse(
                 streaming_content=htmx_stream(
@@ -251,7 +263,10 @@ def translate_response(chat, response_message):
             if len(task_ids) == len(files):
                 yield "<p>" + _("Translating file") + f" 1/{len(files)}...</p>"
             else:
-                yield await sync_to_async(file_msg)(response_message, len(files))
+                if any(task.state == "SUCCESS" for task in task_ids):
+                    yield await sync_to_async(file_msg)(response_message, len(files))
+                else:
+                    raise Exception(_("Error translating files."))
 
     if len(files) > 0:
         # Initiate the Celery task for translating each file with Azure
@@ -270,7 +285,8 @@ def translate_response(chat, response_message):
                 llm,
                 response_replacer=file_translation_generator(task_ids),
                 dots=True,
-                format=False,  # Because the generator already returns HTML
+                wrap_markdown=False,  # Because the generator already returns HTML
+                remove_stop=True,
             ),
             content_type="text/event-stream",
         )
@@ -317,7 +333,7 @@ def qa_response(chat, response_message, switch_mode=False):
     try:
         url_validator(user_message.text)
         adding_url = True
-        print("Valid URL. Adding to chat library...")
+        logger.debug("Valid URL. Adding to chat library...")
     except ValidationError:
         adding_url = False
 
@@ -328,11 +344,9 @@ def qa_response(chat, response_message, switch_mode=False):
         )()
         while processing_count:
             if adding_url:
-                yield _("Adding to the Q&A library...")
+                yield f'<p>{_("Adding to the Q&A library")}...</p>'
             else:
-                yield _(
-                    "Adding to the Q&A library"
-                ) + f" ({len(files)-processing_count+1}/{len(files)})..."
+                yield f'<p>{_("Adding to the Q&A library")} ({processing_count} {_("file(s) still processing")}...)</p>'
             await asyncio.sleep(0.5)
             processing_count = await sync_to_async(
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
@@ -344,6 +358,16 @@ def qa_response(chat, response_message, switch_mode=False):
 
     if len(files) > 0 or adding_url:
         for file in files:
+            existing_document = Document.objects.filter(
+                data_source=chat.data_source,
+                filename=file.filename,
+                file__sha256_hash=file.saved_file.sha256_hash,
+            ).first()
+            # Skip if filename and hash are the same, and processing status is SUCCESS
+            if existing_document:
+                if existing_document.status != "SUCCESS":
+                    existing_document.process()
+                continue
             document = Document.objects.create(
                 data_source=chat.data_source,
                 file=file.saved_file,
@@ -351,10 +375,17 @@ def qa_response(chat, response_message, switch_mode=False):
             )
             document.process()
         if adding_url:
-            document = Document.objects.create(
-                data_source=chat.data_source,
-                url=user_message.text,
-            )
+            existing_document = Document.objects.filter(
+                data_source=chat.data_source, url=user_message.text
+            ).first()
+            if not existing_document:
+                document = Document.objects.create(
+                    data_source=chat.data_source,
+                    url=user_message.text,
+                )
+            else:
+                document = existing_document
+            # URLs are always re-processed
             document.process()
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
@@ -362,13 +393,16 @@ def qa_response(chat, response_message, switch_mode=False):
                 response_message.id,
                 llm,
                 response_replacer=add_files_to_library(),
+                wrap_markdown=False,
                 dots=True,
+                remove_stop=True,
             ),
             content_type="text/event-stream",
         )
 
     # Apply filters if we are in qa mode and specific data sources are selected
     qa_scope = chat.options.qa_scope
+    filter_documents = None
     if qa_scope == "data_sources":
         data_sources = chat.options.qa_data_sources.all()
         filter_documents = Document.objects.filter(data_source__in=data_sources)
@@ -391,20 +425,43 @@ def qa_response(chat, response_message, switch_mode=False):
         )
 
     # Summarize mode
-    if chat.options.qa_mode == "summarize":
-        # Use summarization on each of the filter_documents
+    if chat.options.qa_mode in ["summarize", "summarize_combined"]:
+        if not filter_documents:
+            filter_documents = Document.objects.filter(
+                data_source__library=chat.options.qa_library
+            )
         document_titles = [document.name for document in filter_documents]
-        summary_responses = [
-            llm.tree_summarize(
-                context=document.extracted_text,
+        if chat.options.qa_mode == "summarize_combined":
+            # Combine all documents into one text, including the titles
+            combined_documents = (
+                "<document>\n"
+                + "\n</document>\n<document>\n".join(
+                    [
+                        f"# {title}\n---\n{document.extracted_text}"
+                        for title, document in zip(document_titles, filter_documents)
+                    ]
+                )
+                + "\n</document>"
+            )
+            response_replacer = llm.tree_summarize(
+                context=combined_documents,
                 query=user_message.text,
                 template=chat.options.qa_prompt_combined,
             )
-            for document in filter_documents
-        ]
-        response_replacer = combine_response_replacers(
-            summary_responses, document_titles
-        )
+        else:
+            # Use summarization on each of the documents
+            summary_responses = [
+                llm.tree_summarize(
+                    context=document.extracted_text,
+                    query=user_message.text,
+                    template=chat.options.qa_prompt_combined,
+                )
+                for document in filter_documents
+                if not cache.get(f"stop_response_{response_message.id}", False)
+            ]
+            response_replacer = combine_response_replacers(
+                summary_responses, document_titles
+            )
         response_generator = None
         source_groups = None
 
@@ -525,6 +582,7 @@ def qa_response(chat, response_message, switch_mode=False):
             responses = [
                 synthesizer.synthesize(query=input, nodes=sources).response_gen
                 for sources in source_groups
+                if not cache.get(f"stop_response_{response_message.id}", False)
             ]
             response_replacer = combine_response_generators(
                 responses,
@@ -549,17 +607,30 @@ def qa_response(chat, response_message, switch_mode=False):
     )
 
 
-def error_response(chat, response_message):
+def error_response(chat, response_message, error_message=None):
     """
     Send an error message to the user.
     """
     llm = OttoLLM()
+    response_str = _("There was an error processing your request.")
+    error_id = str(uuid.uuid4())[:7]
+
+    if error_message and settings.DEBUG:
+        response_str += f"\n\n```\n{error_message}\n```\n\n"
+    response_str += f" _({_('Error ID')}: {error_id})_"
+    logger.error(
+        "Error processing chat response",
+        error_id=error_id,
+        message_id=response_message.id,
+        chat_id=chat.id,
+        error=traceback.format_exc(),
+    )
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
             llm,
-            response_str=_("Sorry, this isn't working right now."),
+            response_str=response_str,
         ),
         content_type="text/event-stream",
     )
@@ -572,7 +643,7 @@ def chat_agent(chat, response_message):
     bind_contextvars(feature="chat_agent")
     user_message = response_message.parent
     if user_message is None:
-        return error_response(chat, response_message)
+        return error_response(chat, response_message, _("No user message found."))
 
     user_text = user_message.text
     if len(user_text) > 500:

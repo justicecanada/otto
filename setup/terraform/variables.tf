@@ -43,6 +43,12 @@ variable "acr_publishers_group_name" {
   description = "Comma-separated list of group names for ACR publishers"
 }
 
+variable "log_analytics_readers_group_name" {
+  type        = string
+  description = "Comma-separated list of group names for Log Analytics readers"
+  
+}
+
 variable "resource_group_name" {
   type        = string
   description = "Name of the resource group"
@@ -94,10 +100,37 @@ variable "djangodb_resource_name" {
   description = "Name of the Django DB resource"
 }
 
-variable "entra_client_secret" {
-  description = "Entra client secret"
+variable "vnet_name" {
   type        = string
-  sensitive   = true
+  description = "Name of the virtual network"
+}
+variable "vnet_ip_range" {
+  type        = string
+  description = "IP range of the virtual network"
+}
+variable "web_subnet_name" {
+  type        = string
+  description = "Name of the web subnet"
+}
+variable "web_subnet_ip_range" {
+  type        = string
+  description = "IP range of the web subnet"
+}
+variable "app_subnet_name" {
+  type        = string
+  description = "Name of the app subnet"
+}
+variable "app_subnet_ip_range" {
+  type        = string
+  description = "IP range of the app subnet"
+}
+variable "db_subnet_name" {
+  type        = string
+  description = "Name of the database subnet"
+}
+variable "db_subnet_ip_range" {
+  type        = string
+  description = "IP range of the database subnet"
 }
 
 variable "gpt_35_turbo_capacity" {
@@ -133,4 +166,43 @@ variable "admin_email" {
 variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the infrastructure"
+}
+
+variable "backup_container_name" {
+  description = "Name of the backup container"
+  type        = string
+  default     = "backups"
+}
+
+# variable "velero_identity_name" {
+#   description = "Name of the Velero managed identity"
+#   type        = string
+#   default     = "velero"
+# }
+
+variable "approved_cpu_quota" {
+  type        = number
+  description = "The approved CPU quota for the AKS cluster"
+  default     = 10
+}
+
+variable "vm_size" {
+  type        = string
+  description = "The size of VM to use for the AKS cluster"
+  default     = "Standard_D4s_v3" # General-purpose VM with 4 CPUs, 16 GiB RAM, and 32 GiB temporary storage
+}
+
+variable "vm_cpu_count" {
+  type        = number
+  description = "The number of CPUs in the selected VM size"
+  default     = 4 # Standard_D4s_v3 has 4 CPUs
+}
+
+variable "corporate_public_ip" {
+  description = "The public IP address of the corporate network"
+  type        = string
+  validation {
+    condition     = can(regex("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$", var.corporate_public_ip))
+    error_message = "The corporate_public_ip value must be a valid IPv4 address."
+  }
 }

@@ -32,28 +32,35 @@ is_data_steward = is_group_member("Data steward")
 
 add_perm("otto.manage_users", is_admin)
 add_perm("otto.access_otto", accepted_terms)
+add_perm("otto.view_github_link", is_admin)
+
+
+@predicate
+def can_enable_load_testing(user):
+    if settings.IS_PROD:
+        return False
+    return is_admin(user)
 
 
 @predicate
 def can_view_app(user, app):
     if is_admin(user):
-        return app.prod_ready or not settings.IS_PROD
+        return True
     if settings.IS_PROD:
-        return app.prod_ready and (app.visible_to_all or can_access_app(user, app))
+        return app.visible_to_all or can_access_app(user, app)
     return app.visible_to_all or can_access_app(user, app)
 
 
 @predicate
 def can_access_app(user, app):
     if is_admin(user):
-        return app.prod_ready or not settings.IS_PROD
-    if settings.IS_PROD:
-        return app.prod_ready and is_group_member(app.user_group.name)(user)
+        return True
     return is_group_member(app.user_group.name)(user)
 
 
 add_perm("otto.view_app", can_view_app)
 add_perm("otto.access_app", can_access_app)
+add_perm("otto.enable_load_testing", can_enable_load_testing)
 
 
 # AI Assistant
@@ -76,7 +83,7 @@ add_perm("chat.access_chat", can_access_chat)
 add_perm("chat.access_message", can_access_message)
 add_perm("chat.access_file", can_access_file)
 
-# Template wizard
+# Template Wizard
 add_perm(
     "template_wizard.access_lex_wizard",
     is_group_member("Litigation briefing user") | is_admin,

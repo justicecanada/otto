@@ -1,6 +1,9 @@
+import csv
 import hashlib
 import io
 import re
+import subprocess
+import tempfile
 import uuid
 from urllib.parse import urljoin
 
@@ -8,6 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 
 import filetype
+import openpyxl  # Add this import for handling Excel files
 import requests
 import tiktoken
 from bs4 import BeautifulSoup
@@ -34,9 +38,7 @@ def markdownify_wrapper(text):
 def fetch_from_url(url):
     try:
         r = requests.get(url, allow_redirects=True)
-        content_type = r.headers.get("content-type")
-        if content_type is None:
-            content_type = guess_content_type(r.content)
+        content_type = guess_content_type(r.content, r.headers.get("content-type"), url)
         return r.content, content_type
 
     except Exception as e:
@@ -109,25 +111,61 @@ def create_nodes(chunks, document):
     return new_nodes
 
 
-def guess_content_type(content):
-    # Check if the content is binary using filetype.guess
-    detected_type = filetype.guess(content)
-    if detected_type is not None:
-        return detected_type.mime
+def guess_content_type(
+    content: str | bytes, content_type: str = None, path: str = ""
+) -> str:
+
+    # We consider these content types to be reliable and do not need further guessing
+    trusted_content_types = [
+        "application/pdf",
+        "application/xml",
+        "application/vnd.ms-outlook",
+        "text/html",
+        "text/markdown",
+        "text/csv",
+        "application/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "officedocument.spreadsheetml.sheet",
+        "officedocument.wordprocessingml.document",
+        "officedocument.presentationml.presentation",
+    ]
+
+    if content_type in trusted_content_types:
+        return content_type
+
+    if hasattr(content, "read"):
+        content = content.read()
 
     if isinstance(content, bytes):
-        return None  # Unknown
+        # Explicitly handle Outlook emails
+        if path.endswith(".msg"):
+            return "application/vnd.ms-outlook"
 
-    if content.startswith("<!DOCTYPE html>") or "<html" in content:
-        return "text/html"
+        # Use filetype library to guess the content type
+        kind = filetype.guess(content)
+        if kind and not path.endswith(".md"):
+            return kind.mime
 
-    if content.startswith("<?xml") or "<root" in content:
-        return "application/xml"
+        # Fallback to manual checks if filetype library fails
+        try:
+            content = content.decode("utf-8", errors="ignore")
+        except UnicodeDecodeError:
+            return content_type  # Unable to decode binary content
 
-    if content.startswith("{") or content.startswith("["):
-        return "application/json"
+    if isinstance(content, str):
+        if "text" in content_type and path.endswith(".md"):
+            return "text/markdown"
 
-    return "text/plain"
+        if content.startswith("<!DOCTYPE html>") or "<html" in content:
+            return "text/html"
+
+        if content.startswith("<?xml") or "<root" in content:
+            return "application/xml"
+
+        if content.startswith("{") or content.startswith("["):
+            return "application/json"
+
+    return content_type or "text/plain"
 
 
 def get_process_engine_from_type(type):
@@ -135,41 +173,79 @@ def get_process_engine_from_type(type):
         return "WORD"
     elif "officedocument.presentationml.presentation" in type:
         return "POWERPOINT"
+    elif "application/vnd.ms-outlook" in type:
+        return "OUTLOOK_MSG"
     elif "application/pdf" in type:
         return "PDF"
     elif "text/html" in type:
         return "HTML"
+    elif "text/markdown" in type:
+        return "MARKDOWN"
+    elif "text/csv" in type or "application/csv" in type:
+        return "CSV"
+    elif "spreadsheet" in type:
+        return "EXCEL"
     else:
         return "TEXT"
 
 
 def extract_markdown(
-    content, process_engine, fast=False, base_url=None, chunk_size=768, selector=None
+    content,
+    process_engine,
+    pdf_method="default",
+    base_url=None,
+    chunk_size=768,
+    selector=None,
 ):
-    if process_engine == "PDF" and fast:
-        md = fast_pdf_to_text(content)
-        if len(md) < 10:
-            # Fallback to Azure Document AI (fka Form Recognizer) if the fast method fails
-            # since that probably means it needs OCR
-            md = pdf_to_markdown(content)
-    elif process_engine == "PDF":
-        md = pdf_to_markdown(content)
+    enable_markdown = True
+    if process_engine == "PDF":
+        if pdf_method == "default":
+            enable_markdown = False
+            md = pdf_to_text_pdfium(content)
+            if len(md) < 10:
+                # Fallback to Azure Document Intelligence Read API to OCR
+                md = pdf_to_text_azure_read(content)
+        elif pdf_method == "azure_layout":
+            md = pdf_to_markdown_azure_layout(content)
+        elif pdf_method == "azure_read":
+            enable_markdown = False
+            md = pdf_to_text_azure_read(content)
     elif process_engine == "WORD":
         md = docx_to_markdown(content)
     elif process_engine == "POWERPOINT":
         md = pptx_to_markdown(content)
     elif process_engine == "HTML":
         md = html_to_markdown(content.decode("utf-8"), base_url, selector)
-    elif process_engine == "TEXT":
+    elif process_engine == "MARKDOWN":
         md = content.decode("utf-8")
+    elif process_engine == "OUTLOOK_MSG":
+        enable_markdown = False
+        md = msg_to_markdown(content)
+    elif process_engine == "CSV":
+        md = csv_to_markdown(content)
+    elif process_engine == "EXCEL":
+        md = excel_to_markdown(content)
+    else:
+        enable_markdown = False
+        try:
+            md = content.decode("utf-8")
+        except Exception as e:
+            raise e
+
+    md = remove_nul_characters(md)
+
+    # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
+    md = re.sub(r"\n{3,}", "\n\n", md.strip())
 
     # Divide the markdown into chunks
     try:
-        md_splitter = MarkdownSplitter(chunk_size=chunk_size, chunk_overlap=0)
+        md_splitter = MarkdownSplitter(
+            chunk_size=chunk_size, chunk_overlap=0, enable_markdown=enable_markdown
+        )
         md_chunks = md_splitter.split_markdown(md)
     except Exception as e:
-        print("Error splitting markdown using MarkdownSplitter:")
-        print(e)
+        logger.debug("Error splitting markdown using MarkdownSplitter:")
+        logger.error(e)
         # Fallback to simpler method
         from llama_index.core.node_parser import SentenceSplitter
 
@@ -180,28 +256,56 @@ def extract_markdown(
     return md, md_chunks
 
 
-def pdf_to_markdown(content):
-    html = _pdf_to_html_using_azure(content)
+def pdf_to_markdown_azure_layout(content):
+    html = _pdf_to_html_azure_layout(content)
     return _convert_html_to_markdown(html)
 
 
-def fast_pdf_to_text(content):
-    # Note: This method is faster than using Azure Form Recognizer
-    # Expected it to work well for more generic scenarios but not for scanned PDFs, images, and handwritten text
+def pdf_to_text_pdfium(content):
+    # Fast and cheap, but no OCR or layout analysis
     import pypdfium2 as pdfium
 
-    pdf = pdfium.PdfDocument(content)
     text = ""
+    pdf = pdfium.PdfDocument(content)
     for i, page in enumerate(pdf):
-        text += f"<page_{i+1}>\n"
-        text += page.get_textpage().get_text_range() + "\n"
-        text += f"</page_{i+1}>\n"
+        text_page = page.get_textpage()
+        text_content = text_page.get_text_range()
+        if text_content:
+            text += f"<page_{i+1}>\n"
+            text += text_content + "\n"
+            text += f"</page_{i+1}>\n"
+        # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
+        text_page.close()
+    pdf.close()
 
     return text
 
 
 def html_to_markdown(content, base_url=None, selector=None):
     return _convert_html_to_markdown(content, base_url, selector)
+
+
+def remove_nul_characters(text):
+    """Remove NUL (0x00) characters from the text."""
+    return text.replace("\x00", "")
+
+
+def msg_to_markdown(content):
+    with tempfile.NamedTemporaryFile(suffix=".msg") as temp_file:
+        temp_file.write(content)
+        temp_file_path = temp_file.name
+        try:
+            md = subprocess.check_output(
+                ["python", "-m", "extract_msg", "--dump-stdout", temp_file_path]
+            ).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Command failed with exit code {e.returncode}")
+            logger.error(f"Output: {e.output.decode('utf-8')}")
+            md = ""
+        except Exception as e:
+            logger.error(f"Failed to extract text from Outlook email: {e}")
+            md = ""
+        return md
 
 
 def docx_to_markdown(content):
@@ -344,13 +448,17 @@ def _convert_html_to_markdown(
                 absolute_url = urljoin(base_url, href)
                 anchor["href"] = absolute_url
 
+    # Replace <caption> elements with <h6> so that they get capture in breadcrumbs
+    for caption in soup.find_all("caption"):
+        caption.name = "h6"
+
     text = _remove_ignored_tags(str(soup))
 
     markdown = markdownify_wrapper(text).strip()
     return markdown
 
 
-def _pdf_to_html_using_azure(content):
+def _pdf_to_html_azure_layout(content):
     from azure.ai.formrecognizer import DocumentAnalysisClient
     from azure.core.credentials import AzureKeyCredential
     from shapely.geometry import Polygon
@@ -459,3 +567,88 @@ def _pdf_to_html_using_azure(content):
         html += page_end_tag
 
     return html
+
+
+def pdf_to_text_azure_read(content: bytes) -> str:
+
+    from azure.ai.formrecognizer import DocumentAnalysisClient
+    from azure.core.credentials import AzureKeyCredential
+
+    document_analysis_client = DocumentAnalysisClient(
+        endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+        credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+    )
+
+    poller = document_analysis_client.begin_analyze_document("prebuilt-read", content)
+    result = poller.result()
+
+    num_pages = len(result.pages)
+    cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
+
+    p_chunks = []
+    for page in result.pages:
+        for line in page.lines:
+            chunk = {
+                "page_number": page.page_number,
+                "text": line.content + "\n",
+            }
+            p_chunks.append(chunk)
+
+    text = ""
+    cur_page = None
+    for _, chunk in enumerate(p_chunks, 1):
+        page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
+        page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
+        prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
+        if chunk.get("page_number") != cur_page:
+            if cur_page is not None:
+                text = text.strip() + prev_end_tag
+            cur_page = chunk.get("page_number")
+            text = text.strip() + page_start_tag
+        text += chunk.get("text")
+
+    if cur_page is not None and p_chunks:
+        text = text.strip() + page_end_tag
+
+    return text
+
+
+def csv_to_markdown(content):
+    """Convert CSV content to markdown table."""
+    with io.StringIO(content.decode("utf-8")) as csv_file:
+        reader = csv.reader(csv_file)
+        rows = list(reader)
+
+    if not rows:
+        return ""
+
+    header = rows[0]
+    table = [
+        "| " + " | ".join(header) + " |",
+        "| " + " | ".join(["---"] * len(header)) + " |",
+    ]
+    for row in rows[1:]:
+        table.append("| " + " | ".join(row) + " |")
+
+    return "\n".join(table)
+
+
+def excel_to_markdown(content):
+    """Convert Excel content to markdown tables."""
+    workbook = openpyxl.load_workbook(io.BytesIO(content))
+    markdown = ""
+    for sheet in workbook.sheetnames:
+        markdown += f"# {sheet}\n\n"
+        sheet_obj = workbook[sheet]
+        rows = list(sheet_obj.values)
+        if not rows:
+            continue
+        header = rows[0]
+        table = [
+            "| " + " | ".join(map(str, header)) + " |",
+            "| " + " | ".join(["---"] * len(header)) + " |",
+        ]
+        for row in rows[1:]:
+            table.append("| " + " | ".join(map(str, row)) + " |")
+        markdown += "\n".join(table) + "\n\n"
+    return markdown

@@ -151,7 +151,7 @@ class LawSearchForm(forms.Form):
         label=_("Keyword ↔ Vector"),
         min_value=0,
         max_value=1,
-        initial=1,
+        initial=0.8,
         widget=forms.NumberInput(
             attrs={
                 "type": "range",
@@ -179,14 +179,14 @@ class LawSearchForm(forms.Form):
     model = forms.ChoiceField(
         label=_("AI model"),
         choices=CHAT_MODELS,  # This will be populated dynamically in the view
-        initial=settings.DEFAULT_CHAT_MODEL,
+        initial=settings.DEFAULT_LAWS_MODEL,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     context_tokens = forms.IntegerField(
         label=_("Max input tokens"),
         min_value=500,
         max_value=100000,
-        initial=2000,
+        initial=4000,
         widget=forms.NumberInput(attrs={"class": "form-control", "step": 500}),
     )
     additional_instructions = forms.CharField(

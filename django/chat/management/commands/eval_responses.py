@@ -210,25 +210,25 @@ class Command(BaseCommand):
         ]
 
         try:
-            print(
+            logger.debug(
                 f"Average faithfulness: {100 * sum(faithfulness_scores) / len(faithfulness_scores):.2f}%"
             )
         except ZeroDivisionError:
-            print("No faithfulness scores available.")
+            logger.error("No faithfulness scores available.")
 
         try:
-            print(
+            logger.debug(
                 f"Average correctness: {100 * sum(correctness_scores) / len(correctness_scores):.2f}%"
             )
         except ZeroDivisionError:
-            print("No correctness scores available.")
+            logger.error("No correctness scores available.")
 
         try:
-            print(
+            logger.debug(
                 f"Average % sources found: {100 * sum(sources_found) / len(sources_found):.2f}%"
             )
         except ZeroDivisionError:
-            print("No sources found scores available.")
+            logger.error("No sources found scores available.")
 
         user.delete()
 
@@ -255,9 +255,9 @@ def _create_test_user():
 def _test_qa_response(eval_instance, user):
     try:
         # Create chat and build chat history
-        chat = Chat(user=user)
+        chat = Chat.objects.create(user=user, mode=eval_instance["mode"])
         chat.save()
-        chat_options = ChatOptions.objects.create(chat=chat, mode=eval_instance["mode"])
+        chat_options = ChatOptions.objects.get(chat=chat)
         for message in eval_instance["history"]:
             if message.get("user", None):
                 last_message = Message.objects.create(
@@ -267,10 +267,8 @@ def _test_qa_response(eval_instance, user):
                 last_message = Message.objects.create(
                     chat=chat, text=message["ai"], is_bot=True
                 )
-            if "vector_store_table" in eval_instance:
-                library = Library.objects.get(
-                    vector_store_table=eval_instance["vector_store_table"]
-                )
+            if "library_name" in eval_instance:
+                library = Library.objects.get(name=eval_instance["library_name"])
 
         if library is not None:
             chat_options.qa_library = library
@@ -285,13 +283,21 @@ def _test_qa_response(eval_instance, user):
         response_message = Message.objects.create(
             chat=chat, is_bot=True, parent=last_message
         )
+        response_message.save()
 
         # Get response from appropriate chat function
         logger.debug(f"Asking Otto: {last_message.text}")
         logger.debug(f"(Expected answer: {expected_answer})")
         if eval_instance["mode"] == "qa":
             chat.save()
-            response_str, source_nodes = qa_response(chat, response_message, eval=True)
+            chat.refresh_from_db()
+            response = qa_response(chat, response_message)
+            list(
+                response
+            )  # Need to exhaust the StreamingHttpResponse generator for message text to update
+            response_message.refresh_from_db()
+            response_str = response_message.text
+            source_nodes = Message.objects.get(id=response_message.id).sources.all()
             logger.info(f"Response from Otto: {response_str}")
         elif eval_instance["mode"] == "chat":
             response_str = chat_response(chat, response_message, eval=True)
@@ -299,10 +305,7 @@ def _test_qa_response(eval_instance, user):
         else:
             logger.debug(f"Mode {eval_instance['mode']} not recognized, skipping...")
             return {}
-        response_sources = [
-            str(source_node.node.metadata) + "\n" + source_node.node.text
-            for source_node in source_nodes
-        ]
+        response_sources = [source_node.node_text for source_node in source_nodes]
 
         from concurrent.futures import ThreadPoolExecutor
 

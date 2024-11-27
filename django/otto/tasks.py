@@ -1,3 +1,6 @@
+import time
+
+from django.core.cache import cache
 from django.core.management import call_command
 
 from celery import shared_task
@@ -33,3 +36,28 @@ def delete_empty_chats():
 @shared_task
 def delete_unused_libraries():
     call_command("delete_unused_libraries")
+
+
+@shared_task
+def delete_text_extractor_files():
+    call_command("delete_text_extractor_files")
+
+
+@shared_task
+def cleanup_vector_store():
+    call_command("cleanup_vector_store")
+
+
+@shared_task
+def update_exchange_rate():
+    call_command("update_exchange_rate")
+
+
+# LOAD TESTING TASKS
+
+
+@shared_task
+def sleep_seconds(seconds):
+    print("Sleeping for", seconds, "seconds")
+    time.sleep(seconds)
+    return True

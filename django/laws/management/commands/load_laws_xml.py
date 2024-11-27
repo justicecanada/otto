@@ -14,12 +14,15 @@ import requests
 from django_extensions.management.utils import signalcommand
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from laws.models import Law, token_counter
-from otto.models import Cost
+from otto.models import Cost, OttoStatus
 from otto.utils.common import display_cad_cost
+
+logger = get_logger(__name__)
 
 
 def _price_tokens(token_counter):
@@ -34,10 +37,10 @@ def _download_repo(force_download=False):
     # Check if the repo was already downloaded
     if os.path.exists("/tmp/laws-lois-xml-main"):
         if force_download:
-            print("Deleting existing repo before re-downloading")
+            logger.debug("Deleting existing repo before re-downloading")
             shutil.rmtree("/tmp/laws-lois-xml-main")
         else:
-            print("Folder already exists, skipping download")
+            logger.debug("Folder already exists, skipping download")
             return
 
     # Path to save the downloaded zip file
@@ -46,7 +49,7 @@ def _download_repo(force_download=False):
     extract_path = "/tmp"
 
     # Download the zip file
-    print("Downloading laws-lois-xml repo...")
+    logger.debug("Downloading laws-lois-xml repo...")
     response = requests.get(repo_url)
     with open(zip_file_path, "wb") as file:
         file.write(response.content)
@@ -82,8 +85,8 @@ def _get_fr_file_path(fr_id, laws_dir):
     elif os.path.exists(reg_path):
         return reg_path
     else:
-        print(f"Could not find French file for {fr_id}")
-        print(f"(FR: {act_path}, FR: {reg_path})")
+        logger.debug(f"Could not find French file for {fr_id}")
+        logger.debug(f"(FR: {act_path}, FR: {reg_path})")
         return None
 
 
@@ -100,10 +103,12 @@ def _get_en_fr_law_file_paths(laws_dir, eng_law_ids=[]):
         if en_file_path and fr_file_path:
             file_paths.append((en_file_path, fr_file_path))
         else:
-            print(f"Could not find both English and French files for {eng_law_id}")
-            print(f"(EN: {en_file_path}, FR: {fr_file_path})")
+            logger.debug(
+                f"Could not find both English and French files for {eng_law_id}"
+            )
+            logger.debug(f"(EN: {en_file_path}, FR: {fr_file_path})")
 
-    print(len(file_paths), "laws found in both languages")
+    logger.debug(f"{len(file_paths)} laws found in both languages")
     return file_paths
 
 
@@ -663,6 +668,11 @@ class Command(BaseCommand):
             help="Resets the database before loading",
         )
         parser.add_argument(
+            "--accept_reset",
+            action="store_true",
+            help="Accept the reset of the database",
+        )
+        parser.add_argument(
             "--debug",
             action="store_true",
             help="Write node markdown to source directories. Does not alter database.",
@@ -699,13 +709,15 @@ class Command(BaseCommand):
         total_cost = 0
         full = options.get("full", False)
         reset = options.get("reset", False)
+        accept_reset = options.get("accept_reset", False)
         if reset:
-            # Confirm the user wants to delete all laws
-            print("This will delete all laws in the database. Are you sure?")
-            response = input("Type 'yes' to confirm: ")
-            if response != "yes":
-                print("Aborted")
-                return
+            if not accept_reset:
+                # Confirm the user wants to delete all laws
+                print("This will delete all laws in the database. Are you sure?")
+                response = input("Type 'yes' to confirm: ")
+                if response != "yes":
+                    print("Aborted")
+                    return
         small = options.get("small", False)
         const_only = options.get("const_only", False)
         force_update = options.get("force_update", False)
@@ -841,30 +853,36 @@ class Command(BaseCommand):
         error_count = len(load_results["error"])
         updated_count = len(load_results["updated"])
         if error_count:
-            print("\nError files:")
+            logger.debug("\nError files:")
             for error in load_results["error"]:
-                print(error)
+                logger.error(error)
         if empty_count:
-            print("\nEmpty files:")
+            logger.debug("\nEmpty files:")
             for empty in load_results["empty"]:
-                print(empty)
+                logger.debug(empty)
         if exist_count:
-            print("\nExisting files:")
+            logger.debug("\nExisting files:")
             for exist in load_results["exists"]:
-                print(exist)
+                logger.debug(exist)
         if updated_count:
-            print("\nUpdated files:")
+            logger.debug("\nUpdated files:")
             for updated in load_results["updated"]:
-                print(updated)
+                logger.debug(updated)
         if added_count:
-            print("\nAdded files:")
+            logger.debug("\nAdded files:")
             for added in load_results["added"]:
-                print(added)
-        print(
+                logger.debug(added)
+        logger.debug(
             f"\nAdded: {added_count}; Updated: {updated_count}; Already exists: {exist_count}; Empty laws: {empty_count}; Errors: {error_count}"
         )
-        print(f"Total time to load XML files: {time.time() - start_time:.2f} seconds")
-        print(f"Total cost: {display_cad_cost(total_cost)}")
+        logger.debug(
+            f"Total time to load XML files: {time.time() - start_time:.2f} seconds"
+        )
+        logger.debug(f"Total cost: {display_cad_cost(total_cost)}")
+
+        otto_status = OttoStatus.objects.singleton()
+        otto_status.laws_last_refreshed = datetime.now()
+        otto_status.save()
 
 
 def get_sha_256_hash(file_path):
@@ -902,7 +920,7 @@ def process_en_fr_paths(
         and Law.objects.filter(sha_256_hash_fr=fr_hash).exists()
         and not force_update
     ):
-        print(f"Duplicate EN/FR hashes found in database: {file_paths}")
+        logger.debug(f"Duplicate EN/FR hashes found in database: {file_paths}")
         load_results["exists"].append(file_paths)
         return load_results, 0
 
@@ -1019,11 +1037,13 @@ def process_en_fr_paths(
             # node_id_en property will be unique in database
             node_id_en = document_en.doc_id
             if Law.objects.filter(node_id_en=node_id_en).exists():
-                print(f"Updating existing law.")
+                logger.debug(f"Updating existing law.")
                 load_results["updated"].append(file_paths)
             else:
                 load_results["added"].append(file_paths)
-            print(f"Adding to database: {document_en.metadata['display_metadata']}")
+            logger.debug(
+                f"Adding to database: {document_en.metadata['display_metadata']}"
+            )
             # This method will update existing Law object if it already exists
             law = Law.objects.from_docs_and_nodes(
                 document_en,
@@ -1041,10 +1061,10 @@ def process_en_fr_paths(
             cost_obj = Cost.objects.filter(law=law).order_by("date_incurred")
             if cost_obj.exists():
                 cost = cost_obj.last().usd_cost
-                print(f"Cost: {display_cad_cost(cost)}")
+                logger.debug(f"Cost: {display_cad_cost(cost)}")
 
         except Exception as e:
-            print(f"*** Error processing file pair: {file_paths}\n {e}\n")
+            logger.error(f"*** Error processing file pair: {file_paths}\n {e}\n")
             if "Law with this Node id already exists" in str(e):
                 load_results["exists"].append(file_paths)
             else:

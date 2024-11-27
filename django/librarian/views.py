@@ -24,6 +24,7 @@ from .forms import (
 from .models import DataSource, Document, Library, SavedFile
 
 logger = get_logger(__name__)
+IN_PROGRESS_STATUSES = ["PENDING", "INIT", "PROCESSING"]
 
 
 def get_editable_libraries(user):
@@ -232,11 +233,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         else:
             return HttpResponse(status=405)
 
-    # Poll for updates when a data source is selected that has processing documents
-    # (with status "INIT" or "PROCESSING")
+    # Poll for updates when a data source is selected that has in-progress documents
     try:
         poll = selected_data_source.documents.filter(
-            status__in=["INIT", "PROCESSING"]
+            status__in=IN_PROGRESS_STATUSES
         ).exists()
     except:
         poll = False
@@ -287,7 +287,7 @@ def poll_status(request, data_source_id, document_id=None):
     documents = Document.objects.filter(data_source_id=data_source_id)
     poll = False
     try:
-        poll = documents.filter(status__in=["INIT", "PROCESSING"]).exists()
+        poll = documents.filter(status__in=[IN_PROGRESS_STATUSES]).exists()
     except:
         poll = False
     poll_url = request.path if poll else None
@@ -395,23 +395,12 @@ def create_temp_object(item_type):
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 @budget_required
-def document_start(request, document_id):
+def document_start(request, document_id, pdf_method="default"):
     bind_contextvars(feature="librarian")
 
     # Initiate celery task
     document = get_object_or_404(Document, id=document_id)
-    document.process()
-    return modal_view(request, item_type="document", item_id=document_id)
-
-
-@permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
-@budget_required
-def document_start_azure(request, document_id):
-    bind_contextvars(feature="librarian")
-
-    # Initiate celery task
-    document = get_object_or_404(Document, id=document_id)
-    document.process(force_azure=True)
+    document.process(pdf_method=pdf_method)
     return modal_view(request, item_type="document", item_id=document_id)
 
 
@@ -439,25 +428,23 @@ def data_source_stop(request, data_source_id):
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
 @budget_required
-def data_source_start(request, data_source_id):
+def data_source_start(request, data_source_id, pdf_method="default", scope="all"):
     # Start all celery tasks for documents within this data source
     bind_contextvars(feature="librarian")
     data_source = get_object_or_404(DataSource, id=data_source_id)
-    for document in data_source.documents.all():
-        document.process()
-    return modal_view(request, item_type="data_source", item_id=data_source_id)
-
-
-@permission_required(
-    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
-)
-@budget_required
-def data_source_start_azure(request, data_source_id):
-    # Start all celery tasks for documents within this data source
-    bind_contextvars(feature="librarian")
-    data_source = get_object_or_404(DataSource, id=data_source_id)
-    for document in data_source.documents.all():
-        document.process(force_azure=True)
+    if scope == "all":
+        for document in data_source.documents.all():
+            if document.status in ["PENDING", "INIT", "PROCESSING"]:
+                document.stop()
+            document.process(pdf_method=pdf_method)
+    elif scope == "incomplete":
+        for document in data_source.documents.all():
+            if document.status in ["PENDING", "INIT", "PROCESSING"]:
+                document.stop()
+            if document.status not in ["SUCCESS"]:
+                document.process(pdf_method=pdf_method)
+    else:
+        raise ValueError(f"Invalid scope: {scope}")
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
 
@@ -481,10 +468,25 @@ def upload(request, data_source_id):
             logger.info(
                 f"Found existing SavedFile for {file.name}", saved_file_id=file_obj.id
             )
+            # Check if identical document already exists in the DataSource
+            existing_document = Document.objects.filter(
+                data_source_id=data_source_id,
+                filename=file.name,
+                file__sha256_hash=file_hash,
+            ).first()
+            # Skip if filename and hash are the same, and processing status is SUCCESS
+            if existing_document:
+                if (
+                    existing_document.status != "SUCCESS"
+                    and not settings.IS_RUNNING_IN_GITHUB
+                ):
+                    existing_document.process()
+                continue
         else:
             file_obj = SavedFile.objects.create(content_type=file.content_type)
             file_obj.file.save(file.name, file)
             file_obj.generate_hash()
+
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )

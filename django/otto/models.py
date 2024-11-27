@@ -40,6 +40,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
     accepted_terms_date = models.DateField(null=True)
     pilot = models.ForeignKey("Pilot", on_delete=models.SET_NULL, null=True, blank=True)
+    default_preset = models.ForeignKey(
+        "chat.Preset",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="default_for",
+    )
     weekly_max = models.IntegerField(default=settings.DEFAULT_WEEKLY_MAX)
     weekly_bonus = models.IntegerField(default=0)  # Resets each Sunday to 0
 
@@ -76,8 +83,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.groups.all()
 
     @property
-    def display_total_cost(self):
-        return display_cad_cost(Cost.objects.get_user_cost(self))
+    def total_cost(self):
+        return f"{cad_cost(Cost.objects.get_user_cost(self)):.2f}"
 
     @property
     def this_week_max(self):
@@ -204,7 +211,7 @@ class App(models.Model):
 class Feature(models.Model):
 
     CATEGORY_CHOICES = [
-        ("ai_assistant", _("AI assistant")),
+        ("ai_assistant", _("AI Assistant")),
         ("monitoring", _("Monitoring")),
         ("reporting", _("Reporting")),
         ("other", _("Other")),
@@ -260,7 +267,7 @@ class Feedback(models.Model):
         default=_("Please select an option"),
     )
     app = models.TextField(max_length=200, blank=False)
-    otto_version = models.CharField(max_length=12, null=False)
+    otto_version = models.CharField(max_length=50, null=False)
     feedback_message = models.TextField(blank=False)
     chat_message = models.ForeignKey(
         "chat.Message", null=True, on_delete=models.SET_NULL, related_name="message"
@@ -336,10 +343,14 @@ class CostManager(models.Manager):
             # Optional fields from request context
             feature=request_context.get("feature"),
             request_id=request_context.get("request_id"),
-            user=User.objects.get(id=user_id) if user_id else None,
-            message=Message.objects.get(id=message_id) if message_id else None,
-            document=Document.objects.get(id=document_id) if document_id else None,
-            law=Law.objects.get(id=law_id) if law_id else None,
+            user=User.objects.filter(id=user_id).first() if user_id else None,
+            message=(
+                Message.objects.filter(id=message_id).first() if message_id else None
+            ),
+            document=(
+                Document.objects.filter(id=document_id).first() if document_id else None
+            ),
+            law=Law.objects.filter(id=law_id).first() if law_id else None,
         )
 
         # Recalculate document and message costs, if applicable
@@ -409,11 +420,11 @@ FEATURE_CHOICES = [
     ("chat_agent", _("Chat agent")),
     ("translate", _("Translate")),
     ("summarize", _("Summarize")),
-    ("template_wizard", _("Template wizard")),
-    ("laws_query", _("Legislation search")),
+    ("template_wizard", _("Template Wizard")),
+    ("laws_query", _("Legislation Search")),
     ("laws_load", _("Legislation loading")),
-    ("case_prep", _("Case prep assistant")),
-    ("text_extractor", _("Text extractor")),
+    ("text_extractor", _("Text Extractor")),
+    ("load_test", _("Load test")),
 ]
 
 
@@ -469,3 +480,16 @@ class Pilot(models.Model):
     @property
     def total_cost(self):
         return display_cad_cost(Cost.objects.get_pilot_cost(self))
+
+
+class OttoStatusManager(models.Manager):
+    def singleton(self):
+        return self.get_or_create(pk=1)[0]
+
+
+class OttoStatus(models.Model):
+    """Misc. information, e.g. when updates occurred. Use as singleton."""
+
+    objects = OttoStatusManager()
+    laws_last_refreshed = models.DateTimeField(null=True, blank=True)
+    exchange_rate = models.FloatField(null=False, blank=False, default=1.38)

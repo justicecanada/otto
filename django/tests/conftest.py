@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.test import override_settings
 
@@ -16,11 +17,16 @@ from reportlab.pdfgen import canvas
 
 pytest_plugins = ("pytest_asyncio",)
 
+this_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 @pytest.fixture(scope="function", autouse=True)
 def set_test_media():
     # Define the test media directory
     test_media_dir = os.path.join(settings.BASE_DIR, "test_media")
+
+    storages = settings.STORAGES.copy()
+    storages["default"]["LOCATION"] = test_media_dir
 
     # Ensure the test media directory is clean
     if os.path.exists(test_media_dir):
@@ -28,7 +34,7 @@ def set_test_media():
     os.makedirs(test_media_dir)
 
     # Use override_settings to set MEDIA_ROOT
-    with override_settings(MEDIA_ROOT=test_media_dir):
+    with override_settings(STORAGES=storages, MEDIA_ROOT=test_media_dir):
         yield  # This allows the tests to run
 
     # Cleanup after tests
@@ -59,6 +65,24 @@ async def django_db_setup(django_db_setup, django_db_blocker):
             process_document_helper(test_document, OttoLLM())
 
     return await sync_to_async(_inner)()
+
+
+@pytest.fixture()
+def load_example_pdf(django_db_blocker):
+    from chat.llm import OttoLLM
+    from librarian.models import DataSource, Document, SavedFile
+    from librarian.tasks import process_document_helper
+
+    with open(os.path.join(this_dir, "librarian/test_files/example.pdf"), "rb") as f:
+        with django_db_blocker.unblock():
+            pdf_file = ContentFile(f.read(), name="example.pdf")
+            saved_file = SavedFile.objects.create(file=pdf_file)
+            d = Document.objects.create(
+                file=saved_file,
+                filename="example.pdf",
+                data_source=DataSource.objects.get(name_en="Wikipedia"),
+            )
+            process_document_helper(d, OttoLLM())
 
 
 @pytest.fixture()
@@ -111,7 +135,7 @@ def mock_pdf_file():
 def mock_pdf_file2():
     filename = "temp_file2.pdf"
     c = canvas.Canvas(filename)
-    for i in range(10):  # Create 3 pages
+    for i in range(10):  # Create 10 pages
         c.drawString(100, 100, f"Page {i+1}")
         c.showPage()
     c.save()
@@ -146,3 +170,37 @@ def mock_unsupported_file():
 class MockFile:
     def __init__(self, name, total_page_num):
         self.name = name
+
+
+@pytest.fixture
+def process_ocr_document_mock(mocker):
+    # Mock the Celery task's delay method
+    mock_delay = mocker.patch("text_extractor.views.process_ocr_document.delay")
+    mock_task = MagicMock()
+    mock_task.id = "mock_task_id"
+    mock_delay.return_value = mock_task
+
+    # Mock the AsyncResult
+    mock_async_result = mocker.patch(
+        "text_extractor.views.process_ocr_document.AsyncResult"
+    )
+    mock_result_instance = MagicMock()
+    # Set the return value of result.get()
+    mock_result_instance.get.return_value = (
+        b"pdf_bytes_content",  # pdf_bytes_content
+        "txt_file_content",  # txt_file_content
+        0.05,  # cost
+        "input_name",  # input_name
+    )
+    mock_async_result.return_value = mock_result_instance
+
+    return mock_delay, mock_async_result
+
+
+@pytest.fixture
+def content_file_mock(mocker):
+    original_content_file = ContentFile
+    mock_content_file = mocker.patch(
+        "django.core.files.base.ContentFile", side_effect=original_content_file
+    )
+    return mock_content_file

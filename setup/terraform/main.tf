@@ -24,6 +24,26 @@ data "azuread_group" "acr_publishers" {
   display_name = trimspace(each.value)
 }
 
+data "azuread_group" "log_analytics_readers" {
+  for_each     = toset(split(",", var.log_analytics_readers_group_name))
+  display_name = trimspace(each.value)
+}
+
+# VNet module
+module "vnet" {
+  source              = "./modules/vnet"
+  vnet_name           = var.vnet_name
+  vnet_ip_range       = var.vnet_ip_range
+  web_subnet_name     = var.web_subnet_name
+  web_subnet_ip_range = var.web_subnet_ip_range
+  app_subnet_name     = var.app_subnet_name
+  app_subnet_ip_range = var.app_subnet_ip_range
+  db_subnet_name      = var.db_subnet_name
+  db_subnet_ip_range  = var.db_subnet_ip_range
+  location            = var.location
+  resource_group_name = module.resource_group.name
+  tags                = local.common_tags
+}
 
 # Key Vault module
 # SC-13: Centralized key management and cryptographic operations
@@ -33,8 +53,12 @@ module "keyvault" {
   location               = var.location
   keyvault_name          = var.keyvault_name
   admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
-  entra_client_secret    = var.entra_client_secret
   tags                   = local.common_tags
+  use_private_network    = var.use_private_network
+  app_subnet_id          = module.vnet.app_subnet_id
+  web_subnet_id          = module.vnet.web_subnet_id
+  db_subnet_id           = module.vnet.db_subnet_id
+  corporate_public_ip    = var.corporate_public_ip
 }
 
 # ACR module
@@ -51,16 +75,23 @@ module "acr" {
 
 # Disk module
 module "disk" {
-  source               = "./modules/disk"
-  disk_name            = var.disk_name
-  resource_group_name  = module.resource_group.name
-  location             = var.location
-  tags                 = local.common_tags
-  aks_cluster_id       = module.aks.aks_cluster_id
-  keyvault_id          = module.keyvault.keyvault_id
-  cmk_id               = module.keyvault.cmk_id
-  wait_for_propagation = module.keyvault.wait_for_propagation
-  use_private_network  = var.use_private_network
+  source                    = "./modules/disk"
+  disk_name                 = var.disk_name
+  resource_group_name       = module.resource_group.name
+  location                  = var.location
+  tags                      = local.common_tags
+  aks_cluster_id            = module.aks.aks_cluster_id
+  keyvault_id               = module.keyvault.keyvault_id
+  cmk_id                    = module.keyvault.cmk_id
+  wait_for_propagation      = module.keyvault.wait_for_propagation
+  use_private_network       = var.use_private_network
+  corporate_ip              = var.corporate_public_ip
+  app_subnet_id             = module.vnet.app_subnet_id
+  web_subnet_id             = module.vnet.web_subnet_id
+  db_subnet_id              = module.vnet.db_subnet_id
+  web_subnet_address_prefix = module.vnet.web_subnet_address_prefix
+  app_subnet_address_prefix = module.vnet.app_subnet_address_prefix
+  db_subnet_address_prefix  = module.vnet.db_subnet_address_prefix
 }
 
 # Storage module
@@ -73,27 +104,19 @@ module "storage" {
   keyvault_id            = module.keyvault.keyvault_id
   cmk_name               = module.keyvault.cmk_name
   wait_for_propagation   = module.keyvault.wait_for_propagation
+  admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
+  corporate_public_ip    = var.corporate_public_ip
+  app_subnet_id          = module.vnet.app_subnet_id
+  web_subnet_id          = module.vnet.web_subnet_id
+  db_subnet_id           = module.vnet.db_subnet_id
+  backup_container_name  = var.backup_container_name
 }
 
 data "azurerm_public_ip" "aks_outbound_ip" {
   name                = split("/", module.aks.outbound_ip_resource_id)[8]
   resource_group_name = split("/", module.aks.outbound_ip_resource_id)[4]
-}
-
-# DjangoDB module
-module "djangodb" {
-  source               = "./modules/djangodb"
-  resource_name        = var.djangodb_resource_name
-  resource_group_name  = module.resource_group.name
-  location             = var.location
-  tags                 = local.common_tags
-  storage_account_id   = module.storage.storage_account_id
-  keyvault_id          = module.keyvault.keyvault_id
-  aks_ip_address       = data.azurerm_public_ip.aks_outbound_ip.ip_address
-  wait_for_propagation = module.keyvault.wait_for_propagation
-  use_private_network  = var.use_private_network
 }
 
 # Cognitive Services module
@@ -131,6 +154,7 @@ module "aks" {
   location               = var.location
   resource_group_name    = module.resource_group.name
   admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
+  log_analytics_readers_group_object_ids = values(data.azuread_group.log_analytics_readers)[*].object_id
   keyvault_id            = module.keyvault.keyvault_id
   acr_id                 = module.acr.acr_id
   disk_encryption_set_id = module.disk.disk_encryption_set_id
@@ -138,8 +162,22 @@ module "aks" {
   tags                   = local.common_tags
   admin_email            = var.admin_email
   use_private_network    = var.use_private_network
+  vm_size                = var.vm_size
+  vm_cpu_count           = var.vm_cpu_count
+  approved_cpu_quota     = var.approved_cpu_quota
+  web_subnet_id          = module.vnet.web_subnet_id
 }
 
+# TODO: Uncomment Velero after the change request is approved
+# # Velero module
+# module "velero" {
+#   source               = "./modules/velero"
+#   resource_group_name  = module.resource_group.name
+#   velero_identity_name = var.velero_identity_name
+#   location             = var.location
+#   oidc_issuer_url      = module.aks.oidc_issuer_url
+#   storage_account_id   = module.storage.storage_account_id
+# }
 
 # CM-8 & CM-9: Diagnostic settings for Key Vault
 resource "azurerm_monitor_diagnostic_setting" "key_vault" {

@@ -2,14 +2,16 @@ import re
 import uuid
 
 from django.conf import settings
-from django.db import models
-from django.db.models import Q
+from django.db import connections, models
+from django.db.models import BooleanField, Q, Value
+from django.db.models.functions import Coalesce
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from rules import is_group_member
 from structlog import get_logger
 
 from chat.prompts import (
@@ -21,7 +23,8 @@ from chat.prompts import (
     current_time_prompt,
 )
 from librarian.models import DataSource, Library, SavedFile
-from otto.models import SecurityLabel
+from librarian.utils.process_engine import guess_content_type
+from otto.models import SecurityLabel, User
 from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
@@ -48,7 +51,6 @@ class ChatManager(models.Manager):
         kwargs["security_label_id"] = SecurityLabel.default_security_label().id
         instance = super().create(*args, **kwargs)
         ChatOptions.objects.from_defaults(
-            user=kwargs["user"],
             mode=mode,
             chat=instance,
         )
@@ -80,25 +82,23 @@ class Chat(models.Model):
     def __str__(self):
         return f"Chat {self.id}: {self.title}"
 
-    def access(self):
-        self.accessed_at = timezone.now()
-        self.save()
+    def delete(self, *args, **kwargs):
+        if hasattr(self, "data_source") and self.data_source:
+            self.data_source.delete()
+        super().delete(*args, **kwargs)
 
 
 class ChatOptionsManager(models.Manager):
-    def from_defaults(self, mode=None, user=None, chat=None):
+    def from_defaults(self, mode=None, chat=None):
         """
         If a user default exists, copy that into a new ChatOptions object.
         If not, create a new object with some default settings manually.
         Set the mode and chat FK in the new object.
         """
-        if user:
-            user_default = (
-                self.get_queryset().filter(user=user, user_default=True).first()
-            )
-        if user and user_default:
-            new_options = user_default
-            new_options.pk = None
+        if chat and chat.user.default_preset:
+            new_options = chat.user.default_preset.options
+            if new_options:
+                new_options.pk = None
         else:
             # Default Otto settings
             default_library = Library.objects.get_default_library()
@@ -107,8 +107,8 @@ class ChatOptionsManager(models.Manager):
                 qa_library=default_library,
                 chat_system_prompt=_(DEFAULT_CHAT_PROMPT),
                 chat_model=settings.DEFAULT_CHAT_MODEL,
-                qa_model=settings.DEFAULT_CHAT_MODEL,
-                summarize_model=settings.DEFAULT_CHAT_MODEL,
+                qa_model=settings.DEFAULT_QA_MODEL,
+                summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
                 qa_prompt_template=_(QA_PROMPT_TEMPLATE),
                 qa_pre_instructions=_(QA_PRE_INSTRUCTIONS),
                 qa_post_instructions=_(QA_POST_INSTRUCTIONS),
@@ -131,7 +131,8 @@ QA_SCOPE_CHOICES = [
 
 QA_MODE_CHOICES = [
     ("rag", _("Use top sources only (fast, cheap)")),
-    ("summarize", _("Read entire documents (slow, expensive)")),
+    ("summarize", _("Full documents, separate answers ($)")),
+    ("summarize_combined", _("Full documents, combined answer ($)")),
 ]
 
 QA_SOURCE_ORDER_CHOICES = [
@@ -147,27 +148,17 @@ class ChatOptions(models.Model):
 
     objects = ChatOptionsManager()
 
-    # Default case: ChatOptions object is associated with a particular chat.
-    # (Does not show up in the list of option presets for a user.)
-
-    # Second case: user options preset. One user can have many presets.
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        null=True,
-        related_name="chat_options",
-    )
     chat = models.OneToOneField(
         "Chat",
         on_delete=models.CASCADE,  # This will delete ChatOptions when Chat is deleted
         null=True,
         related_name="options",
     )
-    preset_name = models.CharField(max_length=255, blank=True)
-    # Third case (can overlap with 2nd case): User default options.
-    user_default = models.BooleanField(default=False)
 
     mode = models.CharField(max_length=255, default=DEFAULT_MODE)
+
+    # Prompt is only saved/restored for presets
+    prompt = models.TextField(blank=True, default="")
 
     # Chat-specific options
     chat_model = models.CharField(max_length=255, default="gpt-4o")
@@ -179,7 +170,9 @@ class ChatOptions(models.Model):
     summarize_model = models.CharField(max_length=255, default="gpt-4o")
     summarize_style = models.CharField(max_length=255, default="short")
     summarize_language = models.CharField(max_length=255, default="en")
+    summarize_instructions = models.TextField(blank=True)
     summarize_prompt = models.TextField(blank=True)
+    summarize_gender_neutral = models.BooleanField(default=True)
 
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
@@ -236,12 +229,12 @@ class ChatOptions(models.Model):
         )
 
     def clean(self):
-        if hasattr(self, "chat") and self.user:
+        if hasattr(self, "chat") and self.preset.first():
             logger.error(
-                "ChatOptions cannot be associated with both a chat AND a user.",
+                "ChatOptions cannot be associated with both a chat AND a user preset.",
             )
             raise ValueError(
-                "ChatOptions cannot be associated with both a chat AND a user."
+                "ChatOptions cannot be associated with both a chat AND a user preset."
             )
 
     def make_user_default(self):
@@ -252,6 +245,136 @@ class ChatOptions(models.Model):
         else:
             logger.error("User must be set to set user default.")
             raise ValueError("User must be set to set user default")
+
+
+class PresetManager(models.Manager):
+    def get_accessible_presets(self, user: User, language: str = None):
+        ordering = ["-default", "-favourite"]
+        if language:
+            ordering.append(f"name_{language}")
+
+        is_admin = is_group_member("Otto admin")(user)
+
+        # admins will have access to all presets
+        if is_admin:
+            presets = self.filter(is_deleted=False)
+        else:
+            presets = self.filter(
+                Q(owner=user) | Q(accessible_to=user) | Q(sharing_option="everyone"),
+                is_deleted=False,
+            )
+        return (
+            presets.distinct()
+            .annotate(
+                favourite=Coalesce(
+                    Q(favourited_by__in=[user]),
+                    Value(False),
+                    output_field=BooleanField(),
+                ),
+                default=Coalesce(
+                    Q(default_for__in=[user]),
+                    Value(False),
+                    output_field=BooleanField(),
+                ),
+            )
+            .order_by(*ordering)
+        )
+
+
+SHARING_OPTIONS = [
+    ("private", _("Make private")),
+    ("everyone", _("Share with everyone")),
+    ("others", _("Share with others")),
+]
+
+
+class Preset(models.Model):
+    """
+    A preset of options for a chat
+    """
+
+    objects = PresetManager()
+
+    name_en = models.CharField(max_length=255, blank=True)
+    name_fr = models.CharField(max_length=255, blank=True)
+    description_en = models.TextField(blank=True)
+    description_fr = models.TextField(blank=True)
+    options = models.ForeignKey(
+        ChatOptions, on_delete=models.CASCADE, related_name="preset"
+    )
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    accessible_to = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="accessible_presets"
+    )
+    favourited_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="favourited_presets"
+    )
+    is_deleted = models.BooleanField(default=False)
+
+    sharing_option = models.CharField(
+        max_length=10,
+        choices=SHARING_OPTIONS,
+        default="private",
+    )
+
+    @property
+    def shared_with(self):
+        if self.sharing_option == "everyone":
+            return "Shared with everyone"
+        elif self.sharing_option == "others":
+            return "Shared with others"
+        return "Private"
+
+    def toggle_favourite(self, user: User):
+        """Sets the favourite flag for the preset.
+        Returns True if the preset was added to the favourites, False if it was removed.
+        Raises ValueError if user is None.
+        """
+
+        if user:
+            try:
+                self.favourited_by.get(pk=user.id)
+                self.favourited_by.remove(user)
+                return False
+            except:
+                self.favourited_by.add(user)
+                return True
+        else:
+            logger.error("User must be set to set user default.")
+            raise ValueError("User must be set to set user default")
+
+    def delete_preset(self, user: User):
+        # TODO: Preset refactor: Delete preset if no other presets are using it
+        if self.owner != user:
+            logger.error("User is not the owner of the preset.")
+            raise ValueError("User is not the owner of the preset.")
+        self.is_deleted = True
+        self.save()
+
+    def get_description(self, language: str):
+        language = language.lower()
+        if language == "en":
+            return self.description_en if self.description_en else self.description_fr
+        else:
+            return self.description_fr if self.description_fr else self.description_en
+
+    def set_as_default(self, user: User):
+        if user:
+            if user.default_preset == self:
+                user.default_preset = None
+            else:
+                user.default_preset = self
+            user.save()
+            return user.default_preset
+        else:
+            logger.error("User must be set to set user default.")
+            raise ValueError("User must be set to set user default")
+
+    def __str__(self):
+        return f"Preset {self.id}: {self.name_en}"
 
 
 class Message(models.Model):
@@ -269,7 +392,7 @@ class Message(models.Model):
     feedback_comment = models.TextField(blank=True)
     is_bot = models.BooleanField(default=False)
     bot_name = models.CharField(max_length=255, blank=True)
-    usd_cost = models.DecimalField(max_digits=10, decimal_places=4, default=0)
+    usd_cost = models.DecimalField(max_digits=10, decimal_places=4, null=True)
     pinned = models.BooleanField(default=False)
     # Flexible JSON field for mode-specific details such as translation target language
     details = models.JSONField(default=dict)
@@ -323,7 +446,7 @@ class Message(models.Model):
 class AnswerSourceManager(models.Manager):
     def create(self, *args, **kwargs):
         # Extract page numbers using regex
-        source_text = kwargs.get("node_text", "")
+        source_text = kwargs.pop("node_text", "")
         page_numbers = re.findall(r"<page_(\d+)>", source_text)
         page_numbers = list(map(int, page_numbers))  # Convert to integers
         if page_numbers:
@@ -347,7 +470,7 @@ class AnswerSource(models.Model):
     document = models.ForeignKey(
         "librarian.Document", on_delete=models.SET_NULL, null=True
     )
-    node_text = models.TextField()
+    node_id = models.CharField(max_length=255, blank=True)
     node_score = models.FloatField(default=0.0)
     # Saved citation for cases where the source Document is deleted later
     saved_citation = models.TextField(blank=True)
@@ -357,8 +480,7 @@ class AnswerSource(models.Model):
     max_page = models.IntegerField(null=True)
 
     def __str__(self):
-        document_citation = self.citation
-        return f"{document_citation} ({self.node_score:.2f}):\n{self.node_text[:144]}"
+        return f"{self.citation} ({self.node_score:.2f})"
 
     @property
     def html(self):
@@ -372,6 +494,22 @@ class AnswerSource(models.Model):
             "chat/components/source_citation.html",
             {"document": self.document, "source": self},
         )
+
+    @property
+    def node_text(self):
+        """
+        Lookup the node text from the vector DB
+        """
+        if self.document:
+            table_id = self.document.data_source.library.uuid_hex
+            with connections["vector_db"].cursor() as cursor:
+                cursor.execute(
+                    f"SELECT text FROM data_{table_id} WHERE node_id = '{self.node_id}'"
+                )
+                row = cursor.fetchone()
+                if row:
+                    return row[0]
+        return _("Source not available (document deleted or modified since message)")
 
 
 class ChatFileManager(models.Manager):
@@ -411,7 +549,7 @@ class ChatFile(models.Model):
     def __str__(self):
         return f"File {self.id}: {self.filename}"
 
-    def extract_text(self, fast=True):
+    def extract_text(self, pdf_method="default"):
 
         from librarian.utils.process_engine import (
             extract_markdown,
@@ -421,17 +559,22 @@ class ChatFile(models.Model):
         if not self.saved_file:
             return
 
-        process_engine = get_process_engine_from_type(self.saved_file.content_type)
-        self.text, _ = extract_markdown(
-            self.saved_file.file.read(), process_engine, fast=fast
-        )
-        self.save()
+        with self.saved_file.file.open("rb") as file:
+            content = file.read()
+            content_type = guess_content_type(
+                content, self.saved_file.content_type, self.filename
+            )
+            process_engine = get_process_engine_from_type(content_type)
+            self.text, _ = extract_markdown(
+                content, process_engine, pdf_method=pdf_method
+            )
+            self.save()
 
 
 @receiver(post_delete, sender=ChatFile)
 def delete_saved_file(sender, instance, **kwargs):
     # NOTE: If file was uploaded to chat in Q&A mode, this won't delete unless
-    # document is also delete from librarian modal (or entire chat is deleted)
+    # document is also deleted from librarian modal (or entire chat is deleted)
     try:
         instance.saved_file.safe_delete()
     except Exception as e:

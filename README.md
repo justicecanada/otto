@@ -1,26 +1,47 @@
-# What is Otto
+# Otto
 
-Otto is a suite of AI services developed by data specialists at Justice Canada with the goal of helping legal professionals improve the efficiency and accuracy of legal research, analysis, and decision-making.
+Otto is a platform designed to host a wide range of AI tools, data visualizations, and interactive solutions that address various efficiency needs across Justice Canada. Developed by data specialists, Otto streamlines processes, makes delivering valuable solutions easier, and enhances overall productivity for legal professionals.
+
+Born out of the need to tackle data challenges that didn't fit neatly into existing corporate systems, Otto serves as a flexible hosting environment for:
+
+- AI-powered tools for legal research and analysis
+- Interactive data visualizations and dashboards
+- Specialized data processing and management applications
+- Custom-built solutions for specific departmental needs
+
+**Key Features and Benefits**
+
+Otto is designed to:
+
+- **Empower Data Specialists**: Host and deploy diverse AI tools, specialized visuals, reports, and data applications.
+- **Enhance Accessibility**: Provide non-technical users with simple, centralized interfaces to interact with complex AI and data tools.
+- **Promote Agility**: Reduce hurdles in delivering solutions to users, enabling rapid implementation of new tools and visualizations.
+- **Foster Innovation**: Encourage the development and implementation of cutting-edge AI and data solutions.
+- **Build Community**: Serve as an open-source platform that encourages collaboration from developers across Justice Canada.
+- **Adapt Flexibly**: Meet the changing needs of the Justice department with scalable capacity to handle varying demand.
+- **Ensure Security**: Protect data and ensure compliance with Justice department standards.
+
+As a platform for AI and data services, Otto helps legal professionals improve the efficiency and accuracy of legal research, analysis, and decision-making. It's an open-source, flexible tool for creating, hosting, and deploying a wide array of data and AI applications within the Justice Canada ecosystem.
 
 ## Table of Contents
 
-- [What is Otto](#what-is-otto)
-  - [Table of Contents](#table-of-contents)
-  - [Development setup](#development-setup)
-    - [Apply database migrations and fixtures, then run Django server](#loading-app-data)
-    - [Generate Translations](#generate-translations)
-    - [Load Legislation](#load-legislation)
-  - [Contributing](#contributing)
-    - [Translations](#translations)
-      - [1. Model Level Translations](#1-model-level-translations)
-      - [2. Python Code Level](#2-python-code-level)
-      - [3. Template Level](#3-template-level)
-    - [Running tests and seeing the coverage](#running-tests-and-seeing-the-coverage)
-    - [Writing tests](#writing-tests)
-    - [Logging](#logging)
-  - [Deploy to Azure](#deploy-to-azure)
-  - [Resetting the database](#if-all-else-fails)
-  - [License and contact](#license-and-contact)
+- [About Otto](#otto)
+- [Table of Contents](#table-of-contents)
+- [Development setup](#development-setup)
+  - [Apply database migrations and fixtures, then run Django server](#loading-app-data)
+  - [Generate Translations](#generate-translations)
+  - [Load Legislation](#load-legislation)
+- [Contributing](#contributing)
+  - [Translations](#translations)
+    - [1. Model Level Translations](#1-model-level-translations)
+    - [2. Python Code Level](#2-python-code-level)
+    - [3. Template Level](#3-template-level)
+  - [Running tests and seeing the coverage](#running-tests-and-seeing-the-coverage)
+  - [Writing tests](#writing-tests)
+  - [Logging](#logging)
+- [Deploy to Azure](#deploy-to-azure)
+- [Resetting the database](#if-all-else-fails)
+- [License and contact](#license-and-contact)
 
 
 ## Development setup
@@ -318,16 +339,15 @@ Before you begin, ensure you have met the following requirements:
 
 Run the following script and follow the prompts:
 
-The script will prompt you to enter three pieces of information:
-- **Registry Name:** Enter the name of your Azure Container Registry (ACR) instance.
-- **Version Number:** Enter the version number for the Docker image (e.g., v1.0.0).
+The script will prompt you to enter two pieces of information:
+- **Subscription ID:** Enter the Azure subscription in which the Azure Container Registry (ACR) exists.
+- **Registry Name:** Enter the name of your ACR instance.
 
 The script will:
-- Generate a unique build number based on the current date and time.
 - Create a version.yaml file with the provided information.
 - Copy the version.yaml file into the Docker build context.
 - Log in to your Azure Container Registry.
-- Build the Docker image with a specific tag based on the version and build number.
+- Build the Docker image with a specific tag based on the git hash.
 - Tag the Docker image as latest.
 - Push both the versioned and latest tags to Azure Container Registry.
 - Clean up the temporary version.yaml file.

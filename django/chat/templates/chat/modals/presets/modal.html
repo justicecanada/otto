@@ -1,0 +1,14 @@
+{% load i18n %}
+
+<div class="modal modal-xl fade"
+     id="presets-modal"
+     tabindex="0"
+     aria-label='{% trans "Settings Presets" %}'
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      {% include "chat/modals/presets/modal_header.html" %}
+      <div id="presets-modal-body"></div>
+    </div>
+  </div>
+</div>

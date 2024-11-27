@@ -1,0 +1,35 @@
+- mode: qa
+  library_name: Corporate
+  history:
+  - user: Do the marks in Japanese characters count as glyphs?
+  responses: 
+  - While separate marks in Japanese characters do not generally count as glyphs on their own because they have no independent meaning, certain additional marks that serve as diacritics can be considered glyphs since they differentiate distinct characters.
+  sources:
+  - In Japanese [syllabaries](/wiki/Syllabary "Syllabary"), some of the characters are made up of more than one separate mark, but in general these separate marks are not glyphs because they have no meaning by themselves. However, in some cases, additional marks fulfil the role of [diacritics](/wiki/Diacritic "Diacritic"), to differentiate distinct characters. Such additional marks constitute glyphs.
+
+
+- mode: qa
+  library_name: Corporate
+  history:
+  - user: What is a Glyph
+  responses: 
+  - A glyph is a particular graphical representation, in a particular typeface, of an element of written language. In typography, it is the specific design, shape, or representation of a charater.
+  sources:
+  - A __glyph__ ([/ɡlɪf/](/wiki/Help:IPA/English "Help:IPA/English") [_GLIF_](/wiki/Help:Pronunciation_respelling_key "Help:Pronunciation respelling key")) is any kind of purposeful mark.
+
+- mode: qa
+  library_name: Corporate
+  history:
+  - user: When might a character be comprised of multiple glyphs?
+  responses: 
+  - A character is made of multiple glyphs in situations such as the use of diacritics to modify a base character (e.g., ⟨à⟩ consisting of the letter "a" and a grave accent), or when using older typerwriters (e.g. needing to combine an apostrophe and period to create an exclamation mark).
+  sources:
+  - In most languages written in any variety of the [Latin alphabet](/wiki/Latin_alphabet "Latin alphabet") except English, the use of [diacritics](/wiki/Diacritic "Diacritic") to signify a sound mutation is common. For example, the grapheme ⟨à⟩ requires two glyphs
+  - Older models of [typewriters](/wiki/Typewriter "Typewriter") required the use of multiple glyphs to depict a single character, as an overstruck [apostrophe](/wiki/Apostrophe "Apostrophe") and [period](/wiki/Full_stop "Full stop") to create an [exclamation mark](/wiki/Exclamation_mark "Exclamation mark").
+
+- mode: qa
+  library_name: Corporate
+  history:
+  - user: "Why do birds suddenly appear every time you are near?"
+  responses:
+  - "I found the following information: I could not find any relevant information regarding why birds suddenly appear every time you are near. The sources provided do not contain any information related to this query."

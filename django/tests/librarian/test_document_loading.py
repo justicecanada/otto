@@ -4,6 +4,8 @@ import re
 from django.conf import settings
 
 import pytest
+from openpyxl import Workbook
+from structlog import get_logger
 
 from librarian.utils.process_engine import extract_markdown
 from otto.models import Cost
@@ -17,6 +19,8 @@ skip_on_devops_pipeline = pytest.mark.skipif(
 )
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
+
+logger = get_logger(__name__)
 
 
 def check_page_numbers_for_example(md, md_chunks):
@@ -54,23 +58,36 @@ def test_extract_pdf():
     # Load a PDF file in "fast" mode (pypdfium)
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "PDF", fast=True)
+        md, md_chunks = extract_markdown(content, "PDF", pdf_method="default")
         check_page_numbers_for_example(md, md_chunks)
 
     # Load a PDF file in "fast" mode (pypdfium) with a chunk size of 256
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "PDF", fast=True, chunk_size=256)
+        md, md_chunks = extract_markdown(
+            content, "PDF", pdf_method="default", chunk_size=256
+        )
         check_page_numbers_for_example(md, md_chunks)
 
 
 @pytest.mark.django_db
-def test_extract_pdf_azure():
+def test_extract_pdf_azure_read():
     # Load a PDF file in "slow" mode (Azure Form Recognizer)
     cost_count = Cost.objects.count()
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "PDF", fast=False)
+        md, md_chunks = extract_markdown(content, "PDF", pdf_method="azure_read")
+        check_page_numbers_for_example(md, md_chunks)
+    assert Cost.objects.count() == cost_count + 1
+
+
+@pytest.mark.django_db
+def test_extract_pdf_azure_layout():
+    # Load a PDF file in "slow" mode (Azure Form Recognizer)
+    cost_count = Cost.objects.count()
+    with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
+        content = f.read()
+        md, md_chunks = extract_markdown(content, "PDF", pdf_method="azure_layout")
         check_page_numbers_for_example(md, md_chunks)
     assert Cost.objects.count() == cost_count + 1
 
@@ -80,7 +97,7 @@ def test_extract_pptx():
     with open(os.path.join(this_dir, "test_files/example.pptx"), "rb") as f:
         content = f.read()
         md, md_chunks = extract_markdown(content, "POWERPOINT")
-        print(md)
+        logger.debug(md)
         # The powerpoint has the same slide numbers etc. as the PDF
         check_page_numbers_for_example(md, md_chunks)
 
@@ -128,30 +145,88 @@ def test_extract_text():
         assert "Paragraph page 1" in md_chunks[0]
 
 
-# TODO: I get the sense the "guess_content_type" function doesn't really work.
-# However this isn't really used many places (only when getting a URL that isn't HTML)
-# Will leave for another ticket to fix this and better test it.
-# def test_detect_content_type():
-#     for filename, process_engine in [
-#         ("example.docx", "WORD"),
-#         ("example.pptx", "POWERPOINT"),
-#         ("example.pdf", "PDF"),
-#         ("example.txt", "TEXT"),
-#         ("example.html", "HTML"),
-#     ]:
-#         file_path = os.path.join(this_dir, f"test_files/{filename}")
-#         with open(file_path, "rb") as f:
-#             content = f.read()
-#             guessed_type = guess_content_type(content)
+def test_extract_outlook_msg():
+    # Load an Outlook MSG file
+    with open(os.path.join(this_dir, "test_files/elephants.msg"), "rb") as f:
+        content = f.read()
+        md, md_chunks = extract_markdown(content, "OUTLOOK_MSG")
+        assert not "<page_1>" in md
+        assert len(md) > 0
+        assert len(md_chunks) > 0
+        assert "Elephants" in md
+        assert "jules.kuehn@justice.gc.ca" in md.lower()
 
-#             if guessed_type is not None:
-#                 guessed_process_engine = get_process_engine_from_type(guessed_type)
-#                 assert guessed_process_engine == process_engine
 
-#             # https://stackoverflow.com/questions/43580/how-to-find-the-mime-type-of-a-file-in-python
-#             import mimetypes
+def test_extract_csv():
+    # Create a simple, but long CSV content
+    csv_content = "Column1,Column2,Column3\n" + "\n".join(
+        [f"Row{i}Col1,Row{i}Col2,Row{i}Col3" for i in range(1, 301)]
+    )
 
-#             guessed_type = mimetypes.guess_type(file_path)
-#             print(filename, guessed_type)
-#             guessed_process_engine = get_process_engine_from_type(guessed_type)
-#             assert guessed_process_engine == process_engine
+    md, md_chunks = extract_markdown(csv_content.encode("utf-8"), "CSV")
+
+    # Check that the markdown table is correctly output
+    assert len(md) > 0
+    assert md.startswith("| Column1 | Column2 | Column3 |")
+
+    assert len(md_chunks) > 1
+
+    # Check that each chunk has the table header repeated
+    for chunk in md_chunks:
+        assert "| Column1 | Column2 | Column3 |" in chunk.split("\n")[0]
+        assert chunk.count("| Column1 | Column2 | Column3 |") == 1
+
+
+def test_extract_excel():
+    # Generate an Excel file with 3 sheets and 300 rows each
+    wb = Workbook()
+    sheets = ["SheetA", "SheetB", "SheetC"]
+    for sheet_name in sheets:
+        ws = wb.create_sheet(title=sheet_name)
+        ws.append(
+            [f"{sheet_name}Column1", f"{sheet_name}Column2", f"{sheet_name}Column3"]
+        )
+        for i in range(1, 301):
+            ws.append(
+                [
+                    f"{sheet_name}Row{i}Col1",
+                    f"{sheet_name}Row{i}Col2",
+                    f"{sheet_name}Row{i}Col3",
+                ]
+            )
+    wb.remove(wb["Sheet"])  # Remove the default sheet created by openpyxl
+    excel_path = os.path.join(this_dir, "test_files/example.xlsx")
+    wb.save(excel_path)
+
+    # Load the generated Excel file
+    with open(excel_path, "rb") as f:
+        content = f.read()
+
+    md, md_chunks = extract_markdown(content, "EXCEL")
+    assert len(md) > 0
+    assert len(md_chunks) > 1
+    for sheet_name in sheets:
+        assert f"# {sheet_name}" in md
+        assert (
+            f"| {sheet_name}Column1 | {sheet_name}Column2 | {sheet_name}Column3 |" in md
+        )
+
+    # Now, in each chunk, if a sheet_name is present, the corresponding h1 should be present
+    # AND the table header should be present
+    for chunk in md_chunks:
+        num_sheets_in_chunk = 0
+        for sheet_name in sheets:
+            if sheet_name in chunk:
+                num_sheets_in_chunk += 1
+                assert (
+                    f"# {sheet_name}" in chunk
+                    or f"<headings>{sheet_name}</headings>" in chunk
+                )
+                assert (
+                    f"| {sheet_name}Column1 | {sheet_name}Column2 | {sheet_name}Column3 |"
+                    in chunk
+                )
+        assert num_sheets_in_chunk > 0
+
+    # Clean up the generated Excel file
+    os.remove(excel_path)

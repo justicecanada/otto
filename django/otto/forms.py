@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 
 from autocomplete import widgets
 
-from chat.models import Message
+from chat.models import Message, Preset
 from otto.models import App, Feedback, Pilot
 
 User = get_user_model()
@@ -49,7 +49,7 @@ class FeedbackForm(ModelForm):
         self.fields["modified_by"].queryset = User.objects.filter(id=user.id)
         self.fields["modified_by"].initial = user
         self.fields["chat_message"].queryset = Message.objects.filter(id=message_id)
-        self.fields["otto_version"].initial = settings.OTTO_VERSION
+        self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
         if message_id is not None:
             self.initialize_chat_feedback(message_id)
         else:
@@ -80,15 +80,15 @@ class FeedbackForm(ModelForm):
 
 # AC-16 & AC-16(2): Enables the modification of user roles and group memberships
 class UserGroupForm(forms.Form):
-    email = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all(),
-        label="Email",
+    upn = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all().order_by("upn"),
+        label="UPN",
         required=True,
         widget=widgets.Autocomplete(
-            name="email",
+            name="upn",
             options={
                 "item_value": User.id,
-                "item_label": User.email,
+                "item_label": User.upn,
                 "multiselect": True,
                 "minimum_search_length": 2,
                 "model": User,
@@ -113,13 +113,15 @@ class UserGroupForm(forms.Form):
     )
     weekly_max = forms.IntegerField(
         label="Weekly budget ($ CAD)",
-        required=False,
+        required=True,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
+        initial=20,
     )
     weekly_bonus = forms.IntegerField(
         label="Additional budget (this week only)",
-        required=False,
+        required=True,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
+        initial=0,
     )
 
 
