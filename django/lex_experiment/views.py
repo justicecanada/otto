@@ -1,7 +1,6 @@
 from decimal import Decimal
 
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
