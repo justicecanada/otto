@@ -50,4 +50,18 @@ if [[ $input == "Y" || $input == "y" ]]; then
 else
         echo "OK, skipping. Run 'bash .devcontainer/post-create.sh' again if you change your mind."
 fi
+echo " >>> Install k6 for load testing? [y/N]:"
+read input
+if [[ $input == "Y" || $input == "y" ]]; then
+        echo "Installing k6..."
+        # https://grafana.com/docs/k6/latest/set-up/install-k6/
+        sudo gpg -k
+        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+        echo "k6 installed. Run 'k6 --version' to verify."
+else
+        echo "OK, skipping. Run 'bash .devcontainer/post-create.sh' again if you change your mind."
+fi
 echo " >>> SETUP COMPLETE! You can now run the server with 'python django/manage.py runserver'."

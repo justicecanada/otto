@@ -1,42 +1,60 @@
 {% load i18n %}
 {% load rules %}
-<ul class="navbar-nav position-relative">
-  <li class="nav-item dropdown" id="user-menu">
-    <div id="cost-bar-outer"
-         hx-get="{% url 'user_cost' %}"
-         hx-swap="outerHTML"
-         hx-trigger='load delay:100ms'
-         style="position: absolute;
-                bottom: -3px;
-                width: calc(100% - 0.75rem);
-                margin-left: 0.2rem;
-                z-index: 1">
-      <meter id="cost-bar-inner"
-             class="w-100 d-block"
-             style="height: 12px"
-             value="0"></meter>
-    </div>
-    <button class="btn btn-dark text-muted dropdown-toggle px-2"
-            data-bs-toggle="dropdown"
-            aria-expanded="false">{{ request.user.full_name }}</button>
-    <ul class="dropdown-menu dropdown-menu-end">
-      {% has_perm "otto.manage_users" request.user as can_manage_users %}
-      {% if can_manage_users %}
-        <li>
-          <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
-          <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
-          <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
-        </li>
-        <li>
-          <hr class="dropdown-divider">
-        </li>
-      {% endif %}
+{% has_perm "otto.manage_users" request.user as can_manage_users %}
+{% has_perm "otto.enable_load_testing" request.user as can_enable_load_testing %}
+
+<li class="nav-item dropdown" id="user-menu">
+  <div id="cost-bar-outer"
+       hx-get="{% url 'user_cost' %}"
+       hx-swap="outerHTML"
+       hx-trigger='load delay:100ms'
+       style="position: absolute;
+              bottom: -3px;
+              width: calc(100% - 0.75rem);
+              margin-left: 0.2rem;
+              z-index: 1">
+    <meter id="cost-bar-inner"
+           class="w-100 d-block"
+           style="height: 12px"
+           value="0"></meter>
+  </div>
+  <button class="btn btn-dark text-muted dropdown-toggle px-2"
+          data-bs-toggle="dropdown"
+          aria-expanded="false">
+    {% if can_enable_load_testing and load_test_enabled %}
+      <i class="bi bi-shield-exclamation text-danger"
+         title="{% trans 'Load testing URL is enabled' %}"></i>
+    {% endif %}
+    {{ request.user.full_name }}
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    {% if can_manage_users %}
       <li>
-        <a href="{% url 'azure_auth:logout' %}" class="dropdown-item">{% trans "Logout" %}</a>
+        <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
+        <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
+        <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
       </li>
-    </ul>
-  </li>
-</ul>
+    {% endif %}
+    {% if can_enable_load_testing %}
+      <li>
+        <hr class="dropdown-divider">
+      </li>
+      <li>
+        {% if load_test_enabled %}
+          {% include "components/disable_load_test_link.html" %}
+        {% else %}
+          {% include "components/enable_load_test_link.html" %}
+        {% endif %}
+      </li>
+    {% endif %}
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+    <li>
+      <a href="{% url 'azure_auth:logout' %}" class="dropdown-item">{% trans "Logout" %}</a>
+    </li>
+  </ul>
+</li>
 <script>
 (function() {
   let tooltip = null;

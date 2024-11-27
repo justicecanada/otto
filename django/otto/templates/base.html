@@ -67,7 +67,9 @@
             </button>
             <div class="collapse navbar-collapse flex-fill-lg justify-content-end"
                  id="navbar-dropdown">
-              {% include 'components/user_menu.html' %}
+              <ul class="navbar-nav position-relative">
+                {% include 'components/user_menu.html' %}
+              </ul>
               {% include 'components/notifications.html' %}
               {% include 'components/feedback/feedback_icon.html' %}
               {% include 'components/language_toggle.html' %}

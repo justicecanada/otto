@@ -4150,5 +4150,25 @@
     "UPN": {
         "fr": "",
         "fr_auto": "L’UPN"
+    },
+    "Load test": {
+        "fr": "",
+        "fr_auto": "Essai de charge"
+    },
+    "Disable load test URL": {
+        "fr": "",
+        "fr_auto": "Désactiver l’URL du test de chargement"
+    },
+    "Enable load test URL": {
+        "fr": "",
+        "fr_auto": "Activer l’URL du test de charge"
+    },
+    "Load testing URL is enabled": {
+        "fr": "",
+        "fr_auto": "L’URL de test de chargement est activée"
+    },
+    "Enable load test URL for 1 hour": {
+        "fr": "",
+        "fr_auto": "Activer l’URL du test de charge pendant 1 heure"
     }
 }
