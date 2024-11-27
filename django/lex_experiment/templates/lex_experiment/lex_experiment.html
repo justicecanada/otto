@@ -9,7 +9,7 @@
 {% block breadcrumb %}
   {{ block.super }}
   <li class="breadcrumb-item">
-    <a href="{% url 'lex_experiment:index' %}">{% trans "Lex Experiment" %}</a>
+    <a href="{% url 'lex_experiment:index' %}">{% trans "LEX Experiment" %}</a>
   </li>
 {% endblock %}
 
@@ -62,7 +62,7 @@
       <hr class="m-0">
  
       {# "Completed documents" also includes in-progress now that we're using celery #}
-      <h2 class="h3 mt-4 pt-2 mb-3">{% trans "Information Extracted" %}</h2>
+      <h2 class="h3 mt-4 pt-2 mb-3">{% trans "Information extracted" %}</h2>
       <table class="table">
         <thead>
 
