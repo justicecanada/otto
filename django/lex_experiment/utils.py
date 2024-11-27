@@ -32,7 +32,7 @@ def lex_prompts(content):
         "What is the Appellant or Appellants Name?",
         "What is the Appellant's address?",
         "What is the Tax Court of Canada Class Level?",
-        "What is the filed date of the Notice of Appeal?",
+        "What is the filed date of the Notice of Appeal? Please give the date in the format of YYYY-MM-DD.",
         "What is the Representative's name?",
         "What is the Representative's address?",
         "What are the taxation years?",
