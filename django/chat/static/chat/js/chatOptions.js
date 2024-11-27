@@ -86,3 +86,13 @@ function limitScopeSelect() {
     // scope.setAttribute('disabled', 'disabled');
   }
 }
+
+function switchToDocumentScope() {
+  const scope = document.getElementById('id_qa_scope');
+  let search_mode = document.getElementById('id_qa_mode').value;
+  if (search_mode === "summarize" || search_mode === "summarize_combined") {
+    if (scope.value === "all") {
+      scope.value = "documents";
+    }
+  }
+}
