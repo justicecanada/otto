@@ -4082,5 +4082,25 @@
     "Enable load test URL for 1 hour": {
         "fr": "",
         "fr_auto": "Activer l’URL du test de charge pendant 1 heure"
+    },
+    "LEX Experiment": {
+        "fr": "",
+        "fr_auto": "Expérience LEX"
+    },
+    "Upload Scanned Notice(s) of Appeal": {
+        "fr": "",
+        "fr_auto": "Télécharger les avis d’appel numérisés"
+    },
+    "Extract Information": {
+        "fr": "",
+        "fr_auto": "Extraire des informations"
+    },
+    "Information extracted": {
+        "fr": "",
+        "fr_auto": "Informations extraites"
+    },
+    "Tax Court of Canada No.": {
+        "fr": "",
+        "fr_auto": "Cour canadienne de l’impôt No."
     }
 }
