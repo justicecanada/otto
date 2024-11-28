@@ -8,7 +8,7 @@
  
   <button type="button"
           class="btn btn-sm btn-outline-dark"
-          hx-get="{% url 'chat:create_preset' chat_id=chat_id %}"
+          hx-get="{% url 'chat:save_preset' chat_id=chat_id %}"
           hx-target="#presets-modal-body"
           hx-swap="innerHTML transition:true">
     <i class="bi bi-floppy2-fill me-2"></i>

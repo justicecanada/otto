@@ -901,7 +901,7 @@ def test_preset(client, basic_user, all_apps_user):
     # Test saving a new preset
     response = client.post(
         reverse(
-            "chat:chat_options", kwargs={"chat_id": chat.id, "action": "save_preset"}
+            "chat:chat_options", kwargs={"chat_id": chat.id, "action": "create_preset"}
         ),
         data={
             "name_en": "New Preset",
@@ -941,7 +941,7 @@ def test_preset(client, basic_user, all_apps_user):
             "chat:chat_options",
             kwargs={
                 "chat_id": chat.id,
-                "action": "save_preset",
+                "action": "create_preset",
                 "preset_id": preset.id,
             },
         ),
@@ -970,7 +970,7 @@ def test_preset(client, basic_user, all_apps_user):
             "chat:chat_options",
             kwargs={
                 "chat_id": chat.id,
-                "action": "save_preset",
+                "action": "create_preset",
                 "preset_id": preset.id,
             },
         ),

@@ -97,8 +97,8 @@ urlpatterns = [
     ),
     path(
         "id/<str:chat_id>/options/presets/form/",
-        views.create_preset,
-        name="create_preset",
+        views.save_preset,
+        name="save_preset",
     ),
     path(
         "presets/<int:preset_id>/default/<str:chat_id>",

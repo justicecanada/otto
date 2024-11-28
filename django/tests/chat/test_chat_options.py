@@ -75,7 +75,7 @@ def test_chat_options(client, all_apps_user):
     response = client.post(
         reverse(
             "chat:chat_options",
-            kwargs={"chat_id": new_chat.id, "action": "save_preset"},
+            kwargs={"chat_id": new_chat.id, "action": "create_preset"},
         ),
         preset_form_data,
     )

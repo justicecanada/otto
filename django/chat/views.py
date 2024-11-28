@@ -560,7 +560,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 "prompt": preset.options.prompt,
             },
         )
-    elif action == "save_preset":
+    elif action == "create_preset":
         if request.method == "POST":
             form = PresetForm(data=request.POST, user=request.user)
 
@@ -798,7 +798,7 @@ def set_preset_favourite(request, preset_id):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def create_preset(request, chat_id):
+def save_preset(request, chat_id):
 
     form = PresetForm(user=request.user)
 
