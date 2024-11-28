@@ -3983,13 +3983,65 @@
         "fr": "",
         "fr_auto": "Une erreur s’est produite."
     },
-    "Read each document separately  (slow, $$)": {
+    "LEX Experiment - Otto": {
         "fr": "",
-        "fr_auto": "Lisez chaque document séparément (lent, $$)"
+        "fr_auto": "Expérience LEX - Otto"
     },
-    "Read all documents at once (slowest, $$)": {
+    "Lex Experiment": {
         "fr": "",
-        "fr_auto": "Lire tous les documents en même temps (le plus lent, $$)"
+        "fr_auto": "Expérience Lex"
+    },
+    "Information Extracted": {
+        "fr": "",
+        "fr_auto": "Informations extraites"
+    },
+    "Document": {
+        "fr": "",
+        "fr_auto": "Le document"
+    },
+    "Tax Court No.": {
+        "fr": "",
+        "fr_auto": "Cour de l’impôt No."
+    },
+    "Appellant's Name": {
+        "fr": "",
+        "fr_auto": "Nom de l’appelant"
+    },
+    "Appellant's Address": {
+        "fr": "",
+        "fr_auto": "Adresse de l’appelant"
+    },
+    "Tax Court Level": {
+        "fr": "",
+        "fr_auto": "Niveau de la Cour de l’impôt"
+    },
+    "Filed Date of NoA": {
+        "fr": "",
+        "fr_auto": "Date de dépôt de l’AA"
+    },
+    "Representative's Name": {
+        "fr": "",
+        "fr_auto": "Nom du représentant"
+    },
+    "Representative's Address": {
+        "fr": "",
+        "fr_auto": "Allocution du représentant"
+    },
+    "Taxation Years": {
+        "fr": "",
+        "fr_auto": "Années d’imposition"
+    },
+    "Total Tax Amount": {
+        "fr": "",
+        "fr_auto": "Montant total de la taxe"
+    },
+    "Sections Referred": {
+        "fr": "",
+        "fr_auto": "Sections renvoyées"
+    },
+    "Lex experiment": {
+        "fr": "",
+        "fr_auto": "Expérience lex"
     },
     "Full documents, separate answers ($)": {
         "fr": "",
@@ -4002,6 +4054,10 @@
     "Error translating files.": {
         "fr": "",
         "fr_auto": "Erreur de traduction des fichiers."
+    },
+    "Text extractor": {
+        "fr": "",
+        "fr_auto": "Extracteur de texte"
     },
     "Load test": {
         "fr": "",
@@ -4026,5 +4082,25 @@
     "Enable load test URL for 1 hour": {
         "fr": "",
         "fr_auto": "Activer l’URL du test de charge pendant 1 heure"
+    },
+    "LEX Experiment": {
+        "fr": "",
+        "fr_auto": "Expérience LEX"
+    },
+    "Upload Scanned Notice(s) of Appeal": {
+        "fr": "",
+        "fr_auto": "Télécharger les avis d’appel numérisés"
+    },
+    "Extract Information": {
+        "fr": "",
+        "fr_auto": "Extraire des informations"
+    },
+    "Information extracted": {
+        "fr": "",
+        "fr_auto": "Informations extraites"
+    },
+    "Tax Court of Canada No.": {
+        "fr": "",
+        "fr_auto": "Cour canadienne de l’impôt No."
     }
 }
