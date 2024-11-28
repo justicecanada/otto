@@ -429,7 +429,7 @@ $vmState = az vm show `
     --show-details `
     --query "powerState" `
     --output tsv
-    
+
 if ($vmState -eq "VM deallocated") {
     Write-Host "Starting the Jumpbox VM"
     az vm start --ids $vmId --only-show-errors --output none
@@ -504,10 +504,10 @@ az network bastion ssh `
     --output none
 
 # Prompt the user if they want to turn off the VM
-$turnOff = Read-Host -Prompt "Do you want to turn off the Jumpbox VM? (y/n)"
+$turnOff = Read-Host -Prompt "Do you want to turn off the Jumpbox VM to save costs? (y/n)"
 
 # Prompt the user if they want to delete the Bastion service,
-$deleteBastion = Read-Host -Prompt "Do you want to delete the Bastion service? (y/n)"
+$deleteBastion = Read-Host -Prompt "Do you want to deallocate the Bastion service to save costs? (y/n)"
 
 if ($turnOff -eq "y") {
     Write-Host "Turning off the Jumpbox VM"
@@ -518,7 +518,7 @@ else {
 }
 
 if ($deleteBastion -eq "y") {
-    Write-Host "Deleting the Bastion service"
+    Write-Host "Deallocating the Bastion service"
     az network bastion delete --resource-group $MGMT_RESOURCE_GROUP_NAME --name bastion --only-show-errors --output none
 }
 else {
