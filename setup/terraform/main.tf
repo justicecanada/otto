@@ -38,8 +38,6 @@ module "vnet" {
   web_subnet_ip_range = var.web_subnet_ip_range
   app_subnet_name     = var.app_subnet_name
   app_subnet_ip_range = var.app_subnet_ip_range
-  db_subnet_name      = var.db_subnet_name
-  db_subnet_ip_range  = var.db_subnet_ip_range
   location            = var.location
   resource_group_name = module.resource_group.name
   tags                = local.common_tags
@@ -57,7 +55,6 @@ module "keyvault" {
   use_private_network    = var.use_private_network
   app_subnet_id          = module.vnet.app_subnet_id
   web_subnet_id          = module.vnet.web_subnet_id
-  db_subnet_id           = module.vnet.db_subnet_id
 }
 
 # ACR module
@@ -86,10 +83,8 @@ module "disk" {
   use_private_network       = var.use_private_network
   app_subnet_id             = module.vnet.app_subnet_id
   web_subnet_id             = module.vnet.web_subnet_id
-  db_subnet_id              = module.vnet.db_subnet_id
   web_subnet_address_prefix = module.vnet.web_subnet_address_prefix
   app_subnet_address_prefix = module.vnet.app_subnet_address_prefix
-  db_subnet_address_prefix  = module.vnet.db_subnet_address_prefix
 }
 
 # Storage module
@@ -107,7 +102,6 @@ module "storage" {
   use_private_network    = var.use_private_network
   app_subnet_id          = module.vnet.app_subnet_id
   web_subnet_id          = module.vnet.web_subnet_id
-  db_subnet_id           = module.vnet.db_subnet_id
   backup_container_name  = var.backup_container_name
 }
 

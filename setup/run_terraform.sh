@@ -68,27 +68,27 @@ ensure_tf_state_storage() {
 
     # Create or update resource group with tags
     if ! az group show \
-            --name "$TF_STATE_RESOURCE_GROUP" \
+            --name "$MGMT_RESOURCE_GROUP_NAME" \
             --only-show-errors &>/dev/null; then
-        echo "Creating resource group: $TF_STATE_RESOURCE_GROUP"
+        echo "Creating resource group: $MGMT_RESOURCE_GROUP_NAME"
         az group create \
-            --name "$TF_STATE_RESOURCE_GROUP" \
+            --name "$MGMT_RESOURCE_GROUP_NAME" \
             --location "$LOCATION" \
             --tags $TAGS \
             --only-show-errors &>/dev/null
     else
-        echo "Resource group $TF_STATE_RESOURCE_GROUP already exists."
+        echo "Resource group $MGMT_RESOURCE_GROUP_NAME already exists."
     fi
 
     # Create storage account if it doesn't exist
     if ! az storage account show \
             --name "$TF_STATE_STORAGE_ACCOUNT" \
-            --resource-group "$TF_STATE_RESOURCE_GROUP" \
+            --resource-group "$MGMT_RESOURCE_GROUP_NAME" \
             --only-show-errors &>/dev/null; then
         echo "Creating storage account: $TF_STATE_STORAGE_ACCOUNT"
         az storage account create \
             --name "$TF_STATE_STORAGE_ACCOUNT" \
-            --resource-group "$TF_STATE_RESOURCE_GROUP" \
+            --resource-group "$MGMT_RESOURCE_GROUP_NAME" \
             --location "$LOCATION" \
             --sku Standard_LRS \
             --kind StorageV2 \
@@ -128,7 +128,7 @@ cd terraform
 
 # Create a temporary backend configuration file
 cat > backend_config.hcl << EOF
-resource_group_name  = "$TF_STATE_RESOURCE_GROUP"
+resource_group_name  = "$MGMT_RESOURCE_GROUP_NAME"
 storage_account_name = "$TF_STATE_STORAGE_ACCOUNT"
 container_name       = "$TF_STATE_CONTAINER"
 key                  = "$TF_STATE_KEY"

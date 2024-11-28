@@ -124,14 +124,6 @@ variable "app_subnet_ip_range" {
   type        = string
   description = "IP range of the app subnet"
 }
-variable "db_subnet_name" {
-  type        = string
-  description = "Name of the database subnet"
-}
-variable "db_subnet_ip_range" {
-  type        = string
-  description = "IP range of the database subnet"
-}
 
 variable "gpt_35_turbo_capacity" {
   description = "GPT-3.5 Turbo quota limit"

@@ -23,15 +23,6 @@ variable "app_subnet_ip_range" {
   type        = string
   description = "IP range of the app subnet"
 }
-variable "db_subnet_name" {
-  type        = string
-  description = "Name of the database subnet"
-}
-variable "db_subnet_ip_range" {
-  type        = string
-  description = "IP range of the database subnet"
-}
-
 variable "location" {
   type        = string
   description = "Azure region for resource deployment"

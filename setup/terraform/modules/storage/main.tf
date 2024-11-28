@@ -88,7 +88,7 @@ resource "azurerm_storage_account" "storage" {
 
   tags = var.tags
 
-  depends_on = [azurerm_key_vault_key.storage_cmk, null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id, var.db_subnet_id]
+  depends_on = [azurerm_key_vault_key.storage_cmk, null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id]
 }
 
 # TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute

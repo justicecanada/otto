@@ -35,18 +35,6 @@ resource "azurerm_subnet" "app_subnet" {
   private_link_service_network_policies_enabled = true
 }
 
-# Cosmos DB for PostgreSQL
-resource "azurerm_subnet" "db_subnet" {
-  name                 = var.db_subnet_name
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = [var.db_subnet_ip_range]
-  service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage"]
-
-  private_endpoint_network_policies             = "Disabled"
-  private_link_service_network_policies_enabled = true
-}
-
 
 # Create a Network Security Group (NSG) to control access to the disks
 resource "azurerm_network_security_group" "nsg" {
@@ -75,18 +63,6 @@ resource "azurerm_network_security_group" "nsg" {
     source_port_range          = "*"
     destination_port_range     = "*"
     source_address_prefix      = azurerm_subnet.app_subnet.address_prefixes[0]
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "AllowDbSubnet"
-    priority                   = 130
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = azurerm_subnet.db_subnet.address_prefixes[0]
     destination_address_prefix = "*"
   }
 
@@ -141,11 +117,6 @@ resource "azurerm_subnet_network_security_group_association" "web_subnet_nsg_ass
 
 resource "azurerm_subnet_network_security_group_association" "app_subnet_nsg_association" {
   subnet_id                 = azurerm_subnet.app_subnet.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "db_subnet_nsg_association" {
-  subnet_id                 = azurerm_subnet.db_subnet.id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 

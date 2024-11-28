@@ -16,7 +16,7 @@ resource "azurerm_key_vault" "kv" {
   network_acls {
     default_action             = var.use_private_network ? "Deny" : "Allow"
     bypass                     = "AzureServices"
-    virtual_network_subnet_ids = [var.app_subnet_id, var.web_subnet_id, var.db_subnet_id] # Allow access from the app, web, and database subnets
+    virtual_network_subnet_ids = [var.app_subnet_id, var.web_subnet_id] # Allow access from the app, web, and database subnets
   }
 
   tags = var.tags

@@ -39,8 +39,4 @@ variable "web_subnet_id" {
   type        = string
 }
 
-variable "db_subnet_id" {
-  description = "The ID of the database subnet"
-  type        = string
-}
 

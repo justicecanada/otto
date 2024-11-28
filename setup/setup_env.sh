@@ -157,12 +157,12 @@ export USE_PRIVATE_NETWORK
 
 export VNET_NAME
 export VNET_IP_RANGE
+export BASTION_SUBNET_NAME
+export BASTION_SUBNET_IP_RANGE
 export WEB_SUBNET_NAME
 export WEB_SUBNET_IP_RANGE
 export APP_SUBNET_NAME
 export APP_SUBNET_IP_RANGE
-export DB_SUBNET_NAME
-export DB_SUBNET_IP_RANGE
 
 export APP_NAME
 export ENVIRONMENT
@@ -240,10 +240,9 @@ export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${L
 export BACKUP_CONTAINER_NAME="backups"
 
 # Set the Terraform state variables
-export TF_STATE_RESOURCE_GROUP="TerraformStateRG"
 export TF_STATE_STORAGE_ACCOUNT="tfstate${APP_NAME,,}" # Base name for the TF storage account
 export TF_STATE_CONTAINER="tfstate"
-export TF_STATE_KEY="${RESOURCE_GROUP_NAME}.tfstate"
+export TF_STATE_KEY="${RESOURCE_GROUP}.tfstate"
 
 
 # Function to get or generate a unique storage account name
@@ -291,7 +290,7 @@ validate_storage_name() {
 }
 
 # Make sure the storage account names are unique
-export TF_STATE_STORAGE_ACCOUNT=$(get_unique_storage_name "$TF_STATE_STORAGE_ACCOUNT" "$TF_STATE_RESOURCE_GROUP")
+export TF_STATE_STORAGE_ACCOUNT=$(get_unique_storage_name "$TF_STATE_STORAGE_ACCOUNT" "$MGMT_RESOURCE_GROUP_NAME")
 export STORAGE_NAME=$(get_unique_storage_name "$STORAGE_NAME" "$RESOURCE_GROUP_NAME")
 
 if ! validate_storage_name "$TF_STATE_STORAGE_ACCOUNT" || ! validate_storage_name "$STORAGE_NAME"; then
@@ -328,8 +327,6 @@ web_subnet_name = "${WEB_SUBNET_NAME}"
 web_subnet_ip_range = "${WEB_SUBNET_IP_RANGE}"
 app_subnet_name = "${APP_SUBNET_NAME}"
 app_subnet_ip_range = "${APP_SUBNET_IP_RANGE}"
-db_subnet_name = "${DB_SUBNET_NAME}"
-db_subnet_ip_range = "${DB_SUBNET_IP_RANGE}"
 gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}
 gpt_4_turbo_capacity = ${GPT_4_TURBO_CAPACITY}
 gpt_4o_capacity = ${GPT_4o_CAPACITY}

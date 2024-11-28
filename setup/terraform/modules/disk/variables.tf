@@ -66,10 +66,6 @@ variable "web_subnet_id" {
   type        = string
 }
 
-variable "db_subnet_id" {
-  description = "The ID of the database subnet"
-  type        = string
-}
 
 variable "web_subnet_address_prefix" {
   description = "The address prefix of the web subnet"
@@ -81,7 +77,3 @@ variable "app_subnet_address_prefix" {
   type        = string
 }
 
-variable "db_subnet_address_prefix" {
-  description = "The address prefix of the database subnet"
-  type        = string
-}
