@@ -28,7 +28,7 @@ Get-Content $env_file | ForEach-Object {
 
 
 # Ensure Azure login and correct subscription selection
-az login
+az login --only-show-errors --output none
 if ($subscription -eq "") {
     Write-Host "Available subscriptions:"
     az account list --query "[].{SubscriptionId:id, Name:name}" --output table
