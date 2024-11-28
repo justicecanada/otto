@@ -808,7 +808,6 @@ def edit_preset(request, chat_id, preset_id):
         "chat/modals/presets/presets_form.html",
         {
             "form": form,
-            "preset": preset,
             "preset_id": preset_id,
             "chat_id": chat_id,
         },
