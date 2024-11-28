@@ -27,6 +27,23 @@ Get-Content $env_file | ForEach-Object {
 }
 
 
+# Ensure Azure login and correct subscription selection
+az login
+if ($subscription -eq "") {
+    Write-Host "Available subscriptions:"
+    az account list --query "[].{SubscriptionId:id, Name:name}" --output table
+    $SUBSCRIPTION_ID = Read-Host -Prompt "Enter the Subscription ID you want to use"
+}
+else {
+    # Look up the ID of the subscription name provided
+    $SUBSCRIPTION_ID = az account list --query "[?name=='$subscription'].id" -o tsv
+    Write-Host "Using subscription ID: $SUBSCRIPTION_ID"
+}
+az account set --subscription $SUBSCRIPTION_ID `
+    --only-show-errors `
+    --output none
+
+    
 # Function to get group IDs from group names
 function Get-GroupIds {
     param (
@@ -60,23 +77,6 @@ $MGMT_RESOURCE_GROUP_NAME = "${APP_NAME}$($INTENDED_USE.ToUpper())MgmtRg"
 $MGMT_STORAGE_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}mgmt".ToLower()
 $JUMPBOX_NAME = "jumpbox"
 $TF_STATE_CONTAINER = "tfstate"
-
-
-# Ensure Azure login and correct subscription selection
-az login
-if ($subscription -eq "") {
-    Write-Host "Available subscriptions:"
-    az account list --query "[].{SubscriptionId:id, Name:name}" --output table
-    $SUBSCRIPTION_ID = Read-Host -Prompt "Enter the Subscription ID you want to use"
-}
-else {
-    # Look up the ID of the subscription name provided
-    $SUBSCRIPTION_ID = az account list --query "[?name=='$subscription'].id" -o tsv
-    Write-Host "Using subscription ID: $SUBSCRIPTION_ID"
-}
-az account set --subscription $SUBSCRIPTION_ID `
-    --only-show-errors `
-    --output none
 
 
 # Create management resource group if it doesn't exist
