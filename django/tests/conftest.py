@@ -1,5 +1,6 @@
 import os
 import shutil
+import uuid
 from datetime import datetime
 from unittest.mock import MagicMock
 
@@ -14,6 +15,8 @@ import pytest_asyncio
 from asgiref.sync import sync_to_async
 from PIL import Image
 from reportlab.pdfgen import canvas
+
+from text_extractor.models import OutputFile
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -204,3 +207,22 @@ def content_file_mock(mocker):
         "django.core.files.base.ContentFile", side_effect=original_content_file
     )
     return mock_content_file
+
+
+@pytest.fixture
+def output_file():
+    pdf_mock = MagicMock()
+    pdf_mock.name = "test.pdf"
+    pdf_mock.read.return_value = b"PDF content"
+
+    txt_mock = MagicMock()
+    txt_mock.name = "test.txt"
+    txt_mock.read.return_value = b"TXT content"
+
+    output_file = MagicMock(spec=OutputFile)
+    output_file.id = uuid.uuid4()
+    output_file.pdf_file = pdf_mock
+    output_file.txt_file = txt_mock
+    output_file.file_name = "test_document"
+
+    return output_file
