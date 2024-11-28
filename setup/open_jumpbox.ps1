@@ -478,7 +478,7 @@ $envContent = ($allVariables.GetEnumerator() | ForEach-Object {
     }) -join "`n"
 
 # Upload the .env file to the VM
-Write-Host "Uploading .env file to the VM..."
+Write-Host "Uploading .env file to the VM"
 az vm run-command invoke `
     --resource-group $MGMT_RESOURCE_GROUP_NAME `
     --name $JUMPBOX_NAME `
