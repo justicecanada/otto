@@ -638,7 +638,18 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
                 preset.accessible_to.set(accessible_to)
 
-                return redirect("chat:get_presets", chat_id=chat_id)
+                return render(
+                    request,
+                    "chat/components/chat_options_accordion.html",
+                    {
+                        "options_form": ChatOptionsForm(
+                            instance=preset.options, user=request.user
+                        ),
+                        "prompt": preset.options.prompt,
+                        "preset_loaded": "true",
+                        "preset_id": preset.id,
+                    },
+                )
 
         return HttpResponse(status=500)
 

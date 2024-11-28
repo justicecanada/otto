@@ -115,8 +115,9 @@
                   type="submit"
                   hx-post="{% if preset_id %}{% url 'chat:chat_options' chat_id=chat_id action='save_preset' preset_id=preset_id %}{% else %}{% url 'chat:chat_options' chat_id=chat_id action='save_preset' %}{% endif %}"
                   hx-include="#edit_preset_form"
-                  hx-target="#presets-modal-body"
+                  hx-target="#options-accordion"
                   hx-swap="innerHTML"
+                  data-bs-dismiss="modal"
                   onclick="document.querySelector('input[name=\'prompt\']').value = document.getElementById('chat-prompt').value">
             {% trans "Save" %}
           </button>
