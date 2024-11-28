@@ -19,7 +19,7 @@ metadata:
     # AC-22, IA-8, SA-9(5), SC-5: Restricting access to the application to internal traffic only
     service.beta.kubernetes.io/azure-load-balancer-internal: "true" # Tells Azure to create an internal load balancer instead of a public one
     service.beta.kubernetes.io/azure-load-balancer-internal-subnet: "${WEB_SUBNET_NAME}" # Specifies the subnet where the internal load balancer should be created
-    service.beta.kubernetes.io/azure-load-balancer-ipv4: "${AKS_CLUSTER_IP}" # Sets the specific private IP address for the load balancer
+    service.beta.kubernetes.io/azure-load-balancer-ipv4: "${AKS_INGRESS_IP}" # Sets the specific private IP address for the load balancer
 spec:
   ingressClassName: nginx
   # AC-19, SC-8, SC-13, SC-23: TLS configuration for secure communication
