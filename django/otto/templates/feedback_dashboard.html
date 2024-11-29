@@ -145,19 +145,19 @@
  
           </form>
         </div>
+        <div id="feedback-list-spinner"
+             class="d-flex justify-content-center spinner text-primary htmx-indicator">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+ 
+        </div>
 
         <div hx-get="{% url 'feedback_list' page_number=current_page_number %}"
              hx-trigger="load"
              hx-swap="innerHTML"
              hx-indicator="#feedback-list-spinner"
-             id="feedback-list-container">
-          <div id="feedback-list-spinner"
-               class="d-flex justify-content-center spinner text-primary">
-            <span class="spinner-border" aria-hidden="true"></span>
-            <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
-          </div>
-          {% include 'components/feedback/dashboard/feedback_list.html' %}
-        </div>
+             id="feedback-list-container">{% include 'components/feedback/dashboard/feedback_list.html' %}</div>
+
       </div>
  
     </div>

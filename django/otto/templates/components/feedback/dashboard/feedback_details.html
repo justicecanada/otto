@@ -10,7 +10,7 @@
   </style>
 {% endblock %}
 
-<div class="collapse details" id="collapse-{{ feedback.id }}">
+<div class="details">
   <div colspan="3" class="col-12">
     <div class="container p-3">
       <div class="row">
@@ -22,7 +22,7 @@
              target="_blank"
              class="text-decoration-none text-reset fw-semibold small"
              style="color: rgb(156, 163, 175)">
-            <span class="text-decoration-underline">{% trans 'View feedback in context' %}</span>
+            <span class="text-decoration-underline">{{ feedback.url_context }}</span>
             <i class="bi bi-box-arrow-up-right ms-1"></i>
           </a>
         </div>

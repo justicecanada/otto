@@ -4,9 +4,9 @@
       id="feedback-form"
       hx-post="{% if message_id %}{% url 'user_feedback' message_id=message_id %}{% else %}{% url 'user_feedback' %}{% endif %}"
       hx-target="this"
-      onsubmit="document.getElementById('id_url_context').value = window.location.href"
+      onsubmit="handleFeedbackFormSubmit('{{ message_id }}');"
       hx-swap="outerHTML">
-        <div id="feedback-modal-body" class="modal-body">{% include 'components/feedback/feedback_form_elements.html' %}</div>
+        <div id="feedback-body" class="modal-body">{% include 'components/feedback/feedback_form_elements.html' %}</div>
         <div class="modal-footer">
                 <button type="button"
                         id="cancelButton"
@@ -15,3 +15,18 @@
                 <button type="submit" id="feedback-submit-button" class="btn btn-primary">{% trans "Submit" %}</button>
         </div>
 </form>
+
+{% block page_script %}
+        <script>
+                function handleFeedbackFormSubmit(message_id) {   
+                        let currentUrl = window.location.href;                                           
+                        if (message_id !== '' && message_id !== 'None') {
+                                let cleanedUrl = currentUrl.split('#')[0]
+                                document.getElementById('id_url_context').value = `${cleanedUrl}#message_${message_id}`
+                        }
+                        else {
+                                document.getElementById('id_url_context').value = currentUrl
+                        }                        
+                }
+        </script>
+{% endblock %}

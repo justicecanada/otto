@@ -53,15 +53,27 @@ function scrollToBottom(smooth = true, force = false) {
   if (preventAutoScrolling && !force) {
     return;
   }
+
   let messagesContainer = document.querySelector("#chat-container");
+  let hashContainer = null;
+  let hashRect = null;
+  let containerRect = messagesContainer.getBoundingClientRect();
+
+  if (window.location.hash) {
+    hashContainer = document.querySelector(window.location.hash);
+    hashRect = hashContainer.getBoundingClientRect();
+  }
+
+  const offset = (hashRect ? hashRect.top : 0) - containerRect.top;
+
   if (smooth) {
     messagesContainer.scrollTo({
-      top: messagesContainer.scrollHeight,
+      top: hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight,
       behavior: "smooth",
     });
     return;
   }
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  messagesContainer.scrollTop = hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight;
 }
 
 function handleModeChange(mode, element = null) {

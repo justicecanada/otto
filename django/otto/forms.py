@@ -14,19 +14,9 @@ User = get_user_model()
 
 
 class FeedbackForm(ModelForm):
-    app = forms.ChoiceField(
-        choices=[],
-        required=True,
-        label=_(
-            "Which application are you providing feedback or reporting an issue for?"
-        ),
-    )
-
-    modified_by = forms.ModelChoiceField(queryset=None, required=True)
-    chat_message = forms.ModelChoiceField(queryset=None, required=False)
-
     class Meta:
         model = Feedback
+
         fields = [
             "feedback_message",
             "modified_by",
@@ -37,40 +27,55 @@ class FeedbackForm(ModelForm):
             "url_context",
         ]
 
+        widgets = {
+            "feedback_message": forms.Textarea(
+                attrs={
+                    "id": "feedback-message-textarea",
+                    "class": "form-control my-2",
+                },
+            ),
+            "modified_by": forms.HiddenInput(),
+            "created_by": forms.HiddenInput(),
+            "chat_message": forms.HiddenInput(),
+            "otto_version": forms.HiddenInput(),
+            "url_context": forms.HiddenInput(),
+            "app": forms.HiddenInput(),
+        }
+
         labels = {
             "feedback_message": _(
-                "If you have any specific suggestions or want to report an issue share them with us below:"
+                "Let us know what went wrong, or suggest an improvement."
             ),
         }
 
     def __init__(self, user, message_id, *args, **kwargs):
         super(FeedbackForm, self).__init__(*args, **kwargs)
-        self.fields["created_by"].queryset = User.objects.filter(id=user.id)
         self.fields["created_by"].initial = user
-        self.fields["modified_by"].queryset = User.objects.filter(id=user.id)
         self.fields["modified_by"].initial = user
         self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
 
         if message_id is not None:
-            self.fields["chat_message"].queryset = Message.objects.filter(id=message_id)
+            self.fields["chat_message"].initial = message_id
             self.initialize_chat_feedback(message_id)
         else:
-            self.fields["chat_message"].queryset = Message.objects.none()
-            self.fields["app"].choices = [("Otto", _("General (Otto)"))]
+            self.fields["chat_message"].initial = ""
+            self.fields["app"].initial = "Otto"
+
+        self.fields["chat_message"].required = False
 
     def initialize_chat_feedback(self, message_id):
         if message_id:
             chat_mode = Message.objects.get(id=message_id).mode
             if chat_mode == "translate":
-                self.fields["app"].choices = [("translate", _("Translate"))]
+                self.fields["app"].initial = "translate"
             elif chat_mode == "summarize":
-                self.fields["app"].choices = [("summarize", _("Summarize"))]
+                self.fields["app"].initial = "summarize"
             elif chat_mode == "qa":
-                self.fields["app"].choices = [("qa", _("QA"))]
+                self.fields["app"].initial = "qa"
             else:
-                self.fields["app"].choices = [("chat", _("Chat"))]
+                self.fields["app"].initial = "chat"
 
-            self.fields["chat_message"].initial = Message.objects.get(id=message_id)
+            self.fields["chat_message"].initial = message_id
 
 
 class FeedbackMetadataForm(ModelForm):

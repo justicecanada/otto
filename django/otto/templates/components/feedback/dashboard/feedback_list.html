@@ -3,9 +3,6 @@
 {% block page_css %}
 
   <style>
-    .accordion-body {
-      background-color: hsl(210, 20%, 98%) !important;
-    }
     .accordion-button {
       height: 80px;
       &::after,
@@ -27,10 +24,10 @@
 
 {% endblock page_css %}
 
-<div class="row mt-3 g-0 pt-3">
+<div id="feedback-list" class="row mt-3 g-0 pt-3">
   <h2 class="mb-3 fs-5 ps-2 fw-semibold" style="letter-spacing: -0.025em">{% trans "Latest feedback" %}</h2>
   <p class="mb-3 ps-2 text-muted">
-    {% trans "Click on a row to view more information about the feedback received, to flag the feedback as \"addressed\" or to contact the user directly." %}
+    {% trans "Click on a row to view more information about the feedback received, to flag the feedback as resolved or to contact the user directly." %}
   </p>
   {% if feedback_info|length > 0 %}
     <div class="accordion" id="feedback-accordion">
@@ -59,6 +56,7 @@
           </h3>
           <div id="collapse-{{ info.feedback.id }}"
                class="accordion-collapse collapse"
+               data-bs-parent="#feedback-accordion"
                aria-labelledby="heading-{{ info.feedback.id }}">
             <div class="accordion-body">
               {% include 'components/feedback/dashboard/feedback_details.html' with feedback=info.feedback form=info.form %}

@@ -4170,5 +4170,17 @@
     "Enable load test URL for 1 hour": {
         "fr": "",
         "fr_auto": "Activer l’URL du test de charge pendant 1 heure"
+    },
+    "Let us know what went wrong, or suggest an improvement.": {
+        "fr": "",
+        "fr_auto": "Faites-nous savoir ce qui n’a pas fonctionné ou suggérez une amélioration."
+    },
+    "Submit feedback about Otto": {
+        "fr": "",
+        "fr_auto": "Soumettre des commentaires sur Otto"
+    },
+    "Click on a row to view more information about the feedback received, to flag the feedback as resolved or to contact the user directly.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur une ligne pour afficher plus d’informations sur les commentaires reçus, pour marquer les commentaires comme résolus ou pour contacter directement l’utilisateur."
     }
 }
