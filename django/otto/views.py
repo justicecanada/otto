@@ -27,10 +27,26 @@ from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from chat.models import Message
-from otto.forms import FeedbackForm, PilotForm, UserGroupForm
+from otto.forms import (
+    FeedbackForm,
+    FeedbackMetadataForm,
+    FeedbackNoteForm,
+    PilotForm,
+    UserGroupForm,
+)
 from otto.metrics.activity_metrics import otto_access_total
 from otto.metrics.feedback_metrics import otto_feedback_submitted_with_comment_total
-from otto.models import FEATURE_CHOICES, App, Cost, CostType, Feature, Pilot, UsageTerm
+from otto.models import (
+    FEATURE_CHOICES,
+    App,
+    Cost,
+    CostType,
+    Feature,
+    Feedback,
+    FeedbackManager,
+    Pilot,
+    UsageTerm,
+)
 from otto.utils.common import cad_cost, display_cad_cost
 from otto.utils.decorators import permission_required
 
@@ -139,29 +155,35 @@ def accept_terms(request):
 
 @csrf_protect
 @login_required
-def message_feedback(request: HttpRequest, message_id=None):
+def feedback_message(request: HttpRequest, message_id=None):
+    if message_id == "None":
+        message_id = None
     if request.method == "POST":
+        from django.contrib import messages
+
+        from otto.utils.common import get_app_from_path
+
         form = FeedbackForm(request.user, message_id, request.POST)
 
         if form.is_valid():
+            feedback_saved = form.save(commit=False)
             date_and_time = timezone.now().strftime("%Y%m%d-%H%M%S")
-            form.cleaned_data["created_at"] = date_and_time
-            form.save()
-
-            otto_feedback_submitted_with_comment_total.labels(
-                user=request.user.username
-            ).inc()
-
-            if message_id is None:
-                return redirect("feedback_success")
-            else:
-                return HttpResponse()
+            feedback_saved.created_at = date_and_time
+            if feedback_saved.chat_message is None:
+                feedback_saved.app = get_app_from_path(feedback_saved.url_context)
+            feedback_saved.save()
+            messages.success(
+                request,
+                _("Feedback submitted successfully."),
+            )
+            return HttpResponse(status=200)
+        else:
+            return HttpResponse(form.errors, status=400)
     else:
         form = FeedbackForm(request.user, message_id)
-
     return render(
         request,
-        "feedback.html",
+        "components/feedback/feedback_modal_content.html",
         {
             "form": form,
             "message_id": message_id,
@@ -171,9 +193,136 @@ def message_feedback(request: HttpRequest, message_id=None):
     )
 
 
-@login_required
-def feedback_success(request):
-    return render(request, "feedback_success.html")
+@permission_required("otto.manage_users")
+def feedback_dashboard(request, page_number=None):
+    if page_number is None:
+        page_number = 1
+
+    apps = Feedback.objects.values_list("app", flat=True).distinct()
+    feedback_status_choices = Feedback.FEEDBACK_STATUS_CHOICES
+    feedback_type_choices = Feedback.FEEDBACK_TYPE_CHOICES
+
+    context = {
+        "apps": apps,
+        "feedback_status_choices": feedback_status_choices,
+        "feedback_type_choices": feedback_type_choices,
+        "current_page_number": page_number,
+    }
+
+    return render(request, "feedback_dashboard.html", context)
+
+
+@permission_required("otto.manage_users")
+def feedback_stats(request):
+    stats = Feedback.objects.get_feedback_stats()
+    return render(
+        request, "components/feedback/dashboard/feedback_stats.html", {"stats": stats}
+    )
+
+
+@permission_required("otto.manage_users")
+def feedback_list(request, page_number=None):
+    from django.core.paginator import Paginator
+
+    feedback_messages = Feedback.objects.all().order_by("-created_at")
+
+    if request.method == "POST":
+        feedback_type = request.POST.get("feedback_type")
+        status = request.POST.get("status")
+        app = request.POST.get("app")
+
+        if feedback_type and feedback_type != "all":
+            feedback_messages = feedback_messages.filter(feedback_type=feedback_type)
+        if status and status != "all":
+            feedback_messages = feedback_messages.filter(status=status)
+        if app and app != "all":
+            feedback_messages = feedback_messages.filter(app=app)
+
+    # Get 10 feedback messages per page
+    paginator = Paginator(feedback_messages, 10)
+    page_obj = paginator.get_page(page_number)
+
+    feedback_info = [
+        {
+            "feedback": f,
+            "form": {
+                "notes": FeedbackNoteForm(instance=f, auto_id=f"{f.id}_%s"),
+                "metadata": FeedbackMetadataForm(instance=f, auto_id=f"{f.id}_%s"),
+            },
+        }
+        for f in page_obj
+    ]
+    context = {
+        "feedback_info": feedback_info,
+        "page_obj": page_obj,
+    }
+    return render(request, "components/feedback/dashboard/feedback_list.html", context)
+
+
+@permission_required("otto.manage_users")
+def feedback_dashboard_update(request, feedback_id, form_type):
+    feedback = Feedback.objects.get(id=feedback_id)
+
+    if request.method == "POST":
+        if form_type == "metadata":
+            form = FeedbackMetadataForm(request.POST, instance=feedback)
+        else:
+            form = FeedbackNoteForm(request.POST, instance=feedback)
+        if form.is_valid():
+            form.cleaned_data["modified_by"] = request.user
+            form.cleaned_data["modified_at"] = timezone.now()
+            form.save()
+            messages.success(
+                request,
+                _("Feedback updated successfully."),
+            )
+            return HttpResponse(status=200)
+        else:
+            messages.error(request, form.errors)
+    else:
+        return HttpResponse(status=405)
+
+
+@permission_required("otto.manage_users")
+def feedback_download(request):
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="otto_feedback.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(
+        [
+            "created_at",
+            "user",
+            "app",
+            "message",
+            "status",
+            "type",
+            "last_modified_by",
+            "last_modified_on",
+            "notes",
+            "version",
+            "url_context",
+        ]
+    )
+
+    # Get all feedback messages from the row headers above
+    for feedback in Feedback.objects.all().order_by("-created_at"):
+        writer.writerow(
+            [
+                feedback.created_at,
+                feedback.created_by,
+                feedback.app,
+                feedback.feedback_message,
+                feedback.status,
+                feedback.feedback_type,
+                feedback.modified_by,
+                feedback.modified_on,
+                feedback.admin_notes,
+                feedback.otto_version,
+                feedback.url_context,
+            ],
+        )
+    return response
 
 
 @login_required

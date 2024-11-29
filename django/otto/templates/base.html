@@ -71,6 +71,7 @@
                 {% include 'components/user_menu.html' %}
               </ul>
               {% include 'components/notifications.html' %}
+              {% include 'components/feedback/feedback_icon.html' %}
               {% include 'components/language_toggle.html' %}
             </div>
           {% endif %}
@@ -95,6 +96,7 @@
       </nav>
     {% endif %}
 
+    <div aria-live="polite" aria-atomic="true" class="sticky-top">{% include "components/toasts.html" %}</div>
     {% include "components/messages.html" with add_padding="true" %}
 
     <div id="main-content-wrapper">
@@ -106,6 +108,8 @@
         </div>
       {% endblock %}
       {% block flash_messages %}{% endblock %}
+      {% include "components/feedback/feedback_modal.html" %}
+ 
     </div>
 
     <script>
@@ -137,6 +141,8 @@
     </script>
 
     {% block page_script %}{% endblock %}
+
+    <script src="{% static 'js/script.js' %}"></script>
 
     <!-- icons -->
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none">

@@ -39,3 +39,17 @@ def set_costs(object):
     """
     object.usd_cost = sum([cost.usd_cost for cost in object.cost_set.all()])
     object.save()
+
+
+def get_app_from_path(path):
+    """
+    Returns the app name from a path
+    """
+    from urllib.parse import urlparse
+
+    parsed_url = urlparse(path)
+    path = parsed_url.path.strip("/").split("/")
+    # If the path is empty or the result is empty, return "otto"
+    if not path or not path[0]:
+        return "Otto"
+    return path[0]
