@@ -19,3 +19,11 @@
 {{ form.otto_version }}
 {{ form.app }}
 {{ form.url_context }}
+
+{% block page_script %}
+       <script>
+              document.getElementById('modal').addEventListener('shown.bs.modal', function () {
+                     document.getElementById('{{ form.feedback_message.id_for_label }}').focus();
+              });
+       </script>
+{% endblock page_script %}
