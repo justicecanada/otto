@@ -124,7 +124,7 @@ class Command(BaseCommand):
         with open(file_path, "r", encoding="utf-8") as file:
             translations = json.load(file)
 
-        # Remove objects with empty 'fr_auto' values
+        # Remove objects with empty 'fr' values
         cleaned_translations = {
             key: value for key, value in translations.items() if value.get("fr")
         }
