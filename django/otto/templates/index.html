@@ -13,7 +13,21 @@
 
 {% block body %}
 
-  <h1 class="text-center display-2 fw-semibold">Otto</h1>
+  <h1 class="text-center display-3 fw-semibold">
+    <img src="{% static 'Logo1.png' %}"
+         class="d-inline-block align-top"
+         width="108"
+         height="auto"
+         style="position: relative;
+                top: -68px;
+                width: 108px;
+                height: auto;
+                margin-left: 18px;
+                margin-bottom: -71px"
+         alt="Smiling robot wearing Justice logo">
+    <br>
+    Otto
+  </h1>
   <div class="lead fw-medium text-center">
     <p>{% trans "Empowering Justice efficiency with data and AI" %}</p>
   </div>
