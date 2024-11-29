@@ -8,7 +8,7 @@
 | django/chat/llm.py                                                     |       85 |       14 |     84% |43, 62-64, 70-72, 90-96, 216, 240 |
 | django/chat/metrics/activity\_metrics.py                               |        4 |        0 |    100% |           |
 | django/chat/metrics/feedback\_metrics.py                               |        3 |        0 |    100% |           |
-| django/chat/models.py                                                  |      287 |       42 |     85% |37, 83, 86-88, 99-101, 233-236, 241-247, 320, 334-335, 340-341, 345-349, 356, 361, 367-368, 371, 415, 477, 481-483, 506, 544, 554, 572-575 |
+| django/chat/models.py                                                  |      287 |       43 |     85% |37, 83, 86-88, 99-101, 233-236, 241-247, 320, 334-335, 340-341, 345-349, 356, 361, 367-368, 371, 399, 415, 477, 481-483, 506, 544, 554, 572-575 |
 | django/chat/prompts.py                                                 |       10 |        0 |    100% |           |
 | django/chat/responses.py                                               |      277 |       89 |     68% |64, 68, 106, 191, 239-310, 335-336, 341-357, 360-390, 430, 436-446, 483, 529-563, 569-573, 619, 646, 650, 691-692 |
 | django/chat/tasks.py                                                   |       71 |       54 |     24% |22-30, 35-106 |
@@ -35,7 +35,7 @@
 | django/librarian/views.py                                              |      287 |      173 |     40% |68-113, 119-163, 174-192, 196-199, 218-234, 246-255, 287-296, 311, 318-320, 326, 332, 340, 347, 355, 361, 366, 374, 399-404, 410-412, 420-424, 433-448, 460-497, 505-512, 519-520 |
 | django/otto/celery.py                                                  |       16 |        1 |     94% |        69 |
 | django/otto/context\_processors.py                                     |       10 |        4 |     60% |      9-13 |
-| django/otto/forms.py                                                   |       57 |        4 |     93% |72, 74, 160-161 |
+| django/otto/forms.py                                                   |       68 |        4 |     94% |72, 74, 202-203 |
 | django/otto/management/commands/delete\_empty\_chats.py                |       19 |        1 |     95% |        29 |
 | django/otto/management/commands/delete\_old\_chats.py                  |       20 |        2 |     90% |    31, 35 |
 | django/otto/management/commands/delete\_text\_extractor\_files.py      |       18 |        0 |    100% |           |
@@ -43,20 +43,21 @@
 | django/otto/management/commands/update\_exchange\_rate.py              |       22 |        2 |     91% |     35-37 |
 | django/otto/metrics/activity\_metrics.py                               |        2 |        0 |    100% |           |
 | django/otto/metrics/feedback\_metrics.py                               |        3 |        0 |    100% |           |
-| django/otto/models.py                                                  |      255 |       30 |     88% |26-28, 76-79, 108, 112-115, 150, 192, 208, 229, 236, 254, 315, 318, 358, 370, 376, 401, 405, 409, 413, 460-461, 475, 479, 483 |
-| django/otto/rules.py                                                   |      134 |       22 |     84% |25, 41, 50, 112, 144, 172-176, 182, 187-191, 196, 201, 207, 211-212, 217 |
+| django/otto/models.py                                                  |      279 |       31 |     89% |26-28, 76-79, 112, 116-119, 154, 193, 196, 212, 233, 240, 258, 381, 384, 424, 436, 442, 467, 471, 475, 479, 526-527, 541, 545, 549 |
+| django/otto/rules.py                                                   |      134 |       23 |     83% |25, 41, 48, 50, 112, 144, 172-176, 182, 187-191, 196, 201, 207, 211-212, 217 |
 | django/otto/secure\_models.py                                          |      248 |       91 |     63% |21-22, 61, 86-100, 129-130, 135-136, 149-154, 183-224, 248, 268-269, 307, 337, 350, 359, 378, 393, 398, 403, 409-415, 418, 423, 437, 442, 447, 454-482, 485-486, 491-498, 501-502, 508-522, 536-537, 542-552, 557-558, 561-562 |
-| django/otto/settings.py                                                |      153 |       22 |     86% |38-41, 51-52, 218-227, 353-360, 389, 429, 486-487 |
+| django/otto/settings.py                                                |      153 |       22 |     86% |38-41, 51-52, 219-228, 354-361, 390, 430, 487-488 |
 | django/otto/tasks.py                                                   |       37 |       12 |     68% |11, 16, 21-23, 28, 33, 38, 43, 48, 61-63 |
-| django/otto/templatetags/filters.py                                    |       10 |        0 |    100% |           |
+| django/otto/templatetags/filters.py                                    |       10 |        1 |     90% |         8 |
 | django/otto/templatetags/tags.py                                       |       10 |        1 |     90% |        18 |
 | django/otto/translation.py                                             |       17 |        0 |    100% |           |
 | django/otto/utils/auth.py                                              |       36 |        6 |     83% |     18-32 |
 | django/otto/utils/cache.py                                             |       91 |       44 |     52% |25-30, 44, 55-60, 63-72, 75-80, 87-94, 99, 102, 105-107, 110-112 |
-| django/otto/utils/common.py                                            |       23 |        1 |     96% |        23 |
+| django/otto/utils/common.py                                            |       30 |        1 |     97% |        23 |
 | django/otto/utils/decorators.py                                        |       60 |        4 |     93% |24-25, 65, 87 |
 | django/otto/utils/logging.py                                           |       15 |        0 |    100% |           |
-| django/otto/views.py                                                   |      413 |       93 |     77% |43, 48, 53-67, 108, 118-129, 176, 233, 285-288, 304-305, 329, 339-342, 371-381, 393-398, 401, 410, 412-415, 417-418, 420-423, 445, 453, 462, 529, 531, 533, 549-555, 565, 567, 569, 574-594, 633, 642-651, 736, 757-780, 787 |
+| django/otto/utils/middleware.py                                        |       17 |        1 |     94% |        23 |
+| django/otto/views.py                                                   |      472 |       94 |     80% |59, 64, 69-83, 124, 134-145, 160, 281, 382, 434-437, 453-454, 478, 488-491, 520-530, 542-547, 550, 559, 561-564, 566-567, 569-572, 594, 602, 611, 678, 680, 682, 698-704, 714, 716, 718, 723-743, 782, 791-800, 885, 906-929, 936 |
 | django/template\_wizard/metrics/template\_wizard\_activity\_metrics.py |        2 |        0 |    100% |           |
 | django/template\_wizard/models.py                                      |        9 |        0 |    100% |           |
 | django/template\_wizard/translation.py                                 |        0 |        0 |    100% |           |
@@ -67,7 +68,7 @@
 | django/text\_extractor/tasks.py                                        |       18 |       11 |     39% |     14-33 |
 | django/text\_extractor/utils.py                                        |      208 |      100 |     52% |57-80, 121-122, 140-300, 341-345, 352-353, 359, 365-369 |
 | django/text\_extractor/views.py                                        |      108 |       58 |     46% |41, 59-74, 84, 98-106, 119-125, 131-185, 189-205 |
-|                                                              **TOTAL** | **6695** | **2156** | **68%** |           |
+|                                                              **TOTAL** | **6813** | **2162** | **68%** |           |
 
 
 ## Setup coverage badge
