@@ -455,6 +455,78 @@
         "fr": "aujourd’hui",
         "fr_auto": "Aujourd’hui"
     },
+    "Status": {
+        "fr": "État",
+        "fr_auto": "État d’avancement"
+    },
+    "Question": {
+        "fr": "Question",
+        "fr_auto": "Question :"
+    },
+    "Feature request": {
+        "fr": "Demande de fonctionnalité",
+        "fr_auto": "Demande de fonctionnalité"
+    },
+    "New": {
+        "fr": "Nouveau",
+        "fr_auto": "Nouveau"
+    },
+    "In progress": {
+        "fr": "En cours",
+        "fr_auto": "En cours"
+    },
+    "Resolved": {
+        "fr": "Résolu",
+        "fr_auto": "Résolu"
+    },
+    "Closed": {
+        "fr": "Fermé",
+        "fr_auto": "Fermé"
+    },
+    "Low": {
+        "fr": "Faible",
+        "fr_auto": "Faible"
+    },
+    "High": {
+        "fr": "Élevée",
+        "fr_auto": "Élevée"
+    },
+    "Latest feedback": {
+        "fr": "Derniers commentaires",
+        "fr_auto": "Derniers commentaires"
+    },
+    "No results available.": {
+        "fr": "Aucun résultat disponible.",
+        "fr_auto": "Aucun résultat disponible."
+    },
+    "First": {
+        "fr": "Première",
+        "fr_auto": "Premièrement"
+    },
+    "Last": {
+        "fr": "Dernière",
+        "fr_auto": "Dernier"
+    },
+    "View feedback in context": {
+        "fr": "Voir les commentaires dans leur contexte",
+        "fr_auto": "Voir les commentaires dans leur contexte"
+    },
+    "Administrative details": {
+        "fr": "Détails administratifs",
+        "fr_auto": "Détails administratifs"
+    },
+    "App": {
+        "fr": "Application",
+        "fr_auto": "L’application"
+    },
+    "Apply Filters": {
+        "fr": "Appliquer les filtres",
+        "fr_auto": "Appliquer des filtres"
+    },
+    "Feedback updated successfully.": {
+        "fr": "Les commentaires ont été mis à jour avec succès.",
+        "fr_auto": "Les commentaires ont été mis à jour avec succès."
+    },
     "GPT-4o-mini (Global)": {
         "fr": "",
         "fr_auto": "GPT-4o-mini (Global)"
@@ -959,10 +1031,6 @@
         "fr": "",
         "fr_auto": "Enregistrer les modifications"
     },
-    "AI Assistant feedback": {
-        "fr": "",
-        "fr_auto": "Commentaires de l’Assistant IA"
-    },
     "Edit": {
         "fr": "",
         "fr_auto": "Modifier"
@@ -1283,6 +1351,94 @@
         "fr": "",
         "fr_auto": "Erreur générant une réponse d’IA."
     },
+    "Queued": {
+        "fr": "",
+        "fr_auto": "En file d’attente"
+    },
+    "Processing": {
+        "fr": "",
+        "fr_auto": "Traitement"
+    },
+    "Processed": {
+        "fr": "",
+        "fr_auto": "Traitées"
+    },
+    "Error": {
+        "fr": "",
+        "fr_auto": "Erreur"
+    },
+    "Sorry, we ran into an error.": {
+        "fr": "",
+        "fr_auto": "Désolé, nous avons rencontré une erreur."
+    },
+    "LEX Experiment - Otto": {
+        "fr": "",
+        "fr_auto": "Expérience LEX - Otto"
+    },
+    "LEX Experiment": {
+        "fr": "",
+        "fr_auto": "Expérience LEX"
+    },
+    "Upload Notice(s) of Appeal": {
+        "fr": "",
+        "fr_auto": "Télécharger avis(s) d’appel"
+    },
+    "Maximum 2000 files / 300mb total": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
+    },
+    "Extract Information": {
+        "fr": "",
+        "fr_auto": "Extraire des informations"
+    },
+    "Information extracted": {
+        "fr": "",
+        "fr_auto": "Informations extraites"
+    },
+    "Document": {
+        "fr": "",
+        "fr_auto": "Le document"
+    },
+    "Tax Court of Canada No.": {
+        "fr": "",
+        "fr_auto": "Cour canadienne de l’impôt No."
+    },
+    "Appellant's Name": {
+        "fr": "",
+        "fr_auto": "Nom de l’appelant"
+    },
+    "Appellant's Address": {
+        "fr": "",
+        "fr_auto": "Adresse de l’appelant"
+    },
+    "Tax Court Level": {
+        "fr": "",
+        "fr_auto": "Niveau de la Cour de l’impôt"
+    },
+    "Filed Date of NoA": {
+        "fr": "",
+        "fr_auto": "Date de dépôt de l’AA"
+    },
+    "Representative's Name": {
+        "fr": "",
+        "fr_auto": "Nom du représentant"
+    },
+    "Representative's Address": {
+        "fr": "",
+        "fr_auto": "Allocution du représentant"
+    },
+    "Taxation Years": {
+        "fr": "",
+        "fr_auto": "Années d’imposition"
+    },
+    "Total Tax Amount": {
+        "fr": "",
+        "fr_auto": "Montant total de la taxe"
+    },
+    "Sections Referred": {
+        "fr": "",
+        "fr_auto": "Sections renvoyées"
+    },
     "Administrators (edit library and manage users)": {
         "fr": "",
         "fr_auto": "Administrateurs (modifier la bibliothèque et gérer les utilisateurs)"
@@ -1406,22 +1562,6 @@
     "Cancelled": {
         "fr": "",
         "fr_auto": "Annulé"
-    },
-    "Queued": {
-        "fr": "",
-        "fr_auto": "En file d’attente"
-    },
-    "Processing": {
-        "fr": "",
-        "fr_auto": "Traitement"
-    },
-    "Processed": {
-        "fr": "",
-        "fr_auto": "Traitées"
-    },
-    "Error": {
-        "fr": "",
-        "fr_auto": "Erreur"
     },
     "Last fetched date": {
         "fr": "",
@@ -1639,21 +1779,21 @@
         "fr": "",
         "fr_auto": "Bibliothèque non enregistrée"
     },
-    "Which application are you providing feedback or reporting an issue for?": {
+    "Let us know what went wrong, or suggest an improvement.": {
         "fr": "",
-        "fr_auto": "Pour quelle application fournissez-vous des commentaires ou signalez-vous un problème ?"
+        "fr_auto": "Faites-nous savoir ce qui n’a pas fonctionné ou suggérez une amélioration."
     },
-    "Do you want to provide feedback or report an issue?": {
+    "Type": {
         "fr": "",
-        "fr_auto": "Voulez-vous fournir des commentaires ou signaler un problème ?"
+        "fr_auto": "Type"
     },
-    "If you have any specific suggestions or want to report an issue share them with us below:": {
+    "Add notes or addition details.": {
         "fr": "",
-        "fr_auto": "Si vous avez des suggestions spécifiques ou si vous souhaitez signaler un problème, partagez-les avec nous ci-dessous :"
+        "fr_auto": "Ajoutez des notes ou des détails d’ajout."
     },
-    "General (Otto)": {
+    "N/A": {
         "fr": "",
-        "fr_auto": "Général (Otto)"
+        "fr_auto": "S.O."
     },
     "AI Assistant": {
         "fr": "",
@@ -1675,13 +1815,9 @@
         "fr": "",
         "fr_auto": "Commentaires"
     },
-    "Issue": {
+    "Bug": {
         "fr": "",
-        "fr_auto": "Question en litige"
-    },
-    "Please select an option": {
-        "fr": "",
-        "fr_auto": "Veuillez sélectionner une option"
+        "fr_auto": "Bogue"
     },
     "Template Wizard": {
         "fr": "",
@@ -1691,9 +1827,13 @@
         "fr": "",
         "fr_auto": "Chargement de la législation"
     },
-    "Text Extractor": {
+    "Text extractor": {
         "fr": "",
         "fr_auto": "Extracteur de texte"
+    },
+    "Lex experiment": {
+        "fr": "",
+        "fr_auto": "Expérience lex"
     },
     "Load test": {
         "fr": "",
@@ -1779,9 +1919,65 @@
         "fr": "",
         "fr_auto": "Contactez-nous"
     },
-    "Provide feedback or report an issue using the form below.": {
+    "Use this section to provide additional details to the feedback provided by the user.": {
         "fr": "",
-        "fr_auto": "Fournissez des commentaires ou signalez un problème à l’aide du formulaire ci-dessous."
+        "fr_auto": "Utilisez cette section pour fournir des détails supplémentaires aux commentaires fournis par l’utilisateur."
+    },
+    "Notes": {
+        "fr": "",
+        "fr_auto": "Remarques :"
+    },
+    "Save note": {
+        "fr": "",
+        "fr_auto": "Enregistrer la note"
+    },
+    "Last modified:": {
+        "fr": "",
+        "fr_auto": "Dernière modification :"
+    },
+    "Click on a row to view more information about the feedback received, to flag the feedback as resolved or to contact the user directly.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur une ligne pour afficher plus d’informations sur les commentaires reçus, pour marquer les commentaires comme résolus ou pour contacter directement l’utilisateur."
+    },
+    "ago": {
+        "fr": "",
+        "fr_auto": "il y a longtemps"
+    },
+    "Feedback results page navigation.": {
+        "fr": "",
+        "fr_auto": "Navigation dans la page des résultats des commentaires."
+    },
+    "Previous": {
+        "fr": "",
+        "fr_auto": "Précédent"
+    },
+    "Next": {
+        "fr": "",
+        "fr_auto": "Suivant"
+    },
+    "Total received": {
+        "fr": "",
+        "fr_auto": "Total reçu"
+    },
+    "Total resolved": {
+        "fr": "",
+        "fr_auto": "Total résolu"
+    },
+    "Total negative chat comment(s)": {
+        "fr": "",
+        "fr_auto": "Total des commentaires négatifs de chat (s)"
+    },
+    "Most active app": {
+        "fr": "",
+        "fr_auto": "Application la plus active"
+    },
+    "Leave feedback": {
+        "fr": "",
+        "fr_auto": "Laisser un commentaire"
+    },
+    "Submit feedback about Otto": {
+        "fr": "",
+        "fr_auto": "Soumettre des commentaires sur Otto"
     },
     "Otto feedback form": {
         "fr": "",
@@ -1815,10 +2011,6 @@
         "fr": "",
         "fr_auto": "L’URL de test de chargement est activée"
     },
-    "Provide feedback": {
-        "fr": "",
-        "fr_auto": "Fournir des commentaires"
-    },
     "Manage users": {
         "fr": "",
         "fr_auto": "Gérer les utilisateurs"
@@ -1826,6 +2018,10 @@
     "Cost dashboard": {
         "fr": "",
         "fr_auto": "Tableau de bord des coûts"
+    },
+    "Feedback dashboard": {
+        "fr": "",
+        "fr_auto": "Tableau de bord des commentaires"
     },
     "Logout": {
         "fr": "",
@@ -1870,6 +2066,26 @@
     "Cost type:": {
         "fr": "",
         "fr_auto": "Type de coût :"
+    },
+    "Feedback dashboard - Otto": {
+        "fr": "",
+        "fr_auto": "Tableau de bord des commentaires - Huit"
+    },
+    "Export data": {
+        "fr": "",
+        "fr_auto": "Exporter des données"
+    },
+    "View filter options": {
+        "fr": "",
+        "fr_auto": "Afficher les options de filtre"
+    },
+    "Filters": {
+        "fr": "",
+        "fr_auto": "Filtres"
+    },
+    "Feedback Type": {
+        "fr": "",
+        "fr_auto": "Type de rétroaction"
     },
     "Warning:": {
         "fr": "",
@@ -2023,6 +2239,10 @@
         "fr": "",
         "fr_auto": "Vous avez atteint votre limite budgétaire hebdomadaire. Veuillez contacter un administrateur Otto ou attendre jusqu’à dimanche pour que la limite soit réinitialisée."
     },
+    "Feedback submitted successfully.": {
+        "fr": "",
+        "fr_auto": "Commentaires soumis avec succès."
+    },
     "Day": {
         "fr": "",
         "fr_auto": "Jour"
@@ -2151,10 +2371,6 @@
         "fr": "",
         "fr_auto": "Données soumises"
     },
-    "Type": {
-        "fr": "",
-        "fr_auto": "Type"
-    },
     "Data": {
         "fr": "",
         "fr_auto": "Données"
@@ -2223,21 +2439,17 @@
         "fr": "",
         "fr_auto": "Texte brut"
     },
-    "Sorry, we ran into an error.": {
-        "fr": "",
-        "fr_auto": "Désolé, nous avons rencontré une erreur."
-    },
     "Text Extractor - Otto": {
         "fr": "",
         "fr_auto": "Extracteur de texte - Otto"
     },
+    "Text Extractor": {
+        "fr": "",
+        "fr_auto": "Extracteur de texte"
+    },
     "Upload scanned PDFs or images": {
         "fr": "",
         "fr_auto": "Télécharger des fichiers PDF ou des images numérisés"
-    },
-    "Maximum 2000 files / 300mb total": {
-        "fr": "",
-        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
     },
     "Merge multiple files into one document": {
         "fr": "",
@@ -2251,348 +2463,12 @@
         "fr": "",
         "fr_auto": "Nom du document"
     },
-    "Status": {
-        "fr": "État",
-        "fr_auto": "État d’avancement"
-    },
-    "Download all files...": {
-        "fr": "",
-        "fr_auto": "Téléchargez tous les fichiers..."
-    },
-    "Source not available (document deleted or modified since message)": {
-        "fr": "",
-        "fr_auto": "Source non disponible (document supprimé ou modifié depuis le message)"
-    },
-    "Legislation Search - Otto": {
-        "fr": "",
-        "fr_auto": "Recherche de législation - Otto"
-    },
-    "Manage pilots - Otto": {
-        "fr": "",
-        "fr_auto": "Gérer les pilotes - Otto"
-    },
-    "Manage users - Otto": {
-        "fr": "",
-        "fr_auto": "Gérer les utilisateurs - Otto"
-    },
-    "Template Wizard - Otto": {
-        "fr": "",
-        "fr_auto": "Assistant de modèle - Otto"
-    },
-    "Text Extractor - Otto": {
-        "fr": "",
-        "fr_auto": "Extracteur de texte - Otto"
-    },
-    "Last refreshed from the": {
-        "fr": "",
-        "fr_auto": "Dernière actualisation à partir de l'"
-    },
-    "repository on": {
-        "fr": "",
-        "fr_auto": "référentiel sur"
-    },
-    "Invalid mode.": {
-        "fr": "",
-        "fr_auto": "Mode non valide."
-    },
-    "There was an error processing your request.": {
-        "fr": "",
-        "fr_auto": "Il y a eu une erreur de traitement de votre demande."
-    },
-    "No user message found.": {
-        "fr": "",
-        "fr_auto": "Aucun message de l’utilisateur trouvé."
-    },
     "Downloads": {
         "fr": "",
         "fr_auto": "Téléchargements"
     },
     "Download all files...": {
         "fr": "",
-        "fr_auto": "Lecture seule"
-    },
-    "Empowering Justice efficiency with data and AI": {
-        "fr": "",
-        "fr_auto": "Renforcer l’efficacité de la justice avec les données et l’IA"
-    },
-    "An error occurred.": {
-        "fr": "",
-        "fr_auto": "Une erreur s’est produite."
-    },
-    "LEX Experiment - Otto": {
-        "fr": "",
-        "fr_auto": "Expérience LEX - Otto"
-    },
-    "Lex Experiment": {
-        "fr": "",
-        "fr_auto": "Expérience Lex"
-    },
-    "Information Extracted": {
-        "fr": "",
-        "fr_auto": "Informations extraites"
-    },
-    "Document": {
-        "fr": "",
-        "fr_auto": "Le document"
-    },
-    "Tax Court No.": {
-        "fr": "",
-        "fr_auto": "Cour de l’impôt No."
-    },
-    "Appellant's Name": {
-        "fr": "",
-        "fr_auto": "Nom de l’appelant"
-    },
-    "Appellant's Address": {
-        "fr": "",
-        "fr_auto": "Adresse de l’appelant"
-    },
-    "Tax Court Level": {
-        "fr": "",
-        "fr_auto": "Niveau de la Cour de l’impôt"
-    },
-    "Filed Date of NoA": {
-        "fr": "",
-        "fr_auto": "Date de dépôt de l’AA"
-    },
-    "Representative's Name": {
-        "fr": "",
-        "fr_auto": "Nom du représentant"
-    },
-    "Representative's Address": {
-        "fr": "",
-        "fr_auto": "Allocution du représentant"
-    },
-    "Taxation Years": {
-        "fr": "",
-        "fr_auto": "Années d’imposition"
-    },
-    "Total Tax Amount": {
-        "fr": "",
-        "fr_auto": "Montant total de la taxe"
-    },
-    "Sections Referred": {
-        "fr": "",
-        "fr_auto": "Sections renvoyées"
-    },
-    "Lex experiment": {
-        "fr": "",
-        "fr_auto": "Expérience lex"
-    },
-    "Full documents, separate answers ($)": {
-        "fr": "",
-        "fr_auto": "Documents complets, réponses séparées ($)"
-    },
-    "Full documents, combined answer ($)": {
-        "fr": "",
-        "fr_auto": "Documents complets, réponse combinée ($)"
-    },
-    "Add notes or addition details.": {
-        "fr": "",
-        "fr_auto": "Ajoutez des notes ou des détails d’ajout."
-    },
-    "Bug": {
-        "fr": "",
-        "fr_auto": "Bogue"
-    },
-    "Question": {
-        "fr": "Question",
-        "fr_auto": "Question :"
-    },
-    "Feature request": {
-        "fr": "Demande de fonctionnalité",
-        "fr_auto": "Demande de fonctionnalité"
-    },
-    "New": {
-        "fr": "Nouveau",
-        "fr_auto": "Nouveau"
-    },
-    "In progress": {
-        "fr": "En cours",
-        "fr_auto": "En cours"
-    },
-    "Resolved": {
-        "fr": "Résolu",
-        "fr_auto": "Résolu"
-    },
-    "Closed": {
-        "fr": "Fermé",
-        "fr_auto": "Fermé"
-    },
-    "Low": {
-        "fr": "Faible",
-        "fr_auto": "Faible"
-    },
-    "High": {
-        "fr": "Élevée",
-        "fr_auto": "Élevée"
-    },
-    "Latest feedback": {
-        "fr": "Derniers commentaires",
-        "fr_auto": "Derniers commentaires"
-    },
-    "Click on a row to view more information about the feedback received, to flag the feedback as \\": {
-        "fr": "",
-        "fr_auto": "Cliquez sur une ligne pour afficher plus d’informations sur les commentaires reçus, pour marquer les commentaires comme \\"
-    },
-    "ago": {
-        "fr": "",
-        "fr_auto": "il y a longtemps"
-    },
-    "No results available.": {
-        "fr": "Aucun résultat disponible.",
-        "fr_auto": "Aucun résultat disponible."
-    },
-    "Feedback results page navigation.": {
-        "fr": "",
-        "fr_auto": "Navigation dans la page des résultats des commentaires."
-    },
-    "First": {
-        "fr": "Première",
-        "fr_auto": "Premièrement"
-    },
-    "Last": {
-        "fr": "Dernière",
-        "fr_auto": "Dernier"
-    },
-    "View feedback in context": {
-        "fr": "Voir les commentaires dans leur contexte",
-        "fr_auto": "Voir les commentaires dans leur contexte"
-    },
-    "Administrative details": {
-        "fr": "Détails administratifs",
-        "fr_auto": "Détails administratifs"
-    },
-    "Use this section to provide additional details to the feedback provided by the user.": {
-        "fr": "",
-        "fr_auto": "Utilisez cette section pour fournir des détails supplémentaires aux commentaires fournis par l’utilisateur."
-    },
-    "Save note": {
-        "fr": "",
-        "fr_auto": "Enregistrer la note"
-    },
-    "Total received": {
-        "fr": "",
-        "fr_auto": "Total reçu"
-    },
-    "Total resolved": {
-        "fr": "",
-        "fr_auto": "Total résolu"
-    },
-    "Total negative chat comment(s)": {
-        "fr": "",
-        "fr_auto": "Total des commentaires négatifs de chat (s)"
-    },
-    "Most active app": {
-        "fr": "",
-        "fr_auto": "Application la plus active"
-    },
-    "Feedback dashboard": {
-        "fr": "",
-        "fr_auto": "Tableau de bord des commentaires"
-    },
-    "Feedback dashboard - Otto": {
-        "fr": "",
-        "fr_auto": "Tableau de bord des commentaires - Huit"
-    },
-    "Export data": {
-        "fr": "",
-        "fr_auto": "Exporter des données"
-    },
-    "View filter options": {
-        "fr": "",
-        "fr_auto": "Afficher les options de filtre"
-    },
-    "Feedback Type": {
-        "fr": "",
-        "fr_auto": "Type de rétroaction"
-    },
-    "App": {
-        "fr": "Application",
-        "fr_auto": "L’application"
-    },
-    "Apply Filters": {
-        "fr": "Appliquer les filtres",
-        "fr_auto": "Appliquer des filtres"
-    },
-    "Feedback submitted successfully.": {
-        "fr": "",
-        "fr_auto": "Commentaires soumis avec succès."
-    },
-    "Feedback updated successfully.": {
-        "fr": "Les commentaires ont été mis à jour avec succès.",
-        "fr_auto": "Les commentaires ont été mis à jour avec succès."
-    },
-    "N/A": {
-        "fr": "",
-        "fr_auto": "S.O."
-    },
-    "Error translating files.": {
-        "fr": "",
-        "fr_auto": "Erreur de traduction des fichiers."
-    },
-    "Last modified:": {
-        "fr": "",
-        "fr_auto": "Dernière modification :"
-    },
-    "UPN": {
-        "fr": "",
-        "fr_auto": "L’UPN"
-    },
-    "Text extractor": {
-        "fr": "",
-        "fr_auto": "Extracteur de texte"
-    },
-    "Load test": {
-        "fr": "",
-        "fr_auto": "Essai de charge"
-    },
-    "Disable load test URL": {
-        "fr": "",
-        "fr_auto": "Désactiver l’URL du test de chargement"
-    },
-    "Enable load test URL": {
-        "fr": "",
-        "fr_auto": "Activer l’URL du test de charge"
-    },
-    "Load testing URL is enabled": {
-        "fr": "",
-        "fr_auto": "L’URL de test de chargement est activée"
-    },
-    "Enable load test URL for 1 hour": {
-        "fr": "",
-        "fr_auto": "Activer l’URL du test de charge pendant 1 heure"
-    },
-    "Let us know what went wrong, or suggest an improvement.": {
-        "fr": "",
-        "fr_auto": "Faites-nous savoir ce qui n’a pas fonctionné ou suggérez une amélioration."
-    },
-    "Submit feedback about Otto": {
-        "fr": "",
-        "fr_auto": "Soumettre des commentaires sur Otto"
-    },
-    "Click on a row to view more information about the feedback received, to flag the feedback as resolved or to contact the user directly.": {
-        "fr": "",
-        "fr_auto": "Cliquez sur une ligne pour afficher plus d’informations sur les commentaires reçus, pour marquer les commentaires comme résolus ou pour contacter directement l’utilisateur."
-    },
-    "LEX Experiment": {
-        "fr": "",
-        "fr_auto": "Expérience LEX"
-    },
-    "Upload Scanned Notice(s) of Appeal": {
-        "fr": "",
-        "fr_auto": "Télécharger les avis d’appel numérisés"
-    },
-    "Extract Information": {
-        "fr": "",
-        "fr_auto": "Extraire des informations"
-    },
-    "Information extracted": {
-        "fr": "",
-        "fr_auto": "Informations extraites"
-    },
-    "Tax Court of Canada No.": {
-        "fr": "",
-        "fr_auto": "Cour canadienne de l’impôt No."
+        "fr_auto": "Téléchargez tous les fichiers..."
     }
 }
