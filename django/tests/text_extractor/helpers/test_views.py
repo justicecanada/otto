@@ -51,30 +51,26 @@ def test_submit_document_view(client, all_apps_user, process_ocr_document_mock):
     assert mock_delay.called
 
 
-# permission issues in the code below
-# @pytest.mark.django_db
-# def test_poll_tasks_view(client, all_apps_user, process_ocr_document_mock):
-#     mock_delay, mock_async_result = process_ocr_document_mock
-#     user = all_apps_user()
-#     client.force_login(user)
-#     output_file = OutputFile.objects.create(
-#         access_key=AccessKey(user=user),
-#         pdf_file=None,
-#         txt_file=None,
-#         file_name="test_file",
-#         user_request=UserRequest.objects.create(
-#             access_key=AccessKey(user=user), merged=False, name="testuser"
-#         ),
-#         celery_task_ids=["mock_task_id"],
-#         status="PENDING",
-#     )
-#     response = client.get(
-#         reverse("text_extractor:poll_tasks", args=[output_file.user_request.id])
-#     )
-#     assert response.status_code == 200
-#     output_file.refresh_from_db()
-#     assert output_file.status == "SUCCESS"
-#     assert mock_async_result.called
+@pytest.mark.django_db
+def test_poll_tasks_view(client, all_apps_user, process_ocr_document_mock):
+    mock_delay, mock_async_result = process_ocr_document_mock
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a mock UserRequest object
+    user_request_id = uuid.uuid4()
+    user_request = mock.MagicMock()
+    user_request.id = user_request_id
+    user_request.status = "SUCCESS"
+
+    with mock.patch(
+        "text_extractor.models.UserRequest.objects.get", return_value=user_request
+    ):
+        response = client.get(
+            reverse("text_extractor:poll_tasks", args=[str(user_request.id)])
+        )
+        assert response.status_code == 200
+        assert user_request.status == "SUCCESS"
 
 
 def test_download_document(client, all_apps_user, output_file):
