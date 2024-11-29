@@ -346,8 +346,8 @@ class PGVectorStore(BasePydanticVectorStore):
         wait_exponential_max=20000,
     )
     def _connect(self) -> None:
-        if self._session is not None and self._async_session is not None:
-            return
+        # if self._session is not None and self._async_session is not None:
+        #     return
         self._engine = create_engine(
             self.connection_string, echo=self.debug, **self.create_engine_kwargs
         )

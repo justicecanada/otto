@@ -284,7 +284,9 @@ if os.environ.get("DJANGODB_ENGINE") is not None:
         "NAME": os.environ.get("DJANGODB_NAME"),
         "USER": os.environ.get("DJANGODB_USER"),
         "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
-        "HOST": os.environ.get("DJANGODB_HOST"),
+        "HOST": "localhost",
+        "PORT": "6432",
+        "DISABLE_SERVER_SIDE_CURSORS": True,
     }
 
 if os.environ.get("VECTORDB_ENGINE") is not None:

@@ -12,8 +12,9 @@ from llama_index.llms.azure_openai import AzureOpenAI
 
 from otto.models import Cost
 
-# from llama_index.vector_stores.postgres import PGVectorStore
 from .llama_index import PGVectorStore
+
+# from llama_index.vector_stores.postgres import PGVectorStore
 
 
 class OttoLLM:
