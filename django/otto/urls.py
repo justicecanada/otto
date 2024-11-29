@@ -23,6 +23,7 @@ urlpatterns = [
     path("librarian/", include("librarian.urls")),
     path("laws/", include("laws.urls")),
     path("text_extractor/", include("text_extractor.urls")),
+    path("lex_experiment/", include("lex_experiment.urls")),
     path("template_wizard/", include("template_wizard.urls")),
     path("user_management/", views.manage_users, name="manage_users"),
     path("user_management/form/", views.manage_users_form, name="manage_users_form"),
@@ -52,9 +53,33 @@ urlpatterns = [
     path("load_test/", views.load_test, name="load_test"),
     path("user_cost/", views.user_cost, name="user_cost"),
     path("accept_terms/", views.accept_terms, name="accept_terms"),
-    path("feedback/", views.message_feedback, name="user_feedback"),
-    path("feedback/<message_id>/", views.message_feedback, name="user_feedback"),
-    path("feedback_success/", views.feedback_success, name="feedback_success"),
+    path("feedback/", views.feedback_message, name="user_feedback"),
+    path("feedback/<int:message_id>/", views.feedback_message, name="user_feedback"),
+    path(
+        "user_management/feedback", views.feedback_dashboard, name="feedback_dashboard"
+    ),
+    path(
+        "user_management/feedback/<int:page_number>",
+        views.feedback_dashboard,
+        name="feedback_dashboard",
+    ),
+    path("user_management/feedback/list", views.feedback_list, name="feedback_list"),
+    path(
+        "user_management/feedback/list/<int:page_number>",
+        views.feedback_list,
+        name="feedback_list",
+    ),
+    path("user_management/feedback/stats", views.feedback_stats, name="feedback_stats"),
+    path(
+        "user_management/feedback/<int:feedback_id>/<str:form_type>",
+        views.feedback_dashboard_update,
+        name="feedback_dashboard_update",
+    ),
+    path(
+        "user_management/feedback/download",
+        views.feedback_download,
+        name="feedback_download",
+    ),
     path(
         "notifications/<int:notification_id>/", views.notification, name="notification"
     ),

@@ -169,6 +169,7 @@ INSTALLED_APPS = [
     "channels",
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
+    "lex_experiment",
     "django_celery_beat",
 ]
 
@@ -196,6 +197,7 @@ MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusAfterMiddleware",
     # AU-6: Aupports structured logging, facilitating the review and analysis of audit records for inappropriate or unusual activity
     "django_structlog.middlewares.RequestMiddleware",
+    "otto.utils.middleware.HtmxMessageMiddleware",
 ]
 
 if IS_RUNNING_TESTS:

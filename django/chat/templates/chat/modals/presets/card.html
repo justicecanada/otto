@@ -1,6 +1,8 @@
 {% load i18n %}
 {% load chat_tags %}
 {% load static %}
+{% load rules %}
+{% has_perm "chat.edit_preset" user preset as can_edit_preset %}
 {% get_current_language as LANGUAGE_CODE %}
 <li class="card" data-default="{{ preset.default }}">
   <div class="card-header align-items-center">
@@ -48,7 +50,7 @@
             data-bs-dismiss="modal"
             hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
             hx-target="#options-accordion">{% trans "Load" %}</button>
-    {% if user == preset.owner or is_admin %}
+    {% if can_edit_preset %}
       <button type="button"
               class="btn btn-light fw-semibold flex-grow-1"
               hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"

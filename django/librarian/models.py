@@ -322,17 +322,17 @@ class Document(models.Model):
     )
 
     # Extracted title may come from HTML <title>, PDF metadata, etc.
-    extracted_title = models.CharField(max_length=255, null=True, blank=True)
+    extracted_title = models.CharField(max_length=500, null=True, blank=True)
 
     # Last modified time of the document as extracted from the source metadata, etc.
     extracted_modified_at = models.DateTimeField(null=True, blank=True)
 
     # Generated title and description from LLM
-    generated_title = models.CharField(max_length=255, null=True, blank=True)
+    generated_title = models.CharField(max_length=500, null=True, blank=True)
     generated_description = models.TextField(null=True, blank=True)
 
     # User-provided citation; has precedence over extracted_title etc.
-    manual_title = models.CharField(max_length=255, null=True, blank=True)
+    manual_title = models.CharField(max_length=500, null=True, blank=True)
 
     # Not necessary to store permanently in this model; saved in vector DB chunks
     extracted_text = models.TextField(null=True, blank=True)
@@ -354,7 +354,7 @@ class Document(models.Model):
     )
     # Filename stored here instead of in the File object since one file (hash)
     # may be uploaded under different filenames
-    filename = models.CharField(max_length=255, null=True, blank=True)
+    filename = models.CharField(max_length=500, null=True, blank=True)
 
     # Specific to PDF documents.
     # The extraction method *that was used* to extract text from the PDF
@@ -461,7 +461,7 @@ class SavedFile(models.Model):
     """
 
     sha256_hash = models.CharField(max_length=64, null=True, blank=True, db_index=True)
-    file = models.FileField(upload_to="files/%Y/%m/%d/")
+    file = models.FileField(upload_to="files/%Y/%m/%d/", max_length=500)
     content_type = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     eof = models.BooleanField(default=True)
