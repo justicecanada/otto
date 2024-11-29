@@ -757,26 +757,6 @@ def load_test(request):
         from otto.tasks import sleep_seconds
 
         sleep_seconds.delay(int(query_params["celery_sleep"]))
-        if "show_queue" in query_params:
-            # Check how many items are in the queue
-            from celery import current_app
-            from celery.app.control import Inspect
-
-            i = Inspect(app=current_app)
-            active_tasks = i.active()
-            scheduled_tasks = i.scheduled()
-            reserved_tasks = i.reserved()
-            active_task_list = next(iter(active_tasks.values()), [])
-            scheduled_task_list = next(iter(scheduled_tasks.values()), [])
-            reserved_task_list = next(iter(reserved_tasks.values()), [])
-
-            return HttpResponse(
-                (
-                    f"Added task to queue.<hr>Active:<br>{len(active_task_list)}"
-                    f"<hr>Scheduled:<br>{len(scheduled_task_list)}"
-                    f"<hr>Reserved:<br>{len(reserved_task_list)}"
-                )
-            )
         return HttpResponse("Added task to queue")
     if "llm_call" in query_params:
         if query_params.get("llm_call"):

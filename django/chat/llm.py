@@ -9,9 +9,11 @@ from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
-from llama_index.vector_stores.postgres import PGVectorStore
 
 from otto.models import Cost
+
+# from llama_index.vector_stores.postgres import PGVectorStore
+from .llama_index import PGVectorStore
 
 
 class OttoLLM:

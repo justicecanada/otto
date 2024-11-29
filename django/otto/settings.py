@@ -279,7 +279,7 @@ DATABASES = {
 # If the database is set in the environment variables, use that instead
 if os.environ.get("DJANGODB_ENGINE") is not None:
     DATABASES["default"] = {
-        "ENGINE": os.environ.get("DJANGODB_ENGINE"),
+        "ENGINE": "postgres_wrapper",
         "NAME": os.environ.get("DJANGODB_NAME"),
         "USER": os.environ.get("DJANGODB_USER"),
         "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
@@ -288,7 +288,7 @@ if os.environ.get("DJANGODB_ENGINE") is not None:
 
 if os.environ.get("VECTORDB_ENGINE") is not None:
     DATABASES["vector_db"] = {
-        "ENGINE": os.environ.get("VECTORDB_ENGINE"),
+        "ENGINE": "postgres_wrapper",
         "NAME": os.environ.get("VECTORDB_NAME"),
         "USER": os.environ.get("VECTORDB_USER"),
         "PASSWORD": os.environ.get("VECTORDB_PASSWORD", ""),
