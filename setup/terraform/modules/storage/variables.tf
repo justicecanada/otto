@@ -58,8 +58,3 @@ variable "web_subnet_id" {
   description = "The ID of the web subnet"
   type        = string
 }
-
-variable "backup_container_name" {
-  description = "The name of the backup container to create in the storage account"
-  type        = string
-}

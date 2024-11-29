@@ -1,19 +1,36 @@
 param (
     [string]$subscription = "",
-    [string]$env_file = ""
+    [string]$envFile = "",
+    [string]$dnsSubscription = "",
+    [string]$dnsResourceGroup = "",
+    [string]$connectChoice = ""
 )
 
 # If the params are not provided, prompt the user for them
 if (-not $subscription) {
+    Write-Host "To deploy the Jumpbox VM, provide the subscription name and the .env file to use."
     $subscription = Read-Host -Prompt "Enter the subscription name"
 }
-if (-not $env_file) {
-    $env_file = Read-Host -Prompt "Enter the path to the .env file"
+if (-not $envFile) {
+    $envFile = Read-Host -Prompt "Specify the .env file to use"
+}
+if (-not $dnsSubscription) {
+    Write-Host "To enable automated certificate renewal, provide the subscription and resource group for the DNS zone."
+    $dnsSubscription = Read-Host -Prompt "Enter the DNS subscription name or blank to skip"
+}
+if (-not $dnsResourceGroup) {
+    $dnsResourceGroup = Read-Host -Prompt "Enter the DNS resource group name or blank to skip"
+}
+if (-not $connectChoice) {
+    Write-Host "Choose how you want to connect to the Jumpbox VM:"
+    Write-Host "1. Connect using Azure CLI"
+    Write-Host "2. Create an SSH tunnel to the Jumpbox VM"
+    $connectChoice = Read-Host -Prompt "Enter the number of your choice or blank to skip"
 }
 
 
 # Import variables from .env file
-Get-Content $env_file | ForEach-Object {
+Get-Content $envFile | ForEach-Object {
     # Skip empty lines and lines starting with #
     if (-not [string]::IsNullOrWhiteSpace($_) -and -not $_.TrimStart().StartsWith("#")) {
         if ($_ -match '^\s*(.+?)\s*=\s*(.+?)\s*$') {
@@ -40,6 +57,19 @@ else {
 az account set --subscription $SUBSCRIPTION_ID `
     --only-show-errors `
     --output none
+
+
+# Get the DNS subscription ID if provided and possible
+if ($dnsSubscription) {
+    $dnsSubscriptionId = az account list --query "[?name=='$dnsSubscription'].id" -o tsv
+    if (-not $dnsSubscriptionId) {
+        Write-Host "DNS subscription not found: $dnsSubscription"
+        exit
+    }
+}
+else {
+    $dnsSubscriptionId = ""
+}
 
     
 # Function to get group IDs from group names
@@ -70,6 +100,7 @@ function Get-GroupIds {
 $ADMIN_GROUP_ID = Get-GroupIds -groupNames $ADMIN_GROUP_NAME
 $ACR_PUBLISHERS_GROUP_ID = Get-GroupIds -groupNames $ACR_PUBLISHERS_GROUP_NAME
 $LOG_ANALYTICS_READERS_GROUP_ID = Get-GroupIds -groupNames $LOG_ANALYTICS_READERS_GROUP_NAME
+$ENTRA_CLIENT_ID = az ad app list --display-name "${ENTRA_CLIENT_NAME}" --query "[].{appId:appId}" --output tsv
 
 $MGMT_RESOURCE_GROUP_NAME = "${APP_NAME}$($INTENDED_USE.ToUpper())MgmtRg"
 $MGMT_STORAGE_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}mgmt".ToLower()
@@ -113,6 +144,7 @@ if (-not $vnet_exists) {
 else {
     Write-Host "VNet $VNET_NAME already exists"
 }
+$vnetId = az network vnet show --name $VNET_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
 
 
 # Check if the Web subnet exists. If not, create it.
@@ -132,6 +164,7 @@ if (-not $web_subnet_exists) {
 else {
     Write-Host "Subnet $WEB_SUBNET_NAME already exists"
 }
+$webSubnetId = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $WEB_SUBNET_NAME --query id -o tsv
 
 
 # Check if App subnet exists. If not, create it.
@@ -151,6 +184,7 @@ if (-not $app_subnet_exists) {
 else {
     Write-Host "Subnet $APP_SUBNET_NAME already exists"
 }
+$appSubnetId = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $APP_SUBNET_NAME --query id -o tsv
 
 
 # Check if Mgmt subnet exists. If not, create it.
@@ -173,7 +207,7 @@ else {
 
 
 # Check if the Mgmt subnet has service endpoints for Storage. If not, add them.
-$serviceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query serviceEndpoints -o tsv
+$serviceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query "serviceEndpoints[].service" -o tsv
 if ($serviceEndpoints -notcontains "Microsoft.Storage") {
     Write-Host "Adding service endpoints to Mgmt subnet"
     az network vnet subnet update `
@@ -498,8 +532,11 @@ $setupScript = @"
 
 # Write the .env file
 cat << 'ENVEOF' > /home/azureuser/.env
-ENV_FILE="$env_file"
+ENV_FILE="$envFile"
 SUBSCRIPTION_ID="$SUBSCRIPTION_ID"
+ENTRA_CLIENT_ID="$ENTRA_CLIENT_ID"
+DNS_SUBSCRIPTION_ID="$dnsSubscriptionId"
+DNS_RESOURCE_GROUP="$dnsResourceGroup"
 MGMT_RESOURCE_GROUP_NAME="$MGMT_RESOURCE_GROUP_NAME"
 MGMT_STORAGE_NAME="$MGMT_STORAGE_NAME"
 ACR_NAME="$ACR_NAME"
@@ -507,6 +544,9 @@ JUMPBOX_NAME="$JUMPBOX_NAME"
 ADMIN_GROUP_ID="$ADMIN_GROUP_ID"
 ACR_PUBLISHERS_GROUP_ID="$ACR_PUBLISHERS_GROUP_ID"
 LOG_ANALYTICS_READERS_GROUP_ID="$LOG_ANALYTICS_READERS_GROUP_ID"
+VNET_ID="$vnetId"
+WEB_SUBNET_ID="$webSubnetId"
+APP_SUBNET_ID="$appSubnetId"
 ENVEOF
 
 # Create entrypoint script
@@ -516,23 +556,20 @@ cat << 'ENTRYPOINTEOF' > /home/azureuser/entrypoint.sh
 # Load environment variables
 [ -f /home/azureuser/.env ] && source /home/azureuser/.env
 
-# Check and install Azure CLI if not present
-if ! command -v az &> /dev/null; then
-    echo "Installing Azure CLI"
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-fi
-
 # Clone the otto repository if it doesn't exist
 [ ! -d "/home/azureuser/otto" ] && git clone https://github.com/justicecanada/otto.git /home/azureuser/otto
 
-# Login to Azure if not already logged in
-az account show &> /dev/null || az login --identity --only-show-errors --output none
+# Git pull the latest changes if the repo exists
+[ -d "/home/azureuser/otto" ] && git -C /home/azureuser/otto pull
 
-# Set the subscription
-[ -n "$SUBSCRIPTION_ID" ] && az account set --subscription "$SUBSCRIPTION_ID" --only-show-errors --output none
+# Navigate to the setup directory if it exists
+[ -d "/home/azureuser/otto/setup" ] && cd /home/azureuser/otto/setup
 
-# Navigate to the setup directory
-cd /home/azureuser/otto/setup
+# Source the `$ENV_FILE if it exists
+[ -f "`$ENV_FILE" ] && source "`$ENV_FILE"
+
+# Source the setup_env.sh script if it exists
+[ -f "/home/azureuser/otto/setup/setup_env.sh" ] && source /home/azureuser/otto/setup/setup_env.sh
 ENTRYPOINTEOF
 
 # Append sourcing of entrypoint script to .bashrc if not already present
@@ -553,19 +590,37 @@ az vm run-command invoke `
 
     
 $vmId = az vm show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --query id -o tsv
-
-# Connect using Azure CLI
-Write-Host "Connecting to the Jumpbox VM"
-az network bastion ssh `
-    --name bastion `
-    --resource-group $MGMT_RESOURCE_GROUP_NAME `
-    --target-resource-id $vmId `
-    --auth-type ssh-key `
-    --username azureuser `
-    --ssh-key "~/.ssh/id_rsa" `
-    --only-show-errors `
-    --output none
-
+if ($connectChoice -eq "connect") {
+    # Connect using Azure CLI
+    Write-Host "Connecting to the Jumpbox VM"
+    az network bastion ssh `
+        --name bastion `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --target-resource-id $vmId `
+        --auth-type ssh-key `
+        --username azureuser `
+        --ssh-key "$HOME/.ssh/id_rsa" `
+        --only-show-errors `
+        --output none
+}
+elseif ($connectChoice -eq "tunnel") {
+    # Create an SSH tunnel to the Jumpbox VM
+    Write-Host "Creating an SSH tunnel to the Jumpbox VM"
+    az network bastion create-ssh-tunnel `
+        --name bastion `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --target-resource-id $vmId `
+        --auth-type ssh-key `
+        --username azureuser `
+        --ssh-key "$HOME/.ssh/id_rsa" `
+        --only-show-errors `
+        --output none
+} 
+else {
+    Write-Host "Jumpbox VM setup complete. Connect to the VM using the Azure portal or Azure CLI."
+    Write-Host "To connect using the Azure CLI, run the following command:"
+    Write-Host "az network bastion ssh --name bastion --resource-group $MGMT_RESOURCE_GROUP_NAME --target-resource-id $vmId --auth-type ssh-key --username azureuser --ssh-key $HOME/.ssh/id_rsa"
+}
 
 # Prompt the user if they want to turn off the VM
 $turnOff = Read-Host -Prompt "Do you want to turn off the Jumpbox VM to save costs? (y/n)"

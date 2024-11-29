@@ -146,13 +146,6 @@ resource "azurerm_storage_container" "storage_container" {
   container_access_type = "private"
 }
 
-resource "azurerm_storage_container" "backups_container" {
-  name                  = var.backup_container_name
-  storage_account_name  = azurerm_storage_account.storage.name
-  container_access_type = "private"
-
-  depends_on = [azurerm_storage_account.storage]
-}
 
 # Add a delay to allow for the storage to be created 
 resource "null_resource" "wait_for_storage_account" {

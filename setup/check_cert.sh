@@ -1,104 +1,57 @@
 #!/bin/bash
 
-# Default values
-
-export CERT_SUBSCRIPTION_ID
-export CERT_KEYVAULT_NAME
-export CERT_NAME
-export CERT_CHOICE=""
-
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --cert-choice)
-        CERT_CHOICE="$2"
-        shift 2
-        ;;
-        *)
-        # Unknown option
-        echo "Unknown option: $1"
-        exit 1
-        ;;
-    esac
-done
-
-# Function to check the existing certificate
-check_existing_certificate() {
-    if kubectl get secret tls-secret -n otto >/dev/null 2>&1; then
-        echo "Existing TLS secret found. Checking details..."
-        
-        # Extract certificate details
-        CERT_DATA=$(kubectl get secret tls-secret -n otto -o jsonpath='{.data.tls\.crt}' | base64 -d)
-        
-        # Check if it's CA-signed
-        if openssl x509 -in <(echo "$CERT_DATA") -noout -issuer | grep -q "Let's Encrypt"; then
-            CERT_TYPE="Let's Encrypt"
-        else
-            CERT_TYPE="CA-signed"
-        fi
-        
-        # Check validity
-        CURRENT_DATE=$(date +%s)
-        EXPIRY_DATE=$(openssl x509 -in <(echo "$CERT_DATA") -noout -enddate | cut -d= -f2)
-        EXPIRY_EPOCH=$(date -d "$EXPIRY_DATE" +%s)
-        
-        if [ $CURRENT_DATE -lt $EXPIRY_EPOCH ]; then
-            VALIDITY="Valid"
-        else
-            VALIDITY="Expired"
-        fi
-        
-        # Check if configured for NGINX
-        if kubectl get ingress otto-ingress -n otto -o yaml | grep -q "tls-secret"; then
-            NGINX_CONFIG="Configured for NGINX"
-        else
-            NGINX_CONFIG="Not configured for NGINX"
-        fi
-        
-        # Check if URL matches SITE_URL
-        CERT_CN=$(openssl x509 -in <(echo "$CERT_DATA") -noout -subject | grep -oP "CN = \K[^,]+")
-        SITE_URL_STRIPPED=$(echo "$SITE_URL" | sed 's|^https://||')
-        if [ "$CERT_CN" == "$SITE_URL_STRIPPED" ]; then
-            URL_MATCH="Matches SITE_URL"
-        else
-            URL_MATCH="Does not match SITE_URL"
-            echo "  Certificate CN: $CERT_CN"
-            echo "  SITE_URL (stripped): $SITE_URL_STRIPPED"
-        fi
-        
-        echo "Certificate Type: $CERT_TYPE"
-        echo "Validity: $VALIDITY"
-        echo "Expiry Date: $EXPIRY_DATE"
-        echo "NGINX Configuration: $NGINX_CONFIG"
-        echo "URL Match: $URL_MATCH"
-    else
-        echo "No existing TLS secret found."
-    fi
-}
-
-# If CERT_CHOICE is blank, prompt the user to select an option
-if [[ -z "$CERT_CHOICE" ]]; then
-    echo "Checking existing certificate..."
-    check_existing_certificate
-
-    echo
-    echo "Certificate options:"
-    echo "  create - Generate and apply a new Let's Encrypt certificate"
-    echo "  import - Import and apply a trusted SSL certificate"
-    echo "  skip - Skip certificate operations"
-    read -p "Enter your choice (create/import/skip): " CERT_CHOICE
+read -p "This script will attempt to create or renew the SSL certificate for the domain $DNS_LABEL.$DNS_ZONE. However, this *should* be handled by the cluster using the cert-manager. The AKS managed identity will need permission to manage the subdomain. Do you want to continue? (y/n) " answer
+if [[ ! $answer =~ ^[Yy]$ ]]; then
+    echo "Renewal process aborted."
+    exit 0
 fi
 
-# Convert user input to lowercase
-CERT_CHOICE=$(echo "$CERT_CHOICE" | tr '[:upper:]' '[:lower:]')
+domain="$DNS_LABEL.$DNS_ZONE"
+cert_path="/etc/letsencrypt/live/$domain/fullchain.pem"
 
-# Validate user input
-case "$CERT_CHOICE" in
-    create|import|skip)
-        echo "Selected certificate option: $CERT_CHOICE"
-        ;;
-    *)
-        echo "Invalid option. Please choose create, import, or skip."
-        return 1
-        ;;
-esac
+check_certificate() {
+    if sudo test -f "$cert_path"; then
+        expiration_date=$(sudo openssl x509 -enddate -noout -in "$cert_path" | cut -d= -f2)
+        expiration_days=$(( ($(date -d "$expiration_date" +%s) - $(date +%s)) / 86400 ))
+        if [ $expiration_days -gt 30 ]; then
+            echo "Certificate is valid for $expiration_days days."
+            return 0
+        fi
+    fi
+    echo "Certificate renewal needed."
+    return 1
+}
+
+update_dns_record() {
+    local txt_record=$1
+    az network dns record-set txt add-record -g "$DNS_RESOURCE_GROUP" -z "$DNS_ZONE" \
+        -n "_acme-challenge.$DNS_LABEL" -v "$txt_record" --subscription "$DNS_SUBSCRIPTION_ID"
+}
+
+remove_dns_record() {
+    local txt_record=$1
+    az network dns record-set txt remove-record -g "$DNS_RESOURCE_GROUP" -z "$DNS_ZONE" \
+        -n "_acme-challenge.$DNS_LABEL" -v "$txt_record" --subscription "$DNS_SUBSCRIPTION_ID"
+}
+
+attempt_automatic_renewal() {
+    certbot certonly --manual --preferred-challenges dns -d "$domain" --manual-auth-hook update_dns_record --manual-cleanup-hook remove_dns_record
+}
+
+manual_renewal() {
+    certbot certonly --manual --preferred-challenges dns -d "$domain"
+}
+
+if ! check_certificate; then
+    if attempt_automatic_renewal; then
+        echo "Automatic renewal successful."
+    else
+        echo "Automatic renewal failed."
+        read -p "Do you want to attempt manual renewal? (y/n) " answer
+        if [[ $answer =~ ^[Yy]$ ]]; then
+            manual_renewal
+        else
+            echo "Renewal process aborted."
+        fi
+    fi
+fi

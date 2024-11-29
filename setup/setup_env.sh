@@ -1,227 +1,42 @@
 #!/bin/bash
 
-# Default values
-ENV_FILE=""
-SUBSCRIPTION=""
-SKIP_CONFIRM=""
-
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --env-file)
-        ENV_FILE="$2"
-        shift 2
-        ;;
-        --subscription)
-        SUBSCRIPTION="$2"
-        shift 2
-        ;;
-        --skip-confirm)
-        SKIP_CONFIRM="$2"
-        shift 2
-        ;;
-        *)
-        # Unknown option
-        echo "Unknown option: $1"
-        exit 1
-        ;;
-    esac
-done
-
-
-# Ensure Azure CLI is logged in
-if ! az account show &>/dev/null; then
-    echo "Not logged in to Azure. Please log in."
-    az login
+# Check and install Azure CLI if not present
+if ! command -v az &> /dev/null; then
+    echo "Installing Azure CLI"
+    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 fi
 
-# Check if the Azure CLI token has expired
-if ! az account get-access-token --query "expiresOn" -o tsv &>/dev/null; then
-    echo "Azure CLI token has expired or is invalid. Please log in again."
-    az login --scope https://storage.azure.com/.default
+# Check and install docker if not present
+if ! command -v docker &> /dev/null; then
+    echo "Installing Docker"
+    sudo apt update
+    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt update
+    sudo apt install -y docker-ce docker-ce-cli containerd.io
+    sudo usermod -aG docker azureuser
+    newgrp docker
 fi
 
-# If ENV_FILE is not provided, prompt user to select one
-if [[ -z "$ENV_FILE" ]]; then
-
-    # CM-9: Prompt user to select an environment
-    echo "Available environments:"
-    env_files=($(ls .env* 2>/dev/null | sort))
-
-    # Check if any .env files were found
-    if [ ${#env_files[@]} -eq 0 ]; then
-        echo "No environment files found."
-        exit 1
-    fi
-
-    for i in "${!env_files[@]}"; do 
-        echo "$((i+1)). ${env_files[$i]}"
-    done
-
-    while true; do
-        read -p "Select an environment (enter the number): " selection
-        if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le "${#env_files[@]}" ]; then
-            ENV_FILE="${env_files[$((selection-1))]}"
-            echo "Selected environment: $ENV_FILE"
-            break
-        else
-            echo "Invalid selection. Please choose a number from the list above."
-        fi
-    done
-
+# Check and install certbot if not present
+if ! command -v certbot &> /dev/null; then
+    echo "Installing Certbot"
+    sudo apt update
+    sudo apt install -y certbot
 fi
 
-# If SUBSCRIPTION is not provided, prompt user to select one
-if [[ -z "$SUBSCRIPTION" ]]; then
-    echo "Available subscriptions:"
-    az account list --query "[].{SubscriptionId:id, Name:name}" --output table
-    while true; do
-        read -p "Enter the Subscription ID you want to use: " SUBSCRIPTION
-        if az account show --subscription "$SUBSCRIPTION" &>/dev/null; then
-            break
-        else
-            echo "Invalid Subscription ID. Please try again."
-        fi
-    done
-fi
+# Login to Azure if not already logged in
+az account show &> /dev/null || az login --identity --only-show-errors --output none
 
 # Set the subscription
-az account set --subscription "$SUBSCRIPTION"
-export SUBSCRIPTION_ID="$SUBSCRIPTION"
-echo "Subscription set to: $SUBSCRIPTION_ID"
+[ -n "$SUBSCRIPTION_ID" ] && az account set --subscription "$SUBSCRIPTION_ID" --only-show-errors --output none
 
-# If SKIP_CONFIRM is not 'y', ask for confirmation
-if [[ "$SKIP_CONFIRM" != "y" ]]; then
-
-    # Display selected environment file contents
-    echo "Selected environment file contents:"
-    echo "----------------------------"
-    cat "$ENV_FILE"
-    echo "----------------------------"
-    
-    read -p "Are all the values correct? (y/N): " confirm
-    if [[ ! $confirm =~ ^[Yy]$ ]]; then
-        read -p "Do you want to edit the $ENV_FILE file in nano? (y/N): " edit_confirm
-        if [[ $edit_confirm =~ ^[Yy]$ ]]; then
-            nano "$ENV_FILE"
-        else
-            echo "Please update the $ENV_FILE file with the correct values and run the script again."
-            exit 1
-        fi
-    fi
-fi
-
-# Unset all environment variables
-unset $(grep -v '^#' "$ENV_FILE" | sed -E 's/(.*)=.*/\1/' | xargs)
-unset SITE_URL
-unset DNS_LABEL
-
-# Load the environment variables from file
-source "$ENV_FILE"
-
-echo "Environment variables loaded from $ENV_FILE"
-
-# Validation and URL setting
-if [ -n "$SITE_URL" ] && [ -n "$DNS_LABEL" ]; then
-    echo "Error: Both SITE_URL and DNS_LABEL are set. Please choose only one option."
-    return
-elif [ -n "$DNS_LABEL" ]; then
-    # Ensure LOCATION is set
-    if [ -z "$LOCATION" ]; then
-        echo "Error: LOCATION is not set. Please set the Azure region."
-        return
-    fi
-    SITE_URL="https://${DNS_LABEL}.${LOCATION}.cloudapp.azure.com"
-    echo "SITE_URL set to: $SITE_URL"
-elif [ -z "$SITE_URL" ]; then
-    echo "Error: Neither SITE_URL nor DNS_LABEL is set. Please set one of them."
-    return
-fi
-
-# Extract HOST_NAME from SITE_URL
-export DNS_LABEL
-export SITE_URL
+export SITE_URL="${DNS_LABEL}.${DNS_ZONE}"
 export HOST_NAME=${SITE_URL#https://}
-
-export CORPORATE_PUBLIC_IP=$(curl -s ifconfig.me)
-
-export ENV_VERSION
-export INTENDED_USE
-export ADMIN_GROUP_NAMES
-export ACR_PUBLISHERS_GROUP_NAMES
-export LOG_ANALYTICS_READERS_GROUP_NAME
-export ENTRA_CLIENT_NAME
-export ORGANIZATION
-export ALLOWED_IPS
-export USE_PRIVATE_NETWORK
-
-export VNET_NAME
-export VNET_IP_RANGE
-export BASTION_SUBNET_NAME
-export BASTION_SUBNET_IP_RANGE
-export WEB_SUBNET_NAME
-export WEB_SUBNET_IP_RANGE
-export APP_SUBNET_NAME
-export APP_SUBNET_IP_RANGE
-
-export APP_NAME
-export ENVIRONMENT
-export LOCATION
-export CLASSIFICATION
-export COST_CENTER
-export CRITICALITY
-export OWNER
-export DJANGO_ENV
-export DJANGO_DEBUG
-export OTTO_ADMIN
-export ADMIN_EMAIL
-
-export APPROVED_CPU_QUOTA
-
-export DJANGO_REPLICAS_MIN
-export DJANGO_REPLICAS_MAX
-export DJANGO_CPU_MIN
-export DJANGO_CPU_MAX
-export DJANGO_MEMORY_MAX
-export DJANGO_MEMORY_MAX
-
-export CELERY_REPLICAS_MIN
-export CELERY_REPLICAS_MAX
-export CELERY_CPU_MIN
-export CELERY_CPU_MAX
-export CELERY_MEMORY_MAX
-export CELERY_MEMORY_MAX
-
-export REDIS_REPLICAS_MIN
-export REDIS_REPLICAS_MAX
-export REDIS_CPU_MIN
-export REDIS_CPU_MAX
-export REDIS_MEMORY_MAX
-export REDIS_MEMORY_MAX
-
-export DJANGODB_REPLICAS_MIN
-export DJANGODB_REPLICAS_MAX
-export DJANGODB_CPU_MIN
-export DJANGODB_CPU_MAX
-export DJANGODB_MEMORY_MAX
-export DJANGODB_MEMORY_MAX
-
-export VECTORDB_REPLICAS_MIN
-export VECTORDB_REPLICAS_MAX
-export VECTORDB_CPU_MIN
-export VECTORDB_CPU_MAX
-export VECTORDB_MEMORY_MAX
-export VECTORDB_MEMORY_MAX
-
-export GPT_35_TURBO_CAPACITY
-export GPT_4_TURBO_CAPACITY
-export GPT_4o_CAPACITY
-export GPT_4o_MINI_CAPACITY
-export TEXT_EMBEDDING_3_LARGE_CAPACITY
 
 # Set the environment variables
 export TENANT_ID=$(az account show --query tenantId --output tsv)
-export ENTRA_CLIENT_ID=$(az ad app list --display-name "${ENTRA_CLIENT_NAME}" --query "[].{appId:appId}" --output tsv)
 export ENTRA_AUTHORITY="https://login.microsoftonline.com/${TENANT_ID}"
 
 # Set the dynamically generated variables
@@ -231,71 +46,62 @@ export COGNITIVE_SERVICES_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,
 export OPENAI_SERVICE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-openai"
 export AKS_CLUSTER_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-aks"
 export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
-export STORAGE_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}store" # Base name for the storage account
 export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
 #export VELERO_IDENTITY_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-velero"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
 
+
+
+# Set a globally unique storage account name
+storage_name="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}store" # Base name for the storage account
+existing_storage=$(az storage account list --resource-group "$RESOURCE_GROUP_NAME" --query "[?starts_with(name, '${storage_name}')].name" -o tsv)
+if [ -z "$existing_storage" ]; then
+    # Random 5-digit alphanumeric suffix
+    random_suffix=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)
+    export STORAGE_NAME="${storage_name}${random_suffix}"
+else
+    export STORAGE_NAME="$existing_storage"
+fi
+
+
+# If the backups container doesn't exist, create it
 export BACKUP_CONTAINER_NAME="backups"
+if ! az storage container show \
+        --name "$BACKUP_CONTAINER_NAME" \
+        --account-name "$MGMT_STORAGE_NAME" \
+        --auth-mode login \
+        --only-show-errors &>/dev/null; then
+    echo "Creating blob container: $BACKUP_CONTAINER_NAME"
+    az storage container create \
+        --name "$BACKUP_CONTAINER_NAME" \
+        --account-name "$MGMT_STORAGE_NAME" \
+        --auth-mode login \
+        --only-show-errors &>/dev/null
+else
+    echo "Blob container $BACKUP_CONTAINER_NAME already exists."
+fi
+
+
 
 # Set the Terraform state variables
-export TF_STATE_STORAGE_ACCOUNT="tfstate${APP_NAME,,}" # Base name for the TF storage account
 export TF_STATE_CONTAINER="tfstate"
-export TF_STATE_KEY="${RESOURCE_GROUP}.tfstate"
+export TF_STATE_KEY="${RESOURCE_GROUP_NAME}.tfstate"
 
-
-# Function to get or generate a unique storage account name
-get_unique_storage_name() {
-    local base_name=$1
-    local resource_group=$2
-
-    # Set a variable that indicates whether a new name is needed or not
-    local new_name_needed=0
-
-    # Check if the resource group exists
-    if ! az group show --name "$resource_group" --only-show-errors &>/dev/null; then
-        new_name_needed=1
-    else
-        # Check for existing storage accounts
-        local existing_storage=$(az storage account list --resource-group "$resource_group" --query "[?starts_with(name, '${base_name}')].name" -o tsv)
-
-        # If a storage account doesn't exist, set the flag to create a new one
-        if [ -z "$existing_storage" ]; then
-            new_name_needed=1
-        fi
-    fi
-
-    if [ $new_name_needed -eq 0 ]; then
-        # Return the existing storage account name
-        echo "$existing_storage"
-    else
-        # Generate a 5-digit alphanumeric random string
-        local random_suffix=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)
-        local new_storage_name="${base_name}${random_suffix}"
-
-        # Return the new storage account name
-        echo "$new_storage_name"
-    fi
-}
-
-# Function to validate storage account name
-validate_storage_name() {
-    local storage_name=$1
-    if [ ${#storage_name} -lt 3 ] || [ ${#storage_name} -gt 24 ]; then
-        echo "Error: Storage account name must be between 3 and 24 characters in length."
-        return 1
-    fi
-    return 0
-}
-
-# Make sure the storage account names are unique
-export TF_STATE_STORAGE_ACCOUNT=$(get_unique_storage_name "$TF_STATE_STORAGE_ACCOUNT" "$MGMT_RESOURCE_GROUP_NAME")
-export STORAGE_NAME=$(get_unique_storage_name "$STORAGE_NAME" "$RESOURCE_GROUP_NAME")
-
-if ! validate_storage_name "$TF_STATE_STORAGE_ACCOUNT" || ! validate_storage_name "$STORAGE_NAME"; then
-    echo "Invalid storage account name. Exiting."
-    exit 1
+# If the Terraform state container doesn't exist, create it
+if ! az storage container show \
+        --name "$TF_STATE_CONTAINER" \
+        --account-name "$STORAGE_NAME" \
+        --auth-mode login \
+        --only-show-errors &>/dev/null; then
+    echo "Creating blob container: $TF_STATE_CONTAINER"
+    az storage container create \
+        --name "$TF_STATE_CONTAINER" \
+        --account-name "$STORAGE_NAME" \
+        --auth-mode login \
+        --only-show-errors &>/dev/null
+else
+    echo "Blob container $TF_STATE_CONTAINER already exists."
 fi
 
 
@@ -308,9 +114,9 @@ classification = "${CLASSIFICATION}"
 cost_center = "${COST_CENTER}"
 criticality = "${CRITICALITY}"
 owner = "${OWNER}"
-admin_group_name = "${ADMIN_GROUP_NAME}"
-acr_publishers_group_name = "${ACR_PUBLISHERS_GROUP_NAME}"
-log_analytics_readers_group_name = "${LOG_ANALYTICS_READERS_GROUP_NAME}"
+admin_group_id = "${ADMIN_GROUP_ID"
+log_analytics_readers_group_id = "${LOG_ANALYTICS_READERS_GROUP_ID}"
+acr_id = "${ACR_ID}"
 resource_group_name = "${RESOURCE_GROUP_NAME}"
 keyvault_name = "${KEYVAULT_NAME}"
 cognitive_services_name = "${COGNITIVE_SERVICES_NAME}"
@@ -318,15 +124,11 @@ openai_service_name = "${OPENAI_SERVICE_NAME}"
 aks_cluster_name = "${AKS_CLUSTER_NAME}"
 disk_name = "${DISK_NAME}"
 storage_name = "${STORAGE_NAME}"
-acr_name = "${ACR_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
 approved_cpu_quota = "${APPROVED_CPU_QUOTA}"
-vnet_name = "${VNET_NAME}"
-vnet_ip_range = "${VNET_IP_RANGE}"
-web_subnet_name = "${WEB_SUBNET_NAME}"
-web_subnet_ip_range = "${WEB_SUBNET_IP_RANGE}"
-app_subnet_name = "${APP_SUBNET_NAME}"
-app_subnet_ip_range = "${APP_SUBNET_IP_RANGE}"
+vnet_id = "${VNET_ID}"
+web_subnet_id = "${WEB_SUBNET_ID}"
+app_subnet_id = "${APP_SUBNET_ID}"
 gpt_35_turbo_capacity = ${GPT_35_TURBO_CAPACITY}
 gpt_4_turbo_capacity = ${GPT_4_TURBO_CAPACITY}
 gpt_4o_capacity = ${GPT_4o_CAPACITY}

@@ -33,19 +33,19 @@ variable "owner" {
   description = "Owner of the resources"
 }
 
-variable "admin_group_name" {
+variable "acr_id" {
   type        = string
-  description = "Comma-separated list of group names for admin users on the Key Vault and AKS cluster"
+  description = "ID of the ACR"
 }
 
-variable "acr_publishers_group_name" {
+variable "admin_group_id" {
   type        = string
-  description = "Comma-separated list of group names for ACR publishers"
+  description = "Comma-separated list of group IDs for admin users on the Key Vault and AKS cluster"
 }
 
-variable "log_analytics_readers_group_name" {
+variable "log_analytics_readers_group_id" {
   type        = string
-  description = "Comma-separated list of group names for Log Analytics readers"
+  description = "Comma-separated list of group IDs for Log Analytics readers"
 
 }
 
@@ -90,39 +90,22 @@ variable "storage_container_name" {
   default     = "otto"
 }
 
-variable "acr_name" {
-  type        = string
-  description = "Name of the ACR"
-}
-
 variable "djangodb_resource_name" {
   type        = string
   description = "Name of the Django DB resource"
 }
 
-variable "vnet_name" {
+variable "vnet_id" {
   type        = string
-  description = "Name of the virtual network"
+  description = "ID of the virtual network"
 }
-variable "vnet_ip_range" {
+variable "web_subnet_id" {
   type        = string
-  description = "IP range of the virtual network"
+  description = "ID of the web subnet"
 }
-variable "web_subnet_name" {
+variable "app_subnet_id" {
   type        = string
-  description = "Name of the web subnet"
-}
-variable "web_subnet_ip_range" {
-  type        = string
-  description = "IP range of the web subnet"
-}
-variable "app_subnet_name" {
-  type        = string
-  description = "Name of the app subnet"
-}
-variable "app_subnet_ip_range" {
-  type        = string
-  description = "IP range of the app subnet"
+  description = "ID of the app subnet"
 }
 
 variable "gpt_35_turbo_capacity" {
@@ -158,12 +141,6 @@ variable "admin_email" {
 variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the infrastructure"
-}
-
-variable "backup_container_name" {
-  description = "Name of the backup container"
-  type        = string
-  default     = "backups"
 }
 
 # variable "velero_identity_name" {

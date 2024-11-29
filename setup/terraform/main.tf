@@ -12,37 +12,6 @@ module "resource_group" {
   tags     = local.common_tags
 }
 
-# Data source for Azure AD group of KeyVault and AKS administrators
-data "azuread_group" "admin_groups" {
-  for_each     = toset(split(",", var.admin_group_name))
-  display_name = trimspace(each.value)
-}
-
-# Data source for Azure AD group of ACR publishers
-data "azuread_group" "acr_publishers" {
-  for_each     = toset(split(",", var.acr_publishers_group_name))
-  display_name = trimspace(each.value)
-}
-
-data "azuread_group" "log_analytics_readers" {
-  for_each     = toset(split(",", var.log_analytics_readers_group_name))
-  display_name = trimspace(each.value)
-}
-
-# VNet module
-module "vnet" {
-  source              = "./modules/vnet"
-  vnet_name           = var.vnet_name
-  vnet_ip_range       = var.vnet_ip_range
-  web_subnet_name     = var.web_subnet_name
-  web_subnet_ip_range = var.web_subnet_ip_range
-  app_subnet_name     = var.app_subnet_name
-  app_subnet_ip_range = var.app_subnet_ip_range
-  location            = var.location
-  resource_group_name = module.resource_group.name
-  tags                = local.common_tags
-}
-
 # Key Vault module
 # SC-13: Centralized key management and cryptographic operations
 module "keyvault" {
@@ -50,23 +19,11 @@ module "keyvault" {
   resource_group_name    = module.resource_group.name
   location               = var.location
   keyvault_name          = var.keyvault_name
-  admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
+  admin_group_object_ids = var.admin_group_object_ids
   tags                   = local.common_tags
   use_private_network    = var.use_private_network
-  app_subnet_id          = module.vnet.app_subnet_id
-  web_subnet_id          = module.vnet.web_subnet_id
-}
-
-# ACR module
-module "acr" {
-  source                   = "./modules/acr"
-  acr_name                 = var.acr_name
-  resource_group_name      = module.resource_group.name
-  location                 = var.location
-  acr_sku                  = "Basic"
-  tags                     = local.common_tags
-  acr_publisher_object_ids = values(data.azuread_group.acr_publishers)[*].object_id
-  keyvault_id              = module.keyvault.keyvault_id
+  app_subnet_id          = var.app_subnet_id
+  web_subnet_id          = var.web_subnet_id
 }
 
 # Disk module
@@ -81,10 +38,8 @@ module "disk" {
   cmk_id                    = module.keyvault.cmk_id
   wait_for_propagation      = module.keyvault.wait_for_propagation
   use_private_network       = var.use_private_network
-  app_subnet_id             = module.vnet.app_subnet_id
-  web_subnet_id             = module.vnet.web_subnet_id
-  web_subnet_address_prefix = module.vnet.web_subnet_address_prefix
-  app_subnet_address_prefix = module.vnet.app_subnet_address_prefix
+  app_subnet_id             = var.app_subnet_id
+  web_subnet_id             = var.web_subnet_id
 }
 
 # Storage module
@@ -97,12 +52,11 @@ module "storage" {
   keyvault_id            = module.keyvault.keyvault_id
   cmk_name               = module.keyvault.cmk_name
   wait_for_propagation   = module.keyvault.wait_for_propagation
-  admin_group_object_ids = values(data.azuread_group.admin_groups)[*].object_id
+  admin_group_object_ids = var.admin_group_object_ids
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
-  app_subnet_id          = module.vnet.app_subnet_id
-  web_subnet_id          = module.vnet.web_subnet_id
-  backup_container_name  = var.backup_container_name
+  app_subnet_id          = var.app_subnet_id
+  web_subnet_id          = var.web_subnet_id
 }
 
 data "azurerm_public_ip" "aks_outbound_ip" {
@@ -144,10 +98,10 @@ module "aks" {
   aks_cluster_name                       = var.aks_cluster_name
   location                               = var.location
   resource_group_name                    = module.resource_group.name
-  admin_group_object_ids                 = values(data.azuread_group.admin_groups)[*].object_id
-  log_analytics_readers_group_object_ids = values(data.azuread_group.log_analytics_readers)[*].object_id
+  admin_group_object_ids                 = var.admin_group_object_ids
+  log_analytics_readers_group_object_ids = var.log_analytics_readers_group_object_ids
   keyvault_id                            = module.keyvault.keyvault_id
-  acr_id                                 = module.acr.acr_id
+  acr_id                                 = var.acr_id
   disk_encryption_set_id                 = module.disk.disk_encryption_set_id
   storage_account_id                     = module.storage.storage_account_id
   tags                                   = local.common_tags
@@ -156,8 +110,8 @@ module "aks" {
   vm_size                                = var.vm_size
   vm_cpu_count                           = var.vm_cpu_count
   approved_cpu_quota                     = var.approved_cpu_quota
-  vnet_id                                = module.vnet.vnet_id
-  web_subnet_id                          = module.vnet.web_subnet_id
+  vnet_id                                = var.vnet_id
+  web_subnet_id                          = var.web_subnet_id
 }
 
 # TODO: Uncomment Velero after the change request is approved
@@ -179,25 +133,6 @@ resource "azurerm_monitor_diagnostic_setting" "key_vault" {
 
   enabled_log {
     category = "AuditEvent"
-  }
-
-  metric {
-    category = "AllMetrics"
-  }
-}
-
-# CM-8 & CM-9: Diagnostic settings for ACR
-resource "azurerm_monitor_diagnostic_setting" "acr" {
-  name               = "${var.acr_name}-diagnostics"
-  target_resource_id = module.acr.acr_id
-  storage_account_id = module.storage.storage_account_id
-
-  enabled_log {
-    category = "ContainerRegistryRepositoryEvents"
-  }
-
-  enabled_log {
-    category = "ContainerRegistryLoginEvents"
   }
 
   metric {

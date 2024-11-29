@@ -67,13 +67,3 @@ variable "web_subnet_id" {
 }
 
 
-variable "web_subnet_address_prefix" {
-  description = "The address prefix of the web subnet"
-  type        = string
-}
-
-variable "app_subnet_address_prefix" {
-  description = "The address prefix of the app subnet"
-  type        = string
-}
-
