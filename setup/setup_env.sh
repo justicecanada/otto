@@ -149,6 +149,7 @@ export ENV_VERSION
 export INTENDED_USE
 export ADMIN_GROUP_NAMES
 export ACR_PUBLISHERS_GROUP_NAMES
+export LOG_ANALYTICS_READERS_GROUP_NAME
 export ENTRA_CLIENT_NAME
 export ORGANIZATION
 export ALLOWED_IPS
@@ -310,6 +311,7 @@ criticality = "${CRITICALITY}"
 owner = "${OWNER}"
 admin_group_name = "${ADMIN_GROUP_NAME}"
 acr_publishers_group_name = "${ACR_PUBLISHERS_GROUP_NAME}"
+log_analytics_readers_group_name = "${LOG_ANALYTICS_READERS_GROUP_NAME}"
 resource_group_name = "${RESOURCE_GROUP_NAME}"
 keyvault_name = "${KEYVAULT_NAME}"
 cognitive_services_name = "${COGNITIVE_SERVICES_NAME}"

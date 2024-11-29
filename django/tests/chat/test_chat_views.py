@@ -911,9 +911,27 @@ def test_preset(client, basic_user, all_apps_user):
     assert response.status_code == 302  # Redirect after saving
     assert Preset.objects.filter(name_en="New Preset").exists()
 
-    # Test saving an existing preset
+    # Try to load the private preset as user2
     user2 = all_apps_user("user2")
+    client.force_login(user2)
+    chat2 = Chat.objects.create(user=user2)
     preset = Preset.objects.get(name_en="New Preset")
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat2.id,
+                "action": "load_preset",
+                "preset_id": preset.id,
+            },
+        )
+    )
+
+    # Should get 403 since user2 can't access user1's private preset
+    assert response.status_code == 403
+
+    # Test editing an existing preset
+    client.force_login(user)
 
     response = client.post(
         reverse(
@@ -939,10 +957,11 @@ def test_preset(client, basic_user, all_apps_user):
         "Please provide at least one user for the accessible field."
         in response.content.decode("utf-8")
     )
-    # the new preset should not have been updated since there was an error
+    # the new preset should not have been updated since the form was not valid
     preset.refresh_from_db()
     assert preset.name_en == "New Preset"
 
+    # now save it with a valid form
     response = client.post(
         reverse(
             "chat:chat_options",
@@ -967,13 +986,24 @@ def test_preset(client, basic_user, all_apps_user):
     assert preset.sharing_option == "others"
     assert user2 in preset.accessible_to.all()
 
-    # Test loading the preset
-    client.force_login(user)
+    # make sure the preset is in the preset list of user 2 but that user 3 cannot view it
+    client.force_login(user2)
+    response = client.get(reverse("chat:get_presets", kwargs={"chat_id": chat2.id}))
+    assert "Updated Preset" in response.content.decode()
+
+    user3 = all_apps_user("user3")
+    chat3 = Chat.objects.create(user=user3)
+    client.force_login(user3)
+    response = client.get(reverse("chat:get_presets", kwargs={"chat_id": chat3.id}))
+    assert "Updated Preset" not in response.content.decode()
+
+    # Test loading the preset as user 2
+    client.force_login(user2)
     response = client.post(
         reverse(
             "chat:chat_options",
             kwargs={
-                "chat_id": chat.id,
+                "chat_id": chat2.id,
                 "action": "load_preset",
                 "preset_id": preset.id,
             },
@@ -982,6 +1012,19 @@ def test_preset(client, basic_user, all_apps_user):
     assert response.status_code == 200
     assert "preset_loaded" in response.context
     assert response.context["preset_loaded"] == "true"
+
+    # Test adding the preset to favorites
+    client.force_login(user)
+    response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
+    assert response.status_code == 200
+    preset.refresh_from_db()
+    assert user in preset.favourited_by.all()
+
+    # Test setting the preset as default
+    response = client.get(reverse("chat:set_preset_default", args=[preset.id, chat.id]))
+    assert response.status_code == 200
+    user.refresh_from_db()
+    assert user.default_preset == preset
 
     # Test deleting the preset
     response = client.post(
