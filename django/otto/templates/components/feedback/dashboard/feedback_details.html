@@ -1,0 +1,119 @@
+{% load i18n %}
+
+{% block page_css %}
+  <style>
+    .details {
+      border-top-width: 1px;
+      border-bottom-width: 1px !important;
+      border-bottom-color: var(--app-color-purple-1) !important;
+    }
+  </style>
+{% endblock %}
+
+<div class="details">
+  <div colspan="3" class="col-12">
+    <div class="container p-3">
+      <div class="row">
+        <div class="col-6 mb-1">
+          <span class="fs-6 fw-semibold text-muted">{% trans 'Feedback' %}:</span>
+        </div>
+        <div class="col-6 mb-1 text-end fw-semibold fs-6">
+          <a href="{{ feedback.url_context }}"
+             target="_blank"
+             class="text-decoration-none text-reset fw-semibold small"
+             style="color: rgb(156, 163, 175)">
+            <span class="text-decoration-underline">{{ feedback.url_context }}</span>
+            <i class="bi bi-box-arrow-up-right ms-1"></i>
+          </a>
+        </div>
+        <div class="col-12 d-flex">
+          <span class="border px-2 py-4 rounded w-100">{{ feedback.feedback_message }}</span>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center px-2 py-2">
+            <div class="d-flex fw-semibold">
+              <i class="bi bi-person-circle me-2" style="color: rgb(156, 163, 175)"></i>
+              <span class="text-muted">{{ feedback.created_by.first_name }} {{ feedback.created_by.last_name }}</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <i class="text-muted bi bi-envelope-fill me-2"></i>
+              <a href="mailto:{{ feedback.created_by.email }}?subject=Follow%20up%20on%20Otto%20feedback"
+                 class="fw-semibold"
+                 style="line-height: 24px;
+                        color: rgb(156, 163, 175)">
+                <span class="text-muted">{{ feedback.created_by.email }}</span>
+              </a>
+            </div>
+            <div class="d-flex align-items-center">
+              <i class="bi bi-person-workspace me-2"></i>
+              <span class="text-muted">{{ feedback.created_by.pilot_name }}</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <i class="text-muted bi bi-github me-2"></i>
+              <span class="mt-1 badge badge-neutral fw-semibold px-2 py-1 m-0 border">
+                <a href="https://github.com/justicecanada/otto/commit/{{ feedback.otto_version }}"
+                   target="_blank"
+                   class="text-reset text-decoration-none">{{ feedback.otto_version }}</a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr>
+      <div class="row mt-2">
+        <div class="col-12 mb-1">
+          <span class="fs-6 fw-semibold text-muted">{% trans 'Administrative details' %}</span>
+          <p class="text-muted mb-2">
+            {% trans 'Use this section to provide additional details to the feedback provided by the user.' %}
+          </p>
+        </div>
+        <div class="col-8">
+          <span class="fw-semibold text-muted" style="font-size: .85rem;">{% trans 'Notes' %}</span>
+          <form hx-post="{% url 'feedback_dashboard_update' feedback_id=feedback.id form_type='notes' %}"
+                hx-trigger="submit"
+                hx-swap="none"
+                class="input-group">
+            <div class="form-floating">
+              {% for field in form.notes %}
+                {{ field }}
+                <label class="text-muted" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {% endfor %}
+ 
+            </div>
+            <button class="btn btn-light border input-group-text"
+                    title="{% trans 'Save note' %}"
+                    type="submit">
+              <i class="bi bi-send me-2"></i>
+            </button>
+          </form>
+        </div>
+        <div class="col-4 ">
+          <span class="fw-semibold text-muted" style="font-size: .85rem;">{% trans 'Metadata' %}</span>
+          <div class="border rounded">
+            <form hx-post="{% url 'feedback_dashboard_update' feedback_id=feedback.id form_type='metadata' %}"
+                  hx-trigger="change"
+                  hx-swap="none"
+                  class="px-2">
+ 
+              {% for field in form.metadata %}
+                <div class="row my-2 justify-content-between align-items-center">
+                  <label class="col-sm-2 col-form-label text-muted fw-semibold"
+                         for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  <div class="col-sm-8">
+                    <div>{{ field }}</div>
+                  </div>
+                </div>
+              {% endfor %}
+            </form>
+          </div>
+
+        </div>
+      </div>
+      <div class="row mt-2">
+        <span class="text muted" style="font-size: .75rem;">{% trans 'Last modified:' %} {{ feedback.modified_on }}</span>
+      </div>
+    </div>
+  </div>
+</div>
