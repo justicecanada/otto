@@ -3,8 +3,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.forms import ModelForm
-from django.utils.translation import get_language
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from autocomplete import widgets
 
@@ -15,67 +14,110 @@ User = get_user_model()
 
 
 class FeedbackForm(ModelForm):
-    app = forms.ChoiceField(
-        choices=[],
-        required=True,
-        label=_(
-            "Which application are you providing feedback or reporting an issue for?"
-        ),
-    )
-
-    modified_by = forms.ModelChoiceField(queryset=None, required=True)
-    chat_message = forms.ModelChoiceField(queryset=None, required=False)
-
     class Meta:
         model = Feedback
+
         fields = [
-            "feedback_type",
             "feedback_message",
             "modified_by",
+            "created_by",
             "app",
             "chat_message",
             "otto_version",
+            "url_context",
         ]
 
+        widgets = {
+            "feedback_message": forms.Textarea(
+                attrs={
+                    "id": "feedback-message-textarea",
+                    "class": "form-control my-2",
+                },
+            ),
+            "modified_by": forms.HiddenInput(),
+            "created_by": forms.HiddenInput(),
+            "chat_message": forms.HiddenInput(),
+            "otto_version": forms.HiddenInput(),
+            "url_context": forms.HiddenInput(),
+            "app": forms.HiddenInput(),
+        }
+
         labels = {
-            "feedback_type": _("Do you want to provide feedback or report an issue?"),
             "feedback_message": _(
-                "If you have any specific suggestions or want to report an issue share them with us below:"
+                "Let us know what went wrong, or suggest an improvement."
             ),
         }
 
     def __init__(self, user, message_id, *args, **kwargs):
         super(FeedbackForm, self).__init__(*args, **kwargs)
-        self.fields["modified_by"].queryset = User.objects.filter(id=user.id)
+        self.fields["created_by"].initial = user
         self.fields["modified_by"].initial = user
-        self.fields["chat_message"].queryset = Message.objects.filter(id=message_id)
         self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
+
         if message_id is not None:
+            self.fields["chat_message"].initial = message_id
             self.initialize_chat_feedback(message_id)
         else:
-            self.fields["app"].choices = [
-                (app.name, app.name_fr if get_language() == "fr" else app.name_en)
-                for app in App.objects.visible_to_user(user)
-            ] + [("Otto", _("General (Otto)"))]
+            self.fields["chat_message"].initial = ""
+            self.fields["app"].initial = "Otto"
+
+        self.fields["chat_message"].required = False
 
     def initialize_chat_feedback(self, message_id):
-        self.fields["feedback_type"].initial = next(
-            filter(
-                lambda option: option[0] == "feedback", Feedback.FEEDBACK_TYPE_CHOICES
-            )
-        )
+        if message_id:
+            chat_mode = Message.objects.get(id=message_id).mode
+            if chat_mode == "translate":
+                self.fields["app"].initial = "translate"
+            elif chat_mode == "summarize":
+                self.fields["app"].initial = "summarize"
+            elif chat_mode == "qa":
+                self.fields["app"].initial = "qa"
+            else:
+                self.fields["app"].initial = "chat"
 
-        chat_mode = Message.objects.get(id=message_id).mode
-        if chat_mode == "translate":
-            self.fields["app"].choices = [("translate", _("Translate"))]
-        elif chat_mode == "summarize":
-            self.fields["app"].choices = [("summarize", _("Summarize"))]
-        elif chat_mode == "qa":
-            self.fields["app"].choices = [("qa", _("QA"))]
-        else:
-            self.fields["app"].choices = [("chat", _("Chat"))]
+            self.fields["chat_message"].initial = message_id
 
-        self.fields["chat_message"].initial = Message.objects.get(id=message_id)
+
+class FeedbackMetadataForm(ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ["feedback_type", "status"]
+
+        labels = {
+            "feedback_type": _("Type"),
+            "status": _("Status"),
+        }
+
+        widgets = {
+            "feedback_type": forms.Select(
+                attrs={"class": "form-select"},
+                choices=Feedback.FEEDBACK_TYPE_CHOICES,
+            ),
+            "status": forms.Select(
+                attrs={"class": "form-select"},
+                choices=Feedback.FEEDBACK_STATUS_CHOICES,
+            ),
+        }
+
+
+class FeedbackNoteForm(ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ["admin_notes"]
+
+        labels = {
+            "admin_notes": _("Add notes or addition details."),
+        }
+
+        widgets = {
+            "admin_notes": forms.Textarea(
+                attrs={
+                    "class": "form-control fs-6",
+                    "style": "height: 102px",
+                    "placeholder": _("Add notes or addition details."),
+                },
+            ),
+        }
 
 
 # AC-16 & AC-16(2): Enables the modification of user roles and group memberships

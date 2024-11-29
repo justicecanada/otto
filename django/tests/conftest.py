@@ -226,3 +226,26 @@ def output_file():
     output_file.file_name = "test_document"
 
     return output_file
+
+
+def basic_feedback():
+    from django.utils import timezone
+
+    from otto.forms import FeedbackForm
+    from otto.models import Feedback
+
+    def new_feedback_form(user):
+        date_and_time = timezone.now().strftime("%Y%m%d-%H%M%S")
+        feedback = Feedback(
+            feedback_type=Feedback.FEEDBACK_TYPE_CHOICES[0][0],
+            feedback_message="Test Message",
+            app="Otto",
+            modified_by=user,
+            created_by=user,
+            created_at=date_and_time,
+            modified_on=date_and_time,
+            otto_version="v0",
+        )
+        return feedback
+
+    return new_feedback_form
