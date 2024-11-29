@@ -13,14 +13,12 @@ if (-not $env_file) {
 
 
 # Import variables from .env file
-$envVariables = @{}
 Get-Content $env_file | ForEach-Object {
     # Skip empty lines and lines starting with #
     if (-not [string]::IsNullOrWhiteSpace($_) -and -not $_.TrimStart().StartsWith("#")) {
         if ($_ -match '^\s*(.+?)\s*=\s*(.+?)\s*$') {
             $key = $matches[1].Trim()
             $value = $matches[2] -replace '^\s*"|"\s*$', '' -replace '^\s*''|''\s*$', ''
-            $envVariables[$key] = $value.Trim()
             Set-Variable -Name $key -Value $value.Trim()
         }
     }
@@ -75,8 +73,8 @@ $LOG_ANALYTICS_READERS_GROUP_ID = Get-GroupIds -groupNames $LOG_ANALYTICS_READER
 
 $MGMT_RESOURCE_GROUP_NAME = "${APP_NAME}$($INTENDED_USE.ToUpper())MgmtRg"
 $MGMT_STORAGE_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}mgmt".ToLower()
+$ACR_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}acr".ToLower()
 $JUMPBOX_NAME = "jumpbox"
-$TF_STATE_CONTAINER = "tfstate"
 
 
 # Create management resource group if it doesn't exist
@@ -117,29 +115,10 @@ else {
 }
 
 
-# Check if App subnet exists. If not, create it.
-$app_subnet_exists = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $APP_SUBNET_NAME --only-show-errors 2>$null
-if (-not $app_subnet_exists) {
-    Write-Host "Creating App subnet: $APP_SUBNET_NAME"
-    az network vnet subnet create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --vnet-name $VNET_NAME `
-        --name $APP_SUBNET_NAME `
-        --address-prefix $APP_SUBNET_IP_RANGE `
-        --disable-private-endpoint-network-policies true `
-        --disable-private-link-service-network-policies false `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "App subnet $APP_SUBNET_NAME already exists"
-}
-
-
 # Check if the Web subnet exists. If not, create it.
 $web_subnet_exists = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $WEB_SUBNET_NAME --only-show-errors 2>$null
 if (-not $web_subnet_exists) {
-    Write-Host "Creating Web subnet: $WEB_SUBNET_NAME"
+    Write-Host "Creating subnet: $WEB_SUBNET_NAME"
     az network vnet subnet create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
         --vnet-name $VNET_NAME `
@@ -151,14 +130,69 @@ if (-not $web_subnet_exists) {
         --output none
 }
 else {
-    Write-Host "Web subnet $WEB_SUBNET_NAME already exists"
+    Write-Host "Subnet $WEB_SUBNET_NAME already exists"
+}
+
+
+# Check if App subnet exists. If not, create it.
+$app_subnet_exists = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $APP_SUBNET_NAME --only-show-errors 2>$null
+if (-not $app_subnet_exists) {
+    Write-Host "Creating subnet: $APP_SUBNET_NAME"
+    az network vnet subnet create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --vnet-name $VNET_NAME `
+        --name $APP_SUBNET_NAME `
+        --address-prefix $APP_SUBNET_IP_RANGE `
+        --disable-private-endpoint-network-policies true `
+        --disable-private-link-service-network-policies false `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Subnet $APP_SUBNET_NAME already exists"
+}
+
+
+# Check if Mgmt subnet exists. If not, create it.
+$mgmt_subnet_exists = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --only-show-errors 2>$null
+if (-not $mgmt_subnet_exists) {
+    Write-Host "Creating subnet: $MGMT_SUBNET_NAME"
+    az network vnet subnet create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --vnet-name $VNET_NAME `
+        --name $MGMT_SUBNET_NAME `
+        --address-prefix $MGMT_SUBNET_IP_RANGE `
+        --disable-private-endpoint-network-policies true `
+        --disable-private-link-service-network-policies false `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Subnet $APP_SUBNET_NAME already exists"
+}
+
+
+# Check if the Mgmt subnet has service endpoints for Storage. If not, add them.
+$serviceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query serviceEndpoints -o tsv
+if ($serviceEndpoints -notcontains "Microsoft.Storage") {
+    Write-Host "Adding service endpoints to Mgmt subnet"
+    az network vnet subnet update `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --vnet-name $VNET_NAME `
+        --name $MGMT_SUBNET_NAME `
+        --service-endpoints Microsoft.Storage `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Service endpoints already exist on Mgmt subnet"
 }
 
 
 # Check if Bastion VNet exists. If not, create it.
 $bastion_vnet_exists = az network vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $BASTION_VNET_NAME --only-show-errors 2>$null
 if (-not $bastion_vnet_exists) {
-    Write-Host "Creating Bastion VNet: $BASTION_VNET_NAME"
+    Write-Host "Creating VNet: $BASTION_VNET_NAME"
     
     az network vnet create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
@@ -170,13 +204,14 @@ if (-not $bastion_vnet_exists) {
         --output none
 }
 else {
-    Write-Host "Bastion VNet $BASTION_VNET_NAME already exists"
+    Write-Host "VNet $BASTION_VNET_NAME already exists"
 }
+
 
 # Check if the Bastion subnet exists in Bastion VNet. If not, create it.
 $bastion_subnet_exists = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $BASTION_VNET_NAME --name $BASTION_SUBNET_NAME --only-show-errors 2>$null
 if (-not $bastion_subnet_exists) {
-    Write-Host "Creating Bastion subnet in Bastion VNet: $BASTION_SUBNET_NAME"
+    Write-Host "Create subnet: $BASTION_SUBNET_NAME"
     az network vnet subnet create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
         --vnet-name $BASTION_VNET_NAME `
@@ -186,7 +221,7 @@ if (-not $bastion_subnet_exists) {
         --output none
 }
 else {
-    Write-Host "Bastion subnet $BASTION_SUBNET_NAME already exists in Bastion VNet"
+    Write-Host "Subnet $BASTION_SUBNET_NAME already exists"
 }
 
 
@@ -320,7 +355,7 @@ if (-not $jumpboxExists) {
         --image Ubuntu2204 `
         --size Standard_B2s `
         --vnet-name $VNET_NAME `
-        --subnet $APP_SUBNET_NAME `
+        --subnet $MGMT_SUBNET_NAME `
         --private-ip-address $JUMPBOX_IP `
         --public-ip-address "" `
         --admin-username azureuser `
@@ -372,7 +407,6 @@ else {
 
 # Check if a storage account with the prefix already exists
 $existing_account = az storage account list --resource-group $MGMT_RESOURCE_GROUP_NAME --query "[?starts_with(name, '${MGMT_STORAGE_NAME}')].name" -o tsv
-
 if ($existing_account) {
     $MGMT_STORAGE_NAME = $existing_account
     Write-Host "Using existing storage account: $MGMT_STORAGE_NAME"
@@ -395,30 +429,31 @@ else {
         --encryption-services blob `
         --min-tls-version TLS1_2 `
         --allow-blob-public-access false `
+        --public-network-access Disabled `
+        --default-action Deny `
+        --vnet-name $VNET_NAME `
+        --subnet $MGMT_SUBNET_NAME `
         --tags ApplicationName="$APP_NAME" Environment="$ENVIRONMENT" Classification="$CLASSIFICATION" CostCenter="$COST_CENTER" Criticality="$CRITICALITY" Owner="$OWNER" Location="$LOCATION" `
         --only-show-errors `
         --output none
 }
 
 
-# Check if the blob container exists
-$container_exists = az storage container show `
-    --name $TF_STATE_CONTAINER `
-    --account-name $MGMT_STORAGE_NAME `
-    --auth-mode login `
-    --only-show-errors 2>$null
-
-if (-not $container_exists) {
-    Write-Host "Creating blob container: $TF_STATE_CONTAINER"
-    az storage container create `
-        --name $TF_STATE_CONTAINER `
-        --account-name $MGMT_STORAGE_NAME `
-        --auth-mode login `
+# Check if the ACR already exists. If not, create it.
+$acrExists = az acr show --name $ACR_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --only-show-errors 2>$null
+if (-not $acrExists) {
+    Write-Host "Creating Azure Container Registry: $ACR_NAME"
+    az acr create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name $ACR_NAME `
+        --sku Basic `
+        --admin-enabled true `
+        --tags ApplicationName="$APP_NAME" Environment="$ENVIRONMENT" Classification="$CLASSIFICATION" CostCenter="$COST_CENTER" Criticality="$CRITICALITY" Owner="$OWNER" Location="$LOCATION" `
         --only-show-errors `
         --output none
 }
 else {
-    Write-Host "Blob container $TF_STATE_CONTAINER already exists"
+    Write-Host "Azure Container Registry $ACR_NAME already exists"
 }
 
 
@@ -456,39 +491,67 @@ az vm user update `
     --only-show-errors `
     --output none
 
-    
-# Add script-defined variables to the hashtable
-$scriptVariables = @{
-    'SUBSCRIPTION_ID'                = $SUBSCRIPTION_ID
-    'MGMT_RESOURCE_GROUP_NAME'       = $MGMT_RESOURCE_GROUP_NAME
-    'MGMT_STORAGE_NAME'              = $MGMT_STORAGE_NAME
-    'TF_STATE_CONTAINER'             = $TF_STATE_CONTAINER
-    'JUMPBOX_NAME'                   = $JUMPBOX_NAME
-    'ADMIN_GROUP_ID'                 = $ADMIN_GROUP_ID
-    'ACR_PUBLISHERS_GROUP_ID'        = $ACR_PUBLISHERS_GROUP_ID
-    'LOG_ANALYTICS_READERS_GROUP_ID' = $LOG_ANALYTICS_READERS_GROUP_ID
-}
 
-# Merge the two hashtables
-$allVariables = $envVariables + $scriptVariables
+# Create the setup script
+$setupScript = @"
+#!/bin/bash
 
-# Generate the content for the new .env file with line breaks
-$envContent = ($allVariables.GetEnumerator() | ForEach-Object {
-        "$($_.Key)=$($_.Value)"
-    }) -join "`n"
+# Write the .env file
+cat << 'ENVEOF' > /home/azureuser/.env
+ENV_FILE="$env_file"
+SUBSCRIPTION_ID="$SUBSCRIPTION_ID"
+MGMT_RESOURCE_GROUP_NAME="$MGMT_RESOURCE_GROUP_NAME"
+MGMT_STORAGE_NAME="$MGMT_STORAGE_NAME"
+ACR_NAME="$ACR_NAME"
+JUMPBOX_NAME="$JUMPBOX_NAME"
+ADMIN_GROUP_ID="$ADMIN_GROUP_ID"
+ACR_PUBLISHERS_GROUP_ID="$ACR_PUBLISHERS_GROUP_ID"
+LOG_ANALYTICS_READERS_GROUP_ID="$LOG_ANALYTICS_READERS_GROUP_ID"
+ENVEOF
 
-# Upload the .env file to the VM
-Write-Host "Uploading .env file to the VM"
+# Create entrypoint script
+cat << 'ENTRYPOINTEOF' > /home/azureuser/entrypoint.sh
+#!/bin/bash
+
+# Load environment variables
+[ -f /home/azureuser/.env ] && source /home/azureuser/.env
+
+# Check and install Azure CLI if not present
+if ! command -v az &> /dev/null; then
+    echo "Installing Azure CLI"
+    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+fi
+
+# Clone the otto repository if it doesn't exist
+[ ! -d "/home/azureuser/otto" ] && git clone https://github.com/justicecanada/otto.git /home/azureuser/otto
+
+# Login to Azure if not already logged in
+az account show &> /dev/null || az login --identity --only-show-errors --output none
+
+# Set the subscription
+[ -n "$SUBSCRIPTION_ID" ] && az account set --subscription "$SUBSCRIPTION_ID" --only-show-errors --output none
+
+# Navigate to the setup directory
+cd /home/azureuser/otto/setup
+ENTRYPOINTEOF
+
+# Append sourcing of entrypoint script to .bashrc if not already present
+if ! grep -q "source /home/azureuser/entrypoint.sh" /home/azureuser/.bashrc; then
+    echo "[ -f /home/azureuser/entrypoint.sh ] && source /home/azureuser/entrypoint.sh" >> /home/azureuser/.bashrc
+fi
+"@
+
+# Write the entrypoint to the Jumpbox VM
+Write-Host "Writing the entrypoint to the Jumpbox VM"
 az vm run-command invoke `
     --resource-group $MGMT_RESOURCE_GROUP_NAME `
     --name $JUMPBOX_NAME `
     --command-id RunShellScript `
-    --scripts "echo '$envContent' > /home/azureuser/.env" `
+    --scripts "$setupScript" `
     --only-show-errors `
     --output none
 
-
-# Get the VM ID
+    
 $vmId = az vm show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --query id -o tsv
 
 # Connect using Azure CLI
@@ -502,6 +565,7 @@ az network bastion ssh `
     --ssh-key "~/.ssh/id_rsa" `
     --only-show-errors `
     --output none
+
 
 # Prompt the user if they want to turn off the VM
 $turnOff = Read-Host -Prompt "Do you want to turn off the Jumpbox VM to save costs? (y/n)"
