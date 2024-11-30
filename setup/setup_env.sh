@@ -1,5 +1,20 @@
 #!/bin/bash
 
+export ENV_FILE
+export SUBSCRIPTION_ID
+export ENTRA_CLIENT_ID
+export DNS_SUBSCRIPTION_ID
+export DNS_RESOURCE_GROUP
+export MGMT_RESOURCE_GROUP_NAME
+export MGMT_STORAGE_NAME
+export ACR_NAME
+export JUMPBOX_NAME
+export ADMIN_GROUP_ID
+export LOG_ANALYTICS_READERS_GROUP_ID
+export VNET_ID
+export WEB_SUBNET_ID
+export APP_SUBNET_ID
+
 # Check and install Azure CLI if not present
 if ! command -v az &> /dev/null; then
     echo "Installing Azure CLI"
