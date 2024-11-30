@@ -2,7 +2,8 @@ param (
     [string]$subscription = "",
     [string]$mgmtGroup = "",
     [string]$jumpbox = "",
-    [int]$connectChoice = 1 # 1 for Azure CLI, 2 for SSH tunnel
+    [int]$connectChoice = 1, # 1 for Azure CLI, 2 for SSH tunnel
+    [string]$skipSSHUpdate = "false"
 )
 
 # Ensure Azure login and correct subscription selection
@@ -40,22 +41,26 @@ Write-Host "Using the jumpbox VM in resource group $mgmtGroup"
 
 # TODO: Consider using RBAC and JIT VM once Defender for Cloud is available
 
-# If the current user doesn't have an SSH key, generate one
-if (-not (Test-Path "~/.ssh/id_rsa")) {
-    Write-Host "Generating SSH key"
-    ssh-keygen -t rsa -b 4096 -N '""' -f ~/.ssh/id_rsa
+if ($skipSSHUpdate -eq "true") {
+    Write-Host "Skipping SSH key update"
 }
+else {
+    # If the current user doesn't have an SSH key, generate one
+    if (-not (Test-Path "~/.ssh/id_rsa")) {
+        Write-Host "Generating SSH key"
+        ssh-keygen -t rsa -b 4096 -N '""' -f ~/.ssh/id_rsa
+    }
 
-# Update the Jumpbox VM with the SSH key
-Write-Host "Updating the Jumpbox VM with the SSH key"
-$sshPublicKey = Get-Content "~/.ssh/id_rsa.pub" -Raw
-az vm user update `
-    --ids $vmId `
-    --username azureuser `
-    --ssh-key-value $sshPublicKey `
-    --only-show-errors `
-    --output none
-
+    # Update the Jumpbox VM with the SSH key
+    Write-Host "Updating the Jumpbox VM with the SSH key"
+    $sshPublicKey = Get-Content "~/.ssh/id_rsa.pub" -Raw
+    az vm user update `
+        --ids $vmId `
+        --username azureuser `
+        --ssh-key-value $sshPublicKey `
+        --only-show-errors `
+        --output none
+}
 
 if ($connectChoice -eq 1) {
     # Connect using Azure CLI

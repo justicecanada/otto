@@ -15,32 +15,6 @@ export VNET_ID
 export WEB_SUBNET_ID
 export APP_SUBNET_ID
 
-# Check and install Azure CLI if not present
-if ! command -v az &> /dev/null; then
-    echo "Installing Azure CLI"
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-fi
-
-# Check and install docker if not present
-if ! command -v docker &> /dev/null; then
-    echo "Installing Docker"
-    sudo apt update
-    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    sudo apt update
-    sudo apt install -y docker-ce docker-ce-cli containerd.io
-    sudo usermod -aG docker azureuser
-    newgrp docker
-fi
-
-# Check and install certbot if not present
-if ! command -v certbot &> /dev/null; then
-    echo "Installing Certbot"
-    sudo apt update
-    sudo apt install -y certbot
-fi
-
 # Login to Azure if not already logged in
 az account show &> /dev/null || az login --identity --only-show-errors --output none
 
@@ -92,7 +66,8 @@ if ! az storage container show \
         --name "$BACKUP_CONTAINER_NAME" \
         --account-name "$MGMT_STORAGE_NAME" \
         --auth-mode login \
-        --only-show-errors &>/dev/null
+        --only-show-errors \
+        --output none
 else
     echo "Blob container $BACKUP_CONTAINER_NAME already exists."
 fi
@@ -114,7 +89,8 @@ if ! az storage container show \
         --name "$TF_STATE_CONTAINER" \
         --account-name "$STORAGE_NAME" \
         --auth-mode login \
-        --only-show-errors &>/dev/null
+        --only-show-errors \
+        --output none
 else
     echo "Blob container $TF_STATE_CONTAINER already exists."
 fi

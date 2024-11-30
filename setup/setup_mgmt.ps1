@@ -145,6 +145,40 @@ else {
 $vnetId = az network vnet show --name $VNET_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
 
 
+# Create a private DNS zone if it doesn't exist
+$privateDnsZoneName = "${DNS_LABEL}.${DNS_ZONE}"
+$privateDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $privateDnsZoneName --only-show-errors 2>$null
+if (-not $privateDnsZoneExists) {
+    Write-Host "Creating private DNS zone: $privateDnsZoneName"
+    az network private-dns zone create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name $privateDnsZoneName `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Private DNS zone $privateDnsZoneName already exists"
+}
+
+
+# Link the private DNS zone to the VNet if it isn't already
+$linked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $privateDnsZoneName --name $VNET_NAME --vnet-name $VNET_NAME --only-show-errors 2>$null
+if (-not $linked) {
+    Write-Host "Linking private DNS zone to VNet"
+    az network private-dns link vnet create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --zone-name $privateDnsZoneName `
+        --name $VNET_NAME `
+        --vnet-name $VNET_NAME `
+        --registration-enabled false `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Private DNS zone is already linked to VNet"
+}
+
+
 # Check if the Web subnet exists. If not, create it.
 $web_subnet_exists = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $WEB_SUBNET_NAME --only-show-errors 2>$null
 if (-not $web_subnet_exists) {
@@ -437,6 +471,7 @@ else {
 }
 
 
+
 # Check if a storage account with the prefix already exists
 $existing_account = az storage account list --resource-group $MGMT_RESOURCE_GROUP_NAME --query "[?starts_with(name, '${MGMT_STORAGE_NAME}')].name" -o tsv
 if ($existing_account) {
@@ -469,6 +504,56 @@ else {
         --only-show-errors `
         --output none
 }
+
+
+# Get the resource ID of the storage account
+$storageAccountId = az storage account show --name $MGMT_STORAGE_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
+
+# Create the private endpoint for the storage account if it doesn't exist
+$privateEndpointExists = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "storage-private-endpoint" --only-show-errors 2>$null
+if (-not $privateEndpointExists) {
+    Write-Host "Creating private endpoint for storage account"
+    az network private-endpoint create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name "$MGMT_STORAGE_NAME-endpoint" `
+        --vnet-name $VNET_NAME `
+        --subnet $MGMT_SUBNET_NAME `
+        --private-connection-resource-id $storageAccountId `
+        --group-id blob `
+        --connection-name "$MGMT_STORAGE_NAME-connection" `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Private endpoint for storage account already exists"
+}
+
+
+# Get the private endpoint network interface if it exists
+$networkInterfaceId = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "$MGMT_STORAGE_NAME-endpoint" --query "networkInterfaces[0].id" -o tsv
+
+$networkInterfaceIpConfig = az resource show `
+    --ids $networkInterfaceId `
+    --api-version 2019-04-01 `
+    --query 'properties.ipConfigurations[0].properties.privateIPAddress' `
+    --output tsv
+
+# Create DNS record if it doesn't exist
+$dnsRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $privateDnsZoneName --name $MGMT_STORAGE_NAME --only-show-errors 2>$null
+if (-not $dnsRecordExists) {
+    Write-Host "Creating DNS record for storage account"
+    az network private-dns record-set a add-record `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --zone-name $privateDnsZoneName `
+        --record-set-name $MGMT_STORAGE_NAME `
+        --ipv4-address $networkInterfaceIpConfig `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "DNS record for storage account already exists"
+}
+
 
 
 # Check if the ACR already exists. If not, create it.
@@ -509,6 +594,32 @@ else {
 # Create the setup script
 $setupScript = @"
 #!/bin/bash
+
+# Check and install Azure CLI if not present
+if ! command -v az &> /dev/null; then
+    echo "Installing Azure CLI"
+    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+fi
+
+# Check and install docker if not present
+if ! command -v docker &> /dev/null; then
+    echo "Installing Docker"
+    sudo apt update
+    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    echo "deb [arch=`$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu `$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt update
+    sudo apt install -y docker-ce docker-ce-cli containerd.io
+    sudo usermod -aG docker azureuser
+    # newgrp docker # Only enable this if you want to run docker commands in the same shell
+fi
+
+# Check and install certbot if not present
+if ! command -v certbot &> /dev/null; then
+    echo "Installing Certbot"
+    sudo apt update
+    sudo apt install -y certbot
+fi
 
 # Write the .env file
 cat << 'ENVEOF' > /home/azureuser/.env
