@@ -555,6 +555,23 @@ else {
 }
 
 
+# Assign the "Storage Blob Data Contributor" role to the VM's managed identity for the storage account
+$roleAssignment = az role assignment list --assignee $vmIdentityId --role "Storage Blob Data Contributor" --scope $storageAccountId -o tsv
+if (-not $roleAssignment) {
+    Write-Host "Assigning Storage Blob Data Contributor role to VM identity"
+
+    # Assign the "Storage Blob Data Contributor" role to the VM identity
+    az role assignment create `
+        --assignee $vmIdentityId `
+        --role "Storage Blob Data Contributor" `
+        --scope $storageAccountId `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "VM identity already has the Storage Blob Data Contributor role assignment"
+}
+
 
 # Check if the ACR already exists. If not, create it.
 $acrExists = az acr show --name $ACR_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --only-show-errors 2>$null
