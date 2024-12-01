@@ -67,7 +67,7 @@ langdetect==1.0.9
 lxml==4.9.2
 
 # Data science -----------------------------------------------------------------
-pandas==2.2.2
+pandas==2.2.3
 shapely==2.0.3
 pdf2image==1.17.0
 pillow==10.4.0
