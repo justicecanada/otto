@@ -217,23 +217,25 @@ if (-not $mgmt_subnet_exists) {
 else {
     Write-Host "Subnet $APP_SUBNET_NAME already exists"
 }
+#$mgmtSubnetId = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query id -o tsv
 
 
-# Check if the Mgmt subnet has service endpoints for Storage. If not, add them.
-$serviceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query "serviceEndpoints[].service" -o tsv
-if ($serviceEndpoints -notcontains "Microsoft.Storage") {
-    Write-Host "Adding service endpoints to Mgmt subnet"
-    az network vnet subnet update `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --vnet-name $VNET_NAME `
-        --name $MGMT_SUBNET_NAME `
-        --service-endpoints Microsoft.Storage `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Service endpoints already exist on Mgmt subnet"
-}
+# TODO: This isn't needed because we're using private endpoints instead.
+# # Check if the Mgmt subnet has service endpoints for Storage. If not, add them.
+# $serviceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query "serviceEndpoints[].service" -o tsv
+# if ($serviceEndpoints -notcontains "Microsoft.Storage") {
+#     Write-Host "Adding service endpoints to Mgmt subnet"
+#     az network vnet subnet update `
+#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
+#         --vnet-name $VNET_NAME `
+#         --name $MGMT_SUBNET_NAME `
+#         --service-endpoints Microsoft.Storage `
+#         --only-show-errors `
+#         --output none
+# }
+# else {
+#     Write-Host "Service endpoints already exist on Mgmt subnet"
+# }
 
 
 # Check if Bastion VNet exists. If not, create it.
@@ -404,52 +406,29 @@ else {
 }
 
 
-# Allow outbound HTTPS to Azure Storage
-$storageRuleExists = az network nsg rule show --resource-group $MGMT_RESOURCE_GROUP_NAME --nsg-name $nsgName --name "AllowStorage" --only-show-errors 2>$null
-if (-not $storageRuleExists) {
-    Write-Host "Creating NSG rule for Azure Storage"
-    az network nsg rule create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --nsg-name $nsgName `
-        --name "AllowStorageOutbound" `
-        --priority 100 `
-        --direction Outbound `
-        --access Allow `
-        --protocol Tcp `
-        --source-address-prefix VirtualNetwork `
-        --source-port-range "*" `
-        --destination-address-prefix Storage `
-        --destination-port-range 443 `
-        --output none
-}
-else {
-    Write-Host "NSG rule for Azure Storage already exists"
-}
+# TODO: This can be removed because we're using private endpoints instead
+# # Allow outbound HTTPS to Azure Storage
+# $storageRuleExists = az network nsg rule show --resource-group $MGMT_RESOURCE_GROUP_NAME --nsg-name $nsgName --name "AllowStorage" --only-show-errors 2>$null
+# if (-not $storageRuleExists) {
+#     Write-Host "Creating NSG rule for Azure Storage"
+#     az network nsg rule create `
+#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
+#         --nsg-name $nsgName `
+#         --name "AllowStorageOutbound" `
+#         --priority 200 `
+#         --direction Outbound `
+#         --access Allow `
+#         --protocol Tcp `
+#         --source-address-prefix VirtualNetwork `
+#         --source-port-range "*" `
+#         --destination-address-prefix Storage `
+#         --destination-port-range 443 `
+#         --output none
+# }
+# else {
+#     Write-Host "NSG rule for Azure Storage already exists"
+# }
 
-
-# Deny all other outbound traffic
-$denyOutboundRuleExists = az network nsg rule show --resource-group $MGMT_RESOURCE_GROUP_NAME --nsg-name $nsgName --name "DenyAllOutbound" --only-show-errors 2>$null
-if (-not $denyOutboundRuleExists) {
-    Write-Host "Creating NSG rule to deny all outbound traffic"
-
-    # Deny all other inbound traffic
-    az network nsg rule create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --nsg-name $nsgName `
-        --name "DenyAllInbound" `
-        --priority 4096 `
-        --direction Inbound `
-        --access Deny `
-        --protocol "*" `
-        --source-address-prefix "*" `
-        --source-port-range "*" `
-        --destination-address-prefix "*" `
-        --destination-port-range "*" `
-        --output none
-}
-else {
-    Write-Host "NSG rule to deny all outbound traffic already exists"
-}
 
 
 # Check if the user-assigned managed identity exists
@@ -555,6 +534,23 @@ else {
 $storageAccountId = az storage account show --name $MGMT_STORAGE_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
 
 
+# TODO: The following code can be deleted because it's not needed since we're using a private endpoint
+# # Add subnet to storage account allowed networks if it doesn't already exist
+# $subnetRuleExists = az storage account network-rule list --resource-group $MGMT_RESOURCE_GROUP_NAME --account-name $MGMT_STORAGE_NAME --query "virtualNetworkRules[?virtualNetworkResourceId=='$mgmtSubnetId']" -o tsv
+# if (-not $subnetRuleExists) {
+#     Write-Host "Adding subnet to storage account allowed networks"
+#     az storage account network-rule add `
+#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
+#         --account-name $MGMT_STORAGE_NAME `
+#         --virtual-network $vnetId `
+#         --subnet $MGMT_SUBNET_NAME `
+#         --only-show-errors `
+#         --output none
+# }
+# else {
+#     Write-Host "Subnet is already added to storage account allowed networks"
+# }
+
 
 # Assign the "Storage Blob Data Contributor" role to the VM's managed identity for the storage account
 $roleAssignment = az role assignment list --assignee $vmIdentityId --role "Storage Blob Data Contributor" --scope $storageAccountId -o tsv
@@ -603,21 +599,23 @@ $networkInterfaceIpConfig = az resource show `
     --query 'properties.ipConfigurations[0].properties.privateIPAddress' `
     --output tsv
 
-# Create DNS record if it doesn't exist
-$dnsRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $DOMAIN_NAME --name $MGMT_STORAGE_NAME --only-show-errors 2>$null
-if (-not $dnsRecordExists) {
-    Write-Host "Creating DNS record for storage account"
-    az network private-dns record-set a add-record `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --zone-name $DOMAIN_NAME `
-        --record-set-name $MGMT_STORAGE_NAME `
-        --ipv4-address $networkInterfaceIpConfig `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "DNS record for storage account already exists"
-}
+    
+# TODO: This is not needed because we're using a private endpoint instead.
+# # Create DNS record if it doesn't exist
+# $dnsRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $DOMAIN_NAME --name $MGMT_STORAGE_NAME --only-show-errors 2>$null
+# if (-not $dnsRecordExists) {
+#     Write-Host "Creating DNS record for storage account"
+#     az network private-dns record-set a add-record `
+#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
+#         --zone-name $DOMAIN_NAME `
+#         --record-set-name $MGMT_STORAGE_NAME `
+#         --ipv4-address $networkInterfaceIpConfig `
+#         --only-show-errors `
+#         --output none
+# }
+# else {
+#     Write-Host "DNS record for storage account already exists"
+# }
 
 
 # Create the privatelink DNS zone if it doesn't exist
@@ -712,6 +710,11 @@ else {
 # Create the setup script
 $setupScript = @"
 #!/bin/bash
+
+# Configure DNS for private endpoint resolution
+echo "Configuring DNS resolution for private endpoint"
+echo "nameserver 168.63.129.16
+nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
 
 # Check and install Azure CLI if not present
 if ! command -v az &> /dev/null; then
