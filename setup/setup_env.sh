@@ -92,13 +92,13 @@ export TF_STATE_KEY="${RESOURCE_GROUP_NAME}.tfstate"
 # If the Terraform state container doesn't exist, create it
 if ! az storage container show \
         --name "$TF_STATE_CONTAINER" \
-        --account-name "$STORAGE_NAME" \
+        --account-name "$MGMT_STORAGE_NAME" \
         --auth-mode login \
         --only-show-errors &>/dev/null; then
     echo "Creating blob container: $TF_STATE_CONTAINER"
     az storage container create \
         --name "$TF_STATE_CONTAINER" \
-        --account-name "$STORAGE_NAME" \
+        --account-name "$MGMT_STORAGE_NAME" \
         --auth-mode login \
         --only-show-errors \
         --output none
@@ -116,7 +116,7 @@ classification = "${CLASSIFICATION}"
 cost_center = "${COST_CENTER}"
 criticality = "${CRITICALITY}"
 owner = "${OWNER}"
-admin_group_id = "${ADMIN_GROUP_ID"
+admin_group_id = "${ADMIN_GROUP_ID}"
 log_analytics_readers_group_id = "${LOG_ANALYTICS_READERS_GROUP_ID}"
 acr_id = "${ACR_ID}"
 resource_group_name = "${RESOURCE_GROUP_NAME}"

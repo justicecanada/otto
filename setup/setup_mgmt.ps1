@@ -1,7 +1,6 @@
 param (
     [string]$subscription = "",
-    [string]$envFile = "",
-    [string]$autoRenew = ""
+    [string]$envFile = ""
 )
 
 
@@ -143,6 +142,7 @@ else {
 
 
 # Link the private DNS zone to the VNet if it isn't already
+# TODO: This failed to detect the existing link. Need to investigate further.
 $linked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $DOMAIN_NAME --name $VNET_NAME --vnet-name $VNET_NAME --only-show-errors 2>$null
 if (-not $linked) {
     Write-Host "Linking private DNS zone to VNet"
@@ -220,22 +220,21 @@ else {
 #$mgmtSubnetId = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query id -o tsv
 
 
-# TODO: This isn't needed because we're using private endpoints instead.
-# # Check if the Mgmt subnet has service endpoints for Storage. If not, add them.
-# $serviceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query "serviceEndpoints[].service" -o tsv
-# if ($serviceEndpoints -notcontains "Microsoft.Storage") {
-#     Write-Host "Adding service endpoints to Mgmt subnet"
-#     az network vnet subnet update `
-#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#         --vnet-name $VNET_NAME `
-#         --name $MGMT_SUBNET_NAME `
-#         --service-endpoints Microsoft.Storage `
-#         --only-show-errors `
-#         --output none
-# }
-# else {
-#     Write-Host "Service endpoints already exist on Mgmt subnet"
-# }
+# Check if the Mgmt subnet has service endpoints for Storage. If not, add them.
+$serviceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query "serviceEndpoints[].service" -o tsv
+if ($serviceEndpoints -notcontains "Microsoft.Storage") {
+    Write-Host "Adding service endpoints to Mgmt subnet"
+    az network vnet subnet update `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --vnet-name $VNET_NAME `
+        --name $MGMT_SUBNET_NAME `
+        --service-endpoints Microsoft.Storage `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Service endpoints already exist on Mgmt subnet"
+}
 
 
 # Check if Bastion VNet exists. If not, create it.
@@ -599,7 +598,7 @@ $networkInterfaceIpConfig = az resource show `
     --query 'properties.ipConfigurations[0].properties.privateIPAddress' `
     --output tsv
 
-    
+
 # TODO: This is not needed because we're using a private endpoint instead.
 # # Create DNS record if it doesn't exist
 # $dnsRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $DOMAIN_NAME --name $MGMT_STORAGE_NAME --only-show-errors 2>$null
@@ -711,10 +710,20 @@ else {
 $setupScript = @"
 #!/bin/bash
 
-# Configure DNS for private endpoint resolution
-echo "Configuring DNS resolution for private endpoint"
-echo "nameserver 168.63.129.16
-nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+# Stop and disable systemd-resolved
+sudo systemctl stop systemd-resolved
+sudo systemctl disable systemd-resolved
+
+# Remove the symbolic link if it exists
+sudo unlink /etc/resolv.conf || true
+
+# Create a new resolv.conf with Azure DNS
+sudo bash -c 'echo "nameserver 168.63.129.16
+nameserver 8.8.8.8
+search reddog.microsoft.com" > /etc/resolv.conf'
+
+# Make resolv.conf immutable to prevent changes
+sudo chattr +i /etc/resolv.conf
 
 # Check and install Azure CLI if not present
 if ! command -v az &> /dev/null; then
