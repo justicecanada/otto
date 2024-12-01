@@ -52,25 +52,6 @@ Get-Content $envFile | ForEach-Object {
 }
 
 
-# Ensure the required environment variables are set
-if ($autoRenew -eq "") {
-    $autoRenew = (Read-Host -Prompt "Will the jumpbox have permission to manage the subdomain '$DNS_LABEL' in the '$DNS_ZONE' zone? (y/N)")
-}
-if ($autoRenew.ToLower() -eq 'y') {
-    if (-not $dnsSubscriptionId) {
-        $dnsSubscriptionId = Read-Host -Prompt "Enter the DNS subscription ID"
-    }
-    if (-not $dnsResourceGroup) {
-        $dnsResourceGroup = Read-Host -Prompt "Enter the DNS resource group name"
-    }
-}
-else {
-    Write-Host "Automatic certificate renewal may not be possible."
-    $dnsSubscriptionId = ""
-    $dnsResourceGroup = ""
-}
-
-    
 # Function to get group IDs from group names
 function Get-GroupIds {
     param (
@@ -102,6 +83,7 @@ $ENTRA_CLIENT_ID = az ad app list --display-name "${ENTRA_CLIENT_NAME}" --query 
 
 $MGMT_RESOURCE_GROUP_NAME = "${APP_NAME}$($INTENDED_USE.ToUpper())MgmtRg"
 $MGMT_STORAGE_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}mgmt".ToLower()
+$MGMT_STORAGE_ENDPOINT = "${MGMT_STORAGE_NAME}-endpoint"
 $ACR_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}acr".ToLower()
 $JUMPBOX_NAME = "jumpbox"
 
@@ -146,30 +128,29 @@ $vnetId = az network vnet show --name $VNET_NAME --resource-group $MGMT_RESOURCE
 
 
 # Create a private DNS zone if it doesn't exist
-$privateDnsZoneName = "${DNS_LABEL}.${DNS_ZONE}"
-$privateDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $privateDnsZoneName --only-show-errors 2>$null
+$privateDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $DOMAIN_NAME --only-show-errors 2>$null
 if (-not $privateDnsZoneExists) {
-    Write-Host "Creating private DNS zone: $privateDnsZoneName"
+    Write-Host "Creating private DNS zone: $DOMAIN_NAME"
     az network private-dns zone create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --name $privateDnsZoneName `
+        --name $DOMAIN_NAME `
         --only-show-errors `
         --output none
 }
 else {
-    Write-Host "Private DNS zone $privateDnsZoneName already exists"
+    Write-Host "Private DNS zone $DOMAIN_NAME already exists"
 }
 
 
 # Link the private DNS zone to the VNet if it isn't already
-$linked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $privateDnsZoneName --name $VNET_NAME --vnet-name $VNET_NAME --only-show-errors 2>$null
+$linked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $DOMAIN_NAME --name $VNET_NAME --vnet-name $VNET_NAME --only-show-errors 2>$null
 if (-not $linked) {
     Write-Host "Linking private DNS zone to VNet"
     az network private-dns link vnet create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --zone-name $privateDnsZoneName `
+        --zone-name $DOMAIN_NAME `
         --name $VNET_NAME `
-        --vnet-name $VNET_NAME `
+        --virtual-network $vnetId `
         --registration-enabled false `
         --only-show-errors `
         --output none
@@ -394,24 +375,104 @@ if (-not $nsgExists) {
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
         --name $nsgName `
         --output none
-
-    # Add SSH rule
-    az network nsg rule create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --nsg-name $nsgName `
-        --name "AllowSSH" `
-        --protocol tcp `
-        --priority 1000 `
-        --destination-port-range 22 `
-        --access Allow `
-        --output none
 }
 else {
     Write-Host "NSG $nsgName already exists"
 }
 
 
-# Check if the Jumpbox VM exists. If not, create it.
+# Check if the NSG rule for SSH exists. If not, create it.
+$sshRuleExists = az network nsg rule show --resource-group $MGMT_RESOURCE_GROUP_NAME --nsg-name $nsgName --name "AllowSSHFromBastion" --only-show-errors 2>$null
+if (-not $sshRuleExists) {
+    Write-Host "Creating NSG rule for SSH"
+    az network nsg rule create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --nsg-name $nsgName `
+        --name "AllowSSHFromBastion" `
+        --priority 100 `
+        --direction Inbound `
+        --access Allow `
+        --protocol Tcp `
+        --source-address-prefix $BASTION_SUBNET_IP_RANGE `
+        --source-port-range "*" `
+        --destination-address-prefix "*" `
+        --destination-port-range 22 `
+        --output none
+}
+else {
+    Write-Host "NSG rule for SSH already exists"
+}
+
+
+# Allow outbound HTTPS to Azure Storage
+$storageRuleExists = az network nsg rule show --resource-group $MGMT_RESOURCE_GROUP_NAME --nsg-name $nsgName --name "AllowStorage" --only-show-errors 2>$null
+if (-not $storageRuleExists) {
+    Write-Host "Creating NSG rule for Azure Storage"
+    az network nsg rule create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --nsg-name $nsgName `
+        --name "AllowStorageOutbound" `
+        --priority 100 `
+        --direction Outbound `
+        --access Allow `
+        --protocol Tcp `
+        --source-address-prefix VirtualNetwork `
+        --source-port-range "*" `
+        --destination-address-prefix Storage `
+        --destination-port-range 443 `
+        --output none
+}
+else {
+    Write-Host "NSG rule for Azure Storage already exists"
+}
+
+
+# Deny all other outbound traffic
+$denyOutboundRuleExists = az network nsg rule show --resource-group $MGMT_RESOURCE_GROUP_NAME --nsg-name $nsgName --name "DenyAllOutbound" --only-show-errors 2>$null
+if (-not $denyOutboundRuleExists) {
+    Write-Host "Creating NSG rule to deny all outbound traffic"
+
+    # Deny all other inbound traffic
+    az network nsg rule create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --nsg-name $nsgName `
+        --name "DenyAllInbound" `
+        --priority 4096 `
+        --direction Inbound `
+        --access Deny `
+        --protocol "*" `
+        --source-address-prefix "*" `
+        --source-port-range "*" `
+        --destination-address-prefix "*" `
+        --destination-port-range "*" `
+        --output none
+}
+else {
+    Write-Host "NSG rule to deny all outbound traffic already exists"
+}
+
+
+# Check if the user-assigned managed identity exists
+$identityName = "$JUMPBOX_NAME-identity"
+$identityExists = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $identityName --only-show-errors 2>$null
+
+if (-not $identityExists) {
+    Write-Host "Creating user-assigned managed identity: $identityName"
+    az identity create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name $identityName `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "User-assigned managed identity $identityName already exists"
+}
+
+# Get the resource ID of the managed identity
+$identityResourceId = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $identityName --query id -o tsv
+
+
+# Check if the Jumpbox VM exists. If not, create it with the user-assigned managed identity.
 $jumpboxExists = az vm show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --only-show-errors 2>$null
 if (-not $jumpboxExists) {
     Write-Host "Creating Jumpbox VM: $JUMPBOX_NAME"
@@ -427,26 +488,12 @@ if (-not $jumpboxExists) {
         --admin-username azureuser `
         --generate-ssh-keys `
         --nsg $nsgName `
+        --assign-identity $identityResourceId `
         --only-show-errors `
         --output none
 }
 else {
     Write-Host "Jumpbox VM $JUMPBOX_NAME already exists"
-}
-
-
-# Check if the Jumpbox VM has a managed identity. If not, assign one and capture the vmIdentityId.
-$vmIdentityExists = az vm identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --only-show-errors 2>$null
-if (-not $vmIdentityExists) {
-    Write-Host "Assigning managed identity to Jumpbox VM"
-    az vm identity assign `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --name $JUMPBOX_NAME `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Jumpbox VM already has a managed identity"
 }
 
 
@@ -504,55 +551,9 @@ else {
         --only-show-errors `
         --output none
 }
-
-
 # Get the resource ID of the storage account
 $storageAccountId = az storage account show --name $MGMT_STORAGE_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
 
-# Create the private endpoint for the storage account if it doesn't exist
-$privateEndpointExists = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "storage-private-endpoint" --only-show-errors 2>$null
-if (-not $privateEndpointExists) {
-    Write-Host "Creating private endpoint for storage account"
-    az network private-endpoint create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --name "$MGMT_STORAGE_NAME-endpoint" `
-        --vnet-name $VNET_NAME `
-        --subnet $MGMT_SUBNET_NAME `
-        --private-connection-resource-id $storageAccountId `
-        --group-id blob `
-        --connection-name "$MGMT_STORAGE_NAME-connection" `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Private endpoint for storage account already exists"
-}
-
-
-# Get the private endpoint network interface if it exists
-$networkInterfaceId = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "$MGMT_STORAGE_NAME-endpoint" --query "networkInterfaces[0].id" -o tsv
-
-$networkInterfaceIpConfig = az resource show `
-    --ids $networkInterfaceId `
-    --api-version 2019-04-01 `
-    --query 'properties.ipConfigurations[0].properties.privateIPAddress' `
-    --output tsv
-
-# Create DNS record if it doesn't exist
-$dnsRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $privateDnsZoneName --name $MGMT_STORAGE_NAME --only-show-errors 2>$null
-if (-not $dnsRecordExists) {
-    Write-Host "Creating DNS record for storage account"
-    az network private-dns record-set a add-record `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --zone-name $privateDnsZoneName `
-        --record-set-name $MGMT_STORAGE_NAME `
-        --ipv4-address $networkInterfaceIpConfig `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "DNS record for storage account already exists"
-}
 
 
 # Assign the "Storage Blob Data Contributor" role to the VM's managed identity for the storage account
@@ -570,6 +571,102 @@ if (-not $roleAssignment) {
 }
 else {
     Write-Host "VM identity already has the Storage Blob Data Contributor role assignment"
+}
+
+
+# Create the private endpoint for the storage account if it doesn't exist
+$privateEndpointExists = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "$MGMT_STORAGE_ENDPOINT" --only-show-errors 2>$null
+if (-not $privateEndpointExists) {
+    Write-Host "Creating private endpoint for storage account"
+    az network private-endpoint create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name "$MGMT_STORAGE_ENDPOINT" `
+        --vnet-name $VNET_NAME `
+        --subnet $MGMT_SUBNET_NAME `
+        --private-connection-resource-id $storageAccountId `
+        --group-id blob `
+        --connection-name "$MGMT_STORAGE_NAME-connection" `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Private endpoint for storage account already exists"
+}
+
+
+# Get the private endpoint network interface if it exists
+$networkInterfaceId = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "$MGMT_STORAGE_ENDPOINT" --query "networkInterfaces[0].id" -o tsv
+
+$networkInterfaceIpConfig = az resource show `
+    --ids $networkInterfaceId `
+    --api-version 2019-04-01 `
+    --query 'properties.ipConfigurations[0].properties.privateIPAddress' `
+    --output tsv
+
+# Create DNS record if it doesn't exist
+$dnsRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $DOMAIN_NAME --name $MGMT_STORAGE_NAME --only-show-errors 2>$null
+if (-not $dnsRecordExists) {
+    Write-Host "Creating DNS record for storage account"
+    az network private-dns record-set a add-record `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --zone-name $DOMAIN_NAME `
+        --record-set-name $MGMT_STORAGE_NAME `
+        --ipv4-address $networkInterfaceIpConfig `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "DNS record for storage account already exists"
+}
+
+
+# Create the privatelink DNS zone if it doesn't exist
+$privateLinkDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "privatelink.blob.core.windows.net" --only-show-errors 2>$null
+if (-not $privateLinkDnsZoneExists) {
+    Write-Host "Creating privatelink DNS zone"
+    az network private-dns zone create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name "privatelink.blob.core.windows.net" `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Privatelink DNS zone already exists"
+}
+
+
+# Link the privatelink DNS zone to the VNet if it isn't already
+$privateLinkDnsZoneLinked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.blob.core.windows.net" --name $VNET_NAME --only-show-errors 2>$null
+if (-not $privateLinkDnsZoneLinked) {
+    Write-Host "Linking privatelink DNS zone to VNet"
+    az network private-dns link vnet create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --zone-name "privatelink.blob.core.windows.net" `
+        --name $VNET_NAME `
+        --virtual-network $VNET_NAME `
+        --registration-enabled false `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Privatelink DNS zone is already linked to VNet"
+}
+
+
+# Check if the A record for the storage account exists in the privatelink DNS zone
+$recordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.blob.core.windows.net" --name $MGMT_STORAGE_NAME --only-show-errors 2>$null
+if (-not $recordExists) {
+    Write-Host "Creating A record for storage account in privatelink DNS zone"
+    az network private-dns record-set a add-record `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --zone-name "privatelink.blob.core.windows.net" `
+        --record-set-name $MGMT_STORAGE_NAME `
+        --ipv4-address $networkInterfaceIpConfig `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "A record for storage account already exists in privatelink DNS zone"
 }
 
 
@@ -601,7 +698,11 @@ $vmState = az vm show `
 
 if ($vmState -eq "VM deallocated") {
     Write-Host "Starting the Jumpbox VM"
-    az vm start --ids $vmId --only-show-errors --output none
+    az vm start `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name $JUMPBOX_NAME `
+        --only-show-errors `
+        --output none
 }
 else {
     Write-Host "Jumpbox VM is already running"

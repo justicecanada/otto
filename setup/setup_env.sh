@@ -21,7 +21,7 @@ az account show &> /dev/null || az login --identity --only-show-errors --output 
 # Set the subscription
 [ -n "$SUBSCRIPTION_ID" ] && az account set --subscription "$SUBSCRIPTION_ID" --only-show-errors --output none
 
-export SITE_URL="${DNS_LABEL}.${DNS_ZONE}"
+export SITE_URL=DOMAIN_NAME
 export HOST_NAME=${SITE_URL#https://}
 
 # Set the environment variables
@@ -51,6 +51,17 @@ if [ -z "$existing_storage" ]; then
     export STORAGE_NAME="${storage_name}${random_suffix}"
 else
     export STORAGE_NAME="$existing_storage"
+fi
+
+
+# Perform nslookup check before creating the container
+echo "Performing nslookup check for ${MGMT_STORAGE_NAME}.blob.core.windows.net"
+if nslookup "${MGMT_STORAGE_NAME}.blob.core.windows.net" &>/dev/null; then
+    echo "DNS resolution successful for ${MGMT_STORAGE_NAME}.blob.core.windows.net"
+else
+    echo "Error: Unable to resolve ${MGMT_STORAGE_NAME}.blob.core.windows.net"
+    echo "Please check your DNS configuration and private endpoint setup."
+    exit 1
 fi
 
 

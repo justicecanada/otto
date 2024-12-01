@@ -1,13 +1,12 @@
 #!/bin/bash
 
-read -p "This script will attempt to create or renew the SSL certificate for the domain $DNS_LABEL.$DNS_ZONE. However, this *should* be handled by the cluster using the cert-manager. The AKS managed identity will need permission to manage the subdomain. Do you want to continue? (y/n) " answer
+read -p "This script will attempt to create or renew the SSL certificate for the domain $DOMAIN_NAME. However, this *should* be handled by the cluster using the cert-manager. The AKS managed identity will need permission to manage the subdomain. Do you want to continue? (y/n) " answer
 if [[ ! $answer =~ ^[Yy]$ ]]; then
     echo "Renewal process aborted."
     exit 0
 fi
 
-domain="$DNS_LABEL.$DNS_ZONE"
-cert_path="/etc/letsencrypt/live/$domain/fullchain.pem"
+cert_path="/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem"
 
 check_certificate() {
     if sudo test -f "$cert_path"; then
