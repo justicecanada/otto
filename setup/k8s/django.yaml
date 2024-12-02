@@ -47,10 +47,10 @@ spec:
         app: django-app
     spec:
       initContainers:
-      - name: init-migrate-collectstatic
+      - name: init
         image: ${ACR_NAME}.azurecr.io/otto:latest
         command: ["/bin/bash"]
-        args: ["-c", "/django/migrate-collectstatic.sh"]
+        args: ["-c", "/django/initcontainer.sh"]
         envFrom:
           - configMapRef:
               name: otto-configmap

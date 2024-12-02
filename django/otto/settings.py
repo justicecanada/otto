@@ -276,6 +276,13 @@ DATABASES = {
     },
 }
 
+DJANGODB_PGBOUNCER = (
+    os.environ.get("DJANGODB_PGBOUNCER", "False") == "True" and not IS_RUNNING_IN_GITHUB
+)
+VECTORDB_PGBOUNCER = (
+    os.environ.get("VECTORDB_PGBOUNCER", "False") == "True" and not IS_RUNNING_IN_GITHUB
+)
+
 # If the database is set in the environment variables, use that instead
 if os.environ.get("DJANGODB_ENGINE") is not None:
     DATABASES["default"] = {
@@ -283,8 +290,8 @@ if os.environ.get("DJANGODB_ENGINE") is not None:
         "NAME": os.environ.get("DJANGODB_NAME"),
         "USER": os.environ.get("DJANGODB_USER"),
         "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
-        "HOST": "localhost",
-        "PORT": "6432",
+        "HOST": "localhost" if DJANGODB_PGBOUNCER else os.environ.get("DJANGODB_HOST"),
+        "PORT": "6432" if DJANGODB_PGBOUNCER else os.environ.get("DJANGODB_PORT"),
         "DISABLE_SERVER_SIDE_CURSORS": True,
     }
 
@@ -294,7 +301,8 @@ if os.environ.get("VECTORDB_ENGINE") is not None:
         "NAME": os.environ.get("VECTORDB_NAME"),
         "USER": os.environ.get("VECTORDB_USER"),
         "PASSWORD": os.environ.get("VECTORDB_PASSWORD", ""),
-        "HOST": os.environ.get("VECTORDB_HOST"),
+        "HOST": "localhost" if VECTORDB_PGBOUNCER else os.environ.get("VECTORDB_HOST"),
+        "PORT": "6432" if VECTORDB_PGBOUNCER else os.environ.get("VECTORDB_PORT"),
     }
 
 

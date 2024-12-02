@@ -1,6 +1,6 @@
 """
 Modified from package /llama_index/vector_stores/postgres/base.py
-(llama-index-vector-stores-postgres==0.2.6)
+(llama-index-vector-stores-postgres==0.3.2)
 
 Implements retrying logic
 """
@@ -30,9 +30,6 @@ from llama_index.core.vector_stores.utils import (
     node_to_metadata_dict,
 )
 from retrying import retry
-from sqlalchemy import create_engine, exc
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
 
 if TYPE_CHECKING:
     from sqlalchemy.sql.selectable import Select
@@ -160,6 +157,7 @@ class PGVectorStore(BasePydanticVectorStore):
     debug: bool
     use_jsonb: bool
     create_engine_kwargs: Dict
+    initialization_fail_on_error: bool = False
 
     hnsw_kwargs: Optional[Dict[str, Any]]
 
@@ -186,6 +184,7 @@ class PGVectorStore(BasePydanticVectorStore):
         use_jsonb: bool = False,
         hnsw_kwargs: Optional[Dict[str, Any]] = None,
         create_engine_kwargs: Optional[Dict[str, Any]] = None,
+        initialization_fail_on_error: bool = False,
     ) -> None:
         """Constructor.
 
@@ -231,6 +230,7 @@ class PGVectorStore(BasePydanticVectorStore):
             use_jsonb=use_jsonb,
             hnsw_kwargs=hnsw_kwargs,
             create_engine_kwargs=create_engine_kwargs or {},
+            initialization_fail_on_error=initialization_fail_on_error,
         )
 
         # sqlalchemy model
@@ -345,9 +345,11 @@ class PGVectorStore(BasePydanticVectorStore):
         wait_exponential_multiplier=1000,
         wait_exponential_max=20000,
     )
-    def _connect(self) -> None:
-        # if self._session is not None and self._async_session is not None:
-        #     return
+    def _connect(self) -> Any:
+        from sqlalchemy import create_engine
+        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+        from sqlalchemy.orm import sessionmaker
+
         self._engine = create_engine(
             self.connection_string, echo=self.debug, **self.create_engine_kwargs
         )
@@ -362,7 +364,11 @@ class PGVectorStore(BasePydanticVectorStore):
         with self._engine.connect() as connection:
             connection.execute(sqlalchemy.text("SELECT 1"))
 
-    def _create_schema_if_not_exists(self) -> None:
+    def _create_schema_if_not_exists(self) -> bool:
+        """
+        Create the schema if it does not exist.
+        Returns True if the schema was created, False if it already existed.
+        """
         if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", self.schema_name):
             raise ValueError(f"Invalid schema_name: {self.schema_name}")
         with self._session() as session, session.begin():
@@ -373,7 +379,8 @@ class PGVectorStore(BasePydanticVectorStore):
             result = session.execute(check_schema_statement).fetchone()
 
             # If the schema does not exist, then create it
-            if not result:
+            schema_doesnt_exist = result is None
+            if schema_doesnt_exist:
                 create_schema_statement = sqlalchemy.text(
                     # DDL won't tolerate quoted string literal here for schema_name,
                     # so use a format string to embed the schema_name directly, instead of a param.
@@ -382,6 +389,7 @@ class PGVectorStore(BasePydanticVectorStore):
                 session.execute(create_schema_statement)
 
             session.commit()
+            return schema_doesnt_exist
 
     def _create_tables_if_not_exists(self) -> None:
         with self._session() as session, session.begin():
@@ -420,14 +428,35 @@ class PGVectorStore(BasePydanticVectorStore):
             session.commit()
 
     def _initialize(self) -> None:
+        fail_on_error = self.initialization_fail_on_error
         if not self._is_initialized:
             self._connect()
             if self.perform_setup:
-                self._create_extension()
-                self._create_schema_if_not_exists()
-                self._create_tables_if_not_exists()
+                try:
+                    self._create_schema_if_not_exists()
+                except Exception as e:
+                    _logger.warning(f"PG Setup: Error creating schema: {e}")
+                    if fail_on_error:
+                        raise
+                try:
+                    self._create_extension()
+                except Exception as e:
+                    _logger.warning(f"PG Setup: Error creating extension: {e}")
+                    if fail_on_error:
+                        raise
+                try:
+                    self._create_tables_if_not_exists()
+                except Exception as e:
+                    _logger.warning(f"PG Setup: Error creating tables: {e}")
+                    if fail_on_error:
+                        raise
                 if self.hnsw_kwargs is not None:
-                    self._create_hnsw_index()
+                    try:
+                        self._create_hnsw_index()
+                    except Exception as e:
+                        _logger.warning(f"PG Setup: Error creating HNSW index: {e}")
+                        if fail_on_error:
+                            raise
             self._is_initialized = True
 
     def _node_to_table_row(self, node: BaseNode) -> Any:
