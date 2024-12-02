@@ -1,7 +1,12 @@
 # CM-8 & CM-9: Defines and manages various resources, providing a documented inventory of system components
 
 terraform {
-  backend "azurerm" {}
+  backend "azurerm" {
+    use_msi = true
+    use_oidc = true
+    subscription_id = var.subscription_id
+    tenant_id = var.tenant_id
+  }
 }
 
 # Use modules for different resources

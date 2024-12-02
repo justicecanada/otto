@@ -751,6 +751,17 @@ if ! command -v certbot &> /dev/null; then
     sudo apt install -y certbot
 fi
 
+# Check and install Terraform if not present
+if ! command -v terraform &> /dev/null; then
+    echo "Installing Terraform"
+    sudo apt update
+    wget https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
+    gunzip -c terraform_1.7.5_linux_amd64.zip > terraform
+    sudo mv terraform /usr/local/bin/
+    sudo chmod +x /usr/local/bin/terraform
+    rm terraform_1.7.5_linux_amd64.zip
+fi
+
 # Write the .env file
 cat << 'ENVEOF' > /home/azureuser/.env
 ENV_FILE="$envFile"

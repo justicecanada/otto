@@ -3,6 +3,16 @@ variable "app_name" {
   description = "Application name (e.g., Otto)"
 }
 
+variable "tenant_id" {
+  type        = string
+  description = "Azure tenant ID"
+}
+
+variable "subscription_id" {
+  type        = string
+  description = "Azure subscription ID"
+}
+
 variable "environment" {
   type        = string
   description = "Environment name (e.g., Sandbox, Development, Production)"

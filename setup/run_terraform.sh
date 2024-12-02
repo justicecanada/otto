@@ -24,6 +24,8 @@ resource_group_name  = "$MGMT_RESOURCE_GROUP_NAME"
 storage_account_name = "$MGMT_STORAGE_NAME"
 container_name       = "$TF_STATE_CONTAINER"
 key                  = "$TF_STATE_KEY"
+use_msi              = true
+subscription_id      = "$SUBSCRIPTION_ID"
 EOF
 
 # If ENABLE_DEBUG is true, set the Terraform log level to debug

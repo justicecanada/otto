@@ -35,7 +35,7 @@ export COGNITIVE_SERVICES_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,
 export OPENAI_SERVICE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-openai"
 export AKS_CLUSTER_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-aks"
 export DISK_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-disk"
-export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
+export ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$MGMT_RESOURCE_GROUP_NAME" --query id --output tsv)
 export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
 #export VELERO_IDENTITY_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-velero"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
@@ -107,8 +107,13 @@ else
 fi
 
 
+
 # Create terraform/.tfvars file
-cat > terraform/.tfvars <<EOF
+TEMP_TFVARS=$(mktemp)
+echo "Writing variables to $TEMP_TFVARS"
+cat > "$TEMP_TFVARS" <<EOF
+tenant_id = "${TENANT_ID}"
+subscription_id = "${SUBSCRIPTION_ID}"
 app_name = "${APP_NAME}"
 environment = "${ENVIRONMENT}"
 location = "${LOCATION}"
@@ -140,3 +145,7 @@ admin_email = "${ADMIN_EMAIL}"
 use_private_network = "${USE_PRIVATE_NETWORK}"
 backup_container_name = "${BACKUP_CONTAINER_NAME}"
 EOF
+
+# Move the .tfvars file to the terraform directory and overwrite the existing file
+echo "Moving $TEMP_TFVARS to terraform/.tfvars"
+mv "$TEMP_TFVARS" "terraform/.tfvars"
