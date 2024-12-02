@@ -154,10 +154,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
     # Outbound type determines how outbound traffic is handled
     # "loadBalancer" is the default and recommended for most scenarios
     outbound_type = "loadBalancer"
-
-
-    # Associate the NSG with the AKS cluster
-    network_security_group_id = azurerm_network_security_group.aks_nsg.id
   }
 
   oms_agent {
@@ -181,7 +177,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   azure_active_directory_role_based_access_control {
     managed                = true # Deprecated but still required
     azure_rbac_enabled     = true # AC-22: Enable Azure RBAC
-    admin_group_id = var.admin_group_id
+    admin_group_object_ids = var.admin_group_id
   }
 
   local_account_disabled = true

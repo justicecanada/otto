@@ -92,11 +92,6 @@ resource "azurerm_storage_account" "storage" {
     virtual_network_subnet_ids = [var.app_subnet_id] # Allow access from the app subnets
   }
 
-  private_dns_zone_group {
-    name                 = "blob-zone-group"
-    private_dns_zone_ids = [azurerm_private_dns_zone.blob_zone.id]
-  }
-
   tags = var.tags
 
   depends_on = [azurerm_key_vault_key.storage_cmk, null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id]
@@ -114,6 +109,11 @@ resource "azurerm_private_endpoint" "storage_endpoint" {
     private_connection_resource_id = azurerm_storage_account.storage.id
     is_manual_connection           = false
     subresource_names              = ["blob"]
+  }
+
+  private_dns_zone_group {
+    name                 = "${var.storage_name}-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.blob_zone.id]
   }
 }
 
