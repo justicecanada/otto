@@ -3,6 +3,11 @@ variable "resource_group_name" {
   description = "The name of the resource group in which to create the Key Vaults"
 }
 
+variable "mgmt_resource_group_name" {
+  type        = string
+  description = "The name of the management resource group containing the private DNS zone"
+}
+
 variable "location" {
   type        = string
   description = "The Azure region where the Key Vaults should be created"

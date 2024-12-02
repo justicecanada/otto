@@ -28,6 +28,49 @@ use_msi              = true
 subscription_id      = "$SUBSCRIPTION_ID"
 EOF
 
+# Function to check if resource is already in Terraform state
+check_terraform_state() {
+    local resource_address=$1
+    terraform state list | grep -q "^${resource_address}$"
+    return $?
+}
+
+# Import the resource group if it exists and is not in the Terraform state
+if az group show --name "$RESOURCE_GROUP_NAME" --query id -o tsv &>/dev/null; then
+    if ! check_terraform_state "module.resource_group.azurerm_resource_group.rg"; then
+        echo "Resource group exists but not in Terraform state, importing..."
+        terraform import -var-file=.tfvars "module.resource_group.azurerm_resource_group.rg" \
+            "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME"
+    fi
+fi
+
+# Import the key vault if it exists and is not in the Terraform state
+if az keyvault show --name "$KEYVAULT_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query id -o tsv &>/dev/null; then
+    if ! check_terraform_state "module.keyvault.azurerm_key_vault.kv"; then
+        echo "Key Vault exists but not in Terraform state, importing..."
+        terraform import -var-file=.tfvars "module.keyvault.azurerm_key_vault.kv" \
+            "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME"
+    fi
+fi
+
+# Import the storage account if it exists and is not in the Terraform state
+if az cognitiveservices account show --name "$OPENAI_SERVICE_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query id -o tsv &>/dev/null; then
+    if ! check_terraform_state "module.openai.azurerm_cognitive_account.openai"; then
+        echo "OpenAI service exists but not in Terraform state, importing..."
+        terraform import -var-file=.tfvars "module.openai.azurerm_cognitive_account.openai" \
+            "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.CognitiveServices/accounts/$OPENAI_SERVICE_NAME"
+    fi
+fi
+
+# Import the storage account if it exists and is not in the Terraform state
+if az cognitiveservices account show --name "$COGNITIVE_SERVICES_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query id -o tsv &>/dev/null; then
+    if ! check_terraform_state "module.cognitive_services.azurerm_cognitive_account.cognitive_services"; then
+        echo "Cognitive Services exists but not in Terraform state, importing..."
+        terraform import -var-file=.tfvars "module.cognitive_services.azurerm_cognitive_account.cognitive_services" \
+            "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.CognitiveServices/accounts/$COGNITIVE_SERVICES_NAME"
+    fi
+fi
+
 # If ENABLE_DEBUG is true, set the Terraform log level to debug
 unset TF_LOG
 if [[ $ENABLE_DEBUG =~ ^[Yy]$ ]]; then

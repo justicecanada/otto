@@ -64,6 +64,11 @@ variable "resource_group_name" {
   description = "Name of the resource group"
 }
 
+variable "mgmt_resource_group_name" {
+  type        = string
+  description = "Name of the management resource group"
+}
+
 variable "keyvault_name" {
   type        = string
   description = "Name of the key vault"

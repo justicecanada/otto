@@ -84,6 +84,7 @@ $MGMT_RESOURCE_GROUP_NAME = "${APP_NAME}$($INTENDED_USE.ToUpper())MgmtRg"
 $MGMT_STORAGE_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}mgmt".ToLower()
 $MGMT_STORAGE_ENDPOINT = "${MGMT_STORAGE_NAME}-endpoint"
 $ACR_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}acr".ToLower()
+$KEYVAULT_NAME = "${ORGANIZATION}-${INTENDED_USE}-${APP_NAME}-kv".ToLower()
 $JUMPBOX_NAME = "jumpbox"
 
 
@@ -126,40 +127,6 @@ else {
 $vnetId = az network vnet show --name $VNET_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
 
 
-# Create a private DNS zone if it doesn't exist
-$privateDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $DOMAIN_NAME --only-show-errors 2>$null
-if (-not $privateDnsZoneExists) {
-    Write-Host "Creating private DNS zone: $DOMAIN_NAME"
-    az network private-dns zone create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --name $DOMAIN_NAME `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Private DNS zone $DOMAIN_NAME already exists"
-}
-
-
-# Link the private DNS zone to the VNet if it isn't already
-# TODO: This failed to detect the existing link. Need to investigate further.
-$linked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $DOMAIN_NAME --name $VNET_NAME --vnet-name $VNET_NAME --only-show-errors 2>$null
-if (-not $linked) {
-    Write-Host "Linking private DNS zone to VNet"
-    az network private-dns link vnet create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --zone-name $DOMAIN_NAME `
-        --name $VNET_NAME `
-        --virtual-network $vnetId `
-        --registration-enabled false `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Private DNS zone is already linked to VNet"
-}
-
-
 # Check if the Web subnet exists. If not, create it.
 $web_subnet_exists = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $WEB_SUBNET_NAME --only-show-errors 2>$null
 if (-not $web_subnet_exists) {
@@ -178,6 +145,25 @@ else {
     Write-Host "Subnet $WEB_SUBNET_NAME already exists"
 }
 $webSubnetId = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $WEB_SUBNET_NAME --query id -o tsv
+
+
+# Get the service endpoints for the Web subnet
+$webServiceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $WEB_SUBNET_NAME --query "serviceEndpoints[].service" -o tsv
+
+# Check if the Web subnet has service endpoint for KeyVault and Storage. If not, add them.
+if ($webServiceEndpoints -notcontains "Microsoft.KeyVault" -or $webServiceEndpoints -notcontains "Microsoft.Storage") {
+    Write-Host "Adding service endpoints to Web subnet"
+    az network vnet subnet update `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --vnet-name $VNET_NAME `
+        --name $WEB_SUBNET_NAME `
+        --service-endpoints Microsoft.KeyVault Microsoft.Storage `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Service endpoints already exists on Web subnet"
+}
 
 
 # Check if App subnet exists. If not, create it.
@@ -199,6 +185,24 @@ else {
 }
 $appSubnetId = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $APP_SUBNET_NAME --query id -o tsv
 
+# Get the service endpoints for the App subnet
+$appServiceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $APP_SUBNET_NAME --query "serviceEndpoints[].service" -o tsv
+
+# Check if the App subnet has service endpoint for KeyVault and Storage. If not, add them.
+if ($appServiceEndpoints -notcontains "Microsoft.KeyVault" -or $appServiceEndpoints -notcontains "Microsoft.Storage") {
+    Write-Host "Adding service endpoints to App subnet"
+    az network vnet subnet update `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --vnet-name $VNET_NAME `
+        --name $APP_SUBNET_NAME `
+        --service-endpoints Microsoft.KeyVault Microsoft.Storage `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Service endpoints already exists on App subnet"
+}
+
 
 # Check if Mgmt subnet exists. If not, create it.
 $mgmt_subnet_exists = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --only-show-errors 2>$null
@@ -217,23 +221,23 @@ if (-not $mgmt_subnet_exists) {
 else {
     Write-Host "Subnet $APP_SUBNET_NAME already exists"
 }
-#$mgmtSubnetId = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query id -o tsv
 
+# Get the service endpoints for the Mgmt subnet
+$mgmtServiceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query "serviceEndpoints[].service" -o tsv
 
-# Check if the Mgmt subnet has service endpoints for Storage. If not, add them.
-$serviceEndpoints = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $MGMT_SUBNET_NAME --query "serviceEndpoints[].service" -o tsv
-if ($serviceEndpoints -notcontains "Microsoft.Storage") {
+# Check if the Mgmt subnet has service endpoint for KeyVault and Storage. If not, add them.
+if ($mgmtServiceEndpoints -notcontains "Microsoft.KeyVault" -or $mgmtServiceEndpoints -notcontains "Microsoft.Storage") {
     Write-Host "Adding service endpoints to Mgmt subnet"
     az network vnet subnet update `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
         --vnet-name $VNET_NAME `
         --name $MGMT_SUBNET_NAME `
-        --service-endpoints Microsoft.Storage `
+        --service-endpoints Microsoft.KeyVault Microsoft.Storage `
         --only-show-errors `
         --output none
 }
 else {
-    Write-Host "Service endpoints already exist on Mgmt subnet"
+    Write-Host "Service endpoints already exists on Mgmt subnet"
 }
 
 
@@ -599,27 +603,9 @@ $networkInterfaceIpConfig = az resource show `
     --output tsv
 
 
-# TODO: This is not needed because we're using a private endpoint instead.
-# # Create DNS record if it doesn't exist
-# $dnsRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name $DOMAIN_NAME --name $MGMT_STORAGE_NAME --only-show-errors 2>$null
-# if (-not $dnsRecordExists) {
-#     Write-Host "Creating DNS record for storage account"
-#     az network private-dns record-set a add-record `
-#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#         --zone-name $DOMAIN_NAME `
-#         --record-set-name $MGMT_STORAGE_NAME `
-#         --ipv4-address $networkInterfaceIpConfig `
-#         --only-show-errors `
-#         --output none
-# }
-# else {
-#     Write-Host "DNS record for storage account already exists"
-# }
-
-
-# Create the privatelink DNS zone if it doesn't exist
-$privateLinkDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "privatelink.blob.core.windows.net" --only-show-errors 2>$null
-if (-not $privateLinkDnsZoneExists) {
+# Create the privatelink DNS zone for blob storage if it doesn't exist
+$blobPrivateLinkDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "privatelink.blob.core.windows.net" --only-show-errors 2>$null
+if (-not $blobPrivateLinkDnsZoneExists) {
     Write-Host "Creating privatelink DNS zone"
     az network private-dns zone create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
@@ -628,31 +614,31 @@ if (-not $privateLinkDnsZoneExists) {
         --output none
 }
 else {
-    Write-Host "Privatelink DNS zone already exists"
+    Write-Host "Privatelink DNS zone for blob storage already exists"
 }
 
 
-# Link the privatelink DNS zone to the VNet if it isn't already
-$privateLinkDnsZoneLinked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.blob.core.windows.net" --name $VNET_NAME --only-show-errors 2>$null
-if (-not $privateLinkDnsZoneLinked) {
-    Write-Host "Linking privatelink DNS zone to VNet"
+# Link the privatelink DNS zone for blob storage to the VNet if it isn't already
+$blobPrivateLinkDnsZoneLinked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.blob.core.windows.net" --name $VNET_NAME --only-show-errors 2>$null
+if (-not $blobPrivateLinkDnsZoneLinked) {
+    Write-Host "Linking privatelink DNS zone for blob storage to VNet"
     az network private-dns link vnet create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
         --zone-name "privatelink.blob.core.windows.net" `
         --name $VNET_NAME `
-        --virtual-network $VNET_NAME `
+        --virtual-network $vnetId `
         --registration-enabled false `
         --only-show-errors `
         --output none
 }
 else {
-    Write-Host "Privatelink DNS zone is already linked to VNet"
+    Write-Host "Privatelink DNS zone for blob storage is already linked to VNet"
 }
 
 
-# Check if the A record for the storage account exists in the privatelink DNS zone
-$recordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.blob.core.windows.net" --name $MGMT_STORAGE_NAME --only-show-errors 2>$null
-if (-not $recordExists) {
+# Check if the A record for the storage account exists in the privatelink DNS zone for blob storage. If not, create it.
+$blobRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.blob.core.windows.net" --name $MGMT_STORAGE_NAME --only-show-errors 2>$null
+if (-not $blobRecordExists) {
     Write-Host "Creating A record for storage account in privatelink DNS zone"
     az network private-dns record-set a add-record `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
@@ -664,6 +650,38 @@ if (-not $recordExists) {
 }
 else {
     Write-Host "A record for storage account already exists in privatelink DNS zone"
+}
+
+
+# Create the privatelink DNS zone for keyvault if it doesn't exist
+$keyvaultPrivateLinkDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "privatelink.vaultcore.azure.net" --only-show-errors 2>$null
+if (-not $keyvaultPrivateLinkDnsZoneExists) {
+    Write-Host "Creating privatelink DNS zone for KeyVault"
+    az network private-dns zone create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name "privatelink.vaultcore.azure.net" `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Privatelink DNS zone for KeyVault already exists"
+}
+
+# Link the privatelink DNS zone for KeyVault to the VNet if it isn't already
+$keyvaultPrivateLinkDnsZoneLinked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.vaultcore.azure.net" --name $VNET_NAME --only-show-errors 2>$null
+if (-not $keyvaultPrivateLinkDnsZoneLinked) {
+    Write-Host "Linking privatelink DNS zone for KeyVault to VNet"
+    az network private-dns link vnet create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --zone-name "privatelink.vaultcore.azure.net" `
+        --name $VNET_NAME `
+        --virtual-network $vnetId `
+        --registration-enabled false `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Privatelink DNS zone for KeyVault is already linked to VNet"
 }
 
 
@@ -772,6 +790,7 @@ DNS_RESOURCE_GROUP="$dnsResourceGroup"
 MGMT_RESOURCE_GROUP_NAME="$MGMT_RESOURCE_GROUP_NAME"
 MGMT_STORAGE_NAME="$MGMT_STORAGE_NAME"
 ACR_NAME="$ACR_NAME"
+KEYVAULT_NAME="$KEYVAULT_NAME"
 JUMPBOX_NAME="$JUMPBOX_NAME"
 ADMIN_GROUP_ID="$ADMIN_GROUP_ID"
 LOG_ANALYTICS_READERS_GROUP_ID="$LOG_ANALYTICS_READERS_GROUP_ID"

@@ -20,6 +20,7 @@ module "resource_group" {
 module "keyvault" {
   source                 = "./modules/keyvault"
   resource_group_name    = module.resource_group.name
+  mgmt_resource_group_name = var.mgmt_resource_group_name
   location               = var.location
   keyvault_name          = var.keyvault_name
   admin_group_id = split(",", var.admin_group_id)
@@ -51,6 +52,7 @@ module "storage" {
   source                 = "./modules/storage"
   storage_name           = var.storage_name
   resource_group_name    = module.resource_group.name
+  mgmt_resource_group_name = var.mgmt_resource_group_name
   location               = var.location
   tags                   = local.common_tags
   keyvault_id            = module.keyvault.keyvault_id

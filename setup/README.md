@@ -104,7 +104,6 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
     - Be prepared to justify larger quota increases if automatic approval is not granted.
     - Increasing quotas doesn't incur costs; you're only charged for resources you use.
     - Monitor resource usage and adjust quotas as needed to ensure proper application scaling.
-      
 
 ## Deployment Steps
 
@@ -137,6 +136,29 @@ bash run_terraform.sh
 
 > [!NOTE]
 > You'll be prompted to either input the `ENTRA-CLIENT-SECRET` or use the value if it exists in the Key Vault already. Once the plan is generated, you'll be prompted to apply the changes. Enter `yes` to proceed with the deployment.
+
+
+## DNS Zone Configuration Steps for Cloud Administrator
+
+**Create Child DNS Zone**
+1. Navigate to the parent DNS zone (cloud.justice.gc.ca) in Azure Portal
+2. On the Overview page, click "+ Child zone"
+3. Fill in the details:
+   - Name: <environment>.cloud.justice.gc.ca
+   - Resource group: Same as parent zone
+4. Click "Review + create"
+
+**Grant DNS Permissions**
+1. In the newly created child zone
+2. Select "Access Control (IAM)"
+3. Click "+ Add" > "Add role assignment"
+4. Select "DNS Zone Contributor" role
+5. Assign to:
+   - `jumpbox-identity` in the appropriate environment
+   - `jus-<environment>-aks-identity` in the appropriate environment
+
+These steps must be completed after the Terraform deployment (which creates the managed identities) but before the AKS cluster deployment.
+      
 
 ### 3. Deploy the AKS cluster:
 

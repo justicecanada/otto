@@ -1,9 +1,8 @@
 data "azurerm_client_config" "current" {}
 
-# Private DNS Zone for Azure Key Vault
-resource "azurerm_private_dns_zone" "keyvault_zone" {
+data "azurerm_private_dns_zone" "keyvault_zone" {
   name                = "privatelink.vaultcore.azure.net"
-  resource_group_name = var.resource_group_name
+  resource_group_name = var.mgmt_resource_group_name 
 }
 
 resource "azurerm_key_vault" "kv" {
@@ -45,23 +44,15 @@ resource "azurerm_private_endpoint" "keyvault" {
 
   private_dns_zone_group {
     name                 = "${var.keyvault_name}-zone-group"
-    private_dns_zone_ids = [azurerm_private_dns_zone.keyvault_zone.id]
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault_zone.id]
   }
-}
-
-# Link the Private DNS Zones to the VNet
-resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_link" {
-  name                  = "${var.keyvault_name}-link"
-  resource_group_name   = var.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.keyvault_zone.name
-  virtual_network_id    = var.vnet_id
 }
 
 # DNS A Records for Key Vault
 resource "azurerm_private_dns_a_record" "keyvault_dns" {
   name                = azurerm_key_vault.kv.name
-  zone_name           = azurerm_private_dns_zone.keyvault_zone.name
-  resource_group_name = var.resource_group_name
+  zone_name           = data.azurerm_private_dns_zone.keyvault_zone.name
+  resource_group_name = var.mgmt_resource_group_name
   ttl                 = 300
   records             = [azurerm_private_endpoint.keyvault[0].private_service_connection[0].private_ip_address]
 }

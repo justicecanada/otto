@@ -125,6 +125,7 @@ admin_group_id = "${ADMIN_GROUP_ID}"
 log_analytics_readers_group_id = "${LOG_ANALYTICS_READERS_GROUP_ID}"
 acr_id = "${ACR_ID}"
 resource_group_name = "${RESOURCE_GROUP_NAME}"
+mgmt_resource_group_name = "${MGMT_RESOURCE_GROUP_NAME}"
 keyvault_name = "${KEYVAULT_NAME}"
 cognitive_services_name = "${COGNITIVE_SERVICES_NAME}"
 openai_service_name = "${OPENAI_SERVICE_NAME}"
@@ -143,7 +144,6 @@ gpt_4o_mini_capacity = ${GPT_4o_MINI_CAPACITY}
 text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
 admin_email = "${ADMIN_EMAIL}"
 use_private_network = "${USE_PRIVATE_NETWORK}"
-backup_container_name = "${BACKUP_CONTAINER_NAME}"
 EOF
 
 # Move the .tfvars file to the terraform directory and overwrite the existing file

@@ -47,10 +47,9 @@ resource "azurerm_key_vault_key" "storage_cmk" {
   ]
 }
 
-# Private DNS Zone for Azure Blob Storage
-resource "azurerm_private_dns_zone" "blob_zone" {
+data "azurerm_private_dns_zone" "blob_zone" {
   name                = "privatelink.blob.core.windows.net"
-  resource_group_name = var.resource_group_name
+  resource_group_name = var.mgmt_resource_group_name 
 }
 
 # SC-28: Storage account encryption by default using 256-bit AES encryption
@@ -113,22 +112,15 @@ resource "azurerm_private_endpoint" "storage_endpoint" {
 
   private_dns_zone_group {
     name                 = "${var.storage_name}-zone-group"
-    private_dns_zone_ids = [azurerm_private_dns_zone.blob_zone.id]
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.blob_zone.id]
   }
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "blob_link" {
-  name                  = "${var.storage_name}-link"
-  resource_group_name   = var.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.blob_zone.name
-  virtual_network_id    = var.vnet_id
 }
 
 # DNS A Records for Storage Account
 resource "azurerm_private_dns_a_record" "storage_dns" {
   name                = azurerm_storage_account.storage.name
-  zone_name           = azurerm_private_dns_zone.blob_zone.name
-  resource_group_name = var.resource_group_name
+  zone_name           = data.azurerm_private_dns_zone.blob_zone.name
+  resource_group_name = var.mgmt_resource_group_name
   ttl                 = 300
   records             = [azurerm_private_endpoint.storage_endpoint.private_service_connection[0].private_ip_address]
 }
