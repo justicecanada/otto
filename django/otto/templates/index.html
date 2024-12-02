@@ -18,12 +18,7 @@
          class="d-inline-block align-top"
          width="108"
          height="auto"
-         style="position: relative;
-                top: -68px;
-                width: 108px;
-                height: auto;
-                margin-left: 18px;
-                margin-bottom: -71px"
+         id="otto-logo"
          alt="Smiling robot wearing Justice logo">
     <br>
     Otto
@@ -58,5 +53,26 @@
       </div>
     {% endfor %}
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchElement = document.querySelector('#top-nav-search');
+      const logoElement = document.querySelector('#otto-logo');
+      if (searchElement && logoElement) {
+        searchElement.addEventListener('focusin', function() {
+          logoElement.style.transform = 'translateY(26px)';
+        });
+
+        searchElement.addEventListener('mouseover', function() {
+          logoElement.style.transform = 'translateY(26px)';
+        });
+
+        logoElement.addEventListener('mouseover', function() {
+          logoElement.style.transform = 'translateY(26px)';
+        });
+        
+      }
+    });
+  </script>
 
 {% endblock %}
