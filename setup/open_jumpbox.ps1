@@ -2,7 +2,7 @@ param (
     [string]$subscription = "",
     [string]$mgmtGroup = "",
     [string]$jumpbox = "",
-    [int]$connectChoice = 1, # 1 for Azure CLI, 2 for SSH tunnel
+    [int]$connectChoice = 1, # 1 for Azure CLI (good for interactive shell), 2 for SSH tunnel (good for VS Code)
     [string]$skipSSHUpdate = "false"
 )
 
@@ -37,6 +37,27 @@ if ($count -ne 1) {
 $vmId = $jumpboxIds
 $mgmtGroup = az vm show --ids $vmId --query "resourceGroup" -o tsv
 Write-Host "Using the jumpbox VM in resource group $mgmtGroup"
+
+
+
+# If the VM is powered off, start it
+$vmState = az vm show `
+    --id $vmId `
+    --show-details `
+    --query "powerState" `
+    --output tsv
+
+if ($vmState -eq "VM deallocated") {
+    Write-Host "Starting the Jumpbox VM"
+    az vm start `
+        --id $vmId `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Jumpbox VM is already running"
+}
+
 
 
 # TODO: Consider using RBAC and JIT VM once Defender for Cloud is available

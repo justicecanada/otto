@@ -47,6 +47,12 @@ resource "azurerm_key_vault_key" "storage_cmk" {
   ]
 }
 
+# Private DNS Zone for Azure Blob Storage
+resource "azurerm_private_dns_zone" "blob_zone" {
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = var.resource_group_name
+}
+
 # SC-28: Storage account encryption by default using 256-bit AES encryption
 # SC-8: Azure Storage implicitly enables secure transfer
 resource "azurerm_storage_account" "storage" {
@@ -86,26 +92,46 @@ resource "azurerm_storage_account" "storage" {
     virtual_network_subnet_ids = [var.app_subnet_id] # Allow access from the app subnets
   }
 
+  private_dns_zone_group {
+    name                 = "blob-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.blob_zone.id]
+  }
+
   tags = var.tags
 
   depends_on = [azurerm_key_vault_key.storage_cmk, null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id]
 }
 
-# TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
-# resource "azurerm_private_endpoint" "storage_blob" {
-#   count               = var.use_private_network ? 1 : 0
-#   name                = "${var.storage_name}-blob-endpoint"
-#   location            = var.location
-#   resource_group_name = var.resource_group_name
-#   subnet_id           = var.app_subnet_id
+# Private Endpoint for Azure Storage
+resource "azurerm_private_endpoint" "storage_endpoint" {
+  name                = "${var.storage_name}-endpoint"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.app_subnet_id
 
-#   private_service_connection {
-#     name                           = "${var.storage_name}-blob-connection"
-#     private_connection_resource_id = azurerm_storage_account.storage.id
-#     is_manual_connection           = false
-#     subresource_names              = ["blob"]
-#   }
-# }
+  private_service_connection {
+    name                           = "${var.storage_name}-connection"
+    private_connection_resource_id = azurerm_storage_account.storage.id
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "blob_link" {
+  name                  = "${var.storage_name}-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.blob_zone.name
+  virtual_network_id    = var.vnet_id
+}
+
+# DNS A Records for Storage Account
+resource "azurerm_private_dns_a_record" "storage_dns" {
+  name                = azurerm_storage_account.storage.name
+  zone_name           = azurerm_private_dns_zone.blob_zone.name
+  resource_group_name = var.resource_group_name
+  ttl                 = 300
+  records             = [azurerm_private_endpoint.storage_endpoint.private_service_connection[0].private_ip_address]
+}
 
 resource "azurerm_storage_management_policy" "lifecycle" {
   storage_account_id = azurerm_storage_account.storage.id

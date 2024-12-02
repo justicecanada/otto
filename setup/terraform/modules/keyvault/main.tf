@@ -1,5 +1,11 @@
 data "azurerm_client_config" "current" {}
 
+# Private DNS Zone for Azure Key Vault
+resource "azurerm_private_dns_zone" "keyvault_zone" {
+  name                = "privatelink.vaultcore.azure.net"
+  resource_group_name = var.resource_group_name
+}
+
 resource "azurerm_key_vault" "kv" {
   # SC-12: Centralized key management system
   name                       = var.keyvault_name
@@ -18,25 +24,47 @@ resource "azurerm_key_vault" "kv" {
     bypass                     = "AzureServices"
     virtual_network_subnet_ids = [var.app_subnet_id, var.web_subnet_id] # Allow access from the app, web, and database subnets
   }
+  
+  private_dns_zone_group {
+    name                 = "keyvault-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.keyvault_zone.id]
+  }
 
   tags = var.tags
 }
 
-# TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
-# resource "azurerm_private_endpoint" "keyvault" {
-#   count               = var.use_private_network ? 1 : 0
-#   name                = "${var.keyvault_name}-endpoint"
-#   location            = var.location
-#   resource_group_name = var.resource_group_name
-#   subnet_id           = var.app_subnet_id
+# Private Endpoint for Azure Key Vault
+resource "azurerm_private_endpoint" "keyvault" {
+  count               = var.use_private_network ? 1 : 0
+  name                = "${var.keyvault_name}-endpoint"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.app_subnet_id
 
-#   private_service_connection {
-#     name                           = "${var.keyvault_name}-connection"
-#     private_connection_resource_id = azurerm_key_vault.kv.id
-#     is_manual_connection           = false
-#     subresource_names              = ["vault"]
-#   }
-# }
+  private_service_connection {
+    name                           = "${var.keyvault_name}-connection"
+    private_connection_resource_id = azurerm_key_vault.kv.id
+    is_manual_connection           = false
+    subresource_names              = ["vault"]
+  }
+}
+
+# Link the Private DNS Zones to the VNet
+resource "azurerm_private_dns_zone_virtual_network_link" "keyvault_link" {
+  name                  = "${var.keyvault_name}-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.keyvault_zone.name
+  virtual_network_id    = var.vnet_id
+}
+
+# DNS A Records for Key Vault
+resource "azurerm_private_dns_a_record" "keyvault_dns" {
+  name                = azurerm_key_vault.kv.name
+  zone_name           = azurerm_private_dns_zone.keyvault_zone.name
+  resource_group_name = var.resource_group_name
+  ttl                 = 300
+  records             = [azurerm_private_endpoint.keyvault[0].private_service_connection[0].private_ip_address]
+}
 
 resource "azurerm_role_assignment" "kv_role" {
   for_each             = toset(var.admin_group_object_ids)

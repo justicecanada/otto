@@ -33,6 +33,33 @@ resource "azurerm_private_dns_zone_virtual_network_link" "aks_dns_link" {
   registration_enabled  = false
 }
 
+# NSG for the AKS subnet to allow Inbound on port 443
+resource "azurerm_network_security_group" "aks_nsg" {
+  name                = "${var.aks_cluster_name}-nsg"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  security_rule {
+    name                       = "AllowAKSInbound"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "*"
+  }
+
+  tags = var.tags
+}
+
+# Associate the NSG with the web subnet
+resource "azurerm_subnet_network_security_group_association" "aks_nsg_association" {
+  subnet_id                 = var.web_subnet_id
+  network_security_group_id = azurerm_network_security_group.aks_nsg.id
+}
+
 # Define the Azure Kubernetes Service (AKS) cluster
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_cluster_name
@@ -127,6 +154,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
     # Outbound type determines how outbound traffic is handled
     # "loadBalancer" is the default and recommended for most scenarios
     outbound_type = "loadBalancer"
+
+
+    # Associate the NSG with the AKS cluster
+    network_security_group_id = azurerm_network_security_group.aks_nsg.id
   }
 
   oms_agent {
