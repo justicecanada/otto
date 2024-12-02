@@ -2470,5 +2470,57 @@
     "Download all files...": {
         "fr": "",
         "fr_auto": "Téléchargez tous les fichiers..."
+    },
+    "Empowering Justice efficiency with data and AI": {
+        "fr": "",
+        "fr_auto": "Renforcer l’efficacité de la justice avec les données et l’IA"
+    },
+    "An error occurred.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite."
+    },
+    "Read each document separately  (slow, $$)": {
+        "fr": "",
+        "fr_auto": "Lisez chaque document séparément (lent, $$)"
+    },
+    "Read all documents at once (slowest, $$)": {
+        "fr": "",
+        "fr_auto": "Lire tous les documents en même temps (le plus lent, $$)"
+    },
+    "Full documents, separate answers ($)": {
+        "fr": "",
+        "fr_auto": "Documents complets, réponses séparées ($)"
+    },
+    "Full documents, combined answer ($)": {
+        "fr": "",
+        "fr_auto": "Documents complets, réponse combinée ($)"
+    },
+    "Error translating files.": {
+        "fr": "",
+        "fr_auto": "Erreur de traduction des fichiers."
+    },
+    "Load test": {
+        "fr": "",
+        "fr_auto": "Essai de charge"
+    },
+    "Disable load test URL": {
+        "fr": "",
+        "fr_auto": "Désactiver l’URL du test de chargement"
+    },
+    "Enable load test URL": {
+        "fr": "",
+        "fr_auto": "Activer l’URL du test de charge"
+    },
+    "Load testing URL is enabled": {
+        "fr": "",
+        "fr_auto": "L’URL de test de chargement est activée"
+    },
+    "UPN": {
+        "fr": "",
+        "fr_auto": "L’UPN"
+    },
+    "Enable load test URL for 1 hour": {
+        "fr": "",
+        "fr_auto": "Activer l’URL du test de charge pendant 1 heure"
     }
 }
