@@ -24,11 +24,6 @@ resource "azurerm_key_vault" "kv" {
     bypass                     = "AzureServices"
     virtual_network_subnet_ids = [var.app_subnet_id, var.web_subnet_id] # Allow access from the app, web, and database subnets
   }
-  
-  private_dns_zone_group {
-    name                 = "keyvault-zone-group"
-    private_dns_zone_ids = [azurerm_private_dns_zone.keyvault_zone.id]
-  }
 
   tags = var.tags
 }
@@ -46,6 +41,11 @@ resource "azurerm_private_endpoint" "keyvault" {
     private_connection_resource_id = azurerm_key_vault.kv.id
     is_manual_connection           = false
     subresource_names              = ["vault"]
+  }
+
+  private_dns_zone_group {
+    name                 = "${var.keyvault_name}-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.keyvault_zone.id]
   }
 }
 
@@ -67,7 +67,7 @@ resource "azurerm_private_dns_a_record" "keyvault_dns" {
 }
 
 resource "azurerm_role_assignment" "kv_role" {
-  for_each             = toset(var.admin_group_object_ids)
+  for_each             = toset(var.admin_group_id)
   scope                = azurerm_key_vault.kv.id
   role_definition_name = "Key Vault Administrator"
   principal_id         = each.value

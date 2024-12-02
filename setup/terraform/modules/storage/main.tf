@@ -190,7 +190,7 @@ resource "azurerm_role_assignment" "storage_identity_data_owner" {
 
 # Assign "Storage Blob Data Owner" role to the admin group
 resource "azurerm_role_assignment" "storage_admin" {
-  for_each             = toset(var.admin_group_object_ids)
+  for_each             = toset(var.admin_group_id)
   scope                = azurerm_storage_account.storage.id
   role_definition_name = "Storage Blob Data Owner"
   principal_id         = each.value

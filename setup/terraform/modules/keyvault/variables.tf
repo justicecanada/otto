@@ -19,7 +19,7 @@ variable "tags" {
   default     = {}
 }
 
-variable "admin_group_object_ids" {
+variable "admin_group_id" {
   type        = list(string)
   description = "List of object IDs of the admin Azure AD groups"
 }
@@ -27,6 +27,11 @@ variable "admin_group_object_ids" {
 variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the Key Vaults"
+}
+
+variable "vnet_id" {
+  type        = string
+  description = "The ID of the VNet to which the Key Vaults should be linked"
 }
 
 variable "app_subnet_id" {

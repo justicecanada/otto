@@ -181,7 +181,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   azure_active_directory_role_based_access_control {
     managed                = true # Deprecated but still required
     azure_rbac_enabled     = true # AC-22: Enable Azure RBAC
-    admin_group_object_ids = var.admin_group_object_ids
+    admin_group_id = var.admin_group_id
   }
 
   local_account_disabled = true
@@ -223,7 +223,7 @@ resource "azurerm_role_assignment" "aks_network_contributor" {
 }
 
 resource "azurerm_role_assignment" "rbac_cluster_admin" {
-  for_each             = toset(var.admin_group_object_ids)
+  for_each             = toset(var.admin_group_id)
   principal_id         = each.value
   role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
   scope                = azurerm_kubernetes_cluster.aks.id
@@ -279,7 +279,7 @@ resource "azurerm_role_assignment" "aks_storage_blob_data_contributor" {
 }
 
 resource "azurerm_role_assignment" "aks_log_analytics_reader" {
-  for_each             = toset(var.log_analytics_readers_group_object_ids)
+  for_each             = toset(var.log_analytics_readers_group_id)
   principal_id         = each.value
   role_definition_name = "Log Analytics Reader"
   scope                = azurerm_log_analytics_workspace.aks.id

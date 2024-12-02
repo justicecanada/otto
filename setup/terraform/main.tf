@@ -22,9 +22,10 @@ module "keyvault" {
   resource_group_name    = module.resource_group.name
   location               = var.location
   keyvault_name          = var.keyvault_name
-  admin_group_object_ids = var.admin_group_object_ids
+  admin_group_id = var.admin_group_id
   tags                   = local.common_tags
   use_private_network    = var.use_private_network
+  vnet_id                = var.vnet_id
   app_subnet_id          = var.app_subnet_id
   web_subnet_id          = var.web_subnet_id
 }
@@ -55,9 +56,10 @@ module "storage" {
   keyvault_id            = module.keyvault.keyvault_id
   cmk_name               = module.keyvault.cmk_name
   wait_for_propagation   = module.keyvault.wait_for_propagation
-  admin_group_object_ids = var.admin_group_object_ids
+  admin_group_id = var.admin_group_id
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
+  vnet_id                = var.vnet_id
   app_subnet_id          = var.app_subnet_id
   web_subnet_id          = var.web_subnet_id
 }
@@ -101,8 +103,8 @@ module "aks" {
   aks_cluster_name                       = var.aks_cluster_name
   location                               = var.location
   resource_group_name                    = module.resource_group.name
-  admin_group_object_ids                 = var.admin_group_object_ids
-  log_analytics_readers_group_object_ids = var.log_analytics_readers_group_object_ids
+  admin_group_id                 = var.admin_group_id
+  log_analytics_readers_group_id = var.log_analytics_readers_group_id
   keyvault_id                            = module.keyvault.keyvault_id
   acr_id                                 = var.acr_id
   disk_encryption_set_id                 = module.disk.disk_encryption_set_id
