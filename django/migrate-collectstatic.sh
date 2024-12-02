@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Set up pgBouncer based on environment variables
+
 # Wait for the database to be ready
 echo "Waiting for database..."
 { python manage.py wait_for_db || { echo "Error: Wait for database failed"; exit 1; } }
