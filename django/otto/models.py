@@ -489,7 +489,8 @@ FEATURE_CHOICES = [
     ("template_wizard", _("Template Wizard")),
     ("laws_query", _("Legislation Search")),
     ("laws_load", _("Legislation loading")),
-    ("text_extractor", _("Text Extractor")),
+    ("text_extractor", _("Text extractor")),
+    ("lex_experiment", _("Lex experiment")),
     ("load_test", _("Load test")),
 ]
 
