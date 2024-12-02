@@ -22,7 +22,7 @@ pidfile = /etc/pgbouncer/pgbouncer.pid
 listen_addr = localhost
 listen_port = 6432
 
-unix_socket_dir = /var/run/postgresql
+unix_socket_dir = 
 
 ;; any, trust, plain, md5, cert, hba, pam
 auth_type = plain
