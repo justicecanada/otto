@@ -90,20 +90,3 @@
           description_fr: Extrait de texte et d'écriture manuscrite à partir de PDF numérisés et d'images avec OCR activé par l'IA.
           url: text_extractor:index
           category: other
-
-- model: otto.App
-  fields:
-    handle: lex_experiment
-    name_en: LEX experiment
-    name_fr: Expérience LEX
-    prod_ready: true
-    user_group: LEX experiment user
-    features:
-      - fields:
-          short_name: "lex_experiment"
-          name_en: LEX experiment
-          name_fr: Expérience LEX
-          description_en: A hybrid solution combining Text Extraction and Q&A functionalities, designed to assist LEX users in efficiently retrieving critical information from Notices of Appeal.
-          description_fr: Une solution hybride combinant les fonctionnalités d'extraction de texte et de questions-réponses, conçue pour aider les utilisateurs de LEX à récupérer efficacement des informations cruciales à partir des avis d'appel.
-          url: lex_experiment:index
-          category: other
