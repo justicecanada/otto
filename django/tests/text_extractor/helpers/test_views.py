@@ -88,12 +88,12 @@ def test_download_document(client, all_apps_user, output_file):
             )
         )
         assert response.status_code == 200
-        # assert response["Content-Type"] == "application/octet-stream"
+        assert response["Content-Type"] == "application/octet-stream"
         assert (
             response["Content-Disposition"]
             == 'attachment; filename="test_document.pdf"'
         )
-        # assert response.content == b"PDF content"
+        assert response.content == b"PDF content"
 
         # Test downloading TXT file
         response = client.get(
@@ -102,9 +102,9 @@ def test_download_document(client, all_apps_user, output_file):
             )
         )
         assert response.status_code == 200
-        # assert response["Content-Type"] == "application/octet-stream"
+        assert response["Content-Type"] == "application/octet-stream"
         assert (
             response["Content-Disposition"]
             == 'attachment; filename="test_document.txt"'
         )
-        # assert response.content == b"TXT content"
+        assert response.content == b"TXT content"

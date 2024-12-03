@@ -237,11 +237,11 @@ def basic_feedback():
 def output_file():
     pdf_mock = MagicMock()
     pdf_mock.name = "test.pdf"
-    pdf_mock.read.return_value = b"PDF content"
+    pdf_mock.open.return_value.__enter__.return_value.read.return_value = b"PDF content"
 
     txt_mock = MagicMock()
     txt_mock.name = "test.txt"
-    txt_mock.read.return_value = b"TXT content"
+    txt_mock.open.return_value.__enter__.return_value.read.return_value = b"TXT content"
 
     output_file = MagicMock(spec=OutputFile)
     output_file.id = uuid.uuid4()
