@@ -107,7 +107,7 @@ $MGMT_STORAGE_ENDPOINT = "${MGMT_STORAGE_NAME}-endpoint"
 $ACR_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}acr".ToLower()
 $KEYVAULT_NAME = "${ORGANIZATION}-${INTENDED_USE}-${APP_NAME}-kv".ToLower()
 $JUMPBOX_NAME = "jumpbox"
-
+$JUMPBOX_IDENTITY_NAME = "$JUMPBOX_NAME-identity"
 
 # Create management resource group if it doesn't exist
 $groupExists = az group show --name $MGMT_RESOURCE_GROUP_NAME --only-show-errors 2>$null
@@ -456,23 +456,22 @@ else {
 
 
 # Check if the user-assigned managed identity exists
-$identityName = "$JUMPBOX_NAME-identity"
-$identityExists = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $identityName --only-show-errors 2>$null
+$identityExists = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_IDENTITY_NAME --only-show-errors 2>$null
 
 if (-not $identityExists) {
-    Write-Host "Creating user-assigned managed identity: $identityName"
+    Write-Host "Creating user-assigned managed identity: $JUMPBOX_IDENTITY_NAME"
     az identity create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --name $identityName `
+        --name $JUMPBOX_IDENTITY_NAME `
         --only-show-errors `
         --output none
 }
 else {
-    Write-Host "User-assigned managed identity $identityName already exists"
+    Write-Host "User-assigned managed identity $JUMPBOX_IDENTITY_NAME already exists"
 }
 
 # Get the resource ID of the managed identity
-$identityResourceId = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $identityName --query id -o tsv
+$identityResourceId = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_IDENTITY_NAME --query id -o tsv
 
 
 # Check if the Jumpbox VM exists. If not, create it with the user-assigned managed identity.
@@ -499,6 +498,31 @@ else {
     Write-Host "Jumpbox VM $JUMPBOX_NAME already exists"
 }
 
+
+# TODO: The following code was meant to ensure that the VM only has user-assigned managed identity, but it wasn't working as expected. Need to clean it up later. For now, will explicitly specify which identity to use when logging in.
+
+# $vm = az vm show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME | ConvertFrom-Json
+
+# if ($vm.identity.type -eq "UserAssigned") {
+#     Write-Host "VM is correctly configured with only user-assigned managed identity."
+# }
+# else {
+#     Write-Host "VM identity configuration needs adjustment."
+    
+#     # Remove system-assigned identity if present
+#     if ($vm.identity.type -eq "SystemAssigned, UserAssigned") {
+
+#         Write-Host "Explicitly assigning user-assigned managed identity..."
+#         az vm identity assign --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --identities $identityResourceId
+
+#         Write-Host "Removing system-assigned managed identity..."
+#         az vm identity remove --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --identities [system]
+#     }
+    
+#     # Ensure only user-assigned identity is present
+#     Write-Host "Updating VM to use only user-assigned managed identity..."
+#     az vm identity assign --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --identities $identityResourceId
+# }
 
 
 # Capture the VM identity ID
@@ -527,7 +551,7 @@ if (-not $ownerRoleAssignment) {
     }
     catch {
         Write-Host $_.Exception.Message
-        Write-Host "The Owner role, with highest privilege, is required for the VM to create resources in the subscription and manage user access between resources. The Contributor role is not sufficient as it lacks User Access Administrator permissions. The Terraform script will fail without this role assignment. Please contact your Cloud Administrator or another subscription owner with highest privileges to assign the Owner role to $identityName ($vmIdentityId)."
+        Write-Host "The Owner role, with highest privilege, is required for the VM to create resources in the subscription and manage user access between resources. The Contributor role is not sufficient as it lacks User Access Administrator permissions. The Terraform script will fail without this role assignment. Please contact your Cloud Administrator or another subscription owner with highest privileges to assign the Owner role to $JUMPBOX_IDENTITY_NAME ($vmIdentityId)."
         
         $continue = Read-Host "Do you want to continue without this role assignment? (y/n)"
         if ($continue -ne "y") {
@@ -764,6 +788,8 @@ else {
 }
 
 
+$jumpboxIdentityId = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_IDENTITY_NAME --query id -o tsv
+
 # Create the setup script
 $setupScript = @"
 #!/bin/bash
@@ -832,6 +858,8 @@ MGMT_STORAGE_NAME="$MGMT_STORAGE_NAME"
 ACR_NAME="$ACR_NAME"
 KEYVAULT_NAME="$KEYVAULT_NAME"
 JUMPBOX_NAME="$JUMPBOX_NAME"
+JUMPBOX_IDENTITY_NAME="$JUMPBOX_IDENTITY_NAME"
+JUMPBOX_IDENTITY_ID="$jumpboxIdentityId"
 ADMIN_GROUP_ID="$ADMIN_GROUP_ID"
 LOG_ANALYTICS_READERS_GROUP_ID="$LOG_ANALYTICS_READERS_GROUP_ID"
 VNET_ID="$vnetId"

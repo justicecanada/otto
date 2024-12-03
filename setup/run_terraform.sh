@@ -8,7 +8,7 @@ CURRENT_DIR=$(pwd)
 # Function to clean up temporary files and return to the original directory
 cleanup() {
     rm -f backend_config.hcl
-    cd "$CURRENT_DIR" || exit 1
+    cd "$CURRENT_DIR"
 }
 trap cleanup EXIT
 
@@ -81,7 +81,7 @@ if az keyvault show --name "$KEYVAULT_NAME" --resource-group "$RESOURCE_GROUP_NA
         done <<< "$current_assignments"
 
         # Get the managed identity's object ID
-        managed_identity_id=$(az identity show --name $JUMPBOX_NAME-identity --resource-group $MGMT_RESOURCE_GROUP_NAME --query principalId -o tsv)
+        managed_identity_id=$(az identity show --name $JUMPBOX_IDENTITY_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query principalId -o tsv)
 
         # Check if role assignment already exists
         if ! az role assignment list \
@@ -99,6 +99,12 @@ if az keyvault show --name "$KEYVAULT_NAME" --resource-group "$RESOURCE_GROUP_NA
             # Inform the user of a propagation delay requirement and ask for confirmation before continuing
             echo "Role assignment created. Please wait for the permissions to propagate before continuing. Press any key to continue..."
             read -n 1 -s
+        fi
+
+        # If there is a customer-managed key in the keyvault, delete it so that Terraform can manage it
+        if az keyvault key list --vault-name "$KEYVAULT_NAME" --query "[?managed==null].kid" -o tsv &>/dev/null; then
+            echo "Key Vault contains customer-managed keys, deleting..."
+            az keyvault key list --vault-name "$KEYVAULT_NAME" --query "[?managed==null].kid" -o tsv | xargs -I {} az keyvault key delete --vault-name "$KEYVAULT_NAME" --name "$(basename {})"
         fi
 
     fi
@@ -148,10 +154,10 @@ if [[ $ENABLE_DEBUG =~ ^[Yy]$ ]]; then
     mkdir -p .terraform/debug
 
     # Ensure terraform is initialized and upgraded
-    terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure > ".terraform/debug/$TIMESTAMP-init.txt" 2>&1
+    run_command terraform init -backend-config=backend_config.hcl -backend-config="access_key=$TFSTATE_ACCESS_KEY" -upgrade -reconfigure > ".terraform/debug/$TIMESTAMP-init.txt" 2>&1
 
     # Apply the Terraform configuration
-    terraform apply -var-file=.tfvars > ".terraform/debug/$TIMESTAMP-apply.txt" 2>&1
+    run_command terraform apply -var-file=.tfvars > ".terraform/debug/$TIMESTAMP-apply.txt" 2>&1
 
 else
 

@@ -15,8 +15,18 @@ export VNET_ID
 export WEB_SUBNET_ID
 export APP_SUBNET_ID
 
-# Login to Azure if not already logged in
-az account show &> /dev/null || az login --identity --only-show-errors --output none
+
+# Login with the jumpbox identity
+if ! az account show &> /dev/null; then
+    echo "Not logged in. Logging in with jumpbox identity..."
+    az login --identity --username "$JUMPBOX_IDENTITY_ID" --only-show-errors --output none
+else
+    CURRENT_IDENTITY_ID=$(az account show --query user.assignedIdentityInfo -o tsv)
+    if [ "$CURRENT_IDENTITY_ID" != "MSIClient-$JUMPBOX_IDENTITY_ID" ]; then
+        echo "Current identity doesn't match jumpbox identity. Logging in with jumpbox identity..."
+        az login --identity --username "$JUMPBOX_IDENTITY_ID" --only-show-errors --output none
+    fi
+fi
 
 # Set the subscription
 [ -n "$SUBSCRIPTION_ID" ] && az account set --subscription "$SUBSCRIPTION_ID" --only-show-errors --output none
