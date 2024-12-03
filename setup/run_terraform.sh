@@ -67,12 +67,9 @@ if az cognitiveservices account show --name "$OPENAI_SERVICE_NAME" --resource-gr
         echo "OpenAI service exists but not in Terraform state, deleting..."
         az cognitiveservices account delete --name "$OPENAI_SERVICE_NAME" --resource-group "$RESOURCE_GROUP_NAME"
         
-        # Wait for a short period to ensure the deletion is processed
-        echo "Waiting for the OpenAI service to be deleted..."
-        sleep 10
-
-        echo "Purging the OpenAI service to release the quotas..."
-        az cognitiveservices account purge --name "$OPENAI_SERVICE_NAME" --resource-group "$RESOURCE_GROUP_NAME" --location "$LOCATION"
+        # Prompt the user to use the Portal to purge the service manually and wait for confirmation
+        echo "OpenAI service deleted. Please go to the Azure Portal and purge the service to release the quotas. Press any key to continue..."
+        read -n 1 -s
     fi
 fi
 

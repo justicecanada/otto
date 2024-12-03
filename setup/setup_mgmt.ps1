@@ -25,6 +25,27 @@ az account set --subscription $SUBSCRIPTION_ID `
     --output none
 
 
+# Get the logged-in user's name
+$loggedInUser = az account show --query user.name -o tsv
+
+# Check for Owner role assignment
+$ownerRoleAssignment = az role assignment list --assignee $loggedInUser --role "Owner" --scope /subscriptions/$SUBSCRIPTION_ID -o tsv
+
+# If the logged-in user is not an Owner, prompt them to activate the role before continuing
+if (-not $ownerRoleAssignment) {
+    Write-Host "The Owner role, with highest privilege, is required for the subscription. The Contributor role is not sufficient as it lacks User Access Administrator permissions."
+    Write-Host "Please activate the role or contact an Administrator to assign the Owner role to $loggedInUser."
+    
+    $continue = Read-Host "Have you been assigned the Owner role and has it been activated? (y/N)"
+    
+    if ($continue.ToLower() -ne "y") {
+        Write-Host "Exiting script. Please run the script again once you have been assigned the Owner role."
+        exit
+    }
+}
+
+
+
 # If $envFile is not provided, prompt for it by listing the .env* files in the current directory
 if (-not $envFile) {
     Write-Host "Available .env files in the current directory:"
@@ -479,6 +500,7 @@ else {
 }
 
 
+
 # Capture the VM identity ID
 $vmIdentityId = az vm identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --query principalId -o tsv
 
@@ -505,7 +527,7 @@ if (-not $ownerRoleAssignment) {
     }
     catch {
         Write-Host $_.Exception.Message
-        Write-Host "The Owner role is required for the VM to create resources in the subscription and manage user access between resources. The Contributor role is not sufficient as it lacks User Access Administrator permissions. The Terraform script will fail without this role assignment. Please contact your Cloud Administrator to assign the Owner role to $identityName ($vmIdentityId)."
+        Write-Host "The Owner role, with highest privilege, is required for the VM to create resources in the subscription and manage user access between resources. The Contributor role is not sufficient as it lacks User Access Administrator permissions. The Terraform script will fail without this role assignment. Please contact your Cloud Administrator or another subscription owner with highest privileges to assign the Owner role to $identityName ($vmIdentityId)."
         
         $continue = Read-Host "Do you want to continue without this role assignment? (y/n)"
         if ($continue -ne "y") {

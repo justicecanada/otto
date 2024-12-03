@@ -7,7 +7,7 @@ resource "null_resource" "wait_for_purge_protection" {
 }
 
 resource "azurerm_disk_access" "disk_access" {
-  name                = "${var.disk_name}-disk-access"
+  name                = "${var.disk_name}-access"
   resource_group_name = var.resource_group_name
   location            = var.location
   tags                = var.tags
@@ -95,13 +95,13 @@ resource "azurerm_managed_disk" "aks_hdd_disk" {
 
 # Create a private endpoint for each disk
 resource "azurerm_private_endpoint" "disk_access_endpoint" {
-  name                = "${var.disk_name}-disk-access-endpoint"
+  name                = "${var.disk_name}-access-endpoint"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = var.app_subnet_id
 
   private_service_connection {
-    name                           = "${var.disk_name}-disk-access-privateserviceconnection"
+    name                           = "${var.disk_name}-access-privateserviceconnection"
     private_connection_resource_id = azurerm_disk_access.disk_access.id
     is_manual_connection           = false
     subresource_names              = ["disks"]
