@@ -285,5 +285,6 @@ def output_file():
     output_file.pdf_file = pdf_mock
     output_file.txt_file = txt_mock
     output_file.file_name = "test_document"
+    output_file.usd_cost = 1.0
 
     return output_file
