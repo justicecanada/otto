@@ -25,6 +25,7 @@ metadata:
   labels:
     deployment: celery-worker
 spec:
+  replicas: 1
   selector:
     matchLabels:
       pod: celery-worker
@@ -37,9 +38,6 @@ spec:
         - name: celery-worker
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the latest image from Azure Container Registry
           command: ['celery', '-A', 'otto', 'worker', '-l', 'INFO', '--pool=gevent', '--concurrency=256']  # Starts Celery worker
-          securityContext:
-            allowPrivilegeEscalation: false  # Privilege escalation is disabled
-            readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
           envFrom:
             - configMapRef:
                 name: otto-configmap  # Loads environment variables from a ConfigMap
@@ -123,34 +121,6 @@ spec:
           claimName: media-pvc  # References the PVC defined earlier
       - name: tmp
         emptyDir: {}
----
-
-# HorizontalPodAutoscaler for Celery Worker
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: celery-worker-hpa
-  namespace: otto
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: celery-worker
-  minReplicas: ${CELERY_REPLICAS_MIN}
-  maxReplicas: ${CELERY_REPLICAS_MAX}
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 70
 
 ---
 
@@ -163,7 +133,7 @@ metadata:
   labels:
     deployment: celery-beat
 spec:
-  replicas: 1  # Runs one instance of the beat scheduler
+  replicas: 1
   selector:
     matchLabels:
       pod: celery-beat
@@ -176,9 +146,6 @@ spec:
         - name: celery-beat
           image: ${ACR_NAME}.azurecr.io/otto:latest  # Uses the same image as the worker
           command: ['celery', '-A', 'otto', 'beat', '-l', 'INFO', '--scheduler', 'django_celery_beat.schedulers:DatabaseScheduler']  # Starts Celery beat scheduler
-          securityContext:
-            allowPrivilegeEscalation: false  # Privilege escalation is disabled
-            readOnlyRootFilesystem: true  # The root filesystem is read-only for added security
           envFrom:
             - configMapRef:
                 name: otto-configmap  # Loads environment variables from a ConfigMap
