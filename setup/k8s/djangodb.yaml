@@ -167,37 +167,6 @@ spec:
             secretKeyRef:
               name: azure-keyvault-secrets
               key: djangodbpasswordkey
-        - name: PGBOUNCER_DATABASE
-          valueFrom:
-            configMapKeyRef:
-              name: otto-configmap
-              key: DJANGODB_NAME
-        - name: PGBOUNCER_POOL_MODE
-          value: transaction
-        - name: PGBOUNCER_MAX_CLIENT_CONN
-          value: "1000"
-        - name: PGBOUNCER_MAX_DB_CONNECTIONS
-          value: "200"
-        - name: PGBOUNCER_DEFAULT_POOL_SIZE
-          value: "50"
-        - name: PGBOUNCER_MIN_POOL_SIZE
-          value: "5"
-        - name: PGBOUNCER_RESERVE_POOL_SIZE
-          value: "10"
-        - name: POSTGRESQL_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              name: otto-configmap
-              key: DJANGODB_USER
-        - name: POSTGRESQL_DATABASE
-          valueFrom:
-            configMapKeyRef:
-              name: otto-configmap
-              key: DJANGODB_NAME
-        - name: POSTGRESQL_HOST
-          value: postgres-django-service
-        - name: POSTGRESQL_PORT
-          value: "5432"
         resources:
           requests:
             cpu: "500m"
