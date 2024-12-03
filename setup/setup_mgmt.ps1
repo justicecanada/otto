@@ -482,23 +482,41 @@ else {
 # Capture the VM identity ID
 $vmIdentityId = az vm identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --query principalId -o tsv
 
-# Check if the VM identity has Contributor role assignment. If not, assign it.
-$roleAssignment = az role assignment list --assignee $vmIdentityId --role Contributor --scope /subscriptions/$SUBSCRIPTION_ID -o tsv
-if (-not $roleAssignment) {
-    Write-Host "Assigning Contributor role to VM identity"
+# Check if the VM identity has Owner role assignment. If not, attempt to assign it.
+# Note: Contributor role is not sufficient as the VM needs to also have User Access Administrator, which is not assignable without higher permissions.
+$ownerRoleAssignment = az role assignment list --assignee $vmIdentityId --role "Owner" --scope /subscriptions/$SUBSCRIPTION_ID -o tsv
 
-    # Assign the Contributor role to the VM identity
-    az role assignment create `
-        --assignee $vmIdentityId `
-        --role Contributor `
-        --scope /subscriptions/$SUBSCRIPTION_ID `
-        --only-show-errors `
-        --output none
+if (-not $ownerRoleAssignment) {
+    Write-Host "VM identity does not have the Owner role assignment. Attempting to assign..."
+
+    try {
+        $result = az role assignment create `
+            --assignee $vmIdentityId `
+            --role "Owner" `
+            --scope /subscriptions/$SUBSCRIPTION_ID `
+            --only-show-errors `
+            2>&1
+
+        if ($LASTEXITCODE -ne 0) {
+            throw $result
+        }
+
+        Write-Host "Successfully assigned Owner role to VM identity."
+    }
+    catch {
+        Write-Host $_.Exception.Message
+        Write-Host "The Owner role is required for the VM to create resources in the subscription and manage user access between resources. The Contributor role is not sufficient as it lacks User Access Administrator permissions. The Terraform script will fail without this role assignment. Please contact your Cloud Administrator to assign the Owner role to $identityName ($vmIdentityId)."
+        
+        $continue = Read-Host "Do you want to continue without this role assignment? (y/n)"
+        if ($continue -ne "y") {
+            exit
+        }
+        Write-Host "Continuing with the rest of the script..."
+    }
 }
 else {
-    Write-Host "VM identity already has the Contributor role assignment"
+    Write-Host "VM identity already has the Owner role assignment."
 }
-
 
 
 # Check if a storage account with the prefix already exists
