@@ -13,7 +13,7 @@ from django.test import override_settings
 import pytest
 import pytest_asyncio
 from asgiref.sync import sync_to_async
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from reportlab.pdfgen import canvas
 
 from text_extractor.models import OutputFile
@@ -146,6 +146,22 @@ def mock_pdf_file2():
     # Open the file in binary read mode and return the file object
     with open(filename, "rb") as f:
         yield f
+
+
+# yields filename and content
+@pytest.fixture
+def mock_pdf_file3():
+    filename = "temp_file1.pdf"
+    c = canvas.Canvas(filename)
+    for i in range(3):  # Create 3 pages
+        c.drawString(100, 100, f"Page {i+1}")
+        c.showPage()
+    c.save()
+
+    # Open the file in binary read mode and return the file object and its content
+    with open(filename, "rb") as f:
+        content = f.read()
+        yield filename, content
     os.remove(filename)
 
 
@@ -160,6 +176,27 @@ def mock_image_file(filename="temp_image.jpg"):
 def mock_image_file2():
     img = Image.new("RGB", (1000, 500), "white")
     return img
+
+
+# yields filename and content
+@pytest.fixture
+def mock_image_file3():
+    filename = "temp_image.jpg"
+    # Create a simple image
+    image = Image.new("RGB", (100, 100), color="red")
+    draw = ImageDraw.Draw(image)
+
+    # Draw the letter "R" in black color
+    font = ImageFont.load_default()
+
+    draw.text((25, 25), "RIF drawing", fill="black", font=font)
+    image.save(filename)
+
+    # Open the file in binary read mode and return the file object and its content
+    with open(filename, "rb") as f:
+        content = f.read()
+        yield filename, content
+    os.remove(filename)
 
 
 @pytest.fixture
