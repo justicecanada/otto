@@ -1,0 +1,29 @@
+{% load i18n %}
+{% load filters %}
+
+{% csrf_token %}
+
+{{ form.non_field_errors }}
+
+<!-- Feedback -->
+<div>
+       <label for="{{ form.feedback_message.id_for_label }}" class="form-label">{{ form.feedback_message.label }}</label>
+       <br>
+       {{ form.feedback_message }}
+       {{ form.feedback_message.errors }}
+</div>
+
+{{ form.modified_by }}
+{{ form.created_by }}
+{{ form.chat_message }}
+{{ form.otto_version }}
+{{ form.app }}
+{{ form.url_context }}
+
+{% block page_script %}
+       <script>
+              document.getElementById('modal').addEventListener('shown.bs.modal', function () {
+                     document.getElementById('{{ form.feedback_message.id_for_label }}').focus();
+              });
+       </script>
+{% endblock page_script %}

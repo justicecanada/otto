@@ -17,13 +17,13 @@
           {# Yellow circle #}
           <div class="document-status document-status-{{ document.status }}">
             <i class="bi bi-slash-circle text-warning small me-1" aria-hidden="true"></i>
-            <span>{% trans 'Stopped' %}</span>
+            <span>{% trans 'Cancelled' %}</span>
           </div>
         {% elif document.status == "INIT" %}
           {# Grey circle #}
           <div class="document-status document-status-{{ document.status }}">
             <i class="bi bi-circle text-secondary small me-1" aria-hidden="true"></i>
-            <span>{% trans 'Starting' %}...</span>
+            <span>{% trans 'Queued' %}...</span>
           </div>
         {% elif document.status == "PROCESSING" %}
           {# Blue spinner #}
@@ -45,7 +45,10 @@
           <div class="document-status document-status-{{ document.status }}">
             <i class="bi bi-check-circle-fill text-success small me-1"
                aria-hidden="true"></i>
-            <span>{% trans 'Success' %}</span>
+            <span>{% trans 'Processed' %}</span>
+            {% if document.content_type == "application/pdf" %}
+              {% if document.pdf_method %}<span class="text-muted">({{ document.pdf_method }})</span>{% endif %}
+            {% endif %}
           </div>
         {% elif document.status == "ERROR" %}
           {# Red exclamation mark #}
@@ -53,6 +56,9 @@
             <i class="bi bi-exclamation-circle-fill text-danger small me-1"
                aria-hidden="true"></i>
             <span>{% trans 'Error' %}</span>
+            {% if document.status_details %}
+              <span class="text-secondary" style="font-style:italic;">{{ document.status_details }}</span>
+            {% endif %}
           </div>
         {% endif %}
       </div>
@@ -63,10 +69,45 @@
         <button type="button"
                 class="btn btn-sm btn-outline-secondary"
                 hx-get="{% url 'librarian:document_stop' document.id %}">{% trans "Stop" %}</button>
+      {% elif document.content_type == "application/pdf" %}
+        <div class="btn-group">
+          <button type="button"
+                  class="btn btn-sm btn-outline-success dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false">{% trans "Process document" %}</button>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:document_start' document.id 'default' %}">
+                <span>{% trans "Text only" %}</span>
+                <span class="text-muted">{% trans "(default, $)" %}</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:document_start' document.id 'azure_read' %}">
+                <span>{% trans "PDF OCR" %}</span>
+                <span class="text-muted">{% trans "(more robust, $$)" %}</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:document_start' document.id 'azure_layout' %}">
+                <span>{% trans "PDF layout & OCR" %}</span>
+                <span class="text-muted">{% trans "(best, $$$)" %}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
       {% else %}
         <button type="button"
                 class="btn btn-sm btn-outline-success"
-                hx-get="{% url 'librarian:document_start' document.id %}">{% trans "Re-process" %}</button>
+                hx-get="{% url 'librarian:document_start' document.id 'default' %}">
+          {% trans "Process document" %}
+        </button>
       {% endif %}
     </div>
   </div>
@@ -82,7 +123,11 @@
       {% if document.filename %}
         <dt>{% trans "Filename" %}</dt>
         <dd>
-          {{ document.filename }}
+          {% if document.file %}
+            <a href="{% url 'librarian:download_document' document.id %}">{{ document.filename }}</a>
+          {% else %}
+            {{ document.filename }}
+          {% endif %}
         </dd>
       {% endif %}
       {% if document.content_type %}
@@ -119,6 +164,10 @@
         <dt>{% trans "Extracted text" %}</dt>
         <dd>
           {{ document.truncated_text }}
+          {# Link to the full text, in a new window #}
+          <a href="{% url 'librarian:document_text' document.id %}"
+             target="_blank"
+             rel="noopener noreferrer">{% trans "View all" %}</a>
         </dd>
       {% endif %}
     </dl>

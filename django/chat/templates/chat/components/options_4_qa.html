@@ -27,6 +27,12 @@
     </div>
   </div>
 
+  <div class="px-3 mt-2">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.qa_mode.auto_id }}">{% trans "Search mode" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.qa_mode }}</div>
+
   {% include "chat/components/options_qa_scope.html" %}
 
   <div class="px-3 mt-2">
@@ -53,4 +59,5 @@
   {{ options_form.qa_source_order }}
   {{ options_form.qa_prune }}
   {{ options_form.qa_rewrite }}
+  {{ options_form.qa_granularity }}
 {% endblock %}

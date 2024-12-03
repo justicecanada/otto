@@ -1,15 +1,21 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import HTMXAutoComplete
+from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 from data_fetcher.util import get_request
+from rules import is_group_member
+from structlog import get_logger
 
-from chat.models import QA_SCOPE_CHOICES, Chat, ChatOptions
+from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
 from librarian.models import DataSource, Document, Library
 
+logger = get_logger(__name__)
+
 CHAT_MODELS = [
+    ("gpt-4o-mini", _("GPT-4o-mini (Global)")),
     ("gpt-4o", _("GPT-4o (Global)")),
     ("gpt-4", _("GPT-4 (Canada)")),
     ("gpt-35", _("GPT-3.5 (Canada)")),
@@ -21,8 +27,8 @@ SUMMARIZE_STYLES = [
 ]
 TEMPERATURES = [
     (0.1, _("Precise")),
-    (0.7, _("Balanced")),
-    (1.2, _("Creative")),
+    (0.5, _("Balanced")),
+    (1.0, _("Creative")),
 ]
 LANGUAGES = [("en", _("English")), ("fr", _("French"))]
 
@@ -33,11 +39,11 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         if not self.user:
             raise ValueError("User must be provided to GroupedLibraryChoiceField")
         super().__init__(queryset=Library.objects.all(), *args, **kwargs)
-        print(f"GroupedLibraryChoiceField initialized with user: {self.user}")
-        print(f"Initial queryset count: {self.queryset.count()}")
+        logger.debug(f"GroupedLibraryChoiceField initialized with user: {self.user}")
+        logger.debug(f"Initial queryset count: {self.queryset.count()}")
 
     def get_grouped_choices(self):
-        print(f"get_grouped_choices called for user: {self.user}")
+        logger.debug(f"get_grouped_choices called for user: {self.user}")
         if not self.user:
             raise ValueError("User must be provided to GroupedLibraryChoiceField")
 
@@ -66,10 +72,10 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
             if libs
         ]
 
-        print(
+        logger.debug(
             f"Returning {len(choices)} groups with a total of {sum(len(options) for _, options in choices)} options"
         )
-        print(f"Choices: {choices}")
+        logger.debug(f"Choices: {choices}")
         return choices
 
     def label_from_instance(self, obj):
@@ -163,7 +169,7 @@ class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions
         fields = "__all__"
-        exclude = ["chat", "user", "global_default", "preset_name"]
+        exclude = ["chat", "global_default", "prompt"]
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
@@ -180,19 +186,19 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "triggerOptionSave();",
                 },
             ),
+            "qa_mode": forms.Select(
+                choices=QA_MODE_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this.value); triggerOptionSave();",
+                },
+            ),
             "qa_scope": forms.Select(
                 choices=QA_SCOPE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "showHideQaSourceForms(); triggerOptionSave();",
+                    "onchange": "updateQaSourceForms(); triggerOptionSave();",
                 },
-            ),
-            "chat_agent": forms.CheckboxInput(
-                attrs={
-                    "class": "form-check-input small",
-                    "onchange": "triggerOptionSave();",
-                    "style": "filter: saturate(0); margin-top: 6px;",
-                }
             ),
             # QA advanced options are shown in a different form so they can be hidden
             "qa_system_prompt": forms.HiddenInput(
@@ -218,11 +224,14 @@ class ChatOptionsForm(ModelForm):
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_prune": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "qa_granularity": forms.HiddenInput(
+                attrs={"onchange": "triggerOptionSave();"}
+            ),
             "qa_rewrite": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
         }
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("user", None)
+        user = kwargs.pop("user", None)
         super(ChatOptionsForm, self).__init__(*args, **kwargs)
         # Each of chat_model, summarize_model, qa_model
         # should be a choice field with the available models
@@ -253,6 +262,7 @@ class ChatOptionsForm(ModelForm):
         for field in [
             "chat_system_prompt",
             "summarize_prompt",
+            "summarize_instructions",
         ]:
             self.fields[field].widget = forms.Textarea(
                 attrs={
@@ -262,13 +272,26 @@ class ChatOptionsForm(ModelForm):
                 }
             )
 
+        # Toggles
+        for field in [
+            "chat_agent",
+            "summarize_gender_neutral",
+        ]:
+            self.fields[field].widget = forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input small",
+                    "onchange": "triggerOptionSave();",
+                    "style": "filter: saturate(0); margin-top: 6px;",
+                }
+            )
+
         self.fields["qa_library"] = GroupedLibraryChoiceField(
-            user=self.user,
+            user=user,
             empty_label=None,
             widget=forms.Select(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave(); updateLibraryModalButton(); resetQaAutocompletes();",
+                    "onchange": "resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
                 }
             ),
         )
@@ -333,7 +356,68 @@ class ChatRenameForm(ModelForm):
                     "class": "form-control form-control-sm",
                     "onkeyup": "if (event.key === 'Escape') { cancelChatRename(); }",
                     "onblur": "cancelChatRename();",
+                    "onfocus": "this.select();",
                     "placeholder": _("Untitled chat"),
                 }
             )
         }
+
+
+class PresetForm(forms.ModelForm):
+    User = get_user_model()
+
+    class Meta:
+        model = Preset
+        fields = [
+            "name_en",
+            "name_fr",
+            "description_en",
+            "description_fr",
+            "accessible_to",
+            "sharing_option",
+        ]
+
+        widgets = {
+            "name_en": forms.TextInput(attrs={"class": "form-control"}),
+            "name_fr": forms.TextInput(attrs={"class": "form-control"}),
+            "description_en": forms.Textarea(attrs={"class": "form-control"}),
+            "description_fr": forms.Textarea(attrs={"class": "form-control"}),
+            "is_public": forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input",
+                    "type": "checkbox",
+                }
+            ),
+            "sharing_option": forms.RadioSelect,
+        }
+
+    accessible_to = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all(),
+        label="Email",
+        required=False,
+        widget=widgets.Autocomplete(
+            name="accessible_to",
+            options={
+                "item_value": User.id,
+                "item_label": User.email,
+                "multiselect": True,
+                "minimum_search_length": 2,
+                "model": User,
+            },
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if user and is_group_member("Otto admin")(user):
+            self.fields["sharing_option"].choices = [
+                ("private", _("Make private")),
+                ("everyone", _("Share with everyone")),
+                ("others", _("Share with others")),
+            ]
+        else:
+            self.fields["sharing_option"].choices = [
+                ("private", _("Make private")),
+                ("others", _("Share with others")),
+            ]

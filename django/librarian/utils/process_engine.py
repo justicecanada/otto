@@ -1,6 +1,9 @@
+import csv
 import hashlib
 import io
 import re
+import subprocess
+import tempfile
 import uuid
 from urllib.parse import urljoin
 
@@ -8,23 +11,34 @@ from django.conf import settings
 from django.utils import timezone
 
 import filetype
+import openpyxl  # Add this import for handling Excel files
 import requests
+import tiktoken
 from bs4 import BeautifulSoup
+from markdownify import markdownify
 from structlog import get_logger
 
-from chat.models import Message
-from librarian.models import Document
-from otto.models import Cost, User
+from librarian.utils.markdown_splitter import MarkdownSplitter
+from otto.models import Cost
 
 logger = get_logger(__name__)
+
+
+def markdownify_wrapper(text):
+    """Wrapper to allow options to be passed to markdownify"""
+    return markdownify(
+        text,
+        heading_style="ATX",
+        bullets="*",
+        strong_em_symbol="_",
+        escape_misc=False,
+    )
 
 
 def fetch_from_url(url):
     try:
         r = requests.get(url, allow_redirects=True)
-        content_type = r.headers.get("content-type")
-        if content_type is None:
-            content_type = guess_content_type(r.content)
+        content_type = guess_content_type(r.content, r.headers.get("content-type"), url)
         return r.content, content_type
 
     except Exception as e:
@@ -78,14 +92,17 @@ def create_nodes(chunks, document):
     # Create chunk (child) nodes
     metadata["node_type"] = "chunk"
     child_nodes = create_child_nodes(
-        chunks, source_node_id=document_node.node_id, metadata=metadata
+        chunks,
+        source_node_id=document_node.node_id,
+        metadata=metadata,
     )
 
     # Update node properties
     new_nodes = [document_node] + child_nodes
+    exclude_keys = ["page_range", "node_type", "data_source_uuid", "chunk_number"]
     for node in new_nodes:
-        node.excluded_llm_metadata_keys = ["data_source_uuid"]
-        node.excluded_embed_metadata_keys = ["data_source_uuid"]
+        node.excluded_llm_metadata_keys = exclude_keys
+        node.excluded_embed_metadata_keys = exclude_keys
         # The misspelling of "seperator" corresponds with the LlamaIndex codebase
         node.metadata_seperator = "\n"
         node.metadata_template = "{key}: {value}"
@@ -94,225 +111,274 @@ def create_nodes(chunks, document):
     return new_nodes
 
 
-# def process(content, fast=True, summarize=True, force=False):
+def guess_content_type(
+    content: str | bytes, content_type: str = None, path: str = ""
+) -> str:
 
-#     if summarize:
-#         self.description = document_summary(md)
-#         self.generated_title = document_title(self.description)
+    # We consider these content types to be reliable and do not need further guessing
+    trusted_content_types = [
+        "application/pdf",
+        "application/xml",
+        "application/vnd.ms-outlook",
+        "text/html",
+        "text/markdown",
+        "text/csv",
+        "application/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "officedocument.spreadsheetml.sheet",
+        "officedocument.wordprocessingml.document",
+        "officedocument.presentationml.presentation",
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/bmp",
+        "image/tiff",
+        "image/tif",
+        "image/heif",
+        "image/heic",
+    ]
 
+    if content_type in trusted_content_types:
+        return content_type
 
-def guess_content_type(content):
-    # Check if the content is binary using filetype.guess
-    detected_type = filetype.guess(content)
-    if detected_type is not None:
-        return detected_type.mime
+    if hasattr(content, "read"):
+        content = content.read()
 
     if isinstance(content, bytes):
-        return None  # Unknown
+        # Explicitly handle Outlook emails
+        if path.endswith(".msg"):
+            return "application/vnd.ms-outlook"
 
-    if content.startswith("<!DOCTYPE html>") or "<html" in content:
-        return "text/html"
+        # Use filetype library to guess the content type
+        kind = filetype.guess(content)
+        if kind and not path.endswith(".md"):
+            return kind.mime
 
-    if content.startswith("<?xml") or "<root" in content:
-        return "application/xml"
+        # Fallback to manual checks if filetype library fails
+        try:
+            content = content.decode("utf-8", errors="ignore")
+        except UnicodeDecodeError:
+            return content_type  # Unable to decode binary content
 
-    if content.startswith("{") or content.startswith("["):
-        return "application/json"
+    if isinstance(content, str):
+        if "text" in content_type and path.endswith(".md"):
+            return "text/markdown"
 
-    return "text/plain"
+        if content.startswith("<!DOCTYPE html>") or "<html" in content:
+            return "text/html"
+
+        if content.startswith("<?xml") or "<root" in content:
+            return "application/xml"
+
+        if content.startswith("{") or content.startswith("["):
+            return "application/json"
+
+    return content_type or "text/plain"
 
 
 def get_process_engine_from_type(type):
-    if "officedocument.wordprocessingml.document" in type:
+    if "image" in type:
+        return "IMAGE"
+    elif "officedocument.wordprocessingml.document" in type:
         return "WORD"
     elif "officedocument.presentationml.presentation" in type:
         return "POWERPOINT"
+    elif "application/vnd.ms-outlook" in type:
+        return "OUTLOOK_MSG"
     elif "application/pdf" in type:
         return "PDF"
     elif "text/html" in type:
         return "HTML"
+    elif "text/markdown" in type:
+        return "MARKDOWN"
+    elif "text/csv" in type or "application/csv" in type:
+        return "CSV"
+    elif "spreadsheet" in type:
+        return "EXCEL"
     else:
         return "TEXT"
 
 
 def extract_markdown(
-    content, process_engine, fast=False, base_url=None, chunk_size=768, selector=None
+    content,
+    process_engine,
+    pdf_method="default",
+    base_url=None,
+    chunk_size=768,
+    selector=None,
 ):
-    if process_engine == "PDF" and fast:
-        md, md_chunks = fast_pdf_to_text(content, chunk_size)
-        if len(md) < 10:
-            # Fallback to Azure Document AI (fka Form Recognizer) if the fast method fails
-            # since that probably means it needs OCR
-            md, md_chunks = pdf_to_markdown(content, chunk_size)
+    enable_markdown = True
+    if process_engine == "IMAGE":
+        content = resize_to_azure_requirements(content)
+        enable_markdown = False
+        md = pdf_to_text_azure_read(content)
     elif process_engine == "PDF":
-        md, md_chunks = pdf_to_markdown(content, chunk_size)
+        if pdf_method == "default":
+            enable_markdown = False
+            md = pdf_to_text_pdfium(content)
+            if len(md) < 10:
+                # Fallback to Azure Document Intelligence Read API to OCR
+                md = pdf_to_text_azure_read(content)
+        elif pdf_method == "azure_layout":
+            md = pdf_to_markdown_azure_layout(content)
+        elif pdf_method == "azure_read":
+            enable_markdown = False
+            md = pdf_to_text_azure_read(content)
     elif process_engine == "WORD":
-        md, md_chunks = docx_to_markdown(content, chunk_size)
+        md = docx_to_markdown(content)
     elif process_engine == "POWERPOINT":
-        md, md_chunks = pptx_to_markdown(content, chunk_size)
+        md = pptx_to_markdown(content)
     elif process_engine == "HTML":
-        md, md_chunks = html_to_markdown(
-            content.decode("utf-8"), chunk_size, base_url, selector
+        md = html_to_markdown(content.decode("utf-8"), base_url, selector)
+    elif process_engine == "MARKDOWN":
+        md = content.decode("utf-8")
+    elif process_engine == "OUTLOOK_MSG":
+        enable_markdown = False
+        md = msg_to_markdown(content)
+    elif process_engine == "CSV":
+        md = csv_to_markdown(content)
+    elif process_engine == "EXCEL":
+        md = excel_to_markdown(content)
+    else:
+        enable_markdown = False
+        try:
+            md = content.decode("utf-8")
+        except Exception as e:
+            raise e
+
+    md = remove_nul_characters(md)
+
+    # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
+    md = re.sub(r"\n{3,}", "\n\n", md.strip())
+
+    # Divide the markdown into chunks
+    try:
+        md_splitter = MarkdownSplitter(
+            chunk_size=chunk_size, chunk_overlap=0, enable_markdown=enable_markdown
         )
-    elif process_engine == "TEXT":
-        md, md_chunks = text_to_markdown(content.decode("utf-8"), chunk_size)
+        md_chunks = md_splitter.split_markdown(md)
+    except Exception as e:
+        logger.debug("Error splitting markdown using MarkdownSplitter:")
+        logger.error(e)
+        # Fallback to simpler method
+        from llama_index.core.node_parser import SentenceSplitter
 
-    # Sometimes HTML to markdown will result in zero chunks, even though there is text
-    if not md_chunks:
-        md_chunks = [md]
-
+        sentence_splitter = SentenceSplitter(
+            chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
+        )
+        md_chunks = sentence_splitter.split_text(md)
     return md, md_chunks
 
 
-def pdf_to_markdown(content, chunk_size=768):
-    html = _pdf_to_html_using_azure(content)
-    md, nodes = _convert_html_to_markdown(html, chunk_size)
-    return md, nodes
+def pdf_to_markdown_azure_layout(content):
+    html = _pdf_to_html_azure_layout(content)
+    return _convert_html_to_markdown(html)
 
 
-def fast_pdf_to_text(content, chunk_size=768):
-    # Note: This method is faster than using Azure Form Recognizer
-    # Expected it to work well for more generic scenarios but not for scanned PDFs, images, and handwritten text
-    import fitz
+def pdf_to_text_pdfium(content):
+    # Fast and cheap, but no OCR or layout analysis
+    import pypdfium2 as pdfium
 
-    pdf = fitz.open(stream=io.BytesIO(content))
     text = ""
-    for page_number in range(pdf.page_count):
-        page = pdf.load_page(page_number)
-        text += page.get_text("text")
+    pdf = pdfium.PdfDocument(content)
+    for i, page in enumerate(pdf):
+        text_page = page.get_textpage()
+        text_content = text_page.get_text_range()
+        if text_content:
+            text += f"<page_{i+1}>\n"
+            text += text_content + "\n"
+            text += f"</page_{i+1}>\n"
+        # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
+        text_page.close()
     pdf.close()
 
-    # We don't split the text into chunks here because it's done in create_child_nodes()
-    return text, [text]
+    return text
 
 
-def html_to_markdown(content, chunk_size=768, base_url=None, selector=None):
-    md, nodes = _convert_html_to_markdown(content, chunk_size, base_url, selector)
-    return md, nodes
+def html_to_markdown(content, base_url=None, selector=None):
+    return _convert_html_to_markdown(content, base_url, selector)
 
 
-def text_to_markdown(content, chunk_size=768):
-    # We don't split the text into chunks here because it's done in create_child_nodes()
-    return content, [content]
+def remove_nul_characters(text):
+    """Remove NUL (0x00) characters from the text."""
+    return text.replace("\x00", "")
 
 
-def docx_to_markdown(content, chunk_size=768):
+def msg_to_markdown(content):
+    with tempfile.NamedTemporaryFile(suffix=".msg") as temp_file:
+        temp_file.write(content)
+        temp_file_path = temp_file.name
+        try:
+            md = subprocess.check_output(
+                ["python", "-m", "extract_msg", "--dump-stdout", temp_file_path]
+            ).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Command failed with exit code {e.returncode}")
+            logger.error(f"Output: {e.output.decode('utf-8')}")
+            md = ""
+        except Exception as e:
+            logger.error(f"Failed to extract text from Outlook email: {e}")
+            md = ""
+        return md
+
+
+def docx_to_markdown(content):
     import mammoth
 
     with io.BytesIO(content) as docx_file:
         result = mammoth.convert_to_html(docx_file)
     html = result.value
-    md, nodes = _convert_html_to_markdown(html, chunk_size)
-    return md, nodes
+
+    return _convert_html_to_markdown(html)
 
 
-def pptx_to_markdown(content, chunk_size=768):
+def pptx_to_markdown(content):
     import pptx
 
     pptx_file = io.BytesIO(content)
     prs = pptx.Presentation(pptx_file)
 
     # extract text from each slide
-    html = ""
-    for slide in prs.slides:
+    all_html = ""
+    for i, slide in enumerate(prs.slides):
+        html = ""
         for shape in slide.shapes:
             if not shape.has_text_frame:
                 continue
             for paragraph in shape.text_frame.paragraphs:
+                html += "<p>"
                 for run in paragraph.runs:
-                    html += f"<p>{run.text}</p>"
-        for note in slide.notes_slide.notes_text_frame.paragraphs:
-            for run in note.runs:
-                html += f"<p>{run.text}</p>"
+                    html += run.text
+                html += "</p>"
+        if len(slide.notes_slide.notes_text_frame.paragraphs) > 0:
+            html += f"<h6>Presenter notes:</h6>"
+            for note in slide.notes_slide.notes_text_frame.paragraphs:
+                html += "<p>"
+                for run in note.runs:
+                    html += run.text
+                html += "</p>"
+        if html:
+            all_html += f"<page_{i+1}>\n{html}\n</page_{i+1}>\n"
 
-    md, nodes = _convert_html_to_markdown(html, chunk_size)
-    return md, nodes
-
-
-def document_summary(content):
-    from langchain.chains.summarize import load_summarize_chain
-    from langchain.schema import Document
-    from langchain_openai import AzureChatOpenAI
-
-    llm = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=settings.DEFAULT_CHAT_MODEL,
-        model=settings.DEFAULT_CHAT_MODEL,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.1,
-    )
-    content = content[:5000]
-    chain = load_summarize_chain(llm, chain_type="stuff")
-    doc = Document(page_content=content, metadata={"source": "userinput"})
-    summary = chain.run([doc])
-    return summary
+    return _convert_html_to_markdown(all_html)
 
 
-def document_title(content):
-    from langchain.schema import HumanMessage
-    from langchain_openai import AzureChatOpenAI
-
-    llm = AzureChatOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-        azure_deployment=settings.DEFAULT_CHAT_MODEL,
-        model=settings.DEFAULT_CHAT_MODEL,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        api_key=settings.AZURE_OPENAI_KEY,
-        temperature=0.1,
-    )
-    prompt = "Generate a short title fewer than 50 characters."
-    content = content[:5000]
-    title = llm([HumanMessage(content=content), HumanMessage(content=prompt)]).content[
-        :254
-    ]
-    # Remove any double quotes wrapping the title, if any
-    title = re.sub(r'^"|"$', "", title)
-    return title
-
-
-def create_child_nodes(text_strings, source_node_id, metadata=None):
-    from llama_index.core.node_parser import SentenceSplitter
+def create_child_nodes(chunks, source_node_id, metadata=None):
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
-    def close_tags(html_string):
-        soup = BeautifulSoup(html_string, "html.parser")
-        return str(soup)
-
-    splitter = SentenceSplitter(chunk_overlap=100, chunk_size=768)
-
-    # Create TextNode objects
     nodes = []
-    split_texts = []
-    for i, text in enumerate(text_strings):
-        split_texts += [close_tags(t) for t in splitter.split_text(text)]
+    for i, text in enumerate(chunks):
 
-    # Now all the chunks are at most 768 tokens long, but many are much shorter
-    # We want to make them a uniform size, so we'll stuff them into the previous chunk
-    # (making sure the previous chunk doesn't exceed 768 tokens)
-    stuffed_texts = []
-    current_text = ""
-    for text in split_texts:
-        if token_count(f"{current_text} {text}") > 768:
-            stuffed_texts.append(current_text)
-            current_text = text
-        else:
-            current_text += " " + text
-
-    # Append the last stuffed text if it's not empty
-    if current_text:
-        stuffed_texts.append(current_text)
-
-    for text in stuffed_texts:
         node = TextNode(text=text, id_=str(uuid.uuid4()))
-        node.metadata = metadata
+
+        node.metadata = dict(metadata, chunk_number=i)
         node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
             node_id=source_node_id
         )
         nodes.append(node)
 
     # Handle the case when there's only one or zero elements
-    if len(text_strings) < 2:
+    if len(chunks) < 2:
         return nodes
 
     # Set relationships
@@ -328,34 +394,56 @@ def create_child_nodes(text_strings, source_node_id, metadata=None):
 
 
 def token_count(string: str, model: str = "gpt-4") -> int:
-    import tiktoken
-
     """Returns the number of tokens in a text string."""
     encoding = tiktoken.encoding_for_model(model)
     num_tokens = len(encoding.encode(string))
     return num_tokens
 
 
+def _remove_ignored_tags(text):
+    # remove any javascript, css, images, svg, and comments from self.text
+    text = re.sub(r"<script.*?</script>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<style.*?</style>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+    text = re.sub(r"<img.*?>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<svg.*?</svg>", "", text, flags=re.DOTALL)
+    # remove any attribute tags that start with javascript:
+    text = re.sub(r"<[^>]+javascript:.*?>", "", text, flags=re.DOTALL)
+    # remove any empty html tags from self.text
+    text = re.sub(r"<[^/>][^>]*>\s*</[^>]+>", "", text, flags=re.DOTALL)
+
+    # remove any header/footer/nav tags and the content within them
+    text = re.sub(r"<header.*?</header>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<footer.*?</footer>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<nav.*?</nav>", "", text, flags=re.DOTALL)
+
+    # Remove all the line breaks, carriage returns, and tabs
+    text = re.sub(r"[\n\r\t]", "", text)
+
+    return text
+
+
 def _convert_html_to_markdown(
-    source_html, chunk_size=768, base_url=None, selector=None
-):
-    import html2text
-
-    model = settings.DEFAULT_CHAT_MODEL
-
-    ## Keeping this here for posterity, but it didn't work well in experiments
-    ## Used https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=4 as example:
-    ## It cut off the text randomly after a long html was passed in
-    ## It loses all the formatting (like headers)
-    ## It loses all the links and/or doesn't format them properly
-    # article = Article(" ", source_url=base_url)
-    # article.set_html(text)
-    # article.parse()
-    # return article.text
-    # TODO: Remove the following comments when completely sure the new approach works
-    # if text contains html, convert it to markdown
+    source_html: str, base_url: str = None, selector: str = None
+) -> str:
+    """Converts HTML to markdown, preserving <page_x> tags in the markdown output."""
+    page_open_tags = re.findall(r"<page_\d+>", source_html)
+    # When page tags (e.g. "<page_1">) are present, run this step separately for each
+    # of the page contents and combine the results
+    if page_open_tags:
+        combined_md = ""
+        for opening_tag in page_open_tags:
+            closing_tag = opening_tag.replace("<", "</")
+            page_html_contents = re.search(
+                f"{opening_tag}(.*){closing_tag}", source_html, re.DOTALL
+            ).group(1)
+            page_md = _convert_html_to_markdown(page_html_contents, base_url)
+            combined_md += f"{opening_tag}\n{page_md}\n{closing_tag}\n"
+        return combined_md
 
     soup = BeautifulSoup(source_html, "html.parser")
+    if soup.find("body"):
+        soup = soup.find("body")
 
     if selector:
         selected_html = soup.select_one(selector)
@@ -374,140 +462,22 @@ def _convert_html_to_markdown(
                 absolute_url = urljoin(base_url, href)
                 anchor["href"] = absolute_url
 
-    # remove any javascript, css, images, svg, and comments from self.text
-    text = re.sub(r"<script.*?</script>", "", str(soup), flags=re.DOTALL)
-    text = re.sub(r"<style.*?</style>", "", text, flags=re.DOTALL)
-    text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
-    text = re.sub(r"<img.*?>", "", text, flags=re.DOTALL)
-    text = re.sub(r"<svg.*?</svg>", "", text, flags=re.DOTALL)
-    # remove any attribute tags that start with javascript:
-    text = re.sub(r"<[^>]+javascript:.*?>", "", text, flags=re.DOTALL)
-    # remove any empty html tags from self.text
-    text = re.sub(r"<[^/>][^>]*>\s*</[^>]+>", "", text, flags=re.DOTALL)
+    # Replace <caption> elements with <h6> so that they get capture in breadcrumbs
+    for caption in soup.find_all("caption"):
+        caption.name = "h6"
 
-    # remove any header/footer/nav tags and the content within them
-    text = re.sub(r"<header.*?</header>", "", text, flags=re.DOTALL)
-    text = re.sub(r"<footer.*?</footer>", "", text, flags=re.DOTALL)
-    text = re.sub(r"<nav.*?</nav>", "", text, flags=re.DOTALL)
+    text = _remove_ignored_tags(str(soup))
 
-    # Remove all the line breaks, carriage returns, and tabs
-    text = re.sub(r"[\n\r\t]", "", text)
-
-    h = html2text.HTML2Text()
-    h.ignore_images = True
-    h.skip_internal_links = True
-    h.body_width = 0
-    h.drop_white_space = True
-    h.footnote = False
-
-    # Recreate the soup object from the cleaned text
-    cleaned_soup = BeautifulSoup(text, "html.parser")
-
-    # Process paragraphs, lists, and tables
-    nodes = []
-
-    # Elements that are typically text
-    header_node_names = ["h1", "h2", "h3", "h4", "h5", "h6"]
-    section_node_names = ["section", "article"]
-    text_node_names = ["p", "ul", "ol"]
-    table_node_names = ["table"]
-
-    # Accumulate text nodes until the chunk size is reached
-    current_node = ""
-    header_str = ""
-    header_map = {f"h{i}": "" for i in range(1, 7)}
-    for node in cleaned_soup.find_all(
-        header_node_names + text_node_names + table_node_names
-    ):
-
-        # If it's a header, then append the current node and reset
-        if node.name in header_node_names:
-            nodes.append(h.handle(current_node).strip())
-
-            # Update the header map with the current header
-            header_map[node.name] = str(node)
-
-            # Clear all the headers that are smaller than the current header
-            for i in range(int(node.name[1]) + 1, 7):
-                header_map[f"h{i}"] = ""
-
-            # Create the header string from the header map
-            header_str = "".join(header_map.values())
-            current_node = header_str
-
-        # If it's a section or article node, then append the current node and reset
-        elif node.name in section_node_names:
-            nodes.append(h.handle(current_node).strip())
-            current_node = ""
-
-        # If it's a text node, then accumulate the text until the chunk size is reached
-        elif node.name in text_node_names:
-            node_str = str(node)
-
-            # Split the text by chunk size or if the node is a header
-            tentative_node = h.handle(f"{current_node}{node_str}").strip()
-            if token_count(tentative_node, model) > chunk_size:
-                nodes.append(tentative_node)
-                # Reset the current node and include the header again for context
-                current_node = f"{header_str}{node_str}"
-            else:
-                current_node += node_str
-
-        # If it's a table node, then split the table by chunk size
-        elif node.name in table_node_names:
-
-            # Append the current node to the nodes list and reset the current node
-            if current_node:
-                nodes.append(h.handle(current_node).strip())
-                current_node = ""
-
-            # Find the table caption and append it to the current node
-            caption = node.select_one("caption")
-            caption_str = str(caption) if caption else ""
-
-            thead = node.select_one("thead")
-            thead_str = str(thead) if thead else ""
-
-            # if no thead, iterate through all the rows and find a row that has ONLY th tags as children
-            if not thead:
-                for row in node.find_all("tr"):
-                    if all([child.name == "th" for child in row.children]):
-                        thead_str = str(row)
-                        break
-
-            # Iterate through all other rows and append them to the data rows list
-            data_rows = []
-            for row in node.find_all("tr"):
-                if str(row) not in thead_str:
-                    data_rows.append(row)
-
-            # Split the table by chunk size, preserving the header for each mini table
-            current_node = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
-            for data_row in data_rows:
-                data_str = str(data_row)
-
-                # Split the table by chunk size
-                tentative_node = h.handle(f"{current_node}{data_str}</table>").strip()
-                if token_count(tentative_node, model) > chunk_size:
-                    nodes.append(tentative_node)
-                    current_node = f"{header_str}<p>{caption_str}</p><table>{thead_str}"
-                else:
-                    current_node += data_str
-
-            # Append the last mini table to the nodes list
-            nodes.append(h.handle(f"{current_node}</table>").strip())
-            current_node = ""
-
-    md = h.handle(text).strip()
-    return md, nodes
+    markdown = markdownify_wrapper(text).strip()
+    return markdown
 
 
-def _pdf_to_html_using_azure(content):
+def _pdf_to_html_azure_layout(content):
     from azure.ai.formrecognizer import DocumentAnalysisClient
     from azure.core.credentials import AzureKeyCredential
     from shapely.geometry import Polygon
 
-    # Note: This method handles scanned PDFs, images, and handwritten text better than pdfminer but costs money
+    # Note: This method handles scanned PDFs, images, and handwritten text but is $$$
 
     document_analysis_client = DocumentAnalysisClient(
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
@@ -588,9 +558,6 @@ def _pdf_to_html_using_azure(content):
         }
         p_chunks.append(chunk)
 
-    # Remove any duplicate chunks by looking at the text
-    p_chunks = list({chunk.get("text"): chunk for chunk in p_chunks}.values())
-
     chunks = table_chunks + p_chunks
 
     # Sort chunks by page number, then by y coordinate, then by x coordinate
@@ -598,29 +565,140 @@ def _pdf_to_html_using_azure(content):
         chunks, key=lambda item: (item.get("page_number"), item.get("y"), item.get("x"))
     )
     html = ""
+    cur_page = None
     for _, chunk in enumerate(chunks, 1):
+        page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
+        page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
+        prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
+        if chunk.get("page_number") != cur_page:
+            if cur_page is not None:
+                html += prev_end_tag
+            cur_page = chunk.get("page_number")
+            html += page_start_tag
         html += chunk.get("text")
+
+    if cur_page is not None and chunks:
+        html += page_end_tag
 
     return html
 
-    # def _fetch_from_file(self, force=False):
-    #     # Logic for ChatFile fetch
-    #     from chat.models import ChatFile
 
-    #     file_obj = ChatFile.objects.get(id=self.reference)
-    #     self._set_process_engine_from_type(file_obj.content_type)
-    #     self.source_name = file_obj.name
-    #     return file_obj.file.read()
+def pdf_to_text_azure_read(content: bytes) -> str:
 
-    # Selection of hashing code from my other (incomplete) PR
+    from azure.ai.formrecognizer import DocumentAnalysisClient
+    from azure.core.credentials import AzureKeyCredential
 
-    # sha256_hash = models.CharField(max_length=64, null=True, blank=True, db_index=True)
-    # def generate_hash(self):
-    #     if self.file:
-    #         with self.file.open("rb") as f:
-    #             sha256 = hashlib.sha256(f.read())
-    #             self.sha256_hash = sha256.hexdigest()
-    #             self.save()
+    document_analysis_client = DocumentAnalysisClient(
+        endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+        credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+    )
 
-    # self.fetched_from_source_at = timezone.now()
-    # """
+    poller = document_analysis_client.begin_analyze_document("prebuilt-read", content)
+    result = poller.result()
+
+    num_pages = len(result.pages)
+    cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
+
+    p_chunks = []
+    for page in result.pages:
+        for line in page.lines:
+            chunk = {
+                "page_number": page.page_number,
+                "text": line.content + "\n",
+            }
+            p_chunks.append(chunk)
+
+    text = ""
+    cur_page = None
+    for _, chunk in enumerate(p_chunks, 1):
+        page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
+        page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
+        prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
+        if chunk.get("page_number") != cur_page:
+            if cur_page is not None:
+                text = text.strip() + prev_end_tag
+            cur_page = chunk.get("page_number")
+            text = text.strip() + page_start_tag
+        text += chunk.get("text")
+
+    if cur_page is not None and p_chunks:
+        text = text.strip() + page_end_tag
+
+    return text
+
+
+def csv_to_markdown(content):
+    """Convert CSV content to markdown table."""
+    with io.StringIO(content.decode("utf-8")) as csv_file:
+        reader = csv.reader(csv_file)
+        rows = list(reader)
+
+    if not rows:
+        return ""
+
+    header = rows[0]
+    table = [
+        "| " + " | ".join(header) + " |",
+        "| " + " | ".join(["---"] * len(header)) + " |",
+    ]
+    for row in rows[1:]:
+        table.append("| " + " | ".join(row) + " |")
+
+    return "\n".join(table)
+
+
+def excel_to_markdown(content):
+    """Convert Excel content to markdown tables."""
+    workbook = openpyxl.load_workbook(io.BytesIO(content))
+    markdown = ""
+    for sheet in workbook.sheetnames:
+        markdown += f"# {sheet}\n\n"
+        sheet_obj = workbook[sheet]
+        rows = list(sheet_obj.values)
+        if not rows:
+            continue
+        header = rows[0]
+        table = [
+            "| " + " | ".join(map(str, header)) + " |",
+            "| " + " | ".join(["---"] * len(header)) + " |",
+        ]
+        for row in rows[1:]:
+            table.append("| " + " | ".join(map(str, row)) + " |")
+        markdown += "\n".join(table) + "\n\n"
+    return markdown
+
+
+def resize_to_azure_requirements(content):
+    from PIL import Image
+
+    with io.BytesIO(content) as image_file:
+        image = Image.open(image_file)
+        width, height = image.size
+        if width < 50 or height < 50:
+            # Resize to at least 50 pixels
+            if width <= height:
+                new_width = 50
+                new_height = int(height * (50 / width))
+            else:
+                new_height = 50
+                new_width = int(width * (50 / height))
+        elif width > 10000 or height > 10000:
+            # Resize to max 10000 pixels
+            if width >= height:
+                new_width = 10000
+                new_height = int(height * (10000 / width))
+            else:
+                new_height = 10000
+                new_width = int(width * (10000 / height))
+        else:
+            return content
+        # Edge case: insanely wide or tall images. Don't maintain proportions.
+        new_width = min(new_width, 10000)
+        new_height = min(new_height, 10000)
+        new_width = max(new_width, 50)
+        new_height = max(new_height, 50)
+        image = image.resize((new_width, new_height))
+        with io.BytesIO() as output:
+            image.save(output, format="PNG")
+            content = output.getvalue()
+            return content

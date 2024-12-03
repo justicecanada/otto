@@ -15,7 +15,8 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
-from otto.utils.decorators import app_access_required
+from otto.models import OttoStatus
+from otto.utils.decorators import app_access_required, budget_required
 
 from .forms import LawSearchForm
 from .models import Law
@@ -51,8 +52,11 @@ app_name = "laws"
 
 @app_access_required(app_name)
 def index(request):
-    form = LawSearchForm()
-    context = {"hide_breadcrumbs": True, "form": form}
+    context = {
+        "hide_breadcrumbs": True,
+        "form": LawSearchForm(),
+        "last_updated": OttoStatus.objects.singleton().laws_last_refreshed,
+    }
     return render(request, "laws/laws.html", context=context)
 
 
@@ -91,21 +95,22 @@ def source(request, source_id):
 
 
 @app_access_required(app_name)
+@budget_required
 def answer(request, query_uuid):
     bind_contextvars(feature="laws_query")
     from llama_index.core.schema import MetadataMode
-
-    additional_instructions = request.GET.get("additional_instructions", "")
-
-    CHAT_TEXT_QA_PROMPT = ChatPromptTemplate(
-        message_templates=TEXT_QA_PROMPT_TMPL_MSGS
-    ).partial_format(additional_instructions=additional_instructions)
 
     query_info = cache.get(query_uuid)
     if not query_info:
         return StreamingHttpResponse(
             streaming_content=htmx_sse_error(), content_type="text/event-stream"
         )
+
+    additional_instructions = query_info["additional_instructions"]
+    CHAT_TEXT_QA_PROMPT = ChatPromptTemplate(
+        message_templates=TEXT_QA_PROMPT_TMPL_MSGS
+    ).partial_format(additional_instructions=additional_instructions)
+
     sources = query_info["sources"]
     query = query_info["query"]
     trim_redundant = query_info["trim_redundant"]
@@ -148,13 +153,13 @@ def answer(request, query_uuid):
                             sources[parent_index].node.get_content(
                                 metadata_mode=MetadataMode.LLM
                             ),
-                            "gpt-4-turbo-preview",
+                            "gpt-4o",
                         )
                         if total_tokens + parent_tokens <= max_tokens:
                             source = sources.pop(parent_index)
             source_tokens = num_tokens(
                 source.node.get_content(metadata_mode=MetadataMode.LLM),
-                "gpt-4-turbo-preview",
+                "gpt-4o",
             )
             if total_tokens + source_tokens <= max_tokens:
                 trimmed_sources.append(source)
@@ -209,6 +214,7 @@ def existing_search(request, query_uuid):
 
 
 @app_access_required(app_name)
+@budget_required
 def search(request):
     bind_contextvars(feature="laws_query")
     if request.method != "POST":
@@ -252,18 +258,22 @@ def search(request):
         )
 
         if not advanced_mode:
-            vector_ratio = 1
+            vector_ratio = 0.8
             top_k = 25
             # Options for the AI answer
             trim_redundant = True
-            model = "gpt-4o"
+            model = settings.DEFAULT_LAWS_MODEL
             context_tokens = 2000
-            additional_instructions = ""
+            additional_instructions = (
+                "If the context information is entirely unrelated to the provided query,"
+                "don't try to answer the question; just say "
+                "'Sorry, I cannot answer that question.'."
+            )
         else:
-            vector_ratio = float(request.POST.get("vector_ratio", 1))
+            vector_ratio = float(request.POST.get("vector_ratio", 0.8))
             top_k = int(request.POST.get("top_k", 25))
             trim_redundant = request.POST.get("trim_redundant", "on") == "on"
-            model = request.POST.get("model", settings.DEFAULT_CHAT_MODEL)
+            model = request.POST.get("model", settings.DEFAULT_LAWS_MODEL)
             context_tokens = int(request.POST.get("context_tokens", 2000))
             additional_instructions = request.POST.get("additional_instructions", "")
             # Need to escape the instructions so they can be passed in GET parameter
@@ -352,7 +362,7 @@ def search(request):
                 vector_store_query_mode="default",
                 similarity_top_k=top_k,
                 filters=filters,
-                vector_store_kwargs={"hnsw_ef_search": 300},
+                vector_store_kwargs={"hnsw_ef_search": 500},
             )
         elif vector_ratio == 0:
             retriever = pg_idx.as_retriever(
@@ -365,7 +375,7 @@ def search(request):
                 vector_store_query_mode="default",
                 similarity_top_k=max(top_k * 2, 100),
                 filters=filters,
-                vector_store_kwargs={"hnsw_ef_search": 300},
+                vector_store_kwargs={"hnsw_ef_search": 500},
             )
             text_retriever = pg_idx.as_retriever(
                 vector_store_query_mode="sparse",

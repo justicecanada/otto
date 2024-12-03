@@ -14,7 +14,7 @@
         <button type="button"
                 class="btn-close"
                 data-bs-dismiss="modal"
-                aria-label='{% trans "Close" %}'></button>
+                aria-label='{% trans "Close" %} '></button>
       </div>
       <div class="modal-body">
         <div class="row">
@@ -47,7 +47,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-2 mb-2">
+          <div class="col-md-2 mb-2  qa_rag_option">
             <label for="qa_topk-modal" class="col-form-label col-form-label-sm">{% trans "Maximum sources" %}</label>
             <input type="number"
                    class="form-control form-control-sm"
@@ -57,33 +57,62 @@
                    data-inputname="qa_topk"
                    oninput="updateQaHiddenField(this);">
           </div>
-          <div class="col-md-2 mb-2">
+          <div class="col-md-2 mb-2  qa_rag_option">
             <label for="qa_source_order-modal" class="col-form-label col-form-label-sm">{% trans "Order sources by" %}</label>
             <select class="form-select form-select-sm"
                     id="qa_source_order-modal"
-                    disabled
-                    data-inputname="qa_source_order">
+                    data-inputname="qa_source_order"
+                    oninput="updateQaHiddenField(this);">
               <option value="score">{% trans "Relevance (score)" %}</option>
-              <option value="reading-order">{% trans "Reading order" %}</option>
+              <option value="reading_order">{% trans "Reading order" %}</option>
             </select>
           </div>
-          <div class="col-md-2 mb-2">
+          <div class="col-md-3 mb-2 qa_rag_option">
             <label for="qa_answer_mode-modal" class="col-form-label col-form-label-sm">{% trans "Answer granularity" %}</label>
             <select class="form-select form-select-sm"
                     id="qa_answer_mode-modal"
                     data-inputname="qa_answer_mode"
-                    oninput="updateQaHiddenField(this);">
-              <option value="combined">{% trans "Combine all sources" %}</option>
-              <option value="per-source">{% trans "Answer for each source" %}</option>
+                    oninput="updateQaHiddenField(this); toggleGranularOptions(this.value);">
+              <option value="combined">{% trans "Single answer" %}</option>
+              <option value="per-source">{% trans "Granular answers" %}</option>
             </select>
+
+            <div class="row"
+                 id="qa_granularity_slider"
+                 style="{% if chat.options.qa_answer_mode == 'combined' %} display: none;
+                        {% endif %}">
+              <div class="col pe-0 text-center">
+                <label for="qa_granularity-modal"
+                       class="col-form-label col-form-label-sm mb-0"
+                       id="granularity-label">{% trans "Granularity" %}</label>
+                <input type="range"
+                       class="form-range my-1"
+                       id="qa_granularity-modal"
+                       data-inputname="qa_granularity"
+                       min="768"
+                       max="16000"
+                       step="100"
+                       value="768"
+                       onchange="updateQaHiddenField(this);">
+                <div class="d-flex justify-content-between mt-0 align-items-end">
+                  <span class="col-form-label-sm small">{% trans "Fine" %}</span>
+                  <span class="col-form-label-sm small">{% trans "Coarse" %}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="col-md-3 mb-2 pt-3">
-            <div class="form-check form-switch col ms-2">
+          <div class="col-md-2 mb-2 pt-3 qa_rag_option">
+            <div class="form-check form-switch col ms-2"
+                 id="qa_pruning"
+                 style="{% if chat.options.qa_answer_mode == 'combined' %} display: none;
+                        {% endif %}">
               <input class="form-check-input small"
                      type="checkbox"
-                     role="switch"
                      id="qa_prune-modal"
-                     disabled>
+                     data-inputname="qa_prune"
+                     value="true"
+                     checked
+                     onchange="this.value = this.checked ? 'true' : 'false'; updateQaHiddenField(this);">
               <label class="form-check-label small" for="qa_prune-modal">{% trans "Remove irrelevant sources" %}</label>
             </div>
             <div class="form-check form-switch col-auto ms-2">
@@ -98,7 +127,7 @@
         </div>
 
         <hr>
- 
+
         <div class="row">
           <div class="col-lg-4 mb-2">
             <label for="qa_system_prompt-modal" class="col-form-label-sm pb-0">{% trans "System prompt" %}</label>
@@ -145,17 +174,8 @@
                       onkeyup="updateQaHiddenField(this);"
                       rows="20"></textarea>
           </div>
-          {% comment %}
-          <div class="col-lg-6 mb-2">
-            <label for="qa_prompt_template-modal" class="col-form-label-sm pb-0">{% trans "Prompt template" %}</label>
-            <p class="text-secondary small mb-1">
-              <em>{% trans "(Required) Must include {context_str}, {query_str}, {pre_instructions}, {post_instructions}." %}</em>
-            </p>
-            <textarea class="form-control form-control-sm" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="qa_prompt_template-modal" data-inputname="qa_prompt_template" onkeypress="updateQaHiddenField(this);" rows="12"></textarea>
-          </div>
-        {% endcomment %}
+        </div>
       </div>
     </div>
   </div>
-</div>
 </div>

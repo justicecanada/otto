@@ -1,8 +1,11 @@
 from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import path, reverse
 
 from structlog import get_logger
+
+from otto.views import load_test
 
 logger = get_logger(__name__)
 
@@ -36,9 +39,17 @@ PUBLIC_PATHS = [
     "/welcome",
     "/search",
     "/notifications",
+    "/healthz",
+    "/load_test",
 ]
 
-NO_TERMS_PATHS = PUBLIC_PATHS + ["/", "/accept_terms", "/i18n/setlang", "/feedback"]
+NO_TERMS_PATHS = PUBLIC_PATHS + [
+    "/",
+    "/accept_terms",
+    "/i18n/setlang",
+    "/feedback",
+    "/user_cost",
+]
 
 
 class RedirectToLoginMiddleware:
@@ -49,7 +60,7 @@ class RedirectToLoginMiddleware:
         no_trailing_dash_path = request.path.rstrip("/") or "/"
         if no_trailing_dash_path in PUBLIC_PATHS:
             return self.get_response(request)
-        # AC-2: User Authentication (Can't be anonymous)
+        # AC-2, AC-19: User Authentication (Can't be anonymous)
         if not request.user.is_authenticated or request.user.is_anonymous:
             return HttpResponseRedirect(reverse("welcome") + "?next=" + request.path)
 

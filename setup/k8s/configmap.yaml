@@ -14,22 +14,22 @@ data:
     [log_collection_settings]
       [log_collection_settings.stdout]
         enabled = true
-        exclude_namespaces = []
+        exclude_namespaces = ["kube-system", "kube-node-lease", "kube-public", "ingress-nginx", "cert-manager"]
         containerlog_schema_version = "v2"
       [log_collection_settings.stderr]
         enabled = true
-        exclude_namespaces = []
+        exclude_namespaces = ["kube-system", "kube-node-lease", "kube-public", "ingress-nginx", "cert-manager"]
         containerlog_schema_version = "v2"
       [log_collection_settings.env_var]
-        enabled = true
+        enabled = false
       [log_collection_settings.enrich_container_logs]
-        enabled = true
+        enabled = false
       [log_collection_settings.collect_all_kube_events]
-        enabled = true
+        enabled = false
       [log_collection_settings.schema]
         containerlog_schema_version = "v2"
       [log_collection_settings.enable_multiline_logs]
-        enabled = "true"
+        enabled = true
         stacktrace_languages = ["python", "java"]
       [log_collection_settings.metadata_collection]
         enabled = true
@@ -38,31 +38,33 @@ data:
   # AU-7: Generating metrics and reports based on system activities
   prometheus-data-collection-settings: |-
     [prometheus_data_collection_settings.cluster]
-      interval = "1m"
+      interval = "10m"
       monitor_kubernetes_pods = true
       
     [prometheus_data_collection_settings.node]
-      interval = "1m"
+      interval = "10m"
 
   metric_collection_settings: |-
     [metric_collection_settings.collect_kube_system_pv_metrics]
-      enabled = true
+      enabled = false
+    [metric_collection_settings.interval]
+      interval = "10m"
 
   alertable-metrics-configuration-settings: |-
     [alertable_metrics_configuration_settings.container_resource_utilization_thresholds]
-      container_cpu_threshold_percentage = 80.0
-      container_memory_rss_threshold_percentage = 80.0
-      container_memory_working_set_threshold_percentage = 80.0
+      container_cpu_threshold_percentage = 90.0
+      container_memory_rss_threshold_percentage = 90.0
+      container_memory_working_set_threshold_percentage = 90.0
 
     [alertable_metrics_configuration_settings.pv_utilization_thresholds]
-      pv_usage_threshold_percentage = 75.0
+      pv_usage_threshold_percentage = 85.0
 
     [alertable_metrics_configuration_settings.job_completion_threshold]
-      job_completion_threshold_time_minutes = 360
+      job_completion_threshold_time_minutes = 480
 
   agent-settings: |-
     [agent_settings.fbit_config]
-      log_flush_interval_secs = "5"
+      log_flush_interval_secs = "15"
       tail_mem_buf_limit_megabytes = "20"
 
 ---
@@ -86,11 +88,14 @@ data:
   STATIC_ROOT: "/data/static"
 
   DJANGODB_ENGINE: "django.db.backends.postgresql_psycopg2"
-  DJANGODB_NAME: "citus"
-  DJANGODB_USER: "citus"
+  DJANGODB_HOST: "postgres-django-service" # TODO: Change this to use pgBouncer
+  DJANGODB_PORT: "5432"
+  DJANGODB_NAME: "django"
+  DJANGODB_USER: "postgres"
 
   VECTORDB_ENGINE: "django.db.backends.postgresql_psycopg2"
-  VECTORDB_HOST: "postgres-vector-service"
+  VECTORDB_HOST: "postgres-vector-service" # TODO: Change this to use pgBouncer
+  VECTORDB_PORT: "5432"
   VECTORDB_NAME: "llama_index"
   VECTORDB_USER: "postgres"
 
@@ -108,3 +113,48 @@ data:
   REDIS_HOST: "redis-service"  
   ENTRA_CLIENT_ID: "${ENTRA_CLIENT_ID}"
   ENTRA_AUTHORITY: "${ENTRA_AUTHORITY}"
+
+  BACKUP_CONTAINER_NAME: "${BACKUP_CONTAINER_NAME}"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-error-pages
+  namespace: otto
+data:
+  403: |
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Forbidden/Refuser - Otto</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+      </head>
+      <body style="height: 100vh;">
+        <main class="h-100 d-flex flex-column justify-content-center align-items-center">
+          <div class="text-center">
+            <p class="fs-6 fw-bold mb-0">403</p>
+            <h1 class="fw-bolder">Forbidden / Refuser</h1>
+            <div class="row justify-content-center mt-5">
+              <div class="col-md-5 my-auto">
+                <p class="text-muted">
+                  You do not have permission to access this page. Make sure to connect to the Justice network (VPN) before acessing Otto.
+                </p>
+              </div>
+              <div class="col-md-1 d-flex justify-content-center align-items-center">
+                <div class="vr my-1"></div>
+              </div>
+              <div class="col-md-5 my-auto">
+                <p class="text-muted">
+                  Vous n'avez pas l'autorisation d'accéder à cette page. Assurez-vous de vous connecter au réseau du ministère (VPN) avant d'accéder à Otto.
+                </p>
+              </div>
+            </div>         
+          </div>
+        </main>
+      </body>
+    </html>
+

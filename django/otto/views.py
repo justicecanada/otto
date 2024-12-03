@@ -1,39 +1,67 @@
 import csv
 import io
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import models
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseServerError, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import check_for_language, get_language
+from django.utils.translation import check_for_language
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 
 from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
+<<<<<<< HEAD
 from chat.models import Message
 from otto.forms import FeedbackForm, PilotForm, UserGroupForm
+=======
+from chat.llm import OttoLLM
+from chat.models import Message
+from otto.forms import (
+    FeedbackForm,
+    FeedbackMetadataForm,
+    FeedbackNoteForm,
+    PilotForm,
+    UserGroupForm,
+)
+>>>>>>> 2984129e73e7635da32aa1ed7e5da20890e77a6f
 from otto.metrics.activity_metrics import otto_access_total
 from otto.metrics.feedback_metrics import otto_feedback_submitted_with_comment_total
-from otto.models import FEATURE_CHOICES, App, Cost, CostType, Feature, Pilot, UsageTerm
+from otto.models import (
+    FEATURE_CHOICES,
+    App,
+    Cost,
+    CostType,
+    Feature,
+    Feedback,
+    FeedbackManager,
+    Pilot,
+    UsageTerm,
+)
 from otto.utils.common import cad_cost, display_cad_cost
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
 
 User = get_user_model()
+
+
+def health_check(request):
+    return JsonResponse({"status": "ok"})
 
 
 def welcome(request):
@@ -132,12 +160,23 @@ def accept_terms(request):
 
 @csrf_protect
 @login_required
-def message_feedback(request: HttpRequest, message_id=None):
+def feedback_message(request: HttpRequest, message_id=None):
+    if message_id == "None":
+        message_id = None
     if request.method == "POST":
+<<<<<<< HEAD
+=======
+        from django.contrib import messages
+
+        from otto.utils.common import get_app_from_path
+
+>>>>>>> 2984129e73e7635da32aa1ed7e5da20890e77a6f
         form = FeedbackForm(request.user, message_id, request.POST)
 
         if form.is_valid():
+            feedback_saved = form.save(commit=False)
             date_and_time = timezone.now().strftime("%Y%m%d-%H%M%S")
+<<<<<<< HEAD
             form.cleaned_data["created_at"] = date_and_time
             form.save()
 
@@ -149,12 +188,24 @@ def message_feedback(request: HttpRequest, message_id=None):
                 return redirect("feedback_success")
             else:
                 return HttpResponse()
+=======
+            feedback_saved.created_at = date_and_time
+            if feedback_saved.chat_message is None:
+                feedback_saved.app = get_app_from_path(feedback_saved.url_context)
+            feedback_saved.save()
+            messages.success(
+                request,
+                _("Feedback submitted successfully."),
+            )
+            return HttpResponse(status=200)
+        else:
+            return HttpResponse(form.errors, status=400)
+>>>>>>> 2984129e73e7635da32aa1ed7e5da20890e77a6f
     else:
         form = FeedbackForm(request.user, message_id)
-
     return render(
         request,
-        "feedback.html",
+        "components/feedback/feedback_modal_content.html",
         {
             "form": form,
             "message_id": message_id,
@@ -164,9 +215,136 @@ def message_feedback(request: HttpRequest, message_id=None):
     )
 
 
-@login_required
-def feedback_success(request):
-    return render(request, "feedback_success.html")
+@permission_required("otto.manage_users")
+def feedback_dashboard(request, page_number=None):
+    if page_number is None:
+        page_number = 1
+
+    apps = Feedback.objects.values_list("app", flat=True).distinct()
+    feedback_status_choices = Feedback.FEEDBACK_STATUS_CHOICES
+    feedback_type_choices = Feedback.FEEDBACK_TYPE_CHOICES
+
+    context = {
+        "apps": apps,
+        "feedback_status_choices": feedback_status_choices,
+        "feedback_type_choices": feedback_type_choices,
+        "current_page_number": page_number,
+    }
+
+    return render(request, "feedback_dashboard.html", context)
+
+
+@permission_required("otto.manage_users")
+def feedback_stats(request):
+    stats = Feedback.objects.get_feedback_stats()
+    return render(
+        request, "components/feedback/dashboard/feedback_stats.html", {"stats": stats}
+    )
+
+
+@permission_required("otto.manage_users")
+def feedback_list(request, page_number=None):
+    from django.core.paginator import Paginator
+
+    feedback_messages = Feedback.objects.all().order_by("-created_at")
+
+    if request.method == "POST":
+        feedback_type = request.POST.get("feedback_type")
+        status = request.POST.get("status")
+        app = request.POST.get("app")
+
+        if feedback_type and feedback_type != "all":
+            feedback_messages = feedback_messages.filter(feedback_type=feedback_type)
+        if status and status != "all":
+            feedback_messages = feedback_messages.filter(status=status)
+        if app and app != "all":
+            feedback_messages = feedback_messages.filter(app=app)
+
+    # Get 10 feedback messages per page
+    paginator = Paginator(feedback_messages, 10)
+    page_obj = paginator.get_page(page_number)
+
+    feedback_info = [
+        {
+            "feedback": f,
+            "form": {
+                "notes": FeedbackNoteForm(instance=f, auto_id=f"{f.id}_%s"),
+                "metadata": FeedbackMetadataForm(instance=f, auto_id=f"{f.id}_%s"),
+            },
+        }
+        for f in page_obj
+    ]
+    context = {
+        "feedback_info": feedback_info,
+        "page_obj": page_obj,
+    }
+    return render(request, "components/feedback/dashboard/feedback_list.html", context)
+
+
+@permission_required("otto.manage_users")
+def feedback_dashboard_update(request, feedback_id, form_type):
+    feedback = Feedback.objects.get(id=feedback_id)
+
+    if request.method == "POST":
+        if form_type == "metadata":
+            form = FeedbackMetadataForm(request.POST, instance=feedback)
+        else:
+            form = FeedbackNoteForm(request.POST, instance=feedback)
+        if form.is_valid():
+            form.cleaned_data["modified_by"] = request.user
+            form.cleaned_data["modified_at"] = timezone.now()
+            form.save()
+            messages.success(
+                request,
+                _("Feedback updated successfully."),
+            )
+            return HttpResponse(status=200)
+        else:
+            messages.error(request, form.errors)
+    else:
+        return HttpResponse(status=405)
+
+
+@permission_required("otto.manage_users")
+def feedback_download(request):
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="otto_feedback.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(
+        [
+            "created_at",
+            "user",
+            "app",
+            "message",
+            "status",
+            "type",
+            "last_modified_by",
+            "last_modified_on",
+            "notes",
+            "version",
+            "url_context",
+        ]
+    )
+
+    # Get all feedback messages from the row headers above
+    for feedback in Feedback.objects.all().order_by("-created_at"):
+        writer.writerow(
+            [
+                feedback.created_at,
+                feedback.created_by,
+                feedback.app,
+                feedback.feedback_message,
+                feedback.status,
+                feedback.feedback_type,
+                feedback.modified_by,
+                feedback.modified_on,
+                feedback.admin_notes,
+                feedback.otto_version,
+                feedback.url_context,
+            ],
+        )
+    return response
 
 
 @login_required
@@ -202,16 +380,16 @@ def notifications(request, hide=False):
     )
 
 
-# AC-16 & AC-16(2): Allows authorized administrators to modify user groups and roles
+# AC-3(7), AC-16, & AC-16(2): Allows authorized administrators to modify user groups and roles
 @permission_required("otto.manage_users")
 def manage_users(request):
     if request.method == "POST":
         form = UserGroupForm(request.POST)
         if form.is_valid():
-            # The form contains users (multiple choice, named "email" but value is "id")
+            # The form contains users (multiple choice, named "upn" but value is "id")
             # and groups (multiple choice, named "group" but value is "id")
             # We want to add the selected groups to the selected users
-            users = form.cleaned_data["email"]
+            users = form.cleaned_data["upn"]
             groups = form.cleaned_data["group"]
             for user in users:
                 logger.info("Updating user groups", user=user, groups=groups)
@@ -219,7 +397,9 @@ def manage_users(request):
                 user.groups.add(*groups)
                 if "pilot" in form.cleaned_data:
                     user.pilot = form.cleaned_data["pilot"]
-                    user.save()
+                user.weekly_max = form.cleaned_data["weekly_max"]
+                user.weekly_bonus = form.cleaned_data["weekly_bonus"]
+                user.save()
         else:
             raise ValueError(form.errors)
 
@@ -240,7 +420,13 @@ def manage_users_form(request, user_id=None):
         logger.info("Accessing user roles form", update_user_id=user_id)
         user = User.objects.get(id=user_id)
         form = UserGroupForm(
-            initial={"email": [user], "group": user.groups.all(), "pilot": user.pilot}
+            initial={
+                "upn": [user],
+                "group": user.groups.all(),
+                "pilot": user.pilot,
+                "weekly_max": user.weekly_max,
+                "weekly_bonus": user.weekly_bonus,
+            }
         )
     else:
         form = UserGroupForm()
@@ -269,7 +455,7 @@ def manage_users_upload(request):
                         email = upn
                     except ValidationError as e:
                         email = ""
-                        logger.error(f"Invalid email address {upn}: {e}")
+                        logger.error(f"UPN must be an email address ({upn}): {e}")
                         continue
                     # Get or create the pilot
                     pilot_id = row.get("pilot_id", None)
@@ -282,18 +468,39 @@ def manage_users_upload(request):
                                 pilot_id=pilot_id,
                                 name=pilot_id.replace("_", " ").capitalize(),
                             )
-                    user, created = User.objects.get_or_create(upn=upn)
+                    # Check for weekly_max column
+                    weekly_max = row.get("weekly_max", None)
+                    try:
+                        weekly_max = int(weekly_max)
+                    except Exception as e:
+                        weekly_max = None
+                    user = User.objects.filter(upn__iexact=upn).first()
+                    if not user:
+                        user = User.objects.create_user(
+                            upn=upn,
+                            email=email,
+                            first_name=given_name,
+                            last_name=surname,
+                        )
+                        created = True
+                    else:
+                        created = False
                     if created:
                         user.email = email
                         user.first_name = given_name
                         user.last_name = surname
                         if pilot_id:
                             user.pilot = pilot
+                        if weekly_max:
+                            user.weekly_max = weekly_max
                         user.save()
                     if not created:
                         user.groups.clear()
                         if pilot_id:
                             user.pilot = pilot
+                        if weekly_max:
+                            user.weekly_max = weekly_max
+                        if pilot_id or weekly_max:
                             user.save()
                     for role in row["roles"].split("|"):
                         role = role.strip()
@@ -318,13 +525,13 @@ def manage_users_download(request):
     response["Content-Disposition"] = 'attachment; filename="otto_users.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(["upn", "pilot_id", "roles"])
+    writer.writerow(["upn", "pilot_id", "roles", "weekly_max"])
 
     # Only get users who have roles
     for user in User.objects.filter(groups__isnull=False).order_by("last_name"):
         roles = "|".join(user.groups.values_list("name", flat=True))
         pilot_id = user.pilot.pilot_id if user.pilot else ""
-        writer.writerow([user.upn, pilot_id, roles])
+        writer.writerow([user.upn, pilot_id, roles, user.weekly_max])
 
     return response
 
@@ -354,14 +561,14 @@ def manage_pilots(request):
 @permission_required("otto.manage_users")
 def manage_pilots_form(request, pilot_id=None):
     if pilot_id and request.method == "DELETE":
-        pilot = Pilot.objects.get(id=pilot_id)
+        pilot = get_object_or_404(Pilot, pk=pilot_id)
         pilot.delete()
         response = HttpResponse()
         # Add hx-redirect header to trigger HTMX redirect
         response["hx-redirect"] = reverse("manage_pilots")
         return response
     if pilot_id:
-        pilot = Pilot.objects.get(id=pilot_id)
+        pilot = get_object_or_404(Pilot, pk=pilot_id)
         form = PilotForm(instance=pilot)
     else:
         form = PilotForm()
@@ -432,6 +639,8 @@ def aggregate_costs(costs, x_axis="day"):
                 }
                 for week_or_month in set(c[x_axis] for c in costs)
             ]
+        # Sort by x-axis label
+        costs = sorted(costs, key=lambda c: c[x_axis])
     return costs
 
 
@@ -520,7 +729,7 @@ def cost_dashboard(request):
         ]
 
     costs = aggregate_costs(raw_costs, x_axis)
-    chart_x_keys = sorted([c[x_axis] for c in costs])
+    chart_x_keys = [c[x_axis] for c in costs]
     # Pretty labels
     chart_x_labels = chart_x_keys
     if x_axis == "feature":
@@ -617,7 +826,6 @@ def cost_dashboard(request):
                             f"${cad_cost(cost['total_cost']):.2f}",
                         ]
                     )
-        rows = sorted(rows, key=lambda r: r[0])
 
         chart_y_groups = sorted(
             [
@@ -653,3 +861,144 @@ def cost_dashboard(request):
         "cost_type_options": cost_type_options,
     }
     return render(request, "cost_dashboard.html", context)
+
+
+def user_cost(request):
+    today_cost = cad_cost(Cost.objects.get_user_cost_today(request.user))
+    weekly_max = request.user.this_week_max
+    this_week_cost = cad_cost(Cost.objects.get_user_cost_this_week(request.user))
+    cost_percent = max(
+        min(int(100 * this_week_cost / weekly_max if weekly_max else 0), 100), 1
+    )
+    cost_tooltip = "${:.2f} / ${:.2f} {}<br>(${:.2f} {})".format(
+        this_week_cost, weekly_max, _("this week"), today_cost, _("today")
+    )
+    return render(
+        request,
+        "components/user_cost.html",
+        {
+            "cost_percent": cost_percent,
+            "cost_tooltip": cost_tooltip,
+            "cost_label": _("User costs"),
+        },
+    )
+
+
+@csrf_exempt
+def load_test(request):
+    bind_contextvars(feature="load_test")
+    start_time = timezone.now()
+    if not cache.get("load_testing_enabled", False):
+        return HttpResponse("Load testing is disabled", status=403)
+    query_params = request.GET.dict()
+    logger.info("Load test request", query_params=query_params)
+    if "error" in query_params:
+        return HttpResponseServerError("Error requested")
+    if "sleep" in query_params:
+        import time
+
+        time.sleep(int(query_params["sleep"]))
+    if "user_library_permissions" in query_params:
+        # Super heavy Django DB query, currently takes about 40s on local
+        # (only if "heavy" query param is present)
+        from librarian.models import Library
+
+        if "heavy" in query_params:
+            users = User.objects.all()
+        else:
+            users = [User.objects.first()]
+        for user in users:
+            # Check if the user can edit the first library
+            library = Library.objects.first()
+            user_can_edit = user.has_perm("librarian.edit_library", library)
+        end_time = timezone.now()
+        total_time = (end_time - start_time).total_seconds()
+        return HttpResponse(
+            f"Checked each user library permissions in {total_time:.2f} seconds"
+        )
+    if "query_laws" in query_params:
+        llm = OttoLLM()
+        retriever = llm.get_retriever("laws_lois__")
+        nodes = retriever.retrieve("query string")
+        end_time = timezone.now()
+        total_time = (end_time - start_time).total_seconds()
+        llm.create_costs()
+        return HttpResponse(f"Retrieved {len(nodes)} nodes in {total_time:.2f} seconds")
+    if "celery_sleep" in query_params:
+        from otto.tasks import sleep_seconds
+
+        sleep_seconds.delay(int(query_params["celery_sleep"]))
+        if "show_queue" in query_params:
+            # Check how many items are in the queue
+            from celery import current_app
+            from celery.app.control import Inspect
+
+            i = Inspect(app=current_app)
+            active_tasks = i.active()
+            scheduled_tasks = i.scheduled()
+            reserved_tasks = i.reserved()
+            active_task_list = next(iter(active_tasks.values()), [])
+            scheduled_task_list = next(iter(scheduled_tasks.values()), [])
+            reserved_task_list = next(iter(reserved_tasks.values()), [])
+
+            return HttpResponse(
+                (
+                    f"Added task to queue.<hr>Active:<br>{len(active_task_list)}"
+                    f"<hr>Scheduled:<br>{len(scheduled_task_list)}"
+                    f"<hr>Reserved:<br>{len(reserved_task_list)}"
+                )
+            )
+        return HttpResponse("Added task to queue")
+    if "llm_call" in query_params:
+        if query_params.get("llm_call"):
+            llm = OttoLLM(query_params["llm_call"])
+        else:
+            llm = OttoLLM()
+        if "long_response" in query_params:
+            response = llm.complete("Write a 5 paragraph essay on AI ethics.")
+        else:
+            response = llm.complete(
+                "What is 'Hello' in French? Respond with the translated word only."
+            )
+        cost = llm.create_costs()
+        end_time = timezone.now()
+        total_time = (end_time - start_time).total_seconds()
+        return HttpResponse(
+            (
+                f"LLM call took {total_time:.2f} seconds and cost ${cost:.4f} USD.<hr>"
+                "<strong>Response:</strong><br>"
+                f"<pre style='max-width: 500px;text-wrap: auto;'>{response}</pre>"
+            )
+        )
+    if "embed_text" in query_params:
+        llm = OttoLLM()
+        test_text = "This is a test text for embedding. " * (
+            100 if "long_input" in query_params else 1
+        )
+        embedding = llm.embed_model.get_text_embedding(test_text)
+        end_time = timezone.now()
+        total_time = (end_time - start_time).total_seconds()
+        cost = llm.create_costs()
+        return HttpResponse(
+            (
+                f"Embedding took {total_time:.2f} seconds and cost ${cost:.6f} USD.<hr>"
+                "<strong>Embedding:</strong><br>"
+                f"<pre style='max-width: 500px;text-wrap: auto;'>{embedding}</pre>"
+            )
+        )
+
+    return HttpResponse(
+        f"Response took {(timezone.now() - start_time).total_seconds():.2f} seconds"
+    )
+
+
+@permission_required("otto.enable_load_testing")
+def enable_load_testing(request):
+    cache.set("load_testing_enabled", True, timeout=3600)
+    return render(request, "components/user_menu.html", {})
+
+
+@permission_required("otto.enable_load_testing")
+def disable_load_testing(request):
+    cache.set("load_testing_enabled", False)
+    return render(request, "components/user_menu.html", {})

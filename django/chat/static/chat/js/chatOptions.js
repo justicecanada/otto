@@ -9,7 +9,7 @@ function updateLibraryModalButton() {
   htmx.process(buttonElement);
 }
 
-function showHideQaSourceForms() {
+function updateQaSourceForms() {
   const scope = document.getElementById('id_qa_scope').value;
   const dataSources = document.getElementById('qa_data_sources_autocomplete');
   const documents = document.getElementById('qa_documents_autocomplete');
@@ -67,10 +67,32 @@ function clearAutocomplete(field_name) {
 }
 
 function resetQaAutocompletes() {
-  // This mirrors the code in forms.py ChatOptionsForm.save()
-  const scope = document.getElementById('id_qa_scope');
-  scope.value = 'all';
-  showHideQaSourceForms();
+  const mode = document.getElementById('id_qa_mode');
+  mode.value = 'rag';
+  limitScopeSelect();
+  updateQaSourceForms();
   clearAutocomplete('qa_data_sources');
   clearAutocomplete('qa_documents');
+}
+
+function limitScopeSelect() {
+  const scope = document.getElementById('id_qa_scope');
+  let search_mode = document.getElementById('id_qa_mode').value;
+  if (search_mode === "rag") {
+    scope.value = 'all';
+    // scope.removeAttribute('disabled');
+  } else {
+    scope.value = "documents";
+    // scope.setAttribute('disabled', 'disabled');
+  }
+}
+
+function switchToDocumentScope() {
+  const scope = document.getElementById('id_qa_scope');
+  let search_mode = document.getElementById('id_qa_mode').value;
+  if (search_mode === "summarize" || search_mode === "summarize_combined") {
+    if (scope.value === "all") {
+      scope.value = "documents";
+    }
+  }
 }

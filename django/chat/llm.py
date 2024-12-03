@@ -21,11 +21,13 @@ class OttoLLM:
     """
 
     _deployment_to_model_mapping = {
+        "gpt-4o-mini": "gpt-4o-mini",
         "gpt-4o": "gpt-4o",
         "gpt-4": "gpt-4-1106-preview",
         "gpt-35": "gpt-35-turbo-0125",
     }
     _deployment_to_max_input_tokens_mapping = {
+        "gpt-4o-mini": 128000,
         "gpt-4o": 128000,
         "gpt-4": 128000,
         "gpt-35": 16385,
@@ -179,7 +181,7 @@ class OttoLLM:
             text_search_config="english",
             perform_setup=True,
             hnsw_kwargs=(
-                {"hnsw_ef_construction": 300, "hnsw_m": 25, "hnsw_ef_search": 300}
+                {"hnsw_ef_construction": 500, "hnsw_m": 48, "hnsw_ef_search": 500}
                 if hnsw
                 else None
             ),

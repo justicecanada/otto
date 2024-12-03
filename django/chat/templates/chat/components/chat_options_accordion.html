@@ -8,14 +8,18 @@
 </div>
 <script>
   (function (){
+    {% if prompt %}document.querySelector('#chat-prompt').value = '{{ prompt }}';{% endif %}
     if ("{{ preset_loaded }}" === "true" || "{{ swap }}" === "true") {
       let mode = "{{ options_form.mode.value }}";
       handleModeChange(mode);
-      setTimeout(showHideQaSourceForms, 100);
+      setTimeout(updateQaSourceForms, 100);
+    }
+    if ("{{ trigger_library_change }}" === "true") {
+      document.getElementById("id_qa_library").dispatchEvent(new Event('change'));
     }
   })();
 
-  showHideQaSourceForms();
+  updateQaSourceForms();
   updateLibraryModalButton();
   updateAutocompleteLibraryid('id_qa_data_sources__textinput');
   updateAutocompleteLibraryid('id_qa_documents__textinput');

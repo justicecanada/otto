@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 
 from otto.secure_models import AccessKey
 from otto.utils.common import file_size_to_string
+from otto.utils.decorators import budget_required
 from template_wizard.models import Report
 
 from .utils import (
@@ -125,6 +126,7 @@ def delete_report_data_item(request, report_id, item_index):
 #     return JsonResponse({"success": True, "file_url": file_url})
 
 
+@budget_required
 def generate_report(request, report_id):
 
     template_key = request.POST.get("template_key")

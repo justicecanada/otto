@@ -4,6 +4,9 @@ from uuid import uuid4
 
 import polib
 import requests
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 class LocaleTranslator:
@@ -61,7 +64,7 @@ class LocaleTranslator:
         po_file = polib.pofile(po_file_path)
 
         valid_entries = [entry for entry in po_file if not entry.obsolete]
-        print(f"Loaded {len(valid_entries)} entries.")
+        logger.debug(f"Loaded {len(valid_entries)} entries.")
 
         for entry in valid_entries:
             translation_id = entry.msgid
@@ -74,23 +77,23 @@ class LocaleTranslator:
                 if fr:
                     fr = fr
                     fr_auto = fr_auto
-                    print(f'Using manual translation for "{translation_id}."')
+                    logger.debug(f'Using manual translation for "{translation_id}."')
                 elif entry.msgstr:
                     fr = ""
                     fr_auto = entry.msgstr
-                    print(
+                    logger.debug(
                         f'Machine translation entry for "{translation_id}" already exists.'
                     )
                 elif fr_auto:
                     fr = ""
                     fr_auto = fr_auto
-                    print(
+                    logger.debug(
                         f'Machine translation entry for "{translation_id}" already exists.'
                     )
                 else:
                     fr = ""
                     fr_auto = self.translate_text(translation_id)
-                    print(f'Translating "{translation_id}."')
+                    logger.debug(f'Translating "{translation_id}."')
             else:
                 fr = ""
                 fr_auto = (
@@ -98,10 +101,10 @@ class LocaleTranslator:
                     if entry.msgstr
                     else self.translate_text(translation_id)
                 )
-                print(f'Creating and translating entry "{translation_id}".')
+                logger.debug(f'Creating and translating entry "{translation_id}".')
 
             translations_reference[translation_id] = {"fr": fr, "fr_auto": fr_auto}
             entry.msgstr = fr if fr else fr_auto
 
-        print(f"Updating file at path: {po_file_path}.")
+        logger.debug(f"Updating file at path: {po_file_path}.")
         po_file.save(po_file_path)

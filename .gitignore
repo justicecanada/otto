@@ -22,6 +22,8 @@ laws-lois-xml
 *.rdb
 version.yaml
 tmp_text
+liccheck.ini
+licenses_results.txt
 
 # Local Terraform directories
 **/.terraform/*
@@ -44,3 +46,7 @@ crash.*.log
 
 test_streams.py
 test_async.py
+test_media
+
+# Ignore all ~* files
+~*

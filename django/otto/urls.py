@@ -10,6 +10,7 @@ from azure_auth.views import azure_auth_callback
 from . import views
 
 urlpatterns = [
+    path("healthz/", views.health_check, name="health_check"),
     path("", views.index, name="index"),
     path("search/", views.topnav_search_inner, name="search_inner"),
     path("welcome/", views.welcome, name="welcome"),
@@ -18,11 +19,14 @@ urlpatterns = [
     path("azure_auth/login", views.login, name="login"),
     path("azure_auth/", include("azure_auth.urls")),
     path("accounts/login/callback/", azure_auth_callback, name="callback"),
+<<<<<<< HEAD
     # path("admin/", admin.site.urls),
     path("chronology_email/", include("chronology_email.urls")),
+=======
+    # path("admin/", admin.site.urls), # Do not expose the admin site in production
+>>>>>>> 2984129e73e7635da32aa1ed7e5da20890e77a6f
     path("librarian/", include("librarian.urls")),
     path("laws/", include("laws.urls")),
-    path("case_prep/", include("case_prep.urls")),
     path("text_extractor/", include("text_extractor.urls")),
     path("template_wizard/", include("template_wizard.urls")),
     path("user_management/", views.manage_users, name="manage_users"),
@@ -48,10 +52,38 @@ urlpatterns = [
         name="manage_pilots_form",
     ),
     path("user_management/costs/", views.cost_dashboard, name="cost_dashboard"),
+    path("load_test/enable", views.enable_load_testing, name="enable_load_testing"),
+    path("load_test/disable", views.disable_load_testing, name="disable_load_testing"),
+    path("load_test/", views.load_test, name="load_test"),
+    path("user_cost/", views.user_cost, name="user_cost"),
     path("accept_terms/", views.accept_terms, name="accept_terms"),
-    path("feedback/", views.message_feedback, name="user_feedback"),
-    path("feedback/<message_id>/", views.message_feedback, name="user_feedback"),
-    path("feedback_success/", views.feedback_success, name="feedback_success"),
+    path("feedback/", views.feedback_message, name="user_feedback"),
+    path("feedback/<int:message_id>/", views.feedback_message, name="user_feedback"),
+    path(
+        "user_management/feedback", views.feedback_dashboard, name="feedback_dashboard"
+    ),
+    path(
+        "user_management/feedback/<int:page_number>",
+        views.feedback_dashboard,
+        name="feedback_dashboard",
+    ),
+    path("user_management/feedback/list", views.feedback_list, name="feedback_list"),
+    path(
+        "user_management/feedback/list/<int:page_number>",
+        views.feedback_list,
+        name="feedback_list",
+    ),
+    path("user_management/feedback/stats", views.feedback_stats, name="feedback_stats"),
+    path(
+        "user_management/feedback/<int:feedback_id>/<str:form_type>",
+        views.feedback_dashboard_update,
+        name="feedback_dashboard_update",
+    ),
+    path(
+        "user_management/feedback/download",
+        views.feedback_download,
+        name="feedback_download",
+    ),
     path(
         "notifications/<int:notification_id>/", views.notification, name="notification"
     ),

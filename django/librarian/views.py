@@ -1,6 +1,7 @@
 # views.py
 from dataclasses import dataclass
 
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -11,7 +12,8 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from otto.utils.decorators import permission_required
+from librarian.utils.process_engine import generate_hash
+from otto.utils.decorators import budget_required, permission_required
 
 from .forms import (
     DataSourceDetailForm,
@@ -22,6 +24,7 @@ from .forms import (
 from .models import DataSource, Document, Library, SavedFile
 
 logger = get_logger(__name__)
+IN_PROGRESS_STATUSES = ["PENDING", "INIT", "PROCESSING"]
 
 
 def get_editable_libraries(user):
@@ -32,6 +35,7 @@ def get_editable_libraries(user):
     ]
 
 
+# AC-20: Implements role-based access control for interacting with data sources
 def modal_view(request, item_type=None, item_id=None, parent_id=None):
     """
     !!! This is not to be called directly, but rather through the wrapper functions
@@ -229,11 +233,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         else:
             return HttpResponse(status=405)
 
-    # Poll for updates when a data source is selected that has processing documents
-    # (with status "INIT" or "PROCESSING")
+    # Poll for updates when a data source is selected that has in-progress documents
     try:
         poll = selected_data_source.documents.filter(
-            status__in=["INIT", "PROCESSING"]
+            status__in=IN_PROGRESS_STATUSES
         ).exists()
     except:
         poll = False
@@ -284,7 +287,7 @@ def poll_status(request, data_source_id, document_id=None):
     documents = Document.objects.filter(data_source_id=data_source_id)
     poll = False
     try:
-        poll = documents.filter(status__in=["INIT", "PROCESSING"]).exists()
+        poll = documents.filter(status__in=[IN_PROGRESS_STATUSES]).exists()
     except:
         poll = False
     poll_url = request.path if poll else None
@@ -323,11 +326,13 @@ def modal_delete_library(request, library_id):
     return modal_view(request, item_type="library", item_id=library_id)
 
 
+# AC-20: Only authenticated and authorized users can interact with information sources
 @permission_required("librarian.edit_library", objectgetter(Library, "library_id"))
 def modal_create_data_source(request, library_id):
     return modal_view(request, item_type="data_source", parent_id=library_id)
 
 
+# AC-20: Only authenticated and authorized users can interact with information sources
 @permission_required(
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
@@ -342,6 +347,7 @@ def modal_delete_data_source(request, data_source_id):
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
 
+# AC-20: Only authenticated and authorized users can interact with information sources
 @permission_required(
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
@@ -349,6 +355,7 @@ def modal_create_document(request, data_source_id):
     return modal_view(request, item_type="document", parent_id=data_source_id)
 
 
+# AC-20: Only authenticated and authorized users can interact with information sources
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
 def modal_edit_document(request, document_id):
     return modal_view(request, item_type="document", item_id=document_id)
@@ -359,6 +366,7 @@ def modal_delete_document(request, document_id):
     return modal_view(request, item_type="document", item_id=document_id)
 
 
+# AC-21: Only authenticated and authorized users can manage library users
 @permission_required(
     "librarian.manage_library_users", objectgetter(Library, "library_id")
 )
@@ -386,12 +394,13 @@ def create_temp_object(item_type):
 
 
 @permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
-def document_start(request, document_id):
+@budget_required
+def document_start(request, document_id, pdf_method="default"):
     bind_contextvars(feature="librarian")
 
     # Initiate celery task
     document = get_object_or_404(Document, id=document_id)
-    document.process()
+    document.process(pdf_method=pdf_method)
     return modal_view(request, item_type="document", item_id=document_id)
 
 
@@ -406,6 +415,43 @@ def document_stop(request, document_id):
 @permission_required(
     "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
 )
+def data_source_stop(request, data_source_id):
+    # Stop all celery tasks for documents within this data source
+    data_source = get_object_or_404(DataSource, id=data_source_id)
+    for document in data_source.documents.all():
+        if document.status in ["PENDING", "INIT", "PROCESSING"]:
+            document.stop()
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+@permission_required(
+    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
+)
+@budget_required
+def data_source_start(request, data_source_id, pdf_method="default", scope="all"):
+    # Start all celery tasks for documents within this data source
+    bind_contextvars(feature="librarian")
+    data_source = get_object_or_404(DataSource, id=data_source_id)
+    if scope == "all":
+        for document in data_source.documents.all():
+            if document.status in ["PENDING", "INIT", "PROCESSING"]:
+                document.stop()
+            document.process(pdf_method=pdf_method)
+    elif scope == "incomplete":
+        for document in data_source.documents.all():
+            if document.status in ["PENDING", "INIT", "PROCESSING"]:
+                document.stop()
+            if document.status not in ["SUCCESS"]:
+                document.process(pdf_method=pdf_method)
+    else:
+        raise ValueError(f"Invalid scope: {scope}")
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+@permission_required(
+    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
+)
+@budget_required
 def upload(request, data_source_id):
     """
     Handles POST request for (multiple) document upload
@@ -414,12 +460,38 @@ def upload(request, data_source_id):
     bind_contextvars(feature="librarian")
 
     for file in request.FILES.getlist("file"):
-        file_obj = SavedFile.objects.create(content_type=file.content_type)
-        file_obj.file.save(file.name, file)
+        # Check if the file is already stored on the server
+        file_hash = generate_hash(file.read())
+        file_exists = SavedFile.objects.filter(sha256_hash=file_hash).exists()
+        if file_exists:
+            file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
+            logger.info(
+                f"Found existing SavedFile for {file.name}", saved_file_id=file_obj.id
+            )
+            # Check if identical document already exists in the DataSource
+            existing_document = Document.objects.filter(
+                data_source_id=data_source_id,
+                filename=file.name,
+                file__sha256_hash=file_hash,
+            ).first()
+            # Skip if filename and hash are the same, and processing status is SUCCESS
+            if existing_document:
+                if (
+                    existing_document.status != "SUCCESS"
+                    and not settings.IS_RUNNING_IN_GITHUB
+                ):
+                    existing_document.process()
+                continue
+        else:
+            file_obj = SavedFile.objects.create(content_type=file.content_type)
+            file_obj.file.save(file.name, file)
+            file_obj.generate_hash()
+
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )
-        document.process()
+        if not settings.IS_RUNNING_IN_GITHUB:
+            document.process()
     # Update the modal with the new documents
     request.method = "GET"
     return modal_view(request, item_type="data_source", item_id=data_source_id)
@@ -429,6 +501,7 @@ def upload(request, data_source_id):
     "librarian.download_document", objectgetter(Document, "document_id")
 )
 def download_document(request, document_id):
+    # AC-20: Provide an audit trail of interactions with external information sources
     logger.info("Downloading file for QA document", document_id=document_id)
     document = get_object_or_404(Document, pk=document_id)
     file_obj = document.file
@@ -437,3 +510,13 @@ def download_document(request, document_id):
     response = HttpResponse(file, content_type=file_obj.content_type)
     response["Content-Disposition"] = f"attachment; filename={document.filename}"
     return response
+
+
+@permission_required(
+    "librarian.download_document", objectgetter(Document, "document_id")
+)
+def document_text(request, document_id):
+    document = get_object_or_404(Document, pk=document_id)
+    return HttpResponse(
+        document.extracted_text, content_type="text/plain; charset=utf-8"
+    )

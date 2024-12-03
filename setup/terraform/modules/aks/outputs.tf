@@ -8,18 +8,12 @@ output "aks_cluster_id" {
   description = "The ID of the AKS cluster"
 }
 
-output "host" {
-  value = azurerm_kubernetes_cluster.aks.kube_config[0].host
+output "outbound_ip_resource_id" {
+  value       = tolist(azurerm_kubernetes_cluster.aks.network_profile[0].load_balancer_profile[0].effective_outbound_ips)[0]
+  description = "The resource ID of the outbound IP address of the AKS cluster"
 }
 
-output "client_certificate" {
-  value = azurerm_kubernetes_cluster.aks.kube_config[0].client_certificate
-}
-
-output "client_key" {
-  value = azurerm_kubernetes_cluster.aks.kube_config[0].client_key
-}
-
-output "cluster_ca_certificate" {
-  value = azurerm_kubernetes_cluster.aks.kube_config[0].cluster_ca_certificate
+output "oidc_issuer_url" {
+  value       = azurerm_kubernetes_cluster.aks.oidc_issuer_url
+  description = "The OIDC issuer URL of the AKS cluster"
 }

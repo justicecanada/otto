@@ -6,47 +6,9 @@ from bs4 import BeautifulSoup as bs
 
 from chat.llm import OttoLLM
 from chat.models import Chat, Message
-from chat.utils import (
-    htmx_stream,
-    llm_response_to_html,
-    summarize_long_text_async,
-    url_to_text,
-)
+from chat.utils import htmx_stream, summarize_long_text_async, url_to_text
 
 pytest_plugins = ("pytest_asyncio",)
-
-tags_outside_backticks = """
-<div>Here is some text</div>
-<div>Here is some more text</div>
-"""
-
-tags_inside_triple_backticks = """
-<div>Here is some text</div>
-```
-<div>Here is some more text</div>
-```
-"""
-
-tags_inside_single_backticks = """
-<div>Here is some text</div>
-`<div>Here is some more text</div>`
-"""
-
-markdown_list = """
-* Item 1
-* Item 2
-"""
-
-
-def test_llm_response_formatter():
-
-    # Test that markdown is parsed
-    html = llm_response_to_html(markdown_list)
-    soup = bs(html, "html.parser")
-    assert soup.find_all("li")
-    assert soup.find_all("ul")
-    assert soup.find_all("li")[0].text == "Item 1"
-    assert soup.find_all("li")[1].text == "Item 2"
 
 
 def test_url_to_text():
@@ -198,7 +160,7 @@ async def test_htmx_stream_response_replacer(basic_user):
         chat,
         message.id,
         response_replacer=stream_generator(),
-        format=False,
+        wrap_markdown=False,
         llm=llm,
     )
     # Iterate over the response_stream generator
@@ -221,3 +183,84 @@ async def test_htmx_stream_response_replacer(basic_user):
     assert "<div hx-swap-oob" in final_output
     # A new message should NOT have been created
     assert await sync_to_async(chat.messages.count)() == 1
+
+
+@pytest.mark.asyncio
+async def test_combine_response_generators():
+    from chat.utils import combine_response_generators
+
+    llm = OttoLLM()
+
+    # The function should take a list of (sync) generators and a list of titles
+    # and combine the output of the generators into a single stream
+    # By the end, it will have output all the text from all the generators
+    # With text from generator 1, then a divider, then text from generator 2, etc.
+    def stream_generator1():
+        yield "first thing"
+        yield "second thing"
+
+    def stream_generator2():
+        yield "third thing"
+        yield "fourth thing"
+
+    def stream_generator3():
+        yield "fifth thing"
+        yield "sixth thing"
+
+    titles = ["Title 1", "Title 2", "Title 3"]
+    generators = [stream_generator1(), stream_generator2(), stream_generator3()]
+    response_stream = combine_response_generators(generators, titles, query="", llm=llm)
+    final_output = ""
+    async for yielded_output in response_stream:
+        final_output = yielded_output
+    assert "first thing" in final_output
+    assert "fifth thing" in final_output
+    assert "Title 1" in final_output
+    # Check the ordering
+    assert final_output.index("Title 1") < final_output.index("first thing")
+    assert final_output.index("first thing") < final_output.index("second thing")
+    assert final_output.index("second thing") < final_output.index("Title 2")
+    assert final_output.index("Title 2") < final_output.index("third thing")
+    assert final_output.index("third thing") < final_output.index("fourth thing")
+    assert final_output.index("fourth thing") < final_output.index("Title 3")
+    assert final_output.index("Title 3") < final_output.index("fifth thing")
+    assert final_output.index("fifth thing") < final_output.index("sixth thing")
+
+
+@pytest.mark.asyncio
+async def test_combine_response_replacers():
+    from chat.utils import combine_response_replacers
+
+    # This one takes in async generators
+    # The function should take a list of generators and a list of titles
+    # and combine the output of the generators into a single stream
+    # By the end, it will have output all the text from all the generators
+    # With text from generator 1, then a divider, then text from generator 2, etc.
+    async def stream_generator1():
+        yield "first thing"
+        yield "second thing"
+
+    async def stream_generator2():
+        yield "third thing"
+        yield "fourth thing"
+
+    async def stream_generator3():
+        yield "fifth thing"
+        yield "sixth thing"
+
+    titles = ["Title 1", "Title 2", "Title 3"]
+    generators = [stream_generator1(), stream_generator2(), stream_generator3()]
+    response_stream = combine_response_replacers(generators, titles)
+    final_output = ""
+    async for yielded_output in response_stream:
+        final_output = yielded_output
+    assert "second thing" in final_output
+    assert "fifth thing" not in final_output
+    assert "sixth thing" in final_output
+    assert "Title 1" in final_output
+    # Check the ordering
+    assert final_output.index("Title 1") < final_output.index("second thing")
+    assert final_output.index("second thing") < final_output.index("Title 2")
+    assert final_output.index("Title 2") < final_output.index("fourth thing")
+    assert final_output.index("fourth thing") < final_output.index("Title 3")
+    assert final_output.index("Title 3") < final_output.index("sixth thing")

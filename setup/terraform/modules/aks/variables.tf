@@ -18,6 +18,11 @@ variable "admin_group_object_ids" {
   type        = list(string)
 }
 
+variable "log_analytics_readers_group_object_ids" {
+  description = "The list of objects IDs of the Log Analytics readers Azure AD group"
+  type        = list(string)
+}
+
 variable "keyvault_id" {
   description = "The ID of the keyvault"
   type        = string
@@ -41,4 +46,34 @@ variable "tags" {
 variable "storage_account_id" {
   description = "The ID of the storage account"
   type        = string
+}
+
+variable "admin_email" {
+  description = "The email address of the admin user"
+  type        = string
+}
+
+variable "use_private_network" {
+  type        = bool
+  description = "Whether to use private networking for the AKS cluster"
+}
+
+variable "web_subnet_id" {
+  type        = string
+  description = "The ID of the subnet for the web app"
+}
+
+variable "approved_cpu_quota" {
+  type        = number
+  description = "The approved CPU quota for the AKS cluster"
+}
+
+variable "vm_size" {
+  type        = string
+  description = "The size of VM to use for the AKS cluster"
+}
+
+variable "vm_cpu_count" {
+  type        = number
+  description = "The number of CPUs in the selected VM size"
 }

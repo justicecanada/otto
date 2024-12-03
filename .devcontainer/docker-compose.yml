@@ -27,6 +27,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_DB: otto
       POSTGRES_PASSWORD: password
+      POSTGRES_MAX_CONNECTIONS: 500
     # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
 
   redis:
@@ -41,7 +42,7 @@ services:
     volumes:
       - ..:/workspace:cached
     working_dir: /workspace/django
-    command: watchmedo auto-restart --pattern=*.py --recursive -- celery -A otto worker -l INFO --pool=gevent --concurrency=1000
+    command: watchmedo auto-restart --pattern=*.py --recursive -- celery -A otto worker -l INFO --pool=gevent --concurrency=256
     network_mode: service:postgres-service
     depends_on:
       - postgres-service

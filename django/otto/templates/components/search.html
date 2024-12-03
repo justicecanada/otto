@@ -18,7 +18,7 @@
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+  (function () {
     let searchInput = document.querySelector("#top-nav-search-input input");
     let searchResults = document.querySelector("#top-nav-search-results");
     // Reset search value when page loads and remove search-active class
@@ -166,6 +166,14 @@
         document.body.classList.remove("search-active");
       }
     });
-  });
-  window.onunload = function () { }; 
+
+    const searchOuter = document.querySelector('#top-nav-search');
+    searchOuter.addEventListener('focus', function() {
+      document.querySelector('#otto-logo').style.top = "0";
+    });
+
+    searchOuter.addEventListener('blur', function() {
+      document.querySelector('#otto-logo').style.top = "-68px";
+    });
+  })();
 </script>

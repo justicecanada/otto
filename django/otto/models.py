@@ -11,7 +11,7 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from otto.utils.common import display_cad_cost
+from otto.utils.common import cad_cost, display_cad_cost
 
 
 class CustomUserManager(BaseUserManager):
@@ -40,6 +40,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
     accepted_terms_date = models.DateField(null=True)
     pilot = models.ForeignKey("Pilot", on_delete=models.SET_NULL, null=True, blank=True)
+    default_preset = models.ForeignKey(
+        "chat.Preset",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="default_for",
+    )
+    weekly_max = models.IntegerField(default=settings.DEFAULT_WEEKLY_MAX)
+    weekly_bonus = models.IntegerField(default=0)  # Resets each Sunday to 0
 
     objects = CustomUserManager()
 
@@ -75,7 +84,21 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def total_cost(self):
-        return display_cad_cost(Cost.objects.get_user_cost(self))
+        return f"{cad_cost(Cost.objects.get_user_cost(self)):.2f}"
+
+    @property
+    def this_week_max(self):
+        return self.weekly_max + self.weekly_bonus
+
+    @property
+    def is_over_budget(self):
+        return (
+            cad_cost(Cost.objects.get_user_cost_this_week(self)) >= self.this_week_max
+        )
+
+    @property
+    def pilot_name(self):
+        return self.pilot.name if self.pilot else _("N/A")
 
     def __str__(self):
         return f"{self.lastname_firstname} ({self.email})"
@@ -192,7 +215,7 @@ class App(models.Model):
 class Feature(models.Model):
 
     CATEGORY_CHOICES = [
-        ("ai_assistant", _("AI assistant")),
+        ("ai_assistant", _("AI Assistant")),
         ("monitoring", _("Monitoring")),
         ("reporting", _("Reporting")),
         ("other", _("Other")),
@@ -235,29 +258,91 @@ class Notification(models.Model):
         return f"{self.heading} - {self.text[:50]}"
 
 
+class FeedbackManager(models.Manager):
+    def get_feedback_stats(self):
+        from django.db.models import Count
+
+        total_feedback_count = self.all().count()
+        negative_chat_comment = self.filter(chat_message__feedback=-1).count()
+        resolved_feedback_count = self.filter(status="resolved").count()
+        most_active = (
+            self.values("app")
+            .annotate(feedback_count=Count("id"))
+            .order_by("-feedback_count")
+            .first()
+        )
+        return {
+            "total": total_feedback_count,
+            "negative": negative_chat_comment,
+            "resolved": resolved_feedback_count,
+            "most_active": most_active,
+        }
+
+
 class Feedback(models.Model):
     FEEDBACK_TYPE_CHOICES = [
         ("feedback", _("Feedback")),
-        ("issue", _("Issue")),
+        ("bug", _("Bug")),
+        ("question", _("Question")),
+        ("feature_request", _("Feature request")),
+        ("other", _("Other")),
+    ]
+
+    FEEDBACK_STATUS_CHOICES = [
+        ("new", _("New")),
+        ("in_progress", _("In progress")),
+        ("resolved", _("Resolved")),
+        ("closed", _("Closed")),
+    ]
+
+    PRIOTITY_CHOICES = [
+        ("low", _("Low")),
+        ("medium", _("Medium")),
+        ("high", _("High")),
     ]
 
     feedback_type = models.CharField(
         max_length=50,
         choices=FEEDBACK_TYPE_CHOICES,
         blank=False,
-        default=_("Please select an option"),
+        default="feedback",
+    )
+    status = models.CharField(
+        max_length=16, choices=FEEDBACK_STATUS_CHOICES, blank=False, default="new"
+    )
+    priority = models.CharField(
+        max_length=16, choices=PRIOTITY_CHOICES, blank=False, default="low"
     )
     app = models.TextField(max_length=200, blank=False)
-    otto_version = models.CharField(max_length=12, null=False)
+    otto_version = models.CharField(max_length=50, null=False)
     feedback_message = models.TextField(blank=False)
+    url_context = models.CharField(max_length=2048, blank=True)
     chat_message = models.ForeignKey(
         "chat.Message", null=True, on_delete=models.SET_NULL, related_name="message"
     )
-
+    admin_notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="feedback",
     )
+    modified_on = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="modified_feedback",
+    )
+
+    objects = FeedbackManager()
+
+    def status_display(self):
+        return dict(self.FEEDBACK_STATUS_CHOICES)[self.status]
+
+    def feedback_type_display(self):
+        return dict(self.FEEDBACK_TYPE_CHOICES)[self.feedback_type]
 
 
 class SecurityLabel(models.Model):
@@ -324,10 +409,14 @@ class CostManager(models.Manager):
             # Optional fields from request context
             feature=request_context.get("feature"),
             request_id=request_context.get("request_id"),
-            user=User.objects.get(id=user_id) if user_id else None,
-            message=Message.objects.get(id=message_id) if message_id else None,
-            document=Document.objects.get(id=document_id) if document_id else None,
-            law=Law.objects.get(id=law_id) if law_id else None,
+            user=User.objects.filter(id=user_id).first() if user_id else None,
+            message=(
+                Message.objects.filter(id=message_id).first() if message_id else None
+            ),
+            document=(
+                Document.objects.filter(id=document_id).first() if document_id else None
+            ),
+            law=Law.objects.filter(id=law_id).first() if law_id else None,
         )
 
         # Recalculate document and message costs, if applicable
@@ -352,6 +441,27 @@ class CostManager(models.Manager):
         # Total cost for a user by feature
         return sum(cost.usd_cost for cost in self.filter(user=user, feature=feature))
 
+    def get_user_cost_today(self, user):
+        # Total cost for a user today
+        return sum(
+            cost.usd_cost
+            for cost in self.filter(user=user, date_incurred=datetime.date.today())
+        )
+
+    def get_user_cost_this_week(self, user):
+        """Total cost for a user this week to date (Sunday to Saturday)"""
+        week_start_date = datetime.date.today() - datetime.timedelta(
+            days=datetime.date.today().weekday()
+        )
+        return sum(
+            cost.usd_cost
+            for cost in self.filter(
+                user=user,
+                date_incurred__gte=week_start_date,
+                date_incurred__lte=datetime.date.today(),
+            )
+        )
+
     def get_total_cost(self):
         # Total cost for all users
         return sum(cost.usd_cost for cost in self.all())
@@ -363,15 +473,6 @@ class CostManager(models.Manager):
     def get_total_cost_by_feature(self, feature):
         # Total cost for all users by feature
         return sum(cost.usd_cost for cost in self.filter(feature=feature))
-
-    def get_user_cost_today(self, user):
-        # Total cost for a user today
-        return sum(
-            cost.usd_cost
-            for cost in self.filter(
-                user=user, date_incurred__date=datetime.date.today()
-            )
-        )
 
     def get_pilot_cost(self, pilot):
         # Total cost for a pilot
@@ -385,11 +486,11 @@ FEATURE_CHOICES = [
     ("chat_agent", _("Chat agent")),
     ("translate", _("Translate")),
     ("summarize", _("Summarize")),
-    ("template_wizard", _("Template wizard")),
-    ("laws_query", _("Legislation search")),
+    ("template_wizard", _("Template Wizard")),
+    ("laws_query", _("Legislation Search")),
     ("laws_load", _("Legislation loading")),
-    ("case_prep", _("Case prep assistant")),
-    ("text_extractor", _("Text extractor")),
+    ("text_extractor", _("Text Extractor")),
+    ("load_test", _("Load test")),
 ]
 
 
@@ -397,7 +498,7 @@ class Cost(models.Model):
     """Tracks costs in US dollars for API calls"""
 
     # Required
-    cost_type = models.ForeignKey(CostType, on_delete=models.CASCADE)
+    cost_type = models.ForeignKey(CostType, on_delete=models.PROTECT, null=True)
     count = models.IntegerField(default=1)
 
     # Automatically added/calculated
@@ -405,20 +506,18 @@ class Cost(models.Model):
     usd_cost = models.DecimalField(max_digits=12, decimal_places=6)
 
     # Optional, for aggregation and reporting
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     feature = models.CharField(
         max_length=50, null=True, blank=True, choices=FEATURE_CHOICES
     )
 
     # Optional, for debugging purposes
     request_id = models.CharField(max_length=50, null=True, blank=True)
-    message = models.ForeignKey(
-        "chat.Message", on_delete=models.CASCADE, null=True, blank=True
-    )
+    message = models.ForeignKey("chat.Message", on_delete=models.SET_NULL, null=True)
     document = models.ForeignKey(
-        "librarian.Document", on_delete=models.CASCADE, null=True, blank=True
+        "librarian.Document", on_delete=models.SET_NULL, null=True
     )
-    law = models.ForeignKey("laws.Law", on_delete=models.CASCADE, null=True, blank=True)
+    law = models.ForeignKey("laws.Law", on_delete=models.SET_NULL, null=True)
 
     objects = CostManager()
 
@@ -447,3 +546,16 @@ class Pilot(models.Model):
     @property
     def total_cost(self):
         return display_cad_cost(Cost.objects.get_pilot_cost(self))
+
+
+class OttoStatusManager(models.Manager):
+    def singleton(self):
+        return self.get_or_create(pk=1)[0]
+
+
+class OttoStatus(models.Model):
+    """Misc. information, e.g. when updates occurred. Use as singleton."""
+
+    objects = OttoStatusManager()
+    laws_last_refreshed = models.DateTimeField(null=True, blank=True)
+    exchange_rate = models.FloatField(null=False, blank=False, default=1.38)

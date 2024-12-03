@@ -3,7 +3,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "kv" {
   # SC-12: Centralized key management system
   name                       = var.keyvault_name
-  location                   = var.location
+  location                   = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   resource_group_name        = var.resource_group_name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium" # SC-13: Premium SKU is FIPS 140-2 Level 2 compliant
@@ -11,8 +11,40 @@ resource "azurerm_key_vault" "kv" {
   purge_protection_enabled   = true
   soft_delete_retention_days = 7
 
+  # TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
+  # public_network_access_enabled = !var.use_private_network
+
+  # TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
+  # network_acls {
+  #   default_action = var.use_private_network ? "Deny" : "Allow"
+  #   bypass         = "AzureServices"
+  # }
+
+  network_acls {
+    default_action             = "Deny"
+    bypass                     = "AzureServices"
+    ip_rules                   = [var.corporate_public_ip]                                # Allow access from the corporate network for management purposes
+    virtual_network_subnet_ids = [var.app_subnet_id, var.web_subnet_id, var.db_subnet_id] # Allow access from the app, web, and database subnets
+  }
+
   tags = var.tags
 }
+
+# TODO: Uncomment when SSC routes all traffic to the VNET through ExpressRoute
+# resource "azurerm_private_endpoint" "keyvault" {
+#   count               = var.use_private_network ? 1 : 0
+#   name                = "${var.keyvault_name}-endpoint"
+#   location            = var.location
+#   resource_group_name = var.resource_group_name
+#   subnet_id           = var.app_subnet_id
+
+#   private_service_connection {
+#     name                           = "${var.keyvault_name}-connection"
+#     private_connection_resource_id = azurerm_key_vault.kv.id
+#     is_manual_connection           = false
+#     subresource_names              = ["vault"]
+#   }
+# }
 
 resource "azurerm_role_assignment" "kv_role" {
   for_each             = toset(var.admin_group_object_ids)
@@ -46,35 +78,4 @@ resource "azurerm_key_vault_key" "cmk" {
     "wrapKey",
   ]
   depends_on = [null_resource.wait_for_permission_propagation]
-}
-
-resource "azurerm_key_vault_secret" "entra_client_secret" {
-  # SC-12: Secure storage of application secrets
-  name         = "ENTRA-CLIENT-SECRET"
-  value        = var.entra_client_secret
-  key_vault_id = azurerm_key_vault.kv.id
-  depends_on   = [null_resource.wait_for_permission_propagation]
-}
-
-resource "random_password" "vectordb_password" {
-  length  = 16
-  special = true
-}
-
-resource "azurerm_key_vault_secret" "vectordb_password" {
-  name         = "VECTORDB-PASSWORD"
-  value        = random_password.vectordb_password.result
-  key_vault_id = azurerm_key_vault.kv.id
-  depends_on   = [null_resource.wait_for_permission_propagation]
-}
-
-resource "random_password" "django_secret_key" {
-  length = 50
-}
-
-resource "azurerm_key_vault_secret" "django_secret_key" {
-  name         = "DJANGO-SECRET-KEY"
-  value        = random_password.django_secret_key.result
-  key_vault_id = azurerm_key_vault.kv.id
-  depends_on   = [null_resource.wait_for_permission_propagation]
 }

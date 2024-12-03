@@ -1,33 +1,73 @@
 {% load i18n %}
 {% load rules %}
-<ul class="navbar-nav">
-  <li class="nav-item dropdown">
-    <button class="btn btn-dark text-muted dropdown-toggle px-2 me-1"
-            data-bs-toggle="dropdown"
-            aria-expanded="false">{{ request.user.full_name }}</button>
-    <ul class="dropdown-menu dropdown-menu-end">
-      <li>{% include 'components/language_toggle.html' %}</li>
-      <li>
-        <a href="{% url 'user_feedback' %}"
-           class="dropdown-item text-nowrap text-decoration-none">{% trans "Provide feedback" %}</a>
-      </li>
+{% has_perm "otto.manage_users" request.user as can_manage_users %}
+{% has_perm "otto.enable_load_testing" request.user as can_enable_load_testing %}
 
-      {% has_perm "otto.manage_users" request.user as can_manage_users %}
-      {% if can_manage_users %}
-        <li>
-          <hr class="dropdown-divider">
-        </li>
-        <li>
-          <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
-          <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
-        </li>
-      {% endif %}
+<li class="nav-item dropdown" id="user-menu">
+  <div id="cost-bar-outer"
+       hx-get="{% url 'user_cost' %}"
+       hx-swap="outerHTML"
+       hx-trigger='load delay:100ms'
+       style="position: absolute;
+              bottom: -3px;
+              width: calc(100% - 0.75rem);
+              margin-left: 0.2rem;
+              z-index: 1">
+    <meter id="cost-bar-inner"
+           class="w-100 d-block"
+           style="height: 12px"
+           value="0"></meter>
+  </div>
+  <button class="btn btn-dark text-muted dropdown-toggle px-2"
+          data-bs-toggle="dropdown"
+          aria-expanded="false">
+    {% if can_enable_load_testing and load_test_enabled %}
+      <i class="bi bi-shield-exclamation text-danger"
+         title="{% trans 'Load testing URL is enabled' %}"></i>
+    {% endif %}
+    {{ request.user.full_name }}
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    {% if can_manage_users %}
+      <li>
+        <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
+        <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
+        <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
+      </li>
+    {% endif %}
+    {% if can_enable_load_testing %}
       <li>
         <hr class="dropdown-divider">
       </li>
       <li>
-        <a href="{% url 'azure_auth:logout' %}" class="dropdown-item">{% trans "Logout" %}</a>
+        {% if load_test_enabled %}
+          {% include "components/disable_load_test_link.html" %}
+        {% else %}
+          {% include "components/enable_load_test_link.html" %}
+        {% endif %}
       </li>
-    </ul>
-  </li>
-</ul>
+    {% endif %}
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+    <li>
+      <a href="{% url 'azure_auth:logout' %}" class="dropdown-item">{% trans "Logout" %}</a>
+    </li>
+  </ul>
+</li>
+<script>
+(function() {
+  let tooltip = null;
+  let bs_tooltip = null;
+  // On HTMX swap of the "user cost" widget, delete its tooltip
+  document.body.addEventListener("htmx:afterSwap", function(event) {
+    if (event.target.id !== "cost-bar-outer") {
+      return;
+    } else if (bs_tooltip) {
+      bs_tooltip.hide();
+    }
+    tooltip = document.querySelector("#cost-bar-outer");
+    bs_tooltip = new bootstrap.Tooltip(tooltip, {delay: {show: 50, hide: 300}});
+  });
+})();
+</script>

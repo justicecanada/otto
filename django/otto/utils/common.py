@@ -13,20 +13,23 @@ def file_size_to_string(filesize):
 
 
 def display_cad_cost(usd_cost):
+    from otto.models import OttoStatus # Need to do it here to avoid circular imports
     """
     Converts a USD cost to CAD and returns a formatted string
     """
-    approx_cost_cad = float(usd_cost) * settings.USD_TO_CAD
+    approx_cost_cad = float(usd_cost) * OttoStatus.objects.singleton().exchange_rate
     if approx_cost_cad < 0.01:
         return "< $0.01"
     return f"${approx_cost_cad:.2f}"
 
 
 def cad_cost(usd_cost):
+    from otto.models import OttoStatus # Need to do it here to avoid circular imports
+
     """
     Converts a USD cost to CAD and returns a float
     """
-    approx_cost_cad = float(usd_cost) * settings.USD_TO_CAD
+    approx_cost_cad = float(usd_cost) * OttoStatus.objects.singleton().exchange_rate
     return approx_cost_cad
 
 
@@ -36,3 +39,17 @@ def set_costs(object):
     """
     object.usd_cost = sum([cost.usd_cost for cost in object.cost_set.all()])
     object.save()
+
+
+def get_app_from_path(path):
+    """
+    Returns the app name from a path
+    """
+    from urllib.parse import urlparse
+
+    parsed_url = urlparse(path)
+    path = parsed_url.path.strip("/").split("/")
+    # If the path is empty or the result is empty, return "otto"
+    if not path or not path[0]:
+        return "Otto"
+    return path[0]

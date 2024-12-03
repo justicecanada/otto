@@ -11,7 +11,6 @@ from uuid import uuid4
 from django.conf import settings
 
 import docx
-import fitz
 import markdown
 import tiktoken
 from bs4 import BeautifulSoup
@@ -165,15 +164,16 @@ def trim_to_tokens(text, max_tokens=15000):
 
 
 def extract_text_from_pdf(pdf_file):
-    # Save file to temporary storage and get the path
-    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-        for chunk in pdf_file.chunks():
-            temp_file.write(chunk)
-        temp_file_path = temp_file.name
-    doc = fitz.open(temp_file_path)
-    text = "\n".join(page.get_text() for page in doc)
-    doc.close()
-    os.unlink(temp_file_path)  # delete the temporary file
+    import pypdfium2 as pdfium
+
+    pdf = pdfium.PdfDocument(pdf_file)
+    text = ""
+    for i, page in enumerate(pdf):
+        text_page = page.get_textpage()
+        text += text_page.get_text_range() + "\n"
+        # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
+        text_page.close()
+    pdf.close()
     return text
 
 

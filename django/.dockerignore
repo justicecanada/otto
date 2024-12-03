@@ -1,1 +1,6 @@
-.env
+.*
+media
+staticfiles
+tests
+__pycache__
+chat/eval

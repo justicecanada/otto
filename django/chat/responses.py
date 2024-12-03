@@ -1,11 +1,14 @@
 import asyncio
+import traceback
+import uuid
 
+from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.http import HttpResponse, StreamingHttpResponse
 from django.template.loader import render_to_string
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
@@ -20,11 +23,14 @@ from chat.models import Message
 from chat.prompts import current_time_prompt
 from chat.tasks import translate_file
 from chat.utils import (
-    combine_responses,
+    combine_response_generators,
+    combine_response_replacers,
+    get_source_titles,
+    group_sources_into_docs,
     htmx_stream,
     num_tokens_from_string,
+    sort_by_max_score,
     summarize_long_text,
-    summarize_long_text_async,
     url_to_text,
 )
 from librarian.models import DataSource, Document, Library
@@ -39,26 +45,29 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
     """
     response_message = Message.objects.get(id=message_id)
-    chat = response_message.chat
-    mode = chat.options.mode
+    try:
+        chat = response_message.chat
+        mode = chat.options.mode
 
-    # For costing and logging. Contextvars are accessible anytime during the request
-    # including in async functions (i.e. htmx_stream) and Celery tasks.
-    bind_contextvars(message_id=message_id, feature=mode)
+        # For costing and logging. Contextvars are accessible anytime during the request
+        # including in async functions (i.e. htmx_stream) and Celery tasks.
+        bind_contextvars(message_id=message_id, feature=mode)
 
-    agent_enabled = not skip_agent and mode == "chat" and chat.options.chat_agent
-    if agent_enabled:
-        return chat_agent(chat, response_message)
-    if mode == "chat":
-        return chat_response(chat, response_message, switch_mode=switch_mode)
-    if mode == "summarize":
-        return summarize_response(chat, response_message)
-    if mode == "translate":
-        return translate_response(chat, response_message)
-    if mode == "qa":
-        return qa_response(chat, response_message, switch_mode=switch_mode)
-    else:
-        return error_response(chat, response_message)
+        agent_enabled = not skip_agent and mode == "chat" and chat.options.chat_agent
+        if agent_enabled:
+            return chat_agent(chat, response_message)
+        if mode == "chat":
+            return chat_response(chat, response_message, switch_mode=switch_mode)
+        if mode == "summarize":
+            return summarize_response(chat, response_message)
+        if mode == "translate":
+            return translate_response(chat, response_message)
+        if mode == "qa":
+            return qa_response(chat, response_message, switch_mode=switch_mode)
+        else:
+            return error_response(chat, response_message, _("Invalid mode."))
+    except Exception as e:
+        return error_response(chat, response_message, e)
 
 
 def chat_response(
@@ -143,46 +152,38 @@ def summarize_response(chat, response_message):
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
     summary_length = chat.options.summarize_style
+    gender_neutral = chat.options.summarize_gender_neutral
+    instructions = chat.options.summarize_instructions
     custom_summarize_prompt = chat.options.summarize_prompt
     target_language = chat.options.summarize_language
     model = chat.options.summarize_model
 
     llm = OttoLLM(model)
 
-    # TODO: Extracting text from file may incur Azure Document AI costs.
-    # Need to refactor extract_text to create Cost object with correct user and mode.
-    async def multi_summary_generator():
-        full_text = ""
-        for i, file in enumerate(files):
-            full_text += f"**{file.filename}**\n\n"
-            yield full_text
-            if not file.text:
-                await sync_to_async(file.extract_text)(fast=True)
-            response_stream = await summarize_long_text_async(
-                file.text,
-                llm,
-                summary_length,
-                target_language,
-                custom_summarize_prompt,
-            )
-            async for summary in response_stream:
-                full_text_with_summary = full_text + summary
-                yield full_text_with_summary
-
-            full_text = full_text_with_summary
-            if i < len(files) - 1:
-                full_text += "\n\n-----\n"
-            yield full_text
-            await asyncio.sleep(0)
-
     if len(files) > 0:
+        titles = [file.filename for file in files]
+        responses = []
+        for file in files:
+            if not file.text:
+                file.extract_text(pdf_method="default")
+            if not cache.get(f"stop_response_{response_message.id}", False):
+                responses.append(
+                    summarize_long_text(
+                        file.text,
+                        llm,
+                        summary_length,
+                        target_language,
+                        custom_summarize_prompt,
+                        gender_neutral,
+                        instructions,
+                    )
+                )
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
                 llm,
-                response_replacer=multi_summary_generator(),
-                dots=True,
+                response_replacer=combine_response_replacers(responses, titles),
             ),
             content_type="text/event-stream",
         )
@@ -208,6 +209,8 @@ def summarize_response(chat, response_message):
                 summary_length,
                 target_language,
                 custom_summarize_prompt,
+                gender_neutral,
+                instructions,
             )
             return StreamingHttpResponse(
                 streaming_content=htmx_stream(
@@ -260,7 +263,10 @@ def translate_response(chat, response_message):
             if len(task_ids) == len(files):
                 yield "<p>" + _("Translating file") + f" 1/{len(files)}...</p>"
             else:
-                yield await sync_to_async(file_msg)(response_message, len(files))
+                if any(task.state == "SUCCESS" for task in task_ids):
+                    yield await sync_to_async(file_msg)(response_message, len(files))
+                else:
+                    raise Exception(_("Error translating files."))
 
     if len(files) > 0:
         # Initiate the Celery task for translating each file with Azure
@@ -279,7 +285,8 @@ def translate_response(chat, response_message):
                 llm,
                 response_replacer=file_translation_generator(task_ids),
                 dots=True,
-                format=False,  # Because the generator already returns HTML
+                wrap_markdown=False,  # Because the generator already returns HTML
+                remove_stop=True,
             ),
             content_type="text/event-stream",
         )
@@ -321,29 +328,64 @@ def qa_response(chat, response_message, switch_mode=False):
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
 
+    # Quick-add URL to library
+    url_validator = URLValidator()
+    try:
+        url_validator(user_message.text)
+        adding_url = True
+        logger.debug("Valid URL. Adding to chat library...")
+    except ValidationError:
+        adding_url = False
+
     async def add_files_to_library():
         ds = chat.data_source
         processing_count = await sync_to_async(
             lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
         )()
         while processing_count:
-            yield _(
-                "Adding files to the Library"
-            ) + f" ({len(files)-processing_count+1}/{len(files)})..."
+            if adding_url:
+                yield f'<p>{_("Adding to the Q&A library")}...</p>'
+            else:
+                yield f'<p>{_("Adding to the Q&A library")} ({processing_count} {_("file(s) still processing")}...)</p>'
             await asyncio.sleep(0.5)
             processing_count = await sync_to_async(
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
             )()
+        if adding_url:
+            yield _("URL ready for Q&A.")
+        else:
+            yield f"{len(files)} " + _("new document(s) ready for Q&A.")
 
-        yield f"{len(files)} " + _("new file(s) ready for Q&A.")
-
-    if len(files) > 0:
+    if len(files) > 0 or adding_url:
         for file in files:
+            existing_document = Document.objects.filter(
+                data_source=chat.data_source,
+                filename=file.filename,
+                file__sha256_hash=file.saved_file.sha256_hash,
+            ).first()
+            # Skip if filename and hash are the same, and processing status is SUCCESS
+            if existing_document:
+                if existing_document.status != "SUCCESS":
+                    existing_document.process()
+                continue
             document = Document.objects.create(
                 data_source=chat.data_source,
                 file=file.saved_file,
                 filename=file.filename,
             )
+            document.process()
+        if adding_url:
+            existing_document = Document.objects.filter(
+                data_source=chat.data_source, url=user_message.text
+            ).first()
+            if not existing_document:
+                document = Document.objects.create(
+                    data_source=chat.data_source,
+                    url=user_message.text,
+                )
+            else:
+                document = existing_document
+            # URLs are always re-processed
             document.process()
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
@@ -351,13 +393,16 @@ def qa_response(chat, response_message, switch_mode=False):
                 response_message.id,
                 llm,
                 response_replacer=add_files_to_library(),
+                wrap_markdown=False,
                 dots=True,
+                remove_stop=True,
             ),
             content_type="text/event-stream",
         )
 
     # Apply filters if we are in qa mode and specific data sources are selected
     qa_scope = chat.options.qa_scope
+    filter_documents = None
     if qa_scope == "data_sources":
         data_sources = chat.options.qa_data_sources.all()
         filter_documents = Document.objects.filter(data_source__in=data_sources)
@@ -379,66 +424,174 @@ def qa_response(chat, response_message, switch_mode=False):
             content_type="text/event-stream",
         )
 
-    vector_store_table = chat.options.qa_library.uuid_hex
-    top_k = chat.options.qa_topk
-
-    # Don't include the top-level nodes (documents); they don't contain text
-    filters = MetadataFilters(
-        filters=[
-            MetadataFilter(
-                key="node_type",
-                value="document",
-                operator="!=",
-            ),
-        ]
-    )
-    if qa_scope != "all":
-        filters.filters.append(
-            MetadataFilter(
-                key="doc_id",
-                value=[document.uuid_hex for document in filter_documents],
-                operator="in",
+    # Summarize mode
+    if chat.options.qa_mode in ["summarize", "summarize_combined"]:
+        if not filter_documents:
+            filter_documents = Document.objects.filter(
+                data_source__library=chat.options.qa_library
             )
-        )
-    retriever = llm.get_retriever(
-        vector_store_table,
-        filters,
-        top_k,
-        chat.options.qa_vector_ratio,
-    )
-    synthesizer = llm.get_response_synthesizer(chat.options.qa_prompt_combined)
-    input = response_message.parent.text
-    source_nodes = retriever.retrieve(input)
-
-    if len(source_nodes) == 0:
-        response_str = _(
-            "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
-        )
-        return StreamingHttpResponse(
-            # Although there are no LLM costs, there is still a query embedding cost
-            streaming_content=htmx_stream(
-                chat,
-                response_message.id,
-                llm,
-                response_str=response_str,
-                switch_mode=switch_mode,
-            ),
-            content_type="text/event-stream",
-        )
-
-    if chat.options.qa_answer_mode != "per-source":
-        response = synthesizer.synthesize(query=input, nodes=source_nodes)
-        response_generator = response.response_gen
-        response_replacer = None
+        document_titles = [document.name for document in filter_documents]
+        if chat.options.qa_mode == "summarize_combined":
+            # Combine all documents into one text, including the titles
+            combined_documents = (
+                "<document>\n"
+                + "\n</document>\n<document>\n".join(
+                    [
+                        f"# {title}\n---\n{document.extracted_text}"
+                        for title, document in zip(document_titles, filter_documents)
+                    ]
+                )
+                + "\n</document>"
+            )
+            response_replacer = llm.tree_summarize(
+                context=combined_documents,
+                query=user_message.text,
+                template=chat.options.qa_prompt_combined,
+            )
+        else:
+            # Use summarization on each of the documents
+            summary_responses = [
+                llm.tree_summarize(
+                    context=document.extracted_text,
+                    query=user_message.text,
+                    template=chat.options.qa_prompt_combined,
+                )
+                for document in filter_documents
+                if not cache.get(f"stop_response_{response_message.id}", False)
+            ]
+            response_replacer = combine_response_replacers(
+                summary_responses, document_titles
+            )
+        response_generator = None
+        source_groups = None
 
     else:
-        responses = []
-        for source in source_nodes:
-            responses.append(synthesizer.synthesize(query=input, nodes=[source]))
-        response_replacer = combine_responses(responses, source_nodes)
-        response_generator = None
+        vector_store_table = chat.options.qa_library.uuid_hex
+        top_k = chat.options.qa_topk
 
-    sources = source_nodes
+        # Don't include the top-level nodes (documents); they don't contain text
+        filters = MetadataFilters(
+            filters=[
+                MetadataFilter(
+                    key="node_type",
+                    value="document",
+                    operator="!=",
+                ),
+            ]
+        )
+        if qa_scope != "all":
+            filters.filters.append(
+                MetadataFilter(
+                    key="doc_id",
+                    value=[document.uuid_hex for document in filter_documents],
+                    operator="in",
+                )
+            )
+        retriever = llm.get_retriever(
+            vector_store_table,
+            filters,
+            top_k,
+            chat.options.qa_vector_ratio,
+        )
+        synthesizer = llm.get_response_synthesizer(chat.options.qa_prompt_combined)
+        input = response_message.parent.text
+        source_nodes = retriever.retrieve(input)
+
+        # For debugging: Shows how nodes are presented to the LLM
+        # from llama_index.core.schema import MetadataMode
+
+        # for node in source_nodes:
+        #     print(node.get_content(metadata_mode=MetadataMode.LLM))
+
+        if len(source_nodes) == 0:
+            response_str = _(
+                "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
+            )
+            return StreamingHttpResponse(
+                # Although there are no LLM costs, there is still a query embedding cost
+                streaming_content=htmx_stream(
+                    chat,
+                    response_message.id,
+                    llm,
+                    response_str=response_str,
+                    switch_mode=switch_mode,
+                ),
+                content_type="text/event-stream",
+            )
+
+        # If we're stitching sources together into groups...
+        if chat.options.qa_granularity > 768:
+            # Group nodes from the same doc together,
+            # and ensure nodes WITHIN each doc are in reading order.
+            # Need to do this if granularity is set to group multiple nodes together
+            # AND/OR if "reading order" is enabled
+
+            doc_groups = group_sources_into_docs(source_nodes)
+
+            if chat.options.qa_source_order == "reading_order":
+                # Reading order requires keeping docs together, so
+                # sort documents by maximum node score within doc
+                # before stitching nodes together
+                doc_groups = sort_by_max_score(doc_groups)
+
+            # Stitching
+            source_groups = []
+            for doc in doc_groups:
+                current_source_group = []
+                for next_source in doc:
+                    if (
+                        num_tokens_from_string(
+                            "\n\n".join(
+                                [x.text for x in current_source_group]
+                                + [next_source.text]
+                            )
+                        )
+                        <= chat.options.qa_granularity
+                    ):
+                        current_source_group.append(next_source)
+                    else:
+                        source_groups.append(current_source_group)
+                        current_source_group = [next_source]  # Start a new group
+
+                # Add any remaining sources in current_source_group
+                if current_source_group:
+                    source_groups.append(current_source_group)
+
+            # If sorting by score, sort groups by max score within each one
+            # (without keeping documents together across groups)
+            if chat.options.qa_source_order == "score":
+                source_groups = sort_by_max_score(source_groups)
+
+        else:
+            if chat.options.qa_source_order == "reading_order":
+                # If we're not stitching anything, then we only need to group docs
+                # if we're doing it in reading order
+                doc_groups = group_sources_into_docs(source_nodes)
+                doc_groups = sort_by_max_score(doc_groups)
+
+                # Flatten newly-sorted source nodes
+                source_nodes = [node for doc in doc_groups for node in doc]
+
+            source_groups = [[source] for source in source_nodes]
+        if chat.options.qa_answer_mode != "per-source":
+            response = synthesizer.synthesize(query=input, nodes=source_nodes)
+            response_generator = response.response_gen
+            response_replacer = None
+
+        else:
+            responses = [
+                synthesizer.synthesize(query=input, nodes=sources).response_gen
+                for sources in source_groups
+                if not cache.get(f"stop_response_{response_message.id}", False)
+            ]
+            response_replacer = combine_response_generators(
+                responses,
+                get_source_titles([sources[0] for sources in source_groups]),
+                input,
+                llm,
+                chat.options.qa_prune,
+            )
+            response_generator = None
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
@@ -447,24 +600,37 @@ def qa_response(chat, response_message, switch_mode=False):
             llm,
             response_generator=response_generator,
             response_replacer=response_replacer,
-            source_nodes=sources,
+            source_nodes=source_groups,
             switch_mode=switch_mode,
         ),
         content_type="text/event-stream",
     )
 
 
-def error_response(chat, response_message):
+def error_response(chat, response_message, error_message=None):
     """
     Send an error message to the user.
     """
     llm = OttoLLM()
+    response_str = _("There was an error processing your request.")
+    error_id = str(uuid.uuid4())[:7]
+
+    if error_message and settings.DEBUG:
+        response_str += f"\n\n```\n{error_message}\n```\n\n"
+    response_str += f" _({_('Error ID')}: {error_id})_"
+    logger.error(
+        "Error processing chat response",
+        error_id=error_id,
+        message_id=response_message.id,
+        chat_id=chat.id,
+        error=traceback.format_exc(),
+    )
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
             llm,
-            response_str=_("Sorry, this isn't working right now."),
+            response_str=response_str,
         ),
         content_type="text/event-stream",
     )
@@ -477,7 +643,7 @@ def chat_agent(chat, response_message):
     bind_contextvars(feature="chat_agent")
     user_message = response_message.parent
     if user_message is None:
-        return error_response(chat, response_message)
+        return error_response(chat, response_message, _("No user message found."))
 
     user_text = user_message.text
     if len(user_text) > 500:
