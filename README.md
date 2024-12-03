@@ -144,13 +144,24 @@ Enter the password. Switch to the llama_index database and create the HNSW index
 CREATE INDEX ON data_laws_lois__ USING hnsw (embedding vector_ip_ops) WITH (m = 25, ef_construction = 300);
 ```
 
-### Celery Scheduler
+### Celery scheduler
 
-To enable the celery scheduler for local testing run the following command:
+To enable the celery scheduler for local testing run the following command (from ./django):
 ```bash
 celery -A otto beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 ```
 
+### Load testing
+
+If you installed k6 as part of the `dev_setup.sh` script, you can run load tests with `k6 run load_testing/k6_script.js`. Examine and edit the file as necessary beforehand.
+
+#### Testing pgbouncer locally
+
+PgBouncer (connection pooling) can be enabled locally by editing your `.env` (see `.env.example`). Run the following command from repo root to start pgbouncer:
+```bash
+pgbouncer -R django/postgres_wrapper/pgbouncer_config/pgbouncer.ini
+```
+Restart Django and Celery to pick up the changes to the .env.
 
 ## Contributing
 
