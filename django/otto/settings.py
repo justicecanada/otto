@@ -283,10 +283,8 @@ VECTORDB_PGBOUNCER = (
     os.environ.get("VECTORDB_PGBOUNCER", "False") == "True" and not IS_RUNNING_IN_GITHUB
 )
 pgbouncer_options = {
-    "HOST": "localhost",
-    "PORT": "6432",
     "DISABLE_SERVER_SIDE_CURSORS": True,
-    "CONN_MAX_AGE": None,
+    "CONN_MAX_AGE": 600,  # 10 minutes
 }
 
 # If the database is set in the environment variables, use that instead

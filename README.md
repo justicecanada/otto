@@ -60,8 +60,9 @@ As a platform for AI and data services, Otto helps legal professionals improve t
 3. In VScode, "Dev Containers: Open Folder in Container..." and select the directory you cloned this repo to.
 4. In the Git sidebar, click "Manage unsafe folders" and mark the repository as safe.
 5. From the terminal, run `bash dev_setup.sh` and follow the instructions.
-6. You can now run the server from the "Run and debug" sidebar in VScode or just run `python django/manage.py runserver` in the VScode terminal.
-7. Login to Otto using your Justice account.
+6. You can now run the server from the "Run and debug" sidebar in VScode or just run (from ./django) `python manage.py runserver` in the VScode terminal.
+7. You will also have to start Celery to process tasks such as file translation or document loading. Run (from ./django) `celery -A otto worker -l INFO --pool=gevent --concurrency=256`. *Note that Celery requires a manual restart when files have changed.*
+7. Go to http://localhost:8000 and login to Otto using your Justice account.
 8. From the terminal, run `python manage.py set_admin_user <firstname.lastname@justice.gc.ca>`.
 9. You will now have full permissions when you refresh Otto. You can add other users using the "Manage users > Upload CSV" option. (CSV of pilot users is found in our shared drive).
 
@@ -145,18 +146,9 @@ CREATE INDEX ON data_laws_lois__ USING hnsw (embedding vector_ip_ops) WITH (m = 
 
 ### Celery Scheduler
 
-To enable the celery scheduler in the development setup uncomment the `celery-beat` service found in `.devcontainer/docker-compose.yml`.
-
-In `django/otto/celery.py` adjust the celery beat settings as needed. The following example shows a job running every morning at 5am UTC
-
-``` python
-app.conf.beat_schedule = {
-  # Sync entra users every day at 5 am UTC
-  "sync-entra-users-every-morning": {
-      "task": "otto.tasks.sync_users",
-      "schedule": crontab(hour=5, minute=0),
-  }
-}
+To enable the celery scheduler for local testing run the following command:
+```bash
+celery -A otto beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 ```
 
 
