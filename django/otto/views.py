@@ -1,5 +1,7 @@
 import csv
 import io
+import os
+import time
 from collections import defaultdict
 from datetime import timedelta
 
@@ -26,7 +28,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
-from chat.models import Message
+from librarian.models import DataSource, Document, Library, SavedFile
 from otto.forms import (
     FeedbackForm,
     FeedbackMetadataForm,
@@ -35,15 +37,12 @@ from otto.forms import (
     UserGroupForm,
 )
 from otto.metrics.activity_metrics import otto_access_total
-from otto.metrics.feedback_metrics import otto_feedback_submitted_with_comment_total
 from otto.models import (
     FEATURE_CHOICES,
-    App,
     Cost,
     CostType,
     Feature,
     Feedback,
-    FeedbackManager,
     Pilot,
     UsageTerm,
 )
@@ -873,13 +872,10 @@ def load_test(request):
     if "error" in query_params:
         return HttpResponseServerError("Error requested")
     if "sleep" in query_params:
-        import time
-
         time.sleep(int(query_params["sleep"]))
     if "user_library_permissions" in query_params:
         # Super heavy Django DB query, currently takes about 40s on local
         # (only if "heavy" query param is present)
-        from librarian.models import Library
 
         if "heavy" in query_params:
             users = User.objects.all()
@@ -944,6 +940,34 @@ def load_test(request):
                 f"<pre style='max-width: 500px;text-wrap: auto;'>{embedding}</pre>"
             )
         )
+    if "mock_document_loading" in query_params:
+        # Create a test library and test data source
+        library = Library.objects.create(name="Test Library")
+        data_source = DataSource.objects.create(
+            name="Test Data Source", library=library
+        )
+        llm = OttoLLM(mock_embedding=True)
+        this_dir = os.path.dirname(os.path.abspath(__file__))
+        with open(
+            os.path.join(this_dir, "../tests/librarian/test_files/example.pdf"), "rb"
+        ) as f:
+            saved_file = SavedFile.objects.create(content_type="application/pdf")
+            saved_file.file.save("example.pdf", content=f)
+            saved_file.generate_hash()
+            document = Document.objects.create(data_source=data_source, file=saved_file)
+            document.process(mock_embedding=True)
+            # Wait for document to finish, sleeping 1 second
+            while document.status != "SUCCESS":
+                time.sleep(1)
+                document.refresh_from_db()
+                if document.status == "ERROR":
+                    return HttpResponseServerError("Document processing failed")
+            end_time = timezone.now()
+            total_time = (end_time - start_time).total_seconds()
+            library.delete()
+            return HttpResponse(
+                f"Document processing (mock embedding) took {total_time:.2f} seconds."
+            )
 
     return HttpResponse(
         f"Response took {(timezone.now() - start_time).total_seconds():.2f} seconds"
