@@ -2,10 +2,15 @@ import {check, sleep} from 'k6';
 import http from 'k6/http';
 
 export const options = {
-  // A number specifying the number of VUs to run concurrently.
-  vus: 150,
-  // A string specifying the total duration of the test run.
-  duration: '30s',
+  // stages: [
+  //   {duration: '10s', target: 50}, // Ramp-up to 50 VUs in 10 seconds
+  //   {duration: '10s', target: 100}, // Ramp-up to 100 VUs in the next 10 seconds
+  //   {duration: '10s', target: 150}, // Ramp-up to 150 VUs in the next 10 seconds
+  //   {duration: '10s', target: 150}, // Stay at 150 VUs for 10 seconds
+  //   {duration: '10s', target: 0}, // Ramp-down to 0 VUs in 10 seconds
+  // ],
+  vus: 150, // 10 virtual users
+  duration: '20s', // Duration of the test
 };
 
 // The function that defines VU logic.

@@ -11,8 +11,8 @@
 ;;   pool_mode= connect_query= application_name=
 [databases]
 
-${DJANGODB_NAME} = host=${DJANGODB_HOST} port=${DJANGODB_PORT} user=${DJANGODB_USER} password=${DJANGODB_PASSWORD} pool_size=50 reserve_pool=10 pool_mode=transaction
-${VECTORDB_NAME} = host=${VECTORDB_HOST} port=${VECTORDB_PORT} user=${VECTORDB_USER} password=${VECTORDB_PASSWORD} pool_size=50 reserve_pool=10 pool_mode=transaction
+${DJANGODB_NAME} = host=${DJANGODB_HOST} port=${DJANGODB_PORT} user=${DJANGODB_USER} password=${DJANGODB_PASSWORD} pool_mode=transaction
+${VECTORDB_NAME} = host=${VECTORDB_HOST} port=${VECTORDB_PORT} user=${VECTORDB_USER} password=${VECTORDB_PASSWORD} pool_mode=statement
 
 [pgbouncer]
 
@@ -34,7 +34,7 @@ max_client_conn = 1000
 ;; Default pool size.  20 is good number when transaction pooling
 ;; is in use, in session pooling it needs to be the number of
 ;; max clients you want to handle at any moment
-default_pool_size = 20
+default_pool_size = 50
 
 ;; Minimum number of server connections to keep in pool.
 min_pool_size = 10
@@ -47,4 +47,4 @@ reserve_pool_size = 10
 reserve_pool_timeout = 2
 
 ;; Maximum number of server connections for a database
-max_db_connections = 250
+max_db_connections = 150

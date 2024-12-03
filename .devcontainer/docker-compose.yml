@@ -42,7 +42,7 @@ services:
     volumes:
       - ..:/workspace:cached
     working_dir: /workspace/django
-    command: watchmedo auto-restart --pattern=*.py --recursive -- celery -A otto worker -l INFO --pool=gevent --concurrency=256
+    command: pgbouncer postgres_wrapper/pgbouncer/pgbouncer.ini && celery -A otto worker -l INFO --pool=gevent --concurrency=256
     network_mode: service:postgres-service
     depends_on:
       - postgres-service
