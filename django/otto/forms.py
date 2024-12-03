@@ -52,13 +52,8 @@ class FeedbackForm(ModelForm):
         super(FeedbackForm, self).__init__(*args, **kwargs)
         self.fields["created_by"].initial = user
         self.fields["modified_by"].initial = user
-<<<<<<< HEAD
-        self.fields["chat_message"].queryset = Message.objects.filter(id=message_id)
-        self.fields["otto_version"].initial = settings.OTTO_VERSION
-=======
-        self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
 
->>>>>>> 2984129e73e7635da32aa1ed7e5da20890e77a6f
+        self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
         if message_id is not None:
             self.fields["chat_message"].initial = message_id
             self.initialize_chat_feedback(message_id)
@@ -69,27 +64,6 @@ class FeedbackForm(ModelForm):
         self.fields["chat_message"].required = False
 
     def initialize_chat_feedback(self, message_id):
-<<<<<<< HEAD
-        self.fields["feedback_type"].initial = next(
-            filter(
-                lambda option: option[0] == "feedback", Feedback.FEEDBACK_TYPE_CHOICES
-            )
-        )
-
-        chat_mode = Message.objects.get(id=message_id).mode
-        if chat_mode == "translate":
-            self.fields["app"].choices = [("translate", _("Translate"))]
-        elif chat_mode == "summarize":
-            self.fields["app"].choices = [("summarize", _("Summarize"))]
-        elif chat_mode == "document_qa":
-            self.fields["app"].choices = [("document qa", _("Document QA"))]
-        elif chat_mode == "qa":
-            self.fields["app"].choices = [("qa", _("QA"))]
-        else:
-            self.fields["app"].choices = [("chat", _("Chat"))]
-
-        self.fields["chat_message"].initial = Message.objects.get(id=message_id)
-=======
         if message_id:
             chat_mode = Message.objects.get(id=message_id).mode
             if chat_mode == "translate":
@@ -144,7 +118,6 @@ class FeedbackNoteForm(ModelForm):
                 },
             ),
         }
->>>>>>> 2984129e73e7635da32aa1ed7e5da20890e77a6f
 
 
 # AC-16 & AC-16(2): Enables the modification of user roles and group memberships

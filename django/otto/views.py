@@ -25,10 +25,6 @@ from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-<<<<<<< HEAD
-from chat.models import Message
-from otto.forms import FeedbackForm, PilotForm, UserGroupForm
-=======
 from chat.llm import OttoLLM
 from chat.models import Message
 from otto.forms import (
@@ -38,7 +34,7 @@ from otto.forms import (
     PilotForm,
     UserGroupForm,
 )
->>>>>>> 2984129e73e7635da32aa1ed7e5da20890e77a6f
+
 from otto.metrics.activity_metrics import otto_access_total
 from otto.metrics.feedback_metrics import otto_feedback_submitted_with_comment_total
 from otto.models import (
@@ -164,31 +160,17 @@ def feedback_message(request: HttpRequest, message_id=None):
     if message_id == "None":
         message_id = None
     if request.method == "POST":
-<<<<<<< HEAD
-=======
+
         from django.contrib import messages
 
         from otto.utils.common import get_app_from_path
 
->>>>>>> 2984129e73e7635da32aa1ed7e5da20890e77a6f
         form = FeedbackForm(request.user, message_id, request.POST)
 
         if form.is_valid():
             feedback_saved = form.save(commit=False)
             date_and_time = timezone.now().strftime("%Y%m%d-%H%M%S")
-<<<<<<< HEAD
-            form.cleaned_data["created_at"] = date_and_time
-            form.save()
 
-            otto_feedback_submitted_with_comment_total.labels(
-                user=request.user.username
-            ).inc()
-
-            if message_id is None:
-                return redirect("feedback_success")
-            else:
-                return HttpResponse()
-=======
             feedback_saved.created_at = date_and_time
             if feedback_saved.chat_message is None:
                 feedback_saved.app = get_app_from_path(feedback_saved.url_context)
@@ -200,7 +182,6 @@ def feedback_message(request: HttpRequest, message_id=None):
             return HttpResponse(status=200)
         else:
             return HttpResponse(form.errors, status=400)
->>>>>>> 2984129e73e7635da32aa1ed7e5da20890e77a6f
     else:
         form = FeedbackForm(request.user, message_id)
     return render(
