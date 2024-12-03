@@ -53,16 +53,24 @@ if az keyvault show --name "$KEYVAULT_NAME" --resource-group "$RESOURCE_GROUP_NA
     fi
 fi
 
-# Import the storage account if it exists and is not in the Terraform state
+# If the OpenAI service exists and is not in the Terraform state, delete it and let Terraform recreate it
 if az cognitiveservices account show --name "$OPENAI_SERVICE_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query id -o tsv &>/dev/null; then
     if ! check_terraform_state "module.openai.azurerm_cognitive_account.openai"; then
-        echo "OpenAI service exists but not in Terraform state, importing..."
-        terraform import -var-file=.tfvars "module.openai.azurerm_cognitive_account.openai" \
-            "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.CognitiveServices/accounts/$OPENAI_SERVICE_NAME"
+        # Because the OpenAI service is not supported by the Azure CLI, we cannot import it; we must delete it and let Terraform recreate it
+        read -p "OpenAI service exists but cannot be imported into Terraform state. Do you want to delete it and let Terraform recreate it? (y/n) " -n 1 -r
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Exiting..."
+            exit 1
+        fi
+        echo "OpenAI service exists but not in Terraform state, deleting..."
+        
+        # Delete it using the Azure CLI and purge it to release the quotas
+        az cognitiveservices account delete --name "$OPENAI_SERVICE_NAME" --resource-group "$RESOURCE_GROUP_NAME"
+        az cognitiveservices account purge --name "$OPENAI_SERVICE_NAME" --resource-group "$RESOURCE_GROUP_NAME" --location "$LOCATION"
     fi
 fi
 
-# Import the storage account if it exists and is not in the Terraform state
+# Import the Cognitive Services if it exists and is not in the Terraform state
 if az cognitiveservices account show --name "$COGNITIVE_SERVICES_NAME" --resource-group "$RESOURCE_GROUP_NAME" --query id -o tsv &>/dev/null; then
     if ! check_terraform_state "module.cognitive_services.azurerm_cognitive_account.cognitive_services"; then
         echo "Cognitive Services exists but not in Terraform state, importing..."
@@ -70,6 +78,7 @@ if az cognitiveservices account show --name "$COGNITIVE_SERVICES_NAME" --resourc
             "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.CognitiveServices/accounts/$COGNITIVE_SERVICES_NAME"
     fi
 fi
+
 
 # If ENABLE_DEBUG is true, set the Terraform log level to debug
 unset TF_LOG
