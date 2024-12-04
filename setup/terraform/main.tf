@@ -127,6 +127,7 @@ module "aks" {
   vnet_id                                = var.vnet_id
   web_subnet_id                          = var.web_subnet_id
   identity_id                            = azurerm_user_assigned_identity.otto_identity.id
+  jumpbox_identity_id                    = var.jumpbox_identity_id
 }
 
 # TODO: Uncomment Velero after the change request is approved

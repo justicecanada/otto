@@ -13,6 +13,11 @@ variable "identity_id" {
   type        = string
 }
 
+variable "jumpbox_identity_id" {
+  description = "The ID of the jumpbox's user-assigned managed identity"
+  type        = string
+}
+
 variable "resource_group_name" {
   description = "The name of the resource group"
   type        = string
