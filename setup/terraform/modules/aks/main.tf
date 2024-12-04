@@ -191,6 +191,16 @@ resource "azurerm_kubernetes_cluster" "aks" {
   depends_on = [var.acr_id, azurerm_role_assignment.aks_network_contributor]
 }
 
+resource "azurerm_private_dns_a_record" "aks_api_server" {
+  name                = "apiserver"
+  zone_name           = azurerm_private_dns_zone.aks_dns.name
+  resource_group_name = azurerm_private_dns_zone.aks_dns.resource_group_name
+  ttl                 = 300
+  records             = [azurerm_kubernetes_cluster.aks.private_fqdn]
+
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
+
 resource "azurerm_role_assignment" "aks_des_reader" {
   scope                = var.disk_encryption_set_id
   role_definition_name = "Reader"
