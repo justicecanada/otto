@@ -62,6 +62,8 @@ import_state_if_required() {
             terraform import -var-file=.tfvars "module.keyvault.azurerm_key_vault.kv" \
                 "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME"
 
+            terraform apply -var-file=.tfvars -target=module.keyvault.azurerm_private_endpoint.keyvault
+
             # KEY_VERSION=$(az keyvault key list-versions --vault-name $KEYVAULT_NAME --name otto-encryption-key --query [-1].id -o tsv | cut -d'/' -f6)            
             # terraform import -var-file=.tfvars module.keyvault.azurerm_key_vault_key.cmk \
             #     "https://$KEYVAULT_NAME.vault.azure.net/keys/otto-encryption-key"
@@ -115,14 +117,7 @@ import_state_if_required() {
             # if az keyvault key list --vault-name "$KEYVAULT_NAME" --query "[?managed==null].kid" -o tsv &>/dev/null; then
             #     echo "Key Vault contains customer-managed keys, deleting..."
             #     az keyvault key list --vault-name "$KEYVAULT_NAME" --query "[?managed==null].kid" -o tsv | xargs -I {} az keyvault key delete --vault-name "$KEYVAULT_NAME" --name "$(basename {})"
-            # fi
-
-            terraform apply -var-file=.tfvars -target=azurerm_user_assigned_identity.otto_identity
-
-
-            terraform apply -target=azurerm_private_endpoint.pep \
-                            -target=azurerm_private_dns_zone.pdnszone \
-                            -target=azurerm_private_dns_zone_virtual_network_link.pdnszlink
+            # fi        
 
         fi
     fi
