@@ -170,16 +170,15 @@ resource "azurerm_kubernetes_cluster" "aks" {
       hours = [21, 22, 23, 0]
     }
   }
-
-  # TODO: Rethink once the jumpbox VM approach is finalized
-  # # AC-3 & CM-8(3): Azure Active Directory integration and RBAC can be used to enforce compliance and detect unauthorized access attempts
-  # # AC-3(7): Use Azure AD groups for role assignments and permission management in AKSs
-  # # AC-20, AC-20(3), SC-2: AAD enables centralized identity management and access control
-  # azure_active_directory_role_based_access_control {
-  #   managed                = true # Deprecated but still required
-  #   azure_rbac_enabled     = true # AC-22: Enable Azure RBAC
-  #   admin_group_object_ids = var.admin_group_id
-  # }
+  
+  # AC-3 & CM-8(3): Azure Active Directory integration and RBAC can be used to enforce compliance and detect unauthorized access attempts
+  # AC-3(7): Use Azure AD groups for role assignments and permission management in AKSs
+  # AC-20, AC-20(3), SC-2: AAD enables centralized identity management and access control
+  azure_active_directory_role_based_access_control {
+    managed                = true # Deprecated but still required
+    azure_rbac_enabled     = true # AC-22: Enable Azure RBAC
+    # admin_group_object_ids = var.admin_group_id # TODO: Rethink once the jumpbox VM approach is finalized
+  }
 
   local_account_disabled = true
 
