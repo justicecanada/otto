@@ -41,10 +41,11 @@ variable "keyvault_id" {
   type        = string
 }
 
-variable "cmk_id" {
-  description = "The ID of the Key in the Key Vault to use for encryption"
-  type        = string
-}
+# TODO: Uncomment if we want CMK managed by Terraform again.
+# variable "cmk_id" {
+#   description = "The ID of the Key in the Key Vault to use for encryption"
+#   type        = string
+# }
 
 variable "wait_for_propagation" {
   description = "Flag for keyvault permission propagation"

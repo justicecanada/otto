@@ -35,8 +35,6 @@ container_name       = "$TF_STATE_CONTAINER"
 key                  = "$TF_STATE_KEY"
 EOF
 
-terraform import -var-file=.tfvars "module.keyvault.azurerm_key_vault.kv" \
-    "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME"
 
 # Function to check if resource is already in Terraform state
 check_terraform_state() {
@@ -64,55 +62,61 @@ import_state_if_required() {
             terraform import -var-file=.tfvars "module.keyvault.azurerm_key_vault.kv" \
                 "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME"
 
-            # Convert comma-separated ADMIN_GROUP_ID to array
-            IFS=',' read -ra ADMIN_GROUP_IDS <<< "$ADMIN_GROUP_ID"
-
-            # Get current assignments with principal IDs in TSV format
-            current_assignments=$(az role assignment list \
-                --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME" \
-                --role "Key Vault Administrator" \
-                --query "[].{id:id,principalId:principalId}" -o tsv)
-
-            # Process each line of the output
-            while IFS=$'\t' read -r assignment_id principal_id; do
-                if [[ -n $assignment_id && -n $principal_id ]]; then
-                    # Check if principal ID is in our admin group list
-                    for admin_id in "${ADMIN_GROUP_IDS[@]}"; do
-                        if [[ "$principal_id" == "$admin_id" ]]; then
-                            echo "Removing role assignment $assignment_id as it will be managed by Terraform..."
-                            az role assignment delete --ids "$assignment_id"
-                            break
-                        fi
-                    done
-                fi
-            done <<< "$current_assignments"
-
-            # Get the managed identity's object ID
-            managed_identity_id=$(az identity show --name $JUMPBOX_IDENTITY_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query principalId -o tsv)
-
-            # Check if role assignment already exists
-            if ! az role assignment list \
-                --assignee-object-id "$managed_identity_id" \
-                --role "Key Vault Administrator" \
-                --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME" \
-                --query "[].id" -o tsv &>/dev/null; then
+            # KEY_VERSION=$(az keyvault key list-versions --vault-name $KEYVAULT_NAME --name otto-encryption-key --query [-1].id -o tsv | cut -d'/' -f6)            
+            # terraform import -var-file=.tfvars module.keyvault.azurerm_key_vault_key.cmk \
+            #     "https://$KEYVAULT_NAME.vault.azure.net/keys/otto-encryption-key"
                 
-                echo "Assigning Key Vault Administrator role to managed identity..."
-                az role assignment create \
-                    --role "Key Vault Administrator" \
-                    --assignee-object-id "$managed_identity_id" \
-                    --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME"
 
-                # Inform the user of a propagation delay requirement and ask for confirmation before continuing
-                echo "Role assignment created. Please wait for the permissions to propagate before continuing. Press any key to continue..."
-                read -n 1 -s
-            fi
+            # # Convert comma-separated ADMIN_GROUP_ID to array
+            # IFS=',' read -ra ADMIN_GROUP_IDS <<< "$ADMIN_GROUP_ID"
 
-            # If there is a customer-managed key in the keyvault, delete it so that Terraform can manage it
-            if az keyvault key list --vault-name "$KEYVAULT_NAME" --query "[?managed==null].kid" -o tsv &>/dev/null; then
-                echo "Key Vault contains customer-managed keys, deleting..."
-                az keyvault key list --vault-name "$KEYVAULT_NAME" --query "[?managed==null].kid" -o tsv | xargs -I {} az keyvault key delete --vault-name "$KEYVAULT_NAME" --name "$(basename {})"
-            fi
+            # # Get current assignments with principal IDs in TSV format
+            # current_assignments=$(az role assignment list \
+            #     --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME" \
+            #     --role "Key Vault Administrator" \
+            #     --query "[].{id:id,principalId:principalId}" -o tsv)
+
+            # # Process each line of the output
+            # while IFS=$'\t' read -r assignment_id principal_id; do
+            #     if [[ -n $assignment_id && -n $principal_id ]]; then
+            #         # Check if principal ID is in our admin group list
+            #         for admin_id in "${ADMIN_GROUP_IDS[@]}"; do
+            #             if [[ "$principal_id" == "$admin_id" ]]; then
+            #                 echo "Removing role assignment $assignment_id as it will be managed by Terraform..."
+            #                 az role assignment delete --ids "$assignment_id"
+            #                 break
+            #             fi
+            #         done
+            #     fi
+            # done <<< "$current_assignments"
+
+            # # Get the managed identity's object ID
+            # managed_identity_id=$(az identity show --name $JUMPBOX_IDENTITY_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query principalId -o tsv)
+
+            # # Check if role assignment already exists
+            # if ! az role assignment list \
+            #     --assignee-object-id "$managed_identity_id" \
+            #     --role "Key Vault Administrator" \
+            #     --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME" \
+            #     --query "[].id" -o tsv &>/dev/null; then
+                
+            #     echo "Assigning Key Vault Administrator role to managed identity..."
+            #     az role assignment create \
+            #         --role "Key Vault Administrator" \
+            #         --assignee-object-id "$managed_identity_id" \
+            #         --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME"
+
+            #     # Inform the user of a propagation delay requirement and ask for confirmation before continuing
+            #     echo "Role assignment created. Please wait for the permissions to propagate before continuing. Press any key to continue..."
+            #     read -n 1 -s
+            # fi
+
+            # # If there is a customer-managed key in the keyvault, delete it so that Terraform can manage it
+            # if az keyvault key list --vault-name "$KEYVAULT_NAME" --query "[?managed==null].kid" -o tsv &>/dev/null; then
+            #     echo "Key Vault contains customer-managed keys, deleting..."
+            #     az keyvault key list --vault-name "$KEYVAULT_NAME" --query "[?managed==null].kid" -o tsv | xargs -I {} az keyvault key delete --vault-name "$KEYVAULT_NAME" --name "$(basename {})"
+            # fi
+
 
         fi
     fi

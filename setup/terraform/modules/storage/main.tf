@@ -24,22 +24,22 @@ resource "null_resource" "wait_for_storage_permission_propagation" {
   ]
 }
 
-resource "azurerm_key_vault_key" "storage_cmk" {
-  # SC-12 & SC-13: Customer-managed keys for storage encryption
-  key_vault_id = var.keyvault_id
-  name         = var.cmk_name
-  key_type     = "RSA"
-  key_size     = 2048
+# resource "azurerm_key_vault_key" "storage_cmk" {
+#   # SC-12 & SC-13: Customer-managed keys for storage encryption
+#   key_vault_id = var.keyvault_id
+#   name         = var.cmk_name
+#   key_type     = "RSA"
+#   key_size     = 2048
 
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-}
+#   key_opts = [
+#     "decrypt",
+#     "encrypt",
+#     "sign",
+#     "unwrapKey",
+#     "verify",
+#     "wrapKey",
+#   ]
+# }
 
 data "azurerm_private_dns_zone" "blob_zone" {
   name                = "privatelink.blob.core.windows.net"
@@ -74,10 +74,11 @@ resource "azurerm_storage_account" "storage" {
     }
   }
 
-  customer_managed_key {
-    key_vault_key_id          = azurerm_key_vault_key.storage_cmk.id
-    user_assigned_identity_id = var.identity_id
-  }
+  # TODO: Uncomment if we want CMK managed by Terraform again.
+  # customer_managed_key {
+  #   key_vault_key_id          = azurerm_key_vault_key.storage_cmk.id
+  #   user_assigned_identity_id = var.identity_id
+  # }
 
   network_rules {
     default_action             = var.use_private_network ? "Deny" : "Allow"
@@ -87,7 +88,9 @@ resource "azurerm_storage_account" "storage" {
 
   tags = var.tags
 
-  depends_on = [azurerm_key_vault_key.storage_cmk, null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id]
+  # depends_on = [azurerm_key_vault_key.storage_cmk, null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id] # TODO: Uncomment if we want CMK managed by Terraform again.
+  depends_on = [null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id]  
+
 }
 
 # Private Endpoint for Azure Storage

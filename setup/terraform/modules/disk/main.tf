@@ -3,7 +3,8 @@ resource "null_resource" "wait_for_purge_protection" {
   provisioner "local-exec" {
     command = "sleep 120"
   }
-  depends_on = [var.wait_for_propagation, var.cmk_id]
+  # depends_on = [var.wait_for_propagation, var.cmk_id] # TODO: Uncomment if we want CMK managed by Terraform again.
+  depends_on = [var.wait_for_propagation] # TODO: Uncomment if we want CMK managed by Terraform again.
 }
 
 resource "azurerm_disk_access" "disk_access" {
@@ -17,7 +18,7 @@ resource "azurerm_disk_encryption_set" "des" {
   name                = "${var.disk_name}-des"
   location            = var.location # SA-9(5): Store data in a location that complies with data residency requirements
   resource_group_name = var.resource_group_name
-  key_vault_key_id    = var.cmk_id
+  # key_vault_key_id    = var.cmk_id # TODO: Uncomment if we want CMK managed by Terraform again.
   tags                = var.tags
 
   identity {

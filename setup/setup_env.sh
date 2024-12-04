@@ -22,7 +22,7 @@ if ! az account show &> /dev/null; then
     az login --identity --username "$JUMPBOX_IDENTITY_ID" --only-show-errors --output none
 else
     CURRENT_IDENTITY_ID=$(az account show --query user.assignedIdentityInfo -o tsv)
-    if [ "$CURRENT_IDENTITY_ID" != "MSIClient-$JUMPBOX_IDENTITY_ID" ]; then
+    if [[ "$CURRENT_IDENTITY_ID" != *"$JUMPBOX_IDENTITY_ID"* ]]; then
         echo "Current identity doesn't match jumpbox identity. Logging in with jumpbox identity..."
         az login --identity --username "$JUMPBOX_IDENTITY_ID" --only-show-errors --output none
     fi
