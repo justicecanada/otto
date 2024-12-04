@@ -470,8 +470,65 @@ else {
     Write-Host "User-assigned managed identity $JUMPBOX_IDENTITY_NAME already exists"
 }
 
+
+# Check if the Jumpbox NIC exists. If not, create it.
+$jumpboxNicExists = az network nic show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME-nic --only-show-errors 2>$null
+if (-not $jumpboxNicExists) {
+    Write-Host "Creating NIC for Jumpbox"
+    az network nic create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name $JUMPBOX_NAME-nic `
+        --vnet-name $VNET_NAME `
+        --subnet $MGMT_SUBNET_NAME `
+        --private-ip-address $JUMPBOX_IP `
+        --network-security-group $nsgName `
+        --tags ApplicationName="$APP_NAME" Environment="$ENVIRONMENT" Classification="$CLASSIFICATION" CostCenter="$COST_CENTER" Criticality="$CRITICALITY" Owner="$OWNER" Location="$LOCATION" `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "NIC for Jumpbox already exists"
+}
+
+
 # Get the resource ID of the managed identity
 $identityResourceId = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_IDENTITY_NAME --query id -o tsv
+$identityId = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_IDENTITY_NAME --query principalId -o tsv
+
+# Check if the identity has Owner role assignment. If not, attempt to assign it.
+$ownerRoleAssignment = az role assignment list --assignee $identityId --role "Owner" --scope /subscriptions/$SUBSCRIPTION_ID -o tsv
+
+if (-not $ownerRoleAssignment) {
+    Write-Host "Identity does not have the Owner role assignment. Attempting to assign..."
+
+    try {
+        $result = az role assignment create `
+            --assignee $identityId `
+            --role "Owner" `
+            --scope /subscriptions/$SUBSCRIPTION_ID `
+            --only-show-errors `
+            2>&1
+
+        if ($LASTEXITCODE -ne 0) {
+            throw $result
+        }
+
+        Write-Host "Successfully assigned Owner role to identity."
+    }
+    catch {
+        Write-Host $_.Exception.Message
+        Write-Host "The Owner role, with highest privilege, is required for the VM to create resources in the subscription and manage user access between resources. The Contributor role is not sufficient as it lacks User Access Administrator permissions. The Terraform script will fail without this role assignment. Please contact your Cloud Administrator or another subscription owner with highest privileges to assign the Owner role to $JUMPBOX_IDENTITY_NAME ($identityResourceId)."
+        
+        $continue = Read-Host "Do you want to continue without this role assignment? (y/n)"
+        if ($continue -ne "y") {
+            exit
+        }
+        Write-Host "Continuing with the rest of the script..."
+    }
+}
+else {
+    Write-Host "Identity already has the Owner role assignment."
+}
 
 
 # Check if the Jumpbox VM exists. If not, create it with the user-assigned managed identity.
@@ -483,13 +540,9 @@ if (-not $jumpboxExists) {
         --name $JUMPBOX_NAME `
         --image Ubuntu2204 `
         --size Standard_B2s `
-        --vnet-name $VNET_NAME `
-        --subnet $MGMT_SUBNET_NAME `
-        --private-ip-address $JUMPBOX_IP `
-        --public-ip-address "" `
+        --nics $JUMPBOX_NAME-nic `
         --admin-username azureuser `
         --generate-ssh-keys `
-        --nsg $nsgName `
         --assign-identity $identityResourceId `
         --only-show-errors `
         --output none
@@ -499,79 +552,9 @@ else {
 }
 
 
-# TODO: The following code was meant to ensure that the VM only has user-assigned managed identity, but it wasn't working as expected. Need to clean it up later. For now, will explicitly specify which identity to use when logging in.
-
-# $vm = az vm show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME | ConvertFrom-Json
-
-# if ($vm.identity.type -eq "UserAssigned") {
-#     Write-Host "VM is correctly configured with only user-assigned managed identity."
-# }
-# else {
-#     Write-Host "VM identity configuration needs adjustment."
-    
-#     # Remove system-assigned identity if present
-#     if ($vm.identity.type -eq "SystemAssigned, UserAssigned") {
-
-#         Write-Host "Explicitly assigning user-assigned managed identity..."
-#         az vm identity assign --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --identities $identityResourceId
-
-#         Write-Host "Removing system-assigned managed identity..."
-#         az vm identity remove --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --identities [system]
-#     }
-    
-#     # Ensure only user-assigned identity is present
-#     Write-Host "Updating VM to use only user-assigned managed identity..."
-#     az vm identity assign --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --identities $identityResourceId
-# }
-
-
-# Capture the VM identity ID
-$vmIdentityId = az vm identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_NAME --query principalId -o tsv
-
-# Check if the VM identity has Owner role assignment. If not, attempt to assign it.
-# Note: Contributor role is not sufficient as the VM needs to also have User Access Administrator, which is not assignable without higher permissions.
-$ownerRoleAssignment = az role assignment list --assignee $vmIdentityId --role "Owner" --scope /subscriptions/$SUBSCRIPTION_ID -o tsv
-
-if (-not $ownerRoleAssignment) {
-    Write-Host "VM identity does not have the Owner role assignment. Attempting to assign..."
-
-    try {
-        $result = az role assignment create `
-            --assignee $vmIdentityId `
-            --role "Owner" `
-            --scope /subscriptions/$SUBSCRIPTION_ID `
-            --only-show-errors `
-            2>&1
-
-        if ($LASTEXITCODE -ne 0) {
-            throw $result
-        }
-
-        Write-Host "Successfully assigned Owner role to VM identity."
-    }
-    catch {
-        Write-Host $_.Exception.Message
-        Write-Host "The Owner role, with highest privilege, is required for the VM to create resources in the subscription and manage user access between resources. The Contributor role is not sufficient as it lacks User Access Administrator permissions. The Terraform script will fail without this role assignment. Please contact your Cloud Administrator or another subscription owner with highest privileges to assign the Owner role to $JUMPBOX_IDENTITY_NAME ($vmIdentityId)."
-        
-        $continue = Read-Host "Do you want to continue without this role assignment? (y/n)"
-        if ($continue -ne "y") {
-            exit
-        }
-        Write-Host "Continuing with the rest of the script..."
-    }
-}
-else {
-    Write-Host "VM identity already has the Owner role assignment."
-}
-
-
 # Check if a storage account with the prefix already exists
 $existing_account = az storage account list --resource-group $MGMT_RESOURCE_GROUP_NAME --query "[?starts_with(name, '${MGMT_STORAGE_NAME}')].name" -o tsv
-if ($existing_account) {
-    $MGMT_STORAGE_NAME = $existing_account
-    Write-Host "Using existing storage account: $MGMT_STORAGE_NAME"
-}
-else {
+if (-not $existing_account) {
     # Generate a random 5-digit alphanumeric suffix
     $random_suffix = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
 
@@ -597,36 +580,21 @@ else {
         --only-show-errors `
         --output none
 }
+else {
+    Write-Host "Storage account with the prefix $MGMT_STORAGE_NAME already exists"
+}
 # Get the resource ID of the storage account
 $storageAccountId = az storage account show --name $MGMT_STORAGE_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
 
 
-# TODO: The following code can be deleted because it's not needed since we're using a private endpoint
-# # Add subnet to storage account allowed networks if it doesn't already exist
-# $subnetRuleExists = az storage account network-rule list --resource-group $MGMT_RESOURCE_GROUP_NAME --account-name $MGMT_STORAGE_NAME --query "virtualNetworkRules[?virtualNetworkResourceId=='$mgmtSubnetId']" -o tsv
-# if (-not $subnetRuleExists) {
-#     Write-Host "Adding subnet to storage account allowed networks"
-#     az storage account network-rule add `
-#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#         --account-name $MGMT_STORAGE_NAME `
-#         --virtual-network $vnetId `
-#         --subnet $MGMT_SUBNET_NAME `
-#         --only-show-errors `
-#         --output none
-# }
-# else {
-#     Write-Host "Subnet is already added to storage account allowed networks"
-# }
-
-
 # Assign the "Storage Blob Data Contributor" role to the VM's managed identity for the storage account
-$roleAssignment = az role assignment list --assignee $vmIdentityId --role "Storage Blob Data Contributor" --scope $storageAccountId -o tsv
+$roleAssignment = az role assignment list --assignee $identityId --role "Storage Blob Data Contributor" --scope $storageAccountId -o tsv
 if (-not $roleAssignment) {
     Write-Host "Assigning Storage Blob Data Contributor role to VM identity"
 
     # Assign the "Storage Blob Data Contributor" role to the VM identity
     az role assignment create `
-        --assignee $vmIdentityId `
+        --assignee $identityId `
         --role "Storage Blob Data Contributor" `
         --scope $storageAccountId `
         --only-show-errors `
@@ -657,7 +625,7 @@ else {
 }
 
 
-# Get the private endpoint network interface if it exists
+# Get the private endpoint network interface
 $networkInterfaceId = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "$MGMT_STORAGE_ENDPOINT" --query "networkInterfaces[0].id" -o tsv
 
 $networkInterfaceIpConfig = az resource show `
@@ -787,9 +755,6 @@ else {
     Write-Host "Jumpbox VM is already running"
 }
 
-
-$jumpboxIdentityId = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_IDENTITY_NAME --query id -o tsv
-
 # Create the setup script
 $setupScript = @"
 #!/bin/bash
@@ -859,7 +824,7 @@ ACR_NAME="$ACR_NAME"
 KEYVAULT_NAME="$KEYVAULT_NAME"
 JUMPBOX_NAME="$JUMPBOX_NAME"
 JUMPBOX_IDENTITY_NAME="$JUMPBOX_IDENTITY_NAME"
-JUMPBOX_IDENTITY_ID="$jumpboxIdentityId"
+JUMPBOX_IDENTITY_ID="$identityId"
 ADMIN_GROUP_ID="$ADMIN_GROUP_ID"
 LOG_ANALYTICS_READERS_GROUP_ID="$LOG_ANALYTICS_READERS_GROUP_ID"
 VNET_ID="$vnetId"

@@ -12,12 +12,6 @@ locals {
   max_node_count = floor(var.approved_cpu_quota / var.vm_cpu_count)
 }
 
-resource "azurerm_user_assigned_identity" "aks_identity" {
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  name                = "${var.aks_cluster_name}-identity"
-}
-
 # Create a private DNS zone for AKS
 resource "azurerm_private_dns_zone" "aks_dns" {
   name                = "privatelink.canadacentral.azmk8s.io"
@@ -120,7 +114,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   # Assign the identity to the AKS cluster
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.aks_identity.id]
+    identity_ids = [var.identity_id]
   }
 
   # SC-12 & SC-13: Enabling Azure Key Vault secrets provider for secure key management
@@ -171,14 +165,15 @@ resource "azurerm_kubernetes_cluster" "aks" {
     }
   }
 
-  # AC-3 & CM-8(3): Azure Active Directory integration and RBAC can be used to enforce compliance and detect unauthorized access attempts
-  # AC-3(7): Use Azure AD groups for role assignments and permission management in AKSs
-  # AC-20, AC-20(3), SC-2: AAD enables centralized identity management and access control
-  azure_active_directory_role_based_access_control {
-    managed                = true # Deprecated but still required
-    azure_rbac_enabled     = true # AC-22: Enable Azure RBAC
-    admin_group_object_ids = var.admin_group_id
-  }
+  # TODO: Rethink once the jumpbox VM approach is finalized
+  # # AC-3 & CM-8(3): Azure Active Directory integration and RBAC can be used to enforce compliance and detect unauthorized access attempts
+  # # AC-3(7): Use Azure AD groups for role assignments and permission management in AKSs
+  # # AC-20, AC-20(3), SC-2: AAD enables centralized identity management and access control
+  # azure_active_directory_role_based_access_control {
+  #   managed                = true # Deprecated but still required
+  #   azure_rbac_enabled     = true # AC-22: Enable Azure RBAC
+  #   admin_group_object_ids = var.admin_group_id
+  # }
 
   local_account_disabled = true
 
@@ -194,7 +189,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 resource "azurerm_role_assignment" "aks_des_reader" {
   scope                = var.disk_encryption_set_id
   role_definition_name = "Reader"
-  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
+  principal_id         = var.identity_id
 
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
@@ -202,7 +197,7 @@ resource "azurerm_role_assignment" "aks_des_reader" {
 resource "azurerm_role_assignment" "aks_vm_contributor" {
   scope                = var.disk_encryption_set_id
   role_definition_name = "Virtual Machine Contributor"
-  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
+  principal_id         = var.identity_id
 
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
@@ -213,14 +208,21 @@ data "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_role_assignment" "aks_network_contributor" {
-  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
+  principal_id         = var.identity_id
   role_definition_name = "Network Contributor"
   scope                = data.azurerm_resource_group.rg.id
 }
 
+# TODO: Rethink once the jumpbox VM approach is finalized
+# resource "azurerm_role_assignment" "rbac_cluster_admin" {
+#   for_each             = toset(var.admin_group_id)
+#   principal_id         = each.value
+#   role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
+#   scope                = azurerm_kubernetes_cluster.aks.id
+# }
+
 resource "azurerm_role_assignment" "rbac_cluster_admin" {
-  for_each             = toset(var.admin_group_id)
-  principal_id         = each.value
+  principal_id         = var.jumpbox_identity_id
   role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
   scope                = azurerm_kubernetes_cluster.aks.id
 }
@@ -249,11 +251,11 @@ resource "azurerm_role_assignment" "aks_secrets_provider_identity_kv_secrets_use
 # ## Secrets Provider Identity
 # This identity is specifically used by the Azure Key Vault Provider for Secrets Store CSI Driver. It's responsible for accessing Key Vault secrets and mounting them as volumes in pods.
 # 
-# ## User-Assigned Managed Identity (Cluster Identity)
-# The AKS cluster's user-assigned managed identity is used for cluster-level operations and management tasks and does not typically require direct access to secrets.
+# ## Cluster Identity
+# The AKS cluster's identity is used for cluster-level operations and management tasks and does not typically require direct access to secrets.
 
 resource "azurerm_role_assignment" "acr_pull" {
-  principal_id         = azurerm_user_assigned_identity.aks_identity.principal_id
+  principal_id         = var.identity_id
   role_definition_name = "AcrPull"
   scope                = var.acr_id
   principal_type       = "ServicePrincipal"

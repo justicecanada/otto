@@ -21,7 +21,8 @@ resource "azurerm_disk_encryption_set" "des" {
   tags                = var.tags
 
   identity {
-    type = "SystemAssigned"
+    type = "UserAssigned"
+    identity_ids = [var.identity_id]
   }
 
   depends_on = [null_resource.wait_for_purge_protection]

@@ -1,22 +1,16 @@
-resource "azurerm_user_assigned_identity" "storage_identity" {
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  name                = "${var.storage_name}-identity"
-  tags                = var.tags
-}
 
 # Assign "Key Vault Crypto Service Encryption User" role
 resource "azurerm_role_assignment" "storage_key_vault_crypto_user" {
   scope                = var.keyvault_id
   role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = azurerm_user_assigned_identity.storage_identity.principal_id
+  principal_id         = var.identity_id
 }
 
 # Assign "Key Vault Secrets User" role
 resource "azurerm_role_assignment" "storage_key_vault_secrets_user" {
   scope                = var.keyvault_id
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = azurerm_user_assigned_identity.storage_identity.principal_id
+  principal_id         = var.identity_id
 }
 
 # Add a delay to allow for the permissions to propagate
@@ -68,7 +62,7 @@ resource "azurerm_storage_account" "storage" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.storage_identity.id]
+    identity_ids = [var.identity_id]
   }
 
   blob_properties {
@@ -82,7 +76,7 @@ resource "azurerm_storage_account" "storage" {
 
   customer_managed_key {
     key_vault_key_id          = azurerm_key_vault_key.storage_cmk.id
-    user_assigned_identity_id = azurerm_user_assigned_identity.storage_identity.id
+    user_assigned_identity_id = var.identity_id
   }
 
   network_rules {
@@ -177,13 +171,21 @@ resource "null_resource" "wait_for_storage_account" {
 resource "azurerm_role_assignment" "storage_identity_data_owner" {
   scope                = azurerm_storage_account.storage.id
   role_definition_name = "Storage Blob Data Owner"
-  principal_id         = azurerm_user_assigned_identity.storage_identity.principal_id
+  principal_id         = var.identity_id
 }
 
-# Assign "Storage Blob Data Owner" role to the admin group
-resource "azurerm_role_assignment" "storage_admin" {
-  for_each             = toset(var.admin_group_id)
+# Assign "Storage Blob Data Owner" role to the jumpbox user-assigned identity
+resource "azurerm_role_assignment" "storage_jumpbox_identity_data_owner" {
   scope                = azurerm_storage_account.storage.id
   role_definition_name = "Storage Blob Data Owner"
-  principal_id         = each.value
+  principal_id         = var.jumpbox_identity_id
 }
+
+# TODO: Rethink once the jumpbox approach is finalized
+# # Assign "Storage Blob Data Owner" role to the admin group
+# resource "azurerm_role_assignment" "storage_admin" {
+#   for_each             = toset(var.admin_group_id)
+#   scope                = azurerm_storage_account.storage.id
+#   role_definition_name = "Storage Blob Data Owner"
+#   principal_id         = each.value
+# }

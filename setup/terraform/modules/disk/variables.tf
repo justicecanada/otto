@@ -66,4 +66,9 @@ variable "web_subnet_id" {
   type        = string
 }
 
+variable "identity_id" {
+  description = "The ID of the user-assigned managed identity to assign to the disk"
+  type        = string
+}
+
 

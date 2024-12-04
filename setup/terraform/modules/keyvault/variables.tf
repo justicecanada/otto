@@ -24,9 +24,9 @@ variable "tags" {
   default     = {}
 }
 
-variable "admin_group_id" {
-  type        = list(string)
-  description = "List of object IDs of the admin Azure AD groups"
+variable "jumpbox_identity_id" {
+  type        = string
+  description = "The ID of the jumpbox's user-assigned managed identity to manage the Key Vaults"
 }
 
 variable "use_private_network" {

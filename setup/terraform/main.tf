@@ -7,23 +7,29 @@ terraform {
   }
 }
 
-# Use modules for different resources
-module "resource_group" {
-  source   = "./modules/resource_group"
+# Resource group for app resources
+resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
   tags     = local.common_tags
+}
+
+# User-assigned managed identity for app resources
+resource "azurerm_user_assigned_identity" "otto_identity" {
+  name                = "otto-identity"
+  resource_group_name = var.resource_group_name
+  location            = var.location
 }
 
 # Key Vault module
 # SC-13: Centralized key management and cryptographic operations
 module "keyvault" {
   source                 = "./modules/keyvault"
-  resource_group_name    = module.resource_group.name
+  resource_group_name    = var.resource_group_name
   mgmt_resource_group_name = var.mgmt_resource_group_name
   location               = var.location
   keyvault_name          = var.keyvault_name
-  admin_group_id = split(",", var.admin_group_id)
+  jumpbox_identity_id    = var.jumpbox_identity_id
   tags                   = local.common_tags
   use_private_network    = var.use_private_network
   vnet_id                = var.vnet_id
@@ -35,8 +41,9 @@ module "keyvault" {
 module "disk" {
   source                    = "./modules/disk"
   disk_name                 = var.disk_name
-  resource_group_name       = module.resource_group.name
+  resource_group_name       = var.resource_group_name
   location                  = var.location
+  identity_id               = azurerm_user_assigned_identity.otto_identity.id
   tags                      = local.common_tags
   aks_cluster_id            = module.aks.aks_cluster_id
   keyvault_id               = module.keyvault.keyvault_id
@@ -51,14 +58,15 @@ module "disk" {
 module "storage" {
   source                 = "./modules/storage"
   storage_name           = var.storage_name
-  resource_group_name    = module.resource_group.name
+  resource_group_name    = var.resource_group_name
   mgmt_resource_group_name = var.mgmt_resource_group_name
   location               = var.location
   tags                   = local.common_tags
+  identity_id            = azurerm_user_assigned_identity.otto_identity.id
+  jumpbox_identity_id    = var.jumpbox_identity_id
   keyvault_id            = module.keyvault.keyvault_id
   cmk_name               = module.keyvault.cmk_name
   wait_for_propagation   = module.keyvault.wait_for_propagation
-  admin_group_id = split(",", var.admin_group_id)
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
   vnet_id                = var.vnet_id
@@ -76,7 +84,7 @@ module "cognitive_services" {
   source               = "./modules/cognitive_services"
   name                 = var.cognitive_services_name
   location             = var.location
-  resource_group_name  = module.resource_group.name
+  resource_group_name  = var.resource_group_name
   storage_account_id   = module.storage.storage_account_id
   keyvault_id          = module.keyvault.keyvault_id
   wait_for_propagation = module.keyvault.wait_for_propagation
@@ -88,7 +96,7 @@ module "openai" {
   source                          = "./modules/openai"
   name                            = var.openai_service_name
   location                        = var.location
-  resource_group_name             = module.resource_group.name
+  resource_group_name             = var.resource_group_name
   keyvault_id                     = module.keyvault.keyvault_id
   tags                            = local.common_tags
   wait_for_propagation            = module.keyvault.wait_for_propagation
@@ -104,9 +112,8 @@ module "aks" {
   source                                 = "./modules/aks"
   aks_cluster_name                       = var.aks_cluster_name
   location                               = var.location
-  resource_group_name                    = module.resource_group.name
-  admin_group_id                 = split(",", var.admin_group_id)
-  log_analytics_readers_group_id = split(",", var.log_analytics_readers_group_id)
+  resource_group_name                    = var.resource_group_name
+  log_analytics_readers_group_id         = split(",", var.log_analytics_readers_group_id)
   keyvault_id                            = module.keyvault.keyvault_id
   acr_id                                 = var.acr_id
   disk_encryption_set_id                 = module.disk.disk_encryption_set_id
@@ -125,7 +132,7 @@ module "aks" {
 # # Velero module
 # module "velero" {
 #   source               = "./modules/velero"
-#   resource_group_name  = module.resource_group.name
+#   resource_group_name  = var.resource_group_name
 #   velero_identity_name = var.velero_identity_name
 #   location             = var.location
 #   oidc_issuer_url      = module.aks.oidc_issuer_url

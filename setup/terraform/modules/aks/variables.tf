@@ -13,11 +13,6 @@ variable "resource_group_name" {
   type        = string
 }
 
-variable "admin_group_id" {
-  description = "The list of objects IDs of the admin Azure AD group"
-  type        = list(string)
-}
-
 variable "log_analytics_readers_group_id" {
   description = "The list of objects IDs of the Log Analytics readers Azure AD group"
   type        = list(string)

@@ -57,11 +57,18 @@ resource "azurerm_private_dns_a_record" "keyvault_dns" {
   records             = [azurerm_private_endpoint.keyvault[0].private_service_connection[0].private_ip_address]
 }
 
-resource "azurerm_role_assignment" "kv_role" {
-  for_each             = toset(var.admin_group_id)
+# TODO: Rethink once the jumpbox approach is finalized
+# resource "azurerm_role_assignment" "kv_role" {
+#   for_each             = toset(var.admin_group_id)
+#   scope                = azurerm_key_vault.kv.id
+#   role_definition_name = "Key Vault Administrator"
+#   principal_id         = each.value
+# }
+
+resource "azurerm_role_assignment" "kv_jumpbox_admin" {
   scope                = azurerm_key_vault.kv.id
   role_definition_name = "Key Vault Administrator"
-  principal_id         = each.value
+  principal_id         = var.jumpbox_identity_id
 }
 
 # Wait 5 minutes to allow the permissions to propagate

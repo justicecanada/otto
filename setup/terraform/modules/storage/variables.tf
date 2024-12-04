@@ -18,6 +18,16 @@ variable "location" {
   description = "The Azure region where the storage account should be created"
 }
 
+variable "identity_id" {
+  type        = string
+  description = "The ID of the user-assigned managed identity to assign to the storage account"
+}
+
+variable "jumpbox_identity_id" {
+  type        = string
+  description = "The ID of the jumpbox's user-assigned managed identity to manage the storage account"
+}
+
 variable "tags" {
   type        = map(string)
   description = "A mapping of tags to assign to the resource"
@@ -42,11 +52,6 @@ variable "wait_for_propagation" {
 variable "storage_container_name" {
   description = "The name of the default container to create in the storage account"
   type        = string
-}
-
-variable "admin_group_id" {
-  type        = list(string)
-  description = "List of object IDs of the admin Azure AD groups"
 }
 
 variable "use_private_network" {

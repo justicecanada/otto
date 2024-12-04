@@ -48,11 +48,6 @@ variable "acr_id" {
   description = "ID of the ACR"
 }
 
-variable "admin_group_id" {
-  type        = string
-  description = "Comma-separated list of group IDs for admin users on the Key Vault and AKS cluster"
-}
-
 variable "log_analytics_readers_group_id" {
   type        = string
   description = "Comma-separated list of group IDs for Log Analytics readers"
@@ -67,6 +62,11 @@ variable "resource_group_name" {
 variable "mgmt_resource_group_name" {
   type        = string
   description = "Name of the management resource group"
+}
+
+variable "jumpbox_identity_id" {
+  type        = string
+  description = "ID of the jumpber VM's user-assigned identity"
 }
 
 variable "keyvault_name" {
