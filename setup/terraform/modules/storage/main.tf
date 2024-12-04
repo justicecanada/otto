@@ -114,6 +114,8 @@ resource "azurerm_private_endpoint" "storage_endpoint" {
     name                 = "${var.storage_name}-zone-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.blob_zone.id]
   }
+  
+  tags = var.tags
 }
 
 # DNS A Records for Storage Account

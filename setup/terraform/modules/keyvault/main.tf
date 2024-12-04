@@ -46,6 +46,8 @@ resource "azurerm_private_endpoint" "keyvault" {
     name                 = "${var.keyvault_name}-zone-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault_zone.id]
   }
+  
+  tags = var.tags
 }
 
 # DNS A Records for Key Vault

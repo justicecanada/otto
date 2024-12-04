@@ -22,6 +22,8 @@ data "azurerm_user_assigned_identity" "identity" {
 resource "azurerm_private_dns_zone" "aks_dns" {
   name                = "privatelink.canadacentral.azmk8s.io"
   resource_group_name = var.resource_group_name
+  
+  tags = var.tags
 }
 
 # Link the private DNS zone to the virtual network
@@ -31,6 +33,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "aks_dns_link" {
   private_dns_zone_name = azurerm_private_dns_zone.aks_dns.name
   virtual_network_id    = var.vnet_id
   registration_enabled  = true
+
+  tags = var.tags
 }
 
 # NSG for the AKS subnet to allow Inbound on port 443
