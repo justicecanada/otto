@@ -3,16 +3,6 @@ variable "app_name" {
   description = "Application name (e.g., Otto)"
 }
 
-variable "tenant_id" {
-  type        = string
-  description = "Azure tenant ID"
-}
-
-variable "subscription_id" {
-  type        = string
-  description = "Azure subscription ID"
-}
-
 variable "environment" {
   type        = string
   description = "Environment name (e.g., Sandbox, Development, Production)"
@@ -66,7 +56,7 @@ variable "mgmt_resource_group_name" {
 
 variable "jumpbox_identity_id" {
   type        = string
-  description = "ID of the jumpber VM's user-assigned identity"
+  description = "Principal ID of the jumpber VM's user-assigned identity"
 }
 
 variable "keyvault_name" {

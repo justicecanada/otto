@@ -1,10 +1,10 @@
 # CM-8 & CM-9: Defines and manages various resources, providing a documented inventory of system components
 
 terraform {
-  backend "azurerm" {
-    use_msi = true
-    use_oidc = true
-  }
+  # Determines where and how the Terraform state is stored
+  # Is used when Terraform needs to read or write state data
+  # Relies on the ARM environment variables
+  backend "azurerm" {}
 }
 
 # Resource group for app resources

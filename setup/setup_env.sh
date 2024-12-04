@@ -122,8 +122,6 @@ fi
 TEMP_TFVARS=$(mktemp)
 echo "Writing variables to $TEMP_TFVARS"
 cat > "$TEMP_TFVARS" <<EOF
-tenant_id = "${TENANT_ID}"
-subscription_id = "${SUBSCRIPTION_ID}"
 app_name = "${APP_NAME}"
 environment = "${ENVIRONMENT}"
 location = "${LOCATION}"
