@@ -177,8 +177,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   local_account_disabled = true
 
-  # disk_encryption_set_id = var.disk_encryption_set_id # TODO: Uncomment once the CMK is managed by Terraform again.
-  disk_encryption_set_id = null
+  disk_encryption_set_id = var.disk_encryption_set_id
 
   # Set resource tags
   tags = var.tags
@@ -187,23 +186,21 @@ resource "azurerm_kubernetes_cluster" "aks" {
   depends_on = [var.acr_id, azurerm_role_assignment.aks_network_contributor]
 }
 
-# TODO: Uncomment once the CMK is managed by Terraform again.
-# resource "azurerm_role_assignment" "aks_des_reader" {
-#   scope                = var.disk_encryption_set_id
-#   role_definition_name = "Reader"
-#   principal_id         = var.identity_id
+resource "azurerm_role_assignment" "aks_des_reader" {
+  scope                = var.disk_encryption_set_id
+  role_definition_name = "Reader"
+  principal_id         = var.identity_id
 
-#   depends_on = [azurerm_kubernetes_cluster.aks]
-# }
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
 
-# TODO: Uncomment once the CMK is managed by Terraform again.
-# resource "azurerm_role_assignment" "aks_vm_contributor" {
-#   scope                = var.disk_encryption_set_id
-#   role_definition_name = "Virtual Machine Contributor"
-#   principal_id         = var.identity_id
+resource "azurerm_role_assignment" "aks_vm_contributor" {
+  scope                = var.disk_encryption_set_id
+  role_definition_name = "Virtual Machine Contributor"
+  principal_id         = var.identity_id
 
-#   depends_on = [azurerm_kubernetes_cluster.aks]
-# }
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
 
 # Data for resource_group_id
 data "azurerm_resource_group" "rg" {

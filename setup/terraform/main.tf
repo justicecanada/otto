@@ -116,7 +116,7 @@ module "aks" {
   log_analytics_readers_group_id         = split(",", var.log_analytics_readers_group_id)
   keyvault_id                            = module.keyvault.keyvault_id
   acr_id                                 = var.acr_id
-  # disk_encryption_set_id                 = module.disk.disk_encryption_set_id # TODO: Uncomment if we want CMK managed by Terraform again.
+  disk_encryption_set_id                 = module.disk.disk_encryption_set_id
   storage_account_id                     = module.storage.storage_account_id
   tags                                   = local.common_tags
   admin_email                            = var.admin_email
