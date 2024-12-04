@@ -1,18 +1,15 @@
 import uuid
 from unittest import mock
-from unittest.mock import MagicMock, patch
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client
 from django.urls import reverse
 
 import pytest
 
-from otto.models import Cost
 from otto.secure_models import AccessKey
 from text_extractor.models import OutputFile, UserRequest
 from text_extractor.views import *
