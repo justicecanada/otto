@@ -4102,5 +4102,25 @@
     "Tax Court of Canada No.": {
         "fr": "",
         "fr_auto": "Cour canadienne de l’impôt No."
+    },
+    "Update Preset \"%(name)s\" ": {
+        "fr": "",
+        "fr_auto": "Mettre à jour le préréglage « %(name)s » "
+    },
+    "You currently have the preset named \"%(name)s\" loaded. This will update it with your latest changes. ": {
+        "fr": "",
+        "fr_auto": "Vous avez actuellement le préréglage nommé « %(name)s » chargé. Cela le mettra à jour avec vos dernières modifications. "
+    },
+    "Create New Preset": {
+        "fr": "",
+        "fr_auto": "Créer un nouveau préréglage"
+    },
+    "Create a new preset from your current settings.": {
+        "fr": "",
+        "fr_auto": "Créez un nouveau préréglage à partir de vos paramètres actuels."
+    },
+    "Upload Notice(s) of Appeal": {
+        "fr": "",
+        "fr_auto": "Télécharger avis(s) d’appel"
     }
 }
