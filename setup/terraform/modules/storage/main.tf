@@ -74,11 +74,10 @@ resource "azurerm_storage_account" "storage" {
     }
   }
 
-  # TODO: Uncomment if we want CMK managed by Terraform again.
-  # customer_managed_key {
-  #   key_vault_key_id          = azurerm_key_vault_key.storage_cmk.id
-  #   user_assigned_identity_id = var.identity_id
-  # }
+  customer_managed_key {
+    key_vault_key_id          = azurerm_key_vault_key.storage_cmk.id
+    user_assigned_identity_id = var.identity_id
+  }
 
   network_rules {
     default_action             = var.use_private_network ? "Deny" : "Allow"
@@ -88,8 +87,7 @@ resource "azurerm_storage_account" "storage" {
 
   tags = var.tags
 
-  # depends_on = [azurerm_key_vault_key.storage_cmk, null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id] # TODO: Uncomment if we want CMK managed by Terraform again.
-  depends_on = [null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id]  
+  depends_on = [azurerm_key_vault_key.storage_cmk, null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id]
 
 }
 

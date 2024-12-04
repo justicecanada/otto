@@ -117,7 +117,6 @@ import_state_if_required() {
             #     az keyvault key list --vault-name "$KEYVAULT_NAME" --query "[?managed==null].kid" -o tsv | xargs -I {} az keyvault key delete --vault-name "$KEYVAULT_NAME" --name "$(basename {})"
             # fi
 
-
         fi
     fi
 

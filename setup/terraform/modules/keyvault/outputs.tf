@@ -13,16 +13,15 @@ output "keyvault_uri" {
   description = "The URI of the main Key Vault"
 }
 
-# TODO: Uncomment if we want CMK managed by Terraform again.
-# output "cmk_name" {
-#   value       = azurerm_key_vault_key.cmk.name
-#   description = "The name of the Customer Managed Key"
-# }
+output "cmk_name" {
+  value       = azurerm_key_vault_key.cmk.name
+  description = "The name of the Customer Managed Key"
+}
 
-# output "cmk_id" {
-#   value       = azurerm_key_vault_key.cmk.id
-#   description = "The ID of the Customer Managed Key"
-# }
+output "cmk_id" {
+  value       = azurerm_key_vault_key.cmk.id
+  description = "The ID of the Customer Managed Key"
+}
 
 output "wait_for_propagation" {
   value       = null_resource.wait_for_permission_propagation.id

@@ -39,11 +39,10 @@ variable "keyvault_id" {
   description = "The ID of the Key Vault where the storage key will be stored"
 }
 
-# TODO: Uncomment if we want CMK managed by Terraform again.
-# variable "cmk_name" {
-#   type        = string
-#   description = "The name of the key in the Key Vault to use for encryption"
-# }
+variable "cmk_name" {
+  type        = string
+  description = "The name of the key in the Key Vault to use for encryption"
+}
 
 variable "wait_for_propagation" {
   description = "Flag for keyvault permission propagation"

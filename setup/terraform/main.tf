@@ -47,7 +47,7 @@ module "disk" {
   tags                      = local.common_tags
   aks_cluster_id            = module.aks.aks_cluster_id
   keyvault_id               = module.keyvault.keyvault_id
-  # cmk_id                    = module.keyvault.cmk_id # TODO: Uncomment if we want CMK managed by Terraform again.
+  cmk_id                    = module.keyvault.cmk_id
   wait_for_propagation      = module.keyvault.wait_for_propagation
   use_private_network       = var.use_private_network
   app_subnet_id             = var.app_subnet_id
@@ -65,7 +65,7 @@ module "storage" {
   identity_id            = azurerm_user_assigned_identity.otto_identity.id
   jumpbox_identity_id    = var.jumpbox_identity_id
   keyvault_id            = module.keyvault.keyvault_id
-  # cmk_name               = module.keyvault.cmk_name # TODO: Uncomment if we want CMK managed by Terraform again.
+  cmk_name               = module.keyvault.cmk_name
   wait_for_propagation   = module.keyvault.wait_for_propagation
   storage_container_name = var.storage_container_name
   use_private_network    = var.use_private_network
