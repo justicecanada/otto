@@ -17,13 +17,14 @@ def test_feedback_form_is_valid(all_apps_user):
         data={
             "feedback_type": Feedback.FEEDBACK_TYPE_CHOICES[0][0],
             "feedback_message": "Test Message",
-            "app": "AI Assistant",
-            "chat_message_id": -1,
+            "app": "Otto",
             "modified_by": user,
+            "created_by": user,
             "created_at": date_and_time,
             "modified_at": date_and_time,
             "otto_version": "v0",
         },
     )
 
-    assert feedback_form.is_valid()
+    x = feedback_form.is_valid()
+    assert x is True

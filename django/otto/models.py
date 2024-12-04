@@ -96,6 +96,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             cad_cost(Cost.objects.get_user_cost_this_week(self)) >= self.this_week_max
         )
 
+    @property
+    def pilot_name(self):
+        return self.pilot.name if self.pilot else _("N/A")
+
     def __str__(self):
         return f"{self.lastname_firstname} ({self.email})"
 
@@ -254,29 +258,91 @@ class Notification(models.Model):
         return f"{self.heading} - {self.text[:50]}"
 
 
+class FeedbackManager(models.Manager):
+    def get_feedback_stats(self):
+        from django.db.models import Count
+
+        total_feedback_count = self.all().count()
+        negative_chat_comment = self.filter(chat_message__feedback=-1).count()
+        resolved_feedback_count = self.filter(status="resolved").count()
+        most_active = (
+            self.values("app")
+            .annotate(feedback_count=Count("id"))
+            .order_by("-feedback_count")
+            .first()
+        )
+        return {
+            "total": total_feedback_count,
+            "negative": negative_chat_comment,
+            "resolved": resolved_feedback_count,
+            "most_active": most_active,
+        }
+
+
 class Feedback(models.Model):
     FEEDBACK_TYPE_CHOICES = [
         ("feedback", _("Feedback")),
-        ("issue", _("Issue")),
+        ("bug", _("Bug")),
+        ("question", _("Question")),
+        ("feature_request", _("Feature request")),
+        ("other", _("Other")),
+    ]
+
+    FEEDBACK_STATUS_CHOICES = [
+        ("new", _("New")),
+        ("in_progress", _("In progress")),
+        ("resolved", _("Resolved")),
+        ("closed", _("Closed")),
+    ]
+
+    PRIOTITY_CHOICES = [
+        ("low", _("Low")),
+        ("medium", _("Medium")),
+        ("high", _("High")),
     ]
 
     feedback_type = models.CharField(
         max_length=50,
         choices=FEEDBACK_TYPE_CHOICES,
         blank=False,
-        default=_("Please select an option"),
+        default="feedback",
+    )
+    status = models.CharField(
+        max_length=16, choices=FEEDBACK_STATUS_CHOICES, blank=False, default="new"
+    )
+    priority = models.CharField(
+        max_length=16, choices=PRIOTITY_CHOICES, blank=False, default="low"
     )
     app = models.TextField(max_length=200, blank=False)
     otto_version = models.CharField(max_length=50, null=False)
     feedback_message = models.TextField(blank=False)
+    url_context = models.CharField(max_length=2048, blank=True)
     chat_message = models.ForeignKey(
         "chat.Message", null=True, on_delete=models.SET_NULL, related_name="message"
     )
-
+    admin_notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="feedback",
     )
+    modified_on = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="modified_feedback",
+    )
+
+    objects = FeedbackManager()
+
+    def status_display(self):
+        return dict(self.FEEDBACK_STATUS_CHOICES)[self.status]
+
+    def feedback_type_display(self):
+        return dict(self.FEEDBACK_TYPE_CHOICES)[self.feedback_type]
 
 
 class SecurityLabel(models.Model):
@@ -423,8 +489,7 @@ FEATURE_CHOICES = [
     ("template_wizard", _("Template Wizard")),
     ("laws_query", _("Legislation Search")),
     ("laws_load", _("Legislation loading")),
-    ("text_extractor", _("Text extractor")),
-    ("lex_experiment", _("Lex experiment")),
+    ("text_extractor", _("Text Extractor")),
     ("load_test", _("Load test")),
 ]
 

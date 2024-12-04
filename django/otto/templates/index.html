@@ -13,7 +13,16 @@
 
 {% block body %}
 
-  <h1 class="text-center display-2 fw-semibold">Otto</h1>
+  <h1 class="text-center display-3 fw-semibold">
+    <img src="{% static 'otto-logo.png' %}"
+         class="d-inline-block align-top"
+         width="108"
+         height="auto"
+         id="otto-logo"
+         alt="Smiling robot wearing Justice logo">
+    <br>
+    Otto
+  </h1>
   <div class="lead fw-medium text-center">
     <p>{% trans "Empowering Justice efficiency with data and AI" %}</p>
   </div>
@@ -44,5 +53,26 @@
       </div>
     {% endfor %}
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchElement = document.querySelector('#top-nav-search');
+      const logoElement = document.querySelector('#otto-logo');
+      if (searchElement && logoElement) {
+        searchElement.addEventListener('focusin', function() {
+          logoElement.style.transform = 'translateY(26px)';
+        });
+
+        searchElement.addEventListener('mouseover', function() {
+          logoElement.style.transform = 'translateY(26px)';
+        });
+
+        logoElement.addEventListener('mouseover', function() {
+          logoElement.style.transform = 'translateY(26px)';
+        });
+        
+      }
+    });
+  </script>
 
 {% endblock %}

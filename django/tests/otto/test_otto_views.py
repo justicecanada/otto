@@ -71,9 +71,9 @@ def test_valid_feedback_form(client, all_apps_user):
         "user": user,
         "feedback_type": Feedback.FEEDBACK_TYPE_CHOICES[0][0],
         "feedback_message": "Test Message",
-        "app": "AI Assistant",
-        "chat_message_id": -1,
+        "app": "Otto",
         "modified_by": user.id,
+        "created_by": user.id,
         "created_at": date_and_time,
         "modified_at": date_and_time,
         "otto_version": "v0",
@@ -83,7 +83,7 @@ def test_valid_feedback_form(client, all_apps_user):
         reverse("user_feedback"),
         data=data,
     )
-    assert response.status_code == 302 and "feedback_success" in response.url
+    assert response.status_code == 200
 
 
 def test_valid_feedback_form_from_message(client, all_apps_user):
@@ -99,8 +99,9 @@ def test_valid_feedback_form_from_message(client, all_apps_user):
         "feedback_type": Feedback.FEEDBACK_TYPE_CHOICES[0][0],
         "feedback_message": "Test Message",
         "app": "chat",
-        "chat_message_id": -1,
+        "chat_message_id": message.id,
         "modified_by": user.id,
+        "created_by": user.id,
         "created_at": date_and_time,
         "modified_at": date_and_time,
         "otto_version": "v0",
@@ -137,4 +138,4 @@ def test_initialize_feedback_for_chat_mode(client, all_apps_user):
     form = FeedbackForm(user=user, message_id=message.id)
     form.initialize_chat_feedback(message.id)
 
-    assert form.fields["app"].choices == [("translate", _("Translate"))]
+    assert form.fields["app"].initial == "translate"

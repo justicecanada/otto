@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
+  </li>
+{% endblock %}
+
+{% block page_css %}
+  <style>
+
+  .badge {    
+    line-height: 16px !important;
+    font-size: .75rem;
+    font-weight: 500;
+    padding: 0.125rem 0.375rem !important;
+
+    &.badge-neutral{
+      background-color: hsl(210, 20%, 98%);
+      border-color: rgb(229, 231, 235) !important;
+      color: rgb(75, 85, 99);
+    }
+    &.badge-resolved {
+      background-color: hsl(138, 76%, 97%);
+      border-color: hsl(142, 49%, 85%) !important;
+      color: hsl(142, 72%, 29%);      
+    }
+
+    &.badge-new {
+      background-color: hsl(226, 100%, 97%);
+      border-color: hsl(236, 74%, 92%) !important;
+      color: hsl(245, 58%, 51%);      
+    }
+    &.badge-in-progress {
+      background-color: hsl(270, 100%, 98%);
+      border-color: hsl(273, 73%, 93%) !important;
+      color: hsl(268, 32%, 52%);      
+    }
+
+    &.badge-closed {
+      background-color: hsl(327, 73%, 97%);
+      border-color: hsl(331, 62%, 93%) !important;
+      color: hsl(335, 78%, 42%);      
+    }
+  }
+  .feedback-message{
+    overflow: hidden;    
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  tr.active {
+    border-left: 4px solid var(--app-color-purple-1);
+  }  
+
+  tbody tr:nth-last-child(3){
+    border-bottom-width: 0 !important;
+
+    td {
+      border-bottom-width: 0 !important;
+    }
+  }
+
+  .htmx-request.spinner ~ div {
+    display: none;
+  }
+
+  </style>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "Feedback dashboard - Otto" %}
+{% endblock %}
+
+{% block content_container %}
+  <div>
+    <div class="container py-3 px-0">
+      <h1 class="mb-3 mt-2 fs-2">{% trans "Feedback dashboard" %}</h1>
+      <div hx-get="{% url 'feedback_stats' %}"
+           hx-trigger="load"
+           hx-swap="innerHTML">{% include 'components/feedback/dashboard/feedback_stats.html' %}</div>
+      <div id="feedback-container">
+        <!-- Feedback Filter container -->
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+              <a href="{% url 'feedback_download' %}"
+                 class="btn btn-outline-dark align-middle">
+                <i class="bi bi-file-arrow-down"></i>
+                <span class="ms-2">{% trans 'Export data' %}</span>
+              </a>
+              <button class="btn btn-outline-dark align-middle"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#filters"
+                      aria-expanded="false"
+                      aria-controls="filters">
+                <i class="bi bi-funnel"></i>
+                <span class="ms-2">{% trans 'View filter options' %}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="filters" class="collapse mt-4">
+          <form class="card card-body bg-light"
+                hx-post="{% url 'feedback_list' %}"
+                hx-target="#feedback-list-container"
+                hx-swap="innerHTML">
+            <h2 class="mb-3 fs-5 ps-2 fw-semibold" style="letter-spacing: -0.025em">{% trans "Filters" %}</h2>
+ 
+            <div class="row">
+              <div class="col-md-4">
+                <label for="feedback_type" class="form-label">{% trans "Feedback Type" %}</label>
+                <select id="feedback_type" name="feedback_type" class="form-select">
+                  <option value="all">{% trans "All" %}</option>
+                  {% for value, label in feedback_type_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="status" class="form-label">{% trans "Status" %}</label>
+                <select id="status" name="status" class="form-select">
+                  <option value="all">{% trans "All" %}</option>
+                  {% for value, label in feedback_status_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="app" class="form-label">{% trans "App" %}</label>
+                <select id="app" name="app" class="form-select">
+                  <option value="all">{% trans "All" %}</option>
+                  {% for app in apps %}<option value="{{ app }}">{{ app }}</option>{% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="mt-4 text-end">
+              <button type="submit" class="btn btn-dark">{% trans "Apply Filters" %}</button>
+            </div>
+ 
+          </form>
+        </div>
+        <div id="feedback-list-spinner"
+             class="d-flex justify-content-center spinner text-primary htmx-indicator">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+ 
+        </div>
+
+        <div hx-get="{% url 'feedback_list' page_number=current_page_number %}"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             hx-indicator="#feedback-list-spinner"
+             id="feedback-list-container">{% include 'components/feedback/dashboard/feedback_list.html' %}</div>
+
+      </div>
+ 
+    </div>
+  </div>
+{% endblock %}

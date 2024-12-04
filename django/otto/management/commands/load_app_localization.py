@@ -31,12 +31,18 @@ class Command(BaseCommand):
             help="Skips step to generate the localization Machine object (.mo) file.",
             action="store_true",
         )
+        parser.add_argument(
+            "--clean",
+            help="Removes all translations with no manual translations in .json file.",
+            action="store_true",
+        )
 
     @signalcommand
     def handle(self, *args, **options):
         no_po = options["no_po"]
         no_translation = options["no_translation"]
         no_mo = options["no_mo"]
+        clean = options["clean"]
 
         if no_mo and no_po and no_translation:
             raise CommandError(
@@ -48,16 +54,23 @@ class Command(BaseCommand):
             call_command("make_messages", locale=["fr"], no_fuzzy_matching=True)
             self.stdout.write(self.style.SUCCESS(".po file generated successfully."))
 
+        base_path = os.path.join(settings.BASE_DIR, "locale")
+
+        if clean:
+            try:
+                translations_path = self.get_translation_file(base_path)
+                self.clean_translations(translations_path)
+                self.stdout.write(
+                    self.style.SUCCESS("Translations cleaned successfully.")
+                )
+            except Exception as e:
+                self.stderr.write(e)
+                return
+
         if not no_translation:
-            base_path = os.path.join(settings.BASE_DIR, "locale")
-            translations_path = os.path.join(
-                base_path, "translation", "translations.json"
-            )
+            translations_path = self.get_translation_file(base_path)
             po_file_path = os.path.join(base_path, "fr", "LC_MESSAGES", "django.po")
 
-            if not os.path.isfile(translations_path):
-                self.stderr.write(f"The file at {translations_path} does not exist.")
-                return
             if not os.path.isfile(po_file_path):
                 self.stderr.write(f"The file at {po_file_path} does not exist.")
                 return
@@ -97,3 +110,25 @@ class Command(BaseCommand):
                     )  # Copy msgid to msgstr to avoid format issues
         po.save()
         self.stdout.write(self.style.SUCCESS(f"Corrected .po file at {po_file_path}."))
+
+    def get_translation_file(self, base_path):
+        translations_path = os.path.join(base_path, "translation", "translations.json")
+        if not os.path.isfile(translations_path):
+            raise CommandError(f"The file at {translations_path} does not exist.")
+        return translations_path
+
+    def clean_translations(self, file_path):
+        import json
+
+        # Read the JSON file
+        with open(file_path, "r", encoding="utf-8") as file:
+            translations = json.load(file)
+
+        # Remove objects with empty 'fr' values
+        cleaned_translations = {
+            key: value for key, value in translations.items() if value.get("fr")
+        }
+
+        # Write the cleaned JSON back to the file
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(cleaned_translations, file, ensure_ascii=False, indent=4)
