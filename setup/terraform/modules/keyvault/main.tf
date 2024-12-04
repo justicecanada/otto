@@ -71,16 +71,15 @@ resource "azurerm_role_assignment" "kv_jumpbox_admin" {
   principal_id         = var.jumpbox_identity_id
 }
 
-# TODO: Uncomment once the private link connections are finalized and the CMK can be created / imported
-# # Wait 5 minutes to allow the permissions to propagate
-# resource "null_resource" "wait_for_permission_propagation" {
-#   provisioner "local-exec" {
-#     command = "sleep 300"
-#   }
-#   depends_on = [
-#     azurerm_role_assignment.kv_jumpbox_admin,
-#   ]
-# }
+# Wait 5 minutes to allow the permissions to propagate
+resource "null_resource" "wait_for_permission_propagation" {
+  provisioner "local-exec" {
+    command = "sleep 300"
+  }
+  depends_on = [
+    azurerm_role_assignment.kv_jumpbox_admin,
+  ]
+}
 
 # TODO: Uncomment once the private link connections are finalized and the CMK can be created / imported
 # resource "azurerm_key_vault_key" "cmk" {
