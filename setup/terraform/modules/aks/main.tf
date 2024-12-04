@@ -178,6 +178,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   local_account_disabled = true
 
   # disk_encryption_set_id = var.disk_encryption_set_id # TODO: Uncomment once the CMK is managed by Terraform again.
+  disk_encryption_set_id = null
 
   # Set resource tags
   tags = var.tags
