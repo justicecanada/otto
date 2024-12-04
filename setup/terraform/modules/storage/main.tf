@@ -1,6 +1,6 @@
 # Get the object to the user-defined identity
 data "azurerm_user_assigned_identity" "identity" {
-  name                = var.identity_id
+  client_id           = var.identity_id
   resource_group_name = var.resource_group_name
 }
 
