@@ -8,11 +8,6 @@ variable "location" {
   type        = string
 }
 
-variable "identity_id" {
-  description = "The ID of the user-assigned managed identity"
-  type        = string
-}
-
 variable "jumpbox_identity_id" {
   description = "The ID of the jumpbox's user-assigned managed identity"
   type        = string

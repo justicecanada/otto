@@ -14,7 +14,7 @@ locals {
 
 # Get the object to the user-defined identity
 data "azurerm_user_assigned_identity" "identity" {
-  client_id           = var.identity_id
+  name                = "otto-identity"
   resource_group_name = var.resource_group_name
 }
 

@@ -62,7 +62,6 @@ module "storage" {
   mgmt_resource_group_name = var.mgmt_resource_group_name
   location               = var.location
   tags                   = local.common_tags
-  identity_id            = azurerm_user_assigned_identity.otto_identity.id
   jumpbox_identity_id    = var.jumpbox_identity_id
   keyvault_id            = module.keyvault.keyvault_id
   cmk_name               = module.keyvault.cmk_name
@@ -126,7 +125,6 @@ module "aks" {
   approved_cpu_quota                     = var.approved_cpu_quota
   vnet_id                                = var.vnet_id
   web_subnet_id                          = var.web_subnet_id
-  identity_id                            = azurerm_user_assigned_identity.otto_identity.id
   jumpbox_identity_id                    = var.jumpbox_identity_id
 }
 

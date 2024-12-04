@@ -18,11 +18,6 @@ variable "location" {
   description = "The Azure region where the storage account should be created"
 }
 
-variable "identity_id" {
-  type        = string
-  description = "The ID of the user-assigned managed identity to assign to the storage account"
-}
-
 variable "jumpbox_identity_id" {
   type        = string
   description = "The ID of the jumpbox's user-assigned managed identity to manage the storage account"
