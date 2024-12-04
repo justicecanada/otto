@@ -19,7 +19,7 @@ resource "azurerm_user_assigned_identity" "otto_identity" {
   name                = "otto-identity"
   resource_group_name = var.resource_group_name
   location            = var.location
-  tags                = var.tags
+  tags                = local.common_tags
 }
 
 # Key Vault module
