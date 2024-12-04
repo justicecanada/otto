@@ -81,20 +81,19 @@ resource "null_resource" "wait_for_permission_propagation" {
   ]
 }
 
-# TODO: Uncomment once the private link connections are finalized and the CMK can be created / imported
-# resource "azurerm_key_vault_key" "cmk" {
-#   # SC-12: Automated key generation and management
-#   name         = "otto-encryption-key"
-#   key_vault_id = azurerm_key_vault.kv.id
-#   key_type     = "RSA" # SC-13: Use RSA keys for encryption
-#   key_size     = 2048  # SC-13: Use 2048-bit keys for encryption
-#   key_opts = [
-#     "decrypt",
-#     "encrypt",
-#     "sign",
-#     "unwrapKey",
-#     "verify",
-#     "wrapKey",
-#   ]
-#   depends_on = [null_resource.wait_for_permission_propagation]
-# }
+resource "azurerm_key_vault_key" "cmk" {
+  # SC-12: Automated key generation and management
+  name         = "otto-encryption-key"
+  key_vault_id = azurerm_key_vault.kv.id
+  key_type     = "RSA" # SC-13: Use RSA keys for encryption
+  key_size     = 2048  # SC-13: Use 2048-bit keys for encryption
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+  depends_on = [null_resource.wait_for_permission_propagation]
+}

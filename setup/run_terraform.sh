@@ -117,6 +117,13 @@ import_state_if_required() {
             #     az keyvault key list --vault-name "$KEYVAULT_NAME" --query "[?managed==null].kid" -o tsv | xargs -I {} az keyvault key delete --vault-name "$KEYVAULT_NAME" --name "$(basename {})"
             # fi
 
+            terraform apply -var-file=.tfvars -target=azurerm_user_assigned_identity.otto_identity
+
+
+            terraform apply -target=azurerm_private_endpoint.pep \
+                            -target=azurerm_private_dns_zone.pdnszone \
+                            -target=azurerm_private_dns_zone_virtual_network_link.pdnszlink
+
         fi
     fi
 

@@ -24,22 +24,22 @@ resource "null_resource" "wait_for_storage_permission_propagation" {
   ]
 }
 
-# resource "azurerm_key_vault_key" "storage_cmk" {
-#   # SC-12 & SC-13: Customer-managed keys for storage encryption
-#   key_vault_id = var.keyvault_id
-#   name         = var.cmk_name
-#   key_type     = "RSA"
-#   key_size     = 2048
+resource "azurerm_key_vault_key" "storage_cmk" {
+  # SC-12 & SC-13: Customer-managed keys for storage encryption
+  key_vault_id = var.keyvault_id
+  name         = var.cmk_name
+  key_type     = "RSA"
+  key_size     = 2048
 
-#   key_opts = [
-#     "decrypt",
-#     "encrypt",
-#     "sign",
-#     "unwrapKey",
-#     "verify",
-#     "wrapKey",
-#   ]
-# }
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
 
 data "azurerm_private_dns_zone" "blob_zone" {
   name                = "privatelink.blob.core.windows.net"
