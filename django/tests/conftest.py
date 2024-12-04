@@ -128,7 +128,6 @@ def mock_pdf_file():
         c.showPage()
     c.save()
 
-    # Open the file in binary read mode and return the file object
     with open(filename, "rb") as f:
         yield f
     os.remove(filename)
@@ -143,7 +142,6 @@ def mock_pdf_file2():
         c.showPage()
     c.save()
 
-    # Open the file in binary read mode and return the file object
     with open(filename, "rb") as f:
         yield f
 
@@ -158,7 +156,6 @@ def mock_pdf_file3():
         c.showPage()
     c.save()
 
-    # Open the file in binary read mode and return the file object and its content
     with open(filename, "rb") as f:
         content = f.read()
         yield filename, content
@@ -227,10 +224,10 @@ def process_ocr_document_mock(mocker):
     mock_result_instance = MagicMock()
     # Set the return value of result.get()
     mock_result_instance.get.return_value = (
-        b"pdf_bytes_content",  # pdf_bytes_content
-        "txt_file_content",  # txt_file_content
-        0.05,  # cost
-        "input_name",  # input_name
+        b"pdf_bytes_content",
+        "txt_file_content",
+        0.05,
+        "input_name",
     )
     mock_async_result.return_value = mock_result_instance
 
@@ -281,10 +278,10 @@ def output_file():
     txt_mock.open.return_value.__enter__.return_value.read.return_value = b"TXT content"
 
     output_file = MagicMock(spec=OutputFile)
-    output_file.id = uuid.uuid4()
+    output_file.celery_task_ids = [str(uuid.uuid4())]
     output_file.pdf_file = pdf_mock
     output_file.txt_file = txt_mock
     output_file.file_name = "test_document"
-    output_file.usd_cost = 1.0
+    output_file.usd_cost = 0
 
     return output_file

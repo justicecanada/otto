@@ -3,6 +3,8 @@ from unittest import mock
 from unittest.mock import MagicMock, patch
 
 from django.conf import settings
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
@@ -34,21 +36,6 @@ def test_index_view(client, all_apps_user):
     # assert "extensions" in response.context
 
 
-# @pytest.mark.django_db
-# def test_submit_document_view(client, all_apps_user, process_ocr_document_mock):
-#     mock_delay, mock_async_result = process_ocr_document_mock
-#     user = all_apps_user()
-#     client.force_login(user)
-#     file = SimpleUploadedFile(
-#         "file.pdf", b"file_content", content_type="application/pdf"
-#     )
-#     response = client.post(
-#         reverse("text_extractor:submit_document"), {"file_upload": [file]}
-#     )
-#     assert response.status_code == 200
-#     assert "output_files" in response.context
-#     assert len(response.context["output_files"]) > 0
-#     assert mock_delay.called
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "merged, files",
@@ -114,48 +101,84 @@ from django.urls import reverse
 import pytest
 
 
-@pytest.mark.django_db
-def test_poll_tasks(client, all_apps_user, output_file):
+@pytest.mark.django_db(transaction=True)
+def test_poll_tasks_view(
+    client,
+    all_apps_user,
+    process_ocr_document_mock,
+):
+    group, created = Group.objects.get_or_create(name="Otto admin")
+
     user = all_apps_user()
     client.force_login(user)
+    access_key = AccessKey(user=user)
+    content_type_user_request = ContentType.objects.get_for_model(UserRequest)
 
-    # Create a mock UserRequest object
-    user_request_id = uuid.uuid4()
-    user_request = mock.MagicMock()
-    user_request.id = user_request_id
-    user_request.status = "PENDING"
+    permission_user_request, created = Permission.objects.get_or_create(
+        codename="add_userrequest",
+        content_type=content_type_user_request,
+        name="Can add user request",
+    )
+    group.permissions.add(permission_user_request)
+    user.groups.add(group)
+    user.user_permissions.add(permission_user_request)
 
-    # Mock the output_file object
-    output_file.celery_task_ids = [str(uuid.uuid4()) for _ in range(3)]
-    output_file.status = "PENDING"
-    output_file.pdf_file = None
-    output_file.txt_file = None
-    output_file.usd_cost = 10.0
+    user_request = UserRequest.objects.create(
+        access_key=access_key, name="Test Request"
+    )
+    content_type_output_file = ContentType.objects.get_for_model(OutputFile)
+    permission_output_file_add, created = Permission.objects.get_or_create(
+        codename="add_outputfile",
+        content_type=content_type_output_file,
+        name="Can add output file",
+    )
 
-    # Mock the process_ocr_document.AsyncResult method
-    async_result_mock = mock.MagicMock()
-    async_result_mock.status = "SUCCESS"
+    user.user_permissions.add(permission_output_file_add)
 
-    # Mock the add_extracted_files function
-    add_extracted_files_mock = mock.MagicMock(return_value=output_file)
+    output_file1 = OutputFile.objects.create(
+        access_key=access_key,
+        user_request=user_request,
+        celery_task_ids=[str(uuid.uuid4())],
+        pdf_file=ContentFile(b"PDF content", name="test1.pdf"),
+        txt_file=ContentFile(b"TXT content", name="test1.txt"),
+        usd_cost=10.0,
+    )
+    output_file2 = OutputFile.objects.create(
+        access_key=access_key,
+        user_request=user_request,
+        celery_task_ids=[str(uuid.uuid4())],
+        pdf_file=ContentFile(b"PDF content", name="test2.pdf"),
+        txt_file=ContentFile(b"TXT content", name="test2.txt"),
+        usd_cost=0.0,
+    )
 
-    # Mock the display_cad_cost function
-    display_cad_cost_mock = mock.MagicMock(return_value="$13.80")
+    def async_result_side_effect(task_id):
+        if task_id == output_file1.celery_task_ids[0]:
+            return mock.MagicMock(status="SUCCESS")
+        elif task_id == output_file2.celery_task_ids[0]:
+            return mock.MagicMock(status="FAILURE")
+        return mock.MagicMock(status="PENDING")
+
+    add_extracted_files_mock = mock.MagicMock(
+        side_effect=lambda output_file, access_key: output_file
+    )
+
+    def display_cad_cost_side_effect(usd_cost):
+        if usd_cost == 10.0:
+            return 13.80
+        elif usd_cost == 0.0:
+            return 0.00
+        return 0.00
+
+    display_cad_cost_mock = mock.MagicMock(side_effect=display_cad_cost_side_effect)
 
     # Mock the file_size_to_string function
     file_size_to_string_mock = mock.MagicMock(side_effect=lambda size: f"{size} bytes")
 
     with (
         mock.patch(
-            "text_extractor.models.UserRequest.objects.get", return_value=user_request
-        ),
-        mock.patch(
-            "text_extractor.models.OutputFile.objects.filter",
-            return_value=[output_file],
-        ),
-        mock.patch(
             "text_extractor.tasks.process_ocr_document.AsyncResult",
-            return_value=async_result_mock,
+            side_effect=async_result_side_effect,
         ),
         mock.patch(
             "text_extractor.views.add_extracted_files", add_extracted_files_mock
@@ -169,42 +192,21 @@ def test_poll_tasks(client, all_apps_user, output_file):
         response = client.get(
             reverse("text_extractor:poll_tasks", args=[str(user_request.id)])
         )
-        response_data = response.json()
-        assert response_data["status"] == "SUCCESS"
 
-        # print("User Request Status:", user_request.status)
-        # print("Output File Status:", output_file.status)
-        # print("Output File USD Cost:", output_file.usd_cost)
-        # print("Output File TXT Size:", output_file.txt_size)
-        # print("Output File PDF Size:", output_file.pdf_size)
-        # assert response.status_code == 200
-        # assert user_request.status == "SUCCESS"
-        # assert output_file.status == "SUCCESS"
-        # assert output_file.usd_cost == "$13.80"
-        # assert output_file.txt_size == " bytes"  # Adjust based on actual size
-        # assert output_file.pdf_size == " bytes"  # Adjust based on actual size
+        assert response.status_code == 200
+        assert response["Content-Type"] == "text/html; charset=utf-8"
+        assert "output_files" in response.context
 
-
-# @pytest.mark.django_db
-# def test_poll_tasks_view(client, all_apps_user, process_ocr_document_mock):
-#     mock_delay, mock_async_result = process_ocr_document_mock
-#     user = all_apps_user()
-#     client.force_login(user)
-
-#     # Create a mock UserRequest object
-#     user_request_id = uuid.uuid4()
-#     user_request = mock.MagicMock()
-#     user_request.id = user_request_id
-#     user_request.status = "SUCCESS"
-
-#     with mock.patch(
-#         "text_extractor.models.UserRequest.objects.get", return_value=user_request
-#     ):
-#         response = client.get(
-#             reverse("text_extractor:poll_tasks", args=[str(user_request.id)])
-#         )
-#         assert response.status_code == 200
-#         assert user_request.status == "SUCCESS"
+        output_files_res = response.context["output_files"]
+        assert len(output_files_res) == 2
+        #  the status and cost based on celery_task_ids
+        for output_file_res in output_files_res:
+            if output_file_res.celery_task_ids == output_file1.celery_task_ids:
+                assert output_file_res.status == "SUCCESS"
+                assert output_file_res.cost == 13.8
+            elif output_file_res.celery_task_ids == output_file2.celery_task_ids:
+                assert output_file_res.status == "FAILURE"
+                assert output_file_res.cost == 0.0
 
 
 def test_download_document(client, all_apps_user, output_file):
