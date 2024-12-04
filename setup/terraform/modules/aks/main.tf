@@ -120,7 +120,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   # Assign the identity to the AKS cluster
   identity {
     type         = "UserAssigned"
-    identity_ids = [var.identity_id]
+    identity_ids = [data.azurerm_user_assigned_identity.identity.id]
   }
 
   # SC-12 & SC-13: Enabling Azure Key Vault secrets provider for secure key management

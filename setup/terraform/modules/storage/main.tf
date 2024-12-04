@@ -67,7 +67,7 @@ resource "azurerm_storage_account" "storage" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [var.identity_id]
+    identity_ids = [data.azurerm_user_assigned_identity.identity.id]
   }
 
   blob_properties {
@@ -81,7 +81,7 @@ resource "azurerm_storage_account" "storage" {
 
   customer_managed_key {
     key_vault_key_id          = azurerm_key_vault_key.storage_cmk.id
-    user_assigned_identity_id = var.identity_id
+    user_assigned_identity_id = data.azurerm_user_assigned_identity.identity.id
   }
 
   network_rules {
