@@ -196,7 +196,7 @@ resource "azurerm_private_dns_a_record" "aks_api_server" {
   zone_name           = azurerm_private_dns_zone.aks_dns.name
   resource_group_name = azurerm_private_dns_zone.aks_dns.resource_group_name
   ttl                 = 300
-  records             = [azurerm_kubernetes_cluster.aks.private_fqdn]
+  records             = [azurerm_kubernetes_cluster.aks.private_cluster_server_ip]
 
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
