@@ -191,14 +191,17 @@ resource "azurerm_kubernetes_cluster" "aks" {
   depends_on = [var.acr_id, azurerm_role_assignment.aks_network_contributor]
 }
 
+data "azurerm_private_endpoint_connection" "aks_connection" {
+  name                = azurerm_kubernetes_cluster.aks.private_cluster_public_fqdn
+  resource_group_name = azurerm_kubernetes_cluster.aks.resource_group_name
+}
+
 resource "azurerm_private_dns_a_record" "aks_api_server" {
   name                = "apiserver"
   zone_name           = azurerm_private_dns_zone.aks_dns.name
   resource_group_name = azurerm_private_dns_zone.aks_dns.resource_group_name
   ttl                 = 300
-  records             = [azurerm_kubernetes_cluster.aks.private_cluster_server_ip]
-
-  depends_on = [azurerm_kubernetes_cluster.aks]
+  records             = [data.azurerm_private_endpoint_connection.aks_connection.private_service_connection.0.private_ip_address]
 }
 
 resource "azurerm_role_assignment" "aks_des_reader" {
