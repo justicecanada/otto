@@ -14,43 +14,45 @@ resource "azurerm_disk_access" "disk_access" {
   tags                = var.tags
 }
 
-resource "azurerm_disk_encryption_set" "des" {
-  name                = "${var.disk_name}-des"
-  location            = var.location # SA-9(5): Store data in a location that complies with data residency requirements
-  resource_group_name = var.resource_group_name
-  # key_vault_key_id    = var.cmk_id # TODO: Uncomment if we want CMK managed by Terraform again.
-  tags                = var.tags
+# TODO: Uncomment this line once the CMK is managed by Terraform again.
+# resource "azurerm_disk_encryption_set" "des" {
+#   name                = "${var.disk_name}-des"
+#   location            = var.location # SA-9(5): Store data in a location that complies with data residency requirements
+#   resource_group_name = var.resource_group_name
+#   # key_vault_key_id    = var.cmk_id # TODO: Uncomment if we want CMK managed by Terraform again.
+#   tags                = var.tags
 
-  identity {
-    type = "UserAssigned"
-    identity_ids = [var.identity_id]
-  }
+#   identity {
+#     type = "UserAssigned"
+#     identity_ids = [var.identity_id]
+#   }
 
-  depends_on = [null_resource.wait_for_purge_protection]
-}
+#   depends_on = [null_resource.wait_for_purge_protection]
+# }
 
 # Add a delay to allow for the disk encryption set to be created 
 resource "null_resource" "wait_for_disk_encryption_set" {
   provisioner "local-exec" {
     command = "sleep 60"
   }
-  depends_on = [var.wait_for_propagation, azurerm_disk_encryption_set.des]
+  #depends_on = [var.wait_for_propagation, azurerm_disk_encryption_set.des]  # TODO: Uncomment this line once the CMK is managed by Terraform again.
 }
 
-resource "azurerm_role_assignment" "des_key_vault_crypto_user" {
-  scope                = var.keyvault_id
-  role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = azurerm_disk_encryption_set.des.identity[0].principal_id
+ # TODO: Uncomment this line once the CMK is managed by Terraform again.
+# resource "azurerm_role_assignment" "des_key_vault_crypto_user" {
+#   scope                = var.keyvault_id
+#   role_definition_name = "Key Vault Crypto Service Encryption User"
+#   principal_id         = azurerm_disk_encryption_set.des.identity[0].principal_id
 
-  depends_on = [azurerm_disk_encryption_set.des, null_resource.wait_for_disk_encryption_set]
-}
+#   depends_on = [azurerm_disk_encryption_set.des, null_resource.wait_for_disk_encryption_set]
+# }
 
 # Add a delay to allow for the disk encryption set permissions to be propagated
 resource "null_resource" "wait_for_disk_encryption_set_permissions" {
   provisioner "local-exec" {
     command = "sleep 60"
   }
-  depends_on = [azurerm_role_assignment.des_key_vault_crypto_user, null_resource.wait_for_disk_encryption_set]
+  # depends_on = [azurerm_role_assignment.des_key_vault_crypto_user, null_resource.wait_for_disk_encryption_set]  # TODO: Uncomment this line once the CMK is managed by Terraform again.
 }
 
 # SSD for static files and performance-sensitive data
@@ -65,7 +67,7 @@ resource "azurerm_managed_disk" "aks_ssd_disk" {
   public_network_access_enabled = false
   network_access_policy         = "AllowPrivate"
   disk_access_id                = azurerm_disk_access.disk_access.id
-  disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-28 & SC-28(1): Customer-managed keys for enhanced encryption control
+  # disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-28 & SC-28(1): Customer-managed keys for enhanced encryption control # TODO: Uncomment this line once the CMK is managed by Terraform again.
 
   tags = merge(var.tags, {
     "Purpose" = "Static files and performance-sensitive data"
@@ -86,7 +88,7 @@ resource "azurerm_managed_disk" "aks_hdd_disk" {
   public_network_access_enabled = false
   network_access_policy         = "AllowPrivate"
   disk_access_id                = azurerm_disk_access.disk_access.id
-  disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-13: Customer-managed keys for enhanced encryption control
+  # disk_encryption_set_id        = azurerm_disk_encryption_set.des.id # SC-13: Customer-managed keys for enhanced encryption control  # TODO: Uncomment this line once the CMK is managed by Terraform again.
 
   tags = merge(var.tags, {
     "Purpose" = "Media and larger data storage"
