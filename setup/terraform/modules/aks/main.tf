@@ -12,6 +12,12 @@ locals {
   max_node_count = floor(var.approved_cpu_quota / var.vm_cpu_count)
 }
 
+# Get the object to the user-defined identity
+data "azurerm_user_assigned_identity" "identity" {
+  name                = var.identity_id
+  resource_group_name = var.resource_group_name
+}
+
 # Create a private DNS zone for AKS
 resource "azurerm_private_dns_zone" "aks_dns" {
   name                = "privatelink.canadacentral.azmk8s.io"
@@ -189,7 +195,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 resource "azurerm_role_assignment" "aks_des_reader" {
   scope                = var.disk_encryption_set_id
   role_definition_name = "Reader"
-  principal_id         = var.identity_id
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
 
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
@@ -197,7 +203,7 @@ resource "azurerm_role_assignment" "aks_des_reader" {
 resource "azurerm_role_assignment" "aks_vm_contributor" {
   scope                = var.disk_encryption_set_id
   role_definition_name = "Virtual Machine Contributor"
-  principal_id         = var.identity_id
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
 
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
@@ -208,7 +214,7 @@ data "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_role_assignment" "aks_network_contributor" {
-  principal_id         = var.identity_id
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
   role_definition_name = "Network Contributor"
   scope                = data.azurerm_resource_group.rg.id
 }
@@ -255,7 +261,7 @@ resource "azurerm_role_assignment" "aks_secrets_provider_identity_kv_secrets_use
 # The AKS cluster's identity is used for cluster-level operations and management tasks and does not typically require direct access to secrets.
 
 resource "azurerm_role_assignment" "acr_pull" {
-  principal_id         = var.identity_id
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
   role_definition_name = "AcrPull"
   scope                = var.acr_id
   principal_type       = "ServicePrincipal"

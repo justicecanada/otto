@@ -1,16 +1,21 @@
+# Get the object to the user-defined identity
+data "azurerm_user_assigned_identity" "identity" {
+  name                = var.identity_id
+  resource_group_name = var.resource_group_name
+}
 
 # Assign "Key Vault Crypto Service Encryption User" role
 resource "azurerm_role_assignment" "storage_key_vault_crypto_user" {
   scope                = var.keyvault_id
   role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = var.identity_id
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
 }
 
 # Assign "Key Vault Secrets User" role
 resource "azurerm_role_assignment" "storage_key_vault_secrets_user" {
   scope                = var.keyvault_id
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = var.identity_id
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
 }
 
 # Add a delay to allow for the permissions to propagate
@@ -172,7 +177,7 @@ resource "null_resource" "wait_for_storage_account" {
 resource "azurerm_role_assignment" "storage_identity_data_owner" {
   scope                = azurerm_storage_account.storage.id
   role_definition_name = "Storage Blob Data Owner"
-  principal_id         = var.identity_id
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
 }
 
 # Assign "Storage Blob Data Owner" role to the jumpbox user-assigned identity
