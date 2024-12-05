@@ -32,12 +32,12 @@ update_secret() {
     status=$([ "$expiry_timestamp" -lt "$current_timestamp" ] && echo "expired" || echo "will expire soon")
     echo "Warning: The ENTRA_CLIENT_SECRET $status (on $ENTRA_CLIENT_SECRET_EXPIRY)."
     
-    read -p "Do you want to update the secret now? (y/N): " -n 1 -r update_choice
+    read -p "Do you want to update the secret now? (y/N): " update_choice
     echo
     if [[ $update_choice =~ ^[Yy]$ ]]; then
         read -s -p "Enter the new Entra client secret: " new_secret
-        read -p "Enter new expiry date (YYYY-MM-DD): " new_expiry
         echo
+        read -p "Enter new expiry date (YYYY-MM-DD): " new_expiry
         
         set_secret "ENTRA-CLIENT-SECRET" "$new_secret"
         sed -i "s/ENTRA_CLIENT_SECRET_EXPIRY=.*/ENTRA_CLIENT_SECRET_EXPIRY=$new_expiry/" "$ENV_FILE"
@@ -60,7 +60,6 @@ check_entra_client_secret() {
     fi
 }
 check_entra_client_secret
-
 
 # Check and set VECTORDB-PASSWORD
 if ! check_secret "VECTORDB-PASSWORD"; then
