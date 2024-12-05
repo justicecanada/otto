@@ -26,10 +26,10 @@ spec:
   # SC-8: Ensure the integrity of transmitted data
   tls:
   - hosts:
-    - ${HOST_NAME}
+    - ${DOMAIN_NAME}
     secretName: tls-secret
   rules:
-  - host: ${HOST_NAME}
+  - host: ${DOMAIN_NAME}
     http:
       paths:
       - path: /

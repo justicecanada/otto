@@ -78,7 +78,7 @@ data:
 
   ENV: "${DJANGO_ENV}"
 
-  SITE_URL: "https://${HOST_NAME}"
+  SITE_URL: "${SITE_URL}"
   CREDENTIAL_TYPE: default
   DEBUG: "${DJANGO_DEBUG}"
   LOG_LEVEL: "INFO"

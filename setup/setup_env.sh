@@ -31,8 +31,7 @@ fi
 # Set the subscription
 [ -n "$SUBSCRIPTION_ID" ] && az account set --subscription "$SUBSCRIPTION_ID" --only-show-errors --output none
 
-export SITE_URL=DOMAIN_NAME
-export HOST_NAME=${SITE_URL#https://}
+export SITE_URL="https://${DOMAIN_NAME}"
 
 # Set the environment variables
 export TENANT_ID=$(az account show --query tenantId --output tsv)
