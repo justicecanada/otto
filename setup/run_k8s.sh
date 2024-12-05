@@ -34,8 +34,8 @@ export OTTO_IDENTITY_ID=$(az identity show \
   --output tsv)
 
 export KEYVAULT_CSI_PROVIDER_CLIENT_ID=$(az aks show \
-  --resource-group OttoDEVRg \
-  --name jus-dev-otto-aks \
+  --resource-group $RESOURCE_GROUP_NAME \
+  --name $AKS_CLUSTER_NAME \
   --query "addonProfiles.azureKeyvaultSecretsProvider.identity.clientId" \
   --output tsv) 
   
@@ -135,48 +135,11 @@ if [[ $INIT_SCRIPT =~ ^[Yy]$ ]]; then
     kubectl exec -it $COORDINATOR_POD -n otto -- env OTTO_ADMIN="${OTTO_ADMIN}" /django/initial_setup.sh
 fi
 
-
-# # If the DNS_LABEL is set, update the DNS label for the public IP. This is only necessary if not using a custom domain.
-# if [ -n "$DNS_LABEL" ]; then
-
-#     # If SET_DNS_LABEL is not set, prompt the user
-#     if [[ -z "$SET_DNS_LABEL" ]]; then
-#         read -p "Do you want to set the DNS label for the public IP to ${DNS_LABEL}? (y/N): " SET_DNS_LABEL
-#     fi
-
-#     # If the user confirms, proceed with setting the DNS label
-#     if [[ $SET_DNS_LABEL =~ ^[Yy]$ ]]; then
-
-#         # Get the AKS cluster managed resource group
-#         export MC_RESOURCE_GROUP=$(az aks show --resource-group $RESOURCE_GROUP_NAME --name $AKS_CLUSTER_NAME --query nodeResourceGroup -o tsv)
-
-#         # Find the LoadBalancer service and capture the external IP
-#         EXTERNAL_IP=$(kubectl get svc -A -o jsonpath='{.items[?(@.spec.type=="LoadBalancer")].status.loadBalancer.ingress[0].ip}')
-#         echo "Load Balancer External IP: $EXTERNAL_IP"
-
-#         # Replace <your-external-ip> with the actual external IP you captured
-#         PUBLIC_IP_RESOURCE_ID=$(az network public-ip list --resource-group $MC_RESOURCE_GROUP --query "[?ipAddress=='$EXTERNAL_IP'].id" -o tsv)
-#         echo "Public IP Resource ID: $PUBLIC_IP_RESOURCE_ID"
-
-#         # Replace <public-ip-resource-id> with the actual ID you obtained
-#         az network public-ip update \
-#             --ids $PUBLIC_IP_RESOURCE_ID \
-#             --dns-name ${DNS_LABEL} > /dev/null
-
-#         # Inform the user that the DNS label has been set and that it can take a few minutes to propagate
-#         echo "The DNS label has been set. Once propagation completes in a few minutes, you can access the site."
-
-#     fi
-
-# else
-
-#     # If the DNS_LABEL is not set, inform the user to update the DNS entries manually
-#     echo "Please ensure the DNS entries point to the external IP of the Load Balancer."
-#     echo "The external IP of the Load Balancer is: $EXTERNAL_IP"
-
-# fi
-
+echo 
+echo "Deployment complete!"
+echo
 echo "The site URL is: $SITE_URL"
+echo 
 
 # TODO: Uncomment Velero after the change request is approved
 # # Run the Velero setup script

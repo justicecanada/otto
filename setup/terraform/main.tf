@@ -22,6 +22,13 @@ resource "azurerm_user_assigned_identity" "otto_identity" {
   tags                = local.common_tags
 }
 
+# Assign Network Contributor role to otto-identity
+resource "azurerm_role_assignment" "otto_identity_network_contributor" {
+  principal_id         = azurerm_user_assigned_identity.otto_identity.principal_id
+  role_definition_name = "Network Contributor"
+  scope                = var.vnet_id
+}
+
 # Key Vault module
 # SC-13: Centralized key management and cryptographic operations
 module "keyvault" {
