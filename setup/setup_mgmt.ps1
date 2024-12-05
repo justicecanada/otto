@@ -133,12 +133,14 @@ if (-not $vnet_exists) {
     Write-Host "Creating VNet: $VNET_NAME"
 
     # Set DNS servers
+    # TODO: Consider using custom DNS servers 10.250.255.4 10.250.255.5 8.8.8.8 8.8.4.4;
+    # The Azure DNS 168.63.129.16 was required for the private endpoint to work.
     az network vnet create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
         --name $VNET_NAME `
         --address-prefix $VNET_IP_RANGE `
         --location $LOCATION `
-        --dns-servers 10.250.255.4 10.250.255.5 8.8.8.8 8.8.4.4 `
+        --dns-servers 168.63.129.16 `
         --only-show-errors `
         --output none
 }
