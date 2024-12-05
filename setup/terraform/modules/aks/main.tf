@@ -121,6 +121,19 @@ resource "azurerm_network_security_group" "aks_nsg" {
     # Allows SSH access to nodes for debugging and maintenance (optional, use with caution)
   }
 
+  security_rule {
+    name                       = "AllowDNS53"
+    priority                   = 160
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "53"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+    # Allows DNS traffic for pod and service discovery
+  }
+
   tags = var.tags
 }
 
@@ -587,4 +600,42 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "privileged_access_ale
   action {
     action_groups = [azurerm_monitor_action_group.aks_alerts.id]
   }
+}
+
+# Create private endpoint for AKS cluster
+resource "azurerm_private_endpoint" "aks_private_endpoint" {
+  name                = "${var.aks_cluster_name}-endpoint"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.web_subnet_id
+
+  private_service_connection {
+    name                           = "${var.aks_cluster_name}-connection"
+    private_connection_resource_id = azurerm_kubernetes_cluster.aks.id
+    subresource_names             = ["management"]
+    is_manual_connection          = false
+  }
+
+  private_dns_zone_group {
+    name                 = "${var.aks_cluster_name}-dns-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.aks_dns.id]
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster.aks,
+    azurerm_private_dns_zone.aks_dns
+  ]
+}
+
+# Add A record for AKS API server
+resource "azurerm_private_dns_a_record" "aks_api" {
+  name                = azurerm_kubernetes_cluster.aks.private_fqdn
+  zone_name           = azurerm_private_dns_zone.aks_dns.name
+  resource_group_name = var.resource_group_name
+  ttl                = 300
+  records            = [azurerm_private_endpoint.aks_private_endpoint.private_service_connection[0].private_ip_address]
+
+  depends_on = [
+    azurerm_private_endpoint.aks_private_endpoint
+  ]
 }
