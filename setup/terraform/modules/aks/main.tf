@@ -155,7 +155,7 @@ resource "azurerm_network_security_group" "aks_nsg" {
   }
 
   security_rule {
-    name                       = "AllowInterNodeCommunication"
+    name                       = "AllowInterNodeInbound"
     priority                   = 180
     direction                  = "Inbound"
     access                     = "Allow"
@@ -165,6 +165,58 @@ resource "azurerm_network_security_group" "aks_nsg" {
     source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
     destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
     # Allows inter-node communication within the AKS cluster
+  }
+
+  security_rule {
+    name                       = "AllowPostgreSQL"
+    priority                   = 190
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_range    = "5432"
+    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    # Allows PostgreSQL traffic between pods in the cluster
+  }
+
+  security_rule {
+    name                       = "AllowInterNodeOutbound"
+    priority                   = 200
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range         = "*"
+    destination_port_range    = "*"
+    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    # Allows outbound traffic between nodes for pod communication
+  }
+
+  security_rule {
+    name                       = "AllowHttpInbound"
+    priority                   = 210
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_range    = "80"
+    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    # Allows HTTP traffic between pods for Django service
+  }
+
+  security_rule {
+    name                       = "AllowHttpsInbound"
+    priority                   = 220
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_range    = "8000"
+    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    # Allows HTTPS traffic for Django application
   }
 
   tags = var.tags

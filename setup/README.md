@@ -47,7 +47,28 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
   - Visit [this link](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUMlBQNkZMR0lFRldORTdVQzQ0TEI5Q1ExOSQlQCN0PWcu) to request an exemption from the default content filtering. (Note: Do not use aka.ms/oai/rai/exceptions as that will be route the request through US government channels.)
   - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing information where standard content filtering is not appropriate.
   - Wait for Microsoft's approval before proceeding with the deployment.
-  
+
+- **Azure OpenAI Embedding Quota Increase Request:**
+  - This step is required once per subscription for each region where increased capacity is needed.
+  - You can request a quota increase proactively, even before hitting current limits.
+  - To request a quota increase:
+    - Log in to the [Azure Portal](https://portal.azure.com).
+    - Search for and select "Quotas" in the top search bar.
+    - Choose Azure OpenAI as the provider.
+    - Locate the specific quota for "text-embedding-3-large".
+    - Click "New quota request" at the top of the page.
+  - When submitting the request:
+    - Specify the deployment type as "Standard".
+    - Clearly state that the increase is for the "text-embedding-3-large" model.
+    - Request an appropriate TPM (Tokens Per Minute) increase based on your projected needs. (e.g., 700 TPM)
+    - In the justification, explain your use case, mentioning:
+      - Any current rate limiting issues (if applicable)
+      - The volume of text to be ingested
+      - Specific departmental use cases
+  - Consider using dynamic quota if your usage patterns are variable.
+  - Remember that quota is assigned on a per-region, per-model basis.
+  - After approval, manage your usage effectively to control costs, as there's no enforced "ceiling" with dynamic quota enabled.
+
 - **Agreement to Disable Abuse Monitoring:** 
   - This step is required only once per subscription.
   - Visit [this link](https://ncv.microsoft.com/3a140V2W0l) to request an exemption from the default abuse monitoring.
