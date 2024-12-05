@@ -33,7 +33,6 @@ update_secret() {
     echo "Warning: The ENTRA_CLIENT_SECRET $status (on $ENTRA_CLIENT_SECRET_EXPIRY)."
     
     read -p "Do you want to update the secret now? (y/N): " update_choice
-    echo
     if [[ $update_choice =~ ^[Yy]$ ]]; then
         read -s -p "Enter the new Entra client secret: " new_secret
         echo
