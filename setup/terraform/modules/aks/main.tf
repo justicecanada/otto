@@ -37,6 +37,15 @@ resource "azurerm_private_dns_zone_virtual_network_link" "aks_dns_link" {
   tags = var.tags
 }
 
+
+# Data resource to the web subnet
+data "azurerm_subnet" "web_subnet" {
+  name                 = var.web_subnet_name
+  virtual_network_name = var.vnet_name
+  resource_group_name  = var.resource_group_name
+}
+
+
 # NSG for the AKS subnet to allow Inbound on port 443
 resource "azurerm_network_security_group" "aks_nsg" {
   name                = "${var.aks_cluster_name}-nsg"
@@ -132,6 +141,32 @@ resource "azurerm_network_security_group" "aks_nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
     # Allows DNS traffic for pod and service discovery
+  }
+
+  security_rule {
+    name                       = "AllowDNSOutbound"
+    priority                   = 170
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "53"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+    # Allows outbound DNS traffic for pod and service discovery
+  }
+
+  security_rule {
+    name                       = "AllowInterNodeCommunication"
+    priority                   = 180
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    # Allows inter-node communication within the AKS cluster
   }
 
   tags = var.tags
@@ -271,7 +306,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   tags = var.tags
 
   # Specify dependencies
-  depends_on = [var.acr_id, azurerm_role_assignment.aks_network_contributor]
+  depends_on = [var.acr_id, azurerm_role_assignment.aks_network_contributor, azurerm_private_dns_zone_virtual_network_link.aks_dns_link]
 }
 
 resource "azurerm_role_assignment" "aks_des_reader" {
