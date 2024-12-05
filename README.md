@@ -153,7 +153,13 @@ celery -A otto beat --loglevel=info --scheduler django_celery_beat.schedulers:Da
 
 ### Load testing
 
-If you installed k6 as part of the `dev_setup.sh` script, you can run load tests with `k6 run load_testing/k6_script.js`. Examine and edit the file as necessary beforehand.
+If you installed k6 as part of the `dev_setup.sh` script, you can run load tests. The tests themselves are in `django/otto/views.py`.
+
+First, as an Otto admin, go to the homepage and click your name, then "Enable load test for 1 hour". A red shield symbol should appear.
+
+Edit `load_testing/k6_script.js` to specify the test.
+
+Then, from the repo root, run `k6 run load_testing/k6_script.js`.
 
 #### Testing pgbouncer locally
 
