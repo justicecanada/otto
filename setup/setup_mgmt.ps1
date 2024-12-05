@@ -432,31 +432,6 @@ else {
 }
 
 
-# TODO: This can be removed because we're using private endpoints instead
-# # Allow outbound HTTPS to Azure Storage
-# $storageRuleExists = az network nsg rule show --resource-group $MGMT_RESOURCE_GROUP_NAME --nsg-name $nsgName --name "AllowStorage" --only-show-errors 2>$null
-# if (-not $storageRuleExists) {
-#     Write-Host "Creating NSG rule for Azure Storage"
-#     az network nsg rule create `
-#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#         --nsg-name $nsgName `
-#         --name "AllowStorageOutbound" `
-#         --priority 200 `
-#         --direction Outbound `
-#         --access Allow `
-#         --protocol Tcp `
-#         --source-address-prefix VirtualNetwork `
-#         --source-port-range "*" `
-#         --destination-address-prefix Storage `
-#         --destination-port-range 443 `
-#         --output none
-# }
-# else {
-#     Write-Host "NSG rule for Azure Storage already exists"
-# }
-
-
-
 # Check if the user-assigned managed identity exists
 $identityExists = az identity show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $JUMPBOX_IDENTITY_NAME --only-show-errors 2>$null
 
