@@ -732,6 +732,8 @@ resource "azurerm_private_endpoint" "aks_private_endpoint" {
     private_dns_zone_ids = [azurerm_private_dns_zone.aks_dns.id]
   }
 
+  tags = var.tags
+
   depends_on = [
     azurerm_kubernetes_cluster.aks,
     azurerm_private_dns_zone.aks_dns
