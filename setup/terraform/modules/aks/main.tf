@@ -37,14 +37,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "aks_dns_link" {
   tags = var.tags
 }
 
-
-# Data resource to the web subnet
+# Get the subnet data for the AKS subnet
 data "azurerm_subnet" "web_subnet" {
-  name                 = var.web_subnet_name
-  virtual_network_name = var.vnet_name
-  resource_group_name  = var.resource_group_name
-}
-
+  name = split("/", var.web_subnet_id)[10]
+  virtual_network_name = split("/", var.web_subnet_id)[8]
+  resource_group_name = split("/", var.web_subnet_id)[4] 
+} 
 
 # NSG for the AKS subnet to allow Inbound on port 443
 resource "azurerm_network_security_group" "aks_nsg" {
