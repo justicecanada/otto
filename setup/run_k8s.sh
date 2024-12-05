@@ -27,13 +27,12 @@ fi
 # Convert the kubeconfig to use the Azure CLI login mode, which utilizes the already logged-in context from Azure CLI to obtain the access token
 kubelogin convert-kubeconfig -l azurecli
 
-export AKS_IDENTITY_ID=$(
-  az aks show \
-    --resource-group "$RESOURCE_GROUP_NAME" \
-    --name "$AKS_CLUSTER_NAME" \
-    --query addonProfiles.azureKeyvaultSecretsProvider.identity.clientId \
-    -o tsv
-)
+export OTTO_IDENTITY_ID=$(az identity show \
+  --name otto-identity \
+  --resource-group $RESOURCE_GROUP_NAME \
+  --query clientId \
+  --output tsv)
+  
 
 # Apply the NGINX Ingress Controller
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
@@ -42,10 +41,7 @@ kubectl patch configmap ingress-nginx-controller -n ingress-nginx --type=merge -
 # Wait for the NGINX Ingress Controller to be ready
 echo "Waiting for NGINX Ingress Controller to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/ingress-nginx-controller -n ingress-nginx
-  
-# Apply the namespace for Otto
-kubectl apply -f namespace.yaml
-    
+      
 # Apply the Cert-Manager CRDs and Cert-Manager
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.crds.yaml
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
@@ -56,6 +52,9 @@ kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-we
 
 # Create the ClusterIssuer for Let's Encrypt
 kubectl apply -f letsencrypt-cluster-issuer.yaml
+
+# Apply the namespace for Otto
+kubectl apply -f namespace.yaml
 
 
 # Apply the Kubernetes resources related to Otto, substituting environment variables where required

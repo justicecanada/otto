@@ -12,10 +12,14 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-cluster-issuer-key
     solvers:
-    - http01:
-        ingress:
-          class: nginx
-          podTemplate:
-            spec:
-              nodeSelector:
-                "kubernetes.io/os": linux
+    - dns01:
+        azureDNS:
+          subscriptionID: ${DNS_ZONE_SUBSCRIPTION_ID}
+          resourceGroupName: ${JuPcCoreDnsZonesRg}
+          hostedZoneName: ${DOMAIN_NAME}
+          environment: AzurePublicCloud
+          managedIdentity:
+            clientID: ${OTTO_IDENTITY_ID}
+      selector:
+        dnsZones:
+          - "${DOMAIN_NAME}"
