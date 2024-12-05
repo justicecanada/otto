@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Fetch the expiry date of the Entra client secret from the environment and convert it to a timestamp
+ENTRA_CLIENT_SECRET_EXPIRY=${ENTRA_CLIENT_SECRET_EXPIRY:-"1900-01-01"}
+expiry_timestamp=$(date -d "$ENTRA_CLIENT_SECRET_EXPIRY" +%s)
+current_timestamp=$(date +%s)
+thirty_days_later=$(date -d '+30 days' +%s)
+
 # Function to check if a secret exists in Key Vault
 check_secret() {
     if az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "$1" &>/dev/null; then
@@ -20,12 +26,57 @@ set_secret() {
     echo "$1 has been set or updated."
 }
 
+update_secret() {
+    # TODO: Grant the jumpbox-identity 'Application Administrator' for the Entra app and let it handle the secret rotation automatically
+
+    if [ "$expiry_timestamp" -ge "$thirty_days_later" ]; then
+        echo "ENTRA_CLIENT_SECRET expiry date is valid and set to: $ENTRA_CLIENT_SECRET_EXPIRY."
+        return 0
+    fi
+
+    status=$([ "$expiry_timestamp" -lt "$current_timestamp" ] && echo "expired" || echo "will expire soon")
+    echo "Warning: The ENTRA_CLIENT_SECRET $status (on $ENTRA_CLIENT_SECRET_EXPIRY)."
+    
+    read -p "Do you want to update the secret now? (y/N): " -n 1 -r update_choice
+    echo
+    [[ ! $update_choice =~ ^[Yy]$ ]] && echo "Continuing with the existing secret." && return 1
+
+    read -p "Enter new expiry date (YYYY-MM-DD): " new_expiry
+    export ENTRA_CLIENT_SECRET_EXPIRY="$new_expiry"
+    
+    echo "Instructions for updating Key Vault:"
+    echo "1. Generate a new client secret in Azure Portal for the app registration: $APP_NAME"
+    echo "2. Run: az keyvault secret set --vault-name $KEYVAULT_NAME --name 'ENTRA-CLIENT-SECRET' --value '<new_secret_value>' --expires '$new_expiry'"
+    
+    sed -i "s/ENTRA_CLIENT_SECRET_EXPIRY=.*/ENTRA_CLIENT_SECRET_EXPIRY=$new_expiry/" "$ENV_FILE"
+    echo "New expiry date set to: $new_expiry"
+    
+    read -p "Have you updated the secret in Key Vault? (y/N): " -n 1 -r confirm
+    echo
+    [[ ! $confirm =~ ^[Yy]$ ]] && echo "Please update the secret in Key Vault before continuing." && exit 1
+}
+
+update_secret
+
 # Check and set ENTRA-CLIENT-SECRET
-if ! check_secret "ENTRA-CLIENT-SECRET"; then
-    read -s -p "Enter the Entra client secret: " entra_client_secret
-    set_secret "ENTRA-CLIENT-SECRET" "$entra_client_secret"
-    unset entra_client_secret
-fi
+check_entra_client_secret() {
+    if ! check_secret "ENTRA-CLIENT-SECRET"; then
+        echo "ENTRA-CLIENT-SECRET not found in Key Vault."
+        update_secret
+    else
+        update_secret
+    fi
+
+    # If update_secret didn't set a new secret, prompt for one
+    if ! check_secret "ENTRA-CLIENT-SECRET"; then
+        read -s -p "Enter the Entra client secret: " entra_client_secret
+        echo
+        set_secret "ENTRA-CLIENT-SECRET" "$entra_client_secret"
+        unset entra_client_secret
+    fi
+}
+check_entra_client_secret
+
 
 # Check and set VECTORDB-PASSWORD
 if ! check_secret "VECTORDB-PASSWORD"; then

@@ -219,6 +219,32 @@ resource "azurerm_network_security_group" "aks_nsg" {
     # Allows HTTPS traffic for Django application
   }
 
+  security_rule {
+    name                       = "AllowRedis"
+    priority                   = 230
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_range    = "6379"
+    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    # Allows Redis traffic between pods
+  }
+
+  security_rule {
+    name                       = "AllowCeleryBeat"
+    priority                   = 240
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_range    = "5555"
+    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    # Allows Celery Beat monitoring
+  }
+
   tags = var.tags
 }
 
