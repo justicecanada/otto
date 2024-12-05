@@ -243,6 +243,9 @@ resource "azurerm_kubernetes_cluster" "aks" {
   key_vault_secrets_provider {
     secret_rotation_enabled  = true
     secret_rotation_interval = "2m"
+    secret_identity {
+      user_assigned_identity_id = data.azurerm_user_assigned_identity.identity.id
+    }
   }
 
   # SC-8: Secure Internal Communication in AKS
