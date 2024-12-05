@@ -44,8 +44,8 @@ resource "azurerm_network_security_group" "aks_nsg" {
   resource_group_name = var.resource_group_name
 
   security_rule {
-    name                       = "AllowAKSInbound"
-    priority                   = 110
+    name                       = "AllowAKSInbound443"
+    priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -53,6 +53,72 @@ resource "azurerm_network_security_group" "aks_nsg" {
     destination_port_range     = "443"
     source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = "*"
+    # Allows HTTPS traffic for secure communication with the Kubernetes API server
+  }
+
+  security_rule {
+    name                       = "AllowKubeletAPI"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "10250"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+    # Enables communication between the control plane and worker nodes for pod and node management
+  }
+
+  security_rule {
+    name                       = "AllowKubeScheduler"
+    priority                   = 120
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "10251"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+    # Allows the Kubernetes scheduler to manage pod scheduling across nodes
+  }
+
+  security_rule {
+    name                       = "AllowKubeControllerManager"
+    priority                   = 130
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "10252"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+    # Enables the Kubernetes controller manager to manage various cluster controllers
+  }
+
+  security_rule {
+    name                       = "AllowAzureContainerRegistry9000"
+    priority                   = 140
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9000"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+    # Permits outbound traffic to Azure Container Registry for pulling container images
+  }
+
+  security_rule {
+    name                       = "AllowSSH22"
+    priority                   = 150
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+    # Allows SSH access to nodes for debugging and maintenance (optional, use with caution)
   }
 
   tags = var.tags

@@ -2,14 +2,11 @@
 
 # CM-8 & CM-9: Automate the deployment process, ensuring the inventory remains current and consistent
 
-# Store the current directory
-CURRENT_DIR=$(pwd)
+# Ensure we're in the correct directory
+cd /home/azureuser/otto/setup/terraform
 
-# Function to clean up temporary files
-cleanup() {
-    rm -f backend_config.hcl
-}
-trap cleanup EXIT
+# Clean up temporary files when the script exits
+trap 'rm -f backend_config.hcl' EXIT
 
 # Set flags for Terraform
 export TF_CLI_ARGS_apply="-auto-approve"
@@ -18,8 +15,6 @@ export ARM_CLIENT_ID=$(az identity show --name $JUMPBOX_IDENTITY_NAME --resource
 export ARM_SUBSCRIPTION_ID=$SUBSCRIPTION_ID
 export ARM_TENANT_ID=$TENANT_ID
 
-# Change to the Terraform directory
-cd terraform
 
 # Create a temporary backend configuration file
 cat > backend_config.hcl << EOF
@@ -58,6 +53,3 @@ else
     terraform apply -var-file=.tfvars
 
 fi
-
-# Return to the original directory
-cd "$CURRENT_DIR"

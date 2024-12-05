@@ -759,6 +759,11 @@ else {
 $setupScript = @"
 #!/bin/bash
 
+# Check if hostname is already in /etc/hosts, if not, add it
+if ! grep -q "127.0.0.1 $(hostname)" /etc/hosts; then
+    echo "127.0.0.1 $(hostname)" | sudo tee -a /etc/hosts
+fi
+
 # Stop and disable systemd-resolved
 sudo systemctl stop systemd-resolved
 sudo systemctl disable systemd-resolved
@@ -774,6 +779,10 @@ search reddog.microsoft.com" > /etc/resolv.conf'
 # Make resolv.conf immutable to prevent changes
 sudo chattr +i /etc/resolv.conf
 
+# Install required packages
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common wget
+
 # Check and install Azure CLI if not present
 if ! command -v az &> /dev/null; then
     echo "Installing Azure CLI"
@@ -783,8 +792,6 @@ fi
 # Check and install docker if not present
 if ! command -v docker &> /dev/null; then
     echo "Installing Docker"
-    sudo apt update
-    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
     echo "deb [arch=`$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu `$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     sudo apt update
@@ -796,19 +803,41 @@ fi
 # Check and install certbot if not present
 if ! command -v certbot &> /dev/null; then
     echo "Installing Certbot"
-    sudo apt update
     sudo apt install -y certbot
 fi
 
 # Check and install Terraform if not present
 if ! command -v terraform &> /dev/null; then
     echo "Installing Terraform"
-    sudo apt update
     wget https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
     gunzip -c terraform_1.7.5_linux_amd64.zip > terraform
     sudo mv terraform /usr/local/bin/
     sudo chmod +x /usr/local/bin/terraform
     rm terraform_1.7.5_linux_amd64.zip
+fi
+
+# Check and install kubectl if not present
+if ! command -v kubectl &> /dev/null; then
+    echo "Installing kubectl"
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+    sudo apt-get update
+    sudo apt-get install -y kubectl
+fi
+
+if ! command -v kubelogin &> /dev/null; then
+    echo "Installing kubelogin"
+    curl -LO "https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip"
+    gunzip -c kubelogin-linux-amd64.zip > kubelogin
+    sudo mv kubelogin /usr/local/bin/
+    rm -rf bin kubelogin-linux-amd64.zip
+    sudo chmod +x /usr/local/bin/kubelogin
+fi
+
+# Check and apply the k alias if not present
+if ! grep -q "alias k='kubectl'" /home/azureuser/.bashrc; then
+    echo "alias k='kubectl'" >> /home/azureuser/.bashrc
 fi
 
 # Write the .env file
