@@ -22,7 +22,7 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'style.css' %}" />
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
+    <link rel="icon" type="image/x-icon" href="{% static 'otto-icon.png' %}" />
     {% block page_css %}{% endblock %}
 
     <script src="{% static 'thirdparty/js-cookie-3.0.1.min.js' %}"></script>
@@ -43,11 +43,14 @@
         <div class="container-fluid">
           <div>
             <a class="navbar-brand text-white me-0" href="{% url 'index' %}">
-              <img src="{% static 'otto.png' %}"
-                   width="30"
-                   height="30"
+              <img src="{% static 'otto-icon.png' %}"
+                   width="27"
+                   height="auto"
                    class="d-inline-block align-top"
-                   alt="Otto logo" />
+                   style="position: relative;
+                          top: 4px;
+                          margin-right: 3px"
+                   alt="{% trans 'Smiling robot head' %}">
               Otto
             </a>
             {{ otto_version|safe }}
@@ -71,6 +74,7 @@
                 {% include 'components/user_menu.html' %}
               </ul>
               {% include 'components/notifications.html' %}
+              {% include 'components/feedback/feedback_icon.html' %}
               {% include 'components/language_toggle.html' %}
             </div>
           {% endif %}
@@ -95,6 +99,7 @@
       </nav>
     {% endif %}
 
+    <div aria-live="polite" aria-atomic="true" class="sticky-top">{% include "components/toasts.html" %}</div>
     {% include "components/messages.html" with add_padding="true" %}
 
     <div id="main-content-wrapper">
@@ -106,6 +111,8 @@
         </div>
       {% endblock %}
       {% block flash_messages %}{% endblock %}
+      {% include "components/feedback/feedback_modal.html" %}
+ 
     </div>
 
     <script>
@@ -137,6 +144,8 @@
     </script>
 
     {% block page_script %}{% endblock %}
+
+    <script src="{% static 'js/script.js' %}"></script>
 
     <!-- icons -->
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
