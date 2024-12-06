@@ -25,7 +25,6 @@ metadata:
   labels:
     deployment: celery-worker
 spec:
-  replicas: 1
   selector:
     matchLabels:
       pod: celery-worker
@@ -121,6 +120,34 @@ spec:
           claimName: media-pvc  # References the PVC defined earlier
       - name: tmp
         emptyDir: {}
+---
+
+# HorizontalPodAutoscaler for Celery Worker
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: celery-worker-hpa
+  namespace: otto
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: celery-worker
+  minReplicas: ${CELERY_REPLICAS_MIN}
+  maxReplicas: ${CELERY_REPLICAS_MAX}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
 
 ---
 
@@ -133,7 +160,7 @@ metadata:
   labels:
     deployment: celery-beat
 spec:
-  replicas: 1
+  replicas: 1  # Runs one instance of the beat scheduler
   selector:
     matchLabels:
       pod: celery-beat

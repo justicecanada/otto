@@ -18,6 +18,6 @@ RUN pip3 --disable-pip-version-check --no-cache-dir install \
 
 COPY . /django
 
-RUN chmod 0755 /django/initcontainer.sh
+RUN chmod 0755 /django/migrate-collectstatic.sh
 
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]

@@ -6,7 +6,7 @@ metadata:
   name: postgres-django-db
   namespace: otto  
 spec:
-  serviceName: postgres-django-service
+  serviceName: "postgres-django-service"
   replicas: 1
   selector:
     matchLabels:
@@ -98,6 +98,28 @@ spec:
       resources:
         requests:
           storage: 16Gi
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pgvector-django-autoscaler
+  namespace: otto
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: postgres-django-db
+  minReplicas: ${DJANGODB_REPLICAS_MIN}
+  maxReplicas: ${DJANGODB_REPLICAS_MAX}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
 
 ---
 
