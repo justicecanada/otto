@@ -33,19 +33,20 @@
 
         <div class="card-header">
           <h5 class="card-title mb-0">
+            {# the template variable makes blocktrans break down for some reason #}
             {% if LANGUAGE_CODE == 'en' %}
-              {% blocktrans with name=preset.name_en|default:preset.name_fr %}Update Preset "{{ name }}" {% endblocktrans %}
+              Update Preset {{ preset.name_en|default:preset.name_fr }}
             {% else %}
-              {% blocktrans with name=preset.name_fr|default:preset.name_en %}Update Preset "{{ name }}" {% endblocktrans %}
+              Mettre à jour le préréglage {{ preset.name_fr|default:preset.name_en }}
             {% endif %}
           </h5>
         </div>
         <div class="card-body flex-grow-1 d-flex flex-column">
           <p class="card-text">
             {% if LANGUAGE_CODE == 'en' %}
-              {% blocktrans with name=preset.name_en|default:preset.name_fr %}You currently have the preset named "{{ name }}" loaded. This will update it with your latest changes. {% endblocktrans %}
+              You currently have the preset named "{{ preset.name_en|default:preset.name_fr }}" loaded. This will update it with your latest changes.
             {% else %}
-              {% blocktrans with name=preset.name_fr|default:preset.name_en %}You currently have the preset named "{{ name }}" loaded. This will update it with your latest changes. {% endblocktrans %}
+              Vous avez actuellement le préréglage nommé "{{ preset.name_fr|default:preset.name_en }}" chargé. Cela le mettra à jour avec vos dernières modifications.
             {% endif %}
           </p>
         </div>

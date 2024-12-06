@@ -830,7 +830,10 @@ def save_preset(request, chat_id):
         return render(
             request,
             "chat/modals/presets/save_preset_user_choice.html",
-            {"chat_id": chat_id, "preset": preset},
+            {
+                "chat_id": chat_id,
+                "preset": preset,
+            },
         )
     else:
         form = PresetForm(user=request.user)
