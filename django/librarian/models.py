@@ -56,7 +56,7 @@ class LibraryManager(models.Manager):
 
     def reset_vector_store(self):
         db = settings.DATABASES["vector_db"]
-        connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:5432/{db['NAME']}"
+        connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
 
         engine = create_engine(connection_string)
         Session = sessionmaker(bind=engine)
@@ -167,7 +167,7 @@ class Library(models.Model):
 
     def reset(self, recreate=True):
         db = settings.DATABASES["vector_db"]
-        connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:5432/{db['NAME']}"
+        connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
 
         engine = create_engine(connection_string)
         Session = sessionmaker(bind=engine)
@@ -425,7 +425,7 @@ class Document(models.Model):
         )
         super().delete(*args, **kwargs)
 
-    def process(self, pdf_method="default"):
+    def process(self, pdf_method="default", mock_embedding=False):
         from .tasks import process_document
 
         bind_contextvars(document_id=self.id)
@@ -435,7 +435,7 @@ class Document(models.Model):
             self.status = "ERROR"
             self.save()
             return
-        process_document.delay(self.id, get_language(), pdf_method)
+        process_document.delay(self.id, get_language(), pdf_method, mock_embedding)
         self.celery_task_id = "tbd"
         self.status = "INIT"
         self.save()

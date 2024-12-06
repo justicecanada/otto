@@ -166,6 +166,7 @@ def chat(request, chat_id):
     # The current chat is always shown, even if it's empty.
     user_chats = (
         Chat.objects.filter(user=request.user, messages__isnull=False)
+        .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
         .order_by("-created_at")

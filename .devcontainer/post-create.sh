@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if ! command -v az &> /dev/null
 then
         curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash

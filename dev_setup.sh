@@ -1,3 +1,5 @@
+#!/bin/bash
+
 git config --global --add safe.directory .
 git config pull.rebase false
 # With user input, set the username and email

@@ -154,7 +154,7 @@ class Law(models.Model):
     @classmethod
     def reset(cls):
         db = settings.DATABASES["vector_db"]
-        connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:5432/{db['NAME']}"
+        connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
         engine = create_engine(connection_string)
         Session = sessionmaker(bind=engine)
         session = Session()

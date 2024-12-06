@@ -33,7 +33,9 @@ one_minute = 60
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def process_document(document_id, language=None, pdf_method="default"):
+def process_document(
+    document_id, language=None, pdf_method="default", mock_embedding=False
+):
     """
     Process a URL and save the content to a document.
     """
@@ -48,7 +50,7 @@ def process_document(document_id, language=None, pdf_method="default"):
     document.celery_task_id = current_task.request.id
     document.save()
 
-    llm = OttoLLM()
+    llm = OttoLLM(mock_embedding=mock_embedding)
     try:
         with translation.override(language):
             process_document_helper(document, llm, pdf_method)

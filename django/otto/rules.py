@@ -5,6 +5,7 @@ See https://github.com/dfunckt/django-rules
 
 from django.conf import settings
 
+from data_fetcher import cache_within_request
 from rules import add_perm, is_group_member, predicate
 
 from chat.models import Chat
@@ -107,30 +108,42 @@ add_perm(
 
 
 # Librarian
+# Ensures a simple query is used to get the roles for a user
+@cache_within_request
+def get_library_roles_for_user(user):
+    return list(LibraryUserRole.objects.filter(user=user))
+
+
+# Do all subsequent filtering on Python objects (in memory) instead of in the database
 @predicate
 def is_library_viewer(user, library):
-    return LibraryUserRole.objects.filter(
-        user=user, library=library, role="viewer"
-    ).exists()
+    return any(
+        role.library_id == library.id and role.role == "viewer"
+        for role in get_library_roles_for_user(user)
+    )
 
 
 @predicate
 def is_library_contributor(user, library):
-    return LibraryUserRole.objects.filter(
-        user=user, library=library, role="contributor"
-    ).exists()
+    return any(
+        role.library_id == library.id and role.role == "contributor"
+        for role in get_library_roles_for_user(user)
+    )
 
 
 @predicate
 def is_library_admin(user, library):
-    return LibraryUserRole.objects.filter(
-        user=user, library=library, role="admin"
-    ).exists()
+    return any(
+        role.library_id == library.id and role.role == "admin"
+        for role in get_library_roles_for_user(user)
+    )
 
 
 @predicate
 def is_library_user(user, library):
-    return LibraryUserRole.objects.filter(user=user, library=library).exists()
+    return any(
+        role.library_id == library.id for role in get_library_roles_for_user(user)
+    )
 
 
 @predicate
