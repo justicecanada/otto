@@ -2507,14 +2507,6 @@
         "fr": "",
         "fr_auto": "Update Preset %(name)s "
     },
-    "Mettre à jour le préréglage %(name)s ": {
-        "fr": "",
-        "fr_auto": "Mettre à jour le préréglage %(name)s "
-    },
-    "Vous avez actuellement le préréglage nommé \"%(name)s\" chargé. Cela le mettra à jour avec vos dernières modifications. ": {
-        "fr": "",
-        "fr_auto": "Vous avez actuellement le préréglage nommé « %(name)s » chargé. Cela le mettra à jour avec vos dernières modifications. "
-    },
     "Smiling robot head": {
         "fr": "",
         "fr_auto": "Tête de robot souriante"
@@ -2522,9 +2514,5 @@
     "Save & Load": {
         "fr": "",
         "fr_auto": "Enregistrer et charger"
-    },
-    " This is a test of the blocktrans tag. ": {
-        "fr": "",
-        "fr_auto": " Il s’agit d’un test de la balise blocktrans. "
     }
 }
