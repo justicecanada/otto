@@ -375,8 +375,8 @@ def manage_users(request):
                 user.groups.add(*groups)
                 if "pilot" in form.cleaned_data:
                     user.pilot = form.cleaned_data["pilot"]
-                user.monthly_max = form.cleaned_data["monthly_max"]
-                user.monthly_bonus = form.cleaned_data["monthly_bonus"]
+                user.weekly_max = form.cleaned_data["weekly_max"]
+                user.weekly_bonus = form.cleaned_data["weekly_bonus"]
                 user.save()
         else:
             raise ValueError(form.errors)
@@ -402,8 +402,8 @@ def manage_users_form(request, user_id=None):
                 "upn": [user],
                 "group": user.groups.all(),
                 "pilot": user.pilot,
-                "monthly_max": user.monthly_max,
-                "monthly_bonus": user.monthly_bonus,
+                "weekly_max": user.weekly_max,
+                "weekly_bonus": user.weekly_bonus,
             }
         )
     else:
@@ -446,12 +446,12 @@ def manage_users_upload(request):
                                 pilot_id=pilot_id,
                                 name=pilot_id.replace("_", " ").capitalize(),
                             )
-                    # Check for monthly_max column
-                    monthly_max = row.get("monthly_max", None)
+                    # Check for weekly_max column
+                    weekly_max = row.get("weekly_max", None)
                     try:
-                        monthly_max = int(monthly_max)
+                        weekly_max = int(weekly_max)
                     except Exception as e:
-                        monthly_max = None
+                        weekly_max = None
                     user = User.objects.filter(upn__iexact=upn).first()
                     if not user:
                         user = User.objects.create_user(
@@ -469,16 +469,16 @@ def manage_users_upload(request):
                         user.last_name = surname
                         if pilot_id:
                             user.pilot = pilot
-                        if monthly_max:
-                            user.monthly_max = monthly_max
+                        if weekly_max:
+                            user.weekly_max = weekly_max
                         user.save()
                     if not created:
                         user.groups.clear()
                         if pilot_id:
                             user.pilot = pilot
-                        if monthly_max:
-                            user.monthly_max = monthly_max
-                        if pilot_id or monthly_max:
+                        if weekly_max:
+                            user.weekly_max = weekly_max
+                        if pilot_id or weekly_max:
                             user.save()
                     for role in row["roles"].split("|"):
                         role = role.strip()
@@ -503,13 +503,13 @@ def manage_users_download(request):
     response["Content-Disposition"] = 'attachment; filename="otto_users.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(["upn", "pilot_id", "roles", "monthly_max"])
+    writer.writerow(["upn", "pilot_id", "roles", "weekly_max"])
 
     # Only get users who have roles
     for user in User.objects.filter(groups__isnull=False).order_by("last_name"):
         roles = "|".join(user.groups.values_list("name", flat=True))
         pilot_id = user.pilot.pilot_id if user.pilot else ""
-        writer.writerow([user.upn, pilot_id, roles, user.monthly_max])
+        writer.writerow([user.upn, pilot_id, roles, user.weekly_max])
 
     return response
 
@@ -843,13 +843,13 @@ def cost_dashboard(request):
 
 def user_cost(request):
     today_cost = cad_cost(Cost.objects.get_user_cost_today(request.user))
-    monthly_max = request.user.this_month_max
-    this_month_cost = cad_cost(Cost.objects.get_user_cost_this_month(request.user))
+    weekly_max = request.user.this_week_max
+    this_week_cost = cad_cost(Cost.objects.get_user_cost_this_week(request.user))
     cost_percent = max(
-        min(int(100 * this_month_cost / monthly_max if monthly_max else 0), 100), 1
+        min(int(100 * this_week_cost / weekly_max if weekly_max else 0), 100), 1
     )
     cost_tooltip = "${:.2f} / ${:.2f} {}<br>(${:.2f} {})".format(
-        this_month_cost, monthly_max, _("this month"), today_cost, _("today")
+        this_week_cost, weekly_max, _("this week"), today_cost, _("today")
     )
     return render(
         request,

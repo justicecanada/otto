@@ -2235,9 +2235,9 @@
         "fr": "",
         "fr_auto": "Limite budgétaire"
     },
-    "You have reached your monthly budget limit. Please contact an Otto administrator or wait until the 1st for the limit to reset.": {
+    "You have reached your weekly budget limit. Please contact an Otto administrator or wait until Sunday for the limit to reset.": {
         "fr": "",
-        "fr_auto": "Vous avez atteint votre limite budgétaire mensuelle. Veuillez contacter un administrateur d’Otto ou attendre jusqu’à la 1re pour que la limite soit réinitialisée."
+        "fr_auto": "Vous avez atteint votre limite budgétaire hebdomadaire. Veuillez contacter un administrateur Otto ou attendre jusqu’à dimanche pour que la limite soit réinitialisée."
     },
     "Feedback submitted successfully.": {
         "fr": "",
@@ -2303,9 +2303,9 @@
         "fr": "",
         "fr_auto": "Tout le temps"
     },
-    "this month": {
+    "this week": {
         "fr": "",
-        "fr_auto": "cette mois"
+        "fr_auto": "cette semaine"
     },
     "User costs": {
         "fr": "",
@@ -2471,6 +2471,14 @@
         "fr": "",
         "fr_auto": "Téléchargez tous les fichiers..."
     },
+    "Empowering Justice efficiency with data and AI": {
+        "fr": "",
+        "fr_auto": "Renforcer l’efficacité de la justice avec les données et l’IA"
+    },
+    "An error occurred.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite."
+    },
     "Read each document separately  (slow, $$)": {
         "fr": "",
         "fr_auto": "Lisez chaque document séparément (lent, $$)"
@@ -2479,12 +2487,40 @@
         "fr": "",
         "fr_auto": "Lire tous les documents en même temps (le plus lent, $$)"
     },
+    "Full documents, separate answers ($)": {
+        "fr": "",
+        "fr_auto": "Documents complets, réponses séparées ($)"
+    },
+    "Full documents, combined answer ($)": {
+        "fr": "",
+        "fr_auto": "Documents complets, réponse combinée ($)"
+    },
+    "Error translating files.": {
+        "fr": "",
+        "fr_auto": "Erreur de traduction des fichiers."
+    },
+    "Load test": {
+        "fr": "",
+        "fr_auto": "Essai de charge"
+    },
+    "Disable load test URL": {
+        "fr": "",
+        "fr_auto": "Désactiver l’URL du test de chargement"
+    },
     "Enable load test URL": {
         "fr": "",
         "fr_auto": "Activer l’URL du test de charge"
     },
-    "Smiling robot head": {
+    "Load testing URL is enabled": {
         "fr": "",
-        "fr_auto": "Tête de robot souriante"
+        "fr_auto": "L’URL de test de chargement est activée"
+    },
+    "UPN": {
+        "fr": "",
+        "fr_auto": "L’UPN"
+    },
+    "Enable load test URL for 1 hour": {
+        "fr": "",
+        "fr_auto": "Activer l’URL du test de charge pendant 1 heure"
     }
 }

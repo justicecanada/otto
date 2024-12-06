@@ -17,10 +17,10 @@ def update_laws():
 
 
 @shared_task
-def reset_monthly_bonus():
+def reset_weekly_bonus():
     from otto.models import User
 
-    User.objects.update(monthly_bonus=0)
+    User.objects.update(weekly_bonus=0)
 
 
 @shared_task

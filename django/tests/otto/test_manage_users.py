@@ -36,7 +36,7 @@ def test_modify_user(client, basic_user, all_apps_user):
     # Modify the basic_user
     response = client.post(
         reverse("manage_users"),
-        data={"upn": [user.id], "group": [1, 2], "monthly_max": 10, "monthly_bonus": 0},
+        data={"upn": [user.id], "group": [1, 2], "weekly_max": 10, "weekly_bonus": 0},
     )
     assert response.status_code == 200
     user.refresh_from_db()
@@ -49,8 +49,8 @@ def test_modify_user(client, basic_user, all_apps_user):
         data={
             "upn": [user.id, user2.id],
             "group": [1, 2, 3],
-            "monthly_max": 20,
-            "monthly_bonus": 10,
+            "weekly_max": 20,
+            "weekly_bonus": 10,
         },
     )
     assert response.status_code == 200
@@ -83,7 +83,7 @@ def test_manage_users_upload(client, all_apps_user):
 
     # Test with a csv file ("users.csv" in this directory)
     """
-    upn,pilot_id,roles,monthly_max
+    upn,pilot_id,roles,weekly_max
     Firstname.Lastname@justice.gc.ca,bac,AI assistant user|template wizard user,100
     """
     this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -119,7 +119,7 @@ def test_manage_users_download(client, all_apps_user, basic_user):
         u.groups.add(group_id)
 
     users = User.objects.all().values_list(
-        "upn", "pilot_id", "groups__name", "monthly_max"
+        "upn", "pilot_id", "groups__name", "weekly_max"
     )
 
     response = client.get(reverse("download_users"))
@@ -137,7 +137,7 @@ def test_manage_users_download(client, all_apps_user, basic_user):
 
     # Check that the users are unchanged
     updated_users = User.objects.all().values_list(
-        "upn", "pilot_id", "groups__name", "monthly_max"
+        "upn", "pilot_id", "groups__name", "weekly_max"
     )
     assert sorted(list(users)) == sorted(list(updated_users))
     os.remove("users.csv")

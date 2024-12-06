@@ -110,7 +110,7 @@ DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
 DEFAULT_LAWS_MODEL = "gpt-4o"
 
-DEFAULT_MONTHLY_MAX = 40  # allowance $CAD/user/month unless otherwise specified
+DEFAULT_WEEKLY_MAX = 20  # allowance $CAD/user/week unless otherwise specified
 
 # Azure Cognitive Services
 AZURE_COGNITIVE_SERVICE_ENDPOINT = os.environ.get("AZURE_COGNITIVE_SERVICE_ENDPOINT")

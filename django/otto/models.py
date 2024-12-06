@@ -47,8 +47,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=True,
         related_name="default_for",
     )
-    monthly_max = models.IntegerField(default=settings.DEFAULT_MONTHLY_MAX)
-    monthly_bonus = models.IntegerField(default=0)  # Resets each Sunday to 0
+    weekly_max = models.IntegerField(default=settings.DEFAULT_WEEKLY_MAX)
+    weekly_bonus = models.IntegerField(default=0)  # Resets each Sunday to 0
 
     objects = CustomUserManager()
 
@@ -87,13 +87,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{cad_cost(Cost.objects.get_user_cost(self)):.2f}"
 
     @property
-    def this_month_max(self):
-        return self.monthly_max + self.monthly_bonus
+    def this_week_max(self):
+        return self.weekly_max + self.weekly_bonus
 
     @property
     def is_over_budget(self):
         return (
-            cad_cost(Cost.objects.get_user_cost_this_month(self)) >= self.this_month_max
+            cad_cost(Cost.objects.get_user_cost_this_week(self)) >= self.this_week_max
         )
 
     @property
@@ -448,15 +448,16 @@ class CostManager(models.Manager):
             for cost in self.filter(user=user, date_incurred=datetime.date.today())
         )
 
-    def get_user_cost_this_month(self, user):
-        """Total cost for a user this month to date (starting 1st of the month)"""
-        month_start_date = datetime.date.today().replace(day=1)
-
+    def get_user_cost_this_week(self, user):
+        """Total cost for a user this week to date (Sunday to Saturday)"""
+        week_start_date = datetime.date.today() - datetime.timedelta(
+            days=datetime.date.today().weekday()
+        )
         return sum(
             cost.usd_cost
             for cost in self.filter(
                 user=user,
-                date_incurred__gte=month_start_date,
+                date_incurred__gte=week_start_date,
                 date_incurred__lte=datetime.date.today(),
             )
         )

@@ -27,10 +27,10 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.update_laws",
         "schedule": crontab(hour=5, minute=0, day_of_week=6),
     },
-    # Reset monthly bonus every month on the 1st at 12 am UTC
-    "reset-monthly-bonus-every-month": {
-        "task": "otto.tasks.reset_monthly_bonus",
-        "schedule": crontab(hour=0, minute=0, day_of_month=1),
+    # Reset weekly bonus every Sunday at 12 am UTC
+    "reset-weekly-bonus-every-sunday": {
+        "task": "otto.tasks.reset_weekly_bonus",
+        "schedule": crontab(hour=0, minute=0, day_of_week=0),
     },
     # Delete old chats (90 days retention) every day at 2 am UTC
     "delete-old-chats-every-morning": {
