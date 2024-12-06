@@ -22,10 +22,10 @@ def test_get_user_cost(client, all_apps_user):
 def test_exceed_budget(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
-    user.weekly_budget = 20
+    user.monthly_budget = 40
     user.save()
 
-    assert user.this_week_max == 20
+    assert user.this_month_max == 40
     # Create a cost object that is under budget
     cost = Cost.objects.create(
         user=user,
@@ -47,7 +47,7 @@ def test_exceed_budget(client, all_apps_user):
     cost = Cost.objects.create(
         user=user,
         cost_type=CostType.objects.first(),
-        usd_cost=20,
+        usd_cost=50,
     )
 
     assert user.is_over_budget
@@ -68,11 +68,11 @@ def test_exceed_budget(client, all_apps_user):
     # In this case it should respond with an HX-Redirect header to the current URL
     assert response["HX-Redirect"] == reverse("laws:search")
 
-    # Add weekly bonus
-    user.weekly_bonus = 100
+    # Add monthly bonus
+    user.monthly_bonus = 100
     user.save()
 
-    assert user.this_week_max == 120
+    assert user.this_month_max == 140
     assert not user.is_over_budget
 
     # Try again
