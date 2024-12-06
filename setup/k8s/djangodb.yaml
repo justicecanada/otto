@@ -147,11 +147,11 @@ spec:
               key: djangodbpasswordkey
         resources:
           requests:
-            cpu: "500m"
-            memory: "256Mi"
+            cpu: "${DJANGODB_PGBOUNCER_CPU_MIN}"
+            memory: "${DJANGODB_PGBOUNCER_MEMORY_MIN}Gi"
           limits:
-            cpu: "500m"
-            memory: "512Mi"
+            cpu: "${DJANGODB_PGBOUNCER_CPU_MAX}"
+            memory: "${DJANGODB_PGBOUNCER_MEMORY_MAX}Gi"
 
 ---
 

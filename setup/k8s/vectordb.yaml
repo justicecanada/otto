@@ -147,11 +147,11 @@ spec:
               key: vectordbpasswordkey
         resources:
           requests:
-            cpu: "500m"
-            memory: "256Mi"
+            cpu: "${VECTORDB_PGBOUNCER_CPU_MIN}"
+            memory: "${VECTORDB_PGBOUNCER_MEMORY_MIN}Gi"
           limits:
-            cpu: "500m"
-            memory: "512Mi"
+            cpu: "${VECTORDB_PGBOUNCER_CPU_MAX}"
+            memory: "${VECTORDB_PGBOUNCER_MEMORY_MAX}Gi"
 
 ---
 
