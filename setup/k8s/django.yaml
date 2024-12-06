@@ -50,7 +50,7 @@ spec:
       - name: init
         image: ${ACR_NAME}.azurecr.io/otto:latest
         command: ["/bin/bash"]
-        args: ["-c", "/django/initcontainer.sh"]
+        args: ["-c", "/django/migrate_collectstatic.sh"]
         envFrom:
           - configMapRef:
               name: otto-configmap

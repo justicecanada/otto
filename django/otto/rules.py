@@ -108,11 +108,13 @@ add_perm(
 
 
 # Librarian
+# Ensures a simple query is used to get the roles for a user
 @cache_within_request
 def get_library_roles_for_user(user):
     return list(LibraryUserRole.objects.filter(user=user))
 
 
+# Do all subsequent filtering on Python objects (in memory) instead of in the database
 @predicate
 def is_library_viewer(user, library):
     return any(
