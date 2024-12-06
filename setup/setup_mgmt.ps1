@@ -763,6 +763,30 @@ else {
 }
 
 
+# Check if the A record for the cluster exists in the DNS zone. If not, create it.
+$clusterRecordExists = az network dns record-set a show `
+    --subscription $DNS_ZONE_SUBSCRIPTION_ID `
+    --resource-group $DNS_ZONE_RESOURCE_GROUP_NAME `
+    --zone-name $DOMAIN_NAME `
+    --name $CLUSTER_NAME `
+    --only-show-errors 2>$null
+
+if (-not $clusterRecordExists) {
+    Write-Host "Creating A record for the cluster in the DNS zone"
+    az network dns record-set a add-record `
+        --subscription $DNS_ZONE_SUBSCRIPTION_ID `
+        --resource-group $DNS_ZONE_RESOURCE_GROUP_NAME `
+        --zone-name $DOMAIN_NAME `
+        --record-set-name "*" `
+        --ipv4-address $AKS_INGRESS_IP `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "A record for the cluster already exists in the DNS zone"
+}
+
+
 # If the VM is powered off, start it
 $vmState = az vm show `
     --resource-group $MGMT_RESOURCE_GROUP_NAME `

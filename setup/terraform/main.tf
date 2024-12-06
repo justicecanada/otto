@@ -81,11 +81,6 @@ module "storage" {
   web_subnet_id          = var.web_subnet_id
 }
 
-data "azurerm_public_ip" "aks_outbound_ip" {
-  name                = split("/", module.aks.outbound_ip_resource_id)[8]
-  resource_group_name = split("/", module.aks.outbound_ip_resource_id)[4]
-}
-
 # Cognitive Services module
 module "cognitive_services" {
   source               = "./modules/cognitive_services"

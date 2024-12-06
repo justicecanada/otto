@@ -48,26 +48,16 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
   - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing information where standard content filtering is not appropriate.
   - Wait for Microsoft's approval before proceeding with the deployment.
 
-- **Azure OpenAI Embedding Quota Increase Request:**
-  - This step is required once per subscription for each region where increased capacity is needed.
-  - You can request a quota increase proactively, even before hitting current limits.
-  - To request a quota increase:
-    - Log in to the [Azure Portal](https://portal.azure.com).
-    - Search for and select "Quotas" in the top search bar.
-    - Choose Azure OpenAI as the provider.
-    - Locate the specific quota for "text-embedding-3-large".
-    - Click "New quota request" at the top of the page.
-  - When submitting the request:
-    - Specify the deployment type as "Standard".
-    - Clearly state that the increase is for the "text-embedding-3-large" model.
-    - Request an appropriate TPM (Tokens Per Minute) increase based on your projected needs. (e.g., 700 TPM)
-    - In the justification, explain your use case, mentioning:
-      - Any current rate limiting issues (if applicable)
-      - The volume of text to be ingested
-      - Specific departmental use cases
-  - Consider using dynamic quota if your usage patterns are variable.
-  - Remember that quota is assigned on a per-region, per-model basis.
-  - After approval, manage your usage effectively to control costs, as there's no enforced "ceiling" with dynamic quota enabled.
+- **Azure OpenAI Embedding Quota Increase Request:**  
+  - This step is required only once per Azure subscription.
+  - To request a quota increase, visit [this link](https://aka.ms/aoai/quotaincrease).
+  - Select **"Standard"** as the deployment type.
+  - In the justification section, include the following details:
+    - Specify that the request is for the model **"text-embedding-3-large"**.
+    - Request an increase to **700K TPM (tokens per minute)**.
+    - Explain that the request is due to rate-limiting issues given the volume of text ingestion required for departmental use cases as part of the application's operational needs.
+  - Once the quota increase is approved, update the .env file with the new quota limit so that Terraform will continue to manage it.
+  - **Note**: A quota increase is typically approved only if the current quota limits are being reached so it might be necessary to submit the request after the initial deployment.
 
 - **Agreement to Disable Abuse Monitoring:** 
   - This step is required only once per subscription.

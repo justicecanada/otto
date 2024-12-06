@@ -41,8 +41,9 @@ export KEYVAULT_CSI_PROVIDER_CLIENT_ID=$(az aks show \
   
 
 # Apply the NGINX Ingress Controller
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
-kubectl patch configmap ingress-nginx-controller -n ingress-nginx --type=merge -p '{"data":{"use-gzip":"true", "gzip-min-length":"1024"}}'
+# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+# kubectl patch configmap ingress-nginx-controller -n ingress-nginx --type=merge -p '{"data":{"use-gzip":"true", "gzip-min-length":"1024"}}'
+envsubst < ingress-nginx-controller.yaml | kubectl apply -f -
 
 # Wait for the NGINX Ingress Controller to be ready
 echo "Waiting for NGINX Ingress Controller to be ready..."
