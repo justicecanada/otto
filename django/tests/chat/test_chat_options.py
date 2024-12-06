@@ -80,8 +80,7 @@ def test_chat_options(client, all_apps_user):
         preset_form_data,
     )
 
-    # the response should be a redirect
-    assert response.status_code == 302
+    assert response.status_code == 200
 
     # a new preset should have been created
     assert Preset.objects.filter(name_en="Cowboy AI").exists()

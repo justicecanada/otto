@@ -908,7 +908,7 @@ def test_preset(client, basic_user, all_apps_user):
             "prompt": "",
         },
     )
-    assert response.status_code == 302  # Redirect after saving
+    assert response.status_code == 200
     assert Preset.objects.filter(name_en="New Preset").exists()
 
     # Try to load the private preset as user2
@@ -979,7 +979,7 @@ def test_preset(client, basic_user, all_apps_user):
             "prompt": "",
         },
     )
-    assert response.status_code == 302  # Redirect after saving
+    assert response.status_code == 200
     preset.refresh_from_db()
     assert preset.name_en == "Updated Preset"
     assert preset.description_en == "Updated Description"
