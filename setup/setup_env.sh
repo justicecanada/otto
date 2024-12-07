@@ -44,6 +44,9 @@ export VECTORDB_CPU_MAX
 export VECTORDB_MEMORY_MIN
 export VECTORDB_MEMORY_MAX
 
+export AKS_SERVICE_CIDR
+export AKS_DNS_SERVICE_IP
+
 export VNET_NAME
 export VNET_IP_RANGE
 export WEB_SUBNET_NAME
@@ -224,6 +227,8 @@ disk_name = "${DISK_NAME}"
 storage_name = "${STORAGE_NAME}"
 djangodb_resource_name = "${DJANGODB_RESOURCE_NAME}"
 approved_cpu_quota = "${APPROVED_CPU_QUOTA}"
+service_cidr = "${AKS_SERVICE_CIDR}"
+dns_service_ip = "${AKS_DNS_SERVICE_IP}"
 vnet_id = "${VNET_ID}"
 web_subnet_id = "${WEB_SUBNET_ID}"
 app_subnet_id = "${APP_SUBNET_ID}"

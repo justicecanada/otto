@@ -18,6 +18,11 @@ variable "resource_group_name" {
   type        = string
 }
 
+variable "mgmt_resource_group_name" {
+  description = "The name of the management resource group"
+  type        = string
+}
+
 variable "log_analytics_readers_group_id" {
   description = "The list of objects IDs of the Log Analytics readers Azure AD group"
   type        = list(string)
@@ -56,6 +61,16 @@ variable "admin_email" {
 variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the AKS cluster"
+}
+
+variable "service_cidr" {
+  type        = string
+  description = "The CIDR block for the AKS service"
+}
+
+variable "dns_service_ip" {
+  type        = string
+  description = "The IP address for the AKS DNS service"
 }
 
 variable "vnet_id" {

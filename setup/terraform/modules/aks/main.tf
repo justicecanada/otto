@@ -336,18 +336,16 @@ resource "azurerm_kubernetes_cluster" "aks" {
     pod_cidr = "10.244.0.0/16"
 
     # Service CIDR defines the IP range for internal Kubernetes services
-    # This range is also internal to the cluster and not routable outside, making it safe to reuse
-    # 10.0.0.0/16 is a standard choice that doesn't typically conflict with other network ranges
-    service_cidr = "10.0.0.0/16"
+    # Must not overlap with the pod CIDR range and should be a private IP range
+    service_cidr = var.service_cidr
 
     # DNS service IP must be within the service CIDR range
-    # 10.0.0.10 is a conventional choice that works well with the 10.0.0.0/16 service CIDR
-    # Safe to reuse as it's only used internally within the cluster
-    dns_service_ip = "10.0.0.10"
+    dns_service_ip = var.dns_service_ip
 
     # Outbound type determines how outbound traffic is handled
     # "loadBalancer" is the default and recommended for most scenarios
-    outbound_type = "loadBalancer"
+    # "userDefinedRouting" is used when custom routing is required, such as with ExpressRoute
+    outbound_type = "userDefinedRouting"
   }
 
   oms_agent {
@@ -401,15 +399,29 @@ resource "azurerm_role_assignment" "aks_vm_contributor" {
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
 
-# Data for resource_group_id
+# Data for resource group
 data "azurerm_resource_group" "rg" {
   name = var.resource_group_name
 }
+# Data for management resource group
+data "azurerm_resource_group" "mgmt_rg" {
+  name = var.mgmt_resource_group_name
+}
 
+# User-assigned identity for AKS requires the Network Contributor role on the group containing the AKS NIC
+# TODO: Scope this to the NIC once the setup is confirmed
 resource "azurerm_role_assignment" "aks_network_contributor" {
   principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
   role_definition_name = "Network Contributor"
   scope                = data.azurerm_resource_group.rg.id
+}
+
+# User-assigned identity for AKS requires the Network Contributor role on the group containing the Web subnet
+# TODO: Scope this to the subnet and route table once the setup is confirmed
+resource "azurerm_role_assignment" "aks_network_contributor" {
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
+  role_definition_name = "Network Contributor"
+  scope                = data.azurerm_resource_group.mgmt_rg.id
 }
 
 # TODO: Rethink once the jumpbox VM approach is finalized

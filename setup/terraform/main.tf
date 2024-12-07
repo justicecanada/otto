@@ -115,6 +115,7 @@ module "aks" {
   aks_cluster_name                       = var.aks_cluster_name
   location                               = var.location
   resource_group_name                    = var.resource_group_name
+  mgmt_resource_group_name               = var.mgmt_resource_group_name
   log_analytics_readers_group_id         = split(",", var.log_analytics_readers_group_id)
   keyvault_id                            = module.keyvault.keyvault_id
   acr_id                                 = var.acr_id
@@ -126,6 +127,8 @@ module "aks" {
   vm_size                                = var.vm_size
   vm_cpu_count                           = var.vm_cpu_count
   approved_cpu_quota                     = var.approved_cpu_quota
+  service_cidr                           = var.service_cidr
+  dns_service_ip                         = var.dns_service_ip
   vnet_id                                = var.vnet_id
   web_subnet_id                          = var.web_subnet_id
   jumpbox_identity_id                    = var.jumpbox_identity_id

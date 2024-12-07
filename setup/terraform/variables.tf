@@ -100,6 +100,16 @@ variable "djangodb_resource_name" {
   description = "Name of the Django DB resource"
 }
 
+variable "service_cidr" {
+  type        = string
+  description = "The service CIDR for the AKS cluster"
+}
+
+variable "dns_service_ip" {
+  type        = string
+  description = "The DNS service IP for the AKS cluster"
+}
+
 variable "vnet_id" {
   type        = string
   description = "ID of the virtual network"
