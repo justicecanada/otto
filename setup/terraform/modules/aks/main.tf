@@ -297,6 +297,32 @@ resource "azurerm_network_security_group" "aks_nsg" {
     # Allows outbound traffic to Azure Active Directory for authentication
   }
 
+  security_rule {
+    name                       = "AllowAzureCloudOutbound"
+    priority                   = 1000
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_ranges    = ["443", "9000"]
+    source_address_prefix      = "*"
+    destination_address_prefix = "AzureCloud"
+    # Allow AKS required outbound ports
+  }
+
+  security_rule {
+    name                       = "AllowDNS"
+    priority                   = 1100
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range         = "*"
+    destination_port_range     = "53"
+    source_address_prefix      = "*"
+    destination_address_prefix = "168.63.129.16/32"
+    # Allow DNS resolution
+  }
+
   tags = var.tags
 }
 
@@ -311,11 +337,32 @@ resource "azurerm_route_table" "aks" {
   resource_group_name = var.mgmt_resource_group_name
   location            = var.location
 
+  # Default route to ExpressRoute
   route {
     name                   = "default-route"
     address_prefix         = "0.0.0.0/0"
     next_hop_type          = "VirtualNetworkGateway"
   }
+
+  # Direct routes to Azure services
+  route {
+    name                   = "to-azure-monitor"
+    address_prefix         = "AzureMonitor"
+    next_hop_type         = "Internet"
+  }
+
+  route {
+    name                   = "to-azure-active-directory"
+    address_prefix         = "AzureActiveDirectory"
+    next_hop_type         = "Internet"
+  }
+
+  route {
+    name                   = "to-azure-container-registry"
+    address_prefix         = "AzureContainerRegistry"
+    next_hop_type         = "Internet"
+  }
+
 }
 resource "azurerm_subnet_route_table_association" "aks" {
   subnet_id      = var.web_subnet_id
