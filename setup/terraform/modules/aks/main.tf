@@ -254,6 +254,22 @@ resource "azurerm_subnet_network_security_group_association" "aks_nsg_associatio
   network_security_group_id = azurerm_network_security_group.aks_nsg.id
 }
 
+resource "azurerm_route_table" "aks" {
+  name                = "${var.aks_cluster_name}-rt"
+  resource_group_name = var.mgmt_resource_group_name
+  location            = var.location
+
+  route {
+    name                   = "default-route"
+    address_prefix         = "0.0.0.0/0"
+    next_hop_type          = "VirtualNetworkGateway"
+  }
+}
+resource "azurerm_subnet_route_table_association" "aks" {
+  subnet_id      = var.web_subnet_id
+  route_table_id = azurerm_route_table.aks.id
+}
+
 # Define the Azure Kubernetes Service (AKS) cluster
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_cluster_name
