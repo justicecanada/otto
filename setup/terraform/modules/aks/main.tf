@@ -418,7 +418,7 @@ resource "azurerm_role_assignment" "aks_network_contributor" {
 
 # User-assigned identity for AKS requires the Network Contributor role on the group containing the Web subnet
 # TODO: Scope this to the subnet and route table once the setup is confirmed
-resource "azurerm_role_assignment" "aks_network_contributor" {
+resource "azurerm_role_assignment" "subnet_network_contributor" {
   principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
   role_definition_name = "Network Contributor"
   scope                = data.azurerm_resource_group.mgmt_rg.id
