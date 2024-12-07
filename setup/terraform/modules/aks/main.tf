@@ -245,6 +245,58 @@ resource "azurerm_network_security_group" "aks_nsg" {
     # Allows Celery Beat monitoring
   }
 
+  security_rule {
+    name                       = "AllowHTTPSOutbound"
+    priority                   = 250
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "Internet"
+    # Allows outbound HTTPS traffic for various services and updates
+  }
+
+  security_rule {
+    name                       = "AllowNTPOutbound"
+    priority                   = 260
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "123"
+    source_address_prefix      = "*"
+    destination_address_prefix = "Internet"
+    # Allows outbound NTP traffic for time synchronization
+  }
+
+  security_rule {
+    name                       = "AllowAzureMonitorOutbound"
+    priority                   = 270
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "AzureMonitor"
+    # Allows outbound traffic to Azure Monitor
+  }
+
+  security_rule {
+    name                       = "AllowAzureActiveDirectoryOutbound"
+    priority                   = 280
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "AzureActiveDirectory"
+    # Allows outbound traffic to Azure Active Directory for authentication
+  }
+
   tags = var.tags
 }
 
