@@ -251,10 +251,10 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range          = "*"
+    source_port_range         = "*"
     destination_port_range     = "443"
     source_address_prefix      = "*"
-    destination_address_prefix = "Internet"
+    destination_address_prefix = "*"
     # Allows outbound HTTPS traffic for various services and updates
   }
 
@@ -269,6 +269,19 @@ resource "azurerm_network_security_group" "aks_nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "Internet"
     # Allows outbound NTP traffic for time synchronization
+  }
+
+  security_rule {
+    name                       = "AllowAzureCloudOutbound"
+    priority                   = 265
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_ranges    = ["443", "9000"]
+    source_address_prefix      = "*"
+    destination_address_prefix = "AzureCloud"
+    # Allows outbound traffic to Azure services 
   }
 
   security_rule {
@@ -298,16 +311,15 @@ resource "azurerm_network_security_group" "aks_nsg" {
   }
 
   security_rule {
-    name                       = "AllowAzureCloudOutbound"
-    priority                   = 1000
+    name                       = "AllowMCR"
+    priority                   = 290
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range         = "*"
-    destination_port_ranges    = ["443", "9000"]
+    destination_port_ranges    = ["443"]
     source_address_prefix      = "*"
-    destination_address_prefix = "AzureCloud"
-    # Allow AKS required outbound ports
+    destination_address_prefix = "MicrosoftContainerRegistry"
   }
 
   security_rule {
