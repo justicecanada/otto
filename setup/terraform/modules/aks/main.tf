@@ -173,9 +173,9 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range         = "*"
-    destination_port_range    = "5432"
-    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    source_port_range          = "*"
+    destination_port_range     = "5432"
+    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
     destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
     # Allows PostgreSQL traffic between pods in the cluster
   }
@@ -186,9 +186,9 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "*"
-    source_port_range         = "*"
-    destination_port_range    = "*"
-    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
     destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
     # Allows outbound traffic between nodes for pod communication
   }
@@ -199,9 +199,9 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range         = "*"
-    destination_port_range    = "80"
-    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
     destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
     # Allows HTTP traffic between pods for Django service
   }
@@ -212,9 +212,9 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range         = "*"
-    destination_port_range    = "8000"
-    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    source_port_range          = "*"
+    destination_port_range     = "8000"
+    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
     destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
     # Allows HTTPS traffic for Django application
   }
@@ -225,9 +225,9 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range         = "*"
-    destination_port_range    = "6379"
-    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    source_port_range          = "*"
+    destination_port_range     = "6379"
+    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
     destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
     # Allows Redis traffic between pods
   }
@@ -238,9 +238,9 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range         = "*"
-    destination_port_range    = "5555"
-    source_address_prefix     = data.azurerm_subnet.web_subnet.address_prefixes[0]
+    source_port_range          = "*"
+    destination_port_range     = "5555"
+    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
     destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
     # Allows Celery Beat monitoring
   }
@@ -251,7 +251,7 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range         = "*"
+    source_port_range          = "*"
     destination_port_range     = "443"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
@@ -277,7 +277,7 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range         = "*"
+    source_port_range          = "*"
     destination_port_ranges    = ["443", "9000"]
     source_address_prefix      = "*"
     destination_address_prefix = "AzureCloud"
@@ -316,7 +316,7 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range         = "*"
+    source_port_range          = "*"
     destination_port_ranges    = ["443"]
     source_address_prefix      = "*"
     destination_address_prefix = "MicrosoftContainerRegistry"
@@ -328,7 +328,7 @@ resource "azurerm_network_security_group" "aks_nsg" {
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "*"
-    source_port_range         = "*"
+    source_port_range          = "*"
     destination_port_range     = "53"
     source_address_prefix      = "*"
     destination_address_prefix = "168.63.129.16/32"
@@ -360,25 +360,25 @@ resource "azurerm_route_table" "aks" {
   route {
     name                   = "to-azure-monitor"
     address_prefix         = "AzureMonitor"
-    next_hop_type         = "Internet"
+    next_hop_type          = "Internet"
   }
 
   route {
     name                   = "to-azure-active-directory"
     address_prefix         = "AzureActiveDirectory"
-    next_hop_type         = "Internet"
+    next_hop_type          = "Internet"
   }
 
   route {
     name                   = "to-azure-container-registry"
     address_prefix         = "AzureContainerRegistry"
-    next_hop_type         = "Internet"
+    next_hop_type          = "Internet"
   }
 
   route {
     name                   = "to-mcr"
     address_prefix         = "MicrosoftContainerRegistry"
-    next_hop_type         = "Internet"
+    next_hop_type          = "Internet"
   }
 
   tags = var.tags
@@ -465,9 +465,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
     network_plugin = "kubenet"
 
     # Pod CIDR specifies the IP range from which pod IPs are allocated
-    # This range is internal to the cluster and not routable outside, so it's safe to reuse across environments
-    # 10.244.0.0/16 provides ample space for pod IPs and is a commonly used default
-    pod_cidr = "10.244.0.0/16"
+    # This range is internal to the cluster and not routable outside
+    pod_cidr = var.pod_cidr
 
     # Service CIDR defines the IP range for internal Kubernetes services
     # Must not overlap with the pod CIDR range and should be a private IP range
@@ -869,8 +868,8 @@ resource "azurerm_private_endpoint" "aks_private_endpoint" {
   private_service_connection {
     name                           = "${var.aks_cluster_name}-connection"
     private_connection_resource_id = azurerm_kubernetes_cluster.aks.id
-    subresource_names             = ["management"]
-    is_manual_connection          = false
+    subresource_names              = ["management"]
+    is_manual_connection           = false
   }
 
   private_dns_zone_group {
@@ -891,8 +890,8 @@ resource "azurerm_private_dns_a_record" "aks_api" {
   name                = azurerm_kubernetes_cluster.aks.private_fqdn
   zone_name           = azurerm_private_dns_zone.aks_dns.name
   resource_group_name = var.resource_group_name
-  ttl                = 300
-  records            = [azurerm_private_endpoint.aks_private_endpoint.private_service_connection[0].private_ip_address]
+  ttl                 = 300
+  records             = [azurerm_private_endpoint.aks_private_endpoint.private_service_connection[0].private_ip_address]
 
   depends_on = [
     azurerm_private_endpoint.aks_private_endpoint

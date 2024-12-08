@@ -100,6 +100,11 @@ variable "djangodb_resource_name" {
   description = "Name of the Django DB resource"
 }
 
+variable "pod_cidr" {
+  type        = string
+  description = "The pod CIDR for the AKS cluster"
+}
+
 variable "service_cidr" {
   type        = string
   description = "The service CIDR for the AKS cluster"

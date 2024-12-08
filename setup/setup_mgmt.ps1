@@ -394,57 +394,6 @@ else {
 }
 
 
-$MGMT_ROUTE_TABLE_NAME = "$APP_NAME-rt".ToLower()
-
-# Create the route table if it doesn't exist
-$rtExists = az network route-table show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $MGMT_ROUTE_TABLE_NAME --only-show-errors 2>$null
-if (-not $rtExists) {
-    Write-Host "Creating route table: $MGMT_ROUTE_TABLE_NAME"
-    az network route-table create `
-        --name $MGMT_ROUTE_TABLE_NAME `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --location $LOCATION `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Route table $MGMT_ROUTE_TABLE_NAME already exists"
-}
-
-# Create the route for the ExpressRoute return traffic if it doesn't exist
-$rtRouteExists = az network route-table route show --resource-group $MGMT_RESOURCE_GROUP_NAME --route-table-name $MGMT_ROUTE_TABLE_NAME --name "ExpressRouteReturn" --only-show-errors 2>$null
-if (-not $rtRouteExists) {
-    Write-Host "Creating route for ExpressRoute return traffic"
-    az network route-table route create `
-        --name ExpressRouteReturn `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --route-table-name $MGMT_ROUTE_TABLE_NAME `
-        --address-prefix 172.16.12.0/24 `
-        --next-hop-type VirtualNetworkGateway `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Route for ExpressRoute return traffic already exists"
-}
-
-# Associate the route table with the Web subnet if it isn't already
-$webSubnetRouteTable = az network vnet subnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --vnet-name $VNET_NAME --name $WEB_SUBNET_NAME --query routeTable -o tsv
-if ($webSubnetRouteTable -ne $MGMT_ROUTE_TABLE_NAME) {
-    Write-Host "Associating route table with Web subnet"
-    az network vnet subnet update `
-        --name $WEB_SUBNET_NAME `
-        --vnet-name $VNET_NAME `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --route-table $MGMT_ROUTE_TABLE_NAME `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Route table is already associated with Web subnet"
-}
-
-
 # Create NSG for Jumpbox
 $nsgName = "$JUMPBOX_NAME-nsg"
 $nsgExists = az network nsg show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $nsgName --only-show-errors 2>$null

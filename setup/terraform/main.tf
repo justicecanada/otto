@@ -127,6 +127,7 @@ module "aks" {
   vm_size                                = var.vm_size
   vm_cpu_count                           = var.vm_cpu_count
   approved_cpu_quota                     = var.approved_cpu_quota
+  pod_cidr                               = var.pod_cidr
   service_cidr                           = var.service_cidr
   dns_service_ip                         = var.dns_service_ip
   vnet_id                                = var.vnet_id

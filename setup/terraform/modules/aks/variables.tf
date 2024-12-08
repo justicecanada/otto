@@ -63,6 +63,11 @@ variable "use_private_network" {
   description = "Whether to use private networking for the AKS cluster"
 }
 
+variable "pod_cidr" {
+  type        = string
+  description = "The CIDR block for the AKS pods"
+}
+
 variable "service_cidr" {
   type        = string
   description = "The CIDR block for the AKS service"
