@@ -375,6 +375,12 @@ resource "azurerm_route_table" "aks" {
     next_hop_type         = "Internet"
   }
 
+  route {
+    name                   = "to-mcr"
+    address_prefix         = "MicrosoftContainerRegistry"
+    next_hop_type         = "Internet"
+  }
+
   tags = var.tags
 }
 resource "azurerm_subnet_route_table_association" "aks" {
