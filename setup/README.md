@@ -47,7 +47,18 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
   - Visit [this link](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUMlBQNkZMR0lFRldORTdVQzQ0TEI5Q1ExOSQlQCN0PWcu) to request an exemption from the default content filtering. (Note: Do not use aka.ms/oai/rai/exceptions as that will be route the request through US government channels.)
   - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing information where standard content filtering is not appropriate.
   - Wait for Microsoft's approval before proceeding with the deployment.
-  
+
+- **Azure OpenAI Embedding Quota Increase Request:**  
+  - This step is required only once per Azure subscription.
+  - To request a quota increase, visit [this link](https://aka.ms/aoai/quotaincrease).
+  - Select **"Standard"** as the deployment type.
+  - In the justification section, include the following details:
+    - Specify that the request is for the model **"text-embedding-3-large"**.
+    - Request an increase to **700K TPM (tokens per minute)**.
+    - Explain that the request is due to rate-limiting issues given the volume of text ingestion required for departmental use cases as part of the application's operational needs.
+  - Once the quota increase is approved, update the .env file with the new quota limit so that Terraform will continue to manage it.
+  - **Note**: A quota increase is typically approved only if the current quota limits are being reached so it might be necessary to submit the request after the initial deployment.
+
 - **Agreement to Disable Abuse Monitoring:** 
   - This step is required only once per subscription.
   - Visit [this link](https://ncv.microsoft.com/3a140V2W0l) to request an exemption from the default abuse monitoring.
@@ -104,7 +115,6 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
     - Be prepared to justify larger quota increases if automatic approval is not granted.
     - Increasing quotas doesn't incur costs; you're only charged for resources you use.
     - Monitor resource usage and adjust quotas as needed to ensure proper application scaling.
-      
 
 ## Deployment Steps
 
@@ -137,6 +147,29 @@ bash run_terraform.sh
 
 > [!NOTE]
 > You'll be prompted to either input the `ENTRA-CLIENT-SECRET` or use the value if it exists in the Key Vault already. Once the plan is generated, you'll be prompted to apply the changes. Enter `yes` to proceed with the deployment.
+
+
+## DNS Zone Configuration Steps for Cloud Administrator
+
+**Create Child DNS Zone**
+1. Navigate to the parent DNS zone (cloud.justice.gc.ca) in Azure Portal
+2. On the Overview page, click "+ Child zone"
+3. Fill in the details:
+   - Name: <environment>.cloud.justice.gc.ca
+   - Resource group: Same as parent zone
+4. Click "Review + create"
+
+**Grant DNS Permissions**
+1. In the newly created child zone
+2. Select "Access Control (IAM)"
+3. Click "+ Add" > "Add role assignment"
+4. Select "DNS Zone Contributor" role
+5. Assign to:
+   - `jumpbox-identity` in the appropriate environment
+   - `jus-<environment>-aks-identity` in the appropriate environment
+
+These steps must be completed after the Terraform deployment (which creates the managed identities) but before the AKS cluster deployment.
+      
 
 ### 3. Deploy the AKS cluster:
 

@@ -8,9 +8,19 @@ variable "resource_group_name" {
   description = "The name of the resource group in which to create the storage account"
 }
 
+variable "mgmt_resource_group_name" {
+  type        = string
+  description = "The name of the management resource group"
+}
+
 variable "location" {
   type        = string
   description = "The Azure region where the storage account should be created"
+}
+
+variable "jumpbox_identity_id" {
+  type        = string
+  description = "The ID of the jumpbox's user-assigned managed identity to manage the storage account"
 }
 
 variable "tags" {
@@ -39,14 +49,14 @@ variable "storage_container_name" {
   type        = string
 }
 
-variable "admin_group_object_ids" {
-  type        = list(string)
-  description = "List of object IDs of the admin Azure AD groups"
-}
-
 variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the storage account"
+}
+
+variable "vnet_id" {
+  type        = string
+  description = "The ID of the VNet to which the storage account should be linked"
 }
 
 variable "app_subnet_id" {
@@ -56,20 +66,5 @@ variable "app_subnet_id" {
 
 variable "web_subnet_id" {
   description = "The ID of the web subnet"
-  type        = string
-}
-
-variable "db_subnet_id" {
-  description = "The ID of the database subnet"
-  type        = string
-}
-
-variable "corporate_public_ip" {
-  description = "The public IP address of the corporate network"
-  type        = string
-}
-
-variable "backup_container_name" {
-  description = "The name of the backup container to create in the storage account"
   type        = string
 }
