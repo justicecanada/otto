@@ -103,7 +103,6 @@ $ENTRA_CLIENT_ID = az ad app list --display-name "${ENTRA_CLIENT_NAME}" --query 
 
 $MGMT_RESOURCE_GROUP_NAME = "${APP_NAME}$($INTENDED_USE.ToUpper())MgmtRg"
 $MGMT_STORAGE_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}mgmt".ToLower()
-$MGMT_STORAGE_ENDPOINT = "${MGMT_STORAGE_NAME}-endpoint"
 $ACR_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}acr".ToLower()
 $KEYVAULT_NAME = "${ORGANIZATION}-${INTENDED_USE}-${APP_NAME}-kv".ToLower()
 $JUMPBOX_NAME = "jumpbox"
@@ -559,6 +558,7 @@ if (-not $existing_account) {
 }
 else {
     Write-Host "Storage account with the prefix $MGMT_STORAGE_NAME already exists"
+    $MGMT_STORAGE_NAME = $existing_account
 }
 # Get the resource ID of the storage account
 $storageAccountId = az storage account show --name $MGMT_STORAGE_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
@@ -583,6 +583,7 @@ else {
 
 
 # Create the private endpoint for the storage account if it doesn't exist
+$MGMT_STORAGE_ENDPOINT = "${MGMT_STORAGE_NAME}-endpoint"
 $privateEndpointExists = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "$MGMT_STORAGE_ENDPOINT" --only-show-errors 2>$null
 if (-not $privateEndpointExists) {
     Write-Host "Creating private endpoint for storage account"
