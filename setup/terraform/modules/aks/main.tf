@@ -32,7 +32,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "aks_dns_link" {
   resource_group_name   = var.resource_group_name
   private_dns_zone_name = azurerm_private_dns_zone.aks_dns.name
   virtual_network_id    = var.vnet_id
-  registration_enabled  = true
+  registration_enabled  = false # Private DNS zone registration is handled by AKS internally
 
   tags = var.tags
 }
@@ -363,6 +363,7 @@ resource "azurerm_route_table" "aks" {
     next_hop_type         = "Internet"
   }
 
+  tags = var.tags
 }
 resource "azurerm_subnet_route_table_association" "aks" {
   subnet_id      = var.web_subnet_id
