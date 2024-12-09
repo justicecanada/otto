@@ -237,7 +237,7 @@ class OttoLLM:
 
     def _get_embed_model(self) -> AzureOpenAIEmbedding | MockEmbedding:
         if self.mock_embedding:
-            return MockEmbedding(1536, callback_manager=self._callback_manager)
+            return MockEmbedding(1536)
         return AzureOpenAIEmbedding(
             model="text-embedding-3-large",
             deployment_name="text-embedding-3-large",
