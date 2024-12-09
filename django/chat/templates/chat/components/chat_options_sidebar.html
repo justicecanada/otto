@@ -52,12 +52,12 @@
             data-bs-target="#presets-modal">
         <button type="button"
                 class="btn btn-sm btn-outline-dark w-100"
-                title="{% trans "Create preset from current settings" %}"
+                title="{% trans "Save preset from current settings" %}"
                 hx-get="{% url 'chat:save_preset' chat_id=chat.id %}"
                 hx-target="#presets-modal-body"
                 hx-swap="innerHTML transition:true">
           <i class="bi bi-floppy2-fill"></i>
-          <span class="visually-hidden">{% trans "Create preset from current settings" %}</span>
+          <span class="visually-hidden">{% trans "Save preset from current settings" %}</span>
         </button>
       </span>
       <span class="flex-grow-1 px-1">
