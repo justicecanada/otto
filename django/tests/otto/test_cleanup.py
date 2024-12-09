@@ -211,26 +211,26 @@ def test_redundant_chat_upload(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_reset_weekly_bonus_task(client, all_apps_user):
+def test_reset_monthly_bonus_task(client, all_apps_user):
     """
-    Test the reset_weekly_bonus task.
+    Test the reset_monthly_bonus task.
     """
     user = all_apps_user()
-    user.weekly_bonus = 20
+    user.monthly_bonus = 20
     user.save()
     if settings.IS_RUNNING_IN_GITHUB:
         # No Redis, so we test the code directly
         from otto.models import User
 
-        User.objects.update(weekly_bonus=0)
+        User.objects.update(monthly_bonus=0)
     else:
         # Test the task
-        from otto.tasks import reset_weekly_bonus
+        from otto.tasks import reset_monthly_bonus
 
-        reset_weekly_bonus()
+        reset_monthly_bonus()
     # Check that the user has a new bonus
     user.refresh_from_db()
-    assert user.weekly_bonus == 0
+    assert user.monthly_bonus == 0
 
 
 @pytest.mark.django_db
