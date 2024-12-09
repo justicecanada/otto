@@ -5,6 +5,7 @@ from django.urls import reverse
 
 import numpy as np
 import pytest
+from structlog.contextvars import bind_contextvars
 
 from otto.models import Cost, Group, Notification, User
 
@@ -152,6 +153,7 @@ def test_get_cost_dashboard(client, all_apps_user):
     assert response.status_code == 200
 
     # Create some costs
+    bind_contextvars(user_id=user.id, feature="chat")
     for _ in range(5):
         Cost.objects.new("gpt-4o-in", 100)
         Cost.objects.new("gpt-4o-out", 200)
@@ -170,25 +172,31 @@ def test_get_cost_dashboard(client, all_apps_user):
 
     for x_axis in x_axes:
         for date_group in date_groups:
-            if date_group == "custom":
-                for cost_type in cost_types:
+            for download in [True, False]:
+                if date_group == "custom":
+                    for cost_type in cost_types:
+                        response = client.get(
+                            reverse("cost_dashboard"),
+                            data={
+                                "x_axis": x_axis,
+                                "date_group": date_group,
+                                "start_date": "2022-01-01",
+                                "end_date": datetime.date.today().strftime("%Y-%m-%d"),
+                                "cost_type": cost_type,
+                                "download": download,
+                            },
+                        )
+                        assert response.status_code == 200
+                else:
                     response = client.get(
                         reverse("cost_dashboard"),
                         data={
                             "x_axis": x_axis,
                             "date_group": date_group,
-                            "start_date": "2022-01-01",
-                            "end_date": datetime.date.today().strftime("%Y-%m-%d"),
-                            "cost_type": cost_type,
+                            "download": download,
                         },
                     )
                     assert response.status_code == 200
-            else:
-                response = client.get(
-                    reverse("cost_dashboard"),
-                    data={"x_axis": x_axis, "date_group": date_group},
-                )
-                assert response.status_code == 200
             if x_axis != "day":
                 break
 
