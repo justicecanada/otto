@@ -1,5 +1,6 @@
 from django.conf import settings
 
+import sqlalchemy
 import tiktoken
 from llama_index.core import PromptTemplate, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
@@ -10,8 +11,35 @@ from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.vector_stores.postgres import PGVectorStore
+from retrying import retry
 
 from otto.models import Cost
+
+
+class OttoVectorStore(PGVectorStore):
+    # Override from LlamaIndex to add retrying and connection test
+    @retry(
+        wait_exponential_multiplier=1000,
+        wait_exponential_max=20000,
+    )
+    def _connect(self):
+        from sqlalchemy import create_engine
+        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+        from sqlalchemy.orm import sessionmaker
+
+        self._engine = create_engine(
+            self.connection_string, echo=self.debug, **self.create_engine_kwargs
+        )
+        self._session = sessionmaker(self._engine)
+
+        self._async_engine = create_async_engine(
+            self.async_connection_string, **self.create_engine_kwargs
+        )
+        self._async_session = sessionmaker(self._async_engine, class_=AsyncSession)  # type: ignore
+
+        # Test the connection to ensure it's established
+        with self._engine.connect() as connection:
+            connection.execute(sqlalchemy.text("SELECT 1"))
 
 
 class OttoLLM:
@@ -169,12 +197,12 @@ class OttoLLM:
     def get_index(
         self, vector_store_table: str, hnsw: bool = False
     ) -> VectorStoreIndex:
-        vector_store = PGVectorStore.from_params(
+        vector_store = OttoVectorStore.from_params(
             database=settings.DATABASES["vector_db"]["NAME"],
             host=settings.DATABASES["vector_db"]["HOST"],
             password=settings.DATABASES["vector_db"]["PASSWORD"],
-            port=5432,
             user=settings.DATABASES["vector_db"]["USER"],
+            port=settings.DATABASES["vector_db"]["PORT"],
             table_name=vector_store_table,
             embed_dim=1536,  # openai embedding dimension
             hybrid_search=True,
