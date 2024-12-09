@@ -37,6 +37,44 @@ resource "azurerm_private_dns_zone_virtual_network_link" "aks_dns_link" {
   tags = var.tags
 }
 
+resource "azurerm_private_dns_zone" "mcr_dns" {
+  name                = "privatelink.azurecr.io"
+  resource_group_name = var.resource_group_name
+  tags                = var.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "mcr_dns_link" {
+  name                  = "${var.aks_cluster_name}-mcr-dns-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.mcr_dns.name
+  virtual_network_id    = var.vnet_id
+  tags                  = var.tags
+}
+
+# Data resource to get subscription_id
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_private_endpoint" "mcr_endpoint" {
+  name                = "${var.aks_cluster_name}-mcr-endpoint"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.web_subnet_id
+
+  private_service_connection {
+    name                           = "${var.aks_cluster_name}-mcr-connection"
+    private_connection_resource_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}}/resourceGroups/ContainerRegistryResourceGroup/providers/Microsoft.ContainerRegistry/registries/mcr"
+    is_manual_connection           = false
+    subresource_names              = ["registry"]
+  }
+
+  private_dns_zone_group {
+    name                 = "${var.aks_cluster_name}-mcr-dns-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.mcr_dns.id]
+  }
+
+  tags = var.tags
+}
+
 # Get the subnet data for the AKS subnet
 data "azurerm_subnet" "web_subnet" {
   name = split("/", var.web_subnet_id)[10]
