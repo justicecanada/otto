@@ -2486,5 +2486,53 @@
     "Smiling robot head": {
         "fr": "",
         "fr_auto": "Tête de robot souriante"
+    },
+    "Dates:": {
+        "fr": "",
+        "fr_auto": "Dates :"
+    },
+    "Range:": {
+        "fr": "",
+        "fr_auto": "Portée :"
+    },
+    "Start:": {
+        "fr": "",
+        "fr_auto": "Début :"
+    },
+    "End:": {
+        "fr": "",
+        "fr_auto": "Fin :"
+    },
+    "Download CSV for selected dates (filters disabled)": {
+        "fr": "",
+        "fr_auto": "Télécharger CSV pour les dates sélectionnées (filtres désactivés)"
+    },
+    "Last 90 days": {
+        "fr": "",
+        "fr_auto": "90 derniers jours"
+    },
+    "Last 30 days": {
+        "fr": "",
+        "fr_auto": "30 derniers jours"
+    },
+    "Last 7 days": {
+        "fr": "",
+        "fr_auto": "7 derniers jours"
+    },
+    "Custom date range": {
+        "fr": "",
+        "fr_auto": "Plage de dates personnalisée"
+    },
+    "No costs found for the selected date range": {
+        "fr": "",
+        "fr_auto": "Aucun coût trouvé pour la plage de dates sélectionnée"
+    },
+    "Selected dates": {
+        "fr": "",
+        "fr_auto": "Dates sélectionnées"
+    },
+    "Per user per day": {
+        "fr": "",
+        "fr_auto": "Par utilisateur et par jour"
     }
 }
