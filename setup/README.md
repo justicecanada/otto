@@ -47,13 +47,6 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
   - Visit [this link](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUMlBQNkZMR0lFRldORTdVQzQ0TEI5Q1ExOSQlQCN0PWcu) to request an exemption from the default content filtering. (Note: Do not use aka.ms/oai/rai/exceptions as that will be route the request through US government channels.)
   - Fill out the form to apply for modified content filters. This is necessary because the organization's use case involves processing information where standard content filtering is not appropriate.
   - Wait for Microsoft's approval before proceeding with the deployment.
-
-- **Azure OpenAI Embedding Quota Increase Request:**
-  - This step is required only once per subscription.
-  - The quota increase is unlikely to be approved unless we are already hitting quota limits, so this request should be made *shortly after the app is in production* if we are encountering problematic rate limits on embeddings.
-  - Visit [this link](https://aka.ms/aoai/quotaincrease) to request a quota increase.
-  - The deployment type is "Standard".
-  - Under justification, note that the increase is for the model "text-embedding-3-large" and we want to increase the quota to 700K TPM. Cite rate limiting issues and volume of text to be ingested for departmental use cases.
   
 - **Agreement to Disable Abuse Monitoring:** 
   - This step is required only once per subscription.

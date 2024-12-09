@@ -227,7 +227,6 @@ spec:
     app: django-app
 
 ---
-
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
