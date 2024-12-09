@@ -1243,6 +1243,21 @@ ul#preset-edit-tabs {
   }
 }
 
+.preset-form-user-choice .card-button:hover {
+  border: 1px solid #acacac;
+
+}
+
+.preset-form-user-choice .submit-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 1;
+}
+
 math[display="block"] {
   margin-top: 1rem;
   padding-bottom: 1rem;
