@@ -49,6 +49,7 @@ class ChatManager(models.Manager):
         else:
             mode = DEFAULT_MODE
         kwargs["security_label_id"] = SecurityLabel.default_security_label().id
+        kwargs["loaded_preset"] = None
         instance = super().create(*args, **kwargs)
         ChatOptions.objects.from_defaults(
             mode=mode,
@@ -71,6 +72,8 @@ class Chat(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # Last access time manually updated when chat is opened
     accessed_at = models.DateTimeField(auto_now_add=True)
+
+    loaded_preset = models.ForeignKey("Preset", on_delete=models.SET_NULL, null=True)
 
     # AC-20: Allows for the classification of information
     security_label = models.ForeignKey(
@@ -257,6 +260,29 @@ class PresetManager(models.Manager):
             Q(owner=user) | Q(accessible_to=user) | Q(sharing_option="everyone"),
             is_deleted=False,
         )
+        return (
+            presets.distinct()
+            .annotate(
+                favourite=Coalesce(
+                    Q(favourited_by__in=[user]),
+                    Value(False),
+                    output_field=BooleanField(),
+                ),
+                default=Coalesce(
+                    Q(default_for__in=[user]),
+                    Value(False),
+                    output_field=BooleanField(),
+                ),
+            )
+            .order_by(*ordering)
+        )
+
+    def get_created_presets(self, user: User, language: str = None):
+        ordering = ["-default", "-favourite"]
+        if language:
+            ordering.append(f"name_{language}")
+
+        presets = self.filter(owner=user, is_deleted=False)
         return (
             presets.distinct()
             .annotate(

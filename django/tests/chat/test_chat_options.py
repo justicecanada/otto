@@ -75,13 +75,12 @@ def test_chat_options(client, all_apps_user):
     response = client.post(
         reverse(
             "chat:chat_options",
-            kwargs={"chat_id": new_chat.id, "action": "save_preset"},
+            kwargs={"chat_id": new_chat.id, "action": "create_preset"},
         ),
         preset_form_data,
     )
 
-    # the response should be a redirect
-    assert response.status_code == 302
+    assert response.status_code == 200
 
     # a new preset should have been created
     assert Preset.objects.filter(name_en="Cowboy AI").exists()

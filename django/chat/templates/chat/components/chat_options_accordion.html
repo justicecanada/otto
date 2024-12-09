@@ -11,7 +11,6 @@
     {% if prompt %}document.querySelector('#chat-prompt').value = '{{ prompt }}';{% endif %}
     if ("{{ preset_loaded }}" === "true" || "{{ swap }}" === "true") {
       let mode = "{{ options_form.mode.value }}";
-      handleModeChange(mode);
       setTimeout(updateQaSourceForms, 100);
     }
     if ("{{ trigger_library_change }}" === "true") {
