@@ -1,11 +1,13 @@
+import datetime
 import os
 
 from django.urls import reverse
 
 import numpy as np
 import pytest
+from structlog.contextvars import bind_contextvars
 
-from otto.models import Group, Notification, User
+from otto.models import Cost, Group, Notification, User
 
 
 @pytest.mark.django_db
@@ -36,7 +38,7 @@ def test_modify_user(client, basic_user, all_apps_user):
     # Modify the basic_user
     response = client.post(
         reverse("manage_users"),
-        data={"upn": [user.id], "group": [1, 2], "weekly_max": 10, "weekly_bonus": 0},
+        data={"upn": [user.id], "group": [1, 2], "monthly_max": 10, "monthly_bonus": 0},
     )
     assert response.status_code == 200
     user.refresh_from_db()
@@ -49,8 +51,8 @@ def test_modify_user(client, basic_user, all_apps_user):
         data={
             "upn": [user.id, user2.id],
             "group": [1, 2, 3],
-            "weekly_max": 20,
-            "weekly_bonus": 10,
+            "monthly_max": 20,
+            "monthly_bonus": 10,
         },
     )
     assert response.status_code == 200
@@ -83,7 +85,7 @@ def test_manage_users_upload(client, all_apps_user):
 
     # Test with a csv file ("users.csv" in this directory)
     """
-    upn,pilot_id,roles,weekly_max
+    upn,pilot_id,roles,monthly_max
     Firstname.Lastname@justice.gc.ca,bac,AI assistant user|template wizard user,100
     """
     this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -119,7 +121,7 @@ def test_manage_users_download(client, all_apps_user, basic_user):
         u.groups.add(group_id)
 
     users = User.objects.all().values_list(
-        "upn", "pilot_id", "groups__name", "weekly_max"
+        "upn", "pilot_id", "groups__name", "monthly_max"
     )
 
     response = client.get(reverse("download_users"))
@@ -137,7 +139,7 @@ def test_manage_users_download(client, all_apps_user, basic_user):
 
     # Check that the users are unchanged
     updated_users = User.objects.all().values_list(
-        "upn", "pilot_id", "groups__name", "weekly_max"
+        "upn", "pilot_id", "groups__name", "monthly_max"
     )
     assert sorted(list(users)) == sorted(list(updated_users))
     os.remove("users.csv")
@@ -149,6 +151,54 @@ def test_get_cost_dashboard(client, all_apps_user):
     client.force_login(user)
     response = client.get(reverse("cost_dashboard"))
     assert response.status_code == 200
+
+    # Create some costs
+    bind_contextvars(user_id=user.id, feature="chat")
+    for _ in range(5):
+        Cost.objects.new("gpt-4o-in", 100)
+        Cost.objects.new("gpt-4o-out", 200)
+
+    # Now try GET requests with some different parameters
+    x_axes = ["day", "week", "month", "feature", "pilot", "user", "cost_type"]
+    date_groups = [
+        "all",
+        "last_90_days",
+        "last_30_days",
+        "last_7_days",
+        "today",
+        "custom",
+    ]
+    cost_types = ["all", 1]
+
+    for x_axis in x_axes:
+        for date_group in date_groups:
+            for download in [True, False]:
+                if date_group == "custom":
+                    for cost_type in cost_types:
+                        response = client.get(
+                            reverse("cost_dashboard"),
+                            data={
+                                "x_axis": x_axis,
+                                "date_group": date_group,
+                                "start_date": "2022-01-01",
+                                "end_date": datetime.date.today().strftime("%Y-%m-%d"),
+                                "cost_type": cost_type,
+                                "download": download,
+                            },
+                        )
+                        assert response.status_code == 200
+                else:
+                    response = client.get(
+                        reverse("cost_dashboard"),
+                        data={
+                            "x_axis": x_axis,
+                            "date_group": date_group,
+                            "download": download,
+                        },
+                    )
+                    assert response.status_code == 200
+            if x_axis != "day":
+                break
 
 
 @pytest.mark.django_db

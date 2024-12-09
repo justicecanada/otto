@@ -153,12 +153,6 @@
         }
       }
     }
-    // Clicking overlay closes search
-    document
-      .getElementById("manual-lightbox-overlay")
-      .addEventListener("click", function () {
-        document.body.classList.remove("search-active");
-      });
 
     // Pressing escape key whenever search is open closes search
     document.addEventListener("keyup", function (event) {

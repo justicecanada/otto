@@ -149,11 +149,5 @@
         document.body.classList.remove("search-active");
       });
 
-    // Pressing escape key whenever search is open closes search
-    document.addEventListener("keyup", function (event) {
-      if (event.key === "Escape" && document.body.classList.contains("search-active")) {
-        document.body.classList.remove("search-active");
-      }
-    });
   });
 </script>

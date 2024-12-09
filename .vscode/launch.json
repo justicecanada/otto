@@ -17,30 +17,6 @@
             }
         },
         {
-            "name": "Python: Run Template Wizard Tests",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "pytest",
-            "args": [
-                "django/tests/template_wizard"
-            ],
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            }
-        },
-        {
-            "name": "Python: Run Case Prep Tests",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "pytest",
-            "args": [
-                "django/tests/case_prep"
-            ],
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            }
-        },
-        {
             "name": "Python: Run Chat Tests",
             "type": "debugpy",
             "request": "launch",
