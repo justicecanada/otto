@@ -64,6 +64,7 @@ resource "azurerm_private_endpoint" "mcr_endpoint" {
     name                           = "${var.aks_cluster_name}-mcr-connection"
     private_connection_resource_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}}/resourceGroups/ContainerRegistryResourceGroup/providers/Microsoft.ContainerRegistry/registries/mcr"
     is_manual_connection           = true # This will put the connection in a pending state until approved by the Azure administrator
+    request_message                = "Please approve this connection"
     subresource_names              = ["registry"]
   }
 
