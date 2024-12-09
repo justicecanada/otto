@@ -145,3 +145,5 @@ echo
 # TODO: Uncomment Velero after the change request is approved
 # # Run the Velero setup script
 # source check_velero.sh
+
+cd /home/azureuser/otto/setup

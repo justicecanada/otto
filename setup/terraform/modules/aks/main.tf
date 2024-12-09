@@ -352,8 +352,10 @@ resource "azurerm_route_table" "aks" {
   # Default route to ExpressRoute
   route {
     name                   = "default-route"
-    address_prefix         = "0.0.0.0/0"
-    next_hop_type          = "VirtualNetworkGateway"
+    address_prefix         = "10.250.6.4"
+    next_hop_type          = "VirtualAppliance"
+    #address_prefix         = "0.0.0.0/0"
+    #next_hop_type          = "VirtualNetworkGateway"
   }
 
   # Direct routes to Azure services

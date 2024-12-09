@@ -53,3 +53,5 @@ else
     terraform apply -var-file=.tfvars
 
 fi
+
+cd /home/azureuser/otto/setup
