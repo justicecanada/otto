@@ -8,17 +8,22 @@ variable "location" {
   type        = string
 }
 
+variable "jumpbox_identity_id" {
+  description = "The ID of the jumpbox's user-assigned managed identity"
+  type        = string
+}
+
 variable "resource_group_name" {
   description = "The name of the resource group"
   type        = string
 }
 
-variable "admin_group_object_ids" {
-  description = "The list of objects IDs of the admin Azure AD group"
-  type        = list(string)
+variable "mgmt_resource_group_name" {
+  description = "The name of the management resource group"
+  type        = string
 }
 
-variable "log_analytics_readers_group_object_ids" {
+variable "log_analytics_readers_group_id" {
   description = "The list of objects IDs of the Log Analytics readers Azure AD group"
   type        = list(string)
 }
@@ -56,6 +61,26 @@ variable "admin_email" {
 variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the AKS cluster"
+}
+
+variable "pod_cidr" {
+  type        = string
+  description = "The CIDR block for the AKS pods"
+}
+
+variable "service_cidr" {
+  type        = string
+  description = "The CIDR block for the AKS service"
+}
+
+variable "dns_service_ip" {
+  type        = string
+  description = "The IP address for the AKS DNS service"
+}
+
+variable "vnet_id" {
+  type        = string
+  description = "The ID of the VNet for the AKS cluster"
 }
 
 variable "web_subnet_id" {

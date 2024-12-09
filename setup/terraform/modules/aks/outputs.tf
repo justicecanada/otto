@@ -8,10 +8,11 @@ output "aks_cluster_id" {
   description = "The ID of the AKS cluster"
 }
 
-output "outbound_ip_resource_id" {
-  value       = tolist(azurerm_kubernetes_cluster.aks.network_profile[0].load_balancer_profile[0].effective_outbound_ips)[0]
-  description = "The resource ID of the outbound IP address of the AKS cluster"
-}
+# TODO: Confirm this can be removed since IP is static private now
+# output "outbound_ip_resource_id" {
+#   value       = tolist(azurerm_kubernetes_cluster.aks.network_profile[0].load_balancer_profile[0].effective_outbound_ips)[0]
+#   description = "The resource ID of the outbound IP address of the AKS cluster"
+# }
 
 output "oidc_issuer_url" {
   value       = azurerm_kubernetes_cluster.aks.oidc_issuer_url

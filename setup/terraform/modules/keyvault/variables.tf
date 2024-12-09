@@ -3,6 +3,11 @@ variable "resource_group_name" {
   description = "The name of the resource group in which to create the Key Vaults"
 }
 
+variable "mgmt_resource_group_name" {
+  type        = string
+  description = "The name of the management resource group containing the private DNS zone"
+}
+
 variable "location" {
   type        = string
   description = "The Azure region where the Key Vaults should be created"
@@ -19,14 +24,19 @@ variable "tags" {
   default     = {}
 }
 
-variable "admin_group_object_ids" {
-  type        = list(string)
-  description = "List of object IDs of the admin Azure AD groups"
+variable "jumpbox_identity_id" {
+  type        = string
+  description = "The ID of the jumpbox's user-assigned managed identity to manage the Key Vaults"
 }
 
 variable "use_private_network" {
   type        = bool
   description = "Whether to use private networking for the Key Vaults"
+}
+
+variable "vnet_id" {
+  type        = string
+  description = "The ID of the VNet to which the Key Vaults should be linked"
 }
 
 variable "app_subnet_id" {
@@ -39,12 +49,4 @@ variable "web_subnet_id" {
   type        = string
 }
 
-variable "db_subnet_id" {
-  description = "The ID of the database subnet"
-  type        = string
-}
 
-variable "corporate_public_ip" {
-  description = "The public IP address of the corporate network"
-  type        = string
-}

@@ -33,25 +33,30 @@ variable "owner" {
   description = "Owner of the resources"
 }
 
-variable "admin_group_name" {
+variable "acr_id" {
   type        = string
-  description = "Comma-separated list of group names for admin users on the Key Vault and AKS cluster"
+  description = "ID of the ACR"
 }
 
-variable "acr_publishers_group_name" {
+variable "log_analytics_readers_group_id" {
   type        = string
-  description = "Comma-separated list of group names for ACR publishers"
-}
+  description = "Comma-separated list of group IDs for Log Analytics readers"
 
-variable "log_analytics_readers_group_name" {
-  type        = string
-  description = "Comma-separated list of group names for Log Analytics readers"
-  
 }
 
 variable "resource_group_name" {
   type        = string
   description = "Name of the resource group"
+}
+
+variable "mgmt_resource_group_name" {
+  type        = string
+  description = "Name of the management resource group"
+}
+
+variable "jumpbox_identity_id" {
+  type        = string
+  description = "Principal ID of the jumpber VM's user-assigned identity"
 }
 
 variable "keyvault_name" {
@@ -90,47 +95,37 @@ variable "storage_container_name" {
   default     = "otto"
 }
 
-variable "acr_name" {
-  type        = string
-  description = "Name of the ACR"
-}
-
 variable "djangodb_resource_name" {
   type        = string
   description = "Name of the Django DB resource"
 }
 
-variable "vnet_name" {
+variable "pod_cidr" {
   type        = string
-  description = "Name of the virtual network"
+  description = "The pod CIDR for the AKS cluster"
 }
-variable "vnet_ip_range" {
+
+variable "service_cidr" {
   type        = string
-  description = "IP range of the virtual network"
+  description = "The service CIDR for the AKS cluster"
 }
-variable "web_subnet_name" {
+
+variable "dns_service_ip" {
   type        = string
-  description = "Name of the web subnet"
+  description = "The DNS service IP for the AKS cluster"
 }
-variable "web_subnet_ip_range" {
+
+variable "vnet_id" {
   type        = string
-  description = "IP range of the web subnet"
+  description = "ID of the virtual network"
 }
-variable "app_subnet_name" {
+variable "web_subnet_id" {
   type        = string
-  description = "Name of the app subnet"
+  description = "ID of the web subnet"
 }
-variable "app_subnet_ip_range" {
+variable "app_subnet_id" {
   type        = string
-  description = "IP range of the app subnet"
-}
-variable "db_subnet_name" {
-  type        = string
-  description = "Name of the database subnet"
-}
-variable "db_subnet_ip_range" {
-  type        = string
-  description = "IP range of the database subnet"
+  description = "ID of the app subnet"
 }
 
 variable "gpt_35_turbo_capacity" {
@@ -168,12 +163,6 @@ variable "use_private_network" {
   description = "Whether to use private networking for the infrastructure"
 }
 
-variable "backup_container_name" {
-  description = "Name of the backup container"
-  type        = string
-  default     = "backups"
-}
-
 # variable "velero_identity_name" {
 #   description = "Name of the Velero managed identity"
 #   type        = string
@@ -198,11 +187,3 @@ variable "vm_cpu_count" {
   default     = 4 # Standard_D4s_v3 has 4 CPUs
 }
 
-variable "corporate_public_ip" {
-  description = "The public IP address of the corporate network"
-  type        = string
-  validation {
-    condition     = can(regex("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$", var.corporate_public_ip))
-    error_message = "The corporate_public_ip value must be a valid IPv4 address."
-  }
-}

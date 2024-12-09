@@ -56,11 +56,6 @@ variable "use_private_network" {
   description = "Whether to use private networking for the managed disks"
 }
 
-variable "corporate_ip" {
-  description = "The public IP address of the corporate network"
-  type        = string
-}
-
 variable "app_subnet_id" {
   description = "The ID of the app subnet"
   type        = string
@@ -71,22 +66,9 @@ variable "web_subnet_id" {
   type        = string
 }
 
-variable "db_subnet_id" {
-  description = "The ID of the database subnet"
+variable "identity_id" {
+  description = "The ID of the user-assigned managed identity to assign to the disk"
   type        = string
 }
 
-variable "web_subnet_address_prefix" {
-  description = "The address prefix of the web subnet"
-  type        = string
-}
 
-variable "app_subnet_address_prefix" {
-  description = "The address prefix of the app subnet"
-  type        = string
-}
-
-variable "db_subnet_address_prefix" {
-  description = "The address prefix of the database subnet"
-  type        = string
-}

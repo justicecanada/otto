@@ -29,6 +29,14 @@ resource "azurerm_cognitive_account" "openai" {
   depends_on = [var.keyvault_id]
 }
 
+provider "azurerm" {
+  features {
+    cognitive_account {
+      purge_soft_delete_on_destroy = true
+    }
+  }
+}
+
 # A delay is required to avoid a 409 conflict error when adding deployments concurrently
 resource "null_resource" "wait_for_openai_resource" {
   provisioner "local-exec" {
