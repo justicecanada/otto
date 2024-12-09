@@ -1,3 +1,4 @@
+import datetime
 import os
 
 from django.urls import reverse
@@ -5,7 +6,7 @@ from django.urls import reverse
 import numpy as np
 import pytest
 
-from otto.models import Group, Notification, User
+from otto.models import Cost, Group, Notification, User
 
 
 @pytest.mark.django_db
@@ -149,6 +150,47 @@ def test_get_cost_dashboard(client, all_apps_user):
     client.force_login(user)
     response = client.get(reverse("cost_dashboard"))
     assert response.status_code == 200
+
+    # Create some costs
+    for _ in range(5):
+        Cost.objects.new("gpt-4o-in", 100)
+        Cost.objects.new("gpt-4o-out", 200)
+
+    # Now try GET requests with some different parameters
+    x_axes = ["day", "week", "month", "feature", "pilot", "user", "cost_type"]
+    date_groups = [
+        "all",
+        "last_90_days",
+        "last_30_days",
+        "last_7_days",
+        "today",
+        "custom",
+    ]
+    cost_types = ["all", 1]
+
+    for x_axis in x_axes:
+        for date_group in date_groups:
+            if date_group == "custom":
+                for cost_type in cost_types:
+                    response = client.get(
+                        reverse("cost_dashboard"),
+                        data={
+                            "x_axis": x_axis,
+                            "date_group": date_group,
+                            "start_date": "2022-01-01",
+                            "end_date": datetime.date.today().strftime("%Y-%m-%d"),
+                            "cost_type": cost_type,
+                        },
+                    )
+                    assert response.status_code == 200
+            else:
+                response = client.get(
+                    reverse("cost_dashboard"),
+                    data={"x_axis": x_axis, "date_group": date_group},
+                )
+                assert response.status_code == 200
+            if x_axis != "day":
+                break
 
 
 @pytest.mark.django_db

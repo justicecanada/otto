@@ -725,6 +725,9 @@ def cost_dashboard(request):
         ).prefetch_related("user", "cost_type", "user__pilot")
 
         writer = csv.writer(response)
+        if not raw_costs.exists():
+            writer.writerow([_("No costs found for the selected date range")])
+            return response
         writer.writerow(
             [
                 "date_incurred",
@@ -780,8 +783,10 @@ def cost_dashboard(request):
         start_date = raw_costs.aggregate(models.Min("date_incurred"))[
             "date_incurred__min"
         ]
-    total_days = ((end_date or timezone.now().date()) - start_date).days + 1
-    print("Total days", total_days)
+    try:
+        total_days = ((end_date or timezone.now().date()) - start_date).days + 1
+    except:
+        total_days = 0
     total_users = raw_costs.exclude(user__isnull=True).values("user").distinct().count()
     if total_users and total_days > 0:
         tertiary_number = display_cad_cost(
