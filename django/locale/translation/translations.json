@@ -2235,9 +2235,9 @@
         "fr": "",
         "fr_auto": "Limite budgétaire"
     },
-    "You have reached your weekly budget limit. Please contact an Otto administrator or wait until Sunday for the limit to reset.": {
+    "You have reached your monthly budget limit. Please contact an Otto administrator or wait until the 1st for the limit to reset.": {
         "fr": "",
-        "fr_auto": "Vous avez atteint votre limite budgétaire hebdomadaire. Veuillez contacter un administrateur Otto ou attendre jusqu’à dimanche pour que la limite soit réinitialisée."
+        "fr_auto": "Vous avez atteint votre limite budgétaire mensuelle. Veuillez contacter un administrateur d’Otto ou attendre jusqu’à la 1re pour que la limite soit réinitialisée."
     },
     "Feedback submitted successfully.": {
         "fr": "",
@@ -2303,9 +2303,9 @@
         "fr": "",
         "fr_auto": "Tout le temps"
     },
-    "this week": {
+    "this month": {
         "fr": "",
-        "fr_auto": "cette semaine"
+        "fr_auto": "cette mois"
     },
     "User costs": {
         "fr": "",
@@ -2507,10 +2507,6 @@
         "fr": "",
         "fr_auto": "Update Preset %(name)s "
     },
-    "Smiling robot head": {
-        "fr": "",
-        "fr_auto": "Tête de robot souriante"
-    },
     "Save & Load": {
         "fr": "",
         "fr_auto": "Enregistrer et charger"
@@ -2518,5 +2514,9 @@
     "Save preset from current settings": {
         "fr": "",
         "fr_auto": "Enregistrer le préréglage à partir des paramètres actuels"
+    },
+    "Smiling robot head": {
+        "fr": "",
+        "fr_auto": "Tête de robot souriante"
     }
 }
