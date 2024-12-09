@@ -88,16 +88,18 @@ data:
   STATIC_ROOT: "/data/static"
 
   DJANGODB_ENGINE: "django.db.backends.postgresql_psycopg2"
-  DJANGODB_HOST: "postgres-django-service" # TODO: Change this to use pgBouncer
-  DJANGODB_PORT: "5432"
+  DJANGODB_HOST: "pgbouncer-django-service"
+  DJANGODB_PORT: "6432"
   DJANGODB_NAME: "django"
   DJANGODB_USER: "postgres"
+  DJANGODB_PGBOUNCER: "True"
 
   VECTORDB_ENGINE: "django.db.backends.postgresql_psycopg2"
-  VECTORDB_HOST: "postgres-vector-service" # TODO: Change this to use pgBouncer
-  VECTORDB_PORT: "5432"
+  VECTORDB_HOST: "pgbouncer-vector-service"
+  VECTORDB_PORT: "6432"
   VECTORDB_NAME: "llama_index"
   VECTORDB_USER: "postgres"
+  VECTORDB_PGBOUNCER: "True"
 
   AZURE_STORAGE_ACCOUNT_NAME: "${STORAGE_NAME}"
   AZURE_STORAGE_CONTAINER: "otto"
@@ -158,3 +160,42 @@ data:
       </body>
     </html>
 
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer-django-configmap
+  namespace: otto
+data:
+  POSTGRESQL_HOST: "postgres-django-service"
+  POSTGRESQL_PORT: "5432"
+  POSTGRESQL_USERNAME: "postgres"
+  POSTGRESQL_DATABASE: "django"
+  PGBOUNCER_DATABASE: "django"
+  PGBOUNCER_POOL_MODE: transaction
+  PGBOUNCER_MAX_CLIENT_CONN: "1000"
+  PGBOUNCER_MAX_DB_CONNECTIONS: "200"
+  PGBOUNCER_DEFAULT_POOL_SIZE: "50"
+  PGBOUNCER_MIN_POOL_SIZE: "10"
+  PGBOUNCER_RESERVE_POOL_SIZE: "10"
+
+  ---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer-vector-configmap
+  namespace: otto
+data:
+  POSTGRESQL_HOST: "postgres-vector-service"
+  POSTGRESQL_PORT: "5432"
+  POSTGRESQL_USERNAME: "postgres"
+  POSTGRESQL_DATABASE: "llama_index"
+  PGBOUNCER_DATABASE: "llama_index"
+  PGBOUNCER_POOL_MODE: transaction
+  PGBOUNCER_MAX_CLIENT_CONN: "1000"
+  PGBOUNCER_MAX_DB_CONNECTIONS: "200"
+  PGBOUNCER_DEFAULT_POOL_SIZE: "50"
+  PGBOUNCER_MIN_POOL_SIZE: "10"
+  PGBOUNCER_RESERVE_POOL_SIZE: "10"
