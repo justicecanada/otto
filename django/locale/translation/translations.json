@@ -2514,5 +2514,9 @@
     "Save & Load": {
         "fr": "",
         "fr_auto": "Enregistrer et charger"
+    },
+    "Save preset from current settings": {
+        "fr": "",
+        "fr_auto": "Enregistrer le préréglage à partir des paramètres actuels"
     }
 }
