@@ -23,6 +23,8 @@ from chat.models import Message
 from chat.prompts import current_time_prompt
 from chat.tasks import translate_file
 from chat.utils import (
+    batch,
+    combine_batch_generators,
     combine_response_generators,
     combine_response_replacers,
     get_source_titles,
@@ -584,12 +586,22 @@ def qa_response(chat, response_message, switch_mode=False):
                 for sources in source_groups
                 if not cache.get(f"stop_response_{response_message.id}", False)
             ]
-            response_replacer = combine_response_generators(
-                responses,
-                get_source_titles([sources[0] for sources in source_groups]),
-                input,
-                llm,
-                chat.options.qa_prune,
+            titles = get_source_titles([sources[0] for sources in source_groups])
+            title_batches = batch(titles, 2)
+            response_batches = batch(responses, 2)
+            response_replacer = combine_batch_generators(
+                [
+                    combine_response_generators(
+                        batch_responses,
+                        batch_titles,
+                        input,
+                        llm,
+                        chat.options.qa_prune,
+                    )
+                    for batch_responses, batch_titles in zip(
+                        response_batches, title_batches
+                    )
+                ]
             )
             response_generator = None
 

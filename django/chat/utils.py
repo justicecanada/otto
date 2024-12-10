@@ -446,6 +446,12 @@ def get_source_titles(sources):
     ]
 
 
+def batch(iterable, n=1):
+    l = len(iterable)
+    for ndx in range(0, l, n):
+        yield iterable[ndx : min(ndx + n, l)]
+
+
 async def combine_response_generators(generators, titles, query, llm, prune=False):
     streams = [{"stream": stream, "status": "running"} for stream in generators]
     final_streams = [f"\n###### *{title}*\n" for title in titles]
@@ -496,6 +502,30 @@ async def combine_response_replacers(generators, titles):
                 stream["status"] = "stopped"
         yield ("\n\n---\n\n".join(final_streams))
         await asyncio.sleep(0)
+
+
+async def combine_batch_generators(generators):
+    final_streams = []
+    stream = ""
+    for generator in generators:
+        stream = "\n\n---\n\n".join(final_streams)
+        # if stream:
+        #     stream += "\n\n---\n\n"
+        async for response in generator:
+            if stream:
+                stream_value = stream + "\n\n---\n\n" + response
+            else:
+                stream_value = response
+            yield stream_value
+            await asyncio.sleep(0)
+        if response != "**No relevant sources found.**":
+            final_streams.append(response)
+        else:
+            yield stream
+            await asyncio.sleep(0)
+
+    if not final_streams:
+        yield "**No relevant sources found.**"
 
 
 def group_sources_into_docs(source_nodes):
