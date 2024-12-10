@@ -587,8 +587,8 @@ def qa_response(chat, response_message, switch_mode=False):
                 if not cache.get(f"stop_response_{response_message.id}", False)
             ]
             titles = get_source_titles([sources[0] for sources in source_groups])
-            title_batches = batch(titles, 2)
-            response_batches = batch(responses, 2)
+            title_batches = batch(titles, 5)
+            response_batches = batch(responses, 5)
             response_replacer = combine_batch_generators(
                 [
                     combine_response_generators(
@@ -601,7 +601,8 @@ def qa_response(chat, response_message, switch_mode=False):
                     for batch_responses, batch_titles in zip(
                         response_batches, title_batches
                     )
-                ]
+                ],
+                pruning=True,
             )
             response_generator = None
 

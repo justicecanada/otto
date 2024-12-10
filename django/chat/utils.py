@@ -504,7 +504,7 @@ async def combine_response_replacers(generators, titles):
         await asyncio.sleep(0)
 
 
-async def combine_batch_generators(generators):
+async def combine_batch_generators(generators, pruning=False):
     final_streams = []
     stream = ""
     for generator in generators:
@@ -524,7 +524,7 @@ async def combine_batch_generators(generators):
             yield stream
             await asyncio.sleep(0)
 
-    if not final_streams:
+    if not final_streams and pruning:
         yield "**No relevant sources found.**"
 
 
