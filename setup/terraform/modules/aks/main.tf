@@ -37,45 +37,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "aks_dns_link" {
   tags = var.tags
 }
 
-resource "azurerm_private_dns_zone" "mcr_dns" {
-  name                = "privatelink.azurecr.io"
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "mcr_dns_link" {
-  name                  = "${var.aks_cluster_name}-mcr-dns-link"
-  resource_group_name   = var.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.mcr_dns.name
-  virtual_network_id    = var.vnet_id
-  tags                  = var.tags
-}
-
-# Data resource to get subscription_id
-data "azurerm_subscription" "current" {}
-
-resource "azurerm_private_endpoint" "mcr_endpoint" {
-  name                = "${var.aks_cluster_name}-mcr-endpoint"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  subnet_id           = var.web_subnet_id
-
-  private_service_connection {
-    name                           = "${var.aks_cluster_name}-mcr-connection"
-    private_connection_resource_id = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/ContainerRegistryResourceGroup/providers/Microsoft.ContainerRegistry/registries/mcr"
-    is_manual_connection           = true # This will put the connection in a pending state until approved by the Azure administrator
-    request_message                = "Please approve this connection"
-    subresource_names              = ["registry"]
-  }
-
-  private_dns_zone_group {
-    name                 = "${var.aks_cluster_name}-mcr-dns-group"
-    private_dns_zone_ids = [azurerm_private_dns_zone.mcr_dns.id]
-  }
-
-  tags = var.tags
-}
-
 # Get the subnet data for the AKS subnet
 data "azurerm_subnet" "web_subnet" {
   name = split("/", var.web_subnet_id)[10]
@@ -377,6 +338,37 @@ resource "azurerm_network_security_group" "aks_nsg" {
   tags = var.tags
 }
 
+# Data resource to firewall
+data "azurerm_firewall" "aks_firewall" {
+  name                = "firewall"
+  resource_group_name = var.mgmt_resource_group_name
+}
+
+resource "azurerm_firewall_network_rule_collection" "aks" {
+  name                = "aks-network-rules"
+  azure_firewall_name = azurerm_firewall.aks_firewall.name
+  resource_group_name = var.mgmt_resource_group_name
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name                  = "allow-azure-cloud"
+    source_addresses      = [var.web_subnet_ip_range]
+    destination_ports     = ["443", "9000"]
+    destination_addresses = ["AzureCloud"]
+    protocols            = ["TCP"]
+  }
+
+  rule {
+    name                  = "allow-dns"
+    source_addresses      = [var.web_subnet_ip_range]
+    destination_ports     = ["53"]
+    destination_addresses = ["*"]
+    protocols            = ["UDP"]
+  }
+
+}
+
 # Associate the NSG with the web subnet
 resource "azurerm_subnet_network_security_group_association" "aks_nsg_association" {
   subnet_id                 = var.web_subnet_id
@@ -386,50 +378,73 @@ resource "azurerm_subnet_network_security_group_association" "aks_nsg_associatio
 resource "azurerm_route_table" "aks" {
   name                = "${var.aks_cluster_name}-rt"
   resource_group_name = var.mgmt_resource_group_name
-  location            = var.location
+  location           = var.location
 
-  # # Default route to ExpressRoute
-  # route {
-  #   name                   = "default-route"
-  #   address_prefix         = "0.0.0.0/0"
-  #   next_hop_type          = "VirtualNetworkGateway"
-  # }
-  
   route {
     name                   = "default-route"
     address_prefix         = "0.0.0.0/0"
-    next_hop_type          = "VirtualAppliance"
-    #next_hop_in_ip_address = "20.47.87.90" 
-    next_hop_in_ip_address = "10.250.6.4" # Device before the DEV firewall (10.250.6.5 is the firewall)
-  }
-
-  # Direct routes to Azure services
-  route {
-    name                   = "to-azure-monitor"
-    address_prefix         = "AzureMonitor"
-    next_hop_type          = "Internet"
-  }
-
-  route {
-    name                   = "to-azure-active-directory"
-    address_prefix         = "AzureActiveDirectory"
-    next_hop_type          = "Internet"
-  }
-
-  route {
-    name                   = "to-azure-container-registry"
-    address_prefix         = "AzureContainerRegistry"
-    next_hop_type          = "Internet"
+    next_hop_type         = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
   }
 
   route {
     name                   = "to-mcr"
     address_prefix         = "MicrosoftContainerRegistry"
-    next_hop_type          = "Internet"
+    next_hop_type         = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
   }
 
   tags = var.tags
 }
+
+# resource "azurerm_route_table" "aks" {
+#   name                = "${var.aks_cluster_name}-rt"
+#   resource_group_name = var.mgmt_resource_group_name
+#   location            = var.location
+
+#   # # Default route to ExpressRoute
+#   # route {
+#   #   name                   = "default-route"
+#   #   address_prefix         = "0.0.0.0/0"
+#   #   next_hop_type          = "VirtualNetworkGateway"
+#   # }
+  
+#   route {
+#     name                   = "default-route"
+#     address_prefix         = "0.0.0.0/0"
+#     next_hop_type          = "VirtualAppliance"
+#     #next_hop_in_ip_address = "20.47.87.90" 
+#     next_hop_in_ip_address = "10.250.6.4" # Device before the DEV firewall (10.250.6.5 is the firewall)
+#   }
+
+#   # Direct routes to Azure services
+#   route {
+#     name                   = "to-azure-monitor"
+#     address_prefix         = "AzureMonitor"
+#     next_hop_type          = "Internet"
+#   }
+
+#   route {
+#     name                   = "to-azure-active-directory"
+#     address_prefix         = "AzureActiveDirectory"
+#     next_hop_type          = "Internet"
+#   }
+
+#   route {
+#     name                   = "to-azure-container-registry"
+#     address_prefix         = "AzureContainerRegistry"
+#     next_hop_type          = "Internet"
+#   }
+
+#   route {
+#     name                   = "to-mcr"
+#     address_prefix         = "MicrosoftContainerRegistry"
+#     next_hop_type          = "Internet"
+#   }
+
+#   tags = var.tags
+# }
+
 resource "azurerm_subnet_route_table_association" "aks" {
   subnet_id      = var.web_subnet_id
   route_table_id = azurerm_route_table.aks.id

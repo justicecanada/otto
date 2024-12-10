@@ -898,3 +898,145 @@ az vm run-command invoke `
     --scripts "$setupScript" `
     --only-show-errors `
     --output none
+
+
+
+
+
+# Create Public IP for Azure Firewall
+$firewallPipExists = az network public-ip show --resource-group $MGMT_RESOURCE_GROUP_NAME --name firewall-pip --only-show-errors 2>$null
+if (-not $firewallPipExists) {
+    Write-Host "Creating Firewall public IP"
+    az network public-ip create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name firewall-pip `
+        --sku Standard `
+        --allocation-method Static `
+        --location $LOCATION `
+        --only-show-errors `
+        --output none
+}
+
+$FIREWALL_NAME = "firewall"
+
+# Create Azure Firewall
+$firewallExists = az network firewall show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $FIREWALL_NAME --only-show-errors 2>$null
+if (-not $firewallExists) {
+    Write-Host "Creating Azure Firewall"
+    az network firewall create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name $FIREWALL_NAME `
+        --location $LOCATION `
+        --sku AZFW_VNet `
+        --tier Standard `
+        --only-show-errors `
+        --output none
+}
+
+# Create Firewall VNET
+az network vnet create `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --name $FIREWALL_VNET_NAME `
+    --address-prefix $FIREWALL_VNET_IP_RANGE `
+    --subnet-name $FIREWALL_SUBNET_NAME `
+    --subnet-prefix $FIREWALL_SUBNET_IP_RANGE `
+    --location $LOCATION
+
+
+$vnet1Id = az network vnet show --name $FIREWALL_VNET_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
+$vnet2Id = az network vnet show --name $VNET_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
+
+# Check if peering already exists from Firewall VNET to main VNET
+$firewallToMainPeering = az network vnet peering show `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --name "FirewallToMain" `
+    --vnet-name $FIREWALL_VNET_NAME `
+    --only-show-errors 2>$null
+
+if (-not $firewallToMainPeering) {
+    Write-Host "Creating peering from Firewall VNET to main VNET"
+    az network vnet peering create `
+        --name "FirewallToMain" `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --vnet-name $FIREWALL_VNET_NAME `
+        --remote-vnet $vnet2Id `
+        --allow-vnet-access `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "Firewall to main VNET peering already exists"
+}
+
+
+# Check if peering already exists from main VNET to Firewall VNET
+$mainToFirewallPeering = az network vnet peering show `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --name "MainToFirewall" `
+    --vnet-name $VNET_NAME `
+    --only-show-errors 2>$null
+
+if (-not $mainToFirewallPeering) {
+    Write-Host "Creating peering from main VNET to Firewall VNET"
+    az network vnet peering create `
+        --name "MainToFirewall" `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --vnet-name $VNET_NAME `
+        --remote-vnet $vnet1Id `
+        --allow-vnet-access `
+        --only-show-errors `
+        --output none
+
+}
+else {
+    Write-Host "Main to Firewall VNET peering already exists"
+}
+
+
+# Create AzureFirewallSubnet
+az network vnet subnet create `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --vnet-name $FIREWALL_VNET_NAME `
+    --name $FIREWALL_SUBNET_NAME `
+    --address-prefix $FIREWALL_SUBNET_IP_RANGE `
+    --output none
+
+# Configure Firewall IP Configuration
+Write-Host "Configuring Firewall IP Configuration"
+az network firewall ip-config create `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --firewall-name $FIREWALL_NAME `
+    --name fw-ip-config `
+    --public-ip-address firewall-pip `
+    --vnet-name $FIREWALL_VNET_NAME `
+    --only-show-errors `
+    --output none
+
+# Create Application Rule Collection for MCR
+Write-Host "Creating Application Rule Collection for MCR"
+az network firewall application-rule create `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --firewall-name $FIREWALL_NAME `
+    --collection-name "aks-rules" `
+    --name "allow-mcr" `
+    --protocols Http=80 Https=443 `
+    --target-fqdns "*.mcr.microsoft.com" "mcr.microsoft.com" "*.data.mcr.microsoft.com" `
+    --source-addresses $WEB_SUBNET_IP_RANGE `
+    --priority 100 `
+    --action Allow `
+    --only-show-errors `
+    --output none
+
+# Create Application Rule Collection for Azure Services
+az network firewall application-rule create `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --firewall-name $FIREWALL_NAME `
+    --collection-name "azure-services" `
+    --name "allow-azure" `
+    --protocols Https=443 `
+    --target-fqdns "*.azure.com" "*.core.windows.net" "*.monitoring.azure.com" `
+    --source-addresses $WEB_SUBNET_IP_RANGE `
+    --priority 200 `
+    --action Allow `
+    --only-show-errors `
+    --output none
