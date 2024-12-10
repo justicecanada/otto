@@ -345,7 +345,7 @@ data "azurerm_firewall" "aks_firewall" {
 }
 
 resource "azurerm_firewall_network_rule_collection" "aks" {
-  name                = "aks-network-rules"
+  name                = "${var.aks_cluster_name}-nrc"
   azure_firewall_name = data.azurerm_firewall.aks_firewall.name
   resource_group_name = var.mgmt_resource_group_name
   priority            = 100
@@ -353,7 +353,7 @@ resource "azurerm_firewall_network_rule_collection" "aks" {
 
   rule {
     name                  = "allow-azure-cloud"
-    source_addresses      = [var.web_subnet_ip_range]
+    source_addresses      = [data.azurerm_subnet.web_subnet.address_prefixes[0]]
     destination_ports     = ["443", "9000"]
     destination_addresses = ["AzureCloud"]
     protocols            = ["TCP"]
@@ -361,7 +361,7 @@ resource "azurerm_firewall_network_rule_collection" "aks" {
 
   rule {
     name                  = "allow-dns"
-    source_addresses      = [var.web_subnet_ip_range]
+    source_addresses      = [data.azurerm_subnet.web_subnet.address_prefixes[0]]
     destination_ports     = ["53"]
     destination_addresses = ["*"]
     protocols            = ["UDP"]
@@ -372,7 +372,7 @@ resource "azurerm_firewall_network_rule_collection" "aks" {
 # Associate the NSG with the web subnet
 resource "azurerm_subnet_network_security_group_association" "aks_nsg_association" {
   subnet_id                 = var.web_subnet_id
-  network_security_group_id = data.azurerm_network_security_group.aks_nsg.id
+  network_security_group_id = azurerm_network_security_group.aks_nsg.id
 }
 
 resource "azurerm_route_table" "aks" {
