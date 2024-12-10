@@ -346,7 +346,7 @@ data "azurerm_firewall" "aks_firewall" {
 
 resource "azurerm_firewall_network_rule_collection" "aks" {
   name                = "aks-network-rules"
-  azure_firewall_name = azurerm_firewall.aks_firewall.name
+  azure_firewall_name = data.azurerm_firewall.aks_firewall.name
   resource_group_name = var.mgmt_resource_group_name
   priority            = 100
   action              = "Allow"
@@ -372,7 +372,7 @@ resource "azurerm_firewall_network_rule_collection" "aks" {
 # Associate the NSG with the web subnet
 resource "azurerm_subnet_network_security_group_association" "aks_nsg_association" {
   subnet_id                 = var.web_subnet_id
-  network_security_group_id = azurerm_network_security_group.aks_nsg.id
+  network_security_group_id = data.azurerm_network_security_group.aks_nsg.id
 }
 
 resource "azurerm_route_table" "aks" {
@@ -384,7 +384,7 @@ resource "azurerm_route_table" "aks" {
     name                   = "default-route"
     address_prefix         = "0.0.0.0/0"
     next_hop_type         = "VirtualAppliance"
-    next_hop_in_ip_address = azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
+    next_hop_in_ip_address = data.azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
   }
 
   route {
