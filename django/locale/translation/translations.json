@@ -1204,7 +1204,7 @@
         "fr_auto": "Requête"
     },
     "Ask a question about federal legislation...": {
-        "fr": "",
+        "fr": "Posez une question sur la législation fédérale...",
         "fr_auto": "Posez une question sur la législation fédérale..."
     },
     "AI answer": {
@@ -1824,7 +1824,7 @@
         "fr_auto": "Assistant de modèle"
     },
     "Legislation loading": {
-        "fr": "",
+        "fr": "Chargement de la législation",
         "fr_auto": "Chargement de la législation"
     },
     "Text extractor": {
