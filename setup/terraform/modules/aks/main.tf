@@ -391,7 +391,7 @@ resource "azurerm_route_table" "aks" {
     name                   = "to-mcr"
     address_prefix         = "MicrosoftContainerRegistry"
     next_hop_type         = "VirtualAppliance"
-    next_hop_in_ip_address = azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
+    next_hop_in_ip_address = data.azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
   }
 
   tags = var.tags
