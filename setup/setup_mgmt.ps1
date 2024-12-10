@@ -702,8 +702,9 @@ if (-not $acrExists) {
     az acr create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
         --name $ACR_NAME `
-        --sku Basic `
+        --sku Premium `
         --admin-enabled true `
+        --public-network-enabled false `
         --tags ApplicationName="$APP_NAME" Environment="$ENVIRONMENT" Classification="$CLASSIFICATION" CostCenter="$COST_CENTER" Criticality="$CRITICALITY" Owner="$OWNER" Location="$LOCATION" `
         --only-show-errors `
         --output none
@@ -711,6 +712,81 @@ if (-not $acrExists) {
 else {
     Write-Host "Azure Container Registry $ACR_NAME already exists"
 }
+
+
+# Get the resource ID of the ACR
+$acrId = az acr show --name $ACR_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
+
+# Create the private endpoint for the ACR
+$ACR_ENDPOINT = "${ACR_NAME}-endpoint"
+$privateEndpointExists = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "$ACR_ENDPOINT" --only-show-errors 2>$null
+if (-not $privateEndpointExists) {
+    Write-Host "Creating private endpoint for ACR"
+    az network private-endpoint create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name "$ACR_ENDPOINT" `
+        --vnet-name $VNET_NAME `
+        --subnet $MGMT_SUBNET_NAME `
+        --private-connection-resource-id $acrId `
+        --group-id registry `
+        --connection-name "$ACR_NAME-connection" `
+        --only-show-errors `
+        --output none
+} else {
+    Write-Host "Private endpoint for ACR already exists"
+}
+
+# Get the private endpoint network interface
+$networkInterfaceId = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "$ACR_ENDPOINT" --query "networkInterfaces[0].id" -o tsv
+$networkInterfaceIpConfig = az resource show `
+    --ids $networkInterfaceId `
+    --api-version 2019-04-01 `
+    --query 'properties.ipConfigurations[0].properties.privateIPAddress' `
+    --output tsv
+
+# Create the privatelink DNS zone for ACR if it doesn't exist
+$acrPrivateLinkDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "privatelink.azurecr.io" --only-show-errors 2>$null
+if (-not $acrPrivateLinkDnsZoneExists) {
+    Write-Host "Creating privatelink DNS zone for ACR"
+    az network private-dns zone create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --name "privatelink.azurecr.io" `
+        --only-show-errors `
+        --output none
+} else {
+    Write-Host "Privatelink DNS zone for ACR already exists"
+}
+
+# Link the privatelink DNS zone for ACR to the VNet if it isn't already
+$acrPrivateLinkDnsZoneLinked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.azurecr.io" --name $VNET_NAME --only-show-errors 2>$null
+if (-not $acrPrivateLinkDnsZoneLinked) {
+    Write-Host "Linking privatelink DNS zone for ACR to VNet"
+    az network private-dns link vnet create `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --zone-name "privatelink.azurecr.io" `
+        --name $VNET_NAME `
+        --virtual-network $vnetId `
+        --registration-enabled false `
+        --only-show-errors `
+        --output none
+} else {
+    Write-Host "Privatelink DNS zone for ACR is already linked to VNet"
+}
+
+# Create the A record for the ACR in the privatelink DNS zone
+$acrRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.azurecr.io" --name $ACR_NAME --only-show-errors 2>$null
+if (-not $acrRecordExists) {
+    Write-Host "Creating A record for ACR in privatelink DNS zone"
+    az network private-dns record-set a add-record `
+        --resource-group $MGMT_RESOURCE_GROUP_NAME `
+        --zone-name "privatelink.azurecr.io" `
+        --record-set-name $ACR_NAME `
+        --ipv4-address $networkInterfaceIpConfig `
+        --only-show-errors `
+        --output none
+} else {
+    Write-Host "A record for ACR already exists in privatelink DNS zone"
+}    
 
 
 # Check if the A record for the cluster exists in the DNS zone. If not, create it.
