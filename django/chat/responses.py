@@ -180,12 +180,26 @@ def summarize_response(chat, response_message):
                         instructions,
                     )
                 )
+
+        title_batches = batch(titles, 5)
+        response_batches = batch(responses, 5)
+        response_replacer = combine_batch_generators(
+            [
+                combine_response_replacers(
+                    batch_responses,
+                    batch_titles,
+                )
+                for batch_responses, batch_titles in zip(
+                    response_batches, title_batches
+                )
+            ],
+        )
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
                 llm,
-                response_replacer=combine_response_replacers(responses, titles),
+                response_replacer=response_replacer,
             ),
             content_type="text/event-stream",
         )
@@ -461,8 +475,18 @@ def qa_response(chat, response_message, switch_mode=False):
                 for document in filter_documents
                 if not cache.get(f"stop_response_{response_message.id}", False)
             ]
-            response_replacer = combine_response_replacers(
-                summary_responses, document_titles
+            title_batches = batch(document_titles, 5)
+            response_batches = batch(summary_responses, 5)
+            response_replacer = combine_batch_generators(
+                [
+                    combine_response_replacers(
+                        batch_responses,
+                        batch_titles,
+                    )
+                    for batch_responses, batch_titles in zip(
+                        response_batches, title_batches
+                    )
+                ],
             )
         response_generator = None
         source_groups = None
