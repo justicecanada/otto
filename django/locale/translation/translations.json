@@ -2534,5 +2534,9 @@
     "Per user per day": {
         "fr": "",
         "fr_auto": "Par utilisateur et par jour"
+    },
+    "**No relevant sources found.**": {
+        "fr": "",
+        "fr_auto": "**Aucune source pertinente n’a été trouvée.**"
     }
 }
