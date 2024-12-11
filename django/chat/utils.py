@@ -521,7 +521,7 @@ async def combine_batch_generators(generators, pruning=False):
             await asyncio.sleep(0)
         if pruning and response == "**No relevant sources found.**":
             # If we're pruning (combine_response_generators only) and nothing
-            # relevant was found in the batch, just stream previous batches
+            # relevant was found in the batch, just retain previous batches
             yield stream
             await asyncio.sleep(0)
         else:

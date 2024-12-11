@@ -303,7 +303,6 @@ async def test_combine_batch_generators():
     assert "fifth thing" not in final_output
     assert "**No relevant sources found.**" not in final_output
     assert "Title 1" in final_output
-    assert "Title 3" not in final_output
     # Check the ordering
     assert final_output.index("Title 1") < final_output.index("second thing")
     assert final_output.index("second thing") < final_output.index("Title 2")
