@@ -6,6 +6,7 @@ from itertools import groupby
 from typing import AsyncGenerator, Generator
 
 from django.core.cache import cache
+from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
@@ -28,6 +29,26 @@ logger = get_logger(__name__)
 md = markdown.Markdown(
     extensions=["fenced_code", "nl2br", "tables", "extra"], tab_length=2
 )
+
+
+def copy_options(source_options, target_options):
+    source_options = model_to_dict(source_options)
+    # Remove the fields that are not part of the preset
+    for field in ["id", "chat"]:
+        source_options.pop(field)
+    # Update the preset options with the dictionary
+    fk_fields = ["qa_library"]
+    m2m_fields = ["qa_data_sources", "qa_documents"]
+    # Remove None values
+    source_options = {k: v for k, v in source_options.items()}
+    for key, value in source_options.items():
+        if key in fk_fields:
+            setattr(target_options, f"{key}_id", int(value) if value else None)
+        elif key in m2m_fields:
+            getattr(target_options, key).set(value)
+        else:
+            setattr(target_options, key, value)
+    target_options.save()
 
 
 def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
