@@ -285,6 +285,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "poll_url": poll_url,
         "poll_response": "poll" in request.GET,
     }
+    print("poll_url (from modal_view):", poll_url)
     return render(request, "librarian/modal_inner.html", context)
 
 
@@ -305,6 +306,7 @@ def poll_status(request, data_source_id, document_id=None):
     poll_url = request.path if poll else None
 
     document = Document.objects.get(id=document_id) if document_id else None
+    print("poll_url (from poll_status):", poll_url)
     return render(
         request,
         "librarian/components/poll_update.html",
