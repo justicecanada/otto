@@ -288,14 +288,13 @@ async def test_combine_batch_generators():
     title_batches = batch(titles, 2)
     generator_batches = batch(generators, 2)
 
-    response_stream = combine_batch_generators(
-        [
-            combine_response_replacers(batch_responses, batch_titles)
-            for batch_responses, batch_titles in zip(generator_batches, title_batches)
-        ],
-    )
-    assert len(generator_batches) == 2
-    assert len(title_batches) == 2
+    batch_generators = [
+        combine_response_replacers(batch_responses, batch_titles)
+        for batch_responses, batch_titles in zip(generator_batches, title_batches)
+    ]
+
+    response_stream = combine_batch_generators(batch_generators)
+    assert len(batch_generators) == 2
     final_output = ""
     async for yielded_output in response_stream:
         final_output = yielded_output
