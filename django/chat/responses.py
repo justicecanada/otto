@@ -475,7 +475,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 for document in filter_documents
                 if not cache.get(f"stop_response_{response_message.id}", False)
             ]
-            title_batches = batch(document_titles, 5)
+            title_batches = batch(document_titles, 5)  # TODO: test batch size
             response_batches = batch(summary_responses, 5)
             response_replacer = combine_batch_generators(
                 [
@@ -626,7 +626,7 @@ def qa_response(chat, response_message, switch_mode=False):
                         response_batches, title_batches
                     )
                 ],
-                pruning=True,
+                pruning=chat.options.qa_prune,
             )
             response_generator = None
 

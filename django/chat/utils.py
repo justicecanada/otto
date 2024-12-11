@@ -505,26 +505,31 @@ async def combine_response_replacers(generators, titles):
 
 
 async def combine_batch_generators(generators, pruning=False):
+    # Given a list of generators from either combine_response_replacers or
+    # combine_response_generators, make one generator across batches for htmx_stream
     final_streams = []
-    stream = ""
     for generator in generators:
         stream = "\n\n---\n\n".join(final_streams)
-        # if stream:
-        #     stream += "\n\n---\n\n"
         async for response in generator:
             if stream:
+                # Add line between already-streamed batches and streaming batch
                 stream_value = stream + "\n\n---\n\n" + response
             else:
+                # Don't need line if there's nothing streamed
                 stream_value = response
             yield stream_value
             await asyncio.sleep(0)
-        if response != "**No relevant sources found.**":
-            final_streams.append(response)
-        else:
+        if pruning and response == "**No relevant sources found.**":
+            # If we're pruning (combine_response_generators only) and nothing
+            # relevant was found in the batch, just stream previous batches
             yield stream
             await asyncio.sleep(0)
+        else:
+            final_streams.append(response)
 
     if not final_streams and pruning:
+        # If we're pruning (combine_response_generators only) and have nothing after
+        # iterating through all batches, stream the pruning message again
         yield "**No relevant sources found.**"
 
 
