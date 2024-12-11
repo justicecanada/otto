@@ -56,22 +56,14 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const searchElement = document.querySelector('#top-nav-search');
       const logoElement = document.querySelector('#otto-logo');
-      if (searchElement && logoElement) {
-        searchElement.addEventListener('focusin', function() {
-          logoElement.style.transform = 'translateY(26px)';
-        });
-
-        searchElement.addEventListener('mouseover', function() {
-          logoElement.style.transform = 'translateY(26px)';
-        });
-
-        logoElement.addEventListener('mouseover', function() {
-          logoElement.style.transform = 'translateY(26px)';
-        });
-        
-      }
+      // Make the logo bounce a bit when you click it
+      logoElement.addEventListener('click', function() {
+        logoElement.classList.add('animate');
+        setTimeout(() => {
+          logoElement.classList.remove('animate');
+        }, 1000);
+      });
     });
   </script>
 

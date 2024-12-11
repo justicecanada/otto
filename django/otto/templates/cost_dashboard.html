@@ -80,7 +80,7 @@
                 </div>
               </fieldset>
               <fieldset class="form-group">
-                <div class="row">
+                <div class="row mb-1">
                   <legend class="col-form-label col-1 fw-semibold">{% trans "Filter:" %}</legend>
                   <div class="col-lg-1 visually-hidden">
                     <label class="col-form-label me-0" for="pilot">{% trans "Pilot:" %}</label>
@@ -126,6 +126,51 @@
 
                 </div>
               </fieldset>
+              <fieldset class="form-group">
+                <div class="row mb-1">
+                  <legend class="col-form-label col-1 fw-semibold">{% trans "Dates:" %}</legend>
+                  <div class="col-lg-1 visually-hidden">
+                    <label class="col-form-label" for="date_group">{% trans "Range:" %}</label>
+                  </div>
+                  <div class="col-lg-3">
+                    <select class="form-select" id="date_group" name="date_group">
+                      {% for option_id, option in date_group_options.items %}
+                        <option value="{{ option_id }}"
+                                {% if option_id == date_group %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  {% if date_group == "custom" %}
+                    <div class="col-lg-1">
+                      <label class="col-form-label" for="start_date">{% trans "Start:" %}</label>
+                    </div>
+                    <div class="col-lg-2">
+                      <input class="form-control"
+                             type="date"
+                             id="start_date"
+                             name="start_date"
+                             value="{{ start_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-lg-1">
+                      <label class="col-form-label" for="end_date">{% trans "End:" %}</label>
+                    </div>
+                    <div class="col-lg-2">
+                      <input class="form-control"
+                             type="date"
+                             id="end_date"
+                             name="end_date"
+                             value="{{ end_date|date:'Y-m-d' }}">
+                    </div>
+                  {% endif %}
+                </div>
+              </fieldset>
+              <a id="download-link"
+                 class="btn btn-outline-dark btn-sm"
+                 href="#"
+                 onclick="event.preventDefault(); downloadCsv(); return false;">
+                <i class="bi bi-download"></i>
+                {% trans "Download CSV for selected dates (filters disabled)" %}
+              </a>
             </form>
  
           </div>
@@ -140,6 +185,11 @@
               <p class="h6 m-0 text-secondary">
                 {{ secondary_number_title }}: <span class="text-success">{{ secondary_number }}</span>
               </p>
+              {% if tertiary_number %}
+                <p class="h6 m-0 text-secondary">
+                  {{ tertiary_number_title }}: <span class="text-success">{{ tertiary_number }}</span>
+                </p>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -150,7 +200,13 @@
         <div class="col-lg-8">
           {# Bar chart #}
           <div id="chart-container">
-            <canvas id="costChart"></canvas>
+            <canvas id="costChart"
+                    width="1526"
+                    height="763"
+                    style="display: block;
+                           box-sizing: border-box;
+                           height: 436px;
+                           width: 872px"></canvas>
           </div>
           {# Script is embedded here so that it will get run each time HTMX swaps the chart #}
           {# It has to be in the Django template due to looping over template variables #}
@@ -255,7 +311,9 @@
               <tbody>
                 {% for row in rows %}
                   <tr>
-                    {% for col in row %}<td>{{ col }}</td>{% endfor %}
+                    {% for col in row %}
+                      <td>{{ col }}</td>
+                    {% endfor %}
                   </tr>
                 {% endfor %}
               </tbody>
@@ -270,6 +328,16 @@
     function checkUserKeydown(event) {
       return event instanceof KeyboardEvent;
     }
+    function downloadCsv() {
+        // Get the current URL
+        let currentUrl = new URL(window.location.href);
+
+        // Add the download parameter
+        currentUrl.searchParams.set('download', 'true');
+
+        // Redirect to the new URL
+        window.location.href = currentUrl.toString();
+    };
   </script>
  
 {% endblock %}

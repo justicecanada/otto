@@ -37,7 +37,7 @@ from chat.models import (
     Preset,
     create_chat_data_source,
 )
-from chat.utils import change_mode_to_chat_qa, title_chat
+from chat.utils import change_mode_to_chat_qa, copy_options, title_chat
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
 from otto.rules import can_access_preset, can_edit_preset
@@ -166,6 +166,7 @@ def chat(request, chat_id):
     # The current chat is always shown, even if it's empty.
     user_chats = (
         Chat.objects.filter(user=request.user, messages__isnull=False)
+        .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
         .order_by("-created_at")
@@ -494,25 +495,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
     Save and load chat options.
     """
 
-    def _copy_options(source_options, target_options):
-        source_options = model_to_dict(source_options)
-        # Remove the fields that are not part of the preset
-        for field in ["id", "chat"]:
-            source_options.pop(field)
-        # Update the preset options with the dictionary
-        fk_fields = ["qa_library"]
-        m2m_fields = ["qa_data_sources", "qa_documents"]
-        # Remove None values
-        source_options = {k: v for k, v in source_options.items()}
-        for key, value in source_options.items():
-            if key in fk_fields:
-                setattr(target_options, f"{key}_id", int(value) if value else None)
-            elif key in m2m_fields:
-                getattr(target_options, key).set(value)
-            else:
-                setattr(target_options, key, value)
-        target_options.save()
-
     chat = Chat.objects.get(id=chat_id)
     # if we are loading a preset, check if the user has access to it
     if preset_id and not can_access_preset(
@@ -558,7 +540,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         chat.save()
 
         # Update the chat options with the preset options
-        _copy_options(preset.options, chat.options)
+        copy_options(preset.options, chat.options)
 
         chat_options_form = ChatOptionsForm(instance=preset.options, user=request.user)
 
@@ -597,7 +579,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 # save the current chat settings
                 if replace_with_settings:
                     # copy the options from the chat to the preset
-                    _copy_options(chat.options, preset.options)
+                    copy_options(chat.options, preset.options)
                     preset.options.prompt = request.POST.get("prompt", "")
                     preset.options.save()
 
