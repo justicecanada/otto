@@ -265,24 +265,26 @@ def translate_response(chat, response_message):
 
     async def file_translation_generator(task_ids):
         yield "<p>" + _("Initiating translation...") + "</p>"
-        while task_ids:
-            # To prevent constantly checking the task status, we sleep for a bit
-            # File translation is very slow so every few seconds is plenty.
-            await asyncio.sleep(2)
-            for task_id in task_ids.copy():
-                task = translate_file.AsyncResult(task_id)
-                # If the task is not running, remove it from the list
-                if task.state != "PENDING":
-                    task_ids.remove(task_id)
-                    # Refresh the response message from the database
-                    await sync_to_async(response_message.refresh_from_db)()
-            if len(task_ids) == len(files):
-                yield "<p>" + _("Translating file") + f" 1/{len(files)}...</p>"
-            else:
-                if any(task.state == "SUCCESS" for task in task_ids):
-                    yield await sync_to_async(file_msg)(response_message, len(files))
+        any_task_done = False
+        try:
+            while task_ids:
+                # To prevent constantly checking the task status, we sleep for a bit
+                # File translation is very slow so every few seconds is plenty.
+                await asyncio.sleep(1)
+                for task_id in task_ids.copy():
+                    task = translate_file.AsyncResult(task_id)
+                    # If the task is not running, remove it from the list
+                    if task.state in ["SUCCESS", "FAILURE", "REVOKED", "TIMEOUT"]:
+                        any_task_done = True
+                        task_ids.remove(task_id)
+                        # Refresh the response message from the database
+                        await sync_to_async(response_message.refresh_from_db)()
+                if not any_task_done:
+                    yield "<p>" + _("Translating file") + f" 1/{len(files)}...</p>"
                 else:
-                    raise Exception(_("Error translating files."))
+                    yield await sync_to_async(file_msg)(response_message, len(files))
+        except:
+            raise Exception(_("Error translating files."))
 
     if len(files) > 0:
         # Initiate the Celery task for translating each file with Azure
