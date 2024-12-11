@@ -488,6 +488,8 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def chat_options(request, chat_id, action=None, preset_id=None):
+    from django.contrib import messages
+
     """
     Save and load chat options.
     """
@@ -559,6 +561,11 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         _copy_options(preset.options, chat.options)
 
         chat_options_form = ChatOptionsForm(instance=preset.options, user=request.user)
+
+        messages.success(
+            request,
+            _("Preset loaded successfully."),
+        )
 
         return render(
             request,
@@ -649,6 +656,11 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 chat.loaded_preset = preset
                 chat.save()
 
+                messages.success(
+                    request,
+                    _("Preset saved and loaded successfully."),
+                )
+
                 return render(
                     request,
                     "chat/components/chat_options_accordion.html",
@@ -668,6 +680,10 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         _copy_options(chat.options, preset.options)
         preset.options.prompt = request.POST.get("prompt", "")
         preset.options.save()
+        messages.success(
+            request,
+            _("Preset updated successfully."),
+        )
         return HttpResponse(status=200)
     elif action == "delete_preset":
         # check each chat instance of the user to see if the preset is loaded
@@ -679,6 +695,10 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 chat_instance.save()
         preset = get_object_or_404(Preset, id=preset_id)
         preset.delete()
+        messages.success(
+            request,
+            _("Preset deleted successfully."),
+        )
         return redirect("chat:get_presets", chat_id=chat_id)
     elif request.method == "POST":
         chat_options = chat.options
