@@ -280,9 +280,9 @@ async def test_combine_batch_generators():
 
     async def stream_generator3():
         yield "fifth thing"
-        yield ""
+        yield "**No relevant sources found.**"
 
-    titles = ["Title 1", "Title 2", ""]
+    titles = ["Title 1", "Title 2", "Title 3"]
     generators = [stream_generator1(), stream_generator2(), stream_generator3()]
 
     title_batches = batch(titles, 2)
@@ -295,7 +295,7 @@ async def test_combine_batch_generators():
     # Batches should be [[first, second], [third]]
     assert len(batch_generators) == 2
 
-    response_stream = combine_batch_generators(batch_generators, pruning=True)
+    response_stream = combine_batch_generators(batch_generators)
 
     final_output = ""
     async for yielded_output in response_stream:
@@ -304,10 +304,25 @@ async def test_combine_batch_generators():
     assert "second thing" in final_output
     assert "third thing" not in final_output
     assert "fifth thing" not in final_output
-    assert "**No relevant sources found.**" not in final_output
     assert "Title 1" in final_output
 
     # Check the ordering
     assert final_output.index("Title 1") < final_output.index("second thing")
     assert final_output.index("second thing") < final_output.index("Title 2")
     assert final_output.index("Title 2") < final_output.index("fourth thing")
+    assert final_output.index("fourth thing") < final_output.index("Title 3")
+    assert final_output.index("Title 3") < final_output.index(
+        "**No relevant sources found.**"
+    )
+
+    # Test pruning using single batch with no title
+    pruning_generators = [stream_generator3()]
+    pruning_test_stream = combine_batch_generators(pruning_generators, pruning=True)
+
+    # First, it should yield values from the generator
+    assert await pruning_test_stream.__anext__() == "fifth thing"
+    assert await pruning_test_stream.__anext__() == "**No relevant sources found.**"
+    # Afterwards, should yield an empty string from irrelevant batch
+    assert await pruning_test_stream.__anext__() == ""
+    # Finally, return pruning message due to empty final stream
+    assert await pruning_test_stream.__anext__() == "**No relevant sources found.**"
