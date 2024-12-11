@@ -23,10 +23,10 @@ from chat.models import Message
 from chat.prompts import current_time_prompt
 from chat.tasks import translate_file
 from chat.utils import (
-    batch,
     combine_batch_generators,
     combine_response_generators,
     combine_response_replacers,
+    create_batches,
     get_source_titles,
     group_sources_into_docs,
     htmx_stream,
@@ -39,6 +39,10 @@ from librarian.models import DataSource, Document, Library
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
+
+batch_size = (
+    5  # Maximum number of simultaneous LLM queries for multiple docs, sources, etc.
+)
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
@@ -181,8 +185,8 @@ def summarize_response(chat, response_message):
                     )
                 )
 
-        title_batches = batch(titles, 5)
-        response_batches = batch(responses, 5)
+        title_batches = create_batches(titles, batch_size)
+        response_batches = create_batches(responses, batch_size)
         response_replacer = combine_batch_generators(
             [
                 combine_response_replacers(
@@ -477,8 +481,10 @@ def qa_response(chat, response_message, switch_mode=False):
                 for document in filter_documents
                 if not cache.get(f"stop_response_{response_message.id}", False)
             ]
-            title_batches = batch(document_titles, 5)  # TODO: test batch size
-            response_batches = batch(summary_responses, 5)
+            title_batches = create_batches(
+                document_titles, batch_size
+            )  # TODO: test batch size
+            response_batches = create_batches(summary_responses, batch_size)
             response_replacer = combine_batch_generators(
                 [
                     combine_response_replacers(
@@ -613,8 +619,8 @@ def qa_response(chat, response_message, switch_mode=False):
                 if not cache.get(f"stop_response_{response_message.id}", False)
             ]
             titles = get_source_titles([sources[0] for sources in source_groups])
-            title_batches = batch(titles, 5)
-            response_batches = batch(responses, 5)
+            title_batches = create_batches(titles, batch_size)
+            response_batches = create_batches(responses, batch_size)
             response_replacer = combine_batch_generators(
                 [
                     combine_response_generators(

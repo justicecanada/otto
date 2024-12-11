@@ -477,10 +477,10 @@ def get_source_titles(sources):
     ]
 
 
-def batch(iterable, n=1):
-    l = len(iterable)
-    for ndx in range(0, l, n):
-        yield iterable[ndx : min(ndx + n, l)]
+def create_batches(iterable, n=1):
+    length = len(iterable)
+    for ndx in range(0, length, n):
+        yield iterable[ndx : min(ndx + n, length)]
 
 
 async def combine_response_generators(generators, titles, query, llm, prune=False):
@@ -509,7 +509,7 @@ async def combine_response_generators(generators, titles, query, llm, prune=Fals
         if final_result:
             yield (final_result)
         else:
-            yield ("**No relevant sources found.**")
+            yield (_("**No relevant sources found.**"))
         await asyncio.sleep(0)
 
 
@@ -550,7 +550,7 @@ async def combine_batch_generators(generators, pruning=False):
                 stream_value = response
             yield stream_value
             await asyncio.sleep(0)
-        if pruning and response == "**No relevant sources found.**":
+        if pruning and response == _("**No relevant sources found.**"):
             # If we're pruning (combine_response_generators only) and nothing
             # relevant was found in the batch, just retain previous batches
             yield stream
@@ -561,7 +561,7 @@ async def combine_batch_generators(generators, pruning=False):
     if not final_streams and pruning:
         # If we're pruning (combine_response_generators only) and have nothing after
         # iterating through all batches, stream the pruning message again
-        yield "**No relevant sources found.**"
+        yield _("**No relevant sources found.**")
 
 
 def group_sources_into_docs(source_nodes):

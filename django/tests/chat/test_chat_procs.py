@@ -1,5 +1,7 @@
 import asyncio
 
+from django.utils.translation import gettext_lazy as _
+
 import pytest
 from asgiref.sync import sync_to_async
 from bs4 import BeautifulSoup as bs
@@ -268,7 +270,11 @@ async def test_combine_response_replacers():
 
 @pytest.mark.asyncio
 async def test_combine_batch_generators():
-    from chat.utils import batch, combine_batch_generators, combine_response_replacers
+    from chat.utils import (
+        combine_batch_generators,
+        combine_response_replacers,
+        create_batches,
+    )
 
     async def stream_generator1():
         yield "first thing"
@@ -280,13 +286,13 @@ async def test_combine_batch_generators():
 
     async def stream_generator3():
         yield "fifth thing"
-        yield "**No relevant sources found.**"
+        yield _("**No relevant sources found.**")
 
     titles = ["Title 1", "Title 2", "Title 3"]
     generators = [stream_generator1(), stream_generator2(), stream_generator3()]
 
-    title_batches = batch(titles, 2)
-    generator_batches = batch(generators, 2)
+    title_batches = create_batches(titles, 2)
+    generator_batches = create_batches(generators, 2)
 
     batch_generators = [
         combine_response_replacers(batch_responses, batch_titles)
@@ -321,8 +327,8 @@ async def test_combine_batch_generators():
 
     # First, it should yield values from the generator
     assert await pruning_test_stream.__anext__() == "fifth thing"
-    assert await pruning_test_stream.__anext__() == "**No relevant sources found.**"
+    assert await pruning_test_stream.__anext__() == _("**No relevant sources found.**")
     # Afterwards, should yield an empty string from irrelevant batch
     assert await pruning_test_stream.__anext__() == ""
     # Finally, return pruning message due to empty final stream
-    assert await pruning_test_stream.__anext__() == "**No relevant sources found.**"
+    assert await pruning_test_stream.__anext__() == _("**No relevant sources found.**")
