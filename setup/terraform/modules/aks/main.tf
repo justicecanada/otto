@@ -230,6 +230,15 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
 
 locals { admin_email_list = split(",", var.admin_email) }
 
+resource "azurerm_log_analytics_table" "aks_audit_admin_table" {
+  name                          = "AKSAuditAdmin"
+  log_analytics_workspace_id    = azurerm_log_analytics_workspace.aks.id
+  data_plan                     = "Basic" # Changing to Basic plan
+
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
+
+
 # SC-5(3): Create an action group for AKS alerts
 resource "azurerm_monitor_action_group" "aks_alerts" {
   name                = "${var.aks_cluster_name}-alert-group"
