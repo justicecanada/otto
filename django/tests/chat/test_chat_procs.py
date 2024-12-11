@@ -280,9 +280,9 @@ async def test_combine_batch_generators():
 
     async def stream_generator3():
         yield "fifth thing"
-        yield "sixth thing"
+        yield ""
 
-    titles = ["Title 1", "Title 2", "Title 3"]
+    titles = ["Title 1", "Title 2", ""]
     generators = [stream_generator1(), stream_generator2(), stream_generator3()]
 
     title_batches = batch(titles, 2)
@@ -293,18 +293,18 @@ async def test_combine_batch_generators():
         for batch_responses, batch_titles in zip(generator_batches, title_batches)
     ]
 
-    response_stream = combine_batch_generators(batch_generators)
+    response_stream = combine_batch_generators(batch_generators, pruning=True)
     assert len(batch_generators) == 2
     final_output = ""
     async for yielded_output in response_stream:
         final_output = yielded_output
     assert "second thing" in final_output
+    assert "third thing" not in final_output
     assert "fifth thing" not in final_output
-    assert "sixth thing" in final_output
+    assert "**No relevant sources found.**" not in final_output
     assert "Title 1" in final_output
+    assert "Title 3" not in final_output
     # Check the ordering
     assert final_output.index("Title 1") < final_output.index("second thing")
     assert final_output.index("second thing") < final_output.index("Title 2")
     assert final_output.index("Title 2") < final_output.index("fourth thing")
-    assert final_output.index("fourth thing") < final_output.index("Title 3")
-    assert final_output.index("Title 3") < final_output.index("sixth thing")
