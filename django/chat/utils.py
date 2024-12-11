@@ -96,6 +96,15 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
     message.chat.save()
 
 
+def close_md_code_blocks(text):
+    # Close any open code blocks
+    if text.count("```") % 2 == 1:
+        text += "\n```"
+    elif text.count("`") % 2 == 1:
+        text += "`"
+    return text
+
+
 async def htmx_stream(
     chat: Chat,
     message_id: int,
@@ -194,6 +203,7 @@ async def htmx_stream(
             elif not generation_stopped:
                 generation_stopped = True
                 if wrap_markdown:
+                    full_message = close_md_code_blocks(full_message)
                     stop_warning_message = f"\n\n_{stop_warning_message}_"
                 else:
                     stop_warning_message = f"<p><em>{stop_warning_message}</em></p>"
