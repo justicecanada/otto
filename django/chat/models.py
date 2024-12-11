@@ -11,7 +11,6 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from rules import is_group_member
 from structlog import get_logger
 
 from chat.prompts import (
@@ -96,9 +95,10 @@ class ChatOptionsManager(models.Manager):
         Set the mode and chat FK in the new object.
         """
         if chat and chat.user.default_preset:
-            new_options = chat.user.default_preset.options
-            if new_options:
-                new_options.pk = None
+            from chat.utils import copy_options
+
+            new_options = self.create()
+            copy_options(chat.user.default_preset.options, new_options)
         else:
             # Default Otto settings
             default_library = Library.objects.get_default_library()
