@@ -292,17 +292,21 @@ async def test_combine_batch_generators():
         combine_response_replacers(batch_responses, batch_titles)
         for batch_responses, batch_titles in zip(generator_batches, title_batches)
     ]
+    # Batches should be [[first, second], [third]]
+    assert len(batch_generators) == 2
 
     response_stream = combine_batch_generators(batch_generators, pruning=True)
-    assert len(batch_generators) == 2
+
     final_output = ""
     async for yielded_output in response_stream:
         final_output = yielded_output
+
     assert "second thing" in final_output
     assert "third thing" not in final_output
     assert "fifth thing" not in final_output
     assert "**No relevant sources found.**" not in final_output
     assert "Title 1" in final_output
+
     # Check the ordering
     assert final_output.index("Title 1") < final_output.index("second thing")
     assert final_output.index("second thing") < final_output.index("Title 2")
