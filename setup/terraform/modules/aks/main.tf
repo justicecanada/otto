@@ -51,292 +51,44 @@ resource "azurerm_network_security_group" "aks_nsg" {
   resource_group_name = var.resource_group_name
 
   security_rule {
-    name                       = "AllowAKSInbound443"
+    name                       = "AllowVnetInbound"
     priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
-    protocol                   = "Tcp"
+    protocol                   = "*"
     source_port_range          = "*"
-    destination_port_range     = "443"
+    destination_port_range     = "*"
     source_address_prefix      = "VirtualNetwork"
-    destination_address_prefix = "*"
-    # Allows HTTPS traffic for secure communication with the Kubernetes API server
+    destination_address_prefix = "VirtualNetwork"
   }
 
   security_rule {
-    name                       = "AllowKubeletAPI"
+    name                       = "AllowAzureLoadBalancerInbound"
     priority                   = 110
     direction                  = "Inbound"
     access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "10250"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-    # Enables communication between the control plane and worker nodes for pod and node management
-  }
-
-  security_rule {
-    name                       = "AllowKubeScheduler"
-    priority                   = 120
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "10251"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-    # Allows the Kubernetes scheduler to manage pod scheduling across nodes
-  }
-
-  security_rule {
-    name                       = "AllowKubeControllerManager"
-    priority                   = 130
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "10252"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-    # Enables the Kubernetes controller manager to manage various cluster controllers
-  }
-
-  security_rule {
-    name                       = "AllowAzureContainerRegistry9000"
-    priority                   = 140
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "9000"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-    # Permits outbound traffic to Azure Container Registry for pulling container images
-  }
-
-  security_rule {
-    name                       = "AllowSSH22"
-    priority                   = 150
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-    # Allows SSH access to nodes for debugging and maintenance (optional, use with caution)
-  }
-
-  security_rule {
-    name                       = "AllowDNS53"
-    priority                   = 160
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Udp"
-    source_port_range          = "*"
-    destination_port_range     = "53"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-    # Allows DNS traffic for pod and service discovery
-  }
-
-  security_rule {
-    name                       = "AllowDNSOutbound"
-    priority                   = 170
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Udp"
-    source_port_range          = "*"
-    destination_port_range     = "53"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-    # Allows outbound DNS traffic for pod and service discovery
-  }
-
-  security_rule {
-    name                       = "AllowInterNodeInbound"
-    priority                   = 180
-    direction                  = "Inbound"
-    access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    # Allows inter-node communication within the AKS cluster
+    source_address_prefix      = "AzureLoadBalancer"
+    destination_address_prefix = "*"
   }
 
   security_rule {
-    name                       = "AllowPostgreSQL"
-    priority                   = 190
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "5432"
-    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    # Allows PostgreSQL traffic between pods in the cluster
-  }
-
-  security_rule {
-    name                       = "AllowInterNodeOutbound"
-    priority                   = 200
+    name                       = "AllowAllOutbound"
+    priority                   = 100
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    # Allows outbound traffic between nodes for pod communication
-  }
-
-  security_rule {
-    name                       = "AllowHttpInbound"
-    priority                   = 210
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    # Allows HTTP traffic between pods for Django service
-  }
-
-  security_rule {
-    name                       = "AllowHttpsInbound"
-    priority                   = 220
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "8000"
-    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    # Allows HTTPS traffic for Django application
-  }
-
-  security_rule {
-    name                       = "AllowRedis"
-    priority                   = 230
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "6379"
-    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    # Allows Redis traffic between pods
-  }
-
-  security_rule {
-    name                       = "AllowCeleryBeat"
-    priority                   = 240
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "5555"
-    source_address_prefix      = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    destination_address_prefix = data.azurerm_subnet.web_subnet.address_prefixes[0]
-    # Allows Celery Beat monitoring
-  }
-
-  security_rule {
-    name                       = "AllowHTTPSOutbound"
-    priority                   = 250
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
-    # Allows outbound HTTPS traffic for various services and updates
-  }
-
-  security_rule {
-    name                       = "AllowNTPOutbound"
-    priority                   = 260
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Udp"
-    source_port_range          = "*"
-    destination_port_range     = "123"
-    source_address_prefix      = "*"
-    destination_address_prefix = "Internet"
-    # Allows outbound NTP traffic for time synchronization
-  }
-
-  security_rule {
-    name                       = "AllowAzureCloudOutbound"
-    priority                   = 265
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_ranges    = ["443", "9000"]
-    source_address_prefix      = "*"
-    destination_address_prefix = "AzureCloud"
-    # Allows outbound traffic to Azure services 
-  }
-
-  security_rule {
-    name                       = "AllowAzureMonitorOutbound"
-    priority                   = 270
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "*"
-    destination_address_prefix = "AzureMonitor"
-    # Allows outbound traffic to Azure Monitor
-  }
-
-  security_rule {
-    name                       = "AllowAzureActiveDirectoryOutbound"
-    priority                   = 280
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "*"
-    destination_address_prefix = "AzureActiveDirectory"
-    # Allows outbound traffic to Azure Active Directory for authentication
-  }
-
-  security_rule {
-    name                       = "AllowMCR"
-    priority                   = 290
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_ranges    = ["443"]
-    source_address_prefix      = "*"
-    destination_address_prefix = "MicrosoftContainerRegistry"
-  }
-
-  security_rule {
-    name                       = "AllowDNS"
-    priority                   = 1100
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "53"
-    source_address_prefix      = "*"
-    destination_address_prefix = "168.63.129.16/32"
-    # Allow DNS resolution
   }
 
   tags = var.tags
 }
+
 
 # Data resource to firewall
 data "azurerm_firewall" "aks_firewall" {

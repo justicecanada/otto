@@ -107,6 +107,7 @@ $ACR_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}acr".ToLower()
 $KEYVAULT_NAME = "${ORGANIZATION}-${INTENDED_USE}-${APP_NAME}-kv".ToLower()
 $JUMPBOX_NAME = "jumpbox"
 $JUMPBOX_IDENTITY_NAME = "$JUMPBOX_NAME-identity"
+$FIREWALL_NAME = "firewall"
 
 # Create management resource group if it doesn't exist
 $groupExists = az group show --name $MGMT_RESOURCE_GROUP_NAME --only-show-errors 2>$null
@@ -733,7 +734,8 @@ if (-not $privateEndpointExists) {
         --connection-name "$ACR_NAME-connection" `
         --only-show-errors `
         --output none
-} else {
+}
+else {
     Write-Host "Private endpoint for ACR already exists"
 }
 
@@ -754,7 +756,8 @@ if (-not $acrPrivateLinkDnsZoneExists) {
         --name "privatelink.azurecr.io" `
         --only-show-errors `
         --output none
-} else {
+}
+else {
     Write-Host "Privatelink DNS zone for ACR already exists"
 }
 
@@ -770,7 +773,8 @@ if (-not $acrPrivateLinkDnsZoneLinked) {
         --registration-enabled false `
         --only-show-errors `
         --output none
-} else {
+}
+else {
     Write-Host "Privatelink DNS zone for ACR is already linked to VNet"
 }
 
@@ -785,7 +789,8 @@ if (-not $acrRecordExists) {
         --ipv4-address $networkInterfaceIpConfig `
         --only-show-errors `
         --output none
-} else {
+}
+else {
     Write-Host "A record for ACR already exists in privatelink DNS zone"
 }    
 
@@ -994,7 +999,6 @@ if (-not $firewallPipExists) {
         --output none
 }
 
-$FIREWALL_NAME = "firewall"
 
 # Create Azure Firewall
 $firewallExists = az network firewall show --resource-group $MGMT_RESOURCE_GROUP_NAME --name $FIREWALL_NAME --only-show-errors 2>$null
@@ -1089,208 +1093,79 @@ az network firewall ip-config create `
     --only-show-errors `
     --output none
 
-# Application Rule: Allow access to Microsoft Container Registry (MCR)
-Write-Host "Creating Application Rule for MCR"
+    
+# AzureServices (Priority: 100)
 az network firewall application-rule create `
     --resource-group $MGMT_RESOURCE_GROUP_NAME `
     --firewall-name $FIREWALL_NAME `
-    --collection-name "aks-rules" `
-    --name "allow-mcr" `
-    --protocols Https=443 `
-    --target-fqdns `
-        "*.mcr.microsoft.com" `
-        "mcr.microsoft.com" `
-        "*.data.mcr.microsoft.com" `
-    --source-addresses $WEB_SUBNET_IP_RANGE `
-    --priority 100 `
-    --action Allow `
-    --only-show-errors `
-    --output none
-
-# Application Rule: Allow access to Azure services
-Write-Host "Creating Application Rule for Azure Services"
-az network firewall application-rule create `
-    --resource-group $MGMT_RESOURCE_GROUP_NAME `
-    --firewall-name $FIREWALL_NAME `
-    --collection-name "azure-services" `
-    --name "allow-azure" `
-    --protocols Https=443 `
-    --target-fqdns `
-        "*.azure.com" `
-        "*.core.windows.net" `
-        "*.monitoring.azure.com" `
-    --source-addresses $WEB_SUBNET_IP_RANGE `
-    --priority 200 `
-    --action Allow `
-    --only-show-errors `
-    --output none
-
-# Application Rule: Allow AKS Control Plane access
-Write-Host "Creating Application Rule for AKS Control Plane"
-az network firewall application-rule create `
-    --resource-group $MGMT_RESOURCE_GROUP_NAME `
-    --firewall-name $FIREWALL_NAME `
-    --collection-name "aks-control-plane" `
-    --name "allow-aks-control-plane" `
-    --protocols Https=443 `
-    --target-fqdns `
-        "*.hcp.canadacentral.azmk8s.io" `
-        "management.azure.com" `
-        "login.microsoftonline.com" `
-        "packages.microsoft.com" `
-        "acs-mirror.azureedge.net" `
-    --source-addresses $WEB_SUBNET_IP_RANGE `
-    --priority 300 `
-    --action Allow `
-    --only-show-errors `
-    --output none
-
-
-
-# az network firewall application-rule create `
-#     --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#     --firewall-name $FIREWALL_NAME `
-#     --collection-name "acr-rules" `
-#     --name "allow-acr" `
-#     --protocols Https=443 `
-#     --target-fqdns "$ACR_NAME.azurecr.io" `
-#     --source-addresses $WEB_SUBNET_IP_RANGE `
-#     --priority 400 `
-#     --action Allow
-
-
-
-# Create route table for jumpbox subnet
-# $jumpboxRouteTable = az network route-table create `
-#     --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#     --name "jumpbox-rt" `
-#     --location $LOCATION `
-#     --output none
-
-# # Add route for traffic through firewall
-# $firewallPrivateIP = az network firewall ip-config list `
-#     --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#     --firewall-name $FIREWALL_NAME `
-#     --query "[?name=='fw-ip-config'].privateIpAddress" `
-#     --output tsv
-
-# az network route-table route create `
-#     --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#     --route-table-name "jumpbox-rt" `
-#     --name "to-internet" `
-#     --address-prefix "0.0.0.0/0" `
-#     --next-hop-type VirtualAppliance `
-#     --next-hop-ip-address $firewallPrivateIP `
-#     --output none
-
-
-# TODO: The following was removed because we don't need to route this traffic through the firewall. The private endpoint ensures that communication stays within the Azure network.
-# Associate route table with jumpbox subnet
-# az network vnet subnet update `
-#     --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#     --vnet-name $VNET_NAME `
-#     --name $MGMT_SUBNET_NAME `
-#     --route-table "jumpbox-rt" `
-#     --output none
-
-
-# # Add firewall application rule for ACR management
-# az network firewall application-rule create `
-#     --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#     --firewall-name $FIREWALL_NAME `
-#     --collection-name "acr-mgmt-rules" `
-#     --name "allow-acr-mgmt" `
-#     --protocols Https=443 `
-#     --target-fqdns "$ACR_NAME.azurecr.io" `
-#     --source-addresses $MGMT_SUBNET_IP_RANGE `
-#     --priority 450 `
-#     --action Allow `
-#     --output none
-
-
-# Allow essential Azure services
-az network firewall application-rule create `
-    --resource-group $MGMT_RESOURCE_GROUP_NAME `
-    --firewall-name $FIREWALL_NAME `
-    --collection-name "azure-login" `
-    --name "allow-login" `
+    --collection-name "AzureServices" `
+    --name "AllowAzureCloud" `
     --protocols Https=443 Http=80 `
-    --target-fqdns "login.microsoftonline.com" "management.azure.com" `
-    --source-addresses $MGMT_SUBNET_IP_RANGE `
-    --priority 500 `
+    --target-fqdns "*.azure.com" "*.core.windows.net" "*.monitoring.azure.com" "management.azure.com" "login.microsoftonline.com" "*.api.cognitive.microsoft.com" "*.vault.azure.net" `
+    --source-addresses $VNET_IP_RANGE `
+    --priority 100 `
     --action Allow
 
-# Allow basic network connectivity
+az network firewall application-rule create `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --firewall-name $FIREWALL_NAME `
+    --collection-name "AzureServices" `
+    --name "AllowAKSControlPlane" `
+    --protocols Https=443 `
+    --target-fqdns "*.hcp.canadacentral.azmk8s.io" "packages.microsoft.com" "acs-mirror.azureedge.net" `
+    --source-addresses $VNET_IP_RANGE
+
+# ContainerRegistries (Priority: 200)
+az network firewall application-rule create `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --firewall-name $FIREWALL_NAME `
+    --collection-name "ContainerRegistries" `
+    --name "AllowMCR" `
+    --protocols Https=443 `
+    --target-fqdns "*.mcr.microsoft.com" "mcr.microsoft.com" "*.data.mcr.microsoft.com" `
+    --source-addresses $VNET_IP_RANGE `
+    --priority 200 `
+    --action Allow
+
+az network firewall application-rule create `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --firewall-name $FIREWALL_NAME `
+    --collection-name "ContainerRegistries" `
+    --name "AllowACRAndDocker" `
+    --protocols Https=443 `
+    --target-fqdns "*.azurecr.io" "*.docker.io" "docker.io" "registry-1.docker.io" "auth.docker.io" "production.cloudflare.docker.com" "registry.k8s.io" "k8s.gcr.io" "gcr.io" "hub.docker.com" `
+    --source-addresses $VNET_IP_RANGE
+
+# DeveloperTools (Priority: 300)
+az network firewall application-rule create `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --firewall-name $FIREWALL_NAME `
+    --collection-name "DeveloperTools" `
+    --name "AllowPythonPackages" `
+    --protocols Https=443 Http=80 `
+    --target-fqdns "pypi.org" "files.pythonhosted.org" "*.pythonhosted.org" `
+    --source-addresses $VNET_IP_RANGE `
+    --priority 300 `
+    --action Allow
+
+az network firewall application-rule create `
+    --resource-group $MGMT_RESOURCE_GROUP_NAME `
+    --firewall-name $FIREWALL_NAME `
+    --collection-name "DeveloperTools" `
+    --name "AllowGitHub" `
+    --protocols Https=443 `
+    --target-fqdns "github.com" "raw.githubusercontent.com" "objects.githubusercontent.com" `
+    --source-addresses $VNET_IP_RANGE
+
+# AzureManagement (Network Rule, Priority: 100)
 az network firewall network-rule create `
     --resource-group $MGMT_RESOURCE_GROUP_NAME `
     --firewall-name $FIREWALL_NAME `
-    --collection-name "azure-management" `
-    --name "allow-management" `
+    --collection-name "AzureManagement" `
+    --name "AllowAzureCloud" `
     --protocols TCP `
     --destination-ports 443 80 `
     --destination-addresses "AzureCloud" `
-    --source-addresses $MGMT_SUBNET_IP_RANGE `
-    --priority 110 `
+    --source-addresses $VNET_IP_RANGE `
+    --priority 100 `
     --action Allow
-
-
-
-# Allow access to Python package repositories
-az network firewall application-rule create `
-    --resource-group $MGMT_RESOURCE_GROUP_NAME `
-    --firewall-name $FIREWALL_NAME `
-    --collection-name "python-rules" `
-    --name "allow-python-packages" `
-    --protocols Https=443 Http=80 `
-    --target-fqdns "pypi.org" "files.pythonhosted.org" "*.pythonhosted.org" "github.com" "raw.githubusercontent.com" "objects.githubusercontent.com" `
-    --source-addresses $MGMT_SUBNET_IP_RANGE `
-    --priority 600 `
-    --action Allow
-
-
-az network firewall application-rule create `
-    --resource-group $MGMT_RESOURCE_GROUP_NAME `
-    --firewall-name $FIREWALL_NAME `
-    --collection-name "azure-auth" `
-    --name "allow-auth" `
-    --protocols Https=443 `
-    --target-fqdns "login.microsoftonline.com" "management.azure.com" "*.azurecr.io" `
-    --source-addresses $MGMT_SUBNET_IP_RANGE `
-    --priority 550 `
-    --action Allow
-
-# Allow access to container registries
-az network firewall application-rule create `
-    --resource-group $MGMT_RESOURCE_GROUP_NAME `
-    --firewall-name $FIREWALL_NAME `
-    --collection-name "container-rules" `
-    --name "allow-registries" `
-    --protocols Https=443 `
-    --target-fqdns "*.docker.io" "docker.io" "registry-1.docker.io" "auth.docker.io" "production.cloudflare.docker.com" "registry.k8s.io" "k8s.gcr.io" "gcr.io" "hub.docker.com" `
-    --source-addresses $MGMT_SUBNET_IP_RANGE `
-    --priority 560 `
-    --action Allow
-
-# Allow access to Azure services used in the application
-az network firewall application-rule create `
-    --resource-group $MGMT_RESOURCE_GROUP_NAME `
-    --firewall-name $FIREWALL_NAME `
-    --collection-name "azure-services" `
-    --name "allow-azure" `
-    --protocols Https=443 `
-    --target-fqdns "*.azure.com" "*.core.windows.net" "*.monitoring.azure.com" "*.api.cognitive.microsoft.com" "*.vault.azure.net" `
-    --source-addresses $MGMT_SUBNET_IP_RANGE `
-    --priority 200 `
-    --action Allow
-
-# az network nsg rule create --name AllowToACREndpoint `
-#     --nsg-name "$JUMPBOX_NAME-nsg" `
-#     --resource-group $MGMT_RESOURCE_GROUP_NAME `
-#     --priority 100 `
-#     --direction Outbound `
-#     --source-address-prefixes VirtualNetwork `
-#     --source-port-ranges '*' `
-#     --destination-address-prefixes $MGMT_SUBNET_IP_RANGE `
-#     --destination-port-ranges 443 `
-#     --protocol Tcp `
-#     --access Allow
