@@ -2483,6 +2483,38 @@
         "fr": "",
         "fr_auto": "Activer l’URL du test de charge"
     },
+    "Upload Scanned Notice(s) of Appeal": {
+        "fr": "",
+        "fr_auto": "Télécharger les avis d’appel numérisés"
+    },
+    "Update Preset \"%(name)s\" ": {
+        "fr": "",
+        "fr_auto": "Mettre à jour le préréglage « %(name)s » "
+    },
+    "You currently have the preset named \"%(name)s\" loaded. This will update it with your latest changes. ": {
+        "fr": "",
+        "fr_auto": "You currently have the preset named \"%(name)s\" loaded. This will update it with your latest changes. "
+    },
+    "Create New Preset": {
+        "fr": "",
+        "fr_auto": "Créer un nouveau préréglage"
+    },
+    "Create a new preset from your current settings.": {
+        "fr": "",
+        "fr_auto": "Créez un nouveau préréglage à partir de vos paramètres actuels."
+    },
+    "Update Preset %(name)s ": {
+        "fr": "",
+        "fr_auto": "Update Preset %(name)s "
+    },
+    "Save & Load": {
+        "fr": "",
+        "fr_auto": "Enregistrer et charger"
+    },
+    "Save preset from current settings": {
+        "fr": "",
+        "fr_auto": "Enregistrer le préréglage à partir des paramètres actuels"
+    },
     "Smiling robot head": {
         "fr": "",
         "fr_auto": "Tête de robot souriante"
