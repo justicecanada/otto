@@ -277,29 +277,6 @@ class PresetManager(models.Manager):
             .order_by(*ordering)
         )
 
-    def get_created_presets(self, user: User, language: str = None):
-        ordering = ["-default", "-favourite"]
-        if language:
-            ordering.append(f"name_{language}")
-
-        presets = self.filter(owner=user, is_deleted=False)
-        return (
-            presets.distinct()
-            .annotate(
-                favourite=Coalesce(
-                    Q(favourited_by__in=[user]),
-                    Value(False),
-                    output_field=BooleanField(),
-                ),
-                default=Coalesce(
-                    Q(default_for__in=[user]),
-                    Value(False),
-                    output_field=BooleanField(),
-                ),
-            )
-            .order_by(*ordering)
-        )
-
 
 SHARING_OPTIONS = [
     ("private", _("Make private")),
