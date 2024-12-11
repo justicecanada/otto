@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import EmailUploadForm
 from .models import Email
-from .utils import extract_email_details
+from .utils import extract_email_details, summary
 
 
 def upload_emails(request):
@@ -55,6 +55,7 @@ def upload_emails(request):
             "unique_participants": thread["unique_participants"],
             "total_attachments": thread["total_attachments"],
             "last_email_date": thread["last_email_date"],
+            "thread_summary": summarize_thread(thread["thread_id"]),
         }
         for thread in threads
     }
@@ -96,3 +97,11 @@ def delete_thread(request, thread_id):
     if request.method == "POST":
         Email.objects.filter(thread_id=thread_id).delete()
     return redirect("chronology_email:index")
+
+
+def summarize_thread(thread_id):
+    emails = Email.objects.filter(thread_id=thread_id)
+    combined_text = " ".join(
+        email.preview_text for email in emails if email.preview_text
+    )
+    return summary(combined_text)
