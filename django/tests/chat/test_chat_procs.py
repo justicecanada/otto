@@ -264,3 +264,48 @@ async def test_combine_response_replacers():
     assert final_output.index("Title 2") < final_output.index("fourth thing")
     assert final_output.index("fourth thing") < final_output.index("Title 3")
     assert final_output.index("Title 3") < final_output.index("sixth thing")
+
+
+@pytest.mark.asyncio
+async def test_combine_batch_generators():
+    from chat.utils import batch, combine_batch_generators, combine_response_replacers
+
+    async def stream_generator1():
+        yield "first thing"
+        yield "second thing"
+
+    async def stream_generator2():
+        yield "third thing"
+        yield "fourth thing"
+
+    async def stream_generator3():
+        yield "fifth thing"
+        yield "sixth thing"
+
+    titles = ["Title 1", "Title 2", "Title 3"]
+    generators = [stream_generator1(), stream_generator2(), stream_generator3()]
+
+    title_batches = batch(titles, 2)
+    generator_batches = batch(generators, 2)
+
+    response_stream = combine_batch_generators(
+        [
+            combine_response_replacers(batch_responses, batch_titles)
+            for batch_responses, batch_titles in zip(generator_batches, title_batches)
+        ],
+    )
+    assert len(generator_batches) == 2
+    assert len(title_batches) == 2
+    final_output = ""
+    async for yielded_output in response_stream:
+        final_output = yielded_output
+    assert "second thing" in final_output
+    assert "fifth thing" not in final_output
+    assert "sixth thing" in final_output
+    assert "Title 1" in final_output
+    # Check the ordering
+    assert final_output.index("Title 1") < final_output.index("second thing")
+    assert final_output.index("second thing") < final_output.index("Title 2")
+    assert final_output.index("Title 2") < final_output.index("fourth thing")
+    assert final_output.index("fourth thing") < final_output.index("Title 3")
+    assert final_output.index("Title 3") < final_output.index("sixth thing")
