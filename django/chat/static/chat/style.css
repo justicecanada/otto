@@ -1243,6 +1243,11 @@ ul#preset-edit-tabs {
   }
 }
 
+.preset-form-user-choice .card-button {
+  border: 1px solid transparent;
+  /* Other styles */
+}
+
 .preset-form-user-choice .card-button:hover {
   border: 1px solid #acacac;
 
