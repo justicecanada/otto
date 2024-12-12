@@ -103,7 +103,7 @@ $ENTRA_CLIENT_ID = az ad app list --display-name "${ENTRA_CLIENT_NAME}" --query 
 
 $MGMT_RESOURCE_GROUP_NAME = "${APP_NAME}$($INTENDED_USE.ToUpper())MgmtRg"
 $MGMT_STORAGE_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}mgmt".ToLower()
-$ACR_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}acr".ToLower()
+# $ACR_NAME = "${ORGANIZATION}${INTENDED_USE}${APP_NAME}acr".ToLower()
 $KEYVAULT_NAME = "${ORGANIZATION}-${INTENDED_USE}-${APP_NAME}-kv".ToLower()
 $JUMPBOX_NAME = "jumpbox"
 $JUMPBOX_IDENTITY_NAME = "$JUMPBOX_NAME-identity"
@@ -696,116 +696,116 @@ else {
 }
 
 
-# Check if the ACR already exists. If not, create it.
-$acrExists = az acr show --name $ACR_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --only-show-errors 2>$null
-if (-not $acrExists) {
-    Write-Host "Creating Azure Container Registry: $ACR_NAME"
-    az acr create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --name $ACR_NAME `
-        --sku Premium `
-        --public-network-enabled false `
-        --allow-trusted-services true `
-        --tags ApplicationName="$APP_NAME" Environment="$ENVIRONMENT" Classification="$CLASSIFICATION" CostCenter="$COST_CENTER" Criticality="$CRITICALITY" Owner="$OWNER" Location="$LOCATION" `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Azure Container Registry $ACR_NAME already exists"
-}
+# # Check if the ACR already exists. If not, create it.
+# $acrExists = az acr show --name $ACR_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --only-show-errors 2>$null
+# if (-not $acrExists) {
+#     Write-Host "Creating Azure Container Registry: $ACR_NAME"
+#     az acr create `
+#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
+#         --name $ACR_NAME `
+#         --sku Premium `
+#         --public-network-enabled false `
+#         --allow-trusted-services true `
+#         --tags ApplicationName="$APP_NAME" Environment="$ENVIRONMENT" Classification="$CLASSIFICATION" CostCenter="$COST_CENTER" Criticality="$CRITICALITY" Owner="$OWNER" Location="$LOCATION" `
+#         --only-show-errors `
+#         --output none
+# }
+# else {
+#     Write-Host "Azure Container Registry $ACR_NAME already exists"
+# }
 
 
-# Get the resource ID of the ACR
-$acrId = az acr show --name $ACR_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
+# # Get the resource ID of the ACR
+# $acrId = az acr show --name $ACR_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
 
-# Create the private endpoint for the ACR
-$privateEndpointExists = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "${ACR_NAME}-endpoint" --only-show-errors 2>$null
-if (-not $privateEndpointExists) {
-    Write-Host "Creating private endpoint for ACR"
-    az network private-endpoint create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --name "${ACR_NAME}-endpoint" `
-        --vnet-name $VNET_NAME `
-        --subnet $MGMT_SUBNET_NAME `
-        --private-connection-resource-id $acrId `
-        --group-id registry `
-        --connection-name "$ACR_NAME-connection" `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Private endpoint for ACR already exists"
-}
+# # Create the private endpoint for the ACR
+# $privateEndpointExists = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "${ACR_NAME}-endpoint" --only-show-errors 2>$null
+# if (-not $privateEndpointExists) {
+#     Write-Host "Creating private endpoint for ACR"
+#     az network private-endpoint create `
+#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
+#         --name "${ACR_NAME}-endpoint" `
+#         --vnet-name $VNET_NAME `
+#         --subnet $MGMT_SUBNET_NAME `
+#         --private-connection-resource-id $acrId `
+#         --group-id registry `
+#         --connection-name "$ACR_NAME-connection" `
+#         --only-show-errors `
+#         --output none
+# }
+# else {
+#     Write-Host "Private endpoint for ACR already exists"
+# }
 
-# Get the private endpoint network interface
-$networkInterfaceId = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "${ACR_NAME}-endpoint" --query "networkInterfaces[0].id" -o tsv
-$networkInterfaceIpConfig = az resource show `
-    --ids $networkInterfaceId `
-    --api-version 2019-04-01 `
-    --query 'properties.ipConfigurations[0].properties.privateIPAddress' `
-    --output tsv
+# # Get the private endpoint network interface
+# $networkInterfaceId = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "${ACR_NAME}-endpoint" --query "networkInterfaces[0].id" -o tsv
+# $networkInterfaceIpConfig = az resource show `
+#     --ids $networkInterfaceId `
+#     --api-version 2019-04-01 `
+#     --query 'properties.ipConfigurations[0].properties.privateIPAddress' `
+#     --output tsv
 
-# Create the privatelink DNS zone for ACR if it doesn't exist
-$acrPrivateLinkDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "privatelink.azurecr.io" --only-show-errors 2>$null
-if (-not $acrPrivateLinkDnsZoneExists) {
-    Write-Host "Creating privatelink DNS zone for ACR"
-    az network private-dns zone create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --name "privatelink.azurecr.io" `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Privatelink DNS zone for ACR already exists"
-}
+# # Create the privatelink DNS zone for ACR if it doesn't exist
+# $acrPrivateLinkDnsZoneExists = az network private-dns zone show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "privatelink.azurecr.io" --only-show-errors 2>$null
+# if (-not $acrPrivateLinkDnsZoneExists) {
+#     Write-Host "Creating privatelink DNS zone for ACR"
+#     az network private-dns zone create `
+#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
+#         --name "privatelink.azurecr.io" `
+#         --only-show-errors `
+#         --output none
+# }
+# else {
+#     Write-Host "Privatelink DNS zone for ACR already exists"
+# }
 
-# Link the privatelink DNS zone for ACR to the VNet if it isn't already
-$acrPrivateLinkDnsZoneLinked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.azurecr.io" --name $VNET_NAME --only-show-errors 2>$null
-if (-not $acrPrivateLinkDnsZoneLinked) {
-    Write-Host "Linking privatelink DNS zone for ACR to VNet"
-    az network private-dns link vnet create `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --zone-name "privatelink.azurecr.io" `
-        --name $VNET_NAME `
-        --virtual-network $vnetId `
-        --registration-enabled false `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "Privatelink DNS zone for ACR is already linked to VNet"
-}
+# # Link the privatelink DNS zone for ACR to the VNet if it isn't already
+# $acrPrivateLinkDnsZoneLinked = az network private-dns link vnet show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.azurecr.io" --name $VNET_NAME --only-show-errors 2>$null
+# if (-not $acrPrivateLinkDnsZoneLinked) {
+#     Write-Host "Linking privatelink DNS zone for ACR to VNet"
+#     az network private-dns link vnet create `
+#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
+#         --zone-name "privatelink.azurecr.io" `
+#         --name $VNET_NAME `
+#         --virtual-network $vnetId `
+#         --registration-enabled false `
+#         --only-show-errors `
+#         --output none
+# }
+# else {
+#     Write-Host "Privatelink DNS zone for ACR is already linked to VNet"
+# }
 
-# Create the A record for the ACR in the privatelink DNS zone
-$acrRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.azurecr.io" --name $ACR_NAME --only-show-errors 2>$null
-if (-not $acrRecordExists) {
-    Write-Host "Creating A record for ACR in privatelink DNS zone"
-    az network private-dns record-set a add-record `
-        --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --zone-name "privatelink.azurecr.io" `
-        --record-set-name $ACR_NAME `
-        --ipv4-address $networkInterfaceIpConfig `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "A record for ACR already exists in privatelink DNS zone"
-}
+# # Create the A record for the ACR in the privatelink DNS zone
+# $acrRecordExists = az network private-dns record-set a show --resource-group $MGMT_RESOURCE_GROUP_NAME --zone-name "privatelink.azurecr.io" --name $ACR_NAME --only-show-errors 2>$null
+# if (-not $acrRecordExists) {
+#     Write-Host "Creating A record for ACR in privatelink DNS zone"
+#     az network private-dns record-set a add-record `
+#         --resource-group $MGMT_RESOURCE_GROUP_NAME `
+#         --zone-name "privatelink.azurecr.io" `
+#         --record-set-name $ACR_NAME `
+#         --ipv4-address $networkInterfaceIpConfig `
+#         --only-show-errors `
+#         --output none
+# }
+# else {
+#     Write-Host "A record for ACR already exists in privatelink DNS zone"
+# }
 
-# Make sure the jumpbox identity can push images to the ACR
-$acrRoleAssignment = az role assignment list --assignee $identityId --role "AcrPush" --scope $acrId -o tsv
-if (-not $acrRoleAssignment) {
-    Write-Host "Assigning AcrPush role to VM identity"
-    az role assignment create `
-        --assignee $identityId `
-        --role "AcrPush" `
-        --scope $acrId `
-        --only-show-errors `
-        --output none
-}
-else {
-    Write-Host "VM identity already has the AcrPush role assignment"
-}
+# # Make sure the jumpbox identity can push images to the ACR
+# $acrRoleAssignment = az role assignment list --assignee $identityId --role "AcrPush" --scope $acrId -o tsv
+# if (-not $acrRoleAssignment) {
+#     Write-Host "Assigning AcrPush role to VM identity"
+#     az role assignment create `
+#         --assignee $identityId `
+#         --role "AcrPush" `
+#         --scope $acrId `
+#         --only-show-errors `
+#         --output none
+# }
+# else {
+#     Write-Host "VM identity already has the AcrPush role assignment"
+# }
 
 
 # Check if the A record for the cluster exists in the DNS zone. If not, create it.
@@ -946,7 +946,6 @@ DNS_SUBSCRIPTION_ID="$dnsSubscriptionId"
 DNS_RESOURCE_GROUP="$dnsResourceGroup"
 MGMT_RESOURCE_GROUP_NAME="$MGMT_RESOURCE_GROUP_NAME"
 MGMT_STORAGE_NAME="$MGMT_STORAGE_NAME"
-ACR_NAME="$ACR_NAME"
 KEYVAULT_NAME="$KEYVAULT_NAME"
 JUMPBOX_NAME="$JUMPBOX_NAME"
 JUMPBOX_IDENTITY_NAME="$JUMPBOX_IDENTITY_NAME"
