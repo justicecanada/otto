@@ -45,7 +45,6 @@ jobs:
           - 5432:5432
       redis:
         image: redis:7.0.15-alpine3.20
-        command: redis-server
         ports:
           - 6379:6379
 
