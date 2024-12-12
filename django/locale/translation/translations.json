@@ -2566,5 +2566,21 @@
     "Per user per day": {
         "fr": "",
         "fr_auto": "Par utilisateur et par jour"
+    },
+    "Preset loaded successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage chargé avec succès."
+    },
+    "Preset saved and loaded successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage enregistré et chargé avec succès."
+    },
+    "Preset updated successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage mis à jour avec succès."
+    },
+    "Preset deleted successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage supprimé avec succès."
     }
 }
