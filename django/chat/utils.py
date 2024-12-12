@@ -6,6 +6,7 @@ from itertools import groupby
 from typing import AsyncGenerator, Generator
 
 from django.core.cache import cache
+from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
@@ -28,6 +29,26 @@ logger = get_logger(__name__)
 md = markdown.Markdown(
     extensions=["fenced_code", "nl2br", "tables", "extra"], tab_length=2
 )
+
+
+def copy_options(source_options, target_options):
+    source_options = model_to_dict(source_options)
+    # Remove the fields that are not part of the preset
+    for field in ["id", "chat"]:
+        source_options.pop(field)
+    # Update the preset options with the dictionary
+    fk_fields = ["qa_library"]
+    m2m_fields = ["qa_data_sources", "qa_documents"]
+    # Remove None values
+    source_options = {k: v for k, v in source_options.items()}
+    for key, value in source_options.items():
+        if key in fk_fields:
+            setattr(target_options, f"{key}_id", int(value) if value else None)
+        elif key in m2m_fields:
+            getattr(target_options, key).set(value)
+        else:
+            setattr(target_options, key, value)
+    target_options.save()
 
 
 def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
@@ -94,6 +115,15 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
 
     message.chat.security_label = SecurityLabel.maximum_of(security_labels)
     message.chat.save()
+
+
+def close_md_code_blocks(text):
+    # Close any open code blocks
+    if text.count("```") % 2 == 1:
+        text += "\n```"
+    elif text.count("`") % 2 == 1:
+        text += "`"
+    return text
 
 
 async def htmx_stream(
@@ -194,6 +224,7 @@ async def htmx_stream(
             elif not generation_stopped:
                 generation_stopped = True
                 if wrap_markdown:
+                    full_message = close_md_code_blocks(full_message)
                     stop_warning_message = f"\n\n_{stop_warning_message}_"
                 else:
                     stop_warning_message = f"<p><em>{stop_warning_message}</em></p>"
