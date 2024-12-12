@@ -5,6 +5,7 @@ import sys
 from itertools import groupby
 from typing import AsyncGenerator, Generator
 
+from django.contrib import messages
 from django.core.cache import cache
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
@@ -50,12 +51,17 @@ def copy_options(source_options, target_options, user=None):
         else:
             setattr(target_options, key, value)
 
-    if not user:
-        request = get_request()
-        user = request.user
+    request = get_request()
+    user = user or request.user
     if not target_options.qa_library or (
         user and not user.has_perm("librarian.view_library", target_options.qa_library)
     ):
+        messages.warning(
+            request,
+            _(
+                "QA library for settings preset not accessible. It has been reset to your personal library."
+            ),
+        )
         target_options.qa_library = user.personal_library
         target_options.qa_data_sources.clear()
         target_options.qa_documents.clear()
