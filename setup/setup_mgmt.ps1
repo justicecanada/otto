@@ -704,7 +704,6 @@ if (-not $acrExists) {
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
         --name $ACR_NAME `
         --sku Premium `
-        --admin-enabled true `
         --public-network-enabled false `
         --allow-trusted-services true `
         --tags ApplicationName="$APP_NAME" Environment="$ENVIRONMENT" Classification="$CLASSIFICATION" CostCenter="$COST_CENTER" Criticality="$CRITICALITY" Owner="$OWNER" Location="$LOCATION" `
@@ -720,13 +719,12 @@ else {
 $acrId = az acr show --name $ACR_NAME --resource-group $MGMT_RESOURCE_GROUP_NAME --query id -o tsv
 
 # Create the private endpoint for the ACR
-$ACR_ENDPOINT = "${ACR_NAME}-endpoint"
-$privateEndpointExists = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "$ACR_ENDPOINT" --only-show-errors 2>$null
+$privateEndpointExists = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "${ACR_NAME}-endpoint" --only-show-errors 2>$null
 if (-not $privateEndpointExists) {
     Write-Host "Creating private endpoint for ACR"
     az network private-endpoint create `
         --resource-group $MGMT_RESOURCE_GROUP_NAME `
-        --name "$ACR_ENDPOINT" `
+        --name "${ACR_NAME}-endpoint" `
         --vnet-name $VNET_NAME `
         --subnet $MGMT_SUBNET_NAME `
         --private-connection-resource-id $acrId `
@@ -740,7 +738,7 @@ else {
 }
 
 # Get the private endpoint network interface
-$networkInterfaceId = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "$ACR_ENDPOINT" --query "networkInterfaces[0].id" -o tsv
+$networkInterfaceId = az network private-endpoint show --resource-group $MGMT_RESOURCE_GROUP_NAME --name "${ACR_NAME}-endpoint" --query "networkInterfaces[0].id" -o tsv
 $networkInterfaceIpConfig = az resource show `
     --ids $networkInterfaceId `
     --api-version 2019-04-01 `
@@ -792,7 +790,22 @@ if (-not $acrRecordExists) {
 }
 else {
     Write-Host "A record for ACR already exists in privatelink DNS zone"
-}    
+}
+
+# Make sure the jumpbox identity can push images to the ACR
+$acrRoleAssignment = az role assignment list --assignee $identityId --role "AcrPush" --scope $acrId -o tsv
+if (-not $acrRoleAssignment) {
+    Write-Host "Assigning AcrPush role to VM identity"
+    az role assignment create `
+        --assignee $identityId `
+        --role "AcrPush" `
+        --scope $acrId `
+        --only-show-errors `
+        --output none
+}
+else {
+    Write-Host "VM identity already has the AcrPush role assignment"
+}
 
 
 # Check if the A record for the cluster exists in the DNS zone. If not, create it.
