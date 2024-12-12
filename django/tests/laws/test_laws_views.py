@@ -59,7 +59,6 @@ def test_laws_search_and_answer(client, all_apps_user):
 
 @pytest.mark.django_db
 def test_laws_cache(client, all_apps_user):
-    """Skipping on GitHub because requires Redis cache"""
     client.force_login(all_apps_user())
     # Test basic search
     query = (

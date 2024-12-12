@@ -488,10 +488,7 @@ def upload(request, data_source_id):
             ).first()
             # Skip if filename and hash are the same, and processing status is SUCCESS
             if existing_document:
-                if (
-                    existing_document.status != "SUCCESS"
-                    and not settings.IS_RUNNING_IN_GITHUB
-                ):
+                if existing_document.status != "SUCCESS":
                     existing_document.process()
                 continue
         else:
@@ -502,8 +499,7 @@ def upload(request, data_source_id):
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )
-        if not settings.IS_RUNNING_IN_GITHUB:
-            document.process()
+        document.process()
     # Update the modal with the new documents
     request.method = "GET"
     return modal_view(request, item_type="data_source", item_id=data_source_id)
