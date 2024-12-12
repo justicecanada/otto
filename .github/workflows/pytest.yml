@@ -43,6 +43,11 @@ jobs:
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
+      redis:
+        image: redis:7.0.15-alpine3.20
+        command: redis-server
+        ports:
+          - 6379:6379
 
     env:
       AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
