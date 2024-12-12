@@ -807,7 +807,6 @@ else {
 #     Write-Host "VM identity already has the AcrPush role assignment"
 # }
 
-
 # Check if the A record for the cluster exists in the DNS zone. If not, create it.
 $clusterRecordExists = az network dns record-set a show `
     --subscription $DNS_ZONE_SUBSCRIPTION_ID `
@@ -822,7 +821,7 @@ if (-not $clusterRecordExists) {
         --subscription $DNS_ZONE_SUBSCRIPTION_ID `
         --resource-group $DNS_ZONE_RESOURCE_GROUP_NAME `
         --zone-name $DOMAIN_NAME `
-        --record-set-name "*" `
+        --record-set-name "@" `
         --ipv4-address $AKS_INGRESS_IP `
         --only-show-errors `
         --output none

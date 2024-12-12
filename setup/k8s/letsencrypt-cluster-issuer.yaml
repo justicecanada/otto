@@ -15,7 +15,7 @@ spec:
     - dns01:
         azureDNS:
           subscriptionID: ${DNS_ZONE_SUBSCRIPTION_ID}
-          resourceGroupName: ${JuPcCoreDnsZonesRg}
+          resourceGroupName: ${DNS_ZONE_RESOURCE_GROUP_NAME}
           hostedZoneName: ${DOMAIN_NAME}
           environment: AzurePublicCloud
           managedIdentity:
