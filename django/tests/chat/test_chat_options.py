@@ -68,13 +68,12 @@ def test_chat_options(client, all_apps_user):
     response = client.post(
         reverse(
             "chat:chat_options",
-            kwargs={"chat_id": new_chat.id, "action": "save_preset"},
+            kwargs={"chat_id": new_chat.id, "action": "create_preset"},
         ),
         preset_form_data,
     )
 
-    # the response should be a redirect
-    assert response.status_code == 302
+    assert response.status_code == 200
 
     # a new preset should have been created
     assert Preset.objects.filter(name_en="Cowboy AI").exists()
@@ -99,9 +98,22 @@ def test_chat_options(client, all_apps_user):
     # The user message prompt should be returned too
     assert "Please tell me a joke about cows." in response.content.decode("utf-8")
 
-    new_chat = Chat.objects.get(id=new_chat.id)
+    # make a change in our chat options
+    options_form_data["chat_system_prompt"] = "start each response with 'Yeehaw!'"
+    # Submit the form
+    response = client.post(
+        reverse("chat:chat_options", args=[new_chat.id]), options_form_data
+    )
+    # now update the preset
+    response = client.post(
+        reverse("chat:chat_options", args=[new_chat.id, "update_preset", preset.id]),
+        preset_form_data,
+    )
+
+    assert response.status_code == 200
     assert (
-        new_chat.options.chat_system_prompt == options_form_data["chat_system_prompt"]
+        Preset.objects.get(name_en="Cowboy AI").options.chat_system_prompt
+        == "start each response with 'Yeehaw!'"
     )
 
     # Reset the chat options

@@ -299,7 +299,7 @@ def poll_status(request, data_source_id, document_id=None):
     documents = Document.objects.filter(data_source_id=data_source_id)
     poll = False
     try:
-        poll = documents.filter(status__in=[IN_PROGRESS_STATUSES]).exists()
+        poll = documents.filter(status__in=IN_PROGRESS_STATUSES).exists()
     except:
         poll = False
     poll_url = request.path if poll else None
