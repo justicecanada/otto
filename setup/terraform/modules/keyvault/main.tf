@@ -99,3 +99,46 @@ resource "azurerm_key_vault_key" "cmk" {
   ]
   depends_on = [null_resource.wait_for_permission_propagation]
 }
+
+# Get the object to the user-defined identity
+data "azurerm_user_assigned_identity" "identity" {
+  name                = "otto-identity"
+  resource_group_name = var.resource_group_name
+}
+
+# Assign "Key Vault Crypto Service Encryption User" role
+resource "azurerm_role_assignment" "storage_key_vault_crypto_user" {
+  scope                = var.keyvault_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
+
+  lifecycle {
+    ignore_changes = [
+      principal_id
+    ]
+  }
+}
+
+# Assign "Key Vault Secrets User" role
+resource "azurerm_role_assignment" "storage_key_vault_secrets_user" {
+  scope                = var.keyvault_id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
+
+  lifecycle {
+    ignore_changes = [
+      principal_id
+    ]
+  }
+}
+
+# Add a delay to allow for the permissions to propagate
+resource "null_resource" "wait_for_propagation" {
+  provisioner "local-exec" {
+    command = "sleep 120"
+  }
+  depends_on = [
+    azurerm_role_assignment.storage_key_vault_crypto_user,
+    azurerm_role_assignment.storage_key_vault_secrets_user
+  ]
+}

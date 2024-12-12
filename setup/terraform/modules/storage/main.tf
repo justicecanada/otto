@@ -1,34 +1,3 @@
-# Get the object to the user-defined identity
-data "azurerm_user_assigned_identity" "identity" {
-  name                = "otto-identity"
-  resource_group_name = var.resource_group_name
-}
-
-# Assign "Key Vault Crypto Service Encryption User" role
-resource "azurerm_role_assignment" "storage_key_vault_crypto_user" {
-  scope                = var.keyvault_id
-  role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
-}
-
-# Assign "Key Vault Secrets User" role
-resource "azurerm_role_assignment" "storage_key_vault_secrets_user" {
-  scope                = var.keyvault_id
-  role_definition_name = "Key Vault Secrets User"
-  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
-}
-
-# Add a delay to allow for the permissions to propagate
-resource "null_resource" "wait_for_storage_permission_propagation" {
-  provisioner "local-exec" {
-    command = "sleep 120"
-  }
-  depends_on = [
-    azurerm_role_assignment.storage_key_vault_crypto_user,
-    azurerm_role_assignment.storage_key_vault_secrets_user
-  ]
-}
-
 resource "azurerm_key_vault_key" "storage_cmk" {
   # SC-12 & SC-13: Customer-managed keys for storage encryption
   key_vault_id = var.keyvault_id
@@ -92,7 +61,7 @@ resource "azurerm_storage_account" "storage" {
 
   tags = var.tags
 
-  depends_on = [azurerm_key_vault_key.storage_cmk, null_resource.wait_for_storage_permission_propagation, var.app_subnet_id, var.web_subnet_id]
+  depends_on = [var.wait_for_propagation, azurerm_key_vault_key.storage_cmk, var.app_subnet_id, var.web_subnet_id]
 
 }
 
@@ -172,7 +141,7 @@ resource "null_resource" "wait_for_storage_account" {
   provisioner "local-exec" {
     command = "sleep 120"
   }
-  depends_on = [var.keyvault_id, azurerm_storage_account.storage, var.wait_for_propagation]
+  depends_on = [var.keyvault_id, azurerm_storage_account.storage]
 }
 
 # Assign "Storage Blob Data Owner" role to the user-assigned identity

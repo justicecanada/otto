@@ -391,22 +391,6 @@ resource "azurerm_role_assignment" "rbac_cluster_admin" {
   scope                = azurerm_kubernetes_cluster.aks.id
 }
 
-# Role assignment for the AKS secrets provider identity
-resource "azurerm_role_assignment" "aks_kubelet_identity_kv_secrets_user" {
-  # SC-12: RBAC for AKS to access Key Vault secrets
-  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
-  role_definition_name = "Key Vault Secrets User"
-  scope                = var.keyvault_id
-  principal_type       = "ServicePrincipal"
-
-  lifecycle {
-    ignore_changes = [
-      principal_id
-    ]
-  }
-}
-
-
 # ## Kubelet Identity
 # The kubelet identity is crucial for node-level operations, including accessing Azure resources like Key Vault. It's essential for pods that need to directly access secrets.
 # 
