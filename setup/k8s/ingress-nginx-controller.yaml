@@ -347,7 +347,7 @@ metadata:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/part-of: ingress-nginx
     app.kubernetes.io/version: 1.8.1
-    
+  annotations:
     # The following lines were added to the original file:
     # AC-22, IA-8, SA-9(5), SC-5: Restricting access to the application to internal traffic only
     service.beta.kubernetes.io/azure-load-balancer-internal: "true" # Tells Azure to create an internal load balancer instead of a public one
@@ -376,7 +376,6 @@ spec:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/name: ingress-nginx
   type: LoadBalancer
-  loadBalancerIP: ${AKS_INGRESS_IP}
 ---
 apiVersion: v1
 kind: Service

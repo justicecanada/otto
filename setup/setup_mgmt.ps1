@@ -1010,6 +1010,8 @@ if (-not $firewallExists) {
         --location $LOCATION `
         --sku AZFW_VNet `
         --tier Standard `
+        --dns-servers 168.63.129.16 `
+        --enable-dns-proxy true `
         --only-show-errors `
         --output none
 }
@@ -1133,7 +1135,7 @@ az network firewall application-rule create `
     --collection-name "ContainerRegistries" `
     --name "AllowACRAndDocker" `
     --protocols Https=443 `
-    --target-fqdns "*.azurecr.io" "*.docker.io" "docker.io" "registry-1.docker.io" "auth.docker.io" "production.cloudflare.docker.com" "registry.k8s.io" "k8s.gcr.io" "gcr.io" "hub.docker.com" `
+    --target-fqdns "*.azurecr.io" "*.docker.io" "docker.io" "registry-1.docker.io" "auth.docker.io" "production.cloudflare.docker.com" "registry.k8s.io" "k8s.gcr.io" "gcr.io" "hub.docker.com" "*.pkg.dev" "*.quay.io" "quay.io" "*.s3.dualstack.us-east-1.amazonaws.com" `
     --source-addresses $VNET_IP_RANGE
 
 # DeveloperTools (Priority: 300)
