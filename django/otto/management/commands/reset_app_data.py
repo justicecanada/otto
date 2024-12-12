@@ -238,6 +238,14 @@ class Command(BaseCommand):
             )
         )
 
+    def reset_presets(self):
+        yaml_file_path = os.path.join(
+            settings.BASE_DIR, "otto", "fixtures", "default_preset.yaml"
+        )
+
+        with open(yaml_file_path, "r", encoding="utf-8") as yaml_file:
+            presets_data = yaml.safe_load(yaml_file)
+
     def reset_security_labels(self):
         # Simply call manage.py loaddata security_labels.yaml
         call_command("loaddata", "security_labels.yaml")
