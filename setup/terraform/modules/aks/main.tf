@@ -230,10 +230,10 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
 
 locals { admin_email_list = split(",", var.admin_email) }
 
-resource "azurerm_log_analytics_table" "aks_audit_admin_table" {
+resource "azurerm_log_analytics_workspace_table" "aks_audit_admin_table" {
+  workspace_id = azurerm_log_analytics_workspace.aks.id
   name                          = "AKSAuditAdmin"
-  log_analytics_workspace_id    = azurerm_log_analytics_workspace.aks.id
-  data_plan                     = "Basic" # Changing to Basic plan
+  plan                     = "Basic" # Changing to Basic plan
 
   depends_on = [azurerm_kubernetes_cluster.aks]
 }
