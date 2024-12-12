@@ -11,14 +11,6 @@ from librarian.forms import LibraryDetailForm
 from librarian.models import DataSource, Document, Library
 from librarian.views import get_editable_libraries
 
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
-skip_on_devops_pipeline = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
-)
-
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -114,7 +106,6 @@ def test_modal_edit_library_get(client, all_apps_user, basic_user):
     assert response.status_code == 302
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_chat_data_source(client, all_apps_user):
     from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
@@ -205,7 +196,6 @@ def test_chat_data_source(client, all_apps_user):
     assert not os.path.exists(file_path)
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_start_stop(client, all_apps_user):
     user = all_apps_user()
@@ -282,7 +272,6 @@ def test_start_stop(client, all_apps_user):
         )
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_modal_views(client, all_apps_user):
     library = Library.objects.get_default_library()

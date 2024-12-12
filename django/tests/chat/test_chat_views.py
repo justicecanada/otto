@@ -16,13 +16,6 @@ from librarian.models import Library
 from otto.models import App, Notification, SecurityLabel
 
 pytest_plugins = ("pytest_asyncio",)
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
-skip_on_devops_pipeline = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
-)
 
 
 async def final_response_helper(stream):
@@ -162,8 +155,6 @@ def test_chat_message(client, all_apps_user):
 
 
 # TODO: Test Celery tasks
-@skip_on_github_actions
-@skip_on_devops_pipeline
 @pytest.mark.django_db
 def test_translate_file(client, all_apps_user):
     user = all_apps_user()
@@ -298,7 +289,6 @@ def test_chat_routes(client, all_apps_user):
 
 
 # Test delete_chat view
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_delete_chat(client, all_apps_user):
     user = all_apps_user()
@@ -314,7 +304,6 @@ def test_delete_chat(client, all_apps_user):
 
 
 # Test delete_all_chats view
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_delete_all_chats(client, all_apps_user):
     user = all_apps_user()
@@ -537,7 +526,6 @@ def test_chat_summarization_response(client, all_apps_user):
 
 # Test chat_response with QA and Translate modes
 # These require additional setup / authentications and won't run on GitHub
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_translate_response(client, all_apps_user):
     user = all_apps_user()

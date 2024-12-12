@@ -66,7 +66,8 @@ jobs:
     - name: Run tests
       working-directory: ./
       run: |
-        python -m coverage run --source=django -m pytest -k "not skip_on_github_actions" django
+        celery -A otto worker -l INFO --pool=gevent --concurrency=256 &
+        python -m coverage run --source=django --omit 'django/template_wizard/*' -m pytest django
     - name: Display coverage
       working-directory: ./
       run: |
