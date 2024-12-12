@@ -336,8 +336,8 @@
         "fr_auto": "Modifier le titre du chat"
     },
     "You are a general-purpose AI chatbot. You follow these rules:\n\n1. Your name is 'Otto', an AI who works for the Department of Justice Canada.\n\n2. If the user asks any question regarding Canada's laws and regulations, you must inform them of the [Legislation Search app](/laws/), a tool in Otto built to be better suited for finding relevant and accurate laws and regulations in Canada. Make sure to mention the tool at the beginning of your response and in the form of a markdown link.3. You do not have access to the internet or other knowledge bases. If you are asked about very specific facts, especially one about the Government of Canada or laws, you always caveat your response, e.g., 'I am a pre-trained AI and do not have access to the internet, so my answers might not be correct. Based on my training data, I expect that...'\n\n4. If you are asked a question about Department of Justice or other Government of Canada / HR policies, you inform users of Otto's 'Q&A' mode which can provide more accurate information.\n\n5. You answer in markdown format to provide clear and readable responses.\n\n": {
-        "fr": "Vous êtes un agent conversationel IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de [l’application de recherche Législation](/laws/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. Assurez-vous de mentionner l’outil au début de votre réponse et sous la forme d’un lien de démarque.3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Si on vous pose une question sur le ministère de la Justice ou d’autres politiques du gouvernement du Canada / RH, vous informez les utilisateurs du mode « Q&A » d’Otto qui peut fournir des informations plus précises.\n\n5. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.\n\n",
-        "fr_auto": "Vous êtes un chatbot IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de [l’application de recherche Législation](/laws/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. Assurez-vous de mentionner l’outil au début de votre réponse et sous la forme d’un lien de démarque.3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Si on vous pose une question sur le ministère de la Justice ou d’autres politiques du gouvernement du Canada / RH, vous informez les utilisateurs du mode « Q&A » d’Otto qui peut fournir des informations plus précises.\n\n5. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.\n\n"
+        "fr": "Vous êtes un agent conversationel IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de [l’application de recherche de Législation](/laws/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. Assurez-vous de mentionner l’outil au début de votre réponse et sous la forme d’un lien de démarque.3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Si on vous pose une question sur le ministère de la Justice ou d’autres politiques du gouvernement du Canada / RH, vous informez les utilisateurs du mode « Q&A » d’Otto qui peut fournir des informations plus précises.\n\n5. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.\n\n",
+        "fr_auto": "Vous êtes un chatbot IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de [l’application de recherche de Législation](/laws/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. Assurez-vous de mentionner l’outil au début de votre réponse et sous la forme d’un lien de démarque.3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Si on vous pose une question sur le ministère de la Justice ou d’autres politiques du gouvernement du Canada / RH, vous informez les utilisateurs du mode « Q&A » d’Otto qui peut fournir des informations plus précises.\n\n5. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.\n\n"
     },
     "Given the information from multiple sources and not prior knowledge, answer the query in markdown format with liberal use of **bold**.\n\nOutput format:\n\nI found the following information:\n\n* <supporting direct quote> - <source link or filename>\n...\n<succinct answer to question>\nIf you can't find the answer in the sources, just say so. Don't try to provide irrelevant references or made up answers.": {
         "fr": "Compte tenu de l’information provenant de sources multiples et non de connaissances préalables, répondez à la requête en format de démarque avec l’utilisation libérale de **bold**.\n\nFormat de sortie :\n\nJ’ai trouvé les informations suivantes :\n\n* <citation directe à l'appui> - <lien à source ou nom de fichier>\n...\n<succinct réponse à la question>\nSi vous ne trouvez pas la réponse dans les sources, dites-le simplement. N’essayez pas de fournir des références non pertinentes ou des réponses inventées.",
@@ -356,8 +356,8 @@
         "fr_auto": "Supprimer tous les chats"
     },
     "You are a general-purpose AI chatbot. You follow these rules:\n\n1. Your name is 'Otto', an AI who works for the Department of Justice Canada.\n\n2. If the user asks any question regarding Canada's laws and regulations, you must inform them of the [Legislation Search app](/laws/), a tool in Otto built to be better suited for finding relevant and accurate laws and regulations in Canada. If relevant, add a markdown link to the Legislation Search app.\n\n3. You do not have access to the internet or other knowledge bases. If you are asked about very specific facts, especially one about the Government of Canada or laws, you always caveat your response, e.g., 'I am a pre-trained AI and do not have access to the internet, so my answers might not be correct. Based on my training data, I expect that...'\n\n4. You answer in markdown format to provide clear and readable responses.": {
-        "fr": "Vous êtes un agent d'IA conversationel à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de l’application de recherche [Législation] (/lois/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. S’il y a lieu, ajoutez un lien de démarque à l’application de recherche Législation.\n\n3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.",
-        "fr_auto": "Vous êtes un chatbot IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de l’application de recherche [Législation] (/lois/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. S’il y a lieu, ajoutez un lien de démarque à l’application de recherche Législation.\n\n3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles."
+        "fr": "Vous êtes un agent d'IA conversationel à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de l’application de recherche de [Législation] (/lois/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. S’il y a lieu, ajoutez un lien de démarque à l’application de recherche de Législation.\n\n3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles.",
+        "fr_auto": "Vous êtes un chatbot IA à usage général. Vous suivez ces règles :\n\n1. Vous vous appelez « Otto », une IA qui travaille pour le ministère de la Justice du Canada.\n\n2. Si l’utilisateur pose une question concernant les lois et règlements du Canada, vous devez l’informer de l’application de recherche de [Législation] (/lois/), un outil d’Otto conçu pour être mieux adapté pour trouver des lois et des règlements pertinents et exacts au Canada. S’il y a lieu, ajoutez un lien de démarque à l’application de recherche de Législation.\n\n3. Vous n’avez pas accès à Internet ou à d’autres bases de connaissances. Si on vous pose des questions sur des faits très précis, en particulier un fait sur le gouvernement du Canada ou les lois, vous mettez toujours en garde votre réponse, par exemple : « Je suis une IA pré-formée et je n’ai pas accès à Internet, donc mes réponses pourraient ne pas être correctes. Sur la base de mes données d’entraînement, je m’attends à ce que...\n\n4. Vous répondez dans un format de démarque pour fournir des réponses claires et lisibles."
     },
     "Switched mode to": {
         "fr": "Mode changé en",
@@ -1204,7 +1204,7 @@
         "fr_auto": "Requête"
     },
     "Ask a question about federal legislation...": {
-        "fr": "",
+        "fr": "Posez une question sur la législation fédérale...",
         "fr_auto": "Posez une question sur la législation fédérale..."
     },
     "AI answer": {
@@ -1216,11 +1216,11 @@
         "fr_auto": "Tous les résultats linguistiques"
     },
     "Legislation Search - Otto": {
-        "fr": "",
+        "fr": "Recherche de législation - Otto",
         "fr_auto": "Recherche de législation - Otto"
     },
     "Legislation Search": {
-        "fr": "",
+        "fr": "Recherche de législation",
         "fr_auto": "Recherche de législation"
     },
     "Basic search": {
@@ -1824,7 +1824,7 @@
         "fr_auto": "Assistant de modèle"
     },
     "Legislation loading": {
-        "fr": "",
+        "fr": "Chargement de la législation",
         "fr_auto": "Chargement de la législation"
     },
     "Text extractor": {
@@ -2483,8 +2483,104 @@
         "fr": "",
         "fr_auto": "Activer l’URL du test de charge"
     },
+    "Upload Scanned Notice(s) of Appeal": {
+        "fr": "",
+        "fr_auto": "Télécharger les avis d’appel numérisés"
+    },
+    "Update Preset \"%(name)s\" ": {
+        "fr": "",
+        "fr_auto": "Mettre à jour le préréglage « %(name)s » "
+    },
+    "You currently have the preset named \"%(name)s\" loaded. This will update it with your latest changes. ": {
+        "fr": "",
+        "fr_auto": "You currently have the preset named \"%(name)s\" loaded. This will update it with your latest changes. "
+    },
+    "Create New Preset": {
+        "fr": "",
+        "fr_auto": "Créer un nouveau préréglage"
+    },
+    "Create a new preset from your current settings.": {
+        "fr": "",
+        "fr_auto": "Créez un nouveau préréglage à partir de vos paramètres actuels."
+    },
+    "Update Preset %(name)s ": {
+        "fr": "",
+        "fr_auto": "Update Preset %(name)s "
+    },
+    "Save & Load": {
+        "fr": "",
+        "fr_auto": "Enregistrer et charger"
+    },
+    "Save preset from current settings": {
+        "fr": "",
+        "fr_auto": "Enregistrer le préréglage à partir des paramètres actuels"
+    },
     "Smiling robot head": {
         "fr": "",
         "fr_auto": "Tête de robot souriante"
+    },
+    "Dates:": {
+        "fr": "",
+        "fr_auto": "Dates :"
+    },
+    "Range:": {
+        "fr": "",
+        "fr_auto": "Portée :"
+    },
+    "Start:": {
+        "fr": "",
+        "fr_auto": "Début :"
+    },
+    "End:": {
+        "fr": "",
+        "fr_auto": "Fin :"
+    },
+    "Download CSV for selected dates (filters disabled)": {
+        "fr": "",
+        "fr_auto": "Télécharger CSV pour les dates sélectionnées (filtres désactivés)"
+    },
+    "Last 90 days": {
+        "fr": "",
+        "fr_auto": "90 derniers jours"
+    },
+    "Last 30 days": {
+        "fr": "",
+        "fr_auto": "30 derniers jours"
+    },
+    "Last 7 days": {
+        "fr": "",
+        "fr_auto": "7 derniers jours"
+    },
+    "Custom date range": {
+        "fr": "",
+        "fr_auto": "Plage de dates personnalisée"
+    },
+    "No costs found for the selected date range": {
+        "fr": "",
+        "fr_auto": "Aucun coût trouvé pour la plage de dates sélectionnée"
+    },
+    "Selected dates": {
+        "fr": "",
+        "fr_auto": "Dates sélectionnées"
+    },
+    "Per user per day": {
+        "fr": "",
+        "fr_auto": "Par utilisateur et par jour"
+    },
+    "Preset loaded successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage chargé avec succès."
+    },
+    "Preset saved and loaded successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage enregistré et chargé avec succès."
+    },
+    "Preset updated successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage mis à jour avec succès."
+    },
+    "Preset deleted successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage supprimé avec succès."
     }
 }

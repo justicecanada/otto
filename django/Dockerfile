@@ -2,7 +2,15 @@ FROM python:3.11-slim-bullseye
 
 WORKDIR /django
 
-RUN apt-get update && apt-get install -y postgresql-client poppler-utils
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install additional packages
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gettext postgresql-client poppler-utils \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/cache/apt/archives/*
 
 COPY requirements*.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check --no-cache-dir install \
