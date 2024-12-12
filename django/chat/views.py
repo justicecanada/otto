@@ -659,7 +659,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         return HttpResponse(status=500)
     elif action == "update_preset":
         preset = get_object_or_404(Preset, id=preset_id)
-        _copy_options(chat.options, preset.options)
+        copy_options(chat.options, preset.options)
         preset.options.prompt = request.POST.get("prompt", "")
         preset.options.save()
         messages.success(

@@ -105,9 +105,22 @@ def test_chat_options(client, all_apps_user):
     # The user message prompt should be returned too
     assert "Please tell me a joke about cows." in response.content.decode("utf-8")
 
-    new_chat = Chat.objects.get(id=new_chat.id)
+    # make a change in our chat options
+    options_form_data["chat_system_prompt"] = "start each response with 'Yeehaw!'"
+    # Submit the form
+    response = client.post(
+        reverse("chat:chat_options", args=[new_chat.id]), options_form_data
+    )
+    # now update the preset
+    response = client.post(
+        reverse("chat:chat_options", args=[new_chat.id, "update_preset", preset.id]),
+        preset_form_data,
+    )
+
+    assert response.status_code == 200
     assert (
-        new_chat.options.chat_system_prompt == options_form_data["chat_system_prompt"]
+        Preset.objects.get(name_en="Cowboy AI").options.chat_system_prompt
+        == "start each response with 'Yeehaw!'"
     )
 
     # Reset the chat options
