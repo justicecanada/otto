@@ -421,18 +421,18 @@ resource "azurerm_role_assignment" "aks_secrets_provider_identity_kv_secrets_use
 
 resource "azurerm_role_assignment" "acr_pull" {
   principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
-  #principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
   role_definition_name = "AcrPull"
   scope                = var.acr_id
   principal_type       = "ServicePrincipal"
 }
 
-resource "azurerm_role_assignment" "acr_pull_kubelet" {
-  # principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+resource "azurerm_role_assignment" "aks_kubelet_identity_operator" {
   principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
-  role_definition_name = "AcrPull"
-  scope                = var.acr_id
+  role_definition_name = "Managed Identity Operator"
+  scope                = data.azurerm_user_assigned_identity.identity.id
   principal_type       = "ServicePrincipal"
+
+  depends_on = [azurerm_kubernetes_cluster.aks]
 }
 
 # This role assignment grants the AKS kubelet identity access to blob storage
