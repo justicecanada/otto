@@ -285,7 +285,6 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "poll_url": poll_url,
         "poll_response": "poll" in request.GET,
     }
-    print("poll_url (from modal_view):", poll_url)
     return render(request, "librarian/modal_inner.html", context)
 
 
@@ -300,13 +299,12 @@ def poll_status(request, data_source_id, document_id=None):
     documents = Document.objects.filter(data_source_id=data_source_id)
     poll = False
     try:
-        poll = documents.filter(status__in=[IN_PROGRESS_STATUSES]).exists()
+        poll = documents.filter(status__in=IN_PROGRESS_STATUSES).exists()
     except:
         poll = False
     poll_url = request.path if poll else None
 
     document = Document.objects.get(id=document_id) if document_id else None
-    print("poll_url (from poll_status):", poll_url)
     return render(
         request,
         "librarian/components/poll_update.html",
