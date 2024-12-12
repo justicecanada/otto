@@ -45,7 +45,7 @@ echo "Waiting for cert-manager webhook to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/cert-manager-webhook -n cert-manager
 
 # Create the ClusterIssuer for Let's Encrypt
-kubectl apply -f letsencrypt-cluster-issuer.yaml
+envsubst < letsencrypt-cluster-issuer.yaml | kubectl apply -f -
 
 # Apply the namespace for Otto
 kubectl apply -f namespace.yaml
