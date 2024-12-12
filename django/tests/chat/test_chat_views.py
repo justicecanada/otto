@@ -1030,6 +1030,80 @@ def test_preset(client, basic_user, all_apps_user):
     assert response.status_code == 302  # Redirect after deletion
     assert not Preset.objects.filter(id=preset.id).exists()
 
+    # Create a preset with user's personal library
+    chat = Chat.objects.create(user=user)
+    chat.options.qa_library = user.personal_library
+    chat.options.qa_pre_instructions = "The quick brown fox"
+    chat.options.save()
+    response = client.post(
+        reverse(
+            "chat:chat_options", kwargs={"chat_id": chat.id, "action": "create_preset"}
+        ),
+        data={
+            "name_en": "Personal Library Preset",
+            "sharing_option": "others",
+            "accessible_to": [user2.id],
+            "prompt": "",
+        },
+    )
+    assert response.status_code == 200
+    preset = Preset.objects.get(name_en="Personal Library Preset")
+    # Now, user2 should be able to load this preset - BUT - the library should be reset
+    client.force_login(user2)
+    chat2 = Chat.objects.create(user=user2)
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat2.id,
+                "action": "load_preset",
+                "preset_id": preset.id,
+            },
+        )
+    )
+    assert response.status_code == 200
+    chat2.options.refresh_from_db()
+    # Chat2 should now have the preset loaded
+    assert chat2.options.qa_pre_instructions == "The quick brown fox"
+    # But the library should be reset to user2's personal library
+    assert chat2.options.qa_library == user2.personal_library
+
+    # Now, set the preset as user2's default
+    response = client.get(
+        reverse("chat:set_preset_default", args=[preset.id, chat2.id])
+    )
+    assert response.status_code == 200
+    # Try creating a new chat using the chat route
+    response = client.get(reverse("chat:new_chat"))
+    assert response.status_code == 302
+    # Get the newest chat for user2
+    chat2 = Chat.objects.filter(user=user2).order_by("-created_at").first()
+    # This chat should have the preset loaded
+    assert chat2.options.qa_pre_instructions == "The quick brown fox"
+    # But the library should be reset to user2's personal library
+    assert chat2.options.qa_library == user2.personal_library
+
+    # Reset to default preset
+    chat2.options.qa_pre_instructions = ""
+    chat2.options.save()
+
+    # Reset to default preset (action="reset")
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat2.id,
+                "action": "reset",
+            },
+        )
+    )
+    assert response.status_code == 200
+    chat2.refresh_from_db()
+    # Chat2 should now have the preset loaded
+    assert chat2.options.qa_pre_instructions == "The quick brown fox"
+    # But the library should be reset to user2's personal library
+    assert chat2.options.qa_library == user2.personal_library
+
 
 def test_update_qa_options_from_librarian(client, all_apps_user):
     from librarian.models import DataSource, Document, Library

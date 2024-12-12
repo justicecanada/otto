@@ -209,14 +209,13 @@ def chat(request, chat_id):
         }
         messages = [messages.first(), response_init_message]
 
-    # If ChatOptions has an invalid library or data source, remove them
-    if not chat.options.qa_library:
-        chat.options.qa_library = Library.objects.get_default_library()
-        chat.options.save()
-    if chat.loaded_preset:
-        form = ChatOptionsForm(instance=chat.loaded_preset.options, user=request.user)
-    else:
-        form = ChatOptionsForm(instance=chat.options, user=request.user)
+    if not chat.options.qa_library or not request.user.has_perm(
+        "librarian.view_library", chat.options.qa_library
+    ):
+        # The copy_options function fixes these issues
+        copy_options(chat.options, chat.options)
+
+    form = ChatOptionsForm(instance=chat.options, user=request.user)
 
     context = {
         "chat": chat,
@@ -542,7 +541,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         # Update the chat options with the preset options
         copy_options(preset.options, chat.options)
 
-        chat_options_form = ChatOptionsForm(instance=preset.options, user=request.user)
+        chat_options_form = ChatOptionsForm(instance=chat.options, user=request.user)
 
         messages.success(
             request,

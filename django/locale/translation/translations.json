@@ -2582,5 +2582,9 @@
     "Preset deleted successfully.": {
         "fr": "",
         "fr_auto": "Préréglage supprimé avec succès."
+    },
+    "QA library for settings preset not accessible. It has been reset to your personal library.": {
+        "fr": "",
+        "fr_auto": "Bibliothèque d’assurance qualité pour les paramètres prédéfinis non accessibles. Il a été réinitialisé à votre bibliothèque personnelle."
     }
 }
