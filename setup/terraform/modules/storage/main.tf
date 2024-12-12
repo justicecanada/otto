@@ -1,3 +1,9 @@
+# Get the object to the user-defined identity
+data "azurerm_user_assigned_identity" "identity" {
+  name                = "otto-identity"
+  resource_group_name = var.resource_group_name
+}
+
 resource "azurerm_key_vault_key" "storage_cmk" {
   # SC-12 & SC-13: Customer-managed keys for storage encryption
   key_vault_id = var.keyvault_id

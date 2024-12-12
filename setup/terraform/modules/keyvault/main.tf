@@ -108,7 +108,7 @@ data "azurerm_user_assigned_identity" "identity" {
 
 # Assign "Key Vault Crypto Service Encryption User" role
 resource "azurerm_role_assignment" "storage_key_vault_crypto_user" {
-  scope                = var.keyvault_id
+  scope                = azurerm_key_vault.kv.id
   role_definition_name = "Key Vault Crypto Service Encryption User"
   principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
 
@@ -121,7 +121,7 @@ resource "azurerm_role_assignment" "storage_key_vault_crypto_user" {
 
 # Assign "Key Vault Secrets User" role
 resource "azurerm_role_assignment" "storage_key_vault_secrets_user" {
-  scope                = var.keyvault_id
+  scope                = azurerm_key_vault.kv.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
 
