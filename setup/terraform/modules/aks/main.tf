@@ -394,7 +394,8 @@ resource "azurerm_role_assignment" "rbac_cluster_admin" {
 # Role assignment for the AKS kubelet identity
 resource "azurerm_role_assignment" "aks_kubelet_identity_kv_secrets_user" {
   # SC-12: RBAC for AKS to access Key Vault secrets
-  principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  #principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
   role_definition_name = "Key Vault Secrets User"
   scope                = var.keyvault_id
   principal_type       = "ServicePrincipal"
@@ -427,7 +428,8 @@ resource "azurerm_role_assignment" "acr_pull" {
 }
 
 resource "azurerm_role_assignment" "acr_pull_kubelet" {
-  principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  # principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
   role_definition_name = "AcrPull"
   scope                = var.acr_id
   principal_type       = "ServicePrincipal"
@@ -437,7 +439,8 @@ resource "azurerm_role_assignment" "acr_pull_kubelet" {
 resource "azurerm_role_assignment" "aks_storage_blob_data_contributor" {
   scope                = var.storage_account_id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  #principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
   depends_on           = [azurerm_kubernetes_cluster.aks]
 }
 
