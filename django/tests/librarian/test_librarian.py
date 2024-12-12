@@ -413,3 +413,79 @@ def test_modal_views(client, all_apps_user):
     # Check the library object is deleted
     assert not Library.objects.filter(id=tmp_library.id).exists()
     assert not LibraryUserRole.objects.filter(id=role.id).exists()
+
+
+@pytest.mark.django_db
+def test_poll_status(client, all_apps_user):
+    library = Library.objects.get_default_library()
+    user = all_apps_user()
+    client.force_login(user)
+    data_source = DataSource.objects.create(library=library)
+    document = Document.objects.create(data_source=data_source, url="http://google.ca")
+    document2 = Document.objects.create(
+        data_source=data_source, url="http://google.com"
+    )
+    # Poll for status updates
+    url = reverse(
+        "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
+    )
+    response = client.get(url)
+    # Check the context to ensure that poll_url is not None
+    assert response.context["poll_url"] is not None
+    # Check the document_status route as well
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document.id},
+    )
+    response = client.get(url)
+    # Check the context to ensure that poll_url is not None
+    assert response.context["poll_url"] is not None
+
+    # One document completes
+    document.status = "SUCCESS"
+    document.save()
+
+    # Check both routes to ensure that poll_url still not None (since document2 isn't done)
+    url = reverse(
+        "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is not None
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document.id},
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is not None
+    # And the other document
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document2.id},
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is not None
+
+    # Second document fails
+    document2.status = "ERROR"
+    document2.save()
+
+    # Check all 3 routes. All 3 should have poll_url = None
+    url = reverse(
+        "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is None
+
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document.id},
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is None
+
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document2.id},
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is None
