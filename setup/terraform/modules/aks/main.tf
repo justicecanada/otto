@@ -265,6 +265,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
     identity_ids = [data.azurerm_user_assigned_identity.identity.id]
   }
 
+  kubelet_identity {
+    user_assigned_identity_id = data.azurerm_user_assigned_identity.identity.id
+  }
+
   # SC-12 & SC-13: Enabling Azure Key Vault secrets provider for secure key management
   key_vault_secrets_provider {
     secret_rotation_enabled  = true
