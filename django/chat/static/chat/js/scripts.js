@@ -43,6 +43,7 @@ function render_markdown(element) {
 
 // Chat window UI
 let preventAutoScrolling = false;
+let ignoreNextScrollEvent = true;
 
 const copyCodeButtonHTML = `<button type="button" onclick="copyCode(this)"
 class="btn btn-link m-0 p-0 text-muted copy-message-button copy-button"
@@ -53,6 +54,8 @@ function scrollToBottom(smooth = true, force = false) {
   if (preventAutoScrolling && !force) {
     return;
   }
+
+  ignoreNextScrollEvent = true;
 
   let messagesContainer = document.querySelector("#chat-container");
   let hashContainer = null;
@@ -127,9 +130,13 @@ function toggleAriaSelected(mode) {
 // When the user scrolls up, prevent auto-scrolling
 let debounceTimer;
 document.querySelector("#chat-container").addEventListener("scroll", function () {
+  if (ignoreNextScrollEvent) {
+    ignoreNextScrollEvent = false;
+    return;
+  }
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    if (this.scrollTop + this.clientHeight < this.scrollHeight - 1) {
+    if (this.scrollTop + this.clientHeight < this.scrollHeight - 5) {
       preventAutoScrolling = true;
     } else {
       preventAutoScrolling = false;

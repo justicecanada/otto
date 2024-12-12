@@ -350,3 +350,42 @@ div.phac_aspc_form_autocomplete .results .item {
     transform: rotate(360deg);
   }
 }
+
+#otto-logo {
+  position: relative;
+  top: -10px;
+  width: 108px;
+  height: auto;
+  margin-left: 18px;
+  pointer-events: click;
+}
+
+#otto-logo.animate {
+  animation: bounce-animation ease-out 0.8s;
+}
+
+@keyframes bounce-animation {
+  0% {
+    transform: translatey(0px);
+  }
+
+  20% {
+    transform: translatey(-10px);
+  }
+
+  40% {
+    transform: translatey(5px);
+  }
+
+  60% {
+    transform: translatey(-5px);
+  }
+
+  80% {
+    transform: translatey(2px);
+  }
+
+  99% {
+    transform: translatey(0px);
+  }
+}

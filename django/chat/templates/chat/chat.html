@@ -11,6 +11,21 @@
 {% block page_script %}
   <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
   <script>const chat_id = "{{ chat.id }}";</script>
+  <script>
+      let driver =  window.driver.js.driver;
+      let driverObj = driver({
+        showProgress: true,
+        popoverClass: "bs-popover-auto",
+        prevBtnText: "{% trans 'Previous' %}",
+        nextBtnText: "{% trans 'Next' %}",
+        doneBtnText: "{% trans 'Done' %}",
+        steps: [          
+          { element: "#new-chat-button", popover: { title: "{% trans 'Start a new chat at any time.'%}", description: "{% trans 'Start a new chat at any time by clicking this button.'%}" } },
+          { element: ".chat-list-item.current", popover: { title: "{% trans 'Current chat'%}", description: "{% trans 'Your current chat will appear in bolded characters.'%}"} },
+          { element: ".chat-list-item.current > div > button", popover: { title: "{% trans 'Feedback'%}", description: "{% trans 'Click on this icon to submit feedback about Otto. Let us know what went wrong, or suggest an improvement.'%}"} }
+        ],
+      });
+  </script>
 {% endblock %}
 
 {% block page_title %}
@@ -27,7 +42,7 @@
           <div class="position-absolute dropdown top-0 mx-5 end-0 bg-light rounded-circle">
             <button type="button"
                     id="help-button"
-                    class="btn btn-outline"
+                    class="btn"
                     title="{% trans 'Help' %}"
                     data-bs-toggle="dropdown"
                     aria-controls="help-menu"
@@ -47,8 +62,7 @@
                   <div class="me-2">
                     <i class="bi bi-airplane" style="font-size: .80rem;"></i>
                   </div>
- 
-                  {% trans 'Start a tour of Otto' %}
+                  {% trans 'Tour the AI Assistant' %}
                 </button>
               </li>
               <li role="presentation">

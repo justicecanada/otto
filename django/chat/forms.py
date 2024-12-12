@@ -48,17 +48,9 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
             raise ValueError("User must be provided to GroupedLibraryChoiceField")
 
         public_libraries = list(self.queryset.filter(is_public=True))
-        managed_libraries = [
-            library
-            for library in list(self.queryset.filter(is_public=False))
-            if self.user.has_perm("librarian.edit_library", library)
-        ]
-        shared_libraries = [
-            library
-            for library in list(self.queryset.filter(is_public=False))
-            if self.user.has_perm("librarian.view_library", library)
-            and not self.user.has_perm("librarian.edit_library", library)
-        ]
+        role_libraries = Library.objects.filter(user_roles__user=self.user)
+        managed_libraries = list(role_libraries.filter(user_roles__role="admin"))
+        shared_libraries = list(role_libraries.exclude(user_roles__role="admin"))
 
         groups = [
             (_("JUS-managed"), public_libraries),

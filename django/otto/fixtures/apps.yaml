@@ -60,14 +60,14 @@
   fields:
     handle: laws
     name_en: Legislation Search
-    name_fr: Recherche législative
+    name_fr: Recherche de législation
     prod_ready: true
     user_group: Legislation Search user
     features:
       - fields:
           short_name: "laws"
           name_en: Legislation Search
-          name_fr: Recherche législative
+          name_fr: Recherche de législation
           description_en: Search acts and regulations using natural language. Find relevant sections of laws.
           description_fr: Recherchez des lois et des règlements en utilisant un langage naturel. Trouvez des sections pertinentes des lois.
           url: laws:index
@@ -89,21 +89,4 @@
           description_en: Extract text and handwriting from scanned PDF and images with AI-enabled OCR.
           description_fr: Extrait de texte et d'écriture manuscrite à partir de PDF numérisés et d'images avec OCR activé par l'IA.
           url: text_extractor:index
-          category: other
-
-- model: otto.App
-  fields:
-    handle: lex_experiment
-    name_en: LEX experiment
-    name_fr: Expérience LEX
-    prod_ready: true
-    user_group: LEX experiment user
-    features:
-      - fields:
-          short_name: "lex_experiment"
-          name_en: LEX experiment
-          name_fr: Expérience LEX
-          description_en: A hybrid solution combining Text Extraction and Q&A functionalities, designed to assist LEX users in efficiently retrieving critical information from Notices of Appeal.
-          description_fr: Une solution hybride combinant les fonctionnalités d'extraction de texte et de questions-réponses, conçue pour aider les utilisateurs de LEX à récupérer efficacement des informations cruciales à partir des avis d'appel.
-          url: lex_experiment:index
           category: other

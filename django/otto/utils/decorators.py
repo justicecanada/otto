@@ -119,7 +119,7 @@ def budget_required(func):
                 user=request.user,
                 heading=_("Budget limit"),
                 text=_(
-                    "You have reached your weekly budget limit. Please contact an Otto administrator or wait until Sunday for the limit to reset."
+                    "You have reached your monthly budget limit. Please contact an Otto administrator or wait until the 1st for the limit to reset."
                 ),
                 category="error",
             )

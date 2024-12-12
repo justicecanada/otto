@@ -16,12 +16,27 @@
     }
     
   }
+
+  #help-button {
+    &.btn {
+      border-color: transparent !important;
+    }
+  }
   </style>
 {% endblock %}
 
 {% block body %}
 
-  <h1 class="text-center display-2 fw-semibold">Otto</h1>
+  <h1 class="text-center display-3 fw-semibold">
+    <img src="{% static 'otto-logo.png' %}"
+         class="d-inline-block align-top"
+         width="108"
+         height="auto"
+         id="otto-logo"
+         alt="Smiling robot wearing Justice logo">
+    <br>
+    Otto
+  </h1>
   <div class="lead fw-medium text-center">
     <p>{% trans "Empowering Justice efficiency with data and AI" %}</p>
   </div>
@@ -56,7 +71,7 @@
   <div class="dropdown position-fixed bottom-0 end-0 m-3 bg-light rounded-circle">
     <button type="button"
             id="help-button"
-            class="btn btn-outline"
+            class="btn"
             title="{% trans 'Help' %}"
             data-bs-toggle="dropdown"
             aria-controls="help-menu"
@@ -76,7 +91,6 @@
           <div class="me-2">
             <i class="bi bi-airplane" style="font-size: .80rem;"></i>
           </div>
- 
           {% trans 'Start a tour of Otto' %}
         </button>
       </li>
@@ -105,9 +119,22 @@
         doneBtnText: "{% trans 'Done' %}",
         steps: [          
           { element: "#app-list", popover: { title: "{% trans 'Start using Otto'%}", description: "{% trans 'Start using Otto by selecting an application.'%}" } },
-          { element: "#cost-bar-inner", popover: { title: "{% trans 'Cost allocation'%}", description: "{% trans 'This meter gradually fills up as you use Otto. It represents the amount of money left out of your weekly allocation. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center to grant an exemption.'%}", side: 'bottom', align: 'start' } },
-          { element: "#feedback-icon", popover: { title: "{% trans 'Feedback'%}", description: "{% trans 'Click on this icon to submit feedback about Otto. Let us know what went wrong, or suggest an improvement.'%}", side: 'bottom', align: 'start' } }
+          { element: "#cost-bar-inner", popover: { title: "{% trans 'Cost allocation'%}", description: "{% trans 'This meter gradually fills up as you use Otto. It represents the amount of money left out of your weekly allocation. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center to grant an exemption.'%}"} },
+          { element: "#feedback-icon", popover: { title: "{% trans 'Feedback'%}", description: "{% trans 'Click on this icon to submit feedback about Otto. Let us know what went wrong, or suggest an improvement.'%}"} }
         ],
       });
   </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const logoElement = document.querySelector('#otto-logo');
+      // Make the logo bounce a bit when you click it
+      logoElement.addEventListener('click', function() {
+        logoElement.classList.add('animate');
+        setTimeout(() => {
+          logoElement.classList.remove('animate');
+        }, 1000);
+      });
+    });
+  </script>
+
 {% endblock %}

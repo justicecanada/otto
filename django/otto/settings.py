@@ -110,7 +110,7 @@ DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
 DEFAULT_LAWS_MODEL = "gpt-4o"
 
-DEFAULT_WEEKLY_MAX = 20  # allowance $CAD/user/week unless otherwise specified
+DEFAULT_MONTHLY_MAX = 40  # allowance $CAD/user/month unless otherwise specified
 
 # Azure Cognitive Services
 AZURE_COGNITIVE_SERVICE_ENDPOINT = os.environ.get("AZURE_COGNITIVE_SERVICE_ENDPOINT")
@@ -169,7 +169,6 @@ INSTALLED_APPS = [
     "channels",
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
-    "lex_experiment",
     "django_celery_beat",
 ]
 
@@ -277,24 +276,42 @@ DATABASES = {
     },
 }
 
+DJANGODB_PGBOUNCER = (
+    os.environ.get("DJANGODB_PGBOUNCER", "False") == "True" and not IS_RUNNING_IN_GITHUB
+)
+VECTORDB_PGBOUNCER = (
+    os.environ.get("VECTORDB_PGBOUNCER", "False") == "True" and not IS_RUNNING_IN_GITHUB
+)
+pgbouncer_options = {
+    "DISABLE_SERVER_SIDE_CURSORS": True,
+    "CONN_MAX_AGE": 600,  # 10 minutes
+}
+
 # If the database is set in the environment variables, use that instead
 if os.environ.get("DJANGODB_ENGINE") is not None:
     DATABASES["default"] = {
-        "ENGINE": os.environ.get("DJANGODB_ENGINE"),
+        "ENGINE": "postgres_wrapper",
         "NAME": os.environ.get("DJANGODB_NAME"),
         "USER": os.environ.get("DJANGODB_USER"),
         "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
         "HOST": os.environ.get("DJANGODB_HOST"),
+        "PORT": os.environ.get("DJANGODB_PORT"),
     }
+    if DJANGODB_PGBOUNCER:
+        DATABASES["default"].update(pgbouncer_options)
+
 
 if os.environ.get("VECTORDB_ENGINE") is not None:
     DATABASES["vector_db"] = {
-        "ENGINE": os.environ.get("VECTORDB_ENGINE"),
+        "ENGINE": "postgres_wrapper",
         "NAME": os.environ.get("VECTORDB_NAME"),
         "USER": os.environ.get("VECTORDB_USER"),
         "PASSWORD": os.environ.get("VECTORDB_PASSWORD", ""),
         "HOST": os.environ.get("VECTORDB_HOST"),
+        "PORT": os.environ.get("VECTORDB_PORT"),
     }
+    if VECTORDB_PGBOUNCER:
+        DATABASES["vector_db"].update(pgbouncer_options)
 
 
 # Password validation
