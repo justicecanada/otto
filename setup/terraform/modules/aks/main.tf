@@ -266,6 +266,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   kubelet_identity {
+    client_id                 = data.azurerm_user_assigned_identity.identity.client_id
+    object_id                 = data.azurerm_user_assigned_identity.identity.principal_id
     user_assigned_identity_id = data.azurerm_user_assigned_identity.identity.id
   }
 
