@@ -415,7 +415,6 @@ def test_modal_views(client, all_apps_user):
     assert not LibraryUserRole.objects.filter(id=role.id).exists()
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_poll_status(client, all_apps_user):
     library = Library.objects.get_default_library()
