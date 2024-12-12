@@ -5,19 +5,6 @@
 # Ensure we're in the correct directory
 cd /home/azureuser/otto/setup/k8s
 
-# Check if the image exists
-export IMAGE_EXISTS=$(
-    az acr repository show-tags \
-        --name $ACR_NAME \
-        --repository otto \
-        --output tsv | grep -q "^latest$" && echo true || echo false
-    )
-
-if [[ $IMAGE_EXISTS == "false" ]]; then
-    echo "The latest image does not exist in the ACR. Exiting..."
-    exit 0
-fi
-
 # Get the credentials for the AKS cluster and exit if it fails
 if ! az aks get-credentials --resource-group "$RESOURCE_GROUP_NAME" --name "$AKS_CLUSTER_NAME" --overwrite-existing; then
     echo "Failed to get AKS credentials. Exiting..."

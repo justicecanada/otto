@@ -413,7 +413,8 @@ resource "azurerm_role_assignment" "aks_secrets_provider_identity_kv_secrets_use
 # The AKS cluster's identity is used for cluster-level operations and management tasks and does not typically require direct access to secrets.
 
 resource "azurerm_role_assignment" "acr_pull" {
-  principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
+  # principal_id         = data.azurerm_user_assigned_identity.identity.principal_id
+  principal_id         = azurerm_kubernetes_cluster.aks.identity[0].principal_id
   role_definition_name = "AcrPull"
   scope                = var.acr_id
   principal_type       = "ServicePrincipal"

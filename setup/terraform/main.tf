@@ -45,6 +45,18 @@ module "keyvault" {
   web_subnet_id          = var.web_subnet_id
 }
 
+# ACR module
+module "acr" {
+  source                   = "./modules/acr"
+  acr_name                 = var.acr_name
+  resource_group_name      = module.resource_group.name
+  location                 = var.location
+  acr_sku                  = "Premium"
+  tags                     = local.common_tags
+  jumpbox_identity_id      = var.jumpbox_identity_id
+  keyvault_id              = module.keyvault.keyvault_id
+}
+
 # Disk module
 module "disk" {
   source                    = "./modules/disk"
@@ -118,7 +130,7 @@ module "aks" {
   mgmt_resource_group_name               = var.mgmt_resource_group_name
   log_analytics_readers_group_id         = split(",", var.log_analytics_readers_group_id)
   keyvault_id                            = module.keyvault.keyvault_id
-  acr_id                                 = var.acr_id
+  acr_id                                 = module.acr.acr_id
   disk_encryption_set_id                 = module.disk.disk_encryption_set_id
   storage_account_id                     = module.storage.storage_account_id
   tags                                   = local.common_tags

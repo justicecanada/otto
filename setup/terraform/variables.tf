@@ -33,10 +33,10 @@ variable "owner" {
   description = "Owner of the resources"
 }
 
-variable "acr_id" {
-  type        = string
-  description = "ID of the ACR"
-}
+# variable "acr_id" {
+#   type        = string
+#   description = "ID of the ACR"
+# }
 
 variable "log_analytics_readers_group_id" {
   type        = string
@@ -93,6 +93,11 @@ variable "storage_container_name" {
   description = "Name of the default container to create in the storage account"
   type        = string
   default     = "otto"
+}
+
+variable "acr_name" {
+  type        = string
+  description = "Name of the ACR"
 }
 
 variable "djangodb_resource_name" {
