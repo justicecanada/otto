@@ -333,7 +333,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   tags = var.tags
 
   # Specify dependencies
-  depends_on = [var.acr_id, azurerm_role_assignment.aks_network_contributor, azurerm_private_dns_zone_virtual_network_link.aks_dns_link]
+  depends_on = [var.acr_id, azurerm_role_assignment.aks_network_contributor, azurerm_private_dns_zone_virtual_network_link.aks_dns_link, azurerm_role_assignment.aks_kubelet_identity_operator]
 }
 
 resource "azurerm_role_assignment" "aks_des_reader" {
