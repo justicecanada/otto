@@ -525,11 +525,8 @@ def test_chat_summarization_response(client, all_apps_user):
 
 
 # Test chat_response with QA and Translate modes
-# These require additional setup / authentications and won't run on GitHub
 @pytest.mark.django_db
 def test_translate_response(client, all_apps_user):
-    if settings.IS_RUNNING_IN_GITHUB:
-        return
     user = all_apps_user()
     client.force_login(user)
 
