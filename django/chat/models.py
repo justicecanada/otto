@@ -98,7 +98,7 @@ class ChatOptionsManager(models.Manager):
             from chat.utils import copy_options
 
             new_options = self.create()
-            copy_options(chat.user.default_preset.options, new_options)
+            copy_options(chat.user.default_preset.options, new_options, chat.user)
         else:
             # Default Otto settings
             default_library = Library.objects.get_default_library()
