@@ -1047,7 +1047,7 @@ def test_preset(client, basic_user, all_apps_user):
     chat.options.save()
     response = client.post(
         reverse(
-            "chat:chat_options", kwargs={"chat_id": chat.id, "action": "save_preset"}
+            "chat:chat_options", kwargs={"chat_id": chat.id, "action": "create_preset"}
         ),
         data={
             "name_en": "Personal Library Preset",
@@ -1056,7 +1056,7 @@ def test_preset(client, basic_user, all_apps_user):
             "prompt": "",
         },
     )
-    assert response.status_code == 302  # Redirect after saving
+    assert response.status_code == 200
     preset = Preset.objects.get(name_en="Personal Library Preset")
     # Now, user2 should be able to load this preset - BUT - the library should be reset
     client.force_login(user2)
