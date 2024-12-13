@@ -12,7 +12,8 @@ defaults:
 jobs:
   load-localization:    
     runs-on: ubuntu-latest
-    container: python:3.11    
+    container: python:3.11
+    if: github.event.actor != 'github-actions[bot]'
     steps:
       - name: Dump GitHub context
         env:
