@@ -108,23 +108,8 @@ while ! (check_deployments_ready && check_statefulsets_ready); do
     sleep 10
 done
 
-echo "All deployments and statefulsets are ready!"
-
-
-# Prompt the user if they want to run the initial setup
-# If the INIT_SCRIPT is not set, prompt the user
-if [[ -z "$INIT_SCRIPT" ]]; then
-    read -p "Do you want to run the initial setup? (y/N): " INIT_SCRIPT
-fi
-
-# If initial setup is confirmed, run the initial setup script
-if [[ $INIT_SCRIPT =~ ^[Yy]$ ]]; then
-    export COORDINATOR_POD=$(kubectl get pods -n otto -l app=django-app -o jsonpath='{.items[0].metadata.name}')
-    kubectl exec -it $COORDINATOR_POD -n otto -- env OTTO_ADMIN="${OTTO_ADMIN}" /django/initial_setup.sh
-fi
-
 echo 
-echo "Deployment complete!"
+echo "All deployments and statefulsets are ready!"
 echo
 echo "The site URL is: $SITE_URL"
 echo 

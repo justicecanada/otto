@@ -38,3 +38,5 @@ spec:
     kind: ClusterIssuer
   dnsNames:
   - ${DOMAIN_NAME}
+  privateKey:
+    rotationPolicy: Always # Generate a new private key each time the certificate is renewed or reissued  
