@@ -525,7 +525,3 @@ ALLOWED_FETCH_URLS = [
     "canlii.org",
     "wikipedia.org",
 ]
-
-ALLOWED_FETCH_REGEX = "|".join(
-    rf"https://(\w+\.)?{quote(url)}" for url in ALLOWED_FETCH_URLS
-)

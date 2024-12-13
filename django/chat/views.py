@@ -1,5 +1,6 @@
 import json
 import re
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -16,6 +17,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
+import tldextract
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -264,7 +266,10 @@ def chat_message(request, chat_id):
     try:
         url_validator(user_message_text)
         entered_url = True
-        if re.match(settings.ALLOWED_FETCH_REGEX, user_message_text):
+        domain = tldextract.extract(
+            urlparse(user_message_text).netloc
+        ).registered_domain
+        if domain in settings.ALLOWED_FETCH_URLS:
             allowed_url = True
     except ValidationError:
         pass
@@ -304,7 +309,7 @@ def chat_message(request, chat_id):
     }
     response = HttpResponse()
     response.write(render_to_string("chat/components/chat_messages.html", context))
-    if entered_url and allowed_url and mode == "qa":
+    if entered_url and allowed_url and mode == "chat":
         response.write(change_mode_to_chat_qa(chat))
     return response
 

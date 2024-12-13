@@ -1,4 +1,5 @@
 import re
+from urllib.parse import urlparse
 
 from django import forms
 from django.conf import settings
@@ -8,6 +9,7 @@ from django.core.validators import URLValidator
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
+import tldextract
 from autocomplete import widgets
 
 from chat.utils import bad_url
@@ -127,7 +129,8 @@ class DocumentDetailForm(forms.ModelForm):
                 url_validator(url)
             except ValidationError:
                 raise ValidationError(_("Invalid URL"))
-            if not re.match(settings.ALLOWED_FETCH_REGEX, url):
+            domain = tldextract.extract(urlparse(url).netloc).registered_domain
+            if not domain in settings.ALLOWED_FETCH_URLS:
                 BlockedURL.objects.create(url=url)
                 raise ValidationError(mark_safe(bad_url(render_markdown=True)))
         return url
