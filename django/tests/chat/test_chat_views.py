@@ -1214,7 +1214,8 @@ def test_chat_message_url_validation(client, all_apps_user):
         data={"user-message": "https://acanada.ca"},
     )
     assert response.status_code == 200
-    assert not "URL" in response.content.decode()
+    # This should be a problem
+    assert "URL" in response.content.decode()
 
     # Is a valid URL, but is http:// only (should be fine, it will correct to https://)
     response = client.post(
