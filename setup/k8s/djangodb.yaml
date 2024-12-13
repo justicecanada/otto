@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: postgres-django-db
-          image: postgres:16
+          image: ${ACR_NAME}.azurecr.io/postgres:16
           imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_PASSWORD
