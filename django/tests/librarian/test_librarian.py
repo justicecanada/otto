@@ -521,7 +521,6 @@ def test_document_url_validation():
     assert not form.is_valid()
     assert "url" in form.errors
 
-    # URL not matching ALLOWED_FETCH_REGEX
     form = DocumentDetailForm(
         data={
             "url": "https://notallowed.com",

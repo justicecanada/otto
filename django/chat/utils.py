@@ -575,6 +575,7 @@ def sort_by_max_score(groups):
 
 
 def change_mode_to_chat_qa(chat):
+    chat.options.mode = "qa"
     chat.options.qa_library = chat.user.personal_library
     chat.options.qa_scope = "data_sources"
     chat.options.qa_data_sources.set([chat.data_source])

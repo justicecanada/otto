@@ -1198,6 +1198,8 @@ def test_chat_message_url_validation(client, all_apps_user):
     )
     assert response.status_code == 200
     assert Message.objects.filter(chat=chat, text="https://canada.ca").exists()
+    # The error message contains the string "URL" but success message does not
+    assert not "URL" in response.content.decode()
 
     # Subdomain of valid URL
     response = client.post(
@@ -1205,7 +1207,10 @@ def test_chat_message_url_validation(client, all_apps_user):
         data={"user-message": "https://www.canada.ca"},
     )
     assert response.status_code == 200
-    assert Message.objects.filter(chat=chat, text="https://www.canada.ca").exists()
+    assert Message.objects.filter(
+        chat=chat, text="https://www.tbs-sct.canada.ca"
+    ).exists()
+    assert not "URL" in response.content.decode()
 
     # Invalid URL
     response = client.post(
@@ -1216,7 +1221,6 @@ def test_chat_message_url_validation(client, all_apps_user):
     # This should just be interpreted as a regular chat message
     assert not "URL" in response.content.decode()
 
-    # URL not matching ALLOWED_FETCH_REGEX
     response = client.post(
         reverse("chat:chat_message", args=[chat.id]),
         data={"user-message": "https://notallowed.com"},
