@@ -13,7 +13,6 @@ jobs:
   load-localization:    
     runs-on: ubuntu-latest
     container: python:3.11
-    if: github.event.workflow_run.event == 'pull_request'
     steps:
     - run: echo "Load App Localization"
     # permissions:
