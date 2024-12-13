@@ -136,7 +136,7 @@ resource "azurerm_route_table" "aks" {
     name                   = "default-route"
     address_prefix         = "0.0.0.0/0"
     next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = "10.250.6.5" # data.azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
+    next_hop_in_ip_address = "10.250.3.4" # DEV:10.250.6.5 # data.azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
   }
 
   # route {
