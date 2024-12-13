@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: postgres-vector-db
-          image: pgvector/pgvector:pg16
+          image: ${ACR_NAME}.azurecr.io/pgvector/pgvector:pg16
           imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_PASSWORD

@@ -1,20 +1,10 @@
 #!/bin/bash
 
-# Define variables
-IMAGE_NAME="postgres"
-SPECIFIC_TAG="16"
-
-# Pull the postgres image
-docker pull ${IMAGE_NAME}:${SPECIFIC_TAG}
-
-# Tag the image for ACR
-docker tag ${IMAGE_NAME}:${SPECIFIC_TAG} $ACR_NAME.azurecr.io/${IMAGE_NAME}:${SPECIFIC_TAG}
-
 # Push the image to ACR
 push_to_acr() {
 
-    local acr_name=$1
-    local image_name=$2
+    local image_name=$1
+    local acr_name=$2
 
     # Get ACR login server
     local acr_login_server=$(az acr show --name "$acr_name" --query loginServer --output tsv)
@@ -35,4 +25,19 @@ push_to_acr() {
     unset acr_access_token
 }
 
-push_to_acr "$ACR_NAME" "$ACR_NAME.azurecr.io/${IMAGE_NAME}:${SPECIFIC_TAG}"
+fetch_and_push_to_acr() {
+    local image_name=$1
+    local acr_name=$2
+
+    # Pull the image
+    docker pull "${image_name}"
+
+    # Tag the image for ACR
+    docker tag "${image_name}" "${acr_name}.azurecr.io/${image_name}"
+
+    # Push the image to ACR
+    push_to_acr "${acr_name}.azurecr.io/${image_name}" "$acr_name"
+}
+
+fetch_and_push_to_acr "postgres:16" "$ACR_NAME"
+fetch_and_push_to_acr "pgvector/pgvector:pg16" "$ACR_NAME"

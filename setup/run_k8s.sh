@@ -19,12 +19,6 @@ export OTTO_IDENTITY_ID=$(az identity show \
   --resource-group $RESOURCE_GROUP_NAME \
   --query clientId \
   --output tsv)
-
-# export KEYVAULT_CSI_PROVIDER_CLIENT_ID=$(az aks show \
-#   --resource-group $RESOURCE_GROUP_NAME \
-#   --name $AKS_CLUSTER_NAME \
-#   --query "addonProfiles.azureKeyvaultSecretsProvider.identity.clientId" \
-#   --output tsv) 
   
 
 # Apply the NGINX Ingress Controller
