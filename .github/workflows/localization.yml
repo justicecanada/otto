@@ -67,6 +67,10 @@ jobs:
         git config --global --add safe.directory /__w/otto/otto
         git config --global user.name "github-actions[bot]"        
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add .
-        git commit -m "Update localization files"
-        git push
+        if [ -n "$(git status --porcelain)" ]; then
+          git add .
+          git commit -m "Update localization files"
+          git push
+        else
+          echo "No changes to commit"
+        fi
