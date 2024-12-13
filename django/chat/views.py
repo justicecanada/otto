@@ -41,7 +41,7 @@ from chat.models import (
 )
 from chat.utils import bad_url, change_mode_to_chat_qa, copy_options, title_chat
 from librarian.models import Library, SavedFile
-from otto.models import SecurityLabel
+from otto.models import BlockedURL, SecurityLabel
 from otto.rules import can_access_preset, can_edit_preset
 from otto.utils.decorators import (
     app_access_required,
@@ -278,6 +278,7 @@ def chat_message(request, chat_id):
 
     if entered_url and not allowed_url:
         # Just respond with the error message.
+        BlockedURL.objects.create(url=user_message_text)
         response_message = Message.objects.create(
             chat=chat, is_bot=True, mode=mode, parent=user_message, text=bad_url()
         )

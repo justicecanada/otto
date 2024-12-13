@@ -35,7 +35,8 @@
                   data-bs-toggle="modal"
                   data-bs-target="#bulkUploadModal">{% trans "Upload CSV" %}</button>
           <a href="{% url 'cost_dashboard' %}" class="btn btn-secondary me-1">{% trans "Cost dashboard" %}</a>
-          <a href="{% url 'manage_pilots' %}" class="btn btn-secondary me-3">{% trans "Manage pilots" %}</a>
+          <a href="{% url 'manage_pilots' %}" class="btn btn-secondary me-1">{% trans "Manage pilots" %}</a>
+          <a href="{% url 'blocked_urls' %}" class="btn btn-secondary me-3">{% trans "Blocked URLs" %}</a>
           <button type="button"
                   class="btn btn-primary"
                   hx-get="{% url 'manage_users_form' %}"

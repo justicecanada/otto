@@ -12,6 +12,7 @@ from autocomplete import widgets
 
 from chat.utils import bad_url
 from librarian.models import DataSource, Document, Library, LibraryUserRole
+from otto.models import BlockedURL
 
 User = get_user_model()
 
@@ -127,6 +128,7 @@ class DocumentDetailForm(forms.ModelForm):
             except ValidationError:
                 raise ValidationError(_("Invalid URL"))
             if not re.match(settings.ALLOWED_FETCH_REGEX, url):
+                BlockedURL.objects.create(url=url)
                 raise ValidationError(mark_safe(bad_url(render_markdown=True)))
         return url
 
