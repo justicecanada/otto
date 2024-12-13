@@ -10,8 +10,9 @@ from django.core.management.base import BaseCommand
 import yaml
 from django_extensions.management.utils import signalcommand
 
+from chat.models import ChatOptions, Preset
 from librarian.models import DataSource, Document, Library
-from otto.models import App, UsageTerm
+from otto.models import App, UsageTerm, User
 
 
 class Command(BaseCommand):
@@ -91,6 +92,8 @@ class Command(BaseCommand):
 
             if "library_mini" in objects_to_reset:
                 self.reset_libraries("library_mini.yaml")
+            if "presets" in objects_to_reset:
+                self.reset_presets()
 
     def reset_apps(self):
         yaml_file_path = os.path.join(
@@ -245,6 +248,39 @@ class Command(BaseCommand):
 
         with open(yaml_file_path, "r", encoding="utf-8") as yaml_file:
             presets_data = yaml.safe_load(yaml_file)
+
+        # Delete existing presets and associated options
+        Preset.objects.all().delete()
+        ChatOptions.objects.filter(preset__isnull=False).delete()
+
+        # TODO - figure out who should be the owner of the default preset, for now I'm setting myself
+        owner = User.objects.filter(email="Michel.Custeau@justice.gc.ca").first()
+
+        # Create ChatOptions with prompts from the YAML file
+        default_library = Library.objects.get_default_library()
+        chat_options = ChatOptions.objects.create(
+            mode="chat",
+            chat_system_prompt=presets_data["default_chat_prompt"]["en"],
+            qa_system_prompt=presets_data["qa_system_prompt"]["en"],
+            qa_prompt_template=presets_data["qa_prompt_template"]["en"],
+            qa_pre_instructions=presets_data["qa_pre_instructions"]["en"],
+            qa_post_instructions=presets_data["qa_post_instructions"]["en"],
+            chat_model=settings.DEFAULT_CHAT_MODEL,
+            qa_model=settings.DEFAULT_QA_MODEL,
+            summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
+            qa_library=default_library,
+        )
+
+        Preset.objects.create(
+            name_en="Default Preset",
+            name_fr="Préréglage par défaut",
+            description_en="Default preset including default prompts",
+            description_fr="Préréglage par défaut incluant les invites par défaut",
+            options=chat_options,
+            owner=owner,
+            sharing_option="everyone",
+        )
+        self.stdout.write(self.style.SUCCESS("Presets reset successfully."))
 
     def reset_security_labels(self):
         # Simply call manage.py loaddata security_labels.yaml
