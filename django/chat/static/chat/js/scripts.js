@@ -210,7 +210,8 @@ document.addEventListener("htmx:afterSwap", function (event) {
     checkTruncation(element);
   });
   // Markdown rendering, if the response message has data-md property (e.g., error message)
-  let last_message = document.querySelector("#messages-container div.markdown-text:last-child");
+  let messages = document.querySelectorAll("#messages-container div.markdown-text");
+  let last_message = messages[messages.length - 1];
   if (last_message && last_message.dataset.md) {
     render_markdown(last_message.parentElement);
   }
