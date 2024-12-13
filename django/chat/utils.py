@@ -590,11 +590,16 @@ def change_mode_to_chat_qa(chat):
     )
 
 
-def bad_url():
-    out = _(
-        "Sorry, that URL isn't allowed. Otto can only add content from sites ending in:"
-    )
+def bad_url(render_markdown=False):
+    out = _("Sorry, that URL isn't allowed. Otto can only access sites ending in:")
     out += "\n\n"
     out += "\n".join([f"* `{url}`" for url in settings.ALLOWED_FETCH_URLS]) + "\n\n"
+    out += (
+        _("(e.g., `justice.gc.ca` or `www.tbs-sct.canada.ca` are also allowed)")
+        + "\n\n"
+    )
     out += _("As a workaround, you can save the content to a file and upload it here.")
+
+    if render_markdown:
+        out = md.convert(out)
     return out
