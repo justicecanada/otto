@@ -14,63 +14,58 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3.11
     if: github.event.actor != 'github-actions[bot]'
-    steps:
-      - name: Dump GitHub context
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+    services:
+      # Label used to access the service container
+      postgres-service:
+        # Docker Hub image
+        image: pgvector/pgvector:pg16
+        # Provide the password for postgres
         env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-    # permissions:
-    #   contents: write
-    #   pull-requests: write
-    #   actions: read
-    # services:
-    #   # Label used to access the service container
-    #   postgres-service:
-    #     # Docker Hub image
-    #     image: pgvector/pgvector:pg16
-    #     # Provide the password for postgres
-    #     env:
-    #       POSTGRES_USER: postgres
-    #       POSTGRES_DB: otto
-    #       POSTGRES_PASSWORD: password
-    #     # Set health checks to wait until postgres has started
-    #     options: >-
-    #       --health-cmd pg_isready
-    #       --health-interval 10s
-    #       --health-timeout 5s
-    #       --health-retries 5
-    #     ports:
-    #       # Maps tcp port 5432 on service container to the host
-    #       - 5432:5432
-    #   redis:
-    #     image: redis:7.0.15-alpine3.20
-    #     ports:
-    #       - 6379:6379
+          POSTGRES_USER: postgres
+          POSTGRES_DB: otto
+          POSTGRES_PASSWORD: password
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+      redis:
+        image: redis:7.0.15-alpine3.20
+        ports:
+          - 6379:6379
 
-    # env:
-    #   AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
-    #   AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
-    #   DJANGODB_HOST: postgres-service
-    #   VECTORDB_HOST: postgres-service
-    #   LOG_LEVEL: ERROR
-    #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    env:
+      AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
+      AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
+      DJANGODB_HOST: postgres-service
+      VECTORDB_HOST: postgres-service
+      LOG_LEVEL: ERROR
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    # steps:
-    # - uses: actions/checkout@v4
-    # - name: Install dependencies
-    #   run: |
-    #     apt-get update
-    #     apt-get install -y postgresql-client poppler-utils
-    #     python -m pip install --upgrade pip
-    #     pip install -r requirements.txt
-    #     pip install -r requirements_dev.txt
-    # - name: Run load_app_localization command
-    #   run: |
-    #     python manage.py load_app_localization
-    # - name: Commit changes
-    #   run: |
-    #     git config --global user.name "github-actions[bot]"        
-    #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
-    #     git add .
-    #     git commit -m "Update localization files"
-    #     git push
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y postgresql-client poppler-utils
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements_dev.txt
+    - name: Run load_app_localization command
+      run: |
+        python manage.py load_app_localization
+    - name: Commit changes
+      run: |
+        git config --global user.name "github-actions[bot]"        
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "Update localization files"
+        git push
