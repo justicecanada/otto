@@ -1,13 +1,8 @@
-name: Django CI
-# See https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
+name: Load App Localization
 
 on:
-  push:
-    branches: [ "main" ]
-  workflow_run:
-    workflows: ["Load App Localization"]
-    types:
-      - completed
+  pull_request:
+    branches: [ "main" ]    
 
 defaults:
   run:
@@ -15,17 +10,14 @@ defaults:
     working-directory: ./django
 
 jobs:
-  # Label of the container job
-  test-coverage:
-    # Containers must run in Linux based operating systems
+  load-localization:    
     runs-on: ubuntu-latest
-    # Docker Hub image that `test-coverage` executes in
     container: python:3.11
+    if: github.event.workflow_run.event == 'pull_request' && github.event.head_commit.author.name != 'github-actions[bot]'
     permissions:
-      # See https://github.com/py-cov-action/python-coverage-comment-action#basic-usage
-      pull-requests: write
       contents: write
-
+      pull-requests: write
+      actions: read
     services:
       # Label used to access the service container
       postgres-service:
@@ -56,6 +48,7 @@ jobs:
       DJANGODB_HOST: postgres-service
       VECTORDB_HOST: postgres-service
       LOG_LEVEL: ERROR
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
     - uses: actions/checkout@v4
@@ -66,26 +59,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements_dev.txt
-    - name: Collect static files
+    - name: Run load_app_localization command
       run: |
-        python manage.py collectstatic --noinput
-    - name: Run tests
-      working-directory: ./
+        python manage.py load_app_localization
+    - name: Commit changes
       run: |
-        celery -A otto worker -l INFO --pool=gevent --concurrency=256 &
-        python -m coverage run --source=django --omit 'django/template_wizard/*' -m pytest django
-    - name: Display coverage
-      working-directory: ./
-      run: |
-        python -m coverage report -m
-    - name: Coverage comment
-      id: coverage_comment
-      uses: py-cov-action/python-coverage-comment-action@v3
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Store Pull Request comment to be posted
-      uses: actions/upload-artifact@v3
-      if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
-      with:
-        name: python-coverage-comment-action
-        path: python-coverage-comment-action.txt
+        git config --global user.name "github-actions[bot]"        
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "Update localization files"
+        git push
