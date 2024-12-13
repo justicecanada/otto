@@ -1,8 +1,9 @@
 name: Localization
 
 on:
-  pull_request:
-    branches: [ "main" ]    
+  workflow_run:
+    workflows: [Localization]
+    types: [completed]
 
 defaults:
   run:
