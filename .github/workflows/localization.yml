@@ -1,4 +1,4 @@
-name: Load App Localization
+name: Localization
 
 on:
   pull_request:

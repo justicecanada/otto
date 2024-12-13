@@ -4,12 +4,9 @@ name: Django CI
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_run:
-    workflows: ["Load App Localization"]
-    types:
-      - completed
+    workflows: [Localization]
+    types: [completed]
 
 defaults:
   run:
