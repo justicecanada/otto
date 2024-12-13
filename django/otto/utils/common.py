@@ -63,26 +63,21 @@ def get_app_from_path(path):
 def check_url_allowed(url):
     from otto.models import BlockedURL
 
-    print("Checking if", url, "is allowed")
-
     # Ensure the URL starts with https://
     if url.startswith("http://"):
         url = f"https://{url[7:]}"
     if not url.startswith(("https://")):
-        print("URL does not start with http:// or https://")
         return False
 
     # Extract the domain
     extracted = tldextract.extract(urlparse(url).netloc)
     domain = f"{extracted.domain}.{extracted.suffix}"
-    print("Extracted domain:", domain)
 
     # Check if the domain matches or is a subdomain of an allowed domain
     if not any(
         domain == allowed_domain or domain.endswith(f".{allowed_domain}")
         for allowed_domain in settings.ALLOWED_FETCH_URLS
     ):
-        print("Domain is not in the allowed list")
         BlockedURL.objects.create(url=url)
         return False
 
