@@ -279,7 +279,7 @@ def test_modal_views(client, all_apps_user):
     client.force_login(user)
     data_source = DataSource.objects.create(library=library)
     # Create a document
-    document = Document.objects.create(data_source=data_source, url="http://google.ca")
+    document = Document.objects.create(data_source=data_source, url="https://canada.ca")
     # Poll for status updates
     url = reverse(
         "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
@@ -410,9 +410,9 @@ def test_poll_status(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
     data_source = DataSource.objects.create(library=library)
-    document = Document.objects.create(data_source=data_source, url="http://google.ca")
+    document = Document.objects.create(data_source=data_source, url="https://canada.ca")
     document2 = Document.objects.create(
-        data_source=data_source, url="http://google.com"
+        data_source=data_source, url="https://canada.ca"
     )
     # Poll for status updates
     url = reverse(

@@ -209,6 +209,11 @@ document.addEventListener("htmx:afterSwap", function (event) {
   document.querySelectorAll("div.message-text").forEach(function (element) {
     checkTruncation(element);
   });
+  // Markdown rendering, if the response message has data-md property (e.g., error message)
+  let last_message = document.querySelector("#messages-container div.markdown-text:last-child");
+  if (last_message && last_message.dataset.md) {
+    render_markdown(last_message.parentElement);
+  }
   document.querySelector("#chat-prompt").value = "";
   document.querySelector("#chat-prompt").focus();
   // Change height back to minimum

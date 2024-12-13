@@ -518,3 +518,14 @@ structlog.configure(
     logger_factory=structlog.stdlib.LoggerFactory(),
     cache_logger_on_first_use=True,
 )
+
+ALLOWED_FETCH_URLS = [
+    "canada.ca",
+    "gc.ca",
+    "canlii.org",
+    "wikipedia.org",
+]
+
+ALLOWED_FETCH_REGEX = "|".join(
+    rf"https://.*\.{quote(url)}" for url in ALLOWED_FETCH_URLS
+)
