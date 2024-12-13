@@ -2562,5 +2562,29 @@
     "Selected dates": {
         "fr": "",
         "fr_auto": "Dates sélectionnées"
+    },
+    "QA library for settings preset not accessible. It has been reset to your personal library.": {
+        "fr": "",
+        "fr_auto": "Bibliothèque d’assurance qualité pour les paramètres prédéfinis non accessibles. Il a été réinitialisé à votre bibliothèque personnelle."
+    },
+    "Preset loaded successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage chargé avec succès."
+    },
+    "Preset saved and loaded successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage enregistré et chargé avec succès."
+    },
+    "Preset updated successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage mis à jour avec succès."
+    },
+    "Preset deleted successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage supprimé avec succès."
+    },
+    "Per user per day": {
+        "fr": "",
+        "fr_auto": "Par utilisateur et par jour"
     }
 }
