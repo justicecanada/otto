@@ -15,6 +15,7 @@ metadata:
     nginx.ingress.kubernetes.io/custom-http-errors: "403"
     nginx.ingress.kubernetes.io/default-backend: nginx-errors
     kubernetes.io/ingress.class: nginx # Specifies that this Ingress should be handled by the NGINX ingress controller
+    cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer
 spec:
   ingressClassName: nginx
   # AC-19, SC-8, SC-13, SC-23: TLS configuration for secure communication
