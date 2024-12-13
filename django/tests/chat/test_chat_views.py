@@ -1183,3 +1183,43 @@ def test_chat_message_error(client, all_apps_user):
     # Iterate over the response to get the content
     content = final_response(response.streaming_content)
     assert "Error ID" in content.decode("utf-8")
+
+
+@pytest.mark.django_db
+def test_chat_message_url_validation(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    # Valid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://canada.ca"},
+    )
+    assert response.status_code == 200
+    assert Message.objects.filter(chat=chat, text="https://canada.ca").exists()
+
+    # Subdomain of valid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://www.canada.ca"},
+    )
+    assert response.status_code == 200
+    assert Message.objects.filter(chat=chat, text="https://www.canada.ca").exists()
+
+    # Invalid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "invalid-url"},
+    )
+    assert response.status_code == 200
+    # This should just be interpreted as a regular chat message
+    assert not "URL" in response.content.decode()
+
+    # URL not matching ALLOWED_FETCH_REGEX
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://notallowed.com"},
+    )
+    assert response.status_code == 200
+    assert "URL" in response.content.decode()

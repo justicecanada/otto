@@ -527,5 +527,5 @@ ALLOWED_FETCH_URLS = [
 ]
 
 ALLOWED_FETCH_REGEX = "|".join(
-    rf"https://.*\.{quote(url)}" for url in ALLOWED_FETCH_URLS
+    rf"https://(\w+\.)?{quote(url)}" for url in ALLOWED_FETCH_URLS
 )
