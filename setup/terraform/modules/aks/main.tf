@@ -44,88 +44,88 @@ data "azurerm_subnet" "web_subnet" {
   resource_group_name = split("/", var.web_subnet_id)[4] 
 } 
 
-# NSG for the AKS subnet to allow Inbound on port 443
-resource "azurerm_network_security_group" "aks_nsg" {
-  name                = "${var.aks_cluster_name}-nsg"
-  location            = var.location
-  resource_group_name = var.resource_group_name
+# # NSG for the AKS subnet to allow Inbound on port 443
+# resource "azurerm_network_security_group" "aks_nsg" {
+#   name                = "${var.aks_cluster_name}-nsg"
+#   location            = var.location
+#   resource_group_name = var.resource_group_name
 
-  security_rule {
-    name                       = "AllowVnetInbound"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "VirtualNetwork"
-    destination_address_prefix = "VirtualNetwork"
-  }
+#   security_rule {
+#     name                       = "AllowVnetInbound"
+#     priority                   = 100
+#     direction                  = "Inbound"
+#     access                     = "Allow"
+#     protocol                   = "*"
+#     source_port_range          = "*"
+#     destination_port_range     = "*"
+#     source_address_prefix      = "VirtualNetwork"
+#     destination_address_prefix = "VirtualNetwork"
+#   }
 
-  security_rule {
-    name                       = "AllowAzureLoadBalancerInbound"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "AzureLoadBalancer"
-    destination_address_prefix = "*"
-  }
+#   security_rule {
+#     name                       = "AllowAzureLoadBalancerInbound"
+#     priority                   = 110
+#     direction                  = "Inbound"
+#     access                     = "Allow"
+#     protocol                   = "*"
+#     source_port_range          = "*"
+#     destination_port_range     = "*"
+#     source_address_prefix      = "AzureLoadBalancer"
+#     destination_address_prefix = "*"
+#   }
 
-  security_rule {
-    name                       = "AllowAllOutbound"
-    priority                   = 100
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
+#   security_rule {
+#     name                       = "AllowAllOutbound"
+#     priority                   = 100
+#     direction                  = "Outbound"
+#     access                     = "Allow"
+#     protocol                   = "*"
+#     source_port_range          = "*"
+#     destination_port_range     = "*"
+#     source_address_prefix      = "*"
+#     destination_address_prefix = "*"
+#   }
 
-  tags = var.tags
-}
+#   tags = var.tags
+# }
 
 
-# Data resource to firewall
-data "azurerm_firewall" "aks_firewall" {
-  name                = "firewall"
-  resource_group_name = var.mgmt_resource_group_name
-}
+# # Data resource to firewall
+# data "azurerm_firewall" "aks_firewall" {
+#   name                = "firewall"
+#   resource_group_name = var.mgmt_resource_group_name
+# }
 
-resource "azurerm_firewall_network_rule_collection" "aks" {
-  name                = "${var.aks_cluster_name}-nrc"
-  azure_firewall_name = data.azurerm_firewall.aks_firewall.name
-  resource_group_name = var.mgmt_resource_group_name
-  priority            = 100
-  action              = "Allow"
+# resource "azurerm_firewall_network_rule_collection" "aks" {
+#   name                = "${var.aks_cluster_name}-nrc"
+#   azure_firewall_name = data.azurerm_firewall.aks_firewall.name
+#   resource_group_name = var.mgmt_resource_group_name
+#   priority            = 100
+#   action              = "Allow"
 
-  rule {
-    name                  = "allow-azure-cloud"
-    source_addresses      = [data.azurerm_subnet.web_subnet.address_prefixes[0]]
-    destination_ports     = ["443", "9000"]
-    destination_addresses = ["AzureCloud"]
-    protocols            = ["TCP"]
-  }
+#   rule {
+#     name                  = "allow-azure-cloud"
+#     source_addresses      = [data.azurerm_subnet.web_subnet.address_prefixes[0]]
+#     destination_ports     = ["443", "9000"]
+#     destination_addresses = ["AzureCloud"]
+#     protocols            = ["TCP"]
+#   }
 
-  rule {
-    name                  = "allow-dns"
-    source_addresses      = [data.azurerm_subnet.web_subnet.address_prefixes[0]]
-    destination_ports     = ["53"]
-    destination_addresses = ["*"]
-    protocols            = ["UDP"]
-  }
+#   rule {
+#     name                  = "allow-dns"
+#     source_addresses      = [data.azurerm_subnet.web_subnet.address_prefixes[0]]
+#     destination_ports     = ["53"]
+#     destination_addresses = ["*"]
+#     protocols            = ["UDP"]
+#   }
 
-}
+# }
 
-# Associate the NSG with the web subnet
-resource "azurerm_subnet_network_security_group_association" "aks_nsg_association" {
-  subnet_id                 = var.web_subnet_id
-  network_security_group_id = azurerm_network_security_group.aks_nsg.id
-}
+# # Associate the NSG with the web subnet
+# resource "azurerm_subnet_network_security_group_association" "aks_nsg_association" {
+#   subnet_id                 = var.web_subnet_id
+#   network_security_group_id = azurerm_network_security_group.aks_nsg.id
+# }
 
 resource "azurerm_route_table" "aks" {
   name                = "${var.aks_cluster_name}-rt"
@@ -135,16 +135,16 @@ resource "azurerm_route_table" "aks" {
   route {
     name                   = "default-route"
     address_prefix         = "0.0.0.0/0"
-    next_hop_type         = "VirtualAppliance"
-    next_hop_in_ip_address = data.azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = "10.250.6.5" # data.azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
   }
 
-  route {
-    name                   = "to-mcr"
-    address_prefix         = "MicrosoftContainerRegistry"
-    next_hop_type         = "VirtualAppliance"
-    next_hop_in_ip_address = data.azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
-  }
+  # route {
+  #   name                   = "to-mcr"
+  #   address_prefix         = "MicrosoftContainerRegistry"
+  #   next_hop_type         = "VirtualAppliance"
+  #   next_hop_in_ip_address = data.azurerm_firewall.aks_firewall.ip_configuration[0].private_ip_address
+  # }
 
   tags = var.tags
 }
