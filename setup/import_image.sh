@@ -72,10 +72,11 @@ fetch_and_push_to_acr() {
 }
 
 # Build the otto image
-read IMAGE_NAME SPECIFIC_TAG <<< $(build_otto_image "$ACR_NAME")
+read image_name github_hash <<< $(build_otto_image "$ACR_NAME")
 
 # Push the otto image
-push_to_acr "$ACR_NAME" "$IMAGE_NAME" "$SPECIFIC_TAG"
+push_to_acr "$image_name:$github_hash" "$ACR_NAME" 
+push_to_acr "$image_name:latest" "$ACR_NAME"
 
 # Fetch and push the other required images
 fetch_and_push_to_acr "postgres:16" "$ACR_NAME"
