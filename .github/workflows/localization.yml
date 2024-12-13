@@ -2,7 +2,7 @@ name: Localization
 
 on:
   workflow_run:
-    workflows: [Localization]
+    workflows: [Django CI]
     types: [completed]
 
 defaults:
