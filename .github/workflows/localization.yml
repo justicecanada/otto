@@ -12,9 +12,12 @@ defaults:
 jobs:
   load-localization:    
     runs-on: ubuntu-latest
-    container: python:3.11
+    container: python:3.11    
     steps:
-    - run: echo "Load App Localization"
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
     # permissions:
     #   contents: write
     #   pull-requests: write
