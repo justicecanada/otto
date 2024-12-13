@@ -86,7 +86,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 show_document_status = True
             else:
                 logger.error("Error updating document:", errors=form.errors)
-                selected_data_source = get_object_or_404(DataSource, id=parent_id)
+                selected_data_source = (
+                    DataSource.objects.filter(id=parent_id).first()
+                    or form.instance.data_source
+                )
         elif request.method == "DELETE":
             if item_id == 1:
                 return HttpResponse(status=400)
