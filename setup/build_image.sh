@@ -1,43 +1,42 @@
 #!/bin/bash
 
-# Store the current directory
-CURRENT_DIR=$(pwd)
+# Build the otto image
+build_otto_image() {
+    local current_dir=$(pwd)
+    local django_dir="/home/azureuser/otto/django"
+    local acr_name=$1
+    local image_name="${acr_name}.azurecr.io/otto"
 
-# When the script exists, go back to the original directory
-trap 'cd $CURRENT_DIR' EXIT
+    # Change to the Django directory
+    cd "$django_dir"
 
-# Ensure we're in the correct directory
-cd /home/azureuser/otto/django
+    # Get the latest Git commit hash
+    local github_hash=$(git rev-parse HEAD)
 
-# Get the latest Git commit hash
-GITHUB_HASH=$(git rev-parse HEAD)
-
-# Create version.yaml content
-cat << EOF > version.yaml
-github_hash: $GITHUB_HASH
+    # Create version.yaml content
+    cat << EOF > version.yaml
+github_hash: $github_hash
 build_date: $(date -u +"%Y-%m-%d %H:%M:%S")
 EOF
 
-# Prepare image name and tag
-IMAGE_NAME="$ACR_NAME.azurecr.io/otto"
-SPECIFIC_TAG=$GITHUB_HASH
+    # Build Docker image
+    docker build -t ${image_name}:${github_hash} -f Dockerfile .
 
-# Build Docker image
-docker build -t ${IMAGE_NAME}:${SPECIFIC_TAG} -f Dockerfile .
+    # Tag Docker image for ACR
+    docker tag ${image_name}:${github_hash} ${image_name}:latest
 
-# Tag Docker image for ACR
-docker tag ${IMAGE_NAME}:${SPECIFIC_TAG} ${IMAGE_NAME}:latest
+    # Return to the original directory
+    cd "$current_dir"
 
-# Push Docker image to ACR
-# Docker doesn't automatically use Azure's managed identity authentication. To 
-# resolve this, we can use the Azure CLI to obtain an access token for the ACR and 
-# then use that token with Docker. This script will log in to the ACR, push the
-# images, and then log out.
+    # Return the image name and tag
+    echo "${image_name} ${github_hash}"
+}
+
+# Push the image to ACR
 push_to_acr() {
 
-    local acr_name=$1
-    local image_name=$2
-    local specific_tag=$3
+    local image_name=$1
+    local acr_name=$2
 
     # Get ACR login server
     local acr_login_server=$(az acr show --name "$acr_name" --query loginServer --output tsv)
@@ -48,9 +47,8 @@ push_to_acr() {
     # Log in to Docker with the access token (suppress output)
     echo "$acr_access_token" | docker login "$acr_login_server" --username 00000000-0000-0000-0000-000000000000 --password-stdin >/dev/null 2>&1
 
-    # Push Docker images
-    docker push "${image_name}:${specific_tag}"
-    docker push "${image_name}:latest"
+    # Push Docker image
+    docker push "${image_name}"
 
     # Log out from Docker
     docker logout "$acr_login_server" >/dev/null 2>&1
@@ -59,5 +57,31 @@ push_to_acr() {
     unset acr_access_token
 }
 
-# Usage
-push_to_acr "$ACR_NAME" "$IMAGE_NAME" "$SPECIFIC_TAG"
+fetch_and_push_to_acr() {
+    local image_name=$1
+    local acr_name=$2
+
+    # Pull the image
+    docker pull "${image_name}"
+
+    # Tag the image for ACR
+    docker tag "${image_name}" "${acr_name}.azurecr.io/${image_name}"
+
+    # Push the image to ACR
+    push_to_acr "${acr_name}.azurecr.io/${image_name}" "$acr_name"
+}
+
+# Build the otto image
+read image_name github_hash <<< $(build_otto_image "$ACR_NAME")
+
+# Push the otto image
+push_to_acr "$image_name:$github_hash" "$ACR_NAME" 
+push_to_acr "$image_name:latest" "$ACR_NAME"
+
+# Fetch and push the other required images
+fetch_and_push_to_acr "postgres:16" "$ACR_NAME"
+fetch_and_push_to_acr "pgvector/pgvector:pg16" "$ACR_NAME"
+fetch_and_push_to_acr "redis:7.0.11-bullseye" "$ACR_NAME"
+fetch_and_push_to_acr "registry.k8s.io/ingress-nginx/controller:v1.8.1" "$ACR_NAME"
+fetch_and_push_to_acr "registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230407" "$ACR_NAME"
+fetch_and_push_to_acr "registry.k8s.io/ingress-nginx/custom-error-pages:v1.0.2" "$ACR_NAME"
