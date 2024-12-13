@@ -4,6 +4,8 @@ name: Django CI
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   workflow_run:
     workflows: ["Load App Localization"]
     types:
@@ -19,6 +21,7 @@ jobs:
   test-coverage:
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'push'    
     # Docker Hub image that `test-coverage` executes in
     container: python:3.11
     permissions:
