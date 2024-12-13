@@ -55,17 +55,17 @@
         </aside>
         <h2>
             <span class="text">536 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">422<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">114<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">425<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">111<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
             <a id="prevFileLink" class="nav" href="z_9125c692c1971378_middleware_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a id="nextFileLink" class="nav" href="z_c6daa466a915d399_base_py.html">&#xbb; next</a>
+            <a id="nextFileLink" class="nav" href="z_2d65b6d40d3ba790_wsgi_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-12-12 23:09 +0000
+            created at 2024-12-13 14:26 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -1094,10 +1094,10 @@
     <p class="run"><span class="n"><a id="t1012" href="#t1012">1012</a></span><span class="t">        <span class="nam">llm</span><span class="op">.</span><span class="nam">create_costs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1013" href="#t1013">1013</a></span><span class="t">        <span class="key">return</span> <span class="nam">HttpResponse</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Retrieved </span><span class="op">{</span><span class="nam">len</span><span class="op">(</span><span class="nam">nodes</span><span class="op">)</span><span class="op">}</span><span class="fst"> nodes in </span><span class="op">{</span><span class="nam">total_time</span><span class="op">:</span><span class="fst">.2f</span><span class="op">}</span><span class="fst"> seconds</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1014" href="#t1014">1014</a></span><span class="t">    <span class="key">if</span> <span class="str">"celery_sleep"</span> <span class="key">in</span> <span class="nam">query_params</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1015" href="#t1015">1015</a></span><span class="t">        <span class="key">from</span> <span class="nam">otto</span><span class="op">.</span><span class="nam">tasks</span> <span class="key">import</span> <span class="nam">sleep_seconds</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1015" href="#t1015">1015</a></span><span class="t">        <span class="key">from</span> <span class="nam">otto</span><span class="op">.</span><span class="nam">tasks</span> <span class="key">import</span> <span class="nam">sleep_seconds</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1016" href="#t1016">1016</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1017" href="#t1017">1017</a></span><span class="t">        <span class="nam">sleep_seconds</span><span class="op">.</span><span class="nam">delay</span><span class="op">(</span><span class="nam">int</span><span class="op">(</span><span class="nam">query_params</span><span class="op">[</span><span class="str">"celery_sleep"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1018" href="#t1018">1018</a></span><span class="t">        <span class="key">return</span> <span class="nam">HttpResponse</span><span class="op">(</span><span class="str">"Added task to queue"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1017" href="#t1017">1017</a></span><span class="t">        <span class="nam">sleep_seconds</span><span class="op">.</span><span class="nam">delay</span><span class="op">(</span><span class="nam">int</span><span class="op">(</span><span class="nam">query_params</span><span class="op">[</span><span class="str">"celery_sleep"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1018" href="#t1018">1018</a></span><span class="t">        <span class="key">return</span> <span class="nam">HttpResponse</span><span class="op">(</span><span class="str">"Added task to queue"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1019" href="#t1019">1019</a></span><span class="t">    <span class="key">if</span> <span class="str">"llm_call"</span> <span class="key">in</span> <span class="nam">query_params</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1020" href="#t1020">1020</a></span><span class="t">        <span class="key">if</span> <span class="nam">query_params</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"llm_call"</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1021" href="#t1021">1021</a></span><span class="t">            <span class="nam">llm</span> <span class="op">=</span> <span class="nam">OttoLLM</span><span class="op">(</span><span class="nam">query_params</span><span class="op">[</span><span class="str">"llm_call"</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -1185,10 +1185,10 @@
         <p>
             <a class="nav" href="z_9125c692c1971378_middleware_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a class="nav" href="z_c6daa466a915d399_base_py.html">&#xbb; next</a>
+            <a class="nav" href="z_2d65b6d40d3ba790_wsgi_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-12-12 23:09 +0000
+            created at 2024-12-13 14:26 +0000
         </p>
     </div>
 </footer>

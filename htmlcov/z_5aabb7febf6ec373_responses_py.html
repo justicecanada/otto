@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for django/chat/responses.py: 67%</title>
+    <title>Coverage for django/chat/responses.py: 73%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>django/chat/responses.py</b>:
-            <span class="pc_cov">67%</span>
+            <span class="pc_cov">73%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">280 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">188<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">92<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">205<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">75<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_5aabb7febf6ec373_tasks_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-12-12 23:09 +0000
+            created at 2024-12-13 14:26 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -143,7 +143,7 @@
     <p class="run"><span class="n"><a id="t61" href="#t61">61</a></span><span class="t">        <span class="key">if</span> <span class="nam">mode</span> <span class="op">==</span> <span class="str">"summarize"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t62" href="#t62">62</a></span><span class="t">            <span class="key">return</span> <span class="nam">summarize_response</span><span class="op">(</span><span class="nam">chat</span><span class="op">,</span> <span class="nam">response_message</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t63" href="#t63">63</a></span><span class="t">        <span class="key">if</span> <span class="nam">mode</span> <span class="op">==</span> <span class="str">"translate"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t">            <span class="key">return</span> <span class="nam">translate_response</span><span class="op">(</span><span class="nam">chat</span><span class="op">,</span> <span class="nam">response_message</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t">            <span class="key">return</span> <span class="nam">translate_response</span><span class="op">(</span><span class="nam">chat</span><span class="op">,</span> <span class="nam">response_message</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t">        <span class="key">if</span> <span class="nam">mode</span> <span class="op">==</span> <span class="str">"qa"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t">            <span class="key">return</span> <span class="nam">qa_response</span><span class="op">(</span><span class="nam">chat</span><span class="op">,</span> <span class="nam">response_message</span><span class="op">,</span> <span class="nam">switch_mode</span><span class="op">=</span><span class="nam">switch_mode</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">        <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -318,18 +318,18 @@
     <p class="pln"><span class="n"><a id="t236" href="#t236">236</a></span><span class="t"><span class="str">    Translate the user's input text and stream the response.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t237" href="#t237">237</a></span><span class="t"><span class="str">    If the translation technique does not support streaming, send final response only.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t238" href="#t238">238</a></span><span class="t"><span class="str">    """</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t239" href="#t239">239</a></span><span class="t">    <span class="nam">llm</span> <span class="op">=</span> <span class="nam">OttoLLM</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t240" href="#t240">240</a></span><span class="t">    <span class="nam">user_message</span> <span class="op">=</span> <span class="nam">response_message</span><span class="op">.</span><span class="nam">parent</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t241" href="#t241">241</a></span><span class="t">    <span class="nam">files</span> <span class="op">=</span> <span class="nam">user_message</span><span class="op">.</span><span class="nam">sorted_files</span> <span class="key">if</span> <span class="nam">user_message</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span> <span class="key">else</span> <span class="op">[</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t242" href="#t242">242</a></span><span class="t">    <span class="nam">language</span> <span class="op">=</span> <span class="nam">chat</span><span class="op">.</span><span class="nam">options</span><span class="op">.</span><span class="nam">translate_language</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t239" href="#t239">239</a></span><span class="t">    <span class="nam">llm</span> <span class="op">=</span> <span class="nam">OttoLLM</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t240" href="#t240">240</a></span><span class="t">    <span class="nam">user_message</span> <span class="op">=</span> <span class="nam">response_message</span><span class="op">.</span><span class="nam">parent</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t241" href="#t241">241</a></span><span class="t">    <span class="nam">files</span> <span class="op">=</span> <span class="nam">user_message</span><span class="op">.</span><span class="nam">sorted_files</span> <span class="key">if</span> <span class="nam">user_message</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span> <span class="key">else</span> <span class="op">[</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t242" href="#t242">242</a></span><span class="t">    <span class="nam">language</span> <span class="op">=</span> <span class="nam">chat</span><span class="op">.</span><span class="nam">options</span><span class="op">.</span><span class="nam">translate_language</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t243" href="#t243">243</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t244" href="#t244">244</a></span><span class="t">    <span class="key">def</span> <span class="nam">file_msg</span><span class="op">(</span><span class="nam">response_message</span><span class="op">,</span> <span class="nam">total_files</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t244" href="#t244">244</a></span><span class="t">    <span class="key">def</span> <span class="nam">file_msg</span><span class="op">(</span><span class="nam">response_message</span><span class="op">,</span> <span class="nam">total_files</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t245" href="#t245">245</a></span><span class="t">        <span class="key">return</span> <span class="nam">render_to_string</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t246" href="#t246">246</a></span><span class="t">            <span class="str">"chat/components/message_files.html"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t247" href="#t247">247</a></span><span class="t">            <span class="nam">context</span><span class="op">=</span><span class="op">{</span><span class="str">"message"</span><span class="op">:</span> <span class="nam">response_message</span><span class="op">,</span> <span class="str">"total_files"</span><span class="op">:</span> <span class="nam">total_files</span><span class="op">}</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t248" href="#t248">248</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t249" href="#t249">249</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t250" href="#t250">250</a></span><span class="t">    <span class="key">async</span> <span class="key">def</span> <span class="nam">file_translation_generator</span><span class="op">(</span><span class="nam">task_ids</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t250" href="#t250">250</a></span><span class="t">    <span class="key">async</span> <span class="key">def</span> <span class="nam">file_translation_generator</span><span class="op">(</span><span class="nam">task_ids</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t251" href="#t251">251</a></span><span class="t">        <span class="key">yield</span> <span class="str">"&lt;p>"</span> <span class="op">+</span> <span class="nam">_</span><span class="op">(</span><span class="str">"Initiating translation..."</span><span class="op">)</span> <span class="op">+</span> <span class="str">"&lt;/p>"</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t252" href="#t252">252</a></span><span class="t">        <span class="nam">any_task_done</span> <span class="op">=</span> <span class="key">False</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t253" href="#t253">253</a></span><span class="t">        <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -352,16 +352,16 @@
     <p class="mis show_mis"><span class="n"><a id="t270" href="#t270">270</a></span><span class="t">        <span class="key">except</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t271" href="#t271">271</a></span><span class="t">            <span class="key">raise</span> <span class="nam">Exception</span><span class="op">(</span><span class="nam">_</span><span class="op">(</span><span class="str">"Error translating files."</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t272" href="#t272">272</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t273" href="#t273">273</a></span><span class="t">    <span class="key">if</span> <span class="nam">len</span><span class="op">(</span><span class="nam">files</span><span class="op">)</span> <span class="op">></span> <span class="num">0</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t273" href="#t273">273</a></span><span class="t">    <span class="key">if</span> <span class="nam">len</span><span class="op">(</span><span class="nam">files</span><span class="op">)</span> <span class="op">></span> <span class="num">0</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t274" href="#t274">274</a></span><span class="t">        <span class="com"># Initiate the Celery task for translating each file with Azure</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t275" href="#t275">275</a></span><span class="t">        <span class="nam">task_ids</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t276" href="#t276">276</a></span><span class="t">        <span class="key">for</span> <span class="nam">file</span> <span class="key">in</span> <span class="nam">files</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t275" href="#t275">275</a></span><span class="t">        <span class="nam">task_ids</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t276" href="#t276">276</a></span><span class="t">        <span class="key">for</span> <span class="nam">file</span> <span class="key">in</span> <span class="nam">files</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t277" href="#t277">277</a></span><span class="t">            <span class="com"># file is a django ChatFile object with property "file" that is a FileField</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t278" href="#t278">278</a></span><span class="t">            <span class="com"># We need the path of the file to pass to the Celery task</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t279" href="#t279">279</a></span><span class="t">            <span class="nam">file_path</span> <span class="op">=</span> <span class="nam">file</span><span class="op">.</span><span class="nam">saved_file</span><span class="op">.</span><span class="nam">file</span><span class="op">.</span><span class="nam">path</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t280" href="#t280">280</a></span><span class="t">            <span class="nam">task</span> <span class="op">=</span> <span class="nam">translate_file</span><span class="op">.</span><span class="nam">delay</span><span class="op">(</span><span class="nam">file_path</span><span class="op">,</span> <span class="nam">language</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t281" href="#t281">281</a></span><span class="t">            <span class="nam">task_ids</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">task</span><span class="op">.</span><span class="nam">id</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t282" href="#t282">282</a></span><span class="t">        <span class="key">return</span> <span class="nam">StreamingHttpResponse</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t279" href="#t279">279</a></span><span class="t">            <span class="nam">file_path</span> <span class="op">=</span> <span class="nam">file</span><span class="op">.</span><span class="nam">saved_file</span><span class="op">.</span><span class="nam">file</span><span class="op">.</span><span class="nam">path</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t280" href="#t280">280</a></span><span class="t">            <span class="nam">task</span> <span class="op">=</span> <span class="nam">translate_file</span><span class="op">.</span><span class="nam">delay</span><span class="op">(</span><span class="nam">file_path</span><span class="op">,</span> <span class="nam">language</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t281" href="#t281">281</a></span><span class="t">            <span class="nam">task_ids</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">task</span><span class="op">.</span><span class="nam">id</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t282" href="#t282">282</a></span><span class="t">        <span class="key">return</span> <span class="nam">StreamingHttpResponse</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t">            <span class="com"># No cost because file translation costs are calculated in Celery task</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t284" href="#t284">284</a></span><span class="t">            <span class="nam">streaming_content</span><span class="op">=</span><span class="nam">htmx_stream</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t285" href="#t285">285</a></span><span class="t">                <span class="nam">chat</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -378,8 +378,8 @@
     <p class="pln"><span class="n"><a id="t296" href="#t296">296</a></span><span class="t">    <span class="com"># Note that long plain-translations frequently fail due to output token limits (~4k)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t297" href="#t297">297</a></span><span class="t">    <span class="com"># It is not easy to check for this in advance, so we just try and see what happens</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t298" href="#t298">298</a></span><span class="t">    <span class="com"># TODO: Evaluate vs. Azure translator (cost and quality)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t299" href="#t299">299</a></span><span class="t">    <span class="nam">target_language</span> <span class="op">=</span> <span class="op">{</span><span class="str">"en"</span><span class="op">:</span> <span class="str">"English"</span><span class="op">,</span> <span class="str">"fr"</span><span class="op">:</span> <span class="str">"French"</span><span class="op">}</span><span class="op">[</span><span class="nam">language</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t300" href="#t300">300</a></span><span class="t">    <span class="nam">translate_prompt</span> <span class="op">=</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t299" href="#t299">299</a></span><span class="t">    <span class="nam">target_language</span> <span class="op">=</span> <span class="op">{</span><span class="str">"en"</span><span class="op">:</span> <span class="str">"English"</span><span class="op">,</span> <span class="str">"fr"</span><span class="op">:</span> <span class="str">"French"</span><span class="op">}</span><span class="op">[</span><span class="nam">language</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t300" href="#t300">300</a></span><span class="t">    <span class="nam">translate_prompt</span> <span class="op">=</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t301" href="#t301">301</a></span><span class="t">        <span class="str">"Translate the following text to English (Canada):\n"</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t302" href="#t302">302</a></span><span class="t">        <span class="str">"Bonjour, comment &#231;a va?"</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t303" href="#t303">303</a></span><span class="t">        <span class="str">"\n---\nTranslation: Hello, how are you?\n"</span>&nbsp;</span><span class="r"></span></p>
@@ -391,7 +391,7 @@
     <p class="pln"><span class="n"><a id="t309" href="#t309">309</a></span><span class="t">        <span class="str">"\n---\nTranslation: "</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t310" href="#t310">310</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t311" href="#t311">311</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t312" href="#t312">312</a></span><span class="t">    <span class="key">return</span> <span class="nam">StreamingHttpResponse</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t312" href="#t312">312</a></span><span class="t">    <span class="key">return</span> <span class="nam">StreamingHttpResponse</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t313" href="#t313">313</a></span><span class="t">        <span class="nam">streaming_content</span><span class="op">=</span><span class="nam">htmx_stream</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t314" href="#t314">314</a></span><span class="t">            <span class="nam">chat</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t315" href="#t315">315</a></span><span class="t">            <span class="nam">response_message</span><span class="op">.</span><span class="nam">id</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -807,7 +807,7 @@
             <a class="nav" href="z_5aabb7febf6ec373_tasks_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2024-12-12 23:09 +0000
+            created at 2024-12-13 14:26 +0000
         </p>
     </div>
 </footer>
