@@ -23,6 +23,13 @@ function checkTruncation(element) {
 function render_markdown(element) {
   // Render markdown in the element
   const markdown_text = element.querySelector(".markdown-text");
+  dot_element = element.querySelector(".typing");
+  if (dot_element) {
+    dots = "\n\n" + dot_element.outerHTML;
+  }
+  else {
+    dots = "";
+  }
   if (markdown_text) {
     let to_parse = markdown_text.dataset.md;
     try {
@@ -32,7 +39,7 @@ function render_markdown(element) {
     }
     if (to_parse) {
       const parent = markdown_text.parentElement;
-      parent.innerHTML = md.render(to_parse);
+      parent.innerHTML = md.render(to_parse) + dots;
       // Add the "copy code" button to code blocks
       for (block of parent.querySelectorAll("pre code")) {
         block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);

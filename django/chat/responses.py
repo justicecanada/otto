@@ -187,7 +187,7 @@ def summarize_response(chat, response_message):
 
         title_batches = create_batches(titles, batch_size)
         response_batches = create_batches(responses, batch_size)
-        response_replacer = combine_batch_generators(
+        batch_generators = (
             [
                 combine_response_replacers(
                     batch_responses,
@@ -198,12 +198,14 @@ def summarize_response(chat, response_message):
                 )
             ],
         )
+        response_replacer = combine_batch_generators(batch_generators)
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
                 llm,
                 response_replacer=response_replacer,
+                dots=len(batch_generators) > 1,
             ),
             content_type="text/event-stream",
         )
@@ -347,6 +349,8 @@ def qa_response(chat, response_message, switch_mode=False):
     model = chat.options.qa_model
     llm = OttoLLM(model, 0.1)
 
+    batch_generators = []
+
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
 
@@ -485,16 +489,17 @@ def qa_response(chat, response_message, switch_mode=False):
                 document_titles, batch_size
             )  # TODO: test batch size
             response_batches = create_batches(summary_responses, batch_size)
+            batch_generators = [
+                combine_response_replacers(
+                    batch_responses,
+                    batch_titles,
+                )
+                for batch_responses, batch_titles in zip(
+                    response_batches, title_batches
+                )
+            ]
             response_replacer = combine_batch_generators(
-                [
-                    combine_response_replacers(
-                        batch_responses,
-                        batch_titles,
-                    )
-                    for batch_responses, batch_titles in zip(
-                        response_batches, title_batches
-                    )
-                ],
+                batch_generators,
             )
         response_generator = None
         source_groups = None
@@ -621,19 +626,20 @@ def qa_response(chat, response_message, switch_mode=False):
             titles = get_source_titles([sources[0] for sources in source_groups])
             title_batches = create_batches(titles, batch_size)
             response_batches = create_batches(responses, batch_size)
+            batch_generators = [
+                combine_response_generators(
+                    batch_responses,
+                    batch_titles,
+                    input,
+                    llm,
+                    chat.options.qa_prune,
+                )
+                for batch_responses, batch_titles in zip(
+                    response_batches, title_batches
+                )
+            ]
             response_replacer = combine_batch_generators(
-                [
-                    combine_response_generators(
-                        batch_responses,
-                        batch_titles,
-                        input,
-                        llm,
-                        chat.options.qa_prune,
-                    )
-                    for batch_responses, batch_titles in zip(
-                        response_batches, title_batches
-                    )
-                ],
+                batch_generators,
                 pruning=chat.options.qa_prune,
             )
             response_generator = None
@@ -647,6 +653,7 @@ def qa_response(chat, response_message, switch_mode=False):
             response_replacer=response_replacer,
             source_nodes=source_groups,
             switch_mode=switch_mode,
+            dots=len(batch_generators) > 1,
         ),
         content_type="text/event-stream",
     )
