@@ -1,6 +1,4 @@
 import json
-import re
-from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -17,7 +15,6 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
-import tldextract
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -43,8 +40,9 @@ from chat.models import (
 )
 from chat.utils import bad_url, change_mode_to_chat_qa, copy_options, title_chat
 from librarian.models import Library, SavedFile
-from otto.models import BlockedURL, SecurityLabel
+from otto.models import SecurityLabel
 from otto.rules import can_access_preset, can_edit_preset
+from otto.utils.common import check_url_allowed
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -266,11 +264,7 @@ def chat_message(request, chat_id):
     try:
         url_validator(user_message_text)
         entered_url = True
-        domain = tldextract.extract(
-            urlparse(user_message_text).netloc
-        ).registered_domain
-        if domain in settings.ALLOWED_FETCH_URLS:
-            allowed_url = True
+        allowed_url = check_url_allowed(user_message_text)
     except ValidationError:
         pass
 
@@ -283,7 +277,6 @@ def chat_message(request, chat_id):
 
     if entered_url and not allowed_url:
         # Just respond with the error message.
-        BlockedURL.objects.create(url=user_message_text)
         response_message = Message.objects.create(
             chat=chat, is_bot=True, mode=mode, parent=user_message, text=bad_url()
         )

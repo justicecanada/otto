@@ -501,7 +501,7 @@ def test_document_url_validation():
     # Subdomain of valid URL
     form = DocumentDetailForm(
         data={
-            "url": "https://www.canada.ca",
+            "url": "https://www.tbs-sct.canada.ca",
             "manual_title": "Test Document",
             "data_source": data_source.id,
         },

@@ -1,20 +1,15 @@
-import re
-from urllib.parse import urlparse
-
 from django import forms
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-import tldextract
 from autocomplete import widgets
 
 from chat.utils import bad_url
 from librarian.models import DataSource, Document, Library, LibraryUserRole
-from otto.models import BlockedURL
+from otto.utils.common import check_url_allowed
 
 User = get_user_model()
 
@@ -129,9 +124,7 @@ class DocumentDetailForm(forms.ModelForm):
                 url_validator(url)
             except ValidationError:
                 raise ValidationError(_("Invalid URL"))
-            domain = tldextract.extract(urlparse(url).netloc).registered_domain
-            if not domain in settings.ALLOWED_FETCH_URLS:
-                BlockedURL.objects.create(url=url)
+            if not check_url_allowed(url):
                 raise ValidationError(mark_safe(bad_url(render_markdown=True)))
         return url
 

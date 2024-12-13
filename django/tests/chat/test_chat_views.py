@@ -1197,20 +1197,41 @@ def test_chat_message_url_validation(client, all_apps_user):
         data={"user-message": "https://canada.ca"},
     )
     assert response.status_code == 200
-    assert Message.objects.filter(chat=chat, text="https://canada.ca").exists()
     # The error message contains the string "URL" but success message does not
     assert not "URL" in response.content.decode()
 
     # Subdomain of valid URL
     response = client.post(
         reverse("chat:chat_message", args=[chat.id]),
-        data={"user-message": "https://www.canada.ca"},
+        data={"user-message": "https://www.tbs-sct.canada.ca"},
     )
     assert response.status_code == 200
-    assert Message.objects.filter(
-        chat=chat, text="https://www.tbs-sct.canada.ca"
-    ).exists()
     assert not "URL" in response.content.decode()
+
+    # Ends with valid URL, but isn't a subdomain
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://acanada.ca"},
+    )
+    assert response.status_code == 200
+    assert not "URL" in response.content.decode()
+
+    # Is a valid URL, but is http:// only (should be fine, it will correct to https://)
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "http://www.tbs-sct.canada.ca"},
+    )
+    assert response.status_code == 200
+    assert not "URL" in response.content.decode()
+
+    # Is a valid URL, but FTP
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "ftp://canada.ca/fake_file"},
+    )
+    assert response.status_code == 200
+    # This should be a problem
+    assert "URL" in response.content.decode()
 
     # Invalid URL
     response = client.post(

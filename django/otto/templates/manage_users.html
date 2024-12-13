@@ -27,16 +27,22 @@
       <h2 class="mb-3 mt-2">{% trans "Manage users" %}</h2>
 
       <div class="d-flex flex-column flex-xl-row mb-3 justify-content-xl-between align-items-xl-center">
-        <div class="mb-3 mb-xl-0" style="font-weight: 600">{% trans "Only displaying users with roles assigned." %}</div>
+        <div class="d-flex">
+          <a href="{% url 'cost_dashboard' %}"
+             class="btn btn-outline-secondary me-1">{% trans "Cost dashboard" %}</a>
+          <a href="{% url 'feedback_dashboard' %}"
+             class="btn btn-outline-secondary me-1">{% trans "Feedback" %}</a>
+          <a href="{% url 'manage_pilots' %}"
+             class="btn btn-outline-secondary me-1">{% trans "Pilots" %}</a>
+          <a href="{% url 'blocked_urls' %}"
+             class="btn btn-outline-secondary me-3">{% trans "Blocked URLs" %}</a>
+        </div>
         <div class="d-flex">
           <a href="{% url 'download_users' %}" class="btn btn-secondary me-1">{% trans "Download CSV" %}</a>
           <button type="button"
                   class="btn btn-secondary me-3"
                   data-bs-toggle="modal"
                   data-bs-target="#bulkUploadModal">{% trans "Upload CSV" %}</button>
-          <a href="{% url 'cost_dashboard' %}" class="btn btn-secondary me-1">{% trans "Cost dashboard" %}</a>
-          <a href="{% url 'manage_pilots' %}" class="btn btn-secondary me-1">{% trans "Manage pilots" %}</a>
-          <a href="{% url 'blocked_urls' %}" class="btn btn-secondary me-3">{% trans "Blocked URLs" %}</a>
           <button type="button"
                   class="btn btn-primary"
                   hx-get="{% url 'manage_users_form' %}"
@@ -47,6 +53,8 @@
                   data-bs-target="#addUserModal">{% trans "Modify/add users" %}</button>
         </div>
       </div>
+
+      <p class="fw-semibold">{% trans "Only displaying users with roles assigned." %}</p>
  
       <!-- Bootstrap table of users -->
       <div class="table-responsive">
