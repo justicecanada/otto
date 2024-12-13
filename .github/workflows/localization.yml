@@ -31,7 +31,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y postgresql-client poppler-utils gettext
+        apt-get install -y gettext
         python -m pip install --upgrade pip
         pip install -r requirements.txt        
     - name: Run load_app_localization command
