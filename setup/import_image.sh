@@ -1,5 +1,37 @@
 #!/bin/bash
 
+# Build the otto image
+build_otto_image() {
+    local current_dir=$(pwd)
+    local django_dir="/home/azureuser/otto/django"
+    local acr_name=$1
+    local image_name="${acr_name}.azurecr.io/otto"
+
+    # Change to the Django directory
+    cd "$django_dir"
+
+    # Get the latest Git commit hash
+    local github_hash=$(git rev-parse HEAD)
+
+    # Create version.yaml content
+    cat << EOF > version.yaml
+github_hash: $github_hash
+build_date: $(date -u +"%Y-%m-%d %H:%M:%S")
+EOF
+
+    # Build Docker image
+    docker build -t ${image_name}:${github_hash} -f Dockerfile .
+
+    # Tag Docker image for ACR
+    docker tag ${image_name}:${github_hash} ${image_name}:latest
+
+    # Return to the original directory
+    cd "$current_dir"
+
+    # Return the image name and tag
+    echo "${image_name} ${github_hash}"
+}
+
 # Push the image to ACR
 push_to_acr() {
 
@@ -39,5 +71,16 @@ fetch_and_push_to_acr() {
     push_to_acr "${acr_name}.azurecr.io/${image_name}" "$acr_name"
 }
 
+# Build the otto image
+read IMAGE_NAME SPECIFIC_TAG <<< $(build_otto_image "$ACR_NAME")
+
+# Push the otto image
+push_to_acr "$ACR_NAME" "$IMAGE_NAME" "$SPECIFIC_TAG"
+
+# Fetch and push the other required images
 fetch_and_push_to_acr "postgres:16" "$ACR_NAME"
 fetch_and_push_to_acr "pgvector/pgvector:pg16" "$ACR_NAME"
+fetch_and_push_to_acr "redis:7.0.11-bullseye" "$ACR_NAME"
+fetch_and_push_to_acr "registry.k8s.io/ingress-nginx/controller:v1.8.1" "$ACR_NAME"
+fetch_and_push_to_acr "registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230407" "$ACR_NAME"
+fetch_and_push_to_acr "registry.k8s.io/ingress-nginx/custom-error-pages:v1.0.2" "$ACR_NAME"

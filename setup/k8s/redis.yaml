@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: redis
-        image: redis:7.0.11-bullseye        
+        image: ${ACR_NAME}.azurecr.io/redis:7.0.11-bullseye        
         ports:
         - containerPort: 6379
         resources:
