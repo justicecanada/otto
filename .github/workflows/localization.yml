@@ -55,7 +55,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y postgresql-client poppler-utils
+        apt-get install -y postgresql-client poppler-utils gettext
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements_dev.txt
