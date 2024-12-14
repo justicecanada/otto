@@ -69,9 +69,6 @@ envsubst < celery.yaml | kubectl apply -f -
 envsubst < db-backups.yaml | kubectl apply -f -
 envsubst < media-sync.yaml | kubectl apply -f -
 
-# Update the ConfigMap with the external script
-kubectl create configmap backup-script --from-file=../backup.sh -n otto --dry-run=client -o yaml | kubectl apply -f -
-
 # Function to check if all deployments (except those containing "celery") are ready
 check_deployments_ready() {
     local deployments=$(kubectl get deployments -n otto -o name | grep -v "deployment.apps/.*celery.*")

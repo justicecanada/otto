@@ -52,7 +52,7 @@ spec:
         spec:
           containers:
           - name: backup
-            image: ${ACR_NAME}.azurecr.io/postgres:16
+            image: ${ACR_NAME}.azurecr.io/db-backup:latest
             envFrom:
               - configMapRef:
                   name: otto-configmap

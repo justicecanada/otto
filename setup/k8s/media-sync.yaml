@@ -51,7 +51,7 @@ spec:
         spec:
           containers:
           - name: media-sync
-            image: ${ACR_NAME}.azurecr.io/mcr.microsoft.com/azure-cli:cbl-mariner2.0
+            image: ${ACR_NAME}.azurecr.io/media-sync:latest
             command: ["/bin/bash"]
             args: ["/scripts/media_sync.sh"]
             envFrom:
