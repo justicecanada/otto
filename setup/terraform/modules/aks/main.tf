@@ -207,11 +207,14 @@ resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_cluster_name
   location            = var.location
   resource_group_name = var.resource_group_name
-  kubernetes_version  = "1.29.7"
+  kubernetes_version  = var.kubernetes_version
   dns_prefix          = var.aks_cluster_name
 
   oidc_issuer_enabled       = true # OIDC issuer is enabled for AKS cluster authentication with Azure AD
   workload_identity_enabled = true # Workload identity allows the AKS cluster to use managed identities for Azure resources
+
+  image_cleaner_enabled        = true # Enable the image cleaner for the AKS cluster
+  image_cleaner_interval_hours = 48   # Set the interval for the image cleaner to run
 
   # AC-22, IA-8, SC-2, SC-5: Configure the private cluster settings
   private_cluster_enabled = var.use_private_network
@@ -237,6 +240,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
     max_count           = local.max_node_count
     vnet_subnet_id      = var.web_subnet_id
 
+    os_sku = "Ubuntu"
+    node_os = "Ubuntu"
+    orchestrator_version = var.kubernetes_version
+    node_image_version = var.node_image_version
+    
     upgrade_settings {
       max_surge = "10%" # Max nodes that can be added during an upgrade
     }
@@ -405,6 +413,13 @@ resource "azurerm_role_assignment" "acr_pull" {
   role_definition_name = "AcrPull"
   scope                = var.acr_id
   principal_type       = "ServicePrincipal"
+}
+
+resource "azurerm_role_assignment" "aks_acr_pull" {
+  principal_id                     = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  role_definition_name             = "AcrPull"
+  scope                            = var.acr_id
+  skip_service_principal_aad_check = true
 }
 
 resource "azurerm_role_assignment" "aks_kubelet_identity_operator" {

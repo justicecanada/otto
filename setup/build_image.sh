@@ -102,10 +102,14 @@ build_and_push_otto_image "$ACR_NAME"
 build_and_push_backup_image "$ACR_NAME"
 build_and_push_media_sync_image "$ACR_NAME"
 
-# Fetch and push the other required images
+# Fetch and push the other pod images
 fetch_and_push_to_acr "postgres:16" "$ACR_NAME"
 fetch_and_push_to_acr "pgvector/pgvector:pg16" "$ACR_NAME"
 fetch_and_push_to_acr "redis:7.0.11-bullseye" "$ACR_NAME"
 fetch_and_push_to_acr "registry.k8s.io/ingress-nginx/controller:v1.8.1" "$ACR_NAME"
 fetch_and_push_to_acr "registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230407" "$ACR_NAME"
 fetch_and_push_to_acr "registry.k8s.io/ingress-nginx/custom-error-pages:v1.0.2" "$ACR_NAME"
+
+# Fetch and push AKS node images
+fetch_and_push_to_acr "mcr.microsoft.com/oss/kubernetes/azure-cloud-node-manager:v$KUBERNETES_VERSION" "$ACR_NAME"
+fetch_and_push_to_acr "mcr.microsoft.com/azureedge/aks-ubuntu:$NODE_IMAGE_VERSION" "$ACR_NAME"
