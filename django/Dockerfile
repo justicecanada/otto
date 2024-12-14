@@ -25,11 +25,13 @@ RUN chmod +x /django/*.sh
 # Create tiktoken cache directory
 RUN mkdir -p $TIKTOKEN_CACHE_DIR
 
-# Run the tiktoken caching script
-RUN python /django/cache_tiktoken.py
+# Run the tiktoken caching script and capture output
+RUN python /django/cache_tiktoken.py 2>&1 | tee /tiktoken_cache_output.log
 
 # Add diagnostic information
-RUN echo "Tiktoken cache contents:" && \
+RUN echo "Tiktoken cache output:" && \
+    cat /tiktoken_cache_output.log && \
+    echo "Tiktoken cache contents:" && \
     ls -l $TIKTOKEN_CACHE_DIR && \
     echo "Tiktoken cache file sizes:" && \
     du -sh $TIKTOKEN_CACHE_DIR/* || echo "No files in cache" && \
