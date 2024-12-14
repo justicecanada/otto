@@ -45,12 +45,7 @@ build_date: $(date -u +"%Y-%m-%d %H:%M:%S")
 EOF
 
     # Build Docker image and capture output
-    echo "Building Docker image..."
     docker build -t ${image_name}:${github_hash} -f Dockerfile .
-
-    # Extract and display diagnostic information
-    echo "Tiktoken cache information:"
-    docker run --rm ${image_name}:${github_hash} cat /diagnostic_info.log
 
     # Tag Docker image for ACR
     docker tag ${image_name}:${github_hash} ${image_name}:latest
