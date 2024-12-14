@@ -26,11 +26,11 @@ RUN chmod +x /django/*.sh
 RUN mkdir -p $TIKTOKEN_CACHE_DIR
 
 # Cache the tiktoken encoding files for all relevant models
-RUN python -c "\
-    import tiktoken; \
-    tiktoken.encoding_for_model('gpt-4o-mini'); \
-    tiktoken.encoding_for_model('gpt-4o'); \
-    tiktoken.encoding_for_model('gpt-4-1106-preview'); \
-    tiktoken.encoding_for_model('gpt-35-turbo-0125');"
+RUN python -c \
+    "import tiktoken; " \
+    "tiktoken.encoding_for_model('gpt-4o-mini'); " \
+    "tiktoken.encoding_for_model('gpt-4o'); " \
+    "tiktoken.encoding_for_model('gpt-4-1106-preview'); " \
+    "tiktoken.encoding_for_model('gpt-35-turbo-0125');"
 
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]
