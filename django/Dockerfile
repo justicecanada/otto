@@ -28,16 +28,16 @@ RUN mkdir -p $TIKTOKEN_CACHE_DIR
 # Run the tiktoken caching script and capture output
 RUN python /django/cache_tiktoken.py 2>&1 | tee /tiktoken_cache_output.log
 
-# Add diagnostic information
-RUN echo "Tiktoken cache output:" && \
-    cat /tiktoken_cache_output.log && \
-    echo "Tiktoken cache contents:" && \
-    ls -l $TIKTOKEN_CACHE_DIR && \
-    echo "Tiktoken cache file sizes:" && \
-    du -sh $TIKTOKEN_CACHE_DIR/* || echo "No files in cache" && \
-    echo "Tiktoken cache directory size:" && \
-    du -sh $TIKTOKEN_CACHE_DIR && \
-    echo "Available disk space:" && \
-    df -h
+# Add diagnostic information to a single file
+RUN echo "Tiktoken cache output:" > /diagnostic_info.log && \
+    cat /tiktoken_cache_output.log >> /diagnostic_info.log && \
+    echo "Tiktoken cache contents:" >> /diagnostic_info.log && \
+    ls -l $TIKTOKEN_CACHE_DIR >> /diagnostic_info.log && \
+    echo "Tiktoken cache file sizes:" >> /diagnostic_info.log && \
+    du -sh $TIKTOKEN_CACHE_DIR/* >> /diagnostic_info.log || echo "No files in cache" >> /diagnostic_info.log && \
+    echo "Tiktoken cache directory size:" >> /diagnostic_info.log && \
+    du -sh $TIKTOKEN_CACHE_DIR >> /diagnostic_info.log && \
+    echo "Available disk space:" >> /diagnostic_info.log && \
+    df -h >> /diagnostic_info.log
 
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]

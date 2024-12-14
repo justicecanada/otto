@@ -46,11 +46,11 @@ EOF
 
     # Build Docker image and capture output
     echo "Building Docker image..."
-    docker build -t ${image_name}:${github_hash} -f Dockerfile . | tee build_output.log
+    docker build -t ${image_name}:${github_hash} -f Dockerfile .
 
-    # Display tiktoken cache information
+    # Extract and display diagnostic information
     echo "Tiktoken cache information:"
-    grep -A 10 "Tiktoken cache contents:" build_output.log
+    docker run --rm ${image_name}:${github_hash} cat /diagnostic_info.log
 
     # Tag Docker image for ACR
     docker tag ${image_name}:${github_hash} ${image_name}:latest
