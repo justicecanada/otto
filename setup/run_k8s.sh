@@ -66,9 +66,11 @@ envsubst < redis.yaml | kubectl apply -f -
 envsubst < celery.yaml | kubectl apply -f -
 
 # Apply the Backup and Media Sync jobs
-# Do not use envsubst on these files as they contain variables in the script
-kubectl apply -f db-backups.yaml
-kubectl apply -f media-sync.yaml
+envsubst < db-backups.yaml | kubectl apply -f -
+envsubst < media-sync.yaml | kubectl apply -f -
+
+# Update the ConfigMap with the external script
+kubectl create configmap backup-script --from-file=../backup.sh -n otto --dry-run=client -o yaml | kubectl apply -f -
 
 # Function to check if all deployments (except those containing "celery") are ready
 check_deployments_ready() {

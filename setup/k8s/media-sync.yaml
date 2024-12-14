@@ -20,7 +20,7 @@
 # kubectl delete job media-sync-cron-test-1 -n otto
 
 # # Delete the configmap
-# kubectl delete configmap azcopy-sync-script -n otto
+# kubectl delete configmap media-sync-script -n otto
 
 # # Delete the cronjob
 # kubectl delete cronjob media-sync-cron -n otto
@@ -28,44 +28,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: azcopy-sync-script
+  name: media-sync-script
   namespace: otto
 data:
-  azcopy_sync.sh: |
+  media_sync.sh: |
     #!/bin/bash
-    set -e
-      
-    # Install wget and other necessary tools
-    echo "Installing wget and other necessary tools"
-    tdnf install -y wget tar sudo
-
-    # Install AzCopy
-    echo "Installing AzCopy"
-    wget https://aka.ms/downloadazcopy-v10-linux -O azcopy.tar.gz
-    tar -xvf azcopy.tar.gz
-    sudo cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
-    sudo chmod 755 /usr/bin/azcopy
-    rm -rf azcopy_linux_amd64_* azcopy.tar.gz
-
-    EXPIRY_DATE=$(date -u -d "30 minutes" '+%Y-%m-%dT%H:%MZ')
-
-    # Generate SAS token
-    AZURE_SAS_TOKEN=$(az storage container generate-sas \
-        --account-name $AZURE_STORAGE_ACCOUNT_NAME \
-        --account-key $AZURE_STORAGE_ACCOUNT_KEY \
-        --name $BACKUP_CONTAINER_NAME \
-        --permissions acdlrw \
-        --expiry $EXPIRY_DATE \
-        --https-only \
-        --output tsv)
-
-    # Set variables
-    SOURCE_PATH="/data/media/"
-    DESTINATION_URL="https://${AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${BACKUP_CONTAINER_NAME}/media/?${AZURE_SAS_TOKEN}"
-
-    # Sync media files to Azure Storage
-    echo "Syncing media files to Azure Storage"
-    azcopy sync "$SOURCE_PATH" "$DESTINATION_URL" --recursive
+    # The content of this script will be replaced by the external file
 
 ---
 
@@ -83,9 +51,9 @@ spec:
         spec:
           containers:
           - name: media-sync
-            image: mcr.microsoft.com/azure-cli:cbl-mariner2.0
+            image: ${ACR_NAME}.azurecr.io/mcr.microsoft.com/azure-cli:cbl-mariner2.0
             command: ["/bin/bash"]
-            args: ["/scripts/azcopy_sync.sh"]
+            args: ["/scripts/media_sync.sh"]
             envFrom:
               - configMapRef:
                   name: otto-configmap
@@ -104,7 +72,7 @@ spec:
           volumes:
           - name: script-volume
             configMap:
-              name: azcopy-sync-script
+              name: media-sync-script
               defaultMode: 0755
           - name: media-pv-storage
             persistentVolumeClaim:

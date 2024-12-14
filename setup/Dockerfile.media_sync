@@ -1,0 +1,20 @@
+FROM mcr.microsoft.com/azure-cli:cbl-mariner2.0
+
+# Install necessary packages
+RUN tdnf install -y wget tar sudo
+
+# Install AzCopy
+RUN wget https://aka.ms/downloadazcopy-v10-linux -O azcopy.tar.gz \
+    && tar -xvf azcopy.tar.gz \
+    && sudo cp ./azcopy_linux_amd64_*/azcopy /usr/bin/ \
+    && sudo chmod 755 /usr/bin/azcopy \
+    && rm -rf azcopy_linux_amd64_* azcopy.tar.gz
+
+# Copy the media sync script into the image
+COPY media_sync.sh /usr/local/bin/media_sync.sh
+
+# Make the script executable
+RUN chmod +x /usr/local/bin/media_sync.sh
+
+# Set the entrypoint to the media sync script
+ENTRYPOINT ["/usr/local/bin/media_sync.sh"]

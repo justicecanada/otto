@@ -1,0 +1,10 @@
+FROM postgres:16
+
+# Copy the backup script into the image
+COPY backup.sh /usr/local/bin/backup.sh
+
+# Make the script executable
+RUN chmod +x /usr/local/bin/backup.sh
+
+# Set the entrypoint to the backup script
+ENTRYPOINT ["/usr/local/bin/backup.sh"]

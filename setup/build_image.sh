@@ -1,38 +1,6 @@
 #!/bin/bash
 
-# Build the otto image
-build_otto_image() {
-    local current_dir=$(pwd)
-    local django_dir="/home/azureuser/otto/django"
-    local acr_name=$1
-    local image_name="${acr_name}.azurecr.io/otto"
-
-    # Change to the Django directory
-    cd "$django_dir"
-
-    # Get the latest Git commit hash
-    local github_hash=$(git rev-parse HEAD)
-
-    # Create version.yaml content
-    cat << EOF > version.yaml
-github_hash: $github_hash
-build_date: $(date -u +"%Y-%m-%d %H:%M:%S")
-EOF
-
-    # Build Docker image
-    docker build -t ${image_name}:${github_hash} -f Dockerfile .
-
-    # Tag Docker image for ACR
-    docker tag ${image_name}:${github_hash} ${image_name}:latest
-
-    # Return to the original directory
-    cd "$current_dir"
-
-    # Return the image name and tag
-    echo "${image_name} ${github_hash}"
-}
-
-# Push the image to ACR
+# Push an image to ACR
 push_to_acr() {
 
     local image_name=$1
@@ -57,6 +25,64 @@ push_to_acr() {
     unset acr_access_token
 }
 
+# Build and push the otto image
+build_and_push_otto_image() {
+    local current_dir=$(pwd)
+    local django_dir="/home/azureuser/otto/django"
+    local acr_name=$1
+    local image_name="${acr_name}.azurecr.io/otto"
+
+    # Change to the Django directory
+    cd "$django_dir"
+
+    # Get the latest Git commit hash
+    local github_hash=$(git rev-parse HEAD)
+
+    # Create version.yaml content
+    cat << EOF > version.yaml
+github_hash: $github_hash
+build_date: $(date -u +"%Y-%m-%d %H:%M:%S")
+EOF
+
+    # Build Docker image
+    docker build -t ${image_name}:${github_hash} -f Dockerfile .
+
+    # Tag Docker image for ACR
+    docker tag ${image_name}:${github_hash} ${image_name}:latest
+
+    # Push the images to ACR
+    push_to_acr "${image_name}:${github_hash}" "$acr_name"
+    push_to_acr "${image_name}:latest" "$acr_name"
+
+    # Return to the original directory
+    cd "$current_dir"
+}
+
+# Build and push the backup image
+build_and_push_backup_image() {
+    local acr_name=$1
+    local image_name="${acr_name}.azurecr.io/db-backup"
+
+    # Build Docker image
+    docker build -t ${image_name}:latest -f Dockerfile.backup .
+
+    # Push the image to ACR
+    push_to_acr "${image_name}:latest" "$acr_name"
+}
+
+# Build and push the media sync image
+build_and_push_media_sync_image() {
+    local acr_name=$1
+    local image_name="${acr_name}.azurecr.io/media-sync"
+
+    # Build Docker image
+    docker build -t ${image_name}:latest -f Dockerfile.media_sync .
+
+    # Push the image to ACR
+    push_to_acr "${image_name}:latest" "$acr_name"
+}
+
+# Fetch an image from a repo and push it to ACR
 fetch_and_push_to_acr() {
     local image_name=$1
     local acr_name=$2
@@ -71,12 +97,10 @@ fetch_and_push_to_acr() {
     push_to_acr "${acr_name}.azurecr.io/${image_name}" "$acr_name"
 }
 
-# Build the otto image
-read image_name github_hash <<< $(build_otto_image "$ACR_NAME")
-
-# Push the otto image
-push_to_acr "$image_name:$github_hash" "$ACR_NAME" 
-push_to_acr "$image_name:latest" "$ACR_NAME"
+# Build and push custom images
+build_and_push_otto_image "$ACR_NAME"
+build_and_push_backup_image "$ACR_NAME"
+build_and_push_media_sync_image "$ACR_NAME"
 
 # Fetch and push the other required images
 fetch_and_push_to_acr "postgres:16" "$ACR_NAME"
