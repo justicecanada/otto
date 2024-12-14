@@ -30,21 +30,6 @@ spec:
 
 ---
 
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: tiktoken-cache-pvc
-  namespace: otto
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: azurefile
-  resources:
-    requests:
-      storage: 1Gi
-
----
-
 # SC-13: Secure key management using Azure Key Vault (FIPS 140-2 compliant)
 apiVersion: apps/v1
 kind: StatefulSet # Required for stable network identity
@@ -121,8 +106,6 @@ spec:
             mountPath: "/data/static"
           - name: media-pv-storage
             mountPath: "/data/media"
-          - name: tiktoken-cache
-            mountPath: "/opt/tiktoken_cache"
 
       containers:
         # SC-2: Secure configuration of the container
@@ -189,8 +172,6 @@ spec:
               mountPath: "/data/static"
             - name: media-pv-storage
               mountPath: "/data/media"
-            - name: tiktoken-cache
-              mountPath: "/opt/tiktoken_cache"
           readinessProbe:
             httpGet:
               path: /healthz/
@@ -229,9 +210,6 @@ spec:
       - name: media-pv-storage
         persistentVolumeClaim:
           claimName: media-pvc
-      - name: tiktoken-cache
-        persistentVolumeClaim:
-          claimName: tiktoken-cache-pvc
                 
 ---
 
