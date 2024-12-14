@@ -3,7 +3,7 @@ FROM python:3.11-slim-bullseye
 WORKDIR /django
 
 # Set environment variable for tiktoken cache
-ENV TIKTOKEN_CACHE_DIR /opt/tiktoken_cache
+ENV TIKTOKEN_CACHE_DIR=/opt/tiktoken_cache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y postgresql-client poppler-utils procps
@@ -25,7 +25,11 @@ RUN chmod +x /django/*.sh
 # Create tiktoken cache directory
 RUN mkdir -p $TIKTOKEN_CACHE_DIR
 
-# Cache the tiktoken encoding files
-RUN python -c "import tiktoken; tiktoken.get_encoding('cl100k_base'); tiktoken.encoding_for_model('gpt-3.5-turbo')"
+# Cache the tiktoken encoding files for all relevant models
+RUN python -c "\
+    import tiktoken; \
+    models = ['gpt-4o-mini', 'gpt-4o', 'gpt-4-1106-preview', 'gpt-35-turbo-0125']; \
+    for model in models: \
+    tiktoken.encoding_for_model(model)"
 
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]
