@@ -25,21 +25,14 @@ RUN chmod +x /django/*.sh
 # Create tiktoken cache directory
 RUN mkdir -p $TIKTOKEN_CACHE_DIR
 
-# Cache the tiktoken encoding files for all relevant models
-RUN python -c \
-    "import tiktoken; " \
-    "tiktoken.encoding_for_model('gpt-4o-mini'); " \
-    "tiktoken.encoding_for_model('gpt-4o'); " \
-    "tiktoken.encoding_for_model('gpt-4-1106-preview'); " \
-    "tiktoken.encoding_for_model('gpt-35-turbo-0125');"
-
-# Add diagnostic information
+# Run the tiktoken caching script
+RUN python /django/cache_tiktoken.py
 
 # Add diagnostic information
 RUN echo "Tiktoken cache contents:" && \
     ls -l $TIKTOKEN_CACHE_DIR && \
     echo "Tiktoken cache file sizes:" && \
-    du -sh $TIKTOKEN_CACHE_DIR/* && \
+    du -sh $TIKTOKEN_CACHE_DIR/* || echo "No files in cache" && \
     echo "Tiktoken cache directory size:" && \
     du -sh $TIKTOKEN_CACHE_DIR && \
     echo "Available disk space:" && \
