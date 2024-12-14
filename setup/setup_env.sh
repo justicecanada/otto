@@ -103,8 +103,6 @@ export VNET_ID
 export WEB_SUBNET_ID
 export APP_SUBNET_ID
 
-export KUBERNETES_VERSION="1.29.7"
-export NODE_IMAGE_VERSION="AKSUbuntu-2204gen2containerd-202411.12.0"
 
 # Login with the jumpbox identity
 if ! az account show &> /dev/null; then
@@ -139,6 +137,8 @@ export ACR_NAME="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}acr"
 export DJANGODB_RESOURCE_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-db"
 #export VELERO_IDENTITY_NAME="${ORGANIZATION,,}-${INTENDED_USE,,}-${APP_NAME,,}-velero"
 export TAGS="ApplicationName=${APP_NAME} Environment=${ENVIRONMENT} Location=${LOCATION} Classification=${CLASSIFICATION} CostCenter=\"${COST_CENTER}\" Criticality=${CRITICALITY} Owner=\"${OWNER}\""
+
+
 
 # Set a globally unique storage account name
 storage_name="${ORGANIZATION,,}${INTENDED_USE,,}${APP_NAME,,}store" # Base name for the storage account
@@ -243,8 +243,6 @@ gpt_4o_mini_capacity = ${GPT_4o_MINI_CAPACITY}
 text_embedding_3_large_capacity = ${TEXT_EMBEDDING_3_LARGE_CAPACITY}
 admin_email = "${ADMIN_EMAIL}"
 use_private_network = "${USE_PRIVATE_NETWORK}"
-kubernetes_version= "${KUBERNETES_VERSION}"
-node_image_version= "${NODE_IMAGE_VERSION}"
 EOF
 
 # Move the .tfvars file to the terraform directory and overwrite the existing file

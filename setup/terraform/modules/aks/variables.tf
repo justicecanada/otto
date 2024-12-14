@@ -102,13 +102,3 @@ variable "vm_cpu_count" {
   type        = number
   description = "The number of CPUs in the selected VM size"
 }
-
-variable "kubernetes_version" {
-  description = "The Kubernetes version to use for the AKS cluster"
-  type        = string
-}
-
-variable "node_image_version" {
-  description = "The version of the custom node image in ACR"
-  type        = string
-}

@@ -33,6 +33,11 @@ variable "owner" {
   description = "Owner of the resources"
 }
 
+# variable "acr_id" {
+#   type        = string
+#   description = "ID of the ACR"
+# }
+
 variable "log_analytics_readers_group_id" {
   type        = string
   description = "Comma-separated list of group IDs for Log Analytics readers"
@@ -185,15 +190,5 @@ variable "vm_cpu_count" {
   type        = number
   description = "The number of CPUs in the selected VM size"
   default     = 4 # Standard_D4s_v3 has 4 CPUs
-}
-
-variable "kubernetes_version" {
-  description = "The Kubernetes version to use for the AKS cluster"
-  type        = string
-}
-
-variable "node_image_version" {
-  description = "The version of the custom node image in ACR"
-  type        = string
 }
 

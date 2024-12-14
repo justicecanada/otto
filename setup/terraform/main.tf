@@ -145,8 +145,6 @@ module "aks" {
   vnet_id                                = var.vnet_id
   web_subnet_id                          = var.web_subnet_id
   jumpbox_identity_id                    = var.jumpbox_identity_id
-  kubernetes_version                     = var.kubernetes_version
-  node_image_version                     = var.node_image_version
 }
 
 # TODO: Uncomment Velero after the change request is approved
