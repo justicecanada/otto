@@ -33,4 +33,16 @@ RUN python -c \
     "tiktoken.encoding_for_model('gpt-4-1106-preview'); " \
     "tiktoken.encoding_for_model('gpt-35-turbo-0125');"
 
+# Add diagnostic information
+
+# Add diagnostic information
+RUN echo "Tiktoken cache contents:" && \
+    ls -l $TIKTOKEN_CACHE_DIR && \
+    echo "Tiktoken cache file sizes:" && \
+    du -sh $TIKTOKEN_CACHE_DIR/* && \
+    echo "Tiktoken cache directory size:" && \
+    du -sh $TIKTOKEN_CACHE_DIR && \
+    echo "Available disk space:" && \
+    df -h
+
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]

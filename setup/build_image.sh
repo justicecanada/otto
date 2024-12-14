@@ -44,8 +44,13 @@ github_hash: $github_hash
 build_date: $(date -u +"%Y-%m-%d %H:%M:%S")
 EOF
 
-    # Build Docker image
-    docker build -t ${image_name}:${github_hash} -f Dockerfile .
+    # Build Docker image and capture output
+    echo "Building Docker image..."
+    docker build -t ${image_name}:${github_hash} -f Dockerfile . | tee build_output.log
+
+    # Display tiktoken cache information
+    echo "Tiktoken cache information:"
+    grep -A 10 "Tiktoken cache contents:" build_output.log
 
     # Tag Docker image for ACR
     docker tag ${image_name}:${github_hash} ${image_name}:latest
