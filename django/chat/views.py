@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -37,10 +38,11 @@ from chat.models import (
     Preset,
     create_chat_data_source,
 )
-from chat.utils import change_mode_to_chat_qa, copy_options, title_chat
+from chat.utils import bad_url, change_mode_to_chat_qa, copy_options, title_chat
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
 from otto.rules import can_access_preset, can_edit_preset
+from otto.utils.common import check_url_allowed
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -256,42 +258,51 @@ def chat_message(request, chat_id):
         cache.set(f"stop_response_{chat_bot_messages.last().id}", True, timeout=60)
 
     # Quick-add URL to library (Change mode to QA and data source to current Chat if so)
-    adding_url_to_qa = False
-    if mode == "qa":
-        url_validator = URLValidator()
-        try:
-            url_validator(user_message_text)
-            adding_url_to_qa = True
-        except ValidationError:
-            pass
+    entered_url = False
+    allowed_url = False
+    url_validator = URLValidator()
+    try:
+        url_validator(user_message_text)
+        entered_url = True
+        allowed_url = check_url_allowed(user_message_text)
+    except ValidationError:
+        pass
 
     user_message = Message.objects.create(
         chat=chat, text=user_message_text, is_bot=False, mode=mode
     )
     user_message.is_new_user_message = True
-    response_message = Message.objects.create(
-        chat=chat, text="", is_bot=True, mode=mode, parent=user_message
-    )
     # usage metrics
     chat_request_type_total.labels(user=request.user.upn, type=mode).inc()
 
-    # This tells the frontend to display the 3 dots and initiate the streaming response
-    response_init_message = {
-        "is_bot": True,
-        "awaiting_response": True,
-        "id": response_message.id,
-        "date_created": response_message.date_created + timezone.timedelta(seconds=1),
-    }
+    if entered_url and not allowed_url:
+        # Just respond with the error message.
+        response_message = Message.objects.create(
+            chat=chat, is_bot=True, mode=mode, parent=user_message, text=bad_url()
+        )
+        response_message.json = json.dumps(response_message.text)
+    else:
+        response_message = Message.objects.create(
+            chat=chat, is_bot=True, mode=mode, parent=user_message, text=""
+        )
+        # This tells the frontend to display the 3 dots and initiate the streaming response
+        response_message = {
+            "is_bot": True,
+            "awaiting_response": True,
+            "id": response_message.id,
+            "date_created": response_message.date_created
+            + timezone.timedelta(seconds=1),
+        }
     context = {
         "chat_messages": [
             user_message,
-            response_init_message,
+            response_message,
         ],
         "mode": mode,
     }
     response = HttpResponse()
     response.write(render_to_string("chat/components/chat_messages.html", context))
-    if adding_url_to_qa:
+    if entered_url and allowed_url and mode == "chat":
         response.write(change_mode_to_chat_qa(chat))
     return response
 
