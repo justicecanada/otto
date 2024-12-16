@@ -125,6 +125,61 @@ class ChatOptionsManager(models.Manager):
 
         return new_options
 
+    def create_from_yaml(self, presets_data):
+        # TODO - figure out who should be the owner of the default preset, for now I'm setting myself
+        owner = User.objects.filter(email="Michel.Custeau@justice.gc.ca").first()
+
+        # Create ChatOptions with prompts from the YAML file
+        default_library = Library.objects.get_default_library()
+        new_chat_options = ChatOptions.objects.create(
+            mode="chat",
+            chat_system_prompt=presets_data["default_chat_prompt"]["en"],
+            qa_system_prompt=presets_data["qa_system_prompt"]["en"],
+            qa_prompt_template=presets_data["qa_prompt_template"]["en"],
+            qa_pre_instructions=presets_data["qa_pre_instructions"]["en"],
+            qa_post_instructions=presets_data["qa_post_instructions"]["en"],
+            chat_model=settings.DEFAULT_CHAT_MODEL,
+            qa_model=settings.DEFAULT_QA_MODEL,
+            summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
+            qa_library=default_library,
+        )
+
+        # set french translations if available
+        if "fr" in presets_data["default_chat_prompt"]:
+            new_chat_options.chat_system_prompt_fr = presets_data[
+                "default_chat_prompt"
+            ]["fr"]
+        if "fr" in presets_data["qa_system_prompt"]:
+            new_chat_options.qa_system_prompt_fr = presets_data["qa_system_prompt"][
+                "fr"
+            ]
+        if "fr" in presets_data["qa_prompt_template"]:
+            new_chat_options.qa_prompt_template_fr = presets_data["qa_prompt_template"][
+                "fr"
+            ]
+        if "fr" in presets_data["qa_pre_instructions"]:
+            new_chat_options.qa_pre_instructions_fr = presets_data[
+                "qa_pre_instructions"
+            ]["fr"]
+        if "fr" in presets_data["qa_post_instructions"]:
+            new_chat_options.qa_post_instructions_fr = presets_data[
+                "qa_post_instructions"
+            ]["fr"]
+
+        new_chat_options.save()
+
+        new_preset = Preset.objects.create(
+            name_en="Default Preset",
+            name_fr="Préréglage par défaut",
+            description_en="Default preset including default prompts",
+            description_fr="Préréglage par défaut incluant les invites par défaut",
+            options=new_chat_options,
+            owner=owner,
+            sharing_option="everyone",
+        )
+
+        new_preset.save()
+
 
 QA_SCOPE_CHOICES = [
     ("all", _("Entire library")),

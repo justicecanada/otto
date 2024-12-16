@@ -251,35 +251,8 @@ class Command(BaseCommand):
 
         # Delete existing presets and associated options
         Preset.objects.all().delete()
-        ChatOptions.objects.filter(preset__isnull=False).delete()
+        ChatOptions.objects.create_from_yaml(presets_data)
 
-        # TODO - figure out who should be the owner of the default preset, for now I'm setting myself
-        owner = User.objects.filter(email="Michel.Custeau@justice.gc.ca").first()
-
-        # Create ChatOptions with prompts from the YAML file
-        default_library = Library.objects.get_default_library()
-        chat_options = ChatOptions.objects.create(
-            mode="chat",
-            chat_system_prompt=presets_data["default_chat_prompt"]["en"],
-            qa_system_prompt=presets_data["qa_system_prompt"]["en"],
-            qa_prompt_template=presets_data["qa_prompt_template"]["en"],
-            qa_pre_instructions=presets_data["qa_pre_instructions"]["en"],
-            qa_post_instructions=presets_data["qa_post_instructions"]["en"],
-            chat_model=settings.DEFAULT_CHAT_MODEL,
-            qa_model=settings.DEFAULT_QA_MODEL,
-            summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
-            qa_library=default_library,
-        )
-
-        Preset.objects.create(
-            name_en="Default Preset",
-            name_fr="Préréglage par défaut",
-            description_en="Default preset including default prompts",
-            description_fr="Préréglage par défaut incluant les invites par défaut",
-            options=chat_options,
-            owner=owner,
-            sharing_option="everyone",
-        )
         self.stdout.write(self.style.SUCCESS("Presets reset successfully."))
 
     def reset_security_labels(self):
