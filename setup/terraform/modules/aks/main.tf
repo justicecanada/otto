@@ -143,7 +143,7 @@ resource "azurerm_route_table" "aks" {
     name                   = "Web-Route-Through-Dev"
     address_prefix         = data.azurerm_subnet.web_subnet.address_prefixes[0]
     next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = "10.250.6.4" # Internal load balancer for DEV
+    next_hop_in_ip_address = "10.250.6.1" # Internal load balancer for DEV
   }
 
   # route {
