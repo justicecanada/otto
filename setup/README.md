@@ -116,6 +116,31 @@ Before deploying Otto infrastructure, ensure the following prerequisites are met
     - Increasing quotas doesn't incur costs; you're only charged for resources you use.
     - Monitor resource usage and adjust quotas as needed to ensure proper application scaling.
 
+- **Child DNS Zone Creation and Permissions:**
+
+  Ensure that a child DNS zone is created under the parent zone (`cloud.justice.gc.ca`) with a name matching the value of the **DOMAIN_NAME** variable in the corresponding environment file. Additionally, ensure that the required managed identities have permissions to manage DNS records in the child zone.
+
+  - **Create the Child DNS Zone:**
+
+    1. Log in to the [Azure Portal](https://portal.azure.com).
+    2. Navigate to the parent DNS zone: **`cloud.justice.gc.ca`**.
+    3. On the **Overview** page, click **"+ Child zone"**.
+    4. Provide the following details:
+      - **Name**: Set this to the value of the **DOMAIN_NAME** variable from the environment file for the specific deployment (e.g., `otto-dev`, `otto-uat`, `otto-preprod`, or `otto` for production).
+      - **Resource group**: Select the same resource group as the parent zone.
+    5. Click **"Review + create"** to finalize.
+
+  - **Grant Permissions to Managed Identities:**
+
+    1. After creating the child zone, go to the **Access Control (IAM)** section of the child zone.
+    2. Click **"+ Add" > "Add role assignment"**.
+    3. Assign the **DNS Zone Contributor** role to the following managed identities:
+      - `jumpbox-identity` for the respective environment.
+      - `otto-identity` for the respective environment.
+    4. Save the changes.
+
+    > **Important**: This step must be completed **after** the Terraform deployment (which creates the managed identities) but **before** the AKS cluster deployment. The **DOMAIN_NAME** variable must match the child DNS zone name exactly to ensure proper DNS configuration.
+
 ## Deployment Steps
 
 ### 1. Open Azure Cloud Shell and access the Otto repository:
