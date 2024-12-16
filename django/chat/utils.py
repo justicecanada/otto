@@ -5,6 +5,7 @@ import sys
 from itertools import groupby
 from typing import AsyncGenerator, Generator
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.forms.models import model_to_dict
@@ -574,6 +575,7 @@ def sort_by_max_score(groups):
 
 
 def change_mode_to_chat_qa(chat):
+    chat.options.mode = "qa"
     chat.options.qa_library = chat.user.personal_library
     chat.options.qa_scope = "data_sources"
     chat.options.qa_data_sources.set([chat.data_source])
@@ -587,3 +589,18 @@ def change_mode_to_chat_qa(chat):
             "swap": "true",
         },
     )
+
+
+def bad_url(render_markdown=False):
+    out = _("Sorry, that URL isn't allowed. Otto can only access sites ending in:")
+    out += "\n\n"
+    out += "\n".join([f"* `{url}`" for url in settings.ALLOWED_FETCH_URLS]) + "\n\n"
+    out += (
+        _("(e.g., `justice.gc.ca` or `www.tbs-sct.canada.ca` are also allowed)")
+        + "\n\n"
+    )
+    out += _("As a workaround, you can save the content to a file and upload it here.")
+
+    if render_markdown:
+        out = md.convert(out)
+    return out

@@ -7,7 +7,7 @@ from django.urls import reverse
 import pytest
 
 from chat.models import Chat
-from librarian.forms import LibraryDetailForm
+from librarian.forms import DocumentDetailForm, LibraryDetailForm
 from librarian.models import DataSource, Document, Library
 from librarian.views import get_editable_libraries
 
@@ -279,7 +279,7 @@ def test_modal_views(client, all_apps_user):
     client.force_login(user)
     data_source = DataSource.objects.create(library=library)
     # Create a document
-    document = Document.objects.create(data_source=data_source, url="http://google.ca")
+    document = Document.objects.create(data_source=data_source, url="https://canada.ca")
     # Poll for status updates
     url = reverse(
         "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
@@ -410,9 +410,9 @@ def test_poll_status(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
     data_source = DataSource.objects.create(library=library)
-    document = Document.objects.create(data_source=data_source, url="http://google.ca")
+    document = Document.objects.create(data_source=data_source, url="https://canada.ca")
     document2 = Document.objects.create(
-        data_source=data_source, url="http://google.com"
+        data_source=data_source, url="https://canada.ca"
     )
     # Poll for status updates
     url = reverse(
@@ -478,3 +478,56 @@ def test_poll_status(client, all_apps_user):
     )
     response = client.get(url)
     assert response.context["poll_url"] is None
+
+
+@pytest.mark.django_db
+def test_document_url_validation():
+    library = Library.objects.create(name="Test Library")
+    data_source = DataSource.objects.create(name="Test DataSource", library=library)
+    document = Document(data_source=data_source)
+
+    # Valid URL
+    form = DocumentDetailForm(
+        data={
+            "url": "https://canada.ca",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+
+    assert form.is_valid()
+
+    # Subdomain of valid URL
+    form = DocumentDetailForm(
+        data={
+            "url": "https://www.tbs-sct.canada.ca",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+    assert form.is_valid()
+
+    # Invalid URL
+    form = DocumentDetailForm(
+        data={
+            "url": "invalid-url",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+    assert not form.is_valid()
+    assert "url" in form.errors
+
+    form = DocumentDetailForm(
+        data={
+            "url": "https://notallowed.com",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+    assert not form.is_valid()
+    assert "url" in form.errors

@@ -1183,3 +1183,69 @@ def test_chat_message_error(client, all_apps_user):
     # Iterate over the response to get the content
     content = final_response(response.streaming_content)
     assert "Error ID" in content.decode("utf-8")
+
+
+@pytest.mark.django_db
+def test_chat_message_url_validation(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    # Valid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://canada.ca"},
+    )
+    assert response.status_code == 200
+    # The error message contains the string "URL" but success message does not
+    assert not "URL" in response.content.decode()
+
+    # Subdomain of valid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://www.tbs-sct.canada.ca"},
+    )
+    assert response.status_code == 200
+    assert not "URL" in response.content.decode()
+
+    # Ends with valid URL, but isn't a subdomain
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://acanada.ca"},
+    )
+    assert response.status_code == 200
+    # This should be a problem
+    assert "URL" in response.content.decode()
+
+    # Is a valid URL, but is http:// only (should be fine, it will correct to https://)
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "http://www.tbs-sct.canada.ca"},
+    )
+    assert response.status_code == 200
+    assert not "URL" in response.content.decode()
+
+    # Is a valid URL, but FTP
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "ftp://canada.ca/fake_file"},
+    )
+    assert response.status_code == 200
+    # This should be a problem
+    assert "URL" in response.content.decode()
+
+    # Invalid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "invalid-url"},
+    )
+    assert response.status_code == 200
+    # This should just be interpreted as a regular chat message
+    assert not "URL" in response.content.decode()
+
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://notallowed.com"},
+    )
+    assert response.status_code == 200
+    assert "URL" in response.content.decode()

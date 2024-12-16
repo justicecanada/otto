@@ -389,3 +389,11 @@ div.phac_aspc_form_autocomplete .results .item {
     transform: translatey(0px);
   }
 }
+
+ul.errorlist ul:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+ul.errorlist p {
+  margin-bottom: 0.25rem;
+}

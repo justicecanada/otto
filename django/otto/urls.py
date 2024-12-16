@@ -79,6 +79,7 @@ urlpatterns = [
         views.feedback_download,
         name="feedback_download",
     ),
+    path("user_management/blocked_urls", views.list_blocked_urls, name="blocked_urls"),
     path(
         "notifications/<int:notification_id>/", views.notification, name="notification"
     ),
