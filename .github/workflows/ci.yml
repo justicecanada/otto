@@ -11,22 +11,23 @@ defaults:
   run:
     shell: bash 
     working-directory: ./django
+  
+env:
+  AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
+  AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}      
+  LOG_LEVEL: ERROR
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   load-localization:    
     runs-on: ubuntu-latest
     container: python:3.11
-    if: github.event.actor != 'github-actions[bot]'
+    # job should run only when the PR is not created by the bot
+    if: github.event.actor != 'github-actions[bot]' && github.event_name == 'pull_request'
     permissions:
       contents: write
       pull-requests: write
       actions: read
-    env:
-      AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
-      AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}      
-      LOG_LEVEL: ERROR
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     steps:
     - uses: actions/checkout@v4
       with:
@@ -90,12 +91,9 @@ jobs:
         ports:
           - 6379:6379
 
-    env:
-      AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
-      AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
+    env:      
       DJANGODB_HOST: postgres-service
       VECTORDB_HOST: postgres-service
-      LOG_LEVEL: ERROR
 
     steps:
     - uses: actions/checkout@v4
