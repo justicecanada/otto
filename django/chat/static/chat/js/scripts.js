@@ -23,7 +23,7 @@ function checkTruncation(element) {
 function render_markdown(element) {
   // Render markdown in the element
   const markdown_text = element.querySelector(".markdown-text");
-  dot_element = element.querySelector(".typing");
+  dot_element = element.querySelector(".typing"); // Exists when dots=True on htmx_stream call
   if (markdown_text) {
     let to_parse = markdown_text.dataset.md;
     try {
@@ -35,6 +35,8 @@ function render_markdown(element) {
     if (to_parse) {
       parent.innerHTML = md.render(to_parse);
       const current_dots = parent.parentElement.querySelector(".typing");
+      // If dots=True on htmx_stream call and we just removed the dots at the beginning of stream,
+      // add a new dots element after parent
       if (dot_element && !current_dots) {
         parent.insertAdjacentHTML("afterend", "\n\n" + dot_element.outerHTML);
       }
@@ -43,6 +45,8 @@ function render_markdown(element) {
         block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
       }
     } else if ((after_text = parent.nextElementSibling)) {
+      // If stream is empty (which should only happen between batches), it will stream dots
+      // so we can remove the dot element we manually added above
       if (after_text.classList.contains("typing")) {
         after_text.remove();
       }
