@@ -5,6 +5,8 @@ import sys
 from itertools import groupby
 from typing import AsyncGenerator, Generator
 
+from django.conf import settings
+from django.contrib import messages
 from django.core.cache import cache
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
@@ -13,6 +15,7 @@ from django.utils.translation import gettext_lazy as _
 import markdown
 import tiktoken
 from asgiref.sync import sync_to_async
+from data_fetcher.util import get_request
 from llama_index.core import PromptTemplate
 from llama_index.core.prompts import PromptType
 from newspaper import Article
@@ -31,7 +34,7 @@ md = markdown.Markdown(
 )
 
 
-def copy_options(source_options, target_options):
+def copy_options(source_options, target_options, user=None):
     source_options = model_to_dict(source_options)
     # Remove the fields that are not part of the preset
     for field in ["id", "chat"]:
@@ -48,6 +51,23 @@ def copy_options(source_options, target_options):
             getattr(target_options, key).set(value)
         else:
             setattr(target_options, key, value)
+
+    request = get_request()
+    user = user or request.user
+    if not target_options.qa_library or (
+        user and not user.has_perm("librarian.view_library", target_options.qa_library)
+    ):
+        messages.warning(
+            request,
+            _(
+                "QA library for settings preset not accessible. It has been reset to your personal library."
+            ),
+        )
+        target_options.qa_library = user.personal_library
+        target_options.qa_data_sources.clear()
+        target_options.qa_documents.clear()
+        target_options.qa_scope = "all"
+        target_options.qa_mode = "rag"
     target_options.save()
 
 
@@ -590,6 +610,7 @@ def sort_by_max_score(groups):
 
 
 def change_mode_to_chat_qa(chat):
+    chat.options.mode = "qa"
     chat.options.qa_library = chat.user.personal_library
     chat.options.qa_scope = "data_sources"
     chat.options.qa_data_sources.set([chat.data_source])
@@ -603,3 +624,18 @@ def change_mode_to_chat_qa(chat):
             "swap": "true",
         },
     )
+
+
+def bad_url(render_markdown=False):
+    out = _("Sorry, that URL isn't allowed. Otto can only access sites ending in:")
+    out += "\n\n"
+    out += "\n".join([f"* `{url}`" for url in settings.ALLOWED_FETCH_URLS]) + "\n\n"
+    out += (
+        _("(e.g., `justice.gc.ca` or `www.tbs-sct.canada.ca` are also allowed)")
+        + "\n\n"
+    )
+    out += _("As a workaround, you can save the content to a file and upload it here.")
+
+    if render_markdown:
+        out = md.convert(out)
+    return out

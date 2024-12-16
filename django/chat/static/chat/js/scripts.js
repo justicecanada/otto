@@ -88,11 +88,11 @@ function scrollToBottom(smooth = true, force = false) {
   messagesContainer.scrollTop = hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight;
 }
 
-function handleModeChange(mode, element = null) {
+function handleModeChange(mode, element = null, preset_loaded = false) {
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
-  triggerOptionSave();
+  if (!preset_loaded) {triggerOptionSave();}
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
 
@@ -218,6 +218,12 @@ document.addEventListener("htmx:afterSwap", function (event) {
   document.querySelectorAll("div.message-text").forEach(function (element) {
     checkTruncation(element);
   });
+  // Markdown rendering, if the response message has data-md property (e.g., error message)
+  let messages = document.querySelectorAll("#messages-container div.markdown-text");
+  let last_message = messages[messages.length - 1];
+  if (last_message && last_message.dataset.md) {
+    render_markdown(last_message.parentElement);
+  }
   document.querySelector("#chat-prompt").value = "";
   document.querySelector("#chat-prompt").focus();
   // Change height back to minimum

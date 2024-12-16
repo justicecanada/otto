@@ -86,7 +86,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 show_document_status = True
             else:
                 logger.error("Error updating document:", errors=form.errors)
-                selected_data_source = get_object_or_404(DataSource, id=parent_id)
+                selected_data_source = (
+                    DataSource.objects.filter(id=parent_id).first()
+                    or form.instance.data_source
+                )
         elif request.method == "DELETE":
             if item_id == 1:
                 return HttpResponse(status=400)
@@ -299,7 +302,7 @@ def poll_status(request, data_source_id, document_id=None):
     documents = Document.objects.filter(data_source_id=data_source_id)
     poll = False
     try:
-        poll = documents.filter(status__in=[IN_PROGRESS_STATUSES]).exists()
+        poll = documents.filter(status__in=IN_PROGRESS_STATUSES).exists()
     except:
         poll = False
     poll_url = request.path if poll else None
@@ -488,10 +491,7 @@ def upload(request, data_source_id):
             ).first()
             # Skip if filename and hash are the same, and processing status is SUCCESS
             if existing_document:
-                if (
-                    existing_document.status != "SUCCESS"
-                    and not settings.IS_RUNNING_IN_GITHUB
-                ):
+                if existing_document.status != "SUCCESS":
                     existing_document.process()
                 continue
         else:
@@ -502,8 +502,7 @@ def upload(request, data_source_id):
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )
-        if not settings.IS_RUNNING_IN_GITHUB:
-            document.process()
+        document.process()
     # Update the modal with the new documents
     request.method = "GET"
     return modal_view(request, item_type="data_source", item_id=data_source_id)

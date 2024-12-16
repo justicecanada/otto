@@ -626,6 +626,10 @@ div.message-text blockquote {
   line-clamp: 8;
 }
 
+code {
+  color: #800;
+}
+
 .truncate:not(.show-all) .message-text pre code,
 .truncate:not(.show-all) .message-text blockquote {
   overflow: hidden;
@@ -1241,6 +1245,26 @@ ul#preset-edit-tabs {
     outline-color: black !important;
     outline-width: 2px !important;
   }
+}
+
+.preset-form-user-choice .card-button {
+  border: 1px solid transparent;
+  /* Other styles */
+}
+
+.preset-form-user-choice .card-button:hover {
+  border: 1px solid #acacac;
+
+}
+
+.preset-form-user-choice .submit-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 1;
 }
 
 math[display="block"] {
