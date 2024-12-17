@@ -58,6 +58,16 @@ variable "use_private_network" {
   description = "Whether to use private networking for the AKS cluster"
 }
 
+variable "corporate_public_ip" {
+  type        = string
+  description = "The public IP address of the corporate network"
+}
+
+variable "vnet_id" {
+  type        = string
+  description = "The ID of the virtual network"
+}
+
 variable "web_subnet_id" {
   type        = string
   description = "The ID of the subnet for the web app"

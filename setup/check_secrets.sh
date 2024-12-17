@@ -2,8 +2,11 @@
 
 # Function to check if a secret exists in Key Vault
 check_secret() {
-    az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "$1" &>/dev/null
-    echo "Checking if $1 exists..."
+    if az keyvault secret show --vault-name "$KEYVAULT_NAME" --name "$1" &>/dev/null; then
+        return 0  # Secret exists
+    else
+        return 1  # Secret doesn't exist
+    fi
 }
 
 # Function to get the current value of a secret from Key Vault
@@ -44,6 +47,7 @@ if ! check_secret "DJANGO-SECRET-KEY"; then
     set_secret "DJANGO-SECRET-KEY" "$secret_key"
     unset secret_key
 fi
+
 
 
 # Check and set STORAGE-KEY
