@@ -292,6 +292,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
     # Suitable for clusters with limited IP address space and primarily internal pod communication
     network_plugin = "kubenet"
 
+    # Enable overlay networking for enhanced network security and performance
+    # This mode provides better isolation between pods and supports advanced features like network policies
+    # It's particularly useful for multi-tenant clusters or when stricter network segmentation is required
+    network_plugin_mode = "Overlay"
+
     # Pod CIDR specifies the IP range from which pod IPs are allocated
     # This range is internal to the cluster and not routable outside
     pod_cidr = var.pod_cidr
@@ -716,19 +721,4 @@ resource "azurerm_private_dns_a_record" "aks_api" {
   depends_on = [
     azurerm_private_endpoint.aks_private_endpoint
   ]
-}
-
-
-resource "azapi_update_resource" "aks_network_observability" {
-  type      = "Microsoft.ContainerService/managedClusters@2023-05-02-preview"
-  resource_id = azurerm_kubernetes_cluster.aks.id
-  body = jsonencode({
-    properties = {
-      networkProfile = {
-        monitoring = {
-          enabled = true
-        }
-      }
-    }
-  })
 }
