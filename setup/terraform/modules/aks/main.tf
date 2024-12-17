@@ -718,10 +718,7 @@ resource "azurerm_private_dns_a_record" "aks_api" {
   ]
 }
 
-provider "azapi" {
-  source  = "azure/azapi"
-  version = "~> 1.5"
-}
+provider "azapi" {}
 
 resource "azapi_update_resource" "aks_network_observability" {
   type      = "Microsoft.ContainerService/managedClusters@2023-05-02-preview"
