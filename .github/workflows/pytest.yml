@@ -20,10 +20,6 @@ jobs:
     # Docker Hub image that `test-coverage` executes in
     container: python:3.11
 
-    concurrency:
-      group: test-coverage-${{ github.ref }}
-      cancel-in-progress: true  # Cancel any in-progress runs when a new one starts
-
     permissions:
       # See https://github.com/py-cov-action/python-coverage-comment-action#basic-usage
       pull-requests: write
