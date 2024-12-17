@@ -4,6 +4,7 @@ import os
 import time
 from collections import defaultdict
 from datetime import timedelta
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib import messages
@@ -23,6 +24,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 
+import tldextract
 from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -39,6 +41,7 @@ from otto.forms import (
 from otto.metrics.activity_metrics import otto_access_total
 from otto.models import (
     FEATURE_CHOICES,
+    BlockedURL,
     Cost,
     CostType,
     Feature,
@@ -620,6 +623,22 @@ def aggregate_costs(costs, x_axis="day", end_date=None):
         # Sort by x-axis label
         costs = sorted(costs, key=lambda c: c[x_axis])
     return costs
+
+
+@permission_required("otto.manage_users")
+def list_blocked_urls(request):
+    blocked_urls = BlockedURL.objects.all().values("url")
+    # Get the domains from the blocked URLs
+    domains = [
+        tldextract.extract(urlparse(url["url"]).netloc).registered_domain
+        for url in blocked_urls
+    ]
+    domain_counts = {domain: domains.count(domain) for domain in set(domains)}
+    # Sort the domains by the number of blocked URLs
+    domain_counts = dict(
+        sorted(domain_counts.items(), key=lambda item: item[1], reverse=True)
+    )
+    return render(request, "blocked_urls.html", {"domain_counts": domain_counts})
 
 
 # AU-7: Aggregates and presents cost data in a dashboard

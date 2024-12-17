@@ -27,12 +27,7 @@ from text_extractor.models import OutputFile, UserRequest
 
 logger = get_logger(__name__)
 
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
 
-
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_redundant_librarian_upload(client, all_apps_user):
     """
@@ -115,7 +110,6 @@ def test_redundant_librarian_upload(client, all_apps_user):
     len(os.listdir(folder)) == 0
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_redundant_chat_upload(client, all_apps_user):
     """
@@ -218,16 +212,10 @@ def test_reset_monthly_bonus_task(client, all_apps_user):
     user = all_apps_user()
     user.monthly_bonus = 20
     user.save()
-    if settings.IS_RUNNING_IN_GITHUB:
-        # No Redis, so we test the code directly
-        from otto.models import User
+    # Test the task
+    from otto.tasks import reset_monthly_bonus
 
-        User.objects.update(monthly_bonus=0)
-    else:
-        # Test the task
-        from otto.tasks import reset_monthly_bonus
-
-        reset_monthly_bonus()
+    reset_monthly_bonus()
     # Check that the user has a new bonus
     user.refresh_from_db()
     assert user.monthly_bonus == 0
@@ -261,14 +249,10 @@ def test_delete_old_chats_task(client, all_apps_user):
     # Manually set the accessed_at time to 100 days ago
     chat.accessed_at = timezone.now() - timezone.timedelta(days=100)
     chat.save()
-    if settings.IS_RUNNING_IN_GITHUB:
-        # No Redis, so we test the code directly
-        call_command("delete_old_chats")
-    else:
-        # Test the task
-        from otto.tasks import delete_old_chats
+    # Test the task
+    from otto.tasks import delete_old_chats
 
-        delete_old_chats()
+    delete_old_chats()
     # Check that the chat is gone - there should now be no chats
     chat = Chat.objects.filter(id=chat_id).first()
     assert chat is None
@@ -280,11 +264,7 @@ def test_delete_old_chats_task(client, all_apps_user):
     assert chat is not None
     assert Chat.objects.count() == 1
     # Run the task again
-    if settings.IS_RUNNING_IN_GITHUB:
-        # No Redis, so we test the code directly
-        call_command("delete_old_chats")
-    else:
-        delete_old_chats()
+    delete_old_chats()
     # Check that the new chat is still there
     assert Chat.objects.count() == 1
 
@@ -313,14 +293,9 @@ def test_delete_empty_chats_task(client, all_apps_user):
     too_new_empty_chat = Chat.objects.create(user=user)
     too_new_empty_chat_id = too_new_empty_chat.id
     # Test the task
-    if settings.IS_RUNNING_IN_GITHUB:
-        # No Redis, so we test the code directly
-        call_command("delete_empty_chats")
-    else:
-        # Test the task
-        from otto.tasks import delete_empty_chats
+    from otto.tasks import delete_empty_chats
 
-        delete_empty_chats()
+    delete_empty_chats()
     # Check that the 2 day old empty chat is gone
     empty_chat = Chat.objects.filter(id=empty_chat_id).first()
     assert empty_chat is None
@@ -408,15 +383,10 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
     user_request2.save(access_key=access_key)
     logger.debug(f"User request 2 created_at: {user_request2.created_at}")
 
-    # Run the delete_text_extractor_files task
-    if settings.IS_RUNNING_IN_GITHUB:
-        # No Redis, so we test the code directly
-        call_command("delete_text_extractor_files")
-    else:
-        # Test the task
-        from otto.tasks import delete_text_extractor_files
+    # Test the task
+    from otto.tasks import delete_text_extractor_files
 
-        delete_text_extractor_files()
+    delete_text_extractor_files()
 
     # Check that the old UserRequest is gone
     old_user_requests = UserRequest.objects.filter(

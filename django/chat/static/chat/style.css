@@ -626,6 +626,10 @@ div.message-text blockquote {
   line-clamp: 8;
 }
 
+code {
+  color: #800;
+}
+
 .truncate:not(.show-all) .message-text pre code,
 .truncate:not(.show-all) .message-text blockquote {
   overflow: hidden;
