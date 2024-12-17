@@ -113,6 +113,7 @@
       let driver =  window.driver.js.driver;
       let driverObj = driver({
         showProgress: true,
+        disableActiveInteraction: true,
         popoverClass: "bs-popover-auto",
         prevBtnText: "{% trans 'Previous' %}",
         nextBtnText: "{% trans 'Next' %}",
