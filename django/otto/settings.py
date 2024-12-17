@@ -110,7 +110,7 @@ DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
 DEFAULT_LAWS_MODEL = "gpt-4o"
 
-DEFAULT_WEEKLY_MAX = 20  # allowance $CAD/user/week unless otherwise specified
+DEFAULT_MONTHLY_MAX = 40  # allowance $CAD/user/month unless otherwise specified
 
 # Azure Cognitive Services
 AZURE_COGNITIVE_SERVICE_ENDPOINT = os.environ.get("AZURE_COGNITIVE_SERVICE_ENDPOINT")
@@ -277,24 +277,38 @@ DATABASES = {
     },
 }
 
+DJANGODB_PGBOUNCER = os.environ.get("DJANGODB_PGBOUNCER", "False") == "True"
+VECTORDB_PGBOUNCER = os.environ.get("VECTORDB_PGBOUNCER", "False") == "True"
+pgbouncer_options = {
+    "DISABLE_SERVER_SIDE_CURSORS": True,
+    "CONN_MAX_AGE": 600,  # 10 minutes
+}
+
 # If the database is set in the environment variables, use that instead
 if os.environ.get("DJANGODB_ENGINE") is not None:
     DATABASES["default"] = {
-        "ENGINE": os.environ.get("DJANGODB_ENGINE"),
+        "ENGINE": "postgres_wrapper",
         "NAME": os.environ.get("DJANGODB_NAME"),
         "USER": os.environ.get("DJANGODB_USER"),
         "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
         "HOST": os.environ.get("DJANGODB_HOST"),
+        "PORT": os.environ.get("DJANGODB_PORT"),
     }
+    if DJANGODB_PGBOUNCER:
+        DATABASES["default"].update(pgbouncer_options)
+
 
 if os.environ.get("VECTORDB_ENGINE") is not None:
     DATABASES["vector_db"] = {
-        "ENGINE": os.environ.get("VECTORDB_ENGINE"),
+        "ENGINE": "postgres_wrapper",
         "NAME": os.environ.get("VECTORDB_NAME"),
         "USER": os.environ.get("VECTORDB_USER"),
         "PASSWORD": os.environ.get("VECTORDB_PASSWORD", ""),
         "HOST": os.environ.get("VECTORDB_HOST"),
+        "PORT": os.environ.get("VECTORDB_PORT"),
     }
+    if VECTORDB_PGBOUNCER:
+        DATABASES["vector_db"].update(pgbouncer_options)
 
 
 # Password validation
@@ -420,23 +434,16 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 
-if IS_RUNNING_IN_GITHUB:
-    CACHES = {
-        "default": {
-            "BACKEND": "otto.utils.cache.LocMemCache",
-        }
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": f"otto_{ENVIRONMENT}",
     }
-else:
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": REDIS_URL,
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            },
-            "KEY_PREFIX": f"otto_{ENVIRONMENT}",
-        }
-    }
+}
 
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
@@ -512,3 +519,10 @@ structlog.configure(
     logger_factory=structlog.stdlib.LoggerFactory(),
     cache_logger_on_first_use=True,
 )
+
+ALLOWED_FETCH_URLS = [
+    "canada.ca",
+    "gc.ca",
+    "canlii.org",
+    "wikipedia.org",
+]

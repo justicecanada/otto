@@ -35,34 +35,12 @@ services:
     command: redis-server
     restart: unless-stopped
 
-  celery-worker:
-    build:
-      context: ..
-      dockerfile: .devcontainer/Dockerfile_celery
-    volumes:
-      - ..:/workspace:cached
-    working_dir: /workspace/django
-    command: watchmedo auto-restart --pattern=*.py --recursive -- celery -A otto worker -l INFO --pool=gevent --concurrency=256
-    network_mode: service:postgres-service
-    depends_on:
-      - postgres-service
-      - redis
-      - app
-  # To test scheduling tasks uncomment the following chunk of code.
-  #
-  # celery-beat:
-  #   build:
-  #     context: ..
-  #     dockerfile: .devcontainer/Dockerfile_celery
-  #   volumes:
-  #     - ..:/workspace:cached
-  #   working_dir: /workspace/django
-  #   command:  watchmedo auto-restart --pattern=*.py --recursive -- celery -A otto beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-  #   network_mode: service:postgres-service
-  #   depends_on:
-  #     - postgres-service
-  #     - redis
-  #     - app
+  # Run Celery in the VScode container with the following command:
+  # celery -A otto worker -l INFO --pool=gevent --concurrency=256
+
+  # To test scheduling tasks also run celery beat in the VScode container with command:
+  # celery -A otto beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
 
 volumes:
   postgres-data:

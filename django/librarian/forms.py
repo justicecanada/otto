@@ -1,10 +1,15 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from autocomplete import widgets
 
+from chat.utils import bad_url
 from librarian.models import DataSource, Document, Library, LibraryUserRole
+from otto.utils.common import check_url_allowed
 
 User = get_user_model()
 
@@ -43,7 +48,7 @@ class LibraryDetailForm(forms.ModelForm):
             "description_en",
             "description_fr",
             "order",
-            "is_public", 
+            "is_public",
         ]
         widgets = {
             "name_en": forms.TextInput(attrs={"class": "form-control form-control-sm"}),
@@ -110,6 +115,18 @@ class DocumentDetailForm(forms.ModelForm):
         if self.instance.filename:
             self.fields.pop("url")
             self.fields.pop("selector")
+
+    def clean_url(self):
+        url = self.cleaned_data.get("url")
+        if url:
+            url_validator = URLValidator()
+            try:
+                url_validator(url)
+            except ValidationError:
+                raise ValidationError(_("Invalid URL"))
+            if not check_url_allowed(url):
+                raise ValidationError(mark_safe(bad_url(render_markdown=True)))
+        return url
 
     class Meta:
         model = Document

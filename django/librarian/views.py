@@ -86,7 +86,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 show_document_status = True
             else:
                 logger.error("Error updating document:", errors=form.errors)
-                selected_data_source = get_object_or_404(DataSource, id=parent_id)
+                selected_data_source = (
+                    DataSource.objects.filter(id=parent_id).first()
+                    or form.instance.data_source
+                )
         elif request.method == "DELETE":
             if item_id == 1:
                 return HttpResponse(status=400)
@@ -103,7 +106,9 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 selected_data_source = get_object_or_404(DataSource, id=parent_id)
         documents = list(selected_data_source.documents.all())
         selected_library = selected_data_source.library
-        data_sources = selected_library.data_sources.all()
+        data_sources = selected_library.data_sources.all().prefetch_related(
+            "security_label"
+        )
         if not item_id and not request.method == "DELETE":
             new_document = create_temp_object("document")
             documents.insert(0, new_document)
@@ -145,7 +150,9 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             data_source.delete()
             messages.success(request, _("Data source deleted successfully."))
             selected_library = data_source.library
-            data_sources = selected_library.data_sources.all()
+            data_sources = selected_library.data_sources.all().prefetch_related(
+                "security_label"
+            )
         else:
             if item_id:
                 selected_data_source = get_object_or_404(DataSource, id=item_id)
@@ -153,7 +160,9 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 documents = selected_data_source.documents.all()
             else:
                 selected_library = get_object_or_404(Library, id=parent_id)
-        data_sources = list(selected_library.data_sources.all())
+        data_sources = list(
+            selected_library.data_sources.all().prefetch_related("security_label")
+        )
         if not item_id and not request.method == "DELETE":
             new_data_source = create_temp_object("data_source")
             data_sources.insert(0, new_data_source)
@@ -185,7 +194,9 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 # Refresh the form so "public" checkbox behaves properly
                 form = LibraryDetailForm(instance=selected_library, user=request.user)
                 item_id = selected_library.id
-                data_sources = selected_library.data_sources.all()
+                data_sources = selected_library.data_sources.all().prefetch_related(
+                    "security_label"
+                )
                 if request.user.has_perm(
                     "librarian.manage_library_users", selected_library
                 ):
@@ -200,7 +211,9 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         if not request.method == "DELETE":
             if item_id:
                 selected_library = get_object_or_404(Library, id=item_id)
-                data_sources = selected_library.data_sources.all()
+                data_sources = selected_library.data_sources.all().prefetch_related(
+                    "security_label"
+                )
                 if request.user.has_perm(
                     "librarian.manage_library_users", selected_library
                 ):
@@ -228,7 +241,9 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 "librarian.manage_library_users", selected_library
             ):
                 users_form = None
-            data_sources = selected_library.data_sources.all()
+            data_sources = selected_library.data_sources.all().prefetch_related(
+                "security_label"
+            )
             form = LibraryDetailForm(instance=selected_library, user=request.user)
         else:
             return HttpResponse(status=405)
@@ -287,7 +302,7 @@ def poll_status(request, data_source_id, document_id=None):
     documents = Document.objects.filter(data_source_id=data_source_id)
     poll = False
     try:
-        poll = documents.filter(status__in=[IN_PROGRESS_STATUSES]).exists()
+        poll = documents.filter(status__in=IN_PROGRESS_STATUSES).exists()
     except:
         poll = False
     poll_url = request.path if poll else None
@@ -476,10 +491,7 @@ def upload(request, data_source_id):
             ).first()
             # Skip if filename and hash are the same, and processing status is SUCCESS
             if existing_document:
-                if (
-                    existing_document.status != "SUCCESS"
-                    and not settings.IS_RUNNING_IN_GITHUB
-                ):
+                if existing_document.status != "SUCCESS":
                     existing_document.process()
                 continue
         else:
@@ -490,8 +502,7 @@ def upload(request, data_source_id):
         document = Document.objects.create(
             data_source_id=data_source_id, file=file_obj, filename=file.name
         )
-        if not settings.IS_RUNNING_IN_GITHUB:
-            document.process()
+        document.process()
     # Update the modal with the new documents
     request.method = "GET"
     return modal_view(request, item_type="data_source", item_id=data_source_id)

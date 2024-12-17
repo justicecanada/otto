@@ -1,7 +1,10 @@
 import csv
 import io
+import os
+import time
 from collections import defaultdict
 from datetime import timedelta
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib import messages
@@ -21,12 +24,13 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 
+import tldextract
 from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
-from chat.models import Message
+from librarian.models import DataSource, Document, Library, SavedFile
 from otto.forms import (
     FeedbackForm,
     FeedbackMetadataForm,
@@ -36,15 +40,13 @@ from otto.forms import (
 )
 
 from otto.metrics.activity_metrics import otto_access_total
-from otto.metrics.feedback_metrics import otto_feedback_submitted_with_comment_total
 from otto.models import (
     FEATURE_CHOICES,
-    App,
+    BlockedURL,
     Cost,
     CostType,
     Feature,
     Feedback,
-    FeedbackManager,
     Pilot,
     UsageTerm,
 )
@@ -378,8 +380,8 @@ def manage_users(request):
                 user.groups.add(*groups)
                 if "pilot" in form.cleaned_data:
                     user.pilot = form.cleaned_data["pilot"]
-                user.weekly_max = form.cleaned_data["weekly_max"]
-                user.weekly_bonus = form.cleaned_data["weekly_bonus"]
+                user.monthly_max = form.cleaned_data["monthly_max"]
+                user.monthly_bonus = form.cleaned_data["monthly_bonus"]
                 user.save()
         else:
             raise ValueError(form.errors)
@@ -405,8 +407,8 @@ def manage_users_form(request, user_id=None):
                 "upn": [user],
                 "group": user.groups.all(),
                 "pilot": user.pilot,
-                "weekly_max": user.weekly_max,
-                "weekly_bonus": user.weekly_bonus,
+                "monthly_max": user.monthly_max,
+                "monthly_bonus": user.monthly_bonus,
             }
         )
     else:
@@ -449,12 +451,12 @@ def manage_users_upload(request):
                                 pilot_id=pilot_id,
                                 name=pilot_id.replace("_", " ").capitalize(),
                             )
-                    # Check for weekly_max column
-                    weekly_max = row.get("weekly_max", None)
+                    # Check for monthly_max column
+                    monthly_max = row.get("monthly_max", None)
                     try:
-                        weekly_max = int(weekly_max)
+                        monthly_max = int(monthly_max)
                     except Exception as e:
-                        weekly_max = None
+                        monthly_max = None
                     user = User.objects.filter(upn__iexact=upn).first()
                     if not user:
                         user = User.objects.create_user(
@@ -472,16 +474,16 @@ def manage_users_upload(request):
                         user.last_name = surname
                         if pilot_id:
                             user.pilot = pilot
-                        if weekly_max:
-                            user.weekly_max = weekly_max
+                        if monthly_max:
+                            user.monthly_max = monthly_max
                         user.save()
                     if not created:
                         user.groups.clear()
                         if pilot_id:
                             user.pilot = pilot
-                        if weekly_max:
-                            user.weekly_max = weekly_max
-                        if pilot_id or weekly_max:
+                        if monthly_max:
+                            user.monthly_max = monthly_max
+                        if pilot_id or monthly_max:
                             user.save()
                     for role in row["roles"].split("|"):
                         role = role.strip()
@@ -506,13 +508,13 @@ def manage_users_download(request):
     response["Content-Disposition"] = 'attachment; filename="otto_users.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(["upn", "pilot_id", "roles", "weekly_max"])
+    writer.writerow(["upn", "pilot_id", "roles", "monthly_max"])
 
     # Only get users who have roles
     for user in User.objects.filter(groups__isnull=False).order_by("last_name"):
         roles = "|".join(user.groups.values_list("name", flat=True))
         pilot_id = user.pilot.pilot_id if user.pilot else ""
-        writer.writerow([user.upn, pilot_id, roles, user.weekly_max])
+        writer.writerow([user.upn, pilot_id, roles, user.monthly_max])
 
     return response
 
@@ -556,7 +558,7 @@ def manage_pilots_form(request, pilot_id=None):
     return render(request, "components/pilot_modal.html", {"form": form})
 
 
-def aggregate_costs(costs, x_axis="day"):
+def aggregate_costs(costs, x_axis="day", end_date=None):
     # Aggregate the costs by the selected x-axis
     if x_axis == "feature":
         costs = costs.values("feature").annotate(total_cost=models.Sum("usd_cost"))
@@ -584,7 +586,8 @@ def aggregate_costs(costs, x_axis="day"):
             start_date = costs[0]["day"]
         else:
             start_date = timezone.now().date()
-        end_date = timezone.now().date()
+        if not end_date:
+            end_date = timezone.now().date()
         date_range = [
             start_date + timedelta(days=x)
             for x in range((end_date - start_date).days + 1)
@@ -623,6 +626,22 @@ def aggregate_costs(costs, x_axis="day"):
         # Sort by x-axis label
         costs = sorted(costs, key=lambda c: c[x_axis])
     return costs
+
+
+@permission_required("otto.manage_users")
+def list_blocked_urls(request):
+    blocked_urls = BlockedURL.objects.all().values("url")
+    # Get the domains from the blocked URLs
+    domains = [
+        tldextract.extract(urlparse(url["url"]).netloc).registered_domain
+        for url in blocked_urls
+    ]
+    domain_counts = {domain: domains.count(domain) for domain in set(domains)}
+    # Sort the domains by the number of blocked URLs
+    domain_counts = dict(
+        sorted(domain_counts.items(), key=lambda item: item[1], reverse=True)
+    )
+    return render(request, "blocked_urls.html", {"domain_counts": domain_counts})
 
 
 # AU-7: Aggregates and presents cost data in a dashboard
@@ -666,6 +685,14 @@ def cost_dashboard(request):
     feature_options.update({f[0]: f[1] for f in FEATURE_CHOICES})
     cost_type_options = {"all": _("All cost types")}
     cost_type_options.update({c.id: c.name for c in list(CostType.objects.all())})
+    date_group_options = {
+        "all": _("All time"),
+        "last_90_days": _("Last 90 days"),
+        "last_30_days": _("Last 30 days"),
+        "last_7_days": _("Last 7 days"),
+        "today": _("Today"),
+        "custom": _("Custom date range"),
+    }
 
     # Get the filters / groupings from the query string
     x_axis = request.GET.get("x_axis", "day")
@@ -674,9 +701,83 @@ def cost_dashboard(request):
     pilot = request.GET.get("pilot", "all")
     feature = request.GET.get("feature", "all")
     cost_type = request.GET.get("cost_type", "all")
+    date_group = request.GET.get("date_group", "last_30_days")
+    start_date = request.GET.get("start_date", None)
+    end_date = request.GET.get("end_date", None)
 
-    # First, filter the costs by the selected options
     raw_costs = Cost.objects.all()
+
+    # Filter by dates
+    if date_group == "last_90_days":
+        start_date = timezone.now().date() - timedelta(days=90)
+        end_date = timezone.now().date() - timedelta(days=1)
+    elif date_group == "last_30_days":
+        start_date = timezone.now().date() - timedelta(days=30)
+        end_date = timezone.now().date() - timedelta(days=1)
+    elif date_group == "last_7_days":
+        start_date = timezone.now().date() - timedelta(days=7)
+        end_date = timezone.now().date() - timedelta(days=1)
+    elif date_group == "today":
+        start_date = timezone.now().date()
+    elif date_group == "all":
+        start_date = None
+        end_date = None
+
+    if start_date:
+        raw_costs = raw_costs.filter(date_incurred__gte=start_date)
+    if end_date:
+        raw_costs = raw_costs.filter(date_incurred__lte=end_date)
+
+    # If download parameter is present, download the raw_costs as a CSV file, joined with User and CostType
+    if request.GET.get("download"):
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="costs.csv"'
+
+        if not start_date:
+            start_date = raw_costs.aggregate(models.Min("date_incurred"))[
+                "date_incurred__min"
+            ]
+        if not end_date:
+            end_date = raw_costs.aggregate(models.Max("date_incurred"))[
+                "date_incurred__max"
+            ]
+        raw_costs = Cost.objects.filter(
+            date_incurred__gte=start_date, date_incurred__lte=end_date, usd_cost__gt=0
+        ).prefetch_related("user", "cost_type", "user__pilot")
+
+        writer = csv.writer(response)
+        if not raw_costs.exists():
+            writer.writerow([_("No costs found for the selected date range")])
+            return response
+        writer.writerow(
+            [
+                "date_incurred",
+                "user",
+                "pilot",
+                "feature",
+                "cost_type",
+                "usd_cost",
+                "cad_cost",
+            ]
+        )
+
+        feature_choices = dict(FEATURE_CHOICES)
+
+        for cost in raw_costs:
+            writer.writerow(
+                [
+                    cost.date_incurred,
+                    cost.user.upn if cost.user else "",
+                    cost.user.pilot.name if cost.user and cost.user.pilot else "",
+                    feature_choices.get(cost.feature, cost.feature),
+                    cost.cost_type.name,
+                    cost.usd_cost,
+                    cad_cost(cost.usd_cost),
+                ]
+            )
+        return response
+
+    # Filter by the other filters
     if pilot != "all":
         raw_costs = raw_costs.filter(user__pilot__id=pilot)
     if feature != "all":
@@ -691,7 +792,31 @@ def cost_dashboard(request):
     total_cost_today = display_cad_cost(
         sum(c.usd_cost for c in raw_costs.filter(date_incurred=timezone.now().date()))
     )
-    total_costs_alltime = display_cad_cost(sum(c.usd_cost for c in raw_costs))
+    secondary_number_title = date_group_options.get(date_group, _("Selected dates"))
+    secondary_number = display_cad_cost(sum(c.usd_cost for c in raw_costs))
+
+    # Average cost per user per day
+    if end_date and type(end_date) == str:
+        end_date = timezone.datetime.strptime(end_date, "%Y-%m-%d").date()
+    if start_date and type(start_date) == str:
+        start_date = timezone.datetime.strptime(start_date, "%Y-%m-%d").date()
+    else:
+        start_date = raw_costs.aggregate(models.Min("date_incurred"))[
+            "date_incurred__min"
+        ]
+    try:
+        total_days = ((end_date or timezone.now().date()) - start_date).days + 1
+    except:
+        total_days = 0
+    total_users = raw_costs.exclude(user__isnull=True).values("user").distinct().count()
+    if total_users and total_days > 0:
+        tertiary_number = display_cad_cost(
+            sum(c.usd_cost for c in raw_costs) / total_users / total_days
+        )
+        tertiary_number_title = _("Per user per day")
+    else:
+        tertiary_number = None
+        tertiary_number_title = None
 
     if group == "feature":
         group_costs = [
@@ -709,7 +834,7 @@ def cost_dashboard(request):
             for cost_type in list(CostType.objects.all())
         ]
 
-    costs = aggregate_costs(raw_costs, x_axis)
+    costs = aggregate_costs(raw_costs, x_axis, end_date)
     chart_x_keys = [c[x_axis] for c in costs]
     # Pretty labels
     chart_x_labels = chart_x_keys
@@ -824,8 +949,10 @@ def cost_dashboard(request):
         "rows": rows,
         "lead_number": total_cost_today,
         "lead_number_title": _("Today"),
-        "secondary_number": total_costs_alltime,
-        "secondary_number_title": _("All time"),
+        "secondary_number": secondary_number,
+        "secondary_number_title": secondary_number_title,
+        "tertiary_number": tertiary_number,
+        "tertiary_number_title": tertiary_number_title,
         "chart_x_labels": chart_x_labels,
         "chart_y_groups": chart_y_groups,
         "x_axis": x_axis,
@@ -834,25 +961,29 @@ def cost_dashboard(request):
         "pilot": pilot,
         "feature": feature,
         "cost_type": cost_type,
+        "date_group": date_group,
+        "start_date": start_date,
+        "end_date": end_date,
         "x_axis_options": x_axis_labels,
         "group_options": group_labels,
         "bar_chart_type_options": bar_chart_type_labels,
         "pilot_options": pilot_options,
         "feature_options": feature_options,
         "cost_type_options": cost_type_options,
+        "date_group_options": date_group_options,
     }
     return render(request, "cost_dashboard.html", context)
 
 
 def user_cost(request):
     today_cost = cad_cost(Cost.objects.get_user_cost_today(request.user))
-    weekly_max = request.user.this_week_max
-    this_week_cost = cad_cost(Cost.objects.get_user_cost_this_week(request.user))
+    monthly_max = request.user.this_month_max
+    this_month_cost = cad_cost(Cost.objects.get_user_cost_this_month(request.user))
     cost_percent = max(
-        min(int(100 * this_week_cost / weekly_max if weekly_max else 0), 100), 1
+        min(int(100 * this_month_cost / monthly_max if monthly_max else 0), 100), 1
     )
     cost_tooltip = "${:.2f} / ${:.2f} {}<br>(${:.2f} {})".format(
-        this_week_cost, weekly_max, _("this week"), today_cost, _("today")
+        this_month_cost, monthly_max, _("this month"), today_cost, _("today")
     )
     return render(
         request,
@@ -876,13 +1007,10 @@ def load_test(request):
     if "error" in query_params:
         return HttpResponseServerError("Error requested")
     if "sleep" in query_params:
-        import time
-
         time.sleep(int(query_params["sleep"]))
     if "user_library_permissions" in query_params:
         # Super heavy Django DB query, currently takes about 40s on local
         # (only if "heavy" query param is present)
-        from librarian.models import Library
 
         if "heavy" in query_params:
             users = User.objects.all()
@@ -909,26 +1037,6 @@ def load_test(request):
         from otto.tasks import sleep_seconds
 
         sleep_seconds.delay(int(query_params["celery_sleep"]))
-        if "show_queue" in query_params:
-            # Check how many items are in the queue
-            from celery import current_app
-            from celery.app.control import Inspect
-
-            i = Inspect(app=current_app)
-            active_tasks = i.active()
-            scheduled_tasks = i.scheduled()
-            reserved_tasks = i.reserved()
-            active_task_list = next(iter(active_tasks.values()), [])
-            scheduled_task_list = next(iter(scheduled_tasks.values()), [])
-            reserved_task_list = next(iter(reserved_tasks.values()), [])
-
-            return HttpResponse(
-                (
-                    f"Added task to queue.<hr>Active:<br>{len(active_task_list)}"
-                    f"<hr>Scheduled:<br>{len(scheduled_task_list)}"
-                    f"<hr>Reserved:<br>{len(reserved_task_list)}"
-                )
-            )
         return HttpResponse("Added task to queue")
     if "llm_call" in query_params:
         if query_params.get("llm_call"):
@@ -967,6 +1075,34 @@ def load_test(request):
                 f"<pre style='max-width: 500px;text-wrap: auto;'>{embedding}</pre>"
             )
         )
+    if "mock_document_loading" in query_params:
+        # Create a test library and test data source
+        library = Library.objects.create(name="Test Library")
+        data_source = DataSource.objects.create(
+            name="Test Data Source", library=library
+        )
+        llm = OttoLLM(mock_embedding=True)
+        this_dir = os.path.dirname(os.path.abspath(__file__))
+        with open(
+            os.path.join(this_dir, "../tests/librarian/test_files/example.pdf"), "rb"
+        ) as f:
+            saved_file = SavedFile.objects.create(content_type="application/pdf")
+            saved_file.file.save("example.pdf", content=f)
+            saved_file.generate_hash()
+            document = Document.objects.create(data_source=data_source, file=saved_file)
+            document.process(mock_embedding=True)
+            # Wait for document to finish, sleeping 1 second
+            while document.status != "SUCCESS":
+                time.sleep(1)
+                document.refresh_from_db()
+                if document.status == "ERROR":
+                    return HttpResponseServerError("Document processing failed")
+            end_time = timezone.now()
+            total_time = (end_time - start_time).total_seconds()
+            library.delete()
+            return HttpResponse(
+                f"Document processing (mock embedding) took {total_time:.2f} seconds."
+            )
 
     return HttpResponse(
         f"Response took {(timezone.now() - start_time).total_seconds():.2f} seconds"

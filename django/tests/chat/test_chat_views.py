@@ -16,13 +16,6 @@ from librarian.models import Library
 from otto.models import App, Notification, SecurityLabel
 
 pytest_plugins = ("pytest_asyncio",)
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
-skip_on_devops_pipeline = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
-)
 
 
 async def final_response_helper(stream):
@@ -162,8 +155,6 @@ def test_chat_message(client, all_apps_user):
 
 
 # TODO: Test Celery tasks
-@skip_on_github_actions
-@skip_on_devops_pipeline
 @pytest.mark.django_db
 def test_translate_file(client, all_apps_user):
     user = all_apps_user()
@@ -298,7 +289,6 @@ def test_chat_routes(client, all_apps_user):
 
 
 # Test delete_chat view
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_delete_chat(client, all_apps_user):
     user = all_apps_user()
@@ -314,7 +304,6 @@ def test_delete_chat(client, all_apps_user):
 
 
 # Test delete_all_chats view
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_delete_all_chats(client, all_apps_user):
     user = all_apps_user()
@@ -536,8 +525,6 @@ def test_chat_summarization_response(client, all_apps_user):
 
 
 # Test chat_response with QA and Translate modes
-# These require additional setup / authentications and won't run on GitHub
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_translate_response(client, all_apps_user):
     user = all_apps_user()
@@ -898,7 +885,7 @@ def test_preset(client, basic_user, all_apps_user):
     # Test saving a new preset
     response = client.post(
         reverse(
-            "chat:chat_options", kwargs={"chat_id": chat.id, "action": "save_preset"}
+            "chat:chat_options", kwargs={"chat_id": chat.id, "action": "create_preset"}
         ),
         data={
             "name_en": "New Preset",
@@ -908,7 +895,7 @@ def test_preset(client, basic_user, all_apps_user):
             "prompt": "",
         },
     )
-    assert response.status_code == 302  # Redirect after saving
+    assert response.status_code == 200
     assert Preset.objects.filter(name_en="New Preset").exists()
 
     # Try to load the private preset as user2
@@ -938,7 +925,7 @@ def test_preset(client, basic_user, all_apps_user):
             "chat:chat_options",
             kwargs={
                 "chat_id": chat.id,
-                "action": "save_preset",
+                "action": "create_preset",
                 "preset_id": preset.id,
             },
         ),
@@ -967,7 +954,7 @@ def test_preset(client, basic_user, all_apps_user):
             "chat:chat_options",
             kwargs={
                 "chat_id": chat.id,
-                "action": "save_preset",
+                "action": "create_preset",
                 "preset_id": preset.id,
             },
         ),
@@ -979,7 +966,7 @@ def test_preset(client, basic_user, all_apps_user):
             "prompt": "",
         },
     )
-    assert response.status_code == 302  # Redirect after saving
+    assert response.status_code == 200
     preset.refresh_from_db()
     assert preset.name_en == "Updated Preset"
     assert preset.description_en == "Updated Description"
@@ -1039,6 +1026,80 @@ def test_preset(client, basic_user, all_apps_user):
     )
     assert response.status_code == 302  # Redirect after deletion
     assert not Preset.objects.filter(id=preset.id).exists()
+
+    # Create a preset with user's personal library
+    chat = Chat.objects.create(user=user)
+    chat.options.qa_library = user.personal_library
+    chat.options.qa_pre_instructions = "The quick brown fox"
+    chat.options.save()
+    response = client.post(
+        reverse(
+            "chat:chat_options", kwargs={"chat_id": chat.id, "action": "create_preset"}
+        ),
+        data={
+            "name_en": "Personal Library Preset",
+            "sharing_option": "others",
+            "accessible_to": [user2.id],
+            "prompt": "",
+        },
+    )
+    assert response.status_code == 200
+    preset = Preset.objects.get(name_en="Personal Library Preset")
+    # Now, user2 should be able to load this preset - BUT - the library should be reset
+    client.force_login(user2)
+    chat2 = Chat.objects.create(user=user2)
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat2.id,
+                "action": "load_preset",
+                "preset_id": preset.id,
+            },
+        )
+    )
+    assert response.status_code == 200
+    chat2.options.refresh_from_db()
+    # Chat2 should now have the preset loaded
+    assert chat2.options.qa_pre_instructions == "The quick brown fox"
+    # But the library should be reset to user2's personal library
+    assert chat2.options.qa_library == user2.personal_library
+
+    # Now, set the preset as user2's default
+    response = client.get(
+        reverse("chat:set_preset_default", args=[preset.id, chat2.id])
+    )
+    assert response.status_code == 200
+    # Try creating a new chat using the chat route
+    response = client.get(reverse("chat:new_chat"))
+    assert response.status_code == 302
+    # Get the newest chat for user2
+    chat2 = Chat.objects.filter(user=user2).order_by("-created_at").first()
+    # This chat should have the preset loaded
+    assert chat2.options.qa_pre_instructions == "The quick brown fox"
+    # But the library should be reset to user2's personal library
+    assert chat2.options.qa_library == user2.personal_library
+
+    # Reset to default preset
+    chat2.options.qa_pre_instructions = ""
+    chat2.options.save()
+
+    # Reset to default preset (action="reset")
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat2.id,
+                "action": "reset",
+            },
+        )
+    )
+    assert response.status_code == 200
+    chat2.refresh_from_db()
+    # Chat2 should now have the preset loaded
+    assert chat2.options.qa_pre_instructions == "The quick brown fox"
+    # But the library should be reset to user2's personal library
+    assert chat2.options.qa_library == user2.personal_library
 
 
 def test_update_qa_options_from_librarian(client, all_apps_user):
@@ -1122,3 +1183,69 @@ def test_chat_message_error(client, all_apps_user):
     # Iterate over the response to get the content
     content = final_response(response.streaming_content)
     assert "Error ID" in content.decode("utf-8")
+
+
+@pytest.mark.django_db
+def test_chat_message_url_validation(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    # Valid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://canada.ca"},
+    )
+    assert response.status_code == 200
+    # The error message contains the string "URL" but success message does not
+    assert not "URL" in response.content.decode()
+
+    # Subdomain of valid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://www.tbs-sct.canada.ca"},
+    )
+    assert response.status_code == 200
+    assert not "URL" in response.content.decode()
+
+    # Ends with valid URL, but isn't a subdomain
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://acanada.ca"},
+    )
+    assert response.status_code == 200
+    # This should be a problem
+    assert "URL" in response.content.decode()
+
+    # Is a valid URL, but is http:// only (should be fine, it will correct to https://)
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "http://www.tbs-sct.canada.ca"},
+    )
+    assert response.status_code == 200
+    assert not "URL" in response.content.decode()
+
+    # Is a valid URL, but FTP
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "ftp://canada.ca/fake_file"},
+    )
+    assert response.status_code == 200
+    # This should be a problem
+    assert "URL" in response.content.decode()
+
+    # Invalid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "invalid-url"},
+    )
+    assert response.status_code == 200
+    # This should just be interpreted as a regular chat message
+    assert not "URL" in response.content.decode()
+
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://notallowed.com"},
+    )
+    assert response.status_code == 200
+    assert "URL" in response.content.decode()

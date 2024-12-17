@@ -5,13 +5,17 @@ import sys
 from itertools import groupby
 from typing import AsyncGenerator, Generator
 
+from django.conf import settings
+from django.contrib import messages
 from django.core.cache import cache
+from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
 import markdown
 import tiktoken
 from asgiref.sync import sync_to_async
+from data_fetcher.util import get_request
 from llama_index.core import PromptTemplate
 from llama_index.core.prompts import PromptType
 from newspaper import Article
@@ -28,6 +32,43 @@ logger = get_logger(__name__)
 md = markdown.Markdown(
     extensions=["fenced_code", "nl2br", "tables", "extra"], tab_length=2
 )
+
+
+def copy_options(source_options, target_options, user=None):
+    source_options = model_to_dict(source_options)
+    # Remove the fields that are not part of the preset
+    for field in ["id", "chat"]:
+        source_options.pop(field)
+    # Update the preset options with the dictionary
+    fk_fields = ["qa_library"]
+    m2m_fields = ["qa_data_sources", "qa_documents"]
+    # Remove None values
+    source_options = {k: v for k, v in source_options.items()}
+    for key, value in source_options.items():
+        if key in fk_fields:
+            setattr(target_options, f"{key}_id", int(value) if value else None)
+        elif key in m2m_fields:
+            getattr(target_options, key).set(value)
+        else:
+            setattr(target_options, key, value)
+
+    request = get_request()
+    user = user or request.user
+    if not target_options.qa_library or (
+        user and not user.has_perm("librarian.view_library", target_options.qa_library)
+    ):
+        messages.warning(
+            request,
+            _(
+                "QA library for settings preset not accessible. It has been reset to your personal library."
+            ),
+        )
+        target_options.qa_library = user.personal_library
+        target_options.qa_data_sources.clear()
+        target_options.qa_documents.clear()
+        target_options.qa_scope = "all"
+        target_options.qa_mode = "rag"
+    target_options.save()
 
 
 def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
@@ -94,6 +135,15 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
 
     message.chat.security_label = SecurityLabel.maximum_of(security_labels)
     message.chat.save()
+
+
+def close_md_code_blocks(text):
+    # Close any open code blocks
+    if text.count("```") % 2 == 1:
+        text += "\n```"
+    elif text.count("`") % 2 == 1:
+        text += "`"
+    return text
 
 
 async def htmx_stream(
@@ -194,6 +244,7 @@ async def htmx_stream(
             elif not generation_stopped:
                 generation_stopped = True
                 if wrap_markdown:
+                    full_message = close_md_code_blocks(full_message)
                     stop_warning_message = f"\n\n_{stop_warning_message}_"
                 else:
                     stop_warning_message = f"<p><em>{stop_warning_message}</em></p>"
@@ -524,6 +575,7 @@ def sort_by_max_score(groups):
 
 
 def change_mode_to_chat_qa(chat):
+    chat.options.mode = "qa"
     chat.options.qa_library = chat.user.personal_library
     chat.options.qa_scope = "data_sources"
     chat.options.qa_data_sources.set([chat.data_source])
@@ -537,3 +589,18 @@ def change_mode_to_chat_qa(chat):
             "swap": "true",
         },
     )
+
+
+def bad_url(render_markdown=False):
+    out = _("Sorry, that URL isn't allowed. Otto can only access sites ending in:")
+    out += "\n\n"
+    out += "\n".join([f"* `{url}`" for url in settings.ALLOWED_FETCH_URLS]) + "\n\n"
+    out += (
+        _("(e.g., `justice.gc.ca` or `www.tbs-sct.canada.ca` are also allowed)")
+        + "\n\n"
+    )
+    out += _("As a workaround, you can save the content to a file and upload it here.")
+
+    if render_markdown:
+        out = md.convert(out)
+    return out

@@ -43,6 +43,7 @@ function render_markdown(element) {
 
 // Chat window UI
 let preventAutoScrolling = false;
+let ignoreNextScrollEvent = true;
 
 const copyCodeButtonHTML = `<button type="button" onclick="copyCode(this)"
 class="btn btn-link m-0 p-0 text-muted copy-message-button copy-button"
@@ -53,6 +54,8 @@ function scrollToBottom(smooth = true, force = false) {
   if (preventAutoScrolling && !force) {
     return;
   }
+
+  ignoreNextScrollEvent = true;
 
   let messagesContainer = document.querySelector("#chat-container");
   let hashContainer = null;
@@ -76,11 +79,11 @@ function scrollToBottom(smooth = true, force = false) {
   messagesContainer.scrollTop = hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight;
 }
 
-function handleModeChange(mode, element = null) {
+function handleModeChange(mode, element = null, preset_loaded = false) {
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
-  triggerOptionSave();
+  if (!preset_loaded) {triggerOptionSave();}
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
 
@@ -127,9 +130,13 @@ function toggleAriaSelected(mode) {
 // When the user scrolls up, prevent auto-scrolling
 let debounceTimer;
 document.querySelector("#chat-container").addEventListener("scroll", function () {
+  if (ignoreNextScrollEvent) {
+    ignoreNextScrollEvent = false;
+    return;
+  }
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    if (this.scrollTop + this.clientHeight < this.scrollHeight - 1) {
+    if (this.scrollTop + this.clientHeight < this.scrollHeight - 5) {
       preventAutoScrolling = true;
     } else {
       preventAutoScrolling = false;
@@ -202,6 +209,12 @@ document.addEventListener("htmx:afterSwap", function (event) {
   document.querySelectorAll("div.message-text").forEach(function (element) {
     checkTruncation(element);
   });
+  // Markdown rendering, if the response message has data-md property (e.g., error message)
+  let messages = document.querySelectorAll("#messages-container div.markdown-text");
+  let last_message = messages[messages.length - 1];
+  if (last_message && last_message.dataset.md) {
+    render_markdown(last_message.parentElement);
+  }
   document.querySelector("#chat-prompt").value = "";
   document.querySelector("#chat-prompt").focus();
   // Change height back to minimum

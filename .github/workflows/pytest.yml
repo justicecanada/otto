@@ -43,6 +43,10 @@ jobs:
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
+      redis:
+        image: redis:7.0.15-alpine3.20
+        ports:
+          - 6379:6379
 
     env:
       AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
@@ -56,7 +60,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y postgresql-client
+        apt-get install -y postgresql-client poppler-utils
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements_dev.txt
@@ -66,7 +70,8 @@ jobs:
     - name: Run tests
       working-directory: ./
       run: |
-        python -m coverage run --source=django -m pytest -k "not skip_on_github_actions" django
+        celery -A otto worker -l INFO --pool=gevent --concurrency=256 &
+        python -m coverage run --source=django --omit 'django/template_wizard/*' -m pytest django
     - name: Display coverage
       working-directory: ./
       run: |
