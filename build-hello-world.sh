@@ -23,7 +23,12 @@ appServiceName='otto-hello-world'
 
 vnetResourceGroupName='OttoDEVMgmtRg'
 existingRouteTableName='jus-dev-otto-aks-rt'
-firewallIPAddress='10.250.6.1'
+firewallIPAddress='10.250.6.4' # '10.250.6.1' is incorrect
+
+# our route table is not needed because 
+# the core 
+
+webAppPrivateIP='10.254.12.10'
 
 az login
 
@@ -87,7 +92,8 @@ az network private-endpoint create \
     --subnet "$subnetId" \
     --private-connection-resource-id "$WEBAPP_ID" \
     --group-id sites \
-    --connection-name HelloWorldConnection
+    --connection-name HelloWorldConnection \
+    --ip-config name=ipconfig1 private-ip-address=$webAppPrivateIP member-name=sites group-id=sites
 
 # Create the private DNS zone
 az network private-dns zone create \
