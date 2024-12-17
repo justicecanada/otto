@@ -136,9 +136,9 @@ resource "azurerm_route_table" "aks" {
     name                   = "default-route"
     address_prefix         = "0.0.0.0/0"
     next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = "10.250.6.5" # Active node for the firewall cluster for DEV (a node of JuPcDevFw-ILB-JuPcDev-Transit-FrontEnd)
+    #next_hop_in_ip_address = "10.250.6.5" # Active node for the firewall cluster for DEV (a node of JuPcDevFw-ILB-JuPcDev-Transit-FrontEnd)
     #next_hop_in_ip_address = "10.250.3.4" # Load balancer for the CAP firewall to access Cloud
-    #next_hop_in_ip_address = "10.250.6.4" # Internal load balancer for DEV (JuPcDevFw-ILB-JuPcDev-Transit-FrontEnd)
+    next_hop_in_ip_address = "10.250.6.4" # Internal load balancer for DEV (JuPcDevFw-ILB-JuPcDev-Transit-FrontEnd)
     #next_hop_in_ip_address = "20.47.87.90" # External load balancer for DEV (JuPcDevFwCluster-Pip) # Removed because the AKS cluster shouldn't need to access the firewall from its external IP
   }
   
