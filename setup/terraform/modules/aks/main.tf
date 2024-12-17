@@ -295,7 +295,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     # Enable overlay networking for enhanced network security and performance
     # This mode provides better isolation between pods and supports advanced features like network policies
     # It's particularly useful for multi-tenant clusters or when stricter network segmentation is required
-    network_plugin_mode = "Overlay"
+    #network_plugin_mode = "Overlay" # Only possible with Azure CNI networking, not Kubenet
 
     # Pod CIDR specifies the IP range from which pod IPs are allocated
     # This range is internal to the cluster and not routable outside
