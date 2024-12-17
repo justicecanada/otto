@@ -2622,5 +2622,9 @@
     "Requests": {
         "fr": "",
         "fr_auto": "Demandes"
+    },
+    "Pilots": {
+        "fr": "",
+        "fr_auto": "Pilotes"
     }
 }
