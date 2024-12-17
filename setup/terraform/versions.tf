@@ -22,3 +22,6 @@ provider "azurerm" {
   # Relies on the ARM environment variables
   features {}
 }
+
+provider "azapi" {
+}
