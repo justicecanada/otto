@@ -187,17 +187,14 @@ def summarize_response(chat, response_message):
 
         title_batches = create_batches(titles, batch_size)
         response_batches = create_batches(responses, batch_size)
-        batch_generators = (
-            [
-                combine_response_replacers(
-                    batch_responses,
-                    batch_titles,
-                )
-                for batch_responses, batch_titles in zip(
-                    response_batches, title_batches
-                )
-            ],
-        )
+        batch_generators = [
+            combine_response_replacers(
+                batch_responses,
+                batch_titles,
+            )
+            for batch_responses, batch_titles in zip(response_batches, title_batches)
+        ]
+
         response_replacer = combine_batch_generators(batch_generators)
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
