@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load filters %}
+{% load autocomplete %}
+{% load static %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'blocked_urls' %}">{% trans "Blocked URLs" %}</a>
+  </li>
+{% endblock %}
+
+{% block page_css %}{% endblock %}
+
+{% block page_title %}
+  {% trans "Blocked URLs - Otto" %}
+{% endblock %}
+
+{% block content_container %}
+  <div id="manage-users-outer">
+    <div class="container py-3 px-0">
+      <h2 class="mb-3 mt-2">{% trans "Blocked URLs" %}</h2>
+      <p>
+        <em>{% trans "User-requested URLs for Q&A, summarization etc. which were not on the allow-list" %}</em>
+      </p>
+ 
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              {# <th>{% trans "Name" %}</th> #}
+              <th>{% trans "Domain" %}</th>
+              <th>{% trans "Requests" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for domain, count in domain_counts.items %}
+              <tr>
+                <td>
+                  <a href="https://{{ domain }}" target="_blank">{{ domain }}</a>
+                </td>
+                <td>{{ count }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block page_script %}{% endblock %}

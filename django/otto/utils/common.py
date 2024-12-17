@@ -1,4 +1,8 @@
+from urllib.parse import urlparse
+
 from django.conf import settings
+
+import tldextract
 
 
 def file_size_to_string(filesize):
@@ -13,7 +17,8 @@ def file_size_to_string(filesize):
 
 
 def display_cad_cost(usd_cost):
-    from otto.models import OttoStatus # Need to do it here to avoid circular imports
+    from otto.models import OttoStatus  # Need to do it here to avoid circular imports
+
     """
     Converts a USD cost to CAD and returns a formatted string
     """
@@ -24,7 +29,7 @@ def display_cad_cost(usd_cost):
 
 
 def cad_cost(usd_cost):
-    from otto.models import OttoStatus # Need to do it here to avoid circular imports
+    from otto.models import OttoStatus  # Need to do it here to avoid circular imports
 
     """
     Converts a USD cost to CAD and returns a float
@@ -53,3 +58,27 @@ def get_app_from_path(path):
     if not path or not path[0]:
         return "Otto"
     return path[0]
+
+
+def check_url_allowed(url):
+    from otto.models import BlockedURL
+
+    # Ensure the URL starts with https://
+    if url.startswith("http://"):
+        url = f"https://{url[7:]}"
+    if not url.startswith(("https://")):
+        return False
+
+    # Extract the domain
+    extracted = tldextract.extract(urlparse(url).netloc)
+    domain = f"{extracted.domain}.{extracted.suffix}"
+
+    # Check if the domain matches or is a subdomain of an allowed domain
+    if not any(
+        domain == allowed_domain or domain.endswith(f".{allowed_domain}")
+        for allowed_domain in settings.ALLOWED_FETCH_URLS
+    ):
+        BlockedURL.objects.create(url=url)
+        return False
+
+    return True

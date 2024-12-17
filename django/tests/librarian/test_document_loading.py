@@ -10,14 +10,6 @@ from structlog import get_logger
 from librarian.utils.process_engine import extract_markdown
 from otto.models import Cost
 
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
-skip_on_devops_pipeline = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
-)
-
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
 logger = get_logger(__name__)

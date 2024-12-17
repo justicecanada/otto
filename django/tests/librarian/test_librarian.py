@@ -7,17 +7,9 @@ from django.urls import reverse
 import pytest
 
 from chat.models import Chat
-from librarian.forms import LibraryDetailForm
+from librarian.forms import DocumentDetailForm, LibraryDetailForm
 from librarian.models import DataSource, Document, Library
 from librarian.views import get_editable_libraries
-
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
-skip_on_devops_pipeline = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
-)
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -114,7 +106,6 @@ def test_modal_edit_library_get(client, all_apps_user, basic_user):
     assert response.status_code == 302
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_chat_data_source(client, all_apps_user):
     from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
@@ -205,7 +196,6 @@ def test_chat_data_source(client, all_apps_user):
     assert not os.path.exists(file_path)
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_start_stop(client, all_apps_user):
     user = all_apps_user()
@@ -282,7 +272,6 @@ def test_start_stop(client, all_apps_user):
         )
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_modal_views(client, all_apps_user):
     library = Library.objects.get_default_library()
@@ -290,7 +279,7 @@ def test_modal_views(client, all_apps_user):
     client.force_login(user)
     data_source = DataSource.objects.create(library=library)
     # Create a document
-    document = Document.objects.create(data_source=data_source, url="http://google.ca")
+    document = Document.objects.create(data_source=data_source, url="https://canada.ca")
     # Poll for status updates
     url = reverse(
         "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
@@ -413,3 +402,132 @@ def test_modal_views(client, all_apps_user):
     # Check the library object is deleted
     assert not Library.objects.filter(id=tmp_library.id).exists()
     assert not LibraryUserRole.objects.filter(id=role.id).exists()
+
+
+@pytest.mark.django_db
+def test_poll_status(client, all_apps_user):
+    library = Library.objects.get_default_library()
+    user = all_apps_user()
+    client.force_login(user)
+    data_source = DataSource.objects.create(library=library)
+    document = Document.objects.create(data_source=data_source, url="https://canada.ca")
+    document2 = Document.objects.create(
+        data_source=data_source, url="https://canada.ca"
+    )
+    # Poll for status updates
+    url = reverse(
+        "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
+    )
+    response = client.get(url)
+    # Check the context to ensure that poll_url is not None
+    assert response.context["poll_url"] is not None
+    # Check the document_status route as well
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document.id},
+    )
+    response = client.get(url)
+    # Check the context to ensure that poll_url is not None
+    assert response.context["poll_url"] is not None
+
+    # One document completes
+    document.status = "SUCCESS"
+    document.save()
+
+    # Check both routes to ensure that poll_url still not None (since document2 isn't done)
+    url = reverse(
+        "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is not None
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document.id},
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is not None
+    # And the other document
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document2.id},
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is not None
+
+    # Second document fails
+    document2.status = "ERROR"
+    document2.save()
+
+    # Check all 3 routes. All 3 should have poll_url = None
+    url = reverse(
+        "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is None
+
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document.id},
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is None
+
+    url = reverse(
+        "librarian:document_status",
+        kwargs={"data_source_id": data_source.id, "document_id": document2.id},
+    )
+    response = client.get(url)
+    assert response.context["poll_url"] is None
+
+
+@pytest.mark.django_db
+def test_document_url_validation():
+    library = Library.objects.create(name="Test Library")
+    data_source = DataSource.objects.create(name="Test DataSource", library=library)
+    document = Document(data_source=data_source)
+
+    # Valid URL
+    form = DocumentDetailForm(
+        data={
+            "url": "https://canada.ca",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+
+    assert form.is_valid()
+
+    # Subdomain of valid URL
+    form = DocumentDetailForm(
+        data={
+            "url": "https://www.tbs-sct.canada.ca",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+    assert form.is_valid()
+
+    # Invalid URL
+    form = DocumentDetailForm(
+        data={
+            "url": "invalid-url",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+    assert not form.is_valid()
+    assert "url" in form.errors
+
+    form = DocumentDetailForm(
+        data={
+            "url": "https://notallowed.com",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+    assert not form.is_valid()
+    assert "url" in form.errors

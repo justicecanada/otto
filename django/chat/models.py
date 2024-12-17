@@ -11,7 +11,6 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from rules import is_group_member
 from structlog import get_logger
 
 from chat.prompts import (
@@ -49,6 +48,7 @@ class ChatManager(models.Manager):
         else:
             mode = DEFAULT_MODE
         kwargs["security_label_id"] = SecurityLabel.default_security_label().id
+        kwargs["loaded_preset"] = None
         instance = super().create(*args, **kwargs)
         ChatOptions.objects.from_defaults(
             mode=mode,
@@ -71,6 +71,8 @@ class Chat(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # Last access time manually updated when chat is opened
     accessed_at = models.DateTimeField(auto_now_add=True)
+
+    loaded_preset = models.ForeignKey("Preset", on_delete=models.SET_NULL, null=True)
 
     # AC-20: Allows for the classification of information
     security_label = models.ForeignKey(
@@ -96,9 +98,10 @@ class ChatOptionsManager(models.Manager):
         Set the mode and chat FK in the new object.
         """
         if chat and chat.user.default_preset:
-            new_options = chat.user.default_preset.options
-            if new_options:
-                new_options.pk = None
+            from chat.utils import copy_options
+
+            new_options = self.create()
+            copy_options(chat.user.default_preset.options, new_options, chat.user)
         else:
             # Default Otto settings
             default_library = Library.objects.get_default_library()
