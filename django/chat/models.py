@@ -181,10 +181,14 @@ class ChatOptionsManager(models.Manager):
 
         default_preset.save()
 
-        # create structured summary settings that includes default otto settings
+        # create structured summary settings that includes default otto settings also
         structured_summary = presets_data["structured_summary"]
         structured_summary_options = ChatOptions.objects.create(
             mode="summarize",
+            summarize_style="long",
+            summarize_instructions=structured_summary[
+                "summary_additional_instructions"
+            ]["en"],
             chat_system_prompt=default_otto_prompts["default_chat_prompt"]["en"],
             qa_system_prompt=default_otto_prompts["qa_system_prompt"]["en"],
             qa_prompt_template=default_otto_prompts["qa_prompt_template"]["en"],
@@ -194,10 +198,6 @@ class ChatOptionsManager(models.Manager):
             qa_model=settings.DEFAULT_QA_MODEL,
             qa_library=default_library,
             summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
-            summarize_style="long",
-            summarize_instructions=structured_summary[
-                "summary_additional_instructions"
-            ]["en"],
         )
 
         # set french translations if available
