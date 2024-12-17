@@ -12,14 +12,11 @@ defaults:
     shell: bash 
     working-directory: ./django
   
-env:
-
-
 jobs:
   # Label of the container job
   test-coverage:
     # Containers must run in Linux based operating systems
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     # Docker Hub image that `test-coverage` executes in
     container: python:3.11
 
@@ -58,11 +55,10 @@ jobs:
 
     env:
       AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
-      AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}      
-      LOG_LEVEL: ERROR
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
+      AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
       DJANGODB_HOST: postgres-service
       VECTORDB_HOST: postgres-service
+      LOG_LEVEL: ERROR
 
     steps:
     - uses: actions/checkout@v4
