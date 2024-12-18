@@ -2483,6 +2483,38 @@
         "fr": "",
         "fr_auto": "Activer l’URL du test de charge"
     },
+    "Upload Scanned Notice(s) of Appeal": {
+        "fr": "",
+        "fr_auto": "Télécharger les avis d’appel numérisés"
+    },
+    "Update Preset \"%(name)s\" ": {
+        "fr": "",
+        "fr_auto": "Mettre à jour le préréglage « %(name)s » "
+    },
+    "You currently have the preset named \"%(name)s\" loaded. This will update it with your latest changes. ": {
+        "fr": "",
+        "fr_auto": "You currently have the preset named \"%(name)s\" loaded. This will update it with your latest changes. "
+    },
+    "Create New Preset": {
+        "fr": "",
+        "fr_auto": "Créer un nouveau préréglage"
+    },
+    "Create a new preset from your current settings.": {
+        "fr": "",
+        "fr_auto": "Créez un nouveau préréglage à partir de vos paramètres actuels."
+    },
+    "Update Preset %(name)s ": {
+        "fr": "",
+        "fr_auto": "Update Preset %(name)s "
+    },
+    "Save & Load": {
+        "fr": "",
+        "fr_auto": "Enregistrer et charger"
+    },
+    "Save preset from current settings": {
+        "fr": "",
+        "fr_auto": "Enregistrer le préréglage à partir des paramètres actuels"
+    },
     "Smiling robot head": {
         "fr": "",
         "fr_auto": "Tête de robot souriante"
@@ -2534,5 +2566,65 @@
     "Per user per day": {
         "fr": "",
         "fr_auto": "Par utilisateur et par jour"
+    },
+    "Preset loaded successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage chargé avec succès."
+    },
+    "Preset saved and loaded successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage enregistré et chargé avec succès."
+    },
+    "Preset updated successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage mis à jour avec succès."
+    },
+    "Preset deleted successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage supprimé avec succès."
+    },
+    "QA library for settings preset not accessible. It has been reset to your personal library.": {
+        "fr": "",
+        "fr_auto": "Bibliothèque d’assurance qualité pour les paramètres prédéfinis non accessibles. Il a été réinitialisé à votre bibliothèque personnelle."
+    },
+    "Sorry, that URL isn't allowed. Otto can only access sites ending in:": {
+        "fr": "",
+        "fr_auto": "Désolé, cette URL n’est pas autorisée. Otto ne peut accéder qu’aux sites se terminant par :"
+    },
+    "(e.g., `justice.gc.ca` or `www.tbs-sct.canada.ca` are also allowed)": {
+        "fr": "",
+        "fr_auto": "(p. ex., « justice.gc.ca » ou « www.tbs-sct.canada.ca » sont également autorisés)"
+    },
+    "As a workaround, you can save the content to a file and upload it here.": {
+        "fr": "",
+        "fr_auto": "Comme solution de contournement, vous pouvez enregistrer le contenu dans un fichier et le télécharger ici."
+    },
+    "Invalid URL": {
+        "fr": "",
+        "fr_auto": "URL non valide"
+    },
+    "Blocked URLs": {
+        "fr": "",
+        "fr_auto": "URL bloquées"
+    },
+    "Blocked URLs - Otto": {
+        "fr": "",
+        "fr_auto": "URL bloquées - Otto"
+    },
+    "User-requested URLs for Q&A, summarization etc. which were not on the allow-list": {
+        "fr": "",
+        "fr_auto": "URL demandées par l’utilisateur pour les questions et réponses, les résumés, etc. qui ne figuraient pas sur la liste d’adresses autorisées"
+    },
+    "Domain": {
+        "fr": "",
+        "fr_auto": "Domaine"
+    },
+    "Requests": {
+        "fr": "",
+        "fr_auto": "Demandes"
+    },
+    "Pilots": {
+        "fr": "",
+        "fr_auto": "Pilotes"
     }
 }

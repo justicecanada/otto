@@ -276,12 +276,8 @@ DATABASES = {
     },
 }
 
-DJANGODB_PGBOUNCER = (
-    os.environ.get("DJANGODB_PGBOUNCER", "False") == "True" and not IS_RUNNING_IN_GITHUB
-)
-VECTORDB_PGBOUNCER = (
-    os.environ.get("VECTORDB_PGBOUNCER", "False") == "True" and not IS_RUNNING_IN_GITHUB
-)
+DJANGODB_PGBOUNCER = os.environ.get("DJANGODB_PGBOUNCER", "False") == "True"
+VECTORDB_PGBOUNCER = os.environ.get("VECTORDB_PGBOUNCER", "False") == "True"
 pgbouncer_options = {
     "DISABLE_SERVER_SIDE_CURSORS": True,
     "CONN_MAX_AGE": 600,  # 10 minutes
@@ -437,23 +433,16 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 
-if IS_RUNNING_IN_GITHUB:
-    CACHES = {
-        "default": {
-            "BACKEND": "otto.utils.cache.LocMemCache",
-        }
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": f"otto_{ENVIRONMENT}",
     }
-else:
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": REDIS_URL,
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            },
-            "KEY_PREFIX": f"otto_{ENVIRONMENT}",
-        }
-    }
+}
 
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
@@ -529,3 +518,10 @@ structlog.configure(
     logger_factory=structlog.stdlib.LoggerFactory(),
     cache_logger_on_first_use=True,
 )
+
+ALLOWED_FETCH_URLS = [
+    "canada.ca",
+    "gc.ca",
+    "canlii.org",
+    "wikipedia.org",
+]
