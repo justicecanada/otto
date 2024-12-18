@@ -92,31 +92,27 @@ class Chat(models.Model):
 
 class ChatOptionsManager(models.Manager):
     def from_defaults(self, mode=None, chat=None):
+        from chat.utils import copy_options
+
         """
         If a user default exists, copy that into a new ChatOptions object.
         If not, create a new object with some default settings manually.
         Set the mode and chat FK in the new object.
         """
         if chat and chat.user.default_preset:
-            from chat.utils import copy_options
 
             new_options = self.create()
             copy_options(chat.user.default_preset.options, new_options, chat.user)
         else:
-            # Default Otto settings
-            default_library = Library.objects.get_default_library()
-            new_options = self.create(
-                chat_agent=False,
-                qa_library=default_library,
-                chat_system_prompt=_(DEFAULT_CHAT_PROMPT),
-                chat_model=settings.DEFAULT_CHAT_MODEL,
-                qa_model=settings.DEFAULT_QA_MODEL,
-                summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
-                qa_prompt_template=_(QA_PROMPT_TEMPLATE),
-                qa_pre_instructions=_(QA_PRE_INSTRUCTIONS),
-                qa_post_instructions=_(QA_POST_INSTRUCTIONS),
-                qa_system_prompt=_(QA_SYSTEM_PROMPT),
+            # get default preset
+            default_preset = Preset.objects.get(
+                name_en="Default Preset",
             )
+
+            # create a copy of the default preset options
+            new_options = self.create()
+            copy_options(default_preset.options, new_options, chat.user)
+
         if mode:
             new_options.mode = mode
         if chat:
