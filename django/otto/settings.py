@@ -481,19 +481,17 @@ LOGGING = {
             "class": "logging.NullHandler",
         },
     },
-    "loggers": {
-        "root": {
-            "handlers": ["json"],
-            "level": LOG_LEVEL,
-            "stream": sys.stdout,
-        },
+    "root": {
+        "handlers": ["json"],
+        "level": LOG_LEVEL,
+        "stream": sys.stdout,
     },
 }
 
 if ENVIRONMENT == "LOCAL":
-    LOGGING["loggers"]["root"]["handlers"] = ["console"]
+    LOGGING["root"]["handlers"] = ["console"]
 elif IS_RUNNING_TESTS:
-    LOGGING["loggers"]["root"]["handlers"] = ["null"]
+    LOGGING["root"]["handlers"] = ["null"]
 
 # AU-6 & AU-7: Allows for the adjustment of log levels based on the environment and operational needs
 structlog.configure(
