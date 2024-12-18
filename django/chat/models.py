@@ -13,14 +13,7 @@ from django.utils.translation import gettext_lazy as _
 
 from structlog import get_logger
 
-from chat.prompts import (
-    DEFAULT_CHAT_PROMPT,
-    QA_POST_INSTRUCTIONS,
-    QA_PRE_INSTRUCTIONS,
-    QA_PROMPT_TEMPLATE,
-    QA_SYSTEM_PROMPT,
-    current_time_prompt,
-)
+from chat.prompts import current_time_prompt
 from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
 from otto.models import SecurityLabel, User
@@ -92,31 +85,27 @@ class Chat(models.Model):
 
 class ChatOptionsManager(models.Manager):
     def from_defaults(self, mode=None, chat=None):
+        from chat.utils import copy_options
+
         """
         If a user default exists, copy that into a new ChatOptions object.
         If not, create a new object with some default settings manually.
         Set the mode and chat FK in the new object.
         """
         if chat and chat.user.default_preset:
-            from chat.utils import copy_options
 
             new_options = self.create()
             copy_options(chat.user.default_preset.options, new_options, chat.user)
         else:
-            # Default Otto settings
-            default_library = Library.objects.get_default_library()
-            new_options = self.create(
-                chat_agent=False,
-                qa_library=default_library,
-                chat_system_prompt=_(DEFAULT_CHAT_PROMPT),
-                chat_model=settings.DEFAULT_CHAT_MODEL,
-                qa_model=settings.DEFAULT_QA_MODEL,
-                summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
-                qa_prompt_template=_(QA_PROMPT_TEMPLATE),
-                qa_pre_instructions=_(QA_PRE_INSTRUCTIONS),
-                qa_post_instructions=_(QA_POST_INSTRUCTIONS),
-                qa_system_prompt=_(QA_SYSTEM_PROMPT),
+            # get default preset
+            default_preset = Preset.objects.get(
+                name_en="Default Preset",
             )
+
+            # create a copy of the default preset options
+            new_options = self.create()
+            copy_options(default_preset.options, new_options, chat.user)
+
         if mode:
             new_options.mode = mode
         if chat:
@@ -124,6 +113,101 @@ class ChatOptionsManager(models.Manager):
         new_options.save()
 
         return new_options
+
+    def create_from_yaml(self, presets_data):
+        # TODO - figure out who should be the owner of the default preset, for now I'm setting myself
+        owner = User.objects.filter(email="Michel.Custeau@justice.gc.ca").first()
+
+        # create default otto settings
+        default_library = Library.objects.get_default_library()
+        default_otto_prompts = presets_data["default_otto_settings"]
+        default_options = ChatOptions.objects.create(
+            mode="chat",
+            chat_system_prompt=default_otto_prompts["default_chat_prompt"]["en"],
+            qa_system_prompt=default_otto_prompts["qa_system_prompt"]["en"],
+            qa_prompt_template=default_otto_prompts["qa_prompt_template"]["en"],
+            qa_pre_instructions=default_otto_prompts["qa_pre_instructions"]["en"],
+            qa_post_instructions=default_otto_prompts["qa_post_instructions"]["en"],
+            chat_model=settings.DEFAULT_CHAT_MODEL,
+            qa_model=settings.DEFAULT_QA_MODEL,
+            summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
+            qa_library=default_library,
+        )
+
+        # set french translations if available
+        if "fr" in default_otto_prompts["default_chat_prompt"]:
+            default_options.chat_system_prompt_fr = default_otto_prompts[
+                "default_chat_prompt"
+            ]["fr"]
+        if "fr" in default_otto_prompts["qa_system_prompt"]:
+            default_options.qa_system_prompt_fr = default_otto_prompts[
+                "qa_system_prompt"
+            ]["fr"]
+        if "fr" in default_otto_prompts["qa_prompt_template"]:
+            default_options.qa_prompt_template_fr = default_otto_prompts[
+                "qa_prompt_template"
+            ]["fr"]
+        if "fr" in default_otto_prompts["qa_pre_instructions"]:
+            default_options.qa_pre_instructions_fr = default_otto_prompts[
+                "qa_pre_instructions"
+            ]["fr"]
+        if "fr" in default_otto_prompts["qa_post_instructions"]:
+            default_options.qa_post_instructions_fr = default_otto_prompts[
+                "qa_post_instructions"
+            ]["fr"]
+
+        default_options.save()
+
+        default_preset = Preset.objects.create(
+            name_en="Default Preset",
+            name_fr="Préréglage par défaut",
+            description_en="Default preset including default prompts",
+            description_fr="Préréglage par défaut incluant les invites par défaut",
+            options=default_options,
+            owner=owner,
+            sharing_option="everyone",
+        )
+
+        default_preset.save()
+
+        # create structured summary settings that includes default otto settings also
+        structured_summary = presets_data["structured_summary"]
+        structured_summary_options = ChatOptions.objects.create(
+            mode="summarize",
+            summarize_style="long",
+            summarize_instructions=structured_summary[
+                "summary_additional_instructions"
+            ]["en"],
+            chat_system_prompt=default_otto_prompts["default_chat_prompt"]["en"],
+            qa_system_prompt=default_otto_prompts["qa_system_prompt"]["en"],
+            qa_prompt_template=default_otto_prompts["qa_prompt_template"]["en"],
+            qa_pre_instructions=default_otto_prompts["qa_pre_instructions"]["en"],
+            qa_post_instructions=default_otto_prompts["qa_post_instructions"]["en"],
+            chat_model=settings.DEFAULT_CHAT_MODEL,
+            qa_model=settings.DEFAULT_QA_MODEL,
+            qa_library=default_library,
+            summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
+        )
+
+        # set french translations if available
+        if "fr" in structured_summary["summary_additional_instructions"]:
+            structured_summary_options.summarize_instructions_fr = structured_summary[
+                "summary_additional_instructions"
+            ]["fr"]
+
+        structured_summary_options.save()
+
+        structured_summary_preset = Preset.objects.create(
+            name_en="Structured Summary",
+            name_fr="Résumé structuré",
+            description_en="Structured summary preset",
+            description_fr="Préréglage de résumé structuré",
+            options=structured_summary_options,
+            owner=owner,
+            sharing_option="everyone",
+        )
+
+        structured_summary_preset.save()
 
 
 QA_SCOPE_CHOICES = [
