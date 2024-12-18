@@ -13,14 +13,7 @@ from django.utils.translation import gettext_lazy as _
 
 from structlog import get_logger
 
-from chat.prompts import (
-    DEFAULT_CHAT_PROMPT,
-    QA_POST_INSTRUCTIONS,
-    QA_PRE_INSTRUCTIONS,
-    QA_PROMPT_TEMPLATE,
-    QA_SYSTEM_PROMPT,
-    current_time_prompt,
-)
+from chat.prompts import current_time_prompt
 from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
 from otto.models import SecurityLabel, User
