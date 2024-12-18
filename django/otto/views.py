@@ -707,13 +707,13 @@ def cost_dashboard(request):
     # Filter by dates
     if date_group == "last_90_days":
         start_date = timezone.now().date() - timedelta(days=90)
-        end_date = timezone.now().date() - timedelta(days=1)
+        end_date = timezone.now().date()
     elif date_group == "last_30_days":
         start_date = timezone.now().date() - timedelta(days=30)
-        end_date = timezone.now().date() - timedelta(days=1)
+        end_date = timezone.now().date()
     elif date_group == "last_7_days":
         start_date = timezone.now().date() - timedelta(days=7)
-        end_date = timezone.now().date() - timedelta(days=1)
+        end_date = timezone.now().date()
     elif date_group == "today":
         start_date = timezone.now().date()
     elif date_group == "all":
