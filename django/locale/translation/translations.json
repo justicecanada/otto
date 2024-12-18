@@ -807,9 +807,13 @@
         "fr": "",
         "fr_auto": "Pas pour des conseils juridiques ou la prise de décisions :"
     },
-    "This tool is not a substitute for professional legal advice. Avoid using it for decisions with legal implications.": {
+    "This tool is not a substitute for professional legal advice. Avoid using it for decisions with legal implications or decisions that would impact an individual.": {
         "fr": "",
         "fr_auto": "Cet outil ne remplace pas les conseils juridiques professionnels. Évitez de l’utiliser pour des décisions ayant des implications juridiques."
+    },
+    "We ask that users delete their chats and file uploads from the system after 30 days, unless still required. This proactive approach ensures data security, respects privacy principles and information management best practices.": {
+        "fr": "",
+        "fr_auto": "Nous demandons aux utilisateurs de supprimer leurs discussions et leurs téléchargements de fichiers du système après 30 jours, sauf si cela est toujours nécessaire. Cette approche proactive assure la sécurité des données, respecte les principes de confidentialité et les pratiques exemplaires en matière de gestion de l’information."
     },
     "\n            <strong>Summarize</strong> documents, including PDFs, Word docs, and PowerPoint presentations. You may also input free text for summarization, or enter a URL for a web page.\n          ": {
         "fr": "",
@@ -2626,5 +2630,21 @@
     "Pilots": {
         "fr": "",
         "fr_auto": "Pilotes"
+    },
+    "Do not upload or process sensitive, confidential, or legally protected documents. This includes personally identifiable information, protected B information, and information protected under solicitor client privilege": {
+        "fr": "",
+        "fr_auto": "Ne téléchargez pas et ne traitez pas de documents sensibles, confidentiels ou protégés par la loi. Cela comprend les renseignements personnels identifiables, les renseignements protégés B et les renseignements protégés en vertu du secret professionnel de l’avocat"
+    },
+    "This tool is not a substitute for professional legal advice. Avoid using it for decisions with legal implications or decisions that would impact an individual. ": {
+        "fr": "",
+        "fr_auto": "Cet outil ne remplace pas les conseils juridiques professionnels. Évitez de l’utiliser pour des décisions ayant des implications juridiques ou des décisions qui auraient une incidence sur une personne. "
+    },
+    "Upload Emails": {
+        "fr": "",
+        "fr_auto": "Télécharger des e-mails"
+    },
+    "Upload .msg Files": {
+        "fr": "",
+        "fr_auto": "Télécharger des fichiers .msg"
     }
 }
