@@ -544,7 +544,7 @@ function toggleRagOptions(value) {
   var ragOptions = document.querySelectorAll('.qa_rag_option');
 
   ragOptions.forEach(function (option) {
-    if (value === 'summarize') {
+    if (value !== 'rag') {
       option.style.display = 'none';
     } else {
       option.style.display = '';
@@ -557,7 +557,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const ragOptions = document.querySelectorAll(".qa_rag_option");
   const mode = document.getElementById("id_qa_mode");
   ragOptions.forEach(function (option) {
-    if (mode.value === "summarize") {
+    if (mode.value !== "rag") {
       option.style.display = "none";
     }
   });
