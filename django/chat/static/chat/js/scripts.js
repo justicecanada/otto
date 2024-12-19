@@ -40,6 +40,9 @@ function render_markdown(element) {
       if (dot_element && !current_dots) {
         parent.insertAdjacentHTML("afterend", "\n\n" + dot_element.outerHTML);
       }
+      if (current_dots && !dot_element) {
+        current_dots.remove();
+      }
       // Add the "copy code" button to code blocks
       for (block of parent.querySelectorAll("pre code")) {
         block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);

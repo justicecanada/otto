@@ -255,7 +255,7 @@ async def htmx_stream(
             yield sse_string(
                 full_message,
                 wrap_markdown,
-                dots,
+                dots=dots if not generation_stopped else False,
                 remove_stop=remove_stop or generation_stopped,
             )
             await asyncio.sleep(0.01)
