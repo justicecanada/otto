@@ -111,7 +111,7 @@
 | django/librarian/translation.py                                                                               |        8 |        0 |    100% |           |
 | django/librarian/urls.py                                                                                      |        4 |        0 |    100% |           |
 | django/librarian/utils/markdown\_splitter.py                                                                  |      183 |       10 |     95% |72, 75-77, 88, 123, 137, 260, 270, 277 |
-| django/librarian/utils/process\_engine.py                                                                     |      422 |       54 |     87% |44-46, 51, 145, 150, 160-161, 165, 171, 174, 181, 183, 185, 187, 193, 195, 197, 221, 234, 246-247, 260-269, 315-321, 358, 382, 398-400, 449-453, 459-463, 467, 515-516, 550, 637, 659 |
+| django/librarian/utils/process\_engine.py                                                                     |      434 |       57 |     87% |44-46, 51, 147, 152, 162-163, 167, 173, 176, 183, 185, 187, 189, 195, 197, 199, 246, 259, 271-272, 285-294, 296-298, 343-349, 386, 410, 426-428, 477-481, 487-491, 495, 543-544, 578, 665, 687 |
 | django/librarian/views.py                                                                                     |      286 |       52 |     82% |69-89, 95, 125-147, 183-203, 232-247, 306-307, 326, 333-335, 453, 458 |
 | django/manage.py                                                                                              |       11 |       11 |      0% |      3-23 |
 | django/otto/\_\_init\_\_.py                                                                                   |        2 |        0 |    100% |           |
@@ -191,7 +191,7 @@
 | django/tests/laws/conftest.py                                                                                 |        9 |        0 |    100% |           |
 | django/tests/laws/test\_laws\_utils.py                                                                        |       45 |        0 |    100% |           |
 | django/tests/laws/test\_laws\_views.py                                                                        |       45 |        0 |    100% |           |
-| django/tests/librarian/test\_document\_loading.py                                                             |      167 |        0 |    100% |           |
+| django/tests/librarian/test\_document\_loading.py                                                             |      179 |        0 |    100% |           |
 | django/tests/librarian/test\_librarian.py                                                                     |      242 |        0 |    100% |           |
 | django/tests/librarian/test\_markdown\_splitter.py                                                            |      282 |        0 |    100% |           |
 | django/tests/otto/test\_budget.py                                                                             |       37 |        0 |    100% |           |
@@ -223,7 +223,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      208 |       40 |     81% |57-80, 121-122, 174, 211, 285-287, 341-345, 352-353, 359, 365-369 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **9672** | **1162** | **88%** |           |
+|                                                                                                     **TOTAL** | **9696** | **1165** | **88%** |           |
 
 
 ## Setup coverage badge
