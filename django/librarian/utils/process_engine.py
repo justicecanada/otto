@@ -216,7 +216,7 @@ def decode_content(
             return content.decode(encoding)
         except UnicodeDecodeError:
             continue
-    raise UnicodeDecodeError(f"Failed to decode content with encodings: {encodings}")
+    raise Exception(f"Failed to decode content with encodings: {encodings}")
 
 
 def extract_markdown(
@@ -289,9 +289,6 @@ def extract_markdown(
             )
             md_chunks = sentence_splitter.split_text(md)
         return md, md_chunks
-    except UnicodeDecodeError as e:
-        logger.error(e)
-        raise
     except Exception as e:
         logger.error(f"Error in extract_markdown: {str(e)}")
         raise
