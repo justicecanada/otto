@@ -653,18 +653,25 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                     _("Preset saved and loaded successfully."),
                 )
 
-                return render(
-                    request,
-                    "chat/components/chat_options_accordion.html",
+                response = HttpResponse(
+                    """
+                    <script>
                     {
-                        "options_form": ChatOptionsForm(
-                            instance=preset.options, user=request.user
-                        ),
-                        "prompt": preset.options.prompt,
-                        "preset_loaded": "true",
-                        "preset_id": preset.id,
-                    },
+                    // Safely handle modal instance
+                    const modalElement = document.getElementById("presets-modal");
+                    let bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+
+                    // Hide the modal
+                    bootstrapModal.hide();
+
+                    // Remove the modal backdrop
+                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+                    }
+                    </script>
+                    """,
+                    content_type="application/javascript",
                 )
+                return response
 
         return HttpResponse(status=500)
     elif action == "update_preset":
@@ -676,7 +683,25 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             request,
             _("Preset updated successfully."),
         )
-        return HttpResponse(status=200)
+        response = HttpResponse(
+            """
+            <script>
+            {
+            // Safely handle modal instance
+            const modalElement = document.getElementById("presets-modal");
+            let bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+
+            // Hide the modal
+            bootstrapModal.hide();
+
+            // Remove the modal backdrop
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+            }
+            </script>
+            """,
+            content_type="application/javascript",
+        )
+        return response
     elif action == "delete_preset":
         # check each chat instance of the user to see if the preset is loaded
         for chat_instance in Chat.objects.filter(user=request.user):
