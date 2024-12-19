@@ -199,6 +199,26 @@ def get_process_engine_from_type(type):
         return "TEXT"
 
 
+def decode_content(
+    content: bytes, encodings: list[str] = ["utf-8", "cp1252", "latin-1", "ascii"]
+) -> str:
+    """
+    Decode content with multiple encodings with fallback.
+
+    Returns:
+        Decoded string
+
+    Raises:
+        UnicodeDecodeError: If content cannot be decoded with any of the provided encodings
+    """
+    for encoding in encodings:
+        try:
+            return content.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    raise UnicodeDecodeError(f"Failed to decode content with encodings: {encodings}")
+
+
 def extract_markdown(
     content,
     process_engine,
@@ -207,67 +227,74 @@ def extract_markdown(
     chunk_size=768,
     selector=None,
 ):
-    enable_markdown = True
-    if process_engine == "IMAGE":
-        content = resize_to_azure_requirements(content)
-        enable_markdown = False
-        md = pdf_to_text_azure_read(content)
-    elif process_engine == "PDF":
-        if pdf_method == "default":
-            enable_markdown = False
-            md = pdf_to_text_pdfium(content)
-            if len(md) < 10:
-                # Fallback to Azure Document Intelligence Read API to OCR
-                md = pdf_to_text_azure_read(content)
-        elif pdf_method == "azure_layout":
-            md = pdf_to_markdown_azure_layout(content)
-        elif pdf_method == "azure_read":
+    try:
+        enable_markdown = True
+        if process_engine == "IMAGE":
+            content = resize_to_azure_requirements(content)
             enable_markdown = False
             md = pdf_to_text_azure_read(content)
-    elif process_engine == "WORD":
-        md = docx_to_markdown(content)
-    elif process_engine == "POWERPOINT":
-        md = pptx_to_markdown(content)
-    elif process_engine == "HTML":
-        md = html_to_markdown(content.decode("utf-8"), base_url, selector)
-    elif process_engine == "MARKDOWN":
-        md = content.decode("utf-8")
-    elif process_engine == "OUTLOOK_MSG":
-        enable_markdown = False
-        md = msg_to_markdown(content)
-    elif process_engine == "CSV":
-        md = csv_to_markdown(content)
-    elif process_engine == "EXCEL":
-        md = excel_to_markdown(content)
-    else:
-        enable_markdown = False
+        elif process_engine == "PDF":
+            if pdf_method == "default":
+                enable_markdown = False
+                md = pdf_to_text_pdfium(content)
+                if len(md) < 10:
+                    # Fallback to Azure Document Intelligence Read API to OCR
+                    md = pdf_to_text_azure_read(content)
+            elif pdf_method == "azure_layout":
+                md = pdf_to_markdown_azure_layout(content)
+            elif pdf_method == "azure_read":
+                enable_markdown = False
+                md = pdf_to_text_azure_read(content)
+        elif process_engine == "WORD":
+            md = docx_to_markdown(content)
+        elif process_engine == "POWERPOINT":
+            md = pptx_to_markdown(content)
+        elif process_engine == "HTML":
+            md = html_to_markdown(decode_content(content), base_url, selector)
+        elif process_engine == "MARKDOWN":
+            md = decode_content(content)
+        elif process_engine == "OUTLOOK_MSG":
+            enable_markdown = False
+            md = msg_to_markdown(content)
+        elif process_engine == "CSV":
+            md = csv_to_markdown(content)
+        elif process_engine == "EXCEL":
+            md = excel_to_markdown(content)
+        else:
+            enable_markdown = False
+            try:
+                md = decode_content(content)
+            except Exception as e:
+                raise e
+
+        md = remove_nul_characters(md)
+
+        # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
+        md = re.sub(r"\n{3,}", "\n\n", md.strip())
+
+        # Divide the markdown into chunks
         try:
-            md = content.decode("utf-8")
+            md_splitter = MarkdownSplitter(
+                chunk_size=chunk_size, chunk_overlap=0, enable_markdown=enable_markdown
+            )
+            md_chunks = md_splitter.split_markdown(md)
         except Exception as e:
-            raise e
+            logger.debug("Error splitting markdown using MarkdownSplitter:")
+            logger.error(e)
+            # Fallback to simpler method
+            from llama_index.core.node_parser import SentenceSplitter
 
-    md = remove_nul_characters(md)
-
-    # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
-    md = re.sub(r"\n{3,}", "\n\n", md.strip())
-
-    # Divide the markdown into chunks
-    try:
-        md_splitter = MarkdownSplitter(
-            chunk_size=chunk_size, chunk_overlap=0, enable_markdown=enable_markdown
-        )
-        md_chunks = md_splitter.split_markdown(md)
-    except Exception as e:
-        logger.debug("Error splitting markdown using MarkdownSplitter:")
+            sentence_splitter = SentenceSplitter(
+                chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
+            )
+            md_chunks = sentence_splitter.split_text(md)
+        return md, md_chunks
+    except UnicodeDecodeError as e:
         logger.error(e)
-        # Fallback to simpler method
-        from llama_index.core.node_parser import SentenceSplitter
-
-        sentence_splitter = SentenceSplitter(
-            chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
-        )
-        md_chunks = sentence_splitter.split_text(md)
-    return md, md_chunks
+        raise
+    except Exception as e:
+        logger.error(f"Error in extract_markdown: {str(e)}")
+        raise
 
 
 def pdf_to_markdown_azure_layout(content):
