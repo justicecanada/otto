@@ -255,7 +255,7 @@ async def htmx_stream(
             yield sse_string(
                 full_message,
                 wrap_markdown,
-                dots,
+                dots=dots if not generation_stopped else False,
                 remove_stop=remove_stop or generation_stopped,
             )
             await asyncio.sleep(0.01)
@@ -497,6 +497,12 @@ def get_source_titles(sources):
     ]
 
 
+def create_batches(iterable, n=1):
+    length = len(iterable)
+    for ndx in range(0, length, n):
+        yield iterable[ndx : min(ndx + n, length)]
+
+
 async def combine_response_generators(generators, titles, query, llm, prune=False):
     streams = [{"stream": stream, "status": "running"} for stream in generators]
     final_streams = [f"\n###### *{title}*\n" for title in titles]
@@ -523,7 +529,7 @@ async def combine_response_generators(generators, titles, query, llm, prune=Fals
         if final_result:
             yield (final_result)
         else:
-            yield ("**No relevant sources found.**")
+            yield (_("**No relevant sources found.**"))
         await asyncio.sleep(0)
 
 
@@ -547,6 +553,35 @@ async def combine_response_replacers(generators, titles):
                 stream["status"] = "stopped"
         yield ("\n\n---\n\n".join(final_streams))
         await asyncio.sleep(0)
+
+
+async def combine_batch_generators(generators, pruning=False):
+    # Given a list of generators from either combine_response_replacers or
+    # combine_response_generators, make one generator across batches for htmx_stream
+    final_streams = []
+    for generator in generators:
+        stream = "\n\n---\n\n".join(final_streams)
+        async for response in generator:
+            if stream:
+                # Add line between already-streamed batches and streaming batch
+                stream_value = stream + "\n\n---\n\n" + response
+            else:
+                # Don't need line if there's nothing streamed
+                stream_value = response
+            yield stream_value
+            await asyncio.sleep(0)
+        if pruning and response == _("**No relevant sources found.**"):
+            # If we're pruning (combine_response_generators only) and nothing
+            # relevant was found in the batch, just retain previous batches
+            yield stream
+            await asyncio.sleep(0)
+        else:
+            final_streams.append(response)
+
+    if not final_streams and pruning:
+        # If we're pruning (combine_response_generators only) and have nothing after
+        # iterating through all batches, stream the pruning message again
+        yield _("**No relevant sources found.**")
 
 
 def group_sources_into_docs(source_nodes):
