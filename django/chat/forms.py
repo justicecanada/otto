@@ -10,7 +10,7 @@ from rules import is_group_member
 from structlog import get_logger
 
 from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
-from librarian.models import DataSource, Document, Library
+from librarian.models import DataSource, Document, Library, LibraryUserRole
 
 logger = get_logger(__name__)
 
@@ -48,13 +48,15 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
             raise ValueError("User must be provided to GroupedLibraryChoiceField")
 
         public_libraries = list(self.queryset.filter(is_public=True))
-        role_libraries = Library.objects.filter(user_roles__user=self.user)
+        user_libraries = Library.objects.filter(
+            user_roles__user=self.user, is_public=False
+        ).prefetch_related("user_roles")
         managed_libraries = list(
-            role_libraries.exclude(user_roles__role="contributor").exclude(
-                user_roles__role="viewer"
-            )
+            user_libraries.filter(user_roles__role="admin", user_roles__user=self.user)
         )
-        shared_libraries = list(role_libraries.exclude(user_roles__role="admin"))
+        shared_libraries = list(
+            user_libraries.exclude(user_roles__role="admin", user_roles__user=self.user)
+        )
 
         groups = [
             (_("JUS-managed"), public_libraries),
