@@ -57,7 +57,7 @@ def generate_hash(content):
 
 def extract_html_metadata(content):
     # Content is the binary data from response.content so convert it to a string
-    soup = BeautifulSoup(content.decode("utf-8"), "html.parser")
+    soup = BeautifulSoup(decode_content(content), "html.parser")
     title_element = soup.find("title")
     title = title_element.get_text(strip=True) if title_element else None
     time_element = soup.find("time", {"property": "dateModified"})
