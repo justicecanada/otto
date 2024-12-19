@@ -27,11 +27,13 @@ licenses_results.txt
 
 # Local Terraform directories
 **/.terraform/*
+**/.terragrunt/*
 
 # State Files
 *.tfstate
 *.tfstate.*
-*.hcl
+*.lock.hcl
+.terragrunt*
 
 # Configuration with sensitive data (adjust as needed)
 *.tfvars

@@ -270,3 +270,89 @@ To run build_and_push and pass parameters:
 ```bash
 ./build_and_push_image.ps1 -subscription OttoDev -acr jusdevottoacr -skipNetworkCheck y
 ```
+
+
+# Appendix B: Infrastructure Deployment Overview
+
+**TODO: Clean up and consolidate with main content above**
+
+This appendix outlines the deployment stages for the Otto application infrastructure using Terragrunt, following Microsoft's recommended naming convention pattern:
+
+`{resource-type}-{workload/app}-{environment}-{region}`
+
+## Resource Groups
+
+### Management Resources
+`rg-ottomgmt-dev-cac`
+
+### Application Resources
+`rg-ottoapp-dev-cac`
+
+## Deployment Stages
+
+### 1. Core Infrastructure
+
+**Management Resource Group**: rg-ottomgmt-dev-cac
+
+Resources:
+- Virtual Network: vnet-ottomgmt-dev-cac
+- Network Security Groups: nsg-ottomgmt-dev-cac
+- Route Tables: rt-ottomgmt-dev-cac
+- Key Vault: kv-ottomgmt-dev-cac
+- Container Registry: crotto{random}
+- Storage Account: stotto{random}
+- Log Analytics Workspace: law-ottomgmt-dev-cac
+- Firewall: fw-ottomgmt-dev-cac
+
+### 2. Management Tools
+
+Resources:
+- Bastion Service: bas-ottomgmt-dev-cac
+- Jump Box VM: vm-ottomgmt-dev-cac
+- Jump Box NIC: nic-ottomgmt-dev-cac
+- Managed Identity: id-ottomgmt-dev-cac
+- Public IP: pip-ottomgmt-dev-cac
+- Action Group: ag-ottomgmt-dev-cac
+- Alert Rules: alert-ottomgmt-dev-cac
+
+### 3. Application Foundation
+
+**Application Resource Group**: rg-ottoapp-dev-cac
+
+Resources:
+- AKS Cluster: aks-ottoapp-dev-cac
+- Application Storage Account: stottoapp{random}
+- Managed Identity: id-ottoapp-dev-cac
+- Disks: disk-ottoapp-dev-cac
+
+### 4. Application Services
+
+Resources:
+- AI Services: ai-ottoapp-dev-cac
+- Azure OpenAI: oai-ottoapp-dev-cac
+- Private Endpoints: pe-ottoapp-dev-cac
+- Private DNS Zones: pdns-ottoapp-dev
+- API Connections: apic-ottoapp-dev-cac
+
+## Naming Components
+
+- Resource Type: Standard Azure resource type abbreviations (vm, vnet, nsg, etc.)
+- Workload/App: ottomgmt or ottoapp
+- Environment: dev, uat, preprod, prod
+- Region: cac (Canada Central)
+
+## Deployment Instructions
+
+For automated deployment, run the following script:
+   ```
+   deploy.sh
+   ```
+
+To deploy the infrastructure manually, follow the steps below:
+   ```
+    intall_tools.sh
+    load_env.sh
+    deploy_mgmt.sh
+    deploy_app.sh
+    deploy_cluster.sh
+   ```
