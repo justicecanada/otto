@@ -126,6 +126,7 @@ def guess_content_type(
         "application/csv",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "officedocument.spreadsheetml.sheet",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "officedocument.wordprocessingml.document",
         "officedocument.presentationml.presentation",
         "image/jpeg",
@@ -200,7 +201,8 @@ def get_process_engine_from_type(type):
 
 
 def decode_content(
-    content: bytes, encodings: list[str] = ["utf-8", "cp1252", "latin-1", "ascii"]
+    content: bytes,
+    encodings: list[str] = ["utf-8", "cp1252"],
 ) -> str:
     """
     Decode content with multiple encodings with fallback.
@@ -209,12 +211,13 @@ def decode_content(
         Decoded string
 
     Raises:
-        UnicodeDecodeError: If content cannot be decoded with any of the provided encodings
+        Exception: If content cannot be decoded with any of the provided encodings
     """
     for encoding in encodings:
         try:
             return content.decode(encoding)
-        except UnicodeDecodeError:
+        except UnicodeDecodeError as e:
+            logger.debug(e)
             continue
     raise Exception(f"Failed to decode content with encodings: {encodings}")
 
