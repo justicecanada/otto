@@ -49,7 +49,11 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
 
         public_libraries = list(self.queryset.filter(is_public=True))
         role_libraries = Library.objects.filter(user_roles__user=self.user)
-        managed_libraries = list(role_libraries.filter(user_roles__role="admin"))
+        managed_libraries = list(
+            role_libraries.exclude(user_roles__role="contributor").exclude(
+                user_roles__role="viewer"
+            )
+        )
         shared_libraries = list(role_libraries.exclude(user_roles__role="admin"))
 
         groups = [
