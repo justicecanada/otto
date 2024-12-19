@@ -128,6 +128,7 @@ def guess_content_type(
         "officedocument.spreadsheetml.sheet",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "officedocument.wordprocessingml.document",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "officedocument.presentationml.presentation",
         "image/jpeg",
         "image/jpg",
