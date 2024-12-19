@@ -657,7 +657,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                     """
                     <script>
                     {
-                    // Safely handle modal instance
                     const modalElement = document.getElementById("presets-modal");
                     let bootstrapModal = bootstrap.Modal.getInstance(modalElement);
 
