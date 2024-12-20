@@ -10,8 +10,9 @@ from django.core.management.base import BaseCommand
 import yaml
 from django_extensions.management.utils import signalcommand
 
+from chat.models import ChatOptions, Preset
 from librarian.models import DataSource, Document, Library
-from otto.models import App, UsageTerm
+from otto.models import App, UsageTerm, User
 
 
 class Command(BaseCommand):
@@ -91,6 +92,8 @@ class Command(BaseCommand):
 
             if "library_mini" in objects_to_reset:
                 self.reset_libraries("library_mini.yaml")
+            if "presets" in objects_to_reset:
+                self.reset_presets()
 
     def reset_apps(self):
         yaml_file_path = os.path.join(
@@ -237,6 +240,20 @@ class Command(BaseCommand):
                 "Libraries, DataSources, and Documents reset successfully."
             )
         )
+
+    def reset_presets(self):
+        yaml_file_path = os.path.join(
+            settings.BASE_DIR, "otto", "fixtures", "default_preset.yaml"
+        )
+
+        with open(yaml_file_path, "r", encoding="utf-8") as yaml_file:
+            presets_data = yaml.safe_load(yaml_file)
+
+        # Delete existing presets and associated options
+        Preset.objects.all().delete()
+        ChatOptions.objects.create_from_yaml(presets_data)
+
+        self.stdout.write(self.style.SUCCESS("Presets reset successfully."))
 
     def reset_security_labels(self):
         # Simply call manage.py loaddata security_labels.yaml
