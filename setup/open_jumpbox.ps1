@@ -1,7 +1,5 @@
 param (
     [string]$subscription = "",
-    [string]$mgmtGroup = "",
-    [string]$jumpbox = "",
     [int]$connectChoice = 1, # 1 for Azure CLI (good for interactive shell), 2 for SSH tunnel (good for VS Code)
     [string]$skipSSHUpdate = "false"
 )
@@ -116,21 +114,10 @@ else {
 # Prompt the user if they want to turn off the VM
 $turnOff = Read-Host -Prompt "Do you want to turn off the Jumpbox VM to save costs? (y/n)"
 
-# Prompt the user if they want to delete the Bastion service,
-$deleteBastion = Read-Host -Prompt "Do you want to deallocate the Bastion service to save costs? (y/n)"
-
 if ($turnOff -eq "y") {
     Write-Host "Turning off the Jumpbox VM"
     az vm deallocate --ids $vmId --only-show-errors --output none
 }
 else {
     Write-Host "Jumpbox VM will continue to incur costs"
-}
-
-if ($deleteBastion -eq "y") {
-    Write-Host "Deallocating the Bastion service"
-    az network bastion delete --resource-group $mgmtGroup --name bastion --only-show-errors --output none
-}
-else {
-    Write-Host "Bastion service will continue to incur costs"
 }

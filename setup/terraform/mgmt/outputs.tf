@@ -18,11 +18,6 @@ output "app_subnet_id" {
   description = "The ID of the application subnet"
 }
 
-output "web_subnet_id" {
-  value       = module.main_vnet.snet_web_id
-  description = "The ID of the web subnet"
-}
-
 output "storage_account_id" {
   value       = module.storage.storage_account_id
   description = "The ID of the management storage account"

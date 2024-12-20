@@ -13,6 +13,12 @@ variable "location" {
   type        = string
 }
 
+variable "keyvault_name" {
+  description = "The name of the main Key Vault"
+  type        = string
+  
+}
+
 variable "vnet_name" {
   description = "The name of the virtual network"
   type        = string
@@ -40,16 +46,6 @@ variable "app_subnet_name" {
 
 variable "app_subnet_prefix" {
   description = "The address prefix for the application subnet"
-  type        = string
-}
-
-variable "web_subnet_name" {
-  description = "The name of the web subnet"
-  type        = string
-}
-
-variable "web_subnet_prefix" {
-  description = "The address prefix for the web subnet"
   type        = string
 }
 
@@ -119,8 +115,18 @@ variable "jumpbox_identity_name" {
   type        = string
 }
 
+variable "otto_identity_name" {
+  description = "The name of the application's managed identity"
+  type        = string
+}
+
 variable "aks_ingress_private_ip" {
   description = "The private IP address of the AKS ingress controller"
+  type        = string
+}
+
+variable "acr_name" {
+  description = "The name of the Azure Container Registry"
   type        = string
 }
 

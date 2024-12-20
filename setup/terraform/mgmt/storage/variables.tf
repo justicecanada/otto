@@ -38,3 +38,8 @@ variable "mgmt_storage_make_private" {
   default     = true
   description = "Set to true to make the management storage account private. Change cannot be reverted once private."
 }
+
+variable "blob_private_dns_zone_id" {
+  description = "The ID of the Blob Storage private DNS zone"
+  type        = string
+}

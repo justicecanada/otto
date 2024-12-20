@@ -47,8 +47,12 @@ select_and_load_env() {
 
     # Compute Resources
     export JUMPBOX_NAME="vm-otto-${ENV,,}"
-    export JUMPBOX_IDENTITY_NAME="id-otto-${ENV,,}"
     export AKS_CLUSTER_NAME="aks-otto-${ENV,,}"
+
+    # Managed Identities
+    export JUMPBOX_IDENTITY_NAME="id-ottomgmt-${ENV,,}"
+    export OTTO_IDENTITY_NAME="id-ottoapp-${ENV,,}"
+    export VELERO_IDENTITY_NAME="id-ottobak-${ENV,,}"
 
     # Networking Resources
     export BASTION_NAME="bastion-otto-${ENV,,}"
@@ -63,9 +67,6 @@ select_and_load_env() {
 
     # Storage
     export DISK_NAME="disk-otto-${ENV,,}"
-
-    # Managed Identities
-    export VELERO_IDENTITY_NAME="id-ottobak-${ENV,,}"
 
     # Other variables that don't follow resource naming conventions
     export SITE_URL="https://${DOMAIN_NAME}"
@@ -120,10 +121,13 @@ check_and_set_subscription() {
     fi
 
     # Check if the user has Owner role
-    local role_assignment=$(az role assignment list --assignee "$current_user_id" --role "Owner" --scope "/subscriptions/$subscription_id" --query "[].roleDefinitionName" -o tsv)
-    
-    if [ "$role_assignment" != "Owner" ]; then
-        echo "Error: You do not have the Owner role for subscription '$subscription_name'."
+    local role_assignment=$(az role assignment list \
+        --assignee $current_user_id \
+        --role "Owner" --scope "/subscriptions/$subscription_id" \
+        --include-inherited --include-groups -o tsv)
+        
+    if [ -z "$role_assignment" ]; then
+        echo "Error: User does not have Owner role in subscription '$subscription_name'. Exiting..." >&2
         return 1
     fi
 
@@ -255,6 +259,11 @@ fi
 
 if ! check_and_set_app_storage_account_name; then
     echo "Script execution terminated due to storage account name error."
+    return 1
+fi
+
+if ! check_and_set_acr_name; then
+    echo "Script execution terminated due to ACR name error."
     return 1
 fi
 

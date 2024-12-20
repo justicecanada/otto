@@ -21,4 +21,9 @@ done
 
 source ./install_tools.sh
 source ./load_env.sh --env-file $env_file
-source ./build_mgmt.sh
+source ./deploy_mgmt.sh
+source ./check_secrets.sh
+source ./build_image.sh
+source ./deploy_app.sh
+source ./init_script.sh
+# source ./check_velero.sh

@@ -23,14 +23,6 @@ resource "azurerm_subnet" "snet_app" {
   service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage", "Microsoft.ContainerRegistry"]
 }
 
-resource "azurerm_subnet" "snet_web" {
-  name                 = var.web_subnet_name
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.vnet_main.name
-  address_prefixes     = [var.web_subnet_prefix]
-  service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage", "Microsoft.ContainerRegistry"]
-}
-
 resource "azurerm_network_security_group" "nsg_mgmt" {
   name                = "nsg-mgmt-otto-${var.environment}"
   location            = var.location
@@ -79,29 +71,4 @@ resource "azurerm_network_security_group" "nsg_app" {
 resource "azurerm_subnet_network_security_group_association" "nsg_app_association" {
   subnet_id                 = azurerm_subnet.snet_app.id
   network_security_group_id = azurerm_network_security_group.nsg_app.id
-}
-
-resource "azurerm_network_security_group" "nsg_web" {
-  name                = "nsg-web-otto-${var.environment}"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-
-  security_rule {
-    name                       = "AllowAllInbound"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-
-  tags = var.tags
-}
-
-resource "azurerm_subnet_network_security_group_association" "nsg_web_association" {
-  subnet_id                 = azurerm_subnet.snet_web.id
-  network_security_group_id = azurerm_network_security_group.nsg_web.id
 }

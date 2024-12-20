@@ -43,16 +43,6 @@ variable "app_subnet_prefix" {
   type        = string
 }
 
-variable "web_subnet_name" {
-  description = "The name of the web subnet"
-  type        = string
-}
-
-variable "web_subnet_prefix" {
-  description = "The address prefix for the web subnet"
-  type        = string
-}
-
 variable "tags" {
   description = "A mapping of tags to assign to the resources"
   type        = map(string)

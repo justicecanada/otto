@@ -3,9 +3,9 @@ variable "resource_group_name" {
   description = "The name of the resource group in which to create the Key Vaults"
 }
 
-variable "mgmt_resource_group_name" {
+variable "environment" {
   type        = string
-  description = "The name of the management resource group containing the private DNS zone"
+  description = "The environment in which the Key Vaults are being created"
 }
 
 variable "location" {
@@ -24,14 +24,14 @@ variable "tags" {
   default     = {}
 }
 
-variable "jumpbox_identity_id" {
+variable "mgmt_subnet_id" {
   type        = string
-  description = "The ID of the jumpbox's user-assigned managed identity to manage the Key Vaults"
+  description = "The ID of the management subnet"
 }
 
-variable "use_private_network" {
-  type        = bool
-  description = "Whether to use private networking for the Key Vaults"
+variable "keyvault_private_dns_zone_id" {
+  type        = string
+  description = "The ID of the private DNS zone for the Key Vaults"
 }
 
 variable "vnet_id" {
@@ -41,11 +41,6 @@ variable "vnet_id" {
 
 variable "app_subnet_id" {
   description = "The ID of the app subnet"
-  type        = string
-}
-
-variable "web_subnet_id" {
-  description = "The ID of the web subnet"
   type        = string
 }
 

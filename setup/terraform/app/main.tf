@@ -29,34 +29,6 @@ resource "azurerm_role_assignment" "otto_identity_network_contributor" {
   scope                = var.vnet_id
 }
 
-# Key Vault module
-# SC-13: Centralized key management and cryptographic operations
-module "keyvault" {
-  source                 = "./modules/keyvault"
-  resource_group_name    = var.resource_group_name
-  mgmt_resource_group_name = var.mgmt_resource_group_name
-  location               = var.location
-  keyvault_name          = var.keyvault_name
-  jumpbox_identity_id    = var.jumpbox_identity_id
-  tags                   = local.common_tags
-  use_private_network    = var.use_private_network
-  vnet_id                = var.vnet_id
-  app_subnet_id          = var.app_subnet_id
-  web_subnet_id          = var.web_subnet_id
-}
-
-# ACR module
-module "acr" {
-  source                   = "./modules/acr"
-  acr_name                 = var.acr_name
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
-  acr_sku                  = "Premium"
-  tags                     = local.common_tags
-  jumpbox_identity_id      = var.jumpbox_identity_id
-  keyvault_id              = module.keyvault.keyvault_id
-}
-
 # Disk module
 module "disk" {
   source                    = "./modules/disk"

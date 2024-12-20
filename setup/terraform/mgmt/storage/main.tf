@@ -67,22 +67,9 @@ resource "azurerm_private_endpoint" "storage_endpoint" {
   }
 }
 
-resource "azurerm_private_dns_zone" "blob_zone" {
-  name                = "privatelink.blob.core.windows.net"
-  resource_group_name = var.resource_group_name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "blob_zone_link" {
-  name                  = "pdnslink-otto-${var.environment}-blob"
-  resource_group_name   = var.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.blob_zone.name
-  virtual_network_id    = var.vnet_id
-  registration_enabled  = false
-}
-
 resource "azurerm_private_dns_a_record" "storage_dns_record" {
   name                = var.mgmt_storage_account_name
-  zone_name           = azurerm_private_dns_zone.blob_zone.name
+  zone_name           = var.blob_private_dns_zone_id
   resource_group_name = var.resource_group_name
   ttl                 = 300
   records             = [azurerm_private_endpoint.storage_endpoint.private_service_connection[0].private_ip_address]

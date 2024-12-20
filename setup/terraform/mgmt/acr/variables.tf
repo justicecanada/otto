@@ -13,12 +13,6 @@ variable "location" {
   type        = string
 }
 
-variable "acr_sku" {
-  description = "The SKU (pricing tier) of the ACR"
-  type        = string
-  default     = "Basic"
-}
-
 variable "tags" {
   description = "A mapping of tags to assign to the resource"
   type        = map(string)
@@ -28,9 +22,4 @@ variable "tags" {
 variable "jumpbox_identity_id" {
     description = "The ID of the managed identity for the jumpbox"
     type        = string
-}
-
-variable "keyvault_id" {
-  description = "The ID of the Key Vault"
-  type        = string
 }

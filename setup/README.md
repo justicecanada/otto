@@ -350,9 +350,12 @@ For automated deployment, run the following script:
 
 To deploy the infrastructure manually, follow the steps below:
    ```
-    intall_tools.sh
-    load_env.sh
-    deploy_mgmt.sh
-    deploy_app.sh
-    deploy_cluster.sh
+  source ./install_tools.sh
+  source ./load_env.sh --env-file $env_file
+  source ./deploy_mgmt.sh
+  source ./check_secrets.sh
+  source ./build_image.sh
+  source ./deploy_app.sh
+  source ./init_script.sh
+  # source ./check_velero.sh
    ```
