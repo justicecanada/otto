@@ -1,34 +1,40 @@
 {% load i18n %}
 
+{% csrf_token %}
 <div class="modal-body preset-form-container">
-  <div class="d-flex flex-column">
-    <ul class="nav nav-tabs nav-fill mx-3"
-        id="preset-edit-tabs"
-        role="tablist">
-      <li class="nav-item" role="presentation">
-        <button id="en-preset-tab"
-                class="active nav-link"
-                data-bs-target="#en-preset-tab-pane"
-                data-bs-toggle="pill"
-                type="button"
-                role="tab"
-                aria-controls="en-preset-tab-pane"
-                aria-selected="true">{% trans "English" %}</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button id="fr-preset-tab"
-                class="nav-link"
-                data-bs-target="#fr-preset-tab-pane"
-                data-bs-toggle="pill"
-                type="button"
-                role="tab"
-                aria-controls="fr-preset-tab-pane"
-                aria-selected="false">{% trans "French" %}</button>
-      </li>
-    </ul>
+  <form class="g-3 mt-1 row"
+        id="edit_preset_form"
+        hx-post="{% if preset_id %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' preset_id=preset_id %}{% else %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' %}{% endif %}"
+        hx-include="#edit_preset_form"
+        hx-target="#presets-modal-body"
+        hx-swap="innerHTML">
+    <div class="d-flex flex-column">
+      <ul class="nav nav-tabs nav-fill mx-3"
+          id="preset-edit-tabs"
+          role="tablist">
+        <li class="nav-item" role="presentation">
+          <button id="en-preset-tab"
+                  class="active nav-link"
+                  data-bs-target="#en-preset-tab-pane"
+                  data-bs-toggle="pill"
+                  type="button"
+                  role="tab"
+                  aria-controls="en-preset-tab-pane"
+                  aria-selected="true">{% trans "English" %}</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button id="fr-preset-tab"
+                  class="nav-link"
+                  data-bs-target="#fr-preset-tab-pane"
+                  data-bs-toggle="pill"
+                  type="button"
+                  role="tab"
+                  aria-controls="fr-preset-tab-pane"
+                  aria-selected="false">{% trans "French" %}</button>
+        </li>
+      </ul>
 
-    <div class="tab-content rounded px-3 mb-3 border">
-      <form class="g-3 mt-1 row" id="edit_preset_form" method="post">
+      <div class="tab-content rounded px-3 mb-3 border">
         {% csrf_token %}
         <input type="hidden" name="prompt" value="">
         <div class="col-12">
@@ -82,51 +88,76 @@
             </div>
           </div>
         {% endif %}
-        <div id="error-message">
-          {% if error_message %}<div class="alert alert-danger" role="alert">{{ error_message }}</div>{% endif %}
-        </div>
-      </form>
+        <div id="error-message" class="alert alert-danger d-none" role="alert"></div>
+      </div>
     </div>
-  </div>
-  <div class="modal-footer pb-0 pt-1 border-0">
-    <div class="col-12">
-      <div class="row">
-        <div class="col-6">
-          <button id="cancel_preset"
-                  class="btn btn-outline-secondary w-25 flex-fill me-2"
-                  hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
-                  hx-target="#presets-modal-body"
-                  hx-swap="innerHTML transition:true"
-                  type="button">{% trans "Cancel" %}</button>
- 
-          {% if preset_id %}
-            <button id="delete_preset"
-                    class="btn btn-outline-danger w-25 flex-fill"
-                    hx-get="{% url 'chat:chat_options' chat_id=chat_id action='delete_preset' preset_id=preset_id %}"
+    <div class="modal-footer pb-0 pt-1 border-0">
+      <div class="col-12">
+        <div class="row">
+          <div class="col-6">
+            <button id="cancel_preset"
+                    class="btn btn-outline-secondary w-25 flex-fill me-2"
+                    hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
                     hx-target="#presets-modal-body"
                     hx-swap="innerHTML transition:true"
-                    hx-confirm="{% trans 'Are you sure you want to delete this preset?' %}"
-                    type="button">{% trans "Delete" %}</button>
-          {% endif %}
-        </div>
-        <div class="col-6 text-end">
-          <button class="btn btn-dark flex-fill w-25"
-                  type="submit"
-                  hx-post="{% if preset_id %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' preset_id=preset_id %}{% else %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' %}{% endif %}"
-                  hx-include="#edit_preset_form"
-                  hx-target="#presets-modal-body"
-                  hx-swap="innerHTML"
-                  onclick="document.querySelector('input[name=\'prompt\']').value = document.getElementById('chat-prompt').value">
-            {% trans "Save & Load" %}
-          </button>
+                    type="button">{% trans "Cancel" %}</button>
  
+            {% if preset_id %}
+              <button id="delete_preset"
+                      class="btn btn-outline-danger w-25 flex-fill"
+                      hx-get="{% url 'chat:chat_options' chat_id=chat_id action='delete_preset' preset_id=preset_id %}"
+                      hx-target="#presets-modal-body"
+                      hx-swap="innerHTML transition:true"
+                      hx-confirm="{% trans 'Are you sure you want to delete this preset?' %}"
+                      type="button">{% trans "Delete" %}</button>
+            {% endif %}
+          </div>
+          <div class="col-6 text-end">
+            <button class="btn btn-dark flex-fill w-25"
+                    type="submit"
+                    onclick="handlePresetModalSubmit(event)">{% trans "Save" %}</button>
+ 
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </form>
 </div>
 
 <script>
+  function handlePresetModalSubmit(event) {
+      const form = document.getElementById("edit_preset_form");
+      const nameEnElement = document.getElementById("id_name_en").value;
+      const nameFrElement = document.getElementById("id_name_fr").value;
+      const sharingOptionElement = document.querySelector('input[name="sharing_option"]:checked');
+      const sharingOption = sharingOptionElement ? sharingOptionElement.value : "";
+      const accessibleToElement = document.querySelector('[name="accessible_to"]');
+      const accessibleTo = accessibleToElement ? accessibleToElement.value : "";
+      const errorMessage = document.getElementById("error-message");
+
+      if (!nameEnElement && !nameFrElement) {
+          errorMessage.innerText = "Please provide a title in either English or French.";
+          errorMessage.classList.remove('d-none');
+          event.preventDefault();
+          event.stopPropagation();
+      }
+
+      console.log(sharingOption)
+      console.log(accessibleToElement)
+      if (sharingOption === 'others' && !accessibleToElement) {
+          errorMessage.innerText = "Please provide at least one user for the accessible field.";
+          errorMessage.classList.remove('d-none');
+          event.preventDefault();
+          event.stopPropagation();
+      }
+
+      if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+      }
+      document.querySelector('input[name=\'prompt\']').value = document.getElementById('chat-prompt').value;
+  }
+
   document.querySelector('#presets-modal').addEventListener('htmx:afterSettle', function() {
     const publicFields = document.getElementById('public_fields');
     const enTab = document.getElementById('en-preset-tab');
