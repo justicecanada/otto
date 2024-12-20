@@ -305,7 +305,8 @@ async def test_combine_batch_generators():
 
     final_output = ""
     async for yielded_output in response_stream:
-        final_output = yielded_output
+        if yielded_output != "<|batchboundary|>":
+            final_output = yielded_output
 
     assert "second thing" in final_output
     assert "third thing" not in final_output
