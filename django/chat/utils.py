@@ -239,19 +239,22 @@ async def htmx_stream(
                 await asyncio.sleep(1)
                 first_message = False
 
-            if remove_stop or not cache.get(f"stop_response_{message_id}", False):
-                full_message = response
-            elif not generation_stopped:
-                generation_stopped = True
-                if wrap_markdown:
-                    full_message = close_md_code_blocks(full_message)
-                    stop_warning_message = f"\n\n_{stop_warning_message}_"
-                else:
-                    stop_warning_message = f"<p><em>{stop_warning_message}</em></p>"
-                full_message = f"{full_message}{stop_warning_message}"
-                message = await sync_to_async(Message.objects.get)(id=message_id)
-                message.text = full_message
-                await sync_to_async(message.save)()
+            if response != "<|batchboundary|>":
+                if remove_stop or not cache.get(f"stop_response_{message_id}", False):
+                    full_message = response
+                elif not generation_stopped:
+                    generation_stopped = True
+                    if wrap_markdown:
+                        full_message = close_md_code_blocks(full_message)
+                        stop_warning_message = f"\n\n_{stop_warning_message}_"
+                    else:
+                        stop_warning_message = f"<p><em>{stop_warning_message}</em></p>"
+                    full_message = f"{full_message}{stop_warning_message}"
+                    message = await sync_to_async(Message.objects.get)(id=message_id)
+                    message.text = full_message
+                    await sync_to_async(message.save)()
+            elif generation_stopped:
+                break
             yield sse_string(
                 full_message,
                 wrap_markdown,
@@ -577,6 +580,7 @@ async def combine_batch_generators(generators, pruning=False):
             await asyncio.sleep(0)
         else:
             final_streams.append(response)
+        yield "<|batchboundary|>"
 
     if not final_streams and pruning:
         # If we're pruning (combine_response_generators only) and have nothing after
