@@ -331,5 +331,7 @@ async def test_combine_batch_generators():
     assert await pruning_test_stream.__anext__() == _("**No relevant sources found.**")
     # Afterwards, should yield an empty string from irrelevant batch
     assert await pruning_test_stream.__anext__() == ""
+    # Then the batch boundary token
+    assert await pruning_test_stream.__anext__() == "<|batchboundary|>"
     # Finally, return pruning message due to empty final stream
     assert await pruning_test_stream.__anext__() == _("**No relevant sources found.**")
