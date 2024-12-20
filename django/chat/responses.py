@@ -23,8 +23,10 @@ from chat.models import Message
 from chat.prompts import current_time_prompt
 from chat.tasks import translate_file
 from chat.utils import (
+    combine_batch_generators,
     combine_response_generators,
     combine_response_replacers,
+    create_batches,
     get_source_titles,
     group_sources_into_docs,
     htmx_stream,
@@ -37,6 +39,10 @@ from librarian.models import DataSource, Document, Library
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
+
+batch_size = (
+    5  # Maximum number of simultaneous LLM queries for multiple docs, sources, etc.
+)
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
@@ -178,12 +184,25 @@ def summarize_response(chat, response_message):
                         instructions,
                     )
                 )
+
+        title_batches = create_batches(titles, batch_size)
+        response_batches = create_batches(responses, batch_size)
+        batch_generators = [
+            combine_response_replacers(
+                batch_responses,
+                batch_titles,
+            )
+            for batch_responses, batch_titles in zip(response_batches, title_batches)
+        ]
+
+        response_replacer = combine_batch_generators(batch_generators)
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
                 response_message.id,
                 llm,
-                response_replacer=combine_response_replacers(responses, titles),
+                response_replacer=response_replacer,
+                dots=len(batch_generators) > 1,
             ),
             content_type="text/event-stream",
         )
@@ -327,6 +346,8 @@ def qa_response(chat, response_message, switch_mode=False):
     model = chat.options.qa_model
     llm = OttoLLM(model, 0.1)
 
+    batch_generators = []
+
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
 
@@ -461,8 +482,21 @@ def qa_response(chat, response_message, switch_mode=False):
                 for document in filter_documents
                 if not cache.get(f"stop_response_{response_message.id}", False)
             ]
-            response_replacer = combine_response_replacers(
-                summary_responses, document_titles
+            title_batches = create_batches(
+                document_titles, batch_size
+            )  # TODO: test batch size
+            response_batches = create_batches(summary_responses, batch_size)
+            batch_generators = [
+                combine_response_replacers(
+                    batch_responses,
+                    batch_titles,
+                )
+                for batch_responses, batch_titles in zip(
+                    response_batches, title_batches
+                )
+            ]
+            response_replacer = combine_batch_generators(
+                batch_generators,
             )
         response_generator = None
         source_groups = None
@@ -586,12 +620,24 @@ def qa_response(chat, response_message, switch_mode=False):
                 for sources in source_groups
                 if not cache.get(f"stop_response_{response_message.id}", False)
             ]
-            response_replacer = combine_response_generators(
-                responses,
-                get_source_titles([sources[0] for sources in source_groups]),
-                input,
-                llm,
-                chat.options.qa_prune,
+            titles = get_source_titles([sources[0] for sources in source_groups])
+            title_batches = create_batches(titles, batch_size)
+            response_batches = create_batches(responses, batch_size)
+            batch_generators = [
+                combine_response_generators(
+                    batch_responses,
+                    batch_titles,
+                    input,
+                    llm,
+                    chat.options.qa_prune,
+                )
+                for batch_responses, batch_titles in zip(
+                    response_batches, title_batches
+                )
+            ]
+            response_replacer = combine_batch_generators(
+                batch_generators,
+                pruning=chat.options.qa_prune,
             )
             response_generator = None
 
@@ -604,6 +650,7 @@ def qa_response(chat, response_message, switch_mode=False):
             response_replacer=response_replacer,
             source_nodes=source_groups,
             switch_mode=switch_mode,
+            dots=len(batch_generators) > 1,
         ),
         content_type="text/event-stream",
     )

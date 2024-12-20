@@ -2567,6 +2567,10 @@
         "fr": "",
         "fr_auto": "Par utilisateur et par jour"
     },
+    "**No relevant sources found.**": {
+        "fr": "",
+        "fr_auto": "**Aucune source pertinente n’a été trouvée.**"
+    },
     "Preset loaded successfully.": {
         "fr": "",
         "fr_auto": "Préréglage chargé avec succès."
