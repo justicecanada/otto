@@ -61,7 +61,7 @@ As a platform for AI and data services, Otto helps legal professionals improve t
 4. In the Git sidebar, click "Manage unsafe folders" and mark the repository as safe.
 5. From the terminal, run `bash dev_setup.sh` and follow the instructions.
 6. You can now run the server from the "Run and debug" sidebar in VScode or just run (from ./django) `python manage.py runserver` in the VScode terminal.
-7. You will also have to start Celery to process tasks such as file translation or document loading. Run (from ./django) `celery -A otto worker -l INFO --pool=gevent --concurrency=256`. *Note that Celery requires a manual restart when files have changed.*
+7. You will also have to start Celery to process tasks such as file translation or document loading. Run (from ./django) `celery -A otto worker -l INFO --pool=gevent --concurrency=256` or run the `Django: Run Server & Celery Worker` debug configuration in VSCode. *Note that Celery requires a manual restart when files have changed.*
 8. Go to http://localhost:8000 and login to Otto using your Justice account.
 9. From the terminal, run `python manage.py set_admin_user <firstname.lastname@justice.gc.ca>`.
 10. You will now have full permissions when you refresh Otto. You can add other users using the "Manage users > Upload CSV" option. (CSV of pilot users is found in our shared drive).
