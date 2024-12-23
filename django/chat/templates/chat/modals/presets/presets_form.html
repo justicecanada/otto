@@ -134,12 +134,13 @@
       const accessibleToElement = document.querySelector('[name="accessible_to"]');
       const accessibleTo = accessibleToElement ? accessibleToElement.value : "";
       const errorMessage = document.getElementById("error-message");
-
+      let isValid = true;
       if (!nameEnElement && !nameFrElement) {
           errorMessage.innerText = "Please provide a title in either English or French.";
           errorMessage.classList.remove('d-none');
           event.preventDefault();
           event.stopPropagation();
+          isValid = false;
       }
 
       console.log(sharingOption)
@@ -149,13 +150,23 @@
           errorMessage.classList.remove('d-none');
           event.preventDefault();
           event.stopPropagation();
+          isValid = false;
       }
 
       if (!form.checkValidity()) {
           event.preventDefault();
           event.stopPropagation();
+          isValid = false;
       }
       document.querySelector('input[name=\'prompt\']').value = document.getElementById('chat-prompt').value;
+
+      // Only dismiss modal if validation passes
+      if (isValid) {
+          const modal = bootstrap.Modal.getInstance(document.getElementById('presets-modal'));
+          if (modal) {
+              modal.hide();
+          }
+      }
   }
 
   document.querySelector('#presets-modal').addEventListener('htmx:afterSettle', function() {
