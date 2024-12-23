@@ -11,6 +11,8 @@ class Email(models.Model):
     preview_text = models.TextField(null=True, blank=True)
     thread_id = models.UUIDField()
     attachment_count = models.IntegerField(default=0)  # New field for attachments
+    subject = models.CharField(max_length=255, null=True, blank=True)
+    unique_participants = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.sender} to {self.receiver} on {self.sent_date}"

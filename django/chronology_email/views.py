@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import EmailUploadForm
 from .models import Email
-from .utils import extract_email_details, summary
+from .utils import clean_subject, extract_email_details, summary
 
 
 def upload_emails(request):
@@ -27,6 +27,10 @@ def upload_emails(request):
                 email_instance.attachment_count = email_details.get(
                     "attachment_count", 0
                 )
+                email_instance.subject = email_details.get("subject")
+                email_instance.unique_participants = email_details.get(
+                    "unique_participants"
+                )
 
                 if email_instance.sent_date:
                     email_instance.save()
@@ -38,8 +42,7 @@ def upload_emails(request):
         Email.objects.values("thread_id")
         .annotate(
             total_emails=Count("id"),
-            unique_participants=Count("sender", distinct=True)
-            + Count("receiver", distinct=True),
+            unique_participants=Sum("unique_participants"),
             total_attachments=Sum("attachment_count"),
             last_email_date=Max("sent_date"),
         )
@@ -56,6 +59,12 @@ def upload_emails(request):
             "total_attachments": thread["total_attachments"],
             "last_email_date": thread["last_email_date"],
             "thread_summary": summarize_thread(thread["thread_id"]),
+            "thread_subject": clean_subject(
+                Email.objects.filter(thread_id=thread["thread_id"])
+                .earliest("sent_date")
+                .subject
+            )
+            or "No Subject Available",
         }
         for thread in threads
     }
@@ -80,6 +89,9 @@ def add_emails_to_thread(request, thread_id):
                 email_instance.preview_text = email_details.get("preview_context")
                 email_instance.attachment_count = email_details.get(
                     "attachment_count", 0
+                )
+                email_instance.unique_participants = email_details.get(
+                    "unique_participants"
                 )
                 email_instance.save()
 

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 
 from django.utils.translation import gettext as _
@@ -26,6 +27,17 @@ def extract_email_details(file_path):
     if len(preview_context) > 0:  # change as needed
         preview_context = summary(body)
     attachment_count = len(msg.attachments)
+    print(msg.sender)
+    # print(msg.to.split(";"))
+    receiver = re.findall(r"<([^<>]*)", msg.to)
+    sender = re.findall(r"<([^<>]*)", msg.sender)
+    participants = set(receiver + sender)
+    print(participants)
+    print(type(participants))
+    print(len(participants))
+    for attachment in msg.attachments:
+        print(attachment.save())
+        print(attachment.name)
 
     return {
         "sender": msg.sender,
@@ -33,7 +45,19 @@ def extract_email_details(file_path):
         "sent_date": msg_date,
         "preview_context": preview_context,
         "attachment_count": attachment_count,
+        "subject": msg.subject,
+        "unique_participants": len(participants),
     }
+
+
+def clean_subject(subject):
+    """
+    Remove common prefixes like 'RE:', 'Re:', and whitespace from the subject.
+    """
+    if subject:
+        # Remove 'RE:', 'Re:', and similar prefixes using regex
+        return re.sub(r"^(re:\s*)", "", subject, flags=re.IGNORECASE).strip()
+    return subject
 
 
 def summary(text):
