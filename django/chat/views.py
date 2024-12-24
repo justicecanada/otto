@@ -633,7 +633,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             request,
             _("Preset updated successfully."),
         )
-
         return HttpResponse(status=200)
     elif action == "delete_preset":
         # check each chat instance of the user to see if the preset is loaded
