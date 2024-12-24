@@ -919,7 +919,6 @@ def test_preset(client, basic_user, all_apps_user):
 
     # Test editing an existing preset
     client.force_login(user)
-
     response = client.post(
         reverse(
             "chat:chat_options",
