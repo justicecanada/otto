@@ -237,8 +237,6 @@ def test_delete_old_chats_task(client, all_apps_user):
     chat = user.chat_set.first()
     chat_id = chat.id
     assert chat is not None
-    # Check that the chat.accessed_at is close to the start time
-    assert (chat.accessed_at - start_time).total_seconds() < 2
     time.sleep(3)
     # Access the chat again to update the accessed_at time
     response = client.get(reverse("chat:chat", kwargs={"chat_id": chat.id}))

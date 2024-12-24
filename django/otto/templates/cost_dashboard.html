@@ -199,9 +199,10 @@
       <div class="row" id="cost-data-display">
         <div class="col-lg-8">
           {# Bar chart #}
+          {# HTMLCanvas width:height ratios too close to 2:1 causes a bug where the canvas disappears #}
           <div id="chart-container">
             <canvas id="costChart"
-                    width="1526"
+                    width="1530"
                     height="763"
                     style="display: block;
                            box-sizing: border-box;
