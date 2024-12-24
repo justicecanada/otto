@@ -17,7 +17,7 @@
                 aria-label='{% trans "Close" %} '></button>
       </div>
       <div class="modal-body">
-        <div class="row">
+        <div class="row qa_rag_option">
           <div class="col-md-3 mb-2">
             <label for="qa_vector_ratio-modal"
                    class="col-form-label col-form-label-sm"
@@ -47,7 +47,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-2 mb-2  qa_rag_option">
+          <div class="col-md-2 mb-2">
             <label for="qa_topk-modal" class="col-form-label col-form-label-sm">{% trans "Maximum sources" %}</label>
             <input type="number"
                    class="form-control form-control-sm"
@@ -57,7 +57,7 @@
                    data-inputname="qa_topk"
                    oninput="updateQaHiddenField(this);">
           </div>
-          <div class="col-md-2 mb-2  qa_rag_option">
+          <div class="col-md-2 mb-2">
             <label for="qa_source_order-modal" class="col-form-label col-form-label-sm">{% trans "Order sources by" %}</label>
             <select class="form-select form-select-sm"
                     id="qa_source_order-modal"
@@ -67,7 +67,7 @@
               <option value="reading_order">{% trans "Reading order" %}</option>
             </select>
           </div>
-          <div class="col-md-3 mb-2 qa_rag_option">
+          <div class="col-md-3 mb-2">
             <label for="qa_answer_mode-modal" class="col-form-label col-form-label-sm">{% trans "Answer granularity" %}</label>
             <select class="form-select form-select-sm"
                     id="qa_answer_mode-modal"
@@ -101,7 +101,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-2 mb-2 pt-3 qa_rag_option">
+          <div class="col-md-2 mb-2 pt-3">
             <div class="form-check form-switch col ms-2"
                  id="qa_pruning"
                  style="{% if chat.options.qa_answer_mode == 'combined' %} display: none;
@@ -115,18 +115,16 @@
                      onchange="this.value = this.checked ? 'true' : 'false'; updateQaHiddenField(this);">
               <label class="form-check-label small" for="qa_prune-modal">{% trans "Remove irrelevant sources" %}</label>
             </div>
+            {% comment %}
             <div class="form-check form-switch col-auto ms-2">
-              <input class="form-check-input small"
-                     type="checkbox"
-                     role="switch"
-                     id="qa_rewrite-modal"
-                     disabled>
+              <input class="form-check-input small" type="checkbox" role="switch" id="qa_rewrite-modal" disabled>
               <label class="form-check-label small" for="qa_rewrite-modal">{% trans "Rewrite queries for search" %}</label>
             </div>
+            {% endcomment %}
           </div>
         </div>
 
-        <hr>
+        <hr class="row qa_rag_option">
 
         <div class="row">
           <div class="col-lg-4 mb-2">

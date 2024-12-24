@@ -5,13 +5,13 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main", "cloud" ]
+    branches: [ "main" ]    
 
 defaults:
   run:
     shell: bash 
     working-directory: ./django
-
+  
 jobs:
   # Label of the container job
   test-coverage:
@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     # Docker Hub image that `test-coverage` executes in
     container: python:3.11
+
     permissions:
       # See https://github.com/py-cov-action/python-coverage-comment-action#basic-usage
       pull-requests: write
