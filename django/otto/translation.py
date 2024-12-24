@@ -38,6 +38,7 @@ class ChatOptionsTranslationOptions(TranslationOptions):
         "qa_prompt_template",
         "qa_pre_instructions",
         "qa_post_instructions",
+        "summarize_instructions",
     )
 
 

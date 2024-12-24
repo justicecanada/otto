@@ -115,8 +115,6 @@ class ChatOptionsManager(models.Manager):
         return new_options
 
     def create_from_yaml(self, presets_data):
-        # TODO - figure out who should be the owner of the default preset, for now I'm setting myself
-        owner = User.objects.filter(email="Michel.Custeau@justice.gc.ca").first()
 
         # create default otto settings
         default_library = Library.objects.get_default_library()
@@ -164,7 +162,6 @@ class ChatOptionsManager(models.Manager):
             description_en="Default preset including default prompts",
             description_fr="Préréglage par défaut incluant les invites par défaut",
             options=default_options,
-            owner=owner,
             sharing_option="everyone",
         )
 
@@ -203,7 +200,6 @@ class ChatOptionsManager(models.Manager):
             description_en="Structured summary preset",
             description_fr="Préréglage de résumé structuré",
             options=structured_summary_options,
-            owner=owner,
             sharing_option="everyone",
         )
 
@@ -383,7 +379,9 @@ class Preset(models.Model):
     options = models.ForeignKey(
         ChatOptions, on_delete=models.CASCADE, related_name="preset"
     )
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
