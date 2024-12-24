@@ -344,9 +344,22 @@ Before you begin, ensure you have met the following requirements:
 - **Execution Permissions:** PowerShell script execution policy set to allow running scripts (`Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process`).
 - **VPN Connection:** Required to connect to Azure and other resources.
 
+### Note for sandbox deployment only
+
+Currently, Sandbox is operating off a specific branch `sandbox-img` which should typically remain ahead of `main`. Building an image from `main` and deploying to sandbox will crash sandbox due to different database migrations. You must always perform these steps before building and pushing a release to sandbox:
+
+```bash
+git fetch --all
+git checkout sandbox-img
+git merge origin/main
+python manage.py makemigrations --merge
+```
+
+Further actions may be required depending on the changes to the two branches.
+
 ### Build and push the Docker image
 
-Run the following script and follow the prompts:
+1. Run the following script and follow the prompts:
 
 The script will prompt you to enter two pieces of information:
 - **Subscription ID:** Enter the Azure subscription in which the Azure Container Registry (ACR) exists.
@@ -367,7 +380,7 @@ The script will:
 
 2. Setup and deploy to Azure Kubernetes Service
 
-See `/setup` folder to follow the `README.md`. These steps will ensure the infrastructure is setup and that the AKS cluster is configured correctly. The final step is to deploy the run the `initial_setup.sh` on the coordinator node.
+See `/setup` folder to follow the `README.md`. These steps will ensure the infrastructure is setup and that the AKS cluster is configured correctly. The final step is to deploy the run the `initial_setup.sh` on the Django node.
 
 ## If all else fails
 
