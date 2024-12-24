@@ -88,7 +88,9 @@
             </div>
           </div>
         {% endif %}
-        <div id="error-message" class="alert alert-danger d-none" role="alert"></div>
+        <div id="error-message"
+             class="alert alert-danger d-none mt-3"
+             role="alert"></div>
       </div>
     </div>
     <div class="modal-footer pb-0 pt-1 border-0">
@@ -136,7 +138,7 @@
       const errorMessage = document.getElementById("error-message");
       let isValid = true;
       if (!nameEnElement && !nameFrElement) {
-          errorMessage.innerText = "Please provide a title in either English or French.";
+          errorMessage.innerText = "{% trans 'Please provide a title in either English or French.' %}";
           errorMessage.classList.remove('d-none');
           event.preventDefault();
           event.stopPropagation();
@@ -146,7 +148,7 @@
       console.log(sharingOption)
       console.log(accessibleToElement)
       if (sharingOption === 'others' && !accessibleToElement) {
-          errorMessage.innerText = "Please provide at least one user for the accessible field.";
+          errorMessage.innerText = "{% trans 'Please provide at least one user for the accessible field.' %}";
           errorMessage.classList.remove('d-none');
           event.preventDefault();
           event.stopPropagation();
