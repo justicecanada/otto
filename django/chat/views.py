@@ -618,7 +618,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
                 messages.success(
                     request,
-                    _("Preset saved and loaded successfully."),
+                    _("Preset saved successfully."),
                 )
 
                 return HttpResponse(status=200)
