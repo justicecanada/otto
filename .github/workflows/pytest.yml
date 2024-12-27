@@ -1,11 +1,13 @@
-name: Django CI
+name: Django Pytest CI
 # See https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]    
+  workflow_run:
+    workflows: ["Django Localization CI"]
+    types:
+      - completed
 
 defaults:
   run:
