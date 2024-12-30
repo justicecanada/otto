@@ -111,7 +111,7 @@
 | django/librarian/translation.py                                                                               |        8 |        0 |    100% |           |
 | django/librarian/urls.py                                                                                      |        4 |        0 |    100% |           |
 | django/librarian/utils/markdown\_splitter.py                                                                  |      183 |       10 |     95% |72, 75-77, 88, 123, 137, 260, 270, 277 |
-| django/librarian/utils/process\_engine.py                                                                     |      434 |       57 |     87% |44-46, 51, 147, 152, 162-163, 167, 173, 176, 183, 185, 187, 189, 195, 197, 199, 246, 259, 271-272, 285-294, 296-298, 343-349, 386, 410, 426-428, 477-481, 487-491, 495, 543-544, 578, 665, 687 |
+| django/librarian/utils/process\_engine.py                                                                     |      441 |       57 |     87% |44-46, 51, 147, 152, 162-163, 167, 173, 176, 183, 185, 187, 189, 195, 197, 199, 246, 259, 271-272, 285-294, 296-298, 343-349, 386, 410, 426-428, 477-481, 487-491, 495, 543-544, 578, 665, 687 |
 | django/librarian/views.py                                                                                     |      288 |       53 |     82% |70-90, 96, 126-148, 184-205, 234-249, 308-309, 328, 335-337, 455, 460 |
 | django/manage.py                                                                                              |       11 |       11 |      0% |      3-23 |
 | django/otto/\_\_init\_\_.py                                                                                   |        2 |        0 |    100% |           |
@@ -219,11 +219,11 @@
 | django/text\_extractor/migrations/0004\_outputfile\_usd\_cost.py                                              |        4 |        0 |    100% |           |
 | django/text\_extractor/migrations/\_\_init\_\_.py                                                             |        0 |        0 |    100% |           |
 | django/text\_extractor/models.py                                                                              |       17 |        1 |     94% |        28 |
-| django/text\_extractor/tasks.py                                                                               |       18 |        2 |     89% |     32-33 |
+| django/text\_extractor/tasks.py                                                                               |       18 |        2 |     89% |     34-35 |
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
-| django/text\_extractor/utils.py                                                                               |      208 |       40 |     81% |57-80, 121-122, 174, 211, 285-287, 341-345, 352-353, 359, 365-369 |
+| django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **9775** | **1168** | **88%** |           |
+|                                                                                                     **TOTAL** | **9785** | **1170** | **88%** |           |
 
 
 ## Setup coverage badge
