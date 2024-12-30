@@ -704,6 +704,7 @@ def resize_to_azure_requirements(content):
     else:
         with io.BytesIO(content) as image_file:
             image = Image.open(image_file)
+            image.load()
 
     width, height = image.size
     if width < 50 or height < 50:
