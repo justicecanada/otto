@@ -38,7 +38,8 @@
         <input type="hidden" name="prompt" value="">
         <div id="error-message"
              class="alert alert-danger d-none mt-3"
-             role="alert"></div>
+             role="alert"
+             tabindex="-1"></div>
         <div class="col-12">
           <div id="en-content" class="language-content active">
             <div class="mb-3">
@@ -165,6 +166,8 @@
           if (modal) {
               modal.hide();
           }
+      } else {
+          errorMessage.focus();
       }
   }
 
