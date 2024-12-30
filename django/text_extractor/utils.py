@@ -180,7 +180,7 @@ def create_searchable_pdf(input_file, add_header):
         )
 
     # Running OCR using Azure Form Recognizer Read API------
-    # AZURE'S document analysis-------------------
+    # AZURE'S document analysis API-------------------
     # document_analysis_client = DocumentAnalysisClient(
     #     endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
     #     credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
