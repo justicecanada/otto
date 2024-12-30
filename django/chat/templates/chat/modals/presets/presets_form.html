@@ -36,6 +36,9 @@
       <div class="tab-content rounded px-3 mb-3 border">
         {% csrf_token %}
         <input type="hidden" name="prompt" value="">
+        <div id="error-message"
+             class="alert alert-danger d-none mt-3"
+             role="alert"></div>
         <div class="col-12">
           <div id="en-content" class="language-content active">
             <div class="mb-3">
@@ -87,9 +90,6 @@
             </div>
           </div>
         {% endif %}
-        <div id="error-message"
-             class="alert alert-danger d-none mt-3"
-             role="alert"></div>
       </div>
     </div>
     <div class="modal-footer pb-0 pt-1 border-0">
