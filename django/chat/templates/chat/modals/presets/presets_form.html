@@ -1,6 +1,5 @@
 {% load i18n %}
 
-{% csrf_token %}
 <div class="modal-body preset-form-container">
   <form class="g-3 mt-1 row"
         id="edit_preset_form"
@@ -98,7 +97,7 @@
         <div class="row">
           <div class="col-6">
             <button id="cancel_preset"
-                    class="btn btn-outline-secondary w-25 flex-fill me-2"
+                    class="btn btn-outline-secondary flex-fill me-2"
                     hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
                     hx-target="#presets-modal-body"
                     hx-swap="innerHTML transition:true"
@@ -106,7 +105,7 @@
  
             {% if preset_id %}
               <button id="delete_preset"
-                      class="btn btn-outline-danger w-25 flex-fill"
+                      class="btn btn-outline-danger flex-fill"
                       hx-get="{% url 'chat:chat_options' chat_id=chat_id action='delete_preset' preset_id=preset_id %}"
                       hx-target="#presets-modal-body"
                       hx-swap="innerHTML transition:true"
@@ -115,7 +114,7 @@
             {% endif %}
           </div>
           <div class="col-6 text-end">
-            <button class="btn btn-dark flex-fill w-25"
+            <button class="btn btn-dark flex-fill"
                     type="submit"
                     onclick="handlePresetModalSubmit(event)">{% trans "Save" %}</button>
  
@@ -145,8 +144,6 @@
           isValid = false;
       }
 
-      console.log(sharingOption)
-      console.log(accessibleToElement)
       if (sharingOption === 'others' && !accessibleToElement) {
           errorMessage.innerText = "{% trans 'Please provide at least one user for the accessible field.' %}";
           errorMessage.classList.remove('d-none');
