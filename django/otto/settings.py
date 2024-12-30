@@ -170,6 +170,7 @@ INSTALLED_APPS = [
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
     "django_celery_beat",
+    "concierge_service",
 ]
 
 MIDDLEWARE = [

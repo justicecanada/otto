@@ -90,3 +90,20 @@
           description_fr: Extrait de texte et d'écriture manuscrite à partir de PDF numérisés et d'images avec OCR activé par l'IA.
           url: text_extractor:index
           category: other
+
+- model: otto.App
+  fields:
+    handle: concierge_service
+    name_en: Concierge Service
+    name_fr: placeholder
+    prod_ready: false
+    user_group: Concierge Service user
+    features:
+      - fields:
+          short_name: "concierge_service"
+          name_en: Concierge Service
+          name_fr: placeholder
+          description_en: Make requests, and track status/results of, short-term AI-driven results.
+          description_fr: Placeholder.
+          url: concierge_service:index
+          category: other

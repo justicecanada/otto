@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}
+  {% trans "Concierge Service - Otto" %}
+{% endblock %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'concierge_service:index' %}">{% trans "Concierge Service" %}</a>
+  </li>
+{% endblock %}
