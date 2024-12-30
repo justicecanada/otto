@@ -9,7 +9,11 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient
-from azure.ai.documentintelligence.models import AnalyzeOutputOption, AnalyzeResult
+from azure.ai.documentintelligence.models import (
+    AnalyzeOutputOption,
+    AnalyzeResult,
+    DocumentAnalysisFeature,
+)
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
@@ -224,10 +228,12 @@ def create_searchable_pdf(input_file, add_header):
     document_intelligence_client = DocumentIntelligenceClient(
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
         credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+        api_version="2024-11-30",
     )
     with open(temp_path, "rb") as f:
         poller = document_intelligence_client.begin_analyze_document(
             "prebuilt-read",
+            body=f,
             output=[AnalyzeOutputOption.PDF],
         )
     result: AnalyzeResult = poller.result()
@@ -236,23 +242,32 @@ def create_searchable_pdf(input_file, add_header):
     response = document_intelligence_client.get_analyze_result_pdf(
         model_id=result.model_id, result_id=operation_id
     )
-    with open("analyze_result.pdf", "wb") as writer:
-        writer.writelines(response)
 
-    # num_pages = len(ocr_results.pages)
+    # num_pages = len(response.pages)
     # logger.debug(
-    #     f"Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages."
+    #     f"Azure Form Recognizer finished OCR text for {len(response.pages)} pages."
     # )
-    # all_text = []
-    # for page in ocr_results.pages:
+    all_text = []
+    # for page in response.pages:  # maybe theres an easier way to just get it in one line
     #     for line in page.lines:
     #         all_text.append(line.content)
 
     # all_text = "\n".join(all_text)
 
     # # Generate OCR overlay layer
-    # output = PdfWriter()
+    output_buffer = io.BytesIO()
+    for chunk in response:
+        output_buffer.write(chunk)
 
+    output_buffer.seek(0)
+    output = PdfWriter(output_buffer)
+
+    # all_text = []
+    # for page in output.pages:
+    #     for line in page.extract_text().split('\n'):
+    #         all_text.append(line)
+
+    # all_text = "\n".join(all_text)
     # for page_id, page in enumerate(ocr_results.pages):
     #     ocr_overlay = io.BytesIO()
     #     # Calculate overlay PDF page size
@@ -348,7 +363,7 @@ def create_searchable_pdf(input_file, add_header):
     #     output.add_page(new_pdf_page.pages[0])
 
     # cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
-    # return output, all_text, cost.usd_cost
+    return output, all_text, 2  # cost.usd_cost
 
 
 def shorten_input_name(input_name):

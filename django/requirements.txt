@@ -34,7 +34,7 @@ azure-ai-formrecognizer==3.3.3
 azure-ai-translation-document==1.0.0
 azure-storage-blob==12.24.0
 msgraph-sdk==1.5.3
-
+azure-ai-documentintelligence==1.0.0
 # LLM-related ------------------------------------------------------------------
 openai==1.56.2
 llama-index-core==0.12.2
