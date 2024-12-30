@@ -12,7 +12,7 @@ from django_extensions.management.utils import signalcommand
 
 from chat.models import ChatOptions, Preset
 from librarian.models import DataSource, Document, Library
-from otto.models import App, UsageTerm, User
+from otto.models import App, UsageTerm
 
 
 class Command(BaseCommand):
