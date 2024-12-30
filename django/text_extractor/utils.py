@@ -247,7 +247,7 @@ def create_searchable_pdf(input_file, add_header):
     # logger.debug(
     #     f"Azure Form Recognizer finished OCR text for {len(response.pages)} pages."
     # )
-    all_text = []
+    all_text = "hiweurh eirjerej wejroeiwrjiwej"
     # for page in response.pages:  # maybe theres an easier way to just get it in one line
     #     for line in page.lines:
     #         all_text.append(line.content)
@@ -268,99 +268,6 @@ def create_searchable_pdf(input_file, add_header):
     #         all_text.append(line)
 
     # all_text = "\n".join(all_text)
-    # for page_id, page in enumerate(ocr_results.pages):
-    #     ocr_overlay = io.BytesIO()
-    #     # Calculate overlay PDF page size
-    #     if image_pages[page_id].height > image_pages[page_id].width:
-    #         page_scale = float(image_pages[page_id].height) / pagesizes.letter[1]
-    #     else:
-    #         page_scale = float(image_pages[page_id].width) / pagesizes.letter[1]
-
-    #     page_width = float(image_pages[page_id].width) / page_scale
-    #     page_height = float(image_pages[page_id].height) / page_scale
-
-    #     scale = (page_width / page.width + page_height / page.height) / 2.0
-    #     pdf_canvas = canvas.Canvas(ocr_overlay, pagesize=(page_width, page_height))
-
-    #     # Add image into PDF page
-    #     pdf_canvas.drawInlineImage(
-    #         image_pages[page_id],
-    #         0,
-    #         0,
-    #         width=page_width,
-    #         height=page_height,
-    #         preserveAspectRatio=True,
-    #     )
-
-    #     text = pdf_canvas.beginText()
-    #     # Set text rendering mode to invisible
-    #     text.setTextRenderMode(3)
-
-    #     for word in page.words:
-    #         # Calculate optimal font size
-    #         desired_text_width = (
-    #             max(
-    #                 dist(word.polygon[0], word.polygon[1]),
-    #                 dist(word.polygon[3], word.polygon[2]),
-    #             )
-    #             * scale
-    #         )
-    #         desired_text_height = (
-    #             max(
-    #                 dist(word.polygon[1], word.polygon[2]),
-    #                 dist(word.polygon[0], word.polygon[3]),
-    #             )
-    #             * scale
-    #         )
-    #         font_size = desired_text_height
-    #         actual_text_width = pdf_canvas.stringWidth(
-    #             word.content, default_font, font_size
-    #         )
-
-    #         # Calculate text rotation angle
-    #         text_angle = math.atan2(
-    #             (
-    #                 word.polygon[1].y
-    #                 - word.polygon[0].y
-    #                 + word.polygon[2].y
-    #                 - word.polygon[3].y
-    #             )
-    #             / 2.0,
-    #             (
-    #                 word.polygon[1].x
-    #                 - word.polygon[0].x
-    #                 + word.polygon[2].x
-    #                 - word.polygon[3].x
-    #             )
-    #             / 2.0,
-    #         )
-    #         text.setFont(default_font, font_size)
-    #         text.setTextTransform(
-    #             math.cos(text_angle),
-    #             -math.sin(text_angle),
-    #             math.sin(text_angle),
-    #             math.cos(text_angle),
-    #             word.polygon[3].x * scale,
-    #             page_height - word.polygon[3].y * scale,
-    #         )
-    #         text.setHorizScale(desired_text_width / actual_text_width * 100)
-    #         text.textOut(word.content + " ")
-
-    #     # add header
-    #     if add_header:
-    #         header_text = f"Filename: {str(input_file)}"
-    #         pdf_canvas.setFont(default_font, 10)
-    #         pdf_canvas.drawString(30, page_height - 30, header_text)
-
-    #     pdf_canvas.drawText(text)
-    #     pdf_canvas.save()
-
-    #     # Move to the beginning of the buffer
-    #     ocr_overlay.seek(0)
-
-    #     # Create a new PDF page
-    #     new_pdf_page = PdfReader(ocr_overlay)  # changed
-    #     output.add_page(new_pdf_page.pages[0])
 
     # cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
     return output, all_text, 2  # cost.usd_cost
