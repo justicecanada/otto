@@ -19,6 +19,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from structlog import get_logger
 
+from librarian.utils.process_engine import resize_to_azure_requirements
+
 logger = get_logger(__name__)
 
 from otto.models import Cost
@@ -128,35 +130,6 @@ def resize_image_to_a4(img, dpi=300):  # used only when merge is on
     return background
 
 
-def resize_to_azure_images(image):
-    width, height = image.size
-    if width < 50 or height < 50:
-        # Resize to at least 50 pixels
-        if width <= height:
-            new_width = 50
-            new_height = int(height * (50 / width))
-        else:
-            new_height = 50
-            new_width = int(width * (50 / height))
-    elif width > 10000 or height > 10000:
-        # Resize to max 10000 pixels
-        if width >= height:
-            new_width = 10000
-            new_height = int(height * (10000 / width))
-        else:
-            new_height = 10000
-            new_width = int(width * (10000 / height))
-    else:
-        new_width, new_height = width, height
-    # Edge case: insanely wide or tall images. Don't maintain proportions.
-    new_width = max(50, min(new_width, 10000))
-    new_height = max(50, min(new_height, 10000))
-
-    # Resize the image
-    image = image.resize((new_width, new_height), Resampling.LANCZOS)
-    return image
-
-
 def dist(p1, p2):
     return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
@@ -197,7 +170,8 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             with Image.open(temp_path) as img:
                 image_pages_original = ImageSequence.Iterator(img)
                 image_pages = [
-                    resize_to_azure_images(image) for image in image_pages_original
+                    resize_to_azure_requirements(image)
+                    for image in image_pages_original
                 ]
 
         # Save the resized images to a new temporary file

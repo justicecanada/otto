@@ -699,33 +699,44 @@ def excel_to_markdown(content):
 def resize_to_azure_requirements(content):
     from PIL import Image
 
-    with io.BytesIO(content) as image_file:
-        image = Image.open(image_file)
-        width, height = image.size
-        if width < 50 or height < 50:
-            # Resize to at least 50 pixels
-            if width <= height:
-                new_width = 50
-                new_height = int(height * (50 / width))
-            else:
-                new_height = 50
-                new_width = int(width * (50 / height))
-        elif width > 10000 or height > 10000:
-            # Resize to max 10000 pixels
-            if width >= height:
-                new_width = 10000
-                new_height = int(height * (10000 / width))
-            else:
-                new_height = 10000
-                new_width = int(width * (10000 / height))
+    if isinstance(content, Image.Image):
+        image = content
+    else:
+        with io.BytesIO(content) as image_file:
+            image = Image.open(image_file)
+
+    width, height = image.size
+    if width < 50 or height < 50:
+        # Resize to at least 50 pixels
+        if width <= height:
+            new_width = 50
+            new_height = int(height * (50 / width))
+        else:
+            new_height = 50
+            new_width = int(width * (50 / height))
+    elif width > 10000 or height > 10000:
+        # Resize to max 10000 pixels
+        if width >= height:
+            new_width = 10000
+            new_height = int(height * (10000 / width))
+        else:
+            new_height = 10000
+            new_width = int(width * (10000 / height))
+    else:
+        if isinstance(content, Image.Image):
+            new_width, new_height = width, height
         else:
             return content
-        # Edge case: insanely wide or tall images. Don't maintain proportions.
-        new_width = min(new_width, 10000)
-        new_height = min(new_height, 10000)
-        new_width = max(new_width, 50)
-        new_height = max(new_height, 50)
-        image = image.resize((new_width, new_height))
+    # Edge case: insanely wide or tall images. Don't maintain proportions.
+    new_width = min(new_width, 10000)
+    new_height = min(new_height, 10000)
+    new_width = max(new_width, 50)
+    new_height = max(new_height, 50)
+    image = image.resize((new_width, new_height))
+
+    if isinstance(content, Image.Image):
+        return image
+    else:
         with io.BytesIO() as output:
             image.save(output, format="PNG")
             content = output.getvalue()
