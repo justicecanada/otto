@@ -144,6 +144,7 @@ def mock_pdf_file2():
 
     with open(filename, "rb") as f:
         yield f
+    os.remove(filename)
 
 
 # yields filename and content
