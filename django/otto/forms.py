@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from autocomplete import widgets
 
 from chat.models import Message, Preset
-from otto.models import App, Feedback, Pilot
+from otto.models import Feedback, Intake, Pilot
 
 User = get_user_model()
 
@@ -76,6 +76,68 @@ class FeedbackForm(ModelForm):
                 self.fields["app"].initial = "chat"
 
             self.fields["chat_message"].initial = message_id
+
+
+class IntakeForm(ModelForm):
+    class Meta:
+        model = Intake
+
+        fields = [
+            "urgency",
+            "doc_description",
+            "purpose",
+            "desired_info",
+            "preferred_format",
+            "further_details",
+            "created_by",
+            "modified_by",
+        ]
+
+        widgets = {
+            "urgency": forms.Select(),
+            "modified_by": forms.HiddenInput(),
+            "created_by": forms.HiddenInput(),
+            "doc_description": forms.Textarea(),
+            "purpose": forms.Textarea(),
+            "desired_info": forms.Textarea(),
+            "preferred_format": forms.Textarea(),
+            "further_details": forms.Textarea(),
+        }
+
+        # labels = {
+        #     "feedback_message": _(
+        #         "Let us know what went wrong, or suggest an improvement."
+        #     ),
+        # }
+
+    def __init__(self, user, *args, **kwargs):
+        super(IntakeForm, self).__init__(*args, **kwargs)
+        self.fields["created_by"].initial = user
+        self.fields["modified_by"].initial = user
+        # self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
+
+        # if message_id is not None:
+        #     self.fields["chat_message"].initial = message_id
+        #     self.initialize_chat_feedback(message_id)
+        # else:
+        #     self.fields["chat_message"].initial = ""
+        #     self.fields["app"].initial = "Otto"
+
+        # self.fields["chat_message"].required = False
+
+    # def initialize_chat_feedback(self, message_id):
+    #     if message_id:
+    #         chat_mode = Message.objects.get(id=message_id).mode
+    #         if chat_mode == "translate":
+    #             self.fields["app"].initial = "translate"
+    #         elif chat_mode == "summarize":
+    #             self.fields["app"].initial = "summarize"
+    #         elif chat_mode == "qa":
+    #             self.fields["app"].initial = "qa"
+    #         else:
+    #             self.fields["app"].initial = "chat"
+
+    #         self.fields["chat_message"].initial = message_id
 
 
 class FeedbackMetadataForm(ModelForm):

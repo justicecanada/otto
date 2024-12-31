@@ -345,6 +345,48 @@ class Feedback(models.Model):
         return dict(self.FEEDBACK_TYPE_CHOICES)[self.feedback_type]
 
 
+class Intake(models.Model):
+    URGENCY_CHOICES = [
+        ("asap", _("As soon as possible (ASAP)")),
+        ("eod", _("End of day (EOD)")),
+        ("tomorrow", _("Tomorrow")),
+        ("not_urgent", _("Not urgent")),
+        ("other", _("Other")),
+    ]
+
+    urgency = models.CharField(
+        max_length=50,
+        choices=URGENCY_CHOICES,
+        blank=False,
+        default="asap",
+    )
+
+    doc_description = models.TextField(blank=False)
+    purpose = models.TextField(blank=False)
+    desired_info = models.TextField(blank=False)
+    preferred_format = models.TextField(blank=False)
+    further_details = models.TextField()
+
+    admin_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="intake",
+    )
+
+    modified_on = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="modified_intake",
+    )
+
+    # objects = FeedbackManager()
+
+
 class SecurityLabel(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField()

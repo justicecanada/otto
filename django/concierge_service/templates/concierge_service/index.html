@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load i18n %}
+{% csrf_token %}
 
 {% block page_title %}
   {% trans "Concierge Service - Otto" %}
@@ -11,4 +12,30 @@
   <li class="breadcrumb-item">
     <a href="{% url 'concierge_service:index' %}">{% trans "Concierge Service" %}</a>
   </li>
+{% endblock %}
+
+{% block body %}
+
+  <form method="post"
+        id="intake-form"
+        hx-post="{% url 'concierge_service:index' %}"
+        hx-target="this"
+        hx-swap="outerHTML">
+    {{ form.modified_by }}
+    {{ form.created_by }}
+    {{ form.urgency }}
+    {{ form.doc_description }}
+    {{ form.desired_info }}
+    {{ form.purpose }}
+    {{ form.preferred_format }}
+    {{ form.further_details }}
+
+    <div class="modal-footer">
+      <button type="button"
+              id="cancelButton"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+      <button type="submit" id="intake-submit-button" class="btn btn-primary">{% trans "Submit" %}</button>
+    </div>
+  </form>
 {% endblock %}
