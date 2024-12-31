@@ -367,7 +367,7 @@ The script will:
 
 2. Setup and deploy to Azure Kubernetes Service
 
-See `/setup` folder to follow the `README.md`. These steps will ensure the infrastructure is setup and that the AKS cluster is configured correctly. The final step is to deploy the run the `initial_setup.sh` on the coordinator node.
+See the [otto-infrastructure repo](https://github.com/justicecanada/otto-infrastructure) to follow the `README.md`. These steps will ensure the infrastructure is setup and that the AKS cluster is configured correctly. The final step is to deploy the run the `initial_setup.sh` on the coordinator node.
 
 ## If all else fails
 
