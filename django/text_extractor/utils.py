@@ -247,7 +247,7 @@ def create_searchable_pdf(input_file, add_header):
     # logger.debug(
     #     f"Azure Form Recognizer finished OCR text for {len(response.pages)} pages."
     # )
-    all_text = "hiweurh eirjerej wejroeiwrjiwej"
+
     # for page in response.pages:  # maybe theres an easier way to just get it in one line
     #     for line in page.lines:
     #         all_text.append(line.content)
@@ -262,15 +262,15 @@ def create_searchable_pdf(input_file, add_header):
     output_buffer.seek(0)
     output = PdfWriter(output_buffer)
 
-    # all_text = []
-    # for page in output.pages:
-    #     for line in page.extract_text().split('\n'):
-    #         all_text.append(line)
+    all_text = []
+    for page in output.pages:
+        for line in page.extract_text().split("\n"):
+            all_text.append(line)
 
-    # all_text = "\n".join(all_text)
-
-    # cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
-    return output, all_text, 2  # cost.usd_cost
+    all_text = "\n".join(all_text)
+    num_pages = len(output.pages)
+    cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
+    return output, all_text, cost.usd_cost
 
 
 def shorten_input_name(input_name):
