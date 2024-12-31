@@ -91,7 +91,13 @@ def can_access_preset(user, preset):
 
 @predicate
 def can_edit_preset(user, preset):
-    return user == preset.owner
+    if preset.owner is None:
+        if is_admin(user):
+            return True
+        else:
+            return False
+    else:
+        return user == preset.owner
 
 
 add_perm("chat.access_chat", can_access_chat)

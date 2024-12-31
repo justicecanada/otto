@@ -36,7 +36,7 @@ def test_chat_options(client, all_apps_user):
     options_form = ChatOptionsForm(instance=new_chat.options, user=user)
     options_form_data = options_form.initial
     options_form_data["qa_library"] = 1
-    options_form_data["chat_system_prompt"] = (
+    options_form_data["chat_system_prompt_en"] = (
         "You are a cowboy-themed AI, and always start your response with 'Howdy!'"
     )
     # Fix up the form data so that it matches POST data from browser
@@ -54,7 +54,8 @@ def test_chat_options(client, all_apps_user):
 
     # Check that the chat options have been updated in the database
     assert (
-        new_chat.options.chat_system_prompt == options_form_data["chat_system_prompt"]
+        new_chat.options.chat_system_prompt
+        == options_form_data["chat_system_prompt_en"]
     )
 
     preset_form_data = {
@@ -99,7 +100,7 @@ def test_chat_options(client, all_apps_user):
     assert "Please tell me a joke about cows." in response.content.decode("utf-8")
 
     # make a change in our chat options
-    options_form_data["chat_system_prompt"] = "start each response with 'Yeehaw!'"
+    options_form_data["chat_system_prompt_en"] = "start each response with 'Yeehaw!'"
     # Submit the form
     response = client.post(
         reverse("chat:chat_options", args=[new_chat.id]), options_form_data

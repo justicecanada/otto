@@ -574,7 +574,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
             if form.is_valid():
                 if preset_id:
-                    preset = get_object_or_404(Preset, id=preset_id, owner=request.user)
+                    preset = get_object_or_404(Preset, id=preset_id)
                     replace_with_settings = request.POST.get(
                         "replace_with_settings", False
                     )
