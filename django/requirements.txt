@@ -7,7 +7,7 @@ python-dotenv==1.0.1
 Django==5.1.1
 django-storages==1.14.4
 whitenoise==6.7.0
-channels==4.1.0
+channels==4.2.0
 daphne==4.1.2
 django-modeltranslation==0.18.11
 django-prometheus==2.3.1
