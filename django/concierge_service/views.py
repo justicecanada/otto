@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_protect
 from structlog import get_logger
 
 from otto.forms import IntakeForm
-from otto.models import Intake
+from otto.models import ConciergeRequest
 from otto.utils.decorators import app_access_required
 
 app_name = "concierge_service"
@@ -21,6 +21,28 @@ logger = get_logger(__name__)
 @login_required
 @csrf_protect
 def index(request):
+    subcategories = [
+        {
+            "name": _("Intake form"),
+            "description": _("Submit a request for concierge service."),
+        },
+        {
+            "name": _("Request tracker"),
+            "description": _("Track the status of your concierge service requests."),
+        },
+    ]
+
+    return render(
+        request,
+        "concierge_service/index.html",
+        context={"subcategories": subcategories},
+    )
+
+
+@app_access_required(app_name)
+@login_required
+@csrf_protect
+def intake_form(request):
     if request.method == "POST":
         from django.contrib import messages
 
@@ -46,7 +68,7 @@ def index(request):
         form = IntakeForm(request.user)
     return render(
         request,
-        "concierge_service/index.html",
+        "concierge_service/intake_form.html",
         {
             "form": form,
             # "hide_breadcrumbs": True,
@@ -58,7 +80,7 @@ def index(request):
 @login_required
 @csrf_protect
 def request_tracker(request, id):
-    intake_instance = Intake.objects.get(id=id)
+    intake_instance = ConciergeRequest.objects.get(id=id)
 
     return render(
         request,

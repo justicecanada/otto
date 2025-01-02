@@ -345,7 +345,7 @@ class Feedback(models.Model):
         return dict(self.FEEDBACK_TYPE_CHOICES)[self.feedback_type]
 
 
-class Intake(models.Model):
+class ConciergeRequest(models.Model):
     URGENCY_CHOICES = [
         ("asap", _("As soon as possible (ASAP)")),
         ("eod", _("End of day (EOD)")),

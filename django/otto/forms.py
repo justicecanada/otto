@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from autocomplete import widgets
 
 from chat.models import Message, Preset
-from otto.models import Feedback, Intake, Pilot
+from otto.models import ConciergeRequest, Feedback, Pilot
 
 User = get_user_model()
 
@@ -80,7 +80,7 @@ class FeedbackForm(ModelForm):
 
 class IntakeForm(ModelForm):
     class Meta:
-        model = Intake
+        model = ConciergeRequest
 
         fields = [
             "urgency",
