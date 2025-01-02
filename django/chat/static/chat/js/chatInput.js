@@ -81,5 +81,11 @@ document.addEventListener('mouseup', function () {
     document.querySelector('#chat-prompt').focus();
   }
 });
-
-
+document.getElementById('copy-result').addEventListener('click', function () {
+  const editableResult = document.getElementById('editable-result');
+  navigator.clipboard.writeText(editableResult.value).then(function () {
+    alert('{% trans "Copied to clipboard!" %}');
+  }).catch(function (err) {
+    console.error('Could not copy text: ', err);
+  });
+});
