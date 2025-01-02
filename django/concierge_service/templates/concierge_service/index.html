@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}
+  {% trans "Concierge Service - Otto" %}
+{% endblock %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'concierge_service:intake_form' %}">{% trans "Concierge Service" %}</a>
+  </li>
+{% endblock %}
+
+{% block body %}
+ 
+  <div id="app-list">
+    {% for feature in subcategories %}
+      {% include 'components/feature_tile.html' %}
+    {% endfor %}
+  </div>
+ 
+ 
+{% endblock %}

@@ -23,10 +23,14 @@ logger = get_logger(__name__)
 def index(request):
     subcategories = [
         {
+            "url": "concierge_service:intake_form",
+            "category": "other",
             "name": _("Intake form"),
             "description": _("Submit a request for concierge service."),
         },
         {
+            "url": "concierge_service:intake_form",
+            "category": "reporting",
             "name": _("Request tracker"),
             "description": _("Track the status of your concierge service requests."),
         },
