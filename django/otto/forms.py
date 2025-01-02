@@ -97,11 +97,11 @@ class IntakeForm(ModelForm):
             "urgency": forms.Select(),
             "modified_by": forms.HiddenInput(),
             "created_by": forms.HiddenInput(),
-            "doc_description": forms.Textarea(),
-            "purpose": forms.Textarea(),
-            "desired_info": forms.Textarea(),
-            "preferred_format": forms.Textarea(),
-            "further_details": forms.Textarea(),
+            "doc_description": forms.Textarea({"class": "form-control"}),
+            "purpose": forms.Textarea({"class": "form-control"}),
+            "desired_info": forms.Textarea({"class": "form-control"}),
+            "preferred_format": forms.Textarea({"class": "form-control"}),
+            "further_details": forms.Textarea({"class": "form-control"}),
         }
 
         # labels = {
