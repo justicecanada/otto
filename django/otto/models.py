@@ -353,6 +353,13 @@ class Intake(models.Model):
         ("not_urgent", _("Not urgent")),
     ]
 
+    STATUS_CHOICES = [
+        ("submitted", _("Submitted to Concierge Team")),
+        ("in_progress", _("In progress")),
+        ("awaiting_response", _("Awaiting response")),
+        ("complete", _("Complete")),
+    ]
+
     urgency = models.CharField(
         max_length=50,
         choices=URGENCY_CHOICES,
@@ -360,6 +367,11 @@ class Intake(models.Model):
         default="asap",
     )
 
+    status = models.CharField(
+        max_length=50, choices=STATUS_CHOICES, blank=False, default="submitted"
+    )
+
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     doc_description = models.TextField(blank=False)
     purpose = models.TextField(blank=False)
     desired_info = models.TextField(blank=False)
@@ -382,8 +394,6 @@ class Intake(models.Model):
         null=True,
         related_name="modified_intake",
     )
-
-    # objects = FeedbackManager()
 
 
 class SecurityLabel(models.Model):

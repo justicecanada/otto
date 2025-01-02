@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_protect
 from structlog import get_logger
 
 from otto.forms import IntakeForm
+from otto.models import Intake
 from otto.utils.decorators import app_access_required
 
 app_name = "concierge_service"
@@ -49,3 +50,7 @@ def index(request):
             # "hide_breadcrumbs": True,
         },
     )
+
+
+# def request_tracker(request, id):
+#     intake_instance = Intake.get(uuid=uuid)
