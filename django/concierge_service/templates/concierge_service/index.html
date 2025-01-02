@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load i18n %}
-{% csrf_token %}
 
 {% block page_title %}
   {% trans "Concierge Service - Otto" %}
@@ -18,9 +17,9 @@
 
   <form method="post"
         id="intake-form"
-        hx-post="{% url 'concierge_service:index' %}"
-        hx-target="this"
-        hx-swap="outerHTML">
+        action="{% url 'concierge_service:index' %}">
+    {% csrf_token %}
+
  
     {% for field in form.visible_fields %}
       <div class="mb-4">

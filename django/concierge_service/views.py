@@ -2,7 +2,7 @@
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_protect
@@ -35,9 +35,11 @@ def index(request):
             intake_saved.save()
             messages.success(
                 request,
-                _("intake submitted successfully."),
+                _(
+                    "Thank you for your submission! Use this page to track the status of your request."
+                ),
             )
-            return HttpResponse(status=200)
+            return redirect("concierge_service:status", id=form.instance.id)
         else:
             return HttpResponse(form.errors, status=400)
     else:
@@ -52,5 +54,14 @@ def index(request):
     )
 
 
-# def request_tracker(request, id):
-#     intake_instance = Intake.get(uuid=uuid)
+@app_access_required(app_name)
+@login_required
+@csrf_protect
+def request_tracker(request, id):
+    intake_instance = Intake.objects.get(id=id)
+
+    return render(
+        request,
+        "concierge_service/status.html",
+        context={"status": intake_instance.status},
+    )

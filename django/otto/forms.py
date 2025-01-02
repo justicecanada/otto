@@ -123,16 +123,17 @@ class IntakeForm(ModelForm):
         super(IntakeForm, self).__init__(*args, **kwargs)
         self.fields["created_by"].initial = user
         self.fields["modified_by"].initial = user
-        # self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
 
-        # if message_id is not None:
-        #     self.fields["chat_message"].initial = message_id
-        #     self.initialize_chat_feedback(message_id)
-        # else:
-        #     self.fields["chat_message"].initial = ""
-        #     self.fields["app"].initial = "Otto"
+    # self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
 
-        # self.fields["chat_message"].required = False
+    # if message_id is not None:
+    #     self.fields["chat_message"].initial = message_id
+    #     self.initialize_chat_feedback(message_id)
+    # else:
+    #     self.fields["chat_message"].initial = ""
+    #     self.fields["app"].initial = "Otto"
+
+    # self.fields["chat_message"].required = False
 
     # def initialize_chat_feedback(self, message_id):
     #     if message_id:
