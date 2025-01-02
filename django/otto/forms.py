@@ -93,10 +93,10 @@ class IntakeForm(ModelForm):
             "modified_by",
         ]
 
-        textarea_format = {"class": "form-control", "rows": 4}
+        textarea_format = {"class": "form-control form-control-sm mb-4", "rows": 6}
 
         widgets = {
-            "urgency": forms.Select(),
+            "urgency": forms.Select({"class": "form-control form-control-sm"}),
             "modified_by": forms.HiddenInput(),
             "created_by": forms.HiddenInput(),
             "doc_description": forms.Textarea(textarea_format),
@@ -106,11 +106,18 @@ class IntakeForm(ModelForm):
             "further_details": forms.Textarea(textarea_format),
         }
 
-        # labels = {
-        #     "feedback_message": _(
-        #         "Let us know what went wrong, or suggest an improvement."
-        #     ),
-        # }
+        labels = {
+            "urgency": _("How urgent is this request?"),
+            "doc_description": _(
+                "Describe the documents that should be used for this request."
+            ),
+            "purpose": _("What is the purpose/desired outcome of this request?"),
+            "desired_info": _("What information should we extract?"),
+            "preferred_format": _("How should output be formatted (e.g. bullet point)"),
+            "further_details": _(
+                "Any further details (e.g. specific relevant individuals, legal details, etc.)?"
+            ),
+        }
 
     def __init__(self, user, *args, **kwargs):
         super(IntakeForm, self).__init__(*args, **kwargs)

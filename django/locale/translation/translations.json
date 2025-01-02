@@ -2638,5 +2638,57 @@
     "We ask that users delete their chats and file uploads from the system after 30 days, unless still required. This proactive approach ensures data security, respects privacy principles and information management best practices.": {
         "fr": "",
         "fr_auto": "Nous demandons aux utilisateurs de supprimer leurs discussions et leurs téléchargements de fichiers du système après 30 jours, sauf si cela est toujours nécessaire. Cette approche proactive assure la sécurité des données, respecte les principes de confidentialité et les pratiques exemplaires en matière de gestion de l’information."
+    },
+    "Concierge Service - Otto": {
+        "fr": "",
+        "fr_auto": "Service de conciergerie - Otto"
+    },
+    "Concierge Service": {
+        "fr": "",
+        "fr_auto": "Service de conciergerie"
+    },
+    "intake submitted successfully.": {
+        "fr": "",
+        "fr_auto": "l’admission a été soumise avec succès."
+    },
+    "How urgent is this request?": {
+        "fr": "",
+        "fr_auto": "Quelle est l’urgence de cette demande ?"
+    },
+    "Describe the documents that should be used for this request.": {
+        "fr": "",
+        "fr_auto": "Décrivez les documents qui devraient être utilisés pour cette demande."
+    },
+    "What is the purpose/desired outcome of this request?": {
+        "fr": "",
+        "fr_auto": "Quel est le but ou le résultat souhaité de cette demande ?"
+    },
+    "What information should we extract?": {
+        "fr": "",
+        "fr_auto": "Quelles informations devrions-nous extraire ?"
+    },
+    "How should output be formatted (e.g. bullet point)": {
+        "fr": "",
+        "fr_auto": "Comment la sortie doit-elle être formatée (p. ex. puce)"
+    },
+    "Any further details (e.g. specific relevant individuals, legal details, etc.)?": {
+        "fr": "",
+        "fr_auto": "D’autres détails (par exemple, des personnes pertinentes spécifiques, des détails juridiques, etc.) ?"
+    },
+    "As soon as possible (ASAP)": {
+        "fr": "",
+        "fr_auto": "Dès que possible (dès que possible)"
+    },
+    "End of day (EOD)": {
+        "fr": "",
+        "fr_auto": "Fin de journée (EOD)"
+    },
+    "Tomorrow": {
+        "fr": "",
+        "fr_auto": "Demain"
+    },
+    "Not urgent": {
+        "fr": "",
+        "fr_auto": "Pas urgent"
     }
 }

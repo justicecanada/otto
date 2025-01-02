@@ -351,7 +351,6 @@ class Intake(models.Model):
         ("eod", _("End of day (EOD)")),
         ("tomorrow", _("Tomorrow")),
         ("not_urgent", _("Not urgent")),
-        ("other", _("Other")),
     ]
 
     urgency = models.CharField(
