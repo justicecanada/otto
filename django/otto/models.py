@@ -365,7 +365,7 @@ class Intake(models.Model):
     purpose = models.TextField(blank=False)
     desired_info = models.TextField(blank=False)
     preferred_format = models.TextField(blank=False)
-    further_details = models.TextField()
+    further_details = models.TextField(blank=True)
 
     admin_notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

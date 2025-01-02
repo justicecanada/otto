@@ -93,15 +93,17 @@ class IntakeForm(ModelForm):
             "modified_by",
         ]
 
+        textarea_format = {"class": "form-control", "rows": 4}
+
         widgets = {
             "urgency": forms.Select(),
             "modified_by": forms.HiddenInput(),
             "created_by": forms.HiddenInput(),
-            "doc_description": forms.Textarea({"class": "form-control"}),
-            "purpose": forms.Textarea({"class": "form-control"}),
-            "desired_info": forms.Textarea({"class": "form-control"}),
-            "preferred_format": forms.Textarea({"class": "form-control"}),
-            "further_details": forms.Textarea({"class": "form-control"}),
+            "doc_description": forms.Textarea(textarea_format),
+            "purpose": forms.Textarea(textarea_format),
+            "desired_info": forms.Textarea(textarea_format),
+            "preferred_format": forms.Textarea(textarea_format),
+            "further_details": forms.Textarea(textarea_format),
         }
 
         # labels = {

@@ -1,7 +1,7 @@
 # Create your views here.
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -18,6 +18,7 @@ logger = get_logger(__name__)
 
 @app_access_required(app_name)
 @login_required
+@csrf_protect
 def index(request):
     if request.method == "POST":
         from django.contrib import messages
