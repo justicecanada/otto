@@ -2,7 +2,7 @@ name: Post coverage comment
 
 on:
   workflow_run:
-    workflows: ["Django CI"]
+    workflows: ["Django Pytest CI"]
     types:
       - completed
 
