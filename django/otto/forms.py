@@ -126,29 +126,6 @@ class IntakeForm(ModelForm):
 
     # self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
 
-    # if message_id is not None:
-    #     self.fields["chat_message"].initial = message_id
-    #     self.initialize_chat_feedback(message_id)
-    # else:
-    #     self.fields["chat_message"].initial = ""
-    #     self.fields["app"].initial = "Otto"
-
-    # self.fields["chat_message"].required = False
-
-    # def initialize_chat_feedback(self, message_id):
-    #     if message_id:
-    #         chat_mode = Message.objects.get(id=message_id).mode
-    #         if chat_mode == "translate":
-    #             self.fields["app"].initial = "translate"
-    #         elif chat_mode == "summarize":
-    #             self.fields["app"].initial = "summarize"
-    #         elif chat_mode == "qa":
-    #             self.fields["app"].initial = "qa"
-    #         else:
-    #             self.fields["app"].initial = "chat"
-
-    #         self.fields["chat_message"].initial = message_id
-
 
 class FeedbackMetadataForm(ModelForm):
     class Meta:

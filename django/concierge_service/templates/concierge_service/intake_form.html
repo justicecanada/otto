@@ -14,16 +14,21 @@
 {% endblock %}
 
 {% block body %}
-
   <form method="post"
         id="intake-form"
         action="{% url 'concierge_service:intake_form' %}">
     {% csrf_token %}
 
- 
+    <h2 class="h3" id="upload-label">{% trans "Concierge Intake" %}</h2>
+    <p class="text-secondary mb-4">
+      {% trans 'Please fill out the form below. Fields with <span style="color: red;">*</span> are mandatory.' %}
+    </p>
     {% for field in form.visible_fields %}
       <div class="mb-4">
-        <label for="{{ field.auto_id }}" class="col-form-label col-form-label-md">{{ field.label }}</label>
+        <label for="{{ field.auto_id }}" class="col-form-label col-form-label-md">
+          {{ field.label }}
+          {% if field.field.required %}<span style="color: red;">*</span>{% endif %}
+        </label>
         {{ field }}
       </div>
     {% endfor %}
