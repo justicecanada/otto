@@ -2639,6 +2639,14 @@
         "fr": "",
         "fr_auto": "Nous demandons aux utilisateurs de supprimer leurs discussions et leurs téléchargements de fichiers du système après 30 jours, sauf si cela est toujours nécessaire. Cette approche proactive assure la sécurité des données, respecte les principes de confidentialité et les pratiques exemplaires en matière de gestion de l’information."
     },
+    "GPT-4o-mini (fastest, best value)": {
+        "fr": "",
+        "fr_auto": "GPT-4o-mini (le plus rapide, meilleur rapport qualité-prix)"
+    },
+    "GPT-4o (best quality, but 25x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4o (meilleure qualité, mais coût 25x)"
+    },
     "Concierge Service - Otto": {
         "fr": "",
         "fr_auto": "Service de conciergerie - Otto"
