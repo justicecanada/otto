@@ -25,30 +25,6 @@
     unit_cost: 15
     unit_quantity: 1000000
 - model: otto.CostType
-  pk: 5
-  fields:
-    short_name: gpt-4-in
-    name: GPT-4 (input)
-    name_fr: GPT-4 (entrée)
-    description: API calls to Azure OpenAI GPT-4-Turbo model (input)
-    description_fr: Appels API au modèle Azure OpenAI GPT-4-Turbo (entrée)
-    unit_name: tokens
-    unit_name_fr: jetons
-    unit_cost: 10
-    unit_quantity: 1000000
-- model: otto.CostType
-  pk: 6
-  fields:
-    short_name: gpt-4-out
-    name: GPT-4 (output)
-    name_fr: GPT-4 (sortie)
-    description: API calls to Azure OpenAI GPT-4-Turbo model (output)
-    description_fr: Appels API au modèle Azure OpenAI GPT-4-Turbo (sortie)
-    unit_name: tokens
-    unit_name_fr: jetons
-    unit_cost: 30
-    unit_quantity: 1000000
-- model: otto.CostType
   pk: 7
   fields:
     short_name: embedding
