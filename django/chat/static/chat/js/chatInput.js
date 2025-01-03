@@ -81,11 +81,50 @@ document.addEventListener('mouseup', function () {
     document.querySelector('#chat-prompt').focus();
   }
 });
-document.getElementById('copy-result').addEventListener('click', function () {
-  const editableResult = document.getElementById('editable-result');
-  navigator.clipboard.writeText(editableResult.value).then(function () {
-    alert('{% trans "Copied to clipboard!" %}');
-  }).catch(function (err) {
-    console.error('Could not copy text: ', err);
+// // Add the "copy code" button to code blocks NOT WORKING
+// const copyCodeButtonHTML = '<button class="copy-code-button">Copy</button>';
+
+// for (const block of document.querySelectorAll("pre code")) {
+//   block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
+// }
+
+// // Add event listener for copy buttons in code blocks  NOT WORKING
+// document.addEventListener('click', function (event) {
+//   if (event.target.classList.contains('copy-code-button')) {
+//     const codeBlock = event.target.nextElementSibling;
+//     if (codeBlock && codeBlock.tagName === 'CODE') {
+//       navigator.clipboard.writeText(codeBlock.textContent).then(function () {
+//         alert('Copied to clipboard!');
+//       }).catch(function (err) {
+//         console.error('Could not copy text: ', err);
+//       });
+//     }
+//   }
+// });
+
+// Add event listener for the "Generate" button
+const generatePromptButton = document.getElementById('generate-prompt');
+if (generatePromptButton) {
+  generatePromptButton.addEventListener('click', function () {
+    const userMessage = document.getElementById('chat-prompt').value;
+    const magicPrompt = document.getElementById('magic-prompt');
+    if (userMessage) {
+      // Send the userMessage to the AI prompt generator endpoint
+      fetch('/api/generate-prompt', { //use anthropic's API key
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({message: userMessage}),
+      })
+        .then(response => response.json())
+        .then(data => {
+          // Display the generated prompt in the magicPrompt textarea
+          magicPrompt.value = data.generated_prompt;
+        })
+        .catch(error => {
+          console.error('Error generating prompt:', error);
+        });
+    }
   });
-});
+};
