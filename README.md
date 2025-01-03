@@ -7,7 +7,7 @@
 | django/chat/\_\_init\_\_.py                                                                                   |        0 |        0 |    100% |           |
 | django/chat/admin.py                                                                                          |        1 |        1 |      0% |         1 |
 | django/chat/apps.py                                                                                           |        4 |        0 |    100% |           |
-| django/chat/forms.py                                                                                          |      145 |       23 |     84% |40, 48, 80, 100-112, 116-121, 130, 145, 149-154, 163, 334, 336-338 |
+| django/chat/forms.py                                                                                          |      145 |       23 |     84% |38, 46, 78, 98-110, 114-119, 128, 143, 147-152, 161, 332, 334-336 |
 | django/chat/llm.py                                                                                            |       99 |       13 |     87% |71, 90-92, 98-100, 118-124, 244 |
 | django/chat/metrics/\_\_init\_\_.py                                                                           |        0 |        0 |    100% |           |
 | django/chat/metrics/activity\_metrics.py                                                                      |        4 |        0 |    100% |           |
