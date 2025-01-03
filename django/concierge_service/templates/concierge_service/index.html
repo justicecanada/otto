@@ -9,17 +9,18 @@
 {% block breadcrumb %}
   {{ block.super }}
   <li class="breadcrumb-item">
-    <a href="{% url 'concierge_service:intake_form' %}">{% trans "Concierge Service" %}</a>
+    <a href="{% url 'concierge_service:index' %}">{% trans "Concierge Service" %}</a>
   </li>
 {% endblock %}
 
 {% block body %}
- 
+  <h2 class="h3" id="upload-label">{% trans "Concierge Service" %}</h2>
+  <p class="text-secondary mb-4">
+    {% trans "Submit and track requests for short-term AI support on Department projects." %}
+  </p>
   <div id="app-list">
     {% for feature in subcategories %}
       {% include 'components/feature_tile.html' %}
     {% endfor %}
   </div>
- 
- 
 {% endblock %}

@@ -10,11 +10,14 @@
 {% block breadcrumb %}
   {{ block.super }}
   <li class="breadcrumb-item">
-    <a href="{% url 'concierge_service:intake_form' %}">{% trans "Concierge Service" %}</a>
+    <a href="{% url 'concierge_service:index' %}">{% trans "Concierge Service" %}</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'concierge_service:request_list' %}">{% trans "User Requests" %}</a>
   </li>
 {% endblock %}
 
 {% block body %}
-  <p>AAAAAAAAA</p>
-  {{ status }}
+  <p>{{ ticket.get_status_display }}</p>
+  <textarea readonly>{{ ticket.doc_description }}</textarea>
 {% endblock %}

@@ -29,7 +29,7 @@ def index(request):
             "description": _("Submit a request for concierge service."),
         },
         {
-            "url": "concierge_service:intake_form",
+            "url": "concierge_service:request_list",
             "category": "reporting",
             "name": _("Request tracker"),
             "description": _("Track the status of your concierge service requests."),
@@ -89,5 +89,18 @@ def request_tracker(request, id):
     return render(
         request,
         "concierge_service/status.html",
-        context={"status": intake_instance.status},
+        context={"ticket": intake_instance},
+    )
+
+
+@app_access_required(app_name)
+@login_required
+@csrf_protect
+def request_list(request):
+    concierge_tickets = ConciergeRequest.objects.filter(created_by=request.user)
+
+    return render(
+        request,
+        "concierge_service/request_list.html",
+        context={"concierge_tickets": concierge_tickets},
     )
