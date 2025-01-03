@@ -17,7 +17,52 @@
   </li>
 {% endblock %}
 
+{% block page_css %}
+  <link rel="stylesheet"
+        type="text/css"
+        href="{% static 'thirdparty/css/datatables.min.css' %}">
+{% endblock %}
+
 {% block body %}
-  <p>{{ ticket.get_status_display }}</p>
-  <textarea readonly>{{ ticket.doc_description }}</textarea>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <tr>
+        <th>{% trans "Request date" %}</th>
+        <td>{{ ticket.created_at }}</td>
+      </tr>
+      <tr>
+        <th>{% trans "User/Client" %}</th>
+        <td>{{ ticket.created_by }}</td>
+      </tr>
+      <tr>
+        <th>{% trans "Urgency" %}</th>
+        <td>{{ ticket.get_urgency_display }}</td>
+      </tr>
+      <tr>
+        <th>{% trans "Describe the documents that should be used for this request." %}</th>
+        <td>{{ ticket.doc_description }}</td>
+      </tr>
+      <tr>
+        <th>{% trans "What is the purpose/desired outcome of this request?" %}</th>
+        <td>{{ ticket.purpose }}</td>
+      </tr>
+      <tr>
+        <th>{% trans "What information should we extract?" %}</th>
+        <td>{{ ticket.desired_info }}</td>
+      </tr>
+      <tr>
+        <th>{% trans "How should output be formatted (e.g. bullet point)" %}</th>
+        <td>{{ ticket.preferred_format }}</td>
+      </tr>
+      <tr>
+        <th>{% trans "Any further details (e.g. specific relevant individuals, legal details, etc.)?" %}</th>
+        <td>{{ ticket.further_details }}</td>
+      </tr>
+      <tr>
+        <th>{% trans "Status" %}</th>
+        <td>{{ ticket.get_status_display }}</td>
+      </tr>
+ 
+    </table>
+  </div>
 {% endblock %}
