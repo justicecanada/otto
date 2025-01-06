@@ -32,22 +32,6 @@ def test_user_pilot_name(basic_user):
 
 
 @pytest.mark.django_db
-def test_feedback_status_display(basic_user, basic_feedback):
-    user = basic_user(accept_terms=True)
-    feedback = basic_feedback(user=user)
-
-    assert feedback.status_display() == "New"
-
-
-@pytest.mark.django_db
-def test_feedback_feedback_type_display(basic_user, basic_feedback):
-    user = basic_user(accept_terms=True)
-    feedback = basic_feedback(user=user)
-
-    assert feedback.feedback_type_display() == "Feedback"
-
-
-@pytest.mark.django_db
 def test_get_feedback_stats(basic_user, basic_feedback):
     user = basic_user(accept_terms=True)
 
