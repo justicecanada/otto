@@ -255,12 +255,17 @@ async def htmx_stream(
                     await sync_to_async(message.save)()
             elif generation_stopped:
                 break
-            yield sse_string(
-                full_message,
-                wrap_markdown,
-                dots=dots if not generation_stopped else False,
-                remove_stop=remove_stop or generation_stopped,
-            )
+            # Avoid overwhelming client with markdown rendering:
+            # slow down yields if the message is large
+            length = len(full_message)
+            yield_every = length // 2000 + 1
+            if length < 1000 or length % yield_every == 0:
+                yield sse_string(
+                    full_message,
+                    wrap_markdown,
+                    dots=dots if not generation_stopped else False,
+                    remove_stop=remove_stop or generation_stopped,
+                )
             await asyncio.sleep(0.01)
 
         yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
