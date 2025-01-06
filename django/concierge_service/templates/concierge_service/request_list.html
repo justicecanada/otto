@@ -20,29 +20,34 @@
   <link rel="stylesheet"
         type="text/css"
         href="{% static 'thirdparty/css/datatables.min.css' %}">
-{% endblock %}
+{% endblock page_css %}
 
 {% block body %}
   <div class="table-responsive">
-    <table class="table table-striped" id="requests">
+    <table class="table-striped table" id="requests">
       <thead>
         <tr>
+          <th></th>
           <th>{% trans "Request date" %}</th>
           {# <th>{% trans "Client" %}</th> #}
           <th>{% trans "Urgency" %}</th>
           <th>{% trans "Status" %}</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         {% for ticket in concierge_tickets %}
-          <tr>
+          <tr id={{ ticket.id }}>
+            <td></td>
             <td>
               <a href="{% url 'concierge_service:status' ticket.id %}">{{ ticket.created_at }}</a>
             </td>
             {# <td>{{ ticket.created_by }}</td> #}
             <td>{{ ticket.get_urgency_display }}</td>
             <td>{{ ticket.get_status_display }}</td>
+            <td>{{ ticket.doc_description }}</td>
           </tr>
+          {# {% include "concierge_service/status.html" with ticket=ticket %} #}
         {% endfor %}
       </tbody>
     </table>
@@ -54,11 +59,42 @@
           crossorigin="anonymous"></script>
   <script src="{% static 'thirdparty/datatables.min.js' %}"></script>
   <script>
-  $(document).ready(function() {
-    let dataTableConfig = {
-      "paginate": false,
-    };
-    $('#requests').DataTable(dataTableConfig);
-  });
+        $(document).ready(function () {
+            var table = $('#requests').DataTable({
+                columnDefs: [
+                    {targets: "_all", searchable: true, orderSequence: ['asc', 'desc']},
+                    {targets: [4],  visible: false},
+                    {targets: [0], orderable: false, data: null, defaultContent: '', searchable: false, className: 'dt-control'}
+                ]
+            , responsive: false, order: [[1, 'asc']], paginate: false});
+
+            // Add event listener for toggling child rows
+             $('#requests tbody').on('click', 'td.dt-control', function() {
+              let tr = this.closest('tr')
+              let row = table.row(tr);
+
+              if (row.child.isShown()) {
+                // This row is already open - close it
+                row.child.hide();
+                $(this).removeClass('shown');
+              } else {
+                $.ajax({
+                        url: `./request_status/${tr.id}`, // URL for loading child row
+                        method: 'GET',
+                        success: function (data) {
+                            row.child(data).show(); // Render the child row content
+                            {# this.addClass('shown'); #}
+                        },
+                        error: function (response) {
+                          console.log(response.responseText)
+                            console.error(response);
+                        }
+                    });
+              }
+            });
+
+            // Initially hide all child rows
+            $('tr.child-row').hide();
+        });
   </script>
 {% endblock %}

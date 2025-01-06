@@ -1,29 +1,13 @@
-{% extends 'base.html' %}
+
 {% load static %}
 {% load i18n %}
-{% csrf_token %}
-
-{% block page_title %}
-  {% trans "Concierge Service - Otto" %}
-{% endblock %}
-
-{% block breadcrumb %}
-  {{ block.super }}
-  <li class="breadcrumb-item">
-    <a href="{% url 'concierge_service:index' %}">{% trans "Concierge Service" %}</a>
-  </li>
-  <li class="breadcrumb-item">
-    <a href="{% url 'concierge_service:request_list' %}">{% trans "User Requests" %}</a>
-  </li>
-{% endblock %}
 
 {% block page_css %}
   <link rel="stylesheet"
         type="text/css"
         href="{% static 'thirdparty/css/datatables.min.css' %}">
 {% endblock %}
-
-{% block body %}
+<tr class="child-row">
   <div class="table-responsive">
     <table class="table table-striped">
       <tr>
@@ -62,7 +46,6 @@
         <th>{% trans "Status" %}</th>
         <td>{{ ticket.get_status_display }}</td>
       </tr>
- 
     </table>
   </div>
-{% endblock %}
+</tr>
