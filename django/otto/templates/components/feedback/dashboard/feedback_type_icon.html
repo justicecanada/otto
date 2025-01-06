@@ -1,21 +1,21 @@
 {% if info.feedback.feedback_type == 'bug' %}
   <i class="bi bi-bug mx-2 fw-semibold"
      style="font-size: 1.25rem"
-     title="{{ info.feedback.feedback_type_display }}"></i>
+     title="{{ info.feedback.get_feedback_type_display }}"></i>
 {% elif info.feedback.feedback_type == 'feature_request' %}
   <i class="bi bi-lightbulb mx-2 fw-semibold"
      style="font-size: 1.25rem"
-     title="{{ info.feedback.feedback_type_display }}"></i>
+     title="{{ info.feedback.get_feedback_type_display }}"></i>
 {% elif info.feedback.feedback_type == 'feedback' %}
   <i class="bi bi-exclamation-square mx-2 fw-semibold"
      style="font-size: 1.25rem"
-     title="{{ info.feedback.feedback_type_display }}"></i>
+     title="{{ info.feedback.get_feedback_type_display }}"></i>
 {% elif info.feedback.feedback_type == 'other' %}
   <i class="bi bi-chat-left-text mx-2 fw-semibold"
      style="font-size: 1.25rem"
-     title="{{ info.feedback.feedback_type_display }}"></i>
+     title="{{ info.feedback.get_feedback_type_display }}"></i>
 {% else %}
   <i class="bi bi-question-circle mx-2 fw-semibold"
      style="font-size: 1.25rem"
-     title="{{ info.feedback.feedback_type_display }}"></i>
+     title="{{ info.feedback.get_feedback_type_display }}"></i>
 {% endif %}
