@@ -596,22 +596,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 english_title = form.cleaned_data["name_en"]
                 french_title = form.cleaned_data["name_fr"]
 
-                # check if both titles are empty
-                if english_title == "" and french_title == "":
-                    return render(
-                        request,
-                        "chat/modals/presets/presets_form.html",
-                        {
-                            "form": form,
-                            "chat_id": chat_id,
-                            "preset_id": preset_id,
-                            "error_message": _(
-                                "Please provide a title in either English or French."
-                            ),
-                            "replace_with_settings": replace_with_settings,
-                        },
-                    )
-
                 # Set the fields based on the selected tab
                 preset.name_en = english_title
                 preset.name_fr = french_title
@@ -621,22 +605,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 preset.sharing_option = form.cleaned_data.get("sharing_option", None)
 
                 accessible_to = form.cleaned_data.get("accessible_to", [])
-
-                # Check if the preset is shared with others but no users are selected
-                if preset.sharing_option == "others" and not accessible_to:
-                    return render(
-                        request,
-                        "chat/modals/presets/presets_form.html",
-                        {
-                            "form": form,
-                            "chat_id": chat_id,
-                            "preset_id": preset_id,
-                            "error_message": _(
-                                "Please provide at least one user for the accessible field."
-                            ),
-                            "replace_with_settings": replace_with_settings,
-                        },
-                    )
 
                 preset.save()
 
@@ -650,21 +618,10 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
                 messages.success(
                     request,
-                    _("Preset saved and loaded successfully."),
+                    _("Preset saved successfully."),
                 )
 
-                return render(
-                    request,
-                    "chat/components/chat_options_accordion.html",
-                    {
-                        "options_form": ChatOptionsForm(
-                            instance=preset.options, user=request.user
-                        ),
-                        "prompt": preset.options.prompt,
-                        "preset_loaded": "true",
-                        "preset_id": preset.id,
-                    },
-                )
+                return HttpResponse(status=200)
 
         return HttpResponse(status=500)
     elif action == "update_preset":
