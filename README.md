@@ -160,7 +160,7 @@
 | django/otto/migrations/0022\_rename\_weekly\_bonus\_user\_monthly\_bonus\_and\_more.py                        |        4 |        0 |    100% |           |
 | django/otto/migrations/0023\_blockedurl.py                                                                    |        4 |        0 |    100% |           |
 | django/otto/migrations/\_\_init\_\_.py                                                                        |        0 |        0 |    100% |           |
-| django/otto/models.py                                                                                         |      284 |       31 |     89% |26-28, 76-79, 112, 116-119, 154, 193, 196, 212, 233, 240, 258, 381, 384, 436, 442, 466, 470, 474, 478, 524-525, 539, 543, 547, 568 |
+| django/otto/models.py                                                                                         |      280 |       31 |     89% |26-28, 76-79, 112, 116-119, 154, 193, 196, 212, 233, 240, 258, 375, 378, 430, 436, 460, 464, 468, 472, 518-519, 533, 537, 541, 562 |
 | django/otto/rules.py                                                                                          |      138 |       12 |     91% |26, 42, 49, 51, 120, 157, 186-188, 220, 224-225 |
 | django/otto/secure\_models.py                                                                                 |      248 |       91 |     63% |21-22, 61, 86-100, 129-130, 135-136, 149-154, 183-224, 248, 268-269, 307, 337, 350, 359, 378, 393, 398, 403, 409-415, 418, 423, 437, 442, 447, 454-482, 485-486, 491-498, 501-502, 508-522, 536-537, 542-552, 557-558, 561-562 |
 | django/otto/settings.py                                                                                       |      159 |       23 |     86% |38-41, 51-52, 218-227, 297, 310, 367-374, 403, 493-494 |
@@ -201,7 +201,7 @@
 | django/tests/otto/test\_load\_test.py                                                                         |       64 |        0 |    100% |           |
 | django/tests/otto/test\_manage\_users.py                                                                      |      129 |        0 |    100% |           |
 | django/tests/otto/test\_otto\_forms.py                                                                        |       11 |        0 |    100% |           |
-| django/tests/otto/test\_otto\_models.py                                                                       |       47 |        0 |    100% |           |
+| django/tests/otto/test\_otto\_models.py                                                                       |       37 |        0 |    100% |           |
 | django/tests/otto/test\_otto\_views.py                                                                        |       63 |        0 |    100% |           |
 | django/tests/otto/test\_utils\_common.py                                                                      |       13 |        0 |    100% |           |
 | django/tests/otto/test\_utils\_middleware.py                                                                  |       35 |        0 |    100% |           |
@@ -223,7 +223,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **9779** | **1169** | **88%** |           |
+|                                                                                                     **TOTAL** | **9765** | **1169** | **88%** |           |
 
 
 ## Setup coverage badge
