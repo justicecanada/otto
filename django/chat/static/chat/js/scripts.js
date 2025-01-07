@@ -95,6 +95,18 @@ function scrollToBottom(smooth = true, force = false) {
   messagesContainer.scrollTop = hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight;
 }
 
+function scrollToListItem() {
+  setTimeout(() => {
+    const currentChat = document.querySelector('.chat-list-item.current');
+    if (currentChat) {
+      currentChat.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+  }, 100);
+}
+
 function handleModeChange(mode, element = null, preset_loaded = false) {
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
