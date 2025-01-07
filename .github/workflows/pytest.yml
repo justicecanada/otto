@@ -5,11 +5,10 @@ on:
   push:
     branches: [ "main" ]
   
-  # commented for testing
-  # workflow_run:
-  #     workflows: ["Django Localization CI"]
-  #     types:
-  #       - completed 
+  workflow_run:
+      workflows: ["Django Localization CI"]
+      types:
+        - completed 
 
 defaults:
   run:
