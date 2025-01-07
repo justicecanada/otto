@@ -4,11 +4,8 @@ name: Django Pytest CI
 on:
   push:
     branches: [ "main" ]
-  
-  workflow_run:
-      workflows: ["Django Localization CI"]
-      types:
-        - completed 
+  pull_request:
+    branches: [ "main" ] 
 
 defaults:
   run:
