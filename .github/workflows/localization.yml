@@ -30,12 +30,16 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.ref }}
         ssh-key: ${{ secrets.COMMIT_KEY }}
-    - name: Display Actor
-      run: echo "actor=${{ github.actor  }}"
-    - name: Display commit author
-      run: echo "commit author=$(git log -1 --pretty=format:'%an')"
-    - name: Display commit message
-      run: echo "commit message=$(git log -1 --pretty=format:'%s')"
+
+    - name: Set environment variable "commit-author"
+      run: echo "commit-author=$(git log -1 --pretty=format:'%an')" >> $GITHUB_ENV
+    - name: Display environment variable "commit-author"
+      run: echo "commit-author=${{ env.commit-author }}"
+      
+    - name: Set environment variable "commit-message"
+      run: echo "commit-message=$(git log -1 --pretty=format:'%s')" >> $GITHUB_ENV
+    - name: Display environment variable "commit-message"
+      run: echo "commit-message=${{ env.commit-message }}"
 
     - name: Install dependencies
       run: |
