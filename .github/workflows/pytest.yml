@@ -4,59 +4,18 @@ name: Django Pytest CI
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]    
+
+  workflow_run:
+      workflows: ["Django Localization CI"]
+      types:
+        - completed 
 
 defaults:
   run:
     shell: bash 
     working-directory: ./django
-
-env:
-  AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
-  AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
-  DJANGODB_HOST: postgres-service
-  VECTORDB_HOST: postgres-service
-  LOG_LEVEL: ERROR
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
+ 
 jobs:
-  load-localization:    
-    runs-on: ubuntu-latest
-    container: python:3.11
-    # job should run only when the PR is not created by the bot
-    if: github.actor != 'github-actions[bot]' && github.event_name == 'pull_request'
-    permissions:
-      contents: write
-      pull-requests: write
-      actions: read
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.pull_request.head.ref }}
-        ssh-key: ${{ secrets.COMMIT_KEY }}
-    - name: Install dependencies
-      run: |
-        apt-get update
-        apt-get install -y gettext
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt        
-    - name: Run load_app_localization command
-      run: |
-        python manage.py load_app_localization
-    - name: Commit changes
-      run: |
-        git config --global --add safe.directory /__w/otto/otto
-        git config --global user.name "github-actions[bot]"        
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        if [ -n "$(git status --porcelain)" ]; then
-          git add .
-          git commit -m "Update localization files"
-          git push
-        else
-          echo "No changes to commit"
-        fi
-
   # Label of the container job
   test-coverage:
     # Containers must run in Linux based operating systems
@@ -92,6 +51,13 @@ jobs:
         image: redis:7.0.15-alpine3.20
         ports:
           - 6379:6379
+    env:
+      AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
+      AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
+      DJANGODB_HOST: postgres-service
+      VECTORDB_HOST: postgres-service
+      LOG_LEVEL: ERROR
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
