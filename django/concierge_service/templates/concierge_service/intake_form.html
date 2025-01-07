@@ -18,7 +18,6 @@
         id="intake-form"
         action="{% url 'concierge_service:intake_form' %}">
     {% csrf_token %}
-    <input type="hidden" name="just_submitted" value=True>
 
     <h2 class="h3" id="upload-label">{% trans "Concierge Intake" %}</h2>
     <p class="text-secondary mb-4">

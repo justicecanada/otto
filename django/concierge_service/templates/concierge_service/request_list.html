@@ -33,19 +33,23 @@
           <th>{% trans "Urgency" %}</th>
           <th>{% trans "Status" %}</th>
           <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         {% for ticket in concierge_tickets %}
           <tr id={{ ticket.id }}>
             <td></td>
-            <td>
-              <a href="{% url 'concierge_service:status' ticket.id %}">{{ ticket.created_at }}</a>
-            </td>
+            <td>{{ ticket.created_at }}</td>
             {# <td>{{ ticket.created_by }}</td> #}
             <td>{{ ticket.get_urgency_display }}</td>
             <td>{{ ticket.get_status_display }}</td>
             <td>{{ ticket.doc_description }}</td>
+            <td>{{ ticket.purpose }}</td>
+            <td>{{ ticket.desired_info }}</td>
+            <td>{{ ticket.further_details }}</td>
           </tr>
           {# {% include "concierge_service/status.html" with ticket=ticket %} #}
         {% endfor %}
@@ -66,7 +70,7 @@
         var table = $('#requests').DataTable({
             columnDefs: [
                 { targets: '_all', searchable: true, orderSequence: ['asc', 'desc'] },
-                { targets: [4], visible: false }, 
+                { targets: [4,5,6,7], visible: false }, 
                 {
                     targets: [0],
                     orderable: false,

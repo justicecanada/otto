@@ -83,11 +83,23 @@ def intake_form(request):
 @csrf_protect
 def request_tracker(request, id):
     intake_instance = ConciergeRequest.objects.get(id=id)
+    instance_form = IntakeForm(user=request.user, instance=intake_instance)
+    for field in instance_form.fields.values():
+        field.widget.attrs["readonly"] = True
 
     return render(
         request,
         "concierge_service/status.html",
-        context={"ticket": intake_instance},
+        context={
+            "ticket": instance_form,
+            "field_list": [
+                "doc_description",
+                "purpose",
+                "desired_info",
+                "preferred_format",
+                "further_details",
+            ],
+        },
     )
 
 
