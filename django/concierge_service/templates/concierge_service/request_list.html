@@ -58,13 +58,15 @@
   <script src="{% static 'thirdparty/jquery3.7.1.min.js' %}"
           crossorigin="anonymous"></script>
   <script src="{% static 'thirdparty/datatables.min.js' %}"></script>
+  <script src="{% static 'thirdparty/moment.js' %}"></script>
   <script>
     $(document).ready(function () {
-        var just_submitted = {{ just_submitted|yesno:"true,false" }};
+        var just_submitted = {{ just_submitted|yesno:'true,false'}};
+
         var table = $('#requests').DataTable({
             columnDefs: [
-                { targets: "_all", searchable: true, orderSequence: ['asc', 'desc'] },
-                { targets: [4], visible: false },
+                { targets: '_all', searchable: true, orderSequence: ['asc', 'desc'] },
+                { targets: [4], visible: false }, 
                 {
                     targets: [0],
                     orderable: false,
@@ -75,7 +77,7 @@
                 },
             ],
             responsive: false,
-            order: [[1, 'asc']],
+            order: [[1, 'desc']],
             paginate: false,
         });
 
@@ -106,25 +108,25 @@
 
         // Automatically expand the first child row if just_submitted is true
         if (just_submitted) {
-            let firstRow = $('#requests tbody tr:first-child'); // Get the first row
-            let firstRowId = firstRow.attr('id'); // Get the row's ID
+          let firstRow = $('#requests tbody tr:first-child'); // Get the first row
+          let firstRowId = firstRow.attr('id'); // Get the row's ID
 
-            if (firstRow.length) {
-                let row = table.row(firstRow);
+          if (firstRow.length) {
+            let row = table.row(firstRow);
 
-                $.ajax({
-                    url: `./request_status/${firstRowId}`, // URL for loading child row
-                    method: 'GET',
-                    success: function (data) {
-                        row.child(data).show(); // Render the child row content
-                        firstRow.find('td.dt-control').addClass('shown'); // Add class to mark it as open
-                    },
-                    error: function (response) {
-                        console.log(response.responseText);
-                        console.error(response);
-                    },
-                });
-            }
+            $.ajax({
+                url: `./request_status/${firstRowId}`, // URL for loading child row
+                method: 'GET',
+                success: function (data) {
+                    row.child(data).show(); // Render the child row content
+                    firstRow.find('td.dt-control').addClass('shown'); // Add class to mark it as open
+                },
+                error: function (response) {
+                    console.log(response.responseText);
+                    console.error(response);
+                },
+            });
+          }
         }
 
         // Initially hide all child rows (optional, as they will be loaded dynamically)

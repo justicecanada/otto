@@ -1,5 +1,3 @@
-# Create your views here.
-
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -65,7 +63,7 @@ def intake_form(request):
                     "Thank you for your submission! Use this page to track the status of your request."
                 ),
             )
-            return request_list(request)
+            return redirect(f"/concierge_service/request_list?just_submitted")
         else:
             return HttpResponse(form.errors, status=400)
     else:
@@ -97,7 +95,7 @@ def request_tracker(request, id):
 @login_required
 @csrf_protect
 def request_list(request):
-    just_submitted = request.POST.get("just_submitted", False)
+    just_submitted = "just_submitted" in request.GET
     concierge_tickets = ConciergeRequest.objects.filter(created_by=request.user)
 
     return render(
