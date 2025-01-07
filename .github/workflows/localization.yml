@@ -65,11 +65,11 @@ jobs:
     - name: Commit changes
       if: env.is-auto-commit == false
       run: |
-        git config --global user.name "github-actions[bot]"        
+        git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"        
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         if [ -n "$(git status --porcelain)" ]; then
           git add .
-          git commit -m "Update localization files"
+          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
           git push
         else
           echo "No changes to commit"
