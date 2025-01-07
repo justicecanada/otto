@@ -1,6 +1,8 @@
 name: Django Localization CI
 # See https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
 
+# Source reference: https://joht.github.io/johtizen/build/2022/01/20/github-actions-push-into-repository.html#git-commit-within-a-pull-request
+
 on:
   pull_request:
     branches: [ "main" ]
@@ -9,19 +11,18 @@ defaults:
   run:
     shell: bash 
     working-directory: ./django
-  
+
 env:
   AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
-  AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}      
+  AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
   LOG_LEVEL: ERROR
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+  CI_COMMIT_MESSAGE: Update localization files
+  CI_COMMIT_AUTHOR: github-actions[bot] 
+  
 jobs:
   load-localization:    
     runs-on: ubuntu-latest
-    container: python:3.11
-    # job should run only when the PR is not created by the bot
-    if: github.event.actor != 'github-actions[bot]' && github.event_name == 'pull_request'
+    container: python:3.11    
     permissions:
       contents: write
       pull-requests: write
@@ -29,24 +30,46 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: ${{ github.head_ref }}
+        ref: ${{ github.event.pull_request.head.ref }}
+        ssh-key: ${{ secrets.COMMIT_KEY }}
+
+    - name: Set environment variable "commit-author"
+      run: |
+        git config --global --add safe.directory /__w/otto/otto
+        echo "commit-author=$(git log -1 --pretty=format:'%an')" >> $GITHUB_ENV
+    - name: Display environment variable "commit-author"
+      run: echo "commit-author=${{ env.commit-author }}"
+
+    - name: Set environment variable "commit-message"
+      run: echo "commit-message=$(git log -1 --pretty=format:'%s')" >> $GITHUB_ENV
+    - name: Display environment variable "commit-message"
+      run: echo "commit-message=${{ env.commit-message }}"
+    
+    - name: Set environment variable "is-auto-commit"
+      if: env.commit-message == env.CI_COMMIT_MESSAGE && env.commit-author == env.CI_COMMIT_AUTHOR
+      run: echo "is-auto-commit=true" >> $GITHUB_ENV
+    - name: Display environment variable "is-auto-commit"
+      run: echo "is-auto-commit=${{ env.is-auto-commit }}"
+
     - name: Install dependencies
+      if: env.is-auto-commit == false
       run: |
         apt-get update
         apt-get install -y gettext
         python -m pip install --upgrade pip
         pip install -r requirements.txt        
     - name: Run load_app_localization command
+      if: env.is-auto-commit == false
       run: |
         python manage.py load_app_localization
     - name: Commit changes
+      if: env.is-auto-commit == false
       run: |
-        git config --global --add safe.directory /__w/otto/otto
-        git config --global user.name "github-actions[bot]"        
+        git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"        
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         if [ -n "$(git status --porcelain)" ]; then
           git add .
-          git commit -m "Update localization files"
+          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
           git push
         else
           echo "No changes to commit"

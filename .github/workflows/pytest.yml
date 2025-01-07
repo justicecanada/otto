@@ -1,17 +1,17 @@
-name: Django CI
+name: Django Pytest CI
 # See https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]    
+    branches: [ "main" ] 
 
 defaults:
   run:
     shell: bash 
     working-directory: ./django
-  
+ 
 jobs:
   # Label of the container job
   test-coverage:
@@ -48,14 +48,12 @@ jobs:
         image: redis:7.0.15-alpine3.20
         ports:
           - 6379:6379
-
     env:
       AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
       AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
       DJANGODB_HOST: postgres-service
       VECTORDB_HOST: postgres-service
-      LOG_LEVEL: ERROR
-
+      LOG_LEVEL: ERROR      
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
