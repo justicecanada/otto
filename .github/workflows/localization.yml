@@ -30,24 +30,29 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.ref }}
         ssh-key: ${{ secrets.COMMIT_KEY }}
-    - name: Install dependencies
-      run: |
-        apt-get update
-        apt-get install -y gettext
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt        
-    - name: Run load_app_localization command
-      run: |
-        python manage.py load_app_localization
-    - name: Commit changes
-      run: |
-        git config --global --add safe.directory /__w/otto/otto
-        git config --global user.name "github-actions[bot]"        
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        if [ -n "$(git status --porcelain)" ]; then
-          git add .
-          git commit -m "Update localization files"
-          git push
-        else
-          echo "No changes to commit"
-        fi
+    - name: Display Actor
+      run: echo "actor=${{ github.actor  }}"
+    - name: Display commit author
+      run: echo "commit author=$(git log -1 --pretty=format:'%an')"
+
+    # - name: Install dependencies
+    #   run: |
+    #     apt-get update
+    #     apt-get install -y gettext
+    #     python -m pip install --upgrade pip
+    #     pip install -r requirements.txt        
+    # - name: Run load_app_localization command
+    #   run: |
+    #     python manage.py load_app_localization
+    # - name: Commit changes
+    #   run: |
+    #     git config --global --add safe.directory /__w/otto/otto
+    #     git config --global user.name "github-actions[bot]"        
+    #     git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    #     if [ -n "$(git status --porcelain)" ]; then
+    #       git add .
+    #       git commit -m "Update localization files"
+    #       git push
+    #     else
+    #       echo "No changes to commit"
+    #     fi
