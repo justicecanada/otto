@@ -20,7 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3.11
     # job should run only when the PR is not created by the bot
-    if: github.actor != 'github-actions[bot]' && github.event_name == 'pull_request'
+    if: github.commit_author != 'github-actions[bot]' && github.commit_message != 'Update localization files'
+    
     permissions:
       contents: write
       pull-requests: write
@@ -30,18 +31,6 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.ref }}
         ssh-key: ${{ secrets.COMMIT_KEY }}
-
-    - name: Set environment variable "commit-author"
-      run: |
-        git config --global --add safe.directory /__w/otto/otto
-        echo "commit-author=$(git log -1 --pretty=format:'%an')" >> $GITHUB_ENV
-    - name: Display environment variable "commit-author"
-      run: echo "commit-author=${{ env.commit-author }}"
-
-    - name: Set environment variable "commit-message"
-      run: echo "commit-message=$(git log -1 --pretty=format:'%s')" >> $GITHUB_ENV
-    - name: Display environment variable "commit-message"
-      run: echo "commit-message=${{ env.commit-message }}"
 
     - name: Install dependencies
       run: |
@@ -59,7 +48,7 @@ jobs:
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         if [ -n "$(git status --porcelain)" ]; then
           git add .
-          git commit -m "bot: Update localization files"
+          git commit -m "Update localization files"
           git push
         else
           echo "No changes to commit"
