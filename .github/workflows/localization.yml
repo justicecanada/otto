@@ -4,13 +4,13 @@ name: Django Localization CI
 # Source reference: https://joht.github.io/johtizen/build/2022/01/20/github-actions-push-into-repository.html#git-commit-within-a-pull-request
 
 on:
-    pull_request:
-        branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 defaults:
-    run:
-        shell: bash 
-        working-directory: ./django
+  run:
+    shell: bash 
+    working-directory: ./django
 
 env:
   AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
