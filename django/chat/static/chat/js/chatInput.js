@@ -82,18 +82,18 @@ document.addEventListener('mouseup', function () {
   }
 });
 
-
-// Add event listener for the "Generate" button
-document.addEventListener('DOMContentLoaded', function () {
-  const generatePromptButton = document.getElementById('generate-prompt');
-  if (generatePromptButton) {
-    generatePromptButton.addEventListener('click', function () {
-      const magicPromptValue = document.getElementById('magic-prompt').value;
-      if (magicPromptValue.trim()) {
-        alert(`Here is your prompt:\n\n${magicPromptValue}`);
-      } else {
-        alert('Please type something first.');
-      }
+// Add event listener for the modal form
+document.getElementById('modal-from').addEventListener('submit', function (event) {
+  event.preventDefault(); // prevent modal close
+  const formData = new FormData(this);
+  fetch("{% url 'user_input_view' %}", {
+    method: 'POST',
+    headers: {'X-CSRFToken': '{{ csrf_token }}'},
+    body: formData
+  })
+    .then(response => response.text())
+    .then(html => {
+      // Update the input field inside the modal with the response
+      document.querySelector('.modal-body input[type="text"]').value = formData.get('user_input');
     });
-  }
 });

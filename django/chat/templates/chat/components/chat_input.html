@@ -129,12 +129,18 @@
                 aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <textarea class="form-control"
-                  id="magic-prompt"
-                  rows="4"
-                  placeholder='{% trans "Type your prompt here..." %}'></textarea>
+        <form id="modal-from">
+          {% csrf_token %}
+          <input type="text"
+                 name="user_input"
+                 class="form-control"
+                 id="magic-prompt"
+                 rows="4"
+                 placeholder='{% trans "Type your prompt here..." %}'>
 
-        <button type="button" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
+          <button type="modal-submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
+        </form>
+        <input type="text" value="{{ output_text }}" class="form-control mt-3">
       </div>
       <div class="modal-footer">
 
