@@ -65,7 +65,7 @@ def intake_form(request):
                     "Thank you for your submission! Use this page to track the status of your request."
                 ),
             )
-            return redirect("concierge_service:status", id=form.instance.id)
+            return request_list(request)
         else:
             return HttpResponse(form.errors, status=400)
     else:
@@ -97,10 +97,14 @@ def request_tracker(request, id):
 @login_required
 @csrf_protect
 def request_list(request):
+    just_submitted = request.POST.get("just_submitted", False)
     concierge_tickets = ConciergeRequest.objects.filter(created_by=request.user)
 
     return render(
         request,
         "concierge_service/request_list.html",
-        context={"concierge_tickets": concierge_tickets},
+        context={
+            "concierge_tickets": concierge_tickets,
+            "just_submitted": just_submitted,
+        },
     )
