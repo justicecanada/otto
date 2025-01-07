@@ -32,10 +32,12 @@ jobs:
         ssh-key: ${{ secrets.COMMIT_KEY }}
 
     - name: Set environment variable "commit-author"
-      run: echo "commit-author=$(git log -1 --pretty=format:'%an')" >> $GITHUB_ENV
+      run: |
+        git config --global --add safe.directory /__w/otto/otto
+        echo "commit-author=$(git log -1 --pretty=format:'%an')" >> $GITHUB_ENV
     - name: Display environment variable "commit-author"
       run: echo "commit-author=${{ env.commit-author }}"
-      
+
     - name: Set environment variable "commit-message"
       run: echo "commit-message=$(git log -1 --pretty=format:'%s')" >> $GITHUB_ENV
     - name: Display environment variable "commit-message"
