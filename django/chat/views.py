@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -932,15 +933,7 @@ def generate_prompt(task_or_prompt: str):
 @require_POST
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def user_input_view(request, chat_id, current_chat=None):
-    import logging
 
-    # output_text = ""
-    # if request.method == "POST":
-    #     user_input = request.POST.get("user_input", "")
-    #     output_text = generate_prompt(user_input)
-    # return render(
-    #     request, "chat/components/chat_input.html", {"output_text": output_text}
-    # )
     try:
         if request.method == "POST":
             user_input = request.POST.get("user_input", "")
