@@ -120,3 +120,27 @@ function generatePrompt(input) {
   // Replace this with your actual prompt generation logic
   return `Generated prompt for: ${input}`;
 }
+
+// document.getElementById('magic-form').addEventListener('submit', function (event) {
+//   event.preventDefault(); // prevent default form submission
+//   const userInput = document.getElementById('magic-prompt').value;
+
+//   // Send a POST request to the Django backend
+//   fetch('/user-input/', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+//     },
+//     body: JSON.stringify({input: userInput})
+//   })
+//     .then(response => response.json())
+//     .then(data => {
+//       if (data.prompt) {
+//         document.getElementById('generated-prompt').value = data.prompt;
+//       } else {
+//         console.error('Error:', data.error);
+//       }
+//     })
+//     .catch(error => console.error('Error:', error));
+// });
