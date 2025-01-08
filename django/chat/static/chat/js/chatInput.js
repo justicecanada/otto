@@ -82,18 +82,41 @@ document.addEventListener('mouseup', function () {
   }
 });
 
-// Add event listener for the modal form
-document.getElementById('modal-from').addEventListener('submit', function (event) {
-  event.preventDefault(); // prevent modal close
-  const formData = new FormData(this);
-  fetch("{% url 'user_input_view' %}", {
-    method: 'POST',
-    headers: {'X-CSRFToken': '{{ csrf_token }}'},
-    body: formData
-  })
-    .then(response => response.text())
-    .then(html => {
-      // Update the input field inside the modal with the response
-      document.querySelector('.modal-body input[type="text"]').value = formData.get('user_input');
-    });
+// 
+// document.getElementById('magic-button').addEventListener('click', function () {
+//   const userInput = document.getElementById('chat-prompt').value;
+//   document.getElementById('magic-prompt').value = userInput;
+// });
+
+// document.getElementById('magic-form').addEventListener('submit', function (event) {
+//   event.preventDefault(); // prevent default form submission
+//   const formData = new FormData(this);
+//   fetch(this.action, {
+//     method: 'POST',
+//     headers: {
+//       'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+//     },
+//     body: formData
+//   })
+//     .then(response => response.text())
+//     .then(html => {
+//       document.querySelector('#magicModal .modal-body').innerHTML = html;
+//     });
+// });
+
+document.getElementById('magic-button').addEventListener('click', function () {
+  const userInput = document.getElementById('chat-prompt').value;
+  document.getElementById('magic-prompt').value = userInput;
 });
+
+document.getElementById('magic-form').addEventListener('submit', function (event) {
+  event.preventDefault(); // prevent default form submission
+  const userInput = document.getElementById('magic-prompt').value;
+  const outputText = generatePrompt(userInput);
+  document.getElementById('generated-prompt').value = outputText;
+});
+
+function generatePrompt(input) {
+  // Replace this with your actual prompt generation logic
+  return `Generated prompt for: ${input}`;
+}

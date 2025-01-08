@@ -113,6 +113,7 @@
     </form>
   </div>
 </div>
+ 
 <!-- Modal -->
 <div class="modal fade"
      id="magicModal"
@@ -128,27 +129,31 @@
                 data-bs-dismiss="modal"
                 aria-label="Close"></button>
       </div>
+ 
       <div class="modal-body">
-        <form id="modal-from">
+        <form id="magic-form">
           {% csrf_token %}
           <input type="text"
                  name="user_input"
                  class="form-control"
                  id="magic-prompt"
-                 rows="4"
                  placeholder='{% trans "Type your prompt here..." %}'>
+          <button type="submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
 
-          <button type="modal-submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
+          <textarea class="form-control mt-3"
+                    id="generated-prompt"
+                    name="generated_prompt"
+                    rows="5"></textarea>
         </form>
-        <input type="text" value="{{ output_text }}" class="form-control mt-3">
       </div>
-      <div class="modal-footer">
 
+      <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
       </div>
     </div>
   </div>
 </div>
+
 {% block page_script %}
   <script src="{% static 'chat/js/chatInput.js' %}"></script>
 {% endblock %}
