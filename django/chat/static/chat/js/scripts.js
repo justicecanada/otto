@@ -100,7 +100,7 @@ function scrollToListItem() {
     const currentChat = document.querySelector('.chat-list-item.current');
     if (currentChat) {
       currentChat.scrollIntoView({
-        behavior: 'smooth',
+        behavior: 'instant',
         block: 'center'
       });
     }
