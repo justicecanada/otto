@@ -98,9 +98,7 @@ class ChatOptionsManager(models.Manager):
             copy_options(chat.user.default_preset.options, new_options, chat.user)
         else:
             # get default preset
-            default_preset = Preset.objects.get(
-                name_en="Default Preset",
-            )
+            default_preset = Preset.objects.get(global_default=True)
 
             # create a copy of the default preset options
             new_options = self.create()
@@ -157,12 +155,13 @@ class ChatOptionsManager(models.Manager):
         default_options.save()
 
         default_preset = Preset.objects.create(
-            name_en="Default Preset",
-            name_fr="Préréglage par défaut",
-            description_en="Default preset including default prompts",
-            description_fr="Préréglage par défaut incluant les invites par défaut",
+            name_en="Otto default",
+            name_fr="Défaut d'Otto",
+            description_en="Base preset balancing cost and performance",
+            description_fr="Préréglage de base équilibrant le coût et la performance",
             options=default_options,
             sharing_option="everyone",
+            global_default=True,
         )
 
         default_preset.save()
@@ -195,10 +194,10 @@ class ChatOptionsManager(models.Manager):
         structured_summary_options.save()
 
         structured_summary_preset = Preset.objects.create(
-            name_en="Structured Summary",
+            name_en="Structured summary",
             name_fr="Résumé structuré",
-            description_en="Structured summary preset",
-            description_fr="Préréglage de résumé structuré",
+            description_en="Summary with headings and bullet points",
+            description_fr="Résumé avec des titres et des puces",
             options=structured_summary_options,
             sharing_option="everyone",
         )
@@ -247,7 +246,7 @@ class ChatOptions(models.Model):
     chat_model = models.CharField(max_length=255, default="gpt-4o")
     chat_temperature = models.FloatField(default=0.1)
     chat_system_prompt = models.TextField(blank=True)
-    chat_agent = models.BooleanField(default=True)
+    chat_agent = models.BooleanField(default=False)
 
     # Summarize-specific options
     summarize_model = models.CharField(max_length=255, default="gpt-4o")
@@ -398,6 +397,7 @@ class Preset(models.Model):
         choices=SHARING_OPTIONS,
         default="private",
     )
+    global_default = models.BooleanField(default=False)
 
     @property
     def shared_with(self):
