@@ -95,6 +95,18 @@ function scrollToBottom(smooth = true, force = false) {
   messagesContainer.scrollTop = hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight;
 }
 
+function scrollToListItem() {
+  setTimeout(() => {
+    const currentChat = document.querySelector('.chat-list-item.current');
+    if (currentChat) {
+      currentChat.scrollIntoView({
+        behavior: 'instant',
+        block: 'center'
+      });
+    }
+  }, 100);
+}
+
 function handleModeChange(mode, element = null, preset_loaded = false) {
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
@@ -102,6 +114,8 @@ function handleModeChange(mode, element = null, preset_loaded = false) {
   if (!preset_loaded) {triggerOptionSave();}
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
+  // Dispatch change event for search mode in order to trigger advance settings options
+  document.getElementById('id_qa_mode').dispatchEvent(new Event("change"));
 
   resizeOtherElements();
   // If the invoking element is an accordion-button we can stop
