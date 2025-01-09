@@ -9,7 +9,7 @@ body.chat {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--bs-light);
+  background: var(--app-primary-bg);
 }
 
 @media screen and (max-width: 991.98px) {
@@ -245,7 +245,7 @@ pre .copy-button:focus {
   bottom: 0.1rem;
   right: 0;
   margin: 0 auto !important;
-  background: var(--bs-light);
+  background: var(--app-primary-bg);
   opacity: 0;
   transition: linear 0.2s;
 }
@@ -277,10 +277,11 @@ pre .copy-button:focus {
   font-weight: 500;
 }
 
+.chat-list-item.current button.options,
 #left-sidebar li:hover button.options,
 #left-sidebar li:focus button.options,
 #left-sidebar button.options:focus {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 
@@ -428,6 +429,10 @@ form#dropzone-basic {
   top: 0;
   height: calc(100vh - 3rem);
   overflow: hidden;
+
+  [data-bs-theme="dark"] & {
+    background: var(--bs-dark-bg-subtle) !important;
+  }
 }
 
 
@@ -755,7 +760,7 @@ div#chat-toolbar {
   border-color: var(--bs-border-color);
   margin-bottom: -1px;
   min-height: 40px;
-  background: var(--bs-light);
+  background: var(--app-primary-bg);
 }
 
 #prompt-form-container .option,
@@ -866,7 +871,7 @@ div#chat-toolbar {
 
 #chat-modes button {
   margin-bottom: -1px;
-  background: var(--bs-light);
+  background: var(--app-primary-bg);
   color: var(--bs-gray-700);
   padding-top: 6px;
   padding-bottom: 7px;
