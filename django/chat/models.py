@@ -130,28 +130,6 @@ class ChatOptionsManager(models.Manager):
             qa_library=default_library,
         )
 
-        # set french translations if available
-        if "fr" in default_otto_prompts["default_chat_prompt"]:
-            default_options.chat_system_prompt_fr = default_otto_prompts[
-                "default_chat_prompt"
-            ]["fr"]
-        if "fr" in default_otto_prompts["qa_system_prompt"]:
-            default_options.qa_system_prompt_fr = default_otto_prompts[
-                "qa_system_prompt"
-            ]["fr"]
-        if "fr" in default_otto_prompts["qa_prompt_template"]:
-            default_options.qa_prompt_template_fr = default_otto_prompts[
-                "qa_prompt_template"
-            ]["fr"]
-        if "fr" in default_otto_prompts["qa_pre_instructions"]:
-            default_options.qa_pre_instructions_fr = default_otto_prompts[
-                "qa_pre_instructions"
-            ]["fr"]
-        if "fr" in default_otto_prompts["qa_post_instructions"]:
-            default_options.qa_post_instructions_fr = default_otto_prompts[
-                "qa_post_instructions"
-            ]["fr"]
-
         default_options.save()
 
         default_preset = Preset.objects.create(
@@ -184,12 +162,6 @@ class ChatOptionsManager(models.Manager):
             qa_library=default_library,
             summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
         )
-
-        # set french translations if available
-        if "fr" in structured_summary["summary_additional_instructions"]:
-            structured_summary_options.summarize_instructions_fr = structured_summary[
-                "summary_additional_instructions"
-            ]["fr"]
 
         structured_summary_options.save()
 
