@@ -130,28 +130,39 @@
                 aria-label="Close"></button>
       </div>
  
-      <div class="modal-body">
+      <!-- <div class="modal-body">
         <form id="magic-form">
           {% csrf_token %}
-          <input type="text"
-                 name="user_input"
-                 class="form-control"
-                 id="magic-prompt"
-                 placeholder='{% trans "Type your prompt here..." %}'>
+          <input type="text" name="user_input" class="form-control" id="magic-prompt" placeholder='{% trans "Type your prompt here..." %}'>
           <button type="submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
 
-          <textarea class="form-control mt-3"
-                    id="generated-prompt"
-                    name="generated_prompt"
-                    rows="5"></textarea>
-        </form>
-      </div>
+          <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5"></textarea>
+            </form>
+          </div> -->
+    <div class="modal-body">
+      <form id="magic-form"
+            hx-post="/chat/generate-prompt/"
+            hx-target="#magicModal .modal-body"
+            hx-swap="outerHTML">
+        {% csrf_token %}
+        <input type="text"
+               name="user_input"
+               class="form-control"
+               id="magic-prompt"
+               placeholder='{% trans "Type your prompt here..." %}'>
+        <textarea class="form-control mt-3"
+                  id="generated-prompt"
+                  name="generated_prompt"
+                  rows="5"></textarea>
+        <button type="submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
+      </form>
+    </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
-      </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
     </div>
   </div>
+</div>
 </div>
 
 {% block page_script %}

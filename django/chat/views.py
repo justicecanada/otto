@@ -996,25 +996,62 @@ def generate_prompt(task_or_prompt: str):
         ],
     )
 
-    return completion.choices[0].message.content
-    # return "This is a placeholder for the output prompt."
+    # return completion.choices[0].message.content
+    return "This is a placeholder for the output prompt."
 
 
-@require_POST
-def user_input_view(request):
+from django.views.decorators.csrf import csrf_exempt
 
-    try:
-        if request.method == "POST":
+# js with python------------------
+# @csrf_exempt
+# def generate_prompt_view(request):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             user_input = data.get("user_input", "")
+#             logging.info(f"Received user input: {user_input}")
+#             output_text = (
+#                 "AI generate prompt will be here"  # generate_prompt(user_input)
+#             )
+#             logging.info(f"Generated prompt: {output_text}")
+#             return JsonResponse({"output_text": output_text})
+#         except Exception as e:
+#             logging.error(f"Error in generate_prompt_view: {e}")
+#             return JsonResponse({"error": "An error occurred"}, status=500)
+#     return JsonResponse({"error": "Invalid request method"}, status=400)
+# -------------------------------------
+
+# @require_POST
+# def user_input_view(request):
+
+#     try:
+#         if request.method == "POST":
+#             user_input = request.POST.get("user_input", "")
+#             logging.info(f"Received user input: {user_input}")
+#             output_text = generate_prompt(user_input)
+#             logging.info(f"Generated prompt: {output_text}")
+#             return render(
+#                 request,
+#                 "chat/components/generated_prompt.html",
+#                 {"output_text": output_text},
+#             )
+#     except Exception as e:
+#         logging.error(f"Error in user_input_view: {e}")
+#         return HttpResponse("An error occurred", status=500)
+#     return HttpResponse("")
+
+
+# htmx------------------
+@csrf_exempt
+def generate_prompt_view(request):
+    if request.method == "POST":
+        try:
             user_input = request.POST.get("user_input", "")
             logging.info(f"Received user input: {user_input}")
             output_text = generate_prompt(user_input)
             logging.info(f"Generated prompt: {output_text}")
-            return render(
-                request,
-                "chat/components/generated_prompt.html",
-                {"output_text": output_text},
-            )
-    except Exception as e:
-        logging.error(f"Error in user_input_view: {e}")
-        return HttpResponse("An error occurred", status=500)
-    return HttpResponse("")
+            return JsonResponse({"output_text": output_text})
+        except Exception as e:
+            logging.error(f"Error in generate_prompt_view: {e}")
+            return JsonResponse({"error": "An error occurred"}, status=500)
+    return JsonResponse({"error": "Invalid request method"}, status=400)

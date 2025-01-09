@@ -104,43 +104,44 @@ document.addEventListener('mouseup', function () {
 //     });
 // });
 
+//-------------js only
 document.getElementById('magic-button').addEventListener('click', function () {
   const userInput = document.getElementById('chat-prompt').value;
   document.getElementById('magic-prompt').value = userInput;
 });
 
-document.getElementById('magic-form').addEventListener('submit', function (event) {
-  event.preventDefault(); // prevent default form submission
-  const userInput = document.getElementById('magic-prompt').value;
-  const outputText = generatePrompt(userInput);
-  document.getElementById('generated-prompt').value = outputText;
-});
-
-function generatePrompt(input) {
-  // Replace this with your actual prompt generation logic
-  return `Generated prompt for: ${input}`;
-}
-
 // document.getElementById('magic-form').addEventListener('submit', function (event) {
 //   event.preventDefault(); // prevent default form submission
 //   const userInput = document.getElementById('magic-prompt').value;
+//   const outputText = generatePrompt(userInput);
+//   document.getElementById('generated-prompt').value = outputText;
+// });
 
-//   // Send a POST request to the Django backend
-//   fetch('/user-input/', {
+// function generatePrompt(input) {
+//   // Replace this with your actual prompt generation logic
+//   return `Generated prompt for: ${input}`;
+// }
+//--------------------
+
+//--------------js with python
+// document.getElementById('magic-form').addEventListener('submit', function (event) {
+//   event.preventDefault(); // prevent default form submission
+//   const userInput = document.getElementById('magic-prompt').value;
+//   const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+//   fetch('/chat/generate-prompt/', {
 //     method: 'POST',
 //     headers: {
 //       'Content-Type': 'application/json',
-//       'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+//       'X-CSRFToken': csrfToken
 //     },
-//     body: JSON.stringify({input: userInput})
+//     body: JSON.stringify({user_input: userInput})
 //   })
 //     .then(response => response.json())
 //     .then(data => {
-//       if (data.prompt) {
-//         document.getElementById('generated-prompt').value = data.prompt;
-//       } else {
-//         console.error('Error:', data.error);
-//       }
+//       document.getElementById('generated-prompt').value = data.output_text;
 //     })
-//     .catch(error => console.error('Error:', error));
+//     .catch(error => {
+//       console.error('Error:', error);
+//     });
 // });
