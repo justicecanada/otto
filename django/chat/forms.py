@@ -406,7 +406,15 @@ class PresetForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        if user and is_group_member("Otto admin")(user):
+        if self.instance.pk and not user.has_perm(
+            "chat.edit_preset_sharing", self.instance
+        ):
+            self.fields.pop("sharing_option")
+            # Add a hidden field to store the existing sharing_option
+            self.fields["existing_sharing_option"] = forms.CharField(
+                widget=forms.HiddenInput(), initial=self.instance.sharing_option
+            )
+        elif user and is_group_member("Otto admin")(user):
             self.fields["sharing_option"].choices = [
                 ("private", _("Make private")),
                 ("everyone", _("Share with everyone")),

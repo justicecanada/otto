@@ -100,11 +100,29 @@ def can_edit_preset(user, preset):
         return user == preset.owner
 
 
+@predicate
+def can_delete_preset(user, preset):
+    if preset.global_default:
+        return False
+    return can_edit_preset(user, preset)
+
+
+@predicate
+def can_edit_preset_sharing(user, preset):
+    if preset.global_default:
+        return False
+    if preset.owner is None:
+        return is_admin(user)
+    return user == preset.owner
+
+
 add_perm("chat.access_chat", can_access_chat)
 add_perm("chat.access_message", can_access_message)
 add_perm("chat.access_file", can_access_file)
 add_perm("chat.access_preset", can_access_preset)
 add_perm("chat.edit_preset", can_edit_preset)
+add_perm("chat.delete_preset", can_delete_preset)
+add_perm("chat.edit_preset_sharing", can_edit_preset_sharing)
 
 # Template Wizard
 add_perm(

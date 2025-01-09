@@ -66,18 +66,27 @@
             </div>
           </div>
         </div>
-        <div class="col-12">
-          <label class="form-label" for="id_sharing">{% trans "Privacy controls" %}</label>
-          <div class="sharing-options d-flex gap-4">
-            {% for radio in form.sharing_option %}<div class="form-check">{{ radio }}</div>{% endfor %}
+        {% if form.sharing_option %}
+          <div class="col-12">
+            <label class="form-label" for="id_sharing">{% trans "Privacy controls" %}</label>
+            <div class="sharing-options d-flex gap-4">
+              {% for radio in form.sharing_option %}<div class="form-check">{{ radio }}</div>{% endfor %}
+            </div>
           </div>
-        </div>
-        <div class="col-12" id="public_fields">
-          <div>
-            <label class="form-label" for="id_accessible_to">{% trans "Accessible to: " %}</label>
-            {{ form.accessible_to }}
+          <div class="col-12" id="public_fields">
+            <div>
+              <label class="form-label" for="id_accessible_to">{% trans "Accessible to: " %}</label>
+              {{ form.accessible_to }}
+            </div>
           </div>
-        </div>
+        {% else %}
+          <input type="hidden"
+                 name="sharing_option"
+                 value="{{ form.existing_sharing_option.value }}">
+          <input type="hidden"
+                 name="accessible_to"
+                 value="{{ form.accessible_to.value }}">
+        {% endif %}
         {% if preset_id %}
           <div class="col-12">
             <div class="form-check">
@@ -93,6 +102,14 @@
         {% endif %}
       </div>
     </div>
+    <div id="public-preset-warning"
+         class="bg-warning-subtle py-1 mt-2 rounded border border-warning {% if not is_public %}d-none{% endif %}">
+      <i class="bi bi-exclamation-triangle text-danger"></i>
+      {% if is_global_default %}
+        <strong class="small">{% trans "This is the default Otto preset. Use caution!" %}</strong>
+      {% endif %}
+      <em class="small">{% trans "Changes will be visible to all Otto users." %}</em>
+    </div>
     <div class="modal-footer pb-0 pt-1 border-0">
       <div class="col-12">
         <div class="row">
@@ -104,7 +121,7 @@
                     hx-swap="innerHTML transition:true"
                     type="button">{% trans "Cancel" %}</button>
  
-            {% if preset_id %}
+            {% if preset_id and can_delete %}
               <button id="delete_preset"
                       class="btn btn-outline-danger flex-fill"
                       hx-get="{% url 'chat:chat_options' chat_id=chat_id action='delete_preset' preset_id=preset_id %}"
@@ -127,88 +144,61 @@
 </div>
 
 <script>
-  function handlePresetModalSubmit(event) {
-      const form = document.getElementById("edit_preset_form");
-      const nameEnElement = document.getElementById("id_name_en").value;
-      const nameFrElement = document.getElementById("id_name_fr").value;
-      const sharingOptionElement = document.querySelector('input[name="sharing_option"]:checked');
-      const sharingOption = sharingOptionElement ? sharingOptionElement.value : "";
-      const accessibleToElement = document.querySelector('[name="accessible_to"]');
-      const accessibleTo = accessibleToElement ? accessibleToElement.value : "";
-      const errorMessage = document.getElementById("error-message");
-      let isValid = true;
-      if (!nameEnElement && !nameFrElement) {
-          errorMessage.innerText = "{% trans 'Please provide a title in either English or French.' %}";
-          errorMessage.classList.remove('d-none');
-          event.preventDefault();
-          event.stopPropagation();
-          isValid = false;
-      }
+(function() {
+  const initially_public = {% if is_public %}true{% else %}false{% endif %};
+  const publicFields = document.getElementById('public_fields');
+  if (publicFields === null) {
+    console.log("publicFields is null");
+    return;
+  }
+  const enTab = document.getElementById('en-preset-tab');
+  const frTab = document.getElementById('fr-preset-tab');
+  const enContent = document.getElementById('en-content');
+  const frContent = document.getElementById('fr-content');
+  const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
 
-      if (sharingOption === 'others' && !accessibleToElement) {
-          errorMessage.innerText = "{% trans 'Please provide at least one user for the accessible field.' %}";
-          errorMessage.classList.remove('d-none');
-          event.preventDefault();
-          event.stopPropagation();
-          isValid = false;
-      }
-
-      if (!form.checkValidity()) {
-          event.preventDefault();
-          event.stopPropagation();
-          isValid = false;
-      }
-      document.querySelector('input[name=\'prompt\']').value = document.getElementById('chat-prompt').value;
-
-      // Only dismiss modal if validation passes
-      if (isValid) {
-          const modal = bootstrap.Modal.getInstance(document.getElementById('presets-modal'));
-          if (modal) {
-              modal.hide();
-          }
-      } else {
-          errorMessage.focus();
-      }
+  function toggleWarning(display_warning) {
+    if (display_warning) {
+      document.getElementById("public-preset-warning").classList.remove("d-none");
+    } else {
+      document.getElementById("public-preset-warning").classList.add("d-none");
+    }
   }
 
-  document.querySelector('#presets-modal').addEventListener('htmx:afterSettle', function() {
-    const publicFields = document.getElementById('public_fields');
-    const enTab = document.getElementById('en-preset-tab');
-    const frTab = document.getElementById('fr-preset-tab');
-    const enContent = document.getElementById('en-content');
-    const frContent = document.getElementById('fr-content');
-    const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
-
-    function togglePublicFields() {
-      const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
-      if (selectedOption){
-          publicFields.style.display = selectedOption.value === 'others' ? 'block' : 'none';
+  function togglePublicFields() {
+    console.log("running togglePublicFields");
+    const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
+    if (selectedOption) {
+      publicFields.style.display = selectedOption.value === 'others' ? 'block' : 'none';
+      if (!initially_public) {
+        toggleWarning(selectedOption.value === "everyone");
       }
     }
+  }
 
-    function switchLanguage(lang) {
-      if (lang === 'en') {
-        enContent.classList.add('active');
-        frContent.classList.remove('active');
-        enTab.classList.add('active');
-        frTab.classList.remove('active');
-      } else {
-        frContent.classList.add('active');
-        enContent.classList.remove('active');
-        frTab.classList.add('active');
-        enTab.classList.remove('active');
-      }
+  function switchLanguage(lang) {
+    if (lang === 'en') {
+      enContent.classList.add('active');
+      frContent.classList.remove('active');
+      enTab.classList.add('active');
+      frTab.classList.remove('active');
+    } else {
+      frContent.classList.add('active');
+      enContent.classList.remove('active');
+      frTab.classList.add('active');
+      enTab.classList.remove('active');
     }
+  }
 
-    sharingOptionInputs.forEach(input => {
-        input.addEventListener('change', togglePublicFields);
-    });
-
-    togglePublicFields(); // Set initial state
-
-    if (enTab && frTab) {
-      enTab.addEventListener('click', () => switchLanguage('en'));
-      frTab.addEventListener('click', () => switchLanguage('fr'));
-    }
+  sharingOptionInputs.forEach(input => {
+    input.addEventListener('change', togglePublicFields);
   });
+
+  togglePublicFields(); // Set initial state
+
+  if (enTab && frTab) {
+    enTab.addEventListener('click', () => switchLanguage('en'));
+    frTab.addEventListener('click', () => switchLanguage('fr'));
+  }
+})();
 </script>
