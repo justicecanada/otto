@@ -47,9 +47,11 @@
         {% endif %}
       </li>
     {% endif %}
-    <li>
-      <hr class="dropdown-divider">
-    </li>
+    {% if can_manage_users or can_enable_load_testing %}
+      <li>
+        <hr class="dropdown-divider">
+      </li>
+    {% endif %}
     <li>
       <a href="{% url 'azure_auth:logout' %}" class="dropdown-item">{% trans "Logout" %}</a>
     </li>
