@@ -92,12 +92,8 @@ def can_access_preset(user, preset):
 @predicate
 def can_edit_preset(user, preset):
     if preset.owner is None:
-        if is_admin(user):
-            return True
-        else:
-            return False
-    else:
-        return user == preset.owner
+        return is_admin(user)
+    return user == preset.owner
 
 
 @predicate
@@ -111,9 +107,7 @@ def can_delete_preset(user, preset):
 def can_edit_preset_sharing(user, preset):
     if preset.global_default:
         return False
-    if preset.owner is None:
-        return is_admin(user)
-    return user == preset.owner
+    return can_edit_preset(user, preset)
 
 
 @predicate
