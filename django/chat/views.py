@@ -850,7 +850,7 @@ def set_preset_default(request, chat_id: str, preset_id: int):
         new_preset = Preset.objects.get(id=preset_id)
         old_default = Preset.objects.filter(default_for=request.user).first()
 
-        default = new_preset.set_as_default(request.user)
+        default = new_preset.set_as_user_default(request.user)
         is_default = True if default is not None else False
 
         new_html = render_to_string(

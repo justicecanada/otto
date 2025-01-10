@@ -243,15 +243,15 @@ class Command(BaseCommand):
 
     def reset_presets(self):
         yaml_file_path = os.path.join(
-            settings.BASE_DIR, "otto", "fixtures", "default_preset.yaml"
+            settings.BASE_DIR, "chat", "fixtures", "presets.yaml"
         )
 
         with open(yaml_file_path, "r", encoding="utf-8") as yaml_file:
             presets_data = yaml.safe_load(yaml_file)
 
-        # Delete existing presets and associated options
-        Preset.objects.all().delete()
-        ChatOptions.objects.create_from_yaml(presets_data)
+        # Delete existing "default presets" (which have no owner)
+        Preset.objects.filter(owner=None).delete()
+        Preset.objects.create_from_yaml(presets_data)
 
         self.stdout.write(self.style.SUCCESS("Presets reset successfully."))
 

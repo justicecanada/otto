@@ -7,10 +7,12 @@ from django.db.models import BooleanField, Q, Value
 from django.db.models.functions import Coalesce
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from data_fetcher.util import get_request
 from structlog import get_logger
 
 from chat.prompts import current_time_prompt
@@ -98,7 +100,7 @@ class ChatOptionsManager(models.Manager):
             copy_options(chat.user.default_preset.options, new_options, chat.user)
         else:
             # get default preset
-            default_preset = Preset.objects.get(global_default=True)
+            default_preset = Preset.objects.get_global_default()
 
             # create a copy of the default preset options
             new_options = self.create()
@@ -111,70 +113,6 @@ class ChatOptionsManager(models.Manager):
         new_options.save()
 
         return new_options
-
-    def create_from_yaml(self, presets_data):
-
-        # create default otto settings
-        default_library = Library.objects.get_default_library()
-        default_otto_prompts = presets_data["default_otto_settings"]
-        default_options = ChatOptions.objects.create(
-            mode="chat",
-            chat_system_prompt=default_otto_prompts["default_chat_prompt"]["en"],
-            qa_system_prompt=default_otto_prompts["qa_system_prompt"]["en"],
-            qa_prompt_template=default_otto_prompts["qa_prompt_template"]["en"],
-            qa_pre_instructions=default_otto_prompts["qa_pre_instructions"]["en"],
-            qa_post_instructions=default_otto_prompts["qa_post_instructions"]["en"],
-            chat_model=settings.DEFAULT_CHAT_MODEL,
-            qa_model=settings.DEFAULT_QA_MODEL,
-            summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
-            qa_library=default_library,
-        )
-
-        default_options.save()
-
-        default_preset = Preset.objects.create(
-            name_en="Otto default",
-            name_fr="Défaut d'Otto",
-            description_en="Base preset balancing cost and performance",
-            description_fr="Préréglage de base équilibrant le coût et la performance",
-            options=default_options,
-            sharing_option="everyone",
-            global_default=True,
-        )
-
-        default_preset.save()
-
-        # create structured summary settings that includes default otto settings also
-        structured_summary = presets_data["structured_summary"]
-        structured_summary_options = ChatOptions.objects.create(
-            mode="summarize",
-            summarize_style="long",
-            summarize_instructions=structured_summary[
-                "summary_additional_instructions"
-            ]["en"],
-            chat_system_prompt=default_otto_prompts["default_chat_prompt"]["en"],
-            qa_system_prompt=default_otto_prompts["qa_system_prompt"]["en"],
-            qa_prompt_template=default_otto_prompts["qa_prompt_template"]["en"],
-            qa_pre_instructions=default_otto_prompts["qa_pre_instructions"]["en"],
-            qa_post_instructions=default_otto_prompts["qa_post_instructions"]["en"],
-            chat_model=settings.DEFAULT_CHAT_MODEL,
-            qa_model=settings.DEFAULT_QA_MODEL,
-            qa_library=default_library,
-            summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
-        )
-
-        structured_summary_options.save()
-
-        structured_summary_preset = Preset.objects.create(
-            name_en="Structured summary",
-            name_fr="Résumé structuré",
-            description_en="Summary with headings and bullet points",
-            description_fr="Résumé avec des titres et des puces",
-            options=structured_summary_options,
-            sharing_option="everyone",
-        )
-
-        structured_summary_preset.save()
 
 
 QA_SCOPE_CHOICES = [
@@ -302,6 +240,14 @@ class ChatOptions(models.Model):
 
 
 class PresetManager(models.Manager):
+    def get_global_default(self):
+        # Check the language of the current request
+        request = get_request()
+        if request and request.LANGUAGE_CODE == "fr":
+            return self.get(french_default=True)
+        else:
+            return self.get(english_default=True)
+
     def get_accessible_presets(self, user: User, language: str = None):
         ordering = ["-default", "-favourite"]
         if language:
@@ -327,6 +273,42 @@ class PresetManager(models.Manager):
             )
             .order_by(*ordering)
         )
+
+    def create_from_yaml(self, data):
+        """
+        Create Preset objects from a dictionary loaded from chat/fixtures/presets.yaml
+        """
+        from chat.utils import copy_options
+
+        assert len(data) >= 2, "YAML file must contain at least two presets"
+        created_options = {}
+        for item_name, item in data.items():
+            item["sharing_option"] = "everyone"
+            options_dict = item.pop("options", None)
+            # TODO: Consider allowing different libraries for default presets
+            options_dict["qa_library"] = Library.objects.get_default_library()
+            based_on = item.pop("based_on", None)
+            # Prevent creation of multiple default presets
+            if self.filter(english_default=True).exists():
+                options_dict["english_default"] = False
+            if self.filter(french_default=True).exists():
+                options_dict["french_default"] = False
+            # Case 1: Completely new options, not based on another
+            if not based_on:
+                # Create the ChatOptions object
+                options_object = ChatOptions.objects.create(**options_dict)
+            # Case 2: Based on a previously created options object
+            if based_on:
+                options_object = ChatOptions.objects.create()
+                copy_options(created_options.get(based_on), options_object, None)
+                for key, value in options_dict.items():
+                    setattr(options_object, key, value)
+                options_object.save()
+            # Keep track of the options object for future "based_on" references
+            created_options[item_name] = options_object
+            # Create the Preset object with FK to ChatOptions object
+            item["options"] = options_object
+            self.create(**item)
 
 
 SHARING_OPTIONS = [
@@ -369,15 +351,20 @@ class Preset(models.Model):
         choices=SHARING_OPTIONS,
         default="private",
     )
-    global_default = models.BooleanField(default=False)
+    english_default = models.BooleanField(default=False)
+    french_default = models.BooleanField(default=False)
 
     @property
     def shared_with(self):
         if self.sharing_option == "everyone":
-            return "Shared with everyone"
+            return _("Shared with everyone")
         elif self.sharing_option == "others":
-            return "Shared with others"
-        return "Private"
+            return _("Shared with others")
+        return _("Private")
+
+    @property
+    def global_default(self):
+        return self.english_default or self.french_default
 
     def toggle_favourite(self, user: User):
         """Sets the favourite flag for the preset.
@@ -412,7 +399,7 @@ class Preset(models.Model):
         else:
             return self.description_fr if self.description_fr else self.description_en
 
-    def set_as_default(self, user: User):
+    def set_as_user_default(self, user: User):
         if user:
             if user.default_preset == self:
                 user.default_preset = None
