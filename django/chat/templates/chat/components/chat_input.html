@@ -137,8 +137,8 @@
           <button type="submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
 
           <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5"></textarea>
-            </form>
-          </div> -->
+                        </form>
+                      </div> -->
     <div class="modal-body">
       <form id="magic-form"
             hx-post="/chat/generate-prompt/"
@@ -150,10 +150,13 @@
                class="form-control"
                id="magic-prompt"
                placeholder='{% trans "Type your prompt here..." %}'>
-        <textarea class="form-control mt-3"
-                  id="generated-prompt"
-                  name="generated_prompt"
-                  rows="5"></textarea>
+        <!-- <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5"></textarea>-->
+        <div id="generated-prompt-container">
+          <textarea class="form-control mt-3"
+                    id="generated-prompt"
+                    name="generated_prompt"
+                    rows="5"></textarea>
+        </div>
         <button type="submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
       </form>
     </div>

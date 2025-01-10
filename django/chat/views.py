@@ -1019,7 +1019,11 @@ def generate_prompt_view(request):
             logging.info(f"Received user input: {user_input}")
             output_text = generate_prompt(user_input)
             logging.info(f"Generated prompt: {output_text}")
-            return JsonResponse({"output_text": output_text})
+            # return JsonResponse({"output_text": output_text})
+            # Return an HTML snippet to update the textarea
+            return HttpResponse(
+                f'<textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5">{output_text}</textarea>'
+            )
         except Exception as e:
             logging.error(f"Error in generate_prompt_view: {e}")
             return JsonResponse({"error": "An error occurred"}, status=500)

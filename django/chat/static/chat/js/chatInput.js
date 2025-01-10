@@ -82,66 +82,39 @@ document.addEventListener('mouseup', function () {
   }
 });
 
-// 
+
+//-------------js only
 // document.getElementById('magic-button').addEventListener('click', function () {
 //   const userInput = document.getElementById('chat-prompt').value;
 //   document.getElementById('magic-prompt').value = userInput;
 // });
 
-// document.getElementById('magic-form').addEventListener('submit', function (event) {
-//   event.preventDefault(); // prevent default form submission
-//   const formData = new FormData(this);
-//   fetch(this.action, {
-//     method: 'POST',
-//     headers: {
-//       'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-//     },
-//     body: formData
-//   })
-//     .then(response => response.text())
-//     .then(html => {
-//       document.querySelector('#magicModal .modal-body').innerHTML = html;
-//     });
-// });
 
-//-------------js only
-document.getElementById('magic-button').addEventListener('click', function () {
-  const userInput = document.getElementById('chat-prompt').value;
-  document.getElementById('magic-prompt').value = userInput;
+document.getElementById('magic-form').addEventListener('submit', function (event) {
+  event.preventDefault();  // Prevent the default form submission
+
+  const userInput = document.getElementById('magic-prompt').value;
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  fetch('/chat/generate-prompt/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRFToken': csrfToken
+    },
+    body: new URLSearchParams({
+      'user_input': userInput
+    })
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.output_text) {
+        document.getElementById('generated-prompt').value = data.output_text;
+      } else {
+        console.error('Error:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
 });
-
-// document.getElementById('magic-form').addEventListener('submit', function (event) {
-//   event.preventDefault(); // prevent default form submission
-//   const userInput = document.getElementById('magic-prompt').value;
-//   const outputText = generatePrompt(userInput);
-//   document.getElementById('generated-prompt').value = outputText;
-// });
-
-// function generatePrompt(input) {
-//   // Replace this with your actual prompt generation logic
-//   return `Generated prompt for: ${input}`;
-// }
-//--------------------
-
-//--------------js with python
-// document.getElementById('magic-form').addEventListener('submit', function (event) {
-//   event.preventDefault(); // prevent default form submission
-//   const userInput = document.getElementById('magic-prompt').value;
-//   const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-//   fetch('/chat/generate-prompt/', {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'X-CSRFToken': csrfToken
-//     },
-//     body: JSON.stringify({user_input: userInput})
-//   })
-//     .then(response => response.json())
-//     .then(data => {
-//       document.getElementById('generated-prompt').value = data.output_text;
-//     })
-//     .catch(error => {
-//       console.error('Error:', error);
-//     });
-// });
