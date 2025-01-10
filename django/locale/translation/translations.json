@@ -2650,5 +2650,9 @@
     "This is the default Otto preset. Use caution!": {
         "fr": "",
         "fr_auto": "Il s’agit du préréglage Otto par défaut. Soyez prudent !"
+    },
+    "Share with:": {
+        "fr": "",
+        "fr_auto": "Partager avec :"
     }
 }
