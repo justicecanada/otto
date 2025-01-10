@@ -145,36 +145,10 @@
 
 <script>
 (function() {
-  const initially_public = {% if is_public %}true{% else %}false{% endif %};
-  const publicFields = document.getElementById('public_fields');
-  if (publicFields === null) {
-    console.log("publicFields is null");
-    return;
-  }
   const enTab = document.getElementById('en-preset-tab');
   const frTab = document.getElementById('fr-preset-tab');
   const enContent = document.getElementById('en-content');
   const frContent = document.getElementById('fr-content');
-  const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
-
-  function toggleWarning(display_warning) {
-    if (display_warning) {
-      document.getElementById("public-preset-warning").classList.remove("d-none");
-    } else {
-      document.getElementById("public-preset-warning").classList.add("d-none");
-    }
-  }
-
-  function togglePublicFields() {
-    console.log("running togglePublicFields");
-    const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
-    if (selectedOption) {
-      publicFields.style.display = selectedOption.value === 'others' ? 'block' : 'none';
-      if (!initially_public) {
-        toggleWarning(selectedOption.value === "everyone");
-      }
-    }
-  }
 
   function switchLanguage(lang) {
     if (lang === 'en') {
@@ -190,15 +164,40 @@
     }
   }
 
+  if (enTab && frTab) {
+    enTab.addEventListener('click', () => switchLanguage('en'));
+    frTab.addEventListener('click', () => switchLanguage('fr'));
+  }
+
+  const publicFields = document.getElementById('public_fields');
+  if (publicFields === null) return;
+  
+  const initially_public = {% if is_public %}true{% else %}false{% endif %};
+  const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
+
+  function toggleWarning(display_warning) {
+    if (display_warning) {
+      document.getElementById("public-preset-warning").classList.remove("d-none");
+    } else {
+      document.getElementById("public-preset-warning").classList.add("d-none");
+    }
+  }
+
+  function togglePublicFields() {
+    const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
+    if (selectedOption) {
+      publicFields.style.display = selectedOption.value === 'others' ? 'block' : 'none';
+      if (!initially_public) {
+        toggleWarning(selectedOption.value === "everyone");
+      }
+    }
+  }
+
   sharingOptionInputs.forEach(input => {
     input.addEventListener('change', togglePublicFields);
   });
 
   togglePublicFields(); // Set initial state
 
-  if (enTab && frTab) {
-    enTab.addEventListener('click', () => switchLanguage('en'));
-    frTab.addEventListener('click', () => switchLanguage('fr'));
-  }
 })();
 </script>
