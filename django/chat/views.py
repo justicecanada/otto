@@ -794,7 +794,7 @@ def save_preset(request, chat_id):
     chat = Chat.objects.get(id=chat_id)
     # check if chat.loaded_preset is set
     if chat.loaded_preset and request.user.has_perm(
-        "chat.edit_preset", chat.loaded_preset
+        "chat.quick_save_preset", chat.loaded_preset
     ):
         preset = Preset.objects.get(id=chat.loaded_preset.id)
         return render(
