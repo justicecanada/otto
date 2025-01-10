@@ -912,11 +912,18 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
 
 
 def generate_prompt(task_or_prompt: str):
+    import os
+
     from django.conf import settings
 
-    from openai import OpenAI
+    import openai
+    from dotenv import load_dotenv
 
-    api_key = settings.OPENAI_API_KEY
+    load_dotenv()
+    openai.api_key = os.getenv("AZURE_OPENAI_KEY")
+    # openai.= os.getenv('AZURE_OPENAI_ENDPOINT')
+    openai.api_version = os.getenv("AZURE_OPENAI_VERSION")
+
     META_PROMPT = """
     Given a current prompt and a change description, produce a detailed system prompt to guide a language model in completing the task effectively.
 
@@ -981,8 +988,8 @@ def generate_prompt(task_or_prompt: str):
     [optional: edge cases, details, and an area to call or repeat out specific important considerations]
     [NOTE: you must start with a <reasoning> section. the immediate next token you produce should be <reasoning>]
     """.strip()
-    client = OpenAI()
-    completion = client.chat.completions.create(
+
+    completion = openai.chat.completions.create(
         model="gpt-4o",
         messages=[
             {
@@ -996,52 +1003,14 @@ def generate_prompt(task_or_prompt: str):
         ],
     )
 
-    # return completion.choices[0].message.content
-    return "This is a placeholder for the output prompt."
+    return completion.choices[0].message.content
+    # return "This is a placeholder for the output prompt."
 
 
 from django.views.decorators.csrf import csrf_exempt
 
-# js with python------------------
-# @csrf_exempt
-# def generate_prompt_view(request):
-#     if request.method == "POST":
-#         try:
-#             data = json.loads(request.body)
-#             user_input = data.get("user_input", "")
-#             logging.info(f"Received user input: {user_input}")
-#             output_text = (
-#                 "AI generate prompt will be here"  # generate_prompt(user_input)
-#             )
-#             logging.info(f"Generated prompt: {output_text}")
-#             return JsonResponse({"output_text": output_text})
-#         except Exception as e:
-#             logging.error(f"Error in generate_prompt_view: {e}")
-#             return JsonResponse({"error": "An error occurred"}, status=500)
-#     return JsonResponse({"error": "Invalid request method"}, status=400)
-# -------------------------------------
 
-# @require_POST
-# def user_input_view(request):
-
-#     try:
-#         if request.method == "POST":
-#             user_input = request.POST.get("user_input", "")
-#             logging.info(f"Received user input: {user_input}")
-#             output_text = generate_prompt(user_input)
-#             logging.info(f"Generated prompt: {output_text}")
-#             return render(
-#                 request,
-#                 "chat/components/generated_prompt.html",
-#                 {"output_text": output_text},
-#             )
-#     except Exception as e:
-#         logging.error(f"Error in user_input_view: {e}")
-#         return HttpResponse("An error occurred", status=500)
-#     return HttpResponse("")
-
-
-# htmx------------------
+# with htmx------------------
 @csrf_exempt
 def generate_prompt_view(request):
     if request.method == "POST":
