@@ -376,15 +376,19 @@ class PresetForm(forms.ModelForm):
         widgets = {
             "name_en": forms.TextInput(attrs={"class": "form-control"}),
             "name_fr": forms.TextInput(attrs={"class": "form-control"}),
-            "description_en": forms.Textarea(attrs={"class": "form-control"}),
-            "description_fr": forms.Textarea(attrs={"class": "form-control"}),
+            "description_en": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+            "description_fr": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
             "is_public": forms.CheckboxInput(
                 attrs={
                     "class": "form-check-input",
                     "type": "checkbox",
                 }
             ),
-            "sharing_option": forms.RadioSelect,
+            "sharing_option": forms.RadioSelect(attrs={"class": "form-check-input"}),
         }
 
     accessible_to = forms.ModelMultipleChoiceField(
