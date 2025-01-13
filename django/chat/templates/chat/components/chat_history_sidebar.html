@@ -42,3 +42,11 @@
     </div>
   </div>
 </div>
+
+{% block page_script %}
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    scrollToListItem();
+  });
+  </script>
+{% endblock %}

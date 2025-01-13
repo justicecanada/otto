@@ -15,10 +15,8 @@ from librarian.models import DataSource, Document, Library, LibraryUserRole
 logger = get_logger(__name__)
 
 CHAT_MODELS = [
-    ("gpt-4o-mini", _("GPT-4o-mini (Global)")),
-    ("gpt-4o", _("GPT-4o (Global)")),
-    ("gpt-4", _("GPT-4 (Canada)")),
-    ("gpt-35", _("GPT-3.5 (Canada)")),
+    ("gpt-4o-mini", _("GPT-4o-mini (fastest, best value)")),
+    ("gpt-4o", _("GPT-4o (best quality, but 25x cost)")),
 ]
 SUMMARIZE_STYLES = [
     ("short", _("Short")),

@@ -20,7 +20,9 @@ let librarianModalCloseHandler = event => {
     library_id = selected_library_li.getAttribute('data-library-id');
   }
   // Update the QA library select
-  htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion'});
+  htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion'}).then(() => {
+    triggerOptionSave();
+  });
 };
 const modalEl = document.getElementById('editLibrariesModal');
 modalEl.addEventListener('hidden.bs.modal', librarianModalCloseHandler);

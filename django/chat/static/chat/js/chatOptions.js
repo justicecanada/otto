@@ -68,7 +68,9 @@ function clearAutocomplete(field_name) {
 
 function resetQaAutocompletes() {
   const mode = document.getElementById('id_qa_mode');
+  const e = new Event("change");
   mode.value = 'rag';
+  mode.dispatchEvent(e);
   limitScopeSelect();
   updateQaSourceForms();
   clearAutocomplete('qa_data_sources');
