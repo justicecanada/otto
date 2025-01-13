@@ -94,15 +94,15 @@
                     aria-label='{% trans "Message" %}'
                     placeholder='{% trans "Type your message here..." %}'
                     required></textarea>
-          <button id="magic-button"
+
+          <button id="magic-prompt"
                   class="btn btn-outline-secondary"
                   type="button"
-                  aria-label='{% trans "Generate Prompt" %}'
-                  data-bs-toggle="modal"
-                  data-bs-target="#magicModal"
-                  hx-get="/reset-form/"
-                  hx-target="#magicModal .modal-content"
-                  hx-swap="outerHTML">
+                  hx-post="/chat/generate-prompt/"
+                  hx-include="#chat-prompt"
+                  hx-target="#chat-prompt"
+                  hx-swap="outerHTML"
+                  aria-label='{% trans "Generate Prompt with AI" %}'>
             <i class="bi bi-magic"></i>
           </button>
           <button id="send-button"
@@ -118,65 +118,30 @@
 </div>
  
 <!-- Modal -->
-<div class="modal fade"
-     id="magicModal"
-     tabindex="-1"
-     aria-labelledby="magicModalLabel"
-     aria-hidden="true">
+<!-- <div class="modal fade" id="magicModal" tabindex="-1" aria-labelledby="magicModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="magicModalLabel">{% trans "Generate Prompt" %}</h5>
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-                onclick="location.reload();"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="location.reload();"></button>
       </div>
  
-      <!-- <div class="modal-body">
-        <form id="magic-form">
-          {% csrf_token %}
-          <input type="text" name="user_input" class="form-control" id="magic-prompt" placeholder='{% trans "Type your prompt here..." %}'>
-          <button type="submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
-
-          <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5"></textarea>
-                                                                                        </form>
-                                                                                      </div> -->
-    <div class="modal-body">
-      <form id="magic-form col-md-4"
-            hx-post="/chat/generate-prompt/"
-            hx-target="#magicModal .modal-body"
-            hx-swap="outerHTML">
-        {% csrf_token %}
-        <input type="text"
-               name="user_input"
-               class="form-control "
-               id="magic-prompt"
-               placeholder='{% trans "Type your prompt here..." %}'>
-        <!-- <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5"></textarea>-->
-        <!-- <div id="generated-prompt-container">
-          <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5"></textarea>
-                                                                                                                                        </div>-->
-        <button type="submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
-      </form>
-    </div>
-
-    <div class="modal-footer">
-      <button type="button"
-              class="btn btn-secondary"
-              hx-get="/reset-form/"
-              hx-target="#magicModal .modal-content"
-              hx-swap="outerHTML">{% trans "Clear" %}</button>
-      <button type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-              onclick="copyTextareaContent()">{% trans "Copy" %}</button>
-      <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>-->
-    </div>
+    </form>
   </div>
+  -->
+<!--  <div class="modal-body">
+    <form id="magic-form col-md-4" hx-post="/chat/generate-prompt/" hx-target="#magicModal .modal-body" hx-swap="outerHTML">
+      {% csrf_token %}
+      <input type="text" name="user_input" class="form-control " id="magic-prompt" placeholder='{% trans "Type your prompt here..." %}'>
+                                                                                                                                                                                         </div>-->
+<!--   <button type="submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
+    </form>
+  </div>
+
+
 </div>
 </div>
+</div>-->
 
 {% block page_script %}
   <script src="{% static 'chat/js/chatInput.js' %}"></script>

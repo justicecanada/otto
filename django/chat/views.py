@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -970,17 +971,17 @@ def generate_prompt(task_or_prompt: str):
 
     [Optional sections with headings or bullet points for detailed steps.]
 
-    # Steps [optional]
+    # Steps 
 
-    [optional: a detailed breakdown of the steps necessary to accomplish the task]
+    [ a detailed breakdown of the steps necessary to accomplish the task]
 
     # Output Format
 
     [Specifically call out how the output should be formatted, be it response length, structure e.g. JSON, markdown, etc]
 
-    # Examples [optional]
+    # Examples 
 
-    [Optional: 1-3 well-defined examples with placeholders if necessary. Clearly mark where examples start and end, and what the input and output are. User placeholders as necessary.]
+    [ 1-3 well-defined examples with placeholders if necessary. Clearly mark where examples start and end, and what the input and output are. User placeholders as necessary.]
     [If the examples are shorter than what a realistic example is expected to be, make a reference with () explaining how real examples should be longer / shorter / different. AND USE PLACEHOLDERS! ]
 
     # Notes [optional]
@@ -1019,16 +1020,18 @@ def reset_form_view(request):
 def generate_prompt_view(request):
     if request.method == "POST":
         try:
-            user_input = request.POST.get("user_input", "")
+            # user_input = request.POST.get("user_input", "")
+            user_input = request.POST.get("user-message", "")
             logging.info(f"Received user input: {user_input}")
             output_text = generate_prompt(user_input)
             logging.info(f"Generated prompt: {output_text}")
-            # return JsonResponse({"output_text": output_text})
-            # Return an HTML snippet to update the textarea
+            output_text = re.sub(
+                r"<reasoning>.*?</reasoning>", "", output_text, flags=re.DOTALL
+            )
             return HttpResponse(
-                f'<textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5">{output_text}</textarea>'
+                f'<textarea class="form-control col" name="user-message" id="chat-prompt" autocomplete="off" aria-label="Message" placeholder="Type your message here..." required>{output_text}</textarea>'
             )
         except Exception as e:
             logging.error(f"Error in generate_prompt_view: {e}")
-            return JsonResponse({"error": "An error occurred"}, status=500)
-    return JsonResponse({"error": "Invalid request method"}, status=400)
+            return HttpResponse("An error occurred", status=500)
+    return HttpResponse("Invalid request method", status=400)
