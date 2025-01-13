@@ -96,13 +96,17 @@
                     required></textarea>
 
           <button id="magic-prompt"
-                  class="btn btn-outline-secondary"
+                  class=" floating-icon"
                   type="button"
                   hx-post="/chat/generate-prompt/"
                   hx-include="#chat-prompt"
                   hx-target="#chat-prompt"
                   hx-swap="outerHTML"
-                  aria-label='{% trans "Generate Prompt with AI" %}'>
+                  hx-trigger="click"
+                  hx-indicator="#loading-spinner"
+                  aria-label='{% trans "Improve prompt using AI" %}'
+                  title='{% trans "Improve prompt using AI" %}'>
+
             <i class="bi bi-magic"></i>
           </button>
           <button id="send-button"
@@ -112,6 +116,7 @@
             <i class="bi bi-send"></i>
           </button>
         </div>
+ 
       </div>
     </form>
   </div>
@@ -145,5 +150,27 @@
 
 {% block page_script %}
   <script src="{% static 'chat/js/chatInput.js' %}"></script>
-
+  <style>
+    .floating-icon {
+      position: absolute;
+      top: 0px;
+      right: 40px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #eed78f;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+    .floating-icon i {
+      font-size: 24px;
+    }
+    .floating-icon .spinner-border {
+      width: 24px;
+      height: 24px;
+    }
+  </style>
 {% endblock %}
