@@ -110,6 +110,7 @@ urlpatterns = [
         views.set_preset_default,
         name="set_preset_default",
     ),
+    path("reset-form/", views.reset_form_view, name="reset_form_view"),
     # path("user-input/", views.user_input_view, name="user_input_view"),
     # path("generate-prompt/", views.generate_prompt, name="generate_prompt"),
     path("generate-prompt/", views.generate_prompt_view, name="generate_prompt_view"),

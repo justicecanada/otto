@@ -118,3 +118,11 @@ document.getElementById('magic-form').addEventListener('submit', function (event
       console.error('Error:', error);
     });
 });
+function copyTextareaContent() {
+  const textarea = document.getElementById('generated-prompt');
+  navigator.clipboard.writeText(textarea.value).then(() => {
+    alert('Copied the text: ' + textarea.value);
+  }).catch(err => {
+    console.error('Failed to copy text: ', err);
+  });
+}

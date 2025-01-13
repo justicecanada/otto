@@ -1010,6 +1010,10 @@ def generate_prompt(task_or_prompt: str):
 from django.views.decorators.csrf import csrf_exempt
 
 
+def reset_form_view(request):
+    return render(request, "chat/components/chat_input.html")
+
+
 # with htmx------------------
 @csrf_exempt
 def generate_prompt_view(request):

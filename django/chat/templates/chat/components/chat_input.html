@@ -99,7 +99,10 @@
                   type="button"
                   aria-label='{% trans "Generate Prompt" %}'
                   data-bs-toggle="modal"
-                  data-bs-target="#magicModal">
+                  data-bs-target="#magicModal"
+                  hx-get="/reset-form/"
+                  hx-target="#magicModal .modal-content"
+                  hx-swap="outerHTML">
             <i class="bi bi-magic"></i>
           </button>
           <button id="send-button"
@@ -127,7 +130,8 @@
         <button type="button"
                 class="btn-close"
                 data-bs-dismiss="modal"
-                aria-label="Close"></button>
+                aria-label="Close"
+                onclick="location.reload();"></button>
       </div>
  
       <!-- <div class="modal-body">
@@ -137,32 +141,38 @@
           <button type="submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
 
           <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5"></textarea>
-                        </form>
-                      </div> -->
+                                                                                        </form>
+                                                                                      </div> -->
     <div class="modal-body">
-      <form id="magic-form"
+      <form id="magic-form col-md-4"
             hx-post="/chat/generate-prompt/"
             hx-target="#magicModal .modal-body"
             hx-swap="outerHTML">
         {% csrf_token %}
         <input type="text"
                name="user_input"
-               class="form-control"
+               class="form-control "
                id="magic-prompt"
                placeholder='{% trans "Type your prompt here..." %}'>
         <!-- <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5"></textarea>-->
-        <div id="generated-prompt-container">
-          <textarea class="form-control mt-3"
-                    id="generated-prompt"
-                    name="generated_prompt"
-                    rows="5"></textarea>
-        </div>
+        <!-- <div id="generated-prompt-container">
+          <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5"></textarea>
+                                                                                                                                        </div>-->
         <button type="submit" class="btn btn-primary mt-3" id="generate-prompt">{% trans "Generate" %}</button>
       </form>
     </div>
 
     <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+      <button type="button"
+              class="btn btn-secondary"
+              hx-get="/reset-form/"
+              hx-target="#magicModal .modal-content"
+              hx-swap="outerHTML">{% trans "Clear" %}</button>
+      <button type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+              onclick="copyTextareaContent()">{% trans "Copy" %}</button>
+      <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>-->
     </div>
   </div>
 </div>
@@ -170,4 +180,5 @@
 
 {% block page_script %}
   <script src="{% static 'chat/js/chatInput.js' %}"></script>
+
 {% endblock %}
