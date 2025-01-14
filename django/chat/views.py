@@ -925,6 +925,8 @@ def generate_prompt(task_or_prompt: str):
     # openai.= os.getenv('AZURE_OPENAI_ENDPOINT')
     openai.api_version = os.getenv("AZURE_OPENAI_VERSION")
 
+    if len(task_or_prompt) <= 1:
+        return "Please describe your task first."
     META_PROMPT = """
     Given a current prompt and a change description, produce a detailed system prompt to guide a language model in completing the task effectively.
 
@@ -989,7 +991,8 @@ def generate_prompt(task_or_prompt: str):
     [optional: edge cases, details, and an area to call or repeat out specific important considerations]
     [NOTE: you must start with a <reasoning> section. the immediate next token you produce should be <reasoning>]
     """.strip()
-
+    llm = OttoLLM()
+    llm.create_costs()
     completion = openai.chat.completions.create(
         model="gpt-4o",
         messages=[
