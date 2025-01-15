@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from openai import OpenAI
@@ -1008,17 +1009,12 @@ def generate_prompt(task_or_prompt: str):
     )
     llm.create_costs()
     return completion.choices[0].message.content
-    # return "This is a placeholder for the output prompt."
-
-
-from django.views.decorators.csrf import csrf_exempt
 
 
 def reset_form_view(request):
     return render(request, "chat/components/chat_input.html")
 
 
-# with htmx------------------
 @csrf_exempt
 def generate_prompt_view(request):
     if request.method == "POST":
