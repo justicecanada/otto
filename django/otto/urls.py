@@ -20,6 +20,7 @@ urlpatterns = [
     path("azure_auth/", include("azure_auth.urls")),
     path("accounts/login/callback/", azure_auth_callback, name="callback"),
     # path("admin/", admin.site.urls), # Do not expose the admin site in production
+    path("email_chronology", include("email_chronology.urls")),
     path("librarian/", include("librarian.urls")),
     path("laws/", include("laws.urls")),
     path("text_extractor/", include("text_extractor.urls")),

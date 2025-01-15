@@ -165,6 +165,7 @@ INSTALLED_APPS = [
     "chat",
     "laws",
     "template_wizard",
+    "email_chronology",
     # Third-party apps
     "channels",
     "django_cleanup.apps.CleanupConfig",
