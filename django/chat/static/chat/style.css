@@ -1274,5 +1274,10 @@ math[display="block"] {
 }
 
 .floating-icon i {
-  font-size: 24px;
+  font-size: 16px;
+}
+
+.floating-icon .spinner-border {
+  width: 16px;
+  height: 16px;
 }

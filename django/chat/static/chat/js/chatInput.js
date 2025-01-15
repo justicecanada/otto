@@ -81,7 +81,23 @@ document.addEventListener('mouseup', function () {
     document.querySelector('#chat-prompt').focus();
   }
 });
+function toggleSpinner(show) {
+  const magicIcon = document.getElementById('magic-icon');
+  const spinnerIcon = document.getElementById('spinner-icon');
+  if (show) {
+    magicIcon.style.display = 'none';
+    spinnerIcon.style.display = 'inline-block';
+  } else {
+    magicIcon.style.display = 'inline-block';
+    spinnerIcon.style.display = 'none';
+  }
+}
 
+document.getElementById('magic-prompt').addEventListener('click', function () {
+  toggleSpinner(true);
+});
 
-
+document.addEventListener('htmx:afterRequest', function () {
+  toggleSpinner(false);
+});
 

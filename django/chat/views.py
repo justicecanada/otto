@@ -922,8 +922,9 @@ def generate_prompt(task_or_prompt: str):
 
     load_dotenv()
     openai.api_key = os.getenv("AZURE_OPENAI_KEY")
-    # openai.= os.getenv('AZURE_OPENAI_ENDPOINT')
     openai.api_version = os.getenv("AZURE_OPENAI_VERSION")
+
+    llm = OttoLLM()
 
     if len(task_or_prompt) <= 1:
         return "Please describe your task first."
@@ -991,8 +992,7 @@ def generate_prompt(task_or_prompt: str):
     [optional: edge cases, details, and an area to call or repeat out specific important considerations]
     [NOTE: you must start with a <reasoning> section. the immediate next token you produce should be <reasoning>]
     """.strip()
-    llm = OttoLLM()
-    llm.create_costs()
+
     completion = openai.chat.completions.create(
         model="gpt-4o",
         messages=[
@@ -1006,7 +1006,7 @@ def generate_prompt(task_or_prompt: str):
             },
         ],
     )
-
+    llm.create_costs()
     return completion.choices[0].message.content
     # return "This is a placeholder for the output prompt."
 
