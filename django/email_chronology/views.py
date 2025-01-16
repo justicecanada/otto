@@ -49,13 +49,29 @@ def upload_emails(request):
 
                 # Create thread
 
-                print(email_instance)
-                print(email_details)
+                # print(email_instance)
+                # print(email_details)
     else:
         form = EmailUploadForm()
 
-    threads = Thread.objects.all().select_related("emails")
-    print(threads)
+    threads = Thread.objects.all()
+
+    result = []
+    for thread in threads:
+        data = {"id": thread.id, "created_at": thread.created_at, "emails": []}
+        emails = thread.emails.all()
+        e = []
+        for email in emails:
+            item = {"sender": email["sender"], "attachments": [], "participants": []}
+            attachments = email.attachments.all()
+            participants = email.participants.all()
+            item["attachments"] = attachments
+            item["participants"] = participants
+            e.append(item)
+        data["emails"] = e
+        result.append(data)
+
+    print(result)
 
     return render(request, "upload.html", {"form": form, "emails_by_thread": []})
 
