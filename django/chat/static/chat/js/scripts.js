@@ -111,14 +111,10 @@ function handleModeChange(mode, element = null, preset_loaded = false) {
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
+  console.log("handleModeChange with preset_loaded=", preset_loaded);
   if (!preset_loaded) {triggerOptionSave();}
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
-  // Dispatch change event for search mode in order to trigger advance settings options
-  const qa_mode_value = document.getElementById('id_qa_mode').value;
-  switchToDocumentScope();
-  updateQaSourceForms();
-  toggleRagOptions(qa_mode_value);
 
   resizeOtherElements();
   // If the invoking element is an accordion-button we can stop

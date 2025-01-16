@@ -9,6 +9,7 @@ const sidebarMaxWidth = 600;
 
 // This saves the options when the user changes them via HTMX
 function triggerOptionSave() {
+  console.log("triggerOptionSave");
   // Re-enable any disabled inputs within #chat-options form
   let previously_disabled_elements = document.querySelectorAll('#chat-options select:disabled');
   document.querySelectorAll('#chat-options select').forEach((el) => {
