@@ -1,25 +1,33 @@
 #!/bin/bash
 
-# This script automates the process of running load tests on an application
-# using k6. It prompts for necessary information, sets up the testing
-# environment, and executes the tests based on the provided arguments.
+# Load Testing Script for Otto
+# ===================================
+#
+# This script automates the process of running load tests on the application
+# using k6. It allows for command-line arguments to set test parameters or
+# prompts for necessary information if not provided. The script sets up the
+# testing environment and executes the tests based on the provided arguments.
 #
 # Features:
-# - Checks if the app is enabled for load testing
-# - Prompts for base URL, application GitHub hash, and infrastructure GitHub hash
-# - Creates a timestamped directory for storing test results
 # - Supports running all test cases or a specific test case
+# - Allows setting test parameters via command-line arguments
+# - Prompts for missing information if not provided as arguments
+# - Checks if the app is enabled for load testing
+# - Creates a timestamped directory for storing test results
 #
 # Usage:
-#   ./run_tests.sh --all
-#     Runs all available test cases sequentially
+#   ./run_tests.sh [--all | --test <test_case_name>] [OPTIONS]
 #
-#   ./run_tests.sh --test <test_case_name>
-#     Runs a specific test case by name
+# Options:
+#   --enabled <y/n>           Is the app enabled for load testing
+#   --base-url <url>          Base URL of the app being tested
+#   --app-hash <hash>         GitHub hash of the application version
+#   --infra-hash <hash>       GitHub hash of the infrastructure version
 #
-# Example:
+# Examples:
 #   ./run_tests.sh --all
 #   ./run_tests.sh --test user_library_permissions
+#   ./run_tests.sh --all --enabled y --base-url https://example.com --app-hash abc123 --infra-hash def456
 #
 # Note: Ensure that k6 is installed and properly configured before running this script.
 #
