@@ -111,7 +111,6 @@ function handleModeChange(mode, element = null, preset_loaded = false) {
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
-  console.log("handleModeChange with preset_loaded=", preset_loaded);
   if (!preset_loaded) {triggerOptionSave();}
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];

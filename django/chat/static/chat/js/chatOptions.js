@@ -10,7 +10,6 @@ function updateLibraryModalButton() {
 }
 
 function updateQaSourceForms() {
-  console.log('updateQaSourceForms');
   const scope = document.getElementById('id_qa_scope').value;
   const dataSources = document.getElementById('qa_data_sources_autocomplete');
   const documents = document.getElementById('qa_documents_autocomplete');
@@ -68,7 +67,6 @@ function clearAutocomplete(field_name) {
 }
 
 function resetQaAutocompletes() {
-  console.log("resetQaAutocompletes");
   const mode = document.getElementById('id_qa_mode');
   const e = new Event("change");
   mode.value = 'rag';
@@ -92,7 +90,6 @@ function limitScopeSelect() {
 }
 
 function switchToDocumentScope() {
-  console.log("switchToDocumentScope");
   const scope = document.getElementById('id_qa_scope');
   let search_mode = document.getElementById('id_qa_mode').value;
   if (search_mode !== "rag") {

@@ -8,10 +8,8 @@
 </div>
 <script>
   (function (){
-    console.log("chat_options_accordion.html")
     {% if prompt %}document.querySelector('#chat-prompt').value = '{{ prompt }}';{% endif %}
     if ("{{ preset_loaded }}" === "true" || "{{ swap }}" === "true") {
-      console.log("preset loaded or swap block");
       let mode = "{{ options_form.mode.value }}";
       let is_preset_loaded = ("{{ preset_loaded }}" === "true");
       handleModeChange(mode, null, is_preset_loaded);
