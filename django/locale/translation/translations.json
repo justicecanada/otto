@@ -2646,5 +2646,13 @@
     "GPT-4o (best quality, but 25x cost)": {
         "fr": "",
         "fr_auto": "GPT-4o (meilleure qualité, mais coût 25x)"
+    },
+    "This is the default Otto preset. Use caution!": {
+        "fr": "",
+        "fr_auto": "Il s’agit du préréglage Otto par défaut. Soyez prudent !"
+    },
+    "Share with:": {
+        "fr": "",
+        "fr_auto": "Partager avec :"
     }
 }

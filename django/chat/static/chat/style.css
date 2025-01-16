@@ -1082,7 +1082,6 @@ ul#preset-edit-tabs {
 
 .preset-form-container .nav-link {
   color: var(--bs-body-color);
-  font-size: 0.875rem;
   font-weight: 600;
 
   &:hover {
