@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -923,6 +924,10 @@ def generate_prompt(task_or_prompt: str):
     openai.api_key = os.getenv("AZURE_OPENAI_KEY")
     # openai.= os.getenv('AZURE_OPENAI_ENDPOINT')
     openai.api_version = os.getenv("AZURE_OPENAI_VERSION")
+    llm = OttoLLM()
+
+    if len(task_or_prompt) <= 1:
+        return "Please describe your task first."
 
     META_PROMPT = """
     Given a current prompt and a change description, produce a detailed system prompt to guide a language model in completing the task effectively.
@@ -1002,7 +1007,7 @@ def generate_prompt(task_or_prompt: str):
             },
         ],
     )
-
+    llm.create_costs()
     return completion.choices[0].message.content
     # return "This is a placeholder for the output prompt."
 
@@ -1023,11 +1028,20 @@ def generate_prompt_view(request):
             logging.info(f"Received user input: {user_input}")
             output_text = generate_prompt(user_input)
             logging.info(f"Generated prompt: {output_text}")
-            # return JsonResponse({"output_text": output_text})
-            # Return an HTML snippet to update the textarea
-            return HttpResponse(
-                f'<textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="5">{output_text}</textarea>'
+            output_text = re.sub(
+                r"<reasoning>.*?</reasoning>", "", output_text, flags=re.DOTALL
             )
+            return HttpResponse(
+                f"""
+            <div>
+                <h5>Your prompt</h5>
+                <textarea class="form-control mt-3" id="user-input" name="user_input" rows="5" readonly>{user_input}</textarea>
+                <h5>AI-Generated prompt</h5>
+                <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="10">{output_text}</textarea>
+            </div>
+            """
+            )
+            # return HttpResponse(output_text)
         except Exception as e:
             logging.error(f"Error in generate_prompt_view: {e}")
             return JsonResponse({"error": "An error occurred"}, status=500)

@@ -126,3 +126,23 @@ function copyTextareaContent() {
     console.error('Failed to copy text: ', err);
   });
 }
+
+function toggleSpinner(show) {
+  const magicIcon = document.getElementById('generate-text');
+  const spinnerIcon = document.getElementById('spinner-icon');
+  if (show) {
+    magicIcon.style.display = 'none';
+    spinnerIcon.style.display = 'inline-block';
+  } else {
+    magicIcon.style.display = 'inline-block';
+    spinnerIcon.style.display = 'none';
+  }
+}
+
+document.getElementById('generate-prompt').addEventListener('click', function () {
+  toggleSpinner(true);
+});
+
+document.addEventListener('htmx:afterRequest', function () {
+  toggleSpinner(false);
+});
