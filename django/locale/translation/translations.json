@@ -2656,7 +2656,15 @@
         "fr_auto": "Partager avec :"
     },
     "Update Preset": {
-        "fr": "",
+        "fr": "Mettre à jour le préréglage",
         "fr_auto": "Mise à jour prédéfinie"
+    },
+    "Browse": {
+        "fr": "Naviguer",
+        "fr_auto": "Parcourir"
+    },
+    "Reset": {
+        "fr": "",
+        "fr_auto": "Réinitialiser"
     }
 }
