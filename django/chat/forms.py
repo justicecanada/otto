@@ -15,10 +15,8 @@ from librarian.models import DataSource, Document, Library, LibraryUserRole
 logger = get_logger(__name__)
 
 CHAT_MODELS = [
-    ("gpt-4o-mini", _("GPT-4o-mini (Global)")),
-    ("gpt-4o", _("GPT-4o (Global)")),
-    ("gpt-4", _("GPT-4 (Canada)")),
-    ("gpt-35", _("GPT-3.5 (Canada)")),
+    ("gpt-4o-mini", _("GPT-4o-mini (fastest, best value)")),
+    ("gpt-4o", _("GPT-4o (best quality, but 25x cost)")),
 ]
 SUMMARIZE_STYLES = [
     ("short", _("Short")),
@@ -167,7 +165,7 @@ class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions
         fields = "__all__"
-        exclude = ["chat", "global_default", "prompt"]
+        exclude = ["chat", "english_default", "french_default", "prompt"]
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
@@ -378,15 +376,19 @@ class PresetForm(forms.ModelForm):
         widgets = {
             "name_en": forms.TextInput(attrs={"class": "form-control"}),
             "name_fr": forms.TextInput(attrs={"class": "form-control"}),
-            "description_en": forms.Textarea(attrs={"class": "form-control"}),
-            "description_fr": forms.Textarea(attrs={"class": "form-control"}),
+            "description_en": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+            "description_fr": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
             "is_public": forms.CheckboxInput(
                 attrs={
                     "class": "form-check-input",
                     "type": "checkbox",
                 }
             ),
-            "sharing_option": forms.RadioSelect,
+            "sharing_option": forms.RadioSelect(attrs={"class": "form-check-input"}),
         }
 
     accessible_to = forms.ModelMultipleChoiceField(
@@ -408,7 +410,15 @@ class PresetForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        if user and is_group_member("Otto admin")(user):
+        if self.instance.pk and not user.has_perm(
+            "chat.edit_preset_sharing", self.instance
+        ):
+            self.fields.pop("sharing_option")
+            # Add a hidden field to store the existing sharing_option
+            self.fields["existing_sharing_option"] = forms.CharField(
+                widget=forms.HiddenInput(), initial=self.instance.sharing_option
+            )
+        elif user and is_group_member("Otto admin")(user):
             self.fields["sharing_option"].choices = [
                 ("private", _("Make private")),
                 ("everyone", _("Share with everyone")),

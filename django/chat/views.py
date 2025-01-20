@@ -41,7 +41,6 @@ from chat.models import (
 from chat.utils import bad_url, change_mode_to_chat_qa, copy_options, title_chat
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
-from otto.rules import can_access_preset, can_edit_preset
 from otto.utils.common import check_url_allowed
 from otto.utils.decorators import (
     app_access_required,
@@ -507,8 +506,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
     chat = Chat.objects.get(id=chat_id)
     # if we are loading a preset, check if the user has access to it
-    if preset_id and not can_access_preset(
-        request.user, Preset.objects.get(id=preset_id)
+    if preset_id and not request.user.has_perm(
+        "chat.access_preset", Preset.objects.get(id=preset_id)
     ):
         return HttpResponse(status=403)
     if action == "reset":
@@ -574,7 +573,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
             if form.is_valid():
                 if preset_id:
-                    preset = get_object_or_404(Preset, id=preset_id, owner=request.user)
+                    preset = get_object_or_404(Preset, id=preset_id)
                     replace_with_settings = request.POST.get(
                         "replace_with_settings", False
                     )
@@ -794,7 +793,9 @@ def save_preset(request, chat_id):
 
     chat = Chat.objects.get(id=chat_id)
     # check if chat.loaded_preset is set
-    if chat.loaded_preset and can_edit_preset(request.user, chat.loaded_preset):
+    if chat.loaded_preset and request.user.has_perm(
+        "chat.quick_save_preset", chat.loaded_preset
+    ):
         preset = Preset.objects.get(id=chat.loaded_preset.id)
         return render(
             request,
@@ -817,7 +818,6 @@ def save_preset(request, chat_id):
 def open_preset_form(request, chat_id):
 
     form = PresetForm(user=request.user)
-
     return render(
         request,
         "chat/modals/presets/presets_form.html",
@@ -837,6 +837,9 @@ def edit_preset(request, chat_id, preset_id):
             "form": form,
             "preset_id": preset_id,
             "chat_id": chat_id,
+            "can_delete": request.user.has_perm("chat.delete_preset", preset),
+            "is_public": preset.sharing_option == "everyone",
+            "is_global_default": preset.global_default,
         },
     )
 
@@ -847,7 +850,7 @@ def set_preset_default(request, chat_id: str, preset_id: int):
         new_preset = Preset.objects.get(id=preset_id)
         old_default = Preset.objects.filter(default_for=request.user).first()
 
-        default = new_preset.set_as_default(request.user)
+        default = new_preset.set_as_user_default(request.user)
         is_default = True if default is not None else False
 
         new_html = render_to_string(
