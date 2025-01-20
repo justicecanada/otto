@@ -53,7 +53,7 @@ def copy_options(source_options, target_options, user=None):
             setattr(target_options, key, value)
 
     request = get_request()
-    user = user or request.user
+    user = user or (request and request.user)
     if not target_options.qa_library or (
         user and not user.has_perm("librarian.view_library", target_options.qa_library)
     ):

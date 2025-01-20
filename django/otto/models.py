@@ -338,12 +338,6 @@ class Feedback(models.Model):
 
     objects = FeedbackManager()
 
-    def status_display(self):
-        return dict(self.FEEDBACK_STATUS_CHOICES)[self.status]
-
-    def feedback_type_display(self):
-        return dict(self.FEEDBACK_TYPE_CHOICES)[self.feedback_type]
-
 
 class SecurityLabel(models.Model):
     name = models.CharField(max_length=50, unique=True)

@@ -1,9 +1,9 @@
 {% if info.feedback.status == 'resolved' %}
-  <div class="badge badge-resolved border">{{ info.feedback.status_display }}</div>
+  <div class="badge badge-resolved border">{{ info.feedback.get_status_display }}</div>
 {% elif info.feedback.status == 'new' %}
-  <div class="badge badge-new border">{{ info.feedback.status_display }}</div>
+  <div class="badge badge-new border">{{ info.feedback.get_status_display }}</div>
 {% elif info.feedback.status == 'closed' %}
-  <div class="badge badge-closed border">{{ info.feedback.status_display }}</div>
+  <div class="badge badge-closed border">{{ info.feedback.get_status_display }}</div>
 {% else %}
-  <div class="badge badge-in-progress border">{{ info.feedback.status_display }}</div>
+  <div class="badge badge-in-progress border">{{ info.feedback.get_status_display }}</div>
 {% endif %}
