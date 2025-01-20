@@ -89,8 +89,6 @@ def upload_emails(request):
         data["last_sent_date"] = emails.aggregate(Max("sent_date"))
         result.append(data)
 
-    print(result)
-
     return render(request, "upload.html", {"form": form, "emails_by_thread": result})
 
 
@@ -98,22 +96,36 @@ def add_emails_to_thread(request, thread_id):
     if request.method == "POST":
         form = EmailUploadForm(request.POST, request.FILES)
         if form.is_valid():
+            thread = get_object_or_404(Thread, id=thread_id)
             uploaded_files = request.FILES.getlist("msg_files")
 
             for file in uploaded_files:
-                email_instance = Email(thread_id=thread_id, file=file)
+                email_instance = Email(file=file)
                 email_details = extract_email_details(file)
                 email_instance.sender = email_details.get("sender")
-                email_instance.receiver = email_details.get("receiver")
                 email_instance.sent_date = email_details.get("sent_date")
                 email_instance.preview_text = email_details.get("preview_context")
-                email_instance.attachment_count = email_details.get(
-                    "attachment_count", 0
-                )
-                email_instance.unique_participants = email_details.get(
-                    "unique_participants"
-                )
+                email_instance.subject = email_details.get("subject")
+                email_instance.thread = thread
+
                 email_instance.save()
+
+                attachments = email_details.get("attachments")
+                participants = email_details.get("participants")
+
+                for attachment in attachments:
+                    a = Attachment(
+                        name=attachment.get("name"),
+                        url=attachment.get("url"),
+                        mime=attachment.get("mime"),
+                    )
+                    a.email = email_instance
+                    a.save()
+
+                for participant in participants:
+                    p = Participant(email_address=participant)
+                    p.email = email_instance
+                    p.save()
 
     return redirect("email_chronology:index")
 
@@ -121,13 +133,18 @@ def add_emails_to_thread(request, thread_id):
 def delete_email(request, email_id):
     if request.method == "POST":
         email = get_object_or_404(Email, id=email_id)
-        email.delete()
+        thread = email.thread
+        if thread.emails.all().count() == 1:
+            thread.delete()
+        else:
+            email.delete()
     return redirect("email_chronology:index")
 
 
 def delete_thread(request, thread_id):
     if request.method == "POST":
-        Email.objects.filter(thread_id=thread_id).delete()
+        thread = get_object_or_404(Thread, id=thread_id)
+        thread.delete()
     return redirect("email_chronology:index")
 
 

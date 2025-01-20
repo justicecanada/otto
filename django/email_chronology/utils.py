@@ -14,7 +14,7 @@ from chat.llm import OttoLLM
 
 
 def extract_email_details(file_path):
-    # print(f"Field path: ${file_path}")
+
     msg = extract_msg.Message(file_path)
     msg_date = msg.date
 
@@ -28,18 +28,11 @@ def extract_email_details(file_path):
     if len(preview_context) > 0:  # change as needed
         preview_context = summary(body)
     attachment_count = len(msg.attachments)
-    # print(msg.sender)
-    # print(msg.to.split(";"))
     receiver = re.findall(r"<([^<>]*)", msg.to)
     sender = re.findall(r"<([^<>]*)", msg.sender)
     participants = set(receiver + sender)
-    # print(participants)
-    # print(type(participants))
-    # print(len(participants))
     attachments = []
     for attachment in msg.attachments:
-        # print(attachment.save())
-        # print(attachment.extension.replace(attachment.extension[0], "", 1))
         # Remove the first character in extension e.g. .pdf becomes pdf
         mime = attachment.extension.replace(attachment.extension[0], "", 1)
         url = attachment.save()
