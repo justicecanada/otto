@@ -146,3 +146,9 @@ document.getElementById('generate-prompt').addEventListener('click', function ()
 document.addEventListener('htmx:afterRequest', function () {
   toggleSpinner(false);
 });
+document.querySelector('.modal-footer .btn-secondary').addEventListener('click', applyGeneratedPrompt);
+function applyGeneratedPrompt() {
+  const generatedPrompt = document.getElementById('generated-prompt').value;
+  const chatPrompt = document.getElementById('chat-prompt');
+  chatPrompt.value = generatedPrompt;
+}

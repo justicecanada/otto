@@ -1034,17 +1034,23 @@ def generate_prompt_view(request):
             output_text = re.sub(
                 r"<reasoning>.*?</reasoning>", "", output_text, flags=re.DOTALL
             )
-            return HttpResponse(
-                f"""
-            <div>
-                <h5>Your prompt</h5>
-                <textarea class="form-control mt-3" id="user-input" name="user_input" rows="5" readonly>{user_input}</textarea>
-                <h5>AI-Generated prompt</h5>
-                <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="10">{output_text}</textarea>
-            </div>
-            """
+            # return HttpResponse(
+            #     f"""
+            # <div>
+            #     <h5>Your prompt</h5>
+            #     <textarea class="form-control mt-3" id="user-input" name="user_input" rows="5" readonly>{user_input}</textarea>
+            #     <button>Re-generate</button>
+            #     <h5>AI-Generated prompt</h5>
+            #     <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="10">{output_text}</textarea>
+            # </div>
+            # """
+            # )
+            return render(
+                request,
+                "chat/components/generated_prompt.html",
+                {"user_input": user_input, "output_text": output_text},
             )
-            # return HttpResponse(output_text)
+
         except Exception as e:
             logging.error(f"Error in generate_prompt_view: {e}")
             return JsonResponse({"error": "An error occurred"}, status=500)
