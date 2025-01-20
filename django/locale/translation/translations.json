@@ -2658,5 +2658,13 @@
     "Update Preset": {
         "fr": "",
         "fr_auto": "Mise à jour prédéfinie"
+    },
+    "Browse": {
+        "fr": "",
+        "fr_auto": "Parcourir"
+    },
+    "Reset": {
+        "fr": "",
+        "fr_auto": "Réinitialiser"
     }
 }
