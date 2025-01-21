@@ -21,6 +21,8 @@ let librarianModalCloseHandler = event => {
   }
   // Update the QA library select
   htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion'}).then(() => {
+    // Reset QA autocompletes on edit library modal close
+    resetQaAutocompletes();
     triggerOptionSave();
   });
 };
