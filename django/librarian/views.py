@@ -342,11 +342,6 @@ def modal_edit_library(request, library_id):
     return modal_view(request, item_type="library", item_id=library_id)
 
 
-def modal_ai_assistant_users(request):
-    user = request.user
-    return modal_view(request, item_type="library", item_id=user.personal_library.id)
-
-
 @permission_required("librarian.delete_library", objectgetter(Library, "library_id"))
 def modal_delete_library(request, library_id):
     return modal_view(request, item_type="library", item_id=library_id)

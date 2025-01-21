@@ -43,11 +43,6 @@ urlpatterns = [
         name="modal_manage_library_users",
     ),
     path(
-        "modal/library/ai_assistant_users/",
-        modal_ai_assistant_users,
-        name="modal_ai_assistant_users",
-    ),
-    path(
         "modal/library/<int:library_id>/data_source/create/",
         modal_create_data_source,
         name="modal_create_data_source",
