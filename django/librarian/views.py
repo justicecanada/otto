@@ -329,11 +329,7 @@ def modal_create_library(request):
     return modal_view(request, item_type="library")
 
 
-@permission_required(
-    "librarian.edit_library",
-    objectgetter(Library, "library_id"),
-    redirect_field_name="index",
-)
+@permission_required("librarian.edit_library", objectgetter(Library, "library_id"))
 def modal_edit_library(request, library_id):
     if request.method == "POST":
         is_public = "is_public" in request.POST

@@ -7,7 +7,6 @@ from librarian.views import (
     document_stop,
     document_text,
     download_document,
-    modal_ai_assistant_users,
     modal_create_data_source,
     modal_create_document,
     modal_create_library,
