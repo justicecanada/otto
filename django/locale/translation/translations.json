@@ -2655,6 +2655,7 @@
         "fr": "",
         "fr_auto": "Partager avec :"
     },
+<<<<<<< HEAD
     "Update Preset": {
         "fr": "Mettre à jour le préréglage",
         "fr_auto": "Mise à jour prédéfinie"
@@ -2662,9 +2663,41 @@
     "Browse": {
         "fr": "Naviguer",
         "fr_auto": "Parcourir"
+=======
+    "Help me write a good prompt": {
+        "fr": "",
+        "fr_auto": "Aidez-moi à écrire une bonne invite"
+    },
+    "Improve prompt using AI": {
+        "fr": "",
+        "fr_auto": "Améliorer l’invite à l’aide de l’IA"
+    },
+    "This feature creates a detailed prompt for the AI model to generate a response. The AI model will generate a response based on the prompt's details and context. Please review/edit the response and use your judgment. You may re-generate the response multiple times until a desired response is generated.": {
+        "fr": "",
+        "fr_auto": "Cette fonctionnalité crée une invite détaillée pour que le modèle d’IA génère une réponse. Le modèle d’IA générera une réponse basée sur les détails et le contexte de l’invite. Veuillez examiner ou modifier la réponse et utiliser votre jugement. Vous pouvez générer à nouveau la réponse plusieurs fois jusqu’à ce qu’une réponse souhaitée soit générée."
+    },
+    "Type your prompt here...": {
+        "fr": "",
+        "fr_auto": "Tapez votre invite ici..."
+    },
+    "Re-generate": {
+        "fr": "",
+        "fr_auto": "Re-générer"
+    },
+    "Cost : ": {
+        "fr": "",
+        "fr_auto": "Coût : "
+>>>>>>> 0d6d27aa94d6714b421affeaba3409a991e221a1
     },
     "Reset": {
         "fr": "",
         "fr_auto": "Réinitialiser"
+<<<<<<< HEAD
+=======
+    },
+    "Use this prompt": {
+        "fr": "",
+        "fr_auto": "Utilisez cette invite"
+>>>>>>> 0d6d27aa94d6714b421affeaba3409a991e221a1
     }
 }
