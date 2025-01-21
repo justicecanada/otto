@@ -83,12 +83,6 @@ document.addEventListener('mouseup', function () {
 });
 
 
-//-------------js only
-// document.getElementById('magic-button').addEventListener('click', function () {
-//   const userInput = document.getElementById('chat-prompt').value;
-//   document.getElementById('magic-prompt').value = userInput;
-// });
-
 
 document.getElementById('magic-form').addEventListener('submit', function (event) {
   event.preventDefault();  // Prevent the default form submission
@@ -118,14 +112,7 @@ document.getElementById('magic-form').addEventListener('submit', function (event
       console.error('Error:', error);
     });
 });
-function copyTextareaContent() {
-  const textarea = document.getElementById('generated-prompt');
-  navigator.clipboard.writeText(textarea.value).then(() => {
-    alert('Copied the text: ' + textarea.value);
-  }).catch(err => {
-    console.error('Failed to copy text: ', err);
-  });
-}
+
 
 function toggleSpinner(show) {
   const magicIcon = document.getElementById('generate-text');
@@ -147,8 +134,14 @@ document.addEventListener('htmx:afterRequest', function () {
   toggleSpinner(false);
 });
 document.querySelector('.modal-footer .btn-secondary').addEventListener('click', applyGeneratedPrompt);
-function applyGeneratedPrompt() {
+function applyGeneratedPrompt(event) {
+  event.preventDefault();
   const generatedPrompt = document.getElementById('generated-prompt').value;
   const chatPrompt = document.getElementById('chat-prompt');
   chatPrompt.value = generatedPrompt;
+  // Close the modal
+  const modalElement = document.getElementById('magicModal');
+  const modal = bootstrap.Modal.getInstance(modalElement);
+  modal.hide();
+
 }

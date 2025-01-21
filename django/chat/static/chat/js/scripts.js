@@ -120,6 +120,17 @@ function handleModeChange(mode, element = null, preset_loaded = false) {
   if (element && element.classList.contains("accordion-button")) return;
   // This setTimeout is necessary! Not sure why, but it won't expand the accordion without it.
   setTimeout(() => {updateAccordion(mode);}, 100);
+
+  // Set #magic-button with class d-none unless mode is chat
+  console.log('Current mode:---------------------', mode);
+  let magicButton = document.querySelector('#magic-button');
+  if (mode === 'summarize' || mode === 'translate' || mode === 'qa') {
+    magicButton.classList.add('d-none');
+  }
+  else {
+    magicButton.classList.remove('d-none');
+  }
+
 }
 
 function updateAccordion(mode) {

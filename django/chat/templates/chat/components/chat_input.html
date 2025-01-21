@@ -96,7 +96,7 @@
                     required></textarea>
  
           <button id="magic-button"
-                  class="floating-icon "
+                  class="floating-icon d-none"
                   type="button"
                   data-bs-toggle="modal"
                   data-bs-target="#magicModal"
@@ -104,8 +104,8 @@
                   hx-include="#chat-prompt"
                   hx-target="#magicModal .modal-content"
                   hx-swap="outerHTML"
-                  aria-label='{% trans "Improve prompt using AI" %}'
-                  title='{% trans "Improve prompt using AI" %}'
+                  aria-label='{% trans "Help me write a good prompt" %}'
+                  title='{% trans "Help me write a good prompt" %}'
                   style="top: 0px;
                          right: 40px;
                          width: 30px;
@@ -137,20 +137,20 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="magicModalLabel">{% trans "Improve Prompt using AI" %}</h5>
+        <h5 class="modal-title" id="magicModalLabel">{% trans "Improve prompt using AI" %}</h5>
         <button type="button"
                 class="btn-close"
                 data-bs-dismiss="modal"
-                aria-label="Close"
-                onclick="location.reload();"></button>
+                aria-label="Close"></button>
+        <!-- onclick="location.reload();"-->
       </div>
  
  
       <div class="modal-body">
         <p>
-          Please note that this module helps to create clearer prompts with examples. Please be as concise and clear as you can. You may re-generate to receive different answers.
+          {% trans "This feature creates a detailed prompt for the AI model to generate a response. The AI model will generate a response based on the prompt's details and context. Please review/edit the response and use your judgment. You may re-generate the response multiple times until a desired response is generated." %}
         </p>
-        <form id="magic-form col-md-4"
+        <form id="magic-form"
               hx-post="/chat/generate-prompt/"
               hx-target="#magicModal .modal-body"
               hx-swap="outerHTML">
@@ -168,7 +168,7 @@
                   hx-trigger="click"
                   hx-indicator="#loading-spinner"
                   onclick="toggleSpinner(true)">
-            <span id="generate-text">{% trans "Proceed" %}</span>
+            <span id="generate-text">{% trans "Generate" %}</span>
             <i id="spinner-icon"
                class="spinner-border spinner-border-sm"
                style="display: none"></i>

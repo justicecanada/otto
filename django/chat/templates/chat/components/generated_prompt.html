@@ -1,0 +1,40 @@
+{% load i18n %}
+{% load static %}
+
+<div class="modal-body">
+
+  <form id="magic-form col-md-4"
+        hx-post="/chat/generate-prompt/"
+        hx-target="#magicModal .modal-body"
+        hx-swap="outerHTML">
+    {% csrf_token %}
+ 
+    <h6>Your prompt</h6>
+    <textarea class="form-control mt-3" id="user-input" name="user_input" rows="5">{{ user_input }}</textarea>
+    <div class="d-flex justify-content-end">
+      <button type="submit"
+              class="btn btn-primary mt-3 "
+              id="generate-prompt"
+              hx-post="/chat/generate-prompt/"
+              hx-trigger="click"
+              hx-indicator="#loading-spinner"
+              onclick="toggleSpinner(true)">
+        <span id="generate-text">{% trans "Re-Generate" %}</span>
+        <i id="spinner-icon"
+           class="spinner-border spinner-border-sm"
+           style="display: none"></i>
+      </button>
+    </div>
+    <h6>AI-generated prompt</h6>
+    <textarea class="form-control mt-3"
+              id="generated-prompt"
+              name="generated_prompt"
+              rows="10">{{ output_text }}</textarea>
+  </form>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" onclick="location.reload();">{% trans "Clear" %}</button>
+    <button type="button"
+            class="btn btn-primary"
+            onclick="applyGeneratedPrompt(event)">{% trans "Use this prompt" %}</button>
+  </div>
+</div>
