@@ -88,7 +88,10 @@ def permission_required(
                 # User does not have required permission to edit library so redirect to their personal library
                 elif perms.__contains__("librarian.edit_library"):
                     return redirect(
-                        f"/librarian/modal/library/{request.user.personal_library.id}/edit"
+                        reverse(
+                            "librarian:modal_edit_library",
+                            kwargs={"library_id": user.personal_library.id},
+                        )
                     )
                 else:
                     Notification.objects.create(
