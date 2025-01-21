@@ -2,7 +2,7 @@
 
 # Reset app data
 echo "Resetting app data..."
-{ python manage.py reset_app_data apps terms groups library_mini security_labels cost_types || { echo "Error: Reset app data failed"; exit 1; } }
+{ python manage.py reset_app_data apps terms groups library_mini security_labels cost_types presets || { echo "Error: Reset app data failed"; exit 1; } }
 
 # Load initial data
 echo "Loading corporate library..."
