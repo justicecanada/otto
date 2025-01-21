@@ -2655,7 +2655,6 @@
         "fr": "",
         "fr_auto": "Partager avec :"
     },
-<<<<<<< HEAD
     "Update Preset": {
         "fr": "Mettre à jour le préréglage",
         "fr_auto": "Mise à jour prédéfinie"
@@ -2663,7 +2662,7 @@
     "Browse": {
         "fr": "Naviguer",
         "fr_auto": "Parcourir"
-=======
+    },
     "Help me write a good prompt": {
         "fr": "",
         "fr_auto": "Aidez-moi à écrire une bonne invite"
@@ -2687,17 +2686,13 @@
     "Cost : ": {
         "fr": "",
         "fr_auto": "Coût : "
->>>>>>> 0d6d27aa94d6714b421affeaba3409a991e221a1
     },
     "Reset": {
         "fr": "",
         "fr_auto": "Réinitialiser"
-<<<<<<< HEAD
-=======
     },
     "Use this prompt": {
         "fr": "",
         "fr_auto": "Utilisez cette invite"
->>>>>>> 0d6d27aa94d6714b421affeaba3409a991e221a1
     }
 }
