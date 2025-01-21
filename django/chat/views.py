@@ -1010,12 +1010,15 @@ def generate_prompt(task_or_prompt: str):
             },
         ],
     )
-    llm.create_costs()
-    return completion.choices[0].message.content
+    usd_cost = llm.create_costs()
+    cost = display_cad_cost(usd_cost)
+    return completion.choices[0].message.content, cost
     # return "This is a placeholder for the output prompt."
 
 
 from django.views.decorators.csrf import csrf_exempt
+
+from otto.utils.common import display_cad_cost
 
 
 def reset_form_view(request):
@@ -1028,27 +1031,15 @@ def generate_prompt_view(request):
     if request.method == "POST":
         try:
             user_input = request.POST.get("user_input", "")
-            logging.info(f"Received user input: {user_input}")
-            output_text = generate_prompt(user_input)
-            logging.info(f"Generated prompt: {output_text}")
+            output_text, cost = generate_prompt(user_input)
             output_text = re.sub(
                 r"<reasoning>.*?</reasoning>", "", output_text, flags=re.DOTALL
             )
-            # return HttpResponse(
-            #     f"""
-            # <div>
-            #     <h5>Your prompt</h5>
-            #     <textarea class="form-control mt-3" id="user-input" name="user_input" rows="5" readonly>{user_input}</textarea>
-            #     <button>Re-generate</button>
-            #     <h5>AI-Generated prompt</h5>
-            #     <textarea class="form-control mt-3" id="generated-prompt" name="generated_prompt" rows="10">{output_text}</textarea>
-            # </div>
-            # """
-            # )
+
             return render(
                 request,
                 "chat/components/generated_prompt.html",
-                {"user_input": user_input, "output_text": output_text},
+                {"user_input": user_input, "output_text": output_text, "cost": cost},
             )
 
         except Exception as e:

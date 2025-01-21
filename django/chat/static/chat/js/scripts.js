@@ -108,6 +108,10 @@ function scrollToListItem() {
 }
 
 function handleModeChange(mode, element = null, preset_loaded = false) {
+  console.log(`mode::::::::::::: ${mode}`);
+  if (!mode || mode === '') {
+    mode = 'chat';
+  }
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
@@ -122,13 +126,12 @@ function handleModeChange(mode, element = null, preset_loaded = false) {
   setTimeout(() => {updateAccordion(mode);}, 100);
 
   // Set #magic-button with class d-none unless mode is chat
-  console.log('Current mode:---------------------', mode);
   let magicButton = document.querySelector('#magic-button');
-  if (mode === 'summarize' || mode === 'translate' || mode === 'qa') {
-    magicButton.classList.add('d-none');
+  if (mode === 'chat') {
+    magicButton.classList.remove('d-none');
   }
   else {
-    magicButton.classList.remove('d-none');
+    magicButton.classList.add('d-none');
   }
 
 }
