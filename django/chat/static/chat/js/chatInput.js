@@ -126,14 +126,14 @@ function toggleSpinner(show) {
   }
 }
 
-document.getElementById('generate-prompt').addEventListener('click', function () {
-  toggleSpinner(true);
-});
+// document.getElementById('generate-prompt').addEventListener('click', function () {
+//   toggleSpinner(true);
+// });
 
 document.addEventListener('htmx:afterRequest', function () {
   toggleSpinner(false);
 });
-document.querySelector('.modal-footer .btn-secondary').addEventListener('click', applyGeneratedPrompt);
+// document.querySelector('.modal-footer .btn-secondary').addEventListener('click', applyGeneratedPrompt);
 function applyGeneratedPrompt(event) {
   event.preventDefault();
   const generatedPrompt = document.getElementById('generated-prompt').value;
@@ -144,4 +144,12 @@ function applyGeneratedPrompt(event) {
   const modal = bootstrap.Modal.getInstance(modalElement);
   modal.hide();
 
+}
+function clearTextAreas() {
+  document.getElementById('user-input').value = '';
+  document.getElementById('generated-prompt').value = '';
+}
+function setMagicPrompt() {
+  const chatPrompt = document.getElementById('chat-prompt').value;
+  document.getElementById('magic-prompt').value = chatPrompt;
 }

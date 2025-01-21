@@ -96,7 +96,7 @@
                     required></textarea>
  
           <button id="magic-button"
-                  class="floating-icon d-none"
+                  class="floating-icon wand-button"
                   type="button"
                   data-bs-toggle="modal"
                   data-bs-target="#magicModal"
@@ -106,14 +106,12 @@
                   hx-swap="outerHTML"
                   aria-label='{% trans "Help me write a good prompt" %}'
                   title='{% trans "Help me write a good prompt" %}'
-                  style="top: 0px;
-                         right: 40px;
-                         width: 30px;
-                         height: 30px;
-                         display: flex;
-                         position: absolute;
-                         z-index:10">
-            <i class="bi bi-magic"></i>
+                  onclick="setMagicPrompt()"
+                  style="background-color: transparent;
+                         z-index: 5">
+            <i class="bi bi-magic wand"></i>
+ 
+ 
           </button>
           <button id="send-button"
                   class="btn btn-outline-secondary"

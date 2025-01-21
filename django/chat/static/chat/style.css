@@ -1272,11 +1272,27 @@ math[display="block"] {
   padding-bottom: 1rem;
 }
 
-.floating-icon i {
-  font-size: 16px;
+.wand-button {
+  background-color: transparent;
+  border: none;
+  top: 0px;
+  right: 40px;
+  width: 35px;
+  height: 30px;
+  display: flex;
+  position: absolute;
+  z-index: 5">
+
 }
 
 .floating-icon .spinner-border {
   width: 16px;
   height: 16px;
+}
+
+.wand {
+  font-size: 20px;
+  color: var(--app-color-purple-1);
+  background-color: transparent;
+  border: none;
 }

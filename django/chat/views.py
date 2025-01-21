@@ -929,9 +929,6 @@ def generate_prompt(task_or_prompt: str):
     openai.api_version = os.getenv("AZURE_OPENAI_VERSION")
     llm = OttoLLM()
 
-    if len(task_or_prompt) <= 1:
-        return "Please describe your task first."
-
     META_PROMPT = """
     Given a current prompt and a change description, produce a detailed system prompt to guide a language model in completing the task effectively.
 
@@ -1025,7 +1022,6 @@ def reset_form_view(request):
     return render(request, "chat/components/chat_input.html")
 
 
-# with htmx------------------
 @csrf_exempt
 def generate_prompt_view(request):
     if request.method == "POST":

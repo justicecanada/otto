@@ -19,7 +19,7 @@
               hx-trigger="click"
               hx-indicator="#loading-spinner"
               onclick="toggleSpinner(true)">
-        <span id="generate-text">{% trans "Re-Generate" %}</span>
+        <span id="generate-text">{% trans "Re-generate" %}</span>
         <i id="spinner-icon"
            class="spinner-border spinner-border-sm"
            style="display: none"></i>
@@ -30,10 +30,12 @@
               id="generated-prompt"
               name="generated_prompt"
               rows="10">{{ output_text }}</textarea>
-    <p>Cost : {{ cost }}</p>
+    <p>{% trans "Cost : " %} {{ cost }}</p>
   </form>
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" onclick="location.reload();">{% trans "Clear" %}</button>
+    <button type="button" class="btn btn-secondary"  onclick="clearTextAreas()">{% trans "Clear" %}</button>
+    <button type="button" class="btn btn-secondary"  onclick="location.reload();">{% trans "Reset" %}</button>
+ 
     <button type="button"
             class="btn btn-primary"
             onclick="applyGeneratedPrompt(event)">{% trans "Use this prompt" %}</button>
