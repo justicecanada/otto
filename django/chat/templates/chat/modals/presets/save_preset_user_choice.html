@@ -3,53 +3,59 @@
 
 <div class="modal-body preset-form-user-choice">
   <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-6 d-flex flex-grow-1">
  
       <!-- Update Existing Preset Card -->
       <form hx-post="{% url 'chat:chat_options' chat_id=chat_id action='update_preset' preset_id=preset.id %}"
-            class="card d-flex flex-column h-100 text-decoration-none text-dark card-button"
             hx-swap="innerHTML transition:true"
-            data-bs-dismiss="modal">
+            data-bs-dismiss="modal"
+            class="d-flex flex-grow-1">
         {% csrf_token %}
-        <button type="submit" class="submit-overlay btn-light fw-semibold"></button>
+        <button type="submit"
+                title="{% trans 'Update Preset' %}"
+                class="card d-flex flex-grow-1 text-decoration-none text-dark card-button">
 
-        <div class="card-header">
-          <h5 class="card-title mb-0">
-            {# the template variable makes blocktrans break down for some reason #}
-            {% if LANGUAGE_CODE == 'en' %}
-              Update Preset {{ preset.name_en|default:preset.name_fr }}
-            {% else %}
-              Mettre à jour le préréglage {{ preset.name_fr|default:preset.name_en }}
-            {% endif %}
-          </h5>
-        </div>
-        <div class="card-body flex-grow-1 d-flex flex-column">
-          <p class="card-text">
-            {% if LANGUAGE_CODE == 'en' %}
-              You currently have the preset named "{{ preset.name_en|default:preset.name_fr }}" loaded. This will update it with your latest changes.
-            {% else %}
-              Vous avez actuellement le préréglage nommé "{{ preset.name_fr|default:preset.name_en }}" chargé. Cela le mettra à jour avec vos dernières modifications.
-            {% endif %}
-          </p>
-        </div>
+          <div class="card-header">
+            <h5 class="card-title mb-0">
+              {# the template variable makes blocktrans break down for some reason #}
+              {% if LANGUAGE_CODE == 'en' %}
+                Update Preset {{ preset.name_en|default:preset.name_fr }}
+              {% else %}
+                Mettre à jour le préréglage {{ preset.name_fr|default:preset.name_en }}
+              {% endif %}
+            </h5>
+          </div>
+          <div class="card-body">
+            <p class="card-text">
+              {% if LANGUAGE_CODE == 'en' %}
+                You currently have the preset named "{{ preset.name_en|default:preset.name_fr }}" loaded. This will update it with your latest changes.
+              {% else %}
+                Vous avez actuellement le préréglage nommé "{{ preset.name_fr|default:preset.name_en }}" chargé. Cela le mettra à jour avec vos dernières modifications.
+              {% endif %}
+            </p>
+          </div>
+        </button>
       </form>
     </div>
 
     <!-- Create New Preset Card -->
-    <div class="col-md-6">
+    <div class="col-md-6 d-flex flex-grow-1">
       <form hx-post="{% url 'chat:open_preset_form' chat_id=chat_id %}"
-            class="card d-flex flex-column h-100 text-decoration-none text-dark card-button"
             hx-target="#presets-modal-body"
-            hx-swap="innerHTML transition:true">
+            hx-swap="innerHTML transition:true"
+            class="d-flex flex-grow-1">
         {% csrf_token %}
-        <button type="submit" class="submit-overlay"></button>
+        <button type="submit"
+                title="{% trans 'Create New Preset' %}"
+                class="card d-flex flex-grow-1 text-decoration-none text-dark card-button">
 
-        <div class="card-header">
-          <h5 class="card-title mb-0">{% trans "Create New Preset" %}</h5>
-        </div>
-        <div class="card-body flex-grow-1 d-flex flex-column">
-          <p class="card-text">{% trans "Create a new preset from your current settings." %}</p>
-        </div>
+          <div class="card-header">
+            <h5 class="card-title mb-0">{% trans "Create New Preset" %}</h5>
+          </div>
+          <div class="card-body">
+            <p class="card-text">{% trans "Create a new preset from your current settings." %}</p>
+          </div>
+        </button>
       </form>
     </div>
   </div>
