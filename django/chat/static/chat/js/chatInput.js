@@ -133,7 +133,7 @@ function toggleSpinner(show) {
 document.addEventListener('htmx:afterRequest', function () {
   toggleSpinner(false);
 });
-// document.querySelector('.modal-footer .btn-secondary').addEventListener('click', applyGeneratedPrompt);
+
 function applyGeneratedPrompt(event) {
   event.preventDefault();
   const generatedPrompt = document.getElementById('generated-prompt').value;
@@ -146,7 +146,7 @@ function applyGeneratedPrompt(event) {
 
 }
 function clearTextAreas() {
-  document.getElementById('user-input').value = '';
+
   document.getElementById('generated-prompt').value = '';
 }
 function setMagicPrompt() {

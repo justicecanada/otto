@@ -108,7 +108,7 @@ function scrollToListItem() {
 }
 
 function handleModeChange(mode, element = null, preset_loaded = false) {
-  console.log(`mode::::::::::::: ${mode}`);
+
   if (!mode || mode === '') {
     mode = 'chat';
   }

@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from openai import OpenAI
@@ -44,7 +45,7 @@ from chat.models import (
 from chat.utils import bad_url, change_mode_to_chat_qa, copy_options, title_chat
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
-from otto.utils.common import check_url_allowed
+from otto.utils.common import check_url_allowed, display_cad_cost
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -1011,11 +1012,6 @@ def generate_prompt(task_or_prompt: str):
     cost = display_cad_cost(usd_cost)
     return completion.choices[0].message.content, cost
     # return "This is a placeholder for the output prompt."
-
-
-from django.views.decorators.csrf import csrf_exempt
-
-from otto.utils.common import display_cad_cost
 
 
 def reset_form_view(request):
