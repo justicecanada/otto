@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import re
 
 from django.conf import settings
@@ -18,6 +19,8 @@ from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
+import openai
+from dotenv import load_dotenv
 from openai import OpenAI
 from rules.contrib.views import objectgetter
 from structlog import get_logger
@@ -917,16 +920,10 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
 
 
 def generate_prompt(task_or_prompt: str):
-    import os
-
-    from django.conf import settings
-
-    import openai
-    from dotenv import load_dotenv
 
     load_dotenv()
     openai.api_key = os.getenv("AZURE_OPENAI_KEY")
-    # openai.= os.getenv('AZURE_OPENAI_ENDPOINT')
+
     openai.api_version = os.getenv("AZURE_OPENAI_VERSION")
     llm = OttoLLM()
 
@@ -1011,7 +1008,6 @@ def generate_prompt(task_or_prompt: str):
     usd_cost = llm.create_costs()
     cost = display_cad_cost(usd_cost)
     return completion.choices[0].message.content, cost
-    # return "This is a placeholder for the output prompt."
 
 
 def reset_form_view(request):
