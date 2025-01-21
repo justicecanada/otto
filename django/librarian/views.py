@@ -329,13 +329,22 @@ def modal_create_library(request):
     return modal_view(request, item_type="library")
 
 
-@permission_required("librarian.edit_library", objectgetter(Library, "library_id"))
+@permission_required(
+    "librarian.edit_library",
+    objectgetter(Library, "library_id"),
+    redirect_field_name="index",
+)
 def modal_edit_library(request, library_id):
     if request.method == "POST":
         is_public = "is_public" in request.POST
         if is_public and not request.user.has_perm("librarian.manage_public_libraries"):
             return HttpResponse(status=403)
     return modal_view(request, item_type="library", item_id=library_id)
+
+
+def modal_ai_assistant_users(request):
+    user = request.user
+    return modal_view(request, item_type="library", item_id=user.personal_library.id)
 
 
 @permission_required("librarian.delete_library", objectgetter(Library, "library_id"))

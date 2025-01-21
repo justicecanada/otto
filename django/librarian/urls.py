@@ -7,6 +7,7 @@ from librarian.views import (
     document_stop,
     document_text,
     download_document,
+    modal_ai_assistant_users,
     modal_create_data_source,
     modal_create_document,
     modal_create_library,
@@ -40,6 +41,11 @@ urlpatterns = [
         "modal/library/<int:library_id>/users/",
         modal_manage_library_users,
         name="modal_manage_library_users",
+    ),
+    path(
+        "modal/library/ai_assistant_users/",
+        modal_ai_assistant_users,
+        name="modal_ai_assistant_users",
     ),
     path(
         "modal/library/<int:library_id>/data_source/create/",
