@@ -86,7 +86,7 @@ def permission_required(
                 if raise_exception:
                     raise PermissionDenied()
                 # User does not have required permission to edit library so redirect to their personal library
-                elif perms[0] == "librarian.edit_library":
+                elif perms.__contains__("librarian.edit_library"):
                     return redirect(
                         f"/librarian/modal/library/{request.user.personal_library.id}/edit"
                     )
