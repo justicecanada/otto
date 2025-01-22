@@ -109,9 +109,7 @@ function scrollToListItem() {
 
 function handleModeChange(mode, element = null, preset_loaded = false) {
 
-  if (!mode || mode === '') {
-    mode = 'chat';
-  }
+
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
