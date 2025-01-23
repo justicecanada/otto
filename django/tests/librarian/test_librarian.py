@@ -1,7 +1,9 @@
 import os
 import time
+from datetime import datetime
 
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.urls import reverse
 
 import pytest
@@ -104,6 +106,34 @@ def test_modal_edit_library_get(client, all_apps_user, basic_user):
     response = client.get(url)
     # Redirects home with error notification
     assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_modal_edit_library_get_redirect(client, all_apps_user, basic_user):
+    client.force_login(all_apps_user())
+    library = Library.objects.get_default_library()
+    url = reverse("librarian:modal_edit_library", kwargs={"library_id": library.id})
+    response = client.get(url)
+    assert response.status_code == 200
+    user = basic_user()
+    user.groups.add(Group.objects.get(name="AI Assistant user"))
+    # Accept the terms
+    user.accepted_terms_date = datetime.now()
+    user.save()
+    # Basic user should not be able to edit
+    client.force_login(user)
+    response = client.get(url)
+    # Redirects to their personal library
+    assert response.status_code == 302
+
+    url = reverse(
+        "librarian:modal_edit_library", kwargs={"library_id": user.personal_library.id}
+    )
+    assert response.url == url
+    # Try going directly to user's personal library this should work
+    response = client.get(url)
+
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db

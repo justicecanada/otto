@@ -19,7 +19,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from structlog import get_logger
 
-from otto.utils.common import display_cad_cost
+from librarian.utils.process_engine import resize_to_azure_requirements
 
 logger = get_logger(__name__)
 
@@ -104,24 +104,23 @@ def calculate_start_pages(files):
     return start_pages
 
 
-def resize_image_to_a4(img, dpi=150):
+def resize_image_to_a4(img, dpi=300):  # used only when merge is on
     a4_width = int(8.27 * dpi)  # 8.27 inches is 210mm
     a4_height = int(11.69 * dpi)  # 11.69 inches is 297mm
 
-    # Calculate the scaling factor to maintain aspect ratio
-    img_ratio = img.width / img.height
-    a4_ratio = a4_width / a4_height
+    scale = min(a4_width / img.width, a4_height / img.height)
 
-    if img_ratio > a4_ratio:
-        # Image is wider than A4 ratio, fit by width
-        new_width = int(a4_width / 2)
-        new_height = int(new_width / img_ratio)
+    if scale < 1.0:
+        # Image is bigger than A4 in at least one dimension; scale it down
+        new_width = int(img.width * scale)
+        new_height = int(img.height * scale)
     else:
-        # Image is taller than A4 ratio, fit by height
-        new_height = a4_height - 30
-        new_width = int(new_height * img_ratio)
+        # Image already fits A4 or is smaller; keep its original size
+        new_width = img.width
+        new_height = img.height
 
     # Resize the image using LANCZOS (formerly ANTIALIAS)
+
     resized_img = img.resize((new_width, new_height), Resampling.LANCZOS)
 
     # Create an A4 background
@@ -135,7 +134,7 @@ def dist(p1, p2):
     return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
 
-def create_searchable_pdf(input_file, add_header):
+def create_searchable_pdf(input_file, add_header, merged=False):
     # Reset the file pointer to the beginning
     input_file.seek(0)
     file_content = input_file.read()
@@ -161,9 +160,20 @@ def create_searchable_pdf(input_file, add_header):
             temp_path = temp_compressed.name
 
     elif input_file.name.lower().endswith(img_extensions):
-        with Image.open(temp_path) as img:
-            image_pages_original = ImageSequence.Iterator(img)
-            image_pages = [resize_image_to_a4(image) for image in image_pages_original]
+        if merged:
+            with Image.open(temp_path) as img:
+                image_pages_original = ImageSequence.Iterator(img)
+                image_pages = [
+                    resize_image_to_a4(image) for image in image_pages_original
+                ]
+        else:
+            with Image.open(temp_path) as img:
+                image_pages_original = ImageSequence.Iterator(img)
+                image_pages = [
+                    resize_to_azure_requirements(image)
+                    for image in image_pages_original
+                ]
+
         # Save the resized images to a new temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_resized:
             for page in image_pages:

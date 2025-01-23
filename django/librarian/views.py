@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
+from data_fetcher.util import clear_request_caches
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -189,6 +190,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                         else _("Library created successfully.")
                     ),
                 )
+                clear_request_caches()
                 libraries = get_editable_libraries(request.user)
                 selected_library = form.instance
                 # Refresh the form so "public" checkbox behaves properly

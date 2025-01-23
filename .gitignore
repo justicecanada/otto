@@ -50,3 +50,6 @@ test_media
 
 # Ignore all ~* files
 ~*
+
+# Ignore load testing results
+#load_testing/.results/*

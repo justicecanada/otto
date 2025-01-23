@@ -12,3 +12,49 @@
     </div>
   </div>
 </div>
+
+<script>
+function handlePresetModalSubmit(event) {
+  const form = document.getElementById("edit_preset_form");
+  const nameEnElement = document.getElementById("id_name_en").value;
+  const nameFrElement = document.getElementById("id_name_fr").value;
+  const sharingOptionElement = document.querySelector('input[name="sharing_option"]:checked');
+  const sharingOption = sharingOptionElement ? sharingOptionElement.value : "";
+  const accessibleToElement = document.querySelector('[name="accessible_to"]');
+  const accessibleTo = accessibleToElement ? accessibleToElement.value : "";
+  const errorMessage = document.getElementById("error-message");
+  let isValid = true;
+  if (!nameEnElement && !nameFrElement) {
+    errorMessage.innerText = "{% trans 'Please provide a title in either English or French.' %}";
+    errorMessage.classList.remove('d-none');
+    event.preventDefault();
+    event.stopPropagation();
+    isValid = false;
+  }
+
+  if (sharingOption === 'others' && !accessibleToElement) {
+    errorMessage.innerText = "{% trans 'Please provide at least one user for the accessible field.' %}";
+    errorMessage.classList.remove('d-none');
+    event.preventDefault();
+    event.stopPropagation();
+    isValid = false;
+  }
+
+  if (!form.checkValidity()) {
+    event.preventDefault();
+    event.stopPropagation();
+    isValid = false;
+  }
+  document.querySelector('input[name=\'prompt\']').value = document.getElementById('chat-prompt').value;
+
+  // Only dismiss modal if validation passes
+  if (isValid) {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('presets-modal'));
+    if (modal) {
+      modal.hide();
+    }
+  } else {
+    errorMessage.focus();
+  }
+}
+</script>

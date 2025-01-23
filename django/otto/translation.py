@@ -26,10 +26,3 @@ class SecurityLabelTranslationOptions(TranslationOptions):
 @register(CostType)
 class CostTypeTranslationOptions(TranslationOptions):
     fields = ("name", "description", "unit_name")
-
-
-# TODO: Seperate heading and text from model.
-
-# @register(Notification)
-# class NotificationTranslationOptions(TranslationOptions):
-#     fields = ("heading", "text")

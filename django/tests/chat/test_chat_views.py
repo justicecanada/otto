@@ -919,36 +919,6 @@ def test_preset(client, basic_user, all_apps_user):
 
     # Test editing an existing preset
     client.force_login(user)
-
-    response = client.post(
-        reverse(
-            "chat:chat_options",
-            kwargs={
-                "chat_id": chat.id,
-                "action": "create_preset",
-                "preset_id": preset.id,
-            },
-        ),
-        data={
-            "name_en": "Updated Preset",
-            "description_en": "Updated Description",
-            "sharing_option": "others",
-            "accessible_to": [],
-            "prompt": "",
-        },
-    )
-
-    assert response.status_code == 200
-    # the user did not provide any users for the accessible field with sharing_option=others
-    assert (
-        "Please provide at least one user for the accessible field."
-        in response.content.decode("utf-8")
-    )
-    # the new preset should not have been updated since the form was not valid
-    preset.refresh_from_db()
-    assert preset.name_en == "New Preset"
-
-    # now save it with a valid form
     response = client.post(
         reverse(
             "chat:chat_options",

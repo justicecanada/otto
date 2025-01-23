@@ -22,7 +22,9 @@ def process_ocr_document(file_content, file_name, merged, idx):
             size=len(file_content),
             charset=None,
         )
-        ocr_file, txt_file, cost = create_searchable_pdf(file, merged and idx > 0)
+        ocr_file, txt_file, cost = create_searchable_pdf(
+            file, merged and idx > 0, merged
+        )
 
         input_name, _ = os.path.splitext(file.name)
         pdf_bytes = BytesIO()

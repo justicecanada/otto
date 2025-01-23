@@ -277,10 +277,11 @@ pre .copy-button:focus {
   font-weight: 500;
 }
 
+.chat-list-item.current button.options,
 #left-sidebar li:hover button.options,
 #left-sidebar li:focus button.options,
 #left-sidebar button.options:focus {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 
@@ -1081,7 +1082,6 @@ ul#preset-edit-tabs {
 
 .preset-form-container .nav-link {
   color: var(--bs-body-color);
-  font-size: 0.875rem;
   font-weight: 600;
 
   &:hover {

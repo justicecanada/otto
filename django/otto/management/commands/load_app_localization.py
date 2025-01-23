@@ -97,6 +97,17 @@ class Command(BaseCommand):
             call_command("compilemessages")
             self.stdout.write(self.style.SUCCESS(".mo file generated successfully."))
 
+        translations_path = self.get_translation_file(base_path)
+
+        # To avoid spurious diffs when manually editing the JSON file, ensure it ends with a newline
+        add_newline = False
+        with open(translations_path, "r") as file:
+            if not file.read().endswith("\n"):
+                add_newline = True
+        if add_newline:
+            with open(translations_path, "a") as file:
+                file.write("\n")
+
     def correct_po_file(self, po_file_path):
         po = pofile(po_file_path)
         for entry in po:

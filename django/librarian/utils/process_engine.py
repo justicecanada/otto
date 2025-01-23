@@ -57,7 +57,7 @@ def generate_hash(content):
 
 def extract_html_metadata(content):
     # Content is the binary data from response.content so convert it to a string
-    soup = BeautifulSoup(content.decode("utf-8"), "html.parser")
+    soup = BeautifulSoup(decode_content(content), "html.parser")
     title_element = soup.find("title")
     title = title_element.get_text(strip=True) if title_element else None
     time_element = soup.find("time", {"property": "dateModified"})
@@ -126,7 +126,9 @@ def guess_content_type(
         "application/csv",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "officedocument.spreadsheetml.sheet",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "officedocument.wordprocessingml.document",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "officedocument.presentationml.presentation",
         "image/jpeg",
         "image/jpg",
@@ -199,6 +201,28 @@ def get_process_engine_from_type(type):
         return "TEXT"
 
 
+def decode_content(
+    content: bytes,
+    encodings: list[str] = ["utf-8", "cp1252"],
+) -> str:
+    """
+    Decode content with multiple encodings with fallback.
+
+    Returns:
+        Decoded string
+
+    Raises:
+        Exception: If content cannot be decoded with any of the provided encodings
+    """
+    for encoding in encodings:
+        try:
+            return content.decode(encoding)
+        except UnicodeDecodeError as e:
+            logger.debug(e)
+            continue
+    raise Exception(f"Failed to decode content with encodings: {encodings}")
+
+
 def extract_markdown(
     content,
     process_engine,
@@ -207,67 +231,71 @@ def extract_markdown(
     chunk_size=768,
     selector=None,
 ):
-    enable_markdown = True
-    if process_engine == "IMAGE":
-        content = resize_to_azure_requirements(content)
-        enable_markdown = False
-        md = pdf_to_text_azure_read(content)
-    elif process_engine == "PDF":
-        if pdf_method == "default":
-            enable_markdown = False
-            md = pdf_to_text_pdfium(content)
-            if len(md) < 10:
-                # Fallback to Azure Document Intelligence Read API to OCR
-                md = pdf_to_text_azure_read(content)
-        elif pdf_method == "azure_layout":
-            md = pdf_to_markdown_azure_layout(content)
-        elif pdf_method == "azure_read":
+    try:
+        enable_markdown = True
+        if process_engine == "IMAGE":
+            content = resize_to_azure_requirements(content)
             enable_markdown = False
             md = pdf_to_text_azure_read(content)
-    elif process_engine == "WORD":
-        md = docx_to_markdown(content)
-    elif process_engine == "POWERPOINT":
-        md = pptx_to_markdown(content)
-    elif process_engine == "HTML":
-        md = html_to_markdown(content.decode("utf-8"), base_url, selector)
-    elif process_engine == "MARKDOWN":
-        md = content.decode("utf-8")
-    elif process_engine == "OUTLOOK_MSG":
-        enable_markdown = False
-        md = msg_to_markdown(content)
-    elif process_engine == "CSV":
-        md = csv_to_markdown(content)
-    elif process_engine == "EXCEL":
-        md = excel_to_markdown(content)
-    else:
-        enable_markdown = False
+        elif process_engine == "PDF":
+            if pdf_method == "default":
+                enable_markdown = False
+                md = pdf_to_text_pdfium(content)
+                if len(md) < 10:
+                    # Fallback to Azure Document Intelligence Read API to OCR
+                    md = pdf_to_text_azure_read(content)
+            elif pdf_method == "azure_layout":
+                md = pdf_to_markdown_azure_layout(content)
+            elif pdf_method == "azure_read":
+                enable_markdown = False
+                md = pdf_to_text_azure_read(content)
+        elif process_engine == "WORD":
+            md = docx_to_markdown(content)
+        elif process_engine == "POWERPOINT":
+            md = pptx_to_markdown(content)
+        elif process_engine == "HTML":
+            md = html_to_markdown(decode_content(content), base_url, selector)
+        elif process_engine == "MARKDOWN":
+            md = decode_content(content)
+        elif process_engine == "OUTLOOK_MSG":
+            enable_markdown = False
+            md = msg_to_markdown(content)
+        elif process_engine == "CSV":
+            md = csv_to_markdown(content)
+        elif process_engine == "EXCEL":
+            md = excel_to_markdown(content)
+        else:
+            enable_markdown = False
+            try:
+                md = decode_content(content)
+            except Exception as e:
+                raise e
+
+        md = remove_nul_characters(md)
+
+        # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
+        md = re.sub(r"\n{3,}", "\n\n", md.strip())
+
+        # Divide the markdown into chunks
         try:
-            md = content.decode("utf-8")
+            md_splitter = MarkdownSplitter(
+                chunk_size=chunk_size, chunk_overlap=0, enable_markdown=enable_markdown
+            )
+            md_chunks = md_splitter.split_markdown(md)
         except Exception as e:
-            raise e
+            logger.debug("Error splitting markdown using MarkdownSplitter:")
+            logger.error(e)
+            # Fallback to simpler method
+            from llama_index.core.node_parser import SentenceSplitter
 
-    md = remove_nul_characters(md)
-
-    # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
-    md = re.sub(r"\n{3,}", "\n\n", md.strip())
-
-    # Divide the markdown into chunks
-    try:
-        md_splitter = MarkdownSplitter(
-            chunk_size=chunk_size, chunk_overlap=0, enable_markdown=enable_markdown
-        )
-        md_chunks = md_splitter.split_markdown(md)
+            sentence_splitter = SentenceSplitter(
+                chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
+            )
+            md_chunks = sentence_splitter.split_text(md)
+        return md, md_chunks
     except Exception as e:
-        logger.debug("Error splitting markdown using MarkdownSplitter:")
-        logger.error(e)
-        # Fallback to simpler method
-        from llama_index.core.node_parser import SentenceSplitter
-
-        sentence_splitter = SentenceSplitter(
-            chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
-        )
-        md_chunks = sentence_splitter.split_text(md)
-    return md, md_chunks
+        logger.error(f"Error in extract_markdown: {str(e)}")
+        raise
 
 
 def pdf_to_markdown_azure_layout(content):
@@ -671,33 +699,45 @@ def excel_to_markdown(content):
 def resize_to_azure_requirements(content):
     from PIL import Image
 
-    with io.BytesIO(content) as image_file:
-        image = Image.open(image_file)
-        width, height = image.size
-        if width < 50 or height < 50:
-            # Resize to at least 50 pixels
-            if width <= height:
-                new_width = 50
-                new_height = int(height * (50 / width))
-            else:
-                new_height = 50
-                new_width = int(width * (50 / height))
-        elif width > 10000 or height > 10000:
-            # Resize to max 10000 pixels
-            if width >= height:
-                new_width = 10000
-                new_height = int(height * (10000 / width))
-            else:
-                new_height = 10000
-                new_width = int(width * (10000 / height))
+    if isinstance(content, Image.Image):
+        image = content
+    else:
+        with io.BytesIO(content) as image_file:
+            image = Image.open(image_file)
+            image.load()
+
+    width, height = image.size
+    if width < 50 or height < 50:
+        # Resize to at least 50 pixels
+        if width <= height:
+            new_width = 50
+            new_height = int(height * (50 / width))
+        else:
+            new_height = 50
+            new_width = int(width * (50 / height))
+    elif width > 10000 or height > 10000:
+        # Resize to max 10000 pixels
+        if width >= height:
+            new_width = 10000
+            new_height = int(height * (10000 / width))
+        else:
+            new_height = 10000
+            new_width = int(width * (10000 / height))
+    else:
+        if isinstance(content, Image.Image):
+            new_width, new_height = width, height
         else:
             return content
-        # Edge case: insanely wide or tall images. Don't maintain proportions.
-        new_width = min(new_width, 10000)
-        new_height = min(new_height, 10000)
-        new_width = max(new_width, 50)
-        new_height = max(new_height, 50)
-        image = image.resize((new_width, new_height))
+    # Edge case: insanely wide or tall images. Don't maintain proportions.
+    new_width = min(new_width, 10000)
+    new_height = min(new_height, 10000)
+    new_width = max(new_width, 50)
+    new_height = max(new_height, 50)
+    image = image.resize((new_width, new_height))
+
+    if isinstance(content, Image.Image):
+        return image
+    else:
         with io.BytesIO() as output:
             image.save(output, format="PNG")
             content = output.getvalue()

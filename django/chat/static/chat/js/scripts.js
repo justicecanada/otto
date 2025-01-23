@@ -23,6 +23,7 @@ function checkTruncation(element) {
 function render_markdown(element) {
   // Render markdown in the element
   const markdown_text = element.querySelector(".markdown-text");
+  dot_element = element.querySelector(".typing"); // Exists when dots=True on htmx_stream call
   if (markdown_text) {
     let to_parse = markdown_text.dataset.md;
     try {
@@ -30,12 +31,27 @@ function render_markdown(element) {
     } catch (e) {
       to_parse = false;
     }
+    const parent = markdown_text.parentElement;
     if (to_parse) {
-      const parent = markdown_text.parentElement;
       parent.innerHTML = md.render(to_parse);
+      const current_dots = parent.parentElement.querySelector(".typing");
+      // If dots=True on htmx_stream call and we just removed the dots at the beginning of stream,
+      // add a new dots element after parent
+      if (dot_element && !current_dots) {
+        parent.insertAdjacentHTML("afterend", "\n\n" + dot_element.outerHTML);
+      }
+      if (current_dots && !dot_element) {
+        current_dots.remove();
+      }
       // Add the "copy code" button to code blocks
       for (block of parent.querySelectorAll("pre code")) {
         block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
+      }
+    } else if ((after_text = parent.nextElementSibling)) {
+      // If stream is empty (which should only happen between batches), it will stream dots
+      // so we can remove the dot element we manually added above
+      if (after_text.classList.contains("typing")) {
+        after_text.remove();
       }
     }
   }
@@ -47,7 +63,7 @@ let ignoreNextScrollEvent = true;
 
 const copyCodeButtonHTML = `<button type="button" onclick="copyCode(this)"
 class="btn btn-link m-0 p-0 text-muted copy-message-button copy-button"
-title="Copy"><i class="bi bi-clipboard"></i><i class="bi bi-clipboard-fill"></i></button>`;
+title="Copy"><i class="bi bi-copy"></i><i class="bi bi-check-lg"></i></button>`;
 
 function scrollToBottom(smooth = true, force = false) {
   resizePromptContainer();
@@ -77,6 +93,18 @@ function scrollToBottom(smooth = true, force = false) {
     return;
   }
   messagesContainer.scrollTop = hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight;
+}
+
+function scrollToListItem() {
+  setTimeout(() => {
+    const currentChat = document.querySelector('.chat-list-item.current');
+    if (currentChat) {
+      currentChat.scrollIntoView({
+        behavior: 'instant',
+        block: 'center'
+      });
+    }
+  }, 100);
 }
 
 function handleModeChange(mode, element = null, preset_loaded = false) {
@@ -301,7 +329,7 @@ function copyMessage(btn) {
   btn.classList.add("clicked");
   setTimeout(function () {
     btn.classList.remove("clicked");
-  }, 300);
+  }, 2200);
 }
 
 function copyCode(btn) {
@@ -531,7 +559,7 @@ function toggleRagOptions(value) {
   var ragOptions = document.querySelectorAll('.qa_rag_option');
 
   ragOptions.forEach(function (option) {
-    if (value === 'summarize') {
+    if (value !== 'rag') {
       option.style.display = 'none';
     } else {
       option.style.display = '';
@@ -544,7 +572,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const ragOptions = document.querySelectorAll(".qa_rag_option");
   const mode = document.getElementById("id_qa_mode");
   ragOptions.forEach(function (option) {
-    if (mode.value === "summarize") {
+    if (mode.value !== "rag") {
       option.style.display = "none";
     }
   });
