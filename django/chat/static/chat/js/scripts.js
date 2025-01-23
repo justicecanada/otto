@@ -63,7 +63,7 @@ let ignoreNextScrollEvent = true;
 
 const copyCodeButtonHTML = `<button type="button" onclick="copyCode(this)"
 class="btn btn-link m-0 p-0 text-muted copy-message-button copy-button"
-title="Copy"><i class="bi bi-copy"></i><i class="bi bi-copy"></i></button>`;
+title="Copy"><i class="bi bi-copy"></i><i class="bi bi-check-lg"></i></button>`;
 
 function scrollToBottom(smooth = true, force = false) {
   resizePromptContainer();
@@ -329,7 +329,7 @@ function copyMessage(btn) {
   btn.classList.add("clicked");
   setTimeout(function () {
     btn.classList.remove("clicked");
-  }, 300);
+  }, 2200);
 }
 
 function copyCode(btn) {
