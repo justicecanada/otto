@@ -39,6 +39,11 @@ def delete_unused_libraries():
 
 
 @shared_task
+def delete_old_libraries():
+    call_command("delete_old_libraries")
+
+
+@shared_task
 def delete_text_extractor_files():
     call_command("delete_text_extractor_files")
 
