@@ -138,4 +138,8 @@ def test_initialize_feedback_for_chat_mode(client, all_apps_user):
     form = FeedbackForm(user=user, message_id=message.id)
     form.initialize_chat_feedback(message.id)
 
+<<<<<<< HEAD
+    assert form.fields["app"].choices == [("translate", _("Translate"))]
+=======
     assert form.fields["app"].initial == "translate"
+>>>>>>> 2984129e73e7635da32aa1ed7e5da20890e77a6f

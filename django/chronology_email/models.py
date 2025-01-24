@@ -10,7 +10,11 @@ class Email(models.Model):
     sent_date = models.DateTimeField(null=True, blank=True)
     preview_text = models.TextField(null=True, blank=True)
     thread_id = models.UUIDField()
+<<<<<<< HEAD
     attachment_count = models.IntegerField(default=0)
+=======
+    attachment_count = models.IntegerField(default=0)  # New field for attachments
+>>>>>>> 3eb8834e7b9eed2ee8e58c6dae827da2334a9a8a
     subject = models.CharField(max_length=255, null=True, blank=True)
     unique_participants = models.IntegerField(default=0)
 

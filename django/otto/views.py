@@ -161,6 +161,7 @@ def feedback_message(request: HttpRequest, message_id=None):
     if message_id == "None":
         message_id = None
     if request.method == "POST":
+
         from django.contrib import messages
 
         from otto.utils.common import get_app_from_path
@@ -170,6 +171,7 @@ def feedback_message(request: HttpRequest, message_id=None):
         if form.is_valid():
             feedback_saved = form.save(commit=False)
             date_and_time = timezone.now().strftime("%Y%m%d-%H%M%S")
+
             feedback_saved.created_at = date_and_time
             if feedback_saved.chat_message is None:
                 feedback_saved.app = get_app_from_path(feedback_saved.url_context)
@@ -706,6 +708,7 @@ def cost_dashboard(request):
 
     # Filter by dates
     if date_group == "last_90_days":
+<<<<<<< HEAD
         start_date = timezone.now().date() - timedelta(days=89)
         end_date = timezone.now().date()
     elif date_group == "last_30_days":
@@ -714,6 +717,16 @@ def cost_dashboard(request):
     elif date_group == "last_7_days":
         start_date = timezone.now().date() - timedelta(days=6)
         end_date = timezone.now().date()
+=======
+        start_date = timezone.now().date() - timedelta(days=90)
+        end_date = timezone.now().date() - timedelta(days=0)
+    elif date_group == "last_30_days":
+        start_date = timezone.now().date() - timedelta(days=30)
+        end_date = timezone.now().date() - timedelta(days=0)
+    elif date_group == "last_7_days":
+        start_date = timezone.now().date() - timedelta(days=7)
+        end_date = timezone.now().date() - timedelta(days=0)
+>>>>>>> 3eb8834e7b9eed2ee8e58c6dae827da2334a9a8a
     elif date_group == "today":
         start_date = timezone.now().date()
     elif date_group == "all":

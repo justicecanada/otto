@@ -52,8 +52,8 @@ class FeedbackForm(ModelForm):
         super(FeedbackForm, self).__init__(*args, **kwargs)
         self.fields["created_by"].initial = user
         self.fields["modified_by"].initial = user
-        self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
 
+        self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
         if message_id is not None:
             self.fields["chat_message"].initial = message_id
             self.initialize_chat_feedback(message_id)
