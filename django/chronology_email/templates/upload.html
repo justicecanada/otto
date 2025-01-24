@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block page_title %}
+  {% trans "Upload Emails" %}
+{% endblock %}
+
+{% block content_container %}
+  <div class="container mt-4 position-relative">
+    {% if emails_by_thread %}
+      <div class="d-flex d-flex-row align-items-center justify-content-between mt-5 mb-2">
+        <h3>Email Threads</h3>
+        <button type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#createModal">Create Thread</button>
+      </div>
+      <div class="accordion" id="accordion-threads">
+        {% for thread_id, thread_data in emails_by_thread.items %}
+          <div class="accordion-item">
+            <div class="accordion-header" id="heading-{{ thread_id }}">
+              <button class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#accordion-{{ thread_id }}">{{ thread_data.thread_subject }}</button>
+            </div>
+            <div id="accordion-{{ thread_id }}"
+                 class="accordion-collapse collapse"
+                 data-bs-parent="#accordion-threads">
+              <div class="accordion-body">
+                <div class="d-flex flex-column">
+                  <h6 class="text-secondary fs-6 text-uppercase">Summary</h6>
+                  <div>
+                    <span class="d-inline-block">{{ thread_data.thread_summary }}</span>
+                  </div>
+                  <div class="d-inline-flex gap-2 mt-3">
+                    <div class="d-inline-flex flex-row align-items-center gap-1">
+                      <span class="d-inline-block float-left">
+                        <i class="bi bi-envelope"
+                           data-toggle="tooltip"
+                           data-placement="top"
+                           title="Emails"></i>
+                      </span>
+                      <span class="d-inline-block">{{ thread_data.total_emails }}</span>
+ 
+                    </div>
+                    <div class="d-inline-flex flex-row align-items-center gap-1">
+                      <span class="d-inline-block float-left">
+                        <i class="bi bi-people"
+                           data-toggle="tooltip"
+                           data-placement="top"
+                           title="Participants"></i>
+                      </span>
+                      <span class="d-inline-block">{{ thread_data.unique_participants }}</span>
+ 
+                    </div>
+                    <div class="d-inline-flex flex-row align-items-center gap-1">
+                      <span class="d-inline-block float-left">
+                        <i class="bi bi-paperclip"
+                           data-toggle="tooltip"
+                           data-placement="top"
+                           title="Attachments"></i>
+                      </span>
+                      <span class="d-inline-block">{{ thread_data.total_attachments }}</span>
+ 
+                    </div>
+                    <div class="d-inline-flex flex-row align-items-center gap-1">
+                      <span class="d-inline-block float-left">
+                        <i class="bi bi-calendar-date"
+                           data-toggle="tooltip"
+                           data-placement="top"
+                           title="Most recent"></i>
+                      </span>
+                      <span class="d-inline-block">{{ thread_data.last_email_date }}</span>
+ 
+                    </div>
+                  </div>
+                </div>
+                <div class="card my-3" style="display: block;">
+                  <div class="card-header">
+                    <div style="display: flex;
+                                justify-content: space-between;
+                                align-items: center">
+                      <div>
+                        <p>
+                          <strong>Emails</strong>
+                        </p>
+                      </div>
+                      <div>
+                        <button onclick="toggleThread('{{ thread_id }}')" class="btn btn-link p-0">
+                          <span id="toggle-icon-{{ thread_id }}">▼</span>
+                        </button>
+                        <button type="button"
+                                class="btn btn-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#uploadModal-{{ thread_id }}">Add Email</button>
+                        <div class="modal fade"
+                             id="uploadModal-{{ thread_id }}"
+                             tabindex="-1"
+                             aria-labelledby="uploadModalLabel"
+                             aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="uploadModalLabel">Add email to thread</h1>
+                                <button type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <form id="upload-form-{{ thread_id }}"
+                                      method="post"
+                                      action="{% url 'chronology_email:add_emails_to_thread' thread_id=thread_id %}"
+                                      enctype="multipart/form-data">
+                                  {% csrf_token %}
+                                  <label for="msg-files-{{ thread_id }}">Add .msg Files:</label>
+                                  <input type="file"
+                                         name="msg_files"
+                                         id="msg-files-{{ thread_id }}"
+                                         multiple
+                                         required>
+                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard</button>
+                                  <button type="submit" class="btn btn-primary">Upload</button>
+                                </form>
+                              </div>
+ 
+                            </div>
+                          </div>
+                        </div>
+                        <form action="{% url 'chronology_email:delete_thread' thread_id=thread_id %}"
+                              method="post"
+                              style="display:inline">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="bi bi-dash"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                    <form id="upload-form-{{ thread_id }}"
+                          action="{% url 'chronology_email:add_emails_to_thread' thread_id=thread_id %}"
+                          method="post"
+                          enctype="multipart/form-data"
+                          style="display: none;
+                                 margin-top: 10px">
+                      {% csrf_token %}
+                      <label for="msg-files-{{ thread_id }}">Add .msg Files:</label>
+                      <input type="file"
+                             name="msg_files"
+                             id="msg-files-{{ thread_id }}"
+                             multiple
+                             required>
+                      <button type="submit" class="btn btn-success btn-sm">Upload</button>
+                    </form>
+                  </div>
+                  <div id="thread-{{ thread_id }}" class="card-body" style="display:none">
+                    <table class="table table-striped" style="width: 100%; table-layout:fixed;">
+                      <thead>
+                        <tr>
+                          <th>Sender</th>
+                          <th>Receiver</th>
+                          <th>Sent Date</th>
+                          <th>Preview</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for email in thread_data.emails %}
+                          <tr>
+                            <td>{{ email.sender }}</td>
+                            <td>{{ email.receiver }}</td>
+                            <td>{{ email.sent_date }}</td>
+                            <td>
+                              <div style="overflow:hidden;max-height:200px;">
+                                <button data-bs-toggle="offcanvas"
+                                        data-bs-target="#offcanvas-{{ thread_id }}"
+                                        aria-controls="offcanvaRight"
+                                        class="btn btn-link">{{ email.preview_text }}</button>
+                              </div>
+ 
+                            </td>
+                            <td>
+                              <form action="{% url 'chronology_email:delete_email' email.id %}"
+                                    method="post"
+                                    style="display:inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">X</button>
+                              </form>
+                            </td>
+                          </tr>
+                          <div class="offcanvas offcanvas-end h-auto"
+                               tabindex="-1"
+                               id="offcanvas-{{ thread_id }}"
+                               style="width: 35%"
+                               aria-labelledby="offcanvasRightLabel">
+                            <div class="offcanvas-header">
+                              <h5 class="offcanvas-title" id="offcanvasRightLabel">{{ thread_data.thread_subject }}</h5>
+                              <button type="button"
+                                      class="btn-close"
+                                      data-bs-dismiss="offcanvas"
+                                      aria-label="Close"></button>
+                            </div>
+                            <div id="offcanvas-body" class="offcanvas-body">
+                              <div class="d-flex flex-column align-items-start gap-3"></div>
+                              <div class="d-inline-flex flex-row align-items-center mb-3 w-100">
+                                <div class="d-inline-flex flew-row align-items-center gap-2 text-secondary"
+                                     style="width: 15%">
+                                  <span class="d-inline-block float-left">
+                                    <i class="bi bi-calendar-date text-secondary"></i>
+                                  </span>
+                                  <span class="d-inline-block text-secondary">Date</span>
+                                </div>
+                                <span class="d-inline-block w-75">{{ email.sent_date }}</span>
+                              </div>
+                              <div class="d-inline-flex flex-row align-items-center mb-3 w-100">
+                                <div class="d-inline-flex flew-row align-items-center gap-2 text-secondary"
+                                     style="width: 15%">
+                                  <span class="d-inline-block float-left">
+                                    <i class="bi bi-person text-secondary"></i>
+                                  </span>
+                                  <span class="d-inline-block text-secondary">From</span>
+                                </div>
+                                <span class="d-inline-block w-75">{{ email.sender }}</span>
+                              </div>
+                              <div class="d-inline-flex flex-row align-items-center mb-4 w-100">
+                                <div class="d-inline-flex flew-row align-items-center gap-2 text-secondary"
+                                     style="width: 15%">
+                                  <span class="d-inline-block float-left">
+                                    <i class="bi bi-person text-secondary"></i>
+                                  </span>
+                                  <span class="d-inline-block text-secondary">To</span>
+                                </div>
+                                <span class="d-inline-block w-75">{{ email.receiver }}</span>
+                              </div>
+                              <div class="d-flex flex-column gap-2 mb-4">
+                                <div class="d-inline-flex flew-row align-items-center gap-2 text-secondary">
+                                  <span class="d-inline-block float-left">
+                                    <i class="bi bi-card-text text-secondary"></i>
+                                  </span>
+                                  <span class="d-inline-block text-secondary">Summary</span>
+                                </div>
+                                <span class="d-inline-block">{{ thread_data.thread_summary }}</span>
+                              </div>
+                              <div class="d-flex flex-column gap-2 mb-4">
+                                <div class="d-inline-flex flew-row align-items-center justify-content-between w-100 text-secondary">
+                                  <div class="d-inline-flex flew-row align-items-center gap-2 text-secondary">
+                                    <span class="d-inline-block float-left">
+                                      <i class="bi bi-paperclip text-secondary"></i>
+                                    </span>
+                                    <span class="d-inline-block text-secondary">Attachment &lpar;1&rpar;</span>
+                                  </div>
+                                  <div class="d-inline-flex flew-row align-items-center gap-1 text-secondary">
+                                    <span class="d-inline-block float-left">
+                                      <i class="bi bi-download text-primary"></i>
+                                    </span>
+                                    <span class="d-inline-block text-primary">Download All</span>
+                                  </div>
+                                </div>
+                                <div class="d-flex flex-row gap-2">
+                                  <div class="card border-2 d-inline-flex flex-row align-items-center p-2 gap-2">
+                                    <span class="d-inline-block float-left">
+                                      <i class="bi bi-file-pdf fs-2 text-danger"></i>
+                                    </span>
+                                    <span class="d-inline-block">
+                                      <div>
+                                        <div>Test.pdf</div>
+                                        <div class="d-inline-flex flex-row align-items-center gap-1 text-secondary fs-6">
+                                          <span class="fs-6">1.4 MB</span>
+                                        </div>
+                                      </div>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="d-flex flex-column gap-2 mb-4">
+                                <div class="d-inline-flex flew-row align-items-center gap-2 text-secondary">
+                                  <span class="d-inline-block float-left">
+                                    <i class="bi bi-card-text text-secondary"></i>
+                                  </span>
+                                  <span class="d-inline-block text-secondary">Full Text</span>
+                                </div>
+                                <span class="d-inline-block">{{ email.preview_text }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="position:fixed;
+                  inset: 0px;
+                  width:fit-content;
+                  height:fit-content;
+                  margin:auto">
+
+        <div class="d-flex flex-column gap-2 align-items-center justify-content-center p-3">
+
+          <i class="bi bi-envelope fs-1 text-secondary"></i>
+          <div class="text-center">
+            <h5>No threads yet</h5>
+            <p class="text-secondary">Start an email chronology thread and it will appear here.</p>
+          </div>
+          <button type="button"
+                  class="btn btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#createModal">Create Thread</button>
+        </div>
+      </div>
+    {% endif %}
+    <!-- Modal -->
+    <div class="modal fade"
+         id="createModal"
+         tabindex="-1"
+         aria-labelledby="createModalLabel"
+         aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="createModalLabel">Create new thread</h1>
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              {{ form.as_p }}
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard</button>
+              <input type="submit" class="btn btn-primary" value="Create">
+            </form>
+          </div>
+ 
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleThread(threadId) {
+        const threadElement = document.getElementById("thread-" + threadId);
+        const toggleIcon = document.getElementById("toggle-icon-" + threadId);
+        
+        if (threadElement.style.display === "none") {
+            threadElement.style.display = "block";
+            toggleIcon.innerText = "▲";
+        } else {
+            threadElement.style.display = "none";
+            toggleIcon.innerText = "▼";
+        }
+    }
+
+    function toggleUploadForm(threadId) {
+        const formElement = document.getElementById("upload-form-" + threadId);
+        console.log(threadId)
+        formElement.style.display = formElement.style.display === "none" ? "block" : "none";
+    }
+
+    function dismissUploadForm(threadId) {
+      const formElement = document.getElementById("upload-form-" + threadId);
+      formElement.style.display === "none"
+    }
+
+    function createThread() {
+
+    }
+
+    function toggleBottomSheet(email) {
+      // <div>You don't have any threads yet</div>
+        // <h2>{% trans "Upload .msg Files" %}</h2>
+      //const bottomSheetBody = document.getElementById("offcanvas-body");
+      console.log(JSON.stringify(email));
+      //bottomSheetBody.innerText = email.preview_text;
+    }
+  </script>
+{% endblock %}
