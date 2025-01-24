@@ -2778,5 +2778,25 @@
     "I agree to the usage terms.": {
         "fr": "",
         "fr_auto": "J’accepte les conditions d’utilisation."
+    },
+    "Unclassified only:": {
+        "fr": "",
+        "fr_auto": "Non classifié seulement :"
+    },
+    "This is a development / testing environment. Use unclassified information only.": {
+        "fr": "",
+        "fr_auto": "Il s’agit d’un environnement de développement / test. Utilisez uniquement des informations non classifiées."
+    },
+    "Welcome to the Otto Protected B pilot.": {
+        "fr": "",
+        "fr_auto": "Bienvenue au pilote Otto Protected B."
+    },
+    "Welcome to the Otto pilot development / test environment.": {
+        "fr": "",
+        "fr_auto": "Bienvenue dans l’environnement de développement / test pilote Otto."
+    },
+    "Please abide by the": {
+        "fr": "",
+        "fr_auto": "S’il vous plaît respecter le"
     }
 }
