@@ -77,7 +77,7 @@ def test_chat(client, basic_user, all_apps_user):
     response = client.get(reverse("chat:new_chat"))
     # This should redirect to the accept terms page
     assert response.status_code == 302
-    assert response.url == reverse("accept_terms") + "?next=" + reverse("chat:new_chat")
+    assert response.url == reverse("terms_of_use") + "?next=" + reverse("chat:new_chat")
 
     # Accept the terms
     user.accepted_terms_date = timezone.now()

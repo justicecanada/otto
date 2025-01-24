@@ -10,9 +10,9 @@ from django.core.management.base import BaseCommand
 import yaml
 from django_extensions.management.utils import signalcommand
 
-from chat.models import ChatOptions, Preset
+from chat.models import Preset
 from librarian.models import DataSource, Document, Library
-from otto.models import App, UsageTerm
+from otto.models import App
 
 
 class Command(BaseCommand):
@@ -23,7 +23,7 @@ class Command(BaseCommand):
             "objects",
             nargs="*",
             type=str,
-            help="Specify objects to reset (apps, terms, groups, libraries, library_mini, security_labels, cost_types)",
+            help="Specify objects to reset (apps, groups, libraries, library_mini, security_labels, cost_types, presets)",
         )
         parser.add_argument("--all", action="store_true", help="Reset all objects")
 
@@ -67,19 +67,16 @@ class Command(BaseCommand):
         if reset_all:
             self.reset_groups()
             self.reset_apps()
-            self.reset_usage_terms()
             self.reset_security_labels()
             self.reset_libraries()
             self.reset_cost_types()
+            self.reset_presets()
         else:
             if "groups" in objects_to_reset:
                 self.reset_groups()
 
             if "apps" in objects_to_reset:
                 self.reset_apps()
-
-            if "terms" in objects_to_reset:
-                self.reset_usage_terms()
 
             if "cost_types" in objects_to_reset:
                 self.reset_cost_types()
@@ -92,6 +89,7 @@ class Command(BaseCommand):
 
             if "library_mini" in objects_to_reset:
                 self.reset_libraries("library_mini.yaml")
+
             if "presets" in objects_to_reset:
                 self.reset_presets()
 
@@ -119,32 +117,6 @@ class Command(BaseCommand):
             App.objects.create_from_yaml(app_data)
 
         self.stdout.write(self.style.SUCCESS("Apps reset successfully."))
-
-    def reset_usage_terms(self):
-        yaml_file_path = os.path.join(
-            settings.BASE_DIR, "otto", "fixtures", "terms.yaml"
-        )
-
-        with open(yaml_file_path, "r", encoding="utf-8") as yaml_file:
-            terms_data = yaml.safe_load(yaml_file)
-
-        if not terms_data:
-            self.stdout.write(
-                self.style.WARNING(
-                    "No data found in the YAML file. Nothing to reset for UsageTerms."
-                )
-            )
-            return
-
-        # Clear out existing UsageTerm instances
-        UsageTerm.objects.all().delete()
-
-        # Create new UsageTerm instances based on YAML data
-        for term_data in terms_data:
-            term_fields = term_data.get("fields", {})
-            UsageTerm.objects.create(**term_fields)
-
-        self.stdout.write(self.style.SUCCESS("UsageTerms reset successfully."))
 
     def reset_groups(self):
         yaml_file_path = os.path.join(

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% load i18n %}
+
+{% block body %}
+ 
+  <!-- Title -->
+  <h2 class="mb-4">{% trans "Terms of use for Otto Protected B Pilot" %}</h2>
+
+  {% if request.user.accepted_terms_date %}
+    <p class="text-success fw-semibold">
+      {% trans "You agreed to these terms on" %} {{ request.user.accepted_terms_date }}.
+    </p>
+  {% endif %}
+ 
+  <!-- Description -->
+  <p class="mb-4">{% trans "Terms of use go here..." %}</p>
+
+ 
+  <!-- Access Request Form Template -->
+  {% if not request.user.accepted_terms_date %}
+    <form method="post" id="accessRequestForm">
+      <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
+
+      {% csrf_token %}
+      <!-- Accept Terms Checkbox -->
+      <div class="mb-4">
+        <div class="m-2 form-check">
+          <input type="checkbox"
+                 id="accept_usage_terms"
+                 required
+                 name="usage_terms"
+                 class="form-check-input border-secondary">
+          <label for="accept_usage_terms" class="form-check-label fw-semibold">{% trans "I agree to the usage terms." %}</label>
+        </div>
+      </div>
+      <!-- Submit Button -->
+      <button type="submit" id="submitButton" class="btn btn-primary" disabled>{% trans "Submit" %}</button>
+    </form>
+  {% endif %}
+
+{% endblock %}
+
+{% block page_script %}
+  <script>
+    // Enable submit button when terms are accepted
+    document.getElementById('accept_usage_terms').addEventListener('change', function() {
+      document.getElementById('submitButton').disabled = !this.checked;
+    });
+  </script>
+
+{% endblock %}
