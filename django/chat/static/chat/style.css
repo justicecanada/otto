@@ -828,7 +828,7 @@ div#chat-toolbar {
     color: initial !important;
   }
 
-  &:focus > i {
+  &:focus>i {
     display: block !important;
   }
 }
@@ -860,7 +860,7 @@ div#chat-toolbar {
     background-color: var(--bs-light);
   }
 
-  &:focus > i {
+  &:focus>i {
     display: block !important;
   }
 }
@@ -1061,7 +1061,7 @@ ul.errorlist {
   word-break: break-word;
 }
 
-#editLibrariesInner .modal-body > .row > div {
+#editLibrariesInner .modal-body>.row>div {
   max-height: calc(100vh - 10rem);
   overflow-y: auto;
 }
@@ -1273,26 +1273,17 @@ math[display="block"] {
 }
 
 .wand-button {
-  background-color: transparent !important;
+  background-color: white !important;
   border: none;
-  top: 0px;
-  right: 40px;
+  top: 4px;
+  right: 42px;
   width: 35px;
   height: 30px;
-  display: flex;
   position: absolute;
   z-index: 10;
-
 }
 
 .floating-icon .spinner-border {
   width: 16px;
   height: 16px;
-}
-
-.wand {
-  font-size: 20px;
-  color: var(--app-color-purple-1);
-  background-color: transparent;
-  border: none;
 }
