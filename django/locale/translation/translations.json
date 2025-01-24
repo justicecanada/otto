@@ -2666,5 +2666,217 @@
     "Reset": {
         "fr": "",
         "fr_auto": "Réinitialiser"
+    },
+    "Protected B approved:": {
+        "fr": "",
+        "fr_auto": "Protégé B approuvé :"
+    },
+    "Use with unclassified, Protected A or Protected B information only.": {
+        "fr": "",
+        "fr_auto": "Utilisez uniquement avec des informations non classifiées, protégées A ou Protégées B."
+    },
+    "Human review required:": {
+        "fr": "",
+        "fr_auto": "Examen humain requis :"
+    },
+    "AI can make mistakes. Review before using in an official capacity.": {
+        "fr": "",
+        "fr_auto": "L’IA peut faire des erreurs. Examiner avant d’utiliser à titre officiel."
+    },
+    "Not for legal advice or research:": {
+        "fr": "",
+        "fr_auto": "Pas pour des conseils juridiques ou de la recherche :"
+    },
+    "This tool doesn't connect to legal databases like Westlaw, Lexis and CanLII.": {
+        "fr": "",
+        "fr_auto": "Cet outil ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis et CanLII."
+    },
+    "Not for decision-making:": {
+        "fr": "",
+        "fr_auto": "Pas pour la prise de décision :"
+    },
+    "Do not use for legal decisions, administrative decisions affecting individuals, etc.": {
+        "fr": "",
+        "fr_auto": "Ne pas utiliser pour les décisions juridiques, les décisions administratives affectant les individus, etc."
+    },
+    "Information management:": {
+        "fr": "",
+        "fr_auto": "Gestion de l’information :"
+    },
+    "Limit information shared in chats and Q&A libraries. These are deleted after 30 days.": {
+        "fr": "",
+        "fr_auto": "Limitez les informations partagées dans les chats et les bibliothèques de questions et réponses. Ceux-ci sont supprimés après 30 jours."
+    },
+    "\n            <strong>Chat</strong> with a secure AI for brainstorming, writing assistance and text formatting.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Discutez</strong> avec une IA sécurisée pour le brainstorming, l’aide à la rédaction et le formatage du texte.\n          "
+    },
+    "Chat mode is not suitable for factual research.": {
+        "fr": "",
+        "fr_auto": "Le mode chat ne convient pas à la recherche factuelle."
+    },
+    "\n            <strong>Summarize</strong> uploaded documents. You may also input free text or enter a URL for a web page.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Résumez les</strong> documents téléchargés. Vous pouvez également entrer du texte libre ou entrer une URL pour une page Web.\n          "
+    },
+    "AI-generated summaries may contain inaccuracies. Review before using for official purposes.": {
+        "fr": "",
+        "fr_auto": "Les résumés générés par l’IA peuvent contenir des inexactitudes. Passez en revue avant d’utiliser à des fins officielles."
+    },
+    "\n            <strong>Translate</strong> input text or uploaded documents from any language into French or English.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Traduire le</strong> texte d’entrée ou les documents téléchargés de n’importe quelle langue en français ou en anglais.\n          "
+    },
+    "Translations may not be suitable for legal and official document submissions prior to human review.": {
+        "fr": "",
+        "fr_auto": "Les traductions peuvent ne pas convenir aux soumissions de documents juridiques et officiels avant l’examen humain."
+    },
+    "\n            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or simply upload documents to the chat.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents à partir de la barre latérale des paramètres, ou téléchargez simplement des documents sur le chat.\n          "
+    },
+    "For official use, always verify with the provided sources due to the potential for inaccuracies.": {
+        "fr": "",
+        "fr_auto": "Pour un usage officiel, vérifiez toujours avec les sources fournies en raison du risque d’inexactitudes."
+    },
+    "Terms of use": {
+        "fr": "",
+        "fr_auto": "Conditions d’utilisation"
+    },
+    "Welcome to the Otto Protected B pilot. Please abide by the": {
+        "fr": "",
+        "fr_auto": "Bienvenue au pilote Otto Protected B. S’il vous plaît respecter le"
+    },
+    "terms of use": {
+        "fr": "",
+        "fr_auto": "conditions d’utilisation"
+    },
+    "report issues or suggest improvements by": {
+        "fr": "",
+        "fr_auto": "signaler les problèmes ou suggérer des améliorations en :"
+    },
+    "leaving feedback": {
+        "fr": "",
+        "fr_auto": "laisser de la rétroaction"
+    },
+    "and be patient as we resolve issues.": {
+        "fr": "",
+        "fr_auto": "et soyez patient lorsque nous résolvons les problèmes."
+    },
+    "Terms of use for Otto Protected B Pilot": {
+        "fr": "",
+        "fr_auto": "Conditions d’utilisation d’Otto Protected B Pilot"
+    },
+    "You agreed to these terms on": {
+        "fr": "",
+        "fr_auto": "Vous avez accepté ces conditions le"
+    },
+    "Terms of use go here...": {
+        "fr": "",
+        "fr_auto": "Les conditions d’utilisation vont ici..."
+    },
+    "I agree to the usage terms.": {
+        "fr": "",
+        "fr_auto": "J’accepte les conditions d’utilisation."
+    },
+    "Unclassified only:": {
+        "fr": "",
+        "fr_auto": "Non classifié seulement :"
+    },
+    "This is a development / testing environment. Use unclassified information only.": {
+        "fr": "",
+        "fr_auto": "Il s’agit d’un environnement de développement / test. Utilisez uniquement des informations non classifiées."
+    },
+    "Welcome to the Otto Protected B pilot.": {
+        "fr": "",
+        "fr_auto": "Bienvenue au pilote Otto Protected B."
+    },
+    "Welcome to the Otto pilot development / test environment.": {
+        "fr": "",
+        "fr_auto": "Bienvenue dans l’environnement de développement / test pilote Otto."
+    },
+    "Please abide by the": {
+        "fr": "",
+        "fr_auto": "S’il vous plaît respecter le"
+    },
+    "Participation in pilot activities": {
+        "fr": "",
+        "fr_auto": "Participation aux activités pilotes"
+    },
+    "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested.": {
+        "fr": "",
+        "fr_auto": "Vous faites partie d’un groupe sélectionné d'«utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande."
+    },
+    "Security, privacy and information management": {
+        "fr": "",
+        "fr_auto": "Sécurité, protection de la vie privée et gestion de l’information"
+    },
+    "Otto is approved for up to and including Protected B information. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information.": {
+        "fr": "",
+        "fr_auto": "Otto est approuvé pour les informations protégées B jusqu’à et y compris. Cela comprend normalement les renseignements assujettis au secret professionnel de l’avocat, mais cela devrait être déterminé au cas par cas. Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires relatives à certaines catégories de renseignements de nature délicate."
+    },
+    "You must not input any information classified above Protected B, either through uploads or direct text input.": {
+        "fr": "",
+        "fr_auto": "Vous ne devez pas entrer d’informations classifiées au-dessus de La Protection B, que ce soit par le biais de téléchargements ou de saisie directe de texte."
+    },
+    "Limit documents that you upload to Otto only to those you need to perform your tasks. Share document libraries and chats only with those who require access. Avoid uploading personal information except as needed for specific tasks, and actively delete classified or personal information when it is no longer needed.": {
+        "fr": "",
+        "fr_auto": "Limitez les documents que vous téléchargez sur Otto uniquement à ceux dont vous avez besoin pour effectuer vos tâches. Partagez des bibliothèques de documents et des discussions uniquement avec ceux qui en ont besoin. Évitez de télécharger des informations personnelles, sauf si nécessaire pour des tâches spécifiques, et supprimez activement les informations classifiées ou personnelles lorsqu’elles ne sont plus nécessaires."
+    },
+    "In the AI assistant, document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted.": {
+        "fr": "",
+        "fr_auto": "Dans l’assistant IA, les bibliothèques de documents et les chats seront supprimés après 30 jours d’inactivité. Cela signifie que si vous n’ouvrez pas un chat pendant 30 jours, il sera automatiquement supprimé avec tous les fichiers téléchargés sur le chat. Pour les bibliothèques, si aucune modification n’a été apportée et qu’aucune requête Q&A n’a été effectuée pendant 30 jours, la bibliothèque sera automatiquement supprimée."
+    },
+    "Appropriate and inappropriate uses": {
+        "fr": "",
+        "fr_auto": "Utilisations appropriées et inappropriées"
+    },
+    "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted for facts. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.": {
+        "fr": "",
+        "fr_auto": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Chat ne doivent pas être fiables pour les faits. Utilisez plutôt les modes Q&R et Summarize pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléchargez ou une bibliothèque de documents partagée."
+    },
+    "Otto may not be used for automated decision-making. Do not use it for administrative decisions affecting individuals.": {
+        "fr": "",
+        "fr_auto": "Otto ne peut pas être utilisé pour la prise de décision automatisée. Ne l’utilisez pas pour des décisions administratives touchant des personnes."
+    },
+    "Otto is not a substitute for professional legal advice. Avoid using it for decisions with legal implications.": {
+        "fr": "",
+        "fr_auto": "Otto n’est pas un substitut aux conseils juridiques professionnels. Évitez de l’utiliser pour des décisions ayant des implications juridiques."
+    },
+    "Otto does not connect to legal databases like Westlaw, Lexis and CanLII. It should not be used for legal research of case law.": {
+        "fr": "",
+        "fr_auto": "Otto ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis et CanLII. Il ne devrait pas être utilisé pour la recherche juridique de la jurisprudence."
+    },
+    "Only the Legislation Search tool can be trusted for questions about Canadian federal laws.": {
+        "fr": "",
+        "fr_auto": "Seul l’outil de recherche de législation peut être fiable pour les questions sur les lois fédérales canadiennes."
+    },
+    "Translations may not be suitable for legal and official document submissions without human review.": {
+        "fr": "",
+        "fr_auto": "Les traductions peuvent ne pas convenir aux soumissions de documents juridiques et officiels sans examen humain."
+    },
+    "Responsible and ethical use of AI": {
+        "fr": "",
+        "fr_auto": "Utilisation responsable et éthique de l’IA"
+    },
+    "Follow policies and best practices for the responsible use of AI. Refer to and follow the guidance in the following policy documents:": {
+        "fr": "",
+        "fr_auto": "Suivez les politiques et les meilleures pratiques pour une utilisation responsable de l’IA. Se reporter aux lignes directrices des documents de politique suivants et les suivre :"
+    },
+    "You are encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence.": {
+        "fr": "",
+        "fr_auto": "Nous vous encourageons à consulter les directives et les avis des cours et des tribunaux concernant l’utilisation de l’intelligence artificielle."
+    },
+    "Always be aware that AI can make mistakes, even when you have provided it with documents. For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content.": {
+        "fr": "",
+        "fr_auto": "Sachez toujours que l’IA peut faire des erreurs, même lorsque vous lui avez fourni des documents. Pour toute utilisation officielle (par exemple, la distribution en dehors de votre équipe immédiate et en particulier en dehors de l’organisation), il est essentiel que vous examiniez attentivement le contenu généré par l’IA."
+    },
+    "I agree to the terms of use.": {
+        "fr": "",
+        "fr_auto": "J’accepte les conditions d’utilisation."
+    },
+    "In the AI assistant, apply security classification labels to chats and document libraries when they contain classified and/or personal information.": {
+        "fr": "",
+        "fr_auto": "Dans l’Assistant IA, appliquez des étiquettes de classification de sécurité aux chats et aux bibliothèques de documents lorsqu’elles contiennent des informations classifiées et/ou personnelles."
     }
 }
