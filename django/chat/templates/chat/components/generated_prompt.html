@@ -3,42 +3,34 @@
 
 <div class="modal-body">
 
-  <form id="magic-form col-md-4"
+  <form id="magic-form"
         hx-post="/chat/generate-prompt/"
-        hx-target="#magicModal .modal-body"
-        hx-swap="outerHTML">
+        hx-target="#magicModal"
+        hx-swap="innerHTML">
     {% csrf_token %}
  
-    <h6>Your prompt</h6>
-    <textarea class="form-control mt-3" id="user-input" name="user_input" rows="5">{{ user_input }}</textarea>
-    <div class="d-flex justify-content-end">
-      <button type="submit"
-              class="btn btn-primary mt-3 "
-              id="generate-prompt"
-              hx-post="/chat/generate-prompt/"
-              hx-trigger="click"
-              hx-indicator="#spinner-icon"
-              onclick="toggleSpinner(true)">
- 
-        <span id="generate-text">{% trans "Re-generate" %}</span>
-        <i id="spinner-icon"
-           class="spinner-border spinner-border-sm"
-           style="display: none"></i>
-      </button>
-    </div>
-    <h6>AI-generated prompt</h6>
+    <h6>{% trans "Your prompt" %}</h6>
+    <textarea class="form-control my-3" id="user-input" name="user_input" rows="5">{{ user_input }}</textarea>
+    <h6>{% trans "AI-generated prompt" %}</h6>
     <textarea class="form-control mt-3"
               id="generated-prompt"
               name="generated_prompt"
               rows="10">{{ output_text }}</textarea>
-    <p>{% trans "Cost : " %} {{ cost }}</p>
+    <small class="text-muted">{% trans "Cost:" %} {{ cost }}</small>
   </form>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary"  onclick="clearTextAreas()">{% trans "Clear" %}</button>
-    <button type="button" class="btn btn-secondary"  onclick="location.reload();">{% trans "Reset" %}</button>
- 
-    <button type="button"
-            class="btn btn-primary"
-            onclick="applyGeneratedPrompt(event)">{% trans "Use this prompt" %}</button>
-  </div>
+
+</div>
+<div class="modal-footer">
+  <button type="submit"
+          class="btn btn-outline-primary"
+          id="generate-prompt"
+          onclick="toggleSpinner(true)">
+    <span id="generate-text">{% trans "Regenerate" %}</span>
+    <i id="spinner-icon"
+       class="spinner-border spinner-border-sm"
+       style="display: none"></i>
+  </button>
+  <button type="button"
+          class="btn btn-primary"
+          onclick="applyGeneratedPrompt(event)">{% trans "Use this prompt" %}</button>
 </div>

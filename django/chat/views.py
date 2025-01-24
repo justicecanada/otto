@@ -1,9 +1,6 @@
 import json
 import logging
-import os
-import re
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -19,7 +16,6 @@ from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
-from openai import OpenAI
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -929,9 +925,6 @@ def generate_prompt_view(request):
         try:
             user_input = request.POST.get("user_input", "")
             output_text, cost = generate_prompt(user_input)
-            output_text = re.sub(
-                r"<reasoning>.*?</reasoning>", "", output_text, flags=re.DOTALL
-            )
 
             return render(
                 request,

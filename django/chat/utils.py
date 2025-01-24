@@ -1,6 +1,7 @@
 import asyncio
 import html
 import json
+import re
 import sys
 from itertools import groupby
 from typing import AsyncGenerator, Generator
@@ -735,5 +736,8 @@ def generate_prompt(task_or_prompt: str):
 
     usd_cost = llm.create_costs()
     cost = display_cad_cost(usd_cost)
+    generated_prompt = re.sub(
+        r"<reasoning>.*?</reasoning>", "", completion, flags=re.DOTALL
+    ).strip()
 
-    return completion, cost
+    return generated_prompt, cost
