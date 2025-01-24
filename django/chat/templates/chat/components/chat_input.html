@@ -160,14 +160,16 @@
                   id="generate-prompt"
                   hx-post="/chat/generate-prompt/"
                   hx-trigger="click"
-                  hx-indicator="#loading-spinner"
+                  hx-indicator="#spinner-icon"
                   onclick="toggleSpinner(true)">
+ 
             <span id="generate-text">{% trans "Generate" %}</span>
             <i id="spinner-icon"
                class="spinner-border spinner-border-sm"
                style="display: none"></i>
           </button>
         </form>
+ 
       </div>
     </div>
   </div>
