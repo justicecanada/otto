@@ -20,12 +20,19 @@
         </div>
         <div class="row">
           <div class="col">
+            {% if environment == "prod" %}
+              <p>
+                <strong>{% trans "Protected B approved:" %}</strong>
+                {% trans "Use with unclassified, Protected A or Protected B information only." %}
+              </p>
+            {% else %}
+              <p>
+                <strong>{% trans "Unclassified only:" %}</strong>
+                {% trans "This is a development / testing environment. Use unclassified information only." %}
+              </p>
+            {% endif %}
             <p>
-              <strong>{% trans "Protected B approved:" %}:</strong>
-              {% trans "Use with unclassified, Protected A or Protected B information only." %}
-            </p>
-            <p>
-              <strong>{% trans "Human review required:" %}:</strong>
+              <strong>{% trans "Human review required:" %}</strong>
               {% trans "AI can make mistakes. Review before using in an official capacity." %}
             </p>
             <p>
