@@ -2666,5 +2666,117 @@
     "Reset": {
         "fr": "",
         "fr_auto": "Réinitialiser"
+    },
+    "Protected B approved:": {
+        "fr": "",
+        "fr_auto": "Protégé B approuvé :"
+    },
+    "Use with unclassified, Protected A or Protected B information only.": {
+        "fr": "",
+        "fr_auto": "Utilisez uniquement avec des informations non classifiées, protégées A ou Protégées B."
+    },
+    "Human review required:": {
+        "fr": "",
+        "fr_auto": "Examen humain requis :"
+    },
+    "AI can make mistakes. Review before using in an official capacity.": {
+        "fr": "",
+        "fr_auto": "L’IA peut faire des erreurs. Examiner avant d’utiliser à titre officiel."
+    },
+    "Not for legal advice or research:": {
+        "fr": "",
+        "fr_auto": "Pas pour des conseils juridiques ou de la recherche :"
+    },
+    "This tool doesn't connect to legal databases like Westlaw, Lexis and CanLII.": {
+        "fr": "",
+        "fr_auto": "Cet outil ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis et CanLII."
+    },
+    "Not for decision-making:": {
+        "fr": "",
+        "fr_auto": "Pas pour la prise de décision :"
+    },
+    "Do not use for legal decisions, administrative decisions affecting individuals, etc.": {
+        "fr": "",
+        "fr_auto": "Ne pas utiliser pour les décisions juridiques, les décisions administratives affectant les individus, etc."
+    },
+    "Information management:": {
+        "fr": "",
+        "fr_auto": "Gestion de l’information :"
+    },
+    "Limit information shared in chats and Q&A libraries. These are deleted after 30 days.": {
+        "fr": "",
+        "fr_auto": "Limitez les informations partagées dans les chats et les bibliothèques de questions et réponses. Ceux-ci sont supprimés après 30 jours."
+    },
+    "\n            <strong>Chat</strong> with a secure AI for brainstorming, writing assistance and text formatting.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Discutez</strong> avec une IA sécurisée pour le brainstorming, l’aide à la rédaction et le formatage du texte.\n          "
+    },
+    "Chat mode is not suitable for factual research.": {
+        "fr": "",
+        "fr_auto": "Le mode chat ne convient pas à la recherche factuelle."
+    },
+    "\n            <strong>Summarize</strong> uploaded documents. You may also input free text or enter a URL for a web page.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Résumez les</strong> documents téléchargés. Vous pouvez également entrer du texte libre ou entrer une URL pour une page Web.\n          "
+    },
+    "AI-generated summaries may contain inaccuracies. Review before using for official purposes.": {
+        "fr": "",
+        "fr_auto": "Les résumés générés par l’IA peuvent contenir des inexactitudes. Passez en revue avant d’utiliser à des fins officielles."
+    },
+    "\n            <strong>Translate</strong> input text or uploaded documents from any language into French or English.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Traduire le</strong> texte d’entrée ou les documents téléchargés de n’importe quelle langue en français ou en anglais.\n          "
+    },
+    "Translations may not be suitable for legal and official document submissions prior to human review.": {
+        "fr": "",
+        "fr_auto": "Les traductions peuvent ne pas convenir aux soumissions de documents juridiques et officiels avant l’examen humain."
+    },
+    "\n            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or simply upload documents to the chat.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents à partir de la barre latérale des paramètres, ou téléchargez simplement des documents sur le chat.\n          "
+    },
+    "For official use, always verify with the provided sources due to the potential for inaccuracies.": {
+        "fr": "",
+        "fr_auto": "Pour un usage officiel, vérifiez toujours avec les sources fournies en raison du risque d’inexactitudes."
+    },
+    "Terms of use": {
+        "fr": "",
+        "fr_auto": "Conditions d’utilisation"
+    },
+    "Welcome to the Otto Protected B pilot. Please abide by the": {
+        "fr": "",
+        "fr_auto": "Bienvenue au pilote Otto Protected B. S’il vous plaît respecter le"
+    },
+    "terms of use": {
+        "fr": "",
+        "fr_auto": "conditions d’utilisation"
+    },
+    "report issues or suggest improvements by": {
+        "fr": "",
+        "fr_auto": "signaler les problèmes ou suggérer des améliorations en :"
+    },
+    "leaving feedback": {
+        "fr": "",
+        "fr_auto": "laisser de la rétroaction"
+    },
+    "and be patient as we resolve issues.": {
+        "fr": "",
+        "fr_auto": "et soyez patient lorsque nous résolvons les problèmes."
+    },
+    "Terms of use for Otto Protected B Pilot": {
+        "fr": "",
+        "fr_auto": "Conditions d’utilisation d’Otto Protected B Pilot"
+    },
+    "You agreed to these terms on": {
+        "fr": "",
+        "fr_auto": "Vous avez accepté ces conditions le"
+    },
+    "Terms of use go here...": {
+        "fr": "",
+        "fr_auto": "Les conditions d’utilisation vont ici..."
+    },
+    "I agree to the usage terms.": {
+        "fr": "",
+        "fr_auto": "J’accepte les conditions d’utilisation."
     }
 }
