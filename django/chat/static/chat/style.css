@@ -1273,7 +1273,7 @@ math[display="block"] {
 }
 
 .wand-button {
-  background-color: transparent;
+  background-color: transparent !important;
   border: none;
   top: 0px;
   right: 40px;
@@ -1281,7 +1281,7 @@ math[display="block"] {
   height: 30px;
   display: flex;
   position: absolute;
-  z-index: 5">
+  z-index: 10;
 
 }
 
