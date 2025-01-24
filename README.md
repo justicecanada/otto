@@ -120,12 +120,12 @@
 | django/otto/admin.py                                                                                          |        0 |        0 |    100% |           |
 | django/otto/asgi.py                                                                                           |        8 |        8 |      0% |     10-24 |
 | django/otto/celery.py                                                                                         |       16 |        1 |     94% |        69 |
-| django/otto/context\_processors.py                                                                            |       10 |        4 |     60% |      9-13 |
+| django/otto/context\_processors.py                                                                            |       11 |        4 |     64% |     10-14 |
 | django/otto/forms.py                                                                                          |       68 |        4 |     94% |72, 74, 202-203 |
 | django/otto/management/commands/delete\_empty\_chats.py                                                       |       19 |        1 |     95% |        29 |
 | django/otto/management/commands/delete\_old\_chats.py                                                         |       20 |        2 |     90% |    31, 35 |
 | django/otto/management/commands/delete\_text\_extractor\_files.py                                             |       18 |        0 |    100% |           |
-| django/otto/management/commands/reset\_app\_data.py                                                           |      134 |       20 |     85% |68-73, 91, 107-112, 132-137, 158-163, 177-178, 183-186, 201-206, 217 |
+| django/otto/management/commands/reset\_app\_data.py                                                           |      120 |       18 |     85% |68-73, 88, 105-110, 130-135, 149-150, 155-158, 173-178, 189 |
 | django/otto/management/commands/update\_exchange\_rate.py                                                     |       22 |        3 |     86% |     32-34 |
 | django/otto/metrics/\_\_init\_\_.py                                                                           |        0 |        0 |    100% |           |
 | django/otto/metrics/activity\_metrics.py                                                                      |        2 |        0 |    100% |           |
@@ -161,8 +161,9 @@
 | django/otto/migrations/0021\_merge\_20241127\_1803.py                                                         |        4 |        0 |    100% |           |
 | django/otto/migrations/0022\_rename\_weekly\_bonus\_user\_monthly\_bonus\_and\_more.py                        |        4 |        0 |    100% |           |
 | django/otto/migrations/0023\_blockedurl.py                                                                    |        4 |        0 |    100% |           |
+| django/otto/migrations/0024\_delete\_usageterm.py                                                             |        4 |        0 |    100% |           |
 | django/otto/migrations/\_\_init\_\_.py                                                                        |        0 |        0 |    100% |           |
-| django/otto/models.py                                                                                         |      280 |       31 |     89% |26-28, 76-79, 112, 116-119, 154, 193, 196, 212, 233, 240, 258, 375, 378, 430, 436, 460, 464, 468, 472, 518-519, 533, 537, 541, 562 |
+| django/otto/models.py                                                                                         |      276 |       30 |     89% |26-28, 76-79, 112, 116-119, 154, 193, 196, 212, 233, 251, 368, 371, 423, 429, 453, 457, 461, 465, 511-512, 526, 530, 534, 555 |
 | django/otto/rules.py                                                                                          |      158 |       19 |     88% |26, 42, 49, 51, 101-103, 108-110, 115-117, 146, 212-214, 250-251 |
 | django/otto/secure\_models.py                                                                                 |      248 |       91 |     63% |21-22, 61, 86-100, 129-130, 135-136, 149-154, 183-224, 248, 268-269, 307, 337, 350, 359, 378, 393, 398, 403, 409-415, 418, 423, 437, 442, 447, 454-482, 485-486, 491-498, 501-502, 508-522, 536-537, 542-552, 557-558, 561-562 |
 | django/otto/settings.py                                                                                       |      159 |       23 |     86% |38-41, 51-52, 218-227, 297, 310, 367-374, 403, 493-494 |
@@ -170,14 +171,14 @@
 | django/otto/templatetags/\_\_init\_\_.py                                                                      |        0 |        0 |    100% |           |
 | django/otto/templatetags/filters.py                                                                           |       10 |        1 |     90% |         8 |
 | django/otto/templatetags/tags.py                                                                              |       10 |        1 |     90% |        18 |
-| django/otto/translation.py                                                                                    |       17 |        0 |    100% |           |
+| django/otto/translation.py                                                                                    |       14 |        0 |    100% |           |
 | django/otto/urls.py                                                                                           |       13 |        2 |     85% |   95, 100 |
 | django/otto/utils/auth.py                                                                                     |       36 |        6 |     83% |     18-32 |
 | django/otto/utils/common.py                                                                                   |       44 |        0 |    100% |           |
 | django/otto/utils/decorators.py                                                                               |       62 |        4 |     94% |24-25, 65, 87 |
 | django/otto/utils/logging.py                                                                                  |       15 |        0 |    100% |           |
 | django/otto/utils/middleware.py                                                                               |       17 |        1 |     94% |        23 |
-| django/otto/views.py                                                                                          |      545 |      112 |     79% |61, 66, 71-85, 126, 136-147, 162, 283, 384, 436-439, 455-456, 480, 490-493, 522-532, 544-549, 552, 561, 563-566, 568-569, 571-574, 597, 605, 614, 630-641, 747-748, 779, 781, 783, 797, 799, 806-807, 810-813, 823-829, 839, 841, 843, 848-868, 907, 916-925, 1013, 1044, 1077-1100 |
+| django/otto/views.py                                                                                          |      544 |      111 |     80% |60, 65, 70-84, 125, 135-145, 159, 280, 381, 433-436, 452-453, 477, 487-490, 519-529, 541-546, 549, 558, 560-563, 565-566, 568-571, 594, 602, 611, 627-638, 744-745, 776, 778, 780, 794, 796, 803-804, 807-810, 820-826, 836, 838, 840, 845-865, 904, 913-922, 1010, 1041, 1074-1097 |
 | django/otto/wsgi.py                                                                                           |        4 |        4 |      0% |     10-16 |
 | django/postgres\_wrapper/\_\_init\_\_.py                                                                      |        0 |        0 |    100% |           |
 | django/postgres\_wrapper/base.py                                                                              |        6 |        0 |    100% |           |
@@ -189,7 +190,7 @@
 | django/tests/chat/test\_chat\_readonly.py                                                                     |       33 |        0 |    100% |           |
 | django/tests/chat/test\_chat\_translate.py                                                                    |       37 |        0 |    100% |           |
 | django/tests/chat/test\_chat\_views.py                                                                        |      615 |       11 |     98% |   579-597 |
-| django/tests/conftest.py                                                                                      |      170 |        5 |     97% |36, 211, 241-245 |
+| django/tests/conftest.py                                                                                      |      170 |        5 |     97% |36, 210, 240-244 |
 | django/tests/laws/conftest.py                                                                                 |        9 |        0 |    100% |           |
 | django/tests/laws/test\_laws\_utils.py                                                                        |       45 |        0 |    100% |           |
 | django/tests/laws/test\_laws\_views.py                                                                        |       45 |        0 |    100% |           |
@@ -225,7 +226,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **9866** | **1187** | **88%** |           |
+|                                                                                                     **TOTAL** | **9849** | **1183** | **88%** |           |
 
 
 ## Setup coverage badge
