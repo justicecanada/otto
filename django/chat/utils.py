@@ -19,6 +19,7 @@ from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
 from dotenv import load_dotenv
 from llama_index.core import PromptTemplate
+from llama_index.core.llms import ChatMessage
 from llama_index.core.prompts import PromptType
 from newspaper import Article
 from structlog import get_logger
@@ -656,9 +657,6 @@ def bad_url(render_markdown=False):
 def generate_prompt(task_or_prompt: str):
 
     llm = OttoLLM()
-    azure_openai = llm._get_llm()
-    openai.api_key = azure_openai.api_key
-    openai.api_version = azure_openai.api_version
 
     META_PROMPT = """
     Given a current prompt and a change description, produce a detailed system prompt to guide a language model in completing the task effectively.
@@ -725,19 +723,16 @@ def generate_prompt(task_or_prompt: str):
     [NOTE: you must start with a <reasoning> section. the immediate next token you produce should be <reasoning>]
     """.strip()
 
-    completion = openai.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "system",
-                "content": META_PROMPT,
-            },
-            {
-                "role": "user",
-                "content": "Task, Goal, or Current Prompt:\n" + task_or_prompt,
-            },
-        ],
+    completion = llm.chat_complete(
+        [
+            ChatMessage(role="system", content=META_PROMPT),
+            ChatMessage(
+                role="user", content="Task, Goal, or Current Prompt:\n" + task_or_prompt
+            ),
+        ]
     )
+
     usd_cost = llm.create_costs()
     cost = display_cad_cost(usd_cost)
-    return completion.choices[0].message.content, cost
+
+    return completion, cost
