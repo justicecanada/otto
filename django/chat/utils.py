@@ -23,6 +23,7 @@ from llama_index.core.llms import ChatMessage
 from llama_index.core.prompts import PromptType
 from newspaper import Article
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
@@ -655,7 +656,7 @@ def bad_url(render_markdown=False):
 
 
 def generate_prompt(task_or_prompt: str):
-
+    bind_contextvars(feature="prompt_generator")
     llm = OttoLLM()
 
     META_PROMPT = """
