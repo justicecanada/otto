@@ -2,23 +2,14 @@
 {% load static %}
 
 <div class="modal-body">
-
-  <form id="magic-form"
-        hx-post="/chat/generate-prompt/"
-        hx-target="#magicModal"
-        hx-swap="innerHTML">
-    {% csrf_token %}
- 
-    <h6>{% trans "Your prompt" %}</h6>
-    <textarea class="form-control my-3" id="user-input" name="user_input" rows="5">{{ user_input }}</textarea>
-    <h6>{% trans "AI-generated prompt" %}</h6>
-    <textarea class="form-control mt-3"
-              id="generated-prompt"
-              name="generated_prompt"
-              rows="10">{{ output_text }}</textarea>
-    <small class="text-muted">{% trans "Cost:" %} {{ cost }}</small>
-  </form>
-
+  <h6>{% trans "Your prompt" %}</h6>
+  <textarea class="form-control my-3" id="user-input" name="user_input" rows="5">{{ user_input }}</textarea>
+  <h6>{% trans "AI-generated prompt" %}</h6>
+  <textarea class="form-control mt-3"
+            id="generated-prompt"
+            name="generated_prompt"
+            rows="10">{{ output_text }}</textarea>
+  <small class="text-muted">{% trans "Cost:" %} {{ cost }}</small>
 </div>
 <div class="modal-footer">
   <button type="submit"

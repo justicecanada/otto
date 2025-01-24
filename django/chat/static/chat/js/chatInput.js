@@ -82,53 +82,18 @@ document.addEventListener('mouseup', function () {
   }
 });
 
-
-
-document.getElementById('magic-form').addEventListener('submit', function (event) {
-  event.preventDefault();  // Prevent the default form submission
-
-  const userInput = document.getElementById('magic-prompt').value;
-  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-  fetch('/chat/generate-prompt/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'X-CSRFToken': csrfToken
-    },
-    body: new URLSearchParams({
-      'user_input': userInput
-    })
-  })
-    .then(response => response.json())
-    .then(data => {
-      if (data.output_text) {
-        document.getElementById('generated-prompt').value = data.output_text;
-      } else {
-        console.error('Error:', data.error);
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-});
-
-
+// Prompt generator
 function toggleSpinner(show) {
-  const magicIcon = document.getElementById('generate-text');
+  const textSpan = document.getElementById('generate-text');
   const spinnerIcon = document.getElementById('spinner-icon');
   if (show) {
-    magicIcon.style.display = 'none';
+    textSpan.style.display = 'none';
     spinnerIcon.style.display = 'inline-block';
   } else {
-    magicIcon.style.display = 'inline-block';
+    textSpan.style.display = 'inline-block';
     spinnerIcon.style.display = 'none';
   }
 }
-
-// document.getElementById('generate-prompt').addEventListener('click', function () {
-//   toggleSpinner(true);
-// });
 
 document.addEventListener('htmx:afterRequest', function () {
   toggleSpinner(false);
@@ -143,12 +108,8 @@ function applyGeneratedPrompt(event) {
   const modalElement = document.getElementById('magicModal');
   const modal = bootstrap.Modal.getInstance(modalElement);
   modal.hide();
-
 }
-function clearTextAreas() {
 
-  document.getElementById('generated-prompt').value = '';
-}
 function setMagicPrompt() {
   const chatPrompt = document.getElementById('chat-prompt').value;
   document.getElementById('magic-prompt').value = chatPrompt;

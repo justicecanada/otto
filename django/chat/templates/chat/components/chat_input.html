@@ -100,10 +100,6 @@
                   type="button"
                   data-bs-toggle="modal"
                   data-bs-target="#magicModal"
-                  hx-get="/reset-form/"
-                  hx-include="#chat-prompt"
-                  hx-target="#magicModal .modal-content"
-                  hx-swap="outerHTML"
                   aria-label='{% trans "Help me write a good prompt" %}'
                   title='{% trans "Help me write a good prompt" %}'
                   onclick="setMagicPrompt()">
@@ -137,40 +133,40 @@
                 data-bs-dismiss="modal"
                 aria-label="{% trans 'Close' %}"></button>
       </div>
-      <div class="modal-body">
-        <p>
-          {% trans "This feature creates a detailed prompt for the AI model to generate a response. The AI model will generate a response based on the prompt's details and context. Please review/edit the response and use your judgment. You may re-generate the response multiple times until a desired response is generated." %}
-        </p>
-        <form id="magic-form"
-              hx-post="/chat/generate-prompt/"
-              hx-target="#magicModal .modal-body"
-              hx-swap="outerHTML">
-          {% csrf_token %}
-          <input type="text"
-                 name="user_input"
-                 class="form-control "
-                 id="magic-prompt"
-                 placeholder='{% trans "Type your prompt here..." %}'>
+      <form id="magic-form"
+            hx-post="{% url 'chat:generate_prompt_view' %}"
+            hx-target="#magic-form-content"
+            hx-swap="innerHTML">
+        {% csrf_token %}
+        <div id="magic-form-content">
+          <div class="modal-body">
+            <p>{% trans "Generate a more detailed version of your prompt. Use this as a starting point for further edits." %}</p>
+            <input type="text"
+                   name="user_input"
+                   class="form-control "
+                   id="magic-prompt"
+                   placeholder='{% trans "Type your prompt here..." %}'>
 
-          <button type="submit"
-                  class="btn btn-primary mt-3"
-                  id="generate-prompt"
-                  hx-post="/chat/generate-prompt/"
-                  hx-trigger="click"
-                  hx-indicator="#spinner-icon"
-                  onclick="toggleSpinner(true)">
  
-            <span id="generate-text">{% trans "Generate" %}</span>
-            <i id="spinner-icon"
-               class="spinner-border spinner-border-sm"
-               style="display: none"></i>
-          </button>
-        </form>
+          </div>
+          <div class="modal-footer">
+            <button type="submit"
+                    class="btn btn-primary"
+                    id="generate-prompt"
+                    onclick="toggleSpinner(true)">
  
+              <span id="generate-text">{% trans "Generate" %}</span>
+              <i id="spinner-icon"
+                 class="spinner-border spinner-border-sm"
+                 style="display: none"></i>
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </form>
   </div>
 </div>
+
 {% block page_script %}
   <script src="{% static 'chat/js/chatInput.js' %}"></script>
 {% endblock %}
