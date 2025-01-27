@@ -1219,3 +1219,28 @@ def test_chat_message_url_validation(client, all_apps_user):
     )
     assert response.status_code == 200
     assert "URL" in response.content.decode()
+
+
+def test_generate_prompt_view(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    # Valid URL
+    response = client.post(
+        reverse("chat:generate_prompt_view"),
+        data={"user_input": "write me an email"},
+    )
+    assert response.status_code == 200
+    # Check that the correct template was used
+    assert "chat/modals/prompt_generator_result.html" in [
+        t.name for t in response.templates
+    ]
+
+    # Check that the context contains the expected values
+    assert response.context["user_input"] == "write me an email"
+    assert len(response.context["output_text"]) > 1
+    # Strip non-numeric characters and convert to float
+    cost_str = response.context["cost"].replace("< $", "")
+    cost = float(cost_str)
+    assert cost > 0.000
