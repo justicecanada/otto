@@ -2930,5 +2930,21 @@
     "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. If this is not possible, contact the Otto team at the following email address to report a privacy issue:": {
         "fr": "",
         "fr_auto": "Si des informations sont partagées avec vous via Otto auxquelles vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un e-mail aux auteurs ou aux administrateurs de la bibliothèque. Si cela n’est pas possible, contactez l’équipe Otto à l’adresse e-mail suivante pour signaler un problème de confidentialité :"
+    },
+    "This chat was shared with you and is read-only.": {
+        "fr": "",
+        "fr_auto": "Ce chat a été partagé avec vous et est en lecture seule."
+    },
+    "If you should not have access,": {
+        "fr": "",
+        "fr_auto": "Si vous ne devriez pas y avoir accès,"
+    },
+    "email the chat author": {
+        "fr": "",
+        "fr_auto": "envoyer un e-mail à l’auteur du chat"
+    },
+    "to report the issue.": {
+        "fr": "",
+        "fr_auto": "pour signaler le problème."
     }
 }

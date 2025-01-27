@@ -1,4 +1,5 @@
 import json
+from urllib.parse import quote
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -11,7 +12,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from rules.contrib.views import objectgetter
@@ -925,4 +925,32 @@ def generate_prompt_view(request):
         request,
         "chat/modals/prompt_generator_result.html",
         {"user_input": user_input, "output_text": output_text, "cost": cost},
+    )
+
+
+def email_author(request, chat_id):
+    chat = get_object_or_404(Chat, pk=chat_id)
+    author_email = chat.user.email
+    chat_link = request.build_absolute_uri(reverse("chat:chat", args=[chat_id]))
+    subject = (
+        "Sharing link for Otto chat | Lien de partage pour le chat Otto: " + chat.title
+    )
+    body = "Le message français suit l'anglais.\n---\n"
+    body += "You are receiving this email because you are the author of the following Otto chat:"
+    body += f"\n{chat.title}"
+    body += "\n\nThis link was shared with me, but I don't believe I should have access to it."
+    body += "\n\nACTION REQUIRED: Please open chat using the link below, and delete it if it contains sensitive information."
+    body += f"\n\n{chat_link}"
+    body += "\n\n---\n\n"
+    body += (
+        "Vous recevez ce courriel parce que vous êtes l'auteur du chat Otto suivant :"
+    )
+    body += f"\n{chat.title}"
+    body += "\n\nCe lien m'a été partagé, mais je ne crois pas que je devrais y avoir accès."
+    body += "\n\nACTION REQUISE : Veuillez ouvrir le chat en utilisant le lien ci-dessous, et le supprimer s'il contient des informations sensibles."
+    body += f"\n\n{chat_link}"
+    subject = quote(subject)
+    body = quote(body)
+    return HttpResponse(
+        f"<a href='mailto:{author_email}?subject={subject}&body={body}'>mailto link</a>"
     )

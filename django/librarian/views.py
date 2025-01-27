@@ -548,7 +548,7 @@ def email_library_admins(request, library_id):
     body += "\n---\n"
     body += "You are receiving this email because you are an administrator for the following Otto Q&A library:"
     body += f'\n"{library.name_en}"'
-    body += "\n\nAction required: <<ADD REQUIRED ACTION HERE>>"
+    body += "\n\nAction required:\n<<ADD REQUIRED ACTION HERE>>"
     body += "\n\nPlease log into Otto, and within the AI Assistant Q&A sidebar, click Edit Libraries to manage the library."
     body += "\nIf you have any questions or concerns, please contact the Otto team and the requester by replying-all to this email."
     body += "\n\n---\n\n"
