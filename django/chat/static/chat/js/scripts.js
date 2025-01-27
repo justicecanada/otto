@@ -122,8 +122,6 @@ function handleModeChange(mode, element = null, preset_loaded = false) {
   if (element && element.classList.contains("accordion-button")) return;
   // This setTimeout is necessary! Not sure why, but it won't expand the accordion without it.
   setTimeout(() => {updateAccordion(mode);}, 100);
-
-  showHideMagicButton(mode);
 }
 
 function updateAccordion(mode) {
@@ -212,7 +210,6 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelector('#prompt-form-container').classList.remove("d-none");
   resizeTextarea();
   let mode = document.querySelector('#chat-outer').classList[0];
-  showHideMagicButton(mode);
   updateAccordion(mode);
   document.querySelector("#chat-prompt").focus();
   if (document.querySelector("#no-messages-placeholder") === null) {
@@ -591,14 +588,4 @@ function updatePageTitle(title = null) {
   }
   const new_page_title = document.querySelector("#current-chat-title").dataset.pagetitle;
   if (new_page_title) document.title = new_page_title;
-}
-
-function showHideMagicButton(mode) {
-  // Set #magic-button with class d-none unless mode is chat
-  let magicButton = document.querySelector('#magic-button');
-  if (mode === 'chat') {
-    magicButton.classList.remove('d-none');
-  } else {
-    magicButton.classList.add('d-none');
-  }
 }
