@@ -1,11 +1,11 @@
 {% load i18n %}
 <div class="modal-body">
   <p>{% trans "Generate a more detailed version of your prompt. Use this as a starting point for further edits." %}</p>
-  <input type="text"
-         name="user_input"
-         class="form-control "
-         id="magic-prompt"
-         placeholder='{% trans "Type your prompt here..." %}'>
+  <textarea type="text"
+            name="user_input"
+            class="form-control "
+            id="magic-prompt"
+            placeholder='{% trans "Type your prompt here..." %}'></textarea>
 </div>
 <div class="modal-footer">
   <button type="submit" class="btn btn-primary" id="generate-prompt">{% trans "Generate" %}</button>
