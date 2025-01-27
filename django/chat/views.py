@@ -1,11 +1,9 @@
 import json
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -13,6 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from rules.contrib.views import objectgetter
@@ -38,7 +37,13 @@ from chat.models import (
     Preset,
     create_chat_data_source,
 )
-from chat.utils import bad_url, change_mode_to_chat_qa, copy_options, title_chat
+from chat.utils import (
+    bad_url,
+    change_mode_to_chat_qa,
+    copy_options,
+    generate_prompt,
+    title_chat,
+)
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
 from otto.utils.common import check_url_allowed
@@ -909,4 +914,15 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
             "preset_loaded": "true",
             "trigger_library_change": "true" if library != original_library else None,
         },
+    )
+
+
+@require_POST
+def generate_prompt_view(request):
+    user_input = request.POST.get("user_input", "")
+    output_text, cost = generate_prompt(user_input)
+    return render(
+        request,
+        "chat/modals/prompt_generator_result.html",
+        {"user_input": user_input, "output_text": output_text, "cost": cost},
     )
