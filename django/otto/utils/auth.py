@@ -45,7 +45,7 @@ PUBLIC_PATHS = [
 
 NO_TERMS_PATHS = PUBLIC_PATHS + [
     "/",
-    "/accept_terms",
+    "/terms_of_use",
     "/i18n/setlang",
     "/feedback",
     "/user_cost",
@@ -77,7 +77,7 @@ class AcceptTermsMiddleware:
             return self.get_response(request)
         if not request.user.accepted_terms:
             return HttpResponseRedirect(
-                reverse("accept_terms") + "?next=" + request.path
+                reverse("terms_of_use") + "?next=" + request.path
             )
 
         return self.get_response(request)
