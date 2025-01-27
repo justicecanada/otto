@@ -94,6 +94,17 @@
                     aria-label='{% trans "Message" %}'
                     placeholder='{% trans "Type your message here..." %}'
                     required></textarea>
+ 
+          <button id="magic-button"
+                  class="floating-icon wand-button"
+                  type="button"
+                  data-bs-toggle="modal"
+                  data-bs-target="#magicModal"
+                  aria-label='{% trans "Help me write a good prompt" %}'
+                  title='{% trans "Help me write a good prompt" %}'
+                  onclick="setMagicPrompt()">
+            <i class="bi bi-magic wand"></i>
+          </button>
           <button id="send-button"
                   class="btn btn-outline-secondary"
                   type="submit"
@@ -105,6 +116,8 @@
     </form>
   </div>
 </div>
+ 
+{% include 'chat/modals/prompt_generator.html' %}
 
 {% block page_script %}
   <script src="{% static 'chat/js/chatInput.js' %}"></script>
