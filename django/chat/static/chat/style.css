@@ -1272,8 +1272,9 @@ math[display="block"] {
   padding-bottom: 1rem;
 }
 
-.wand-button {
+#magic-button {
   background-color: white !important;
+  color: var(--bs-secondary);
   border: none;
   top: 4px;
   right: 42px;
@@ -1283,7 +1284,8 @@ math[display="block"] {
   z-index: 10;
 }
 
-.floating-icon .spinner-border {
-  width: 16px;
-  height: 16px;
+#magic-button:hover,
+#magic-button:focus,
+#magic-button:active {
+  color: var(--app-color-purple-1) !important;
 }

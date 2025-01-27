@@ -83,24 +83,9 @@ document.addEventListener('mouseup', function () {
 });
 
 // Prompt generator
-function toggleSpinner(show) {
-  const textSpan = document.getElementById('generate-text');
-  const spinnerIcon = document.getElementById('spinner-icon');
-  if (show) {
-    textSpan.style.display = 'none';
-    spinnerIcon.style.display = 'inline-block';
-  } else {
-    textSpan.style.display = 'inline-block';
-    spinnerIcon.style.display = 'none';
-  }
-}
-
-document.addEventListener('htmx:afterRequest', function () {
-  toggleSpinner(false);
-});
-
 function applyGeneratedPrompt(event) {
   event.preventDefault();
+  // Copy the generated prompt into the chat prompt textarea
   const generatedPrompt = document.getElementById('generated-prompt').value;
   const chatPrompt = document.getElementById('chat-prompt');
   chatPrompt.value = generatedPrompt;
@@ -108,9 +93,22 @@ function applyGeneratedPrompt(event) {
   const modalElement = document.getElementById('magicModal');
   const modal = bootstrap.Modal.getInstance(modalElement);
   modal.hide();
+  // Resize the textarea to accommodate the generated prompt
+  resizeTextarea();
 }
 
 function setMagicPrompt() {
   const chatPrompt = document.getElementById('chat-prompt').value;
   document.getElementById('magic-prompt').value = chatPrompt;
 }
+
+function resetPromptModal() {
+  // Get the template #prompt-generator-initial
+  const initial = document.getElementById('prompt-generator-initial');
+  // Copy into #magic-form-content
+  const magicFormContent = document.getElementById('magic-form-content');
+  magicFormContent.innerHTML = initial.innerHTML;
+}
+
+// Bind the magicModal close event to resetPromptModal
+document.getElementById('magicModal').addEventListener('hidden.bs.modal', resetPromptModal);

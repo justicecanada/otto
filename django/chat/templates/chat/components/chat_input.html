@@ -103,7 +103,7 @@
                   aria-label='{% trans "Help me write a good prompt" %}'
                   title='{% trans "Help me write a good prompt" %}'
                   onclick="setMagicPrompt()">
-            <i class="bi bi-magic wand text-secondary"></i>
+            <i class="bi bi-magic wand"></i>
           </button>
           <button id="send-button"
                   class="btn btn-outline-secondary"
@@ -117,55 +117,7 @@
   </div>
 </div>
  
-
-<!-- Prompt generator modal-->
-<div class="modal fade"
-     id="magicModal"
-     tabindex="-1"
-     aria-labelledby="magicModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="magicModalLabel">{% trans "Improve prompt using AI" %}</h5>
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="{% trans 'Close' %}"></button>
-      </div>
-      <form id="magic-form"
-            hx-post="{% url 'chat:generate_prompt_view' %}"
-            hx-target="#magic-form-content"
-            hx-swap="innerHTML">
-        {% csrf_token %}
-        <div id="magic-form-content">
-          <div class="modal-body">
-            <p>{% trans "Generate a more detailed version of your prompt. Use this as a starting point for further edits." %}</p>
-            <input type="text"
-                   name="user_input"
-                   class="form-control "
-                   id="magic-prompt"
-                   placeholder='{% trans "Type your prompt here..." %}'>
-
- 
-          </div>
-          <div class="modal-footer">
-            <button type="submit"
-                    class="btn btn-primary"
-                    id="generate-prompt"
-                    onclick="toggleSpinner(true)">
- 
-              <span id="generate-text">{% trans "Generate" %}</span>
-              <i id="spinner-icon"
-                 class="spinner-border spinner-border-sm"
-                 style="display: none"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
+{% include 'chat/modals/prompt_generator.html' %}
 
 {% block page_script %}
   <script src="{% static 'chat/js/chatInput.js' %}"></script>

@@ -9,18 +9,10 @@
             id="generated-prompt"
             name="generated_prompt"
             rows="10">{{ output_text }}</textarea>
-  <small class="text-muted">{% trans "Cost:" %} {{ cost }}</small>
+  {# <small class="text-muted">{% trans "Cost:" %} {{ cost }}</small> #}
 </div>
 <div class="modal-footer">
-  <button type="submit"
-          class="btn btn-outline-primary"
-          id="generate-prompt"
-          onclick="toggleSpinner(true)">
-    <span id="generate-text">{% trans "Regenerate" %}</span>
-    <i id="spinner-icon"
-       class="spinner-border spinner-border-sm"
-       style="display: none"></i>
-  </button>
+  <button type="submit" class="btn btn-outline-primary" id="generate-prompt">{% trans "Regenerate" %}</button>
   <button type="button"
           class="btn btn-primary"
           onclick="applyGeneratedPrompt(event)">{% trans "Use this prompt" %}</button>

@@ -928,7 +928,7 @@ def generate_prompt_view(request):
 
             return render(
                 request,
-                "chat/components/generated_prompt.html",
+                "chat/modals/prompt_generator_result.html",
                 {"user_input": user_input, "output_text": output_text, "cost": cost},
             )
 
