@@ -1240,6 +1240,11 @@ def test_generate_prompt_view(client, all_apps_user):
     # Check that the context contains the expected values
     assert response.context["user_input"] == "write me an email"
     assert len(response.context["output_text"]) > 1
+    print(response.context["output_text"])
+    assert "Recipient" in response.context["output_text"]
+    assert "Output Format" in response.context["output_text"]
+    assert "# Examples" in response.context["output_text"]
+
     # Strip non-numeric characters and convert to float
     cost_str = response.context["cost"].replace("< $", "")
     cost = float(cost_str)
