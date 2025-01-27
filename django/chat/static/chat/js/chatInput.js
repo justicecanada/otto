@@ -103,12 +103,9 @@ function setMagicPrompt() {
 }
 
 function resetPromptModal() {
-  // Get the template #prompt-generator-initial
-  const initial = document.getElementById('prompt-generator-initial');
-  // Copy into #magic-form-content
+  const initialModalContent = document.getElementById('prompt-generator-initial');
   const magicFormContent = document.getElementById('magic-form-content');
-  magicFormContent.innerHTML = initial.innerHTML;
+  magicFormContent.innerHTML = initialModalContent.innerHTML;
 }
 
-// Bind the magicModal close event to resetPromptModal
 document.getElementById('magicModal').addEventListener('hidden.bs.modal', resetPromptModal);

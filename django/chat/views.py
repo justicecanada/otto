@@ -917,7 +917,6 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
     )
 
 
-@csrf_exempt
 @require_POST
 def generate_prompt_view(request):
     user_input = request.POST.get("user_input", "")
