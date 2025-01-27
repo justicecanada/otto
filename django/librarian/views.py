@@ -1,7 +1,7 @@
 # views.py
 from dataclasses import dataclass
+from urllib.parse import quote
 
-from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -22,7 +22,7 @@ from .forms import (
     LibraryDetailForm,
     LibraryUsersForm,
 )
-from .models import DataSource, Document, Library, SavedFile
+from .models import DataSource, Document, Library, LibraryUserRole, SavedFile
 
 logger = get_logger(__name__)
 IN_PROGRESS_STATUSES = ["PENDING", "INIT", "PROCESSING"]
@@ -536,17 +536,30 @@ def document_text(request, document_id):
 
 
 def email_library_admins(request, library_id):
+    otto_email = "otto@justice.gc.ca"
     library = get_object_or_404(Library, pk=library_id)
-    email_addresses = ",".join(
-        [user.email for user in library.admins.all()] + ["otto@justice.gc.ca"]
-    )
+    library_admin_emails = LibraryUserRole.objects.filter(
+        library=library, role="admin"
+    ).values_list("user__email", flat=True)
+    to_emails = ",".join(library_admin_emails) or otto_email
+    cc_emails = otto_email if library_admin_emails else ""
     subject = f"Otto Q&A library: {library.name_en} | Bibliothèque de questions et réponses Otto: {library.name_fr}"
-    message = "Le message français suit l'anglais."
-    message = "\n\nYou are receiving this email because you are an administrator for the following Otto Q&A library:"
-    message += f"\n{library.name_en}"
-    message += "\n\nAction required: <<ADD REQUIRED ACTION HERE>>"
-
-    # return f"<a href='mailto:{email_addresses}?subject={subject}&body={message}'>mailto link</a>"
+    body = "Le message français suit l'anglais."
+    body += "\n---\n"
+    body += "You are receiving this email because you are an administrator for the following Otto Q&A library:"
+    body += f'\n"{library.name_en}"'
+    body += "\n\nAction required: <<ADD REQUIRED ACTION HERE>>"
+    body += "\n\nPlease log into Otto, and within the AI Assistant Q&A sidebar, click Edit Libraries to manage the library."
+    body += "\nIf you have any questions or concerns, please contact the Otto team and the requester by replying-all to this email."
+    body += "\n\n---\n\n"
+    body += "Vous recevez ce courriel parce que vous êtes un administrateur de la bibliothèque de questions et réponses Otto suivante:"
+    body += f"\n{library.name_fr}"
+    body += "\n\nAction requise: <<AJOUTEZ L'ACTION REQUISE ICI>>"
+    body += "\n\nVeuillez vous connecter à Otto et, dans la barre latérale de l'assistant Q&R, cliquez sur Modifier les bibliothèques pour gérer la bibliothèque."
+    body += "\nSi vous avez des questions ou des préoccupations, veuillez contacter l'équipe Otto et le demandeur en répondant à tous à cet e-mail."
+    # URL encode the subject and message
+    subject = quote(subject)
+    body = quote(body)
     return HttpResponse(
-        f"<a href='mailto:{email_addresses}?subject=test'>mailto link</a>"
+        f"<a href='mailto:{to_emails}?subject={subject}&body={body}&cc={cc_emails}'>mailto link</a>"
     )

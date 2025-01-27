@@ -20,11 +20,11 @@
   <!-- Terms -->
   <div class="mb-4">
     <h3 class="h4">{% trans "Participation in pilot activities" %}</h3>
+    <p>
+      {% trans "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested." %}
+    </p>
+    <h3 class="h4 mt-4">{% trans "Security, privacy and information management" %}</h3>
     {% if environment == "prod" %}
-      <p>
-        {% trans "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested." %}
-      </p>
-      <h3 class="h4 mt-4">{% trans "Security, privacy and information management" %}</h3>
       <p>
         {% trans "Otto is approved for up to and including Protected B information. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information." %}
       </p>
@@ -42,6 +42,10 @@
     </p>
     <p>
       {% trans "In the AI assistant, document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted." %}
+    </p>
+    <p>
+      {% trans "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. If this is not possible, contact the Otto team at the following email address to report a privacy issue:" %}
+      <a href="mailto:otto@justice.gc.ca">otto@justice.gc.ca</a>
     </p>
     <h3 class="h4 mt-4">{% trans "Appropriate and inappropriate uses" %}</h3>
     <p>
@@ -109,10 +113,12 @@
 
 {% block page_script %}
   <script>
-    // Enable submit button when terms are accepted
-    document.getElementById('accept_usage_terms').addEventListener('change', function() {
-      document.getElementById('submitButton').disabled = !this.checked;
-    });
+    const terms_checkbox = document.getElementById('accept_usage_terms');
+    if (terms_checkbox) {
+      terms_checkbox.addEventListener('change', function() {
+        document.getElementById('submitButton').disabled = !this.checked;
+      });
+    }
   </script>
 
 {% endblock %}
