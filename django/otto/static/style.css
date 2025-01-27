@@ -388,3 +388,8 @@ ul.errorlist ul:not(:last-child) {
 ul.errorlist p {
   margin-bottom: 0.25rem;
 }
+
+.toast-sticky {
+  /* increase z-index to show over modals */
+  z-index: 1070;
+}

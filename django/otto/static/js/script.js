@@ -6,7 +6,7 @@ document.addEventListener('htmx:afterRequest', function (event) {
 });
 
 ; (function () {
-  const toastOptions = {delay: 2000};
+  const toastOptions = {delay: 3000};
 
   htmx.onLoad(() => {
     htmx.findAll(".toast").forEach((element) => {
