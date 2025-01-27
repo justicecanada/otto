@@ -14,11 +14,9 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
 import markdown
-import openai
 import tiktoken
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
-from dotenv import load_dotenv
 from llama_index.core import PromptTemplate
 from llama_index.core.llms import ChatMessage
 from llama_index.core.prompts import PromptType

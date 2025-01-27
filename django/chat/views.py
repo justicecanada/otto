@@ -1,11 +1,9 @@
 import json
-import logging
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -920,19 +918,12 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
 
 
 @csrf_exempt
+@require_POST
 def generate_prompt_view(request):
-    if request.method == "POST":
-        try:
-            user_input = request.POST.get("user_input", "")
-            output_text, cost = generate_prompt(user_input)
-
-            return render(
-                request,
-                "chat/modals/prompt_generator_result.html",
-                {"user_input": user_input, "output_text": output_text, "cost": cost},
-            )
-
-        except Exception as e:
-            logging.error(f"Error in generate_prompt_view: {e}")
-            return JsonResponse({"error": "An error occurred"}, status=500)
-    return JsonResponse({"error": "Invalid request method"}, status=400)
+    user_input = request.POST.get("user_input", "")
+    output_text, cost = generate_prompt(user_input)
+    return render(
+        request,
+        "chat/modals/prompt_generator_result.html",
+        {"user_input": user_input, "output_text": output_text, "cost": cost},
+    )

@@ -108,8 +108,6 @@ function scrollToListItem() {
 }
 
 function handleModeChange(mode, element = null, preset_loaded = false) {
-
-
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
