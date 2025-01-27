@@ -533,3 +533,20 @@ def document_text(request, document_id):
     return HttpResponse(
         document.extracted_text, content_type="text/plain; charset=utf-8"
     )
+
+
+def email_library_admins(request, library_id):
+    library = get_object_or_404(Library, pk=library_id)
+    email_addresses = ",".join(
+        [user.email for user in library.admins.all()] + ["otto@justice.gc.ca"]
+    )
+    subject = f"Otto Q&A library: {library.name_en} | Bibliothèque de questions et réponses Otto: {library.name_fr}"
+    message = "Le message français suit l'anglais."
+    message = "\n\nYou are receiving this email because you are an administrator for the following Otto Q&A library:"
+    message += f"\n{library.name_en}"
+    message += "\n\nAction required: <<ADD REQUIRED ACTION HERE>>"
+
+    # return f"<a href='mailto:{email_addresses}?subject={subject}&body={message}'>mailto link</a>"
+    return HttpResponse(
+        f"<a href='mailto:{email_addresses}?subject=test'>mailto link</a>"
+    )

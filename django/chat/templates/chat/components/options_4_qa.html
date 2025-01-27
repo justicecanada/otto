@@ -7,9 +7,15 @@
 {% endblock %}
 
 {% block accordion_body %}
-  <div class="px-3">
-    <label class="col-form-label col-form-label-sm"
+  <div class="px-3 row">
+    <label class="col col-form-label-sm"
            for="{{ options_form.qa_library.auto_id }}">{% trans "Library" %}</label>
+    <div class="col-auto col-form-label-sm">
+      <a class="link-primary text-decoration-underline text-dark"
+         href="#"
+         onclick="emailLibraryAdmins('{% url 'librarian:email_library_admins' 0 %}');">{% trans "Email administrators" %}</a>
+      <div id="email_library_admins_link"></div>
+    </div>
   </div>
   <div class="px-3 row">
     <div class="col pe-0">{{ options_form.qa_library }}</div>

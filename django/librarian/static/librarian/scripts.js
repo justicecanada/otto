@@ -68,3 +68,11 @@ function validateAndUpload() {
     document.querySelector('#document-upload-form').dispatchEvent(new Event('startUpload'));
   };
 }
+
+function emailLibraryAdmins(url) {
+  const library_id = document.getElementById("id_qa_library").value;
+  url = url.replace('0', library_id);
+  htmx.ajax('GET', url, {target: '#email_library_admins_link', swap: 'innerHTML'});
+  document.querySelector("#email_library_admins_link a").click();
+  document.querySelector("#email_library_admins_link").innerHTML = '';
+}
