@@ -2663,9 +2663,37 @@
         "fr": "Naviguer",
         "fr_auto": "Parcourir"
     },
+    "Help me write a good prompt": {
+        "fr": "",
+        "fr_auto": "Aidez-moi à écrire une bonne invite"
+    },
+    "Improve prompt using AI": {
+        "fr": "",
+        "fr_auto": "Améliorer l’invite à l’aide de l’IA"
+    },
+    "This feature creates a detailed prompt for the AI model to generate a response. The AI model will generate a response based on the prompt's details and context. Please review/edit the response and use your judgment. You may re-generate the response multiple times until a desired response is generated.": {
+        "fr": "",
+        "fr_auto": "Cette fonctionnalité crée une invite détaillée pour que le modèle d’IA génère une réponse. Le modèle d’IA générera une réponse basée sur les détails et le contexte de l’invite. Veuillez examiner ou modifier la réponse et utiliser votre jugement. Vous pouvez générer à nouveau la réponse plusieurs fois jusqu’à ce qu’une réponse souhaitée soit générée."
+    },
+    "Type your prompt here...": {
+        "fr": "",
+        "fr_auto": "Tapez votre invite ici..."
+    },
+    "Re-generate": {
+        "fr": "",
+        "fr_auto": "Re-générer"
+    },
+    "Cost : ": {
+        "fr": "",
+        "fr_auto": "Coût : "
+    },
     "Reset": {
         "fr": "",
         "fr_auto": "Réinitialiser"
+    },
+    "Use this prompt": {
+        "fr": "",
+        "fr_auto": "Utilisez cette invite"
     },
     "Protected B approved:": {
         "fr": "",
@@ -2878,5 +2906,45 @@
     "In the AI assistant, apply security classification labels to chats and document libraries when they contain classified and/or personal information.": {
         "fr": "",
         "fr_auto": "Dans l’Assistant IA, appliquez des étiquettes de classification de sécurité aux chats et aux bibliothèques de documents lorsqu’elles contiennent des informations classifiées et/ou personnelles."
+    },
+    "Generate a more detailed version of your prompt. Use this as a starting point for further edits.": {
+        "fr": "",
+        "fr_auto": "Générez une version plus détaillée de votre invite. Utilisez ceci comme point de départ pour d’autres modifications."
+    },
+    "Your prompt": {
+        "fr": "",
+        "fr_auto": "Votre invite"
+    },
+    "AI-generated prompt": {
+        "fr": "",
+        "fr_auto": "Invite générée par l’IA"
+    },
+    "Regenerate": {
+        "fr": "",
+        "fr_auto": "Régénérer"
+    },
+    "Email administrators": {
+        "fr": "",
+        "fr_auto": "Administrateurs de messagerie"
+    },
+    "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. If this is not possible, contact the Otto team at the following email address to report a privacy issue:": {
+        "fr": "",
+        "fr_auto": "Si des informations sont partagées avec vous via Otto auxquelles vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un e-mail aux auteurs ou aux administrateurs de la bibliothèque. Si cela n’est pas possible, contactez l’équipe Otto à l’adresse e-mail suivante pour signaler un problème de confidentialité :"
+    },
+    "This chat was shared with you and is read-only.": {
+        "fr": "",
+        "fr_auto": "Ce chat a été partagé avec vous et est en lecture seule."
+    },
+    "If you should not have access,": {
+        "fr": "",
+        "fr_auto": "Si vous ne devriez pas y avoir accès,"
+    },
+    "email the chat author": {
+        "fr": "",
+        "fr_auto": "envoyer un e-mail à l’auteur du chat"
+    },
+    "to report the issue.": {
+        "fr": "",
+        "fr_auto": "pour signaler le problème."
     }
 }

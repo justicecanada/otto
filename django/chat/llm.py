@@ -105,6 +105,12 @@ class OttoLLM:
         """
         return self.llm.complete(prompt).text
 
+    def chat_complete(self, chat_history: list):
+        """
+        Return complete response string from list of chat history objects (no streaming)
+        """
+        return self.llm.chat(chat_history).message.content
+
     async def tree_summarize(
         self,
         context: str,
