@@ -2994,5 +2994,9 @@
     "Unsaved folder": {
         "fr": "",
         "fr_auto": "Dossier non sauveté"
+    },
+    "Select a library, folder, or document to edit.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à modifier."
     }
 }
