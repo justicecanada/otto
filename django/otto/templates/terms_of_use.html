@@ -7,7 +7,7 @@
 {% block body %}
  
   <!-- Title -->
-  <div class="mb-5">
+  <div class="mb-5 mx-5">
     <h2 class="mb-3">{% trans "Terms of use for Otto Protected B Pilot" %}</h2>
 
     {% if request.user.accepted_terms_date %}
@@ -18,7 +18,7 @@
   </div>
  
   <!-- Terms -->
-  <div class="mb-4">
+  <div class="mb-4 mx-5">
     <h3 class="h4">{% trans "Participation in pilot activities" %}</h3>
     <p>
       {% trans "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested." %}
@@ -64,9 +64,9 @@
     </p>
     <p>
       {% trans "Otto does not connect to legal databases like Westlaw, Lexis or CanLII. It should not be used for legal research of case law." %}
+      {% trans "Only the Legislation Search tool can be trusted for questions about Canadian federal laws." %}
     </p>
-    <p>{% trans "Only the Legislation Search tool can be trusted for questions about Canadian federal laws." %}</p>
-    <p>{% trans "Translations may not be suitable for legal and official document submissions without human review." %}</p>
+    <p>{% trans "Translations should undergo human review prior to use in a legal or official capacity." %}</p>
     <h3 class="h4 mt-4">{% trans "Responsible and ethical use of AI" %}</h3>
     <p>
       {% trans "Follow policies and best practices for the responsible use of AI. Refer to and follow the guidance in the following policy documents:" %}
@@ -113,8 +113,9 @@
          target="_blank">{% trans "Gen AI Rules of Engagement for Canadian Lawyers" %}</a>
       {% trans ", respectively." %}
     </p>
-    <p>
-      {% trans "Always be aware that AI can make mistakes, even when you have provided it with documents. For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content." %}
+    <p>{% trans "Always be aware that AI can make mistakes, even when you have provided it with documents." %}</p>
+    <p class="fw-semibold">
+      {% trans "For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content." %}
     </p>
   </div>
 
