@@ -350,6 +350,7 @@ def done_upload(request, message_id):
     """
     user_message = Message.objects.get(id=message_id)
     mode = user_message.mode
+    upload_status = request.POST.get("upload_status")
     logger.info("File upload completed.", message_id=message_id, mode=mode)
     response_message = Message.objects.create(
         chat=user_message.chat, text="", is_bot=True, mode=mode, parent=user_message
@@ -386,6 +387,7 @@ def done_upload(request, message_id):
         "mode": mode,
         # You can't really stop file translations or QA uploads, so don't show the button
         "hide_stop_button": mode in ["translate", "qa"],
+        "invalid_upload": upload_status == "error",
     }
     response.write(
         render_to_string("chat/components/chat_messages.html", context=context)
@@ -397,6 +399,9 @@ def done_upload(request, message_id):
 @require_POST
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def chunk_upload(request, message_id):
+    # return handle_invalid_file_upload(request, message_id)\
+    return JsonResponse({"data": "Invalid request"})
+
     """
     Returns JSON for the file upload progress
     Based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader

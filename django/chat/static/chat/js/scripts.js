@@ -364,9 +364,10 @@ function copyPromptToTextInput(btn, messageMode) {
 // File upload (based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader)
 class FileUpload {
 
-  constructor(input, upload_url, message_id) {
+  constructor(input, upload_url, done_url, message_id) {
     this.input = input;
     this.upload_url = upload_url;
+    this.done_url = done_url;
     this.message_id = message_id;
     this.progress_bar = document.querySelector(`#message_${message_id} .progress-bar`);
     this.cur_filename = document.querySelector(`#message_${message_id} .filename`);
@@ -440,7 +441,7 @@ class FileUpload {
       if (xhr.status === 200) {
         const res = JSON.parse(xhr.responseText);
         if (res.data === "Invalid request") {
-          alert(res.data);
+          this.cancel_upload();
         } else if (nextChunk < this.file.size && res.data !== "Uploaded successfully") {
           // upload file in chunks
           this.upload_file(nextChunk, res.file_id, hash);
@@ -471,7 +472,22 @@ class FileUpload {
 
     xhr.send(formData);
   }
+
+  cancel_upload() {
+
+    htmx.ajax('POST', this.done_url, {
+      target: `#message_${this.message_id}`,
+      headers: {
+        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      swap: 'outerHTML',
+      style: "width: 500px",
+      values: {'upload_status': 'error'}
+    });
+  }
 }
+
+
 
 
 function closeSidebar(sidebarID, resizePrompt = true) {
