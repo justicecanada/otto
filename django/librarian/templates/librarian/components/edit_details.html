@@ -1,6 +1,7 @@
 {% load i18n %}
 
 <div id="librarian-details" {% if swap %}hx-swap-oob="true"{% endif %}>
+  {% include "components/messages.html" %}
   {% if detail_form %}
     {{ detail_form }}
     <div id="public-library-warning"

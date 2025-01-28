@@ -1,6 +1,7 @@
 import json
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -778,13 +779,16 @@ def set_preset_favourite(request, preset_id):
     preset = Preset.objects.get(id=preset_id)
     try:
         is_favourite = preset.toggle_favourite(request.user)
+        messages.success(request, _("Preset set as favourite."))
         return render(
             request,
             "chat/modals/presets/favourite.html",
             context={"is_favourite": is_favourite, "preset": preset},
         )
     except ValueError:
-        # TODO: Preset refactor: show friendly error message
+        messages.error(
+            request, _("An error occurred while setting the preset as favourite.")
+        )
         return HttpResponse(status=500)
 
 

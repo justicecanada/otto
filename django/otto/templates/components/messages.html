@@ -1,5 +1,5 @@
 {% load i18n %}
-{% if messages %}
+{% if messages and has_error %}
   <div class="container {% if add_padding %}p-4 pb-0{% else %}p-0{% endif %}">
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
       <symbol id="check-circle-fill" viewBox="0 0 16 16">
@@ -11,17 +11,9 @@
     </svg>
 
     {% for message in messages %}
-      <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} {% if add_padding %}mx-3{% endif %} d-flex align-items-center alert-dismissible fade show"
+      <div class="alert alert-{% if message.tags == 'error' %}danger{% endif %} {% if add_padding %}mx-3{% endif %} d-flex align-items-center alert-dismissible fade show"
            role="alert">
-        {% if message.tags == 'success' %}
-          <svg class="bi flex-shrink-0 me-2"
-               width="24"
-               height="24"
-               role="img"
-               aria-label="{% trans 'Success:' %}">
-            <use xlink:href="#check-circle-fill" />
-          </svg>
-        {% elif message.tags == 'error' %}
+        {% if message.tags == 'error' %}
           <svg class="bi flex-shrink-0 me-2"
                width="24"
                height="24"
@@ -29,12 +21,13 @@
                aria-label="{% trans 'Danger:' %}">
             <use xlink:href="#exclamation-triangle-fill" />
           </svg>
+          <div>{{ message }}</div>
+          <button type="button"
+                  class="btn-close"
+                  data-bs-dismiss="alert"
+                  aria-label="{% trans 'Close' %}"></button>
         {% endif %}
-        <div>{{ message }}</div>
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="alert"
-                aria-label="{% trans 'Close' %}"></button>
+ 
       </div>
     {% endfor %}
   </div>
