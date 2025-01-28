@@ -48,6 +48,10 @@
     <p>
       {% trans "In the AI assistant, document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted." %}
     </p>
+    <p>
+      {% trans "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. If this is not possible, contact the Otto team at the following email address to report a privacy issue:" %}
+      <a href="mailto:otto@justice.gc.ca">otto@justice.gc.ca</a>
+    </p>
     <h3 class="h4 mt-4">{% trans "Appropriate and inappropriate uses" %}</h3>
     <p>
       {% trans "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted to provide factual information. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library." %}
@@ -140,10 +144,12 @@
 
 {% block page_script %}
   <script>
-    // Enable submit button when terms are accepted
-    document.getElementById('accept_usage_terms').addEventListener('change', function() {
-      document.getElementById('submitButton').disabled = !this.checked;
-    });
+    const terms_checkbox = document.getElementById('accept_usage_terms');
+    if (terms_checkbox) {
+      terms_checkbox.addEventListener('change', function() {
+        document.getElementById('submitButton').disabled = !this.checked;
+      });
+    }
   </script>
 
 {% endblock %}

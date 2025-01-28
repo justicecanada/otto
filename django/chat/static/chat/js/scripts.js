@@ -587,3 +587,12 @@ function updatePageTitle(title = null) {
   const new_page_title = document.querySelector("#current-chat-title").dataset.pagetitle;
   if (new_page_title) document.title = new_page_title;
 }
+
+function emailChatAuthor(url) {
+  htmx.ajax('GET', url, {target: '#author-mailto-container', swap: 'innerHTML'}).then(
+    function () {
+      document.querySelector("#author-mailto-container a").click();
+      document.querySelector("#author-mailto-container").innerHTML = '';
+    }
+  );
+}
