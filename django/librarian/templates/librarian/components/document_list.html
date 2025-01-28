@@ -5,7 +5,7 @@
   <h6 id="documents-label">{% trans "Documents" %}</h6>
   {% if not selected_data_source or not selected_data_source.id %}
     <div class="text-center">
-      <em class="small">{% trans "Select a data source to edit documents." %}</em>
+      <em class="small">{% trans "Select a folder to edit documents." %}</em>
     </div>
   {% else %}
     <div class="row mb-2">
@@ -114,7 +114,7 @@
       {% include "librarian/components/items_list.html" with items=documents selected_item=selected_document listbox_label="documents-label" item_type="document" %}
     {% else %}
       <div class="text-center">
-        <em class="small">{% trans "No documents in this data source." %}</em>
+        <em class="small">{% trans "No documents in this folder." %}</em>
       </div>
     {% endif %}
   {% endif %}

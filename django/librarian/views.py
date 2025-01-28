@@ -134,9 +134,9 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 messages.success(
                     request,
                     (
-                        _("Data source updated successfully.")
+                        _("Folder updated successfully.")
                         if item_id
-                        else _("Data source created successfully.")
+                        else _("Folder created successfully.")
                     ),
                 )
                 selected_data_source = form.instance
@@ -144,12 +144,12 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 selected_library = selected_data_source.library
                 documents = selected_data_source.documents.all()
             else:
-                logger.error("Error updating data source:", errors=form.errors)
+                logger.error("Error updating folder:", errors=form.errors)
                 selected_library = get_object_or_404(Library, id=parent_id)
         elif request.method == "DELETE":
             data_source = get_object_or_404(DataSource, id=item_id)
             data_source.delete()
-            messages.success(request, _("Data source deleted successfully."))
+            messages.success(request, _("Folder deleted successfully."))
             selected_library = data_source.library
             data_sources = selected_library.data_sources.all().prefetch_related(
                 "security_label"
@@ -404,7 +404,7 @@ def create_temp_object(item_type):
     """
     temp_names = {
         "document": _("Unsaved document"),
-        "data_source": _("Unsaved data source"),
+        "data_source": _("Unsaved folder"),
         "library": _("Unsaved library"),
     }
     return LibrarianTempObject(id=None, name=temp_names[item_type], temp=True)

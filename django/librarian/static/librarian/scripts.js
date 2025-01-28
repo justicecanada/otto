@@ -33,7 +33,7 @@ const MAX_FILES_PER_DATA_SOURCE = 100;
 const MAX_SIZE_MB = 300;
 // Translations are set in document_list_script.html
 let files_max_string_start = `You can only upload a maximum of`;
-let files_max_string_end = `files per data source.`;
+let files_max_string_end = `files per folder.`;
 let files_remaining_string_end = `files remaining.`;
 let max_file_size_string_start = `You can only upload a total file size of`;
 let max_file_size_string_end = `at one time.`;

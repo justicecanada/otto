@@ -8,16 +8,16 @@
 {% else %}
   {% url 'librarian:modal_create_data_source' library_id=form.library.value as form_action_url %}
   {% url 'librarian:modal_library_list' as cancel_url %}
-  {# No delete URL needed when creating a new data source #}
+  {# No delete URL needed when creating a new folder #}
 {% endif %}
 
 <form id="data-source-form" hx-post="{{ form_action_url }}">
   {{ form.non_field_errors }}
   <h6>
     {% if form.instance.id %}
-      {% trans "Edit data source" %}
+      {% trans "Edit folder" %}
     {% else %}
-      {% trans "Create data source" %}
+      {% trans "Create folder" %}
     {% endif %}
   </h6>
   {% csrf_token %}
@@ -62,7 +62,7 @@
         <button type="button"
                 class="btn btn-sm btn-outline-danger"
                 hx-delete="{{ delete_url }}"
-                hx-confirm="{% trans 'DANGER: Are you sure you want to delete this data source? This action is permanent.' %}">
+                hx-confirm="{% trans 'DANGER: Are you sure you want to delete this folder? This action is permanent.' %}">
           {% trans "Delete" %}
         </button>
       </div>

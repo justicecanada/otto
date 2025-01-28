@@ -294,7 +294,7 @@ class ChatOptionsForm(ModelForm):
 
         self.fields["qa_data_sources"] = forms.ModelMultipleChoiceField(
             queryset=DataSource.objects.all(),
-            label=_("Select data source(s)"),
+            label=_("Select folder(s)"),
             required=False,
             widget=Autocomplete(
                 use_ac=DataSourcesAutocomplete,
