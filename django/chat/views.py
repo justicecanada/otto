@@ -779,7 +779,10 @@ def set_preset_favourite(request, preset_id):
     preset = Preset.objects.get(id=preset_id)
     try:
         is_favourite = preset.toggle_favourite(request.user)
-        messages.success(request, _("Preset set as favourite."))
+        if is_favourite:
+            messages.success(request, _("Preset added to favourites."))
+        else:
+            messages.success(request, _("Preset removed from favourites."))
         return render(
             request,
             "chat/modals/presets/favourite.html",
@@ -883,10 +886,15 @@ def set_preset_default(request, chat_id: str, preset_id: int):
             )
             response += f'<div id="default-button-{old_default.id}" hx-swap-oob="true">{old_html}</div>'
 
+        messages.success(request, _("Default preset was set successfully."))
+
         return HttpResponse(response)
 
     except ValueError:
         logger.error("Error setting default preset")
+        messages.error(
+            request, _("An error occurred while setting the default preset.")
+        )
         return HttpResponse(status=500)
 
 
