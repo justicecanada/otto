@@ -34,7 +34,7 @@
       {% elif file_upload %}
         <div class="message-text">{% include "chat/components/file_upload_progress.html" %}</div>
       {% elif invalid_upload %}
-        <div class="message-text">{% include "chat/components/message_files.html" %}</div>
+        <div class="message-text">{% trans 'There was an error uploading the file' %}</div>
       {% elif message.num_files %}
         <div class="message-text">{% include "chat/components/message_files.html" %}</div>
       {% elif message.is_bot %}
