@@ -46,7 +46,7 @@ from chat.utils import (
 )
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
-from otto.utils.common import check_url_allowed
+from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -930,27 +930,23 @@ def generate_prompt_view(request):
 
 def email_author(request, chat_id):
     chat = get_object_or_404(Chat, pk=chat_id)
-    author_email = chat.user.email
     chat_link = request.build_absolute_uri(reverse("chat:chat", args=[chat_id]))
     subject = (
-        "Sharing link for Otto chat | Lien de partage pour le chat Otto: " + chat.title
+        f"Sharing link for Otto chat | Lien de partage pour le chat Otto: {chat.title}"
     )
-    body = "Le message français suit l'anglais.\n---\n"
-    body += "You are receiving this email because you are the author of the following Otto chat:"
-    body += f"\n{chat.title}"
-    body += "\n\nThis link was shared with me, but I don't believe I should have access to it."
-    body += "\n\nACTION REQUIRED: Please open chat using the link below, and delete it if it contains sensitive information."
-    body += f"\n\n{chat_link}"
-    body += "\n\n---\n\n"
-    body += (
+    body = (
+        "Le message français suit l'anglais.\n---\n"
+        "You are receiving this email because you are the author of the following Otto chat:"
+        f"\n{chat.title}"
+        "\n\nThis link was shared with me, but I don't believe I should have access to it."
+        "\n\nACTION REQUIRED: Please open chat using the link below, and delete it if it contains sensitive information."
+        f"\n\n{chat_link}"
+        "\n\n---\n\n"
         "Vous recevez ce courriel parce que vous êtes l'auteur du chat Otto suivant :"
+        f"\n{chat.title}"
+        "\n\nCe lien m'a été partagé, mais je ne crois pas que je devrais y avoir accès."
+        "\n\nACTION REQUISE : Veuillez ouvrir le chat en utilisant le lien ci-dessous, et le supprimer s'il contient des informations sensibles."
+        f"\n\n{chat_link}"
     )
-    body += f"\n{chat.title}"
-    body += "\n\nCe lien m'a été partagé, mais je ne crois pas que je devrais y avoir accès."
-    body += "\n\nACTION REQUISE : Veuillez ouvrir le chat en utilisant le lien ci-dessous, et le supprimer s'il contient des informations sensibles."
-    body += f"\n\n{chat_link}"
-    subject = quote(subject)
-    body = quote(body)
-    return HttpResponse(
-        f"<a href='mailto:{author_email}?subject={subject}&body={body}'>mailto link</a>"
-    )
+    mailto_link = generate_mailto(to=chat.user.email, subject=subject, body=body)
+    return HttpResponse(f"<a href='{mailto_link}'>mailto link</a>")
