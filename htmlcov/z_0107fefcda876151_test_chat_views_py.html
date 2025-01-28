@@ -54,8 +54,8 @@
             </div>
         </aside>
         <h2>
-            <span class="text">631 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">620<span class="text"> run</span></button>
+            <span class="text">639 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">628<span class="text"> run</span></button>
             <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">11<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_0358ffb2659c52ec_conftest_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-01-28 13:58 +0000
+            created at 2025-01-28 15:49 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -1331,6 +1331,17 @@
     <p class="run"><span class="n"><a id="t1249" href="#t1249">1249</a></span><span class="t">    <span class="nam">cost_str</span> <span class="op">=</span> <span class="nam">response</span><span class="op">.</span><span class="nam">context</span><span class="op">[</span><span class="str">"cost"</span><span class="op">]</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="str">"&lt; $"</span><span class="op">,</span> <span class="str">""</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1250" href="#t1250">1250</a></span><span class="t">    <span class="nam">cost</span> <span class="op">=</span> <span class="nam">float</span><span class="op">(</span><span class="nam">cost_str</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1251" href="#t1251">1251</a></span><span class="t">    <span class="key">assert</span> <span class="nam">cost</span> <span class="op">></span> <span class="num">0.000</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1252" href="#t1252">1252</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1253" href="#t1253">1253</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1254" href="#t1254">1254</a></span><span class="t"><span class="key">def</span> <span class="nam">test_email_chat_author</span><span class="op">(</span><span class="nam">client</span><span class="op">,</span> <span class="nam">all_apps_user</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1255" href="#t1255">1255</a></span><span class="t">    <span class="nam">user</span> <span class="op">=</span> <span class="nam">all_apps_user</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1256" href="#t1256">1256</a></span><span class="t">    <span class="nam">client</span><span class="op">.</span><span class="nam">force_login</span><span class="op">(</span><span class="nam">user</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1257" href="#t1257">1257</a></span><span class="t">    <span class="nam">chat</span> <span class="op">=</span> <span class="nam">Chat</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">create</span><span class="op">(</span><span class="nam">user</span><span class="op">=</span><span class="nam">user</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1258" href="#t1258">1258</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1259" href="#t1259">1259</a></span><span class="t">    <span class="nam">response</span> <span class="op">=</span> <span class="nam">client</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="nam">reverse</span><span class="op">(</span><span class="str">"chat:email_author"</span><span class="op">,</span> <span class="nam">args</span><span class="op">=</span><span class="op">[</span><span class="nam">chat</span><span class="op">.</span><span class="nam">id</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1260" href="#t1260">1260</a></span><span class="t">    <span class="key">assert</span> <span class="nam">response</span><span class="op">.</span><span class="nam">status_code</span> <span class="op">==</span> <span class="num">200</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1261" href="#t1261">1261</a></span><span class="t">    <span class="key">assert</span> <span class="str">"Otto"</span> <span class="key">in</span> <span class="nam">response</span><span class="op">.</span><span class="nam">content</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1262" href="#t1262">1262</a></span><span class="t">    <span class="key">assert</span> <span class="fst">f"</span><span class="fst">mailto:</span><span class="op">{</span><span class="nam">user</span><span class="op">.</span><span class="nam">email</span><span class="op">}</span><span class="fst">"</span> <span class="key">in</span> <span class="nam">response</span><span class="op">.</span><span class="nam">content</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -1340,7 +1351,7 @@
             <a class="nav" href="z_0358ffb2659c52ec_conftest_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-01-28 13:58 +0000
+            created at 2025-01-28 15:49 +0000
         </p>
     </div>
 </footer>

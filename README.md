@@ -70,7 +70,7 @@
 | django/chat/templatetags/chat\_tags.py                                                                        |        5 |        0 |    100% |           |
 | django/chat/urls.py                                                                                           |        6 |        0 |    100% |           |
 | django/chat/utils.py                                                                                          |      327 |       54 |     83% |121, 133-134, 146-150, 194, 213, 215-216, 228-244, 252-253, 260-261, 296-299, 305-312, 343-345, 360-362, 384, 456, 458, 475, 529-536, 544, 561-565, 601-611, 618 |
-| django/chat/views.py                                                                                          |      438 |       65 |     85% |98-100, 133, 158-160, 163-165, 189, 209-216, 222, 319-323, 420, 440-460, 491-496, 548, 551, 617, 630, 665-666, 719-727, 791-793, 799-815, 825-826, 835-838, 876-885, 889-891 |
+| django/chat/views.py                                                                                          |      445 |       65 |     85% |98-100, 133, 158-160, 163-165, 189, 209-216, 222, 319-323, 420, 440-460, 491-496, 548, 551, 617, 630, 665-666, 719-727, 791-793, 799-815, 825-826, 835-838, 876-885, 889-891 |
 | django/import\_timer.py                                                                                       |        6 |        6 |      0% |       1-8 |
 | django/laws/\_\_init\_\_.py                                                                                   |        0 |        0 |    100% |           |
 | django/laws/admin.py                                                                                          |        1 |        1 |      0% |         1 |
@@ -114,7 +114,7 @@
 | django/librarian/urls.py                                                                                      |        4 |        0 |    100% |           |
 | django/librarian/utils/markdown\_splitter.py                                                                  |      183 |       10 |     95% |72, 75-77, 88, 123, 137, 260, 270, 277 |
 | django/librarian/utils/process\_engine.py                                                                     |      441 |       57 |     87% |44-46, 51, 147, 152, 162-163, 167, 173, 176, 183, 185, 187, 189, 195, 197, 199, 246, 259, 271-272, 285-294, 296-298, 343-349, 386, 410, 426-428, 477-481, 487-491, 495, 543-544, 578, 665, 687 |
-| django/librarian/views.py                                                                                     |      288 |       53 |     82% |70-90, 96, 126-148, 184-205, 234-249, 308-309, 328, 335-337, 455, 460 |
+| django/librarian/views.py                                                                                     |      297 |       53 |     82% |70-90, 96, 126-148, 184-205, 234-249, 308-309, 328, 335-337, 455, 460 |
 | django/manage.py                                                                                              |       11 |       11 |      0% |      3-23 |
 | django/otto/\_\_init\_\_.py                                                                                   |        2 |        0 |    100% |           |
 | django/otto/admin.py                                                                                          |        0 |        0 |    100% |           |
@@ -174,7 +174,7 @@
 | django/otto/translation.py                                                                                    |       14 |        0 |    100% |           |
 | django/otto/urls.py                                                                                           |       13 |        2 |     85% |   95, 100 |
 | django/otto/utils/auth.py                                                                                     |       36 |        6 |     83% |     18-32 |
-| django/otto/utils/common.py                                                                                   |       44 |        0 |    100% |           |
+| django/otto/utils/common.py                                                                                   |       57 |        1 |     98% |        94 |
 | django/otto/utils/decorators.py                                                                               |       62 |        4 |     94% |24-25, 65, 87 |
 | django/otto/utils/logging.py                                                                                  |       15 |        0 |    100% |           |
 | django/otto/utils/middleware.py                                                                               |       17 |        1 |     94% |        23 |
@@ -189,13 +189,13 @@
 | django/tests/chat/test\_chat\_procs.py                                                                        |      209 |        0 |    100% |           |
 | django/tests/chat/test\_chat\_readonly.py                                                                     |       33 |        0 |    100% |           |
 | django/tests/chat/test\_chat\_translate.py                                                                    |       37 |        0 |    100% |           |
-| django/tests/chat/test\_chat\_views.py                                                                        |      631 |       11 |     98% |   579-597 |
+| django/tests/chat/test\_chat\_views.py                                                                        |      639 |       11 |     98% |   579-597 |
 | django/tests/conftest.py                                                                                      |      170 |        5 |     97% |36, 210, 240-244 |
 | django/tests/laws/conftest.py                                                                                 |        9 |        0 |    100% |           |
 | django/tests/laws/test\_laws\_utils.py                                                                        |       45 |        0 |    100% |           |
 | django/tests/laws/test\_laws\_views.py                                                                        |       45 |        0 |    100% |           |
 | django/tests/librarian/test\_document\_loading.py                                                             |      179 |        0 |    100% |           |
-| django/tests/librarian/test\_librarian.py                                                                     |      262 |        0 |    100% |           |
+| django/tests/librarian/test\_librarian.py                                                                     |      277 |        0 |    100% |           |
 | django/tests/librarian/test\_markdown\_splitter.py                                                            |      282 |        0 |    100% |           |
 | django/tests/otto/test\_budget.py                                                                             |       37 |        0 |    100% |           |
 | django/tests/otto/test\_cleanup.py                                                                            |      210 |        0 |    100% |           |
@@ -226,7 +226,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **9884** | **1183** | **88%** |           |
+|                                                                                                     **TOTAL** | **9936** | **1184** | **88%** |           |
 
 
 ## Setup coverage badge

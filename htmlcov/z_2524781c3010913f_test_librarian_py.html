@@ -54,8 +54,8 @@
             </div>
         </aside>
         <h2>
-            <span class="text">262 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">262<span class="text"> run</span></button>
+            <span class="text">277 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">277<span class="text"> run</span></button>
             <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">0<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_2524781c3010913f_test_markdown_splitter_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-01-28 13:58 +0000
+            created at 2025-01-28 15:49 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -643,6 +643,28 @@
     <p class="pln"><span class="n"><a id="t561" href="#t561">561</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t562" href="#t562">562</a></span><span class="t">    <span class="key">assert</span> <span class="key">not</span> <span class="nam">form</span><span class="op">.</span><span class="nam">is_valid</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t563" href="#t563">563</a></span><span class="t">    <span class="key">assert</span> <span class="str">"url"</span> <span class="key">in</span> <span class="nam">form</span><span class="op">.</span><span class="nam">errors</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t564" href="#t564">564</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t565" href="#t565">565</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t566" href="#t566">566</a></span><span class="t"><span class="key">def</span> <span class="nam">test_email_library_admins</span><span class="op">(</span><span class="nam">client</span><span class="op">,</span> <span class="nam">all_apps_user</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t567" href="#t567">567</a></span><span class="t">    <span class="nam">user</span> <span class="op">=</span> <span class="nam">all_apps_user</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t568" href="#t568">568</a></span><span class="t">    <span class="nam">client</span><span class="op">.</span><span class="nam">force_login</span><span class="op">(</span><span class="nam">user</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t569" href="#t569">569</a></span><span class="t">    <span class="nam">library</span> <span class="op">=</span> <span class="nam">Library</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">get_default_library</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t570" href="#t570">570</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t571" href="#t571">571</a></span><span class="t">    <span class="nam">response</span> <span class="op">=</span> <span class="nam">client</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="nam">reverse</span><span class="op">(</span><span class="str">"librarian:email_library_admins"</span><span class="op">,</span> <span class="nam">args</span><span class="op">=</span><span class="op">[</span><span class="nam">library</span><span class="op">.</span><span class="nam">id</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t572" href="#t572">572</a></span><span class="t">    <span class="key">assert</span> <span class="nam">response</span><span class="op">.</span><span class="nam">status_code</span> <span class="op">==</span> <span class="num">200</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t573" href="#t573">573</a></span><span class="t">    <span class="key">assert</span> <span class="str">"Otto"</span> <span class="key">in</span> <span class="nam">response</span><span class="op">.</span><span class="nam">content</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t574" href="#t574">574</a></span><span class="t">    <span class="key">assert</span> <span class="str">"mailto:otto@justice.gc.ca"</span> <span class="key">in</span> <span class="nam">response</span><span class="op">.</span><span class="nam">content</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t575" href="#t575">575</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t576" href="#t576">576</a></span><span class="t">    <span class="com"># Set user as an admin on the library</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t577" href="#t577">577</a></span><span class="t">    <span class="key">from</span> <span class="nam">librarian</span><span class="op">.</span><span class="nam">models</span> <span class="key">import</span> <span class="nam">LibraryUserRole</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t578" href="#t578">578</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t579" href="#t579">579</a></span><span class="t">    <span class="nam">LibraryUserRole</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">create</span><span class="op">(</span><span class="nam">user</span><span class="op">=</span><span class="nam">user</span><span class="op">,</span> <span class="nam">library</span><span class="op">=</span><span class="nam">library</span><span class="op">,</span> <span class="nam">role</span><span class="op">=</span><span class="str">"admin"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t580" href="#t580">580</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t581" href="#t581">581</a></span><span class="t">    <span class="nam">response</span> <span class="op">=</span> <span class="nam">client</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="nam">reverse</span><span class="op">(</span><span class="str">"librarian:email_library_admins"</span><span class="op">,</span> <span class="nam">args</span><span class="op">=</span><span class="op">[</span><span class="nam">library</span><span class="op">.</span><span class="nam">id</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t582" href="#t582">582</a></span><span class="t">    <span class="key">assert</span> <span class="nam">response</span><span class="op">.</span><span class="nam">status_code</span> <span class="op">==</span> <span class="num">200</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t583" href="#t583">583</a></span><span class="t">    <span class="key">assert</span> <span class="str">"Otto"</span> <span class="key">in</span> <span class="nam">response</span><span class="op">.</span><span class="nam">content</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t584" href="#t584">584</a></span><span class="t">    <span class="key">assert</span> <span class="fst">f"</span><span class="fst">mailto:</span><span class="op">{</span><span class="nam">user</span><span class="op">.</span><span class="nam">email</span><span class="op">}</span><span class="fst">"</span> <span class="key">in</span> <span class="nam">response</span><span class="op">.</span><span class="nam">content</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t585" href="#t585">585</a></span><span class="t">    <span class="key">assert</span> <span class="fst">f"</span><span class="fst">cc=otto@justice.gc.ca</span><span class="fst">"</span> <span class="key">in</span> <span class="nam">response</span><span class="op">.</span><span class="nam">content</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -652,7 +674,7 @@
             <a class="nav" href="z_2524781c3010913f_test_markdown_splitter_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-01-28 13:58 +0000
+            created at 2025-01-28 15:49 +0000
         </p>
     </div>
 </footer>
