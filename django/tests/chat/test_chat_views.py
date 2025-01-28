@@ -1249,3 +1249,14 @@ def test_generate_prompt_view(client, all_apps_user):
     cost_str = response.context["cost"].replace("< $", "")
     cost = float(cost_str)
     assert cost > 0.000
+
+
+def test_email_chat_author(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    response = client.get(reverse("chat:email_author", args=[chat.id]))
+    assert response.status_code == 200
+    assert "Otto" in response.content.decode()
+    assert f"mailto:{user.email}" in response.content.decode()
