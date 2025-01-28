@@ -162,6 +162,7 @@
 | django/otto/migrations/0022\_rename\_weekly\_bonus\_user\_monthly\_bonus\_and\_more.py                        |        4 |        0 |    100% |           |
 | django/otto/migrations/0023\_blockedurl.py                                                                    |        4 |        0 |    100% |           |
 | django/otto/migrations/0024\_delete\_usageterm.py                                                             |        4 |        0 |    100% |           |
+| django/otto/migrations/0025\_reset\_accepted\_terms\_date.py                                                  |        7 |        0 |    100% |           |
 | django/otto/migrations/\_\_init\_\_.py                                                                        |        0 |        0 |    100% |           |
 | django/otto/models.py                                                                                         |      276 |       30 |     89% |26-28, 76-79, 112, 116-119, 154, 193, 196, 212, 233, 251, 368, 371, 423, 429, 453, 457, 461, 465, 511-512, 526, 530, 534, 555 |
 | django/otto/rules.py                                                                                          |      158 |       19 |     88% |26, 42, 49, 51, 101-103, 108-110, 115-117, 146, 212-214, 250-251 |
@@ -226,7 +227,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **9936** | **1184** | **88%** |           |
+|                                                                                                     **TOTAL** | **9943** | **1184** | **88%** |           |
 
 
 ## Setup coverage badge
