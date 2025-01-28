@@ -538,9 +538,11 @@ def document_text(request, document_id):
 def email_library_admins(request, library_id):
     otto_email = "otto@justice.gc.ca"
     library = get_object_or_404(Library, pk=library_id)
-    library_admin_emails = LibraryUserRole.objects.filter(
-        library=library, role="admin"
-    ).values_list("user__email", flat=True)
+    library_admin_emails = list(
+        LibraryUserRole.objects.filter(library=library, role="admin").values_list(
+            "user__email", flat=True
+        )
+    )
     to = library_admin_emails or otto_email
     cc = otto_email if library_admin_emails else ""
     subject = f"Otto Q&A library: {library.name_en} | Bibliothèque de questions et réponses Otto: {library.name_fr}"
