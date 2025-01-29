@@ -781,6 +781,14 @@ div#chat-toolbar {
   display: block;
 }
 
+#chat-outer.chat #chat-prompt {
+  padding-right: 30px;
+}
+
+#chat-outer.chat #magic-button {
+  display: inline-block;
+}
+
 #file-dropzone {
   height: 100%;
   width: 100%;
@@ -1270,4 +1278,30 @@ ul#preset-edit-tabs {
 math[display="block"] {
   margin-top: 1rem;
   padding-bottom: 1rem;
+}
+
+#magic-button {
+  background-color: transparent !important;
+  color: var(--bs-secondary);
+  border: none;
+  top: 4px;
+  right: 47px;
+  width: 35px;
+  height: 30px;
+  position: absolute;
+  z-index: 10;
+  display: none;
+}
+
+#magic-button:hover,
+#magic-button:focus,
+#magic-button:active {
+  color: var(--app-color-purple-1) !important;
+}
+
+#shared-chat-warning {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  box-shadow: 0 0px 5px rgba(0, 0, 0, 0.4);
 }

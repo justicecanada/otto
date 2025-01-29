@@ -1,4 +1,4 @@
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 from django.conf import settings
 
@@ -82,3 +82,22 @@ def check_url_allowed(url):
         return False
 
     return True
+
+
+def generate_mailto(to, cc=None, subject="Otto", body=None):
+    """
+    Generates a mailto link with the provided parameters
+    """
+    if isinstance(to, list):
+        to = ",".join(to)
+    if isinstance(cc, list):
+        cc = ",".join(cc)
+    subject = quote(subject)
+    body = quote(body)
+
+    mailto = f"mailto:{to}?subject={subject}"
+    if cc:
+        mailto += f"&cc={cc}"
+    if body:
+        mailto += f"&body={body}"
+    return mailto

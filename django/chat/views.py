@@ -1,11 +1,10 @@
 import json
+from urllib.parse import quote
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -38,10 +37,16 @@ from chat.models import (
     Preset,
     create_chat_data_source,
 )
-from chat.utils import bad_url, change_mode_to_chat_qa, copy_options, title_chat
+from chat.utils import (
+    bad_url,
+    change_mode_to_chat_qa,
+    copy_options,
+    generate_prompt,
+    title_chat,
+)
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
-from otto.utils.common import check_url_allowed
+from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -910,3 +915,38 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
             "trigger_library_change": "true" if library != original_library else None,
         },
     )
+
+
+@require_POST
+def generate_prompt_view(request):
+    user_input = request.POST.get("user_input", "")
+    output_text, cost = generate_prompt(user_input)
+    return render(
+        request,
+        "chat/modals/prompt_generator_result.html",
+        {"user_input": user_input, "output_text": output_text, "cost": cost},
+    )
+
+
+def email_author(request, chat_id):
+    chat = get_object_or_404(Chat, pk=chat_id)
+    chat_link = request.build_absolute_uri(reverse("chat:chat", args=[chat_id]))
+    subject = (
+        f"Sharing link for Otto chat | Lien de partage pour le chat Otto: {chat.title}"
+    )
+    body = (
+        "Le message français suit l'anglais.\n---\n"
+        "You are receiving this email because you are the author of the following Otto chat:"
+        f"\n{chat.title}"
+        "\n\nThis link was shared with me, but I don't believe I should have access to it."
+        "\n\nACTION REQUIRED: Please open chat using the link below, and delete it if it contains sensitive information."
+        f"\n\n{chat_link}"
+        "\n\n---\n\n"
+        "Vous recevez ce courriel parce que vous êtes l'auteur du chat Otto suivant :"
+        f"\n{chat.title}"
+        "\n\nCe lien m'a été partagé, mais je ne crois pas que je devrais y avoir accès."
+        "\n\nACTION REQUISE : Veuillez ouvrir le chat en utilisant le lien ci-dessous, et le supprimer s'il contient des informations sensibles."
+        f"\n\n{chat_link}"
+    )
+    mailto_link = generate_mailto(to=chat.user.email, subject=subject, body=body)
+    return HttpResponse(f"<a href='{mailto_link}'>mailto link</a>")

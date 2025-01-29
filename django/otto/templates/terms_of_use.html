@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% load i18n %}
+{% get_current_language as LANG %}
+
+{% block body %}
+ 
+  <!-- Title -->
+  <div class="mb-5 mx-5">
+    <h2 class="mb-3">{% trans "Terms of use for Otto Protected B Pilot" %}</h2>
+
+    {% if request.user.accepted_terms_date %}
+      <p class="text-success fw-semibold">
+        {% trans "You agreed to these terms on" %} {{ request.user.accepted_terms_date }}.
+      </p>
+    {% endif %}
+  </div>
+ 
+  <!-- Terms -->
+  <div class="mb-4 mx-5">
+    <h3 class="h4">{% trans "Participation in pilot activities" %}</h3>
+    <p>
+      {% trans "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested." %}
+    </p>
+    <h3 class="h4 mt-4">{% trans "Security, privacy and information management" %}</h3>
+    {% if environment == "prod" %}
+      <p>
+        {% trans "Otto is approved for up to and including Protected B information. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Additionally, when using Otto with clients’ legal information, employees must ensure the client is aware their information is being entered into an AI tool, understands the potential risks and advantages of the technology, and consents to the use of AI tools." %}
+      </p>
+      <p>
+        {% trans "Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information." %}
+      </p>
+      <p>
+        {% trans "You must not input any information classified above Protected B, either through uploads or direct text input." %}
+      </p>
+    {% else %}
+      <p class="fw-bold">{% trans "This is a development / testing environment. Use unclassified information only." %}</p>
+    {% endif %}
+    <p>
+      {% trans "Limit documents that you upload to Otto only to those you need to perform your tasks. Share document libraries and chats only with those who require access. Avoid uploading personal information except as needed for specific tasks, and actively delete classified or personal information when it is no longer needed." %}
+    </p>
+    {% if environment == "prod" %}
+      <p>
+        {% trans "In the AI assistant, apply security classification labels to chats and document libraries when they contain classified and/or personal information." %}
+      </p>
+    {% endif %}
+    <p>
+      {% trans "In the AI assistant, document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted." %}
+    </p>
+    <p>
+      {% trans "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. If this is not possible, contact the Otto team at the following email address to report a privacy issue:" %}
+      <a href="mailto:otto@justice.gc.ca">otto@justice.gc.ca</a>
+    </p>
+    <h3 class="h4 mt-4">{% trans "Appropriate and inappropriate uses" %}</h3>
+    <p>
+      {% trans "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted to provide factual information. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library." %}
+    </p>
+    <p>
+      {% trans "Otto may not be used for automated decision-making. Do not use it for administrative decisions affecting individuals." %}
+    </p>
+    <p>
+      {% trans "Otto is not a substitute for professional legal advice. Avoid using it for decisions with legal implications." %}
+    </p>
+    <p>
+      {% trans "Otto does not connect to legal databases like Westlaw, Lexis or CanLII. It should not be used for legal research of case law." %}
+      {% trans "Only the Legislation Search tool can be trusted for questions about Canadian federal laws." %}
+    </p>
+    <p>{% trans "Translations should undergo human review prior to use in a legal or official capacity." %}</p>
+    <h3 class="h4 mt-4">{% trans "Responsible and ethical use of AI" %}</h3>
+    <p>
+      {% trans "Follow policies and best practices for the responsible use of AI. Refer to and follow the guidance in the following policy documents:" %}
+    </p>
+    <ul>
+      {% if LANG == "en" %}
+        <li>
+          <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/guide-use-generative-ai.html"
+             target="_blank">Guide on the use of generative artificial intelligence - Canada.ca</a>
+        </li>
+        <li>
+          <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/generative-ai-your-daily-work.html"
+             target="_blank">Generative AI in your daily work - Canada.ca</a>
+        </li>
+        <li>
+          <a href="https://jusnet.justice.gc.ca/eng/about-apropos/pdsg-pdwl/atip-aiprp/proto/proto.html"
+             target="_blank">Privacy protocol for non-administrative purposes - JUSnet</a>
+        </li>
+      {% else %}
+        <li>
+          <a href="https://www.canada.ca/fr/gouvernement/systeme/gouvernement-numerique/innovations-gouvernementales-numeriques/utilisation-responsable-ai/guide-utilisation-intelligence-artificielle-generative.html"
+             target="_blank">Guide sur l’utilisation de l’intelligence artificielle générative - Canada.ca</a>
+        </li>
+        <li>
+          <a href="https://www.canada.ca/fr/gouvernement/systeme/gouvernement-numerique/innovations-gouvernementales-numeriques/utilisation-responsable-ai/ia-generative-votre-travail-quotidien.html"
+             target="_blank">L’IA générative dans votre travail au quotidien - Canada.ca</a>
+        </li>
+        <li>
+          <a href="https://jusnet.justice.gc.ca/fra/apropos-about/pdwl-pdsg/aiprp-atip/proto/proto.html"
+             target="_blank">Protocole Relatif à la Protection Des Renseignements Personnels Utilisés à Des Fins Non Administratives - JUSnet</a>
+        </li>
+      {% endif %}
+      <li>
+        <a href="https://013gc.sharepoint.com/:w:/r/sites/BACentre598/Shared%20Documents/General/Data%20Strategy/Data%20Governance/AIDGC/3.%20Decks%20%26%20Other%20Documents%20for%20Presentation/Justice%20Gen%20AI%20Guidelines%20-%20Current%20Draft.docx?d=wadd3ae7b485b4ee3b307c85738a441a0&csf=1&web=1&e=ZJYcxh"
+           target="_blank">{% trans "Justice Generative AI Guidelines - Current Draft" %}</a>
+        {% if LANG != "en" %}(anglais seulement; traduction en cours){% endif %}
+      </li>
+    </ul>
+    <p>
+      {% trans "You are encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, such as those catalogued by the University of Windsor and the Law Society of Alberta in the documents" %}
+      <a href="https://uwindsor-law.libguides.com/AI/Regulation"
+         target="_blank">{% trans "Artificial Intelligence Regulation" %}</a>
+      {% if LANG != "en" %}(anglais seulement){% endif %}
+      {% trans "and" %}
+      <a href="https://www.lawsociety.ab.ca/resource-centre/key-resources/professional-conduct/gen-ai-rules-of-engagement-for-canadian-lawyers/"
+         target="_blank">{% trans "Gen AI Rules of Engagement for Canadian Lawyers" %}</a>
+      {% if LANG != "en" %}(anglais seulement){% endif %}
+      {% trans "respectively." %}
+    </p>
+    <p>{% trans "Always be aware that AI can make mistakes, even when you have provided it with documents." %}</p>
+    <p class="fw-semibold">
+      {% trans "For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content." %}
+    </p>
+  </div>
+
+ 
+  {% if not request.user.accepted_terms_date %}
+    <hr>
+    <form method="post" id="accessRequestForm" class="mx-5">
+      <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
+
+      {% csrf_token %}
+      <!-- Accept Terms Checkbox -->
+      <div class="mb-4">
+        <div class="m-2 form-check">
+          <input type="checkbox"
+                 id="accept_usage_terms"
+                 required
+                 name="usage_terms"
+                 class="form-check-input border-secondary">
+          <label for="accept_usage_terms" class="form-check-label">{% trans "I agree to the terms of use." %}</label>
+        </div>
+      </div>
+      <!-- Submit Button -->
+      <button type="submit" id="submitButton" class="btn btn-primary" disabled>{% trans "Submit" %}</button>
+    </form>
+  {% endif %}
+
+{% endblock %}
+
+{% block page_script %}
+  <script>
+    const terms_checkbox = document.getElementById('accept_usage_terms');
+    if (terms_checkbox) {
+      terms_checkbox.addEventListener('change', function() {
+        document.getElementById('submitButton').disabled = !this.checked;
+      });
+    }
+  </script>
+
+{% endblock %}

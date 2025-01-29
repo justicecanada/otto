@@ -20,20 +20,32 @@
         </div>
         <div class="row">
           <div class="col">
+            {% if environment == "prod" %}
+              <p>
+                <strong>{% trans "Protected B approved:" %}</strong>
+                {% trans "Use with unclassified, Protected A or Protected B information only." %}
+              </p>
+            {% else %}
+              <p>
+                <strong>{% trans "Unclassified only:" %}</strong>
+                {% trans "This is a development / testing environment. Use unclassified information only." %}
+              </p>
+            {% endif %}
             <p>
-              <strong>{% trans "Human review required" %}:</strong>
-              {% trans "AI-generated outputs require human verification for accuracy. Do not use them in any official capacity without a human review." %}
+              <strong>{% trans "Human review required:" %}</strong>
+              {% trans "AI can make mistakes. Review the text before using it in an official capacity." %}
             </p>
             <p>
-              <strong>{% trans "No sensitive information" %}:</strong>
-              {% trans "Do not upload or process sensitive, confidential, or legally protected documents. This includes personally identifiable information, protected B information, and information protected under solicitor client privilege." %}
+              <strong>{% trans "Not for legal advice or research:" %}</strong>
+              {% trans "Does not connect to legal databases like Westlaw, Lexis or CanLII." %}
             </p>
             <p>
-              <strong>{% trans "Not for legal advice or making decisions:" %}</strong>
-              {% trans "This tool is not a substitute for professional legal advice. Avoid using it for decisions with legal implications or decisions that would impact an individual." %}
+              <strong>{% trans "Not for decision-making:" %}</strong>
+              {% trans "Do not use for legal decisions, administrative decisions affecting individuals, etc." %}
             </p>
             <p class="mb-0">
-              {% trans "We ask that users delete their chats and file uploads from the system after 30 days, unless still required. This proactive approach ensures data security, respects privacy principles and information management best practices." %}
+              <strong>{% trans "Information management:" %}</strong>
+              {% trans "Limit information shared in chats and Q&A libraries (deleted after 30 days inactivity)." %}
             </p>
           </div>
         </div>
@@ -41,36 +53,33 @@
       <div class="mt-4 alert alert-light text-body" id="chat-mode-description">
         <p class="option chat-option">
           {% blocktrans %}
-            <strong>Chat</strong> is a general-purpose AI-powered tool for writing assistance and text formatting. Please note that this tool is provided solely for enhancing your writing process and refining your ideas using natural language.          
+            <strong>Chat</strong> with a secure AI for brainstorming, writing assistance and text formatting.
           {% endblocktrans %}
         </p>
-        <p class="mb-0 option chat-option">
-          {% trans "We kindly advise you to refrain from using Chat as a means to seek factual information, conduct research, or request data. Its primary purpose is to offer writing suggestions, grammar corrections, and structure recommendations, ensuring your content is well-crafted and coherent." %}
-        </p>
+        <p class="mb-0 option chat-option">{% trans "Chat mode is not suitable for factual research." %}</p>
         <p class="option summarize-option">
           {% blocktrans %}
-            <strong>Summarize</strong> documents, including PDFs, Word docs, and PowerPoint presentations. You may also input free text for summarization, or enter a URL for a web page.
+            <strong>Summarize</strong> uploaded documents. You may also input free text or enter a URL for a web page.
           {% endblocktrans %}
         </p>
         <p class="mb-0 option summarize-option">
-          {% trans "AI-generated summaries may contain inaccuracies. This tool is not a substitute for human analysis or decision-making." %}
+          {% trans "AI-generated summaries may contain inaccuracies. Review the text before using it for official purposes." %}
         </p>
         <p class="option translate-option">
           {% blocktrans %}
             <strong>Translate</strong> input text or uploaded documents from any language into French or English.
-            It supports various document formats such as PDF, Word, and PowerPoint, and endeavors to maintain the original structure of your documents. Users also have the option to input free text for translation.
           {% endblocktrans %}
         </p>
         <p class="mb-0 option translate-option">
-          {% trans "Please note the translations provided by this tool are not official and may not be suitable for legal and official document submissions prior to human review." %}
+          {% trans "Translations should undergo human review prior to use in a legal or official capacity." %}
         </p>
         <p class="option qa-option">
           {% blocktrans %}
-            <strong>Q&A</strong> provides answers based on Justice documents. Create or select your own document libraries from the settings sidebar.
+            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or upload files and enter URLs directly in the chat.
           {% endblocktrans %}
         </p>
         <p class="mb-0 option qa-option">
-          {% trans "While the system implements guardrails against inaccurate information, users should verify answers with the provided sources due to the potential for inaccuracies. Use responsibly and at your own discretion." %}
+          {% trans "For official use, always verify generated material with the provided sources due to the potential for inaccuracies." %}
         </p>
       </div>
     </div>

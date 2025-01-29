@@ -561,3 +561,25 @@ def test_document_url_validation():
     )
     assert not form.is_valid()
     assert "url" in form.errors
+
+
+def test_email_library_admins(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    library = Library.objects.get_default_library()
+
+    response = client.get(reverse("librarian:email_library_admins", args=[library.id]))
+    assert response.status_code == 200
+    assert "Otto" in response.content.decode()
+    assert "mailto:otto@justice.gc.ca" in response.content.decode()
+
+    # Set user as an admin on the library
+    from librarian.models import LibraryUserRole
+
+    LibraryUserRole.objects.create(user=user, library=library, role="admin")
+
+    response = client.get(reverse("librarian:email_library_admins", args=[library.id]))
+    assert response.status_code == 200
+    assert "Otto" in response.content.decode()
+    assert f"mailto:{user.email}" in response.content.decode()
+    assert f"cc=otto@justice.gc.ca" in response.content.decode()

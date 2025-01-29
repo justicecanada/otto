@@ -16,14 +16,16 @@
   <main id="chat-outer" class="{{ mode }}">
     <div id="chat-flexbox" class="d-flex justify-content-between mb-3">
       <div id="chat-container" class="flex-grow-1">
-        <div class="position-fixed end-0 pe-3 pt-1 chat-sidebar-toggle text-muted"
-             style="z-index:1"
-             id="right-sidebar-toggle">
-          <span class="d-xl-inline d-none fw-semibold">{% trans "Read-only" %}</span>
-          <i class="bi bi-file-lock2"
-             style="font-size: 1.5rem;
-                    position: relative;
-                    top: 3px"></i>
+        <div id="shared-chat-warning"
+             class="text-center small text-bg-warning py-1">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          {% trans "This chat was shared with you and is read-only." %}
+          {% trans "If you should not have access," %}
+          <a href="#"
+             class="text-body"
+             onclick="emailChatAuthor('{% url 'chat:email_author' chat.id %}')">{% trans "email the chat author" %}</a>
+          {% trans "to report the issue." %}
+          <span id="author-mailto-container"></span>
         </div>
         <div class="container px-5">
           <div id="messages-container" class="py-3 px-2">{% include 'chat/components/chat_messages.html' %}</div>

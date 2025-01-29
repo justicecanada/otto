@@ -78,10 +78,10 @@ All the commands you need to load data into Otto are in `django/initial_setup.sh
 
 If you do not want to reset all your data (e.g. to preserve previously loaded Laws or Libraries), you can run individual commands.
 
-For `reset_app_data`, you can specify the objects to reset. For example, to reset only the apps, terms, and groups data:
+For `reset_app_data`, you can specify the objects to reset. For example, to reset only the apps and groups data:
 
 ```bash
-python manage.py reset_app_data apps terms groups
+python manage.py reset_app_data apps groups
 ```
 
 To reset the libraries and clear out the vector store, run the following command. This will delete all the data in the vector store!
@@ -262,7 +262,7 @@ python django/manage.py collectstatic --noinput
 
 In PowerShell, from the repo root, paste this one-liner to run tests and display the results:
 ```bash
-python -m coverage run --source=django -m pytest django/tests; python -m coverage html; python -m coverage report
+python -m coverage run --source=django --omit 'django/template_wizard/*' -m pytest django/tests; python -m coverage html; python -m coverage report
 ```
 
 You can view the results in more detail by opening `htmlcov/index.html` in your browser.
