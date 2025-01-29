@@ -2966,5 +2966,85 @@
     "An error occurred while setting the default preset.": {
         "fr": "",
         "fr_auto": "Une erreur s’est produite lors de la définition du préréglage par défaut."
+    },
+    "AI can make mistakes. Review the text before using it in an official capacity.": {
+        "fr": "",
+        "fr_auto": "L’IA peut faire des erreurs. Passez en revue le texte avant de l’utiliser à titre officiel."
+    },
+    "Does not connect to legal databases like Westlaw, Lexis or CanLII.": {
+        "fr": "",
+        "fr_auto": "Ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis ou CanLII."
+    },
+    "Limit information shared in chats and Q&A libraries (deleted after 30 days inactivity).": {
+        "fr": "",
+        "fr_auto": "Limitez les informations partagées dans les chats et les bibliothèques de questions et réponses (supprimées après 30 jours d’inactivité)."
+    },
+    "AI-generated summaries may contain inaccuracies. Review the text before using it for official purposes.": {
+        "fr": "",
+        "fr_auto": "Les résumés générés par l’IA peuvent contenir des inexactitudes. Passez en revue le texte avant de l’utiliser à des fins officielles."
+    },
+    "Translations should undergo human review prior to use in a legal or official capacity.": {
+        "fr": "",
+        "fr_auto": "Les traductions doivent faire l’objet d’un examen humain avant d’être utilisées à titre juridique ou officiel."
+    },
+    "\n            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or upload files and enter URLs directly in the chat.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents dans la barre latérale des paramètres, ou téléchargez des fichiers et entrez des URL directement dans le chat.\n          "
+    },
+    "For official use, always verify generated material with the provided sources due to the potential for inaccuracies.": {
+        "fr": "",
+        "fr_auto": "Pour un usage officiel, vérifiez toujours le matériel généré avec les sources fournies en raison du risque d’inexactitudes."
+    },
+    "Otto is approved for up to and including Protected B information. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Additionally, when using Otto with clients’ legal information, employees must ensure the client is aware their information is being entered into an AI tool, understands the potential risks and advantages of the technology, and consents to the use of AI tools.": {
+        "fr": "",
+        "fr_auto": "Otto est approuvé pour les informations protégées B jusqu’à et y compris. Cela comprend normalement les renseignements assujettis au secret professionnel de l’avocat, mais cela devrait être déterminé au cas par cas. De plus, lorsqu’ils utilisent Otto avec les informations juridiques des clients, les employés doivent s’assurer que le client sait que leurs informations sont saisies dans un outil d’IA, comprend les risques et les avantages potentiels de la technologie et consent à l’utilisation d’outils d’IA."
+    },
+    "Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information.": {
+        "fr": "",
+        "fr_auto": "Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires relatives à certaines catégories de renseignements de nature délicate."
+    },
+    "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted to provide factual information. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.": {
+        "fr": "",
+        "fr_auto": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Chat ne doivent pas être fiables pour fournir des informations factuelles. Utilisez plutôt les modes Q&R et Summarize pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléchargez ou une bibliothèque de documents partagée."
+    },
+    "Otto does not connect to legal databases like Westlaw, Lexis or CanLII. It should not be used for legal research of case law.": {
+        "fr": "",
+        "fr_auto": "Otto ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis ou CanLII. Il ne devrait pas être utilisé pour la recherche juridique de la jurisprudence."
+    },
+    "You are encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, such as those catalogued by the University of Windsor and the Law Society of Alberta in the documents": {
+        "fr": "",
+        "fr_auto": "Nous vous encourageons à consulter les directives et les avis des cours et des tribunaux concernant l’utilisation de l’intelligence artificielle, comme ceux catalogués par l’Université de Windsor et le Barreau de l’Alberta dans les documents"
+    },
+    "Artificial Intelligence Regulation": {
+        "fr": "",
+        "fr_auto": "Règlement sur l’intelligence artificielle"
+    },
+    "and": {
+        "fr": "",
+        "fr_auto": "et"
+    },
+    "Gen AI Rules of Engagement for Canadian Lawyers": {
+        "fr": "",
+        "fr_auto": "Gen AI Règles d’engagement pour les avocats canadiens"
+    },
+    ", respectively.": {
+        "fr": "",
+        "fr_auto": ", respectivement."
+    },
+    "Always be aware that AI can make mistakes, even when you have provided it with documents.": {
+        "fr": "",
+        "fr_auto": "Sachez toujours que l’IA peut faire des erreurs, même lorsque vous lui avez fourni des documents."
+    },
+    "For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content.": {
+        "fr": "",
+        "fr_auto": "Pour toute utilisation officielle (par exemple, la distribution en dehors de votre équipe immédiate et en particulier en dehors de l’organisation), il est essentiel que vous examiniez attentivement le contenu généré par l’IA."
+    },
+    "Justice Generative AI Guidelines - Current Draft": {
+        "fr": "",
+        "fr_auto": "Lignes directrices sur l’IA générative de la justice - Ébauche actuelle"
+    },
+    "respectively.": {
+        "fr": "",
+        "fr_auto": "respectivement."
     }
 }
