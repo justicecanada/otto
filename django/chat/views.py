@@ -350,7 +350,6 @@ def done_upload(request, message_id):
     """
     user_message = Message.objects.get(id=message_id)
     mode = user_message.mode
-    upload_status = request.POST.get("upload_status")
     logger.info("File upload completed.", message_id=message_id, mode=mode)
     response_message = Message.objects.create(
         chat=user_message.chat, text="", is_bot=True, mode=mode, parent=user_message
@@ -387,7 +386,52 @@ def done_upload(request, message_id):
         "mode": mode,
         # You can't really stop file translations or QA uploads, so don't show the button
         "hide_stop_button": mode in ["translate", "qa"],
-        "invalid_upload": upload_status == "error",
+    }
+    response.write(
+        render_to_string("chat/components/chat_messages.html", context=context)
+    )
+    response.write("<script>scrollToBottom(false, true);</script>")
+    return response
+
+
+@permission_required("chat.access_message", objectgetter(Message, "message_id"))
+def cancel_upload(request, message_id):
+    """
+    Creates a "files uploaded" message in the chat and initiates the response
+    """
+    user_message = Message.objects.get(id=message_id)
+
+    user_message.text = _("There was an error uploading the file")
+    user_message.save()
+
+    mode = user_message.mode
+    logger.info("File upload was invalid.", message_id=message_id, mode=mode)
+
+    chat = user_message.chat
+    response = HttpResponse()
+
+    if mode == "translate":
+        # usage metrics
+        chat_request_type_total.labels(
+            user=request.user.upn, type="document translation"
+        )
+    if mode == "summarize":
+        # usage metrics
+        chat_request_type_total.labels(user=request.user.upn, type="text summarization")
+
+    if mode == "qa":
+        # usage metrics
+        logger.debug("QA upload")
+        chat_request_type_total.labels(user=request.user.upn, type="qa upload")
+        response.write(change_mode_to_chat_qa(chat))
+
+    context = {
+        "chat_messages": [
+            user_message,
+        ],
+        "mode": mode,
+        # You can't really stop file translations or QA uploads, so don't show the button
+        "hide_stop_button": mode in ["translate", "qa"],
     }
     response.write(
         render_to_string("chat/components/chat_messages.html", context=context)

@@ -364,10 +364,10 @@ function copyPromptToTextInput(btn, messageMode) {
 // File upload (based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader)
 class FileUpload {
 
-  constructor(input, upload_url, done_url, message_id) {
+  constructor(input, upload_url, cancel_url, message_id) {
     this.input = input;
     this.upload_url = upload_url;
-    this.done_url = done_url;
+    this.cancel_url = cancel_url;
     this.message_id = message_id;
     this.progress_bar = document.querySelector(`#message_${message_id} .progress-bar`);
     this.cur_filename = document.querySelector(`#message_${message_id} .filename`);
@@ -475,14 +475,13 @@ class FileUpload {
 
   cancel_upload() {
 
-    htmx.ajax('POST', this.done_url, {
+    htmx.ajax('POST', this.cancel_url, {
       target: `#message_${this.message_id}`,
       headers: {
         "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
       },
       swap: 'outerHTML',
       style: "width: 500px",
-      values: {'upload_status': 'error'}
     });
   }
 }

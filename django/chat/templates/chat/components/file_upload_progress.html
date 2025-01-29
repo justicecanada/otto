@@ -7,7 +7,6 @@
       hx-target="#message_{{ message.id }}"
       hx-trigger="done_upload"
       style="width: 500px"
-      hx-vals="{'upload_status': 'success'}"
       id="progress-{{ message.id }}">
   <div class="row mb-2 fileupload-intro">
     <div class="col">
@@ -34,7 +33,7 @@
 <script>
   (function () {
     let upload_url = "{% url 'chat:chunk_upload' message_id=message.id %}";
-    let done_url = "{% url 'chat:done_upload' message_id=message.id %}";
+    let done_url = "{% url 'chat:cancel_upload' message_id=message.id %}";
     let message_id = "{{ message.id }}";
     let file_input = document.querySelector('#chat-file-input');
     let uploader = new FileUpload(file_input, upload_url, done_url, message_id);
