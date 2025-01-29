@@ -51,7 +51,7 @@ urlpatterns = [
     path("load_test/disable", views.disable_load_testing, name="disable_load_testing"),
     path("load_test/", views.load_test, name="load_test"),
     path("user_cost/", views.user_cost, name="user_cost"),
-    path("accept_terms/", views.accept_terms, name="accept_terms"),
+    path("terms_of_use/", views.terms_of_use, name="terms_of_use"),
     path("feedback/", views.feedback_message, name="user_feedback"),
     path("feedback/<int:message_id>/", views.feedback_message, name="user_feedback"),
     path(

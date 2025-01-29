@@ -233,13 +233,6 @@ class Feature(models.Model):
         return self.name
 
 
-class UsageTerm(models.Model):
-    term_text = models.CharField(max_length=2000)
-
-    def __str__(self):
-        return self.term_text
-
-
 class Notification(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
