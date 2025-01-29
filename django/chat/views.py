@@ -20,15 +20,6 @@ from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm
 from chat.llm import OttoLLM
-from chat.metrics.activity_metrics import (
-    chat_new_session_started_total,
-    chat_request_type_total,
-    chat_session_restored_total,
-)
-from chat.metrics.feedback_metrics import (
-    chat_negative_feedback_total,
-    chat_positive_feedback_total,
-)
 from chat.models import (
     Chat,
     ChatFile,
@@ -77,9 +68,6 @@ def new_chat(request, mode=None):
     empty_chat = Chat.objects.create(user=request.user, mode=mode)
 
     logger.info("New chat created.", chat_id=empty_chat.id, mode=mode)
-
-    # Usage metrics
-    chat_new_session_started_total.labels(user=request.user.upn, mode=mode).inc()
 
     return redirect("chat:chat", chat_id=empty_chat.id)
 
@@ -193,10 +181,7 @@ def chat(request, chat_id):
     if llm:
         llm.create_costs()
 
-    # Usage metrics
     awaiting_response = request.GET.get("awaiting_response") == "True"
-    if len(messages) > 0 and not awaiting_response:
-        chat_session_restored_total.labels(user=request.user.upn, mode=mode)
 
     # When a chat is created from outside Otto, we want to emulate the behaviour
     # of creating a new message - which returns an "awaiting_response" bot message
@@ -276,8 +261,6 @@ def chat_message(request, chat_id):
         chat=chat, text=user_message_text, is_bot=False, mode=mode
     )
     user_message.is_new_user_message = True
-    # usage metrics
-    chat_request_type_total.labels(user=request.user.upn, type=mode).inc()
 
     if entered_url and not allowed_url:
         # Just respond with the error message.
@@ -362,19 +345,8 @@ def done_upload(request, message_id):
     chat = user_message.chat
     response = HttpResponse()
 
-    if mode == "translate":
-        # usage metrics
-        chat_request_type_total.labels(
-            user=request.user.upn, type="document translation"
-        )
-    if mode == "summarize":
-        # usage metrics
-        chat_request_type_total.labels(user=request.user.upn, type="text summarization")
-
     if mode == "qa":
-        # usage metrics
         logger.debug("QA upload")
-        chat_request_type_total.labels(user=request.user.upn, type="qa upload")
         response.write(change_mode_to_chat_qa(chat))
 
     response_init_message = {
@@ -483,17 +455,9 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         message = Message.objects.get(id=message_id)
         message.feedback = message.get_toggled_feedback(feedback)
         message.save()
-        if feedback:
-            chat_positive_feedback_total.labels(
-                user=request.user.upn, message=message_id
-            ).inc()
-        else:
-            chat_negative_feedback_total.labels(
-                user=request.user.upn, message=message_id
-            ).inc()
     except Exception as e:
         # TODO: handle error
-        logger.error("An error occured while providing a chat feedback.", error=e)
+        logger.error("An error occurred while providing a chat feedback.", error=e)
 
     if feedback == -1:
         return feedback_message(request, message_id)
