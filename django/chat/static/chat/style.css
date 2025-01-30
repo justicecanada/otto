@@ -395,8 +395,8 @@ form#dropzone-basic {
 }
 
 .chat-sidebar {
-  width: 350px;
-  min-width: 350px;
+  width: 400px;
+  min-width: 400px;
   z-index: 2;
   height: calc(100vh - 3rem);
 }

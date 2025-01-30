@@ -67,7 +67,10 @@
     "Spacebar",
     "sqlalchemy",
     "structlog",
-    "tqdm"
+    "tqdm",
+  ],
+  "cSpell.ignoreRegExpList": [
+    "favourite(?:s|ed)?"
   ],
   // Linux
   "terminal.integrated.defaultProfile.linux": "zsh",
@@ -76,5 +79,5 @@
     "django"
   ],
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  "python.testing.pytestEnabled": true,
 }
