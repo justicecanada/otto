@@ -59,7 +59,7 @@
 | django/chat/migrations/0041\_chat\_loaded\_preset.py                                                          |        5 |        0 |    100% |           |
 | django/chat/migrations/0042\_preset\_english\_default\_preset\_french\_default\_and\_more.py                  |        6 |        0 |    100% |           |
 | django/chat/migrations/\_\_init\_\_.py                                                                        |        0 |        0 |    100% |           |
-| django/chat/models.py                                                                                         |      326 |       34 |     90% |31, 80, 225-228, 233-239, 247, 367, 378-379, 384-385, 389-393, 400, 405, 411-412, 415, 443, 459, 521, 525-527, 550, 588, 598 |
+| django/chat/models.py                                                                                         |      326 |       32 |     90% |31, 80, 225-228, 233-239, 247, 367, 384-385, 389-393, 400, 405, 411-412, 415, 443, 459, 521, 525-527, 550, 588, 598 |
 | django/chat/prompts.py                                                                                        |        5 |        0 |    100% |           |
 | django/chat/responses.py                                                                                      |      293 |       75 |     74% |74, 112, 210, 264, 270-290, 358-359, 364-380, 383-413, 453, 459-469, 519, 565-599, 605-609, 668, 695, 699, 740-741 |
 | django/chat/tasks.py                                                                                          |       71 |       16 |     77% |22-30, 92-93, 96-101 |
@@ -67,7 +67,7 @@
 | django/chat/templatetags/chat\_tags.py                                                                        |        5 |        0 |    100% |           |
 | django/chat/urls.py                                                                                           |        6 |        0 |    100% |           |
 | django/chat/utils.py                                                                                          |      327 |       54 |     83% |121, 133-134, 146-150, 194, 213, 215-216, 228-244, 252-253, 260-261, 296-299, 305-312, 343-345, 360-362, 384, 456, 458, 475, 529-536, 544, 561-565, 601-611, 618 |
-| django/chat/views.py                                                                                          |      431 |       64 |     85% |86-88, 121, 146-148, 151-153, 177, 194-201, 207, 302-306, 392, 412-432, 458-460, 512, 515, 581, 594, 629-630, 683-691, 755-757, 763-779, 789-790, 799-802, 840-849, 853-855 |
+| django/chat/views.py                                                                                          |      438 |       63 |     86% |87-89, 122, 147-149, 152-154, 178, 195-202, 208, 303-307, 393, 413-433, 459-461, 513, 516, 582, 595, 630-631, 684-692, 770-786, 796-797, 806-809, 847-856, 862-867 |
 | django/import\_timer.py                                                                                       |        6 |        6 |      0% |       1-8 |
 | django/laws/\_\_init\_\_.py                                                                                   |        0 |        0 |    100% |           |
 | django/laws/admin.py                                                                                          |        1 |        1 |      0% |         1 |
@@ -109,7 +109,7 @@
 | django/librarian/urls.py                                                                                      |        4 |        0 |    100% |           |
 | django/librarian/utils/markdown\_splitter.py                                                                  |      183 |       10 |     95% |72, 75-77, 88, 123, 137, 260, 270, 277 |
 | django/librarian/utils/process\_engine.py                                                                     |      441 |       57 |     87% |44-46, 51, 147, 152, 162-163, 167, 173, 176, 183, 185, 187, 189, 195, 197, 199, 246, 259, 271-272, 285-294, 296-298, 343-349, 386, 410, 426-428, 477-481, 487-491, 495, 543-544, 578, 665, 687 |
-| django/librarian/views.py                                                                                     |      297 |       53 |     82% |70-90, 96, 126-148, 184-205, 234-249, 308-309, 328, 335-337, 455, 460 |
+| django/librarian/views.py                                                                                     |      302 |       56 |     81% |71-92, 98, 128-151, 187-208, 238-254, 314-315, 334, 341-343, 461, 466 |
 | django/manage.py                                                                                              |       11 |       11 |      0% |      3-23 |
 | django/otto/\_\_init\_\_.py                                                                                   |        2 |        0 |    100% |           |
 | django/otto/admin.py                                                                                          |        0 |        0 |    100% |           |
@@ -182,7 +182,7 @@
 | django/tests/chat/test\_chat\_procs.py                                                                        |      209 |        0 |    100% |           |
 | django/tests/chat/test\_chat\_readonly.py                                                                     |       33 |        0 |    100% |           |
 | django/tests/chat/test\_chat\_translate.py                                                                    |       37 |        0 |    100% |           |
-| django/tests/chat/test\_chat\_views.py                                                                        |      639 |       11 |     98% |   579-597 |
+| django/tests/chat/test\_chat\_views.py                                                                        |      655 |       11 |     98% |   581-599 |
 | django/tests/conftest.py                                                                                      |      170 |        5 |     97% |36, 210, 240-244 |
 | django/tests/laws/conftest.py                                                                                 |        9 |        0 |    100% |           |
 | django/tests/laws/test\_laws\_utils.py                                                                        |       45 |        0 |    100% |           |
@@ -219,7 +219,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **9906** | **1171** | **88%** |           |
+|                                                                                                     **TOTAL** | **9934** | **1171** | **88%** |           |
 
 
 ## Setup coverage badge
