@@ -245,7 +245,7 @@ def test_delete_old_chats_task(client, all_apps_user):
     # Check that the chat.accessed_at is now updated
     assert (chat.accessed_at - start_time).total_seconds() >= 2
     # Manually set the accessed_at time to 100 days ago
-    chat.accessed_at = timezone.now() - timezone.timedelta(days=100)
+    chat.accessed_at = timezone.now() - timezone.timedelta(days=40)
     chat.save()
     # Test the task
     from otto.tasks import delete_old_chats
