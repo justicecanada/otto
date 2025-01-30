@@ -4,7 +4,7 @@ let optionSaveDelay = 500;
 const handlebar = document.getElementById("right-sidebar-resize-handle");
 const sidebar = document.getElementById("right-sidebar");
 
-const sidebarMinWidth = 350;
+const sidebarMinWidth = 400;
 const sidebarMaxWidth = 600;
 
 // This saves the options when the user changes them via HTMX
