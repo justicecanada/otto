@@ -374,6 +374,9 @@ def done_upload(request, message_id):
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def invalid_upload(request, message_id):
+    """
+    Creates a error message in the chat when a file upload is invalid
+    """
     user_message = Message.objects.get(id=message_id)
 
     user_message.text = _("There was an error uploading the file")
