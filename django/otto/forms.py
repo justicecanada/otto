@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import AutocompleteWidget, ModelAutocomplete
+from autocomplete import AutocompleteWidget, ModelAutocomplete, register
 
 from chat.models import Message, Preset
 from otto.models import App, Feedback, Pilot
@@ -120,6 +120,7 @@ class FeedbackNoteForm(ModelForm):
         }
 
 
+@register
 class UserAutocomplete(ModelAutocomplete):
     model = User
     search_attrs = ["upn"]
@@ -127,6 +128,7 @@ class UserAutocomplete(ModelAutocomplete):
     name = "upn"
 
 
+@register
 class GroupAutocomplete(ModelAutocomplete):
     model = Group
     search_attrs = ["name"]

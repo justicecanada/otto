@@ -5,7 +5,7 @@ from django.core.validators import URLValidator
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import AutocompleteWidget, ModelAutocomplete
+from autocomplete import AutocompleteWidget, ModelAutocomplete, register
 
 from chat.forms import UserAutocomplete2
 from chat.utils import bad_url
@@ -145,6 +145,7 @@ class DocumentDetailForm(forms.ModelForm):
         }
 
 
+@register
 class UserAutocomplete3(ModelAutocomplete):
     model = get_user_model()
     search_attrs = ["email"]
@@ -152,6 +153,7 @@ class UserAutocomplete3(ModelAutocomplete):
     name = "admins"
 
 
+@register
 class UserAutocomplete4(ModelAutocomplete):
     model = get_user_model()
     search_attrs = ["email"]
@@ -159,6 +161,7 @@ class UserAutocomplete4(ModelAutocomplete):
     name = "contributors"
 
 
+@register
 class UserAutocomplete5(ModelAutocomplete):
     model = get_user_model()
     search_attrs = ["email"]

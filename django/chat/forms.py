@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import Autocomplete, AutocompleteWidget, ModelAutocomplete
+from autocomplete import Autocomplete, AutocompleteWidget, ModelAutocomplete, register
 from data_fetcher.util import get_request
 from rules import is_group_member
 from structlog import get_logger
@@ -81,6 +81,7 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         return self.get_grouped_choices()
 
 
+@register
 class DataSourcesAutocomplete(ModelAutocomplete):
     """Autocomplete component to select Data Sources from a library"""
 
@@ -90,10 +91,12 @@ class DataSourcesAutocomplete(ModelAutocomplete):
     model = DataSource
 
     def get_items(self, search=None, values=None):
+        logger.info("aaaaaaaaaaaaa")
         request = get_request()
         library_id = request.GET.get("library_id", None)
         chat_id = request.GET.get("chat_id", None)
         if library_id:
+            logger.info(library_id)
             library = (
                 Library.objects.filter(pk=library_id)
                 .prefetch_related("data_sources")
@@ -101,6 +104,7 @@ class DataSourcesAutocomplete(ModelAutocomplete):
             )
             data = library.data_sources.all()
             if chat_id and library.is_personal_library:
+                logger.info(chat_id)
                 chat = Chat.objects.get(pk=chat_id)
                 if DataSource.objects.filter(chat=chat).exists():
                     data = list(data)
@@ -127,6 +131,7 @@ class DataSourcesAutocomplete(ModelAutocomplete):
         return []
 
 
+@register
 class DocumentsAutocomplete(ModelAutocomplete):
     """Autocomplete component to select Documents from a library"""
 
@@ -136,6 +141,7 @@ class DocumentsAutocomplete(ModelAutocomplete):
     model = Document
 
     def get_items(self, search=None, values=None):
+        logger.info("aaaaaaaaaaaaaaaaaaaaa")
         request = get_request()
         library_id = request.GET.get("library_id", None)
         if library_id:
@@ -299,7 +305,7 @@ class ChatOptionsForm(ModelForm):
                 ac_class=DataSourcesAutocomplete,
                 attrs={
                     "component_id": f"id_qa_data_sources",
-                    "id": f"id_qa_data_sources__textinput",
+                    "user": f"id_qa_data_sources__textinput",
                 },
             ),
         )
@@ -312,7 +318,7 @@ class ChatOptionsForm(ModelForm):
                 ac_class=DocumentsAutocomplete,
                 attrs={
                     "component_id": f"id_qa_documents",
-                    "id": f"id_qa_documents__textinput",
+                    "iddfd": f"id_qa_documents__textinput",
                 },
             ),
         )
@@ -358,6 +364,7 @@ class ChatRenameForm(ModelForm):
         }
 
 
+@register
 class UserAutocomplete2(ModelAutocomplete):
     model = get_user_model()
     search_attrs = ["email"]
