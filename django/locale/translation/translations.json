@@ -3046,5 +3046,9 @@
     "respectively.": {
         "fr": "",
         "fr_auto": "respectivement."
+    },
+    "There was an error uploading the file": {
+        "fr": "",
+        "fr_auto": "Il y a eu une erreur de téléchargement du fichier"
     }
 }
