@@ -1,7 +1,6 @@
 # views.py
 from dataclasses import dataclass
 
-from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -14,6 +13,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from librarian.utils.process_engine import generate_hash
+from otto.utils.common import generate_mailto
 from otto.utils.decorators import budget_required, permission_required
 
 from .forms import (
@@ -22,7 +22,7 @@ from .forms import (
     LibraryDetailForm,
     LibraryUsersForm,
 )
-from .models import DataSource, Document, Library, SavedFile
+from .models import DataSource, Document, Library, LibraryUserRole, SavedFile
 
 logger = get_logger(__name__)
 IN_PROGRESS_STATUSES = ["PENDING", "INIT", "PROCESSING"]
@@ -64,6 +64,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     users_form = None
     show_document_status = False
     focus_el = None
+    has_error = False
 
     if item_type == "document":
         if request.method == "POST":
@@ -87,6 +88,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 show_document_status = True
             else:
                 logger.error("Error updating document:", errors=form.errors)
+                has_error = True
                 selected_data_source = (
                     DataSource.objects.filter(id=parent_id).first()
                     or form.instance.data_source
@@ -145,6 +147,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 documents = selected_data_source.documents.all()
             else:
                 logger.error("Error updating data source:", errors=form.errors)
+                has_error = True
                 selected_library = get_object_or_404(Library, id=parent_id)
         elif request.method == "DELETE":
             data_source = get_object_or_404(DataSource, id=item_id)
@@ -205,6 +208,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                     users_form = LibraryUsersForm(library=selected_library)
             else:
                 logger.error("Error updating library:", errors=form.errors)
+                has_error = True
         elif request.method == "DELETE":
             library = get_object_or_404(Library, id=item_id)
             library.delete()
@@ -238,6 +242,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 messages.success(request, _("Library users updated successfully."))
             else:
                 logger.error("Error updating library users:", errors=users_form.errors)
+                has_error = True
             # The change may have resulted in the user losing access to manage library users
             if not request.user.has_perm(
                 "librarian.manage_library_users", selected_library
@@ -289,6 +294,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "focus_el": focus_el,
         "poll_url": poll_url,
         "poll_response": "poll" in request.GET,
+        "has_error": has_error,
     }
     return render(request, "librarian/modal_inner.html", context)
 
@@ -532,4 +538,37 @@ def document_text(request, document_id):
     document = get_object_or_404(Document, pk=document_id)
     return HttpResponse(
         document.extracted_text, content_type="text/plain; charset=utf-8"
+    )
+
+
+def email_library_admins(request, library_id):
+    otto_email = "otto@justice.gc.ca"
+    library = get_object_or_404(Library, pk=library_id)
+    library_admin_emails = list(
+        LibraryUserRole.objects.filter(library=library, role="admin").values_list(
+            "user__email", flat=True
+        )
+    )
+    to = library_admin_emails or otto_email
+    cc = otto_email if library_admin_emails else ""
+    subject = f"Otto Q&A library: {library.name_en} | Bibliothèque de questions et réponses Otto: {library.name_fr}"
+    body = (
+        "Le message français suit l'anglais.\n"
+        "---\n"
+        "You are receiving this email because you are an administrator for the following Otto Q&A library:\n"
+        f'"{library.name_en}"\n\n'
+        "Action required:\n<<ADD REQUIRED ACTION HERE>>\n\n"
+        "Please log into Otto, and within the AI Assistant Q&A sidebar, click Edit Libraries to manage the library.\n"
+        "If you have any questions or concerns, please contact the Otto team and the requester by replying-all to this email.\n"
+        "---\n\n"
+        "Vous recevez ce courriel parce que vous êtes un administrateur de la bibliothèque de questions et réponses Otto suivante:\n"
+        f"{library.name_fr}\n\n"
+        "Action requise: <<AJOUTEZ L'ACTION REQUISE ICI>>\n\n"
+        "Veuillez vous connecter à Otto et, dans la barre latérale de l'assistant Q&R, cliquez sur Modifier les bibliothèques pour gérer la bibliothèque.\n"
+        "Si vous avez des questions ou des préoccupations, veuillez contacter l'équipe Otto et le demandeur en répondant à tous à cet e-mail."
+    )
+    # URL encode the subject and message
+
+    return HttpResponse(
+        f"<a href='{generate_mailto(to,cc,subject,body)}'>mailto link</a>"
     )

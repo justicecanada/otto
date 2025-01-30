@@ -38,7 +38,6 @@ from otto.forms import (
     PilotForm,
     UserGroupForm,
 )
-from otto.metrics.activity_metrics import otto_access_total
 from otto.models import (
     FEATURE_CHOICES,
     BlockedURL,
@@ -47,7 +46,6 @@ from otto.models import (
     Feature,
     Feedback,
     Pilot,
-    UsageTerm,
 )
 from otto.utils.common import cad_cost, display_cad_cost
 from otto.utils.decorators import permission_required
@@ -111,7 +109,6 @@ def get_categorized_features(user):
 
 
 def index(request):
-    otto_access_total.labels(user=request.user.upn).inc()
     return render(
         request,
         "index.html",
@@ -131,7 +128,7 @@ def topnav_search_inner(request):
 
 
 @csrf_protect
-def accept_terms(request):
+def terms_of_use(request):
 
     if request.method == "POST":
         logger.info("Terms of conditions were accepted")
@@ -142,15 +139,13 @@ def accept_terms(request):
         return redirect(redirect_url)
 
     redirect_url = request.GET.get("next", "/")
-    usage_terms = UsageTerm.objects.all()
 
     return render(
         request,
-        "accept_terms.html",
+        "terms_of_use.html",
         {
             "hide_breadcrumbs": True,
             "redirect_url": redirect_url,
-            "usage_terms": usage_terms,
         },
     )
 

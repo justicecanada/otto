@@ -10,7 +10,7 @@ function resizeTextarea() {
   // Reset the height to its default to get the correct scrollHeight
   textarea.style.height = 'auto';
   // Calculate the new height and limit it to 400px
-  let newHeight = Math.min(Math.max(textarea.scrollHeight + 1, lastHeight), chatPromptMaxHeight);
+  let newHeight = Math.min(Math.max(textarea.scrollHeight + 3, lastHeight), chatPromptMaxHeight);
   lastHeight = newHeight;
   textarea.style.height = newHeight + 'px';
   resizeOtherElements();
@@ -82,4 +82,30 @@ document.addEventListener('mouseup', function () {
   }
 });
 
+// Prompt generator
+function applyGeneratedPrompt(event) {
+  event.preventDefault();
+  // Copy the generated prompt into the chat prompt textarea
+  const generatedPrompt = document.getElementById('generated-prompt').value;
+  const chatPrompt = document.getElementById('chat-prompt');
+  chatPrompt.value = generatedPrompt;
+  // Close the modal
+  const modalElement = document.getElementById('magicModal');
+  const modal = bootstrap.Modal.getInstance(modalElement);
+  modal.hide();
+  // Resize the textarea to accommodate the generated prompt
+  resizeTextarea();
+}
 
+function setMagicPrompt() {
+  const chatPrompt = document.getElementById('chat-prompt').value;
+  document.getElementById('magic-prompt').value = chatPrompt;
+}
+
+function resetPromptModal() {
+  const initialModalContent = document.getElementById('prompt-generator-initial');
+  const magicFormContent = document.getElementById('magic-form-content');
+  magicFormContent.innerHTML = initialModalContent.innerHTML;
+}
+
+document.getElementById('magicModal').addEventListener('hidden.bs.modal', resetPromptModal);

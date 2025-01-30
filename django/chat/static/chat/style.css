@@ -395,8 +395,8 @@ form#dropzone-basic {
 }
 
 .chat-sidebar {
-  width: 350px;
-  min-width: 350px;
+  width: 400px;
+  min-width: 400px;
   z-index: 2;
   height: calc(100vh - 3rem);
 }
@@ -779,6 +779,14 @@ div#chat-toolbar {
 #chat-outer.document_qa #no-messages-placeholder p.option.document_qa-option,
 #chat-outer.chat #no-messages-placeholder p.option.chat-option {
   display: block;
+}
+
+#chat-outer.chat #chat-prompt {
+  padding-right: 30px;
+}
+
+#chat-outer.chat #magic-button {
+  display: inline-block;
 }
 
 #file-dropzone {
@@ -1270,4 +1278,30 @@ ul#preset-edit-tabs {
 math[display="block"] {
   margin-top: 1rem;
   padding-bottom: 1rem;
+}
+
+#magic-button {
+  background-color: transparent !important;
+  color: var(--bs-secondary);
+  border: none;
+  top: 4px;
+  right: 47px;
+  width: 35px;
+  height: 30px;
+  position: absolute;
+  z-index: 10;
+  display: none;
+}
+
+#magic-button:hover,
+#magic-button:focus,
+#magic-button:active {
+  color: var(--app-color-purple-1) !important;
+}
+
+#shared-chat-warning {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  box-shadow: 0 0px 5px rgba(0, 0, 0, 0.4);
 }

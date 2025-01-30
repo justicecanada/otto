@@ -1,0 +1,38 @@
+{% load i18n %}
+<!-- Prompt generator modal-->
+<div class="modal fade"
+     id="magicModal"
+     tabindex="-1"
+     aria-labelledby="magicModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title w-100" id="magicModalLabel">{% trans "Improve prompt using AI" %}</h5>
+        <div id="prompt-generator-modal-spinner"
+             class="spinner text-primary"
+             style="margin-bottom: -7px;
+                    margin-top: -4px">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+        </div>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <form id="magic-form"
+            hx-post="{% url 'chat:generate_prompt_view' %}"
+            hx-target="#magic-form-content"
+            hx-swap="innerHTML"
+            hx-indicator="#prompt-generator-modal-spinner"
+            hx-disabled-elt="#generate-prompt">
+        {% csrf_token %}
+        <div id="magic-form-content">{% include "chat/modals/prompt_generator_initial.html" %}</div>
+      </form>
+    </div>
+  </div>
+</div>
+<template id="prompt-generator-initial">
+  {% include "chat/modals/prompt_generator_initial.html" %}
+</template>
