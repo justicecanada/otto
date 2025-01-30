@@ -442,8 +442,6 @@ class FileUpload {
         const res = JSON.parse(xhr.responseText);
         if (res.data === "Invalid request") {
           this.cancel_upload();
-          resetQAToCorporate();
-          console.log("resetQA() is back");
         } else if (nextChunk < this.file.size && res.data !== "Uploaded successfully") {
           // upload file in chunks
           this.upload_file(nextChunk, res.file_id, hash);
@@ -487,8 +485,6 @@ class FileUpload {
     });
   }
 }
-
-
 
 
 function closeSidebar(sidebarID, resizePrompt = true) {

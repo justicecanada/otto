@@ -442,9 +442,6 @@ def cancel_upload(request, message_id):
 @require_POST
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def chunk_upload(request, message_id):
-    # return handle_invalid_file_upload(request, message_id)\
-    return JsonResponse({"data": "Invalid request"})
-
     """
     Returns JSON for the file upload progress
     Based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader
