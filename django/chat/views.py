@@ -388,19 +388,8 @@ def cancel_upload(request, message_id):
     chat = user_message.chat
     response = HttpResponse()
 
-    if mode == "translate":
-        # usage metrics
-        chat_request_type_total.labels(
-            user=request.user.upn, type="document translation"
-        )
-    if mode == "summarize":
-        # usage metrics
-        chat_request_type_total.labels(user=request.user.upn, type="text summarization")
-
     if mode == "qa":
-        # usage metrics
         logger.debug("QA upload")
-        chat_request_type_total.labels(user=request.user.upn, type="qa upload")
         response.write(change_mode_to_chat_qa(chat))
 
     context = {
