@@ -327,8 +327,8 @@ def modal_library_list(request):
     return modal_view(request)
 
 
-# def modal_data_source_list(request, library_id):
-#     return modal_view(request, item_type="data_source", parent_id=library_id)
+def modal_datasource_list(request, library_id):
+    return modal_view(request, item_type="library", item_id=library_id)
 
 
 def modal_create_library(request):
