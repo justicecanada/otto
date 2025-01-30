@@ -318,7 +318,6 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     # Check that the new library is still there
     assert Library.objects.count() == 3
 
-
 @pytest.mark.django_db
 def test_delete_empty_chats_task(client, all_apps_user):
     """
