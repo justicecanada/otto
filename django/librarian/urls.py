@@ -26,6 +26,11 @@ from librarian.views import (
 app_name = "librarian"
 urlpatterns = [
     path("modal/", modal_library_list, name="modal_library_list"),
+    # path(
+    #     "modal/library/<int:library_id>",
+    #     modal_data_source_list,
+    #     name="modal_datasource_list",
+    # ),
     path("modal/library/create/", modal_create_library, name="modal_create_library"),
     path(
         "modal/library/<int:library_id>/edit/",

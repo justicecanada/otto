@@ -3,7 +3,7 @@
 
 {% if form.instance.id %}
   {% url 'librarian:modal_edit_data_source' data_source_id=form.instance.id as form_action_url %}
-  {% url 'librarian:modal_delete_data_source' data_source_id=form.instance.id as cancel_url %}
+  {% url 'librarian:modal_edit_data_source' data_source_id=form.instance.id as cancel_url %}
   {% url 'librarian:modal_delete_data_source' data_source_id=form.instance.id as delete_url %}
 {% else %}
   {% url 'librarian:modal_create_data_source' library_id=form.library.value as form_action_url %}

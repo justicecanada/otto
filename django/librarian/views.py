@@ -321,6 +321,10 @@ def modal_library_list(request):
     return modal_view(request)
 
 
+# def modal_data_source_list(request, library_id):
+#     return modal_view(request, item_type="data_source", parent_id=library_id)
+
+
 def modal_create_library(request):
     if request.method == "POST":
         is_public = "is_public" in request.POST
