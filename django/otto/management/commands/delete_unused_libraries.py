@@ -9,7 +9,7 @@ from librarian.models import DataSource, Document, Library
 
 
 class Command(BaseCommand):
-    help = "Delete libraries which haven't been used in a QA answer for a certain period of time (default: 90 days)"
+    help = "Delete libraries which haven't been used in a QA answer for a certain period of time (default: 30 days)"
 
     def add_arguments(self, parser):
         # before date
@@ -26,7 +26,7 @@ class Command(BaseCommand):
             delete_from = datetime.datetime.strptime(options["before"], "%Y-%m-%d")
         # By default, delete before 1 week ago
         else:
-            delete_from = datetime.datetime.now() - datetime.timedelta(days=90)
+            delete_from = datetime.datetime.now() - datetime.timedelta(days=30)
 
         libraries_deleted = 0
         documents_deleted = 0

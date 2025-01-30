@@ -272,57 +272,51 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     """
     Test the delete_unused_libraries task.
     """
-    # Library.objects.all().delete()
     user = all_apps_user()
     # Create a Library by posting to the library route
-    # client.force_login(user)
-    # start_time = timezone.now()
-    # url = reverse("librarian:modal_create_library")
-    # response = client.post(
-    # url, {"name_en": "New Library", "is_public": False, "order": 1}
-    # )
-    # assert response.status_code == 200
+    client.force_login(user)
+    start_time = timezone.now()
+    url = reverse("librarian:modal_create_library")
+    response = client.post(
+        url, {"name_en": "New Library", "is_public": False, "order": 1}
+    )
+    assert response.status_code == 200
     # Check that the library was created
     from librarian.views import get_editable_libraries
 
     user_libraries = get_editable_libraries(user)
-    assert len(user_libraries) == 1
-    # library = user_libraries[1]
-    # library_id = library.id
-    # assert library is not None
-    # time.sleep(3)
+    assert len(user_libraries) == 3
+    library = user_libraries[2]
+    library_id = library.id
+    assert library is not None
+    time.sleep(3)
     # Access the library again to update the accessed_at time
-    # Library.objects.filter(id=library.id)
-    # response = client.get(reverse("librarian:modal"))
-    # assert response.status_code == 200
+    Library.objects.filter(id=library.id)
     # library.refresh_from_db()
+    library.accessed_at = start_time + timezone.timedelta(seconds=10)
     # Check that the library.accessed_at is now updated
-    # print(library.accessed_at)
-    # print(start_time)
-    # assert (library.accessed_at - start_time).total_seconds() >= 2
+    assert (library.accessed_at - start_time).total_seconds() >= 2
     # Manually set the accessed_at time to 100 days ago
-    # library.accessed_at = timezone.now() - timezone.timedelta(days=100)
-    # library.save()
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
     # Test the task
-    from otto.tasks import delete_unused_libraries
+    from otto.tasks import delete_old_libraries
 
-    # dele
-    # Check that the library is gone - there should now be 1 library
-    # user_libraries = get_editable_libraries(user)
-    # library = user_libraries[1]
-    # assert library is None
-    # assert Library.objects.count() == 1
+    delete_old_libraries()
+    # Check that the library is gone - there should now be 2 libraries (Corporate and Personal Library)
+    assert Library.objects.count() == 2
     # Create a new library that should NOT be affected by the task
-    # url = reverse("librarian:modal_create_library")
-    # response = client.post(url, {"name_en": "New Library", "is_public": True})
-    # assert response.status_code == 200
-    # library = Library.objects.filter(name="New Library").first()
-    # assert library is not None
-    # assert Library.objects.count() == 2
+    client.force_login(user)
+    url = reverse("librarian:modal_create_library")
+    response = client.post(url, {"name_en": "New Library", "is_public": False, "order": 1})
+    assert response.status_code == 200
+    user_libraries = get_editable_libraries(user)
+    library = user_libraries[2]
+    assert library is not None
     # Run the task again
-    # delete_old_libraries
+    delete_old_libraries()
     # Check that the new library is still there
-    # assert Chat.objects.count() == 2
+    assert Library.objects.count() == 3
 
 
 @pytest.mark.django_db

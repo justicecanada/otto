@@ -9,7 +9,7 @@ from chat.models import Library
 
 
 class Command(BaseCommand):
-    help = "Delete libraries more than (default: 90) days old."
+    help = "Delete libraries more than (default: 30) days old."
 
     def add_arguments(self, parser):
         # before date
@@ -34,7 +34,7 @@ class Command(BaseCommand):
         elif options["before"]:
             delete_from = datetime.datetime.strptime(options["before"], "%Y-%m-%d")
         else:
-            delete_from = datetime.datetime.now() - datetime.timedelta(days=90)
+            delete_from = datetime.datetime.now() - datetime.timedelta(days=30)
 
         libraries = Library.objects.filter(accessed_at__lt=delete_from).filter(
             is_public=False
