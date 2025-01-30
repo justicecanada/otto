@@ -1,4 +1,5 @@
 import json
+from urllib.parse import quote
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -11,7 +12,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from rules.contrib.views import objectgetter
@@ -20,15 +20,6 @@ from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm
 from chat.llm import OttoLLM
-from chat.metrics.activity_metrics import (
-    chat_new_session_started_total,
-    chat_request_type_total,
-    chat_session_restored_total,
-)
-from chat.metrics.feedback_metrics import (
-    chat_negative_feedback_total,
-    chat_positive_feedback_total,
-)
 from chat.models import (
     Chat,
     ChatFile,
@@ -46,7 +37,7 @@ from chat.utils import (
 )
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
-from otto.utils.common import check_url_allowed
+from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -77,9 +68,6 @@ def new_chat(request, mode=None):
     empty_chat = Chat.objects.create(user=request.user, mode=mode)
 
     logger.info("New chat created.", chat_id=empty_chat.id, mode=mode)
-
-    # Usage metrics
-    chat_new_session_started_total.labels(user=request.user.upn, mode=mode).inc()
 
     return redirect("chat:chat", chat_id=empty_chat.id)
 
@@ -193,10 +181,7 @@ def chat(request, chat_id):
     if llm:
         llm.create_costs()
 
-    # Usage metrics
     awaiting_response = request.GET.get("awaiting_response") == "True"
-    if len(messages) > 0 and not awaiting_response:
-        chat_session_restored_total.labels(user=request.user.upn, mode=mode)
 
     # When a chat is created from outside Otto, we want to emulate the behaviour
     # of creating a new message - which returns an "awaiting_response" bot message
@@ -276,8 +261,6 @@ def chat_message(request, chat_id):
         chat=chat, text=user_message_text, is_bot=False, mode=mode
     )
     user_message.is_new_user_message = True
-    # usage metrics
-    chat_request_type_total.labels(user=request.user.upn, type=mode).inc()
 
     if entered_url and not allowed_url:
         # Just respond with the error message.
@@ -362,19 +345,8 @@ def done_upload(request, message_id):
     chat = user_message.chat
     response = HttpResponse()
 
-    if mode == "translate":
-        # usage metrics
-        chat_request_type_total.labels(
-            user=request.user.upn, type="document translation"
-        )
-    if mode == "summarize":
-        # usage metrics
-        chat_request_type_total.labels(user=request.user.upn, type="text summarization")
-
     if mode == "qa":
-        # usage metrics
         logger.debug("QA upload")
-        chat_request_type_total.labels(user=request.user.upn, type="qa upload")
         response.write(change_mode_to_chat_qa(chat))
 
     response_init_message = {
@@ -483,17 +455,9 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         message = Message.objects.get(id=message_id)
         message.feedback = message.get_toggled_feedback(feedback)
         message.save()
-        if feedback:
-            chat_positive_feedback_total.labels(
-                user=request.user.upn, message=message_id
-            ).inc()
-        else:
-            chat_negative_feedback_total.labels(
-                user=request.user.upn, message=message_id
-            ).inc()
     except Exception as e:
         # TODO: handle error
-        logger.error("An error occured while providing a chat feedback.", error=e)
+        logger.error("An error occurred while providing a chat feedback.", error=e)
 
     if feedback == -1:
         return feedback_message(request, message_id)
@@ -926,3 +890,27 @@ def generate_prompt_view(request):
         "chat/modals/prompt_generator_result.html",
         {"user_input": user_input, "output_text": output_text, "cost": cost},
     )
+
+
+def email_author(request, chat_id):
+    chat = get_object_or_404(Chat, pk=chat_id)
+    chat_link = request.build_absolute_uri(reverse("chat:chat", args=[chat_id]))
+    subject = (
+        f"Sharing link for Otto chat | Lien de partage pour le chat Otto: {chat.title}"
+    )
+    body = (
+        "Le message français suit l'anglais.\n---\n"
+        "You are receiving this email because you are the author of the following Otto chat:"
+        f"\n{chat.title}"
+        "\n\nThis link was shared with me, but I don't believe I should have access to it."
+        "\n\nACTION REQUIRED: Please open chat using the link below, and delete it if it contains sensitive information."
+        f"\n\n{chat_link}"
+        "\n\n---\n\n"
+        "Vous recevez ce courriel parce que vous êtes l'auteur du chat Otto suivant :"
+        f"\n{chat.title}"
+        "\n\nCe lien m'a été partagé, mais je ne crois pas que je devrais y avoir accès."
+        "\n\nACTION REQUISE : Veuillez ouvrir le chat en utilisant le lien ci-dessous, et le supprimer s'il contient des informations sensibles."
+        f"\n\n{chat_link}"
+    )
+    mailto_link = generate_mailto(to=chat.user.email, subject=subject, body=body)
+    return HttpResponse(f"<a href='{mailto_link}'>mailto link</a>")
