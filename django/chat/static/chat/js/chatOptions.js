@@ -98,3 +98,25 @@ function switchToDocumentScope() {
     }
   }
 }
+
+function resetQAToCorporate() {
+  clearAutocomplete('qa_data_sources');
+  clearAutocomplete('qa_documents');
+  const mode = document.getElementById('id_qa_mode');
+  const scope = document.getElementById('id_qa_scope');
+  const selectElement = document.getElementById('id_qa_library');
+  console.log('selectElement', selectElement.value);
+
+  scope.value = 'all';
+  mode.value = 'rag';
+  selectElement.value = '1';
+
+  // Trigger change events to update the UI
+  // scope.dispatchEvent(new Event('change'));
+  // mode.dispatchEvent(new Event('change'));
+  // selectElement.dispatchEvent(new Event('change'));
+  console.log('resetQA!!!');
+
+  // maybe something else is cancelleing this function
+
+}
