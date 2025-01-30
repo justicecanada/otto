@@ -44,9 +44,9 @@ urlpatterns = [
     path("message/<int:message_id>/upload/", views.chunk_upload, name="chunk_upload"),
     path("message/<int:message_id>/upload/done", views.done_upload, name="done_upload"),
     path(
-        "message/<int:message_id>/upload/cancel",
-        views.cancel_upload,
-        name="cancel_upload",
+        "message/<int:message_id>/upload/invalid",
+        views.invalid_upload,
+        name="invalid_upload",
     ),
     path("file/<int:file_id>/", views.download_file, name="download_file"),
     path(

@@ -361,7 +361,7 @@ def test_done_upload(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_cancel_upload(client, all_apps_user):
+def test_invalid_upload(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
 
@@ -369,7 +369,7 @@ def test_cancel_upload(client, all_apps_user):
 
     # Test for mode "qa"
     message = Message.objects.create(chat=chat, text="Uploading file...", mode="qa")
-    response = client.post(reverse("chat:cancel_upload", args=[message.id]))
+    response = client.post(reverse("chat:invalid_upload", args=[message.id]))
     assert response.status_code == 200
     message.refresh_from_db()
     assert message.text == "There was an error uploading the file"
@@ -379,7 +379,7 @@ def test_cancel_upload(client, all_apps_user):
     message = Message.objects.create(
         chat=chat, text="Uploading file...", mode="summarize"
     )
-    response = client.post(reverse("chat:cancel_upload", args=[message.id]))
+    response = client.post(reverse("chat:invalid_upload", args=[message.id]))
     assert response.status_code == 200
     message.refresh_from_db()
     assert message.text == "There was an error uploading the file"
@@ -389,7 +389,7 @@ def test_cancel_upload(client, all_apps_user):
     message = Message.objects.create(
         chat=chat, text="Uploading file...", mode="translate"
     )
-    response = client.post(reverse("chat:cancel_upload", args=[message.id]))
+    response = client.post(reverse("chat:invalid_upload", args=[message.id]))
     assert response.status_code == 200
     message.refresh_from_db()
     assert message.text == "There was an error uploading the file"

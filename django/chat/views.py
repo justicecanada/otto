@@ -373,7 +373,7 @@ def done_upload(request, message_id):
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def cancel_upload(request, message_id):
+def invalid_upload(request, message_id):
     """
     Creates a "files uploaded" message in the chat and initiates the response
     """

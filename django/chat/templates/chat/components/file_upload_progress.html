@@ -33,10 +33,10 @@
 <script>
   (function () {
     let upload_url = "{% url 'chat:chunk_upload' message_id=message.id %}";
-    let cancel_url = "{% url 'chat:cancel_upload' message_id=message.id %}";
+    let invalid_url = "{% url 'chat:invalid_upload' message_id=message.id %}";
     let message_id = "{{ message.id }}";
     let file_input = document.querySelector('#chat-file-input');
-    let uploader = new FileUpload(file_input, upload_url, cancel_url, message_id);
+    let uploader = new FileUpload(file_input, upload_url, invalid_url, message_id);
     uploader.upload();
     // Copy the '.option select' form elements from #prompt-form into this form
     let prompt_form = document.querySelector('#prompt-form');
