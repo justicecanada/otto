@@ -1,16 +1,16 @@
 {% load i18n %}
+{% load autocomplete %}
+{% load static %}
 
 <div class="modal-body"
      hx-target="#editLibrariesInner"
      hx-ext="morph"
      hx-swap="morph:innerHTML"
-     hx-indicator="#librarian-modal-spinner">
+     hx-indicator="#librarian-modal-spinner"
+     hx-logging="true">
   <div class="row" style="min-height: 300px">
     <div class="col-2 border-end">{% include "librarian/components/library_list.html" %}</div>
-    <div class="col-2 border-end">{% include "librarian/components/data_source_list.html" %}</div>
-    <div class="col-3 border-end">{% include "librarian/components/document_list.html" %}</div>
+
     <div class="col-5">{% include "librarian/components/edit_details.html" %}</div>
   </div>
 </div>
-
-{% include "librarian/components/poller.html" %}

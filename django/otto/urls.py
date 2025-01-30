@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views import defaults as default_views
 
-from autocomplete import HTMXAutoComplete
+from autocomplete import urls as autocomplete_urls
 from azure_auth.views import azure_auth_callback
 
 from . import views
@@ -88,7 +88,7 @@ urlpatterns = [
     path("chat/", include("chat.urls")),
     # exposes /metrics endpoint, accessible by anonymous users, restricted by ip addresses. See metrics/web.config and IIS's IP Address and Domain Restrictions
     path("", include("django_prometheus.urls")),
-    *HTMXAutoComplete.url_dispatcher("ac"),
+    path("ac/", autocomplete_urls),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG_TOOLBAR:

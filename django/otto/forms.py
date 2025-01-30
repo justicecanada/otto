@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import widgets
+from autocomplete import AutocompleteWidget, ModelAutocomplete
 
 from chat.models import Message, Preset
 from otto.models import App, Feedback, Pilot
@@ -120,20 +120,32 @@ class FeedbackNoteForm(ModelForm):
         }
 
 
+class UserAutocomplete(ModelAutocomplete):
+    model = User
+    search_attrs = ["upn"]
+    minimum_search_length = 2
+    name = "upn"
+
+
+class GroupAutocomplete(ModelAutocomplete):
+    model = Group
+    search_attrs = ["name"]
+    minimum_search_length = 0
+    name = "group"
+
+
 # AC-16 & AC-16(2): Enables the modification of user roles and group memberships
 class UserGroupForm(forms.Form):
     upn = forms.ModelMultipleChoiceField(
         queryset=User.objects.all().order_by("upn"),
         label="UPN",
         required=True,
-        widget=widgets.Autocomplete(
-            name="upn",
+        widget=AutocompleteWidget(
+            ac_class=UserAutocomplete,
             options={
-                "item_value": User.id,
-                "item_label": User.upn,
+                # "item_value": User.id,
+                # "item_label": User.upn,
                 "multiselect": True,
-                "minimum_search_length": 2,
-                "model": User,
             },
         ),
     )
@@ -141,9 +153,11 @@ class UserGroupForm(forms.Form):
         queryset=Group.objects.all(),
         label="Roles",
         required=False,
-        widget=widgets.Autocomplete(
-            name="group",
-            options={"multiselect": True, "minimum_search_length": 0, "model": Group},
+        widget=AutocompleteWidget(
+            ac_class=GroupAutocomplete,
+            options={
+                "multiselect": True,
+            },
         ),
     )
     pilot = forms.ModelChoiceField(

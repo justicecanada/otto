@@ -3,8 +3,7 @@ from django.contrib.auth import get_user_model
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import HTMXAutoComplete, widgets
-from autocomplete.widgets import Autocomplete
+from autocomplete import Autocomplete, AutocompleteWidget, ModelAutocomplete
 from data_fetcher.util import get_request
 from rules import is_group_member
 from structlog import get_logger
@@ -82,7 +81,7 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         return self.get_grouped_choices()
 
 
-class DataSourcesAutocomplete(HTMXAutoComplete):
+class DataSourcesAutocomplete(ModelAutocomplete):
     """Autocomplete component to select Data Sources from a library"""
 
     name = "qa_data_sources"
@@ -128,7 +127,7 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
         return []
 
 
-class DocumentsAutocomplete(HTMXAutoComplete):
+class DocumentsAutocomplete(ModelAutocomplete):
     """Autocomplete component to select Documents from a library"""
 
     name = "qa_documents"
@@ -296,8 +295,8 @@ class ChatOptionsForm(ModelForm):
             queryset=DataSource.objects.all(),
             label=_("Select folder(s)"),
             required=False,
-            widget=Autocomplete(
-                use_ac=DataSourcesAutocomplete,
+            widget=AutocompleteWidget(
+                ac_class=DataSourcesAutocomplete,
                 attrs={
                     "component_id": f"id_qa_data_sources",
                     "id": f"id_qa_data_sources__textinput",
@@ -309,8 +308,8 @@ class ChatOptionsForm(ModelForm):
             queryset=Document.objects.all(),
             label=_("Select document(s)"),
             required=False,
-            widget=Autocomplete(
-                use_ac=DocumentsAutocomplete,
+            widget=AutocompleteWidget(
+                ac_class=DocumentsAutocomplete,
                 attrs={
                     "component_id": f"id_qa_documents",
                     "id": f"id_qa_documents__textinput",
@@ -359,6 +358,13 @@ class ChatRenameForm(ModelForm):
         }
 
 
+class UserAutocomplete2(ModelAutocomplete):
+    model = get_user_model()
+    search_attrs = ["email"]
+    minimum_search_length = 2
+    name = "accessible_to"
+
+
 class PresetForm(forms.ModelForm):
     User = get_user_model()
 
@@ -395,14 +401,12 @@ class PresetForm(forms.ModelForm):
         queryset=User.objects.all(),
         label="Email",
         required=False,
-        widget=widgets.Autocomplete(
-            name="accessible_to",
+        widget=AutocompleteWidget(
+            ac_class=UserAutocomplete2,
             options={
-                "item_value": User.id,
-                "item_label": User.email,
+                # "item_value": User.id,
+                # "item_label": User.email,
                 "multiselect": True,
-                "minimum_search_length": 2,
-                "model": User,
             },
         ),
     )

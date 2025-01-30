@@ -2,7 +2,7 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import HTMXAutoComplete, widgets
+from autocomplete import AutocompleteWidget, ModelAutocomplete
 from autocomplete.widgets import Autocomplete
 
 from chat.forms import CHAT_MODELS
@@ -10,7 +10,7 @@ from chat.forms import CHAT_MODELS
 from .models import Law
 
 
-class ActsAutocomplete(HTMXAutoComplete):
+class ActsAutocomplete(ModelAutocomplete):
     """Autocomplete component to select Acts only (filter out regulations)"""
 
     name = "enabling_acts"
@@ -38,7 +38,7 @@ class ActsAutocomplete(HTMXAutoComplete):
         return []
 
 
-class LawsAutocomplete(HTMXAutoComplete):
+class LawsAutocomplete(ModelAutocomplete):
     """Autocomplete component to select any law (Act or Regulation)"""
 
     name = "laws"
@@ -91,8 +91,8 @@ class LawSearchForm(forms.Form):
         queryset=Law.objects.all(),
         label=_("Select act(s)/regulation(s)"),
         required=False,
-        widget=Autocomplete(
-            use_ac=LawsAutocomplete,
+        widget=AutocompleteWidget(
+            ac_class=LawsAutocomplete,
             attrs={
                 "component_id": f"id_laws",
                 "id": f"id_laws__textinput",
@@ -104,8 +104,8 @@ class LawSearchForm(forms.Form):
         queryset=Law.objects.all(),
         label=_("Select enabling act(s)"),
         required=False,
-        widget=Autocomplete(
-            use_ac=ActsAutocomplete,
+        widget=AutocompleteWidget(
+            ac_class=ActsAutocomplete,
             attrs={
                 "component_id": f"id_enabling_acts",
                 "id": f"id_enabling_acts__textinput",

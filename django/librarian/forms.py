@@ -5,8 +5,9 @@ from django.core.validators import URLValidator
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import widgets
+from autocomplete import AutocompleteWidget, ModelAutocomplete
 
+from chat.forms import UserAutocomplete2
 from chat.utils import bad_url
 from librarian.models import DataSource, Document, Library, LibraryUserRole
 from otto.utils.common import check_url_allowed
@@ -144,6 +145,27 @@ class DocumentDetailForm(forms.ModelForm):
         }
 
 
+class UserAutocomplete3(ModelAutocomplete):
+    model = get_user_model()
+    search_attrs = ["email"]
+    minimum_search_length = 2
+    name = "admins"
+
+
+class UserAutocomplete4(ModelAutocomplete):
+    model = get_user_model()
+    search_attrs = ["email"]
+    minimum_search_length = 2
+    name = "contributors"
+
+
+class UserAutocomplete5(ModelAutocomplete):
+    model = get_user_model()
+    search_attrs = ["email"]
+    minimum_search_length = 2
+    name = "viewers"
+
+
 class LibraryUsersForm(forms.Form):
     template_name = "librarian/forms/library_users.html"
 
@@ -151,14 +173,12 @@ class LibraryUsersForm(forms.Form):
         queryset=User.objects.all(),
         label=_("Administrators (edit library and manage users)"),
         required=True,
-        widget=widgets.Autocomplete(
-            name="admins",
+        widget=AutocompleteWidget(
+            ac_class=UserAutocomplete3,
             options={
-                "item_value": User.id,
-                "item_label": User.email,
+                # "item_value": User.id,
+                # "item_label": User.email,
                 "multiselect": True,
-                "minimum_search_length": 2,
-                "model": User,
             },
         ),
     )
@@ -166,14 +186,12 @@ class LibraryUsersForm(forms.Form):
         queryset=User.objects.all(),
         label=_("Contributors (edit library)"),
         required=False,
-        widget=widgets.Autocomplete(
-            name="contributors",
+        widget=AutocompleteWidget(
+            ac_class=UserAutocomplete4,
             options={
-                "item_value": User.id,
-                "item_label": User.email,
+                # "item_value": User.id,
+                # "item_label": User.email,
                 "multiselect": True,
-                "minimum_search_length": 2,
-                "model": User,
             },
         ),
     )
@@ -181,14 +199,12 @@ class LibraryUsersForm(forms.Form):
         queryset=User.objects.all(),
         label=_("Viewers (read-only access)"),
         required=False,
-        widget=widgets.Autocomplete(
-            name="viewers",
+        widget=AutocompleteWidget(
+            ac_class=UserAutocomplete5,
             options={
-                "item_value": User.id,
-                "item_label": User.email,
+                # "item_value": User.id,
+                # "item_label": User.email,
                 "multiselect": True,
-                "minimum_search_length": 2,
-                "model": User,
             },
         ),
     )

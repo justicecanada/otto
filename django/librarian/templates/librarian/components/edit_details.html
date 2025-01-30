@@ -1,27 +1,11 @@
 {% load i18n %}
+{% load autocomplete %}
+{% load static %}
 
-<div id="librarian-details" {% if swap %}hx-swap-oob="true"{% endif %}>
-  {% include "components/messages.html" %}
-  {% if detail_form %}
-    {{ detail_form }}
-    <div id="public-library-warning"
-         class="bg-warning-subtle py-1 px-2 mt-3 rounded border border-warning {% if not selected_library.is_public %}d-none{% endif %}">
-      <i class="bi bi-exclamation-triangle text-danger"></i>
-      <em class="small">{% trans "Changes will be visible to all Otto users." %}</em>
-    </div>
-    {% if users_form %}
-      <hr>
-      {{ users_form }}
-    {% endif %}
-    {% if document_status %}
-      <hr>
-      {% include "librarian/components/document_status.html" with document=selected_document %}
-    {% endif %}
-  {% else %}
-    <h6>{% trans "Edit properties" %}</h6>
-    <div class="text-center">
-      <em class="small">{% trans "Select a library, folder, or document to edit." %}</em>
-    </div>
-  {% endif %}
-  {% if focus_el %}<script>document.querySelector('{{ focus_el }}').focus();</script>{% endif %}
+<div id="librarian-details"
+     {% if swap %}hx-swap-oob="true"{% endif %}
+     hx-logging="true">
+
+  {% if users_form %}{{ users_form }}{% endif %}
+
 </div>
