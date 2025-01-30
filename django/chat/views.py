@@ -1,6 +1,7 @@
 import json
 from urllib.parse import quote
 
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -747,13 +748,19 @@ def set_preset_favourite(request, preset_id):
     preset = Preset.objects.get(id=preset_id)
     try:
         is_favourite = preset.toggle_favourite(request.user)
+        if is_favourite:
+            messages.success(request, _("Preset added to favourites."))
+        else:
+            messages.success(request, _("Preset removed from favourites."))
         return render(
             request,
             "chat/modals/presets/favourite.html",
             context={"is_favourite": is_favourite, "preset": preset},
         )
     except ValueError:
-        # TODO: Preset refactor: show friendly error message
+        messages.error(
+            request, _("An error occurred while setting the preset as favourite.")
+        )
         return HttpResponse(status=500)
 
 
@@ -848,10 +855,15 @@ def set_preset_default(request, chat_id: str, preset_id: int):
             )
             response += f'<div id="default-button-{old_default.id}" hx-swap-oob="true">{old_html}</div>'
 
+        messages.success(request, _("Default preset was set successfully."))
+
         return HttpResponse(response)
 
     except ValueError:
         logger.error("Error setting default preset")
+        messages.error(
+            request, _("An error occurred while setting the default preset.")
+        )
         return HttpResponse(status=500)
 
 

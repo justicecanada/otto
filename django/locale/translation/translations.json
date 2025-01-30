@@ -2947,6 +2947,26 @@
         "fr": "",
         "fr_auto": "pour signaler le problème."
     },
+    "Preset added to favourites.": {
+        "fr": "",
+        "fr_auto": "Préréglage ajouté aux favoris."
+    },
+    "Preset removed from favourites.": {
+        "fr": "",
+        "fr_auto": "Préréglage retiré des favoris."
+    },
+    "An error occurred while setting the preset as favourite.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors de la définition du préréglage comme favori."
+    },
+    "Default preset was set successfully.": {
+        "fr": "",
+        "fr_auto": "Le paramètre prédéfini par défaut a été défini avec succès."
+    },
+    "An error occurred while setting the default preset.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors de la définition du préréglage par défaut."
+    },
     "AI can make mistakes. Review the text before using it in an official capacity.": {
         "fr": "",
         "fr_auto": "L’IA peut faire des erreurs. Passez en revue le texte avant de l’utiliser à titre officiel."
