@@ -360,6 +360,42 @@ def test_done_upload(client, all_apps_user):
     assert response.status_code == 200
 
 
+@pytest.mark.django_db
+def test_cancel_upload(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    chat = Chat.objects.create(user=user)
+
+    # Test for mode "qa"
+    message = Message.objects.create(chat=chat, text="Uploading file...", mode="qa")
+    response = client.post(reverse("chat:cancel_upload", args=[message.id]))
+    assert response.status_code == 200
+    message.refresh_from_db()
+    assert message.text == "There was an error uploading the file"
+    assert "There was an error uploading the file" in response.content.decode("utf-8")
+
+    # Test for mode "summarize"
+    message = Message.objects.create(
+        chat=chat, text="Uploading file...", mode="summarize"
+    )
+    response = client.post(reverse("chat:cancel_upload", args=[message.id]))
+    assert response.status_code == 200
+    message.refresh_from_db()
+    assert message.text == "There was an error uploading the file"
+    assert "There was an error uploading the file" in response.content.decode("utf-8")
+
+    # Test for mode "translate"
+    message = Message.objects.create(
+        chat=chat, text="Uploading file...", mode="translate"
+    )
+    response = client.post(reverse("chat:cancel_upload", args=[message.id]))
+    assert response.status_code == 200
+    message.refresh_from_db()
+    assert message.text == "There was an error uploading the file"
+    assert "There was an error uploading the file" in response.content.decode("utf-8")
+
+
 # TODO: Test chunk_upload (somewhat difficult)
 # See tests/otto/test_cleanup.py for a partial test of chunk upload
 
