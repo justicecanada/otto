@@ -42,6 +42,11 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.delete_empty_chats",
         "schedule": crontab(hour=2, minute=0),
     },
+    # Delete dangling azure translation files every day at 3:30 am UTC
+    "delete-translation-files-every-morning": {
+        "task": "otto.tasks.delete_translation_files",
+        "schedule": crontab(hour=3, minute=30),
+    },
     # Delete unused libraries every day at 3 am UTC
     # Actually let's NOT do this yet. Too risky. Needs clearer definition of "unused"
     # "delete-unused-libraries-every-morning": {
