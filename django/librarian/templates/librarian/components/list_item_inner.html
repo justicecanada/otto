@@ -6,6 +6,8 @@
  
   {% if item.library.is_personal_library %}
     {{ item.chat.title }}
+    <br>
+    ({{ item.chat.accessed_at }})
   {% else %}
     {{ item.name }}
   {% endif %}
