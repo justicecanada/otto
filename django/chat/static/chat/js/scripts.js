@@ -462,12 +462,12 @@ class FileUpload {
           }
         }
       } else {
-        alert(xhr.statusText);
+        this.invalid_upload();
       }
     };
 
     xhr.onerror = () => {
-      alert(xhr.statusText);
+      this.invalid_upload();
     };
 
     xhr.send(formData);
