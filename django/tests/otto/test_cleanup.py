@@ -19,7 +19,7 @@ from django.utils.translation import gettext as _
 import pytest
 from structlog import get_logger
 
-from chat.models import Chat, ChatFile, Message
+from chat.models import Chat, ChatFile, ChatOptions, Message
 from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
 from librarian.utils.process_engine import generate_hash
 from otto.secure_models import AccessControl, AccessKey
@@ -289,13 +289,6 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     library = user_libraries[2]
     library_id = library.id
     assert library is not None
-    time.sleep(3)
-    # Access the library again to update the accessed_at time
-    Library.objects.filter(id=library.id)
-    # library.refresh_from_db()
-    library.accessed_at = start_time + timezone.timedelta(seconds=10)
-    # Check that the library.accessed_at is now updated
-    assert (library.accessed_at - start_time).total_seconds() >= 2
     # Manually set the accessed_at time to 32 days ago
     library.accessed_at = timezone.now() - timezone.timedelta(days=32)
     library.save()
@@ -303,8 +296,8 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     from otto.tasks import delete_unused_libraries
 
     delete_unused_libraries()
-    # Check that the library is gone - there should now be 2 libraries (Corporate and Personal Library)
-    assert Library.objects.count() == 2
+    # Check that the library is deleted
+    assert not Library.objects.filter(id=library_id).exists()
     # Create a new library that should NOT be affected by the task
     client.force_login(user)
     url = reverse("librarian:modal_create_library")
@@ -315,6 +308,7 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     user_libraries = get_editable_libraries(user)
     library = user_libraries[2]
     assert library is not None
+    library_id = library.id
     # Manually set the accessed_at time to 32 days ago
     library.accessed_at = timezone.now() - timezone.timedelta(days=32)
     library.save()
@@ -324,7 +318,7 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     # Run the task again
     delete_unused_libraries()
     # Check that the new library is still there
-    assert Library.objects.count() == 3
+    assert Library.objects.filter(id=library_id).exists()
     # Manually set the access_at to 32 days ago
     library.accessed_at = timezone.now() - timezone.timedelta(days=32)
     library.save()
@@ -334,7 +328,7 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     # Run the task again
     delete_unused_libraries()
     # Check that the new library is still there
-    assert Library.objects.count() == 3
+    assert Library.objects.filter(id=library_id).exists()
     # Manually set the access_at to 32 days ago
     library.accessed_at = timezone.now() - timezone.timedelta(days=32)
     library.save()
@@ -345,7 +339,7 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     # Run the task again
     delete_unused_libraries()
     # Check that the new library is still there
-    assert Library.objects.count() == 3
+    assert Library.objects.filter(id=library_id).exists()
     # Manually set the access_at to 32 days ago
     library.accessed_at = timezone.now() - timezone.timedelta(days=32)
     library.save()
@@ -356,33 +350,47 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     # Run the task again
     delete_unused_libraries()
     # Check that the new library is still there
-    assert Library.objects.count() == 3
+    assert Library.objects.filter(id=library_id).exists()
     # Manually set the access_at to 32 days ago
     library.accessed_at = timezone.now() - timezone.timedelta(days=32)
     library.save()
-    assert Library.objects.count() == 3
-    # Add library role which will update library.accessed_at
     user_2 = basic_user(accept_terms=True)
     client.force_login(user_2)
-    role = LibraryUserRole.objects.create(user=user_2, library=library, role="admin")
-    assert Library.objects.count() == 3
-    """
-    path(
-        "modal/library/<int:library_id>/users/",
-        modal_manage_library_users,
-        name="modal_manage_library_users",
-    ),
-    """
+    library_id = library.id
+    # New user needs to be admin so that they can change library roles through the form
+    LibraryUserRole.objects.create(user=user_2, library=library, role="admin")
+    # Change library roles which will update library.accessed_at
     url = reverse(
         "librarian:modal_manage_library_users", kwargs={"library_id": library.id}
     )
     response = client.post(url, data={"admins": user.id})
-    assert Library.objects.count() == 3
     assert response.status_code == 200
     # Run the task again
     delete_unused_libraries()
-    # Check that the new library is still there
-    assert Library.objects.count() == 3
+    # Check that the library is still there
+    assert Library.objects.filter(id=library_id).exists()
+    # Manually set the access_at to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Create a chat using the route to create it with appropriate options
+    chat = Chat.objects.create(user=user_2)
+    # Assign library to chat
+    chat.options.qa_library = library
+    chat.save()
+    message = Message.objects.create(
+        chat=chat,
+        text="What is the capital of Canada?",
+        mode="qa",
+    )
+    response_message = Message.objects.create(
+        chat=chat, mode="qa", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the library is still there
+    assert Library.objects.filter(id=library_id).exists()
 
 
 @pytest.mark.django_db
