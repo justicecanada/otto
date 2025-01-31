@@ -188,11 +188,11 @@
         "fr_auto": "Nouveau chat"
     },
     "Document Q&A": {
-        "fr": "Demander des documents",
+        "fr": "Question-réponses sur les documents",
         "fr_auto": "Questions et réponses sur le document"
     },
     "Chat": {
-        "fr": "Discutez",
+        "fr": "Clavardez",
         "fr_auto": "Discutez avec l’IA"
     },
     "Load": {
@@ -200,11 +200,11 @@
         "fr_auto": "Charge"
     },
     "\n            <strong>Chat</strong> is a general-purpose AI-powered tool for writing assistance and text formatting. Please note that this tool is provided solely for enhancing your writing process and refining your ideas using natural language.          \n          ": {
-        "fr": "\n<strong>Discutez</strong> est un outil polyvalent alimenté par l’IA pour l’aide à la rédaction et la mise en forme du texte. Veuillez noter que cet outil est fourni uniquement pour améliorer votre processus d’écriture et affiner vos idées en utilisant un langage naturel.          \n          ",
+        "fr": "\n<strong>Clavardez</strong> est un outil polyvalent alimenté par l’IA pour l’aide à la rédaction et la mise en forme du texte. Veuillez noter que cet outil est fourni uniquement pour améliorer votre processus d’écriture et affiner vos idées en utilisant un langage naturel.          \n          ",
         "fr_auto": "\n<strong>Chat</strong> est un outil polyvalent alimenté par l’IA pour l’aide à la rédaction et la mise en forme du texte. Veuillez noter que cet outil est fourni uniquement pour améliorer votre processus d’écriture et affiner vos idées en utilisant un langage naturel.          \n          "
     },
     "We kindly advise you to refrain from using Chat as a means to seek factual information, conduct research, or request data. Its primary purpose is to offer writing suggestions, grammar corrections, and structure recommendations, ensuring your content is well-crafted and coherent.": {
-        "fr": "Nous vous conseillons de vous abstenir d’utiliser 'Dicuter' avec l’IA comme un moyen de rechercher des informations factuelles, de mener des recherches ou de demander des données. Son objectif principal est d’offrir des suggestions d’écriture, des corrections grammaticales et des recommandations de structure, en veillant à ce que votre contenu soit bien conçu et cohérent.",
+        "fr": "Nous vous conseillons de vous abstenir d’utiliser 'Clavardez' avec l’IA comme un moyen de rechercher des informations factuelles, de mener des recherches ou de demander des données. Son objectif principal est d’offrir des suggestions d’écriture, des corrections grammaticales et des recommandations de structure, en veillant à ce que votre contenu soit bien conçu et cohérent.",
         "fr_auto": "Nous vous conseillons de vous abstenir d’utiliser chat avec l’IA comme un moyen de rechercher des informations factuelles, de mener des recherches ou de demander des données. Son objectif principal est d’offrir des suggestions d’écriture, des corrections grammaticales et des recommandations de structure, en veillant à ce que votre contenu soit bien conçu et cohérent."
     },
     "Although the Document Q&A tool aims to deliver precise answers, users should validate the outputs by checking the sources. For critical decisions, consulting with experts is recommended rather than relying solely on the AI's responses.": {
@@ -324,7 +324,7 @@
         "fr_auto": "Téléchargement de chat"
     },
     "\n            <strong>Q&A</strong> provides answers based on Justice documents. Create or select your own document libraries from the settings sidebar.\n          ": {
-        "fr": "\n<strong>Questions et réponses</strong> fournit des réponses basées sur des documents de justice. Créez ou sélectionnez vos propres bibliothèques de documents dans la barre latérale des paramètres.\n          ",
+        "fr": "\n<strong>Question-réponses</strong> fournit des réponses basées sur des documents de justice. Créez ou sélectionnez vos propres bibliothèques de documents dans la barre latérale des paramètres.\n          ",
         "fr_auto": "\n<strong>Questions et réponses</strong> fournit des réponses basées sur des documents de justice. Créez ou sélectionnez vos propres bibliothèques de documents dans la barre latérale des paramètres.\n          "
     },
     "Delete chat": {
@@ -352,7 +352,7 @@
         "fr_auto": "Êtes-vous sûr de vouloir supprimer tous les chats ? Cette action est irréversible."
     },
     "Delete all chats": {
-        "fr": "Supprimer toutes les sessions de clavardages",
+        "fr": "Supprimer tous les clavardages",
         "fr_auto": "Supprimer tous les chats"
     },
     "You are a general-purpose AI chatbot. You follow these rules:\n\n1. Your name is 'Otto', an AI who works for the Department of Justice Canada.\n\n2. If the user asks any question regarding Canada's laws and regulations, you must inform them of the [Legislation Search app](/laws/), a tool in Otto built to be better suited for finding relevant and accurate laws and regulations in Canada. If relevant, add a markdown link to the Legislation Search app.\n\n3. You do not have access to the internet or other knowledge bases. If you are asked about very specific facts, especially one about the Government of Canada or laws, you always caveat your response, e.g., 'I am a pre-trained AI and do not have access to the internet, so my answers might not be correct. Based on my training data, I expect that...'\n\n4. You answer in markdown format to provide clear and readable responses.": {
@@ -668,7 +668,7 @@
         "fr_auto": "Aucun message de l’utilisateur trouvé."
     },
     "Toggle chat history sidebar": {
-        "fr": "",
+        "fr": "Basculez la barre latérale d'historique",
         "fr_auto": "Basculez la barre latérale historique des discussions"
     },
     "Read-only": {
@@ -696,7 +696,7 @@
         "fr_auto": "Posez des questions sur les documents"
     },
     "Q&A": {
-        "fr": "",
+        "fr": "Question-réponses",
         "fr_auto": "Questions et réponses"
     },
     "Summarize text, files and URLs": {
@@ -956,7 +956,7 @@
         "fr_auto": "Résultats du filtre"
     },
     "Advanced Q&A settings": {
-        "fr": "",
+        "fr": "Paramètres avancés de question-réponses",
         "fr_auto": "Paramètres avancés de questions et réponses"
     },
     "Keyword ↔ Vector": {
@@ -1720,7 +1720,7 @@
         "fr_auto": "DANGER : Êtes-vous sûr de vouloir supprimer cette bibliothèque ? Cette action est permanente."
     },
     "Edit library users - enter Justice email": {
-        "fr": "",
+        "fr": "Modifier les utilisateurs de la bibliothèque - saisissez l'addresse courriel de l'employé",
         "fr_auto": "Modifier les utilisateurs de la bibliothèque - entrez l’e-mail justice"
     },
     "Save users": {
@@ -2196,7 +2196,7 @@
         "fr_auto": "Le fichier doit être en anglais comme indiqué ci-dessus."
     },
     "The upn column must match the Azure Active Directory (Entra) userPrincipalName property. This is usually the user's Justice email, and is case-sensitive.": {
-        "fr": "",
+        "fr": "La colonne upn doit correspondre à la propriété Azure Active Directory (Entra) userPrincipalName. Il s’agit généralement de l’addresse courriel justice de l’utilisateur et est sensible à la casse.",
         "fr_auto": "La colonne upn doit correspondre à la propriété Azure Active Directory (Entra) userPrincipalName. Il s’agit généralement de l’e-mail justice de l’utilisateur et est sensible à la casse."
     },
     "Roles are case-insensitive. Invalid roles will be ignored. These are the valid roles:": {
@@ -2212,7 +2212,7 @@
         "fr_auto": "Toute pilot_id qui n’existe pas sera créée, puis l’utilisateur y sera associé. Le pilot_id est facultatif."
     },
     "If the user does not exist, their first name, last name and email will be extrapolated from the UPN. These properties will be updated when the user next logs in with Entra.": {
-        "fr": "",
+        "fr": "Si l’utilisateur n’existe pas, son prénom, son nom et son adresse courriel seront extrapolés à partir de l’UPN. Ces propriétés seront mises à jour lors de la prochaine connexion de l’utilisateur avec Entra",
         "fr_auto": "Si l’utilisateur n’existe pas, son prénom, son nom et son adresse e-mail seront extrapolés à partir de l’UPN. Ces propriétés seront mises à jour lors de la prochaine connexion de l’utilisateur avec Entra."
     },
     "Modify user(s)": {
@@ -2616,7 +2616,7 @@
         "fr_auto": "URL bloquées - Otto"
     },
     "User-requested URLs for Q&A, summarization etc. which were not on the allow-list": {
-        "fr": "",
+        "fr": "URL demandées par l’utilisateur pour les questions-réponses, les résumés, etc. qui ne figuraient pas sur la liste d’adresses autorisées",
         "fr_auto": "URL demandées par l’utilisateur pour les questions et réponses, les résumés, etc. qui ne figuraient pas sur la liste d’adresses autorisées"
     },
     "Domain": {
@@ -2736,11 +2736,11 @@
         "fr_auto": "Limitez les informations partagées dans les chats et les bibliothèques de questions et réponses. Ceux-ci sont supprimés après 30 jours."
     },
     "\n            <strong>Chat</strong> with a secure AI for brainstorming, writing assistance and text formatting.\n          ": {
-        "fr": "",
+        "fr": "\n<strong>Clavardez</strong> avec une IA sécurisée pour le brainstorming, l’aide à la rédaction et le formatage du texte.\n          ",
         "fr_auto": "\n<strong>Discutez</strong> avec une IA sécurisée pour le brainstorming, l’aide à la rédaction et le formatage du texte.\n          "
     },
     "Chat mode is not suitable for factual research.": {
-        "fr": "",
+        "fr": "Le mode de clavardage ne convient pas à la recherche factuelle.",
         "fr_auto": "Le mode chat ne convient pas à la recherche factuelle."
     },
     "\n            <strong>Summarize</strong> uploaded documents. You may also input free text or enter a URL for a web page.\n          ": {
@@ -2760,7 +2760,7 @@
         "fr_auto": "Les traductions peuvent ne pas convenir aux soumissions de documents juridiques et officiels avant l’examen humain."
     },
     "\n            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or simply upload documents to the chat.\n          ": {
-        "fr": "",
+        "fr": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents à partir de la barre latérale des paramètres, ou simplement téléversez des documents sur la session de clavardage.\n          ",
         "fr_auto": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents à partir de la barre latérale des paramètres, ou téléchargez simplement des documents sur le chat.\n          "
     },
     "For official use, always verify with the provided sources due to the potential for inaccuracies.": {
@@ -2852,7 +2852,7 @@
         "fr_auto": "Limitez les documents que vous téléchargez sur Otto uniquement à ceux dont vous avez besoin pour effectuer vos tâches. Partagez des bibliothèques de documents et des discussions uniquement avec ceux qui en ont besoin. Évitez de télécharger des informations personnelles, sauf si nécessaire pour des tâches spécifiques, et supprimez activement les informations classifiées ou personnelles lorsqu’elles ne sont plus nécessaires."
     },
     "In the AI assistant, document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted.": {
-        "fr": "",
+        "fr": "Les bibliothèques de documents et les sessions de clavardage seront supprimés après 30 jours d’inactivité dans l'assistant d'IA. Cela signifie que si vous n’ouvrez pas une session de clavardage pendant 30 jours, elle sera automatiquement supprimée avec tous ses fichiers téléversés. Pour les bibliothèques, si aucune modification n’a été apportée et qu’aucune requête Q&R n’a été effectuée pendant 30 jours, la bibliothèque sera automatiquement supprimée.",
         "fr_auto": "Dans l’assistant IA, les bibliothèques de documents et les chats seront supprimés après 30 jours d’inactivité. Cela signifie que si vous n’ouvrez pas un chat pendant 30 jours, il sera automatiquement supprimé avec tous les fichiers téléchargés sur le chat. Pour les bibliothèques, si aucune modification n’a été apportée et qu’aucune requête Q&A n’a été effectuée pendant 30 jours, la bibliothèque sera automatiquement supprimée."
     },
     "Appropriate and inappropriate uses": {
@@ -2860,7 +2860,7 @@
         "fr_auto": "Utilisations appropriées et inappropriées"
     },
     "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted for facts. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.": {
-        "fr": "",
+        "fr": "Lisez et suivez les avis de confidentialité dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Clavardez ne doivent pas être considérés comme faits. Utilisez plutôt les modes Q&R et Résumer pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléversez ou dans une bibliothèque de documents partagée.",
         "fr_auto": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Chat ne doivent pas être fiables pour les faits. Utilisez plutôt les modes Q&R et Summarize pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléchargez ou une bibliothèque de documents partagée."
     },
     "Otto may not be used for automated decision-making. Do not use it for administrative decisions affecting individuals.": {
@@ -2904,7 +2904,7 @@
         "fr_auto": "J’accepte les conditions d’utilisation."
     },
     "In the AI assistant, apply security classification labels to chats and document libraries when they contain classified and/or personal information.": {
-        "fr": "",
+        "fr": "Dans l’Assistant IA, appliquez des étiquettes de classification de sécurité aux sessions de clavardage et aux bibliothèques de documents lorsqu’elles contiennent des informations classifiées et/ou personnelles.",
         "fr_auto": "Dans l’Assistant IA, appliquez des étiquettes de classification de sécurité aux chats et aux bibliothèques de documents lorsqu’elles contiennent des informations classifiées et/ou personnelles."
     },
     "Generate a more detailed version of your prompt. Use this as a starting point for further edits.": {
@@ -2998,5 +2998,129 @@
     "Select a library, folder, or document to edit.": {
         "fr": "",
         "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à modifier."
+    },
+    "Email administrators": {
+        "fr": "Contactez les administrateurs",
+        "fr_auto": "Administrateurs de messagerie"
+    },
+    "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. If this is not possible, contact the Otto team at the following email address to report a privacy issue:": {
+        "fr": "Si des informations sont partagées avec vous via Otto auxquelles vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un courriel aux auteurs ou aux administrateurs de la bibliothèque. Si cela n’est pas possible, contactez l’équipe Otto à l’adresse courriel suivante pour signaler un problème de confidentialité :",
+        "fr_auto": "Si des informations sont partagées avec vous via Otto auxquelles vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un e-mail aux auteurs ou aux administrateurs de la bibliothèque. Si cela n’est pas possible, contactez l’équipe Otto à l’adresse e-mail suivante pour signaler un problème de confidentialité :"
+    },
+    "This chat was shared with you and is read-only.": {
+        "fr": "Cette session de clavardage a été partagé avec vous et est en lecture seule.",
+        "fr_auto": "Ce chat a été partagé avec vous et est en lecture seule."
+    },
+    "If you should not have access,": {
+        "fr": "",
+        "fr_auto": "Si vous ne devriez pas y avoir accès,"
+    },
+    "email the chat author": {
+        "fr": "envoyer un courriel à l’auteur de la sesison de clavardage",
+        "fr_auto": "envoyer un e-mail à l’auteur du chat"
+    },
+    "to report the issue.": {
+        "fr": "",
+        "fr_auto": "pour signaler le problème."
+    },
+    "Preset added to favourites.": {
+        "fr": "",
+        "fr_auto": "Préréglage ajouté aux favoris."
+    },
+    "Preset removed from favourites.": {
+        "fr": "",
+        "fr_auto": "Préréglage retiré des favoris."
+    },
+    "An error occurred while setting the preset as favourite.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors de la définition du préréglage comme favori."
+    },
+    "Default preset was set successfully.": {
+        "fr": "",
+        "fr_auto": "Le paramètre prédéfini par défaut a été défini avec succès."
+    },
+    "An error occurred while setting the default preset.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors de la définition du préréglage par défaut."
+    },
+    "AI can make mistakes. Review the text before using it in an official capacity.": {
+        "fr": "",
+        "fr_auto": "L’IA peut faire des erreurs. Passez en revue le texte avant de l’utiliser à titre officiel."
+    },
+    "Does not connect to legal databases like Westlaw, Lexis or CanLII.": {
+        "fr": "",
+        "fr_auto": "Ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis ou CanLII."
+    },
+    "Limit information shared in chats and Q&A libraries (deleted after 30 days inactivity).": {
+        "fr": "Limitez les informations partagées dans les sessions de clavardage et les bibliothèques de questions-réponses (supprimées après 30 jours d’inactivité).",
+        "fr_auto": "Limitez les informations partagées dans les chats et les bibliothèques de questions et réponses (supprimées après 30 jours d’inactivité)."
+    },
+    "AI-generated summaries may contain inaccuracies. Review the text before using it for official purposes.": {
+        "fr": "",
+        "fr_auto": "Les résumés générés par l’IA peuvent contenir des inexactitudes. Passez en revue le texte avant de l’utiliser à des fins officielles."
+    },
+    "Translations should undergo human review prior to use in a legal or official capacity.": {
+        "fr": "",
+        "fr_auto": "Les traductions doivent faire l’objet d’un examen humain avant d’être utilisées à titre juridique ou officiel."
+    },
+    "\n            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or upload files and enter URLs directly in the chat.\n          ": {
+        "fr": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents dans la barre latérale des paramètres, ou téléchargez des fichiers et entrez des URL directement dans la session de clavardage.\n          ",
+        "fr_auto": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents dans la barre latérale des paramètres, ou téléchargez des fichiers et entrez des URL directement dans le chat.\n          "
+    },
+    "For official use, always verify generated material with the provided sources due to the potential for inaccuracies.": {
+        "fr": "",
+        "fr_auto": "Pour un usage officiel, vérifiez toujours le matériel généré avec les sources fournies en raison du risque d’inexactitudes."
+    },
+    "Otto is approved for up to and including Protected B information. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Additionally, when using Otto with clients’ legal information, employees must ensure the client is aware their information is being entered into an AI tool, understands the potential risks and advantages of the technology, and consents to the use of AI tools.": {
+        "fr": "",
+        "fr_auto": "Otto est approuvé pour les informations protégées B jusqu’à et y compris. Cela comprend normalement les renseignements assujettis au secret professionnel de l’avocat, mais cela devrait être déterminé au cas par cas. De plus, lorsqu’ils utilisent Otto avec les informations juridiques des clients, les employés doivent s’assurer que le client sait que leurs informations sont saisies dans un outil d’IA, comprend les risques et les avantages potentiels de la technologie et consent à l’utilisation d’outils d’IA."
+    },
+    "Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information.": {
+        "fr": "",
+        "fr_auto": "Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires relatives à certaines catégories de renseignements de nature délicate."
+    },
+    "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted to provide factual information. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.": {
+        "fr": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Clavardez ne doivent pas être considérés comme étant fiables pour fournir des faits. Utilisez plutôt les modes Q&R et Résumer pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléversez ou dans une bibliothèque de documents partagée.",
+        "fr_auto": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Chat ne doivent pas être fiables pour fournir des informations factuelles. Utilisez plutôt les modes Q&R et Summarize pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléchargez ou une bibliothèque de documents partagée."
+    },
+    "Otto does not connect to legal databases like Westlaw, Lexis or CanLII. It should not be used for legal research of case law.": {
+        "fr": "",
+        "fr_auto": "Otto ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis ou CanLII. Il ne devrait pas être utilisé pour la recherche juridique de la jurisprudence."
+    },
+    "You are encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, such as those catalogued by the University of Windsor and the Law Society of Alberta in the documents": {
+        "fr": "",
+        "fr_auto": "Nous vous encourageons à consulter les directives et les avis des cours et des tribunaux concernant l’utilisation de l’intelligence artificielle, comme ceux catalogués par l’Université de Windsor et le Barreau de l’Alberta dans les documents"
+    },
+    "Artificial Intelligence Regulation": {
+        "fr": "",
+        "fr_auto": "Règlement sur l’intelligence artificielle"
+    },
+    "and": {
+        "fr": "",
+        "fr_auto": "et"
+    },
+    "Gen AI Rules of Engagement for Canadian Lawyers": {
+        "fr": "",
+        "fr_auto": "Gen AI Règles d’engagement pour les avocats canadiens"
+    },
+    ", respectively.": {
+        "fr": "",
+        "fr_auto": ", respectivement."
+    },
+    "Always be aware that AI can make mistakes, even when you have provided it with documents.": {
+        "fr": "",
+        "fr_auto": "Sachez toujours que l’IA peut faire des erreurs, même lorsque vous lui avez fourni des documents."
+    },
+    "For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content.": {
+        "fr": "",
+        "fr_auto": "Pour toute utilisation officielle (par exemple, la distribution en dehors de votre équipe immédiate et en particulier en dehors de l’organisation), il est essentiel que vous examiniez attentivement le contenu généré par l’IA."
+    },
+    "Justice Generative AI Guidelines - Current Draft": {
+        "fr": "",
+        "fr_auto": "Lignes directrices sur l’IA générative de la justice - Ébauche actuelle"
+    },
+    "respectively.": {
+        "fr": "",
+        "fr_auto": "respectivement."
     }
 }

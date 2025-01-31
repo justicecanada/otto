@@ -33,11 +33,11 @@
             {% endif %}
             <p>
               <strong>{% trans "Human review required:" %}</strong>
-              {% trans "AI can make mistakes. Review before using in an official capacity." %}
+              {% trans "AI can make mistakes. Review the text before using it in an official capacity." %}
             </p>
             <p>
               <strong>{% trans "Not for legal advice or research:" %}</strong>
-              {% trans "This tool doesn't connect to legal databases like Westlaw, Lexis and CanLII." %}
+              {% trans "Does not connect to legal databases like Westlaw, Lexis or CanLII." %}
             </p>
             <p>
               <strong>{% trans "Not for decision-making:" %}</strong>
@@ -45,7 +45,7 @@
             </p>
             <p class="mb-0">
               <strong>{% trans "Information management:" %}</strong>
-              {% trans "Limit information shared in chats and Q&A libraries. These are deleted after 30 days." %}
+              {% trans "Limit information shared in chats and Q&A libraries (deleted after 30 days inactivity)." %}
             </p>
           </div>
         </div>
@@ -56,14 +56,14 @@
             <strong>Chat</strong> with a secure AI for brainstorming, writing assistance and text formatting.
           {% endblocktrans %}
         </p>
-        <p class = "mb-0 option chat-option">{% trans "Chat mode is not suitable for factual research." %}</p>
+        <p class="mb-0 option chat-option">{% trans "Chat mode is not suitable for factual research." %}</p>
         <p class="option summarize-option">
           {% blocktrans %}
             <strong>Summarize</strong> uploaded documents. You may also input free text or enter a URL for a web page.
           {% endblocktrans %}
         </p>
         <p class="mb-0 option summarize-option">
-          {% trans "AI-generated summaries may contain inaccuracies. Review before using for official purposes." %}
+          {% trans "AI-generated summaries may contain inaccuracies. Review the text before using it for official purposes." %}
         </p>
         <p class="option translate-option">
           {% blocktrans %}
@@ -71,15 +71,15 @@
           {% endblocktrans %}
         </p>
         <p class="mb-0 option translate-option">
-          {% trans "Translations may not be suitable for legal and official document submissions prior to human review." %}
+          {% trans "Translations should undergo human review prior to use in a legal or official capacity." %}
         </p>
         <p class="option qa-option">
           {% blocktrans %}
-            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or simply upload documents to the chat.
+            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or upload files and enter URLs directly in the chat.
           {% endblocktrans %}
         </p>
         <p class="mb-0 option qa-option">
-          {% trans "For official use, always verify with the provided sources due to the potential for inaccuracies." %}
+          {% trans "For official use, always verify generated material with the provided sources due to the potential for inaccuracies." %}
         </p>
       </div>
     </div>

@@ -401,6 +401,12 @@ form#dropzone-basic {
   height: calc(100vh - 3rem);
 }
 
+/* Enlarge .chat-sidebar to 400px when <html lang="fr"> */
+html[lang="fr"] .chat-sidebar {
+  width: 400px;
+  min-width: 400px;
+}
+
 .chat-sidebar.hidden {
   display: none;
 }
@@ -1297,4 +1303,11 @@ math[display="block"] {
 #magic-button:focus,
 #magic-button:active {
   color: var(--app-color-purple-1) !important;
+}
+
+#shared-chat-warning {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  box-shadow: 0 0px 5px rgba(0, 0, 0, 0.4);
 }

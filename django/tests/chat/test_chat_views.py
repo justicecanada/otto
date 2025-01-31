@@ -1,7 +1,9 @@
 import asyncio
 import tempfile
+from unittest import mock
 
 from django.conf import settings
+from django.contrib import messages
 from django.urls import reverse
 from django.utils import timezone
 
@@ -966,16 +968,44 @@ def test_preset(client, basic_user, all_apps_user):
             },
         )
     )
+
+    last_message = list(response.context["messages"])[-1]
     assert response.status_code == 200
     assert "preset_loaded" in response.context
     assert response.context["preset_loaded"] == "true"
+    assert (
+        last_message.level == messages.SUCCESS
+        and last_message.message == "Preset loaded successfully."
+    )
 
-    # Test adding the preset to favorites
+    # Test adding and removing the preset to favorites
     client.force_login(user)
     response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
     assert response.status_code == 200
     preset.refresh_from_db()
     assert user in preset.favourited_by.all()
+    # remove from favourites
+    response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
+    assert response.status_code == 200
+    preset.refresh_from_db()
+    assert user not in preset.favourited_by.all()
+
+    # Test accompanying messages
+    response_messages = list(response.context["messages"])
+    removed_message = response_messages[-1]
+    added_message = response_messages[-2]
+    assert (
+        removed_message.level == messages.SUCCESS
+        and removed_message.message == "Preset removed from favourites."
+    )
+    assert (
+        added_message.level == messages.SUCCESS
+        and added_message.message == "Preset added to favourites."
+    )
+
+    with mock.patch("chat.models.Preset.toggle_favourite", side_effect=ValueError):
+        response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
+        assert response.status_code == 500
 
     # Test setting the preset as default
     response = client.get(reverse("chat:set_preset_default", args=[preset.id, chat.id]))
@@ -1249,3 +1279,14 @@ def test_generate_prompt_view(client, all_apps_user):
     cost_str = response.context["cost"].replace("< $", "")
     cost = float(cost_str)
     assert cost > 0.000
+
+
+def test_email_chat_author(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    response = client.get(reverse("chat:email_author", args=[chat.id]))
+    assert response.status_code == 200
+    assert "Otto" in response.content.decode()
+    assert f"mailto:{user.email}" in response.content.decode()
