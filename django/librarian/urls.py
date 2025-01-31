@@ -11,7 +11,6 @@ from librarian.views import (
     modal_create_data_source,
     modal_create_document,
     modal_create_library,
-    modal_datasource_list,
     modal_delete_data_source,
     modal_delete_document,
     modal_delete_library,
@@ -27,11 +26,6 @@ from librarian.views import (
 app_name = "librarian"
 urlpatterns = [
     path("modal/", modal_library_list, name="modal_library_list"),
-    path(
-        "modal/library/<int:library_id>",
-        modal_datasource_list,
-        name="modal_datasource_list",
-    ),
     path("modal/library/create/", modal_create_library, name="modal_create_library"),
     path(
         "modal/library/<int:library_id>/edit/",
