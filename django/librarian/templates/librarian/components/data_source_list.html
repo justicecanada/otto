@@ -2,22 +2,38 @@
 
 <div id="librarian-data-sources"
      {% if swap %}hx-swap-oob="true"{% endif %}>
-  <h6 id="data-sources-label">{% trans "Folders" %}</h6>
+ 
+
+  <h6 id="data-sources-label">
+    {% if selected_library.is_personal_library %}
+      {% trans "Chats" %}
+    {% else %}
+      {% trans "Folders" %}
+    {% endif %}
+  </h6>
   {% if not selected_library or not selected_library.id %}
     <div class="text-center">
       <em class="small">{% trans "Select a library to edit folders." %}</em>
     </div>
   {% else %}
-    <button type="button"
-            class="btn btn-sm btn-outline-dark ps-1 mb-3"
-            hx-get="{% url 'librarian:modal_create_data_source' library_id=selected_library.id %}">
-      <i class="bi bi-plus"></i> {% trans "New folder" %}
-    </button>
+    {% if not selected_library.is_personal_library %}
+      <button type="button"
+              class="btn btn-sm btn-outline-dark ps-1 mb-3"
+              hx-get="{% url 'librarian:modal_create_data_source' library_id=selected_library.id %}">
+        <i class="bi bi-plus"></i> {% trans "New folder" %}
+      </button>
+    {% endif %}
     {% if data_sources %}
       {% include "librarian/components/items_list.html" with items=data_sources selected_item=selected_data_source listbox_label="data-sources-label" item_type="data_source" %}
     {% else %}
       <div class="text-center">
-        <em class="small">{% trans "No folders in this library." %}</em>
+        <em class="small">
+          {% if selected_library.is_personal_library %}
+            {% trans "No current user chats." %}
+          {% else %}
+            {% trans "No folders in this library." %}
+          {% endif %}
+        </em>
       </div>
     {% endif %}
   {% endif %}
