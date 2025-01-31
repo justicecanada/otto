@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_e2457e4e5f2b54e6_chat_tags_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-01-31 01:00 +0000
+            created at 2025-01-31 18:58 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -133,8 +133,8 @@
     <p class="pln"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">            <span class="fst">f"</span><span class="op">{</span><span class="nam">file_name_without_extension</span><span class="op">}</span><span class="fst">_</span><span class="op">{</span><span class="nam">target_language</span><span class="op">.</span><span class="nam">upper</span><span class="op">(</span><span class="op">)</span><span class="op">}</span><span class="op">{</span><span class="nam">file_extension</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">        <span class="nam">file_uuid</span> <span class="op">=</span> <span class="nam">uuid</span><span class="op">.</span><span class="nam">uuid4</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t">        <span class="nam">input_file_path</span> <span class="op">=</span> <span class="fst">f"</span><span class="fst">temp/translation/in/</span><span class="op">{</span><span class="nam">file_uuid</span><span class="op">}</span><span class="fst">/</span><span class="op">{</span><span class="nam">input_file_name</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t">        <span class="nam">output_file_path</span> <span class="op">=</span> <span class="fst">f"</span><span class="fst">temp/translation/out/</span><span class="op">{</span><span class="nam">file_uuid</span><span class="op">}</span><span class="fst">/</span><span class="op">{</span><span class="nam">output_file_name</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t">        <span class="nam">input_file_path</span> <span class="op">=</span> <span class="fst">f"</span><span class="op">{</span><span class="nam">settings</span><span class="op">.</span><span class="nam">AZURE_STORAGE_TRANSLATION_INPUT_URL_SEGMENT</span><span class="op">}</span><span class="fst">/</span><span class="op">{</span><span class="nam">file_uuid</span><span class="op">}</span><span class="fst">/</span><span class="op">{</span><span class="nam">input_file_name</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t">        <span class="nam">output_file_path</span> <span class="op">=</span> <span class="fst">f"</span><span class="op">{</span><span class="nam">settings</span><span class="op">.</span><span class="nam">AZURE_STORAGE_TRANSLATION_OUTPUT_URL_SEGMENT</span><span class="op">}</span><span class="fst">/</span><span class="op">{</span><span class="nam">file_uuid</span><span class="op">}</span><span class="fst">/</span><span class="op">{</span><span class="nam">output_file_name</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t56" href="#t56">56</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t57" href="#t57">57</a></span><span class="t">        <span class="com"># Upload to Azure Blob Storage</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t">        <span class="nam">azure_storage</span> <span class="op">=</span> <span class="nam">settings</span><span class="op">.</span><span class="nam">AZURE_STORAGE</span>&nbsp;</span><span class="r"></span></p>
@@ -195,7 +195,7 @@
             <a class="nav" href="z_e2457e4e5f2b54e6_chat_tags_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-01-31 01:00 +0000
+            created at 2025-01-31 18:58 +0000
         </p>
     </div>
 </footer>
