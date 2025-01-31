@@ -300,9 +300,9 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     library.accessed_at = timezone.now() - timezone.timedelta(days=32)
     library.save()
     # Test the task
-    from otto.tasks import delete_old_libraries
+    from otto.tasks import delete_unused_libraries
 
-    delete_old_libraries()
+    delete_unused_libraries()
     # Check that the library is gone - there should now be 2 libraries (Corporate and Personal Library)
     assert Library.objects.count() == 2
     # Create a new library that should NOT be affected by the task
@@ -314,7 +314,7 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     library = user_libraries[2]
     assert library is not None
     # Run the task again
-    delete_old_libraries()
+    delete_unused_libraries()
     # Check that the new library is still there
     assert Library.objects.count() == 3
 

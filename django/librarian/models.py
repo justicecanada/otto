@@ -3,7 +3,7 @@ import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -490,5 +490,39 @@ class SavedFile(models.Model):
 def delete_saved_file(sender, instance, **kwargs):
     try:
         instance.file.safe_delete()
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library = instance.data_source.library
+        library.accessed_at = timezone.now()
+        library.save()
     except Exception as e:
         logger.error(f"Failed to delete document file: {e}")
+
+@receiver(post_delete, sender=DataSource)
+def update_library_accessed_at_post_data_source_delete(sender, instance, **kwargs):
+    try:
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library = instance.library
+        library.accessed_at = timezone.now()
+        library.save()
+    except Exception as e:
+        logger.error(f"DataSource_post_delete - Failed to update library accessed time: {e}")
+
+@receiver(post_save, sender=DataSource)
+def update_library_accessed_at_post_data_source_save(sender, instance, **kwargs):
+    try:
+        library = instance.library
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library.accessed_at = timezone.now()
+        library.save()
+    except Exception as e:
+        logger.error(f"DataSource_post_save - Failed to update library accessed time: {e}")
+
+@receiver(post_save, sender=Document)
+def update_library_accessed_at_post_document_save(sender, instance, **kwargs):
+    try:
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library = instance.data_source.library
+        library.accessed_at = timezone.now()
+        library.save()
+    except Exception as e:
+        logger.error(f"Document_post_save - Failed to update library accessed time: {e}")
