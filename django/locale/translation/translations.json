@@ -3122,5 +3122,17 @@
     "respectively.": {
         "fr": "",
         "fr_auto": "respectivement."
+    },
+    "Chats": {
+        "fr": "",
+        "fr_auto": "Les chats"
+    },
+    "No current user chats.": {
+        "fr": "",
+        "fr_auto": "Aucun chat utilisateur actuel."
+    },
+    "User Chat Uploads": {
+        "fr": "",
+        "fr_auto": "Téléchargements de chat utilisateur"
     }
 }
