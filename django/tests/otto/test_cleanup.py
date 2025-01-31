@@ -20,7 +20,7 @@ import pytest
 from structlog import get_logger
 
 from chat.models import Chat, ChatFile, Message
-from librarian.models import DataSource, Document, Library, SavedFile
+from librarian.models import DataSource, Document, Library, SavedFile, LibraryUserRole
 from librarian.utils.process_engine import generate_hash
 from otto.secure_models import AccessControl, AccessKey
 from text_extractor.models import OutputFile, UserRequest
@@ -296,7 +296,7 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     library.accessed_at = start_time + timezone.timedelta(seconds=10)
     # Check that the library.accessed_at is now updated
     assert (library.accessed_at - start_time).total_seconds() >= 2
-    # Manually set the accessed_at time to 100 days ago
+    # Manually set the accessed_at time to 32 days ago
     library.accessed_at = timezone.now() - timezone.timedelta(days=32)
     library.save()
     # Test the task
@@ -313,6 +313,67 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     user_libraries = get_editable_libraries(user)
     library = user_libraries[2]
     assert library is not None
+    # Manually set the accessed_at time to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Create a data source which will update library.access_at
+    data_source = DataSource.objects.create(name="New Data Source", library=library)
+    data_source.save()
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the new library is still there
+    assert Library.objects.count() == 3
+    # Manually set the access_at to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Create a document which will update library.accessed_at
+    document = Document.objects.create(data_source=data_source)
+    document.save()
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the new library is still there
+    assert Library.objects.count() == 3
+    # Manually set the access_at to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Delete document which will update library.accessed_at
+    document.delete()
+    # Check the document object is deleted
+    assert not Document.objects.filter(id=document.id).exists()
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the new library is still there
+    assert Library.objects.count() == 3
+    # Manually set the access_at to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Delete data source which will update library.accessed_at
+    data_source.delete()
+    # Check the data source object is deleted
+    assert not DataSource.objects.filter(id=data_source.id).exists()
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the new library is still there
+    assert Library.objects.count() == 3
+    # Manually set the access_at to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Add library role which will update library.accessed_at
+    basic_user = basic_user()
+    client.force_login(basic_user)
+    role = LibraryUserRole.objects.create(user=basic_user, library=library, role="viewers")
+    """
+    path(
+        "modal/library/<int:library_id>/users/",
+        modal_manage_library_users,
+        name="modal_manage_library_users",
+    ),
+    """
+    url = reverse(
+        "librarian:modal_manage_library_users", kwargs={"library_id": library.id}
+    )
+    response = client.post(url)
+    assert response.status_code == 302
     # Run the task again
     delete_unused_libraries()
     # Check that the new library is still there

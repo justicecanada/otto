@@ -181,7 +181,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             library = Library.objects.get(id=item_id) if item_id else None
             # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
             # This is not implemented using signals due to risk of introducing recursion
-            library.access()
+            if item_id: library.access()
             form = LibraryDetailForm(request.POST, instance=library, user=request.user)
             if form.is_valid():
                 form.save()
@@ -235,6 +235,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     if item_type == "library_users":
         if request.method == "POST":
             selected_library = get_object_or_404(Library, id=item_id)
+            # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+            selected_library.access()
             users_form = LibraryUsersForm(request.POST, library=selected_library)
             if users_form.is_valid():
                 users_form.save()
