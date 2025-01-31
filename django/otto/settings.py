@@ -397,6 +397,9 @@ AZURE_STORAGE = AzureStorage(
     azure_container=AZURE_CONTAINER,
 )
 
+AZURE_STORAGE_TRANSLATION_INPUT_URL_SEGMENT = "temp/translation/in"
+AZURE_STORAGE_TRANSLATION_OUTPUT_URL_SEGMENT = "temp/translation/out"
+
 # Media storage
 MEDIA_ROOT = os.path.join(BASE_DIR, os.environ.get("MEDIA_ROOT", "media"))
 if not os.path.exists(MEDIA_ROOT):
