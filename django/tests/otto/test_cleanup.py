@@ -373,10 +373,15 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     library.accessed_at = timezone.now() - timezone.timedelta(days=32)
     library.save()
     # Create a chat using the route to create it with appropriate options
-    chat = Chat.objects.create(user=user_2)
-    # Assign library to chat
+    client.force_login(user)
+
+    # Create a chat using the route to create it with appropriate options
+    response = client.get(reverse("chat:qa"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
     chat.options.qa_library = library
-    chat.save()
+    chat.options.save()
+
+    # Test chat_response with QA mode. This should query the Corporate library.
     message = Message.objects.create(
         chat=chat,
         text="What is the capital of Canada?",
