@@ -9,15 +9,15 @@
       - fields:
           short_name: "chat"
           name_en: Chat
-          name_fr: Discuter avec l'IA
+          name_fr: Calavarder avec l'IA
           description_en: Chat with a Justice-hosted AI (like ChatGPT).
-          description_fr: Discuter avec une IA hébergée par Justice (comme ChatGPT).
+          description_fr: Clavarder avec une IA hébergée par Justice (comme ChatGPT).
           url: chat:chat_with_ai
           category: ai_assistant
       - fields:
           short_name: "qa"
           name_en: Q&A
-          name_fr: Questions et réponses
+          name_fr: Questions-réponses
           description_en: Get instant answers from curated and user-uploaded documents.
           description_fr: Obtenez des réponses instantanées à partir de documents sélectionnés et téléchargés par l'utilisateur.
           url: chat:qa

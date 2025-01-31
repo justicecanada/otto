@@ -395,10 +395,16 @@ form#dropzone-basic {
 }
 
 .chat-sidebar {
-  width: 400px;
-  min-width: 400px;
+  width: 350px;
+  min-width: 350px;
   z-index: 2;
   height: calc(100vh - 3rem);
+}
+
+/* Enlarge .chat-sidebar to 400px when <html lang="fr"> */
+html[lang="fr"] .chat-sidebar {
+  width: 400px;
+  min-width: 400px;
 }
 
 .chat-sidebar.hidden {
