@@ -3,7 +3,12 @@
 <div id="{{ item_type }}-{{ item.id }}-list-item-content"
      class="d-flex justify-content-between align-items-center"
      {% if swap %}hx-swap-oob="true"{% endif %}>
-  {{ item.name }}
+ 
+  {% if item.library.is_personal_library %}
+    {{ item.chat.title }}
+  {% else %}
+    {{ item.name }}
+  {% endif %}
   {% if item.is_public or item_type == "data_source" or item.status or item.is_personal_library %}
     <div>
       {% if item.is_public %}

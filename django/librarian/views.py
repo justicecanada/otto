@@ -216,9 +216,14 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         if not request.method == "DELETE":
             if item_id:
                 selected_library = get_object_or_404(Library, id=item_id)
-                data_sources = selected_library.data_sources.all().prefetch_related(
-                    "security_label"
-                )
+                if selected_library.is_personal_library:
+                    data_sources = selected_library.data_sources.filter(
+                        chat__messages__isnull=False
+                    ).prefetch_related("security_label")
+                else:
+                    data_sources = selected_library.data_sources.all().prefetch_related(
+                        "security_label"
+                    )
                 if request.user.has_perm(
                     "librarian.manage_library_users", selected_library
                 ):
