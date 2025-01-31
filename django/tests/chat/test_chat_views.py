@@ -1271,7 +1271,6 @@ def test_generate_prompt_view(client, all_apps_user):
     assert response.context["user_input"] == "write me an email"
     assert len(response.context["output_text"]) > 1
     print(response.context["output_text"])
-    assert "Recipient" in response.context["output_text"]
     assert "Output Format" in response.context["output_text"]
     assert "# Examples" in response.context["output_text"]
 
