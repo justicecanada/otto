@@ -1,7 +1,5 @@
 {% load i18n %}
 {% load tags %}
-{% load autocomplete %}
-{% load static %}
 
 <li class="list-group-item {% if item.temp %}temp{% endif %}"
     role="option"
@@ -9,18 +7,6 @@
     onkeypress="if(event.key === 'Enter') { this.click(); }"
     {% if item == selected_item %}aria-selected="true"{% endif %}
     {% if item_type == "library" %}data-library-id="{{ item.id }}"{% endif %}
-    {% if not item.temp %} hx-get="{% get_librarian_modal_url item_type item.id %}" {% endif %}></li>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Clear all previous htmx:configRequest listeners
-    const body = document.body;
-    const clonedBody = body.cloneNode(true);
-    body.parentNode.replaceChild(clonedBody, body);
-    
-    // Add a fresh config request listener only if necessary
-    document.body.addEventListener('htmx:configRequest', (event) => {
-      console.log('New config request for:', event.detail.elt);
-    });
-  });
-</script>
+    {% if not item.temp %} hx-get="{% get_librarian_modal_url item_type item.id %}" {% endif %}>
+  {% include "librarian/components/list_item_inner.html" %}
+</li>

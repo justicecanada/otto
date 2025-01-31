@@ -95,7 +95,6 @@ class DataSourcesAutocomplete(ModelAutocomplete):
         library_id = request.GET.get("library_id", None)
         chat_id = request.GET.get("chat_id", None)
         if library_id:
-            logger.info(library_id)
             library = (
                 Library.objects.filter(pk=library_id)
                 .prefetch_related("data_sources")
@@ -103,7 +102,6 @@ class DataSourcesAutocomplete(ModelAutocomplete):
             )
             data = library.data_sources.all()
             if chat_id and library.is_personal_library:
-                logger.info(chat_id)
                 chat = Chat.objects.get(pk=chat_id)
                 if DataSource.objects.filter(chat=chat).exists():
                     data = list(data)
@@ -137,7 +135,7 @@ class DocumentsAutocomplete(ModelAutocomplete):
     name = "qa_documents"
     minimum_search_length = 0
     model = Document
-    search_attrs = ["id"]
+    search_attrs = ["name"]
 
     def get_items(self, search=None, values=None):
         request = get_request()
