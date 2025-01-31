@@ -20,7 +20,7 @@ import pytest
 from structlog import get_logger
 
 from chat.models import Chat, ChatFile, Message
-from librarian.models import DataSource, Document, Library, SavedFile, LibraryUserRole
+from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
 from librarian.utils.process_engine import generate_hash
 from otto.secure_models import AccessControl, AccessKey
 from text_extractor.models import OutputFile, UserRequest
@@ -308,7 +308,9 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     # Create a new library that should NOT be affected by the task
     client.force_login(user)
     url = reverse("librarian:modal_create_library")
-    response = client.post(url, {"name_en": "New Library", "is_public": False, "order": 1})
+    response = client.post(
+        url, {"name_en": "New Library", "is_public": False, "order": 1}
+    )
     assert response.status_code == 200
     user_libraries = get_editable_libraries(user)
     library = user_libraries[2]
@@ -358,10 +360,12 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     # Manually set the access_at to 32 days ago
     library.accessed_at = timezone.now() - timezone.timedelta(days=32)
     library.save()
+    assert Library.objects.count() == 3
     # Add library role which will update library.accessed_at
-    basic_user = basic_user()
-    client.force_login(basic_user)
-    role = LibraryUserRole.objects.create(user=basic_user, library=library, role="viewers")
+    user_2 = basic_user(accept_terms=True)
+    client.force_login(user_2)
+    role = LibraryUserRole.objects.create(user=user_2, library=library, role="admin")
+    assert Library.objects.count() == 3
     """
     path(
         "modal/library/<int:library_id>/users/",
@@ -372,12 +376,14 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     url = reverse(
         "librarian:modal_manage_library_users", kwargs={"library_id": library.id}
     )
-    response = client.post(url)
-    assert response.status_code == 302
+    response = client.post(url, data={"admins": user.id})
+    assert Library.objects.count() == 3
+    assert response.status_code == 200
     # Run the task again
     delete_unused_libraries()
     # Check that the new library is still there
     assert Library.objects.count() == 3
+
 
 @pytest.mark.django_db
 def test_delete_empty_chats_task(client, all_apps_user):
