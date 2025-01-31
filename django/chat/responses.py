@@ -423,6 +423,8 @@ def qa_response(chat, response_message, switch_mode=False):
             content_type="text/event-stream",
         )
 
+    # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+    chat.options.qa_library.access()
     # Apply filters if we are in qa mode and specific data sources are selected
     qa_scope = chat.options.qa_scope
     filter_documents = None

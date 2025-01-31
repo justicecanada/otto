@@ -3,7 +3,7 @@ import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -485,10 +485,45 @@ class SavedFile(models.Model):
             self.file.delete(False)
         self.delete()
 
+@receiver(post_delete, sender=DataSource)
+def data_source_post_delete(sender, instance, **kwargs):
+    try:
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library = instance.library
+        library.accessed_at = timezone.now()
+        library.save()
+    except Exception as e:
+        logger.error(f"Data source post delete error: {e}")
+
+@receiver(post_save, sender=DataSource)
+def data_source_post_save(sender, instance, **kwargs):
+    try:
+        library = instance.library
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library.accessed_at = timezone.now()
+        library.save()
+    except Exception as e:
+        logger.error(f"Data source post save error: {e}")
+
+@receiver(post_save, sender=Document)
+def document_post_save(sender, instance, **kwargs):
+    try:
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library = instance.data_source.library
+        library.accessed_at = timezone.now()
+        library.save()
+    except Exception as e:
+        logger.error(f"Document post save error: {e}")
 
 @receiver(post_delete, sender=Document)
-def delete_saved_file(sender, instance, **kwargs):
+def document_post_delete(sender, instance, **kwargs):
     try:
-        instance.file.safe_delete()
+        # pytest Error been thrown because created Document doesn't have file. Test passes without if but error thrown
+        if instance.file is not None:
+            instance.file.safe_delete()
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library = instance.data_source.library
+        library.accessed_at = timezone.now()
+        library.save()
     except Exception as e:
-        logger.error(f"Failed to delete document file: {e}")
+        logger.error(f"Document post delete error: {e}")
