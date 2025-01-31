@@ -86,50 +86,49 @@ class DataSourcesAutocomplete(ModelAutocomplete):
     """Autocomplete component to select Data Sources from a library"""
 
     name = "qa_data_sources"
-    multiselect = True
+    # multiselect = True
     minimum_search_length = 0
     model = DataSource
     search_attrs = ["name"]
 
-    # def get_items(self, search=None, values=None):
-    #     logger.info("aaaaaaaaaaaaa")
-    #     request = get_request()
-    #     library_id = request.GET.get("library_id", None)
-    #     chat_id = request.GET.get("chat_id", None)
-    #     if library_id:
-    #         logger.info(library_id)
-    #         library = (
-    #             Library.objects.filter(pk=library_id)
-    #             .prefetch_related("data_sources")
-    #             .first()
-    #         )
-    #         data = library.data_sources.all()
-    #         if chat_id and library.is_personal_library:
-    #             logger.info(chat_id)
-    #             chat = Chat.objects.get(pk=chat_id)
-    #             if DataSource.objects.filter(chat=chat).exists():
-    #                 data = list(data)
-    #                 data.insert(0, chat.data_source)
-    #                 data[0].name_en = "This chat"
-    #                 data[0].name_fr = "Ce chat"
-    #     else:
-    #         data = DataSource.objects.all()
-    #     if search is not None:
-    #         items = [
-    #             {"label": str(x), "value": str(x.id)}
-    #             for x in data
-    #             if search == "" or str(search).upper() in f"{x}".upper()
-    #         ]
-    #         return items
-    #     if values is not None:
-    #         items = [
-    #             {"label": str(x), "value": str(x.id)}
-    #             for x in data
-    #             if str(x.id) in values
-    #         ]
-    #         return items
+    def get_items(self, search=None, values=None):
+        request = get_request()
+        library_id = request.GET.get("library_id", None)
+        chat_id = request.GET.get("chat_id", None)
+        if library_id:
+            logger.info(library_id)
+            library = (
+                Library.objects.filter(pk=library_id)
+                .prefetch_related("data_sources")
+                .first()
+            )
+            data = library.data_sources.all()
+            if chat_id and library.is_personal_library:
+                logger.info(chat_id)
+                chat = Chat.objects.get(pk=chat_id)
+                if DataSource.objects.filter(chat=chat).exists():
+                    data = list(data)
+                    data.insert(0, chat.data_source)
+                    data[0].name_en = "This chat"
+                    data[0].name_fr = "Ce chat"
+        else:
+            data = DataSource.objects.all()
+        if search is not None:
+            items = [
+                {"label": str(x), "value": str(x.id)}
+                for x in data
+                if search == "" or str(search).upper() in f"{x}".upper()
+            ]
+            return items
+        if values is not None:
+            items = [
+                {"label": str(x), "value": str(x.id)}
+                for x in data
+                if str(x.id) in values
+            ]
+            return items
 
-    #     return []
+        return []
 
 
 @register
@@ -137,13 +136,12 @@ class DocumentsAutocomplete(ModelAutocomplete):
     """Autocomplete component to select Documents from a library"""
 
     name = "qa_documents"
-    multiselect = True
+    # multiselect = True
     minimum_search_length = 0
     model = Document
     search_attrs = ["id"]
 
     def get_items(self, search=None, values=None):
-        logger.info("aaaaaaaaaaaaaaaaaaaaa")
         request = get_request()
         library_id = request.GET.get("library_id", None)
         if library_id:
@@ -309,24 +307,26 @@ class ChatOptionsForm(ModelForm):
                     "component_id": f"id_qa_data_sources",
                     "id": f"id_qa_data_sources__textinput",
                 },
+                options={"multiselect": True},
             ),
         )
 
-        # self.fields["qa_documents"] = forms.ModelMultipleChoiceField(
-        #     queryset=Document.objects.all(),
-        #     label=_("Select document(s)"),
-        #     required=False,
-        #     widget=AutocompleteWidget(
-        #         ac_class=DocumentsAutocomplete,
-        #         attrs={
-        #             "component_id": f"id_qa_documents",
-        #             "id": f"id_qa_documents__textinput",
-        #         },
-        #     ),
-        # )
+        self.fields["qa_documents"] = forms.ModelMultipleChoiceField(
+            queryset=Document.objects.all(),
+            label=_("Select document(s)"),
+            required=False,
+            widget=AutocompleteWidget(
+                ac_class=DocumentsAutocomplete,
+                attrs={
+                    "component_id": f"id_qa_documents",
+                    "id": f"id_qa_documents__textinput",
+                },
+                options={"multiselect": True},
+            ),
+        )
 
-        # self.fields["qa_data_sources"].required = False
-        # self.fields["qa_documents"].required = False
+        self.fields["qa_data_sources"].required = False
+        self.fields["qa_documents"].required = False
 
     def save(self, commit=True):
         # Get the PK, if any
