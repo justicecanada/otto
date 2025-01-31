@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import Autocomplete, AutocompleteWidget, ModelAutocomplete, register
+from autocomplete import AutocompleteWidget, ModelAutocomplete, register
 from data_fetcher.util import get_request
 from rules import is_group_member
 from structlog import get_logger
@@ -86,7 +86,6 @@ class DataSourcesAutocomplete(ModelAutocomplete):
     """Autocomplete component to select Data Sources from a library"""
 
     name = "qa_data_sources"
-    # multiselect = True
     minimum_search_length = 0
     model = DataSource
     search_attrs = ["name"]
@@ -136,7 +135,6 @@ class DocumentsAutocomplete(ModelAutocomplete):
     """Autocomplete component to select Documents from a library"""
 
     name = "qa_documents"
-    # multiselect = True
     minimum_search_length = 0
     model = Document
     search_attrs = ["id"]
@@ -413,8 +411,6 @@ class PresetForm(forms.ModelForm):
         widget=AutocompleteWidget(
             ac_class=UserAutocomplete2,
             options={
-                # "item_value": User.id,
-                # "item_label": User.email,
                 "multiselect": True,
             },
         ),

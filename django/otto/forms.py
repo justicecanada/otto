@@ -145,8 +145,6 @@ class UserGroupForm(forms.Form):
         widget=AutocompleteWidget(
             ac_class=UserAutocomplete,
             options={
-                # "item_value": User.id,
-                # "item_label": User.upn,
                 "multiselect": True,
             },
         ),

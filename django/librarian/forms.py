@@ -7,7 +7,6 @@ from django.utils.translation import gettext_lazy as _
 
 from autocomplete import AutocompleteWidget, ModelAutocomplete, register
 
-from chat.forms import UserAutocomplete2
 from chat.utils import bad_url
 from librarian.models import DataSource, Document, Library, LibraryUserRole
 from otto.utils.common import check_url_allowed
@@ -179,8 +178,6 @@ class LibraryUsersForm(forms.Form):
         widget=AutocompleteWidget(
             ac_class=UserAutocomplete3,
             options={
-                # "item_value": User.id,
-                # "item_label": User.email,
                 "multiselect": True,
             },
         ),
@@ -192,8 +189,6 @@ class LibraryUsersForm(forms.Form):
         widget=AutocompleteWidget(
             ac_class=UserAutocomplete4,
             options={
-                # "item_value": User.id,
-                # "item_label": User.email,
                 "multiselect": True,
             },
         ),
@@ -205,8 +200,6 @@ class LibraryUsersForm(forms.Form):
         widget=AutocompleteWidget(
             ac_class=UserAutocomplete5,
             options={
-                # "item_value": User.id,
-                # "item_label": User.email,
                 "multiselect": True,
             },
         ),
