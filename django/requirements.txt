@@ -17,7 +17,7 @@ django-htmx-autocomplete==0.8.4
 rules==3.4
 django-cleanup==8.1.0
 django-azure-auth==2.0.0
-gevent==24.2.1
+gevent==24.11.1
 django-data-fetcher==2.2
 
 # Logging ----------------------------------------------------------------------
