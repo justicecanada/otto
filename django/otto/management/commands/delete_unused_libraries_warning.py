@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 
 # settings
@@ -43,7 +42,11 @@ class Command(BaseCommand):
             )
 
         user_roles = (
-            LibraryUserRole.objects.filter(library__accessed_at__lte=notify_from)
+            LibraryUserRole.objects.filter(
+                library__accessed_at__date__lte=notify_from.date(),
+                library__is_default_library=False,
+                library__is_personal_library=False,
+            )
             .filter(Q(role="admin") | Q(role="contributor"))
             .order_by("library")
         )

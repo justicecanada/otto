@@ -37,7 +37,8 @@ class Command(BaseCommand):
             delete_from = datetime.datetime.now() - datetime.timedelta(days=30)
 
         libraries = Library.objects.filter(accessed_at__lt=delete_from).filter(
-            is_public=False
+            is_default_library=False,
+            is_personal_library=False,
         )
 
         num_libraries = libraries.count()
