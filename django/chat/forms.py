@@ -82,6 +82,58 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         return self.get_grouped_choices()
 
 
+class CustomSelect(forms.Select):
+    def create_option(
+        self,
+        name,
+        value,
+        label,
+        attrs=None,
+        selected=False,
+        index_for_label=None,
+        subindex=None,
+    ):
+        # Create the standard option
+        option = super().create_option(
+            name,
+            value,
+            label,
+            attrs=attrs,
+            selected=selected,
+            index_for_label=index_for_label,
+            subindex=subindex,
+        )
+
+        # Get the library from value (assuming the value is the pk of the Library instance)
+        library = self.get_library_from_value(value)
+
+        if library:
+            # Add custom data attribute 'data-is-personal-library' to the option tag
+            option["attrs"]["data-is-personal-library"] = str(
+                library.is_personal_library
+            ).lower()
+
+        return option
+
+    def get_library_from_value(self, value):
+        # Retrieve the Library instance using the value (assuming it's the primary key)
+        try:
+            return Library.objects.get(pk=value)
+        except Library.DoesNotExist:
+            return None
+
+    def render(self, name, value, attrs=None, renderer=None):
+        # Ensure the attributes are passed to the Select widget during rendering
+        if attrs is None:
+            attrs = {}
+
+        # Include custom attributes like data-is-personal-library to the <select> element
+        attrs["class"] = attrs.get("class", "") + " custom-select"
+
+        # Render the select tag with the added attributes
+        return super().render(name, value, attrs, renderer)
+
+
 class DataSourcesAutocomplete(HTMXAutoComplete):
     """Autocomplete component to select Data Sources from a library"""
 
@@ -224,6 +276,9 @@ class ChatOptionsForm(ModelForm):
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_rewrite": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "qa_on_personal": forms.HiddenInput(
+                attrs={"onchange": "triggerOptionSave();"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -284,9 +339,10 @@ class ChatOptionsForm(ModelForm):
         self.fields["qa_library"] = GroupedLibraryChoiceField(
             user=user,
             empty_label=None,
-            widget=forms.Select(
+            widget=CustomSelect(
                 attrs={
                     "class": "form-select form-select-sm",
+                    "title": str(self.instance.qa_library.is_personal_library),
                     "onchange": "resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
                 }
             ),
