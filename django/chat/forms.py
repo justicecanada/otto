@@ -75,7 +75,8 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         return choices
 
     def label_from_instance(self, obj):
-        return str(obj)
+        logger.debug("aaaaaaaaaaaa")
+        return "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
     @property
     def choices(self):
@@ -83,55 +84,21 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
 
 
 class CustomSelect(forms.Select):
+    def __init__(self, attrs=None, choices=(), data={}):
+        super(CustomSelect, self).__init__(attrs, choices)
+        self.data = data
+
     def create_option(
-        self,
-        name,
-        value,
-        label,
-        attrs=None,
-        selected=False,
-        index_for_label=None,
-        subindex=None,
-    ):
-        # Create the standard option
-        option = super().create_option(
-            name,
-            value,
-            label,
-            attrs=attrs,
-            selected=selected,
-            index_for_label=index_for_label,
-            subindex=subindex,
-        )
-
-        # Get the library from value (assuming the value is the pk of the Library instance)
-        library = self.get_library_from_value(value)
-
-        if library:
-            # Add custom data attribute 'data-is-personal-library' to the option tag
-            option["attrs"]["data-is-personal-library"] = str(
-                library.is_personal_library
-            ).lower()
+        self, name, value, label, selected, index, subindex=None, attrs=None
+    ):  # noqa
+        option = super(CustomSelect, self).create_option(
+            name, value, label, selected, index, subindex=None, attrs=None
+        )  # noqa
+        # adds the data-attributes to the attrs context var
+        for data_attr, values in self.data.items():
+            option["attrs"][data_attr] = values[option["value"]]
 
         return option
-
-    def get_library_from_value(self, value):
-        # Retrieve the Library instance using the value (assuming it's the primary key)
-        try:
-            return Library.objects.get(pk=value)
-        except Library.DoesNotExist:
-            return None
-
-    def render(self, name, value, attrs=None, renderer=None):
-        # Ensure the attributes are passed to the Select widget during rendering
-        if attrs is None:
-            attrs = {}
-
-        # Include custom attributes like data-is-personal-library to the <select> element
-        attrs["class"] = attrs.get("class", "") + " custom-select"
-
-        # Render the select tag with the added attributes
-        return super().render(name, value, attrs, renderer)
 
 
 class DataSourcesAutocomplete(HTMXAutoComplete):
