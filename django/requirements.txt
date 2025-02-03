@@ -21,7 +21,7 @@ gevent==24.11.1
 django-data-fetcher==2.2
 
 # Logging ----------------------------------------------------------------------
-django-structlog[celery,commands]==8.1.0
+django-structlog[celery,commands]==9.0.0
 
 # Database ---------------------------------------------------------------------
 psycopg2-binary==2.9.9
