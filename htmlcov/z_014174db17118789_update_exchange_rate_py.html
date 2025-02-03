@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for django/otto/management/commands/update_exchange_rate.py: 86%</title>
+    <title>Coverage for django/otto/management/commands/update_exchange_rate.py: 100%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>django/otto/management/commands/update_exchange_rate.py</b>:
-            <span class="pc_cov">86%</span>
+            <span class="pc_cov">100%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -54,9 +54,9 @@
             </div>
         </aside>
         <h2>
-            <span class="text">22 statements &nbsp;</span>
+            <span class="text">19 statements &nbsp;</span>
             <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">19<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">3<span class="text"> missing</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">0<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_2f8c6979f9ce0afb_0001_initial_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-01-31 22:45 +0000
+            created at 2025-02-03 15:52 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -93,34 +93,26 @@
     <p class="pln"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t"><span class="key">from</span> <span class="nam">otto</span><span class="op">.</span><span class="nam">models</span> <span class="key">import</span> <span class="nam">OttoStatus</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="key">class</span> <span class="nam">Command</span><span class="op">(</span><span class="nam">BaseCommand</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t">    <span class="op">@</span><span class="nam">signalcommand</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">    <span class="key">def</span> <span class="nam">handle</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t">        <span class="nam">otto_status</span> <span class="op">=</span> <span class="nam">OttoStatus</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">singleton</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t">        <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t">            <span class="com"># This URL should always have a table with monthly USD-to-CAD exchange rate data</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t">            <span class="nam">bank_site</span> <span class="op">=</span> <span class="str">"https://www.bankofcanada.ca/rates/exchange/daily-exchange-rates-lookup/?lookupPage=lookup_daily_exchange_rates_2017.php&amp;startRange=2017-01-01&amp;series%5B%5D=FXUSDCAD&amp;lookupPage=lookup_daily_exchange_rates_2017.php&amp;startRange=2017-01-01&amp;rangeType=range&amp;rangeValue=1.m&amp;dFrom=2024-11-13&amp;dTo=2024-11-15&amp;submit_button=Submit"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">            <span class="nam">bank_soup</span> <span class="op">=</span> <span class="nam">BeautifulSoup</span><span class="op">(</span><span class="nam">requests</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="nam">bank_site</span><span class="op">)</span><span class="op">.</span><span class="nam">content</span><span class="op">,</span> <span class="str">"html.parser"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t">            <span class="nam">exchange_rate</span> <span class="op">=</span> <span class="nam">float</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t">                <span class="nam">re</span><span class="op">.</span><span class="nam">match</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t">                    <span class="str">"[\.\d]+"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t">                    <span class="nam">bank_soup</span><span class="op">.</span><span class="nam">find</span><span class="op">(</span><span class="nam">id</span><span class="op">=</span><span class="str">"summary-rates"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t">                    <span class="op">.</span><span class="nam">find_all</span><span class="op">(</span><span class="str">"tr"</span><span class="op">)</span><span class="op">[</span><span class="num">2</span><span class="op">]</span> <span class="com"># The row with the month average</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">                    <span class="op">.</span><span class="nam">find_all</span><span class="op">(</span><span class="str">"td"</span><span class="op">)</span><span class="op">[</span><span class="num">1</span><span class="op">]</span> <span class="com"># The cell with the actual value</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">                    <span class="op">.</span><span class="nam">text</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">                <span class="op">)</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="com"># Pull out the first decimal number</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t">            <span class="nam">otto_status</span><span class="op">.</span><span class="nam">exchange_rate</span> <span class="op">=</span> <span class="nam">exchange_rate</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t">            <span class="nam">otto_status</span><span class="op">.</span><span class="nam">save</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">stdout</span><span class="op">.</span><span class="nam">write</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">style</span><span class="op">.</span><span class="nam">SUCCESS</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Exchange rate updated to </span><span class="op">{</span><span class="nam">exchange_rate</span><span class="op">}</span><span class="fst">.</span><span class="fst">"</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t">        <span class="key">except</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t">            <span class="com"># If the update fails (e.g. if site was down), just retain old value</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">stdout</span><span class="op">.</span><span class="nam">write</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">                <span class="nam">self</span><span class="op">.</span><span class="nam">style</span><span class="op">.</span><span class="nam">WARNING</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">                    <span class="fst">f"</span><span class="fst">Could not update exchange rate. Old value of </span><span class="op">{</span><span class="nam">otto_status</span><span class="op">.</span><span class="nam">exchange_rate</span><span class="op">}</span><span class="fst"> retained.</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t40" href="#t40">40</a></span><span class="t">                <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t41" href="#t41">41</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t"><span class="key">class</span> <span class="nam">Command</span><span class="op">(</span><span class="nam">BaseCommand</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">    <span class="op">@</span><span class="nam">signalcommand</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t">    <span class="key">def</span> <span class="nam">handle</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t">        <span class="nam">otto_status</span> <span class="op">=</span> <span class="nam">OttoStatus</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">singleton</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t">        <span class="com"># This URL should always have a table with monthly USD-to-CAD exchange rate data</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t">        <span class="nam">bank_site</span> <span class="op">=</span> <span class="str">"https://www.bankofcanada.ca/rates/exchange/monthly-exchange-rates/"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">        <span class="nam">bank_soup</span> <span class="op">=</span> <span class="nam">BeautifulSoup</span><span class="op">(</span><span class="nam">requests</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="nam">bank_site</span><span class="op">)</span><span class="op">.</span><span class="nam">content</span><span class="op">,</span> <span class="str">"html.parser"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t">        <span class="nam">exchange_rate</span> <span class="op">=</span> <span class="nam">float</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t">            <span class="nam">bank_soup</span><span class="op">.</span><span class="nam">find</span><span class="op">(</span><span class="str">"th"</span><span class="op">,</span> <span class="nam">text</span><span class="op">=</span><span class="nam">re</span><span class="op">.</span><span class="nam">compile</span><span class="op">(</span><span class="str">"US dollar"</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t">            <span class="op">.</span><span class="nam">find_parent</span><span class="op">(</span><span class="str">"tr"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t">            <span class="op">.</span><span class="nam">find_all</span><span class="op">(</span><span class="str">"td"</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="num">1</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t">            <span class="op">.</span><span class="nam">text</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">        <span class="nam">otto_status</span><span class="op">.</span><span class="nam">exchange_rate</span> <span class="op">=</span> <span class="nam">exchange_rate</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">        <span class="nam">otto_status</span><span class="op">.</span><span class="nam">save</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">stdout</span><span class="op">.</span><span class="nam">write</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">style</span><span class="op">.</span><span class="nam">SUCCESS</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Exchange rate updated to </span><span class="op">{</span><span class="nam">exchange_rate</span><span class="op">}</span><span class="fst">.</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -130,7 +122,7 @@
             <a class="nav" href="z_2f8c6979f9ce0afb_0001_initial_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-01-31 22:45 +0000
+            created at 2025-02-03 15:52 +0000
         </p>
     </div>
 </footer>

@@ -123,7 +123,7 @@
 | django/otto/management/commands/delete\_translation\_files.py                                                 |       27 |        0 |    100% |           |
 | django/otto/management/commands/delete\_unused\_libraries.py                                                  |       20 |        2 |     90% |    31, 35 |
 | django/otto/management/commands/reset\_app\_data.py                                                           |      120 |       18 |     85% |68-73, 88, 105-110, 130-135, 149-150, 155-158, 173-178, 189 |
-| django/otto/management/commands/update\_exchange\_rate.py                                                     |       22 |        3 |     86% |     32-34 |
+| django/otto/management/commands/update\_exchange\_rate.py                                                     |       19 |        0 |    100% |           |
 | django/otto/migrations/0001\_initial.py                                                                       |        8 |        0 |    100% |           |
 | django/otto/migrations/0002\_costtype\_feature\_short\_name\_cost.py                                          |        6 |        0 |    100% |           |
 | django/otto/migrations/0003\_cost\_document\_cost\_message\_cost\_request\_id\_and\_more.py                   |        5 |        0 |    100% |           |
@@ -222,7 +222,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **10127** | **1137** | **89%** |           |
+|                                                                                                     **TOTAL** | **10124** | **1134** | **89%** |           |
 
 
 ## Setup coverage badge
