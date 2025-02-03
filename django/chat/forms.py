@@ -63,7 +63,7 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         ]
 
         choices = [
-            (group, [(lib.pk, str(lib)) for lib in libs])
+            (group, [(lib.pk, self.label_from_instance(lib)) for lib in libs])
             for group, libs in groups
             if libs
         ]
@@ -75,8 +75,7 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         return choices
 
     def label_from_instance(self, obj):
-        logger.debug("aaaaaaaaaaaa")
-        return "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        return {"label": str(obj), "data": obj.is_personal_library}
 
     @property
     def choices(self):
@@ -91,12 +90,17 @@ class CustomSelect(forms.Select):
     def create_option(
         self, name, value, label, selected, index, subindex=None, attrs=None
     ):  # noqa
+        if isinstance(label, dict):
+            opt_attrs = label.copy()
+            label = opt_attrs.pop("label")
+        else:
+            opt_attrs = {}
         option = super(CustomSelect, self).create_option(
             name, value, label, selected, index, subindex=None, attrs=None
         )  # noqa
         # adds the data-attributes to the attrs context var
-        for data_attr, values in self.data.items():
-            option["attrs"][data_attr] = values[option["value"]]
+        for _, value in opt_attrs.items():
+            option["attrs"]["class"] = str(value)
 
         return option
 
@@ -309,7 +313,6 @@ class ChatOptionsForm(ModelForm):
             widget=CustomSelect(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "title": str(self.instance.qa_library.is_personal_library),
                     "onchange": "resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
                 }
             ),

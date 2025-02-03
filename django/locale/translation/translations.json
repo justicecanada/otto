@@ -3134,5 +3134,13 @@
     "User Chat Uploads": {
         "fr": "",
         "fr_auto": "Téléchargements de chat utilisateur"
+    },
+    "Select chat(s)": {
+        "fr": "",
+        "fr_auto": "Sélectionnez chat(s)"
+    },
+    "Selected chats": {
+        "fr": "",
+        "fr_auto": "Chats sélectionnés"
     }
 }

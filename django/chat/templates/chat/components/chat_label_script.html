@@ -1,0 +1,34 @@
+{% load i18n %}
+<script>
+  // Translate some strings, to be used for conditional labels on Q&A options
+  chat_select_string = `{% trans "Select chat(s)" %}`;
+  folder_select_string = `{% trans "Select folder(s)" %}`;
+  chat_filter_string = `{% trans "Selected chats" %}`;
+  folder_filter_string = `{% trans "Selected folders" %}`;
+
+  function initializeLibraryListener() {
+    var libraryList = document.getElementById("id_qa_library");
+    if (libraryList && !libraryList.dataset.listenerAttached) {
+      handleLibraryInput();
+       libraryList.addEventListener("input", function (event) {handleLibraryInput();});
+       libraryList.dataset.listenerAttached = "true"; // Prevent duplicate listeners
+    }
+   
+  }
+
+
+  function handleLibraryInput() {
+    var libraryList = document.getElementById("id_qa_library");
+    const is_personal_library = libraryList.options[libraryList.selectedIndex].getAttribute("class");
+    if (is_personal_library == "True") {
+      document.getElementById("id_qa_data_sources__textinput").labels[0].innerHTML = `${chat_select_string}`;
+      document.getElementById("id_qa_scope").options[1].label = `${chat_filter_string}`
+    } else {
+      document.getElementById("id_qa_data_sources__textinput").labels[0].innerHTML = `${folder_select_string}`;
+      document.getElementById("id_qa_scope").options[1].label = `${folder_filter_string}`
+    }
+  }
+
+
+  document.querySelector("#right-sidebar-toggle").addEventListener("click", function () {initializeLibraryListener();});
+</script>
