@@ -301,8 +301,10 @@ class DataSource(models.Model):
             chat_title = (
                 self.chat.title if self.chat and self.chat.title else _("Untitled chat")
             )
-            document_time = self.modified_at if not self.chat else self.chat.accessed_at
-            return f"{chat_title} ({document_time.strftime('%Y-%m-%d %I:%M %p')})"
+            data_source_time = (
+                self.modified_at if not self.chat else self.chat.accessed_at
+            )
+            return f"{chat_title} ({data_source_time.strftime('%Y-%m-%d %I:%M %p')})"
         else:
             return str(self)
 
