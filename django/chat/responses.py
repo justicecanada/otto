@@ -385,9 +385,11 @@ def qa_response(chat, response_message, switch_mode=False):
         if error_documents:
             doc_names = [doc.filename for doc in error_documents]
             if len(error_documents) == len(files):
-                yield f'<p>{_("Error processing the following document(s):")} {", ".join(doc_names)}</p>'
+                yield _("Error processing the following document(s): ") + {
+                    ", ".join(doc_names)
+                }
             else:
-                yield "Error processing the following document(s): " + ", ".join(
+                yield _("Error processing the following document(s): ") + ", ".join(
                     doc_names
                 ) + "\n\n\n" + f"{completed_documents} " + _(
                     "new document(s) ready for Q&A."
