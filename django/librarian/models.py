@@ -292,6 +292,15 @@ class DataSource(models.Model):
         for document in self.documents.all():
             document.process()
 
+    def check_library_and_label(self):
+        if self.library.is_personal_library and self.name != _("This chat"):
+            chat_title = self.chat.title if self.chat.title else _("Untitled chat")
+            return (
+                f"{chat_title} ({self.chat.accessed_at.strftime('%Y-%m-%d %I:%M %p')})"
+            )
+        else:
+            return str(self)
+
 
 class Document(models.Model):
     """
@@ -485,6 +494,7 @@ class SavedFile(models.Model):
             self.file.delete(False)
         self.delete()
 
+
 @receiver(post_delete, sender=DataSource)
 def data_source_post_delete(sender, instance, **kwargs):
     try:
@@ -494,6 +504,7 @@ def data_source_post_delete(sender, instance, **kwargs):
         library.save()
     except Exception as e:
         logger.error(f"Data source post delete error: {e}")
+
 
 @receiver(post_save, sender=DataSource)
 def data_source_post_save(sender, instance, **kwargs):
@@ -505,6 +516,7 @@ def data_source_post_save(sender, instance, **kwargs):
     except Exception as e:
         logger.error(f"Data source post save error: {e}")
 
+
 @receiver(post_save, sender=Document)
 def document_post_save(sender, instance, **kwargs):
     try:
@@ -514,6 +526,7 @@ def document_post_save(sender, instance, **kwargs):
         library.save()
     except Exception as e:
         logger.error(f"Document post save error: {e}")
+
 
 @receiver(post_delete, sender=Document)
 def document_post_delete(sender, instance, **kwargs):

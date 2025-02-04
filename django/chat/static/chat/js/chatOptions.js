@@ -41,23 +41,15 @@ function updateAutocompleteLibraryid(element_id) {
   input_element.setAttribute('hx-vals', hx_vals);
 }
 
-const library_list = document.getElementById("id_qa_library");
-
-
 // After toggling elements in the autocomplete widget, the input element is swapped out.
 // Monitor the related input elements for hx-swaps and then update the library ID again.
 document.addEventListener("htmx:afterSettle", function (event) {
-  // console.log(library_list.options[library_list.selectedIndex].text);
   if (event.target.id == "id_qa_data_sources" || event.target.id == "id_qa_documents") {
     updateAutocompleteLibraryid('id_qa_data_sources__textinput');
     updateAutocompleteLibraryid('id_qa_documents__textinput');
     // Unlike the other widgets, the autocomplete doesn't have a change event to trigger
     // the ChatOption form save, but we can trigger it now
     triggerOptionSave();
-  }
-  else if (event.target.id == "id_qa_library") {
-    console.log('gi');
-    document.getElementById("id_qa_data_sources__textinput").label.innerHTML = "AAAAAAAA";
   }
 });
 

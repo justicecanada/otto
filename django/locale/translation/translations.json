@@ -3142,5 +3142,17 @@
     "Selected chats": {
         "fr": "",
         "fr_auto": "Chats sélectionnés"
+    },
+    "User chat uploads": {
+        "fr": "",
+        "fr_auto": "Téléchargements de chat utilisateur"
+    },
+    "All chats": {
+        "fr": "",
+        "fr_auto": "Tous les chats"
+    },
+    "This chat": {
+        "fr": "",
+        "fr_auto": "Ce chat"
     }
 }
