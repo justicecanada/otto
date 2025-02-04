@@ -3050,5 +3050,9 @@
     "There was an error uploading the file": {
         "fr": "",
         "fr_auto": "Il y a eu une erreur de téléchargement du fichier"
+    },
+    "Error processing the following document(s): ": {
+        "fr": "",
+        "fr_auto": "Erreur de traitement du ou des documents suivants : "
     }
 }
