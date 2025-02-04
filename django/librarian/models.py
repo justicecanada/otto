@@ -298,10 +298,11 @@ class DataSource(models.Model):
 
     def check_library_and_label(self):
         if self.library.is_personal_library and self.name != _("This chat"):
-            chat_title = self.chat.title if self.chat.title else _("Untitled chat")
-            return (
-                f"{chat_title} ({self.chat.accessed_at.strftime('%Y-%m-%d %I:%M %p')})"
+            chat_title = (
+                self.chat.title if self.chat and self.chat.title else _("Untitled chat")
             )
+            document_time = self.modified_at if not self.chat else self.chat.accessed_at
+            return f"{chat_title} ({document_time.strftime('%Y-%m-%d %I:%M %p')})"
         else:
             return str(self)
 
