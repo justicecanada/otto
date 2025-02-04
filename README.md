@@ -180,7 +180,7 @@
 | django/tests/\_\_init\_\_.py                                                                                  |        0 |        0 |    100% |           |
 | django/tests/chat/test\_answer\_sources.py                                                                    |       38 |        0 |    100% |           |
 | django/tests/chat/test\_chat\_models.py                                                                       |       36 |        1 |     97% |        48 |
-| django/tests/chat/test\_chat\_options.py                                                                      |       54 |        0 |    100% |           |
+| django/tests/chat/test\_chat\_options.py                                                                      |      116 |        2 |     98% |   178-179 |
 | django/tests/chat/test\_chat\_procs.py                                                                        |      209 |        0 |    100% |           |
 | django/tests/chat/test\_chat\_readonly.py                                                                     |       33 |        0 |    100% |           |
 | django/tests/chat/test\_chat\_translate.py                                                                    |       37 |        0 |    100% |           |
@@ -222,7 +222,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **10123** | **1134** | **89%** |           |
+|                                                                                                     **TOTAL** | **10185** | **1136** | **89%** |           |
 
 
 ## Setup coverage badge
