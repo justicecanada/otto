@@ -114,16 +114,17 @@
 | django/otto/\_\_init\_\_.py                                                                                   |        2 |        0 |    100% |           |
 | django/otto/admin.py                                                                                          |        0 |        0 |    100% |           |
 | django/otto/asgi.py                                                                                           |        8 |        8 |      0% |     10-24 |
-| django/otto/celery.py                                                                                         |       16 |        1 |     94% |        73 |
+| django/otto/celery.py                                                                                         |       16 |        1 |     94% |        78 |
 | django/otto/context\_processors.py                                                                            |       11 |        4 |     64% |     10-14 |
 | django/otto/forms.py                                                                                          |       68 |        4 |     94% |72, 74, 202-203 |
 | django/otto/management/commands/delete\_empty\_chats.py                                                       |       19 |        1 |     95% |        29 |
-| django/otto/management/commands/delete\_old\_chats.py                                                         |       20 |        2 |     90% |    31, 35 |
+| django/otto/management/commands/delete\_old\_chats.py                                                         |       21 |        2 |     90% |    32, 36 |
 | django/otto/management/commands/delete\_text\_extractor\_files.py                                             |       18 |        0 |    100% |           |
 | django/otto/management/commands/delete\_translation\_files.py                                                 |       27 |        0 |    100% |           |
-| django/otto/management/commands/delete\_unused\_libraries.py                                                  |       20 |        2 |     90% |    31, 35 |
+| django/otto/management/commands/delete\_unused\_libraries.py                                                  |       21 |        2 |     90% |    32, 36 |
 | django/otto/management/commands/reset\_app\_data.py                                                           |      120 |       18 |     85% |68-73, 88, 105-110, 130-135, 149-150, 155-158, 173-178, 189 |
 | django/otto/management/commands/update\_exchange\_rate.py                                                     |       19 |        0 |    100% |           |
+| django/otto/management/commands/warn\_libraries\_pending\_deletion.py                                         |       26 |        3 |     88% |     29-33 |
 | django/otto/migrations/0001\_initial.py                                                                       |        8 |        0 |    100% |           |
 | django/otto/migrations/0002\_costtype\_feature\_short\_name\_cost.py                                          |        6 |        0 |    100% |           |
 | django/otto/migrations/0003\_cost\_document\_cost\_message\_cost\_request\_id\_and\_more.py                   |        5 |        0 |    100% |           |
@@ -157,16 +158,17 @@
 | django/otto/migrations/0023\_blockedurl.py                                                                    |        4 |        0 |    100% |           |
 | django/otto/migrations/0024\_delete\_usageterm.py                                                             |        4 |        0 |    100% |           |
 | django/otto/migrations/0025\_reset\_accepted\_terms\_date.py                                                  |        7 |        0 |    100% |           |
+| django/otto/migrations/0026\_notification\_heading\_en\_notification\_heading\_fr\_and\_more.py               |        4 |        0 |    100% |           |
 | django/otto/migrations/\_\_init\_\_.py                                                                        |        0 |        0 |    100% |           |
 | django/otto/models.py                                                                                         |      276 |       30 |     89% |26-28, 76-79, 112, 116-119, 154, 193, 196, 212, 233, 251, 368, 371, 423, 429, 453, 457, 461, 465, 511-512, 526, 530, 534, 555 |
 | django/otto/rules.py                                                                                          |      158 |       18 |     89% |26, 42, 49, 51, 101-103, 108-110, 115-117, 146, 212-214, 250 |
 | django/otto/secure\_models.py                                                                                 |      248 |       91 |     63% |21-22, 61, 86-100, 129-130, 135-136, 149-154, 183-224, 248, 268-269, 307, 337, 350, 359, 378, 393, 398, 403, 409-415, 418, 423, 437, 442, 447, 454-482, 485-486, 491-498, 501-502, 508-522, 536-537, 542-552, 557-558, 561-562 |
-| django/otto/settings.py                                                                                       |      161 |       23 |     86% |38-41, 51-52, 218-227, 297, 310, 367-374, 406, 496-497 |
-| django/otto/tasks.py                                                                                          |       40 |        7 |     82% |11, 16, 38, 53, 66-68 |
+| django/otto/settings.py                                                                                       |      163 |       23 |     86% |38-41, 51-52, 220-229, 299, 312, 369-376, 408, 498-499 |
+| django/otto/tasks.py                                                                                          |       43 |        7 |     84% |11, 16, 38, 58, 71-73 |
 | django/otto/templatetags/\_\_init\_\_.py                                                                      |        0 |        0 |    100% |           |
 | django/otto/templatetags/filters.py                                                                           |       10 |        1 |     90% |         8 |
 | django/otto/templatetags/tags.py                                                                              |       10 |        1 |     90% |        18 |
-| django/otto/translation.py                                                                                    |       14 |        0 |    100% |           |
+| django/otto/translation.py                                                                                    |       17 |        0 |    100% |           |
 | django/otto/urls.py                                                                                           |       13 |        2 |     85% |   95, 100 |
 | django/otto/utils/auth.py                                                                                     |       36 |        6 |     83% |     18-32 |
 | django/otto/utils/common.py                                                                                   |       57 |        1 |     98% |        94 |
@@ -193,7 +195,7 @@
 | django/tests/librarian/test\_librarian.py                                                                     |      277 |        0 |    100% |           |
 | django/tests/librarian/test\_markdown\_splitter.py                                                            |      282 |        0 |    100% |           |
 | django/tests/otto/test\_budget.py                                                                             |       37 |        0 |    100% |           |
-| django/tests/otto/test\_cleanup.py                                                                            |      285 |        0 |    100% |           |
+| django/tests/otto/test\_cleanup.py                                                                            |      306 |        0 |    100% |           |
 | django/tests/otto/test\_commands\_delete\_translation\_files.py                                               |       36 |        0 |    100% |           |
 | django/tests/otto/test\_exchange\_rate\_update.py                                                             |       11 |        0 |    100% |           |
 | django/tests/otto/test\_feedback\_dashboard.py                                                                |      109 |        0 |    100% |           |
@@ -222,7 +224,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **10185** | **1136** | **89%** |           |
+|                                                                                                     **TOTAL** | **10246** | **1139** | **89%** |           |
 
 
 ## Setup coverage badge
