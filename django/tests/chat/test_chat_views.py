@@ -1182,14 +1182,8 @@ def test_chat_message_error(client, all_apps_user):
     assert response.status_code == 200
     # We should have a StreamingHttpResponse object.
     # Iterate over the response to get the content
-    # content = async_to_sync(process_streaming_content)(response.streaming_content)
     content = async_to_sync(final_response_helper)(response.streaming_content)
     assert "Error ID" in content.decode("utf-8")
-
-
-async def process_streaming_content(streaming_content):
-    final_response = b"".join([chunk async for chunk in streaming_content])
-    return final_response
 
 
 @pytest.mark.django_db
