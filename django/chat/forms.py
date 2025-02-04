@@ -250,9 +250,6 @@ class ChatOptionsForm(ModelForm):
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_rewrite": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
-            "qa_on_personal": forms.HiddenInput(
-                attrs={"onchange": "triggerOptionSave();"}
-            ),
         }
 
     def __init__(self, *args, **kwargs):
