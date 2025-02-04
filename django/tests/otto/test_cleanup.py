@@ -22,6 +22,7 @@ from structlog import get_logger
 from chat.models import Chat, ChatFile, ChatOptions, Message
 from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
 from librarian.utils.process_engine import generate_hash
+from otto.models import Notification
 from otto.secure_models import AccessControl, AccessKey
 from text_extractor.models import OutputFile, UserRequest
 
@@ -396,6 +397,42 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     delete_unused_libraries()
     # Check that the library is still there
     assert Library.objects.filter(id=library_id).exists()
+
+
+@pytest.mark.django_db
+def test_warn_libraries_pending_deletion_task(client, all_apps_user, basic_user):
+    """
+    Test the warn_libraries_pending_deletion task.
+    """
+    user = all_apps_user()
+    # Create a Library by posting to the library route
+    client.force_login(user)
+    url = reverse("librarian:modal_create_library")
+    for i in range(1, 5):
+        response = client.post(
+            url, {"name_en": f"New Library {i}", "is_public": False, "order": i}
+        )
+        assert response.status_code == 200
+    # Check that the library was created
+    from librarian.views import get_editable_libraries
+
+    user_libraries = get_editable_libraries(user)
+    assert len(user_libraries) == 6
+    # Delete all Notifications
+    Notification.objects.all().delete()
+    # Check that all notifications have been deleted
+    assert Notification.objects.all().count() == 0
+    # Manually set the created libraries accessed_at time to 25 days ago
+    for i in range(2, 6):
+        library = user_libraries[i]
+        library.accessed_at = timezone.now() - timezone.timedelta(days=25)
+        library.save()
+    # Test the task
+    from otto.tasks import warn_libraries_pending_deletion
+
+    warn_libraries_pending_deletion()
+    # Check that notifications have been sent
+    assert Notification.objects.all().count() == 4
 
 
 @pytest.mark.django_db

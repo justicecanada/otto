@@ -44,6 +44,11 @@ def delete_unused_libraries():
 
 
 @shared_task
+def warn_libraries_pending_deletion():
+    call_command("warn_libraries_pending_deletion")
+
+
+@shared_task
 def delete_text_extractor_files():
     call_command("delete_text_extractor_files")
 
