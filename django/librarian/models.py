@@ -139,7 +139,11 @@ class Library(models.Model):
     def _validate_personal_library(self):
         if not self.is_personal_library:
             return
-        if Library.objects.filter(is_personal_library=True, created_by=self.created_by):
+        if (
+            Library.objects.filter(is_personal_library=True, created_by=self.created_by)
+            .exclude(pk=self.pk)
+            .exists()
+        ):
             raise ValidationError(
                 "There can be only one personal library for each user"
             )
