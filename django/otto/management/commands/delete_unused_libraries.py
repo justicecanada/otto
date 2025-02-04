@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand
 from django_extensions.management.utils import signalcommand
 
 from chat.models import Library
+from otto.settings import CHAT_RETENTION_DAYS
 
 
 class Command(BaseCommand):
@@ -34,7 +35,9 @@ class Command(BaseCommand):
         elif options["before"]:
             delete_from = datetime.datetime.strptime(options["before"], "%Y-%m-%d")
         else:
-            delete_from = datetime.datetime.now() - datetime.timedelta(days=30)
+            delete_from = datetime.datetime.now() - datetime.timedelta(
+                days=CHAT_RETENTION_DAYS
+            )
 
         libraries = Library.objects.filter(accessed_at__lt=delete_from).filter(
             is_default_library=False,
