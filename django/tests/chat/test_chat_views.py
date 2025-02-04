@@ -1182,7 +1182,8 @@ def test_chat_message_error(client, all_apps_user):
     assert response.status_code == 200
     # We should have a StreamingHttpResponse object.
     # Iterate over the response to get the content
-    content = async_to_sync(process_streaming_content)(response.streaming_content)
+    # content = async_to_sync(process_streaming_content)(response.streaming_content)
+    content = async_to_sync(final_response_helper)(response.streaming_content)
     assert "Error ID" in content.decode("utf-8")
 
 
