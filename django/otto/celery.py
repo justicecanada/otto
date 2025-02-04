@@ -52,6 +52,11 @@ app.conf.beat_schedule = {
         "task": "otto.task.delete_unused_libraries",
         "schedule": crontab(hour=3, minute=0),
     },
+    # Warn users of pending library deletion every day at 3 am UTC
+    "warn-libraries-pending-deletion-every-morning": {
+        "task": "otto.task.warn_libraries_pending_deletion",
+        "schedule": crontab(hour=3, minute=0),
+    },
     "delete-text-extractor-files-every-day": {
         "task": "otto.tasks.delete_text_extractor_files",
         "schedule": crontab(hour=0, minute=0),
