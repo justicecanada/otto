@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 import pytest
-from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync, sync_to_async
 
 from chat.forms import PresetForm
 from chat.llm import OttoLLM
@@ -1157,6 +1157,7 @@ def test_update_qa_options_from_librarian(client, all_apps_user):
 
 @pytest.mark.django_db
 def test_chat_message_error(client, all_apps_user):
+
     user = all_apps_user()
     client.force_login(user)
     response = client.get(reverse("chat:chat_with_ai"), follow=True)
@@ -1181,7 +1182,7 @@ def test_chat_message_error(client, all_apps_user):
     assert response.status_code == 200
     # We should have a StreamingHttpResponse object.
     # Iterate over the response to get the content
-    content = final_response(response.streaming_content)
+    content = async_to_sync(final_response_helper)(response.streaming_content)
     assert "Error ID" in content.decode("utf-8")
 
 
