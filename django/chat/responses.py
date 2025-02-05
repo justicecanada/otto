@@ -389,11 +389,9 @@ def qa_response(chat, response_message, switch_mode=False):
                     ", ".join(doc_names)
                 }
             else:
-                yield _("Error processing the following document(s): ") + ", ".join(
+                yield _("- Error processing the following document(s): ") + ", ".join(
                     doc_names
-                ) + "\n\n\n" + f"{completed_documents} " + _(
-                    "new document(s) ready for Q&A."
-                )
+                ) + f"- {completed_documents} " + _("new document(s) ready for Q&A.")
         elif adding_url:
             yield _("URL ready for Q&A.")
         else:
