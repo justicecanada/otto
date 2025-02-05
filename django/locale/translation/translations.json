@@ -3054,5 +3054,9 @@
     "Error processing the following document(s): ": {
         "fr": "",
         "fr_auto": "Erreur de traitement du ou des documents suivants : "
+    },
+    "- Error processing the following document(s): ": {
+        "fr": "",
+        "fr_auto": "- Erreur de traitement du(des) document(s) suivant(s) : "
     }
 }
