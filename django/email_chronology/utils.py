@@ -4,6 +4,7 @@ from datetime import datetime
 from django.utils.translation import gettext as _
 
 import extract_msg
+import PyPDF2
 import tiktoken
 from langchain.prompts import PromptTemplate
 from llama_index.core import PromptTemplate
@@ -11,10 +12,10 @@ from llama_index.core.prompts import PromptType
 from structlog import get_logger
 
 from chat.llm import OttoLLM
+from text_extractor.utils import create_searchable_pdf
 
 
 def extract_email_details(file_path):
-
     msg = extract_msg.Message(file_path)
     msg_date = msg.date
 
@@ -25,18 +26,39 @@ def extract_email_details(file_path):
     preview_context = (
         " ".join(body.split(". ")[:2]) + "..." if body else "No content available"
     )
-    if len(preview_context) > 0:  # change as needed
+    if len(preview_context) > 0:
         preview_context = summary(body)
-    attachment_count = len(msg.attachments)
-    receiver = re.findall(r"<([^<>]*)", msg.to)
-    sender = re.findall(r"<([^<>]*)", msg.sender)
-    participants = set(receiver + sender)
+
     attachments = []
     for attachment in msg.attachments:
-        # Remove the first character in extension e.g. .pdf becomes pdf
+        saved_result = attachment.save()
+        if isinstance(saved_result, tuple):
+            url = saved_result[1]
+        else:
+            url = saved_result
+
         mime = attachment.extension.replace(attachment.extension[0], "", 1)
-        url = attachment.save()
         a = {"url": url, "mime": mime, "name": attachment.name}
+
+        if mime == "pdf":
+            print(f"Processing PDF: {attachment.name}")
+            try:
+                with open(url, "rb") as pdf_file:
+
+                    # Uses text extractor to extract text from Image-based PDFs
+                    ocr_pdf, extracted_text, _ = create_searchable_pdf(
+                        pdf_file, add_header=False
+                    )
+                    pdf_summary = summary(extracted_text)
+                    print(
+                        f"\n\n{'-'*80}\nSummary for {attachment.name}:\n{pdf_summary}\n{'-'*80}\n\n"
+                    )
+                    a["ocr_summary"] = pdf_summary
+
+            except Exception as e:
+                print(f"Error reading PDF {attachment.name}: {e}")
+                a["ocr_summary"] = "OCR failed"
+
         attachments.append(a)
 
     return {
@@ -44,31 +66,28 @@ def extract_email_details(file_path):
         "receiver": msg.to,
         "sent_date": msg_date,
         "preview_context": preview_context,
-        "attachment_count": attachment_count,
-        "subject": msg.subject,
-        "unique_participants": len(participants),
         "attachments": attachments,
-        "participants": receiver,
+        "subject": msg.subject,
+        "participants": msg.recipients if msg.recipients else [],
     }
 
 
 def clean_subject(subject):
     """
-    Remove common prefixes like 'RE:', 'Re:', and whitespace from the subject.
+    Remove common prefixes like 'RE:', 'Re:', 'FW:', 'Fw:', and whitespace from the
+    subject.
     """
     if subject:
-        # Remove 'RE:', 'Re:', and similar prefixes using regex
-        return re.sub(r"^(re:\s*)", "", subject, flags=re.IGNORECASE).strip()
+        return re.sub(r"^(re:\s*|fw:\s*)", "", subject, flags=re.IGNORECASE).strip()
     return subject
 
 
 def summary(text):
 
-    text = str(text)  # make sure it is in string format
+    text = str(text)
     model = "gpt-4o"  # can change this later on
     llm = OttoLLM(model)
     summary = summarize_long_text_direct(text, llm, length="short")
-    # print(summary)
     return summary
 
 
