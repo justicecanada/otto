@@ -298,7 +298,7 @@ class DataSource(models.Model):
 
     @property
     def label(self):
-        if self.name == _("This chat") or not self.library.is_personal_library:
+        if not self.library.is_personal_library:
             return str(self)
         chat_title = (
             self.chat.title if self.chat and self.chat.title else _("Untitled chat")

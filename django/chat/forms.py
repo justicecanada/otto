@@ -1,6 +1,10 @@
+from urllib.parse import parse_qs, urlparse
+
 from django import forms
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.forms import ModelForm
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from autocomplete import HTMXAutoComplete, widgets
@@ -121,7 +125,12 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
     def get_items(self, search=None, values=None):
         request = get_request()
         library_id = request.GET.get("library_id", None)
-        chat_id = request.GET.get("chat_id", None)
+        chat_id = request.GET.get(
+            "chat_id",
+            urlparse(request.META.get("HTTP_REFERER", ""))
+            .path.strip("/")
+            .split("/")[-1],
+        )
         if library_id:
             library = (
                 Library.objects.filter(pk=library_id)
@@ -132,22 +141,39 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
             if chat_id and library.is_personal_library:
                 chat = Chat.objects.get(pk=chat_id)
                 if DataSource.objects.filter(chat=chat).exists():
-                    data = list(data.filter(chat__messages__isnull=False).distinct())
-                    data.insert(0, chat.data_source)
-                    data[0].name_en = "This chat"
-                    data[0].name_fr = "Ce chat"
+                    data = list(
+                        data.filter(
+                            Q(chat=chat) | Q(chat__messages__isnull=False)
+                        ).distinct()
+                    )
         else:
             data = DataSource.objects.all()
         if search is not None:
             items = [
-                {"label": x.label, "value": str(x.id)}
+                {
+                    "label": (
+                        mark_safe(f"<span class='fw-semibold'>{x.label}</span>")
+                        if x.chat and str(x.chat.id) == chat_id
+                        else x.label
+                    ),
+                    "value": str(x.id),
+                }
                 for x in data
                 if search == "" or str(search).upper() in f"{x}".upper()
             ]
             return items
         if values is not None:
             items = [
-                {"label": x.label, "value": str(x.id)}
+                {
+                    "label": (
+                        mark_safe(f"<span class='fw-semibold'>{x.label}</span>")
+                        if x.chat
+                        and str(x.chat.id) == chat_id
+                        and parse_qs(request.body.decode()).get("remove")
+                        else x.label
+                    ),
+                    "value": str(x.id),
+                }
                 for x in data
                 if str(x.id) in values
             ]
