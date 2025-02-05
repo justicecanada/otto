@@ -80,7 +80,7 @@
               {% endfor %}
             </div>
           </div>
-          <div class="col-12 mt-2" id="public_fields">
+          <div class="col-12 mt-2 d-none" id="public_fields">
             <div>
               <label class="form-label" for="id_accessible_to">{% trans "Share with:" %}</label>
               {{ form.accessible_to }}
@@ -195,7 +195,11 @@
   function togglePublicFields() {
     const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
     if (selectedOption) {
-      publicFields.style.display = selectedOption.value === 'others' ? 'block' : 'none';
+      if (selectedOption.value === 'others') {
+        publicFields.classList.remove('d-none');
+      } else {
+        publicFields.classList.add('d-none');
+      }
       if (!initially_public) {
         toggleWarning(selectedOption.value === "everyone");
       }
