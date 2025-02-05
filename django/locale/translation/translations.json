@@ -3162,5 +3162,9 @@
     "No chats to show.": {
         "fr": "",
         "fr_auto": "Pas de chats à montrer."
+    },
+    "Select a library, folder or document to edit.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à modifier."
     }
 }
