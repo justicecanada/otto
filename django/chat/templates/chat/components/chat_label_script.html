@@ -1,15 +1,15 @@
 {% load i18n %}
 <script>
   // Translate some strings, to be used for conditional labels on Q&A options
-  chat_select_string = `{% trans "Select chat(s)" %}`;
-  folder_select_string = `{% trans "Select folder(s)" %}`;
-  entire_chat_string = `{% trans "All chats" %}`
-  entire_library_string = `{% trans "Entire library" %}`
-  chat_filter_string = `{% trans "Selected chats" %}`;
-  folder_filter_string = `{% trans "Selected folders" %}`;
+  var chat_select_string = `{% trans 'Select chat(s)' %}`;
+  var folder_select_string = `{% trans 'Select folder(s)' %}`;
+  var entire_chat_string = `{% trans 'All chats' %}`
+  var entire_library_string = `{% trans 'Entire library' %}`
+  var chat_filter_string = `{% trans 'Selected chats' %}`;
+  var folder_filter_string = `{% trans 'Selected folders' %}`;
 
   function initializeLibraryListener() {
-    var libraryList = document.getElementById("id_qa_library");
+    const libraryList = document.getElementById("id_qa_library");
     handleLibraryInput();
     libraryList.addEventListener("input", handleLibraryInput);
   }
@@ -18,13 +18,13 @@
     var libraryList = document.getElementById("id_qa_library");
     const is_personal_library = libraryList.options[libraryList.selectedIndex].getAttribute("class");
     if (is_personal_library == "True") {
-      document.getElementById("id_qa_data_sources__textinput").labels[0].innerHTML = `${chat_select_string}`;
-      document.getElementById("id_qa_scope").options[0].label = `${entire_chat_string}`
-      document.getElementById("id_qa_scope").options[1].label = `${chat_filter_string}`
-    } else {
-      document.getElementById("id_qa_data_sources__textinput").labels[0].innerHTML = `${folder_select_string}`;
-      document.getElementById("id_qa_scope").options[0].label = `${entire_library_string}`
-      document.getElementById("id_qa_scope").options[1].label = `${folder_filter_string}`
+      document.getElementById("id_qa_data_sources__textinput").labels[0].innerHTML = chat_select_string;
+      document.getElementById("id_qa_scope").options[0].label = entire_chat_string;
+      document.getElementById("id_qa_scope").options[1].label = chat_filter_string
+    } else {;
+      document.getElementById("id_qa_data_sources__textinput").labels[0].innerHTML = folder_select_string;
+      document.getElementById("id_qa_scope").options[0].label = entire_library_string;
+      document.getElementById("id_qa_scope").options[1].label = folder_filter_string;
     }
   }
 
