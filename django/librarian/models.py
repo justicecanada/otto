@@ -296,17 +296,15 @@ class DataSource(models.Model):
         for document in self.documents.all():
             document.process()
 
-    def check_library_and_label(self):
-        if self.library.is_personal_library and self.name != _("This chat"):
-            chat_title = (
-                self.chat.title if self.chat and self.chat.title else _("Untitled chat")
-            )
-            data_source_time = (
-                self.modified_at if not self.chat else self.chat.accessed_at
-            )
-            return f"{chat_title} ({data_source_time.strftime('%Y-%m-%d %I:%M %p')})"
-        else:
+    @property
+    def label(self):
+        if self.name == _("This chat") or not self.library.is_personal_library:
             return str(self)
+        chat_title = (
+            self.chat.title if self.chat and self.chat.title else _("Untitled chat")
+        )
+        data_source_time = self.modified_at if not self.chat else self.chat.accessed_at
+        return f"{chat_title} ({data_source_time.strftime('%Y-%m-%d %I:%M %p')})"
 
 
 class Document(models.Model):

@@ -138,14 +138,14 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
             data = DataSource.objects.all()
         if search is not None:
             items = [
-                {"label": x.check_library_and_label(), "value": str(x.id)}
+                {"label": x.label(), "value": str(x.id)}
                 for x in data
                 if search == "" or str(search).upper() in f"{x}".upper()
             ]
             return items
         if values is not None:
             items = [
-                {"label": x.check_library_and_label(), "value": str(x.id)}
+                {"label": x.label(), "value": str(x.id)}
                 for x in data
                 if str(x.id) in values
             ]
