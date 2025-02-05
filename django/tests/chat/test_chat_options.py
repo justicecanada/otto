@@ -172,7 +172,7 @@ def test_library_list(client, all_apps_user):
                         # The user's personal library should also be there
                         assert (
                             user.personal_library.id,
-                            "User chat uploads",
+                            "Chat uploads",
                         ) in category_choices
                         # The shared library should also be there
                         assert (
@@ -250,7 +250,7 @@ def test_library_list(client, all_apps_user):
     # Bob's personal library should also be there
     assert (
         bob.personal_library.id,
-        "User chat uploads",
+        "Chat uploads",
     ) in category_choices
     # But jane's should not, since Bob is contributor now, not admin
     assert (

@@ -3154,5 +3154,13 @@
     "This chat": {
         "fr": "",
         "fr_auto": "Ce chat"
+    },
+    "Chat uploads": {
+        "fr": "",
+        "fr_auto": "Téléchargements de chat"
+    },
+    "No chats to show.": {
+        "fr": "",
+        "fr_auto": "Pas de chats à montrer."
     }
 }

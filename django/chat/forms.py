@@ -76,7 +76,7 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
 
     def label_from_instance(self, obj):
         return {
-            "label": _("User chat uploads") if obj.is_personal_library else str(obj),
+            "label": _("Chat uploads") if obj.is_personal_library else str(obj),
             "data": obj.is_personal_library,
         }
 
@@ -138,14 +138,14 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
             data = DataSource.objects.all()
         if search is not None:
             items = [
-                {"label": x.label(), "value": str(x.id)}
+                {"label": x.label, "value": str(x.id)}
                 for x in data
                 if search == "" or str(search).upper() in f"{x}".upper()
             ]
             return items
         if values is not None:
             items = [
-                {"label": x.label(), "value": str(x.id)}
+                {"label": x.label, "value": str(x.id)}
                 for x in data
                 if str(x.id) in values
             ]
