@@ -85,9 +85,12 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         return self.get_grouped_choices()
 
 
-class CustomSelect(forms.Select):
+class SelectWithOptionClasses(forms.Select):
+    # This widget allows you to pass additional option-specific data to each item
+    # by adding a "class" attribute to each one. We can manipulate these classes
+    # in the frontend for selection-specific display options.
     def __init__(self, attrs=None, choices=(), data={}):
-        super(CustomSelect, self).__init__(attrs, choices)
+        super(SelectWithOptionClasses, self).__init__(attrs, choices)
         self.data = data
 
     def create_option(
@@ -98,12 +101,11 @@ class CustomSelect(forms.Select):
             label = opt_attrs.pop("label")
         else:
             opt_attrs = {}
-        option = super(CustomSelect, self).create_option(
+        option = super(SelectWithOptionClasses, self).create_option(
             name, value, label, selected, index, subindex=None, attrs=None
-        )  # noqa
-        # adds the data-attributes to the attrs context var
-        for _, value in opt_attrs.items():
-            option["attrs"]["class"] = str(value)
+        )
+        for _, flag in opt_attrs.items():
+            option["attrs"]["class"] = str(flag)
 
         return option
 
@@ -310,7 +312,7 @@ class ChatOptionsForm(ModelForm):
         self.fields["qa_library"] = GroupedLibraryChoiceField(
             user=user,
             empty_label=None,
-            widget=CustomSelect(
+            widget=SelectWithOptionClasses(
                 attrs={
                     "class": "form-select form-select-sm",
                     "onchange": "resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
