@@ -10,12 +10,8 @@
 
   function initializeLibraryListener() {
     var libraryList = document.getElementById("id_qa_library");
-    if (libraryList && !libraryList.dataset.listenerAttached) {
-      handleLibraryInput();
-       libraryList.addEventListener("input", function (event) {handleLibraryInput();});
-       libraryList.dataset.listenerAttached = "true"; // Prevent duplicate listeners
-    }
-   
+    handleLibraryInput();
+    libraryList.addEventListener("input", function (event) {handleLibraryInput();});
   }
 
 
@@ -33,6 +29,5 @@
     }
   }
 
-
-  document.addEventListener("DOMContentLoaded", function () {initializeLibraryListener();});
+  initializeLibraryListener();
 </script>
