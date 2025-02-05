@@ -80,7 +80,7 @@
               {% endfor %}
             </div>
           </div>
-          <div class="col-12 mt-2 d-none" id="public_fields">
+          <div class="col-12 mt-2 d-none" id="other_users">
             <div>
               <label class="form-label" for="id_accessible_to">{% trans "Share with:" %}</label>
               {{ form.accessible_to }}
@@ -178,8 +178,8 @@
     frTab.addEventListener('click', () => switchLanguage('fr'));
   }
 
-  const publicFields = document.getElementById('public_fields');
-  if (publicFields === null) return;
+  const otherUsers = document.getElementById('other_users');
+  if (otherUsers === null) return;
   
   const initially_public = {% if is_public %}true{% else %}false{% endif %};
   const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
@@ -192,13 +192,13 @@
     }
   }
 
-  function togglePublicFields() {
+  function toggleOtherUsers() {
     const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
     if (selectedOption) {
       if (selectedOption.value === 'others') {
-        publicFields.classList.remove('d-none');
+        otherUsers.classList.remove('d-none');
       } else {
-        publicFields.classList.add('d-none');
+        otherUsers.classList.add('d-none');
       }
       if (!initially_public) {
         toggleWarning(selectedOption.value === "everyone");
@@ -207,10 +207,10 @@
   }
 
   sharingOptionInputs.forEach(input => {
-    input.addEventListener('change', togglePublicFields);
+    input.addEventListener('change', toggleOtherUsers);
   });
 
-  togglePublicFields(); // Set initial state
+  toggleOtherUsers(); // Set initial state
 
 })();
 </script>
