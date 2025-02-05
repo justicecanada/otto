@@ -109,16 +109,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 selected_data_source = get_object_or_404(DataSource, id=parent_id)
         documents = list(selected_data_source.documents.all())
         selected_library = selected_data_source.library
-        if selected_library.is_personal_library:
-            data_sources = (
-                selected_library.data_sources.filter(chat__messages__isnull=False)
-                .distinct()
-                .prefetch_related("security_label")
-            )
-        else:
-            data_sources = selected_library.data_sources.all().prefetch_related(
-                "security_label"
-            )
+        data_sources = selected_library.folders
         if not item_id and not request.method == "DELETE":
             new_document = create_temp_object("document")
             documents.insert(0, new_document)
@@ -160,16 +151,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             data_source.delete()
             messages.success(request, _("Folder deleted successfully."))
             selected_library = data_source.library
-            if selected_library.is_personal_library:
-                data_sources = (
-                    selected_library.data_sources.filter(chat__messages__isnull=False)
-                    .distinct()
-                    .prefetch_related("security_label")
-                )
-            else:
-                data_sources = selected_library.data_sources.all().prefetch_related(
-                    "security_label"
-                )
+            data_sources = selected_library.folders
         else:
             if item_id:
                 selected_data_source = get_object_or_404(DataSource, id=item_id)
@@ -177,16 +159,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 documents = selected_data_source.documents.all()
             else:
                 selected_library = get_object_or_404(Library, id=parent_id)
-        if selected_library.is_personal_library:
-            data_sources = list(
-                selected_library.data_sources.filter(chat__messages__isnull=False)
-                .distinct()
-                .prefetch_related("security_label")
-            )
-        else:
-            data_sources = list(
-                selected_library.data_sources.all().prefetch_related("security_label")
-            )
+        data_sources = selected_library.folders
         if not item_id and not request.method == "DELETE":
             new_data_source = create_temp_object("data_source")
             data_sources.insert(0, new_data_source)
@@ -204,7 +177,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             library = Library.objects.get(id=item_id) if item_id else None
             # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
             # This is not implemented using signals due to risk of introducing recursion
-            if item_id: library.access()
+            if item_id:
+                library.access()
             form = LibraryDetailForm(request.POST, instance=library, user=request.user)
             if form.is_valid():
                 form.save()
@@ -240,18 +214,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         if not request.method == "DELETE":
             if item_id:
                 selected_library = get_object_or_404(Library, id=item_id)
-                if selected_library.is_personal_library:
-                    data_sources = (
-                        selected_library.data_sources.filter(
-                            chat__messages__isnull=False
-                        )
-                        .distinct()
-                        .prefetch_related("security_label")
-                    )
-                else:
-                    data_sources = selected_library.data_sources.all().prefetch_related(
-                        "security_label"
-                    )
+                data_sources = selected_library.folders
                 if request.user.has_perm(
                     "librarian.manage_library_users", selected_library
                 ):

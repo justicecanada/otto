@@ -205,6 +205,18 @@ class Library(models.Model):
     def viewers(self):
         return self.user_roles.filter(role="viewer").values_list("user", flat=True)
 
+    @property
+    def folders(self):
+        if self.is_personal_library:
+            data_sources = self.data_sources.filter(
+                chat__messages__isnull=False
+            ).distinct()
+
+        else:
+            data_sources = self.data_sources.all()
+
+        return data_sources.prefetch_related("security_label")
+
 
 # AC-20: Allows for fine-grained control over who can access and manage information sources
 class LibraryUserRole(models.Model):
