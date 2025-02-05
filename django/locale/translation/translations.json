@@ -3124,43 +3124,31 @@
         "fr_auto": "respectivement."
     },
     "Chats": {
-        "fr": "",
+        "fr": "Clavardages",
         "fr_auto": "Les chats"
     },
-    "No current user chats.": {
-        "fr": "",
-        "fr_auto": "Aucun chat utilisateur actuel."
-    },
-    "User Chat Uploads": {
-        "fr": "",
-        "fr_auto": "Téléchargements de chat utilisateur"
-    },
     "Select chat(s)": {
-        "fr": "",
+        "fr": "Sélectionnez clavardages(s)",
         "fr_auto": "Sélectionnez chat(s)"
     },
     "Selected chats": {
-        "fr": "",
+        "fr": "Clavardages sélectionnés",
         "fr_auto": "Chats sélectionnés"
     },
     "User chat uploads": {
-        "fr": "",
+        "fr": "Téléchargements de clavardage utilisateur",
         "fr_auto": "Téléchargements de chat utilisateur"
     },
     "All chats": {
-        "fr": "",
+        "fr": "Tous les clavardage",
         "fr_auto": "Tous les chats"
     },
-    "This chat": {
-        "fr": "",
-        "fr_auto": "Ce chat"
-    },
     "Chat uploads": {
-        "fr": "",
+        "fr": "Téléchargements de clavardage",
         "fr_auto": "Téléchargements de chat"
     },
     "No chats to show.": {
-        "fr": "",
+        "fr": "Pas de clavardages à montrer.",
         "fr_auto": "Pas de chats à montrer."
     },
     "Select a library, folder or document to edit.": {

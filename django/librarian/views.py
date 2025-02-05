@@ -159,7 +159,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 documents = selected_data_source.documents.all()
             else:
                 selected_library = get_object_or_404(Library, id=parent_id)
-        data_sources = selected_library.folders
+        data_sources = list(selected_library.folders)
         if not item_id and not request.method == "DELETE":
             new_data_source = create_temp_object("data_source")
             data_sources.insert(0, new_data_source)
