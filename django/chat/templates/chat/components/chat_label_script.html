@@ -11,7 +11,7 @@
   function initializeLibraryListener() {
     var libraryList = document.getElementById("id_qa_library");
     handleLibraryInput();
-    libraryList.addEventListener("input", function (event) {handleLibraryInput();});
+    libraryList.addEventListener("input", handleLibraryInput);
   }
 
 
