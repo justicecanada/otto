@@ -3158,5 +3158,21 @@
     "This chat": {
         "fr": "Ce clavardage",
         "fr_auto": "Ce chat"
+    },
+    "Error processing the following document(s): ": {
+        "fr": "",
+        "fr_auto": "Erreur de traitement du ou des documents suivants : "
+    },
+    "- Error processing the following document(s): ": {
+        "fr": "",
+        "fr_auto": "- Erreur de traitement du(des) document(s) suivant(s) : "
+    },
+    " The processing of your file(s) was interrupted.": {
+        "fr": "",
+        "fr_auto": " Le traitement de vos dossiers a été interrompu."
+    },
+    "An interruption occurred while generating the response.": {
+        "fr": "",
+        "fr_auto": "Une interruption s’est produite pendant la génération de la réponse."
     }
 }
