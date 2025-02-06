@@ -374,6 +374,23 @@ def qa_response(chat, response_message, switch_mode=False):
             processing_count = await sync_to_async(
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
             )()
+        error_documents = await sync_to_async(
+            lambda: list(ds.documents.filter(status="ERROR"))
+        )()
+        completed_documents = await sync_to_async(
+            lambda: ds.documents.filter(status="SUCCESS").count()
+        )()
+
+        if error_documents:
+            doc_names = [doc.filename for doc in error_documents]
+            if len(error_documents) == len(files):
+                yield _("Error processing the following document(s): ") + ", ".join(
+                    doc_names
+                )
+            else:
+                yield _("- Error processing the following document(s): ") + ", ".join(
+                    doc_names
+                ) + f"\n- {completed_documents} " + _("new document(s) ready for Q&A.")
         if adding_url:
             yield _("URL ready for Q&A.")
         else:
