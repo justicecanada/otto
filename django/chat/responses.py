@@ -383,14 +383,14 @@ def qa_response(chat, response_message, switch_mode=False):
         )()
 
         if error_documents:
-            doc_names = [doc.filename for doc in error_documents]
+            doc_names_for_error = [doc.filename for doc in error_documents]
             if len(error_documents) == len(files):
                 yield _("Error processing the following document(s): ") + ", ".join(
-                    doc_names
+                    doc_names_for_error
                 )
             else:
                 yield _("- Error processing the following document(s): ") + ", ".join(
-                    doc_names
+                    doc_names_for_error
                 ) + f"\n- {completed_documents} " + _("new document(s) ready for Q&A.")
         elif adding_url:
             yield _("URL ready for Q&A.")
