@@ -38,7 +38,9 @@
       {% elif message.is_bot %}
         <div class="message-text">
           <div class="markdown-text" data-md="{{ message.json }}">
-            {% include "chat/components/default_error_messages.html" %}
+            {% if message.text == "" and message.json == "" %}
+              {% include "chat/components/default_error_messages.html" %}
+            {% endif %}
           </div>
         </div>
       {% else %}
