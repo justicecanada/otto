@@ -120,6 +120,7 @@ def guess_content_type(
         "application/pdf",
         "application/xml",
         "application/vnd.ms-outlook",
+        "message/rfc822",
         "text/html",
         "text/markdown",
         "text/csv",
@@ -147,9 +148,12 @@ def guess_content_type(
         content = content.read()
 
     if isinstance(content, bytes):
-        # Explicitly handle Outlook emails
+        # Explicitly handle emails (MIME type is often incorrect)
         if path.endswith(".msg"):
             return "application/vnd.ms-outlook"
+
+        elif path.endswith(".eml"):
+            return "message/rfc822"
 
         # Use filetype library to guess the content type
         kind = filetype.guess(content)
@@ -185,6 +189,8 @@ def get_process_engine_from_type(type):
         return "WORD"
     elif "officedocument.presentationml.presentation" in type:
         return "POWERPOINT"
+    elif "message/rfc822" in type:
+        return "EML"
     elif "application/vnd.ms-outlook" in type:
         return "OUTLOOK_MSG"
     elif "application/pdf" in type:
@@ -260,6 +266,9 @@ def extract_markdown(
         elif process_engine == "OUTLOOK_MSG":
             enable_markdown = False
             md = msg_to_markdown(content)
+        elif process_engine == "EML":
+            enable_markdown = False
+            md = eml_to_markdown(content)
         elif process_engine == "CSV":
             md = csv_to_markdown(content)
         elif process_engine == "EXCEL":
