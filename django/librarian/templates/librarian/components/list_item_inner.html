@@ -3,7 +3,20 @@
 <div id="{{ item_type }}-{{ item.id }}-list-item-content"
      class="d-flex justify-content-between align-items-center"
      {% if swap %}hx-swap-oob="true"{% endif %}>
-  {{ item.name }}
+ 
+  {% if item.library.is_personal_library %}
+    {% if item.chat.title %}
+      {{ item.chat.title }}
+    {% else %}
+      {% trans "Untitled chat" %}
+    {% endif %}
+    <br>
+    ({{ item.chat.accessed_at }})
+  {% elif item.is_personal_library %}
+    {% trans "Chat uploads" %}
+  {% else %}
+    {{ item.name }}
+  {% endif %}
   {% if item.is_public or item_type == "data_source" or item.status or item.is_personal_library %}
     <div>
       {% if item.is_public %}
@@ -11,7 +24,7 @@
            style="top: 1px"
            title="{% trans 'JUS library' %}"></i><span class="visually-hidden">{% trans "JUS library" %}</span>
       {% elif item.is_personal_library %}
-        <i class="bi bi-person-fill text-muted position-relative"
+        <i class="bi bi-chat-right-text-fill text-muted position-relative"
            style="top: 1px"
            title="{% trans 'Personal library' %}"></i><span class="visually-hidden">{% trans "Personal library" %}</span>
       {% elif item_type == "data_source" %}
