@@ -3,7 +3,7 @@ import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -139,7 +139,11 @@ class Library(models.Model):
     def _validate_personal_library(self):
         if not self.is_personal_library:
             return
-        if Library.objects.filter(is_personal_library=True, created_by=self.created_by):
+        if (
+            Library.objects.filter(is_personal_library=True, created_by=self.created_by)
+            .exclude(pk=self.pk)
+            .exists()
+        ):
             raise ValidationError(
                 "There can be only one personal library for each user"
             )
@@ -200,6 +204,18 @@ class Library(models.Model):
     @property
     def viewers(self):
         return self.user_roles.filter(role="viewer").values_list("user", flat=True)
+
+    @property
+    def folders(self):
+        if self.is_personal_library:
+            data_sources = self.data_sources.filter(
+                chat__messages__isnull=False
+            ).distinct()
+
+        else:
+            data_sources = self.data_sources.all()
+
+        return data_sources.prefetch_related("security_label")
 
 
 # AC-20: Allows for fine-grained control over who can access and manage information sources
@@ -291,6 +307,16 @@ class DataSource(models.Model):
     def process_all(self):
         for document in self.documents.all():
             document.process()
+
+    @property
+    def label(self):
+        if not self.library.is_personal_library:
+            return str(self)
+        chat_title = (
+            self.chat.title if self.chat and self.chat.title else _("Untitled chat")
+        )
+        data_source_time = self.modified_at if not self.chat else self.chat.accessed_at
+        return f"{chat_title} ({data_source_time.strftime('%y/%m/%d %I:%M %p')})"
 
 
 class Document(models.Model):
@@ -486,9 +512,48 @@ class SavedFile(models.Model):
         self.delete()
 
 
-@receiver(post_delete, sender=Document)
-def delete_saved_file(sender, instance, **kwargs):
+@receiver(post_delete, sender=DataSource)
+def data_source_post_delete(sender, instance, **kwargs):
     try:
-        instance.file.safe_delete()
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library = instance.library
+        library.accessed_at = timezone.now()
+        library.save()
     except Exception as e:
-        logger.error(f"Failed to delete document file: {e}")
+        logger.error(f"Data source post delete error: {e}")
+
+
+@receiver(post_save, sender=DataSource)
+def data_source_post_save(sender, instance, **kwargs):
+    try:
+        library = instance.library
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library.accessed_at = timezone.now()
+        library.save()
+    except Exception as e:
+        logger.error(f"Data source post save error: {e}")
+
+
+@receiver(post_save, sender=Document)
+def document_post_save(sender, instance, **kwargs):
+    try:
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library = instance.data_source.library
+        library.accessed_at = timezone.now()
+        library.save()
+    except Exception as e:
+        logger.error(f"Document post save error: {e}")
+
+
+@receiver(post_delete, sender=Document)
+def document_post_delete(sender, instance, **kwargs):
+    try:
+        # pytest Error been thrown because created Document doesn't have file. Test passes without if but error thrown
+        if instance.file is not None:
+            instance.file.safe_delete()
+        # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+        library = instance.data_source.library
+        library.accessed_at = timezone.now()
+        library.save()
+    except Exception as e:
+        logger.error(f"Document post delete error: {e}")
