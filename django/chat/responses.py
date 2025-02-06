@@ -436,7 +436,7 @@ def qa_response(chat, response_message, switch_mode=False):
     if qa_scope != "all" and not filter_documents.exists():
         response_str = _(
             "Sorry, I couldn't find any information about that. "
-            "Try selecting more data sources or documents, or try a different library."
+            "Try selecting more folders or documents, or try a different library."
         )
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
@@ -543,7 +543,7 @@ def qa_response(chat, response_message, switch_mode=False):
 
         if len(source_nodes) == 0:
             response_str = _(
-                "Sorry, I couldn't find any information about that. Try selecting a different library or data source."
+                "Sorry, I couldn't find any information about that. Try selecting a different library or folder."
             )
             return StreamingHttpResponse(
                 # Although there are no LLM costs, there is still a query embedding cost

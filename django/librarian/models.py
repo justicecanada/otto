@@ -139,7 +139,11 @@ class Library(models.Model):
     def _validate_personal_library(self):
         if not self.is_personal_library:
             return
-        if Library.objects.filter(is_personal_library=True, created_by=self.created_by):
+        if (
+            Library.objects.filter(is_personal_library=True, created_by=self.created_by)
+            .exclude(pk=self.pk)
+            .exists()
+        ):
             raise ValidationError(
                 "There can be only one personal library for each user"
             )
@@ -200,6 +204,18 @@ class Library(models.Model):
     @property
     def viewers(self):
         return self.user_roles.filter(role="viewer").values_list("user", flat=True)
+
+    @property
+    def folders(self):
+        if self.is_personal_library:
+            data_sources = self.data_sources.filter(
+                chat__messages__isnull=False
+            ).distinct()
+
+        else:
+            data_sources = self.data_sources.all()
+
+        return data_sources.prefetch_related("security_label")
 
 
 # AC-20: Allows for fine-grained control over who can access and manage information sources
@@ -291,6 +307,16 @@ class DataSource(models.Model):
     def process_all(self):
         for document in self.documents.all():
             document.process()
+
+    @property
+    def label(self):
+        if not self.library.is_personal_library:
+            return str(self)
+        chat_title = (
+            self.chat.title if self.chat and self.chat.title else _("Untitled chat")
+        )
+        data_source_time = self.modified_at if not self.chat else self.chat.accessed_at
+        return f"{chat_title} ({data_source_time.strftime('%y/%m/%d %I:%M %p')})"
 
 
 class Document(models.Model):
@@ -485,6 +511,7 @@ class SavedFile(models.Model):
             self.file.delete(False)
         self.delete()
 
+
 @receiver(post_delete, sender=DataSource)
 def data_source_post_delete(sender, instance, **kwargs):
     try:
@@ -494,6 +521,7 @@ def data_source_post_delete(sender, instance, **kwargs):
         library.save()
     except Exception as e:
         logger.error(f"Data source post delete error: {e}")
+
 
 @receiver(post_save, sender=DataSource)
 def data_source_post_save(sender, instance, **kwargs):
@@ -505,6 +533,7 @@ def data_source_post_save(sender, instance, **kwargs):
     except Exception as e:
         logger.error(f"Data source post save error: {e}")
 
+
 @receiver(post_save, sender=Document)
 def document_post_save(sender, instance, **kwargs):
     try:
@@ -514,6 +543,7 @@ def document_post_save(sender, instance, **kwargs):
         library.save()
     except Exception as e:
         logger.error(f"Document post save error: {e}")
+
 
 @receiver(post_delete, sender=Document)
 def document_post_delete(sender, instance, **kwargs):
