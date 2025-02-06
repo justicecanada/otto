@@ -148,7 +148,11 @@ def test_library_list(client, all_apps_user):
             for category in categories:
                 category_choices = [c[1] for c in choices if c[0] == category]
                 if category_choices:
-                    category_choices = category_choices[0]
+                    category_choices_unformatted = category_choices[0]
+                    # Remove extra data attribute
+                    category_choices = [
+                        (c[0], c[1]["label"]) for c in category_choices_unformatted
+                    ]
                     if category == "JUS-managed":
                         assert len(category_choices) == public_libraries.count()
                         for library in public_libraries:
@@ -168,7 +172,7 @@ def test_library_list(client, all_apps_user):
                         # The user's personal library should also be there
                         assert (
                             user.personal_library.id,
-                            user.personal_library.name,
+                            "Chat uploads",
                         ) in category_choices
                         # The shared library should also be there
                         assert (
@@ -225,7 +229,9 @@ def test_library_list(client, all_apps_user):
     form = ChatOptionsForm(user=bob)
     choices = form.fields["qa_library"].choices
     category_choices = [c[1] for c in choices if c[0] == "Shared with me"]
-    category_choices = category_choices[0]
+    category_choices_unformatted = category_choices[0]
+    # Remove extra data attribute
+    category_choices = [(c[0], c[1]["label"]) for c in category_choices_unformatted]
     assert len(category_choices) == 1
     assert (
         jane_bob_shared_library.id,
@@ -233,7 +239,9 @@ def test_library_list(client, all_apps_user):
     ) in category_choices
     # Check that it is not in the managed by category
     category_choices = [c[1] for c in choices if c[0] == "Managed by me"]
-    category_choices = category_choices[0]
+    category_choices_unformatted = category_choices[0]
+    # Remove extra data attribute
+    category_choices = [(c[0], c[1]["label"]) for c in category_choices_unformatted]
     assert len(category_choices) == 2
     assert (
         bob_private_library.id,
@@ -242,7 +250,7 @@ def test_library_list(client, all_apps_user):
     # Bob's personal library should also be there
     assert (
         bob.personal_library.id,
-        bob.personal_library.name,
+        "Chat uploads",
     ) in category_choices
     # But jane's should not, since Bob is contributor now, not admin
     assert (
@@ -258,7 +266,9 @@ def test_library_list(client, all_apps_user):
     form = ChatOptionsForm(user=jane)
     choices = form.fields["qa_library"].choices
     category_choices = [c[1] for c in choices if c[0] == "Shared with me"]
-    category_choices = category_choices[0]
+    category_choices_unformatted = category_choices[0]
+    # Remove extra data attribute
+    category_choices = [(c[0], c[1]["label"]) for c in category_choices_unformatted]
     assert len(category_choices) == 1
     assert (
         bob_private_library.id,
@@ -266,7 +276,9 @@ def test_library_list(client, all_apps_user):
     ) in category_choices
     # Check that it is not in the managed by category
     category_choices = [c[1] for c in choices if c[0] == "Managed by me"]
-    category_choices = category_choices[0]
+    category_choices_unformatted = category_choices[0]
+    # Remove extra data attribute
+    category_choices = [(c[0], c[1]["label"]) for c in category_choices_unformatted]
     assert len(category_choices) == 3
     assert (
         bob_private_library.id,

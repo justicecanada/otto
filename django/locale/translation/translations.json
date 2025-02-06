@@ -2923,6 +2923,82 @@
         "fr": "",
         "fr_auto": "Régénérer"
     },
+    "Select folder(s)": {
+        "fr": "",
+        "fr_auto": "Sélectionner le(s) dossier(s)"
+    },
+    "Selected folders": {
+        "fr": "",
+        "fr_auto": "Dossiers sélectionnés"
+    },
+    "Sorry, I couldn't find any information about that. Try selecting more folders or documents, or try a different library.": {
+        "fr": "",
+        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner plus de dossiers ou de documents, ou essayez une autre bibliothèque."
+    },
+    "Sorry, I couldn't find any information about that. Try selecting a different library or folder.": {
+        "fr": "",
+        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner une autre bibliothèque ou un autre dossier."
+    },
+    "Folders": {
+        "fr": "",
+        "fr_auto": "Dossiers"
+    },
+    "Select a library to edit folders.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez une bibliothèque pour modifier les dossiers."
+    },
+    "New folder": {
+        "fr": "",
+        "fr_auto": "Nouveau dossier"
+    },
+    "No folders in this library.": {
+        "fr": "",
+        "fr_auto": "Aucun dossier dans cette bibliothèque."
+    },
+    "Select a folder to edit documents.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez un dossier pour modifier les documents."
+    },
+    "No documents in this folder.": {
+        "fr": "",
+        "fr_auto": "Aucun document dans ce dossier."
+    },
+    "files per folder.": {
+        "fr": "",
+        "fr_auto": "par dossier."
+    },
+    "Edit folder": {
+        "fr": "",
+        "fr_auto": "Modifier le dossier"
+    },
+    "Create folder": {
+        "fr": "",
+        "fr_auto": "Créer un dossier"
+    },
+    "DANGER: Are you sure you want to delete this folder? This action is permanent.": {
+        "fr": "",
+        "fr_auto": "DANGER : Êtes-vous sûr de vouloir supprimer ce dossier ? Cette action est permanente."
+    },
+    "Folder updated successfully.": {
+        "fr": "",
+        "fr_auto": "Dossier mis à jour avec succès."
+    },
+    "Folder created successfully.": {
+        "fr": "",
+        "fr_auto": "Dossier créé avec succès."
+    },
+    "Folder deleted successfully.": {
+        "fr": "",
+        "fr_auto": "Dossier supprimé avec succès."
+    },
+    "Unsaved folder": {
+        "fr": "",
+        "fr_auto": "Dossier non sauveté"
+    },
+    "Select a library, folder, or document to edit.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à modifier."
+    },
     "Email administrators": {
         "fr": "Contactez les administrateurs",
         "fr_auto": "Administrateurs de messagerie"
@@ -3046,5 +3122,41 @@
     "respectively.": {
         "fr": "",
         "fr_auto": "respectivement."
+    },
+    "Chats": {
+        "fr": "Clavardages",
+        "fr_auto": "Les chats"
+    },
+    "Select chat(s)": {
+        "fr": "Sélectionnez clavardages(s)",
+        "fr_auto": "Sélectionnez chat(s)"
+    },
+    "Selected chats": {
+        "fr": "Clavardages sélectionnés",
+        "fr_auto": "Chats sélectionnés"
+    },
+    "User chat uploads": {
+        "fr": "Téléchargements de clavardage utilisateur",
+        "fr_auto": "Téléchargements de chat utilisateur"
+    },
+    "All chats": {
+        "fr": "Tous les clavardage",
+        "fr_auto": "Tous les chats"
+    },
+    "Chat uploads": {
+        "fr": "Téléchargements de clavardage",
+        "fr_auto": "Téléchargements de chat"
+    },
+    "No chats to show.": {
+        "fr": "Pas de clavardages à montrer.",
+        "fr_auto": "Pas de chats à montrer."
+    },
+    "Select a library, folder or document to edit.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à modifier."
+    },
+    "This chat": {
+        "fr": "Ce clavardage",
+        "fr_auto": "Ce chat"
     }
 }
