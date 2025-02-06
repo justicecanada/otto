@@ -3154,5 +3154,9 @@
     "Select a library, folder or document to edit.": {
         "fr": "",
         "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à modifier."
+    },
+    "This chat": {
+        "fr": "Ce clavardage",
+        "fr_auto": "Ce chat"
     }
 }

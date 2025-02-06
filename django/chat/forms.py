@@ -4,6 +4,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.forms import ModelForm
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
@@ -81,7 +82,7 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return {
             "label": _("Chat uploads") if obj.is_personal_library else str(obj),
-            "data": obj.is_personal_library,
+            "is_personal_library": obj.is_personal_library,
         }
 
     @property
@@ -123,11 +124,16 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
     model = DataSource
 
     def get_items(self, search=None, values=None):
+        this_chat_string = _("This chat")
         request = get_request()
         library_id = request.GET.get("library_id", None)
         chat_id = request.GET.get(
             "chat_id",
-            urlparse(request.META.get("HTTP_REFERER", ""))
+            urlparse(
+                request.META.get(
+                    "HTTP_HX_CURRENT_URL", request.META.get("PATH_INFO", "")
+                )
+            )
             .path.strip("/")
             .split("/")[-1],
         )
@@ -152,7 +158,9 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
             items = [
                 {
                     "label": (
-                        mark_safe(f"<span class='fw-semibold'>{x.label}</span>")
+                        mark_safe(
+                            f"<span class='fw-semibold'>{this_chat_string}</span>"
+                        )
                         if x.chat and str(x.chat.id) == chat_id
                         else x.label
                     ),
@@ -166,10 +174,11 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
             items = [
                 {
                     "label": (
-                        mark_safe(f"<span class='fw-semibold'>{x.label}</span>")
-                        if x.chat
-                        and str(x.chat.id) == chat_id
-                        and parse_qs(request.body.decode()).get("remove")
+                        mark_safe(
+                            f"<span class='fw-semibold'>{this_chat_string}</span>"
+                        )
+                        if x.chat and str(x.chat.id) == chat_id
+                        # and parse_qs(request.body.decode()).get("remove")
                         else x.label
                     ),
                     "value": str(x.id),
