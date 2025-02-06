@@ -3170,5 +3170,13 @@
     "This chat": {
         "fr": "Ce clavardage",
         "fr_auto": "Ce chat"
+    },
+    " The processing of your file(s) was interrupted.": {
+        "fr": "",
+        "fr_auto": " Le traitement de vos dossiers a été interrompu."
+    },
+    "An interruption occurred while generating the response.": {
+        "fr": "",
+        "fr_auto": "Une interruption s’est produite pendant la génération de la réponse."
     }
 }
