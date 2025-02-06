@@ -51,8 +51,8 @@
           short_name: "template_wizard"
           name_en: Template Wizard
           name_fr: Assistant de modèle
-          description_en: Extract information from multiple sources and automatically populate templates.
-          description_fr: Extraire des informations de plusieurs sources et remplir automatiquement des modèles.
+          description_en: Under development
+          description_fr: En cours de développement
           url: template_wizard:index
           category: reporting
 

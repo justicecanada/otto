@@ -104,8 +104,8 @@ def get_categorized_features(user):
         }
         for category, features in categories.items()
     ]
-
-    return categorized_features
+    # Sort the categories by title to push Reporting to the bottom as a temporary measure while under development
+    return sorted(categorized_features, key=lambda x: x["category_title"])
 
 
 def index(request):
