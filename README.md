@@ -160,6 +160,7 @@
 | django/otto/migrations/0024\_delete\_usageterm.py                                                             |        4 |        0 |    100% |           |
 | django/otto/migrations/0025\_reset\_accepted\_terms\_date.py                                                  |        7 |        0 |    100% |           |
 | django/otto/migrations/0026\_notification\_heading\_en\_notification\_heading\_fr\_and\_more.py               |        4 |        0 |    100% |           |
+| django/otto/migrations/0027\_auto\_20250206\_1528.py                                                          |        7 |        0 |    100% |           |
 | django/otto/migrations/\_\_init\_\_.py                                                                        |        0 |        0 |    100% |           |
 | django/otto/models.py                                                                                         |      276 |       30 |     89% |26-28, 76-79, 112, 116-119, 154, 193, 196, 212, 233, 251, 368, 371, 423, 429, 453, 457, 461, 465, 511-512, 526, 530, 534, 555 |
 | django/otto/rules.py                                                                                          |      158 |       18 |     89% |26, 42, 49, 51, 101-103, 108-110, 115-117, 146, 212-214, 250 |
@@ -201,7 +202,7 @@
 | django/tests/otto/test\_exchange\_rate\_update.py                                                             |       11 |        0 |    100% |           |
 | django/tests/otto/test\_feedback\_dashboard.py                                                                |      109 |        0 |    100% |           |
 | django/tests/otto/test\_load\_test.py                                                                         |       64 |        0 |    100% |           |
-| django/tests/otto/test\_manage\_users.py                                                                      |      129 |        0 |    100% |           |
+| django/tests/otto/test\_manage\_users.py                                                                      |      130 |        0 |    100% |           |
 | django/tests/otto/test\_otto\_forms.py                                                                        |       11 |        0 |    100% |           |
 | django/tests/otto/test\_otto\_models.py                                                                       |       37 |        0 |    100% |           |
 | django/tests/otto/test\_otto\_views.py                                                                        |       63 |        0 |    100% |           |
@@ -225,7 +226,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **10283** | **1150** | **89%** |           |
+|                                                                                                     **TOTAL** | **10291** | **1150** | **89%** |           |
 
 
 ## Setup coverage badge
