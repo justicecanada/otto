@@ -343,6 +343,42 @@ function copyCode(btn) {
   }, 300);
 }
 
+function exportToDocx(btn) {
+  // // Get the message text
+  // let message = btn.closest(".message-outer");
+  // //export the message to a word docx file without django
+  // let messageText = message.querySelector(".message-text").innerText;
+  // let messageTextBlob = new Blob([messageText], {type: 'text/plain'});
+  // let messageTextUrl = URL.createObjectURL(messageTextBlob);
+  // let messageTextLink = document.createElement('a');
+  // messageTextLink.href = messageTextUrl;
+  // messageTextLink.download = 'message_content.docx';
+  // messageTextLink.click();
+  // Get the message text
+  let message = btn.closest(".message-outer");
+  let messageText = message.querySelector(".message-text").innerText;
+
+  // Create a Word document
+  let doc = new window.docx.Document({
+    sections: [{
+      properties: {},
+      children: [
+        new window.docx.Paragraph({text: messageText})
+      ]
+    }]
+  });
+
+  // Generate and download the .docx file
+  window.docx.Packer.toBlob(doc).then(blob => {
+    let docxUrl = URL.createObjectURL(blob);
+    let docxLink = document.createElement("a");
+    docxLink.href = docxUrl;
+    docxLink.download = "message_content.docx";
+    docxLink.click();
+  });
+}
+
+
 /** Copies the text from the user's prompt to the text input.
 *
 * @param {HTMLButtonElement} btn - the edit button of a user prompt.
@@ -360,6 +396,36 @@ function copyPromptToTextInput(btn, messageMode) {
   inputArea.focus();
 }
 
+// function exportToDocx(btn) {
+//   let message = btn.closest(".message-outer");
+//   const messageText = message.querySelector(".message-text").textContent;
+//   const csrftoken = Cookies.get("csrftoken");
+//   // Send the message text to the Django view
+//   fetch('/export-to-docx/', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/x-www-form-urlencoded',
+//       'X-CSRFToken': csrftoken // Ensure you include the CSRF token
+//     },
+//     body: new URLSearchParams({
+//       'message_text': messageText
+//     })
+//   })
+//     .then(response => response.blob())
+//     .then(blob => {
+//       const url = window.URL.createObjectURL(blob);
+//       const a = document.createElement('a');
+//       a.href = url;
+//       a.download = 'message_content.docx';
+//       document.body.appendChild(a);
+//       a.click();
+//       a.remove();
+//       window.URL.revokeObjectURL(url);
+//     })
+//     .catch(error => {
+//       console.error('Error exporting to DOCX:', error);
+//     });
+// }
 
 // File upload (based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader)
 class FileUpload {

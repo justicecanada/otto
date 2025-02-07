@@ -1,4 +1,6 @@
 import json
+import os
+import tempfile
 from urllib.parse import quote
 
 from django.contrib import messages
@@ -15,6 +17,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
+from docx import Document
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -38,6 +41,7 @@ from chat.utils import (
 )
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
+from otto.utils import mark_docx
 from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
     app_access_required,
@@ -926,3 +930,35 @@ def email_author(request, chat_id):
     )
     mailto_link = generate_mailto(to=chat.user.email, subject=subject, body=body)
     return HttpResponse(f"<a href='{mailto_link}'>mailto link</a>")
+
+
+# @require_POST
+# def export_to_docx(request):
+#     message_text = request.POST.get("message_text")
+#     if not message_text:
+#         return HttpResponse(status=400, content="No message text provided")
+
+#     # Create a new Document
+#     doc = Document()
+#     doc.add_paragraph(message_text)
+
+#     # Save the document to a temporary file
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+#         doc.save(tmp.name)
+#         tmp_path = tmp.name
+
+#     # Mark the document
+#     mark_docx(tmp_path)
+
+#     # Read the marked document and return it as a response
+#     with open(tmp_path, "rb") as f:
+#         response = HttpResponse(
+#             f.read(),
+#             content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+#         )
+#         response["Content-Disposition"] = "attachment; filename=message_content.docx"
+
+#     # Clean up the temporary file
+#     os.remove(tmp_path)
+
+#     return response
