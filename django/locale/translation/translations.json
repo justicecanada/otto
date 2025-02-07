@@ -3174,5 +3174,9 @@
     "An interruption occurred while generating the response.": {
         "fr": "",
         "fr_auto": "Une interruption s’est produite pendant la génération de la réponse."
+    },
+    " Error processing the following document(s): ": {
+        "fr": "",
+        "fr_auto": " Erreur de traitement du ou des documents suivants : "
     }
 }
