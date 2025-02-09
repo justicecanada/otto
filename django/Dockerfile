@@ -15,11 +15,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
 
-# Copy certificates from the host's /usr/local/share/ca-certificates to the same location in the container
-COPY /usr/local/share/ca-certificates/ /usr/local/share/ca-certificates/
-
-# Update the certificate store
-RUN update-ca-certificates
+# Download and install the GoC root certificate
+RUN curl -sSL http://pki-icp.canada.ca/aia/GoC-GdC-Root-A.crt -o /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
+    && update-ca-certificates
 
 COPY requirements*.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check --no-cache-dir install \
