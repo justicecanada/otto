@@ -15,6 +15,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
 
+# Copy certificates from the host's /usr/local/share/ca-certificates to the same location in the container
+COPY /usr/local/share/ca-certificates/ /usr/local/share/ca-certificates/
+
+# Update the certificate store
+RUN update-ca-certificates
+
 COPY requirements*.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check --no-cache-dir install \
     -r /tmp/pip-tmp/requirements.txt -r /tmp/pip-tmp/requirements_dev.txt \
