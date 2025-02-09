@@ -15,8 +15,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
 
-# Download and install the GoC root certificate
-RUN curl -sSL http://pki-icp.canada.ca/aia/GoC-GdC-Root-A.crt -o /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
+# Download and install the GoC root certificate using wget
+RUN wget -q http://pki-icp.canada.ca/aia/GoC-GdC-Root-A.crt -O /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
     && update-ca-certificates
 
 COPY requirements*.txt /tmp/pip-tmp/
