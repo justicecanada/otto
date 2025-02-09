@@ -16,7 +16,9 @@ RUN apt-get update \
     && rm -rf /var/cache/apt/archives/*
 
 # Download and install the GoC root certificate using wget
-RUN wget -q http://pki-icp.canada.ca/aia/GoC-GdC-Root-A.crt -O /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
+# TODO: Remove this hard-coded entry when the host no longer resets the connection the other IP
+RUN echo "167.43.15.18 pki-icp.canada.ca" >> /etc/hosts \
+    && wget -q http://pki-icp.canada.ca/aia/GoC-GdC-Root-A.crt -O /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
     && update-ca-certificates
 
 COPY requirements*.txt /tmp/pip-tmp/
