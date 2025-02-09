@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install additional packages
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gettext postgresql-client poppler-utils procps \
+    && apt-get install -y --no-install-recommends gettext postgresql-client poppler-utils procps wget ca-certificates \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
