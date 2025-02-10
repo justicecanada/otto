@@ -9,7 +9,7 @@
       - fields:
           short_name: "chat"
           name_en: Chat
-          name_fr: Calavarder avec l'IA
+          name_fr: Clavarder avec l'IA
           description_en: Chat with a Justice-hosted AI (like ChatGPT).
           description_fr: Clavarder avec une IA hébergée par Justice (comme ChatGPT).
           url: chat:chat_with_ai

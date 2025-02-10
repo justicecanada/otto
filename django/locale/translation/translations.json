@@ -1,10 +1,10 @@
 {
     "Title:": {
-        "fr": "Titre:",
+        "fr": "Titre :",
         "fr_auto": "Titre:"
     },
     "Language:": {
-        "fr": "Langue:",
+        "fr": "Langue :",
         "fr_auto": "Langue:"
     },
     "English": {
@@ -16,7 +16,7 @@
         "fr_auto": "Français"
     },
     "Team Name:": {
-        "fr": "Nom de l'équipe:",
+        "fr": "Nom de l'équipe :",
         "fr_auto": "Nom de l'équipe:"
     },
     "Contact Email:": {
@@ -24,7 +24,7 @@
         "fr_auto": "Courriel du contact"
     },
     "Element ID:": {
-        "fr": "Id de l'élément:",
+        "fr": "Id de l'élément :",
         "fr_auto": "Id de l'élément:"
     },
     "Submit": {
@@ -236,7 +236,7 @@
         "fr_auto": ""
     },
     "Next Solution": {
-        "fr": "Solution Prochaine",
+        "fr": "Prochaine solution",
         "fr_auto": ""
     },
     "Type of Modification:": {
@@ -252,7 +252,7 @@
         "fr_auto": ""
     },
     "Date Uploaded": {
-        "fr": "Date de Téléchargement",
+        "fr": "Date de Téléversement",
         "fr_auto": ""
     },
     "Total Lines": {
@@ -528,164 +528,552 @@
         "fr_auto": "Les commentaires ont été mis à jour avec succès."
     },
     "GPT-4o-mini (Global)": {
-        "fr": "",
+        "fr": "GPT-4o-mini (Global)",
         "fr_auto": "GPT-4o-mini (Global)"
     },
     "GPT-4o (Global)": {
-        "fr": "",
+        "fr": "GPT-4o (Global)",
         "fr_auto": "GPT-4o (Global)"
     },
     "GPT-4 (Canada)": {
-        "fr": "",
+        "fr": "GPT-4 (Canada)",
         "fr_auto": "GPT-4 (Canada)"
     },
     "GPT-3.5 (Canada)": {
-        "fr": "",
+        "fr": "GPT-3.5 (Canada)",
         "fr_auto": "GPT-3.5 (Canada)"
     },
     "JUS-managed": {
-        "fr": "",
+        "fr": "Géré par JUS",
         "fr_auto": "Gestion du JUS"
     },
-    "Managed by me": {
-        "fr": "",
-        "fr_auto": "Géré par moi"
-    },
     "Shared with me": {
-        "fr": "",
+        "fr": "Partagé avec moi",
         "fr_auto": "Partagé avec moi"
     },
-    "Select data source(s)": {
-        "fr": "",
-        "fr_auto": "Sélectionner la ou les sources de données"
-    },
-    "Select document(s)": {
-        "fr": "",
-        "fr_auto": "Sélectionner le(s) document(s)"
-    },
     "Make private": {
-        "fr": "",
+        "fr": "Rendre privé",
         "fr_auto": "Rendre privé"
-    },
-    "Entire library": {
-        "fr": "",
-        "fr_auto": "Bibliothèque entière"
-    },
-    "Selected data sources": {
-        "fr": "",
-        "fr_auto": "Sources de données sélectionnées"
-    },
-    "Selected documents": {
-        "fr": "",
-        "fr_auto": "Documents sélectionnés"
-    },
-    "Use top sources only (fast, cheap)": {
-        "fr": "",
-        "fr_auto": "Utilisez les meilleures sources uniquement (rapide, pas cher)"
-    },
-    "Full documents, separate answers ($)": {
-        "fr": "",
-        "fr_auto": "Documents complets, réponses séparées ($)"
-    },
-    "Full documents, combined answer ($)": {
-        "fr": "",
-        "fr_auto": "Documents complets, réponse combinée ($)"
-    },
-    "Relevance score": {
-        "fr": "",
-        "fr_auto": "Cote de pertinence"
-    },
-    "Reading order": {
-        "fr": "",
-        "fr_auto": "Ordre de lecture"
-    },
-    "Source not available (document deleted or modified since message)": {
-        "fr": "",
-        "fr_auto": "Source non disponible (document supprimé ou modifié depuis le message)"
-    },
-    "You are an expert Q&A system that is trusted around the world.\nAlways answer the query using the provided context information, and not prior knowledge.": {
-        "fr": "",
-        "fr_auto": "Vous êtes un système de questions et réponses expert qui fait confiance dans le monde entier.\nRépondez toujours à la question à l’aide des informations contextuelles fournies, et non des connaissances préalables."
-    },
-    "CONTEXT INFORMATION:\n--------------------\n{context_str}\n--------------------\nINSTRUCTIONS:\n{pre_instructions}\n--------------------\nQuery: {query_str}\n{post_instructions}\nAnswer:": {
-        "fr": "",
-        "fr_auto": "RENSEIGNEMENTS SUR LE CONTEXTE :\n--------------------\n{context_str}\n--------------------\nINSTRUCTIONS :\n{pre_instructions}\n--------------------\nRequête : {query_str}\n{post_instructions}\nRéponse :"
-    },
-    "Given the information from multiple sources and not prior knowledge, answer the query in markdown format with liberal use of **bold**.\nOutput format:\n\nI found the following information:\n\n* <supporting direct quote> - <source link or filename, if known> (page number, if known)\n...\n<succinct answer to question>\n\nIf you can't find the answer in the sources, just say so. Don't try to provide irrelevant references or made up answers.": {
-        "fr": "",
-        "fr_auto": "Compte tenu de l’information provenant de sources multiples et non de connaissances préalables, répondez à la requête en format de démarque avec l’utilisation libérale de **bold**.\nFormat de sortie :\n\nJ’ai trouvé les informations suivantes :\n\n* <soute de devis direct> - lien <source ou nom de fichier, s’il est connu> (numéro de page, s’il est connu)\n...\n<succinct réponse à la question>\n\nSi vous ne trouvez pas la réponse dans les sources, dites-le simplement. N’essayez pas de fournir des références non pertinentes ou des réponses inventées."
-    },
-    "Current date: {time}": {
-        "fr": "",
-        "fr_auto": "Date actuelle : {time}"
-    },
-    "Invalid mode.": {
-        "fr": "",
-        "fr_auto": "Mode non valide."
-    },
-    "No text to summarize.": {
-        "fr": "",
-        "fr_auto": "Aucun texte à résumer."
-    },
-    "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here.": {
-        "fr": "",
-        "fr_auto": "Impossible de récupérer la page Web. Le site peut bloquer les robots. Essayez de copier et coller la page Web ici."
-    },
-    "Initiating translation...": {
-        "fr": "",
-        "fr_auto": "Initier la traduction..."
-    },
-    "Translating file": {
-        "fr": "",
-        "fr_auto": "Traduction d’un fichier"
-    },
-    "Error translating files.": {
-        "fr": "",
-        "fr_auto": "Erreur de traduction des fichiers."
-    },
-    "URL ready for Q&A.": {
-        "fr": "",
-        "fr_auto": "URL prête pour les questions et réponses."
-    },
-    "new document(s) ready for Q&A.": {
-        "fr": "",
-        "fr_auto": "nouveau(s) document(s) prêt(s) pour les questions et réponses."
-    },
-    "Sorry, I couldn't find any information about that. Try selecting more data sources or documents, or try a different library.": {
-        "fr": "",
-        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner d’autres sources de données ou documents, ou essayez une autre bibliothèque."
-    },
-    "Sorry, I couldn't find any information about that. Try selecting a different library or data source.": {
-        "fr": "",
-        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner une autre bibliothèque ou source de données."
-    },
-    "There was an error processing your request.": {
-        "fr": "",
-        "fr_auto": "Il y a eu une erreur de traitement de votre demande."
-    },
-    "No user message found.": {
-        "fr": "",
-        "fr_auto": "Aucun message de l’utilisateur trouvé."
     },
     "Toggle chat history sidebar": {
         "fr": "Basculez la barre latérale d'historique",
         "fr_auto": "Basculez la barre latérale historique des discussions"
     },
-    "Read-only": {
-        "fr": "",
-        "fr_auto": "Lecture seule"
+    "Q&A": {
+        "fr": "Question-réponses",
+        "fr_auto": "Questions et réponses"
+    },
+    "Advanced Q&A settings": {
+        "fr": "Paramètres avancés de question-réponses",
+        "fr_auto": "Paramètres avancés de questions et réponses"
+    },
+    "Ask a question about federal legislation...": {
+        "fr": "Posez une question sur la législation fédérale...",
+        "fr_auto": "Posez une question sur la législation fédérale..."
+    },
+    "Legislation Search - Otto": {
+        "fr": "Recherche de législation - Otto",
+        "fr_auto": "Recherche de législation - Otto"
+    },
+    "Legislation Search": {
+        "fr": "Recherche de législation",
+        "fr_auto": "Recherche de législation"
+    },
+    "Edit library users - enter Justice email": {
+        "fr": "Modifier les utilisateurs de la bibliothèque - saisissez l'addresse courriel de l'employé",
+        "fr_auto": "Modifier les utilisateurs de la bibliothèque - entrez l’e-mail justice"
+    },
+    "Unsaved data source": {
+        "fr": "Source de données non enregistrée",
+        "fr_auto": "Source de données non enregistrée"
+    },
+    "Unsaved library": {
+        "fr": "Bibliothèque non enregistrée",
+        "fr_auto": "Bibliothèque non enregistrée"
+    },
+    "Let us know what went wrong, or suggest an improvement.": {
+        "fr": "Faites-nous savoir ce qui n’a pas fonctionné ou suggérez une amélioration.",
+        "fr_auto": "Faites-nous savoir ce qui n’a pas fonctionné ou suggérez une amélioration."
+    },
+    "AI Assistant": {
+        "fr": "Assistant IA",
+        "fr_auto": "Assistant IA"
+    },
+    "Monitoring": {
+        "fr": "Suivi",
+        "fr_auto": "Suivi"
+    },
+    "Other": {
+        "fr": "Autres",
+        "fr_auto": "Autres"
+    },
+    "Legislation loading": {
+        "fr": "Chargement de la législation",
+        "fr_auto": "Chargement de la législation"
+    },
+    "Text extractor": {
+        "fr": "Extracteur de texte",
+        "fr_auto": "Extracteur de texte"
+    },
+    "Load test": {
+        "fr": "Essai de charge",
+        "fr_auto": "Essai de charge"
+    },
+    "Create": {
+        "fr": "Créer",
+        "fr_auto": "Créer"
+    },
+    "Update": {
+        "fr": "Mettre à jour",
+        "fr_auto": "Mettre à jour"
+    },
+    "Bad request": {
+        "fr": "Mauvaise demande",
+        "fr_auto": "Mauvaise demande"
+    },
+    "We're sorry, but something went wrong.": {
+        "fr": "Nous sommes désolés, mais une erreur s’est produite.",
+        "fr_auto": "Nous sommes désolés, mais quelque chose s’est mal passé."
+    },
+    "Permission denied": {
+        "fr": "Autorisation refusée",
+        "fr_auto": "Autorisation refusée"
+    },
+    "You do not have permission to access this page.": {
+        "fr": "Vous n’êtes pas autorisé à accéder à cette page.",
+        "fr_auto": "Vous n’êtes pas autorisé à accéder à cette page."
+    },
+    "Page not found": {
+        "fr": "Page introuvable",
+        "fr_auto": "Page introuvable"
+    },
+    "We're sorry, but the requested page could not be found.": {
+        "fr": "Nous sommes désolés, mais la page demandée n’a pas pu être trouvée.",
+        "fr_auto": "Nous sommes désolés, mais la page demandée n’a pas pu être trouvée."
+    },
+    "Server error": {
+        "fr": "Erreur du serveur",
+        "fr_auto": "Erreur de serveur"
+    },
+    "Contact us": {
+        "fr": "Contactez-nous",
+        "fr_auto": "Contactez-nous"
+    },
+    "The upn column must match the Azure Active Directory (Entra) userPrincipalName property. This is usually the user's Justice email, and is case-sensitive.": {
+        "fr": "La colonne upn doit correspondre à la propriété Azure Active Directory (Entra) userPrincipalName. Il s’agit généralement de l’addresse courriel justice de l’utilisateur et est sensible à la casse.",
+        "fr_auto": "La colonne upn doit correspondre à la propriété Azure Active Directory (Entra) userPrincipalName. Il s’agit généralement de l’e-mail justice de l’utilisateur et est sensible à la casse."
+    },
+    "If the user does not exist, their first name, last name and email will be extrapolated from the UPN. These properties will be updated when the user next logs in with Entra.": {
+        "fr": "Si l’utilisateur n’existe pas, son prénom, son nom et son adresse courriel seront extrapolés à partir de l’UPN. Ces propriétés seront mises à jour lors de la prochaine connexion de l’utilisateur avec Entra",
+        "fr_auto": "Si l’utilisateur n’existe pas, son prénom, son nom et son adresse e-mail seront extrapolés à partir de l’UPN. Ces propriétés seront mises à jour lors de la prochaine connexion de l’utilisateur avec Entra."
+    },
+    "User-requested URLs for Q&A, summarization etc. which were not on the allow-list": {
+        "fr": "URL demandées par l’utilisateur pour les questions-réponses, les résumés, etc. qui ne figuraient pas sur la liste d’adresses autorisées",
+        "fr_auto": "URL demandées par l’utilisateur pour les questions et réponses, les résumés, etc. qui ne figuraient pas sur la liste d’adresses autorisées"
+    },
+    "Update Preset": {
+        "fr": "Mettre à jour le préréglage",
+        "fr_auto": "Mise à jour prédéfinie"
+    },
+    "Browse": {
+        "fr": "Naviguer",
+        "fr_auto": "Parcourir"
+    },
+    "\n            <strong>Chat</strong> with a secure AI for brainstorming, writing assistance and text formatting.\n          ": {
+        "fr": "\n<strong>Clavardez</strong> avec une IA sécurisée pour le brainstorming, l’aide à la rédaction et le formatage du texte.\n          ",
+        "fr_auto": "\n<strong>Discutez</strong> avec une IA sécurisée pour le brainstorming, l’aide à la rédaction et le formatage du texte.\n          "
+    },
+    "Chat mode is not suitable for factual research.": {
+        "fr": "Le mode de clavardage ne convient pas à la recherche factuelle.",
+        "fr_auto": "Le mode chat ne convient pas à la recherche factuelle."
+    },
+    "\n            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or simply upload documents to the chat.\n          ": {
+        "fr": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents à partir de la barre latérale des paramètres, ou simplement téléversez des documents sur la session de clavardage.\n          ",
+        "fr_auto": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents à partir de la barre latérale des paramètres, ou téléchargez simplement des documents sur le chat.\n          "
+    },
+    "In the AI assistant, document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted.": {
+        "fr": "Les bibliothèques de documents et les sessions de clavardage seront supprimés après 30 jours d’inactivité dans l'assistant d'IA. Cela signifie que si vous n’ouvrez pas une session de clavardage pendant 30 jours, elle sera automatiquement supprimée avec tous ses fichiers téléversés. Pour les bibliothèques, si aucune modification n’a été apportée et qu’aucune requête Q&R n’a été effectuée pendant 30 jours, la bibliothèque sera automatiquement supprimée.",
+        "fr_auto": "Dans l’assistant IA, les bibliothèques de documents et les chats seront supprimés après 30 jours d’inactivité. Cela signifie que si vous n’ouvrez pas un chat pendant 30 jours, il sera automatiquement supprimé avec tous les fichiers téléchargés sur le chat. Pour les bibliothèques, si aucune modification n’a été apportée et qu’aucune requête Q&A n’a été effectuée pendant 30 jours, la bibliothèque sera automatiquement supprimée."
+    },
+    "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted for facts. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.": {
+        "fr": "Lisez et suivez les avis de confidentialité dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Clavardez ne doivent pas être considérés comme faits. Utilisez plutôt les modes Q&R et Résumer pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléversez ou dans une bibliothèque de documents partagée.",
+        "fr_auto": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Chat ne doivent pas être fiables pour les faits. Utilisez plutôt les modes Q&R et Summarize pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléchargez ou une bibliothèque de documents partagée."
+    },
+    "In the AI assistant, apply security classification labels to chats and document libraries when they contain classified and/or personal information.": {
+        "fr": "Dans l’Assistant IA, appliquez des étiquettes de classification de sécurité aux sessions de clavardage et aux bibliothèques de documents lorsqu’elles contiennent des informations classifiées et/ou personnelles.",
+        "fr_auto": "Dans l’Assistant IA, appliquez des étiquettes de classification de sécurité aux chats et aux bibliothèques de documents lorsqu’elles contiennent des informations classifiées et/ou personnelles."
+    },
+    "Email administrators": {
+        "fr": "Contactez les administrateurs",
+        "fr_auto": "Administrateurs de messagerie"
+    },
+    "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. If this is not possible, contact the Otto team at the following email address to report a privacy issue:": {
+        "fr": "Si des informations sont partagées avec vous via Otto auxquelles vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un courriel aux auteurs ou aux administrateurs de la bibliothèque. Si cela n’est pas possible, contactez l’équipe Otto à l’adresse courriel suivante pour signaler un problème de confidentialité :",
+        "fr_auto": "Si des informations sont partagées avec vous via Otto auxquelles vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un e-mail aux auteurs ou aux administrateurs de la bibliothèque. Si cela n’est pas possible, contactez l’équipe Otto à l’adresse e-mail suivante pour signaler un problème de confidentialité :"
+    },
+    "This chat was shared with you and is read-only.": {
+        "fr": "Cette session de clavardage a été partagé avec vous et est en lecture seule.",
+        "fr_auto": "Ce chat a été partagé avec vous et est en lecture seule."
+    },
+    "email the chat author": {
+        "fr": "envoyer un courriel à l’auteur de la sesison de clavardage",
+        "fr_auto": "envoyer un e-mail à l’auteur du chat"
+    },
+    "Limit information shared in chats and Q&A libraries (deleted after 30 days inactivity).": {
+        "fr": "Limitez les informations partagées dans les sessions de clavardage et les bibliothèques de questions-réponses (supprimées après 30 jours d’inactivité).",
+        "fr_auto": "Limitez les informations partagées dans les chats et les bibliothèques de questions et réponses (supprimées après 30 jours d’inactivité)."
+    },
+    "\n            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or upload files and enter URLs directly in the chat.\n          ": {
+        "fr": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents dans la barre latérale des paramètres, ou téléchargez des fichiers et entrez des URL directement dans la session de clavardage.\n          ",
+        "fr_auto": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents dans la barre latérale des paramètres, ou téléchargez des fichiers et entrez des URL directement dans le chat.\n          "
+    },
+    "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted to provide factual information. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.": {
+        "fr": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Clavardez ne doivent pas être considérés comme étant fiables pour fournir des faits. Utilisez plutôt les modes Q&R et Résumer pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléversez ou dans une bibliothèque de documents partagée.",
+        "fr_auto": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Chat ne doivent pas être fiables pour fournir des informations factuelles. Utilisez plutôt les modes Q&R et Summarize pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléchargez ou une bibliothèque de documents partagée."
+    },
+    "Chats": {
+        "fr": "Clavardages",
+        "fr_auto": "Les chats"
+    },
+    "Select chat(s)": {
+        "fr": "Sélectionnez clavardages(s)",
+        "fr_auto": "Sélectionnez chat(s)"
+    },
+    "Selected chats": {
+        "fr": "Clavardages sélectionnés",
+        "fr_auto": "Chats sélectionnés"
+    },
+    "User chat uploads": {
+        "fr": "Téléchargements de clavardage utilisateur",
+        "fr_auto": "Téléchargements de chat utilisateur"
+    },
+    "All chats": {
+        "fr": "Tous les clavardage",
+        "fr_auto": "Tous les chats"
+    },
+    "Chat uploads": {
+        "fr": "Téléchargements de clavardage",
+        "fr_auto": "Téléchargements de chat"
+    },
+    "No chats to show.": {
+        "fr": "Pas de clavardages à montrer.",
+        "fr_auto": "Pas de chats à montrer."
+    },
+    "This chat": {
+        "fr": "Ce clavardage",
+        "fr_auto": "Ce chat"
+    },
+    "Managed by me": {
+        "fr": "Je gère",
+        "fr_auto": "Géré par moi"
+    },
+    "Select document(s)": {
+        "fr": "Sélectionner le(s) document(s)",
+        "fr_auto": "Sélectionner le(s) document(s)"
+    },
+    "Entire library": {
+        "fr": "Bibliothèque entière",
+        "fr_auto": "Bibliothèque entière"
+    },
+    "Selected documents": {
+        "fr": "Documents sélectionnés",
+        "fr_auto": "Documents sélectionnés"
+    },
+    "Use top sources only (fast, cheap)": {
+        "fr": "Utilisez les meilleures sources uniquement (rapide, pas cher)",
+        "fr_auto": "Utilisez les meilleures sources uniquement (rapide, pas cher)"
+    },
+    "Full documents, separate answers ($)": {
+        "fr": "Documents complets, réponses séparées ($)",
+        "fr_auto": "Documents complets, réponses séparées ($)"
+    },
+    "Full documents, combined answer ($)": {
+        "fr": "Documents complets, réponse combinée ($)",
+        "fr_auto": "Documents complets, réponse combinée ($)"
+    },
+    "Relevance score": {
+        "fr": "Cote de pertinence",
+        "fr_auto": "Cote de pertinence"
+    },
+    "Reading order": {
+        "fr": "Ordre de lecture",
+        "fr_auto": "Ordre de lecture"
+    },
+    "Source not available (document deleted or modified since message)": {
+        "fr": "Source non disponible (document supprimé ou modifié depuis ce message)",
+        "fr_auto": "Source non disponible (document supprimé ou modifié depuis le message)"
+    },
+    "Current date: {time}": {
+        "fr": "Date actuelle : {time}",
+        "fr_auto": "Date actuelle : {time}"
+    },
+    "Invalid mode.": {
+        "fr": "Mode non valide.",
+        "fr_auto": "Mode non valide."
+    },
+    "No text to summarize.": {
+        "fr": "Aucun texte à résumer.",
+        "fr_auto": "Aucun texte à résumer."
+    },
+    "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here.": {
+        "fr": "Impossible de récupérer la page web. Le site peut bloquer les robots. Essayez de copier et coller la page Web ici.",
+        "fr_auto": "Impossible de récupérer la page Web. Le site peut bloquer les robots. Essayez de copier et coller la page Web ici."
+    },
+    "Initiating translation...": {
+        "fr": "Initialisation de la traduction...",
+        "fr_auto": "Initier la traduction..."
+    },
+    "Translating file": {
+        "fr": "Traduction du fichier",
+        "fr_auto": "Traduction d’un fichier"
+    },
+    "Error translating files.": {
+        "fr": "Erreur de traduction des fichiers.",
+        "fr_auto": "Erreur de traduction des fichiers."
+    },
+    "URL ready for Q&A.": {
+        "fr": "URL prête pour les questions et réponses.",
+        "fr_auto": "URL prête pour les questions et réponses."
+    },
+    "new document(s) ready for Q&A.": {
+        "fr": "nouveau(s) document(s) prêt(s) pour les questions et réponses.",
+        "fr_auto": "nouveau(s) document(s) prêt(s) pour les questions et réponses."
+    },
+    "There was an error processing your request.": {
+        "fr": "Une erreur s'est produite lors du traitement de votre demande.",
+        "fr_auto": "Il y a eu une erreur de traitement de votre demande."
+    },
+    "No user message found.": {
+        "fr": "Aucun message de l’utilisateur trouvé.",
+        "fr_auto": "Aucun message de l’utilisateur trouvé."
     },
     "Close": {
-        "fr": "",
+        "fr": "Fermer",
         "fr_auto": "Fermer"
+    },
+    "Stop": {
+        "fr": "Arrêter",
+        "fr_auto": "Arrêtez"
+    },
+    "Summarize": {
+        "fr": "Résumer",
+        "fr_auto": "Résumer"
+    },
+    "Translate": {
+        "fr": "Traduire",
+        "fr_auto": "Traduire"
+    },
+    "Upload": {
+        "fr": "Téléverser",
+        "fr_auto": "Télécharger"
+    },
+    "Settings": {
+        "fr": "Paramètres",
+        "fr_auto": "Paramètres"
+    },
+    "Message": {
+        "fr": "Message",
+        "fr_auto": "Le message"
+    },
+    "Type your message here...": {
+        "fr": "Écrivez votre message ici...",
+        "fr_auto": "Tapez votre message ici..."
+    },
+    "Send": {
+        "fr": "Envoyer",
+        "fr_auto": "Envoyer"
+    },
+    "Options": {
+        "fr": "Options",
+        "fr_auto": "Options"
+    },
+    "Rename": {
+        "fr": "Renommer",
+        "fr_auto": "Renommer"
+    },
+    "Delete": {
+        "fr": "Supprimer",
+        "fr_auto": "Supprimer"
+    },
+    "Cancel": {
+        "fr": "Annuler",
+        "fr_auto": "Annuler"
+    },
+    "AI Assistant - Otto": {
+        "fr": "Assistant IA - Otto",
+        "fr_auto": "Assistant IA - Otto"
+    },
+    "Show all...": {
+        "fr": "Tout montrez...",
+        "fr_auto": "Montrez tout..."
+    },
+    "Open presets menu": {
+        "fr": "Ouvrir le menu des préréglages",
+        "fr_auto": "Ouvrir le menu des préréglages"
+    },
+    "Save": {
+        "fr": "Enregistrer",
+        "fr_auto": "Enregistrer"
+    },
+    "Reset settings to default": {
+        "fr": "Réinitialiser les paramètres",
+        "fr_auto": "Réinitialiser les paramètres par défaut"
+    },
+    "Set security label": {
+        "fr": "Définir l’étiquette de sécurité",
+        "fr_auto": "Définir l’étiquette de sécurité"
+    },
+    "Warning": {
+        "fr": "Avertissement",
+        "fr_auto": "Avertissement"
+    },
+    "Safe use of the AI Assistant": {
+        "fr": "Utilisation sécuritaire de l’assistant IA",
+        "fr_auto": "Utilisation sécuritaire de l’assistant IA"
+    },
+    "File": {
+        "fr": "Fichier",
+        "fr_auto": "Fichier"
+    },
+    "Copy": {
+        "fr": "Copier",
+        "fr_auto": "Copie"
+    },
+    "Like": {
+        "fr": "J'aime",
+        "fr_auto": "Comme"
+    },
+    "Dislike": {
+        "fr": "Je n'aime pas",
+        "fr_auto": "N’aime pas"
+    },
+    "Edit in new prompt": {
+        "fr": "Modifier dans une nouvelle invite",
+        "fr_auto": "Modifier dans une nouvelle invite"
+    },
+    "Delete message": {
+        "fr": "Supprimer le message",
+        "fr_auto": "Supprimer le message"
+    },
+    "\n      Translated %(num_files)s/%(total_files)s files:\n    ": {
+        "fr": "\n      Traduit %(num_files)s fichier(s) sur %(total_files)s:\n    ",
+        "fr_auto": "\n      Translated %(num_files)s/%(total_files)s files:\n    "
+    },
+    "\n      Uploaded %(num_files)s file%(s)s\n    ": {
+        "fr": "\n      Téléversé %(num_files)s fichier%(s)s\n    ",
+        "fr_auto": "\n      Uploaded %(num_files)s file%(s)s\n    "
+    },
+    "deleted": {
+        "fr": "supprimé",
+        "fr_auto": "supprimé"
+    },
+    "Sources": {
+        "fr": "Sources",
+        "fr_auto": "Les sources"
+    },
+    "Selected library:": {
+        "fr": "Bibliothèque sélectionnée :",
+        "fr_auto": "Bibliothèque sélectionnée :"
+    },
+    "Model": {
+        "fr": "Modèle",
+        "fr_auto": "Modèle"
+    },
+    "Style": {
+        "fr": "Style",
+        "fr_auto": "Le style"
+    },
+    "Summary length": {
+        "fr": "Longueur du résumé",
+        "fr_auto": "Longueur du résumé"
+    },
+    "Desired language": {
+        "fr": "Langue souhaitée",
+        "fr_auto": "Langue souhaitée"
+    },
+    "Avoid personal pronouns": {
+        "fr": "Évitez les pronoms personnels",
+        "fr_auto": "Évitez les pronoms personnels"
+    },
+    "Additional instructions": {
+        "fr": "Instructions supplémentaires",
+        "fr_auto": "Instructions supplémentaires"
+    },
+    "Custom summarize prompt": {
+        "fr": "Invite de résumé personnalisée",
+        "fr_auto": "Invite de résumé personnalisée"
+    },
+    "(overrides all previous settings)": {
+        "fr": "(remplace tous les paramètres précédents)",
+        "fr_auto": "(remplace tous les paramètres précédents)"
+    },
+    "Library": {
+        "fr": "Bibliothèque",
+        "fr_auto": "Bibliothèque"
+    },
+    "Edit libraries": {
+        "fr": "Modifier les bibliothèques",
+        "fr_auto": "Modifier les bibliothèques"
+    },
+    "Search mode": {
+        "fr": "Mode de recherche",
+        "fr_auto": "Mode de recherche"
+    },
+    "Edit advanced settings and prompts": {
+        "fr": "Modifier les paramètres avancés et les invites",
+        "fr_auto": "Modifier les paramètres avancés et les invites"
+    },
+    "Filter results": {
+        "fr": "Résultats du filtre",
+        "fr_auto": "Résultats du filtre"
+    },
+    "Keyword ↔ Vector": {
+        "fr": "Vecteur ↔ mots clés",
+        "fr_auto": "Vecteur ↔ mots clés"
+    },
+    "GPT-4o-mini (fastest, best value)": {
+        "fr": "",
+        "fr_auto": "GPT-4o-mini (le plus rapide, meilleur rapport qualité-prix)"
+    },
+    "GPT-4o (best quality, but 25x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4o (meilleure qualité, mais coût 25x)"
+    },
+    "Select folder(s)": {
+        "fr": "",
+        "fr_auto": "Sélectionner le(s) dossier(s)"
+    },
+    "Selected folders": {
+        "fr": "",
+        "fr_auto": "Dossiers sélectionnés"
+    },
+    "Error processing the following document(s): ": {
+        "fr": "",
+        "fr_auto": "Erreur de traitement du ou des documents suivants : "
+    },
+    " Error processing the following document(s): ": {
+        "fr": "",
+        "fr_auto": " Erreur de traitement du ou des documents suivants : "
+    },
+    "Sorry, I couldn't find any information about that. Try selecting more folders or documents, or try a different library.": {
+        "fr": "",
+        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner plus de dossiers ou de documents, ou essayez une autre bibliothèque."
+    },
+    "Sorry, I couldn't find any information about that. Try selecting a different library or folder.": {
+        "fr": "",
+        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner une autre bibliothèque ou un autre dossier."
+    },
+    "If you should not have access,": {
+        "fr": "",
+        "fr_auto": "Si vous ne devriez pas y avoir accès,"
+    },
+    "to report the issue.": {
+        "fr": "",
+        "fr_auto": "pour signaler le problème."
     },
     "Drag or use the up and down arrows to resize.": {
         "fr": "",
         "fr_auto": "Faites glisser ou utilisez les flèches haut et bas pour redimensionner."
-    },
-    "Stop": {
-        "fr": "",
-        "fr_auto": "Arrêtez"
     },
     "ChatGPT for writing assistance (not for facts)": {
         "fr": "",
@@ -695,141 +1083,101 @@
         "fr": "",
         "fr_auto": "Posez des questions sur les documents"
     },
-    "Q&A": {
-        "fr": "Question-réponses",
-        "fr_auto": "Questions et réponses"
-    },
     "Summarize text, files and URLs": {
         "fr": "",
         "fr_auto": "Résumer le texte, les fichiers et les URL"
-    },
-    "Summarize": {
-        "fr": "",
-        "fr_auto": "Résumer"
     },
     "Translate text and files to English or French": {
         "fr": "",
         "fr_auto": "Traduire du texte et des fichiers en anglais ou en français"
     },
-    "Translate": {
+    "Help me write a good prompt": {
         "fr": "",
-        "fr_auto": "Traduire"
-    },
-    "Upload": {
-        "fr": "",
-        "fr_auto": "Télécharger"
-    },
-    "Settings": {
-        "fr": "",
-        "fr_auto": "Paramètres"
-    },
-    "Message": {
-        "fr": "",
-        "fr_auto": "Le message"
-    },
-    "Type your message here...": {
-        "fr": "",
-        "fr_auto": "Tapez votre message ici..."
-    },
-    "Send": {
-        "fr": "",
-        "fr_auto": "Envoyer"
-    },
-    "Options": {
-        "fr": "",
-        "fr_auto": "Options"
-    },
-    "Rename": {
-        "fr": "",
-        "fr_auto": "Renommer"
-    },
-    "Delete": {
-        "fr": "",
-        "fr_auto": "Supprimer"
-    },
-    "Cancel": {
-        "fr": "",
-        "fr_auto": "Annuler"
-    },
-    "AI Assistant - Otto": {
-        "fr": "",
-        "fr_auto": "Assistant IA - Otto"
-    },
-    "Show all...": {
-        "fr": "",
-        "fr_auto": "Montrez tout..."
+        "fr_auto": "Aidez-moi à écrire une bonne invite"
     },
     "Drag or use the left and right arrows to resize.": {
         "fr": "",
         "fr_auto": "Faites glisser ou utilisez les flèches gauche et droite pour redimensionner."
     },
-    "Open presets menu": {
+    "Save preset from current settings": {
         "fr": "",
-        "fr_auto": "Ouvrir le menu des préréglages"
+        "fr_auto": "Enregistrer le préréglage à partir des paramètres actuels"
     },
-    "Create preset from current settings": {
+    "Reset": {
         "fr": "",
-        "fr_auto": "Créer un préréglage à partir des paramètres actuels"
+        "fr_auto": "Réinitialiser"
     },
-    "Reset settings to default": {
+    "Protected B approved:": {
         "fr": "",
-        "fr_auto": "Réinitialiser les paramètres par défaut"
+        "fr_auto": "Protégé B approuvé :"
     },
-    "Set security label": {
+    "Use with unclassified, Protected A or Protected B information only.": {
         "fr": "",
-        "fr_auto": "Définir l’étiquette de sécurité"
+        "fr_auto": "Utilisez uniquement avec des informations non classifiées, protégées A ou Protégées B."
     },
-    "Warning": {
+    "Unclassified only:": {
         "fr": "",
-        "fr_auto": "Avertissement"
+        "fr_auto": "Non classifié seulement :"
     },
-    "Safe use of the AI Assistant": {
+    "This is a development / testing environment. Use unclassified information only.": {
         "fr": "",
-        "fr_auto": "Utilisation sécuritaire de l’assistant IA"
+        "fr_auto": "Il s’agit d’un environnement de développement / test. Utilisez uniquement des informations non classifiées."
     },
-    "Human review required": {
+    "Human review required:": {
         "fr": "",
-        "fr_auto": "Examen humain requis"
+        "fr_auto": "Examen humain requis :"
     },
-    "AI-generated outputs require human verification for accuracy. Do not use them in any official capacity without a human review.": {
+    "AI can make mistakes. Review the text before using it in an official capacity.": {
         "fr": "",
-        "fr_auto": "Les sorties générées par l’IA nécessitent une vérification humaine de la précision. Ne les utilisez pas à titre officiel sans un examen humain."
+        "fr_auto": "L’IA peut faire des erreurs. Passez en revue le texte avant de l’utiliser à titre officiel."
     },
-    "No sensitive information": {
+    "Not for legal advice or research:": {
         "fr": "",
-        "fr_auto": "Aucune information sensible"
+        "fr_auto": "Pas pour des conseils juridiques ou de la recherche :"
     },
-    "Do not upload or process sensitive, confidential, or legally protected documents. This includes personally identifiable information, protected B information, and information protected under solicitor client privilege.": {
+    "Does not connect to legal databases like Westlaw, Lexis or CanLII.": {
         "fr": "",
-        "fr_auto": "Ne téléchargez pas et ne traitez pas de documents sensibles, confidentiels ou protégés par la loi. Cela comprend les informations personnellement identifiables, les informations protégées B et les informations protégées par le secret professionnel de l’avocat."
+        "fr_auto": "Ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis ou CanLII."
     },
-    "Not for legal advice or making decisions:": {
+    "Not for decision-making:": {
         "fr": "",
-        "fr_auto": "Pas pour des conseils juridiques ou la prise de décisions :"
+        "fr_auto": "Pas pour la prise de décision :"
     },
-    "This tool is not a substitute for professional legal advice. Avoid using it for decisions with legal implications.": {
+    "Do not use for legal decisions, administrative decisions affecting individuals, etc.": {
         "fr": "",
-        "fr_auto": "Cet outil ne remplace pas les conseils juridiques professionnels. Évitez de l’utiliser pour des décisions ayant des implications juridiques."
+        "fr_auto": "Ne pas utiliser pour les décisions juridiques, les décisions administratives affectant les individus, etc."
     },
-    "\n            <strong>Summarize</strong> documents, including PDFs, Word docs, and PowerPoint presentations. You may also input free text for summarization, or enter a URL for a web page.\n          ": {
+    "Information management:": {
         "fr": "",
-        "fr_auto": "\n<strong>Résumez les</strong> documents, y compris les fichiers PDF, les documents Word et les présentations PowerPoint. Vous pouvez également saisir du texte libre pour la synthèse, ou entrer une URL pour une page Web.\n          "
+        "fr_auto": "Gestion de l’information :"
     },
-    "AI-generated summaries may contain inaccuracies. This tool is not a substitute for human analysis or decision-making.": {
+    "\n            <strong>Summarize</strong> uploaded documents. You may also input free text or enter a URL for a web page.\n          ": {
         "fr": "",
-        "fr_auto": "Les résumés générés par l’IA peuvent contenir des inexactitudes. Cet outil ne remplace pas l’analyse humaine ou la prise de décision."
+        "fr_auto": "\n<strong>Résumez les</strong> documents téléchargés. Vous pouvez également entrer du texte libre ou entrer une URL pour une page Web.\n          "
     },
-    "\n            <strong>Translate</strong> input text or uploaded documents from any language into French or English.\n            It supports various document formats such as PDF, Word, and PowerPoint, and endeavors to maintain the original structure of your documents. Users also have the option to input free text for translation.\n          ": {
+    "AI-generated summaries may contain inaccuracies. Review the text before using it for official purposes.": {
         "fr": "",
-        "fr_auto": "\n<strong>Traduire le</strong> texte d’entrée ou les documents téléchargés de n’importe quelle langue en français ou en anglais.\n            Il prend en charge divers formats de documents tels que PDF, Word et PowerPoint, et s’efforce de maintenir la structure d’origine de vos documents. Les utilisateurs ont également la possibilité de saisir du texte libre pour la traduction.\n          "
+        "fr_auto": "Les résumés générés par l’IA peuvent contenir des inexactitudes. Passez en revue le texte avant de l’utiliser à des fins officielles."
     },
-    "Please note the translations provided by this tool are not official and may not be suitable for legal and official document submissions prior to human review.": {
+    "\n            <strong>Translate</strong> input text or uploaded documents from any language into French or English.\n          ": {
         "fr": "",
-        "fr_auto": "Veuillez noter que les traductions fournies par cet outil ne sont pas officielles et peuvent ne pas convenir aux soumissions de documents juridiques et officiels avant l’examen humain."
+        "fr_auto": "\n<strong>Traduire le</strong> texte d’entrée ou les documents téléchargés de n’importe quelle langue en français ou en anglais.\n          "
     },
-    "While the system implements guardrails against inaccurate information, users should verify answers with the provided sources due to the potential for inaccuracies. Use responsibly and at your own discretion.": {
+    "Translations should undergo human review prior to use in a legal or official capacity.": {
         "fr": "",
-        "fr_auto": "Bien que le système mette en place des garde-fous contre les informations inexactes, les utilisateurs doivent vérifier les réponses avec les sources fournies en raison du potentiel d’inexactitudes. Utilisez de manière responsable et à votre propre discrétion."
+        "fr_auto": "Les traductions doivent faire l’objet d’un examen humain avant d’être utilisées à titre juridique ou officiel."
+    },
+    "For official use, always verify generated material with the provided sources due to the potential for inaccuracies.": {
+        "fr": "",
+        "fr_auto": "Pour un usage officiel, vérifiez toujours le matériel généré avec les sources fournies en raison du risque d’inexactitudes."
+    },
+    "The processing of your file(s) was interrupted.": {
+        "fr": "",
+        "fr_auto": "Le traitement de vos dossiers a été interrompu."
+    },
+    "An interruption occurred while generating the response.": {
+        "fr": "",
+        "fr_auto": "Une interruption s’est produite pendant la génération de la réponse."
     },
     "Drop files anywhere": {
         "fr": "",
@@ -839,41 +1187,9 @@
         "fr": "",
         "fr_auto": "\nTéléchargement <span class=\"filename fst-italic\">'filename'</span>\n      "
     },
-    "File": {
-        "fr": "",
-        "fr_auto": "Fichier"
-    },
     "File upload progress": {
         "fr": "",
         "fr_auto": "Progression du téléchargement de fichiers"
-    },
-    "Copy": {
-        "fr": "",
-        "fr_auto": "Copie"
-    },
-    "Like": {
-        "fr": "",
-        "fr_auto": "Comme"
-    },
-    "Dislike": {
-        "fr": "",
-        "fr_auto": "N’aime pas"
-    },
-    "Edit in new prompt": {
-        "fr": "",
-        "fr_auto": "Modifier dans une nouvelle invite"
-    },
-    "Delete message": {
-        "fr": "",
-        "fr_auto": "Supprimer le message"
-    },
-    "\n      Translated %(num_files)s/%(total_files)s files:\n    ": {
-        "fr": "",
-        "fr_auto": "\n      Translated %(num_files)s/%(total_files)s files:\n    "
-    },
-    "\n      Uploaded %(num_files)s file%(s)s\n    ": {
-        "fr": "",
-        "fr_auto": "\n      Uploaded %(num_files)s file%(s)s\n    "
     },
     "for translation:": {
         "fr": "",
@@ -883,85 +1199,9 @@
         "fr": "",
         "fr_auto": "à des fins de résumé :"
     },
-    "deleted": {
-        "fr": "",
-        "fr_auto": "supprimé"
-    },
-    "Multiple relevant data sources found.": {
-        "fr": "",
-        "fr_auto": "Plusieurs sources de données pertinentes ont été trouvées."
-    },
-    "Sources": {
-        "fr": "",
-        "fr_auto": "Les sources"
-    },
-    "Selected library:": {
-        "fr": "",
-        "fr_auto": "Bibliothèque sélectionnée :"
-    },
-    "Model": {
-        "fr": "",
-        "fr_auto": "Modèle"
-    },
-    "Style": {
-        "fr": "",
-        "fr_auto": "Le style"
-    },
     "System prompt": {
         "fr": "",
         "fr_auto": "Invite système"
-    },
-    "Summary length": {
-        "fr": "",
-        "fr_auto": "Longueur du résumé"
-    },
-    "Desired language": {
-        "fr": "",
-        "fr_auto": "Langue souhaitée"
-    },
-    "Avoid personal pronouns": {
-        "fr": "",
-        "fr_auto": "Évitez les pronoms personnels"
-    },
-    "Additional instructions": {
-        "fr": "",
-        "fr_auto": "Instructions supplémentaires"
-    },
-    "Custom summarize prompt": {
-        "fr": "",
-        "fr_auto": "Invite de résumé personnalisée"
-    },
-    "(overrides all previous settings)": {
-        "fr": "",
-        "fr_auto": "(remplace tous les paramètres précédents)"
-    },
-    "Library": {
-        "fr": "",
-        "fr_auto": "Bibliothèque"
-    },
-    "Edit libraries": {
-        "fr": "",
-        "fr_auto": "Modifier les bibliothèques"
-    },
-    "Search mode": {
-        "fr": "",
-        "fr_auto": "Mode de recherche"
-    },
-    "Edit advanced settings and prompts": {
-        "fr": "",
-        "fr_auto": "Modifier les paramètres avancés et les invites"
-    },
-    "Filter results": {
-        "fr": "",
-        "fr_auto": "Résultats du filtre"
-    },
-    "Advanced Q&A settings": {
-        "fr": "Paramètres avancés de question-réponses",
-        "fr_auto": "Paramètres avancés de questions et réponses"
-    },
-    "Keyword ↔ Vector": {
-        "fr": "",
-        "fr_auto": "Vecteur de mots clés ↔"
     },
     "Maximum sources": {
         "fr": "",
@@ -1003,10 +1243,6 @@
         "fr": "",
         "fr_auto": "Supprimer les sources non pertinentes"
     },
-    "Rewrite queries for search": {
-        "fr": "",
-        "fr_auto": "Réécrire les requêtes pour la recherche"
-    },
     "(Optional) Define AI model's role, background information, rules to follow, examples.": {
         "fr": "",
         "fr_auto": "(Facultatif) Définissez le rôle du modèle d’IA, les informations de fond, les règles à suivre, les exemples."
@@ -1035,6 +1271,10 @@
         "fr": "",
         "fr_auto": "Modifier"
     },
+    "Create preset from current settings": {
+        "fr": "",
+        "fr_auto": "Créer un préréglage à partir des paramètres actuels"
+    },
     "Remove default": {
         "fr": "",
         "fr_auto": "Supprimer la valeur par défaut"
@@ -1054,6 +1294,14 @@
     "Add to favourites": {
         "fr": "",
         "fr_auto": "Ajouter aux favoris"
+    },
+    "Please provide a title in either English or French.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir un titre en anglais ou en français."
+    },
+    "Please provide at least one user for the accessible field.": {
+        "fr": "",
+        "fr_auto": "Veuillez fournir au moins un utilisateur pour le champ accessible."
     },
     "Title (English)": {
         "fr": "",
@@ -1075,25 +1323,73 @@
         "fr": "",
         "fr_auto": "Contrôles de confidentialité"
     },
-    "Accessible to: ": {
+    "Share with:": {
         "fr": "",
-        "fr_auto": "Accessible à : "
+        "fr_auto": "Partager avec :"
     },
     "Replace with current settings": {
         "fr": "",
         "fr_auto": "Remplacer par les paramètres actuels"
     },
+    "This is the default Otto preset. Use caution!": {
+        "fr": "",
+        "fr_auto": "Il s’agit du préréglage Otto par défaut. Soyez prudent !"
+    },
+    "Changes will be visible to all Otto users.": {
+        "fr": "",
+        "fr_auto": "Les modifications seront visibles pour tous les utilisateurs d’Otto."
+    },
     "Are you sure you want to delete this preset?": {
         "fr": "",
         "fr_auto": "Êtes-vous sûr de vouloir supprimer ce préréglage ?"
     },
-    "Save": {
+    "Create New Preset": {
         "fr": "",
-        "fr_auto": "Enregistrer"
+        "fr_auto": "Créer un nouveau préréglage"
+    },
+    "Create a new preset from your current settings.": {
+        "fr": "",
+        "fr_auto": "Créez un nouveau préréglage à partir de vos paramètres actuels."
+    },
+    "Improve prompt using AI": {
+        "fr": "",
+        "fr_auto": "Améliorer l’invite à l’aide de l’IA"
     },
     "Loading": {
         "fr": "",
         "fr_auto": "Chargement"
+    },
+    "Generate a more detailed version of your prompt. Use this as a starting point for further edits.": {
+        "fr": "",
+        "fr_auto": "Générez une version plus détaillée de votre invite. Utilisez ceci comme point de départ pour d’autres modifications."
+    },
+    "Type your prompt here...": {
+        "fr": "",
+        "fr_auto": "Tapez votre invite ici..."
+    },
+    "Generate": {
+        "fr": "",
+        "fr_auto": "Générer"
+    },
+    "Your prompt": {
+        "fr": "",
+        "fr_auto": "Votre invite"
+    },
+    "AI-generated prompt": {
+        "fr": "",
+        "fr_auto": "Invite générée par l’IA"
+    },
+    "Regenerate": {
+        "fr": "",
+        "fr_auto": "Régénérer"
+    },
+    "Use this prompt": {
+        "fr": "",
+        "fr_auto": "Utilisez cette invite"
+    },
+    "QA library for settings preset not accessible. It has been reset to your personal library.": {
+        "fr": "",
+        "fr_auto": "Bibliothèque d’assurance qualité pour les paramètres prédéfinis non accessibles. Il a été réinitialisé à votre bibliothèque personnelle."
     },
     "Response stopped early. Costs may still be incurred after stopping.": {
         "fr": "",
@@ -1111,13 +1407,57 @@
         "fr": "",
         "fr_auto": "Aucun texte n’a été fourni."
     },
-    "Please provide a title in either English or French.": {
+    "**No relevant sources found.**": {
         "fr": "",
-        "fr_auto": "Veuillez fournir un titre en anglais ou en français."
+        "fr_auto": "**Aucune source pertinente n’a été trouvée.**"
     },
-    "Please provide at least one user for the accessible field.": {
+    "Sorry, that URL isn't allowed. Otto can only access sites ending in:": {
         "fr": "",
-        "fr_auto": "Veuillez fournir au moins un utilisateur pour le champ accessible."
+        "fr_auto": "Désolé, cette URL n’est pas autorisée. Otto ne peut accéder qu’aux sites se terminant par :"
+    },
+    "(e.g., `justice.gc.ca` or `www.tbs-sct.canada.ca` are also allowed)": {
+        "fr": "",
+        "fr_auto": "(p. ex., « justice.gc.ca » ou « www.tbs-sct.canada.ca » sont également autorisés)"
+    },
+    "As a workaround, you can save the content to a file and upload it here.": {
+        "fr": "",
+        "fr_auto": "Comme solution de contournement, vous pouvez enregistrer le contenu dans un fichier et le télécharger ici."
+    },
+    "Preset loaded successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage chargé avec succès."
+    },
+    "Preset saved successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage enregistré avec succès."
+    },
+    "Preset updated successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage mis à jour avec succès."
+    },
+    "Preset deleted successfully.": {
+        "fr": "",
+        "fr_auto": "Préréglage supprimé avec succès."
+    },
+    "Preset added to favourites.": {
+        "fr": "",
+        "fr_auto": "Préréglage ajouté aux favoris."
+    },
+    "Preset removed from favourites.": {
+        "fr": "",
+        "fr_auto": "Préréglage retiré des favoris."
+    },
+    "An error occurred while setting the preset as favourite.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors de la définition du préréglage comme favori."
+    },
+    "Default preset was set successfully.": {
+        "fr": "",
+        "fr_auto": "Le paramètre prédéfini par défaut a été défini avec succès."
+    },
+    "An error occurred while setting the default preset.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors de la définition du préréglage par défaut."
     },
     "All acts and regulations": {
         "fr": "",
@@ -1203,10 +1543,6 @@
         "fr": "",
         "fr_auto": "Requête"
     },
-    "Ask a question about federal legislation...": {
-        "fr": "Posez une question sur la législation fédérale...",
-        "fr_auto": "Posez une question sur la législation fédérale..."
-    },
     "AI answer": {
         "fr": "",
         "fr_auto": "Réponse de l’IA"
@@ -1214,14 +1550,6 @@
     "Any language results": {
         "fr": "",
         "fr_auto": "Tous les résultats linguistiques"
-    },
-    "Legislation Search - Otto": {
-        "fr": "Recherche de législation - Otto",
-        "fr_auto": "Recherche de législation - Otto"
-    },
-    "Legislation Search": {
-        "fr": "Recherche de législation",
-        "fr_auto": "Recherche de législation"
     },
     "Basic search": {
         "fr": "",
@@ -1351,93 +1679,9 @@
         "fr": "",
         "fr_auto": "Erreur générant une réponse d’IA."
     },
-    "Queued": {
+    "Invalid URL": {
         "fr": "",
-        "fr_auto": "En file d’attente"
-    },
-    "Processing": {
-        "fr": "",
-        "fr_auto": "Traitement"
-    },
-    "Processed": {
-        "fr": "",
-        "fr_auto": "Traitées"
-    },
-    "Error": {
-        "fr": "",
-        "fr_auto": "Erreur"
-    },
-    "Sorry, we ran into an error.": {
-        "fr": "",
-        "fr_auto": "Désolé, nous avons rencontré une erreur."
-    },
-    "LEX Experiment - Otto": {
-        "fr": "",
-        "fr_auto": "Expérience LEX - Otto"
-    },
-    "LEX Experiment": {
-        "fr": "",
-        "fr_auto": "Expérience LEX"
-    },
-    "Upload Notice(s) of Appeal": {
-        "fr": "",
-        "fr_auto": "Télécharger avis(s) d’appel"
-    },
-    "Maximum 2000 files / 300mb total": {
-        "fr": "",
-        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
-    },
-    "Extract Information": {
-        "fr": "",
-        "fr_auto": "Extraire des informations"
-    },
-    "Information extracted": {
-        "fr": "",
-        "fr_auto": "Informations extraites"
-    },
-    "Document": {
-        "fr": "",
-        "fr_auto": "Le document"
-    },
-    "Tax Court of Canada No.": {
-        "fr": "",
-        "fr_auto": "Cour canadienne de l’impôt No."
-    },
-    "Appellant's Name": {
-        "fr": "",
-        "fr_auto": "Nom de l’appelant"
-    },
-    "Appellant's Address": {
-        "fr": "",
-        "fr_auto": "Adresse de l’appelant"
-    },
-    "Tax Court Level": {
-        "fr": "",
-        "fr_auto": "Niveau de la Cour de l’impôt"
-    },
-    "Filed Date of NoA": {
-        "fr": "",
-        "fr_auto": "Date de dépôt de l’AA"
-    },
-    "Representative's Name": {
-        "fr": "",
-        "fr_auto": "Nom du représentant"
-    },
-    "Representative's Address": {
-        "fr": "",
-        "fr_auto": "Allocution du représentant"
-    },
-    "Taxation Years": {
-        "fr": "",
-        "fr_auto": "Années d’imposition"
-    },
-    "Total Tax Amount": {
-        "fr": "",
-        "fr_auto": "Montant total de la taxe"
-    },
-    "Sections Referred": {
-        "fr": "",
-        "fr_auto": "Sections renvoyées"
+        "fr_auto": "URL non valide"
     },
     "Administrators (edit library and manage users)": {
         "fr": "",
@@ -1475,29 +1719,29 @@
         "fr": "",
         "fr_auto": "Ajouter à la bibliothèque..."
     },
-    "Data sources": {
+    "Folders": {
         "fr": "",
-        "fr_auto": "Sources de données"
+        "fr_auto": "Dossiers"
     },
-    "Select a library to edit data sources.": {
+    "Select a library to edit folders.": {
         "fr": "",
-        "fr_auto": "Sélectionnez une bibliothèque pour modifier les sources de données."
+        "fr_auto": "Sélectionnez une bibliothèque pour modifier les dossiers."
     },
-    "New data source": {
+    "New folder": {
         "fr": "",
-        "fr_auto": "Nouvelle source de données"
+        "fr_auto": "Nouveau dossier"
     },
-    "No data sources in this library.": {
+    "No folders in this library.": {
         "fr": "",
-        "fr_auto": "Aucune source de données dans cette bibliothèque."
+        "fr_auto": "Aucun dossier dans cette bibliothèque."
     },
     "Documents": {
         "fr": "",
         "fr_auto": "Documents d’information"
     },
-    "Select a data source to edit documents.": {
+    "Select a folder to edit documents.": {
         "fr": "",
-        "fr_auto": "Sélectionnez une source de données pour modifier les documents."
+        "fr_auto": "Sélectionnez un dossier pour modifier les documents."
     },
     "Add URL": {
         "fr": "",
@@ -1527,17 +1771,17 @@
         "fr": "",
         "fr_auto": "Arrêter tout traitement"
     },
-    "No documents in this data source.": {
+    "No documents in this folder.": {
         "fr": "",
-        "fr_auto": "Aucun document dans cette source de données."
+        "fr_auto": "Aucun document dans ce dossier."
     },
     "You can only upload a maximum of": {
         "fr": "",
         "fr_auto": "Vous ne pouvez télécharger qu’un maximum de"
     },
-    "files per data source.": {
+    "files per folder.": {
         "fr": "",
-        "fr_auto": "par source de données."
+        "fr_auto": "par dossier."
     },
     "files remaining.": {
         "fr": "",
@@ -1562,6 +1806,22 @@
     "Cancelled": {
         "fr": "",
         "fr_auto": "Annulé"
+    },
+    "Queued": {
+        "fr": "",
+        "fr_auto": "En file d’attente"
+    },
+    "Processing": {
+        "fr": "",
+        "fr_auto": "Traitement"
+    },
+    "Processed": {
+        "fr": "",
+        "fr_auto": "Traitées"
+    },
+    "Error": {
+        "fr": "",
+        "fr_auto": "Erreur"
     },
     "Last fetched date": {
         "fr": "",
@@ -1599,17 +1859,13 @@
         "fr": "",
         "fr_auto": "Voir tout"
     },
-    "Changes will be visible to all Otto users.": {
-        "fr": "",
-        "fr_auto": "Les modifications seront visibles pour tous les utilisateurs d’Otto."
-    },
     "Edit properties": {
         "fr": "",
         "fr_auto": "Modifier les propriétés"
     },
-    "Select a library, data source or document to edit.": {
+    "Select a library, folder or document to edit.": {
         "fr": "",
-        "fr_auto": "Sélectionnez une bibliothèque, une source de données ou un document à modifier."
+        "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à modifier."
     },
     "Processing status": {
         "fr": "",
@@ -1647,13 +1903,13 @@
         "fr": "",
         "fr_auto": "Bibliothèque personnelle"
     },
-    "Edit data source": {
+    "Edit folder": {
         "fr": "",
-        "fr_auto": "Modifier la source de données"
+        "fr_auto": "Modifier le dossier"
     },
-    "Create data source": {
+    "Create folder": {
         "fr": "",
-        "fr_auto": "Créer une source de données"
+        "fr_auto": "Créer un dossier"
     },
     "Name (English)": {
         "fr": "",
@@ -1671,9 +1927,9 @@
         "fr": "",
         "fr_auto": "Ordre"
     },
-    "DANGER: Are you sure you want to delete this data source? This action is permanent.": {
+    "DANGER: Are you sure you want to delete this folder? This action is permanent.": {
         "fr": "",
-        "fr_auto": "DANGER : Êtes-vous sûr de vouloir supprimer cette source de données ? Cette action est permanente."
+        "fr_auto": "DANGER : Êtes-vous sûr de vouloir supprimer ce dossier ? Cette action est permanente."
     },
     "Edit document": {
         "fr": "",
@@ -1719,10 +1975,6 @@
         "fr": "",
         "fr_auto": "DANGER : Êtes-vous sûr de vouloir supprimer cette bibliothèque ? Cette action est permanente."
     },
-    "Edit library users - enter Justice email": {
-        "fr": "Modifier les utilisateurs de la bibliothèque - saisissez l'addresse courriel de l'employé",
-        "fr_auto": "Modifier les utilisateurs de la bibliothèque - entrez l’e-mail justice"
-    },
     "Save users": {
         "fr": "",
         "fr_auto": "Enregistrer les utilisateurs"
@@ -1739,17 +1991,17 @@
         "fr": "",
         "fr_auto": "Document supprimé avec succès."
     },
-    "Data source updated successfully.": {
+    "Folder updated successfully.": {
         "fr": "",
-        "fr_auto": "Source de données mise à jour avec succès."
+        "fr_auto": "Dossier mis à jour avec succès."
     },
-    "Data source created successfully.": {
+    "Folder created successfully.": {
         "fr": "",
-        "fr_auto": "Source de données créée avec succès."
+        "fr_auto": "Dossier créé avec succès."
     },
-    "Data source deleted successfully.": {
+    "Folder deleted successfully.": {
         "fr": "",
-        "fr_auto": "Source de données supprimée avec succès."
+        "fr_auto": "Dossier supprimé avec succès."
     },
     "Library updated successfully.": {
         "fr": "",
@@ -1771,17 +2023,9 @@
         "fr": "",
         "fr_auto": "Document non sauvetillé"
     },
-    "Unsaved data source": {
+    "Unsaved folder": {
         "fr": "",
-        "fr_auto": "Source de données non enregistrée"
-    },
-    "Unsaved library": {
-        "fr": "",
-        "fr_auto": "Bibliothèque non enregistrée"
-    },
-    "Let us know what went wrong, or suggest an improvement.": {
-        "fr": "",
-        "fr_auto": "Faites-nous savoir ce qui n’a pas fonctionné ou suggérez une amélioration."
+        "fr_auto": "Dossier non sauveté"
     },
     "Type": {
         "fr": "",
@@ -1795,21 +2039,9 @@
         "fr": "",
         "fr_auto": "S.O."
     },
-    "AI Assistant": {
-        "fr": "",
-        "fr_auto": "Assistant IA"
-    },
-    "Monitoring": {
-        "fr": "",
-        "fr_auto": "Suivi"
-    },
     "Reporting": {
         "fr": "",
         "fr_auto": "Établissement de rapports"
-    },
-    "Other": {
-        "fr": "",
-        "fr_auto": "Autres"
     },
     "Feedback": {
         "fr": "",
@@ -1823,69 +2055,9 @@
         "fr": "",
         "fr_auto": "Assistant de modèle"
     },
-    "Legislation loading": {
-        "fr": "Chargement de la législation",
-        "fr_auto": "Chargement de la législation"
-    },
-    "Text extractor": {
+    "Text Extractor": {
         "fr": "",
         "fr_auto": "Extracteur de texte"
-    },
-    "Lex experiment": {
-        "fr": "",
-        "fr_auto": "Expérience lex"
-    },
-    "Load test": {
-        "fr": "",
-        "fr_auto": "Essai de charge"
-    },
-    "Create": {
-        "fr": "",
-        "fr_auto": "Créer"
-    },
-    "Update": {
-        "fr": "",
-        "fr_auto": "Mise à jour"
-    },
-    "Bad request": {
-        "fr": "",
-        "fr_auto": "Mauvaise demande"
-    },
-    "We're sorry, but something went wrong.": {
-        "fr": "",
-        "fr_auto": "Nous sommes désolés, mais quelque chose s’est mal passé."
-    },
-    "Permission denied": {
-        "fr": "",
-        "fr_auto": "Autorisation refusée"
-    },
-    "You do not have permission to access this page.": {
-        "fr": "",
-        "fr_auto": "Vous n’êtes pas autorisé à accéder à cette page."
-    },
-    "Page not found": {
-        "fr": "",
-        "fr_auto": "Page introuvable"
-    },
-    "We're sorry, but the requested page could not be found.": {
-        "fr": "",
-        "fr_auto": "Nous sommes désolés, mais la page demandée n’a pas pu être trouvée."
-    },
-    "Server error": {
-        "fr": "",
-        "fr_auto": "Erreur de serveur"
-    },
-    "Otto Platform Pilot Registration": {
-        "fr": "",
-        "fr_auto": "Inscription pilote de la plate-forme Otto"
-    },
-    "The Otto Platform is in preview stage and is only intended to be evaluated by a select group of users at the Department of Justice to assess potential risks and improve its safe use. By registering, pilot users are expected to actively participate, provide feedback, and responsibly use the applications to help ensure their suitability and efficiency before wider deployment.": {
-        "fr": "",
-        "fr_auto": "La plate-forme Otto est en phase de prévisualisation et n’est destinée à être évaluée que par un groupe sélectionné d’utilisateurs du ministère de la Justice afin d’évaluer les risques potentiels et d’améliorer son utilisation sûre. En s’inscrivant, les utilisateurs pilotes sont censés participer activement, fournir des commentaires et utiliser les applications de manière responsable pour aider à garantir leur pertinence et leur efficacité avant un déploiement plus large."
-    },
-    "By submitting this form, I agree to the following usage terms:": {
-        "fr": "",
-        "fr_auto": "En soumettant ce formulaire, j’accepte les conditions d’utilisation suivantes :"
     },
     "Empowering Justice efficiency with data and AI": {
         "fr": "",
@@ -1895,6 +2067,10 @@
         "fr": "",
         "fr_auto": "Passer au contenu principal"
     },
+    "Smiling robot head": {
+        "fr": "",
+        "fr_auto": "Tête de robot souriante"
+    },
     "Toggle user menu": {
         "fr": "",
         "fr_auto": "Basculer le menu utilisateur"
@@ -1902,6 +2078,26 @@
     "Breadcrumb": {
         "fr": "",
         "fr_auto": "Fil d’Ariane"
+    },
+    "Manage users": {
+        "fr": "",
+        "fr_auto": "Gérer les utilisateurs"
+    },
+    "Blocked URLs": {
+        "fr": "",
+        "fr_auto": "URL bloquées"
+    },
+    "Blocked URLs - Otto": {
+        "fr": "",
+        "fr_auto": "URL bloquées - Otto"
+    },
+    "Domain": {
+        "fr": "",
+        "fr_auto": "Domaine"
+    },
+    "Requests": {
+        "fr": "",
+        "fr_auto": "Demandes"
     },
     "Disable load test URL": {
         "fr": "",
@@ -1914,10 +2110,6 @@
     "Go to homepage": {
         "fr": "",
         "fr_auto": "Aller à la page d’accueil"
-    },
-    "Contact us": {
-        "fr": "",
-        "fr_auto": "Contactez-nous"
     },
     "Use this section to provide additional details to the feedback provided by the user.": {
         "fr": "",
@@ -1983,10 +2175,6 @@
         "fr": "",
         "fr_auto": "Formulaire de rétroaction Otto"
     },
-    "Success:": {
-        "fr": "",
-        "fr_auto": "Succès :"
-    },
     "Danger:": {
         "fr": "",
         "fr_auto": "Danger :"
@@ -2011,10 +2199,6 @@
         "fr": "",
         "fr_auto": "L’URL de test de chargement est activée"
     },
-    "Manage users": {
-        "fr": "",
-        "fr_auto": "Gérer les utilisateurs"
-    },
     "Cost dashboard": {
         "fr": "",
         "fr_auto": "Tableau de bord des coûts"
@@ -2022,6 +2206,10 @@
     "Feedback dashboard": {
         "fr": "",
         "fr_auto": "Tableau de bord des commentaires"
+    },
+    "Terms of use": {
+        "fr": "",
+        "fr_auto": "Conditions d’utilisation"
     },
     "Logout": {
         "fr": "",
@@ -2067,6 +2255,26 @@
         "fr": "",
         "fr_auto": "Type de coût :"
     },
+    "Dates:": {
+        "fr": "",
+        "fr_auto": "Dates :"
+    },
+    "Range:": {
+        "fr": "",
+        "fr_auto": "Portée :"
+    },
+    "Start:": {
+        "fr": "",
+        "fr_auto": "Début :"
+    },
+    "End:": {
+        "fr": "",
+        "fr_auto": "Fin :"
+    },
+    "Download CSV for selected dates (filters disabled)": {
+        "fr": "",
+        "fr_auto": "Télécharger CSV pour les dates sélectionnées (filtres désactivés)"
+    },
     "Feedback dashboard - Otto": {
         "fr": "",
         "fr_auto": "Tableau de bord des commentaires - Huit"
@@ -2091,9 +2299,33 @@
         "fr": "",
         "fr_auto": "Avertissement :"
     },
-    "Otto is in preview stage and is not intended to be used in legal proceedings. It is being evaluated by a select group of users at Department of Justice to assess potential risks and improve its safe use. Otto should not replace the advice of a qualified legal professional.": {
+    "Welcome to the Otto Protected B pilot.": {
         "fr": "",
-        "fr_auto": "Otto est en phase d’aperçu et n’est pas destiné à être utilisé dans les procédures judiciaires. Il est évalué par un groupe restreint d’utilisateurs du ministère de la Justice afin d’évaluer les risques potentiels et d’améliorer son utilisation sécuritaire. Otto ne devrait pas remplacer les conseils d’un professionnel du droit qualifié."
+        "fr_auto": "Bienvenue au pilote Otto Protected B."
+    },
+    "Welcome to the Otto pilot development / test environment.": {
+        "fr": "",
+        "fr_auto": "Bienvenue dans l’environnement de développement / test pilote Otto."
+    },
+    "Please abide by the": {
+        "fr": "",
+        "fr_auto": "S’il vous plaît respecter le"
+    },
+    "terms of use": {
+        "fr": "",
+        "fr_auto": "conditions d’utilisation"
+    },
+    "report issues or suggest improvements by": {
+        "fr": "",
+        "fr_auto": "signaler les problèmes ou suggérer des améliorations en :"
+    },
+    "leaving feedback": {
+        "fr": "",
+        "fr_auto": "laisser de la rétroaction"
+    },
+    "and be patient as we resolve issues.": {
+        "fr": "",
+        "fr_auto": "et soyez patient lorsque nous résolvons les problèmes."
     },
     "Manage pilots": {
         "fr": "",
@@ -2142,6 +2374,10 @@
     "Manage users - Otto": {
         "fr": "",
         "fr_auto": "Gérer les utilisateurs - Otto"
+    },
+    "Pilots": {
+        "fr": "",
+        "fr_auto": "Pilotes"
     },
     "Download CSV": {
         "fr": "",
@@ -2195,10 +2431,6 @@
         "fr": "",
         "fr_auto": "Le fichier doit être en anglais comme indiqué ci-dessus."
     },
-    "The upn column must match the Azure Active Directory (Entra) userPrincipalName property. This is usually the user's Justice email, and is case-sensitive.": {
-        "fr": "La colonne upn doit correspondre à la propriété Azure Active Directory (Entra) userPrincipalName. Il s’agit généralement de l’addresse courriel justice de l’utilisateur et est sensible à la casse.",
-        "fr_auto": "La colonne upn doit correspondre à la propriété Azure Active Directory (Entra) userPrincipalName. Il s’agit généralement de l’e-mail justice de l’utilisateur et est sensible à la casse."
-    },
     "Roles are case-insensitive. Invalid roles will be ignored. These are the valid roles:": {
         "fr": "",
         "fr_auto": "Les rôles ne tiennent pas compte de la casse. Les rôles non valides seront ignorés. Ce sont les rôles valides :"
@@ -2211,13 +2443,109 @@
         "fr": "",
         "fr_auto": "Toute pilot_id qui n’existe pas sera créée, puis l’utilisateur y sera associé. Le pilot_id est facultatif."
     },
-    "If the user does not exist, their first name, last name and email will be extrapolated from the UPN. These properties will be updated when the user next logs in with Entra.": {
-        "fr": "Si l’utilisateur n’existe pas, son prénom, son nom et son adresse courriel seront extrapolés à partir de l’UPN. Ces propriétés seront mises à jour lors de la prochaine connexion de l’utilisateur avec Entra",
-        "fr_auto": "Si l’utilisateur n’existe pas, son prénom, son nom et son adresse e-mail seront extrapolés à partir de l’UPN. Ces propriétés seront mises à jour lors de la prochaine connexion de l’utilisateur avec Entra."
-    },
     "Modify user(s)": {
         "fr": "",
         "fr_auto": "Modifier le(s) utilisateur(s)"
+    },
+    "Terms of use for Otto Protected B Pilot": {
+        "fr": "",
+        "fr_auto": "Conditions d’utilisation d’Otto Protected B Pilot"
+    },
+    "You agreed to these terms on": {
+        "fr": "",
+        "fr_auto": "Vous avez accepté ces conditions le"
+    },
+    "Participation in pilot activities": {
+        "fr": "",
+        "fr_auto": "Participation aux activités pilotes"
+    },
+    "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested.": {
+        "fr": "",
+        "fr_auto": "Vous faites partie d’un groupe sélectionné d'«utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande."
+    },
+    "Security, privacy and information management": {
+        "fr": "",
+        "fr_auto": "Sécurité, protection de la vie privée et gestion de l’information"
+    },
+    "Otto is approved for up to and including Protected B information. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Additionally, when using Otto with clients’ legal information, employees must ensure the client is aware their information is being entered into an AI tool, understands the potential risks and advantages of the technology, and consents to the use of AI tools.": {
+        "fr": "",
+        "fr_auto": "Otto est approuvé pour les informations protégées B jusqu’à et y compris. Cela comprend normalement les renseignements assujettis au secret professionnel de l’avocat, mais cela devrait être déterminé au cas par cas. De plus, lorsqu’ils utilisent Otto avec les informations juridiques des clients, les employés doivent s’assurer que le client sait que leurs informations sont saisies dans un outil d’IA, comprend les risques et les avantages potentiels de la technologie et consent à l’utilisation d’outils d’IA."
+    },
+    "Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information.": {
+        "fr": "",
+        "fr_auto": "Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires relatives à certaines catégories de renseignements de nature délicate."
+    },
+    "You must not input any information classified above Protected B, either through uploads or direct text input.": {
+        "fr": "",
+        "fr_auto": "Vous ne devez pas entrer d’informations classifiées au-dessus de La Protection B, que ce soit par le biais de téléchargements ou de saisie directe de texte."
+    },
+    "Limit documents that you upload to Otto only to those you need to perform your tasks. Share document libraries and chats only with those who require access. Avoid uploading personal information except as needed for specific tasks, and actively delete classified or personal information when it is no longer needed.": {
+        "fr": "",
+        "fr_auto": "Limitez les documents que vous téléchargez sur Otto uniquement à ceux dont vous avez besoin pour effectuer vos tâches. Partagez des bibliothèques de documents et des discussions uniquement avec ceux qui en ont besoin. Évitez de télécharger des informations personnelles, sauf si nécessaire pour des tâches spécifiques, et supprimez activement les informations classifiées ou personnelles lorsqu’elles ne sont plus nécessaires."
+    },
+    "Appropriate and inappropriate uses": {
+        "fr": "",
+        "fr_auto": "Utilisations appropriées et inappropriées"
+    },
+    "Otto may not be used for automated decision-making. Do not use it for administrative decisions affecting individuals.": {
+        "fr": "",
+        "fr_auto": "Otto ne peut pas être utilisé pour la prise de décision automatisée. Ne l’utilisez pas pour des décisions administratives touchant des personnes."
+    },
+    "Otto is not a substitute for professional legal advice. Avoid using it for decisions with legal implications.": {
+        "fr": "",
+        "fr_auto": "Otto n’est pas un substitut aux conseils juridiques professionnels. Évitez de l’utiliser pour des décisions ayant des implications juridiques."
+    },
+    "Otto does not connect to legal databases like Westlaw, Lexis or CanLII. It should not be used for legal research of case law.": {
+        "fr": "",
+        "fr_auto": "Otto ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis ou CanLII. Il ne devrait pas être utilisé pour la recherche juridique de la jurisprudence."
+    },
+    "Only the Legislation Search tool can be trusted for questions about Canadian federal laws.": {
+        "fr": "",
+        "fr_auto": "Seul l’outil de recherche de législation peut être fiable pour les questions sur les lois fédérales canadiennes."
+    },
+    "Responsible and ethical use of AI": {
+        "fr": "",
+        "fr_auto": "Utilisation responsable et éthique de l’IA"
+    },
+    "Follow policies and best practices for the responsible use of AI. Refer to and follow the guidance in the following policy documents:": {
+        "fr": "",
+        "fr_auto": "Suivez les politiques et les meilleures pratiques pour une utilisation responsable de l’IA. Se reporter aux lignes directrices des documents de politique suivants et les suivre :"
+    },
+    "Justice Generative AI Guidelines - Current Draft": {
+        "fr": "",
+        "fr_auto": "Lignes directrices sur l’IA générative de la justice - Ébauche actuelle"
+    },
+    "You are encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, such as those catalogued by the University of Windsor and the Law Society of Alberta in the documents": {
+        "fr": "",
+        "fr_auto": "Nous vous encourageons à consulter les directives et les avis des cours et des tribunaux concernant l’utilisation de l’intelligence artificielle, comme ceux catalogués par l’Université de Windsor et le Barreau de l’Alberta dans les documents"
+    },
+    "Artificial Intelligence Regulation": {
+        "fr": "",
+        "fr_auto": "Règlement sur l’intelligence artificielle"
+    },
+    "and": {
+        "fr": "",
+        "fr_auto": "et"
+    },
+    "Gen AI Rules of Engagement for Canadian Lawyers": {
+        "fr": "",
+        "fr_auto": "Gen AI Règles d’engagement pour les avocats canadiens"
+    },
+    "respectively.": {
+        "fr": "",
+        "fr_auto": "respectivement."
+    },
+    "Always be aware that AI can make mistakes, even when you have provided it with documents.": {
+        "fr": "",
+        "fr_auto": "Sachez toujours que l’IA peut faire des erreurs, même lorsque vous lui avez fourni des documents."
+    },
+    "For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content.": {
+        "fr": "",
+        "fr_auto": "Pour toute utilisation officielle (par exemple, la distribution en dehors de votre équipe immédiate et en particulier en dehors de l’organisation), il est essentiel que vous examiniez attentivement le contenu généré par l’IA."
+    },
+    "I agree to the terms of use.": {
+        "fr": "",
+        "fr_auto": "J’accepte les conditions d’utilisation."
     },
     "Access controls": {
         "fr": "",
@@ -2291,17 +2619,45 @@
         "fr": "",
         "fr_auto": "Tous les types de coûts"
     },
-    "Total cost (CAD)": {
+    "All time": {
         "fr": "",
-        "fr_auto": "Coût total (CAD)"
+        "fr_auto": "Tout le temps"
+    },
+    "Last 90 days": {
+        "fr": "",
+        "fr_auto": "90 derniers jours"
+    },
+    "Last 30 days": {
+        "fr": "",
+        "fr_auto": "30 derniers jours"
+    },
+    "Last 7 days": {
+        "fr": "",
+        "fr_auto": "7 derniers jours"
     },
     "Today": {
         "fr": "",
         "fr_auto": "Aujourd’hui"
     },
-    "All time": {
+    "Custom date range": {
         "fr": "",
-        "fr_auto": "Tout le temps"
+        "fr_auto": "Plage de dates personnalisée"
+    },
+    "No costs found for the selected date range": {
+        "fr": "",
+        "fr_auto": "Aucun coût trouvé pour la plage de dates sélectionnée"
+    },
+    "Selected dates": {
+        "fr": "",
+        "fr_auto": "Dates sélectionnées"
+    },
+    "Per user per day": {
+        "fr": "",
+        "fr_auto": "Par utilisateur et par jour"
+    },
+    "Total cost (CAD)": {
+        "fr": "",
+        "fr_auto": "Coût total (CAD)"
     },
     "this month": {
         "fr": "",
@@ -2326,10 +2682,6 @@
     "Both Languages": {
         "fr": "",
         "fr_auto": "Les deux langues"
-    },
-    "Generate": {
-        "fr": "",
-        "fr_auto": "Générer"
     },
     "Loading...": {
         "fr": "",
@@ -2439,17 +2791,21 @@
         "fr": "",
         "fr_auto": "Texte brut"
     },
+    "Sorry, we ran into an error.": {
+        "fr": "",
+        "fr_auto": "Désolé, nous avons rencontré une erreur."
+    },
     "Text Extractor - Otto": {
         "fr": "",
         "fr_auto": "Extracteur de texte - Otto"
     },
-    "Text Extractor": {
-        "fr": "",
-        "fr_auto": "Extracteur de texte"
-    },
     "Upload scanned PDFs or images": {
         "fr": "",
         "fr_auto": "Télécharger des fichiers PDF ou des images numérisés"
+    },
+    "Maximum 2000 files / 300mb total": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
     },
     "Merge multiple files into one document": {
         "fr": "",
@@ -2470,717 +2826,5 @@
     "Download all files...": {
         "fr": "",
         "fr_auto": "Téléchargez tous les fichiers..."
-    },
-    "Read each document separately  (slow, $$)": {
-        "fr": "",
-        "fr_auto": "Lisez chaque document séparément (lent, $$)"
-    },
-    "Read all documents at once (slowest, $$)": {
-        "fr": "",
-        "fr_auto": "Lire tous les documents en même temps (le plus lent, $$)"
-    },
-    "Enable load test URL": {
-        "fr": "",
-        "fr_auto": "Activer l’URL du test de charge"
-    },
-    "Upload Scanned Notice(s) of Appeal": {
-        "fr": "",
-        "fr_auto": "Télécharger les avis d’appel numérisés"
-    },
-    "Update Preset \"%(name)s\" ": {
-        "fr": "",
-        "fr_auto": "Mettre à jour le préréglage « %(name)s » "
-    },
-    "You currently have the preset named \"%(name)s\" loaded. This will update it with your latest changes. ": {
-        "fr": "",
-        "fr_auto": "You currently have the preset named \"%(name)s\" loaded. This will update it with your latest changes. "
-    },
-    "Create New Preset": {
-        "fr": "",
-        "fr_auto": "Créer un nouveau préréglage"
-    },
-    "Create a new preset from your current settings.": {
-        "fr": "",
-        "fr_auto": "Créez un nouveau préréglage à partir de vos paramètres actuels."
-    },
-    "Update Preset %(name)s ": {
-        "fr": "",
-        "fr_auto": "Update Preset %(name)s "
-    },
-    "Save & Load": {
-        "fr": "",
-        "fr_auto": "Enregistrer et charger"
-    },
-    "Save preset from current settings": {
-        "fr": "",
-        "fr_auto": "Enregistrer le préréglage à partir des paramètres actuels"
-    },
-    "Smiling robot head": {
-        "fr": "",
-        "fr_auto": "Tête de robot souriante"
-    },
-    "Dates:": {
-        "fr": "",
-        "fr_auto": "Dates :"
-    },
-    "Range:": {
-        "fr": "",
-        "fr_auto": "Portée :"
-    },
-    "Start:": {
-        "fr": "",
-        "fr_auto": "Début :"
-    },
-    "End:": {
-        "fr": "",
-        "fr_auto": "Fin :"
-    },
-    "Download CSV for selected dates (filters disabled)": {
-        "fr": "",
-        "fr_auto": "Télécharger CSV pour les dates sélectionnées (filtres désactivés)"
-    },
-    "Last 90 days": {
-        "fr": "",
-        "fr_auto": "90 derniers jours"
-    },
-    "Last 30 days": {
-        "fr": "",
-        "fr_auto": "30 derniers jours"
-    },
-    "Last 7 days": {
-        "fr": "",
-        "fr_auto": "7 derniers jours"
-    },
-    "Custom date range": {
-        "fr": "",
-        "fr_auto": "Plage de dates personnalisée"
-    },
-    "No costs found for the selected date range": {
-        "fr": "",
-        "fr_auto": "Aucun coût trouvé pour la plage de dates sélectionnée"
-    },
-    "Selected dates": {
-        "fr": "",
-        "fr_auto": "Dates sélectionnées"
-    },
-    "Per user per day": {
-        "fr": "",
-        "fr_auto": "Par utilisateur et par jour"
-    },
-    "**No relevant sources found.**": {
-        "fr": "",
-        "fr_auto": "**Aucune source pertinente n’a été trouvée.**"
-    },
-    "Preset loaded successfully.": {
-        "fr": "",
-        "fr_auto": "Préréglage chargé avec succès."
-    },
-    "Preset saved successfully.": {
-        "fr": "",
-        "fr_auto": "Préréglage enregistré avec succès."
-    },
-    "Preset updated successfully.": {
-        "fr": "",
-        "fr_auto": "Préréglage mis à jour avec succès."
-    },
-    "Preset deleted successfully.": {
-        "fr": "",
-        "fr_auto": "Préréglage supprimé avec succès."
-    },
-    "QA library for settings preset not accessible. It has been reset to your personal library.": {
-        "fr": "",
-        "fr_auto": "Bibliothèque d’assurance qualité pour les paramètres prédéfinis non accessibles. Il a été réinitialisé à votre bibliothèque personnelle."
-    },
-    "Sorry, that URL isn't allowed. Otto can only access sites ending in:": {
-        "fr": "",
-        "fr_auto": "Désolé, cette URL n’est pas autorisée. Otto ne peut accéder qu’aux sites se terminant par :"
-    },
-    "(e.g., `justice.gc.ca` or `www.tbs-sct.canada.ca` are also allowed)": {
-        "fr": "",
-        "fr_auto": "(p. ex., « justice.gc.ca » ou « www.tbs-sct.canada.ca » sont également autorisés)"
-    },
-    "As a workaround, you can save the content to a file and upload it here.": {
-        "fr": "",
-        "fr_auto": "Comme solution de contournement, vous pouvez enregistrer le contenu dans un fichier et le télécharger ici."
-    },
-    "Invalid URL": {
-        "fr": "",
-        "fr_auto": "URL non valide"
-    },
-    "Blocked URLs": {
-        "fr": "",
-        "fr_auto": "URL bloquées"
-    },
-    "Blocked URLs - Otto": {
-        "fr": "",
-        "fr_auto": "URL bloquées - Otto"
-    },
-    "User-requested URLs for Q&A, summarization etc. which were not on the allow-list": {
-        "fr": "URL demandées par l’utilisateur pour les questions-réponses, les résumés, etc. qui ne figuraient pas sur la liste d’adresses autorisées",
-        "fr_auto": "URL demandées par l’utilisateur pour les questions et réponses, les résumés, etc. qui ne figuraient pas sur la liste d’adresses autorisées"
-    },
-    "Domain": {
-        "fr": "",
-        "fr_auto": "Domaine"
-    },
-    "Requests": {
-        "fr": "",
-        "fr_auto": "Demandes"
-    },
-    "Pilots": {
-        "fr": "",
-        "fr_auto": "Pilotes"
-    },
-    "This tool is not a substitute for professional legal advice. Avoid using it for decisions with legal implications or decisions that would impact an individual.": {
-        "fr": "",
-        "fr_auto": "Cet outil ne remplace pas les conseils juridiques professionnels. Évitez de l’utiliser pour des décisions ayant des implications juridiques ou des décisions qui auraient une incidence sur une personne."
-    },
-    "We ask that users delete their chats and file uploads from the system after 30 days, unless still required. This proactive approach ensures data security, respects privacy principles and information management best practices.": {
-        "fr": "",
-        "fr_auto": "Nous demandons aux utilisateurs de supprimer leurs discussions et leurs téléchargements de fichiers du système après 30 jours, sauf si cela est toujours nécessaire. Cette approche proactive assure la sécurité des données, respecte les principes de confidentialité et les pratiques exemplaires en matière de gestion de l’information."
-    },
-    "GPT-4o-mini (fastest, best value)": {
-        "fr": "",
-        "fr_auto": "GPT-4o-mini (le plus rapide, meilleur rapport qualité-prix)"
-    },
-    "GPT-4o (best quality, but 25x cost)": {
-        "fr": "",
-        "fr_auto": "GPT-4o (meilleure qualité, mais coût 25x)"
-    },
-    "This is the default Otto preset. Use caution!": {
-        "fr": "",
-        "fr_auto": "Il s’agit du préréglage Otto par défaut. Soyez prudent !"
-    },
-    "Share with:": {
-        "fr": "",
-        "fr_auto": "Partager avec :"
-    },
-    "Update Preset": {
-        "fr": "Mettre à jour le préréglage",
-        "fr_auto": "Mise à jour prédéfinie"
-    },
-    "Browse": {
-        "fr": "Naviguer",
-        "fr_auto": "Parcourir"
-    },
-    "Help me write a good prompt": {
-        "fr": "",
-        "fr_auto": "Aidez-moi à écrire une bonne invite"
-    },
-    "Improve prompt using AI": {
-        "fr": "",
-        "fr_auto": "Améliorer l’invite à l’aide de l’IA"
-    },
-    "This feature creates a detailed prompt for the AI model to generate a response. The AI model will generate a response based on the prompt's details and context. Please review/edit the response and use your judgment. You may re-generate the response multiple times until a desired response is generated.": {
-        "fr": "",
-        "fr_auto": "Cette fonctionnalité crée une invite détaillée pour que le modèle d’IA génère une réponse. Le modèle d’IA générera une réponse basée sur les détails et le contexte de l’invite. Veuillez examiner ou modifier la réponse et utiliser votre jugement. Vous pouvez générer à nouveau la réponse plusieurs fois jusqu’à ce qu’une réponse souhaitée soit générée."
-    },
-    "Type your prompt here...": {
-        "fr": "",
-        "fr_auto": "Tapez votre invite ici..."
-    },
-    "Re-generate": {
-        "fr": "",
-        "fr_auto": "Re-générer"
-    },
-    "Cost : ": {
-        "fr": "",
-        "fr_auto": "Coût : "
-    },
-    "Reset": {
-        "fr": "",
-        "fr_auto": "Réinitialiser"
-    },
-    "Use this prompt": {
-        "fr": "",
-        "fr_auto": "Utilisez cette invite"
-    },
-    "Protected B approved:": {
-        "fr": "",
-        "fr_auto": "Protégé B approuvé :"
-    },
-    "Use with unclassified, Protected A or Protected B information only.": {
-        "fr": "",
-        "fr_auto": "Utilisez uniquement avec des informations non classifiées, protégées A ou Protégées B."
-    },
-    "Human review required:": {
-        "fr": "",
-        "fr_auto": "Examen humain requis :"
-    },
-    "AI can make mistakes. Review before using in an official capacity.": {
-        "fr": "",
-        "fr_auto": "L’IA peut faire des erreurs. Examiner avant d’utiliser à titre officiel."
-    },
-    "Not for legal advice or research:": {
-        "fr": "",
-        "fr_auto": "Pas pour des conseils juridiques ou de la recherche :"
-    },
-    "This tool doesn't connect to legal databases like Westlaw, Lexis and CanLII.": {
-        "fr": "",
-        "fr_auto": "Cet outil ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis et CanLII."
-    },
-    "Not for decision-making:": {
-        "fr": "",
-        "fr_auto": "Pas pour la prise de décision :"
-    },
-    "Do not use for legal decisions, administrative decisions affecting individuals, etc.": {
-        "fr": "",
-        "fr_auto": "Ne pas utiliser pour les décisions juridiques, les décisions administratives affectant les individus, etc."
-    },
-    "Information management:": {
-        "fr": "",
-        "fr_auto": "Gestion de l’information :"
-    },
-    "Limit information shared in chats and Q&A libraries. These are deleted after 30 days.": {
-        "fr": "",
-        "fr_auto": "Limitez les informations partagées dans les chats et les bibliothèques de questions et réponses. Ceux-ci sont supprimés après 30 jours."
-    },
-    "\n            <strong>Chat</strong> with a secure AI for brainstorming, writing assistance and text formatting.\n          ": {
-        "fr": "\n<strong>Clavardez</strong> avec une IA sécurisée pour le brainstorming, l’aide à la rédaction et le formatage du texte.\n          ",
-        "fr_auto": "\n<strong>Discutez</strong> avec une IA sécurisée pour le brainstorming, l’aide à la rédaction et le formatage du texte.\n          "
-    },
-    "Chat mode is not suitable for factual research.": {
-        "fr": "Le mode de clavardage ne convient pas à la recherche factuelle.",
-        "fr_auto": "Le mode chat ne convient pas à la recherche factuelle."
-    },
-    "\n            <strong>Summarize</strong> uploaded documents. You may also input free text or enter a URL for a web page.\n          ": {
-        "fr": "",
-        "fr_auto": "\n<strong>Résumez les</strong> documents téléchargés. Vous pouvez également entrer du texte libre ou entrer une URL pour une page Web.\n          "
-    },
-    "AI-generated summaries may contain inaccuracies. Review before using for official purposes.": {
-        "fr": "",
-        "fr_auto": "Les résumés générés par l’IA peuvent contenir des inexactitudes. Passez en revue avant d’utiliser à des fins officielles."
-    },
-    "\n            <strong>Translate</strong> input text or uploaded documents from any language into French or English.\n          ": {
-        "fr": "",
-        "fr_auto": "\n<strong>Traduire le</strong> texte d’entrée ou les documents téléchargés de n’importe quelle langue en français ou en anglais.\n          "
-    },
-    "Translations may not be suitable for legal and official document submissions prior to human review.": {
-        "fr": "",
-        "fr_auto": "Les traductions peuvent ne pas convenir aux soumissions de documents juridiques et officiels avant l’examen humain."
-    },
-    "\n            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or simply upload documents to the chat.\n          ": {
-        "fr": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents à partir de la barre latérale des paramètres, ou simplement téléversez des documents sur la session de clavardage.\n          ",
-        "fr_auto": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents à partir de la barre latérale des paramètres, ou téléchargez simplement des documents sur le chat.\n          "
-    },
-    "For official use, always verify with the provided sources due to the potential for inaccuracies.": {
-        "fr": "",
-        "fr_auto": "Pour un usage officiel, vérifiez toujours avec les sources fournies en raison du risque d’inexactitudes."
-    },
-    "Terms of use": {
-        "fr": "",
-        "fr_auto": "Conditions d’utilisation"
-    },
-    "Welcome to the Otto Protected B pilot. Please abide by the": {
-        "fr": "",
-        "fr_auto": "Bienvenue au pilote Otto Protected B. S’il vous plaît respecter le"
-    },
-    "terms of use": {
-        "fr": "",
-        "fr_auto": "conditions d’utilisation"
-    },
-    "report issues or suggest improvements by": {
-        "fr": "",
-        "fr_auto": "signaler les problèmes ou suggérer des améliorations en :"
-    },
-    "leaving feedback": {
-        "fr": "",
-        "fr_auto": "laisser de la rétroaction"
-    },
-    "and be patient as we resolve issues.": {
-        "fr": "",
-        "fr_auto": "et soyez patient lorsque nous résolvons les problèmes."
-    },
-    "Terms of use for Otto Protected B Pilot": {
-        "fr": "",
-        "fr_auto": "Conditions d’utilisation d’Otto Protected B Pilot"
-    },
-    "You agreed to these terms on": {
-        "fr": "",
-        "fr_auto": "Vous avez accepté ces conditions le"
-    },
-    "Terms of use go here...": {
-        "fr": "",
-        "fr_auto": "Les conditions d’utilisation vont ici..."
-    },
-    "I agree to the usage terms.": {
-        "fr": "",
-        "fr_auto": "J’accepte les conditions d’utilisation."
-    },
-    "Unclassified only:": {
-        "fr": "",
-        "fr_auto": "Non classifié seulement :"
-    },
-    "This is a development / testing environment. Use unclassified information only.": {
-        "fr": "",
-        "fr_auto": "Il s’agit d’un environnement de développement / test. Utilisez uniquement des informations non classifiées."
-    },
-    "Welcome to the Otto Protected B pilot.": {
-        "fr": "",
-        "fr_auto": "Bienvenue au pilote Otto Protected B."
-    },
-    "Welcome to the Otto pilot development / test environment.": {
-        "fr": "",
-        "fr_auto": "Bienvenue dans l’environnement de développement / test pilote Otto."
-    },
-    "Please abide by the": {
-        "fr": "",
-        "fr_auto": "S’il vous plaît respecter le"
-    },
-    "Participation in pilot activities": {
-        "fr": "",
-        "fr_auto": "Participation aux activités pilotes"
-    },
-    "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested.": {
-        "fr": "",
-        "fr_auto": "Vous faites partie d’un groupe sélectionné d'«utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande."
-    },
-    "Security, privacy and information management": {
-        "fr": "",
-        "fr_auto": "Sécurité, protection de la vie privée et gestion de l’information"
-    },
-    "Otto is approved for up to and including Protected B information. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information.": {
-        "fr": "",
-        "fr_auto": "Otto est approuvé pour les informations protégées B jusqu’à et y compris. Cela comprend normalement les renseignements assujettis au secret professionnel de l’avocat, mais cela devrait être déterminé au cas par cas. Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires relatives à certaines catégories de renseignements de nature délicate."
-    },
-    "You must not input any information classified above Protected B, either through uploads or direct text input.": {
-        "fr": "",
-        "fr_auto": "Vous ne devez pas entrer d’informations classifiées au-dessus de La Protection B, que ce soit par le biais de téléchargements ou de saisie directe de texte."
-    },
-    "Limit documents that you upload to Otto only to those you need to perform your tasks. Share document libraries and chats only with those who require access. Avoid uploading personal information except as needed for specific tasks, and actively delete classified or personal information when it is no longer needed.": {
-        "fr": "",
-        "fr_auto": "Limitez les documents que vous téléchargez sur Otto uniquement à ceux dont vous avez besoin pour effectuer vos tâches. Partagez des bibliothèques de documents et des discussions uniquement avec ceux qui en ont besoin. Évitez de télécharger des informations personnelles, sauf si nécessaire pour des tâches spécifiques, et supprimez activement les informations classifiées ou personnelles lorsqu’elles ne sont plus nécessaires."
-    },
-    "In the AI assistant, document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted.": {
-        "fr": "Les bibliothèques de documents et les sessions de clavardage seront supprimés après 30 jours d’inactivité dans l'assistant d'IA. Cela signifie que si vous n’ouvrez pas une session de clavardage pendant 30 jours, elle sera automatiquement supprimée avec tous ses fichiers téléversés. Pour les bibliothèques, si aucune modification n’a été apportée et qu’aucune requête Q&R n’a été effectuée pendant 30 jours, la bibliothèque sera automatiquement supprimée.",
-        "fr_auto": "Dans l’assistant IA, les bibliothèques de documents et les chats seront supprimés après 30 jours d’inactivité. Cela signifie que si vous n’ouvrez pas un chat pendant 30 jours, il sera automatiquement supprimé avec tous les fichiers téléchargés sur le chat. Pour les bibliothèques, si aucune modification n’a été apportée et qu’aucune requête Q&A n’a été effectuée pendant 30 jours, la bibliothèque sera automatiquement supprimée."
-    },
-    "Appropriate and inappropriate uses": {
-        "fr": "",
-        "fr_auto": "Utilisations appropriées et inappropriées"
-    },
-    "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted for facts. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.": {
-        "fr": "Lisez et suivez les avis de confidentialité dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Clavardez ne doivent pas être considérés comme faits. Utilisez plutôt les modes Q&R et Résumer pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléversez ou dans une bibliothèque de documents partagée.",
-        "fr_auto": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Chat ne doivent pas être fiables pour les faits. Utilisez plutôt les modes Q&R et Summarize pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléchargez ou une bibliothèque de documents partagée."
-    },
-    "Otto may not be used for automated decision-making. Do not use it for administrative decisions affecting individuals.": {
-        "fr": "",
-        "fr_auto": "Otto ne peut pas être utilisé pour la prise de décision automatisée. Ne l’utilisez pas pour des décisions administratives touchant des personnes."
-    },
-    "Otto is not a substitute for professional legal advice. Avoid using it for decisions with legal implications.": {
-        "fr": "",
-        "fr_auto": "Otto n’est pas un substitut aux conseils juridiques professionnels. Évitez de l’utiliser pour des décisions ayant des implications juridiques."
-    },
-    "Otto does not connect to legal databases like Westlaw, Lexis and CanLII. It should not be used for legal research of case law.": {
-        "fr": "",
-        "fr_auto": "Otto ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis et CanLII. Il ne devrait pas être utilisé pour la recherche juridique de la jurisprudence."
-    },
-    "Only the Legislation Search tool can be trusted for questions about Canadian federal laws.": {
-        "fr": "",
-        "fr_auto": "Seul l’outil de recherche de législation peut être fiable pour les questions sur les lois fédérales canadiennes."
-    },
-    "Translations may not be suitable for legal and official document submissions without human review.": {
-        "fr": "",
-        "fr_auto": "Les traductions peuvent ne pas convenir aux soumissions de documents juridiques et officiels sans examen humain."
-    },
-    "Responsible and ethical use of AI": {
-        "fr": "",
-        "fr_auto": "Utilisation responsable et éthique de l’IA"
-    },
-    "Follow policies and best practices for the responsible use of AI. Refer to and follow the guidance in the following policy documents:": {
-        "fr": "",
-        "fr_auto": "Suivez les politiques et les meilleures pratiques pour une utilisation responsable de l’IA. Se reporter aux lignes directrices des documents de politique suivants et les suivre :"
-    },
-    "You are encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence.": {
-        "fr": "",
-        "fr_auto": "Nous vous encourageons à consulter les directives et les avis des cours et des tribunaux concernant l’utilisation de l’intelligence artificielle."
-    },
-    "Always be aware that AI can make mistakes, even when you have provided it with documents. For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content.": {
-        "fr": "",
-        "fr_auto": "Sachez toujours que l’IA peut faire des erreurs, même lorsque vous lui avez fourni des documents. Pour toute utilisation officielle (par exemple, la distribution en dehors de votre équipe immédiate et en particulier en dehors de l’organisation), il est essentiel que vous examiniez attentivement le contenu généré par l’IA."
-    },
-    "I agree to the terms of use.": {
-        "fr": "",
-        "fr_auto": "J’accepte les conditions d’utilisation."
-    },
-    "In the AI assistant, apply security classification labels to chats and document libraries when they contain classified and/or personal information.": {
-        "fr": "Dans l’Assistant IA, appliquez des étiquettes de classification de sécurité aux sessions de clavardage et aux bibliothèques de documents lorsqu’elles contiennent des informations classifiées et/ou personnelles.",
-        "fr_auto": "Dans l’Assistant IA, appliquez des étiquettes de classification de sécurité aux chats et aux bibliothèques de documents lorsqu’elles contiennent des informations classifiées et/ou personnelles."
-    },
-    "Generate a more detailed version of your prompt. Use this as a starting point for further edits.": {
-        "fr": "",
-        "fr_auto": "Générez une version plus détaillée de votre invite. Utilisez ceci comme point de départ pour d’autres modifications."
-    },
-    "Your prompt": {
-        "fr": "",
-        "fr_auto": "Votre invite"
-    },
-    "AI-generated prompt": {
-        "fr": "",
-        "fr_auto": "Invite générée par l’IA"
-    },
-    "Regenerate": {
-        "fr": "",
-        "fr_auto": "Régénérer"
-    },
-    "Select folder(s)": {
-        "fr": "",
-        "fr_auto": "Sélectionner le(s) dossier(s)"
-    },
-    "Selected folders": {
-        "fr": "",
-        "fr_auto": "Dossiers sélectionnés"
-    },
-    "Sorry, I couldn't find any information about that. Try selecting more folders or documents, or try a different library.": {
-        "fr": "",
-        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner plus de dossiers ou de documents, ou essayez une autre bibliothèque."
-    },
-    "Sorry, I couldn't find any information about that. Try selecting a different library or folder.": {
-        "fr": "",
-        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner une autre bibliothèque ou un autre dossier."
-    },
-    "Folders": {
-        "fr": "",
-        "fr_auto": "Dossiers"
-    },
-    "Select a library to edit folders.": {
-        "fr": "",
-        "fr_auto": "Sélectionnez une bibliothèque pour modifier les dossiers."
-    },
-    "New folder": {
-        "fr": "",
-        "fr_auto": "Nouveau dossier"
-    },
-    "No folders in this library.": {
-        "fr": "",
-        "fr_auto": "Aucun dossier dans cette bibliothèque."
-    },
-    "Select a folder to edit documents.": {
-        "fr": "",
-        "fr_auto": "Sélectionnez un dossier pour modifier les documents."
-    },
-    "No documents in this folder.": {
-        "fr": "",
-        "fr_auto": "Aucun document dans ce dossier."
-    },
-    "files per folder.": {
-        "fr": "",
-        "fr_auto": "par dossier."
-    },
-    "Edit folder": {
-        "fr": "",
-        "fr_auto": "Modifier le dossier"
-    },
-    "Create folder": {
-        "fr": "",
-        "fr_auto": "Créer un dossier"
-    },
-    "DANGER: Are you sure you want to delete this folder? This action is permanent.": {
-        "fr": "",
-        "fr_auto": "DANGER : Êtes-vous sûr de vouloir supprimer ce dossier ? Cette action est permanente."
-    },
-    "Folder updated successfully.": {
-        "fr": "",
-        "fr_auto": "Dossier mis à jour avec succès."
-    },
-    "Folder created successfully.": {
-        "fr": "",
-        "fr_auto": "Dossier créé avec succès."
-    },
-    "Folder deleted successfully.": {
-        "fr": "",
-        "fr_auto": "Dossier supprimé avec succès."
-    },
-    "Unsaved folder": {
-        "fr": "",
-        "fr_auto": "Dossier non sauveté"
-    },
-    "Select a library, folder, or document to edit.": {
-        "fr": "",
-        "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à modifier."
-    },
-    "Email administrators": {
-        "fr": "Contactez les administrateurs",
-        "fr_auto": "Administrateurs de messagerie"
-    },
-    "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. If this is not possible, contact the Otto team at the following email address to report a privacy issue:": {
-        "fr": "Si des informations sont partagées avec vous via Otto auxquelles vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un courriel aux auteurs ou aux administrateurs de la bibliothèque. Si cela n’est pas possible, contactez l’équipe Otto à l’adresse courriel suivante pour signaler un problème de confidentialité :",
-        "fr_auto": "Si des informations sont partagées avec vous via Otto auxquelles vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un e-mail aux auteurs ou aux administrateurs de la bibliothèque. Si cela n’est pas possible, contactez l’équipe Otto à l’adresse e-mail suivante pour signaler un problème de confidentialité :"
-    },
-    "This chat was shared with you and is read-only.": {
-        "fr": "Cette session de clavardage a été partagé avec vous et est en lecture seule.",
-        "fr_auto": "Ce chat a été partagé avec vous et est en lecture seule."
-    },
-    "If you should not have access,": {
-        "fr": "",
-        "fr_auto": "Si vous ne devriez pas y avoir accès,"
-    },
-    "email the chat author": {
-        "fr": "envoyer un courriel à l’auteur de la sesison de clavardage",
-        "fr_auto": "envoyer un e-mail à l’auteur du chat"
-    },
-    "to report the issue.": {
-        "fr": "",
-        "fr_auto": "pour signaler le problème."
-    },
-    "Preset added to favourites.": {
-        "fr": "",
-        "fr_auto": "Préréglage ajouté aux favoris."
-    },
-    "Preset removed from favourites.": {
-        "fr": "",
-        "fr_auto": "Préréglage retiré des favoris."
-    },
-    "An error occurred while setting the preset as favourite.": {
-        "fr": "",
-        "fr_auto": "Une erreur s’est produite lors de la définition du préréglage comme favori."
-    },
-    "Default preset was set successfully.": {
-        "fr": "",
-        "fr_auto": "Le paramètre prédéfini par défaut a été défini avec succès."
-    },
-    "An error occurred while setting the default preset.": {
-        "fr": "",
-        "fr_auto": "Une erreur s’est produite lors de la définition du préréglage par défaut."
-    },
-    "AI can make mistakes. Review the text before using it in an official capacity.": {
-        "fr": "",
-        "fr_auto": "L’IA peut faire des erreurs. Passez en revue le texte avant de l’utiliser à titre officiel."
-    },
-    "Does not connect to legal databases like Westlaw, Lexis or CanLII.": {
-        "fr": "",
-        "fr_auto": "Ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis ou CanLII."
-    },
-    "Limit information shared in chats and Q&A libraries (deleted after 30 days inactivity).": {
-        "fr": "Limitez les informations partagées dans les sessions de clavardage et les bibliothèques de questions-réponses (supprimées après 30 jours d’inactivité).",
-        "fr_auto": "Limitez les informations partagées dans les chats et les bibliothèques de questions et réponses (supprimées après 30 jours d’inactivité)."
-    },
-    "AI-generated summaries may contain inaccuracies. Review the text before using it for official purposes.": {
-        "fr": "",
-        "fr_auto": "Les résumés générés par l’IA peuvent contenir des inexactitudes. Passez en revue le texte avant de l’utiliser à des fins officielles."
-    },
-    "Translations should undergo human review prior to use in a legal or official capacity.": {
-        "fr": "",
-        "fr_auto": "Les traductions doivent faire l’objet d’un examen humain avant d’être utilisées à titre juridique ou officiel."
-    },
-    "\n            <strong>Q&A</strong> provides answers based on specific documents. Select or create document libraries from the settings sidebar, or upload files and enter URLs directly in the chat.\n          ": {
-        "fr": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents dans la barre latérale des paramètres, ou téléchargez des fichiers et entrez des URL directement dans la session de clavardage.\n          ",
-        "fr_auto": "\n<strong>Q&R</strong> fournit des réponses basées sur des documents spécifiques. Sélectionnez ou créez des bibliothèques de documents dans la barre latérale des paramètres, ou téléchargez des fichiers et entrez des URL directement dans le chat.\n          "
-    },
-    "For official use, always verify generated material with the provided sources due to the potential for inaccuracies.": {
-        "fr": "",
-        "fr_auto": "Pour un usage officiel, vérifiez toujours le matériel généré avec les sources fournies en raison du risque d’inexactitudes."
-    },
-    "Otto is approved for up to and including Protected B information. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Additionally, when using Otto with clients’ legal information, employees must ensure the client is aware their information is being entered into an AI tool, understands the potential risks and advantages of the technology, and consents to the use of AI tools.": {
-        "fr": "",
-        "fr_auto": "Otto est approuvé pour les informations protégées B jusqu’à et y compris. Cela comprend normalement les renseignements assujettis au secret professionnel de l’avocat, mais cela devrait être déterminé au cas par cas. De plus, lorsqu’ils utilisent Otto avec les informations juridiques des clients, les employés doivent s’assurer que le client sait que leurs informations sont saisies dans un outil d’IA, comprend les risques et les avantages potentiels de la technologie et consent à l’utilisation d’outils d’IA."
-    },
-    "Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information.": {
-        "fr": "",
-        "fr_auto": "Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires relatives à certaines catégories de renseignements de nature délicate."
-    },
-    "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted to provide factual information. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.": {
-        "fr": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Clavardez ne doivent pas être considérés comme étant fiables pour fournir des faits. Utilisez plutôt les modes Q&R et Résumer pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléversez ou dans une bibliothèque de documents partagée.",
-        "fr_auto": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Chat ne doivent pas être fiables pour fournir des informations factuelles. Utilisez plutôt les modes Q&R et Summarize pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléchargez ou une bibliothèque de documents partagée."
-    },
-    "Otto does not connect to legal databases like Westlaw, Lexis or CanLII. It should not be used for legal research of case law.": {
-        "fr": "",
-        "fr_auto": "Otto ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis ou CanLII. Il ne devrait pas être utilisé pour la recherche juridique de la jurisprudence."
-    },
-    "You are encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, such as those catalogued by the University of Windsor and the Law Society of Alberta in the documents": {
-        "fr": "",
-        "fr_auto": "Nous vous encourageons à consulter les directives et les avis des cours et des tribunaux concernant l’utilisation de l’intelligence artificielle, comme ceux catalogués par l’Université de Windsor et le Barreau de l’Alberta dans les documents"
-    },
-    "Artificial Intelligence Regulation": {
-        "fr": "",
-        "fr_auto": "Règlement sur l’intelligence artificielle"
-    },
-    "and": {
-        "fr": "",
-        "fr_auto": "et"
-    },
-    "Gen AI Rules of Engagement for Canadian Lawyers": {
-        "fr": "",
-        "fr_auto": "Gen AI Règles d’engagement pour les avocats canadiens"
-    },
-    ", respectively.": {
-        "fr": "",
-        "fr_auto": ", respectivement."
-    },
-    "Always be aware that AI can make mistakes, even when you have provided it with documents.": {
-        "fr": "",
-        "fr_auto": "Sachez toujours que l’IA peut faire des erreurs, même lorsque vous lui avez fourni des documents."
-    },
-    "For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content.": {
-        "fr": "",
-        "fr_auto": "Pour toute utilisation officielle (par exemple, la distribution en dehors de votre équipe immédiate et en particulier en dehors de l’organisation), il est essentiel que vous examiniez attentivement le contenu généré par l’IA."
-    },
-    "Justice Generative AI Guidelines - Current Draft": {
-        "fr": "",
-        "fr_auto": "Lignes directrices sur l’IA générative de la justice - Ébauche actuelle"
-    },
-    "respectively.": {
-        "fr": "",
-        "fr_auto": "respectivement."
-    },
-    "Chats": {
-        "fr": "Clavardages",
-        "fr_auto": "Les chats"
-    },
-    "Select chat(s)": {
-        "fr": "Sélectionnez clavardages(s)",
-        "fr_auto": "Sélectionnez chat(s)"
-    },
-    "Selected chats": {
-        "fr": "Clavardages sélectionnés",
-        "fr_auto": "Chats sélectionnés"
-    },
-    "User chat uploads": {
-        "fr": "Téléchargements de clavardage utilisateur",
-        "fr_auto": "Téléchargements de chat utilisateur"
-    },
-    "All chats": {
-        "fr": "Tous les clavardage",
-        "fr_auto": "Tous les chats"
-    },
-    "Chat uploads": {
-        "fr": "Téléchargements de clavardage",
-        "fr_auto": "Téléchargements de chat"
-    },
-    "No chats to show.": {
-        "fr": "Pas de clavardages à montrer.",
-        "fr_auto": "Pas de chats à montrer."
-    },
-    "Select a library, folder or document to edit.": {
-        "fr": "",
-        "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à modifier."
-    },
-    "This chat": {
-        "fr": "Ce clavardage",
-        "fr_auto": "Ce chat"
-    },
-    "Error processing the following document(s): ": {
-        "fr": "",
-        "fr_auto": "Erreur de traitement du ou des documents suivants : "
-    },
-    "- Error processing the following document(s): ": {
-        "fr": "",
-        "fr_auto": "- Erreur de traitement du(des) document(s) suivant(s) : "
-    },
-    " The processing of your file(s) was interrupted.": {
-        "fr": "",
-        "fr_auto": " Le traitement de vos dossiers a été interrompu."
-    },
-    "An interruption occurred while generating the response.": {
-        "fr": "",
-        "fr_auto": "Une interruption s’est produite pendant la génération de la réponse."
-    },
-    " Error processing the following document(s): ": {
-        "fr": "",
-        "fr_auto": " Erreur de traitement du ou des documents suivants : "
-    },
-    "The processing of your file(s) was interrupted.": {
-        "fr": "",
-        "fr_auto": "Le traitement de vos dossiers a été interrompu."
     }
 }
