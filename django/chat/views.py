@@ -932,33 +932,33 @@ def email_author(request, chat_id):
     return HttpResponse(f"<a href='{mailto_link}'>mailto link</a>")
 
 
-# @require_POST
-# def export_to_docx(request):
-#     message_text = request.POST.get("message_text")
-#     if not message_text:
-#         return HttpResponse(status=400, content="No message text provided")
+@require_POST
+def export_to_docx(request):
+    message_text = request.POST.get("message_text")
+    if not message_text:
+        return HttpResponse(status=400, content="No message text provided")
 
-#     # Create a new Document
-#     doc = Document()
-#     doc.add_paragraph(message_text)
+    # Create a new Document
+    doc = Document()
+    doc.add_paragraph(message_text)
 
-#     # Save the document to a temporary file
-#     with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
-#         doc.save(tmp.name)
-#         tmp_path = tmp.name
+    # Save the document to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+        doc.save(tmp.name)
+        tmp_path = tmp.name
 
-#     # Mark the document
-#     mark_docx(tmp_path)
+    # Mark the document
+    mark_docx(tmp_path)
 
-#     # Read the marked document and return it as a response
-#     with open(tmp_path, "rb") as f:
-#         response = HttpResponse(
-#             f.read(),
-#             content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-#         )
-#         response["Content-Disposition"] = "attachment; filename=message_content.docx"
+    # Read the marked document and return it as a response
+    with open(tmp_path, "rb") as f:
+        response = HttpResponse(
+            f.read(),
+            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        )
+        response["Content-Disposition"] = "attachment; filename=message_content.docx"
 
-#     # Clean up the temporary file
-#     os.remove(tmp_path)
+    # Clean up the temporary file
+    os.remove(tmp_path)
 
-#     return response
+    return response

@@ -7,12 +7,9 @@
           title='{% trans "Copy" %}'>
     <i class="bi bi-copy"></i><i class="bi bi-check-lg"></i>
   </button>
-  <button type="button"
-          onclick="exportToDocx(this)"
-          class="btn btn-link m-0 ms-1 p-0 text-muted"
-          title='{% trans "Edit in Word" %}'>
+  <!--  <button type="button" onclick="exportToDocx(this)" class="btn btn-link m-0 ms-1 p-0 text-muted" title='{% trans "Edit in Word" %}'>
     <i class="bi bi-file-earmark-word"></i><i class="bi bi-check-lg"></i>
-  </button>
+  </button>-->
   {% if not read_only %}
     {% if message.is_bot %}
       <button type="button"
@@ -50,6 +47,16 @@
       <i class="bi bi-trash"></i>
     </button>
   {% endif %}
+  <button type="button"
+          class="btn btn-link m-0 ms-1 p-0 text-muted"
+          hx-post="{% url 'chat:export_to_docx' %}"
+          hx-include="closest .message-outer"
+          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+          hx-trigger="click"
+          hx-swap="none"
+          title='{% trans "Edit in Word" %}'>
+    <i class="bi bi-file-earmark-word"></i><i class="bi bi-check-lg"></i>
+  </button>
   {% if "." in message.usd_cost|stringformat:"f" %}
     <span class="message-cost ms-1">{{ message.display_cost }}</span>
   {% endif %}

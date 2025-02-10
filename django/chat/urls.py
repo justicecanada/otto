@@ -112,5 +112,5 @@ urlpatterns = [
     ),
     path("generate-prompt/", views.generate_prompt_view, name="generate_prompt_view"),
     path("id/<str:chat_id>/email_author/", views.email_author, name="email_author"),
-    # path("export-to-docx/", views.export_to_docx, name="export_to_docx"),
+    path("export-to-docx/", views.export_to_docx, name="export_to_docx"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
