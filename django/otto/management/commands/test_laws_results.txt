@@ -1,0 +1,15 @@
+Results for 10x loop of same query:
+
+36s - with filters
+10s - no filters
+( all no filters below )
+4.5s - vector only
+4.5s - text only (still calls embedding API!)
+1.9s - text only, - after setting "retriever._vector_store.is_embedding_query = False"
+
+
+----
+
+small set of laws with mock embeddings (loop of 100 queries)
+
+No filters, no hnsw, no embed: 6.75s

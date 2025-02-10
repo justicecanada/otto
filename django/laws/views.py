@@ -241,7 +241,7 @@ def search(request):
         query_too_long = len(query) > 10000
         if query_too_long:
             query = query[:10000] + "..."
-        pg_idx = llm.get_index("laws_lois__", hnsw=True)
+        pg_idx = llm.get_index("laws_lois__", hnsw=True, use_jsonb=True)
 
         advanced_mode = request.POST.get("advanced") == "true"
         disable_llm = not (request.POST.get("ai_answer", False) == "on")
