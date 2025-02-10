@@ -1047,13 +1047,9 @@
         "fr": "",
         "fr_auto": "Dossiers sélectionnés"
     },
-    "Error processing the following document(s): ": {
+    "Error processing the following document(s):": {
         "fr": "",
-        "fr_auto": "Erreur de traitement du ou des documents suivants : "
-    },
-    " Error processing the following document(s): ": {
-        "fr": "",
-        "fr_auto": " Erreur de traitement du ou des documents suivants : "
+        "fr_auto": "Erreur de traitement du ou des documents suivants :"
     },
     "Sorry, I couldn't find any information about that. Try selecting more folders or documents, or try a different library.": {
         "fr": "",
