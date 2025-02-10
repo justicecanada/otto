@@ -1,10 +1,10 @@
 {
     "Title:": {
-        "fr": "Titre:",
+        "fr": "Titre :",
         "fr_auto": "Titre:"
     },
     "Language:": {
-        "fr": "Langue:",
+        "fr": "Langue :",
         "fr_auto": "Langue:"
     },
     "English": {
@@ -16,7 +16,7 @@
         "fr_auto": "Français"
     },
     "Team Name:": {
-        "fr": "Nom de l'équipe:",
+        "fr": "Nom de l'équipe :",
         "fr_auto": "Nom de l'équipe:"
     },
     "Contact Email:": {
@@ -24,7 +24,7 @@
         "fr_auto": "Courriel du contact"
     },
     "Element ID:": {
-        "fr": "Id de l'élément:",
+        "fr": "Id de l'élément :",
         "fr_auto": "Id de l'élément:"
     },
     "Submit": {
@@ -763,21 +763,9 @@
         "fr": "Ce clavardage",
         "fr_auto": "Ce chat"
     },
-    "GPT-4o-mini (fastest, best value)": {
-        "fr": "GPT-4o-mini (le plus rapide, meilleur rapport qualité-prix)",
-        "fr_auto": "GPT-4o-mini (le plus rapide, meilleur rapport qualité-prix)"
-    },
-    "GPT-4o (best quality, but 25x cost)": {
-        "fr": "GPT-4o (meilleure qualité, mais coûte 25x)",
-        "fr_auto": "GPT-4o (meilleure qualité, mais coût 25x)"
-    },
     "Managed by me": {
         "fr": "Je gère",
         "fr_auto": "Géré par moi"
-    },
-    "Select folder(s)": {
-        "fr": "Sélectionner le(s) dossier(s)",
-        "fr_auto": "Sélectionner le(s) dossier(s)"
     },
     "Select document(s)": {
         "fr": "Sélectionner le(s) document(s)",
@@ -786,10 +774,6 @@
     "Entire library": {
         "fr": "Bibliothèque entière",
         "fr_auto": "Bibliothèque entière"
-    },
-    "Selected folders": {
-        "fr": "Dossiers sélectionnés",
-        "fr_auto": "Dossiers sélectionnés"
     },
     "Selected documents": {
         "fr": "Documents sélectionnés",
@@ -855,14 +839,6 @@
         "fr": "nouveau(s) document(s) prêt(s) pour les questions et réponses.",
         "fr_auto": "nouveau(s) document(s) prêt(s) pour les questions et réponses."
     },
-    "Sorry, I couldn't find any information about that. Try selecting more folders or documents, or try a different library.": {
-        "fr": "Désolé, je n’ai trouvé aucune information à propos de ce sujet. Essayez de sélectionner plus de dossiers ou de documents, ou essayez une autre bibliothèque.",
-        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner plus de dossiers ou de documents, ou essayez une autre bibliothèque."
-    },
-    "Sorry, I couldn't find any information about that. Try selecting a different library or folder.": {
-        "fr": "Désolé, je n’ai trouvé aucune information à propos de ce sujet. Essayez de sélectionner une autre bibliothèque ou un autre dossier.",
-        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner une autre bibliothèque ou un autre dossier."
-    },
     "There was an error processing your request.": {
         "fr": "Une erreur s'est produite lors du traitement de votre demande.",
         "fr_auto": "Il y a eu une erreur de traitement de votre demande."
@@ -871,45 +847,17 @@
         "fr": "Aucun message de l’utilisateur trouvé.",
         "fr_auto": "Aucun message de l’utilisateur trouvé."
     },
-    "If you should not have access,": {
-        "fr": "Si vous ne devriez pas y avoir accès,",
-        "fr_auto": "Si vous ne devriez pas y avoir accès,"
-    },
-    "to report the issue.": {
-        "fr": "pour signaler le problème.",
-        "fr_auto": "pour signaler le problème."
-    },
     "Close": {
         "fr": "Fermer",
         "fr_auto": "Fermer"
-    },
-    "Drag or use the up and down arrows to resize.": {
-        "fr": "",
-        "fr_auto": "Faites glisser ou utilisez les flèches haut et bas pour redimensionner."
     },
     "Stop": {
         "fr": "Arrêter",
         "fr_auto": "Arrêtez"
     },
-    "ChatGPT for writing assistance (not for facts)": {
-        "fr": "",
-        "fr_auto": "ChatGPT pour l’aide à la rédaction (pas pour les faits)"
-    },
-    "Ask questions about documents": {
-        "fr": "",
-        "fr_auto": "Posez des questions sur les documents"
-    },
-    "Summarize text, files and URLs": {
-        "fr": "",
-        "fr_auto": "Résumer le texte, les fichiers et les URL"
-    },
     "Summarize": {
         "fr": "Résumer",
         "fr_auto": "Résumer"
-    },
-    "Translate text and files to English or French": {
-        "fr": "",
-        "fr_auto": "Traduire du texte et des fichiers en anglais ou en français"
     },
     "Translate": {
         "fr": "Traduire",
@@ -930,10 +878,6 @@
     "Type your message here...": {
         "fr": "Écrivez votre message ici...",
         "fr_auto": "Tapez votre message ici..."
-    },
-    "Help me write a good prompt": {
-        "fr": "Aidez-moi à écrire une bonne invite",
-        "fr_auto": "Aidez-moi à écrire une bonne invite"
     },
     "Send": {
         "fr": "Envoyer",
@@ -963,17 +907,9 @@
         "fr": "Tout montrez...",
         "fr_auto": "Montrez tout..."
     },
-    "Drag or use the left and right arrows to resize.": {
-        "fr": "",
-        "fr_auto": "Faites glisser ou utilisez les flèches gauche et droite pour redimensionner."
-    },
     "Open presets menu": {
         "fr": "Ouvrir le menu des préréglages",
         "fr_auto": "Ouvrir le menu des préréglages"
-    },
-    "Save preset from current settings": {
-        "fr": "Enregistrer le préréglage à partir des paramètres actuels",
-        "fr_auto": "Enregistrer le préréglage à partir des paramètres actuels"
     },
     "Save": {
         "fr": "Enregistrer",
@@ -982,10 +918,6 @@
     "Reset settings to default": {
         "fr": "Réinitialiser les paramètres",
         "fr_auto": "Réinitialiser les paramètres par défaut"
-    },
-    "Reset": {
-        "fr": "Réinitialiser",
-        "fr_auto": "Réinitialiser"
     },
     "Set security label": {
         "fr": "Définir l’étiquette de sécurité",
@@ -998,6 +930,178 @@
     "Safe use of the AI Assistant": {
         "fr": "Utilisation sécuritaire de l’assistant IA",
         "fr_auto": "Utilisation sécuritaire de l’assistant IA"
+    },
+    "File": {
+        "fr": "Fichier",
+        "fr_auto": "Fichier"
+    },
+    "Copy": {
+        "fr": "Copier",
+        "fr_auto": "Copie"
+    },
+    "Like": {
+        "fr": "J'aime",
+        "fr_auto": "Comme"
+    },
+    "Dislike": {
+        "fr": "Je n'aime pas",
+        "fr_auto": "N’aime pas"
+    },
+    "Edit in new prompt": {
+        "fr": "Modifier dans une nouvelle invite",
+        "fr_auto": "Modifier dans une nouvelle invite"
+    },
+    "Delete message": {
+        "fr": "Supprimer le message",
+        "fr_auto": "Supprimer le message"
+    },
+    "\n      Translated %(num_files)s/%(total_files)s files:\n    ": {
+        "fr": "\n      Traduit %(num_files)s fichier(s) sur %(total_files)s:\n    ",
+        "fr_auto": "\n      Translated %(num_files)s/%(total_files)s files:\n    "
+    },
+    "\n      Uploaded %(num_files)s file%(s)s\n    ": {
+        "fr": "\n      Téléversé %(num_files)s fichier%(s)s\n    ",
+        "fr_auto": "\n      Uploaded %(num_files)s file%(s)s\n    "
+    },
+    "deleted": {
+        "fr": "supprimé",
+        "fr_auto": "supprimé"
+    },
+    "Sources": {
+        "fr": "Sources",
+        "fr_auto": "Les sources"
+    },
+    "Selected library:": {
+        "fr": "Bibliothèque sélectionnée :",
+        "fr_auto": "Bibliothèque sélectionnée :"
+    },
+    "Model": {
+        "fr": "Modèle",
+        "fr_auto": "Modèle"
+    },
+    "Style": {
+        "fr": "Style",
+        "fr_auto": "Le style"
+    },
+    "Summary length": {
+        "fr": "Longueur du résumé",
+        "fr_auto": "Longueur du résumé"
+    },
+    "Desired language": {
+        "fr": "Langue souhaitée",
+        "fr_auto": "Langue souhaitée"
+    },
+    "Avoid personal pronouns": {
+        "fr": "Évitez les pronoms personnels",
+        "fr_auto": "Évitez les pronoms personnels"
+    },
+    "Additional instructions": {
+        "fr": "Instructions supplémentaires",
+        "fr_auto": "Instructions supplémentaires"
+    },
+    "Custom summarize prompt": {
+        "fr": "Invite de résumé personnalisée",
+        "fr_auto": "Invite de résumé personnalisée"
+    },
+    "(overrides all previous settings)": {
+        "fr": "(remplace tous les paramètres précédents)",
+        "fr_auto": "(remplace tous les paramètres précédents)"
+    },
+    "Library": {
+        "fr": "Bibliothèque",
+        "fr_auto": "Bibliothèque"
+    },
+    "Edit libraries": {
+        "fr": "Modifier les bibliothèques",
+        "fr_auto": "Modifier les bibliothèques"
+    },
+    "Search mode": {
+        "fr": "Mode de recherche",
+        "fr_auto": "Mode de recherche"
+    },
+    "Edit advanced settings and prompts": {
+        "fr": "Modifier les paramètres avancés et les invites",
+        "fr_auto": "Modifier les paramètres avancés et les invites"
+    },
+    "Filter results": {
+        "fr": "Résultats du filtre",
+        "fr_auto": "Résultats du filtre"
+    },
+    "Keyword ↔ Vector": {
+        "fr": "Vecteur ↔ mots clés",
+        "fr_auto": "Vecteur ↔ mots clés"
+    },
+    "GPT-4o-mini (fastest, best value)": {
+        "fr": "",
+        "fr_auto": "GPT-4o-mini (le plus rapide, meilleur rapport qualité-prix)"
+    },
+    "GPT-4o (best quality, but 25x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4o (meilleure qualité, mais coût 25x)"
+    },
+    "Select folder(s)": {
+        "fr": "",
+        "fr_auto": "Sélectionner le(s) dossier(s)"
+    },
+    "Selected folders": {
+        "fr": "",
+        "fr_auto": "Dossiers sélectionnés"
+    },
+    "Error processing the following document(s):": {
+        "fr": "",
+        "fr_auto": "Erreur de traitement du ou des documents suivants :"
+    },
+    "Sorry, I couldn't find any information about that. Try selecting more folders or documents, or try a different library.": {
+        "fr": "",
+        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner plus de dossiers ou de documents, ou essayez une autre bibliothèque."
+    },
+    "Sorry, I couldn't find any information about that. Try selecting a different library or folder.": {
+        "fr": "",
+        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner une autre bibliothèque ou un autre dossier."
+    },
+    "If you should not have access,": {
+        "fr": "",
+        "fr_auto": "Si vous ne devriez pas y avoir accès,"
+    },
+    "to report the issue.": {
+        "fr": "",
+        "fr_auto": "pour signaler le problème."
+    },
+    "Drag or use the up and down arrows to resize.": {
+        "fr": "",
+        "fr_auto": "Faites glisser ou utilisez les flèches haut et bas pour redimensionner."
+    },
+    "ChatGPT for writing assistance (not for facts)": {
+        "fr": "",
+        "fr_auto": "ChatGPT pour l’aide à la rédaction (pas pour les faits)"
+    },
+    "Ask questions about documents": {
+        "fr": "",
+        "fr_auto": "Posez des questions sur les documents"
+    },
+    "Summarize text, files and URLs": {
+        "fr": "",
+        "fr_auto": "Résumer le texte, les fichiers et les URL"
+    },
+    "Translate text and files to English or French": {
+        "fr": "",
+        "fr_auto": "Traduire du texte et des fichiers en anglais ou en français"
+    },
+    "Help me write a good prompt": {
+        "fr": "",
+        "fr_auto": "Aidez-moi à écrire une bonne invite"
+    },
+    "Drag or use the left and right arrows to resize.": {
+        "fr": "",
+        "fr_auto": "Faites glisser ou utilisez les flèches gauche et droite pour redimensionner."
+    },
+    "Save preset from current settings": {
+        "fr": "",
+        "fr_auto": "Enregistrer le préréglage à partir des paramètres actuels"
+    },
+    "Reset": {
+        "fr": "",
+        "fr_auto": "Réinitialiser"
     },
     "Protected B approved:": {
         "fr": "",
@@ -1063,6 +1167,14 @@
         "fr": "",
         "fr_auto": "Pour un usage officiel, vérifiez toujours le matériel généré avec les sources fournies en raison du risque d’inexactitudes."
     },
+    "The processing of your file(s) was interrupted.": {
+        "fr": "",
+        "fr_auto": "Le traitement de vos dossiers a été interrompu."
+    },
+    "An interruption occurred while generating the response.": {
+        "fr": "",
+        "fr_auto": "Une interruption s’est produite pendant la génération de la réponse."
+    },
     "Drop files anywhere": {
         "fr": "",
         "fr_auto": "Déposez des fichiers n’importe où"
@@ -1071,41 +1183,9 @@
         "fr": "",
         "fr_auto": "\nTéléchargement <span class=\"filename fst-italic\">'filename'</span>\n      "
     },
-    "File": {
-        "fr": "Fichier",
-        "fr_auto": "Fichier"
-    },
     "File upload progress": {
         "fr": "",
         "fr_auto": "Progression du téléchargement de fichiers"
-    },
-    "Copy": {
-        "fr": "Copier",
-        "fr_auto": "Copie"
-    },
-    "Like": {
-        "fr": "J'aime",
-        "fr_auto": "Comme"
-    },
-    "Dislike": {
-        "fr": "Je n'aime pas",
-        "fr_auto": "N’aime pas"
-    },
-    "Edit in new prompt": {
-        "fr": "Modifier dans une nouvelle invite",
-        "fr_auto": "Modifier dans une nouvelle invite"
-    },
-    "Delete message": {
-        "fr": "Supprimer le message",
-        "fr_auto": "Supprimer le message"
-    },
-    "\n      Translated %(num_files)s/%(total_files)s files:\n    ": {
-        "fr": "\n      Traduit %(num_files)s fichier(s) sur %(total_files)s:\n    ",
-        "fr_auto": "\n      Translated %(num_files)s/%(total_files)s files:\n    "
-    },
-    "\n      Uploaded %(num_files)s file%(s)s\n    ": {
-        "fr": "\n      Téléversé %(num_files)s fichier%(s)s\n    ",
-        "fr_auto": "\n      Uploaded %(num_files)s file%(s)s\n    "
     },
     "for translation:": {
         "fr": "",
@@ -1115,77 +1195,9 @@
         "fr": "",
         "fr_auto": "à des fins de résumé :"
     },
-    "deleted": {
-        "fr": "supprimé",
-        "fr_auto": "supprimé"
-    },
-    "Sources": {
-        "fr": "Sources",
-        "fr_auto": "Les sources"
-    },
-    "Selected library:": {
-        "fr": "Bibliothèque sélectionnée :",
-        "fr_auto": "Bibliothèque sélectionnée :"
-    },
-    "Model": {
-        "fr": "Modèle",
-        "fr_auto": "Modèle"
-    },
-    "Style": {
-        "fr": "Style",
-        "fr_auto": "Le style"
-    },
     "System prompt": {
         "fr": "",
         "fr_auto": "Invite système"
-    },
-    "Summary length": {
-        "fr": "Longueur du résumé",
-        "fr_auto": "Longueur du résumé"
-    },
-    "Desired language": {
-        "fr": "Langue souhaitée",
-        "fr_auto": "Langue souhaitée"
-    },
-    "Avoid personal pronouns": {
-        "fr": "Évitez les pronoms personnels",
-        "fr_auto": "Évitez les pronoms personnels"
-    },
-    "Additional instructions": {
-        "fr": "Instructions supplémentaires",
-        "fr_auto": "Instructions supplémentaires"
-    },
-    "Custom summarize prompt": {
-        "fr": "Invite de résumé personnalisée",
-        "fr_auto": "Invite de résumé personnalisée"
-    },
-    "(overrides all previous settings)": {
-        "fr": "(remplace tous les paramètres précédents)",
-        "fr_auto": "(remplace tous les paramètres précédents)"
-    },
-    "Library": {
-        "fr": "Bibliothèque",
-        "fr_auto": "Bibliothèque"
-    },
-    "Edit libraries": {
-        "fr": "Modifier les bibliothèques",
-        "fr_auto": "Modifier les bibliothèques"
-    },
-    "Search mode": {
-        "fr": "Mode de recherche",
-        "fr_auto": "Mode de recherche"
-    },
-    "Edit advanced settings and prompts": {
-        "fr": "Modifier les paramètres avancés et les invites",
-        "fr_auto": "Modifier les paramètres avancés et les invites"
-    },
-    "Filter results": {
-        "fr": "Résultats du filtre",
-        "fr_auto": "Résultats du filtre"
-    },
-    "Keyword ↔ Vector": {
-        "fr": "Vecteur ↔ mots clés",
-        "fr_auto": "Vecteur ↔ mots clés"
     },
     "Maximum sources": {
         "fr": "",
@@ -2810,5 +2822,9 @@
     "Download all files...": {
         "fr": "",
         "fr_auto": "Téléchargez tous les fichiers..."
+    },
+    "Adding to the Q&A library": {
+        "fr": "",
+        "fr_auto": "Ajout à la bibliothèque de questions et réponses"
     }
 }

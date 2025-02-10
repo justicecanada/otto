@@ -367,14 +367,31 @@ def qa_response(chat, response_message, switch_mode=False):
         )()
         while processing_count:
             if adding_url:
-                yield f'<p>{_("Adding to the Q&A library")}...</p>'
+                yield _("Adding to the Q&A library") + "..."
             else:
-                yield f'<p>{_("Adding to the Q&A library")} ({processing_count} {_("file(s) still processing")}...)</p>'
+                yield f'{_("Adding to the Q&A library")} ({processing_count} {_("file(s) still processing")}...)'
             await asyncio.sleep(0.5)
             processing_count = await sync_to_async(
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
             )()
-        if adding_url:
+
+        saved_files = [file.saved_file for file in files]
+        error_documents = await sync_to_async(
+            lambda: list(ds.documents.filter(status="ERROR", file__in=saved_files))
+        )()
+        num_completed_documents = await sync_to_async(
+            lambda: ds.documents.filter(status="ERROR", file__in=saved_files).count()
+        )()
+        if error_documents:
+            error_string = _("Error processing the following document(s):")
+            doc_names_for_error = [doc.filename for doc in error_documents]
+            error_docs_joined = "\n\n - " + "\n\n - ".join(doc_names_for_error)
+            error_string += error_docs_joined
+            if len(error_documents) != len(files):
+                error_string += f"\n\n{num_completed_documents} "
+                error_string += _("new document(s) ready for Q&A.")
+            yield error_string
+        elif adding_url:
             yield _("URL ready for Q&A.")
         else:
             yield f"{len(files)} " + _("new document(s) ready for Q&A.")
@@ -416,7 +433,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 response_message.id,
                 llm,
                 response_replacer=add_files_to_library(),
-                wrap_markdown=False,
+                wrap_markdown=True,
                 dots=True,
                 remove_stop=True,
             ),

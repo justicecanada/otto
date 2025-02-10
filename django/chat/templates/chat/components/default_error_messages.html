@@ -1,0 +1,8 @@
+{% load i18n %}
+
+{# Error messages to display if no data is found in message.json #}
+{% if message.parent.num_files %}
+  {% trans 'The processing of your file(s) was interrupted.' %}
+{% else %}
+  {% trans 'An interruption occurred while generating the response.' %}
+{% endif %}
