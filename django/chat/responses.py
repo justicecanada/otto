@@ -375,23 +375,27 @@ def qa_response(chat, response_message, switch_mode=False):
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
             )()
 
+        filenames = [file.filename for file in files]
         error_documents = await sync_to_async(
-            lambda: list(ds.documents.filter(status="ERROR"))
+            lambda: list(ds.documents.filter(status="ERROR", filename__in=filenames))
         )()
-        completed_documents = await sync_to_async(
-            lambda: ds.documents.filter(status="SUCCESS").count()
+        num_completed_documents = await sync_to_async(
+            lambda: ds.documents.filter(status="ERROR", filename__in=filenames).count()
         )()
-
         if error_documents:
             doc_names_for_error = [doc.filename for doc in error_documents]
+            error_docs_joined = "\n\n - " + "\n\n - ".join(doc_names_for_error)
             if len(error_documents) == len(files):
-                yield _("Error processing the following document(s): ") + ", ".join(
-                    doc_names_for_error
-                )
+                yield _(
+                    "Error processing the following document(s): "
+                ) + error_docs_joined
+
             else:
-                yield _("- Error processing the following document(s): ") + ", ".join(
-                    doc_names_for_error
-                ) + f"\n- {completed_documents} " + _("new document(s) ready for Q&A.")
+                yield _(
+                    " Error processing the following document(s): "
+                ) + error_docs_joined + f"\n\n{num_completed_documents} " + _(
+                    "new document(s) ready for Q&A."
+                )
         elif adding_url:
             yield _("URL ready for Q&A.")
         else:
