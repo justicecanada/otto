@@ -10,6 +10,23 @@ Results for 10x loop of same query:
 
 ----
 
-small set of laws with mock embeddings (loop of 100 queries)
+"small-medium" set of laws (medium but only up to and including cannabis)
 
-No filters, no hnsw, no embed: 6.75s
+100x:
+all filters, no jsonb index: 26s
+with jsonb index: 23s
+no filters: 20s
+
+no filters, vector search, ef_search=500: 30s
+no filters, ef_search=50: 15s
+ef_search=100: 15.5s
+ef_search=200: 17.5s
+ef_search=300: 19s
+No HNSW params: 14.8s (???)
+ - This is because default HNSW ef_search is 40 in pgvector.
+ - Even if you specify hnsw=False when constructing PGVectorStore,
+   if the index already exists it will use it with param ef_search=40
+after drop hnsw index: 75s
+
+filters on, text only: 24s
+filters on, vector only: 

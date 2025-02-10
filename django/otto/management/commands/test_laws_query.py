@@ -13,9 +13,6 @@ from otto.models import Group, User
 
 
 def fake_laws_search(query):
-
-    llm = OttoLLM(mock_embedding=True)
-
     # time.sleep(60)
     # We don't want to search Document nodes - only chunks
     filters = [
@@ -30,20 +27,11 @@ def fake_laws_search(query):
     query_too_long = len(query) > 10000
     if query_too_long:
         query = query[:10000] + "..."
-    pg_idx = llm.get_index("laws_lois__", hnsw=True)
 
     selected_laws = Law.objects.all()
 
-    vector_ratio = 0
+    vector_ratio = 1
     top_k = 25
-    # Options for the AI answer
-    trim_redundant = True
-    context_tokens = 2000
-    additional_instructions = (
-        "If the context information is entirely unrelated to the provided query,"
-        "don't try to answer the question; just say "
-        "'Sorry, I cannot answer that question.'."
-    )
     doc_id_list = [law.node_id_en for law in selected_laws] + [
         law.node_id_fr for law in selected_laws
     ]
@@ -56,17 +44,42 @@ def fake_laws_search(query):
         )
     )
 
+    filters.append(
+        MetadataFilter(
+            key="in_force_start_date",
+            value="1980-01-01",
+            operator=">=",
+        )
+    )
+
+    filters.append(
+        MetadataFilter(
+            key="in_force_start_date",
+            value="2030-01-01",
+            operator="<=",
+        )
+    )
+
+    filters.append(
+        MetadataFilter(
+            key="last_amended_date",
+            value="1980-01-01",
+            operator=">=",
+        )
+    )
+
     filters = MetadataFilters(filters=filters)
-    filters = None
 
     if vector_ratio == 1:
+        pg_idx = OttoLLM(mock_embedding=True).get_index("laws_lois__", use_jsonb=True)
         retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
             similarity_top_k=top_k,
             filters=filters,
-            vector_store_kwargs={"hnsw_ef_search": 500},
+            vector_store_kwargs={"hnsw_ef_search": 250},
         )
     elif vector_ratio == 0:
+        pg_idx = OttoLLM(mock_embedding=True).get_index("laws_lois__", use_jsonb=True)
         retriever = pg_idx.as_retriever(
             vector_store_query_mode="sparse",
             similarity_top_k=top_k,
@@ -74,13 +87,16 @@ def fake_laws_search(query):
         )
         retriever._vector_store.is_embedding_query = False
     else:
+        llm = OttoLLM(mock_embedding=True)
+        pg_idx = llm.get_index("laws_lois__", use_jsonb=True)
         vector_retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
             similarity_top_k=max(top_k * 2, 100),
             filters=filters,
-            vector_store_kwargs={"hnsw_ef_search": 500},
+            vector_store_kwargs={"hnsw_ef_search": 250},
         )
-        text_retriever = pg_idx.as_retriever(
+        pg_idx2 = OttoLLM(mock_embedding=True).get_index("laws_lois__", use_jsonb=True)
+        text_retriever = pg_idx2.as_retriever(
             vector_store_query_mode="sparse",
             similarity_top_k=max(top_k * 2, 100),
             filters=filters,
@@ -110,6 +126,8 @@ class Command(BaseCommand):
         from time import time
 
         start = time()
-        for _ in range(100):
-            sources = fake_laws_search("what is the most important law in the world?")
+        for j in range(100):
+            sources = fake_laws_search(
+                f"what is the most important law in the world? ({j})"
+            )
         print(time() - start)

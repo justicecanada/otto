@@ -848,6 +848,18 @@ class Command(BaseCommand):
             if not options.get("skip_cleanup", False):
                 # Clean up the downloaded repo
                 shutil.rmtree(laws_root)
+
+        # Run SQL to create the JSONB metadata index
+        create_metadata_index_sql = "CREATE INDEX metadata__idx ON data_laws_lois__ USING GIN (metadata_ jsonb_path_ops);"
+        db = settings.DATABASES["vector_db"]
+        connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+        engine = create_engine(connection_string)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        session.execute(text(create_metadata_index_sql))
+        session.commit()
+        session.close()
+
         print("Done!")
         added_count = len(load_results["added"])
         exist_count = len(load_results["exists"])
