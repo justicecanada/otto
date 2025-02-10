@@ -641,3 +641,9 @@ function emailChatAuthor(url) {
     }
   );
 }
+function setMessageText(button) {
+  var messageOuter = button.closest('.message-outer');
+  var messageText = messageOuter.querySelector('.message-text p').innerText;
+  var hiddenInput = messageOuter.querySelector('input[name="message_text"]');
+  hiddenInput.value = messageText;
+}
