@@ -51,8 +51,8 @@ def translate_file(file_path, target_language):
             f"{file_name_without_extension}_{target_language.upper()}{file_extension}"
         )
         file_uuid = uuid.uuid4()
-        input_file_path = f"temp/translation/in/{file_uuid}/{input_file_name}"
-        output_file_path = f"temp/translation/out/{file_uuid}/{output_file_name}"
+        input_file_path = f"{settings.AZURE_STORAGE_TRANSLATION_INPUT_URL_SEGMENT}/{file_uuid}/{input_file_name}"
+        output_file_path = f"{settings.AZURE_STORAGE_TRANSLATION_OUTPUT_URL_SEGMENT}/{file_uuid}/{output_file_name}"
 
         # Upload to Azure Blob Storage
         azure_storage = settings.AZURE_STORAGE

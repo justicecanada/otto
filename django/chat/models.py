@@ -117,7 +117,7 @@ class ChatOptionsManager(models.Manager):
 
 QA_SCOPE_CHOICES = [
     ("all", _("Entire library")),
-    ("data_sources", _("Selected data sources")),
+    ("data_sources", _("Selected folders")),
     ("documents", _("Selected documents")),
 ]
 

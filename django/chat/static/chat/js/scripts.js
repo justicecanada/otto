@@ -323,7 +323,7 @@ function copyMessage(btn) {
   let messageHtml = messageTextClone.outerHTML;
   let messageText = messageTextClone.innerText;
   // Remove whitespace
-  messageText = messageText.replace(/\s+/g, " ").trim();
+  //messageText = messageText.replace(/\s+/g, " ").trim();
   pasteRich(messageHtml, messageText);
   btn.blur();
   btn.classList.add("clicked");

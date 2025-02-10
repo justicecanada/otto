@@ -38,7 +38,6 @@ from otto.forms import (
     PilotForm,
     UserGroupForm,
 )
-from otto.metrics.activity_metrics import otto_access_total
 from otto.models import (
     FEATURE_CHOICES,
     BlockedURL,
@@ -105,12 +104,11 @@ def get_categorized_features(user):
         }
         for category, features in categories.items()
     ]
-
-    return categorized_features
+    # Sort the categories by title to push Reporting to the bottom as a temporary measure while under development
+    return sorted(categorized_features, key=lambda x: x["category_title"])
 
 
 def index(request):
-    otto_access_total.labels(user=request.user.upn).inc()
     return render(
         request,
         "index.html",

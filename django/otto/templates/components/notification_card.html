@@ -5,6 +5,10 @@
       <i class="text-success bi bi-check-circle"></i>
     {% elif notification.category == "error" %}
       <i class="text-danger bi bi-exclamation-circle"></i>
+    {% elif notification.category == "warning" %}
+      <i class="text-warning bi bi-exclamation-triangle"></i>
+    {% elif notification.category == "info" %}
+      <i class="text-info bi bi-info-circle"></i>
     {% endif %}
     {% if notification.heading %}<span class="fw-semibold">{{ notification.heading }}</span>{% endif %}
   </div>

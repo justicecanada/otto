@@ -1,6 +1,11 @@
+from urllib.parse import parse_qs, urlparse
+
 from django import forms
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.forms import ModelForm
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from autocomplete import HTMXAutoComplete, widgets
@@ -53,7 +58,7 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
             user_libraries.filter(user_roles__role="admin", user_roles__user=self.user)
         )
         shared_libraries = list(
-            user_libraries.exclude(user_roles__role="admin", user_roles__user=self.user)
+            user_libraries.exclude(pk__in=[library.pk for library in managed_libraries])
         )
 
         groups = [
@@ -63,7 +68,7 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         ]
 
         choices = [
-            (group, [(lib.pk, str(lib)) for lib in libs])
+            (group, [(lib.pk, self.label_from_instance(lib)) for lib in libs])
             for group, libs in groups
             if libs
         ]
@@ -75,11 +80,39 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
         return choices
 
     def label_from_instance(self, obj):
-        return str(obj)
+        return {
+            "label": _("Chat uploads") if obj.is_personal_library else str(obj),
+            "is_personal_library": obj.is_personal_library,
+        }
 
     @property
     def choices(self):
         return self.get_grouped_choices()
+
+
+class SelectWithOptionClasses(forms.Select):
+    # This widget allows you to pass additional option-specific data to each item
+    # by adding a "class" attribute to each one. We can manipulate these classes
+    # in the frontend for selection-specific display options.
+    def __init__(self, attrs=None, choices=(), data={}):
+        super(SelectWithOptionClasses, self).__init__(attrs, choices)
+        self.data = data
+
+    def create_option(
+        self, name, value, label, selected, index, subindex=None, attrs=None
+    ):  # noqa
+        if isinstance(label, dict):
+            opt_attrs = label.copy()
+            label = opt_attrs.pop("label")
+        else:
+            opt_attrs = {}
+        option = super(SelectWithOptionClasses, self).create_option(
+            name, value, label, selected, index, subindex=None, attrs=None
+        )
+        for _, flag in opt_attrs.items():
+            option["attrs"]["class"] = str(flag)
+
+        return option
 
 
 class DataSourcesAutocomplete(HTMXAutoComplete):
@@ -91,9 +124,19 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
     model = DataSource
 
     def get_items(self, search=None, values=None):
+        this_chat_string = _("This chat")
         request = get_request()
         library_id = request.GET.get("library_id", None)
-        chat_id = request.GET.get("chat_id", None)
+        chat_id = request.GET.get(
+            "chat_id",
+            urlparse(
+                request.META.get(
+                    "HTTP_HX_CURRENT_URL", request.META.get("PATH_INFO", "")
+                )
+            )
+            .path.strip("/")
+            .split("/")[-1],
+        )
         if library_id:
             library = (
                 Library.objects.filter(pk=library_id)
@@ -104,22 +147,42 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
             if chat_id and library.is_personal_library:
                 chat = Chat.objects.get(pk=chat_id)
                 if DataSource.objects.filter(chat=chat).exists():
-                    data = list(data)
-                    data.insert(0, chat.data_source)
-                    data[0].name_en = "This chat"
-                    data[0].name_fr = "Ce chat"
+                    data = list(
+                        data.filter(
+                            Q(chat=chat) | Q(chat__messages__isnull=False)
+                        ).distinct()
+                    )
         else:
             data = DataSource.objects.all()
         if search is not None:
             items = [
-                {"label": str(x), "value": str(x.id)}
+                {
+                    "label": (
+                        mark_safe(
+                            f"<span class='fw-semibold'>{this_chat_string}</span>"
+                        )
+                        if x.chat and str(x.chat.id) == chat_id
+                        else x.label
+                    ),
+                    "value": str(x.id),
+                }
                 for x in data
                 if search == "" or str(search).upper() in f"{x}".upper()
             ]
             return items
         if values is not None:
             items = [
-                {"label": str(x), "value": str(x.id)}
+                {
+                    "label": (
+                        mark_safe(
+                            f"<span class='fw-semibold'>{this_chat_string}</span>"
+                        )
+                        if x.chat and str(x.chat.id) == chat_id
+                        # and parse_qs(request.body.decode()).get("remove")
+                        else x.label
+                    ),
+                    "value": str(x.id),
+                }
                 for x in data
                 if str(x.id) in values
             ]
@@ -284,7 +347,7 @@ class ChatOptionsForm(ModelForm):
         self.fields["qa_library"] = GroupedLibraryChoiceField(
             user=user,
             empty_label=None,
-            widget=forms.Select(
+            widget=SelectWithOptionClasses(
                 attrs={
                     "class": "form-select form-select-sm",
                     "onchange": "resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
@@ -294,7 +357,7 @@ class ChatOptionsForm(ModelForm):
 
         self.fields["qa_data_sources"] = forms.ModelMultipleChoiceField(
             queryset=DataSource.objects.all(),
-            label=_("Select data source(s)"),
+            label=_("Select folder(s)"),
             required=False,
             widget=Autocomplete(
                 use_ac=DataSourcesAutocomplete,

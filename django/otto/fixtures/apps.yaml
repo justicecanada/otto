@@ -9,15 +9,15 @@
       - fields:
           short_name: "chat"
           name_en: Chat
-          name_fr: Discuter avec l'IA
+          name_fr: Clavarder avec l'IA
           description_en: Chat with a Justice-hosted AI (like ChatGPT).
-          description_fr: Discuter avec une IA hébergée par Justice (comme ChatGPT).
+          description_fr: Clavarder avec une IA hébergée par Justice (comme ChatGPT).
           url: chat:chat_with_ai
           category: ai_assistant
       - fields:
           short_name: "qa"
           name_en: Q&A
-          name_fr: Questions et réponses
+          name_fr: Questions-réponses
           description_en: Get instant answers from curated and user-uploaded documents.
           description_fr: Obtenez des réponses instantanées à partir de documents sélectionnés et téléchargés par l'utilisateur.
           url: chat:qa
@@ -51,8 +51,8 @@
           short_name: "template_wizard"
           name_en: Template Wizard
           name_fr: Assistant de modèle
-          description_en: Extract information from multiple sources and automatically populate templates.
-          description_fr: Extraire des informations de plusieurs sources et remplir automatiquement des modèles.
+          description_en: Under development
+          description_fr: En cours de développement
           url: template_wizard:index
           category: reporting
 

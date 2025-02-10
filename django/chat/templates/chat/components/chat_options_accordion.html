@@ -6,6 +6,9 @@
   {% include 'chat/components/options_2_summarize.html' with options_section_id='summarize' %}
   {% include 'chat/components/options_3_translate.html' with options_section_id='translate' %}
 </div>
+
+{% include "chat/components/chat_label_script.html" %}
+
 <script>
   (function (){
     {% if prompt %}document.querySelector('#chat-prompt').value = '{{ prompt }}';{% endif %}

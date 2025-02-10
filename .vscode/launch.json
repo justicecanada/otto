@@ -29,6 +29,18 @@
             }
         },
         {
+            "name": "Python: Run Librarian Tests",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "django/tests/librarian"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "Django: Text Extractor Views Text",
             "type": "debugpy",
             "request": "launch",

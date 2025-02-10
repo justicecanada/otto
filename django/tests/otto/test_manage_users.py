@@ -35,10 +35,17 @@ def test_modify_user(client, basic_user, all_apps_user):
     admin_user = all_apps_user()
     client.force_login(admin_user)
 
+    group_ids = Group.objects.values_list("id", flat=True)
+
     # Modify the basic_user
     response = client.post(
         reverse("manage_users"),
-        data={"upn": [user.id], "group": [1, 2], "monthly_max": 10, "monthly_bonus": 0},
+        data={
+            "upn": [user.id],
+            "group": [group_ids[0], group_ids[1]],
+            "monthly_max": 10,
+            "monthly_bonus": 0,
+        },
     )
     assert response.status_code == 200
     user.refresh_from_db()
@@ -50,7 +57,7 @@ def test_modify_user(client, basic_user, all_apps_user):
         reverse("manage_users"),
         data={
             "upn": [user.id, user2.id],
-            "group": [1, 2, 3],
+            "group": [group_ids[0], group_ids[1], group_ids[2]],
             "monthly_max": 20,
             "monthly_bonus": 10,
         },

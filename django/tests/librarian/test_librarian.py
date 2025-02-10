@@ -73,7 +73,7 @@ def test_editable_library_list_and_library_form(client, all_apps_user, basic_use
 @pytest.mark.django_db
 def test_modal_library_list(client, all_apps_user):
     client.force_login(all_apps_user())
-    url = reverse("librarian:modal")
+    url = reverse("librarian:modal_library_list")
     response = client.get(url)
     assert response.status_code == 200
 

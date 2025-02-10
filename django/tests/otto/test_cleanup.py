@@ -19,9 +19,10 @@ from django.utils.translation import gettext as _
 import pytest
 from structlog import get_logger
 
-from chat.models import Chat, ChatFile, Message
-from librarian.models import DataSource, Document, Library, SavedFile
+from chat.models import Chat, ChatFile, ChatOptions, Message
+from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
 from librarian.utils.process_engine import generate_hash
+from otto.models import Notification
 from otto.secure_models import AccessControl, AccessKey
 from text_extractor.models import OutputFile, UserRequest
 
@@ -245,7 +246,7 @@ def test_delete_old_chats_task(client, all_apps_user):
     # Check that the chat.accessed_at is now updated
     assert (chat.accessed_at - start_time).total_seconds() >= 2
     # Manually set the accessed_at time to 100 days ago
-    chat.accessed_at = timezone.now() - timezone.timedelta(days=100)
+    chat.accessed_at = timezone.now() - timezone.timedelta(days=40)
     chat.save()
     # Test the task
     from otto.tasks import delete_old_chats
@@ -265,6 +266,173 @@ def test_delete_old_chats_task(client, all_apps_user):
     delete_old_chats()
     # Check that the new chat is still there
     assert Chat.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
+    """
+    Test the delete_unused_libraries task.
+    """
+    user = all_apps_user()
+    # Create a Library by posting to the library route
+    client.force_login(user)
+    start_time = timezone.now()
+    url = reverse("librarian:modal_create_library")
+    response = client.post(
+        url, {"name_en": "New Library", "is_public": False, "order": 1}
+    )
+    assert response.status_code == 200
+    # Check that the library was created
+    from librarian.views import get_editable_libraries
+
+    user_libraries = get_editable_libraries(user)
+    assert len(user_libraries) == 3
+    library = user_libraries[2]
+    library_id = library.id
+    assert library is not None
+    # Manually set the accessed_at time to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Test the task
+    from otto.tasks import delete_unused_libraries
+
+    delete_unused_libraries()
+    # Check that the library is deleted
+    assert not Library.objects.filter(id=library_id).exists()
+    # Create a new library that should NOT be affected by the task
+    client.force_login(user)
+    url = reverse("librarian:modal_create_library")
+    response = client.post(
+        url, {"name_en": "New Library", "is_public": False, "order": 1}
+    )
+    assert response.status_code == 200
+    user_libraries = get_editable_libraries(user)
+    library = user_libraries[2]
+    assert library is not None
+    library_id = library.id
+    # Manually set the accessed_at time to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Create a data source which will update library.access_at
+    data_source = DataSource.objects.create(name="New Data Source", library=library)
+    data_source.save()
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the new library is still there
+    assert Library.objects.filter(id=library_id).exists()
+    # Manually set the access_at to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Create a document which will update library.accessed_at
+    document = Document.objects.create(data_source=data_source)
+    document.save()
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the new library is still there
+    assert Library.objects.filter(id=library_id).exists()
+    # Manually set the access_at to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Delete document which will update library.accessed_at
+    document.delete()
+    # Check the document object is deleted
+    assert not Document.objects.filter(id=document.id).exists()
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the new library is still there
+    assert Library.objects.filter(id=library_id).exists()
+    # Manually set the access_at to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Delete data source which will update library.accessed_at
+    data_source.delete()
+    # Check the data source object is deleted
+    assert not DataSource.objects.filter(id=data_source.id).exists()
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the new library is still there
+    assert Library.objects.filter(id=library_id).exists()
+    # Manually set the access_at to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    user_2 = basic_user(accept_terms=True)
+    client.force_login(user_2)
+    library_id = library.id
+    # New user needs to be admin so that they can change library roles through the form
+    LibraryUserRole.objects.create(user=user_2, library=library, role="admin")
+    # Change library roles which will update library.accessed_at
+    url = reverse(
+        "librarian:modal_manage_library_users", kwargs={"library_id": library.id}
+    )
+    response = client.post(url, data={"admins": user.id})
+    assert response.status_code == 200
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the library is still there
+    assert Library.objects.filter(id=library_id).exists()
+    # Manually set the access_at to 32 days ago
+    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    library.save()
+    # Create a chat using the route to create it with appropriate options
+    client.force_login(user)
+
+    # Create a chat using the route to create it with appropriate options
+    response = client.get(reverse("chat:qa"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+    chat.options.qa_library = library
+    chat.options.save()
+
+    # Test chat_response with QA mode. This should query the Corporate library.
+    message = Message.objects.create(
+        chat=chat,
+        text="What is the capital of Canada?",
+        mode="qa",
+    )
+    response_message = Message.objects.create(
+        chat=chat, mode="qa", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+    # Run the task again
+    delete_unused_libraries()
+    # Check that the library is still there
+    assert Library.objects.filter(id=library_id).exists()
+
+
+@pytest.mark.django_db
+def test_warn_libraries_pending_deletion_task(client, all_apps_user, basic_user):
+    """
+    Test the warn_libraries_pending_deletion task.
+    """
+    user = all_apps_user()
+    # Create a Library by posting to the library route
+    client.force_login(user)
+    url = reverse("librarian:modal_create_library")
+    for i in range(1, 5):
+        response = client.post(
+            url, {"name_en": f"New Library {i}", "is_public": False, "order": i}
+        )
+        assert response.status_code == 200
+    # Check that the library was created
+    from librarian.views import get_editable_libraries
+
+    user_libraries = get_editable_libraries(user)
+    assert len(user_libraries) == 6
+    # Delete all Notifications
+    Notification.objects.all().delete()
+    # Check that all notifications have been deleted
+    assert Notification.objects.all().count() == 0
+    # Manually set the created libraries accessed_at time to 25 days ago
+    for i in range(2, 6):
+        library = user_libraries[i]
+        library.accessed_at = timezone.now() - timezone.timedelta(days=25)
+        library.save()
+    # Test the task
+    from otto.tasks import warn_libraries_pending_deletion
+
+    warn_libraries_pending_deletion()
+    # Check that notifications have been sent
+    assert Notification.objects.all().count() == 4
 
 
 @pytest.mark.django_db

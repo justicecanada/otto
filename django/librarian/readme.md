@@ -21,5 +21,5 @@ Users in group "Otto admins" have admin permissions on all public libraries.
 ## Models
 
 - **Library:** Container housing various data sources. Analogous to a drive. The Q&A system can only search one Library at a time.
-- **Data Source:** Represents managed data sources within libraries, such as a list of URLs or several related uploaded files. Analogous to a folder. Multiple data sources can be searched at a time, and can be selected/de-selected to narrow search results.
+- **Data Source:** Represents managed data sources within libraries, such as a list of URLs or several related uploaded files. Synonymous with "folder", and presented as such to users. Multiple data sources can be searched at a time, and can be selected/de-selected to narrow search results.
 - **Document:** Maintains a relationship with the vector store. Each document is associated with a data source, and has metadata such as a user-defined title. A document can be a URL or an uploaded file.

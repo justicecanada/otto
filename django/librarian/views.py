@@ -64,6 +64,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     users_form = None
     show_document_status = False
     focus_el = None
+    has_error = False
 
     if item_type == "document":
         if request.method == "POST":
@@ -87,6 +88,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 show_document_status = True
             else:
                 logger.error("Error updating document:", errors=form.errors)
+                has_error = True
                 selected_data_source = (
                     DataSource.objects.filter(id=parent_id).first()
                     or form.instance.data_source
@@ -107,9 +109,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 selected_data_source = get_object_or_404(DataSource, id=parent_id)
         documents = list(selected_data_source.documents.all())
         selected_library = selected_data_source.library
-        data_sources = selected_library.data_sources.all().prefetch_related(
-            "security_label"
-        )
+        data_sources = selected_library.folders
         if not item_id and not request.method == "DELETE":
             new_document = create_temp_object("document")
             documents.insert(0, new_document)
@@ -134,9 +134,9 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 messages.success(
                     request,
                     (
-                        _("Data source updated successfully.")
+                        _("Folder updated successfully.")
                         if item_id
-                        else _("Data source created successfully.")
+                        else _("Folder created successfully.")
                     ),
                 )
                 selected_data_source = form.instance
@@ -144,16 +144,14 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 selected_library = selected_data_source.library
                 documents = selected_data_source.documents.all()
             else:
-                logger.error("Error updating data source:", errors=form.errors)
+                logger.error("Error updating folder:", errors=form.errors)
                 selected_library = get_object_or_404(Library, id=parent_id)
         elif request.method == "DELETE":
             data_source = get_object_or_404(DataSource, id=item_id)
             data_source.delete()
-            messages.success(request, _("Data source deleted successfully."))
+            messages.success(request, _("Folder deleted successfully."))
             selected_library = data_source.library
-            data_sources = selected_library.data_sources.all().prefetch_related(
-                "security_label"
-            )
+            data_sources = selected_library.folders
         else:
             if item_id:
                 selected_data_source = get_object_or_404(DataSource, id=item_id)
@@ -161,9 +159,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 documents = selected_data_source.documents.all()
             else:
                 selected_library = get_object_or_404(Library, id=parent_id)
-        data_sources = list(
-            selected_library.data_sources.all().prefetch_related("security_label")
-        )
+        data_sources = list(selected_library.folders)
         if not item_id and not request.method == "DELETE":
             new_data_source = create_temp_object("data_source")
             data_sources.insert(0, new_data_source)
@@ -179,6 +175,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     if item_type == "library":
         if request.method == "POST":
             library = Library.objects.get(id=item_id) if item_id else None
+            # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+            # This is not implemented using signals due to risk of introducing recursion
+            if item_id:
+                library.access()
             form = LibraryDetailForm(request.POST, instance=library, user=request.user)
             if form.is_valid():
                 form.save()
@@ -205,6 +205,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                     users_form = LibraryUsersForm(library=selected_library)
             else:
                 logger.error("Error updating library:", errors=form.errors)
+                has_error = True
         elif request.method == "DELETE":
             library = get_object_or_404(Library, id=item_id)
             library.delete()
@@ -213,9 +214,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         if not request.method == "DELETE":
             if item_id:
                 selected_library = get_object_or_404(Library, id=item_id)
-                data_sources = selected_library.data_sources.all().prefetch_related(
-                    "security_label"
-                )
+                data_sources = selected_library.folders
                 if request.user.has_perm(
                     "librarian.manage_library_users", selected_library
                 ):
@@ -232,12 +231,15 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     if item_type == "library_users":
         if request.method == "POST":
             selected_library = get_object_or_404(Library, id=item_id)
+            # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
+            selected_library.access()
             users_form = LibraryUsersForm(request.POST, library=selected_library)
             if users_form.is_valid():
                 users_form.save()
                 messages.success(request, _("Library users updated successfully."))
             else:
                 logger.error("Error updating library users:", errors=users_form.errors)
+                has_error = True
             # The change may have resulted in the user losing access to manage library users
             if not request.user.has_perm(
                 "librarian.manage_library_users", selected_library
@@ -289,6 +291,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "focus_el": focus_el,
         "poll_url": poll_url,
         "poll_response": "poll" in request.GET,
+        "has_error": has_error,
     }
     return render(request, "librarian/modal_inner.html", context)
 
@@ -404,7 +407,7 @@ def create_temp_object(item_type):
     """
     temp_names = {
         "document": _("Unsaved document"),
-        "data_source": _("Unsaved data source"),
+        "data_source": _("Unsaved folder"),
         "library": _("Unsaved library"),
     }
     return LibrarianTempObject(id=None, name=temp_names[item_type], temp=True)

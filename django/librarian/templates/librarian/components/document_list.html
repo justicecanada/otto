@@ -5,32 +5,34 @@
   <h6 id="documents-label">{% trans "Documents" %}</h6>
   {% if not selected_data_source or not selected_data_source.id %}
     <div class="text-center">
-      <em class="small">{% trans "Select a data source to edit documents." %}</em>
+      <em class="small">{% trans "Select a folder to edit documents." %}</em>
     </div>
   {% else %}
-    <div class="row mb-2">
-      <div class="col pe-0">
-        <form enctype="multipart/form-data"
-              id="document-upload-form"
-              hx-post="{% url 'librarian:upload' selected_data_source.id %}"
-              hx-trigger="startUpload"
-              class="d-none">
-          <input type="file" name="file" id="document-file-input" multiple>
-        </form>
-        <button type="button"
-                class="btn btn-sm btn-outline-dark w-100"
-                onclick="validateAndUpload()">
-          <i class="bi bi-upload"></i> {% trans "Upload" %}
-        </button>
+    {% if not selected_library.is_personal_library %}
+      <div class="row mb-2">
+        <div class="col pe-0">
+          <form enctype="multipart/form-data"
+                id="document-upload-form"
+                hx-post="{% url 'librarian:upload' selected_data_source.id %}"
+                hx-trigger="startUpload"
+                class="d-none">
+            <input type="file" name="file" id="document-file-input" multiple>
+          </form>
+          <button type="button"
+                  class="btn btn-sm btn-outline-dark w-100"
+                  onclick="validateAndUpload()">
+            <i class="bi bi-upload"></i> {% trans "Upload" %}
+          </button>
+        </div>
+        <div class="col ps-2">
+          <button type="button"
+                  class="btn btn-sm btn-outline-dark w-100"
+                  hx-get="{% url 'librarian:modal_create_document' data_source_id=selected_data_source.id %}">
+            <i class="bi bi-link"></i> {% trans "Add URL" %}
+          </button>
+        </div>
       </div>
-      <div class="col ps-2">
-        <button type="button"
-                class="btn btn-sm btn-outline-dark w-100"
-                hx-get="{% url 'librarian:modal_create_document' data_source_id=selected_data_source.id %}">
-          <i class="bi bi-link"></i> {% trans "Add URL" %}
-        </button>
-      </div>
-    </div>
+    {% endif %}
     <div class="row mb-2">
       <div class="col">
         <div class="btn-group w-100">
@@ -114,7 +116,7 @@
       {% include "librarian/components/items_list.html" with items=documents selected_item=selected_document listbox_label="documents-label" item_type="document" %}
     {% else %}
       <div class="text-center">
-        <em class="small">{% trans "No documents in this data source." %}</em>
+        <em class="small">{% trans "No documents in this folder." %}</em>
       </div>
     {% endif %}
   {% endif %}

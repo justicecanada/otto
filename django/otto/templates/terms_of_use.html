@@ -2,7 +2,7 @@
 {% load static %}
 
 {% load i18n %}
-{% get_current_language as LANG %}
+{% get_current_language as LANGUAGE_CODE %}
 
 {% block body %}
  
@@ -72,7 +72,7 @@
       {% trans "Follow policies and best practices for the responsible use of AI. Refer to and follow the guidance in the following policy documents:" %}
     </p>
     <ul>
-      {% if LANG == "en" %}
+      {% if LANGUAGE_CODE == "en" %}
         <li>
           <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/guide-use-generative-ai.html"
              target="_blank">Guide on the use of generative artificial intelligence - Canada.ca</a>
@@ -102,18 +102,18 @@
       <li>
         <a href="https://013gc.sharepoint.com/:w:/r/sites/BACentre598/Shared%20Documents/General/Data%20Strategy/Data%20Governance/AIDGC/3.%20Decks%20%26%20Other%20Documents%20for%20Presentation/Justice%20Gen%20AI%20Guidelines%20-%20Current%20Draft.docx?d=wadd3ae7b485b4ee3b307c85738a441a0&csf=1&web=1&e=ZJYcxh"
            target="_blank">{% trans "Justice Generative AI Guidelines - Current Draft" %}</a>
-        {% if LANG != "en" %}(anglais seulement; traduction en cours){% endif %}
+        {% if LANGUAGE_CODE != "en" %}(anglais seulement; traduction en cours){% endif %}
       </li>
     </ul>
     <p>
       {% trans "You are encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, such as those catalogued by the University of Windsor and the Law Society of Alberta in the documents" %}
       <a href="https://uwindsor-law.libguides.com/AI/Regulation"
          target="_blank">{% trans "Artificial Intelligence Regulation" %}</a>
-      {% if LANG != "en" %}(anglais seulement){% endif %}
+      {% if LANGUAGE_CODE != "en" %}(anglais seulement){% endif %}
       {% trans "and" %}
       <a href="https://www.lawsociety.ab.ca/resource-centre/key-resources/professional-conduct/gen-ai-rules-of-engagement-for-canadian-lawyers/"
          target="_blank">{% trans "Gen AI Rules of Engagement for Canadian Lawyers" %}</a>
-      {% if LANG != "en" %}(anglais seulement){% endif %}
+      {% if LANGUAGE_CODE != "en" %}(anglais seulement){% endif %}
       {% trans "respectively." %}
     </p>
     <p>{% trans "Always be aware that AI can make mistakes, even when you have provided it with documents." %}</p>

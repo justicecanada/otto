@@ -7,9 +7,6 @@ from structlog import get_logger
 
 from otto.secure_models import AccessKey
 from otto.utils.decorators import app_access_required, permission_required
-from template_wizard.metrics.template_wizard_activity_metrics import (
-    template_wizard_access_total,
-)
 
 from .models import Report
 
@@ -34,9 +31,6 @@ WIZARD_CHOICES = [
 
 @app_access_required(app_name)
 def index(request):
-
-    # usage metrics
-    template_wizard_access_total.labels(user=request.user.upn).inc()
 
     access_key = AccessKey(user=request.user)
 

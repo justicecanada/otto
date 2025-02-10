@@ -1,2 +1,0 @@
-# Only needed for local development, not in production ---------------------------------
-watchdog==4.0.1
