@@ -3178,5 +3178,9 @@
     " Error processing the following document(s): ": {
         "fr": "",
         "fr_auto": " Erreur de traitement du ou des documents suivants : "
+    },
+    "The processing of your file(s) was interrupted.": {
+        "fr": "",
+        "fr_auto": "Le traitement de vos dossiers a été interrompu."
     }
 }
