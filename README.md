@@ -9,7 +9,7 @@
 | django/chat/admin.py                                                                                          |        1 |        1 |      0% |         1 |
 | django/chat/apps.py                                                                                           |        4 |        0 |    100% |           |
 | django/chat/forms.py                                                                                          |      163 |       22 |     87% |43, 51, 108, 141-150, 158-172, 191, 206, 210-215, 224, 395, 397-399, 479-481 |
-| django/chat/llm.py                                                                                            |      101 |       13 |     87% |71, 90-92, 98-100, 124-130, 250 |
+| django/chat/llm.py                                                                                            |      101 |       13 |     87% |71, 90-92, 98-100, 124-130, 253 |
 | django/chat/migrations/0001\_initial.py                                                                       |        6 |        0 |    100% |           |
 | django/chat/migrations/0002\_initial.py                                                                       |        6 |        0 |    100% |           |
 | django/chat/migrations/0003\_initial.py                                                                       |        7 |        0 |    100% |           |
@@ -74,7 +74,7 @@
 | django/laws/admin.py                                                                                          |        1 |        1 |      0% |         1 |
 | django/laws/apps.py                                                                                           |        4 |        0 |    100% |           |
 | django/laws/forms.py                                                                                          |       54 |        6 |     89% |24-29, 38, 52-57, 66 |
-| django/laws/management/commands/load\_laws\_xml.py                                                            |      442 |      121 |     73% |29, 33-62, 77, 88-90, 106-109, 119-123, 151, 180, 241, 259, 261, 263, 282, 285, 287, 302-303, 305-306, 403-406, 416-434, 460-464, 476, 502, 554-555, 596-598, 714-720, 738-739, 741, 749, 789, 791, 809-811, 841-843, 846-848, 856-858, 860-862, 864-866, 868-870, 923-925, 941-943, 961-967, 1015-1026, 1031, 1040-1041, 1066-1072 |
+| django/laws/management/commands/load\_laws\_xml.py                                                            |      463 |      121 |     74% |29, 33-62, 77, 88-90, 106-109, 119-123, 151, 180, 241, 259, 261, 263, 282, 285, 287, 302-303, 305-306, 403-406, 416-434, 460-464, 476, 502, 554-555, 596-598, 714-720, 738-739, 741, 749, 789, 791, 809-812, 850-852, 855-857, 884-886, 888-890, 892-894, 896-898, 951-953, 970-972, 990-996, 1044-1055, 1060, 1073-1074, 1099-1105 |
 | django/laws/migrations/0001\_initial.py                                                                       |        5 |        0 |    100% |           |
 | django/laws/migrations/0002\_remove\_law\_lang\_remove\_law\_law\_id\_and\_more.py                            |        4 |        0 |    100% |           |
 | django/laws/migrations/\_\_init\_\_.py                                                                        |        0 |        0 |    100% |           |
@@ -83,7 +83,7 @@
 | django/laws/translation.py                                                                                    |        5 |        0 |    100% |           |
 | django/laws/urls.py                                                                                           |        4 |        0 |    100% |           |
 | django/laws/utils.py                                                                                          |       70 |       21 |     70% |26-36, 41-47, 59-66, 77, 93-95 |
-| django/laws/views.py                                                                                          |      210 |       44 |     79% |64-94, 105, 122, 152-159, 169, 204, 221, 243, 284, 286, 291-293, 305, 309, 335, 343, 351, 361, 368, 427-435 |
+| django/laws/views.py                                                                                          |      213 |       45 |     79% |64-94, 105, 122, 152-159, 169, 204, 221, 243, 284, 286, 291-293, 305, 309, 335, 343, 351, 361, 368-373, 435-443 |
 | django/librarian/\_\_init\_\_.py                                                                              |        0 |        0 |    100% |           |
 | django/librarian/admin.py                                                                                     |        5 |        5 |      0% |       1-7 |
 | django/librarian/apps.py                                                                                      |        4 |        0 |    100% |           |
@@ -124,6 +124,7 @@
 | django/otto/management/commands/delete\_translation\_files.py                                                 |       27 |        0 |    100% |           |
 | django/otto/management/commands/delete\_unused\_libraries.py                                                  |       21 |        2 |     90% |    32, 36 |
 | django/otto/management/commands/reset\_app\_data.py                                                           |      120 |       18 |     85% |68-73, 88, 105-110, 130-135, 149-150, 155-158, 173-178, 189 |
+| django/otto/management/commands/test\_laws\_query.py                                                          |       52 |       38 |     27% |18-121, 128-135 |
 | django/otto/management/commands/update\_exchange\_rate.py                                                     |       19 |        0 |    100% |           |
 | django/otto/management/commands/warn\_libraries\_pending\_deletion.py                                         |       26 |        3 |     88% |     29-33 |
 | django/otto/migrations/0001\_initial.py                                                                       |        8 |        0 |    100% |           |
@@ -226,7 +227,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **10303** | **1162** | **89%** |           |
+|                                                                                                     **TOTAL** | **10379** | **1201** | **88%** |           |
 
 
 ## Setup coverage badge

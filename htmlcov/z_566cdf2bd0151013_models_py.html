@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_566cdf2bd0151013_prompts_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-02-10 15:14 +0000
+            created at 2025-02-11 21:38 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -170,7 +170,7 @@
     <p class="run"><span class="n"><a id="t88" href="#t88">88</a></span><span class="t">        <span class="key">if</span> <span class="nam">add_to_vector_store</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t89" href="#t89">89</a></span><span class="t">            <span class="key">if</span> <span class="nam">llm</span> <span class="key">is</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t90" href="#t90">90</a></span><span class="t">                <span class="key">return</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t91" href="#t91">91</a></span><span class="t">            <span class="nam">idx</span> <span class="op">=</span> <span class="nam">llm</span><span class="op">.</span><span class="nam">get_index</span><span class="op">(</span><span class="str">"laws_lois__"</span><span class="op">,</span> <span class="nam">hnsw</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t91" href="#t91">91</a></span><span class="t">            <span class="nam">idx</span> <span class="op">=</span> <span class="nam">llm</span><span class="op">.</span><span class="nam">get_index</span><span class="op">(</span><span class="str">"laws_lois__"</span><span class="op">,</span> <span class="nam">use_jsonb</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t92" href="#t92">92</a></span><span class="t">            <span class="nam">nodes</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t93" href="#t93">93</a></span><span class="t">            <span class="key">if</span> <span class="nam">existing_law</span><span class="op">.</span><span class="nam">exists</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t94" href="#t94">94</a></span><span class="t">                <span class="com"># Remove the old content from the vector store</span>&nbsp;</span><span class="r"></span></p>
@@ -184,7 +184,7 @@
     <p class="run"><span class="n"><a id="t102" href="#t102">102</a></span><span class="t">            <span class="key">if</span> <span class="nam">fr_hash_changed</span> <span class="key">or</span> <span class="nam">force_update</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t103" href="#t103">103</a></span><span class="t">                <span class="nam">nodes</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">document_fr</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t104" href="#t104">104</a></span><span class="t">                <span class="nam">nodes</span><span class="op">.</span><span class="nam">extend</span><span class="op">(</span><span class="nam">nodes_fr</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t">            <span class="nam">batch_size</span> <span class="op">=</span> <span class="num">128</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t">            <span class="nam">batch_size</span> <span class="op">=</span> <span class="num">16</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t">            <span class="nam">logger</span><span class="op">.</span><span class="nam">debug</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t107" href="#t107">107</a></span><span class="t">                <span class="fst">f"</span><span class="fst">Embedding &amp; inserting nodes into vector store (batch size=</span><span class="op">{</span><span class="nam">batch_size</span><span class="op">}</span><span class="fst"> nodes)...</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -247,7 +247,7 @@
     <p class="pln"><span class="n"><a id="t165" href="#t165">165</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t166" href="#t166">166</a></span><span class="t">    <span class="op">@</span><span class="nam">classmethod</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t167" href="#t167">167</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_index</span><span class="op">(</span><span class="nam">cls</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t168" href="#t168">168</a></span><span class="t">        <span class="nam">idx</span> <span class="op">=</span> <span class="nam">OttoLLM</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">get_index</span><span class="op">(</span><span class="str">"laws_lois__"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t168" href="#t168">168</a></span><span class="t">        <span class="nam">idx</span> <span class="op">=</span> <span class="nam">OttoLLM</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">get_index</span><span class="op">(</span><span class="str">"laws_lois__"</span><span class="op">,</span> <span class="nam">use_jsonb</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t169" href="#t169">169</a></span><span class="t">        <span class="key">return</span> <span class="nam">idx</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
@@ -258,7 +258,7 @@
             <a class="nav" href="z_566cdf2bd0151013_prompts_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-02-10 15:14 +0000
+            created at 2025-02-11 21:38 +0000
         </p>
     </div>
 </footer>
