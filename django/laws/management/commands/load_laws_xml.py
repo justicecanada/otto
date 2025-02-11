@@ -811,6 +811,19 @@ class Command(BaseCommand):
             # DO NOT add HNSW index yet. It will need to be rebuilt after.
             OttoLLM().get_retriever("laws_lois__", use_jsonb=True).retrieve("?")
 
+        else:
+            # Run SQL to drop the HNSW index. This speeds up loading,
+            # and we are going to rebuild that index at the end of the script anyway.
+            pre_load_sql = "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
+            db = settings.DATABASES["vector_db"]
+            connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+            engine = create_engine(connection_string)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+            session.execute(text(pre_load_sql))
+            session.commit()
+            session.close()
+
         xslt_path = os.path.join(laws_root, "xslt", "LIMS2HTML.xsl")
 
         start_time = time.time()
