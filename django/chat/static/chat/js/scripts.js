@@ -275,6 +275,32 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+function sourcePreprocessing(text) {
+  // make heading bold
+  text = text.replace(/<\/?headings>/g, '**');
+  // Remove occurrences of '[Top of page]'
+  text = text.replace(/\[Top of page\]/g, '');
+  // Remove occurrences of '(#wb-tphp)'
+  text = text.replace(/\(#wb-tphp\)/g, '');
+  return text;
+}
+
+// add markdown to sources when modal is opened
+document.addEventListener("htmx:afterSwap", function (event) {
+  if (event.detail?.target?.id === "sources-modal-inner") {
+    document.querySelectorAll('.accordion-button').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var targetId = button.getAttribute('data-bs-target').substring(1);
+        var targetElement = document.getElementById(targetId).querySelector('.markdown-text');
+        var decodedText = JSON.parse('"' + targetElement.getAttribute('data-md') + '"');
+        preprocessedText = sourcePreprocessing(decodedText);
+        var renderedMarkdown = md.render(preprocessedText);
+        targetElement.innerHTML = renderedMarkdown;
+      });
+    });
+  }
+});
+
 // Message actions
 function thumbMessage(clickedBtn) {
   isThumbDown = clickedBtn.classList.contains("thumb-down");

@@ -18,7 +18,9 @@
            class="accordion-collapse collapse">
         <div class="accordion-body scrolling-content" style="">
           {% if source.document %}<div class="float-end ps-3">{{ source.document.href|safe }}</div>{% endif %}
-          <div style="white-space:pre-wrap;">{{ source.node_text|safe }}</div>
+          <div class="markdown-text"
+               style="white-space:pre-wrap"
+               data-md="{{ source.node_text|escapejs }}"></div>
         </div>
       </div>
     </div>
