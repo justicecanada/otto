@@ -22,10 +22,10 @@ def test_get_user_cost(client, all_apps_user):
 def test_exceed_budget(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
-    user.monthly_budget = 40
+    user.monthly_budget = 32
     user.save()
 
-    assert user.this_month_max == 40
+    assert user.this_month_max == 32
     # Create a cost object that is under budget
     cost = Cost.objects.create(
         user=user,
@@ -72,7 +72,7 @@ def test_exceed_budget(client, all_apps_user):
     user.monthly_bonus = 100
     user.save()
 
-    assert user.this_month_max == 140
+    assert user.this_month_max == 132
     assert not user.is_over_budget
 
     # Try again
