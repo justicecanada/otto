@@ -110,7 +110,7 @@ DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
 DEFAULT_LAWS_MODEL = "gpt-4o"
 
-DEFAULT_MONTHLY_MAX = 40  # allowance $CAD/user/month unless otherwise specified
+DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
 LIBRARY_RETENTION_DAYS = 30
 CHAT_RETENTION_DAYS = 30
 

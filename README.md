@@ -127,23 +127,7 @@ python django/manage.py load_laws_xml --reset
 * To load all laws (slow and quite expensive - around $20; 8 hours), add the `--full` flag.
 * If you leave off `--reset` it should only add laws which aren't already loaded, so you can incrementally add more.
 
-#### Speed up vector store queries
-
-To speed up queries in the vector store, you may wish to build an HNSW index on the table.
-
-(This is done automatically when the `--full` flag is used to load the laws.)
-
-```bash
-psql -U postgres -h postgres-service
-```
-
-Enter the password. Switch to the llama_index database and create the HNSW index. **This can take a while.** (an hour or more for the full set of laws).
-
-```sql
-\c llama_index
-CREATE INDEX ON data_laws_lois__ USING hnsw (embedding vector_ip_ops) WITH (m = 25, ef_construction = 300);
-```
-
+  
 ### Celery scheduler
 
 To enable the celery scheduler for local testing run the following command (from ./django):

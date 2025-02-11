@@ -1,0 +1,38 @@
+Results for 10x loop of same query:
+
+36s - with filters
+10s - no filters
+( all no filters below )
+4.5s - vector only
+4.5s - text only (still calls embedding API!)
+1.9s - text only, - after setting "retriever._vector_store.is_embedding_query = False"
+
+----
+
+"small-medium" set of laws (medium but only up to and including cannabis)
+
+100x:
+all filters, no jsonb index: 26s
+with jsonb index: 23s
+no filters: 20s
+
+no filters, vector search, ef_search=500: 30s
+no filters, ef_search=50: 15s
+ef_search=100: 15.5s
+ef_search=200: 17.5s
+ef_search=300: 19s
+No HNSW params: 14.8s (???)
+ - This is because default HNSW ef_search is 40 in pgvector.
+ - Even if you specify hnsw=False when constructing PGVectorStore,
+   if the index already exists it will use it with param ef_search=40
+after drop hnsw index: 75s
+
+// Latest results after HNSW tweaks
+// (build index after real embedding; m=32, ef_construction=256)
+10x queries, hnsw ef_search 256.
+
+(This includes all the "medium" set of laws)
+text only, no filters: 1.1s
+text only, with filters: 1.8s
+vector only (mock embedding), with filters: 5.0s
+hybrid with filters: 6.6s
