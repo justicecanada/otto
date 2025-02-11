@@ -374,37 +374,17 @@ function copyPromptToTextInput(btn, messageMode) {
   inputArea.dispatchEvent(new Event('change'));
   inputArea.focus();
 }
+function exportToDocx(btn) {
+  let message = btn.closest(".message-outer");
+  let messageText = message.querySelector(".message-text").innerText;
 
-// function exportToDocx(btn) {
-//   let message = btn.closest(".message-outer");
-//   const messageText = message.querySelector(".message-text").textContent;
-//   const csrftoken = Cookies.get("csrftoken");
-//   // Send the message text to the Django view
-//   fetch('/export-to-docx/', {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/x-www-form-urlencoded',
-//       'X-CSRFToken': csrftoken // Ensure you include the CSRF token
-//     },
-//     body: new URLSearchParams({
-//       'message_text': messageText
-//     })
-//   })
-//     .then(response => response.blob())
-//     .then(blob => {
-//       const url = window.URL.createObjectURL(blob);
-//       const a = document.createElement('a');
-//       a.href = url;
-//       a.download = 'message_content.docx';
-//       document.body.appendChild(a);
-//       a.click();
-//       a.remove();
-//       window.URL.revokeObjectURL(url);
-//     })
-//     .catch(error => {
-//       console.error('Error exporting to DOCX:', error);
-//     });
-// }
+  // Create a hidden input to include the chat text in the request
+  let chatInput = document.createElement("input");
+  chatInput.type = "hidden";
+  chatInput.name = "chat_text";
+  chatInput.value = messageText;
+  message.appendChild(chatInput);
+}
 
 // File upload (based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader)
 class FileUpload {
@@ -640,10 +620,4 @@ function emailChatAuthor(url) {
       document.querySelector("#author-mailto-container").innerHTML = '';
     }
   );
-}
-function setMessageText(button) {
-  var messageOuter = button.closest('.message-outer');
-  var messageText = messageOuter.querySelector('.message-text p').innerText;
-  var hiddenInput = messageOuter.querySelector('input[name="message_text"]');
-  hiddenInput.value = messageText;
 }
