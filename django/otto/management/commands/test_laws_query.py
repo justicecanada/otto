@@ -70,7 +70,7 @@ def fake_laws_search(query):
     filters = MetadataFilters(filters=filters)
     # filters = None
     mock = True
-    vector_ratio = 1
+    vector_ratio = 0.5
 
     if vector_ratio == 1:
         pg_idx = OttoLLM(mock_embedding=mock).get_index("laws_lois__", use_jsonb=True)
@@ -78,7 +78,7 @@ def fake_laws_search(query):
             vector_store_query_mode="default",
             similarity_top_k=top_k,
             filters=filters,
-            vector_store_kwargs={"hnsw_ef_search": 128},
+            vector_store_kwargs={"hnsw_ef_search": 256},
         )
     elif vector_ratio == 0:
         pg_idx = OttoLLM(mock_embedding=mock).get_index("laws_lois__", use_jsonb=True)
@@ -95,7 +95,7 @@ def fake_laws_search(query):
             vector_store_query_mode="default",
             similarity_top_k=max(top_k * 2, 100),
             filters=filters,
-            vector_store_kwargs={"hnsw_ef_search": 128},
+            vector_store_kwargs={"hnsw_ef_search": 256},
         )
         pg_idx2 = OttoLLM(mock_embedding=mock).get_index("laws_lois__", use_jsonb=True)
         text_retriever = pg_idx2.as_retriever(
