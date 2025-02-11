@@ -932,10 +932,13 @@ def email_author(request, chat_id):
     return HttpResponse(f"<a href='{mailto_link}'>mailto link</a>")
 
 
+@require_POST
 def export_to_docx(request):
     if request.method == "POST":
         # Get the chat's text from the POST request
         chat_text = request.POST.get("chat_text", "")
+        if not chat_text:
+            return HttpResponse(status=400, content="No chat text provided")
 
         # Create a new Document
         doc = Document()
@@ -949,18 +952,15 @@ def export_to_docx(request):
             doc.save(tmp.name)
             tmp_path = tmp.name
 
-        # Mark the document
-        # mark_docx(tmp_path)
-
-        # Read the marked document and return it as a response
+        # Read the document and return it as a response
         with open(tmp_path, "rb") as f:
             response = HttpResponse(
                 f.read(),
                 content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             )
-            response["Content-Disposition"] = "attachment; filename=chat_export.docx"
+            response["Content-Disposition"] = 'attachment; filename="chat_export.docx"'
 
         # Clean up the temporary file
-        # os.remove(tmp_path)
+        os.remove(tmp_path)
 
         return response

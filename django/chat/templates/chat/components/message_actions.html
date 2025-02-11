@@ -48,6 +48,7 @@
     </button>
   {% endif %}
   <button type="button"
+          id="docx-button"
           class="btn btn-link m-0 ms-1 p-0 text-muted"
           hx-post="{% url 'chat:export_to_docx' %}"
           hx-include="closest div.message-outer"

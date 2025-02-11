@@ -374,17 +374,30 @@ function copyPromptToTextInput(btn, messageMode) {
   inputArea.dispatchEvent(new Event('change'));
   inputArea.focus();
 }
-function exportToDocx(btn) {
-  let message = btn.closest(".message-outer");
-  let messageText = message.querySelector(".message-text").innerText;
+// function exportToDocx(btn) {
+//   let message = btn.closest(".message-outer");
+//   let messageText = message.querySelector(".message-text").innerText;
 
-  // Create a hidden input to include the chat text in the request
-  let chatInput = document.createElement("input");
-  chatInput.type = "hidden";
-  chatInput.name = "chat_text";
-  chatInput.value = messageText;
-  message.appendChild(chatInput);
-}
+//   // Create a hidden input to include the chat text in the request
+//   let chatInput = document.createElement("input");
+//   chatInput.type = "hidden";
+//   chatInput.name = "chat_text";
+//   chatInput.value = messageText;
+//   message.appendChild(chatInput);
+// }
+document.addEventListener('htmx:afterRequest', function (event) {
+  if (event.detail.target.id === 'docx-button') {
+    const blob = new Blob([event.detail.xhr.response], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chat_export.docx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  }
+});
 
 // File upload (based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader)
 class FileUpload {
