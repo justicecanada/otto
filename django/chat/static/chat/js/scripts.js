@@ -343,6 +343,11 @@ function copyCode(btn) {
   }, 300);
 }
 
+
+
+
+
+
 /** Copies the text from the user's prompt to the text input.
 *
 * @param {HTMLButtonElement} btn - the edit button of a user prompt.
@@ -360,6 +365,19 @@ function copyPromptToTextInput(btn, messageMode) {
   inputArea.focus();
 }
 
+document.addEventListener('htmx:afterRequest', function (event) {
+  if (event.detail.target.id === 'docx-button') {
+    const blob = new Blob([event.detail.xhr.response], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chat_export.docx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  }
+});
 
 // File upload (based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader)
 class FileUpload {
