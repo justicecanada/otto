@@ -344,16 +344,6 @@ function copyCode(btn) {
 }
 
 
-// // Your existing code here
-// function exportToDocx(btn) {
-//   let message = btn.closest(".message-outer");
-//   const messageText = message.querySelector(".message-text").innerText; //textContent;
-//   document.getElementById('messageTextInput').value = messageText;
-//   document.getElementById('exportForm').submit();
-// }
-
-
-
 
 
 
@@ -374,17 +364,7 @@ function copyPromptToTextInput(btn, messageMode) {
   inputArea.dispatchEvent(new Event('change'));
   inputArea.focus();
 }
-// function exportToDocx(btn) {
-//   let message = btn.closest(".message-outer");
-//   let messageText = message.querySelector(".message-text").innerText;
 
-//   // Create a hidden input to include the chat text in the request
-//   let chatInput = document.createElement("input");
-//   chatInput.type = "hidden";
-//   chatInput.name = "chat_text";
-//   chatInput.value = messageText;
-//   message.appendChild(chatInput);
-// }
 document.addEventListener('htmx:afterRequest', function (event) {
   if (event.detail.target.id === 'docx-button') {
     const blob = new Blob([event.detail.xhr.response], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
