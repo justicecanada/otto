@@ -28,11 +28,11 @@ No HNSW params: 14.8s (???)
 after drop hnsw index: 75s
 
 // Latest results after HNSW tweaks
-// (build index after real embedding; m=32, ef_construction=64)
-100x queries, filters enabled, JSONB with metadata index, HNSW ef_search=150
-Text only: 11s
-Vector only: 55s
-Hybrid: 66s
+// (build index after real embedding; m=32, ef_construction=256)
+10x queries, hnsw ef_search 256.
 
-With ef_search=250
-Hybrid: 67s (great, lets do this)
+(This includes all the "medium" set of laws)
+text only, no filters: 1.1s
+text only, with filters: 1.8s
+vector only (mock embedding), with filters: 5.0s
+hybrid with filters: 6.6s

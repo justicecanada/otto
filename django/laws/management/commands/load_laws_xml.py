@@ -848,7 +848,7 @@ class Command(BaseCommand):
         # Run SQL to (re)create the JSONB metadata index and HNSW index
         post_load_sql = (
             "DROP INDEX IF EXISTS laws_lois_metadata__idx;"
-            "CREATE INDEX laws_lois_metadata__idx ON data_laws_lois__ USING GIN (metadata_ jsonb_path_ops);"
+            "CREATE INDEX laws_metadata_index ON data_laws_lois__ USING GIN (metadata_);"
             "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
             "CREATE INDEX ON data_laws_lois__ USING hnsw (embedding vector_cosine_ops) WITH (m='32', ef_construction='256');"
         )

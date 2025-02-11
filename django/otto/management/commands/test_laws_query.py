@@ -30,7 +30,6 @@ def fake_laws_search(query):
 
     selected_laws = Law.objects.all()
 
-    vector_ratio = 0.5
     top_k = 25
     doc_id_list = [law.node_id_en for law in selected_laws] + [
         law.node_id_fr for law in selected_laws
@@ -69,17 +68,20 @@ def fake_laws_search(query):
     )
 
     filters = MetadataFilters(filters=filters)
+    # filters = None
+    mock = True
+    vector_ratio = 1
 
     if vector_ratio == 1:
-        pg_idx = OttoLLM(mock_embedding=True).get_index("laws_lois__", use_jsonb=True)
+        pg_idx = OttoLLM(mock_embedding=mock).get_index("laws_lois__", use_jsonb=True)
         retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
             similarity_top_k=top_k,
             filters=filters,
-            vector_store_kwargs={"hnsw_ef_search": 256},
+            vector_store_kwargs={"hnsw_ef_search": 128},
         )
     elif vector_ratio == 0:
-        pg_idx = OttoLLM(mock_embedding=True).get_index("laws_lois__", use_jsonb=True)
+        pg_idx = OttoLLM(mock_embedding=mock).get_index("laws_lois__", use_jsonb=True)
         retriever = pg_idx.as_retriever(
             vector_store_query_mode="sparse",
             similarity_top_k=top_k,
@@ -87,15 +89,15 @@ def fake_laws_search(query):
         )
         retriever._vector_store.is_embedding_query = False
     else:
-        llm = OttoLLM(mock_embedding=True)
+        llm = OttoLLM(mock_embedding=mock)
         pg_idx = llm.get_index("laws_lois__", use_jsonb=True)
         vector_retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
             similarity_top_k=max(top_k * 2, 100),
             filters=filters,
-            vector_store_kwargs={"hnsw_ef_search": 256},
+            vector_store_kwargs={"hnsw_ef_search": 128},
         )
-        pg_idx2 = OttoLLM(mock_embedding=True).get_index("laws_lois__", use_jsonb=True)
+        pg_idx2 = OttoLLM(mock_embedding=mock).get_index("laws_lois__", use_jsonb=True)
         text_retriever = pg_idx2.as_retriever(
             vector_store_query_mode="sparse",
             similarity_top_k=max(top_k * 2, 100),
@@ -126,7 +128,7 @@ class Command(BaseCommand):
         from time import time
 
         start = time()
-        for j in range(100):
+        for j in range(10):
             sources = fake_laws_search(
                 f"what is the most important law in the world? ({j})"
             )
