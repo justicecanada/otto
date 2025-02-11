@@ -758,22 +758,22 @@ class Command(BaseCommand):
                 "C-15.31",  # Canadian Environmental Protection Act, 1999
                 "C-24.5",  # Cannabis Act
                 "SOR-2018-144",  # Cannabis Regulations
-                # "C-46",  # Criminal Code
-                # "SOR-2021-25",  # Cross-border Movement of Hazardous Waste and Hazardous Recyclable Material Regulations
-                # "F-14",  # Fisheries Act
-                # "SOR-93-53",  # Fishery (General) Regulations
-                # "C.R.C.,_c._870",  # Food and Drug Regulations
-                # "F-27",  # Food and Drugs Act
-                # "I-2.5",  # Immigration and Refugee Protection Act
-                # "SOR-2002-227",  # Immigration and Refugee Protection Regulations
-                # "I-21",  # Interpretation Act
-                # "SOR-2016-151",  # Multi-Sector Air Pollutants Regulations
-                # "SOR-2010-189",  # Renewable Fuels Regulations
-                # "S-22",  # Statutory Instruments Act
-                # "C.R.C.,_c._1509",  # Statutory Instruments Regulations
-                # "A-1",  # Access to Information Act
-                # "F-11",  # Financial Administration Act
-                # "N-22",  # Canadian Navigable Waters Act
+                "C-46",  # Criminal Code
+                "SOR-2021-25",  # Cross-border Movement of Hazardous Waste and Hazardous Recyclable Material Regulations
+                "F-14",  # Fisheries Act
+                "SOR-93-53",  # Fishery (General) Regulations
+                "C.R.C.,_c._870",  # Food and Drug Regulations
+                "F-27",  # Food and Drugs Act
+                "I-2.5",  # Immigration and Refugee Protection Act
+                "SOR-2002-227",  # Immigration and Refugee Protection Regulations
+                "I-21",  # Interpretation Act
+                "SOR-2016-151",  # Multi-Sector Air Pollutants Regulations
+                "SOR-2010-189",  # Renewable Fuels Regulations
+                "S-22",  # Statutory Instruments Act
+                "C.R.C.,_c._1509",  # Statutory Instruments Regulations
+                "A-1",  # Access to Information Act
+                "F-11",  # Financial Administration Act
+                "N-22",  # Canadian Navigable Waters Act
             ]
 
         file_path_tuples = _get_en_fr_law_file_paths(laws_root, law_ids)
@@ -808,18 +808,12 @@ class Command(BaseCommand):
         if reset:
             Law.reset()
             # Recreate the table
-            OttoLLM().get_retriever("laws_lois__", hnsw=True, use_jsonb=True).retrieve(
-                "?"
-            )
+            # DO NOT add HNSW index yet. It will need to be rebuilt after.
+            OttoLLM().get_retriever("laws_lois__", use_jsonb=True).retrieve("?")
 
         xslt_path = os.path.join(laws_root, "xslt", "LIMS2HTML.xsl")
 
         start_time = time.time()
-
-        # for j, file_paths in enumerate(file_path_tuples):
-        #     process_en_fr_paths(
-        #         file_paths, mock_embedding, debug, constitution_file_paths
-        #     )
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [
@@ -849,14 +843,21 @@ class Command(BaseCommand):
                 # Clean up the downloaded repo
                 shutil.rmtree(laws_root)
 
-        # Run SQL to create the JSONB metadata index
-        create_metadata_index_sql = "CREATE INDEX metadata__idx ON data_laws_lois__ USING GIN (metadata_ jsonb_path_ops);"
+        print("Done loading XML files - running Post-load SQL (create indexes)")
+
+        # Run SQL to (re)create the JSONB metadata index and HNSW index
+        post_load_sql = (
+            "DROP INDEX IF EXISTS laws_lois_metadata__idx;"
+            "CREATE INDEX laws_lois_metadata__idx ON data_laws_lois__ USING GIN (metadata_ jsonb_path_ops);"
+            "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
+            "CREATE INDEX ON data_laws_lois__ USING hnsw (embedding vector_cosine_ops) WITH (m='32', ef_construction='256');"
+        )
         db = settings.DATABASES["vector_db"]
         connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
         engine = create_engine(connection_string)
         Session = sessionmaker(bind=engine)
         session = Session()
-        session.execute(text(create_metadata_index_sql))
+        session.execute(text(post_load_sql))
         session.commit()
         session.close()
 
@@ -940,6 +941,7 @@ def process_en_fr_paths(
 
     # Create nodes for the English and French XML files
     for k, file_path in enumerate(file_paths):
+        print("Processing file: ", file_path)
         # Get the directory path of the XML file
         directory = os.path.dirname(file_path)
         # Get the base name of the XML file
@@ -1045,6 +1047,10 @@ def process_en_fr_paths(
         return load_results, 0
     # Nodes and document should be ready now! Let's add to our Django model
     # This will also handle the creation of LlamaIndex vector tables
+    print(
+        "Creating Law object (and embeddings) for document:\n",
+        document_en.metadata,
+    )
     if not debug:
         try:
             # Check if law already exists.

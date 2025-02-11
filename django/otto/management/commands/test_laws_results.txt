@@ -7,7 +7,6 @@ Results for 10x loop of same query:
 4.5s - text only (still calls embedding API!)
 1.9s - text only, - after setting "retriever._vector_store.is_embedding_query = False"
 
-
 ----
 
 "small-medium" set of laws (medium but only up to and including cannabis)
@@ -28,5 +27,12 @@ No HNSW params: 14.8s (???)
    if the index already exists it will use it with param ef_search=40
 after drop hnsw index: 75s
 
-filters on, text only: 24s
-filters on, vector only: 
+// Latest results after HNSW tweaks
+// (build index after real embedding; m=32, ef_construction=64)
+100x queries, filters enabled, JSONB with metadata index, HNSW ef_search=150
+Text only: 11s
+Vector only: 55s
+Hybrid: 66s
+
+With ef_search=250
+Hybrid: 67s (great, lets do this)

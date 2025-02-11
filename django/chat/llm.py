@@ -218,7 +218,7 @@ class OttoLLM:
             perform_setup=True,
             use_jsonb=use_jsonb,
             hnsw_kwargs=(
-                {"hnsw_ef_construction": 500, "hnsw_m": 48, "hnsw_ef_search": 500}
+                {"hnsw_ef_construction": 256, "hnsw_m": 32, "hnsw_ef_search": 256}
                 if hnsw
                 else None
             ),
