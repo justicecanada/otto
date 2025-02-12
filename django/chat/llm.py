@@ -172,10 +172,9 @@ class OttoLLM:
         top_k: int = 5,
         vector_weight: float = 0.6,
         hnsw: bool = False,
-        use_jsonb: bool = False,
     ) -> QueryFusionRetriever:
 
-        pg_idx = self.get_index(vector_store_table, hnsw=hnsw, use_jsonb=use_jsonb)
+        pg_idx = self.get_index(vector_store_table, hnsw=hnsw)
 
         vector_retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
@@ -203,7 +202,7 @@ class OttoLLM:
         return hybrid_retriever
 
     def get_index(
-        self, vector_store_table: str, hnsw: bool = False, use_jsonb: bool = False
+        self, vector_store_table: str, hnsw: bool = False
     ) -> VectorStoreIndex:
         vector_store = OttoVectorStore.from_params(
             database=settings.DATABASES["vector_db"]["NAME"],
@@ -216,7 +215,7 @@ class OttoLLM:
             hybrid_search=True,
             text_search_config="english",
             perform_setup=True,
-            use_jsonb=use_jsonb,
+            use_jsonb=True,
             hnsw_kwargs=(
                 {"hnsw_ef_construction": 256, "hnsw_m": 32, "hnsw_ef_search": 256}
                 if hnsw

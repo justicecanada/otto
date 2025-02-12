@@ -809,7 +809,7 @@ class Command(BaseCommand):
             Law.reset()
             # Recreate the table
             # DO NOT add HNSW index yet. It will need to be rebuilt after.
-            OttoLLM().get_retriever("laws_lois__", use_jsonb=True).retrieve("?")
+            OttoLLM().get_retriever("laws_lois__").retrieve("?")
 
         else:
             # Run SQL to drop the HNSW index. This speeds up loading,

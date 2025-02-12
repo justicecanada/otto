@@ -88,7 +88,7 @@ class LawManager(models.Manager):
         if add_to_vector_store:
             if llm is None:
                 return
-            idx = llm.get_index("laws_lois__", use_jsonb=True)
+            idx = llm.get_index("laws_lois__")
             nodes = []
             if existing_law.exists():
                 # Remove the old content from the vector store
@@ -165,5 +165,5 @@ class Law(models.Model):
 
     @classmethod
     def get_index(cls):
-        idx = OttoLLM().get_index("laws_lois__", use_jsonb=True)
+        idx = OttoLLM().get_index("laws_lois__")
         return idx
