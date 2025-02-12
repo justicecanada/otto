@@ -243,7 +243,7 @@ def search(request):
             query = query[:5000] + "..."
         query_too_long_for_keyword_search = len(query) > 200
 
-        pg_idx = llm.get_index("laws_lois__", hnsw=True, use_jsonb=True)
+        pg_idx = llm.get_index("laws_lois__", hnsw=True)
 
         advanced_mode = request.POST.get("advanced") == "true"
         disable_llm = not (request.POST.get("ai_answer", False) == "on")
@@ -388,7 +388,7 @@ def search(request):
             # This is a hack for LlamaIndex PGVectorStore implementation
             # because otherwise it would embed the query even though
             # we are just doing a postgres text search.
-            pg_idx2 = OttoLLM().get_index("laws_lois__", hnsw=True, use_jsonb=True)
+            pg_idx2 = OttoLLM().get_index("laws_lois__", hnsw=True)
             text_retriever = pg_idx2.as_retriever(
                 vector_store_query_mode="sparse",
                 similarity_top_k=max(top_k * 2, 100),

@@ -73,7 +73,7 @@ def fake_laws_search(query):
     vector_ratio = 0.5
 
     if vector_ratio == 1:
-        pg_idx = OttoLLM(mock_embedding=mock).get_index("laws_lois__", use_jsonb=True)
+        pg_idx = OttoLLM(mock_embedding=mock).get_index("laws_lois__")
         retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
             similarity_top_k=top_k,
@@ -81,7 +81,7 @@ def fake_laws_search(query):
             vector_store_kwargs={"hnsw_ef_search": 256},
         )
     elif vector_ratio == 0:
-        pg_idx = OttoLLM(mock_embedding=mock).get_index("laws_lois__", use_jsonb=True)
+        pg_idx = OttoLLM(mock_embedding=mock).get_index("laws_lois__")
         retriever = pg_idx.as_retriever(
             vector_store_query_mode="sparse",
             similarity_top_k=top_k,
@@ -90,14 +90,14 @@ def fake_laws_search(query):
         retriever._vector_store.is_embedding_query = False
     else:
         llm = OttoLLM(mock_embedding=mock)
-        pg_idx = llm.get_index("laws_lois__", use_jsonb=True)
+        pg_idx = llm.get_index("laws_lois__")
         vector_retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
             similarity_top_k=max(top_k * 2, 100),
             filters=filters,
             vector_store_kwargs={"hnsw_ef_search": 256},
         )
-        pg_idx2 = OttoLLM(mock_embedding=mock).get_index("laws_lois__", use_jsonb=True)
+        pg_idx2 = OttoLLM(mock_embedding=mock).get_index("laws_lois__")
         text_retriever = pg_idx2.as_retriever(
             vector_store_query_mode="sparse",
             similarity_top_k=max(top_k * 2, 100),
