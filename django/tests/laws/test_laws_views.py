@@ -16,7 +16,7 @@ def test_laws_index(client, all_apps_user):
     assert "Legislation Search" in response.content.decode()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "vector_db"])
 def test_laws_search_and_answer(client, all_apps_user):
     client.force_login(all_apps_user())
     # Test basic search
@@ -32,9 +32,13 @@ def test_laws_search_and_answer(client, all_apps_user):
     result_uuid = result_url.split("/")[-1]
     assert result_uuid
 
-    query = (
-        "are the defence of canada regulations exempt from access to information act?"
-    )
+    # Get one of the source node IDs so we can test url laws:source (with a node ID)
+    source_id = response.context["sources"][0]["node_id"]
+    # unquote the source_id
+    source_id = urllib.parse.unquote(source_id)
+    response = client.get(reverse("laws:source", args=[source_id]))
+    assert response.status_code == 200
+
     # Test advanced search - with no acts/regs selected it should return "no sources found"
     response = client.post(
         reverse("laws:search"),
@@ -57,7 +61,7 @@ def test_laws_search_and_answer(client, all_apps_user):
     assert "No sources found" in response.content.decode()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "vector_db"])
 def test_laws_cache(client, all_apps_user):
     client.force_login(all_apps_user())
     # Test basic search
