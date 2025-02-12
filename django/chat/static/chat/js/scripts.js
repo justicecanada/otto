@@ -276,8 +276,6 @@ document.addEventListener("keydown", function (event) {
 });
 
 function sourcePreprocessing(text) {
-  // make heading bold
-  text = text.replace(/<\/?headings>/g, '**');
   // Remove occurrences of '[Top of page]'
   text = text.replace(/\[Top of page\]/g, '');
   // Remove occurrences of '(#wb-tphp)'
