@@ -10,9 +10,13 @@ from django.conf import settings
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
+import os
 
 
 def alter_metadata_jsonb(apps, schema_editor):
+
+    if settings.IS_RUNNING_TESTS:
+        return
 
     sql_string = """
         DO $$ DECLARE
