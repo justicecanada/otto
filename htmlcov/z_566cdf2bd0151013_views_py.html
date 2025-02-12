@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_fcf9632a4a1e539b_admin_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-02-12 15:43 +0000
+            created at 2025-02-12 16:08 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -325,7 +325,7 @@
     <p class="mis show_mis"><span class="n"><a id="t243" href="#t243">243</a></span><span class="t">            <span class="nam">query</span> <span class="op">=</span> <span class="nam">query</span><span class="op">[</span><span class="op">:</span><span class="num">5000</span><span class="op">]</span> <span class="op">+</span> <span class="str">"..."</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t244" href="#t244">244</a></span><span class="t">        <span class="nam">query_too_long_for_keyword_search</span> <span class="op">=</span> <span class="nam">len</span><span class="op">(</span><span class="nam">query</span><span class="op">)</span> <span class="op">></span> <span class="num">200</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t245" href="#t245">245</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t246" href="#t246">246</a></span><span class="t">        <span class="nam">pg_idx</span> <span class="op">=</span> <span class="nam">llm</span><span class="op">.</span><span class="nam">get_index</span><span class="op">(</span><span class="str">"laws_lois__"</span><span class="op">,</span> <span class="nam">hnsw</span><span class="op">=</span><span class="key">True</span><span class="op">,</span> <span class="nam">use_jsonb</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t246" href="#t246">246</a></span><span class="t">        <span class="nam">pg_idx</span> <span class="op">=</span> <span class="nam">llm</span><span class="op">.</span><span class="nam">get_index</span><span class="op">(</span><span class="str">"laws_lois__"</span><span class="op">,</span> <span class="nam">hnsw</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t247" href="#t247">247</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t248" href="#t248">248</a></span><span class="t">        <span class="nam">advanced_mode</span> <span class="op">=</span> <span class="nam">request</span><span class="op">.</span><span class="nam">POST</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"advanced"</span><span class="op">)</span> <span class="op">==</span> <span class="str">"true"</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t249" href="#t249">249</a></span><span class="t">        <span class="nam">disable_llm</span> <span class="op">=</span> <span class="key">not</span> <span class="op">(</span><span class="nam">request</span><span class="op">.</span><span class="nam">POST</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"ai_answer"</span><span class="op">,</span> <span class="key">False</span><span class="op">)</span> <span class="op">==</span> <span class="str">"on"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -470,7 +470,7 @@
     <p class="pln"><span class="n"><a id="t388" href="#t388">388</a></span><span class="t">            <span class="com"># This is a hack for LlamaIndex PGVectorStore implementation</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t389" href="#t389">389</a></span><span class="t">            <span class="com"># because otherwise it would embed the query even though</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t390" href="#t390">390</a></span><span class="t">            <span class="com"># we are just doing a postgres text search.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t391" href="#t391">391</a></span><span class="t">            <span class="nam">pg_idx2</span> <span class="op">=</span> <span class="nam">OttoLLM</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">get_index</span><span class="op">(</span><span class="str">"laws_lois__"</span><span class="op">,</span> <span class="nam">hnsw</span><span class="op">=</span><span class="key">True</span><span class="op">,</span> <span class="nam">use_jsonb</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t391" href="#t391">391</a></span><span class="t">            <span class="nam">pg_idx2</span> <span class="op">=</span> <span class="nam">OttoLLM</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">get_index</span><span class="op">(</span><span class="str">"laws_lois__"</span><span class="op">,</span> <span class="nam">hnsw</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t392" href="#t392">392</a></span><span class="t">            <span class="nam">text_retriever</span> <span class="op">=</span> <span class="nam">pg_idx2</span><span class="op">.</span><span class="nam">as_retriever</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t393" href="#t393">393</a></span><span class="t">                <span class="nam">vector_store_query_mode</span><span class="op">=</span><span class="str">"sparse"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t394" href="#t394">394</a></span><span class="t">                <span class="nam">similarity_top_k</span><span class="op">=</span><span class="nam">max</span><span class="op">(</span><span class="nam">top_k</span> <span class="op">*</span> <span class="num">2</span><span class="op">,</span> <span class="num">100</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -566,7 +566,7 @@
             <a class="nav" href="z_fcf9632a4a1e539b_admin_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-02-12 15:43 +0000
+            created at 2025-02-12 16:08 +0000
         </p>
     </div>
 </footer>

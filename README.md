@@ -9,7 +9,7 @@
 | django/chat/admin.py                                                                                          |        1 |        1 |      0% |         1 |
 | django/chat/apps.py                                                                                           |        4 |        0 |    100% |           |
 | django/chat/forms.py                                                                                          |      163 |       22 |     87% |43, 51, 108, 141-150, 158-172, 191, 206, 210-215, 224, 395, 397-399, 479-481 |
-| django/chat/llm.py                                                                                            |      101 |       13 |     87% |71, 90-92, 98-100, 124-130, 253 |
+| django/chat/llm.py                                                                                            |      101 |       13 |     87% |71, 90-92, 98-100, 124-130, 252 |
 | django/chat/migrations/0001\_initial.py                                                                       |        6 |        0 |    100% |           |
 | django/chat/migrations/0002\_initial.py                                                                       |        6 |        0 |    100% |           |
 | django/chat/migrations/0003\_initial.py                                                                       |        7 |        0 |    100% |           |
@@ -103,6 +103,7 @@
 | django/librarian/migrations/0013\_document\_status\_details.py                                                |        4 |        0 |    100% |           |
 | django/librarian/migrations/0014\_alter\_libraryuserrole\_user.py                                             |        6 |        0 |    100% |           |
 | django/librarian/migrations/0015\_alter\_document\_extracted\_title\_and\_more.py                             |        4 |        0 |    100% |           |
+| django/librarian/migrations/0016\_auto\_20250212\_1527.py                                                     |       21 |        9 |     57% |     21-38 |
 | django/librarian/migrations/\_\_init\_\_.py                                                                   |        0 |        0 |    100% |           |
 | django/librarian/models.py                                                                                    |      329 |       45 |     86% |53-55, 123, 125, 133, 135, 137, 147, 168-170, 188, 192, 246, 296, 308-309, 314, 409-418, 433, 461-463, 473-474, 480, 496, 522-523, 533-534, 544-545, 558-559 |
 | django/librarian/tasks.py                                                                                     |      113 |       39 |     65% |42-75, 82, 92, 105, 115, 135, 157-159, 170-173, 192-193 |
@@ -228,7 +229,7 @@
 | django/text\_extractor/urls.py                                                                                |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                                               |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                                               |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                                     **TOTAL** | **10394** | **1175** | **89%** |           |
+|                                                                                                     **TOTAL** | **10415** | **1184** | **89%** |           |
 
 
 ## Setup coverage badge
