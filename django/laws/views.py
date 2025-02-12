@@ -241,6 +241,8 @@ def search(request):
         query_too_long = len(query) > 5000
         if query_too_long:
             query = query[:5000] + "..."
+        query_too_long_for_keyword_search = len(query) > 200
+
         pg_idx = llm.get_index("laws_lois__", hnsw=True, use_jsonb=True)
 
         advanced_mode = request.POST.get("advanced") == "true"
@@ -356,6 +358,9 @@ def search(request):
                     )
                 )
 
+        if query_too_long_for_keyword_search:
+            vector_ratio = 1
+
         filters = MetadataFilters(filters=filters)
         if vector_ratio == 1:
             retriever = pg_idx.as_retriever(
@@ -390,6 +395,7 @@ def search(request):
                 filters=filters,
             )
             text_retriever._vector_store.is_embedding_query = False
+
             retriever = QueryFusionRetriever(
                 retrievers=[vector_retriever, text_retriever],
                 mode="relative_score",
