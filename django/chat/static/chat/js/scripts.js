@@ -293,7 +293,7 @@ document.addEventListener("htmx:afterSwap", function (event) {
         var targetId = button.getAttribute('data-bs-target').substring(1);
         var targetElement = document.getElementById(targetId).querySelector('.markdown-text');
         var decodedText = JSON.parse('"' + targetElement.getAttribute('data-md') + '"');
-        preprocessedText = sourcePreprocessing(decodedText);
+        var preprocessedText = sourcePreprocessing(decodedText);
         var renderedMarkdown = md.render(preprocessedText);
         targetElement.innerHTML = renderedMarkdown;
       });
