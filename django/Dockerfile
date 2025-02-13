@@ -15,12 +15,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
 
-# Update /etc/hosts to map the domain to the specific IP address
-# TODO: Remove this step when the host no longer resets the connection from the secondary IP
-RUN echo "167.43.15.18 pki-icp.canada.ca" >> /etc/hosts
-
 # Download and install the GoC root certificate using wget
-RUN wget -q http://pki-icp.canada.ca/aia/GoC-GdC-Root-A.crt -O /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
+# TODO: Remove the header and replace the IP with the domain name when the host no longer resets the connection from the secondary IP
+RUN RUN wget -q --header="Host: pki-icp.canada.ca" http://167.43.15.18/aia/GoC-GdC-Root-A.crt -O /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
     && update-ca-certificates
 
 COPY requirements*.txt /tmp/pip-tmp/
