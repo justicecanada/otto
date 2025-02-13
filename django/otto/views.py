@@ -343,7 +343,9 @@ def notifications(request, hide=False):
         {
             "notifications": notifications,
             # Expand the notifications dropdown if there are any errors
-            "show_notifications": next(n for n in notifications),
+            "show_notifications": any(
+                n for n in notifications if n.category == "error"
+            ),
             "hide_notifications": hide,
         },
     )
