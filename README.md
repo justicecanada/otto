@@ -63,7 +63,7 @@
 | django/otto/management/commands/delete\_text\_extractor\_files.py     |       18 |        0 |    100% |           |
 | django/otto/management/commands/delete\_translation\_files.py         |       27 |        0 |    100% |           |
 | django/otto/management/commands/delete\_unused\_libraries.py          |       21 |        2 |     90% |    32, 36 |
-| django/otto/management/commands/reset\_app\_data.py                   |      120 |       18 |     85% |68-73, 88, 105-110, 130-135, 149-150, 155-158, 173-178, 189 |
+| django/otto/management/commands/reset\_app\_data.py                   |      117 |       18 |     85% |46-51, 66, 83-88, 108-113, 127-128, 133-136, 151-156, 167 |
 | django/otto/management/commands/test\_laws\_query.py                  |       52 |       38 |     27% |18-121, 128-135 |
 | django/otto/management/commands/update\_exchange\_rate.py             |       19 |        0 |    100% |           |
 | django/otto/management/commands/warn\_libraries\_pending\_deletion.py |       26 |        3 |     88% |     29-33 |
@@ -130,7 +130,7 @@
 | django/text\_extractor/urls.py                                        |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                       |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                       |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                             **TOTAL** | **9969** | **1175** | **88%** |           |
+|                                                             **TOTAL** | **9966** | **1175** | **88%** |           |
 
 
 ## Setup coverage badge
