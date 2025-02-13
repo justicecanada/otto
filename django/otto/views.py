@@ -151,7 +151,6 @@ def terms_of_use(request):
 
 
 @csrf_protect
-@login_required
 def feedback_message(request: HttpRequest, message_id=None):
     if message_id == "None":
         message_id = None
@@ -322,7 +321,6 @@ def feedback_download(request):
     return response
 
 
-@login_required
 def notification(request, notification_id):
     """
     For handling deleting of notifications
@@ -335,21 +333,19 @@ def notification(request, notification_id):
     return notifications(request, hide=no_more_notifications)
 
 
-@login_required
 def notifications(request, hide=False):
     """
     Updates the notifications badge and list of notifications
     e.g. on page load, after notification icon clicked, during polling, etc.
     """
+    notifications = request.user.notifications.all().order_by("-created_at")
     return render(
         request,
         "components/notifications_update.html",
         {
-            "notifications": request.user.notifications.all().order_by("-created_at"),
+            "notifications": notifications,
             # Expand the notifications dropdown if there are any errors
-            "show_notifications": request.user.notifications.filter(
-                category="error"
-            ).exists(),
+            "show_notifications": next(n for n in notifications),
             "hide_notifications": hide,
         },
     )
