@@ -2782,5 +2782,9 @@
     "Download all files...": {
         "fr": "",
         "fr_auto": "Téléchargez tous les fichiers..."
+    },
+    "Untitled document": {
+        "fr": "",
+        "fr_auto": "Document sans titre"
     }
 }
