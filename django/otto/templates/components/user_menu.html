@@ -1,6 +1,5 @@
 {% load i18n %}
 {% load rules %}
-{% has_perm "otto.manage_users" request.user as can_manage_users %}
 {# {% has_perm "otto.enable_load_testing" request.user as can_enable_load_testing %} #}
 
 <li class="nav-item dropdown" id="user-menu">
@@ -28,7 +27,7 @@
     {{ request.user.full_name }}
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
-    {% if can_manage_users %}
+    {% if request.user.is_admin %}
       <li>
         <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
         <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>

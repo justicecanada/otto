@@ -58,6 +58,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     @property
+    def is_admin(self):
+        # Check if user is member of "Otto admin" group
+        return self.groups.filter(name="Otto admin").exists()
+
+    @property
     def accepted_terms(self):
         return self.accepted_terms_date is not None
 

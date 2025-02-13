@@ -114,17 +114,25 @@ def chat(request, chat_id):
 
     chat = (
         Chat.objects.filter(id=chat_id)
-        .prefetch_related("options", "data_source")
+        .prefetch_related(
+            "options",
+            "options__qa_library",
+            "options__qa_data_sources",
+            "options__qa_documents",
+        )
         .first()
     )
 
     if not chat:
         return new_chat(request)
-    chat.accessed_at = timezone.now()
-    chat.save()
+    Chat.objects.filter(id=chat_id).update(accessed_at=timezone.now())
 
     # Get chat messages ready
-    messages = Message.objects.filter(chat=chat).order_by("id")
+    messages = (
+        Message.objects.filter(chat=chat)
+        .order_by("date_created")
+        .prefetch_related("answersource_set", "files")
+    )
     for message in messages:
         if message.is_bot:
             message.json = json.dumps(message.text)
