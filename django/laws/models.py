@@ -88,7 +88,7 @@ class LawManager(models.Manager):
         if add_to_vector_store:
             if llm is None:
                 return
-            idx = llm.get_index("laws_lois__", hnsw=True)
+            idx = llm.get_index("laws_lois__")
             nodes = []
             if existing_law.exists():
                 # Remove the old content from the vector store
@@ -102,7 +102,7 @@ class LawManager(models.Manager):
             if fr_hash_changed or force_update:
                 nodes.append(document_fr)
                 nodes.extend(nodes_fr)
-            batch_size = 128
+            batch_size = 16
             logger.debug(
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
             )

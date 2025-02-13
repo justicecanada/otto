@@ -135,10 +135,6 @@ a.mode-link:hover {
   border: 1px solid #ddd;
 }
 
-div.message p:last-of-type {
-  margin-bottom: 0 !important;
-}
-
 #bot-typing {
   display: none;
 }
@@ -153,6 +149,10 @@ div.message p:last-of-type {
   top: 0;
   left: 0;
   width: 20px;
+}
+
+.message-text>*:not(:last-child)+.typing {
+  margin-top: 25px;
 }
 
 .typing span {

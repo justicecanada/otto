@@ -171,9 +171,10 @@ class OttoLLM:
         filters: MetadataFilters = None,
         top_k: int = 5,
         vector_weight: float = 0.6,
+        hnsw: bool = False,
     ) -> QueryFusionRetriever:
 
-        pg_idx = self.get_index(vector_store_table)
+        pg_idx = self.get_index(vector_store_table, hnsw=hnsw)
 
         vector_retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
@@ -214,8 +215,9 @@ class OttoLLM:
             hybrid_search=True,
             text_search_config="english",
             perform_setup=True,
+            use_jsonb=True,
             hnsw_kwargs=(
-                {"hnsw_ef_construction": 500, "hnsw_m": 48, "hnsw_ef_search": 500}
+                {"hnsw_ef_construction": 256, "hnsw_m": 32, "hnsw_ef_search": 256}
                 if hnsw
                 else None
             ),

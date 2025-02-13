@@ -808,16 +808,25 @@ class Command(BaseCommand):
         if reset:
             Law.reset()
             # Recreate the table
+            # DO NOT add HNSW index yet. It will need to be rebuilt after.
             OttoLLM().get_retriever("laws_lois__").retrieve("?")
+
+        else:
+            # Run SQL to drop the HNSW index. This speeds up loading,
+            # and we are going to rebuild that index at the end of the script anyway.
+            pre_load_sql = "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
+            db = settings.DATABASES["vector_db"]
+            connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+            engine = create_engine(connection_string)
+            Session = sessionmaker(bind=engine)
+            session = Session()
+            session.execute(text(pre_load_sql))
+            session.commit()
+            session.close()
 
         xslt_path = os.path.join(laws_root, "xslt", "LIMS2HTML.xsl")
 
         start_time = time.time()
-
-        # for j, file_paths in enumerate(file_path_tuples):
-        #     process_en_fr_paths(
-        #         file_paths, mock_embedding, debug, constitution_file_paths
-        #     )
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [
@@ -846,6 +855,27 @@ class Command(BaseCommand):
             if not options.get("skip_cleanup", False):
                 # Clean up the downloaded repo
                 shutil.rmtree(laws_root)
+
+        print("Done loading XML files - running Post-load SQL (create indexes)")
+
+        # Run SQL to (re)create the JSONB metadata index and HNSW index
+        post_load_sql = (
+            "DROP INDEX IF EXISTS laws_lois_node_id__idx;"
+            "CREATE INDEX laws_lois_node_id__idx ON data_laws_lois__ (node_id);"
+            "DROP INDEX IF EXISTS laws_lois_metadata__idx;"
+            "CREATE INDEX laws_metadata_index ON data_laws_lois__ USING GIN (metadata_);"
+            "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
+            "CREATE INDEX ON data_laws_lois__ USING hnsw (embedding vector_cosine_ops) WITH (m='32', ef_construction='256');"
+        )
+        db = settings.DATABASES["vector_db"]
+        connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+        engine = create_engine(connection_string)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        session.execute(text(post_load_sql))
+        session.commit()
+        session.close()
+
         print("Done!")
         added_count = len(load_results["added"])
         exist_count = len(load_results["exists"])
@@ -926,6 +956,7 @@ def process_en_fr_paths(
 
     # Create nodes for the English and French XML files
     for k, file_path in enumerate(file_paths):
+        print("Processing file: ", file_path)
         # Get the directory path of the XML file
         directory = os.path.dirname(file_path)
         # Get the base name of the XML file
@@ -1031,6 +1062,10 @@ def process_en_fr_paths(
         return load_results, 0
     # Nodes and document should be ready now! Let's add to our Django model
     # This will also handle the creation of LlamaIndex vector tables
+    print(
+        "Creating Law object (and embeddings) for document:\n",
+        document_en.metadata,
+    )
     if not debug:
         try:
             # Check if law already exists.

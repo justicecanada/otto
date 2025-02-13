@@ -23,7 +23,7 @@ RUN echo "167.43.15.18 pki-icp.canada.ca" >> /etc/hosts \
 
 COPY requirements*.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check --no-cache-dir install \
-    -r /tmp/pip-tmp/requirements.txt -r /tmp/pip-tmp/requirements_dev.txt \
+    -r /tmp/pip-tmp/requirements.txt \
     && rm -rf /tmp/pip-tmp
 
 COPY . /django

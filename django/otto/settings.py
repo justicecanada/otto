@@ -110,7 +110,7 @@ DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
 DEFAULT_LAWS_MODEL = "gpt-4o"
 
-DEFAULT_MONTHLY_MAX = 40  # allowance $CAD/user/month unless otherwise specified
+DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
 LIBRARY_RETENTION_DAYS = 30
 CHAT_RETENTION_DAYS = 30
 
@@ -293,7 +293,7 @@ if os.environ.get("DJANGODB_ENGINE") is not None:
         "USER": os.environ.get("DJANGODB_USER"),
         "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
         "HOST": os.environ.get("DJANGODB_HOST"),
-        "PORT": os.environ.get("DJANGODB_PORT"),
+        "PORT": os.environ.get("DJANGODB_PORT", "5432"),
     }
     if DJANGODB_PGBOUNCER:
         DATABASES["default"].update(pgbouncer_options)
@@ -306,7 +306,7 @@ if os.environ.get("VECTORDB_ENGINE") is not None:
         "USER": os.environ.get("VECTORDB_USER"),
         "PASSWORD": os.environ.get("VECTORDB_PASSWORD", ""),
         "HOST": os.environ.get("VECTORDB_HOST"),
-        "PORT": os.environ.get("VECTORDB_PORT"),
+        "PORT": os.environ.get("VECTORDB_PORT", "5432"),
     }
     if VECTORDB_PGBOUNCER:
         DATABASES["vector_db"].update(pgbouncer_options)

@@ -237,10 +237,12 @@ def search(request):
         ]
 
         query = request.POST.get("query")
-        # Trim query to 10000 characters
-        query_too_long = len(query) > 10000
+        # Trim query to 5000 characters
+        query_too_long = len(query) > 5000
         if query_too_long:
-            query = query[:10000] + "..."
+            query = query[:5000] + "..."
+        query_too_long_for_keyword_search = len(query) > 200
+
         pg_idx = llm.get_index("laws_lois__", hnsw=True)
 
         advanced_mode = request.POST.get("advanced") == "true"
@@ -249,7 +251,7 @@ def search(request):
         selected_laws = Law.objects.all()
 
         logger.info(
-            "Search query",
+            "Law search query",
             query=query,
             advanced_mode=advanced_mode,
             disable_llm=disable_llm,
@@ -356,13 +358,16 @@ def search(request):
                     )
                 )
 
+        if query_too_long_for_keyword_search:
+            vector_ratio = 1
+
         filters = MetadataFilters(filters=filters)
         if vector_ratio == 1:
             retriever = pg_idx.as_retriever(
                 vector_store_query_mode="default",
                 similarity_top_k=top_k,
                 filters=filters,
-                vector_store_kwargs={"hnsw_ef_search": 500},
+                vector_store_kwargs={"hnsw_ef_search": 256},
             )
         elif vector_ratio == 0:
             retriever = pg_idx.as_retriever(
@@ -370,18 +375,27 @@ def search(request):
                 similarity_top_k=top_k,
                 filters=filters,
             )
+            retriever._vector_store.is_embedding_query = False
         else:
             vector_retriever = pg_idx.as_retriever(
                 vector_store_query_mode="default",
                 similarity_top_k=max(top_k * 2, 100),
                 filters=filters,
-                vector_store_kwargs={"hnsw_ef_search": 500},
+                vector_store_kwargs={"hnsw_ef_search": 256},
             )
-            text_retriever = pg_idx.as_retriever(
+            # Need to create a separate OttoLLM instance so that we can
+            # set is_embedding_query to False for the text retriever.
+            # This is a hack for LlamaIndex PGVectorStore implementation
+            # because otherwise it would embed the query even though
+            # we are just doing a postgres text search.
+            pg_idx2 = OttoLLM().get_index("laws_lois__", hnsw=True)
+            text_retriever = pg_idx2.as_retriever(
                 vector_store_query_mode="sparse",
                 similarity_top_k=max(top_k * 2, 100),
                 filters=filters,
             )
+            text_retriever._vector_store.is_embedding_query = False
+
             retriever = QueryFusionRetriever(
                 retrievers=[vector_retriever, text_retriever],
                 mode="relative_score",
