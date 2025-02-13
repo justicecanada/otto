@@ -1,4 +1,5 @@
 import json
+import re
 from urllib.parse import quote
 
 from django.contrib import messages
@@ -22,6 +23,7 @@ from structlog.contextvars import bind_contextvars
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm
 from chat.llm import OttoLLM
 from chat.models import (
+    AnswerSource,
     Chat,
     ChatFile,
     ChatOptions,
@@ -706,12 +708,11 @@ def set_security_label(request, chat_id, security_label_id):
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def message_sources(request, message_id):
-    import re
-
-    message = Message.objects.get(id=message_id)
     sources = []
 
-    for source in message.sources.all():
+    for source in AnswerSource.objects.prefetch_related(
+        "document", "document__data_source", "document__data_source__library"
+    ).filter(message_id=message_id):
         source_text = str(source.node_text)
 
         def replace_page_tags(match):
@@ -732,7 +733,7 @@ def message_sources(request, message_id):
     return render(
         request,
         "chat/modals/sources_modal_inner.html",
-        {"message": message, "sources": sources},
+        {"message_id": message_id, "sources": sources},
     )
 
 
