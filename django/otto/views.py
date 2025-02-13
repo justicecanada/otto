@@ -21,7 +21,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import check_for_language
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 import tldextract
@@ -127,7 +127,6 @@ def topnav_search_inner(request):
     )
 
 
-@csrf_protect
 def terms_of_use(request):
 
     if request.method == "POST":
@@ -150,7 +149,6 @@ def terms_of_use(request):
     )
 
 
-@csrf_protect
 def feedback_message(request: HttpRequest, message_id=None):
     if message_id == "None":
         message_id = None

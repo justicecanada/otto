@@ -33,7 +33,6 @@ is_data_steward = is_group_member("Data steward")
 
 add_perm("otto.manage_users", is_admin)
 add_perm("otto.access_otto", accepted_terms)
-add_perm("otto.view_github_link", is_admin)
 
 
 @predicate
