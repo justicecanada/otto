@@ -712,6 +712,26 @@ def message_sources(request, message_id):
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
 
+        # Find all links in the node_text with the format [text](link)
+        links = re.findall(r"\[.*?\]\((.*?)\)", modified_text)
+
+        modified_links = []
+        for link in links:
+            if link.startswith("/"):
+                first_page = link.split("/")[1]
+                if "/" + first_page in source.document.url:
+                    modified_links.append(
+                        source.document.url.split("/" + first_page)[0]
+                        + link.split(" ")[0]
+                    )
+                else:
+                    modified_links.append(source.document.url + link.split(" ")[0])
+            else:
+                modified_links.append(link)
+
+        for i in range(len(links)):
+            modified_text = modified_text.replace(links[i], modified_links[i])
+
         source_dict = {
             "citation": source.citation,
             "document": source.document,
