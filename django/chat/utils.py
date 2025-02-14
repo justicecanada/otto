@@ -38,7 +38,7 @@ md = markdown.Markdown(
 )
 
 
-def copy_options(source_options, target_options, user=None):
+def copy_options(source_options, target_options, user=None, chat=None, mode=None):
     source_options = model_to_dict(source_options)
     # Remove the fields that are not part of the preset
     for field in ["id", "chat"]:
@@ -72,6 +72,10 @@ def copy_options(source_options, target_options, user=None):
         target_options.qa_documents.clear()
         target_options.qa_scope = "all"
         target_options.qa_mode = "rag"
+    if chat:
+        target_options.chat = chat
+    if mode:
+        target_options.mode = mode
     target_options.save()
 
 

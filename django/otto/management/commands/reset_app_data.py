@@ -37,32 +37,10 @@ class Command(BaseCommand):
         vector_db_user = settings.DATABASES["vector_db"]["USER"]
         vector_db_password = settings.DATABASES["vector_db"]["PASSWORD"]
         vector_db_host = settings.DATABASES["vector_db"]["HOST"]
+        vector_db_port = settings.DATABASES["vector_db"]["PORT"]
 
         # Set system-wide environment variable PGPASSWORD to avoid password prompt
         os.environ["PGPASSWORD"] = vector_db_password
-
-        try:
-            # Create the database
-            subprocess.run(
-                [
-                    "psql",
-                    "-U",
-                    vector_db_user,
-                    "-h",
-                    vector_db_host,
-                    "-d",
-                    "postgres",
-                    "-c",
-                    f"CREATE DATABASE {vector_db_name}",
-                ],
-                check=True,
-            )
-        except subprocess.CalledProcessError:
-            self.stdout.write(
-                self.style.WARNING(
-                    f"Database {vector_db_name} already exists. Skipping creation."
-                )
-            )
 
         if reset_all:
             self.reset_groups()

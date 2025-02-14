@@ -95,22 +95,15 @@ class ChatOptionsManager(models.Manager):
         Set the mode and chat FK in the new object.
         """
         if chat and chat.user.default_preset:
-
+            # A new object must be created before copying options so that FKs can be set
             new_options = self.create()
-            copy_options(chat.user.default_preset.options, new_options, chat.user)
+            copy_options(
+                chat.user.default_preset.options, new_options, chat.user, chat, mode
+            )
         else:
-            # get default preset
             default_preset = Preset.objects.get_global_default()
-
-            # create a copy of the default preset options
             new_options = self.create()
-            copy_options(default_preset.options, new_options, chat.user)
-
-        if mode:
-            new_options.mode = mode
-        if chat:
-            new_options.chat = chat
-        new_options.save()
+            copy_options(default_preset.options, new_options, chat.user, chat, mode)
 
         return new_options
 
@@ -455,6 +448,10 @@ class Message(models.Model):
         return self.answersource_set.all().order_by("id")
 
     @property
+    def has_sources(self):
+        return self.answersource_set.exists()
+
+    @property
     def display_cost(self):
         return display_cad_cost(self.usd_cost)
 
@@ -479,6 +476,7 @@ class Message(models.Model):
                 name="check_parent_is_user_message",
             )
         ]
+        ordering = ["id"]
 
 
 class AnswerSourceManager(models.Manager):
