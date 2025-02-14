@@ -715,13 +715,14 @@ def message_sources(request, message_id):
         # Find all links in the node_text with the format [text](link)
         links = re.findall(r"\[.*?\]\((.*?)\)", modified_text)
 
+        # checks if links are internal and merges them with the source url
         modified_links = []
         for link in links:
             if link.startswith("/"):
-                first_page = link.split("/")[1]
-                if "/" + first_page in source.document.url:
+                first_subdirectory = link.split("/")[1]
+                if "/" + first_subdirectory in source.document.url:
                     modified_links.append(
-                        source.document.url.split("/" + first_page)[0]
+                        source.document.url.split("/" + first_subdirectory)[0]
                         + link.split(" ")[0]
                     )
                 else:
