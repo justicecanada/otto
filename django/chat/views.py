@@ -718,15 +718,18 @@ def message_sources(request, message_id):
         # checks if links are internal and merges them with the source url
         modified_links = []
         for link in links:
+            # sometimes the link is followed by a space and some text like the name of the page
+            link = link.split(" ")[0]
             if link.startswith("/"):
                 first_subdirectory = link.split("/")[1]
+                # if the first subdirectory of the internal link is in the source url, merge them at that point
                 if "/" + first_subdirectory in source.document.url:
                     modified_links.append(
-                        source.document.url.split("/" + first_subdirectory)[0]
-                        + link.split(" ")[0]
+                        source.document.url.split("/" + first_subdirectory)[0] + link
                     )
+                # if not just append it the internal link at the end of the source url
                 else:
-                    modified_links.append(source.document.url + link.split(" ")[0])
+                    modified_links.append(source.document.url + link)
             else:
                 modified_links.append(link)
 
