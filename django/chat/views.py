@@ -738,9 +738,6 @@ def message_sources(request, message_id):
                     )
                 # if not the internal link is concatenated at the end of the source url
                 else:
-                    # this is just to make the resulting link cleaner
-                    if link.startswith("/") and source.document.url.endswith("/"):
-                        link = link[1:]
                     modified_links.append(source.document.url + link)
             else:
                 modified_links.append(link)
