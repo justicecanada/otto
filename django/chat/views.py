@@ -724,7 +724,7 @@ def message_sources(request, message_id):
         # Find all links in the node_text with the format [text](link)
         links = re.findall(r"\[.*?\]\((.*?)\)", modified_text)
 
-        # checks if links are internal and merges them with the source url
+        # checks if there are internal links and merges them with the source url
         modified_links = []
         for link in links:
             if link.startswith("/"):
