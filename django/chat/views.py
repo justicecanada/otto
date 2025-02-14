@@ -731,12 +731,12 @@ def message_sources(request, message_id):
                 # sometimes the internal link is followed by a space and some text like the name of the page
                 link = link.split(" ")[0]
                 first_subdirectory = link.split("/")[1]
-                # if the first subdirectory of the internal link is in the source url, merge them at that point
+                # if the first subdirectory of the internal link is in the source url, it is merged at that point
                 if "/" + first_subdirectory in source.document.url:
                     modified_links.append(
                         source.document.url.split("/" + first_subdirectory)[0] + link
                     )
-                # if not just append it the internal link at the end of the source url
+                # if not the internal link is appended at the end of the source url
                 else:
                     modified_links.append(source.document.url + link)
             else:
