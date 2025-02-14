@@ -12,9 +12,9 @@ def otto_version(request):
         # Get just the date from the datetime object
         build_date = settings.OTTO_BUILD_DATE.strftime("%Y-%m-%d")
         version_html = f"""
-        <small class="text-muted" id="otto-version">
+        <small class="d-none" id="otto-version">
             v{build_date}/{environment}
-            <a href="{hash_github_url}" class="d-none">Hidden GitHub Link</a>
+            <a href="{hash_github_url}">Hidden GitHub Link</a>
         </small>
         """
     return {
