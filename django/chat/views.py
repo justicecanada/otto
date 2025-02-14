@@ -740,9 +740,8 @@ def message_sources(request, message_id):
                 else:
                     # this is just to make the resulting link cleaner
                     if link.startswith("/") and source.document.url.endswith("/"):
-                        modified_links.append(source.document.url + link[1:])
-                    else:
-                        modified_links.append(source.document.url + link)
+                        link = link[1:]
+                    modified_links.append(source.document.url + link)
             else:
                 modified_links.append(link)
 
