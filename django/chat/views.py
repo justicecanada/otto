@@ -718,9 +718,9 @@ def message_sources(request, message_id):
         # checks if links are internal and merges them with the source url
         modified_links = []
         for link in links:
-            # sometimes the link is followed by a space and some text like the name of the page
-            link = link.split(" ")[0]
             if link.startswith("/"):
+                # sometimes the internal link is followed by a space and some text like the name of the page
+                link = link.split(" ")[0]
                 first_subdirectory = link.split("/")[1]
                 # if the first subdirectory of the internal link is in the source url, merge them at that point
                 if "/" + first_subdirectory in source.document.url:
