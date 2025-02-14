@@ -171,10 +171,6 @@
         "fr": "Équilibré",
         "fr_auto": "Équilibré"
     },
-    "Creative": {
-        "fr": "Créatif",
-        "fr_auto": ""
-    },
     "Toggle chat options sidebar": {
         "fr": "Basculer la barre latérale des options de clavardage",
         "fr_auto": "Basculer la barre latérale des options de chat"
@@ -227,57 +223,9 @@
         "fr": "Clavardage sans titre",
         "fr_auto": "Chat sans titre"
     },
-    "All": {
-        "fr": "Tous",
-        "fr_auto": ""
-    },
-    "Prev. Solution": {
-        "fr": "Solution Préc.",
-        "fr_auto": ""
-    },
-    "Next Solution": {
-        "fr": "Prochaine solution",
-        "fr_auto": ""
-    },
-    "Type of Modification:": {
-        "fr": "Type de Modification:",
-        "fr_auto": ""
-    },
-    "Prev. Term": {
-        "fr": "Terme Préc.",
-        "fr_auto": ""
-    },
-    "Next Term": {
-        "fr": "Terme Prochaine",
-        "fr_auto": ""
-    },
-    "Date Uploaded": {
-        "fr": "Date de Téléversement",
-        "fr_auto": ""
-    },
-    "Total Lines": {
-        "fr": "Lignes Totales",
-        "fr_auto": ""
-    },
-    "Uploaded Statues": {
-        "fr": "Statues Téléchargées",
-        "fr_auto": ""
-    },
-    "(e.g. 'https://laws-lois.justice.gc.ca/eng/acts/C-10.13/FullText.html')": {
-        "fr": "(p. ex. « https://laws-lois.justice.gc.ca/fra/lois/c-10.13/TexteComplet.html »)",
-        "fr_auto": ""
-    },
-    "Enter the URL of a federal statute that you want to analyze. Make sure to use the URL for the \"Full Text\" version <br> (e.g. https://laws-lois.justice.gc.ca/eng/acts/C-10.13/FullText.html).": {
-        "fr": "Entrez l’URL d’une loi fédérale que vous souhaitez analyser. Assurez-vous d’utiliser l’URL de la version « Texte intégral » <br> (p. ex. https://laws-lois.justice.gc.ca/fra/lois/c-10.13/TexteComplet.html).",
-        "fr_auto": ""
-    },
     "Each row (or \"entry\", \"item\", or \"record\") in the database contains information about words or phrases that may be problematic for harmonization.": {
         "fr": "Chaque rangée (ou « entrée », « élément » ou « enregistrement ») de la base de données contient des renseignements sur des mots ou des expressions qui peuvent être problématiques pour l’harmonisation.",
         "fr_auto": "Chaque ligne (ou « entrée », « élément » ou « enregistrement ») de la base de données contient des renseignements sur des mots ou des expressions qui peuvent être problématiques pour l’harmonisation."
-    },
-    "Line 11111 requires harmonization.": {
-        "fr": "La ligne 11111 a besoin d’harmonisation.",
-        "fr_auto": ""
     },
     "<strong>Change type</strong>: what kind of change should be made to the potentially-problematic term,": {
         "fr": "<strong>Modifier le type</strong> : quel genre de changement devrait être apporté au terme potentiellement problématique,",
@@ -1031,24 +979,112 @@
         "fr": "Vecteur ↔ mots clés",
         "fr_auto": "Vecteur ↔ mots clés"
     },
+    "Drag or use the left and right arrows to resize.": {
+        "fr": "Faites glisser ou utilisez les flèches gauche et droite de votre clavier pour redimensionner.",
+        "fr_auto": "Faites glisser ou utilisez les flèches gauche et droite pour redimensionner."
+    },
+    "Reset": {
+        "fr": "Réinitialiser",
+        "fr_auto": "Réinitialiser"
+    },
+    "Protected B approved:": {
+        "fr": "Approuvé pour le matériel protégé b",
+        "fr_auto": "Protégé B approuvé :"
+    },
+    "The processing of your file(s) was interrupted.": {
+        "fr": "Le traitement de vos dossiers a été interrompu.",
+        "fr_auto": "Le traitement de vos dossiers a été interrompu."
+    },
+    "An interruption occurred while generating the response.": {
+        "fr": "Une interruption s’est produite pendant la production de la réponse.",
+        "fr_auto": "Une interruption s’est produite pendant la génération de la réponse."
+    },
+    "Drop files anywhere": {
+        "fr": "Placez des fichiers n’importe où sur la page",
+        "fr_auto": "Déposez des fichiers n’importe où"
+    },
+    "\n        Uploading <span class=\"filename fst-italic\">'filename'</span>\n      ": {
+        "fr": "\nTéléversement <span class=\"filename fst-italic\">'filename'</span>\n      ",
+        "fr_auto": "\nTéléchargement <span class=\"filename fst-italic\">'filename'</span>\n      "
+    },
+    "File upload progress": {
+        "fr": "Progression du téléversement de fichiers",
+        "fr_auto": "Progression du téléversement de fichiers"
+    },
+    "for translation:": {
+        "fr": "pour la traduction :",
+        "fr_auto": "pour la traduction :"
+    },
+    "for summarization:": {
+        "fr": "à des fins de résumé :",
+        "fr_auto": "à des fins de résumé :"
+    },
+    "System prompt": {
+        "fr": "Invite du système",
+        "fr_auto": "Invite système"
+    },
+    "Maximum sources": {
+        "fr": "Sources maximales",
+        "fr_auto": "Sources maximales"
+    },
+    "Order sources by": {
+        "fr": "Classer les source par",
+        "fr_auto": "Commander les sources par"
+    },
+    "Relevance (score)": {
+        "fr": "Pertinence (cote)",
+        "fr_auto": "Pertinence (cote)"
+    },
+    "Answer granularity": {
+        "fr": "Granularité de la réponse",
+        "fr_auto": "Granularité de réponse"
+    },
+    "Single answer": {
+        "fr": "Réponse unique",
+        "fr_auto": "Réponse unique"
+    },
+    "Granular answers": {
+        "fr": "Réponses granulaires",
+        "fr_auto": "Réponses granulaires"
+    },
+    "Granularity": {
+        "fr": "Granularité",
+        "fr_auto": "Granularité"
+    },
+    "Fine": {
+        "fr": "Précis",
+        "fr_auto": "Fin"
+    },
+    "Coarse": {
+        "fr": "Approximatif",
+        "fr_auto": "Grossier"
+    },
     "GPT-4o-mini (fastest, best value)": {
-        "fr": "",
+        "fr": "GPT-4o-mini (le plus rapide, meilleur rapport qualité-prix)",
         "fr_auto": "GPT-4o-mini (le plus rapide, meilleur rapport qualité-prix)"
     },
     "GPT-4o (best quality, but 25x cost)": {
-        "fr": "",
+        "fr": "GPT-4o (meilleure qualité, mais coûte 25x)",
         "fr_auto": "GPT-4o (meilleure qualité, mais coût 25x)"
     },
+    "Creative": {
+        "fr": "Créatif",
+        "fr_auto": "Créatif"
+    },
     "Select folder(s)": {
-        "fr": "",
+        "fr": "Sélectionner le(s) dossier(s)",
         "fr_auto": "Sélectionner le(s) dossier(s)"
     },
     "Selected folders": {
-        "fr": "",
+        "fr": "Dossiers sélectionnés",
         "fr_auto": "Dossiers sélectionnés"
     },
+    "Adding to the Q&A library": {
+        "fr": "En cours d'ajout à la bibliothèque de questions-réponses",
+        "fr_auto": "Ajout à la bibliothèque de questions et réponses"
+    },
     "Error processing the following document(s):": {
-        "fr": "",
+        "fr": "Erreur de traitement du ou des documents suivants :",
         "fr_auto": "Erreur de traitement du ou des documents suivants :"
     },
     "Sorry, I couldn't find any information about that. Try selecting more folders or documents, or try a different library.": {
@@ -1060,15 +1096,15 @@
         "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez de sélectionner une autre bibliothèque ou un autre dossier."
     },
     "If you should not have access,": {
-        "fr": "",
+        "fr": "Si vous ne devriez pas y avoir accès,",
         "fr_auto": "Si vous ne devriez pas y avoir accès,"
     },
     "to report the issue.": {
-        "fr": "",
+        "fr": "pour signaler le problème.",
         "fr_auto": "pour signaler le problème."
     },
     "Drag or use the up and down arrows to resize.": {
-        "fr": "",
+        "fr": "Faites glisser la barre ou utilisez les flèches haut et bas de votre clavier pour redimensionner l'espace.",
         "fr_auto": "Faites glisser ou utilisez les flèches haut et bas pour redimensionner."
     },
     "ChatGPT for writing assistance (not for facts)": {
@@ -1076,51 +1112,39 @@
         "fr_auto": "ChatGPT pour l’aide à la rédaction (pas pour les faits)"
     },
     "Ask questions about documents": {
-        "fr": "",
+        "fr": "Posez des questions sur le contenu de vos documents",
         "fr_auto": "Posez des questions sur les documents"
     },
     "Summarize text, files and URLs": {
-        "fr": "",
+        "fr": "Résumer du texte, des fichiers et le contenu de site web.",
         "fr_auto": "Résumer le texte, les fichiers et les URL"
     },
     "Translate text and files to English or French": {
-        "fr": "",
+        "fr": "Traduisez du texte et des fichiers en anglais ou en français.",
         "fr_auto": "Traduire du texte et des fichiers en anglais ou en français"
     },
     "Help me write a good prompt": {
         "fr": "",
         "fr_auto": "Aidez-moi à écrire une bonne invite"
     },
-    "Drag or use the left and right arrows to resize.": {
-        "fr": "",
-        "fr_auto": "Faites glisser ou utilisez les flèches gauche et droite pour redimensionner."
-    },
     "Save preset from current settings": {
-        "fr": "",
+        "fr": "Enregistrer le préréglage à partir des paramètres actuels",
         "fr_auto": "Enregistrer le préréglage à partir des paramètres actuels"
     },
-    "Reset": {
-        "fr": "",
-        "fr_auto": "Réinitialiser"
-    },
-    "Protected B approved:": {
-        "fr": "",
-        "fr_auto": "Protégé B approuvé :"
-    },
     "Use with unclassified, Protected A or Protected B information only.": {
-        "fr": "",
+        "fr": "Utilisez uniquement avec des informations non classifiées, protégées A ou Protégées B.",
         "fr_auto": "Utilisez uniquement avec des informations non classifiées, protégées A ou Protégées B."
     },
     "Unclassified only:": {
-        "fr": "",
+        "fr": "Non classifié seulement :",
         "fr_auto": "Non classifié seulement :"
     },
     "This is a development / testing environment. Use unclassified information only.": {
-        "fr": "",
+        "fr": "Il s’agit d’un environnement de développement / test. Utilisez uniquement des informations non classifiées.",
         "fr_auto": "Il s’agit d’un environnement de développement / test. Utilisez uniquement des informations non classifiées."
     },
     "Human review required:": {
-        "fr": "",
+        "fr": "Examen humain requis :",
         "fr_auto": "Examen humain requis :"
     },
     "AI can make mistakes. Review the text before using it in an official capacity.": {
@@ -1167,74 +1191,6 @@
         "fr": "",
         "fr_auto": "Pour un usage officiel, vérifiez toujours le matériel généré avec les sources fournies en raison du risque d’inexactitudes."
     },
-    "The processing of your file(s) was interrupted.": {
-        "fr": "",
-        "fr_auto": "Le traitement de vos dossiers a été interrompu."
-    },
-    "An interruption occurred while generating the response.": {
-        "fr": "",
-        "fr_auto": "Une interruption s’est produite pendant la génération de la réponse."
-    },
-    "Drop files anywhere": {
-        "fr": "",
-        "fr_auto": "Déposez des fichiers n’importe où"
-    },
-    "\n        Uploading <span class=\"filename fst-italic\">'filename'</span>\n      ": {
-        "fr": "",
-        "fr_auto": "\nTéléchargement <span class=\"filename fst-italic\">'filename'</span>\n      "
-    },
-    "File upload progress": {
-        "fr": "",
-        "fr_auto": "Progression du téléchargement de fichiers"
-    },
-    "for translation:": {
-        "fr": "",
-        "fr_auto": "pour la traduction :"
-    },
-    "for summarization:": {
-        "fr": "",
-        "fr_auto": "à des fins de résumé :"
-    },
-    "System prompt": {
-        "fr": "",
-        "fr_auto": "Invite système"
-    },
-    "Maximum sources": {
-        "fr": "",
-        "fr_auto": "Sources maximales"
-    },
-    "Order sources by": {
-        "fr": "",
-        "fr_auto": "Commander les sources par"
-    },
-    "Relevance (score)": {
-        "fr": "",
-        "fr_auto": "Pertinence (cote)"
-    },
-    "Answer granularity": {
-        "fr": "",
-        "fr_auto": "Granularité de réponse"
-    },
-    "Single answer": {
-        "fr": "",
-        "fr_auto": "Réponse unique"
-    },
-    "Granular answers": {
-        "fr": "",
-        "fr_auto": "Réponses granulaires"
-    },
-    "Granularity": {
-        "fr": "",
-        "fr_auto": "Granularité"
-    },
-    "Fine": {
-        "fr": "",
-        "fr_auto": "Fin"
-    },
-    "Coarse": {
-        "fr": "",
-        "fr_auto": "Grossier"
-    },
     "Remove irrelevant sources": {
         "fr": "",
         "fr_auto": "Supprimer les sources non pertinentes"
@@ -1264,195 +1220,195 @@
         "fr_auto": "Enregistrer les modifications"
     },
     "Edit": {
-        "fr": "",
+        "fr": "Modifier",
         "fr_auto": "Modifier"
     },
     "Create preset from current settings": {
-        "fr": "",
+        "fr": "Créer un préréglage à partir des paramètres actuels",
         "fr_auto": "Créer un préréglage à partir des paramètres actuels"
     },
     "Remove default": {
-        "fr": "",
+        "fr": "Supprimer la valeur par défaut",
         "fr_auto": "Supprimer la valeur par défaut"
     },
     "Set as default": {
-        "fr": "",
+        "fr": "Défini par défaut",
         "fr_auto": "Défini par défaut"
     },
     "No presets available": {
-        "fr": "",
+        "fr": "Aucun préréglage disponible",
         "fr_auto": "Aucun préréglage disponible"
     },
     "Remove from favourites": {
-        "fr": "",
+        "fr": "Retirer des favoris",
         "fr_auto": "Retirer des favoris"
     },
     "Add to favourites": {
-        "fr": "",
+        "fr": "Ajouter aux favoris",
         "fr_auto": "Ajouter aux favoris"
     },
     "Please provide a title in either English or French.": {
-        "fr": "",
+        "fr": "Veuillez fournir un titre en anglais ou en français.",
         "fr_auto": "Veuillez fournir un titre en anglais ou en français."
     },
     "Please provide at least one user for the accessible field.": {
-        "fr": "",
+        "fr": "Veuillez fournir au moins un utilisateur au champ « accessible ».",
         "fr_auto": "Veuillez fournir au moins un utilisateur pour le champ accessible."
     },
     "Title (English)": {
-        "fr": "",
+        "fr": "Titre (anglais)",
         "fr_auto": "Titre (anglais)"
     },
     "Description (English)": {
-        "fr": "",
+        "fr": "Description (anglais)",
         "fr_auto": "Description (anglais)"
     },
     "Title (French)": {
-        "fr": "",
+        "fr": "Titre (français)",
         "fr_auto": "Titre (français)"
     },
     "Description (French)": {
-        "fr": "",
+        "fr": "Description (français)",
         "fr_auto": "Description (français)"
     },
     "Privacy controls": {
-        "fr": "",
+        "fr": "Contrôles de confidentialité",
         "fr_auto": "Contrôles de confidentialité"
     },
     "Share with:": {
-        "fr": "",
+        "fr": "Partager avec :",
         "fr_auto": "Partager avec :"
     },
     "Replace with current settings": {
-        "fr": "",
+        "fr": "Remplacer par les paramètres actuels",
         "fr_auto": "Remplacer par les paramètres actuels"
     },
     "This is the default Otto preset. Use caution!": {
-        "fr": "",
+        "fr": "Il s’agit du préréglage Otto par défaut. Soyez prudent !",
         "fr_auto": "Il s’agit du préréglage Otto par défaut. Soyez prudent !"
     },
     "Changes will be visible to all Otto users.": {
-        "fr": "",
+        "fr": "Les modifications seront visibles pour tous les utilisateurs d’Otto.",
         "fr_auto": "Les modifications seront visibles pour tous les utilisateurs d’Otto."
     },
     "Are you sure you want to delete this preset?": {
-        "fr": "",
+        "fr": "Êtes-vous sûr de vouloir supprimer ce préréglage ?",
         "fr_auto": "Êtes-vous sûr de vouloir supprimer ce préréglage ?"
     },
     "Create New Preset": {
-        "fr": "",
+        "fr": "Créer un nouveau préréglage",
         "fr_auto": "Créer un nouveau préréglage"
     },
     "Create a new preset from your current settings.": {
-        "fr": "",
+        "fr": "Créez un nouveau préréglage à partir de vos paramètres actuels.",
         "fr_auto": "Créez un nouveau préréglage à partir de vos paramètres actuels."
     },
     "Improve prompt using AI": {
-        "fr": "",
+        "fr": "Améliorer l’invite à l’aide de l’IA",
         "fr_auto": "Améliorer l’invite à l’aide de l’IA"
     },
     "Loading": {
-        "fr": "",
+        "fr": "Chargement",
         "fr_auto": "Chargement"
     },
     "Generate a more detailed version of your prompt. Use this as a starting point for further edits.": {
-        "fr": "",
+        "fr": "Générez une version plus détaillée de votre invite. Utilisez ceci comme point de départ pour d’autres modifications.",
         "fr_auto": "Générez une version plus détaillée de votre invite. Utilisez ceci comme point de départ pour d’autres modifications."
     },
     "Type your prompt here...": {
-        "fr": "",
+        "fr": "Écrivez votre invite ici...",
         "fr_auto": "Tapez votre invite ici..."
     },
     "Generate": {
-        "fr": "",
+        "fr": "Générer",
         "fr_auto": "Générer"
     },
     "Your prompt": {
-        "fr": "",
+        "fr": "Votre invite",
         "fr_auto": "Votre invite"
     },
     "AI-generated prompt": {
-        "fr": "",
+        "fr": "Invite générée par l’IA",
         "fr_auto": "Invite générée par l’IA"
     },
     "Regenerate": {
-        "fr": "",
+        "fr": "Régénérer",
         "fr_auto": "Régénérer"
     },
     "Use this prompt": {
-        "fr": "",
+        "fr": "Utilisez cette invite",
         "fr_auto": "Utilisez cette invite"
     },
     "QA library for settings preset not accessible. It has been reset to your personal library.": {
-        "fr": "",
+        "fr": "Bibliothèque question-répnse pour les paramètres prédéfinis non accessibles. Il a été réinitialisé à votre bibliothèque personnelle.",
         "fr_auto": "Bibliothèque d’assurance qualité pour les paramètres prédéfinis non accessibles. Il a été réinitialisé à votre bibliothèque personnelle."
     },
     "Response stopped early. Costs may still be incurred after stopping.": {
-        "fr": "",
+        "fr": "La réponse à votre requête s’est arrêtée avant la fin de son exécution. Des coûts peuvent encore être engendrés.",
         "fr_auto": "La réponse s’est arrêtée tôt. Des coûts peuvent encore être engagés après l’arrêt."
     },
     "An error occurred.": {
-        "fr": "",
+        "fr": "Une erreur s’est produite.",
         "fr_auto": "Une erreur s’est produite."
     },
     "with files:": {
-        "fr": "",
+        "fr": "avec les fichiers :",
         "fr_auto": "avec des fichiers :"
     },
     "No text provided.": {
-        "fr": "",
+        "fr": "Aucun texte n’a été fourni.",
         "fr_auto": "Aucun texte n’a été fourni."
     },
     "**No relevant sources found.**": {
-        "fr": "",
+        "fr": "**Aucune source pertinente n’a été trouvée.**",
         "fr_auto": "**Aucune source pertinente n’a été trouvée.**"
     },
     "Sorry, that URL isn't allowed. Otto can only access sites ending in:": {
-        "fr": "",
+        "fr": "Désolé, cette URL n’est pas autorisée. Otto ne peut accéder qu’aux sites se terminant par :",
         "fr_auto": "Désolé, cette URL n’est pas autorisée. Otto ne peut accéder qu’aux sites se terminant par :"
     },
     "(e.g., `justice.gc.ca` or `www.tbs-sct.canada.ca` are also allowed)": {
-        "fr": "",
+        "fr": "(p. ex., « justice.gc.ca » ou « www.tbs-sct.canada.ca » sont également autorisés)",
         "fr_auto": "(p. ex., « justice.gc.ca » ou « www.tbs-sct.canada.ca » sont également autorisés)"
     },
     "As a workaround, you can save the content to a file and upload it here.": {
-        "fr": "",
+        "fr": "Alternativement, vous pouvez enregistrer le contenu du site dans un fichier et le téléverser ici.",
         "fr_auto": "Comme solution de contournement, vous pouvez enregistrer le contenu dans un fichier et le télécharger ici."
     },
     "Preset loaded successfully.": {
-        "fr": "",
+        "fr": "Préréglage chargé avec succès.",
         "fr_auto": "Préréglage chargé avec succès."
     },
     "Preset saved successfully.": {
-        "fr": "",
+        "fr": "Préréglage enregistré avec succès.",
         "fr_auto": "Préréglage enregistré avec succès."
     },
     "Preset updated successfully.": {
-        "fr": "",
+        "fr": "Préréglage mis à jour avec succès.",
         "fr_auto": "Préréglage mis à jour avec succès."
     },
     "Preset deleted successfully.": {
-        "fr": "",
+        "fr": "Préréglage supprimé avec succès.",
         "fr_auto": "Préréglage supprimé avec succès."
     },
     "Preset added to favourites.": {
-        "fr": "",
+        "fr": "Préréglage ajouté aux favoris.",
         "fr_auto": "Préréglage ajouté aux favoris."
     },
     "Preset removed from favourites.": {
-        "fr": "",
+        "fr": "Préréglage retiré des favoris.",
         "fr_auto": "Préréglage retiré des favoris."
     },
     "An error occurred while setting the preset as favourite.": {
-        "fr": "",
+        "fr": "Une erreur s’est produite lors de la définition du préréglage comme favori.",
         "fr_auto": "Une erreur s’est produite lors de la définition du préréglage comme favori."
     },
     "Default preset was set successfully.": {
-        "fr": "",
+        "fr": "Le paramètre prédéfini par défaut a été défini avec succès.",
         "fr_auto": "Le paramètre prédéfini par défaut a été défini avec succès."
     },
     "An error occurred while setting the default preset.": {
-        "fr": "",
+        "fr": "Une erreur s’est produite lors de la définition du préréglage par défaut.",
         "fr_auto": "Une erreur s’est produite lors de la définition du préréglage par défaut."
     },
     "All acts and regulations": {
@@ -1536,11 +1492,11 @@
         "fr_auto": "Instructions supplémentaires pour la réponse à l’IA"
     },
     "Query": {
-        "fr": "",
+        "fr": "Requête",
         "fr_auto": "Requête"
     },
     "AI answer": {
-        "fr": "",
+        "fr": "Réponse de l’IA",
         "fr_auto": "Réponse de l’IA"
     },
     "Any language results": {
@@ -1548,11 +1504,11 @@
         "fr_auto": "Tous les résultats linguistiques"
     },
     "Basic search": {
-        "fr": "",
+        "fr": "Recherche de base",
         "fr_auto": "Recherche de base"
     },
     "Advanced search": {
-        "fr": "",
+        "fr": "Recherche avancée",
         "fr_auto": "Recherche avancée"
     },
     "Last refreshed from the": {
@@ -1564,15 +1520,15 @@
         "fr_auto": "référentiel sur"
     },
     "Clear": {
-        "fr": "",
+        "fr": "Effacer",
         "fr_auto": "Effacer"
     },
     "Advanced search options": {
-        "fr": "",
+        "fr": "Options de recherche avancées",
         "fr_auto": "Options de recherche avancées"
     },
     "AI-generated answer &mdash; may contain inaccuracies": {
-        "fr": "",
+        "fr": "Réponse générée par l’IA — peut contenir des inexactitudes",
         "fr_auto": "Réponse générée par l’IA — peut contenir des inexactitudes"
     },
     "Error getting search results:": {
@@ -1580,7 +1536,7 @@
         "fr_auto": "Erreur d’obtention des résultats de recherche :"
     },
     "No sources found. Please modify the search options or use basic search.": {
-        "fr": "",
+        "fr": "Aucune source trouvée. Veuillez modifier les options de recherche ou utiliser la recherche de base.",
         "fr_auto": "Aucune source trouvée. Veuillez modifier les options de recherche ou utiliser la recherche de base."
     },
     "Results for &quot;": {
@@ -1596,7 +1552,7 @@
         "fr_auto": "Partie"
     },
     "Details": {
-        "fr": "",
+        "fr": "Détails",
         "fr_auto": "Détails"
     },
     "Close source details": {
@@ -1612,7 +1568,7 @@
         "fr_auto": "Aller au document source"
     },
     "Metadata": {
-        "fr": "",
+        "fr": "Métadonnées",
         "fr_auto": "Métadonnées"
     },
     "In-force start date:": {
@@ -1624,19 +1580,19 @@
         "fr_auto": "Dernière date de modification :"
     },
     "Alternate language": {
-        "fr": "",
+        "fr": "Autre langue",
         "fr_auto": "Autre langue"
     },
     "Source document": {
-        "fr": "",
+        "fr": "Document source",
         "fr_auto": "Document source"
     },
     "Short title:": {
-        "fr": "",
+        "fr": "Titre abrégé :",
         "fr_auto": "Titre abrégé :"
     },
     "Long title:": {
-        "fr": "",
+        "fr": "Titre long :",
         "fr_auto": "Titre long :"
     },
     "Referenced as:": {
@@ -1644,7 +1600,7 @@
         "fr_auto": "Référencé comme :"
     },
     "Type:": {
-        "fr": "",
+        "fr": "Type :",
         "fr_auto": "Type :"
     },
     "Act": {
@@ -1660,11 +1616,11 @@
         "fr_auto": "Autorité habilitante :"
     },
     "An error occurred:": {
-        "fr": "",
+        "fr": "Une erreur s’est produite :",
         "fr_auto": "Une erreur s’est produite :"
     },
     "An error occurred while processing the request.": {
-        "fr": "",
+        "fr": "Une erreur s’est produite lors du traitement de la demande.",
         "fr_auto": "Une erreur s’est produite lors du traitement de la demande."
     },
     "Source not found.": {
@@ -1680,55 +1636,55 @@
         "fr_auto": "URL non valide"
     },
     "Administrators (edit library and manage users)": {
-        "fr": "",
+        "fr": "Administrateurs (modifier la bibliothèque et gérer les utilisateurs)",
         "fr_auto": "Administrateurs (modifier la bibliothèque et gérer les utilisateurs)"
     },
     "Contributors (edit library)": {
-        "fr": "",
+        "fr": "Contributeurs (modifier la bibliothèque)",
         "fr_auto": "Contributeurs (modifier la bibliothèque)"
     },
     "Viewers (read-only access)": {
-        "fr": "",
+        "fr": "Utilisateurs avec accès en lecture seule",
         "fr_auto": "Visionneuses (accès en lecture seule)"
     },
     "The same user cannot be in multiple roles.": {
-        "fr": "",
+        "fr": "Le même utilisateur ne peut pas avoir accès à plusieurs rôles.",
         "fr_auto": "Le même utilisateur ne peut pas être dans plusieurs rôles."
     },
     "text only": {
-        "fr": "",
+        "fr": "texte seulement",
         "fr_auto": "texte seulement"
     },
     "Fetching URL...": {
-        "fr": "",
+        "fr": "Extraction de l’URL...",
         "fr_auto": "Extraction de l’URL..."
     },
     "Reading file...": {
-        "fr": "",
+        "fr": "Lecture du fichier...",
         "fr_auto": "Lecture du fichier..."
     },
     "Extracting text...": {
-        "fr": "",
+        "fr": "Extraction de texte...",
         "fr_auto": "Extraction de texte..."
     },
     "Adding to library...": {
-        "fr": "",
+        "fr": "Ajout à la bibliothèque...",
         "fr_auto": "Ajouter à la bibliothèque..."
     },
     "Folders": {
-        "fr": "",
+        "fr": "Dossiers",
         "fr_auto": "Dossiers"
     },
     "Select a library to edit folders.": {
-        "fr": "",
+        "fr": "Sélectionnez une bibliothèque pour modifier les dossiers.",
         "fr_auto": "Sélectionnez une bibliothèque pour modifier les dossiers."
     },
     "New folder": {
-        "fr": "",
+        "fr": "Nouveau dossier",
         "fr_auto": "Nouveau dossier"
     },
     "No folders in this library.": {
-        "fr": "",
+        "fr": "Aucun dossier dans cette bibliothèque.",
         "fr_auto": "Aucun dossier dans cette bibliothèque."
     },
     "Documents": {
@@ -1740,7 +1696,7 @@
         "fr_auto": "Sélectionnez un dossier pour modifier les documents."
     },
     "Add URL": {
-        "fr": "",
+        "fr": "Ajouter une addresse URL",
         "fr_auto": "Ajouter une URL"
     },
     "Bulk actions": {
@@ -1748,19 +1704,19 @@
         "fr_auto": "Actions en bloc"
     },
     "Text only": {
-        "fr": "",
+        "fr": "Texte seulement",
         "fr_auto": "Texte seulement"
     },
     "(default, $)": {
-        "fr": "",
+        "fr": "(par défaut, $)",
         "fr_auto": "(par défaut, $)"
     },
     "(more robust, $$)": {
-        "fr": "",
+        "fr": "(plus robuste, $$)",
         "fr_auto": "(plus robuste, $$)"
     },
     "(best, $$$)": {
-        "fr": "",
+        "fr": "(meilleur, $$$)",
         "fr_auto": "(meilleur, $$$)"
     },
     "Stop all processing": {
@@ -1768,31 +1724,31 @@
         "fr_auto": "Arrêter tout traitement"
     },
     "No documents in this folder.": {
-        "fr": "",
+        "fr": "Aucun document dans ce dossier.",
         "fr_auto": "Aucun document dans ce dossier."
     },
     "You can only upload a maximum of": {
-        "fr": "",
+        "fr": "Vous ne pouvez téléverser qu’un maximum de",
         "fr_auto": "Vous ne pouvez télécharger qu’un maximum de"
     },
     "files per folder.": {
-        "fr": "",
+        "fr": "fiechiers par dossier.",
         "fr_auto": "par dossier."
     },
     "files remaining.": {
-        "fr": "",
+        "fr": "fichiers restants.",
         "fr_auto": "dossiers restants."
     },
     "You can only upload a total file size of": {
-        "fr": "",
+        "fr": "Vous ne pouvez téléverser q'une taille maximale de fichier de",
         "fr_auto": "Vous pouvez uniquement télécharger une taille de fichier totale de"
     },
     "at one time.": {
-        "fr": "",
+        "fr": "en même temps.",
         "fr_auto": "en même temps."
     },
     "Document status": {
-        "fr": "",
+        "fr": "État du document",
         "fr_auto": "État du document"
     },
     "Not started": {
@@ -1800,7 +1756,7 @@
         "fr_auto": "Non commencé"
     },
     "Cancelled": {
-        "fr": "",
+        "fr": "Annulé",
         "fr_auto": "Annulé"
     },
     "Queued": {
@@ -1808,47 +1764,47 @@
         "fr_auto": "En file d’attente"
     },
     "Processing": {
-        "fr": "",
+        "fr": "En cours de traitement",
         "fr_auto": "Traitement"
     },
     "Processed": {
-        "fr": "",
+        "fr": "Traité",
         "fr_auto": "Traitées"
     },
     "Error": {
-        "fr": "",
+        "fr": "Erreur",
         "fr_auto": "Erreur"
     },
     "Last fetched date": {
-        "fr": "",
+        "fr": "Date de la dernière extraction",
         "fr_auto": "Date de la dernière extraction"
     },
     "Filename": {
-        "fr": "",
+        "fr": "Nom du fichier",
         "fr_auto": "Nom de fichier"
     },
     "Detected content type": {
-        "fr": "",
+        "fr": "Type de contenu détecté",
         "fr_auto": "Type de contenu détecté"
     },
     "Extracted title": {
-        "fr": "",
+        "fr": "Titre extrait",
         "fr_auto": "Titre extrait"
     },
     "Extracted modification date": {
-        "fr": "",
+        "fr": "Date de modification extraite",
         "fr_auto": "Date de modification extraite"
     },
     "Number of chunks": {
-        "fr": "",
+        "fr": "Nombre de blocs",
         "fr_auto": "Nombre de blocs"
     },
     "Processing cost (cumulative)": {
-        "fr": "",
+        "fr": "Coût de traitement (cumulatif)",
         "fr_auto": "Coût de traitement (cumulatif)"
     },
     "Extracted text": {
-        "fr": "",
+        "fr": "Texte extrait",
         "fr_auto": "Texte extrait"
     },
     "View all": {
@@ -1856,63 +1812,63 @@
         "fr_auto": "Voir tout"
     },
     "Edit properties": {
-        "fr": "",
+        "fr": "Modifier les propriétés",
         "fr_auto": "Modifier les propriétés"
     },
     "Select a library, folder or document to edit.": {
-        "fr": "",
+        "fr": "Sélectionnez une bibliothèque, un dossier ou un document à modifier.",
         "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à modifier."
     },
     "Processing status": {
-        "fr": "",
+        "fr": "État de traitement",
         "fr_auto": "État de traitement"
     },
     "Stopped": {
-        "fr": "",
+        "fr": "Arrêté",
         "fr_auto": "Arrêté"
     },
     "Initializing": {
-        "fr": "",
+        "fr": "Initialisation",
         "fr_auto": "Initialisation"
     },
     "Success": {
-        "fr": "",
+        "fr": "Succès",
         "fr_auto": "Succès"
     },
     "Libraries": {
-        "fr": "",
+        "fr": "Bibliothèques",
         "fr_auto": "Bibliothèques"
     },
     "New library": {
-        "fr": "",
+        "fr": "Nouvelle bibliothèque",
         "fr_auto": "Nouvelle bibliothèque"
     },
     "Libraries you can edit will appear here.": {
-        "fr": "",
+        "fr": "Les bibliothèques que vous pourrez modifier apparaîtront ici.",
         "fr_auto": "Les bibliothèques que vous pouvez modifier apparaîtront ici."
     },
     "JUS library": {
-        "fr": "",
+        "fr": "Bibliothèque JUS",
         "fr_auto": "Bibliothèque JUS"
     },
     "Personal library": {
-        "fr": "",
+        "fr": "Bibliothèque personnelle",
         "fr_auto": "Bibliothèque personnelle"
     },
     "Edit folder": {
-        "fr": "",
+        "fr": "Modifier le dossier",
         "fr_auto": "Modifier le dossier"
     },
     "Create folder": {
-        "fr": "",
+        "fr": "Créer un dossier",
         "fr_auto": "Créer un dossier"
     },
     "Name (English)": {
-        "fr": "",
+        "fr": "Nom (anglais)",
         "fr_auto": "Nom (anglais)"
     },
     "Name (French)": {
-        "fr": "",
+        "fr": "Nom (français)",
         "fr_auto": "Nom (français)"
     },
     "Security label ": {
@@ -1920,19 +1876,19 @@
         "fr_auto": "Étiquette de sécurité "
     },
     "Order": {
-        "fr": "",
+        "fr": "Ordre",
         "fr_auto": "Ordre"
     },
     "DANGER: Are you sure you want to delete this folder? This action is permanent.": {
-        "fr": "",
+        "fr": "DANGER : Êtes-vous sûr de vouloir supprimer ce dossier ? Cette action est permanente.",
         "fr_auto": "DANGER : Êtes-vous sûr de vouloir supprimer ce dossier ? Cette action est permanente."
     },
     "Edit document": {
-        "fr": "",
+        "fr": "Modifier le document",
         "fr_auto": "Modifier le document"
     },
     "Create document": {
-        "fr": "",
+        "fr": "Créer un document",
         "fr_auto": "Créer un document"
     },
     "URL": {
@@ -1940,91 +1896,91 @@
         "fr_auto": "L’URL"
     },
     "Open link in new tab": {
-        "fr": "",
+        "fr": "Ouvrir le lien dans un nouvel onglet",
         "fr_auto": "Ouvrir le lien dans le nouvel onglet"
     },
     "CSS selector (optional) ": {
-        "fr": "",
+        "fr": "Sélecteur CSS (facultatif) ",
         "fr_auto": "Sélecteur CSS (facultatif) "
     },
     "Title (optional)": {
-        "fr": "",
+        "fr": "Titre (facultatif)",
         "fr_auto": "Titre (facultatif)"
     },
     "DANGER: Are you sure you want to delete this document? This action is permanent.": {
-        "fr": "",
+        "fr": "DANGER : Êtes-vous sûr de vouloir supprimer ce document ? Cette action est permanente.",
         "fr_auto": "DANGER : Êtes-vous sûr de vouloir supprimer ce document ? Cette action est permanente."
     },
     "Edit library": {
-        "fr": "",
+        "fr": "Modifier la bibliothèque",
         "fr_auto": "Modifier la bibliothèque"
     },
     "Create library": {
-        "fr": "",
+        "fr": "Créer une bibliothèque",
         "fr_auto": "Créer une bibliothèque"
     },
     "Visible to all JUS users": {
-        "fr": "",
+        "fr": "Visible par tous les utilisateurs du ministère",
         "fr_auto": "Visible par tous les utilisateurs de JUS"
     },
     "DANGER: Are you sure you want to delete this library? This action is permanent.": {
-        "fr": "",
+        "fr": "DANGER : Êtes-vous sûr de vouloir supprimer cette bibliothèque ? Cette action est permanente.",
         "fr_auto": "DANGER : Êtes-vous sûr de vouloir supprimer cette bibliothèque ? Cette action est permanente."
     },
     "Save users": {
-        "fr": "",
+        "fr": "Enregistrer les utilisateurs",
         "fr_auto": "Enregistrer les utilisateurs"
     },
     "Document updated successfully.": {
-        "fr": "",
+        "fr": "Document mis à jour avec succès.",
         "fr_auto": "Document mis à jour avec succès."
     },
     "Document created successfully.": {
-        "fr": "",
+        "fr": "Document créé avec succès.",
         "fr_auto": "Document créé avec succès."
     },
     "Document deleted successfully.": {
-        "fr": "",
+        "fr": "Document supprimé avec succès.",
         "fr_auto": "Document supprimé avec succès."
     },
     "Folder updated successfully.": {
-        "fr": "",
+        "fr": "Dossier mis à jour avec succès.",
         "fr_auto": "Dossier mis à jour avec succès."
     },
     "Folder created successfully.": {
-        "fr": "",
+        "fr": "Dossier créé avec succès.",
         "fr_auto": "Dossier créé avec succès."
     },
     "Folder deleted successfully.": {
-        "fr": "",
+        "fr": "Dossier supprimé avec succès.",
         "fr_auto": "Dossier supprimé avec succès."
     },
     "Library updated successfully.": {
-        "fr": "",
+        "fr": "Bibliothèque mise à jour avec succès.",
         "fr_auto": "Bibliothèque mise à jour avec succès."
     },
     "Library created successfully.": {
-        "fr": "",
+        "fr": "Bibliothèque créée avec succès.",
         "fr_auto": "Bibliothèque créée avec succès."
     },
     "Library deleted successfully.": {
-        "fr": "",
+        "fr": "Bibliothèque supprimée avec succès.",
         "fr_auto": "Bibliothèque supprimée avec succès."
     },
     "Library users updated successfully.": {
-        "fr": "",
+        "fr": "Les utilisateurs de la bibliothèque ont été mis à jour avec succès.",
         "fr_auto": "Les utilisateurs de la bibliothèque ont été mis à jour avec succès."
     },
     "Unsaved document": {
-        "fr": "",
+        "fr": "Document non sauvegardé",
         "fr_auto": "Document non sauvetillé"
     },
     "Unsaved folder": {
-        "fr": "",
+        "fr": "Dossier non sauvegardé",
         "fr_auto": "Dossier non sauveté"
     },
     "Type": {
-        "fr": "",
+        "fr": "Type",
         "fr_auto": "Type"
     },
     "Add notes or addition details.": {
@@ -2040,7 +1996,7 @@
         "fr_auto": "Établissement de rapports"
     },
     "Feedback": {
-        "fr": "",
+        "fr": "Rétroaction",
         "fr_auto": "Commentaires"
     },
     "Bug": {
@@ -2052,7 +2008,7 @@
         "fr_auto": "Assistant de modèle"
     },
     "Text Extractor": {
-        "fr": "",
+        "fr": "Extracteur de texte",
         "fr_auto": "Extracteur de texte"
     },
     "Empowering Justice efficiency with data and AI": {
@@ -2060,15 +2016,15 @@
         "fr_auto": "Renforcer l’efficacité de la justice avec les données et l’IA"
     },
     "Skip to main content": {
-        "fr": "",
+        "fr": "Passer au contenu principal",
         "fr_auto": "Passer au contenu principal"
     },
     "Smiling robot head": {
-        "fr": "",
+        "fr": "Tête de robot souriante",
         "fr_auto": "Tête de robot souriante"
     },
     "Toggle user menu": {
-        "fr": "",
+        "fr": "Basculer le menu",
         "fr_auto": "Basculer le menu utilisateur"
     },
     "Breadcrumb": {
@@ -2076,19 +2032,19 @@
         "fr_auto": "Fil d’Ariane"
     },
     "Manage users": {
-        "fr": "",
+        "fr": "Gérer les utilisateurs",
         "fr_auto": "Gérer les utilisateurs"
     },
     "Blocked URLs": {
-        "fr": "",
+        "fr": "URL bloquées",
         "fr_auto": "URL bloquées"
     },
     "Blocked URLs - Otto": {
-        "fr": "",
+        "fr": "URL bloquées - Otto",
         "fr_auto": "URL bloquées - Otto"
     },
     "Domain": {
-        "fr": "",
+        "fr": "Domaine",
         "fr_auto": "Domaine"
     },
     "Requests": {
@@ -2120,7 +2076,7 @@
         "fr_auto": "Enregistrer la note"
     },
     "Last modified:": {
-        "fr": "",
+        "fr": "Dernière modification :",
         "fr_auto": "Dernière modification :"
     },
     "Click on a row to view more information about the feedback received, to flag the feedback as resolved or to contact the user directly.": {
@@ -2136,19 +2092,19 @@
         "fr_auto": "Navigation dans la page des résultats des commentaires."
     },
     "Previous": {
-        "fr": "",
+        "fr": "Précédent",
         "fr_auto": "Précédent"
     },
     "Next": {
-        "fr": "",
+        "fr": "Suivant",
         "fr_auto": "Suivant"
     },
     "Total received": {
-        "fr": "",
+        "fr": "Total reçu",
         "fr_auto": "Total reçu"
     },
     "Total resolved": {
-        "fr": "",
+        "fr": "Total résolu",
         "fr_auto": "Total résolu"
     },
     "Total negative chat comment(s)": {
@@ -2176,7 +2132,7 @@
         "fr_auto": "Danger :"
     },
     "Notifications": {
-        "fr": "",
+        "fr": "Notifications",
         "fr_auto": "Notifications"
     },
     "For use in the CSV. Use only lowercase characters and underscores, e.g. 'lsb_drafting'": {
@@ -2188,7 +2144,7 @@
         "fr_auto": "Êtes-vous sûr de vouloir supprimer ce pilote ?"
     },
     "Search": {
-        "fr": "",
+        "fr": "Recherche",
         "fr_auto": "Recherche"
     },
     "Load testing URL is enabled": {
@@ -2291,52 +2247,56 @@
         "fr": "",
         "fr_auto": "Type de rétroaction"
     },
+    "All": {
+        "fr": "",
+        "fr_auto": "Tous"
+    },
     "Warning:": {
         "fr": "",
         "fr_auto": "Avertissement :"
     },
     "Welcome to the Otto Protected B pilot.": {
-        "fr": "",
+        "fr": "Bienvenue au projet pilote Otto Protégé B.",
         "fr_auto": "Bienvenue au pilote Otto Protected B."
     },
     "Welcome to the Otto pilot development / test environment.": {
-        "fr": "",
+        "fr": "Bienvenue dans l’environnement de développement / test pilote Otto.",
         "fr_auto": "Bienvenue dans l’environnement de développement / test pilote Otto."
     },
     "Please abide by the": {
-        "fr": "",
+        "fr": "Veuillez respecter les",
         "fr_auto": "S’il vous plaît respecter le"
     },
     "terms of use": {
-        "fr": "",
+        "fr": "conditions d’utilisation",
         "fr_auto": "conditions d’utilisation"
     },
     "report issues or suggest improvements by": {
-        "fr": "",
+        "fr": "signaler des problèmes ou suggérer des améliorations en :",
         "fr_auto": "signaler les problèmes ou suggérer des améliorations en :"
     },
     "leaving feedback": {
-        "fr": "",
+        "fr": "laissant des commentaires",
         "fr_auto": "laisser de la rétroaction"
     },
     "and be patient as we resolve issues.": {
-        "fr": "",
+        "fr": "et veuillez faire preuve de patience pendant que nous résolvons les problèmes signalés.",
         "fr_auto": "et soyez patient lorsque nous résolvons les problèmes."
     },
     "Manage pilots": {
-        "fr": "",
+        "fr": "Gérer les projets pilotes",
         "fr_auto": "Gérer les pilotes"
     },
     "Manage pilots - Otto": {
-        "fr": "",
+        "fr": "Gérer les projets pilotes - Otto",
         "fr_auto": "Gérer les pilotes - Otto"
     },
     "Add pilot": {
-        "fr": "",
+        "fr": "Ajouter un projet pilote",
         "fr_auto": "Ajouter un pilote"
     },
     "Name": {
-        "fr": "",
+        "fr": "Nom",
         "fr_auto": "Nom"
     },
     "Pilot ID": {
@@ -2823,8 +2783,8 @@
         "fr": "",
         "fr_auto": "Téléchargez tous les fichiers..."
     },
-    "Adding to the Q&A library": {
+    "Untitled document": {
         "fr": "",
-        "fr_auto": "Ajout à la bibliothèque de questions et réponses"
+        "fr_auto": "Document sans titre"
     }
 }

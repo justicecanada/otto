@@ -167,3 +167,9 @@ class Law(models.Model):
     def get_index(cls):
         idx = OttoLLM().get_index("laws_lois__")
         return idx
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["title"]),
+            models.Index(fields=["type"]),
+        ]
