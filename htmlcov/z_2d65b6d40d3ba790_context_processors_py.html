@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_2d65b6d40d3ba790_forms_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-02-14 14:32 +0000
+            created at 2025-02-14 15:32 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -94,17 +94,16 @@
     <p class="pln"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t">        <span class="com"># Get just the date from the datetime object</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t">        <span class="nam">build_date</span> <span class="op">=</span> <span class="nam">settings</span><span class="op">.</span><span class="nam">OTTO_BUILD_DATE</span><span class="op">.</span><span class="nam">strftime</span><span class="op">(</span><span class="str">"%Y-%m-%d"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t">        <span class="nam">version_html</span> <span class="op">=</span> <span class="fst">f"""</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t"><span class="fst">        &lt;small class="text-muted </span><span class="op">{</span><span class="str">'d-none'</span> <span class="key">if</span> <span class="key">not</span> <span class="nam">request</span><span class="op">.</span><span class="nam">user</span><span class="op">.</span><span class="nam">has_perm</span><span class="op">(</span><span class="str">"otto.view_github_link"</span><span class="op">)</span> <span class="key">else</span> <span class="str">''</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t"><span class="fst">            id="otto-version"></span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t"><span class="fst">            &lt;a href="</span><span class="op">{</span><span class="nam">hash_github_url</span><span class="op">}</span><span class="fst">" target="_blank" class="text-muted text-decoration-none"></span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t"><span class="fst">                v</span><span class="op">{</span><span class="nam">build_date</span><span class="op">}</span><span class="fst">&lt;/a>/</span><span class="op">{</span><span class="nam">environment</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t"><span class="fst">        &lt;/small></span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t"><span class="fst">        </span><span class="fst">"""</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">    <span class="key">return</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t">        <span class="str">"environment"</span><span class="op">:</span> <span class="nam">environment</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t">        <span class="str">"otto_version"</span><span class="op">:</span> <span class="nam">version_html</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t">        <span class="str">"load_test_enabled"</span><span class="op">:</span> <span class="nam">cache</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"load_testing_enabled"</span><span class="op">,</span> <span class="key">False</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t">    <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t"><span class="fst">        &lt;small class="text-muted" id="otto-version"></span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t"><span class="fst">            v</span><span class="op">{</span><span class="nam">build_date</span><span class="op">}</span><span class="fst">/</span><span class="op">{</span><span class="nam">environment</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t"><span class="fst">            &lt;a href="</span><span class="op">{</span><span class="nam">hash_github_url</span><span class="op">}</span><span class="fst">" class="d-none">Hidden GitHub Link&lt;/a></span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t"><span class="fst">        &lt;/small></span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t"><span class="fst">        </span><span class="fst">"""</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t">    <span class="key">return</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">        <span class="str">"environment"</span><span class="op">:</span> <span class="nam">environment</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t">        <span class="str">"otto_version"</span><span class="op">:</span> <span class="nam">version_html</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t">        <span class="str">"load_test_enabled"</span><span class="op">:</span> <span class="nam">cache</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">"load_testing_enabled"</span><span class="op">,</span> <span class="key">False</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t">    <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -114,7 +113,7 @@
             <a class="nav" href="z_2d65b6d40d3ba790_forms_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-02-14 14:32 +0000
+            created at 2025-02-14 15:32 +0000
         </p>
     </div>
 </footer>
