@@ -21,7 +21,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import check_for_language
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 import tldextract
@@ -127,7 +127,6 @@ def topnav_search_inner(request):
     )
 
 
-@csrf_protect
 def terms_of_use(request):
 
     if request.method == "POST":
@@ -150,8 +149,6 @@ def terms_of_use(request):
     )
 
 
-@csrf_protect
-@login_required
 def feedback_message(request: HttpRequest, message_id=None):
     if message_id == "None":
         message_id = None
@@ -322,7 +319,6 @@ def feedback_download(request):
     return response
 
 
-@login_required
 def notification(request, notification_id):
     """
     For handling deleting of notifications
@@ -335,21 +331,21 @@ def notification(request, notification_id):
     return notifications(request, hide=no_more_notifications)
 
 
-@login_required
 def notifications(request, hide=False):
     """
     Updates the notifications badge and list of notifications
     e.g. on page load, after notification icon clicked, during polling, etc.
     """
+    notifications = request.user.notifications.all().order_by("-created_at")
     return render(
         request,
         "components/notifications_update.html",
         {
-            "notifications": request.user.notifications.all().order_by("-created_at"),
+            "notifications": notifications,
             # Expand the notifications dropdown if there are any errors
-            "show_notifications": request.user.notifications.filter(
-                category="error"
-            ).exists(),
+            "show_notifications": any(
+                n for n in notifications if n.category == "error"
+            ),
             "hide_notifications": hide,
         },
     )

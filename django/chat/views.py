@@ -1,4 +1,5 @@
 import json
+import re
 from urllib.parse import quote
 
 from django.contrib import messages
@@ -22,6 +23,7 @@ from structlog.contextvars import bind_contextvars
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm
 from chat.llm import OttoLLM
 from chat.models import (
+    AnswerSource,
     Chat,
     ChatFile,
     ChatOptions,
@@ -114,17 +116,25 @@ def chat(request, chat_id):
 
     chat = (
         Chat.objects.filter(id=chat_id)
-        .prefetch_related("options", "data_source")
+        .prefetch_related(
+            "options",
+            "options__qa_library",
+            "options__qa_data_sources",
+            "options__qa_documents",
+        )
         .first()
     )
 
     if not chat:
         return new_chat(request)
-    chat.accessed_at = timezone.now()
-    chat.save()
+    Chat.objects.filter(id=chat_id).update(accessed_at=timezone.now())
 
     # Get chat messages ready
-    messages = Message.objects.filter(chat=chat).order_by("id")
+    messages = (
+        Message.objects.filter(chat=chat)
+        .order_by("date_created")
+        .prefetch_related("answersource_set", "files")
+    )
     for message in messages:
         if message.is_bot:
             message.json = json.dumps(message.text)
@@ -698,12 +708,11 @@ def set_security_label(request, chat_id, security_label_id):
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def message_sources(request, message_id):
-    import re
-
-    message = Message.objects.get(id=message_id)
     sources = []
 
-    for source in message.sources.all():
+    for source in AnswerSource.objects.prefetch_related(
+        "document", "document__data_source", "document__data_source__library"
+    ).filter(message_id=message_id):
         source_text = str(source.node_text)
 
         def replace_page_tags(match):
@@ -724,7 +733,7 @@ def message_sources(request, message_id):
     return render(
         request,
         "chat/modals/sources_modal_inner.html",
-        {"message": message, "sources": sources},
+        {"message_id": message_id, "sources": sources},
     )
 
 

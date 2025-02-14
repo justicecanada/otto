@@ -1,10 +1,9 @@
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 from django import forms
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.forms import ModelForm
-from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
@@ -43,7 +42,6 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
             raise ValueError("User must be provided to GroupedLibraryChoiceField")
         super().__init__(queryset=Library.objects.all(), *args, **kwargs)
         logger.debug(f"GroupedLibraryChoiceField initialized with user: {self.user}")
-        logger.debug(f"Initial queryset count: {self.queryset.count()}")
 
     def get_grouped_choices(self):
         logger.debug(f"get_grouped_choices called for user: {self.user}")
@@ -200,26 +198,46 @@ class DocumentsAutocomplete(HTMXAutoComplete):
     model = Document
 
     def get_items(self, search=None, values=None):
+        vals = [
+            "id",
+            "manual_title",
+            "extracted_title",
+            "generated_title",
+            "filename",
+            "url",
+        ]
         request = get_request()
         library_id = request.GET.get("library_id", None)
-        if library_id:
-            data = Document.objects.filter(data_source__library_id=library_id)
-        else:
-            data = Document.objects.all()
+        data = (
+            Document.objects.filter(data_source__library_id=library_id).values(*vals)
+            if library_id
+            else Document.objects.all().values(*vals)
+        )
+
+        def label(x):
+            return (
+                x["manual_title"]
+                or x["extracted_title"]
+                or x["generated_title"]
+                or x["filename"]
+                or x["url"]
+                or _("Untitled document")
+            )
+
+        def format_item(x):
+            return {
+                "label": label(x),
+                "value": str(x["id"]),
+            }
+
         if search is not None:
-            items = [
-                {"label": str(x), "value": str(x.id)}
+            return [
+                format_item(x)
                 for x in data
-                if search == "" or str(search).upper() in f"{x}".upper()
+                if search == "" or str(search).upper() in label(x).upper()
             ]
-            return items
         if values is not None:
-            items = [
-                {"label": str(x), "value": str(x.id)}
-                for x in data
-                if str(x.id) in values
-            ]
-            return items
+            return [format_item(x) for x in data if str(x["id"]) in values]
 
         return []
 

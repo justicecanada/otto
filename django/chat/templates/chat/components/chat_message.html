@@ -53,10 +53,8 @@
              href="#"
              onclick="this.closest('.message-outer').classList.add('show-all'); return false;">{% trans "Show all..." %}<i class="bi bi-chevron-down ms-1 small"></i></a>
         </div>
-        {% if message.sources %}
-          {% with sources=message.sources %}
-            {% include "chat/components/message_sources.html" %}
-          {% endwith %}
+        {% if message.has_sources %}
+          {% include "chat/components/message_sources.html" %}
         {% endif %}
       </div>
     </div>

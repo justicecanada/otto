@@ -516,9 +516,9 @@ class SavedFile(models.Model):
 def data_source_post_delete(sender, instance, **kwargs):
     try:
         # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
-        library = instance.library
-        library.accessed_at = timezone.now()
-        library.save()
+        Library.objects.filter(pk=instance.library.pk).update(
+            accessed_at=timezone.now()
+        )
     except Exception as e:
         logger.error(f"Data source post delete error: {e}")
 
@@ -526,10 +526,10 @@ def data_source_post_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=DataSource)
 def data_source_post_save(sender, instance, **kwargs):
     try:
-        library = instance.library
         # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
-        library.accessed_at = timezone.now()
-        library.save()
+        Library.objects.filter(pk=instance.library.pk).update(
+            accessed_at=timezone.now()
+        )
     except Exception as e:
         logger.error(f"Data source post save error: {e}")
 
@@ -538,9 +538,9 @@ def data_source_post_save(sender, instance, **kwargs):
 def document_post_save(sender, instance, **kwargs):
     try:
         # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
-        library = instance.data_source.library
-        library.accessed_at = timezone.now()
-        library.save()
+        Library.objects.filter(pk=instance.data_source.library.pk).update(
+            accessed_at=timezone.now()
+        )
     except Exception as e:
         logger.error(f"Document post save error: {e}")
 
@@ -552,8 +552,8 @@ def document_post_delete(sender, instance, **kwargs):
         if instance.file is not None:
             instance.file.safe_delete()
         # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
-        library = instance.data_source.library
-        library.accessed_at = timezone.now()
-        library.save()
+        Library.objects.filter(pk=instance.data_source.library.pk).update(
+            accessed_at=timezone.now()
+        )
     except Exception as e:
         logger.error(f"Document post delete error: {e}")
