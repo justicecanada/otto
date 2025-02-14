@@ -736,9 +736,13 @@ def message_sources(request, message_id):
                     modified_links.append(
                         source.document.url.split("/" + first_subdirectory)[0] + link
                     )
-                # if not the internal link is appended at the end of the source url
+                # if not the internal link is concatenated at the end of the source url
                 else:
-                    modified_links.append(source.document.url + link)
+                    # this is just to make the resulting link cleaner
+                    if link.startswith("/") and source.document.url.endswith("/"):
+                        modified_links.append(source.document.url + link[1:])
+                    else:
+                        modified_links.append(source.document.url + link)
             else:
                 modified_links.append(link)
 
