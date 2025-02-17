@@ -293,6 +293,10 @@ document.addEventListener("htmx:afterSwap", function (event) {
         var preprocessedText = sourcePreprocessing(targetElement.textContent);
         var renderedMarkdown = md.render(preprocessedText);
         targetElement.innerHTML = renderedMarkdown;
+
+        targetElement.querySelectorAll("a").forEach(function (link) {
+          link.setAttribute("target", "_blank");
+        });
       });
     });
   }
