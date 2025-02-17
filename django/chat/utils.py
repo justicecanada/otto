@@ -203,6 +203,11 @@ async def htmx_stream(
         out_string += "\n\n"  # End of SSE message
         return out_string
 
+    # Helper function to make references marked
+    def highlight_references(text):
+        pattern = re.compile(r"(?<=\s)(-\s*\S+\.pdf\s*\(page\s*\d+\))", re.IGNORECASE)
+        return pattern.sub(r"<mark>\1</mark>", text)
+
     ##############################
     # Start of the main function #
     ##############################
@@ -238,6 +243,7 @@ async def htmx_stream(
                         "library_str": chat.options.qa_library.name,
                     },
                 )
+
                 yield sse_string(
                     full_message,
                     wrap_markdown=False,
@@ -275,14 +281,14 @@ async def htmx_stream(
                     remove_stop=remove_stop or generation_stopped,
                 )
             await asyncio.sleep(0.01)
-
+        full_message = highlight_references(full_message)
         yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
         await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
 
         message = await sync_to_async(Message.objects.get)(id=message_id)
-        message.text = full_message
+        message.text = highlight_references(full_message)
         await sync_to_async(message.save)()
 
         if is_untitled_chat:
