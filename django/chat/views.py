@@ -166,7 +166,6 @@ def chat(request, chat_id):
     # END INSURANCE CODE
 
     mode = chat.options.mode
-    from django.db.models import F
 
     # Get sidebar chat history list.
     # Don't show empty chats - these will be deleted automatically later.
@@ -200,6 +199,26 @@ def chat(request, chat_id):
         if not user_chat.security_label:
             user_chat.security_label_id = SecurityLabel.default_security_label().id
             user_chat.save()
+        if user_chat.messages.exists():
+            if (
+                user_chat.messages.last().date_created
+                > timezone.now() - timezone.timedelta(days=1)
+            ):
+                user_chat.last_activity = "today"
+            elif (
+                user_chat.messages.last().date_created
+                > timezone.now() - timezone.timedelta(days=7)
+            ):
+                user_chat.last_activity = "this_week"
+            elif (
+                user_chat.messages.last().date_created
+                > timezone.now() - timezone.timedelta(days=30)
+            ):
+                user_chat.last_activity = "this_month"
+            else:
+                user_chat.last_activity = "older"
+            user_chat.save()
+
     if llm:
         llm.create_costs()
 
@@ -239,6 +258,7 @@ def chat(request, chat_id):
         "user_chats": user_chats,
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
+        "chat_history_section": ["today", "this_week", "this_month", "older"],
     }
     return render(request, "chat/chat.html", context=context)
 

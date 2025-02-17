@@ -21,13 +21,16 @@
     </div>
     <div class="overflow-y-auto overflow-x-hidden p-3 pt-0 flex-grow-1"
          id="chat-history-list">
-      <ul class="list-unstyled my-0" id="chat-list">
-        {% for chat in user_chats %}
-          {% if chat.id %}
-            {% include 'chat/components/chat_list_item.html' %}
-          {% endif %}
-        {% endfor %}
-      </ul>
+      {% for section in chat_history_section %}
+        <h6 class="text-muted text-uppercase mb-3">{{ section }}</h6>
+        <ul class="list-unstyled my-0" id="chat-list">
+          {% for chat in user_chats %}
+            {% if chat.last_activity == section %}
+              {% include 'chat/components/chat_list_item.html' %}
+            {% endif %}
+          {% endfor %}
+        </ul>
+      {% endfor %}
     </div>
     <div class="p-3">
       <button type="button"
