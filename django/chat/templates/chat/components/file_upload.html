@@ -67,7 +67,8 @@
   let dropZone = document.querySelector('#file-dropzone');
   window.addEventListener('dragenter', handleDragEnter);
   dropZone.addEventListener('dragover', ePrevent);
-  dropZone.addEventListener('dragleave', handleDragLeave);
+  window.addEventListener('dragleave', handleDragLeave);
+  window.addEventListener('dragexit', handleDragLeave);
   dropZone.addEventListener('drop', onDrop);
 
   // Monitor the form #chat-file-form for changes
