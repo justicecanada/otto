@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db.models import Max
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -165,17 +166,27 @@ def chat(request, chat_id):
     # END INSURANCE CODE
 
     mode = chat.options.mode
+    from django.db.models import F
 
     # Get sidebar chat history list.
     # Don't show empty chats - these will be deleted automatically later.
     # The current chat is always shown, even if it's empty.
-    user_chats = (
+    user_chats = list(
         Chat.objects.filter(user=request.user, messages__isnull=False)
         .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
-        .order_by("-created_at")
     )
+
+    user_chats.sort(
+        key=lambda chat: (
+            chat.messages.latest("date_created").date_created
+            if chat.messages.exists()
+            else timezone.now()
+        ),
+        reverse=True,
+    )
+
     # Title chats in sidebar if necessary & set default labels
     llm = None
     for user_chat in user_chats:
