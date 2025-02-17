@@ -106,11 +106,15 @@ def delete_all_chats(request):
     return response
 
 
+import time
+
+
 def chat(request, chat_id):
     """
     Get the chat based on the provided chat ID.
     Returns read-only view if user does not have access.
     """
+    start_time = time.time()
 
     logger.info("Chat session retrieved.", chat_id=chat_id)
     bind_contextvars(feature="chat")
@@ -260,6 +264,11 @@ def chat(request, chat_id):
         "security_labels": SecurityLabel.objects.all(),
         "chat_history_section": ["today", "this_week", "this_month", "older"],
     }
+
+    end_time = time.time()  # End the timer
+    duration = end_time - start_time  # Calculate the duration
+    print(f"Chat view took {duration} seconds to load.")  # Print the duration
+
     return render(request, "chat/chat.html", context=context)
 
 
