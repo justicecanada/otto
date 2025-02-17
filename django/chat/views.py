@@ -1,4 +1,5 @@
 import json
+import re
 from urllib.parse import quote
 
 from django.contrib import messages
@@ -281,6 +282,7 @@ def chat_message(request, chat_id):
             "date_created": response_message.date_created
             + timezone.timedelta(seconds=1),
         }
+
     context = {
         "chat_messages": [
             user_message,
