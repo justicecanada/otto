@@ -107,7 +107,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 show_document_status = True
             else:
                 selected_data_source = get_object_or_404(DataSource, id=parent_id)
-        documents = list(selected_data_source.documents.all())
+        documents = list(selected_data_source.documents.defer("extracted_text").all())
         selected_library = selected_data_source.library
         data_sources = selected_library.folders
         if not item_id and not request.method == "DELETE":
@@ -142,7 +142,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 selected_data_source = form.instance
                 item_id = selected_data_source.id
                 selected_library = selected_data_source.library
-                documents = selected_data_source.documents.all()
+                documents = selected_data_source.documents.defer("extracted_text").all()
             else:
                 logger.error("Error updating folder:", errors=form.errors)
                 selected_library = get_object_or_404(Library, id=parent_id)
@@ -156,7 +156,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             if item_id:
                 selected_data_source = get_object_or_404(DataSource, id=item_id)
                 selected_library = selected_data_source.library
-                documents = selected_data_source.documents.all()
+                documents = selected_data_source.documents.defer("extracted_text").all()
             else:
                 selected_library = get_object_or_404(Library, id=parent_id)
         data_sources = list(selected_library.folders)
@@ -438,7 +438,7 @@ def document_stop(request, document_id):
 def data_source_stop(request, data_source_id):
     # Stop all celery tasks for documents within this data source
     data_source = get_object_or_404(DataSource, id=data_source_id)
-    for document in data_source.documents.all():
+    for document in data_source.documents.defer("extracted_text").all():
         if document.status in ["PENDING", "INIT", "PROCESSING"]:
             document.stop()
     return modal_view(request, item_type="data_source", item_id=data_source_id)
@@ -453,12 +453,12 @@ def data_source_start(request, data_source_id, pdf_method="default", scope="all"
     bind_contextvars(feature="librarian")
     data_source = get_object_or_404(DataSource, id=data_source_id)
     if scope == "all":
-        for document in data_source.documents.all():
+        for document in data_source.documents.defer("extracted_text").all():
             if document.status in ["PENDING", "INIT", "PROCESSING"]:
                 document.stop()
             document.process(pdf_method=pdf_method)
     elif scope == "incomplete":
-        for document in data_source.documents.all():
+        for document in data_source.documents.defer("extracted_text").all():
             if document.status in ["PENDING", "INIT", "PROCESSING"]:
                 document.stop()
             if document.status not in ["SUCCESS"]:

@@ -9,6 +9,7 @@
   {% if show_notifications %}
     <script>
     if (!document.getElementById("notifications-ul").classList.contains("show")) {
+      // TODO: Currently, this makes a redundant HTMX call to /notifications route
       document.getElementById("notifications-toggle").click();
     }
     </script>
