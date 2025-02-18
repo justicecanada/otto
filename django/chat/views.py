@@ -722,28 +722,27 @@ def message_sources(request, message_id):
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
 
         # Find all links in the node_text with the format [text](link)
-        links = re.findall(r"\[.*?\]\((.*?)\)", modified_text)
+        links = list(set(re.findall(r"\[.*?\]\((.*?)\)", modified_text)))
 
         # checks if there are internal links and merges them with the source url
-        modified_links = []
         for link in links:
             if link.startswith("/"):
                 # sometimes the internal link is followed by a space and some text like the name of the page
-                link = link.split(" ")[0]
-                first_subdirectory = link.split("/")[1]
+                internal_link = link.split(" ")[0]
+                first_subdirectory = internal_link.split("/")[1]
                 # if the first subdirectory of the internal link is in the source url, it is merged at that point
                 if "/" + first_subdirectory in source.document.url:
-                    modified_links.append(
-                        source.document.url.split("/" + first_subdirectory)[0] + link
+                    modified_link = (
+                        source.document.url.split("/" + first_subdirectory)[0]
+                        + internal_link
                     )
                 # if not the internal link is concatenated at the end of the source url
                 else:
-                    modified_links.append(source.document.url + link)
-            else:
-                modified_links.append(link)
-
-        for i in range(len(links)):
-            modified_text = modified_text.replace(links[i], modified_links[i])
+                    modified_link = source.document.url + internal_link
+                modified_text = modified_text.replace(link, modified_link)
+            elif link.startswith("#"):
+                modified_link = source.document.url + link
+                modified_text = modified_text.replace(link, modified_link)
 
         source_dict = {
             "citation": source.citation,

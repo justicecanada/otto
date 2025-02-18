@@ -275,13 +275,6 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-function sourcePreprocessing(text) {
-  // Remove occurrences of '[Top of page]'
-  text = text.replace(/\[Top of page\]/g, '');
-  // Remove occurrences of '(#wb-tphp)'
-  text = text.replace(/\(#wb-tphp\)/g, '');
-  return text;
-}
 
 // add markdown to sources when modal is opened
 document.addEventListener("htmx:afterSwap", function (event) {
@@ -290,8 +283,7 @@ document.addEventListener("htmx:afterSwap", function (event) {
       button.addEventListener('click', function () {
         var targetId = button.getAttribute('data-bs-target').substring(1);
         var targetElement = document.getElementById(targetId).querySelector('.markdown-text');
-        var preprocessedText = sourcePreprocessing(targetElement.textContent);
-        var renderedMarkdown = md.render(preprocessedText);
+        var renderedMarkdown = md.render(targetElement.textContent);
         targetElement.innerHTML = renderedMarkdown;
 
         targetElement.querySelectorAll("a").forEach(function (link) {
