@@ -37,7 +37,9 @@
         <div class="message-text">{% include "chat/components/message_files.html" %}</div>
       {% elif message.is_bot %}
         <div class="message-text">
-          <div class="markdown-text" data-md="{{ message.json }}">
+ 
+          <div class="markdown-text">
+            {{ message.json|safe }}
             {% if message.text == "" %}
               {% include "chat/components/default_error_messages.html" %}
             {% endif %}
@@ -45,7 +47,7 @@
         </div>
       {% else %}
         {# There cannot be any space between div.message-text and its contents (whitespace: pre-wrap) #}
-        <div class="message-text">{{ message.text|escape }}</div>
+        <div class="message-text">{{ message.text|safe }}</div>
       {% endif %}
       <div class="row">
         <div class="message-show-all col mt-2" style="line-height:1.75rem">

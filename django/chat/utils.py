@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 import markdown
@@ -205,8 +206,8 @@ async def htmx_stream(
 
     # Helper function to make references marked
     def highlight_references(text):
-        pattern = re.compile(r"(?<=\s)(-\s*\S+\.pdf\s*\(page\s*\d+\))", re.IGNORECASE)
-        return pattern.sub(r"<mark>\1</mark>", text)
+        pattern = re.compile(r"(-\s+[^<\n]+?\.pdf\s*\(page\s*\d+\))", re.IGNORECASE)
+        return pattern.sub(r"<strong><mark>\1</mark></strong>", text)
 
     ##############################
     # Start of the main function #
@@ -282,7 +283,13 @@ async def htmx_stream(
                 )
             await asyncio.sleep(0.01)
         full_message = highlight_references(full_message)
-        yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
+        converted = md.convert(full_message)
+        # Mark the final output as safe
+        final_output = mark_safe(converted)
+        yield sse_string(
+            final_output, wrap_markdown=False, dots=False, remove_stop=True
+        )
+        # yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
         await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
@@ -322,7 +329,8 @@ async def htmx_stream(
         context = {"message": message, "swap_oob": True}
 
     # Render the message template, wrapped in SSE format
-    context["message"].json = json.dumps(str(full_message))
+    # context["message"].json = json.dumps(str(full_message))
+    context["message"].json = final_output
     yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context
