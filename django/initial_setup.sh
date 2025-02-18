@@ -1,4 +1,6 @@
 #!/bin/sh
+celery -A otto worker -l INFO --pool=gevent --concurrency=256 &
+celery_pid=$!
 
 # Migrate
 echo "Applying migrations..."
@@ -37,4 +39,6 @@ fi
 echo "Loading localizations..."
 { python manage.py load_app_localization || { echo "Error: Loading localizations failed"; exit 1; } }
 
+kill $celery_pid
+wait $celery_pid
 echo "Initial setup completed successfully!"
