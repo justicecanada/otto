@@ -277,7 +277,7 @@ document.addEventListener("keydown", function (event) {
 
 
 document.addEventListener('click', function (event) {
-  if (event.target.classList?.contains('accordion-button')) {
+  if (event.target.classList.contains('accordion-button')) {
     var button = event.target;
     var targetId = button.getAttribute('data-bs-target').substring(1);
     var targetElement = document.getElementById(targetId).querySelector('.markdown-text');
