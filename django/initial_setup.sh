@@ -33,4 +33,8 @@ if [ -n "$OTTO_ADMIN" ]; then
     done
 fi
 
+# Load localizations
+echo "Loading localizations..."
+{ python manage.py load_app_localization || { echo "Error: Loading localizations failed"; exit 1; } }
+
 echo "Initial setup completed successfully!"

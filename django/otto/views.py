@@ -973,12 +973,14 @@ def user_cost(request):
     cost_tooltip = "${:.2f} / ${:.2f} {}<br>(${:.2f} {})".format(
         this_month_cost, monthly_max, _("this month"), today_cost, _("today")
     )
+    cost_tooltip_short = cost_tooltip.split("<br>")[0]
     return render(
         request,
         "components/user_cost.html",
         {
             "cost_percent": cost_percent,
             "cost_tooltip": cost_tooltip,
+            "cost_tooltip_short": cost_tooltip_short,
             "cost_label": _("User costs"),
         },
     )
