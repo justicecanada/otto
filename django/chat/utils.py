@@ -195,10 +195,13 @@ async def htmx_stream(
         sse_joiner = "\ndata: "
         if wrap_markdown:
             message = wrap_llm_response(message)
+
         if dots:
             message += dots
-        out_string = "data: "
+
+        out_string = "data: " + message
         out_string += sse_joiner.join(message.split("\n"))
+
         if remove_stop:
             out_string += "<div hx-swap-oob='true' id='stop-button'></div>"
         out_string += "\n\n"  # End of SSE message
@@ -244,6 +247,12 @@ async def htmx_stream(
                         "library_str": chat.options.qa_library.name,
                     },
                 )
+                # full_message = highlight_references(full_message)
+
+                # converted = md.convert(full_message)
+
+                # # Mark the final output as safe
+                # final_output = mark_safe(converted)
 
                 yield sse_string(
                     full_message,
@@ -256,11 +265,12 @@ async def htmx_stream(
 
             if response != "<|batchboundary|>":
                 if remove_stop or not cache.get(f"stop_response_{message_id}", False):
-                    full_message = response
+                    full_message = highlight_references(response)
                 elif not generation_stopped:
                     generation_stopped = True
                     if wrap_markdown:
                         full_message = close_md_code_blocks(full_message)
+                        # full_message = highlight_references(full_message)
                         stop_warning_message = f"\n\n_{stop_warning_message}_"
                     else:
                         stop_warning_message = f"<p><em>{stop_warning_message}</em></p>"
@@ -272,6 +282,7 @@ async def htmx_stream(
                 break
             # Avoid overwhelming client with markdown rendering:
             # slow down yields if the message is large
+            # full_message = highlight_references(full_message)  # this is not working
             length = len(full_message)
             yield_every = length // 2000 + 1
             if length < 1000 or length % yield_every == 0:
@@ -282,10 +293,13 @@ async def htmx_stream(
                     remove_stop=remove_stop or generation_stopped,
                 )
             await asyncio.sleep(0.01)
-        full_message = highlight_references(full_message)
-        converted = md.convert(full_message)
-        # Mark the final output as safe
-        final_output = mark_safe(converted)
+        # full_message = highlight_references(full_message) #works partially
+
+        # converted = md.convert(full_message)
+
+        # # Mark the final output as safe
+        # final_output = mark_safe(converted)
+        final_output = full_message
         yield sse_string(
             final_output, wrap_markdown=False, dots=False, remove_stop=True
         )
@@ -295,7 +309,7 @@ async def htmx_stream(
         await sync_to_async(llm.create_costs)()
 
         message = await sync_to_async(Message.objects.get)(id=message_id)
-        message.text = highlight_references(full_message)
+        message.text = full_message
         await sync_to_async(message.save)()
 
         if is_untitled_chat:
@@ -305,7 +319,7 @@ async def htmx_stream(
 
         # Update message text with markdown wrapper to pass to template
         if wrap_markdown:
-            message.text = wrap_llm_response(full_message)
+            message.text = wrap_llm_response(full_message)  # full_message)
         context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
         # Save sources and security label
@@ -330,7 +344,7 @@ async def htmx_stream(
 
     # Render the message template, wrapped in SSE format
     # context["message"].json = json.dumps(str(full_message))
-    context["message"].json = final_output
+    context["message"].json = json.dumps(str(full_message))
     yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context
