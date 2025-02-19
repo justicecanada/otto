@@ -276,23 +276,24 @@ document.addEventListener("keydown", function (event) {
 });
 
 
-// add markdown to sources when modal is opened
-document.addEventListener("htmx:afterSwap", function (event) {
-  if (event.detail?.target?.id === "sources-modal-inner") {
-    document.querySelectorAll('.accordion-button').forEach(function (button) {
-      button.addEventListener('click', function () {
-        var targetId = button.getAttribute('data-bs-target').substring(1);
-        var targetElement = document.getElementById(targetId).querySelector('.markdown-text');
-        var renderedMarkdown = md.render(targetElement.textContent);
-        targetElement.innerHTML = renderedMarkdown;
+document.addEventListener('click', function (event) {
+  if (event.target.classList?.contains('accordion-button')) {
+    var button = event.target;
+    var targetId = button.getAttribute('data-bs-target').substring(1);
+    var targetElement = document.getElementById(targetId).querySelector('.markdown-text');
 
-        targetElement.querySelectorAll("a").forEach(function (link) {
-          link.setAttribute("target", "_blank");
-        });
+    // this makes sure we don't re-render the markdown
+    if (!targetElement.dataset.rendered) {
+      var renderedMarkdown = md.render(targetElement.textContent);
+      targetElement.innerHTML = renderedMarkdown;
+      targetElement.querySelectorAll("a").forEach(function (link) {
+        link.setAttribute("target", "_blank");
       });
-    });
+      targetElement.dataset.rendered = true;
+    }
   }
 });
+
 
 // Message actions
 function thumbMessage(clickedBtn) {
