@@ -63,7 +63,7 @@
   let bs_tooltip = null;
   // On HTMX swap of the "user cost" widget, delete its tooltip
   document.body.addEventListener("htmx:afterSwap", function(event) {
-    if (event.target.id !== "cost-bar-outer") {
+    if (event.target.id !== "user-menu-cost") {
       return;
     } else if (bs_tooltip) {
       bs_tooltip.hide();
