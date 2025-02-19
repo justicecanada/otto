@@ -815,6 +815,10 @@ div#chat-toolbar {
   font-size: 0.95rem;
 }
 
+#sources-modal-inner .markdown-text * {
+  font-size: medium;
+}
+
 #prompt-form-resize-handle {
   position: absolute;
   top: -4px;
