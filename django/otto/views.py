@@ -976,11 +976,8 @@ def user_cost(request):
         if request_language == "fr"
         else "${:.2f} / ${:.2f} {}<br>(${:.2f} {})"
     )
-    period_text = "durant ce mois" if request_language == "fr" else "this month"
-    today_text = "aujourd'hui" if request_language == "fr" else "today"
-
     cost_tooltip = message.format(
-        this_month_cost, monthly_max, period_text, today_cost, today_text
+        this_month_cost, monthly_max, _("this month"), today_cost, _("today")
     )
 
     cost_tooltip_short = cost_tooltip.split("<br>")[0]
