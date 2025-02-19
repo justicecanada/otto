@@ -819,6 +819,15 @@ div#chat-toolbar {
   font-size: medium;
 }
 
+#sources-modal-inner .accordion-button:focus {
+  box-shadow: none;
+}
+
+#sources-modal-inner .accordion-button:not(.collapsed) {
+  background-color: white;
+  color: black;
+}
+
 #prompt-form-resize-handle {
   position: absolute;
   top: -4px;
