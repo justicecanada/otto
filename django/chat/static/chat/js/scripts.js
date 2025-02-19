@@ -277,19 +277,18 @@ document.addEventListener("keydown", function (event) {
 
 
 document.addEventListener('click', function (event) {
-  if (event.target.classList.contains('accordion-button')) {
-    var button = event.target;
+  var button = event.target.closest('.accordion-button');
+  if (button) {
     var targetId = button.getAttribute('data-bs-target').substring(1);
     var targetElement = document.getElementById(targetId).querySelector('.markdown-text');
-
-    // this makes sure we don't re-render the markdown
+    // Check if the content is already rendered
     if (!targetElement.dataset.rendered) {
       var renderedMarkdown = md.render(targetElement.textContent);
       targetElement.innerHTML = renderedMarkdown;
+      targetElement.dataset.rendered = true;
       targetElement.querySelectorAll("a").forEach(function (link) {
         link.setAttribute("target", "_blank");
       });
-      targetElement.dataset.rendered = true;
     }
   }
 });
