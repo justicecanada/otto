@@ -183,7 +183,7 @@ def chat(request, chat_id):
 
     user_chats.sort(
         key=lambda chat: (
-            chat.messages.latest("date_created").date_created
+            chat.messages.last().date_created
             if chat.messages.exists()
             else timezone.now()
         ),
