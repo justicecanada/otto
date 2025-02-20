@@ -707,6 +707,33 @@ def set_security_label(request, chat_id, security_label_id):
     )
 
 
+def highlight_claims(claims_list, text):
+    # match if the claims_list exist is text
+    # if if does, then highlight it with  <mark> tag
+    return "highlights will be done " + text
+
+from chat.llm import OttoLLM
+
+
+def extract_claims_from_llm(llm_response_text):
+    llm = OttoLLM()
+    prompt = f"""
+    Based on the following LLM response, extract key factual claims, including direct quotes.
+
+    Respond in the format:
+    <claim>whatever the claim is...</claim>
+    <claim>another claim...</claim>
+
+    etc.
+
+    ---
+    <llm_response>
+    {llm_response_text}
+    </llm_response>
+    """
+    claims_response = llm.generate_response(prompt)
+    return claims_response
+
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def message_sources(request, message_id):
     sources = []
@@ -721,6 +748,8 @@ def message_sources(request, message_id):
             return f"<span class='fw-semibold'>Page {page_number}</span>"
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        claims_list = ["claims made by llm"]  # source.claims_list
+        modified_text = highlight_claims(claims_list, modified_text)
 
         source_dict = {
             "citation": source.citation,

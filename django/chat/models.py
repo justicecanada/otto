@@ -515,6 +515,8 @@ class AnswerSource(models.Model):
     min_page = models.IntegerField(null=True)
     max_page = models.IntegerField(null=True)
 
+    claims_list = models.JSONField(default=list, blank=True)
+
     def __str__(self):
         return f"{self.citation} ({self.node_score:.2f})"
 
@@ -546,6 +548,26 @@ class AnswerSource(models.Model):
                 if row:
                     return row[0]
         return _("Source not available (document deleted or modified since message)")
+
+    @property
+    def update_claims_list(self):
+        """
+        Updates the claims_list field with all claims found in node_text.
+        """
+        from .views import extract_claims_from_llm
+
+        # Get the LLM response text
+        llm_response_text = self.node_text
+
+        # Extract claims from the LLM response
+        claims_response = extract_claims_from_llm(llm_response_text)
+
+        # Extract claims from the response with <claim> tags
+        claims = re.findall(r"<claim>(.*?)</claim>", claims_response, re.DOTALL)
+
+        # Update the claims_list field
+        self.claims_list = claims
+        self.save(update_fields=["claims_list"])
 
 
 class ChatFileManager(models.Manager):
