@@ -707,10 +707,24 @@ def set_security_label(request, chat_id, security_label_id):
     )
 
 
-def highlight_claims(claims_list, text):
+def highlight_claims(claims_list, text, threshold=80):
+    from rapidfuzz import fuzz, process
+
     # match if the claims_list exist is text
     # if if does, then highlight it with  <mark> tag
-    return "highlights will be done " + text
+    good_matches = []
+    for claim in claims_list:
+        score = fuzz.partial_ratio(text.lower(), claim.lower())
+        if score >= threshold:
+            good_matches.append(claim)
+
+    for match in good_matches:
+        if len(match) > 3:
+            text = text.replace(match, f"<mark>{match}</mark>")
+
+    return text
+    # return "highlights will be done " + text
+
 
 from chat.llm import OttoLLM
 
@@ -733,6 +747,7 @@ def extract_claims_from_llm(llm_response_text):
     """
     claims_response = llm.generate_response(prompt)
     return claims_response
+
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def message_sources(request, message_id):
