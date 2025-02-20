@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Start Celery worker to index corporate library
+celery -A otto worker -l INFO --pool=gevent --concurrency=256 &
+celery_pid=$!
+
 # Migrate
 echo "Applying migrations..."
 { python manage.py migrate || { echo "Error: Migrations failed"; exit 1; } }
@@ -36,5 +40,9 @@ fi
 # Load localizations
 echo "Loading localizations..."
 { python manage.py load_app_localization || { echo "Error: Loading localizations failed"; exit 1; } }
+
+# Kill Celery worker without leaving zombie
+kill $celery_pid
+wait $celery_pid
 
 echo "Initial setup completed successfully!"

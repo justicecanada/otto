@@ -863,7 +863,7 @@ class Command(BaseCommand):
             "DROP INDEX IF EXISTS laws_lois_node_id__idx;"
             "CREATE INDEX laws_lois_node_id__idx ON data_laws_lois__ (node_id);"
             "DROP INDEX IF EXISTS laws_lois_metadata__idx;"
-            "CREATE INDEX laws_metadata_index ON data_laws_lois__ USING GIN (metadata_);"
+            "CREATE INDEX laws_lois_metadata__idx ON data_laws_lois__ USING GIN (metadata_);"
             "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
             "CREATE INDEX ON data_laws_lois__ USING hnsw (embedding vector_cosine_ops) WITH (m='32', ef_construction='256');"
         )

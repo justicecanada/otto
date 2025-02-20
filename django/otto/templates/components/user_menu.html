@@ -26,6 +26,7 @@
     {{ request.user.full_name }}
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
+    <li class="d-none" id="user-menu-cost"></li>
     {% if request.user.is_admin %}
       <li>
         <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
@@ -62,7 +63,7 @@
   let bs_tooltip = null;
   // On HTMX swap of the "user cost" widget, delete its tooltip
   document.body.addEventListener("htmx:afterSwap", function(event) {
-    if (event.target.id !== "cost-bar-outer") {
+    if (event.target.id !== "user-menu-cost") {
       return;
     } else if (bs_tooltip) {
       bs_tooltip.hide();
