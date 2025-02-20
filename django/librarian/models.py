@@ -424,6 +424,13 @@ class Document(models.Model):
         )
 
     @property
+    def href_button(self):
+        return render_to_string(
+            "librarian/components/document_href.html",
+            {"document": self, "button": True},
+        )
+
+    @property
     def truncated_text(self):
         if self.extracted_text:
             truncated_text = self.extracted_text[:500]

@@ -743,3 +743,57 @@ def generate_prompt(task_or_prompt: str):
     ).strip()
 
     return generated_prompt, cost
+
+
+def fix_source_links(text, source_document_url):
+    def is_internal_link(link):
+        """
+        Check if the link is an internal link
+        TODO: Does this handle all cases? e.g., anchor tags, "this.html"?
+        """
+        return link.startswith("/")
+
+    def is_anchor_link(link):
+        return link.startswith("#")
+
+    def remove_link(text, link_tuple):
+        """
+        Replace the link with plain text of the link text: "[text](url)" -> "text"
+        """
+        return text.replace(f"[{link_tuple[0]}]({link_tuple[1]})", f"{link_tuple[0]}")
+
+    # Capture both the url and the text in a tuple, i.e., ('[text]', 'url')
+    links = re.findall(r"\[(.*?)\]\((.*?)\)", text)
+
+    # Check if there are internal links and merge them with the source URL
+    for link_tuple in links:
+        try:
+            # The URL itself is the second group
+            link = link_tuple[1]
+            if is_internal_link(link):
+                if not source_document_url:
+                    text = remove_link(text, link_tuple)
+                    continue
+                # Sometimes the internal link is followed by a space and some text like the name of the page
+                internal_link = link.split(" ")[0]
+                first_subdirectory = internal_link.split("/")[1]
+                # If the first subdirectory of the internal link is in the source url, it is merged at that point
+                if "/" + first_subdirectory in source_document_url:
+                    modified_link = (
+                        source_document_url.split("/" + first_subdirectory)[0]
+                        + internal_link
+                    )
+                # If not, the internal link is concatenated at the end of the source url
+                else:
+                    modified_link = source_document_url + internal_link
+                text = text.replace(link, modified_link)
+            elif is_anchor_link(link):
+                if source_document_url:
+                    modified_link = source_document_url + link
+                    text = text.replace(link, modified_link)
+                else:
+                    text = remove_link(text, link_tuple)
+        except:
+            continue
+
+    return text

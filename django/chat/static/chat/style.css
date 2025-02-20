@@ -821,6 +821,7 @@ div#chat-toolbar {
 
 #sources-modal-inner .accordion-button:focus {
   box-shadow: none;
+  outline: solid 2px;
 }
 
 #sources-modal-inner .accordion-button:not(.collapsed) {

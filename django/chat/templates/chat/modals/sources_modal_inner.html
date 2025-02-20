@@ -17,7 +17,7 @@
       <div id="sources-{{ message_id }}-text-{{ forloop.counter }}"
            class="accordion-collapse collapse">
         <div class="accordion-body scrolling-content" style="">
-          {% if source.document %}<div class="float-end ps-3 btn btn-light">{{ source.document.href|safe }}</div>{% endif %}
+          {% if source.document %}{{ source.document.href_button|safe }}{% endif %}
           <div class="markdown-text" style="white-space:pre-wrap">{{ source.node_text|safe }}</div>
         </div>
       </div>

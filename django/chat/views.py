@@ -35,6 +35,7 @@ from chat.utils import (
     bad_url,
     change_mode_to_chat_qa,
     copy_options,
+    fix_source_links,
     generate_prompt,
     title_chat,
 )
@@ -720,29 +721,7 @@ def message_sources(request, message_id):
             return f"<span class='fw-semibold'>Page {page_number}</span>"
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
-
-        # Find all links in the node_text with the format [text](link)
-        links = list(set(re.findall(r"\[.*?\]\((.*?)\)", modified_text)))
-
-        # checks if there are internal links and merges them with the source url
-        for link in links:
-            if link.startswith("/"):
-                # sometimes the internal link is followed by a space and some text like the name of the page
-                internal_link = link.split(" ")[0]
-                first_subdirectory = internal_link.split("/")[1]
-                # if the first subdirectory of the internal link is in the source url, it is merged at that point
-                if "/" + first_subdirectory in source.document.url:
-                    modified_link = (
-                        source.document.url.split("/" + first_subdirectory)[0]
-                        + internal_link
-                    )
-                # if not the internal link is concatenated at the end of the source url
-                else:
-                    modified_link = source.document.url + internal_link
-                modified_text = modified_text.replace(link, modified_link)
-            elif link.startswith("#"):
-                modified_link = source.document.url + link
-                modified_text = modified_text.replace(link, modified_link)
+        modified_text = fix_source_links(modified_text, source.document.url)
 
         source_dict = {
             "citation": source.citation,
