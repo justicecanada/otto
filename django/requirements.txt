@@ -64,7 +64,7 @@ python-docx==1.1.2
 # NLP (non-LLM) ----------------------------------------------------------------
 langdetect==1.0.9
 lxml==4.9.2
-langchain-text-splitters==0.3.6
+langchain-text-splitters==0.3.2
 
 # Data science -----------------------------------------------------------------
 pandas==2.2.3
