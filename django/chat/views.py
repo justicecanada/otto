@@ -745,7 +745,7 @@ def extract_claims_from_llm(llm_response_text):
     {llm_response_text}
     </llm_response>
     """
-    claims_response = llm.generate_response(prompt)
+    claims_response = llm.complete(prompt)
     return claims_response
 
 
@@ -756,6 +756,7 @@ def message_sources(request, message_id):
     for source in AnswerSource.objects.prefetch_related(
         "document", "document__data_source", "document__data_source__library"
     ).filter(message_id=message_id):
+        # source.update_claims_list()
         source_text = str(source.node_text)
 
         def replace_page_tags(match):
@@ -763,7 +764,7 @@ def message_sources(request, message_id):
             return f"<span class='fw-semibold'>Page {page_number}</span>"
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
-        claims_list = ["claims made by llm"]  # source.claims_list
+        claims_list = source.claims_list
         modified_text = highlight_claims(claims_list, modified_text)
 
         source_dict = {
