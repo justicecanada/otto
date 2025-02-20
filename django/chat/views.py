@@ -708,22 +708,34 @@ def set_security_label(request, chat_id, security_label_id):
 
 
 def highlight_claims(claims_list, text, threshold=80):
+    # match if the claims_list exist is text; if it does, then highlight it with  <mark> tag
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
     from rapidfuzz import fuzz
 
-    # match if the claims_list exist is text
-    # if it does, then highlight it with  <mark> tag
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=100,
+        chunk_overlap=20,
+        length_function=len,
+        is_separator_regex=False,
+    )
+
     good_matches = []
+    # Split the text into chunks
+    chunks = text_splitter.create_documents([text])
+
     for claim in claims_list:
-        score = fuzz.partial_ratio(text.lower(), claim.lower())
-        if score >= threshold:
-            good_matches.append(claim)
+        for chunk in chunks:
+            chunk_text = chunk.page_content
+            # Find fuzzy matches
+            score = fuzz.partial_ratio(chunk_text.lower(), claim.lower())
+            if score >= threshold:
+                good_matches.append(chunk_text)
 
     for match in good_matches:
         if len(match) > 3:
             text = text.replace(match, f"<mark>{match}</mark>")
 
     return text
-    # return "highlights will be done " + text
 
 
 from chat.llm import OttoLLM
@@ -746,7 +758,9 @@ def extract_claims_from_llm(llm_response_text):
     </llm_response>
     """
     claims_response = llm.complete(prompt)
-    return claims_response
+    # find the claim tags and add whats wrapped in the claim tags to a list
+    claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
+    return claims_list
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))

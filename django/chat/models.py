@@ -562,10 +562,10 @@ class AnswerSource(models.Model):
         claims_response = extract_claims_from_llm(llm_response_text)
 
         # Extract claims from the response with <claim> tags
-        claims = re.findall(r"<claim>(.*?)</claim>", claims_response, re.DOTALL)
+        # claims = re.findall(r"<claim>(.*?)</claim>", claims_response, re.DOTALL)
 
         # Update the claims_list field
-        self.claims_list = claims
+        self.claims_list = claims_response
         self.save(update_fields=["claims_list"])
 
 
