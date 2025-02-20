@@ -970,9 +970,16 @@ def user_cost(request):
     cost_percent = max(
         min(int(100 * this_month_cost / monthly_max if monthly_max else 0), 100), 1
     )
-    cost_tooltip = "${:.2f} / ${:.2f} {}<br>(${:.2f} {})".format(
+    request_language = request.LANGUAGE_CODE
+    message = (
+        "{:.2f}$ / {:.2f}$ {}<br>({:.2f}$ {})"
+        if request_language == "fr"
+        else "${:.2f} / ${:.2f} {}<br>(${:.2f} {})"
+    )
+    cost_tooltip = message.format(
         this_month_cost, monthly_max, _("this month"), today_cost, _("today")
     )
+
     cost_tooltip_short = cost_tooltip.split("<br>")[0]
     return render(
         request,
