@@ -708,10 +708,10 @@ def set_security_label(request, chat_id, security_label_id):
 
 
 def highlight_claims(claims_list, text, threshold=80):
-    from rapidfuzz import fuzz, process
+    from rapidfuzz import fuzz
 
     # match if the claims_list exist is text
-    # if if does, then highlight it with  <mark> tag
+    # if it does, then highlight it with  <mark> tag
     good_matches = []
     for claim in claims_list:
         score = fuzz.partial_ratio(text.lower(), claim.lower())
@@ -756,7 +756,7 @@ def message_sources(request, message_id):
     for source in AnswerSource.objects.prefetch_related(
         "document", "document__data_source", "document__data_source__library"
     ).filter(message_id=message_id):
-        # source.update_claims_list()
+
         source_text = str(source.node_text)
 
         def replace_page_tags(match):

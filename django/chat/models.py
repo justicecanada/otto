@@ -546,19 +546,18 @@ class AnswerSource(models.Model):
                 )
                 row = cursor.fetchone()
                 if row:
+                    self.update_claims_list(row[0])
                     return row[0]
         return _("Source not available (document deleted or modified since message)")
 
-    @property
-    def update_claims_list(self):
+    def update_claims_list(self, llm_response_text):
         """
         Updates the claims_list field with all claims found in node_text.
         """
         from .views import extract_claims_from_llm
 
-        # Get the LLM response text
-        llm_response_text = self.node_text
-
+        # # Get the LLM response text
+        # llm_response_text = self.node_text
         # Extract claims from the LLM response
         claims_response = extract_claims_from_llm(llm_response_text)
 
