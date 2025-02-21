@@ -11,7 +11,6 @@ from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.views import highlight_claims
 
 from data_fetcher.util import get_request
 from structlog import get_logger
@@ -22,7 +21,7 @@ from librarian.utils.process_engine import guess_content_type
 from otto.models import SecurityLabel, User
 from otto.utils.common import display_cad_cost, set_costs
 
-from .views import extract_claims_from_llm
+from .utils import extract_claims_from_llm, highlight_claims
 
 logger = get_logger(__name__)
 
