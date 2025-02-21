@@ -275,6 +275,25 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+
+document.addEventListener('click', function (event) {
+  var button = event.target.closest('.accordion-button');
+  if (button) {
+    var targetId = button.getAttribute('data-bs-target').substring(1);
+    var targetElement = document.getElementById(targetId).querySelector('.markdown-text');
+    // Check if the content is already rendered
+    if (!targetElement.dataset.rendered) {
+      var renderedMarkdown = md.render(targetElement.textContent);
+      targetElement.innerHTML = renderedMarkdown;
+      targetElement.dataset.rendered = true;
+      targetElement.querySelectorAll("a").forEach(function (link) {
+        link.setAttribute("target", "_blank");
+      });
+    }
+  }
+});
+
+
 // Message actions
 function thumbMessage(clickedBtn) {
   isThumbDown = clickedBtn.classList.contains("thumb-down");

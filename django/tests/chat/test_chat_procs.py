@@ -8,7 +8,12 @@ from bs4 import BeautifulSoup as bs
 
 from chat.llm import OttoLLM
 from chat.models import Chat, Message
-from chat.utils import htmx_stream, summarize_long_text_async, url_to_text
+from chat.utils import (
+    fix_source_links,
+    htmx_stream,
+    summarize_long_text_async,
+    url_to_text,
+)
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -26,6 +31,73 @@ def test_url_to_text():
     url = "http://aofwgyauhwfg.awfognahwofg/"
     text = url_to_text(url)
     assert text == ""
+
+
+def test_fix_source_links():
+    # test internal link where we need to clean the link text because of a resulting double slash when merging
+    # (e.g. https://travel.gc.ca/ instead of https://travel.gc.ca//travelling/advisories)
+    source_url = "https://travel.gc.ca/"
+    internal_link = "[Travel Advice and Advisories](/travelling/advisories)"
+    text_with_fixed_links = fix_source_links(internal_link, source_url)
+    assert (
+        text_with_fixed_links
+        == "[Travel Advice and Advisories](https://travel.gc.ca/travelling/advisories)"
+    )
+
+    # test internal link that needs to be merged at a specific point, in our case '/wiki/'
+    # (e.g https://en.wikipedia.org/wiki/Grapheme instead of https://en.wikipedia.org/wiki/Glyph/wiki/Grapheme)
+    source_url = "https://en.wikipedia.org/wiki/Glyph"
+    internal_link = '[grapheme](/wiki/Grapheme "Grapheme")'
+    text_with_fixed_links = fix_source_links(internal_link, source_url)
+    assert (
+        text_with_fixed_links
+        == '[grapheme](https://en.wikipedia.org/wiki/Grapheme "Grapheme")'
+    )
+
+    # Test internal links without source URL
+    source_url = ""
+    internal_link = '[grapheme](/wiki/Grapheme "Grapheme")'
+    text_with_fixed_links = fix_source_links(internal_link, source_url)
+    assert text_with_fixed_links == "grapheme"
+
+    # Test anchor links
+    source_url = "https://en.wikipedia.org/wiki/Glyph"
+    anchor_link = "[[2]](#cite_note-Whistler_et_al-3)"
+    text_with_fixed_links = fix_source_links(anchor_link, source_url)
+    assert (
+        text_with_fixed_links
+        == "[[2]](https://en.wikipedia.org/wiki/Glyph#cite_note-Whistler_et_al-3)"
+    )
+
+    # Test anchor links without source URL
+    source_url = ""
+    anchor_link = "[[2]](#cite_note-Whistler_et_al-3)"
+    text_with_fixed_links = fix_source_links(anchor_link, source_url)
+    assert text_with_fixed_links == "[2]"
+
+    # Test external links
+    source_url = "https://en.wikipedia.org/wiki/Glyph"
+    external_link = '[external](https://example.com "Example")'
+    text_with_fixed_links = fix_source_links(external_link, source_url)
+    assert text_with_fixed_links == '[external](https://example.com "Example")'
+
+    # Test mixed links
+    source_url = "https://en.wikipedia.org/wiki/Glyph"
+    mixed_links = '[grapheme](/wiki/Grapheme "Grapheme") and [external](https://example.com "Example")'
+    text_with_fixed_links = fix_source_links(mixed_links, source_url)
+    assert (
+        text_with_fixed_links
+        == '[grapheme](https://en.wikipedia.org/wiki/Grapheme "Grapheme") and [external](https://example.com "Example")'
+    )
+
+    # Test internal link with HTML file
+    source_url = "https://example.com/docs"
+    internal_html_link = '[documentation](this.html "Documentation")'
+    text_with_fixed_links = fix_source_links(internal_html_link, source_url)
+    assert (
+        text_with_fixed_links
+        == '[documentation](https://example.com/docs/this.html "Documentation")'
+    )
 
 
 @pytest.mark.django_db
