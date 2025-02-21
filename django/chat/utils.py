@@ -802,11 +802,14 @@ def fix_source_links(text, source_document_url):
             link = link_tuple[1]
             if not is_external_link(link):
                 if source_document_url:
-                    # Sometimes the internal link is followed by a space and some text like the name of the page, (e.g. /wiki/Grapheme "Grapheme")
+                    # Sometimes the internal link is followed by a space and some text like the name of the page
+                    # (e.g. /wiki/Grapheme "Grapheme")
                     link = link.split(" ")[0]
+                    # Merge the link with the source document URL
                     modified_link = merge_link_with_source(link, source_document_url)
                     text = text.replace(link, modified_link)
                 else:
+                    # makes sure we don't have unusable links in the text
                     text = remove_link(text, link_tuple)
                     continue
         except:
