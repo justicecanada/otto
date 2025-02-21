@@ -572,7 +572,6 @@ class AnswerSource(models.Model):
     min_page = models.IntegerField(null=True)
     max_page = models.IntegerField(null=True)
 
-    claims_list = models.JSONField(default=list, blank=True)
     highlighted_text = models.TextField(null=True, blank=True)  # Add this field
 
     def __str__(self):
@@ -620,11 +619,6 @@ class AnswerSource(models.Model):
         claims_response, cost = extract_claims_from_llm(
             llm_response_text
         )  # cost currently not displayed
-
-        # Update the claims_list field
-        self.claims_list = claims_response
-        self.save(update_fields=["claims_list"])
-
         # Highlight the claims in the text
         highlighted_text = highlight_claims(claims_response, llm_response_text)
         self.highlighted_text = highlighted_text
