@@ -195,13 +195,10 @@ async def htmx_stream(
         sse_joiner = "\ndata: "
         if wrap_markdown:
             message = wrap_llm_response(message)
-
         if dots:
             message += dots
-
-        out_string = "data: " + message
+        out_string = "data: "
         out_string += sse_joiner.join(message.split("\n"))
-
         if remove_stop:
             out_string += "<div hx-swap-oob='true' id='stop-button'></div>"
         out_string += "\n\n"  # End of SSE message

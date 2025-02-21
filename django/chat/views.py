@@ -738,9 +738,6 @@ def highlight_claims(claims_list, text, threshold=80):
     return text
 
 
-from chat.llm import OttoLLM
-
-
 def extract_claims_from_llm(llm_response_text):
     llm = OttoLLM()
     prompt = f"""
@@ -778,8 +775,8 @@ def message_sources(request, message_id):
             return f"<span class='fw-semibold'>Page {page_number}</span>"
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
-        claims_list = source.claims_list
-        modified_text = highlight_claims(claims_list, modified_text)
+        # claims_list = source.claims_list
+        # modified_text = highlight_claims(claims_list, modified_text)
 
         source_dict = {
             "citation": source.citation,

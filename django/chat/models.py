@@ -11,6 +11,7 @@ from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.views import highlight_claims
 
 from data_fetcher.util import get_request
 from structlog import get_logger
@@ -20,6 +21,8 @@ from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
 from otto.models import SecurityLabel, User
 from otto.utils.common import display_cad_cost, set_costs
+
+from .views import extract_claims_from_llm
 
 logger = get_logger(__name__)
 
@@ -516,6 +519,7 @@ class AnswerSource(models.Model):
     max_page = models.IntegerField(null=True)
 
     claims_list = models.JSONField(default=list, blank=True)
+    highlighted_text = models.TextField(null=True, blank=True)  # Add this field
 
     def __str__(self):
         return f"{self.citation} ({self.node_score:.2f})"
@@ -538,6 +542,9 @@ class AnswerSource(models.Model):
         """
         Lookup the node text from the vector DB
         """
+        if self.highlighted_text:
+            return self.highlighted_text
+
         if self.document:
             table_id = self.document.data_source.library.uuid_hex
             with connections["vector_db"].cursor() as cursor:
@@ -547,26 +554,25 @@ class AnswerSource(models.Model):
                 row = cursor.fetchone()
                 if row:
                     self.update_claims_list(row[0])
-                    return row[0]
+                    # return row[0]
+                    return self.highlighted_text
         return _("Source not available (document deleted or modified since message)")
 
     def update_claims_list(self, llm_response_text):
         """
         Updates the claims_list field with all claims found in node_text.
         """
-        from .views import extract_claims_from_llm
-
-        # # Get the LLM response text
-        # llm_response_text = self.node_text
         # Extract claims from the LLM response
         claims_response = extract_claims_from_llm(llm_response_text)
-
-        # Extract claims from the response with <claim> tags
-        # claims = re.findall(r"<claim>(.*?)</claim>", claims_response, re.DOTALL)
 
         # Update the claims_list field
         self.claims_list = claims_response
         self.save(update_fields=["claims_list"])
+
+        # Highlight the claims in the text
+        highlighted_text = highlight_claims(claims_response, llm_response_text)
+        self.highlighted_text = highlighted_text
+        self.save(update_fields=["highlighted_text"])
 
 
 class ChatFileManager(models.Manager):
