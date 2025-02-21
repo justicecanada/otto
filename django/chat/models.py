@@ -40,16 +40,26 @@ def create_chat_data_source(user, chat):
 
 
 def highlight_claims(claims_list, text, threshold=80):
+
+    from langchain_experimental.text_splitter import SemanticChunker
+    from langchain_openai.embeddings import OpenAIEmbeddings
+
     # match if the claims_list exist is text; if it does, then highlight it with  <mark> tag
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=100,
-        chunk_overlap=20,
-        length_function=len,
-        is_separator_regex=False,
+    # text_splitter = RecursiveCharacterTextSplitter(
+    #     chunk_size=100,
+    #     chunk_overlap=20,
+    #     length_function=len,
+    #     is_separator_regex=False,
+    # )
+    # text_splitter = SemanticChunker(OpenAIEmbeddings())
+    llm = OttoLLM()
+    text_splitter = SemanticChunker(
+        llm.embed_model, breakpoint_threshold_type="percentile"
     )
 
     good_matches = []
     # Split the text into chunks
+    # chunks = text_splitter.create_documents([text])
     chunks = text_splitter.create_documents([text])
 
     for claim in claims_list:
