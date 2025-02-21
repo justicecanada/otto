@@ -12,7 +12,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
@@ -723,8 +722,6 @@ def message_sources(request, message_id):
             return f"<span class='fw-semibold'>Page {page_number}</span>"
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
-        # claims_list = source.claims_list
-        # modified_text = highlight_claims(claims_list, modified_text)
 
         source_dict = {
             "citation": source.citation,
