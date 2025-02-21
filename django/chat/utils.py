@@ -766,6 +766,11 @@ def fix_source_links(text, source_document_url):
         """
         Merge the link with the source document URL based on conditions
         """
+
+        # Sometimes the internal link is followed by a space and some text like the name of the page
+        # (e.g. /wiki/Grapheme "Grapheme")
+        link = link.split(" ")[0]
+
         if link.startswith("/"):
             first_subdirectory = link.split("/")[1]
             # If the first subdirectory of the internal link is in the source url, it is merged at that point
@@ -802,9 +807,6 @@ def fix_source_links(text, source_document_url):
             link = link_tuple[1]
             if not is_external_link(link):
                 if source_document_url:
-                    # Sometimes the internal link is followed by a space and some text like the name of the page
-                    # (e.g. /wiki/Grapheme "Grapheme")
-                    link = link.split(" ")[0]
                     # Merge the link with the source document URL
                     modified_link = merge_link_with_source(link, source_document_url)
                     text = text.replace(link, modified_link)
