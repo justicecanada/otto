@@ -21,7 +21,7 @@ from librarian.utils.process_engine import guess_content_type
 from otto.models import SecurityLabel, User
 from otto.utils.common import display_cad_cost, set_costs
 
-from .utils import extract_claims_from_llm, highlight_claims
+from .views import extract_claims_from_llm, highlight_claims
 
 logger = get_logger(__name__)
 
