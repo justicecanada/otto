@@ -83,10 +83,14 @@ def extract_claims_from_llm(llm_response_text):
     {llm_response_text}
     </llm_response>
     """
+    # create costs
+    usd_cost = llm.create_costs()
+    cad_cost = display_cad_cost(usd_cost)
+
     claims_response = llm.complete(prompt)
     # find the claim tags and add whats wrapped in the claim tags to a list
     claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
-    return claims_list
+    return claims_list, cad_cost
 
 
 class ChatManager(models.Manager):
@@ -613,7 +617,9 @@ class AnswerSource(models.Model):
         Updates the claims_list field with all claims found in node_text.
         """
         # Extract claims from the LLM response
-        claims_response = extract_claims_from_llm(llm_response_text)
+        claims_response, cost = extract_claims_from_llm(
+            llm_response_text
+        )  # cost currently not displayed
 
         # Update the claims_list field
         self.claims_list = claims_response
