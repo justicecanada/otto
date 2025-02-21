@@ -291,6 +291,7 @@ def chat_message(request, chat_id):
             "date_created": response_message.date_created
             + timezone.timedelta(seconds=1),
         }
+
     context = {
         "chat_messages": [
             user_message,
@@ -713,6 +714,7 @@ def message_sources(request, message_id):
     for source in AnswerSource.objects.prefetch_related(
         "document", "document__data_source", "document__data_source__library"
     ).filter(message_id=message_id):
+
         source_text = str(source.node_text)
 
         def replace_page_tags(match):

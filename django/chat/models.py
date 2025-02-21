@@ -13,8 +13,11 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from data_fetcher.util import get_request
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from rapidfuzz import fuzz
 from structlog import get_logger
 
+from chat.llm import OttoLLM
 from chat.prompts import current_time_prompt
 from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
@@ -34,6 +37,60 @@ def create_chat_data_source(user, chat):
         library=user.personal_library,
         chat=chat,
     )
+
+
+def highlight_claims(claims_list, text, threshold=80):
+    # match if the claims_list exist is text; if it does, then highlight it with  <mark> tag
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=100,
+        chunk_overlap=20,
+        length_function=len,
+        is_separator_regex=False,
+    )
+
+    good_matches = []
+    # Split the text into chunks
+    chunks = text_splitter.create_documents([text])
+
+    for claim in claims_list:
+        for chunk in chunks:
+            chunk_text = chunk.page_content
+            # Find fuzzy matches
+            score = fuzz.partial_ratio(chunk_text.lower(), claim.lower())
+            if score >= threshold:
+                good_matches.append(chunk_text)
+
+    for match in good_matches:
+        if len(match) > 3:
+            text = text.replace(match, f"<mark>{match}</mark>")
+
+    return text
+
+
+def extract_claims_from_llm(llm_response_text):
+    llm = OttoLLM()
+    prompt = f"""
+    Based on the following LLM response, extract key factual claims, including direct quotes.
+
+    Respond in the format:
+    <claim>whatever the claim is...</claim>
+    <claim>another claim...</claim>
+
+    etc.
+
+    ---
+    <llm_response>
+    {llm_response_text}
+    </llm_response>
+    """
+    # create costs
+    usd_cost = llm.create_costs()
+    cad_cost = display_cad_cost(usd_cost)
+
+    claims_response = llm.complete(prompt)
+    # find the claim tags and add whats wrapped in the claim tags to a list
+    claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
+    return claims_list, cad_cost
 
 
 class ChatManager(models.Manager):
@@ -515,6 +572,8 @@ class AnswerSource(models.Model):
     min_page = models.IntegerField(null=True)
     max_page = models.IntegerField(null=True)
 
+    highlighted_text = models.TextField(null=True, blank=True)  # Add this field
+
     def __str__(self):
         return f"{self.citation} ({self.node_score:.2f})"
 
@@ -536,6 +595,9 @@ class AnswerSource(models.Model):
         """
         Lookup the node text from the vector DB
         """
+        if self.highlighted_text:
+            return self.highlighted_text
+
         if self.document:
             table_id = self.document.data_source.library.uuid_hex
             with connections["vector_db"].cursor() as cursor:
@@ -544,8 +606,23 @@ class AnswerSource(models.Model):
                 )
                 row = cursor.fetchone()
                 if row:
-                    return row[0]
+                    self.update_claims_list(row[0])
+                    # return row[0]
+                    return self.highlighted_text
         return _("Source not available (document deleted or modified since message)")
+
+    def update_claims_list(self, llm_response_text):
+        """
+        Updates the claims_list field with all claims found in node_text.
+        """
+        # Extract claims from the LLM response
+        claims_response, cost = extract_claims_from_llm(
+            llm_response_text
+        )  # cost currently not displayed
+        # Highlight the claims in the text
+        highlighted_text = highlight_claims(claims_response, llm_response_text)
+        self.highlighted_text = highlighted_text
+        self.save(update_fields=["highlighted_text"])
 
 
 class ChatFileManager(models.Manager):

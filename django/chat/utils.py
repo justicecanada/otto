@@ -276,7 +276,10 @@ async def htmx_stream(
                 )
             await asyncio.sleep(0.01)
 
-        yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
+        yield sse_string(
+            full_message, wrap_markdown=False, dots=False, remove_stop=True
+        )
+        # yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
         await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
@@ -292,7 +295,7 @@ async def htmx_stream(
 
         # Update message text with markdown wrapper to pass to template
         if wrap_markdown:
-            message.text = wrap_llm_response(full_message)
+            message.text = wrap_llm_response(full_message)  # full_message)
         context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
         # Save sources and security label
@@ -317,6 +320,7 @@ async def htmx_stream(
 
     # Render the message template, wrapped in SSE format
     context["message"].json = json.dumps(str(full_message))
+
     yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context
