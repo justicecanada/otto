@@ -708,33 +708,58 @@ def set_security_label(request, chat_id, security_label_id):
 
 
 def highlight_claims(claims_list, text, threshold=80):
-    # match if the claims_list exist is text; if it does, then highlight it with  <mark> tag
-    from langchain_text_splitters import RecursiveCharacterTextSplitter
-    from rapidfuzz import fuzz
+    # match if the claims_list exist is text; if it does, then highlight it with <mark> tag
+    from langdetect import detect
+    from llama_index.core.schema import TextNode
+    from sentence_splitter import split_text_into_sentences
 
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=100,
-        chunk_overlap=20,
-        length_function=len,
-        is_separator_regex=False,
+    lang = detect(text)
+
+    # TODO: Unfortunately this is losing the newlines in the returned text.
+    # But the splitter isn't working properly with newlines in the text.
+    sentences = split_text_into_sentences(
+        text=text.replace("\n", " ").replace("\r", " "),
+        language="fr" if lang == "fr" else "en",
     )
+    llm = OttoLLM()
+
+    index = llm.temp_index_from_nodes(
+        [TextNode(text=sentence) for sentence in sentences]
+    )
+    threshold = 0.7
+
+    print("SENTENCES:")
+    for sentence in sentences:
+        print(sentence)
+
+    print("CLAIMS:")
+    for claim in claims_list:
+        print(claim)
 
     good_matches = []
-    # Split the text into chunks
-    chunks = text_splitter.create_documents([text])
-
     for claim in claims_list:
-        for chunk in chunks:
-            chunk_text = chunk.page_content
-            # Find fuzzy matches
-            score = fuzz.partial_ratio(chunk_text.lower(), claim.lower())
-            if score >= threshold:
-                good_matches.append(chunk_text)
+        retriever = index.as_retriever()
+        nodes = retriever.retrieve(claim)
+        print("CLAIM:", claim)
+        print("matches:")
+        print([(node.score, node.node.text) for node in nodes])
+        print("\n")
+        for node in nodes:
+            if node.score > threshold:
+                good_matches.append(node.text)
 
-    for match in good_matches:
-        if len(match) > 3:
-            text = text.replace(match, f"<mark>{match}</mark>")
+    # If you try to just replace the sentence directly in "text", it may not match
+    # because of the newlines.
+    # TODO: Unfortunately this loses the newlines in the rendered source.
+    sentences = [
+        f"<mark>{sentence}</mark>" if sentence in good_matches else sentence
+        for sentence in sentences
+    ]
 
+    text = " ".join(sentences)
+
+    print("Final text:")
+    print(text)
     return text
 
 
@@ -768,7 +793,7 @@ def message_sources(request, message_id):
     sources = []
 
     for source in AnswerSource.objects.prefetch_related(
-        "document", "document__data_source", "document__data_source__library"
+        "document", "document__data_source", "document__data_source__library", "message"
     ).filter(message_id=message_id):
 
         source_text = str(source.node_text)
@@ -778,7 +803,10 @@ def message_sources(request, message_id):
             return f"<span class='fw-semibold'>Page {page_number}</span>"
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
-        claims_list = source.claims_list
+        claims_list = source.message.claims_list
+        if not claims_list:
+            source.message.update_claims_list()
+            claims_list = source.message.claims_list
         modified_text = highlight_claims(claims_list, modified_text)
 
         source_dict = {

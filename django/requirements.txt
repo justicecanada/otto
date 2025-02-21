@@ -65,6 +65,7 @@ python-docx==1.1.2
 langdetect==1.0.9
 lxml==4.9.2
 langchain-text-splitters==0.3.2
+sentence-splitter==1.4
 
 # Data science -----------------------------------------------------------------
 pandas==2.2.3
