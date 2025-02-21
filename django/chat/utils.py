@@ -811,7 +811,6 @@ def fix_source_links(text, source_document_url):
                 else:
                     # makes sure we don't have unusable links in the text
                     text = remove_link(text, link_tuple)
-                    continue
         except:
             continue
 
