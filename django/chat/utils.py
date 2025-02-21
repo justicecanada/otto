@@ -746,15 +746,45 @@ def generate_prompt(task_or_prompt: str):
 
 
 def fix_source_links(text, source_document_url):
-    def is_internal_link(link):
-        """
-        Check if the link is an internal link
-        TODO: Does this handle all cases? e.g., anchor tags, "this.html"?
-        """
-        return link.startswith("/")
+    """
+    Fix internal links in the text by merging them with the source document URL
+    """
 
-    def is_anchor_link(link):
+    def is_external_link(link):
+        """
+        Check if the link starts with "http"
+        """
+        return link.startswith("http")
+
+    def is_anchor(link):
+        """
+        Check if the link starts with a "#"
+        """
         return link.startswith("#")
+
+    def merge_link_with_source(link, source_document_url):
+        """
+        Merge the link with the source document URL based on conditions
+        """
+        if link.startswith("/"):
+            first_subdirectory = link.split("/")[1]
+            # If the first subdirectory of the internal link is in the source url, it is merged at that point
+            if "/" + first_subdirectory in source_document_url:
+                source_document_url = source_document_url.split(
+                    "/" + first_subdirectory
+                )[0]
+            # makes sure that we don't have double slashes in the URL
+            elif source_document_url.endswith("/"):
+                source_document_url = source_document_url[:-1]
+        # makes sure we don't have a slash missing in the URL
+        elif (
+            not link.startswith("/")
+            and not source_document_url.endswith("/")
+            and not is_anchor(link)
+        ):
+            source_document_url += "/"
+
+        return source_document_url + link
 
     def remove_link(text, link_tuple):
         """
@@ -770,29 +800,15 @@ def fix_source_links(text, source_document_url):
         try:
             # The URL itself is the second group
             link = link_tuple[1]
-            if is_internal_link(link):
-                if not source_document_url:
-                    text = remove_link(text, link_tuple)
-                    continue
-                # Sometimes the internal link is followed by a space and some text like the name of the page
-                internal_link = link.split(" ")[0]
-                first_subdirectory = internal_link.split("/")[1]
-                # If the first subdirectory of the internal link is in the source url, it is merged at that point
-                if "/" + first_subdirectory in source_document_url:
-                    modified_link = (
-                        source_document_url.split("/" + first_subdirectory)[0]
-                        + internal_link
-                    )
-                # If not, the internal link is concatenated at the end of the source url
-                else:
-                    modified_link = source_document_url + internal_link
-                text = text.replace(link, modified_link)
-            elif is_anchor_link(link):
+            if not is_external_link(link):
                 if source_document_url:
-                    modified_link = source_document_url + link
+                    # Sometimes the internal link is followed by a space and some text like the name of the page, (e.g. /wiki/Grapheme "Grapheme")
+                    link = link.split(" ")[0]
+                    modified_link = merge_link_with_source(link, source_document_url)
                     text = text.replace(link, modified_link)
                 else:
                     text = remove_link(text, link_tuple)
+                    continue
         except:
             continue
 
