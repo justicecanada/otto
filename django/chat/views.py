@@ -35,7 +35,9 @@ from chat.utils import (
     bad_url,
     change_mode_to_chat_qa,
     copy_options,
+    extract_claims_from_llm,
     generate_prompt,
+    highlight_claims,
     title_chat,
 )
 from librarian.models import Library, SavedFile
@@ -705,87 +707,6 @@ def set_security_label(request, chat_id, security_label_id):
         "chat/components/chat_security_label.html",
         {"chat": chat, "security_labels": SecurityLabel.objects.all()},
     )
-
-
-def highlight_claims(claims_list, text, threshold=80):
-    # match if the claims_list exist is text; if it does, then highlight it with <mark> tag
-    from langdetect import detect
-    from llama_index.core.schema import TextNode
-    from sentence_splitter import split_text_into_sentences
-
-    lang = detect(text)
-
-    # TODO: Unfortunately this is losing the newlines in the returned text.
-    # But the splitter isn't working properly with newlines in the text.
-    sentences = split_text_into_sentences(
-        text=text.replace("\n", " ").replace("\r", " "),
-        language="fr" if lang == "fr" else "en",
-    )
-    llm = OttoLLM()
-
-    index = llm.temp_index_from_nodes(
-        [TextNode(text=sentence) for sentence in sentences]
-    )
-    threshold = 0.7
-
-    print("SENTENCES:")
-    for sentence in sentences:
-        print(sentence)
-
-    print("CLAIMS:")
-    for claim in claims_list:
-        print(claim)
-
-    good_matches = []
-    for claim in claims_list:
-        retriever = index.as_retriever()
-        nodes = retriever.retrieve(claim)
-        print("CLAIM:", claim)
-        print("matches:")
-        print([(node.score, node.node.text) for node in nodes])
-        print("\n")
-        for node in nodes:
-            if node.score > threshold:
-                good_matches.append(node.text)
-
-    # If you try to just replace the sentence directly in "text", it may not match
-    # because of the newlines.
-    # TODO: Unfortunately this loses the newlines in the rendered source.
-    sentences = [
-        f"<mark>{sentence}</mark>" if sentence in good_matches else sentence
-        for sentence in sentences
-    ]
-
-    text = " ".join(sentences)
-
-    print("Final text:")
-    print(text)
-    return text
-
-
-from chat.llm import OttoLLM
-
-
-def extract_claims_from_llm(llm_response_text):
-    llm = OttoLLM()
-    prompt = f"""
-    Based on the following LLM response, extract key factual claims, including direct quotes.
-
-    Respond in the format:
-    <claim>whatever the claim is...</claim>
-    <claim>another claim...</claim>
-
-    etc.
-
-    ---
-    <llm_response>
-    {llm_response_text}
-    </llm_response>
-    """
-    claims_response = llm.complete(prompt)
-    # find the claim tags and add whats wrapped in the claim tags to a list
-    claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
-    return claims_list
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
