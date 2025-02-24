@@ -1,3 +1,4 @@
+import html
 import json
 import re
 from urllib.parse import quote
@@ -733,8 +734,8 @@ def message_sources(request, message_id):
         if not claims_list:
             source.message.update_claims_list()
             claims_list = source.message.claims_list
-        modified_text = highlight_claims(claims_list, modified_text)
         modified_text = re.sub(r"</page_\d+>", "", modified_text)
+        modified_text = highlight_claims(claims_list, modified_text)
         modified_text = re.sub(
             r"<headings>(.*?)</headings>", replace_headings, modified_text
         )

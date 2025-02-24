@@ -768,7 +768,6 @@ def mark_sentences(text: str, good_matches: list) -> str:
         # Escape regex special characters.
         escaped = re.escape(sentence_clean)
         # Replace literal spaces (escaped as "\ ") with a pattern that allows matching spaces or newline markers.
-        # flexible_pattern = escaped.replace(r"\ ", r"(?:\s|<<<NEWLINE>>>)+")
         flexible_pattern = escaped.replace(
             r"\ ",
             r"(?:\s|"
