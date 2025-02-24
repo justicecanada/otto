@@ -13,7 +13,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from data_fetcher.util import get_request
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from rapidfuzz import fuzz
 from structlog import get_logger
 
@@ -39,68 +38,68 @@ def create_chat_data_source(user, chat):
     )
 
 
-def highlight_claims(claims_list, text, threshold=80):
+# def highlight_claims(claims_list, text, threshold=80):
 
-    from langchain_experimental.text_splitter import SemanticChunker
-    from langchain_openai.embeddings import OpenAIEmbeddings
+#     from langchain_experimental.text_splitter import SemanticChunker
+#     from langchain_openai.embeddings import OpenAIEmbeddings
 
-    # match if the claims_list exist is text; if it does, then highlight it with  <mark> tag
-    # text_splitter = RecursiveCharacterTextSplitter(
-    #     chunk_size=100,
-    #     chunk_overlap=20,
-    #     length_function=len,
-    #     is_separator_regex=False,
-    # )
-    # text_splitter = SemanticChunker(OpenAIEmbeddings())
-    llm = OttoLLM()
-    text_splitter = SemanticChunker(
-        llm.embed_model, breakpoint_threshold_type="percentile"
-    )
+#     # match if the claims_list exist is text; if it does, then highlight it with  <mark> tag
+#     # text_splitter = RecursiveCharacterTextSplitter(
+#     #     chunk_size=100,
+#     #     chunk_overlap=20,
+#     #     length_function=len,
+#     #     is_separator_regex=False,
+#     # )
+#     # text_splitter = SemanticChunker(OpenAIEmbeddings())
+#     llm = OttoLLM()
+#     text_splitter = SemanticChunker(
+#         llm.embed_model, breakpoint_threshold_type="percentile"
+#     )
 
-    good_matches = []
-    # Split the text into chunks
-    # chunks = text_splitter.create_documents([text])
-    chunks = text_splitter.create_documents([text])
+#     good_matches = []
+#     # Split the text into chunks
+#     # chunks = text_splitter.create_documents([text])
+#     chunks = text_splitter.create_documents([text])
 
-    for claim in claims_list:
-        for chunk in chunks:
-            chunk_text = chunk.page_content
-            # Find fuzzy matches
-            score = fuzz.partial_ratio(chunk_text.lower(), claim.lower())
-            if score >= threshold:
-                good_matches.append(chunk_text)
+#     for claim in claims_list:
+#         for chunk in chunks:
+#             chunk_text = chunk.page_content
+#             # Find fuzzy matches
+#             score = fuzz.partial_ratio(chunk_text.lower(), claim.lower())
+#             if score >= threshold:
+#                 good_matches.append(chunk_text)
 
-    for match in good_matches:
-        if len(match) > 3:
-            text = text.replace(match, f"<mark>{match}</mark>")
+#     for match in good_matches:
+#         if len(match) > 3:
+#             text = text.replace(match, f"<mark>{match}</mark>")
 
-    return text
+#     return text
 
 
-def extract_claims_from_llm(llm_response_text):
-    llm = OttoLLM()
-    prompt = f"""
-    Based on the following LLM response, extract key factual claims, including direct quotes.
+# def extract_claims_from_llm(llm_response_text):
+#     llm = OttoLLM()
+#     prompt = f"""
+#     Based on the following LLM response, extract key factual claims, including direct quotes.
 
-    Respond in the format:
-    <claim>whatever the claim is...</claim>
-    <claim>another claim...</claim>
+#     Respond in the format:
+#     <claim>whatever the claim is...</claim>
+#     <claim>another claim...</claim>
 
-    etc.
+#     etc.
 
-    ---
-    <llm_response>
-    {llm_response_text}
-    </llm_response>
-    """
-    # create costs
-    usd_cost = llm.create_costs()
-    cad_cost = display_cad_cost(usd_cost)
+#     ---
+#     <llm_response>
+#     {llm_response_text}
+#     </llm_response>
+#     """
+#     # create costs
+#     usd_cost = llm.create_costs()
+#     cad_cost = display_cad_cost(usd_cost)
 
-    claims_response = llm.complete(prompt)
-    # find the claim tags and add whats wrapped in the claim tags to a list
-    claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
-    return claims_list, cad_cost
+#     claims_response = llm.complete(prompt)
+#     # find the claim tags and add whats wrapped in the claim tags to a list
+#     claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
+#     return claims_list, cad_cost
 
 
 class ChatManager(models.Manager):
