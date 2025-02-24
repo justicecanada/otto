@@ -2790,5 +2790,9 @@
     "Used": {
         "fr": "Vous avez dépensé",
         "fr_auto": "Utilisé"
+    },
+    "Untitled library": {
+        "fr": "",
+        "fr_auto": "Bibliothèque sans titre"
     }
 }
