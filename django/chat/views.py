@@ -180,15 +180,17 @@ def chat(request, chat_id):
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
     )
-
-    user_chats.sort(
-        key=lambda chat: (
+    # Cache the last message dates to avoid repeated DB queries
+    chat_dates = {
+        chat.id: (
             chat.messages.last().date_created
             if chat.messages.exists()
             else timezone.now()
-        ),
-        reverse=True,
-    )
+        )
+        for chat in user_chats
+    }
+
+    user_chats.sort(key=lambda chat: chat_dates[chat.id], reverse=True)
 
     # Title chats in sidebar if necessary & set default labels
     llm = None
