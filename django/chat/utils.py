@@ -777,11 +777,7 @@ def fix_source_links(text, source_document_url):
             elif source_document_url.endswith("/"):
                 source_document_url = source_document_url[:-1]
         # makes sure we don't have a slash missing in the URL
-        elif (
-            not link.startswith("/")
-            and not source_document_url.endswith("/")
-            and not is_anchor(link)
-        ):
+        elif not source_document_url.endswith("/") and not is_anchor(link):
             source_document_url += "/"
 
         return source_document_url + link
