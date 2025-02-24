@@ -231,6 +231,9 @@ class OttoLLM:
         )
         return idx
 
+    def temp_index_from_nodes(self, nodes: list) -> VectorStoreIndex:
+        return VectorStoreIndex(embed_model=self.embed_model, nodes=nodes)
+
     def get_response_synthesizer(
         self,
         qa_prompt_template="{context}\n{query}",

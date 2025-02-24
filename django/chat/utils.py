@@ -747,3 +747,87 @@ def generate_prompt(task_or_prompt: str):
     ).strip()
 
     return generated_prompt, cost
+
+
+def mark_sentences(text: str, sentences: list) -> str:
+    """
+    TODO: Implement this function correctly
+
+    Ignoring "\n" and "\r" characters in the text, wrap matching sentences in the text with <mark> tags.
+    Return the original text with the sentences wrapped in <mark> tags, with original newlines preserved.
+    """
+    return text
+
+
+def highlight_claims(claims_list, text, threshold=80):
+    # match if the claims_list exist is text; if it does, then highlight it with <mark> tag
+    from langdetect import detect
+    from llama_index.core.schema import TextNode
+    from sentence_splitter import split_text_into_sentences
+
+    lang = detect(text)
+
+    sentences = split_text_into_sentences(
+        text=text.replace("\n", " ").replace("\r", " "),
+        language="fr" if lang == "fr" else "en",
+    )
+    llm = OttoLLM()
+
+    index = llm.temp_index_from_nodes(
+        [TextNode(text=sentence) for sentence in sentences]
+    )
+    threshold = 0.7
+
+    print("SENTENCES:")
+    for sentence in sentences:
+        print(sentence)
+
+    print("CLAIMS:")
+    for claim in claims_list:
+        print(claim)
+
+    good_matches = []
+    for claim in claims_list:
+        retriever = index.as_retriever()
+        nodes = retriever.retrieve(claim)
+        print("CLAIM:", claim)
+        print("matches:")
+        print([(node.score, node.node.text) for node in nodes])
+        print("\n")
+        for node in nodes:
+            if node.score > threshold:
+                good_matches.append(node.text)
+
+    # TODO: Implement this function correctly
+    # text = mark_sentences(text, good_matches)
+
+    text = "\n".join(
+        [
+            f"<mark>{sentence}</mark>" if sentence in good_matches else sentence
+            for sentence in sentences
+        ]
+    )
+
+    return text
+
+
+def extract_claims_from_llm(llm_response_text):
+    llm = OttoLLM()
+    prompt = f"""
+    Based on the following LLM response, extract key factual claims, including direct quotes.
+
+    Respond in the format:
+    <claim>whatever the claim is...</claim>
+    <claim>another claim...</claim>
+
+    etc.
+
+    ---
+    <llm_response>
+    {llm_response_text}
+    </llm_response>
+    """
+    claims_response = llm.complete(prompt)
+    # find the claim tags and add whats wrapped in the claim tags to a list
+    claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
+    return claims_list

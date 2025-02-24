@@ -35,7 +35,9 @@ from chat.utils import (
     bad_url,
     change_mode_to_chat_qa,
     copy_options,
+    extract_claims_from_llm,
     generate_prompt,
+    highlight_claims,
     title_chat,
 )
 from librarian.models import Library, SavedFile
@@ -712,7 +714,7 @@ def message_sources(request, message_id):
     sources = []
 
     for source in AnswerSource.objects.prefetch_related(
-        "document", "document__data_source", "document__data_source__library"
+        "document", "document__data_source", "document__data_source__library", "message"
     ).filter(message_id=message_id):
 
         source_text = str(source.node_text)
@@ -722,6 +724,11 @@ def message_sources(request, message_id):
             return f"<span class='fw-semibold'>Page {page_number}</span>"
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        claims_list = source.message.claims_list
+        if not claims_list:
+            source.message.update_claims_list()
+            claims_list = source.message.claims_list
+        modified_text = highlight_claims(claims_list, modified_text)
 
         source_dict = {
             "citation": source.citation,

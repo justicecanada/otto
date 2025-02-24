@@ -498,6 +498,7 @@ class Message(models.Model):
     parent = models.OneToOneField(
         "self", on_delete=models.SET_NULL, null=True, related_name="child"
     )
+    claims_list = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return f"{'(BOT) ' if self.is_bot else ''}msg {self.id}: {self.text}"
@@ -533,6 +534,24 @@ class Message(models.Model):
         if self.feedback == feeback_value:
             return 0
         return feeback_value
+
+    def update_claims_list(self):
+        """
+        Updates the claims_list field with all claims found in response.
+        """
+        from .views import extract_claims_from_llm
+
+        # # Get the LLM response text
+        # llm_response_text = self.node_text
+        # Extract claims from the LLM response
+        claims_response = extract_claims_from_llm(self.text)
+
+        # Extract claims from the response with <claim> tags
+        # claims = re.findall(r"<claim>(.*?)</claim>", claims_response, re.DOTALL)
+
+        # Update the claims_list field
+        self.claims_list = claims_response
+        self.save(update_fields=["claims_list"])
 
     class Meta:
         constraints = [
@@ -582,8 +601,6 @@ class AnswerSource(models.Model):
     min_page = models.IntegerField(null=True)
     max_page = models.IntegerField(null=True)
 
-    highlighted_text = models.TextField(null=True, blank=True)  # Add this field
-
     def __str__(self):
         return f"{self.citation} ({self.node_score:.2f})"
 
@@ -616,23 +633,8 @@ class AnswerSource(models.Model):
                 )
                 row = cursor.fetchone()
                 if row:
-                    self.update_claims_list(row[0])
-                    # return row[0]
-                    return self.highlighted_text
+                    return row[0]
         return _("Source not available (document deleted or modified since message)")
-
-    def update_claims_list(self, llm_response_text):
-        """
-        Updates the claims_list field with all claims found in node_text.
-        """
-        # Extract claims from the LLM response
-        claims_response, cost = extract_claims_from_llm(
-            llm_response_text
-        )  # cost currently not displayed
-        # Highlight the claims in the text
-        highlighted_text = highlight_claims(claims_response, llm_response_text)
-        self.highlighted_text = highlighted_text
-        self.save(update_fields=["highlighted_text"])
 
 
 class ChatFileManager(models.Manager):
