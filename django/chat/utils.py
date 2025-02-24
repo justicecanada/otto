@@ -749,6 +749,7 @@ def generate_prompt(task_or_prompt: str):
     return generated_prompt, cost
 
 
+<<<<<<< HEAD
 def mark_sentences(text: str, good_matches: list) -> str:
     """
     TODO: Implement this function correctly
@@ -859,3 +860,70 @@ def extract_claims_from_llm(llm_response_text):
     # find the claim tags and add whats wrapped in the claim tags to a list
     claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
     return claims_list
+=======
+def fix_source_links(text, source_document_url):
+    """
+    Fix internal links in the text by merging them with the source document URL
+    """
+
+    def is_external_link(link):
+        """
+        Check if the link starts with "http"
+        """
+        return link.startswith("http")
+
+    def is_anchor(link):
+        """
+        Check if the link starts with a "#"
+        """
+        return link.startswith("#")
+
+    def merge_link_with_source(link, source_document_url):
+        """
+        Merge the link with the source document URL based on conditions
+        """
+        if link.startswith("/"):
+            first_subdirectory = link.split("/")[1]
+            # If the first subdirectory of the internal link is in the source url, it is merged at that point
+            if "/" + first_subdirectory in source_document_url:
+                source_document_url = source_document_url.split(
+                    "/" + first_subdirectory
+                )[0]
+            # makes sure that we don't have double slashes in the URL
+            elif source_document_url.endswith("/"):
+                source_document_url = source_document_url[:-1]
+        # makes sure we don't have a slash missing in the URL
+        elif not source_document_url.endswith("/") and not is_anchor(link):
+            source_document_url += "/"
+
+        return source_document_url + link
+
+    def remove_link(text, link_tuple):
+        """
+        Replace the link with plain text of the link text: "[text](url)" -> "text"
+        """
+        return text.replace(f"[{link_tuple[0]}]({link_tuple[1]})", f"{link_tuple[0]}")
+
+    # Capture both the url and the text in a tuple, i.e., ('[text]', 'url')
+    links = re.findall(r"\[(.*?)\]\((.*?)\)", text)
+
+    # Check if there are internal links and merge them with the source URL
+    for link_tuple in links:
+        try:
+            # The URL itself is the second group
+            link = link_tuple[1]
+            if not is_external_link(link):
+                if source_document_url:
+                    # Sometimes the internal link is followed by a space and some text like the name of the page
+                    # e.g. (/wiki/Grapheme "Grapheme")
+                    link = link.split(" ")[0]
+                    # Merge the link with the source document URL
+                    modified_link = merge_link_with_source(link, source_document_url)
+                    text = text.replace(link, modified_link)
+                else:
+                    # makes sure we don't have unusable links in the text
+                    text = remove_link(text, link_tuple)
+        except:
+            continue
+    return wrap_llm_response(text)
+>>>>>>> origin/main

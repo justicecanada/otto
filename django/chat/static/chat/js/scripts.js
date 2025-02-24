@@ -9,7 +9,8 @@ const md = markdownit({
     }
 
     return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
-  }
+  },
+  breaks: true,
 });
 
 md.use(katexPlugin);
@@ -272,6 +273,20 @@ document.addEventListener("keydown", function (event) {
   if (document.activeElement.id === "chat-prompt" && event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     document.querySelector("#send-button").click();
+  }
+});
+
+document.addEventListener('htmx:afterSwap', function (event) {
+  if (event.detail?.target?.id === "sources-modal-inner") {
+    var targetElement = event.detail.target.querySelectorAll(".markdown-text");
+    targetElement.forEach(function (element) {
+      var decodedText = JSON.parse(element.dataset.md);
+      var renderedMarkdown = md.render(decodedText);
+      element.innerHTML = renderedMarkdown;
+      element.querySelectorAll("a").forEach(function (link) {
+        link.setAttribute("target", "_blank");
+      });
+    });
   }
 });
 
@@ -595,4 +610,17 @@ function emailChatAuthor(url) {
       document.querySelector("#author-mailto-container").innerHTML = '';
     }
   );
+}
+
+function expandAllSources(message_id) {
+  const sources = document.querySelectorAll(`#sources-${message_id}-accordion .accordion-item`);
+  const expandAllLabel = document.querySelector(`#expand-all-label`);
+  const collapseAllLabel = document.querySelector(`#collapse-all-label`);
+  const expandAll = collapseAllLabel.classList.contains("d-none");
+  sources.forEach(function (source) {
+    const accordion = new bootstrap.Collapse(source.querySelector('.accordion-collapse'), {toggle: false});
+    expandAll ? accordion.show() : accordion.hide();
+  });
+  expandAllLabel.classList.toggle("d-none");
+  collapseAllLabel.classList.toggle("d-none");
 }

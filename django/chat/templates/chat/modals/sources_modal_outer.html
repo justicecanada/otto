@@ -15,6 +15,7 @@
           <span class="spinner-border" aria-hidden="true"></span>
           <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
         </div>
+        <button id="expand-all-sources" class="d-none"></button>
         <button type="button"
                 class="btn-close"
                 data-bs-dismiss="modal"
@@ -24,3 +25,12 @@
     </div>
   </div>
 </div>
+
+<script>
+function expandAllSources(message_id) {
+  const sources = document.querySelectorAll(`#sources-${message_id}-accordion .accordion-collapse`);
+  sources.forEach(function (source) {
+    source.classList.toggle("expanded");
+  });
+}
+</script>
