@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<span class="me-0 fw-semibold">{{ document.name }}</span>
+<span class="me-0 fw-semibold">{{ document.name|truncatechars:60 }}</span>
 <span class="me-1">
   {% if source.min_page is not None and source.max_page is not None %}
     {% if source.min_page == source.max_page %}
@@ -11,7 +11,5 @@
   {% endif %}
 </span>
 <span class="text-muted" style="font-style: italic;">
-  ({{ document.data_source.library.name }}
-  <i class="bi bi-arrow-right-short"></i>
-  {{ document.data_source.name }})
+  ({{ document.data_source.library }}<i class="bi bi-arrow-right-short"></i>{{ document.data_source.short_label }})
 </span>

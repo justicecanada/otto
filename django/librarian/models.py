@@ -157,7 +157,11 @@ class Library(models.Model):
         self.save()
 
     def __str__(self):
-        return self.name or "Untitled library"
+        return str(
+            _("Chat uploads")
+            if self.is_personal_library
+            else (self.name or _("Untitled library"))
+        )
 
     @transaction.atomic
     def delete(self, *args, **kwargs):
@@ -317,6 +321,15 @@ class DataSource(models.Model):
         )
         data_source_time = self.modified_at if not self.chat else self.chat.accessed_at
         return f"{chat_title} ({data_source_time.strftime('%y/%m/%d %I:%M %p')})"
+
+    @property
+    def short_label(self):
+        if not self.library.is_personal_library:
+            return str(self)
+        chat_title = (
+            self.chat.title if self.chat and self.chat.title else _("Untitled chat")
+        )
+        return chat_title
 
 
 class Document(models.Model):

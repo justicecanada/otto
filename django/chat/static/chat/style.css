@@ -819,9 +819,16 @@ div#chat-toolbar {
   font-size: medium;
 }
 
+#sources-modal-inner .markdown-text table {
+  margin-bottom: 1rem;
+}
+
 #sources-modal-inner .accordion-button:focus {
   box-shadow: none;
-  outline: solid 2px;
+}
+
+#sources-modal-inner .accordion-button:focus-visible {
+  background: var(--bs-accordion-active-bg);
 }
 
 #sources-modal-inner .accordion-button:not(.collapsed) {
