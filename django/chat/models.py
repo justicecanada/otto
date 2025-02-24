@@ -67,6 +67,8 @@ class Chat(models.Model):
     # Last access time manually updated when chat is opened
     accessed_at = models.DateTimeField(auto_now_add=True)
 
+    last_message_date = models.DateTimeField(default=timezone.now)
+
     loaded_preset = models.ForeignKey("Preset", on_delete=models.SET_NULL, null=True)
 
     # AC-20: Allows for the classification of information
@@ -83,6 +85,13 @@ class Chat(models.Model):
         if hasattr(self, "data_source") and self.data_source:
             self.data_source.delete()
         super().delete(*args, **kwargs)
+
+    def update_last_message_date(self):
+        last_message = self.messages.last()
+        self.last_message_date = (
+            last_message.date_created if last_message else timezone.now()
+        )
+        self.save(update_fields=["last_message_date"])
 
 
 class ChatOptionsManager(models.Manager):
