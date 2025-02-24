@@ -749,14 +749,32 @@ def generate_prompt(task_or_prompt: str):
     return generated_prompt, cost
 
 
-def mark_sentences(text: str, sentences: list) -> str:
+def mark_sentences(text: str, good_matches: list) -> str:
     """
     TODO: Implement this function correctly
 
     Ignoring "\n" and "\r" characters in the text, wrap matching sentences in the text with <mark> tags.
     Return the original text with the sentences wrapped in <mark> tags, with original newlines preserved.
     """
-    return text
+    # Step 1: Replace newline characters with temporary markers.
+    newline_marker = "<<<NEWLINE>>>"
+    text_temp = text.replace("\n", newline_marker).replace("\r", "")
+
+    # Step 2: For each sentence that should be marked, search and wrap it.
+    for sentence in good_matches:
+        # Remove leading/trailing whitespace and escape regex-special characters.
+        sentence_clean = sentence.strip()
+        # Escape regex special characters.
+        escaped = re.escape(sentence_clean)
+        # Replace literal spaces (escaped as "\ ") with a pattern that allows matching spaces or newline markers.
+        flexible_pattern = escaped.replace(r"\ ", r"(?:\s|<<<NEWLINE>>>)+")
+        pattern = re.compile(flexible_pattern, flags=re.IGNORECASE)
+        # Wrap any match with <mark> tags.
+        text_temp = pattern.sub(r"<mark>\g<0></mark>", text_temp)
+
+    # Step 3: Restore original newlines.
+    marked_text = text_temp.replace(newline_marker, "\n")
+    return marked_text
 
 
 def highlight_claims(claims_list, text, threshold=80):
@@ -799,14 +817,14 @@ def highlight_claims(claims_list, text, threshold=80):
                 good_matches.append(node.text)
 
     # TODO: Implement this function correctly
-    # text = mark_sentences(text, good_matches)
+    text = mark_sentences(text, good_matches)
 
-    text = "\n".join(
-        [
-            f"<mark>{sentence}</mark>" if sentence in good_matches else sentence
-            for sentence in sentences
-        ]
-    )
+    # text = "\n".join(
+    #     [
+    #         f"<mark>{sentence}</mark>" if sentence in good_matches else sentence
+    #         for sentence in sentences
+    #     ]
+    # )
 
     return text
 
