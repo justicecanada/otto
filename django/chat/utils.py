@@ -749,7 +749,6 @@ def generate_prompt(task_or_prompt: str):
     return generated_prompt, cost
 
 
-<<<<<<< HEAD
 def mark_sentences(text: str, good_matches: list) -> str:
     """
     TODO: Implement this function correctly
@@ -860,7 +859,8 @@ def extract_claims_from_llm(llm_response_text):
     # find the claim tags and add whats wrapped in the claim tags to a list
     claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
     return claims_list
-=======
+
+
 def fix_source_links(text, source_document_url):
     """
     Fix internal links in the text by merging them with the source document URL
@@ -926,4 +926,3 @@ def fix_source_links(text, source_document_url):
         except:
             continue
     return wrap_llm_response(text)
->>>>>>> origin/main
