@@ -9,7 +9,8 @@ const md = markdownit({
     }
 
     return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
-  }
+  },
+  breaks: true,
 });
 
 md.use(katexPlugin);
