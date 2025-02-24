@@ -35,7 +35,7 @@ def test_url_to_text():
 
 def test_fix_source_links():
     # test internal link where we need to clean the link text because of a resulting double slash when merging
-    # (e.g. https://travel.gc.ca/ instead of https://travel.gc.ca//travelling/advisories)
+    # (e.g. https://travel.gc.ca/travelling/advisories instead of https://travel.gc.ca//travelling/advisories)
     source_url = "https://travel.gc.ca/"
     internal_link = "[Travel Advice and Advisories](/travelling/advisories)"
     text_with_fixed_links = fix_source_links(internal_link, source_url)
