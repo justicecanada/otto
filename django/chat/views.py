@@ -35,6 +35,7 @@ from chat.utils import (
     bad_url,
     change_mode_to_chat_qa,
     copy_options,
+    fix_source_links,
     generate_prompt,
     title_chat,
 )
@@ -717,9 +718,18 @@ def message_sources(request, message_id):
 
         def replace_page_tags(match):
             page_number = match.group(1)
-            return f"<span class='fw-semibold'>Page {page_number}</span>"
+            return f"**_Page {page_number}_**\n"
+
+        def replace_headings(match):
+            heading = match.group(1)
+            return f"> {heading}\n"
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        modified_text = re.sub(r"</page_\d+>", "", modified_text)
+        modified_text = re.sub(
+            r"<headings>(.*?)</headings>", replace_headings, modified_text
+        )
+        modified_text = fix_source_links(modified_text, source.document.url)
 
         source_dict = {
             "citation": source.citation,

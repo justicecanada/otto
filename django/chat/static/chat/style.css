@@ -815,6 +815,45 @@ div#chat-toolbar {
   font-size: 0.95rem;
 }
 
+#sources-modal-inner .markdown-text * {
+  font-size: medium;
+}
+
+#sources-modal-inner .markdown-text table {
+  margin-bottom: 1rem;
+}
+
+#sources-modal-inner .markdown-text blockquote {
+  border-left: solid 2px #ccc;
+  padding-left: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+#sources-modal-inner .accordion-header {
+  position: sticky;
+  top: 0;
+}
+
+#sources-modal-inner .accordion-button:focus {
+  box-shadow: none;
+  outline: solid 1px var(--bs-accordion-border-color);
+}
+
+#sources-modal-inner .accordion-button:focus-visible {
+  background: var(--bs-accordion-active-bg);
+}
+
+#sources-modal-inner .accordion-button:not(.collapsed) {
+  background-color: white;
+  color: black;
+}
+
+#sources-modal-inner .markdown-text th,
+#sources-modal-inner .markdown-text td {
+  border: solid 1px var(--bs-border-color);
+  padding: 0.25rem;
+}
+
 #prompt-form-resize-handle {
   position: absolute;
   top: -4px;

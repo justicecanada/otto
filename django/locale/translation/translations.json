@@ -2790,5 +2790,17 @@
     "Used": {
         "fr": "Vous avez dépensé",
         "fr_auto": "Utilisé"
+    },
+    "Untitled library": {
+        "fr": "",
+        "fr_auto": "Bibliothèque sans titre"
+    },
+    "Expand all": {
+        "fr": "",
+        "fr_auto": "Tout agrandir"
+    },
+    "Collapse all": {
+        "fr": "",
+        "fr_auto": "Tout réduire"
     }
 }

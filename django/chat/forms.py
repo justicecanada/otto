@@ -79,7 +79,7 @@ class GroupedLibraryChoiceField(forms.ModelChoiceField):
 
     def label_from_instance(self, obj):
         return {
-            "label": _("Chat uploads") if obj.is_personal_library else str(obj),
+            "label": str(obj),
             "is_personal_library": obj.is_personal_library,
         }
 
