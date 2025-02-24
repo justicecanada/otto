@@ -758,7 +758,8 @@ def mark_sentences(text: str, good_matches: list) -> str:
     """
     # Step 1: Replace newline characters with temporary markers.
     newline_marker = "<<<NEWLINE>>>"
-    text_temp = text.replace("\n", newline_marker).replace("\r", "")
+    r_tag_marker = "<<<r_tag>>>"
+    text_temp = text.replace("\n", newline_marker).replace("\r", r_tag_marker)
 
     # Step 2: For each sentence that should be marked, search and wrap it.
     for sentence in good_matches:
@@ -767,7 +768,15 @@ def mark_sentences(text: str, good_matches: list) -> str:
         # Escape regex special characters.
         escaped = re.escape(sentence_clean)
         # Replace literal spaces (escaped as "\ ") with a pattern that allows matching spaces or newline markers.
-        flexible_pattern = escaped.replace(r"\ ", r"(?:\s|<<<NEWLINE>>>)+")
+        # flexible_pattern = escaped.replace(r"\ ", r"(?:\s|<<<NEWLINE>>>)+")
+        flexible_pattern = escaped.replace(
+            r"\ ",
+            r"(?:\s|"
+            + re.escape(newline_marker)
+            + r"|"
+            + re.escape(r_tag_marker)
+            + r")+",
+        )
         pattern = re.compile(flexible_pattern, flags=re.IGNORECASE)
         # Wrap any match with <mark> tags.
         text_temp = pattern.sub(r"<mark>\g<0></mark>", text_temp)
@@ -846,6 +855,7 @@ def extract_claims_from_llm(llm_response_text):
     </llm_response>
     """
     claims_response = llm.complete(prompt)
+    llm.create_costs()
     # find the claim tags and add whats wrapped in the claim tags to a list
     claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
     return claims_list
