@@ -181,14 +181,14 @@ def chat(request, chat_id):
         .union(Chat.objects.filter(pk=chat.id))
     )
 
-    user_chats.sort(
-        key=lambda chat: (
-            chat.messages.latest("date_created").date_created
-            if chat.messages.exists()
-            else timezone.now()
-        ),
-        reverse=True,
-    )
+    # user_chats.sort(
+    #     key=lambda chat: (
+    #         chat.messages.latest("date_created").date_created
+    #         if chat.messages.exists()
+    #         else timezone.now()
+    #     ),
+    #     reverse=True,
+    # )
 
     # Title chats in sidebar if necessary & set default labels
     llm = None
