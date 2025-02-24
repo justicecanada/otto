@@ -799,7 +799,7 @@ def fix_source_links(text, source_document_url):
             if not is_external_link(link):
                 if source_document_url:
                     # Sometimes the internal link is followed by a space and some text like the name of the page
-                    # (e.g. /wiki/Grapheme "Grapheme")
+                    # e.g. (/wiki/Grapheme "Grapheme")
                     link = link.split(" ")[0]
                     # Merge the link with the source document URL
                     modified_link = merge_link_with_source(link, source_document_url)
