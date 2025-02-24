@@ -18,7 +18,7 @@
            class="accordion-collapse collapse">
         <div class="accordion-body scrolling-content" style="">
           {% if source.document %}{{ source.document.href_button|safe }}{% endif %}
-          <div class="markdown-text">{{ source.node_text|safe }}</div>
+          {{ source.node_text|safe }}
         </div>
       </div>
     </div>

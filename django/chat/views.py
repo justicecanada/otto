@@ -720,7 +720,15 @@ def message_sources(request, message_id):
             page_number = match.group(1)
             return f"**_Page {page_number}_**\n"
 
+        def replace_headings(match):
+            heading = match.group(1)
+            return f"**_{heading}_**\n"
+
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        modified_text = re.sub(r"</page_\d+>", "", modified_text)
+        modified_text = re.sub(
+            r"<headings>(.*?)</headings>", replace_headings, modified_text
+        )
         modified_text = fix_source_links(modified_text, source.document.url)
 
         source_dict = {

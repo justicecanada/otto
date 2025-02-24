@@ -277,20 +277,19 @@ document.addEventListener("keydown", function (event) {
 });
 
 
-document.addEventListener('click', function (event) {
-  var button = event.target.closest('.accordion-button');
-  if (button) {
-    var targetId = button.getAttribute('data-bs-target').substring(1);
-    var targetElement = document.getElementById(targetId).querySelector('.markdown-text');
-    // Check if the content is already rendered
-    if (!targetElement.dataset.rendered) {
-      var renderedMarkdown = md.render(targetElement.textContent);
-      targetElement.innerHTML = renderedMarkdown;
-      targetElement.dataset.rendered = true;
-      targetElement.querySelectorAll("a").forEach(function (link) {
+document.addEventListener('htmx:afterSwap', function (event) {
+
+  if (event.detail?.target?.id === "sources-modal-inner") {
+    var targetElement = event.detail.target.querySelectorAll(".markdown-text");
+    targetElement.forEach(function (element) {
+      var decodedText = JSON.parse(element.dataset.md);
+      var renderedMarkdown = md.render(decodedText);
+      element.innerHTML = renderedMarkdown;
+      element.dataset.rendered = true;
+      element.querySelectorAll("a").forEach(function (link) {
         link.setAttribute("target", "_blank");
       });
-    }
+    });
   }
 });
 
