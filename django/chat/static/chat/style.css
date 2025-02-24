@@ -829,6 +829,12 @@ div#chat-toolbar {
   color: black;
 }
 
+#sources-modal-inner .markdown-text th,
+#sources-modal-inner .markdown-text td {
+  border: solid 1px var(--bs-border-color);
+  padding: 0.25rem;
+}
+
 #prompt-form-resize-handle {
   position: absolute;
   top: -4px;
