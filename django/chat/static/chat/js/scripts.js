@@ -284,7 +284,6 @@ document.addEventListener('htmx:afterSwap', function (event) {
       var decodedText = JSON.parse(element.dataset.md);
       var renderedMarkdown = md.render(decodedText);
       element.innerHTML = renderedMarkdown;
-      element.dataset.rendered = true;
       element.querySelectorAll("a").forEach(function (link) {
         link.setAttribute("target", "_blank");
       });
