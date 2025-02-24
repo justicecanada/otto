@@ -278,7 +278,6 @@ document.addEventListener("keydown", function (event) {
 
 
 document.addEventListener('htmx:afterSwap', function (event) {
-
   if (event.detail?.target?.id === "sources-modal-inner") {
     var targetElement = event.detail.target.querySelectorAll(".markdown-text");
     targetElement.forEach(function (element) {
