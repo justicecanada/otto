@@ -611,3 +611,16 @@ function emailChatAuthor(url) {
     }
   );
 }
+
+function expandAllSources(message_id) {
+  const sources = document.querySelectorAll(`#sources-${message_id}-accordion .accordion-item`);
+  const expandAllLabel = document.querySelector(`#expand-all-label`);
+  const collapseAllLabel = document.querySelector(`#collapse-all-label`);
+  const expandAll = collapseAllLabel.classList.contains("d-none");
+  sources.forEach(function (source) {
+    const accordion = new bootstrap.Collapse(source.querySelector('.accordion-collapse'), {toggle: false});
+    expandAll ? accordion.show() : accordion.hide();
+  });
+  expandAllLabel.classList.toggle("d-none");
+  collapseAllLabel.classList.toggle("d-none");
+}

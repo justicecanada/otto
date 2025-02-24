@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="accordion accordion-flush"
      id="sources-{{ message_id }}-accordion">
   {% for source in sources %}
@@ -23,12 +24,21 @@
       </div>
     </div>
   {% endfor %}
-
 </div>
+
+<button id="expand-all-sources"
+        hx-swap-oob="true"
+        type="button"
+        onclick="expandAllSources({{ message_id }})"
+        class="btn btn-outline-dark me-2"
+        style="white-space: nowrap">
+  <span id="expand-all-label"><i class="bi bi-chevron-double-down me-1"></i>{% trans "Expand all" %}</span>
+  <span id="collapse-all-label" class="d-none"><i class="bi bi-chevron-double-up me-1"></i>{% trans "Collapse all" %}</span>
+</button>
 
 <script>
   (function () {
-    let accordionItems = document.getElementById("sources-{{ message_id }}-accordion").querySelectorAll(".accordion-item");
+    let accordionItems = document.querySelectorAll("sources-{{ message_id }}-accordion .accordion-item");
     let lastGroup = null;
 
     let uniqueGroups = new Set();

@@ -722,7 +722,7 @@ def message_sources(request, message_id):
 
         def replace_headings(match):
             heading = match.group(1)
-            return f"**_{heading}_**\n"
+            return f"> {heading}\n"
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
         modified_text = re.sub(r"</page_\d+>", "", modified_text)
