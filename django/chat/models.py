@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import connections, models
 from django.db.models import BooleanField, Q, Value
 from django.db.models.functions import Coalesce
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
@@ -71,6 +71,9 @@ class Chat(models.Model):
 
     loaded_preset = models.ForeignKey("Preset", on_delete=models.SET_NULL, null=True)
 
+    class Meta:
+        ordering = ["-last_message_date"]
+
     # AC-20: Allows for the classification of information
     security_label = models.ForeignKey(
         SecurityLabel,
@@ -85,13 +88,6 @@ class Chat(models.Model):
         if hasattr(self, "data_source") and self.data_source:
             self.data_source.delete()
         super().delete(*args, **kwargs)
-
-    def update_last_message_date(self):
-        last_message = self.messages.last()
-        self.last_message_date = (
-            last_message.date_created if last_message else timezone.now()
-        )
-        self.save(update_fields=["last_message_date"])
 
 
 class ChatOptionsManager(models.Manager):
@@ -624,3 +620,14 @@ def delete_saved_file(sender, instance, **kwargs):
         instance.saved_file.safe_delete()
     except Exception as e:
         logger.error(f"Failed to delete saved file: {e}")
+
+
+@receiver(post_save, sender=Message)
+def message_post_save(sender, instance, **kwargs):
+    try:
+        # Access Chat object to update last_message_date
+        Chat.objects.filter(pk=instance.chat.pk).update(
+            last_message_date=timezone.now()
+        )
+    except Exception as e:
+        logger.error(f"Message post save error: {e}")

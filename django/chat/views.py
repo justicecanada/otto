@@ -171,8 +171,6 @@ def chat(request, chat_id):
 
     mode = chat.options.mode
 
-    chat.update_last_message_date()
-
     # Get sidebar chat history list.
     # Don't show empty chats - these will be deleted automatically later.
     # The current chat is always shown, even if it's empty.
@@ -180,7 +178,6 @@ def chat(request, chat_id):
         Chat.objects.filter(user=request.user, messages__isnull=False)
         .prefetch_related("security_label")
         .exclude(pk=chat.id)
-        .order_by("-last_message_date")
         .union(Chat.objects.filter(pk=chat.id))
     )
 
