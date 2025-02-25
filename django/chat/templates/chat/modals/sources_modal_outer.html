@@ -33,4 +33,10 @@ function expandAllSources(message_id) {
     source.classList.toggle("expanded");
   });
 }
+(function(){
+  const modalEl = document.getElementById('sources-modal');
+  modalEl.addEventListener('hidden.bs.modal', ()=>{
+    document.querySelector("#expand-all-sources").classList.add("d-none");
+  });
+})();
 </script>
