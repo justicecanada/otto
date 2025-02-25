@@ -9,7 +9,8 @@ const md = markdownit({
     }
 
     return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
-  }
+  },
+  breaks: true,
 });
 
 md.use(katexPlugin);
@@ -275,24 +276,15 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-function sourcePreprocessing(text) {
-  // Remove occurrences of '[Top of page]'
-  text = text.replace(/\[Top of page\]/g, '');
-  // Remove occurrences of '(#wb-tphp)'
-  text = text.replace(/\(#wb-tphp\)/g, '');
-  return text;
-}
-
-// add markdown to sources when modal is opened
-document.addEventListener("htmx:afterSwap", function (event) {
+document.addEventListener('htmx:afterSwap', function (event) {
   if (event.detail?.target?.id === "sources-modal-inner") {
-    document.querySelectorAll('.accordion-button').forEach(function (button) {
-      button.addEventListener('click', function () {
-        var targetId = button.getAttribute('data-bs-target').substring(1);
-        var targetElement = document.getElementById(targetId).querySelector('.markdown-text');
-        var preprocessedText = sourcePreprocessing(targetElement.textContent);
-        var renderedMarkdown = md.render(preprocessedText);
-        targetElement.innerHTML = renderedMarkdown;
+    var targetElement = event.detail.target.querySelectorAll(".markdown-text");
+    targetElement.forEach(function (element) {
+      var decodedText = JSON.parse(element.dataset.md);
+      var renderedMarkdown = md.render(decodedText);
+      element.innerHTML = renderedMarkdown;
+      element.querySelectorAll("a").forEach(function (link) {
+        link.setAttribute("target", "_blank");
       });
     });
   }
@@ -618,4 +610,17 @@ function emailChatAuthor(url) {
       document.querySelector("#author-mailto-container").innerHTML = '';
     }
   );
+}
+
+function expandAllSources(message_id) {
+  const sources = document.querySelectorAll(`#sources-${message_id}-accordion .accordion-item`);
+  const expandAllLabel = document.querySelector(`#expand-all-label`);
+  const collapseAllLabel = document.querySelector(`#collapse-all-label`);
+  const expandAll = collapseAllLabel.classList.contains("d-none");
+  sources.forEach(function (source) {
+    const accordion = new bootstrap.Collapse(source.querySelector('.accordion-collapse'), {toggle: false});
+    expandAll ? accordion.show() : accordion.hide();
+  });
+  expandAllLabel.classList.toggle("d-none");
+  collapseAllLabel.classList.toggle("d-none");
 }

@@ -2616,7 +2616,7 @@
         "fr_auto": "Coût total (CAD)"
     },
     "this month": {
-        "fr": "",
+        "fr": "durant ce mois",
         "fr_auto": "cette mois"
     },
     "User costs": {
@@ -2786,5 +2786,21 @@
     "Untitled document": {
         "fr": "",
         "fr_auto": "Document sans titre"
+    },
+    "Used": {
+        "fr": "Vous avez dépensé",
+        "fr_auto": "Utilisé"
+    },
+    "Untitled library": {
+        "fr": "",
+        "fr_auto": "Bibliothèque sans titre"
+    },
+    "Expand all": {
+        "fr": "",
+        "fr_auto": "Tout agrandir"
+    },
+    "Collapse all": {
+        "fr": "",
+        "fr_auto": "Tout réduire"
     }
 }

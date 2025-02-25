@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="accordion accordion-flush"
      id="sources-{{ message_id }}-accordion">
   {% for source in sources %}
@@ -17,30 +18,46 @@
       <div id="sources-{{ message_id }}-text-{{ forloop.counter }}"
            class="accordion-collapse collapse">
         <div class="accordion-body scrolling-content" style="">
-          {% if source.document %}<div class="float-end ps-3">{{ source.document.href|safe }}</div>{% endif %}
-          <div class="markdown-text" style="white-space:pre-wrap">{{ source.node_text|safe }}</div>
+          {% if source.document %}{{ source.document.href_button|safe }}{% endif %}
+          {{ source.node_text|safe }}
         </div>
       </div>
     </div>
   {% endfor %}
-
 </div>
 
+<button id="expand-all-sources"
+        hx-swap-oob="true"
+        type="button"
+        onclick="expandAllSources({{ message_id }})"
+        class="btn btn-outline-dark me-2"
+        style="white-space: nowrap">
+  <span id="expand-all-label"><i class="bi bi-chevron-double-down me-1"></i>{% trans "Expand all" %}</span>
+  <span id="collapse-all-label" class="d-none"><i class="bi bi-chevron-double-up me-1"></i>{% trans "Collapse all" %}</span>
+</button>
+
 <script>
-    var accordionItems = document.getElementById("sources-{{ message_id }}-accordion").querySelectorAll(".accordion-item");
-    var lastGroup = null;
+  (function () {
+    let accordionItems = document.querySelectorAll("sources-{{ message_id }}-accordion .accordion-item");
+    let lastGroup = null;
+
+    let uniqueGroups = new Set();
+    for (let item of accordionItems) {
+        uniqueGroups.add(item.getAttribute("data-group"));
+    }
+    if (uniqueGroups.size === accordionItems.length) return;
 
     accordionItems.forEach((item, index) => {
-        var currentGroup = item.getAttribute("data-group");
+        let currentGroup = item.getAttribute("data-group");
 
         // Check if we need to insert an hr before the current item
         if (lastGroup !== currentGroup && index !== 0) {
-            var hr = document.createElement("hr");
-            hr.style.border = "2px solid";
+            let hr = document.createElement("hr");
+            hr.style.border = "1px solid";
             hr.style.margin = "0px";
             item.parentNode.insertBefore(hr, item);
         }
-
         lastGroup = currentGroup;
     });
+  })();
 </script>

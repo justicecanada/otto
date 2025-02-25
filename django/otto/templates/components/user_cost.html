@@ -1,3 +1,4 @@
+{% load i18n %}
 <div id="cost-bar-outer"
      hx-get="{% url 'user_cost' %}"
      hx-swap="outerHTML"
@@ -22,3 +23,7 @@
               optimum="0"
               value="{{ cost_percent }}">{{ cost_tooltip }}</meter>
 </div>
+
+<li id="user-menu-cost"
+    hx-swap-oob="true"
+    class="mb-2 p-3 pt-2 mt-0 border-bottom fw-semibold small">{% trans "Used" %} {{ cost_tooltip_short }}</li>
