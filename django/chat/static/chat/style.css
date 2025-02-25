@@ -829,6 +829,12 @@ div#chat-toolbar {
   margin-bottom: 1.5rem;
 }
 
+#sources-modal-inner .markdown-text headings {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
 #sources-modal-inner .accordion-header {
   position: sticky;
   top: 0;

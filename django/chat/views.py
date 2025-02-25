@@ -723,14 +723,6 @@ def message_sources(request, message_id):
             page_number = match.group(1)
             return f"**_Page {page_number}_**\n"
 
-        def replace_headings(match):
-            heading = match.group(1)
-            return f"> {heading}\n"
-
-        def replace_marks(match):
-            mark = match.group(1)
-            return f"=={mark}=="
-
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
         modified_text = re.sub(r"</page_\d+>", "", modified_text)
         claims_list = source.message.claims_list

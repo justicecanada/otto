@@ -11,10 +11,25 @@ const md = markdownit({
     return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
   },
   breaks: true,
+});
+md.use(katexPlugin);
+
+const md_with_html = markdownit({
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return '<pre><code class="hljs">' +
+          hljs.highlight(str, {language: lang, ignoreIllegals: true}).value +
+          '</code></pre>';
+      } catch (__) { }
+    }
+
+    return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
+  },
+  breaks: true,
   html: true,
 });
-
-md.use(katexPlugin);
+md_with_html.use(katexPlugin);
 
 function checkTruncation(element) {
   if (element && (element.offsetHeight < element.scrollHeight)) {
@@ -282,7 +297,7 @@ document.addEventListener('htmx:afterSwap', function (event) {
     var targetElement = event.detail.target.querySelectorAll(".markdown-text");
     targetElement.forEach(function (element) {
       var decodedText = JSON.parse(element.dataset.md);
-      var renderedMarkdown = md.render(decodedText);
+      var renderedMarkdown = md_with_html.render(decodedText);
       element.innerHTML = renderedMarkdown;
       element.querySelectorAll("a").forEach(function (link) {
         link.setAttribute("target", "_blank");
