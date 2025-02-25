@@ -710,7 +710,7 @@ def set_security_label(request, chat_id, security_label_id):
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def message_sources(request, message_id):
+def message_sources(request, message_id, highlight=False):
     sources = []
 
     for source in AnswerSource.objects.prefetch_related(
@@ -725,11 +725,12 @@ def message_sources(request, message_id):
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
         modified_text = re.sub(r"</page_\d+>", "", modified_text)
-        claims_list = source.message.claims_list
-        if not claims_list:
-            source.message.update_claims_list()
+        if highlight:
             claims_list = source.message.claims_list
-        modified_text = highlight_claims(claims_list, modified_text)
+            if not claims_list:
+                source.message.update_claims_list()
+                claims_list = source.message.claims_list
+            modified_text = highlight_claims(claims_list, modified_text)
         # modified_text = re.sub(
         #     r"<headings>(.*?)</headings>", replace_headings, modified_text
         # )
