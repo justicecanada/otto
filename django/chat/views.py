@@ -729,6 +729,10 @@ def message_sources(request, message_id):
             heading = match.group(1)
             return f"> {heading}\n"
 
+        def replace_marks(match):
+            mark = match.group(1)
+            return f"=={mark}=="
+
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
         claims_list = source.message.claims_list
         if not claims_list:
@@ -739,9 +743,8 @@ def message_sources(request, message_id):
         modified_text = re.sub(
             r"<headings>(.*?)</headings>", replace_headings, modified_text
         )
-        # replace the <mark> and </mark> tags with ==
-        modified_text = re.sub(r"<mark>", "==", modified_text)
-        modified_text = re.sub(r"</mark>", "==", modified_text)
+
+        modified_text = re.sub(r"<mark>(.*?)</mark>", replace_marks, modified_text)
 
         modified_text = fix_source_links(modified_text, source.document.url)
 
