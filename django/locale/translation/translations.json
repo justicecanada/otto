@@ -2802,5 +2802,9 @@
     "Collapse all": {
         "fr": "",
         "fr_auto": "Tout réduire"
+    },
+    "Highlight sources": {
+        "fr": "",
+        "fr_auto": "Sources saillantes"
     }
 }
