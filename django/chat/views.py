@@ -1,7 +1,5 @@
-import html
 import json
 import re
-from urllib.parse import quote
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -36,11 +34,11 @@ from chat.utils import (
     bad_url,
     change_mode_to_chat_qa,
     copy_options,
-    extract_claims_from_llm,
     fix_source_links,
     generate_prompt,
     highlight_claims,
     title_chat,
+    wrap_llm_response,
 )
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
@@ -734,19 +732,21 @@ def message_sources(request, message_id):
             return f"=={mark}=="
 
         modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        modified_text = re.sub(r"</page_\d+>", "", modified_text)
         claims_list = source.message.claims_list
         if not claims_list:
             source.message.update_claims_list()
             claims_list = source.message.claims_list
         modified_text = highlight_claims(claims_list, modified_text)
-        modified_text = re.sub(r"</page_\d+>", "", modified_text)
-        modified_text = re.sub(
-            r"<headings>(.*?)</headings>", replace_headings, modified_text
-        )
+        # modified_text = re.sub(
+        #     r"<headings>(.*?)</headings>", replace_headings, modified_text
+        # )
+        # modified_text = re.sub(r"<mark>(.*?)</mark>", replace_marks, modified_text)
 
-        modified_text = re.sub(r"<mark>(.*?)</mark>", replace_marks, modified_text)
+        if source.document:
+            modified_text = fix_source_links(modified_text, source.document.url)
 
-        modified_text = fix_source_links(modified_text, source.document.url)
+        modified_text = wrap_llm_response(modified_text)
 
         source_dict = {
             "citation": source.citation,

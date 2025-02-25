@@ -474,7 +474,7 @@ class Message(models.Model):
         """
         Updates the claims_list field with all claims found in response.
         """
-        from .views import extract_claims_from_llm
+        from .utils import extract_claims_from_llm
 
         # # Get the LLM response text
         # llm_response_text = self.node_text
