@@ -415,6 +415,13 @@ html[lang="fr"] .chat-sidebar {
   display: none;
 }
 
+.chat-history-section-header {
+  padding: 10px 0;
+  margin: 20px 0 10px;
+  font-weight: bold;
+  border-bottom: 2px solid #ddd;
+}
+
 .preset-actions {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

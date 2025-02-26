@@ -22,14 +22,14 @@
     <div class="overflow-y-auto overflow-x-hidden p-3 pt-0 flex-grow-1"
          id="chat-history-list">
       {% for section in chat_history_section %}
-        <h6 class="text-muted text-uppercase mb-3">{{ section }}</h6>
-        <ul class="list-unstyled my-0" id="chat-list">
-          {% for chat in user_chats %}
-            {% if chat.last_activity == section %}
+        {% if section.chats %}
+          <h6 class="chat-history-section-header">{{ section.name }}</h6>
+          <ul class="list-unstyled my-0" id="chat-list">
+            {% for chat in section.chats %}
               {% include 'chat/components/chat_list_item.html' %}
-            {% endif %}
-          {% endfor %}
-        </ul>
+            {% endfor %}
+          </ul>
+        {% endif %}
       {% endfor %}
     </div>
     <div class="p-3">

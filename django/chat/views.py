@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import timedelta
 from urllib.parse import quote
 
 from django.contrib import messages
@@ -115,7 +116,6 @@ def chat(request, chat_id):
     Get the chat based on the provided chat ID.
     Returns read-only view if user does not have access.
     """
-    start_time = time.time()
 
     logger.info("Chat session retrieved.", chat_id=chat_id)
     bind_contextvars(feature="chat")
@@ -182,6 +182,14 @@ def chat(request, chat_id):
         .union(Chat.objects.filter(pk=chat.id))
     )
 
+    chat_history_sections = [
+        {"name": "Today", "chats": []},
+        {"name": "Yesterday", "chats": []},
+        {"name": "Last 7 days", "chats": []},
+        {"name": "Last 30 days", "chats": []},
+        {"name": "Older", "chats": []},
+    ]
+
     # Title chats in sidebar if necessary & set default labels
     llm = None
     for user_chat in user_chats:
@@ -195,25 +203,18 @@ def chat(request, chat_id):
         if not user_chat.security_label:
             user_chat.security_label_id = SecurityLabel.default_security_label().id
             user_chat.save()
-        if user_chat.messages.exists():
-            if (
-                user_chat.messages.last().date_created
-                > timezone.now() - timezone.timedelta(days=1)
-            ):
-                user_chat.last_activity = "today"
-            elif (
-                user_chat.messages.last().date_created
-                > timezone.now() - timezone.timedelta(days=7)
-            ):
-                user_chat.last_activity = "this_week"
-            elif (
-                user_chat.messages.last().date_created
-                > timezone.now() - timezone.timedelta(days=30)
-            ):
-                user_chat.last_activity = "this_month"
-            else:
-                user_chat.last_activity = "older"
-            user_chat.save()
+
+        if user_chat.last_message_date > timezone.now() - timezone.timedelta(days=1):
+            chat_history_sections[0]["chats"].append(user_chat)
+        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=2):
+            chat_history_sections[1]["chats"].append(user_chat)
+        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=7):
+            chat_history_sections[2]["chats"].append(user_chat)
+        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=30):
+            chat_history_sections[3]["chats"].append(user_chat)
+        else:
+            chat_history_sections[4]["chats"].append(user_chat)
+        user_chat.save()
 
     if llm:
         llm.create_costs()
@@ -254,12 +255,8 @@ def chat(request, chat_id):
         "user_chats": user_chats,
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
-        "chat_history_section": ["today", "this_week", "this_month", "older"],
+        "chat_history_section": chat_history_sections,
     }
-
-    end_time = time.time()  # End the timer
-    duration = end_time - start_time  # Calculate the duration
-    print(f"Chat view took {duration} seconds to load.")  # Print the duration
 
     return render(request, "chat/chat.html", context=context)
 
