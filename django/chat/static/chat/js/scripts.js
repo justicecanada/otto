@@ -641,6 +641,4 @@ function expandAllSources(message_id) {
   collapseAllLabel.classList.toggle("d-none");
 }
 
-function highlightAllSources(message_id) {
 
-}

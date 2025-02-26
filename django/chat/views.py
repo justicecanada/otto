@@ -711,6 +711,9 @@ def set_security_label(request, chat_id, security_label_id):
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def message_sources(request, message_id, highlight=False):
+    # When called via the URL for highlights, ?highlight=true will make this True.
+    highlight = request.GET.get("highlight", "false").lower() == "true" or highlight
+
     sources = []
 
     for source in AnswerSource.objects.prefetch_related(

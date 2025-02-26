@@ -17,18 +17,8 @@
         </div>
  
         <button id="expand-all-sources" class="d-none"></button>
-        <!-- <button id="highlight-all-sources" type="button" onclick="highlightAllSources({{ message_id }})" class="btn btn-outline-dark me-1" style="white-space: nowrap">
-          <span id="expand-all-label"><i class="bi bi-pencil me-1"></i>{% trans "Highlight sources" %}</span>
-        </button> -->
-        <button id="highlight-all-sources"
-                type="button"
-                hx-get="{% url 'chat:message_sources_highlight' message_id %}"
-                hx-target="#sources-{{ message_id }}-accordion"
-                hx-swap="innerHTML"
-                class="btn btn-outline-dark mx-2"
-                style="white-space: nowrap">
-          <span id="highlight-all-label"><i class="bi bi-pencil me-1"></i>{% trans "Highlight sources" %}</span>
-        </button>
+        <button id="highlight-all-sources" class="d-none"></button>
+ 
         <button type="button"
                 class="btn-close"
                 data-bs-dismiss="modal"
@@ -52,4 +42,5 @@ function expandAllSources(message_id) {
     document.querySelector("#expand-all-sources").classList.add("d-none");
   });
 })();
+
 </script>
