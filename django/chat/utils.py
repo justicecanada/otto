@@ -828,13 +828,6 @@ def highlight_claims(claims_list, text, threshold=80):
     # TODO: Implement this function correctly
     text = mark_sentences(text, good_matches)
 
-    # text = "\n".join(
-    #     [
-    #         f"<mark>{sentence}</mark>" if sentence in good_matches else sentence
-    #         for sentence in sentences
-    #     ]
-    # )
-
     return text
 
 

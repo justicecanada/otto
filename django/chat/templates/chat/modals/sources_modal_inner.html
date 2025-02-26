@@ -41,13 +41,11 @@
         hx-get="{% url 'chat:message_sources_highlight' message_id=message_id %}?highlight=true"
         hx-target="#sources-modal-inner"
         hx-swap="innerHTML"
-        hx-indicator="#highlight-spinner"
+        hx-indicator="#sources-modal-spinner"
         class="btn btn-outline-dark mx-2"
         style="white-space: nowrap">
   <span id="highlight-all-label"><i class="bi bi-pencil me-1"></i>{% trans "Highlight sources" %}</span>
-  <span id="highlight-spinner"
-        class="d-none spinner-border spinner-border-sm"></span>
-  
+ 
 </button>
 <script>
   (function () {
