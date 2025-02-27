@@ -628,15 +628,45 @@ function emailChatAuthor(url) {
   );
 }
 
-function expandAllSources(message_id) {
+function expandAllSources(message_id, force_expand = false) {
   const sources = document.querySelectorAll(`#sources-${message_id}-accordion .accordion-item`);
   const expandAllLabel = document.querySelector(`#expand-all-label`);
   const collapseAllLabel = document.querySelector(`#collapse-all-label`);
-  const expandAll = collapseAllLabel.classList.contains("d-none");
+  const expandAll = collapseAllLabel.classList.contains("d-none") || force_expand;
   sources.forEach(function (source) {
     const accordion = new bootstrap.Collapse(source.querySelector('.accordion-collapse'), {toggle: false});
     expandAll ? accordion.show() : accordion.hide();
   });
-  expandAllLabel.classList.toggle("d-none");
-  collapseAllLabel.classList.toggle("d-none");
+  if (expandAll) {
+    expandAllLabel.classList.add("d-none");
+    collapseAllLabel.classList.remove("d-none");
+  } else {
+    expandAllLabel.classList.remove("d-none");
+    collapseAllLabel.classList.add("d-none");
+  }
+}
+
+function nextSourceHighlight(message_id) {
+  const highlights = document.querySelectorAll(`#sources-${message_id}-accordion mark`);
+  if (highlights.length === 0) return;
+  const collapseAllLabel = document.querySelector(`#collapse-all-label`);
+  const needToExpand = collapseAllLabel.classList.contains("d-none");
+  if (needToExpand) expandAllSources(message_id, true);
+
+  // Next highlight is either the next after the current one or the first one
+  const currentHighlight = document.querySelector(`#sources-${message_id}-accordion mark.current-highlight`);
+  let nextHighlight = highlights[0];
+  if (currentHighlight) {
+    currentHighlight.classList.remove("current-highlight");
+    const nextIndex = Array.from(highlights).indexOf(currentHighlight) + 1;
+    if (nextIndex < highlights.length) {
+      nextHighlight = highlights[nextIndex];
+    }
+  }
+
+  // Wait for the sources to expand before scrolling to the first highlight
+  setTimeout(() => {
+    nextHighlight.classList.add("current-highlight");
+    nextHighlight.scrollIntoView({behavior: "smooth", block: "center"});
+  }, needToExpand ? 300 : 0);
 }

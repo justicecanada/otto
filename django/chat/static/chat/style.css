@@ -860,6 +860,10 @@ div#chat-toolbar {
   padding: 0.25rem;
 }
 
+#sources-modal-inner mark.current-highlight {
+  background: var(--app-color-purple-1-hover);
+}
+
 #prompt-form-resize-handle {
   position: absolute;
   top: -4px;

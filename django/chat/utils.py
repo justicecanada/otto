@@ -751,17 +751,17 @@ def generate_prompt(task_or_prompt: str):
 
 def mark_sentences(text: str, good_matches: list) -> str:
     """
-    TODO: Implement this function correctly
-
     Ignoring "\n" and "\r" characters in the text, wrap matching sentences in the text with <mark> tags.
     Return the original text with the sentences wrapped in <mark> tags, with original newlines preserved.
     """
-    # Step 1: Replace newline characters with temporary markers.
+    # Replace newline characters with temporary markers.
     newline_marker = "<<<NEWLINE>>>"
     r_tag_marker = "<<<r_tag>>>"
     text_temp = text.replace("\n", newline_marker).replace("\r", r_tag_marker)
 
-    # Step 2: For each sentence that should be marked, search and wrap it.
+    good_matches = set(good_matches)
+
+    # For each sentence that should be marked, search and wrap it.
     for sentence in good_matches:
         # Remove leading/trailing whitespace and escape regex-special characters.
         sentence_clean = sentence.strip()
@@ -780,7 +780,7 @@ def mark_sentences(text: str, good_matches: list) -> str:
         # Wrap any match with <mark> tags.
         text_temp = pattern.sub(r"<mark>\g<0></mark>", text_temp)
 
-    # Step 3: Restore original newlines.
+    # Restore original newlines.
     marked_text = text_temp.replace(newline_marker, "\n")
     marked_text = marked_text.replace(r_tag_marker, "")
     return marked_text

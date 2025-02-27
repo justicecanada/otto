@@ -2806,5 +2806,9 @@
     "Highlight sources": {
         "fr": "",
         "fr_auto": "Sources saillantes"
+    },
+    "Next highlight": {
+        "fr": "",
+        "fr_auto": "Prochain fait saillant"
     }
 }

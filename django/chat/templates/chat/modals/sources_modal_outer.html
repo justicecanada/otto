@@ -16,6 +16,7 @@
           <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
         </div>
         <button id="highlight-all-sources" class="d-none"></button>
+        <button id="next-highlight" class="d-none"></button>
         <button id="expand-all-sources" class="d-none"></button>
         <button type="button"
                 class="btn-close"
@@ -39,8 +40,10 @@ function expandAllSources(message_id) {
   modalEl.addEventListener('hidden.bs.modal', ()=>{
     let btn1 = document.querySelector("#expand-all-sources");
     let btn2 = document.querySelector("#highlight-all-sources");
+    let btn3 = document.querySelector("#next-highlight");
     if (btn1) btn1.classList.add("d-none");
     if (btn2) btn2.classList.add("d-none");
+    if (btn3) btn3.classList.add("d-none");
   });
 })();
 
