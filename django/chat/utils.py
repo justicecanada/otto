@@ -787,47 +787,44 @@ def mark_sentences(text: str, good_matches: list) -> str:
 
 
 def highlight_claims(claims_list, text, threshold=80):
-    # match if the claims_list exist is text; if it does, then highlight it with <mark> tag
+    """
+    Highlight sentences in text with <mark> that match a claim in the claims_list.
+    """
     from langdetect import detect
     from llama_index.core.schema import TextNode
     from sentence_splitter import split_text_into_sentences
 
     lang = detect(text)
-
     sentences = split_text_into_sentences(
         text=text.replace("\n", " ").replace("\r", " "),
         language="fr" if lang == "fr" else "en",
     )
     llm = OttoLLM()
-
     index = llm.temp_index_from_nodes(
         [TextNode(text=sentence) for sentence in sentences]
     )
     threshold = 0.7
 
-    print("SENTENCES:")
-    for sentence in sentences:
-        print(sentence)
-
-    print("CLAIMS:")
-    for claim in claims_list:
-        print(claim)
+    # print("SENTENCES:")
+    # for sentence in sentences:
+    #     print(sentence)
+    # print("CLAIMS:")
+    # for claim in claims_list:
+    #     print(claim)
 
     good_matches = []
     for claim in claims_list:
         retriever = index.as_retriever()
         nodes = retriever.retrieve(claim)
-        print("CLAIM:", claim)
-        print("matches:")
-        print([(node.score, node.node.text) for node in nodes])
-        print("\n")
+        # print("CLAIM:", claim)
+        # print("matches:")
+        # print([(node.score, node.node.text) for node in nodes])
+        # print("\n")
         for node in nodes:
             if node.score > threshold:
                 good_matches.append(node.text)
 
-    # TODO: Implement this function correctly
     text = mark_sentences(text, good_matches)
-
     return text
 
 

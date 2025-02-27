@@ -37,7 +37,10 @@ function expandAllSources(message_id) {
 (function(){
   const modalEl = document.getElementById('sources-modal');
   modalEl.addEventListener('hidden.bs.modal', ()=>{
-    document.querySelector("#expand-all-sources").classList.add("d-none");
+    let btn1 = document.querySelector("#expand-all-sources");
+    let btn2 = document.querySelector("#highlight-all-sources");
+    if (btn1) btn1.classList.add("d-none");
+    if (btn2) btn2.classList.add("d-none");
   });
 })();
 

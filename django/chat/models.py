@@ -476,13 +476,8 @@ class Message(models.Model):
         """
         from .utils import extract_claims_from_llm
 
-        # # Get the LLM response text
-        # llm_response_text = self.node_text
         # Extract claims from the LLM response
         claims_response = extract_claims_from_llm(self.text)
-
-        # Extract claims from the response with <claim> tags
-        # claims = re.findall(r"<claim>(.*?)</claim>", claims_response, re.DOTALL)
 
         # Update the claims_list field
         self.claims_list = claims_response
@@ -556,7 +551,7 @@ class AnswerSource(models.Model):
     @property
     def node_text(self):
         """
-        Lookup the node text from the vector DB
+        Lookup the node text from the vector DB (if not already stored here)
         """
         if self.highlighted_text:
             return self.highlighted_text

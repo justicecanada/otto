@@ -640,5 +640,3 @@ function expandAllSources(message_id) {
   expandAllLabel.classList.toggle("d-none");
   collapseAllLabel.classList.toggle("d-none");
 }
-
-
