@@ -790,7 +790,7 @@ def mark_sentences(text: str, good_matches: list) -> str:
     return marked_text
 
 
-def highlight_claims(claims_list, text, threshold=0.7):
+def highlight_claims(claims_list, text, threshold=0.66):
     """
     Highlight sentences in text with <mark> that match a claim in the claims_list.
     """
@@ -834,13 +834,14 @@ def highlight_claims(claims_list, text, threshold=0.7):
 def extract_claims_from_llm(llm_response_text):
     llm = OttoLLM()
     prompt = f"""
-    Based on the following LLM response, extract key factual claims, including direct quotes.
+    Based on the following LLM response, extract all factual claims including direct quotes.
 
     Respond in the format:
     <claim>whatever the claim is...</claim>
     <claim>another claim...</claim>
 
     etc.
+    Include all factual claims as their own sentence. Do not include any analysis or reasoning.
 
     ---
     <llm_response>

@@ -713,6 +713,7 @@ def set_security_label(request, chat_id, security_label_id):
 def message_sources(request, message_id, highlight=False):
     # When called via the URL for highlights, ?highlight=true will make this True.
     highlight = request.GET.get("highlight", "false").lower() == "true" or highlight
+    already_highlighted = Message.objects.get(id=message_id).claims_list != []
 
     def replace_page_tags(match):
         page_number = match.group(1)
@@ -725,7 +726,6 @@ def message_sources(request, message_id, highlight=False):
         source_text = str(source.node_text)
 
         already_processed = source.processed_text != ""
-        already_highlighted = source.message.claims_list != []
         needs_processing = (
             highlight and not already_highlighted
         ) or not already_processed
