@@ -292,17 +292,26 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+// Sources modal setup
 document.addEventListener('htmx:afterSwap', function (event) {
-  if (event.detail?.target?.id === "sources-modal-inner") {
-    var targetElement = event.detail.target.querySelectorAll(".markdown-text");
-    targetElement.forEach(function (element) {
-      var decodedText = JSON.parse(element.dataset.md);
-      var renderedMarkdown = md_with_html.render(decodedText);
-      element.innerHTML = renderedMarkdown;
-      element.querySelectorAll("a").forEach(function (link) {
-        link.setAttribute("target", "_blank");
-      });
+  if (event.detail?.target?.id !== "sources-modal-inner") return;
+  let targetElement = event.detail.target.querySelectorAll(".markdown-text");
+  targetElement.forEach(function (element) {
+    let decodedText = JSON.parse(element.dataset.md);
+    let renderedMarkdown = md_with_html.render(decodedText);
+    element.innerHTML = renderedMarkdown;
+    element.querySelectorAll("a").forEach(function (link) {
+      link.setAttribute("target", "_blank");
     });
+  });
+  // Hide #next-highlight if there are no "<mark>" elements
+  if (event.detail.target.querySelector("mark") === null) {
+    setTimeout(function () {
+      // Check if the document.querySelector("#next-highlight") is visible
+      if (document.querySelector("#next-highlight").classList.contains("d-none")) return;
+      document.querySelector("#no-highlights").classList.remove("d-none");
+      document.querySelector("#next-highlight").classList.add("d-none");
+    }, 100);
   }
 });
 

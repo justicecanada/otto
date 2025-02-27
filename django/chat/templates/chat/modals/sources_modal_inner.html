@@ -83,11 +83,5 @@
       }
       lastGroup = currentGroup;
     });
-    setTimeout(() => {
-      let marks = document.querySelectorAll("#sources-{{ message_id }}-accordion mark");
-      if (marks.length === 0) {
-        document.getElementById("next-highlight").disabled = true;
-      }
-    }, 1000);
   })();
 </script>

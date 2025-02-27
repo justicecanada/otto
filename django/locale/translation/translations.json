@@ -2810,5 +2810,9 @@
     "Next highlight": {
         "fr": "",
         "fr_auto": "Prochain fait saillant"
+    },
+    "No highlights found": {
+        "fr": "",
+        "fr_auto": "Aucun fait saillant trouvé"
     }
 }
