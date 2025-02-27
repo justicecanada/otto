@@ -756,8 +756,7 @@ def mark_sentences(text: str, good_matches: list) -> str:
     """
     # Replace newline characters with temporary markers.
     newline_marker = "<<<NEWLINE>>>"
-    r_tag_marker = "<<<r_tag>>>"
-    text_temp = text.replace("\n", newline_marker).replace("\r", r_tag_marker)
+    text_temp = text.replace("\n", newline_marker).replace("\r", "")
 
     good_matches = set(good_matches)
 
@@ -770,11 +769,7 @@ def mark_sentences(text: str, good_matches: list) -> str:
         # Replace literal spaces (escaped as "\ ") with a pattern that allows matching spaces or newline markers.
         flexible_pattern = escaped.replace(
             r"\ ",
-            r"(?:\s|"
-            + re.escape(newline_marker)
-            + r"|"
-            + re.escape(r_tag_marker)
-            + r")+",
+            r"(?:\s|" + re.escape(newline_marker) + r"+|" + r")+",
         )
         pattern = re.compile(flexible_pattern, flags=re.IGNORECASE)
         # Wrap any match with <mark> tags.
@@ -782,7 +777,16 @@ def mark_sentences(text: str, good_matches: list) -> str:
 
     # Restore original newlines.
     marked_text = text_temp.replace(newline_marker, "\n")
-    marked_text = marked_text.replace(r_tag_marker, "")
+    # If there are sections where a mark spans over multiple paragraphs, we must highlight them all.
+    # e.g. <mark>paragraph 1\n\nparagraph 2</mark> -> <mark>paragraph 1</mark>\n\n<mark>paragraph 2</mark>
+    marked_text = re.sub(
+        r"<mark>(.*?)\n\n(.*?)</mark>",
+        r"<mark>\1</mark>\n\n<mark>\2</mark>",
+        marked_text,
+    )
+    # Remove nested <mark> tags
+    marked_text = re.sub(r"<mark>(.*?)<mark>", r"<mark>\1", marked_text)
+    marked_text = re.sub(r"</mark></mark>", r"</mark>", marked_text)
     return marked_text
 
 
