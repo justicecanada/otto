@@ -730,9 +730,10 @@ def message_sources(request, message_id, highlight=False):
             highlight and not already_highlighted
         ) or not already_processed
 
+        source_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        source_text = re.sub(r"</page_\d+>", "", source_text)
+
         if needs_processing:
-            source_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
-            source_text = re.sub(r"</page_\d+>", "", source_text)
             if highlight:
                 claims_list = source.message.claims_list
                 if not claims_list:
@@ -746,6 +747,9 @@ def message_sources(request, message_id, highlight=False):
             source_text = wrap_llm_response(source_text)
             source.processed_text = source_text
             source.save(update_fields=["processed_text"])
+
+        else:
+            source_text = wrap_llm_response(source_text)
 
         source_dict = {
             "citation": source.citation,
