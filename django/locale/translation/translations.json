@@ -2802,5 +2802,17 @@
     "Collapse all": {
         "fr": "",
         "fr_auto": "Tout réduire"
+    },
+    "Highlight sources": {
+        "fr": "",
+        "fr_auto": "Sources saillantes"
+    },
+    "Next highlight": {
+        "fr": "",
+        "fr_auto": "Prochain fait saillant"
+    },
+    "No highlights found": {
+        "fr": "",
+        "fr_auto": "Aucun fait saillant trouvé"
     }
 }

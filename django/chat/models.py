@@ -13,8 +13,10 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from data_fetcher.util import get_request
+from rapidfuzz import fuzz
 from structlog import get_logger
 
+from chat.llm import OttoLLM
 from chat.prompts import current_time_prompt
 from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
@@ -431,6 +433,7 @@ class Message(models.Model):
     parent = models.OneToOneField(
         "self", on_delete=models.SET_NULL, null=True, related_name="child"
     )
+    claims_list = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return f"{'(BOT) ' if self.is_bot else ''}msg {self.id}: {self.text}"
@@ -466,6 +469,16 @@ class Message(models.Model):
         if self.feedback == feeback_value:
             return 0
         return feeback_value
+
+    def update_claims_list(self):
+        """
+        Updates the claims_list field with all claims found in response.
+        """
+        from .utils import extract_claims_from_llm
+
+        # Extract claims from the LLM response
+        self.claims_list = extract_claims_from_llm(self.text)
+        self.save(update_fields=["claims_list"])
 
     class Meta:
         constraints = [
@@ -514,6 +527,7 @@ class AnswerSource(models.Model):
 
     min_page = models.IntegerField(null=True)
     max_page = models.IntegerField(null=True)
+    processed_text = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.citation} ({self.node_score:.2f})"
@@ -534,8 +548,11 @@ class AnswerSource(models.Model):
     @property
     def node_text(self):
         """
-        Lookup the node text from the vector DB
+        Lookup the node text from the vector DB (if not already stored here)
         """
+        if self.processed_text:
+            return self.processed_text
+
         if self.document:
             table_id = self.document.data_source.library.uuid_hex
             with connections["vector_db"].cursor() as cursor:

@@ -1,6 +1,5 @@
 import json
 import re
-from urllib.parse import quote
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -37,7 +36,9 @@ from chat.utils import (
     copy_options,
     fix_source_links,
     generate_prompt,
+    highlight_claims,
     title_chat,
+    wrap_llm_response,
 )
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
@@ -292,6 +293,7 @@ def chat_message(request, chat_id):
             "date_created": response_message.date_created
             + timezone.timedelta(seconds=1),
         }
+
     context = {
         "chat_messages": [
             user_message,
@@ -708,33 +710,50 @@ def set_security_label(request, chat_id, security_label_id):
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def message_sources(request, message_id):
-    sources = []
+def message_sources(request, message_id, highlight=False):
+    # When called via the URL for highlights, ?highlight=true will make this True.
+    highlight = request.GET.get("highlight", "false").lower() == "true" or highlight
+    already_highlighted = Message.objects.get(id=message_id).claims_list != []
 
+    def replace_page_tags(match):
+        page_number = match.group(1)
+        return f"**_Page {page_number}_**\n"
+
+    sources = []
     for source in AnswerSource.objects.prefetch_related(
-        "document", "document__data_source", "document__data_source__library"
+        "document", "document__data_source", "document__data_source__library", "message"
     ).filter(message_id=message_id):
         source_text = str(source.node_text)
 
-        def replace_page_tags(match):
-            page_number = match.group(1)
-            return f"**_Page {page_number}_**\n"
+        already_processed = source.processed_text != ""
+        needs_processing = (
+            highlight and not already_highlighted
+        ) or not already_processed
 
-        def replace_headings(match):
-            heading = match.group(1)
-            return f"> {heading}\n"
+        source_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        source_text = re.sub(r"</page_\d+>", "", source_text)
 
-        modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
-        modified_text = re.sub(r"</page_\d+>", "", modified_text)
-        modified_text = re.sub(
-            r"<headings>(.*?)</headings>", replace_headings, modified_text
-        )
-        modified_text = fix_source_links(modified_text, source.document.url)
+        if needs_processing:
+            if highlight:
+                claims_list = source.message.claims_list
+                if not claims_list:
+                    source.message.update_claims_list()
+                    claims_list = source.message.claims_list
+                source_text = highlight_claims(claims_list, source_text)
+
+            if source.document:
+                source_text = fix_source_links(source_text, source.document.url)
+
+            source.processed_text = source_text
+            source.save(update_fields=["processed_text"])
+            source_text = wrap_llm_response(source_text)
+        else:
+            source_text = wrap_llm_response(source_text)
 
         source_dict = {
             "citation": source.citation,
             "document": source.document,
-            "node_text": modified_text,
+            "node_text": source_text,
             "group_number": source.group_number,
         }
 
@@ -743,7 +762,11 @@ def message_sources(request, message_id):
     return render(
         request,
         "chat/modals/sources_modal_inner.html",
-        {"message_id": message_id, "sources": sources},
+        {
+            "message_id": message_id,
+            "sources": sources,
+            "highlighted": highlight or already_highlighted,
+        },
     )
 
 
