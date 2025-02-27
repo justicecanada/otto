@@ -67,21 +67,27 @@
 
     let uniqueGroups = new Set();
     for (let item of accordionItems) {
-        uniqueGroups.add(item.getAttribute("data-group"));
+      uniqueGroups.add(item.getAttribute("data-group"));
     }
     if (uniqueGroups.size === accordionItems.length) return;
 
     accordionItems.forEach((item, index) => {
-        let currentGroup = item.getAttribute("data-group");
+      let currentGroup = item.getAttribute("data-group");
 
-        // Check if we need to insert an hr before the current item
-        if (lastGroup !== currentGroup && index !== 0) {
-            let hr = document.createElement("hr");
-            hr.style.border = "1px solid";
-            hr.style.margin = "0px";
-            item.parentNode.insertBefore(hr, item);
-        }
-        lastGroup = currentGroup;
+      // Check if we need to insert an hr before the current item
+      if (lastGroup !== currentGroup && index !== 0) {
+        let hr = document.createElement("hr");
+        hr.style.border = "1px solid";
+        hr.style.margin = "0px";
+        item.parentNode.insertBefore(hr, item);
+      }
+      lastGroup = currentGroup;
     });
+    setTimeout(() => {
+      let marks = document.querySelectorAll("#sources-{{ message_id }}-accordion mark");
+      if (marks.length === 0) {
+        document.getElementById("next-highlight").disabled = true;
+      }
+    }, 1000);
   })();
 </script>

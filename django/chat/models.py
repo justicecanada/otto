@@ -477,10 +477,7 @@ class Message(models.Model):
         from .utils import extract_claims_from_llm
 
         # Extract claims from the LLM response
-        claims_response = extract_claims_from_llm(self.text)
-
-        # Update the claims_list field
-        self.claims_list = claims_response
+        self.claims_list = extract_claims_from_llm(self.text)
         self.save(update_fields=["claims_list"])
 
     class Meta:

@@ -744,10 +744,9 @@ def message_sources(request, message_id, highlight=False):
             if source.document:
                 source_text = fix_source_links(source_text, source.document.url)
 
-            source_text = wrap_llm_response(source_text)
             source.processed_text = source_text
             source.save(update_fields=["processed_text"])
-
+            source_text = wrap_llm_response(source_text)
         else:
             source_text = wrap_llm_response(source_text)
 
