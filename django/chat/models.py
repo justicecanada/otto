@@ -530,7 +530,7 @@ class AnswerSource(models.Model):
 
     min_page = models.IntegerField(null=True)
     max_page = models.IntegerField(null=True)
-    highlighted_text = models.TextField(null=True, blank=True)
+    processed_text = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.citation} ({self.node_score:.2f})"
@@ -553,8 +553,8 @@ class AnswerSource(models.Model):
         """
         Lookup the node text from the vector DB (if not already stored here)
         """
-        if self.highlighted_text:
-            return self.highlighted_text
+        if self.processed_text:
+            return self.processed_text
 
         if self.document:
             table_id = self.document.data_source.library.uuid_hex

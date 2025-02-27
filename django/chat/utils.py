@@ -786,7 +786,7 @@ def mark_sentences(text: str, good_matches: list) -> str:
     return marked_text
 
 
-def highlight_claims(claims_list, text, threshold=80):
+def highlight_claims(claims_list, text, threshold=0.7):
     """
     Highlight sentences in text with <mark> that match a claim in the claims_list.
     """
@@ -803,7 +803,6 @@ def highlight_claims(claims_list, text, threshold=80):
     index = llm.temp_index_from_nodes(
         [TextNode(text=sentence) for sentence in sentences]
     )
-    threshold = 0.7
 
     # print("SENTENCES:")
     # for sentence in sentences:

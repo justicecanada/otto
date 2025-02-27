@@ -724,9 +724,11 @@ def message_sources(request, message_id, highlight=False):
     ).filter(message_id=message_id):
         source_text = str(source.node_text)
 
-        already_saved = source.highlighted_text != ""
+        already_processed = source.processed_text != ""
         already_highlighted = source.message.claims_list != []
-        needs_processing = (highlight and not already_highlighted) or not already_saved
+        needs_processing = (
+            highlight and not already_highlighted
+        ) or not already_processed
 
         if needs_processing:
             source_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
@@ -742,8 +744,8 @@ def message_sources(request, message_id, highlight=False):
                 source_text = fix_source_links(source_text, source.document.url)
 
             source_text = wrap_llm_response(source_text)
-            source.highlighted_text = source_text
-            source.save(update_fields=["highlighted_text"])
+            source.processed_text = source_text
+            source.save(update_fields=["processed_text"])
 
         source_dict = {
             "citation": source.citation,
