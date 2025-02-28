@@ -418,8 +418,6 @@ html[lang="fr"] .chat-sidebar {
 .chat-history-section-header {
   padding: 10px 0;
   margin: 20px 0 10px;
-  font-weight: bold;
-  border-bottom: 2px solid #ddd;
 }
 
 .preset-actions {
