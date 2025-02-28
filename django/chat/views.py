@@ -192,7 +192,6 @@ def chat(request, chat_id):
         if not user_chat.security_label:
             user_chat.security_label_id = SecurityLabel.default_security_label().id
             user_chat.save()
-
     if llm:
         llm.create_costs()
 
@@ -234,7 +233,6 @@ def chat(request, chat_id):
         "security_labels": SecurityLabel.objects.all(),
         "chat_history_section": get_chat_history_sections(user_chats),
     }
-
     return render(request, "chat/chat.html", context=context)
 
 
