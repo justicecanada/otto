@@ -178,7 +178,6 @@ def chat(request, chat_id):
         .union(Chat.objects.filter(pk=chat.id))
         .order_by("-last_message_date")
     )
-
     # Title chats in sidebar if necessary & set default labels
     llm = None
     for user_chat in user_chats:
