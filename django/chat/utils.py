@@ -823,13 +823,25 @@ def get_chat_history_sections(user_chats):
     ]
 
     for user_chat in user_chats:
-        if user_chat.last_message_date > timezone.now() - timezone.timedelta(days=1):
+        if (
+            user_chat.last_message_date.date()
+            > timezone.now().date() - timezone.timedelta(days=1)
+        ):
             chat_history_sections[0]["chats"].append(user_chat)
-        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=2):
+        elif (
+            user_chat.last_message_date.date()
+            > timezone.now().date() - timezone.timedelta(days=2)
+        ):
             chat_history_sections[1]["chats"].append(user_chat)
-        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=7):
+        elif (
+            user_chat.last_message_date.date()
+            > timezone.now().date() - timezone.timedelta(days=7)
+        ):
             chat_history_sections[2]["chats"].append(user_chat)
-        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=30):
+        elif (
+            user_chat.last_message_date.date()
+            > timezone.now().date() - timezone.timedelta(days=30)
+        ):
             chat_history_sections[3]["chats"].append(user_chat)
         else:
             chat_history_sections[4]["chats"].append(user_chat)
