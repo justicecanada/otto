@@ -71,9 +71,6 @@ class Chat(models.Model):
 
     loaded_preset = models.ForeignKey("Preset", on_delete=models.SET_NULL, null=True)
 
-    class Meta:
-        ordering = ["-last_message_date"]
-
     # AC-20: Allows for the classification of information
     security_label = models.ForeignKey(
         SecurityLabel,

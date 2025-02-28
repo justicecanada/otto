@@ -108,9 +108,6 @@ def delete_all_chats(request):
     return response
 
 
-import time
-
-
 def chat(request, chat_id):
     """
     Get the chat based on the provided chat ID.
@@ -180,6 +177,7 @@ def chat(request, chat_id):
         .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
+        .order_by("-last_message_date")
     )
 
     chat_history_sections = [
