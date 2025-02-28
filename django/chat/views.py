@@ -1,6 +1,5 @@
 import json
 import re
-from datetime import timedelta
 from urllib.parse import quote
 
 from django.contrib import messages
@@ -8,7 +7,6 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db.models import Max
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -39,6 +37,7 @@ from chat.utils import (
     copy_options,
     fix_source_links,
     generate_prompt,
+    get_chat_history_sections,
     title_chat,
 )
 from librarian.models import Library, SavedFile
@@ -180,14 +179,6 @@ def chat(request, chat_id):
         .order_by("-last_message_date")
     )
 
-    chat_history_sections = [
-        {"name": "Today", "chats": []},
-        {"name": "Yesterday", "chats": []},
-        {"name": "Last 7 days", "chats": []},
-        {"name": "Last 30 days", "chats": []},
-        {"name": "Older", "chats": []},
-    ]
-
     # Title chats in sidebar if necessary & set default labels
     llm = None
     for user_chat in user_chats:
@@ -201,18 +192,6 @@ def chat(request, chat_id):
         if not user_chat.security_label:
             user_chat.security_label_id = SecurityLabel.default_security_label().id
             user_chat.save()
-
-        if user_chat.last_message_date > timezone.now() - timezone.timedelta(days=1):
-            chat_history_sections[0]["chats"].append(user_chat)
-        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=2):
-            chat_history_sections[1]["chats"].append(user_chat)
-        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=7):
-            chat_history_sections[2]["chats"].append(user_chat)
-        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=30):
-            chat_history_sections[3]["chats"].append(user_chat)
-        else:
-            chat_history_sections[4]["chats"].append(user_chat)
-        user_chat.save()
 
     if llm:
         llm.create_costs()
@@ -253,7 +232,7 @@ def chat(request, chat_id):
         "user_chats": user_chats,
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
-        "chat_history_section": chat_history_sections,
+        "chat_history_section": get_chat_history_sections(user_chats),
     }
 
     return render(request, "chat/chat.html", context=context)

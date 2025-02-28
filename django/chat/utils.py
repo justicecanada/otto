@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 import markdown
@@ -810,3 +811,27 @@ def fix_source_links(text, source_document_url):
         except:
             continue
     return wrap_llm_response(text)
+
+
+def get_chat_history_sections(user_chats):
+    chat_history_sections = [
+        {"name": "Today", "chats": []},
+        {"name": "Yesterday", "chats": []},
+        {"name": "Last 7 days", "chats": []},
+        {"name": "Last 30 days", "chats": []},
+        {"name": "Older", "chats": []},
+    ]
+
+    for user_chat in user_chats:
+        if user_chat.last_message_date > timezone.now() - timezone.timedelta(days=1):
+            chat_history_sections[0]["chats"].append(user_chat)
+        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=2):
+            chat_history_sections[1]["chats"].append(user_chat)
+        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=7):
+            chat_history_sections[2]["chats"].append(user_chat)
+        elif user_chat.last_message_date > timezone.now() - timezone.timedelta(days=30):
+            chat_history_sections[3]["chats"].append(user_chat)
+        else:
+            chat_history_sections[4]["chats"].append(user_chat)
+
+    return chat_history_sections
