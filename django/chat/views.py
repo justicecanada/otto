@@ -172,7 +172,7 @@ def chat(request, chat_id):
     # Get sidebar chat history list.
     # Don't show empty chats - these will be deleted automatically later.
     # The current chat is always shown, even if it's empty.
-    user_chats = list(
+    user_chats = (
         Chat.objects.filter(user=request.user, messages__isnull=False)
         .prefetch_related("security_label")
         .exclude(pk=chat.id)
