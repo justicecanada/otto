@@ -69,7 +69,7 @@ sentence-splitter==1.4
 
 # Data science -----------------------------------------------------------------
 pandas==2.2.3
-shapely==2.0.3
+shapely==2.0.7
 pdf2image==1.17.0
 pillow==10.4.0
 pypdf==5.1.0
