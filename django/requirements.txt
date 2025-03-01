@@ -71,7 +71,7 @@ sentence-splitter==1.4
 pandas==2.2.3
 shapely==2.0.3
 pdf2image==1.17.0
-pillow==10.4.0
+pillow==11.1.0
 pypdf==5.1.0
 reportlab==4.2.5
 pyreadstat==1.2.7
