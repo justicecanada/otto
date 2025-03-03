@@ -23,12 +23,15 @@
          id="chat-history-list">
       {% for section in chat_history_section %}
         {% if section.chats %}
-          <div class="chat-history-section-header">{{ section.name }}</div>
-          <ul class="list-unstyled" id="chat-list">
-            {% for chat in section.chats %}
-              {% include 'chat/components/chat_list_item.html' %}
-            {% endfor %}
-          </ul>
+          <div id="section-{{ forloop.counter }}">
+
+            <div class="chat-history-section-header">{{ section.name }}</div>
+            <ul class="list-unstyled" id="chat-list-{{ forloop.counter }}">
+              {% for chat in section.chats %}
+                {% include 'chat/components/chat_list_item.html' %}
+              {% endfor %}
+            </ul>
+          </div>
         {% endif %}
       {% endfor %}
     </div>
@@ -50,6 +53,8 @@
   <script>
   document.addEventListener('DOMContentLoaded', () => {
     scrollToListItem();
+
+
   });
   </script>
 {% endblock %}

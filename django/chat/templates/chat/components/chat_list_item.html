@@ -1,6 +1,7 @@
 {% load i18n %}
 
-<li class="chat-list-item{% if chat.current_chat %} current{% endif %}">
+<li class="chat-list-item{% if chat.current_chat %} current{% endif %}"
+    id="chat-{{ chat.id }}">
   <div class="row border-bottom py-2 flex-nowrap">
     <div class="col-auto pe-0">{% include 'chat/components/chat_security_label.html' %}</div>
     <div class="col ps-2 pe-2 overflow-x-hidden">

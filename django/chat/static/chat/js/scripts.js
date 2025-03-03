@@ -290,6 +290,22 @@ document.addEventListener('htmx:afterSwap', function (event) {
   }
 });
 
+// handle deletion of chats
+document.querySelectorAll('.chat-delete').forEach(button => {
+  button.addEventListener('htmx:afterRequest', () => {
+    // remove the chat list item
+    chat_list_item = document.getElementById('chat-' + button.getAttribute('chat-id'));
+    chat_list_item.remove();
+    // remove the section if it is now empty
+    section_number = button.getAttribute('section-number');
+    chat_list = document.getElementById('chat-list-' + section_number);
+    if (chat_list.children.length === 0) {
+      section = document.getElementById('section-' + section_number);
+      section.remove();
+    }
+  });
+});
+
 // Message actions
 function thumbMessage(clickedBtn) {
   isThumbDown = clickedBtn.classList.contains("thumb-down");
