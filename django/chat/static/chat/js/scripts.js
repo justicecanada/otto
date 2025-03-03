@@ -294,7 +294,7 @@ document.addEventListener('htmx:afterSwap', function (event) {
 document.querySelectorAll('.chat-delete').forEach(button => {
   button.addEventListener('htmx:afterRequest', () => {
     // remove the chat list item
-    chat_list_item = document.getElementById('chat-' + button.getAttribute('chat-id'));
+    chat_list_item = document.getElementById('chat-list-item-' + button.getAttribute('chat-id'));
     chat_list_item.remove();
     // remove the section if it is now empty
     section_number = button.getAttribute('section-number');
