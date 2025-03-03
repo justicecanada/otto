@@ -14,7 +14,7 @@ def sync_users():
 @shared_task
 def update_laws():
     call_command(
-        "load_laws_xml", "--force_download", "--full", "--reset", "--accept-reset"
+        "load_laws_xml", "--force_download", "--full", "--reset", "--accept_reset"
     )
 
 
