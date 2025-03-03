@@ -1544,7 +1544,7 @@
         "fr_auto": "Résultats pour «"
     },
     "&quot;": {
-        "fr": "",
+        "fr": "»",
         "fr_auto": "&quot;"
     },
     "Part": {
@@ -2814,5 +2814,17 @@
     "No highlights found": {
         "fr": "",
         "fr_auto": "Aucun fait saillant trouvé"
+    },
+    "Find relevant sections of acts and regulations using natural language similarity search.": {
+        "fr": "",
+        "fr_auto": "Trouvez les articles pertinents des lois et des règlements à l’aide de la recherche de similarité en langage naturel."
+    },
+    "Not for legal advice:": {
+        "fr": "Ne pas utiliser pour fournir des conseils juridiques :",
+        "fr_auto": "Pas pour des conseils juridiques :"
+    },
+    "AI answers may contain mistakes, and are not a replacement for legal advice. Always review the relevant sections below the answer.": {
+        "fr": "Les réponses de l’IA peuvent contenir des erreurs et ne remplacent pas les conseils juridiques. Veuillez toujours consulter les sections pertinentes sous la réponse.",
+        "fr_auto": "Les réponses de l’IA peuvent contenir des erreurs et ne remplacent pas les conseils juridiques. Consultez toujours les sections pertinentes sous la réponse."
     }
 }
