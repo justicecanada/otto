@@ -130,6 +130,7 @@ def process_document_helper(document, llm, pdf_method="default"):
         pdf_method=pdf_method,
         base_url=base_url,
         selector=document.selector,
+        data_source_id=document.data_source_id,
     )
     if current_task:
         current_task.update_state(

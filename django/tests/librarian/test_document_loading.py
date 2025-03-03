@@ -7,6 +7,7 @@ import pytest
 from openpyxl import Workbook
 from structlog import get_logger
 
+from librarian.models import DataSource, Library
 from librarian.utils.process_engine import decode_content, extract_markdown
 from otto.models import Cost
 
@@ -137,11 +138,18 @@ def test_extract_text():
         assert "Paragraph page 1" in md_chunks[0]
 
 
-def test_extract_outlook_msg():
+@pytest.mark.django_db
+def test_extract_outlook_msg(client, all_apps_user):
+    library = Library.objects.get_default_library()
+    user = all_apps_user()
+    client.force_login(user)
+    data_source = DataSource.objects.create(library=library)
     # Load an Outlook MSG file
     with open(os.path.join(this_dir, "test_files/elephants.msg"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "OUTLOOK_MSG")
+        md, md_chunks = extract_markdown(
+            content, "OUTLOOK_MSG", data_source_id=data_source.id
+        )
         assert not "<page_1>" in md
         assert len(md) > 0
         assert len(md_chunks) > 0
