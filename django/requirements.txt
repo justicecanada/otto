@@ -42,9 +42,6 @@ llama-index-llms-azure-openai==0.3.0
 llama-index-vector-stores-postgres==0.3.2
 llama-index-llms-openai==0.3.2
 llama-index-embeddings-azure-openai==0.3.0
-langchain-core==0.3.21
-langchain-openai==0.2.11
-langchain-community==0.3.9
 tiktoken==0.8.0
 
 # Document extraction ----------------------------------------------------------
@@ -64,7 +61,6 @@ python-docx==1.1.2
 # NLP (non-LLM) ----------------------------------------------------------------
 langdetect==1.0.9
 lxml==4.9.2
-langchain-text-splitters==0.3.5
 sentence-splitter==1.4
 
 # Data science -----------------------------------------------------------------
