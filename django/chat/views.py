@@ -662,9 +662,10 @@ def chat_list_item(request, chat_id, current_chat=None):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def rename_chat(request, chat_id, current_chat=None):
+def rename_chat(request, chat_id, section, current_chat=None):
     chat = get_object_or_404(Chat, id=chat_id)
     chat.current_chat = bool(current_chat == "True")
+    chat.section = section
 
     if request.method == "POST":
         chat_rename_form = ChatRenameForm(request.POST)

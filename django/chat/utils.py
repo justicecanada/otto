@@ -815,11 +815,11 @@ def fix_source_links(text, source_document_url):
 
 def get_chat_history_sections(user_chats):
     chat_history_sections = [
-        {"name": "Today", "chats": []},
-        {"name": "Yesterday", "chats": []},
-        {"name": "Last 7 days", "chats": []},
-        {"name": "Last 30 days", "chats": []},
-        {"name": "Older", "chats": []},
+        {"name": "Today", "chats": [], "index": 0},
+        {"name": "Yesterday", "chats": [], "index": 1},
+        {"name": "Last 7 days", "chats": [], "index": 2},
+        {"name": "Last 30 days", "chats": [], "index": 3},
+        {"name": "Older", "chats": [], "index": 4},
     ]
 
     for user_chat in user_chats:
@@ -827,23 +827,28 @@ def get_chat_history_sections(user_chats):
             user_chat.last_message_date.date()
             > timezone.now().date() - timezone.timedelta(days=1)
         ):
+            user_chat.section = 0
             chat_history_sections[0]["chats"].append(user_chat)
         elif (
             user_chat.last_message_date.date()
             > timezone.now().date() - timezone.timedelta(days=2)
         ):
+            user_chat.section = 1
             chat_history_sections[1]["chats"].append(user_chat)
         elif (
             user_chat.last_message_date.date()
             > timezone.now().date() - timezone.timedelta(days=7)
         ):
+            user_chat.section = 2
             chat_history_sections[2]["chats"].append(user_chat)
         elif (
             user_chat.last_message_date.date()
             > timezone.now().date() - timezone.timedelta(days=30)
         ):
+            user_chat.section = 3
             chat_history_sections[3]["chats"].append(user_chat)
         else:
+            user_chat.section = 4
             chat_history_sections[4]["chats"].append(user_chat)
 
     return chat_history_sections

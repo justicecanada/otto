@@ -23,10 +23,10 @@
          id="chat-history-list">
       {% for section in chat_history_section %}
         {% if section.chats %}
-          <div id="section-{{ forloop.counter }}">
+          <div id="section-{{ section.index }}">
 
             <div class="chat-history-section-header">{{ section.name }}</div>
-            <ul class="list-unstyled" id="chat-list-{{ forloop.counter }}">
+            <ul class="list-unstyled" id="chat-list-{{ section.index }}">
               {% for chat in section.chats %}
                 {% include 'chat/components/chat_list_item.html' %}
               {% endfor %}
