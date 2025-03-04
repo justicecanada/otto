@@ -32,7 +32,6 @@
               id="delete-chat-{{ chat.id }}"
               class="d-flex align-items-center px-3 py-2 chat-delete dropdown-item"
               section-number="{{ chat.section }}"
-              chat-id="{{ chat.id }}"
               hx-delete="{% url 'chat:delete_chat' chat_id=chat.id current_chat=chat.current_chat %}"
               hx-target="closest li"
               role="menuitem">
