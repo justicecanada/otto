@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify
 from structlog import get_logger
 
+from librarian.utils.extract_zip import extract_file
 from librarian.utils.markdown_splitter import MarkdownSplitter
 from otto.models import Cost
 
@@ -151,6 +152,8 @@ def guess_content_type(
         if path.endswith(".msg"):
             return "application/vnd.ms-outlook"
 
+        if path.endswith(".zip"):
+            return "application/zip"
         # Use filetype library to guess the content type
         kind = filetype.guess(content)
         if kind and not path.endswith(".md"):
@@ -187,6 +190,8 @@ def get_process_engine_from_type(type):
         return "POWERPOINT"
     elif "application/vnd.ms-outlook" in type:
         return "OUTLOOK_MSG"
+    elif "application/zip" in type:
+        return "ZIP"
     elif "application/pdf" in type:
         return "PDF"
     elif "text/html" in type:
@@ -230,6 +235,7 @@ def extract_markdown(
     base_url=None,
     chunk_size=768,
     selector=None,
+    data_source_id=None,
 ):
     try:
         enable_markdown = True
@@ -260,6 +266,9 @@ def extract_markdown(
         elif process_engine == "OUTLOOK_MSG":
             enable_markdown = False
             md = msg_to_markdown(content)
+        elif process_engine == "ZIP":
+            enable_markdown = False
+            md = extract_file(content, data_source_id)
         elif process_engine == "CSV":
             md = csv_to_markdown(content)
         elif process_engine == "EXCEL":
