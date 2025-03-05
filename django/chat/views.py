@@ -36,6 +36,7 @@ from chat.utils import (
     copy_options,
     fix_source_links,
     generate_prompt,
+    get_chat_history_sections,
     highlight_claims,
     title_chat,
     wrap_llm_response,
@@ -176,7 +177,7 @@ def chat(request, chat_id):
         .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
-        .order_by("-created_at")
+        .order_by("-last_message_date")
     )
     # Title chats in sidebar if necessary & set default labels
     llm = None
@@ -230,6 +231,7 @@ def chat(request, chat_id):
         "user_chats": user_chats,
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
+        "chat_history_section": get_chat_history_sections(user_chats),
     }
     return render(request, "chat/chat.html", context=context)
 
@@ -651,9 +653,10 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def chat_list_item(request, chat_id, current_chat=None):
+def chat_list_item(request, chat_id, section, current_chat=None):
     chat = get_object_or_404(Chat, id=chat_id)
     chat.current_chat = bool(current_chat == "True")
+    chat.section = section
     return render(
         request,
         "chat/components/chat_list_item.html",
@@ -662,9 +665,10 @@ def chat_list_item(request, chat_id, current_chat=None):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def rename_chat(request, chat_id, current_chat=None):
+def rename_chat(request, chat_id, section, current_chat=None):
     chat = get_object_or_404(Chat, id=chat_id)
     chat.current_chat = bool(current_chat == "True")
+    chat.section = section
 
     if request.method == "POST":
         chat_rename_form = ChatRenameForm(request.POST)

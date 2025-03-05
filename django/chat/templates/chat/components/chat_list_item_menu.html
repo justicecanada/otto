@@ -18,7 +18,7 @@
     <h6 class="dropdown-header" role="presentation">{% trans 'Options' %}</h6>
     <div class="list-group list-group-flush options-menu">
       <button type="button"
-              hx-get="{% url 'chat:rename_chat' chat_id=chat.id current_chat=chat.current_chat %}"
+              hx-get="{% url 'chat:rename_chat' chat_id=chat.id section=chat.section current_chat=chat.current_chat %}"
               hx-swap="innerHTML"
               hx-target="closest li"
               class="d-flex align-items-center px-3 dropdown-item py-2"
@@ -29,7 +29,9 @@
         <span class="ms-2">{% trans 'Rename' %}</span>
       </button>
       <button type="button"
+              id="delete-chat-{{ chat.id }}"
               class="d-flex align-items-center px-3 py-2 chat-delete dropdown-item"
+              section-number="{{ chat.section }}"
               hx-delete="{% url 'chat:delete_chat' chat_id=chat.id current_chat=chat.current_chat %}"
               hx-target="closest li"
               role="menuitem">
