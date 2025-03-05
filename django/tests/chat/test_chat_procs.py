@@ -1,6 +1,5 @@
 import asyncio
 
-from django.db.models.signals import post_save
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -9,7 +8,7 @@ from asgiref.sync import sync_to_async
 from bs4 import BeautifulSoup as bs
 
 from chat.llm import OttoLLM
-from chat.models import Chat, Message, message_post_save
+from chat.models import Chat, Message
 from chat.utils import (
     fix_source_links,
     get_chat_history_sections,
@@ -434,9 +433,6 @@ async def test_combine_batch_generators():
 def test_get_chat_history_sections(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
-
-    # Disconnect the message_post_save signal
-    post_save.disconnect(message_post_save, sender=Message)
 
     # Create chats with different last_message_date
     chat_today = Chat.objects.create(user=user, last_message_date=timezone.now())
