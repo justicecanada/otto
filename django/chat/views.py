@@ -36,11 +36,8 @@ from chat.utils import (
     copy_options,
     fix_source_links,
     generate_prompt,
-<<<<<<< HEAD
     get_chat_history_sections,
-=======
     highlight_claims,
->>>>>>> main
     title_chat,
     wrap_llm_response,
 )
