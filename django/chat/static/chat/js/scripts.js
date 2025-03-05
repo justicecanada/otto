@@ -295,30 +295,32 @@ document.addEventListener('htmx:afterSwap', function (event) {
   }
 });
 
-// reinitialize the button event listeners after a chat is modified
-document.addEventListener('htmx:afterSwap', function (event) {
+// reinitialize the delete button event listener after a chat is modified
+document.addEventListener('htmx:afterRequest', function (event) {
   if (event.detail?.target?.id.startsWith('chat-list-item')) {
-    document.querySelectorAll('.chat-delete').forEach(button => {
+    const chat_id = event.detail.target.id.split("chat-list-item-")[1];
+    const button = document.getElementById('delete-chat-' + chat_id);
+    if (button) {
       button.addEventListener('htmx:afterRequest', () => {
         deleteChatSection(button);
       });
-    });
+    }
   }
 });
 
+// deletes the list item associated with the deleted chat
+// also checks if the section is now empty and removes it
 function deleteChatSection(button) {
-
   // get chat id based on id of button
   var chat_id = button.id.split("delete-chat-")[1];
   // remove the chat list item associated with the deleted chat
   var chat_list_item = document.getElementById('chat-list-item-' + chat_id);
-  if (chat_list_item) {
-    chat_list_item.remove();
-  }
+  chat_list_item.remove();
+
   // remove the section if it is now empty
   var section_number = button.getAttribute('section-number');
   var chat_list = document.getElementById('chat-list-' + section_number);
-  if (chat_list && chat_list.children.length === 0) {
+  if (chat_list.children.length === 0) {
     var section = document.getElementById('section-' + section_number);
     section.remove();
   }
