@@ -1,0 +1,17 @@
+{% load i18n %}
+<div class="alert alert-warning d-flex align-items-center mb-4"
+     role="alert">
+  <svg class="flex-shrink-0"
+       width="24"
+       height="24"
+       role="img"
+       aria-label="{% trans 'Warning:' %}">
+    <use xlink:href="#exclamation-triangle-fill" />
+  </svg>
+  <div class="px-3">
+    <p class="mb-0">
+      <strong>{% trans "Not for legal advice:" %}</strong>
+      {% trans "AI answers may contain mistakes, and are not a replacement for legal advice. Always review the relevant sections below the answer." %}
+    </p>
+  </div>
+</div>
