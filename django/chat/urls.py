@@ -76,7 +76,7 @@ urlpatterns = [
         name="rename_chat",
     ),
     path(
-        "id/<str:chat_id>/list_item/<str:current_chat>",
+        "id/<str:chat_id>/list_item/<int:section>/<str:current_chat>",
         views.chat_list_item,
         name="chat_list_item",
     ),

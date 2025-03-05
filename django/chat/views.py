@@ -651,9 +651,10 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def chat_list_item(request, chat_id, current_chat=None):
+def chat_list_item(request, chat_id, section, current_chat=None):
     chat = get_object_or_404(Chat, id=chat_id)
     chat.current_chat = bool(current_chat == "True")
+    chat.section = section
     return render(
         request,
         "chat/components/chat_list_item.html",
