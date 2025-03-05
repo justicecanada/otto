@@ -632,11 +632,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function updatePageTitle(title = null) {
   if (title) {
-    document.title = "test";
+    document.title = title;
     return;
   }
   const new_page_title = document.querySelector("#current-chat-title").dataset.pagetitle;
-  if (new_page_title) document.title = "test";
+  if (new_page_title) document.title = new_page_title;
 }
 
 function emailChatAuthor(url) {
