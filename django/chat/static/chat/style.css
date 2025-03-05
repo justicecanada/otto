@@ -1357,10 +1357,6 @@ math[display="block"] {
   background-color: var(--app-color-purple-1-hover) !important;
 }
 
-/*.bi-magic.wand {
-  font-size: 1.25rem;
-   Adjust the value as needed 
-}*/
 
 #shared-chat-warning {
   position: sticky;
