@@ -172,6 +172,7 @@ INSTALLED_APPS = [
     "django_cleanup.apps.CleanupConfig",
     "text_extractor",
     "django_celery_beat",
+    "lex_experiment",
 ]
 
 MIDDLEWARE = [
