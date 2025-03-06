@@ -76,12 +76,12 @@ urlpatterns = [
         name="set_security_label",
     ),
     path(
-        "id/<str:chat_id>/rename/<int:section>/<str:current_chat>",
+        "id/<str:chat_id>/rename/<str:current_chat>",
         views.rename_chat,
         name="rename_chat",
     ),
     path(
-        "id/<str:chat_id>/list_item/<int:section>/<str:current_chat>",
+        "id/<str:chat_id>/list_item/<str:current_chat>",
         views.chat_list_item,
         name="chat_list_item",
     ),

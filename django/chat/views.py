@@ -32,6 +32,7 @@ from chat.models import (
 )
 from chat.utils import (
     bad_url,
+    calculate_section,
     change_mode_to_chat_qa,
     copy_options,
     fix_source_links,
@@ -177,7 +178,7 @@ def chat(request, chat_id):
         .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
-        .order_by("-last_message_date")
+        .order_by("-last_change_date")
     )
     # Title chats in sidebar if necessary & set default labels
     llm = None
@@ -653,45 +654,54 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def chat_list_item(request, chat_id, section, current_chat=None):
+def chat_list_item(request, chat_id, current_chat=None):
     chat = get_object_or_404(Chat, id=chat_id)
     chat.current_chat = bool(current_chat == "True")
-    chat.section = section
     return render(
         request,
         "chat/components/chat_list_item.html",
-        {"chat": chat},
+        {"chat": chat, "section": calculate_section(chat.last_change_date)},
     )
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def rename_chat(request, chat_id, section, current_chat=None):
+def rename_chat(request, chat_id, current_chat=None):
     chat = get_object_or_404(Chat, id=chat_id)
     chat.current_chat = bool(current_chat == "True")
-    chat.section = section
 
     if request.method == "POST":
         chat_rename_form = ChatRenameForm(request.POST)
         if chat_rename_form.is_valid():
             chat.title = chat_rename_form.cleaned_data["title"]
+            # we keep the old last change date since the button will still be displayed in it until the next reload
+            old_last_change_date = chat.last_change_date
+            chat.last_change_date = timezone.now()
             chat.save()
             return render(
                 request,
                 "chat/components/chat_list_item.html",
-                {"chat": chat},
+                {"chat": chat, "section": calculate_section(old_last_change_date)},
             )
         else:
             return render(
                 request,
                 "chat/components/chat_list_item_title_edit.html",
-                {"form": chat_rename_form, "chat": chat},
+                {
+                    "form": chat_rename_form,
+                    "chat": chat,
+                    "section": calculate_section(chat.last_change_date),
+                },
             )
 
     chat_rename_form = ChatRenameForm(data={"title": chat.title})
     return render(
         request,
         "chat/components/chat_list_item_title_edit.html",
-        {"form": chat_rename_form, "chat": chat},
+        {
+            "form": chat_rename_form,
+            "chat": chat,
+            "section": calculate_section(chat.last_change_date),
+        },
     )
 
 

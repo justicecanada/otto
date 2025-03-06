@@ -924,6 +924,30 @@ def fix_source_links(text, source_document_url):
     return text
 
 
+def calculate_section(last_modification_date):
+    """
+    Calculate the section of the chat history based on the last change date
+    """
+    if last_modification_date.date() > timezone.now().date() - timezone.timedelta(
+        days=1
+    ):
+        return {"name": "Today", "index": 0}
+    elif last_modification_date.date() > timezone.now().date() - timezone.timedelta(
+        days=2
+    ):
+        return {"name": "Yesterday", "index": 1}
+    elif last_modification_date.date() > timezone.now().date() - timezone.timedelta(
+        days=7
+    ):
+        return {"name": "Last 7 days", "index": 2}
+    elif last_modification_date.date() > timezone.now().date() - timezone.timedelta(
+        days=30
+    ):
+        return {"name": "Last 30 days", "index": 3}
+    else:
+        return {"name": "Older", "index": 4}
+
+
 def get_chat_history_sections(user_chats):
     chat_history_sections = [
         {"name": "Today", "chats": [], "index": 0},
@@ -935,25 +959,25 @@ def get_chat_history_sections(user_chats):
 
     for user_chat in user_chats:
         if (
-            user_chat.last_message_date.date()
+            user_chat.last_modification_date.date()
             > timezone.now().date() - timezone.timedelta(days=1)
         ):
             user_chat.section = 0
             chat_history_sections[0]["chats"].append(user_chat)
         elif (
-            user_chat.last_message_date.date()
+            user_chat.last_modification_date.date()
             > timezone.now().date() - timezone.timedelta(days=2)
         ):
             user_chat.section = 1
             chat_history_sections[1]["chats"].append(user_chat)
         elif (
-            user_chat.last_message_date.date()
+            user_chat.last_modification_date.date()
             > timezone.now().date() - timezone.timedelta(days=7)
         ):
             user_chat.section = 2
             chat_history_sections[2]["chats"].append(user_chat)
         elif (
-            user_chat.last_message_date.date()
+            user_chat.last_modification_date.date()
             > timezone.now().date() - timezone.timedelta(days=30)
         ):
             user_chat.section = 3

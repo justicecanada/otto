@@ -343,7 +343,7 @@ function deleteChatSection(button) {
   chat_list_item.remove();
 
   // remove the section if it is now empty
-  var section_number = button.getAttribute('section-number');
+  var section_number = button.getAttribute('data-section-number');
   var chat_list = document.getElementById('chat-list-' + section_number);
   if (chat_list.children.length === 0) {
     var section = document.getElementById('section-' + section_number);
