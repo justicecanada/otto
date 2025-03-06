@@ -277,6 +277,9 @@ async def htmx_stream(
                 )
             await asyncio.sleep(0.01)
 
+        # yield sse_string(
+        #     full_message, wrap_markdown=False, dots=False, remove_stop=True
+        # )
         yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
         await asyncio.sleep(0.01)
 
@@ -293,7 +296,7 @@ async def htmx_stream(
 
         # Update message text with markdown wrapper to pass to template
         if wrap_markdown:
-            message.text = wrap_llm_response(full_message)
+            message.text = wrap_llm_response(full_message)  # full_message)
         context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
         # Save sources and security label
@@ -318,6 +321,7 @@ async def htmx_stream(
 
     # Render the message template, wrapped in SSE format
     context["message"].json = json.dumps(str(full_message))
+
     yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context
@@ -746,6 +750,112 @@ def generate_prompt(task_or_prompt: str):
     return generated_prompt, cost
 
 
+def mark_sentences(text: str, good_matches: list) -> str:
+    """
+    Ignoring "\n" and "\r" characters in the text, wrap matching sentences in the text with <mark> tags.
+    Return the original text with the sentences wrapped in <mark> tags, with original newlines preserved.
+    """
+    # Replace newline characters with temporary markers.
+    newline_marker = "<<<NEWLINE>>>"
+    text_temp = text.replace("\n", newline_marker).replace("\r", "")
+
+    good_matches = set(good_matches)
+
+    # For each sentence that should be marked, search and wrap it.
+    for sentence in good_matches:
+        # Remove leading/trailing whitespace and escape regex-special characters.
+        sentence_clean = sentence.strip()
+        # Escape regex special characters.
+        escaped = re.escape(sentence_clean)
+        # Replace literal spaces (escaped as "\ ") with a pattern that allows matching spaces or newline markers.
+        flexible_pattern = escaped.replace(
+            r"\ ",
+            r"(?:\s|" + re.escape(newline_marker) + r"+|" + r")+",
+        )
+        pattern = re.compile(flexible_pattern, flags=re.IGNORECASE)
+        # Wrap any match with <mark> tags.
+        text_temp = pattern.sub(r"<mark>\g<0></mark>", text_temp)
+
+    # Restore original newlines.
+    marked_text = text_temp.replace(newline_marker, "\n")
+    # If there are sections where a mark spans over multiple paragraphs, we must highlight them all.
+    # e.g. <mark>paragraph 1\n\nparagraph 2</mark> -> <mark>paragraph 1</mark>\n\n<mark>paragraph 2</mark>
+    marked_text = re.sub(
+        r"<mark>(.*?)\n\n(.*?)</mark>",
+        r"<mark>\1</mark>\n\n<mark>\2</mark>",
+        marked_text,
+    )
+    # Remove nested <mark> tags
+    marked_text = re.sub(r"<mark>(.*?)<mark>", r"<mark>\1", marked_text)
+    marked_text = re.sub(r"</mark></mark>", r"</mark>", marked_text)
+    return marked_text
+
+
+def highlight_claims(claims_list, text, threshold=0.66):
+    """
+    Highlight sentences in text with <mark> that match a claim in the claims_list.
+    """
+    from langdetect import detect
+    from llama_index.core.schema import TextNode
+    from sentence_splitter import split_text_into_sentences
+
+    lang = detect(text)
+    sentences = split_text_into_sentences(
+        text=text.replace("\n", " ").replace("\r", " "),
+        language="fr" if lang == "fr" else "en",
+    )
+    llm = OttoLLM()
+    index = llm.temp_index_from_nodes(
+        [TextNode(text=sentence) for sentence in sentences]
+    )
+
+    # print("SENTENCES:")
+    # for sentence in sentences:
+    #     print(sentence)
+    # print("CLAIMS:")
+    # for claim in claims_list:
+    #     print(claim)
+
+    good_matches = []
+    for claim in claims_list:
+        retriever = index.as_retriever()
+        nodes = retriever.retrieve(claim)
+        # print("CLAIM:", claim)
+        # print("matches:")
+        # print([(node.score, node.node.text) for node in nodes])
+        # print("\n")
+        for node in nodes:
+            if node.score > threshold:
+                good_matches.append(node.text)
+
+    text = mark_sentences(text, good_matches)
+    return text
+
+
+def extract_claims_from_llm(llm_response_text):
+    llm = OttoLLM()
+    prompt = f"""
+    Based on the following LLM response, extract all factual claims including direct quotes.
+
+    Respond in the format:
+    <claim>whatever the claim is...</claim>
+    <claim>another claim...</claim>
+
+    etc.
+    Include all factual claims as their own sentence. Do not include any analysis or reasoning.
+
+    ---
+    <llm_response>
+    {llm_response_text}
+    </llm_response>
+    """
+    claims_response = llm.complete(prompt)
+    llm.create_costs()
+    # find the claim tags and add whats wrapped in the claim tags to a list
+    claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
+    return claims_list
+
+
 def fix_source_links(text, source_document_url):
     """
     Fix internal links in the text by merging them with the source document URL
@@ -810,16 +920,17 @@ def fix_source_links(text, source_document_url):
                     text = remove_link(text, link_tuple)
         except:
             continue
-    return wrap_llm_response(text)
+
+    return text
 
 
 def get_chat_history_sections(user_chats):
     chat_history_sections = [
-        {"name": "Today", "chats": []},
-        {"name": "Yesterday", "chats": []},
-        {"name": "Last 7 days", "chats": []},
-        {"name": "Last 30 days", "chats": []},
-        {"name": "Older", "chats": []},
+        {"name": "Today", "chats": [], "index": 0},
+        {"name": "Yesterday", "chats": [], "index": 1},
+        {"name": "Last 7 days", "chats": [], "index": 2},
+        {"name": "Last 30 days", "chats": [], "index": 3},
+        {"name": "Older", "chats": [], "index": 4},
     ]
 
     for user_chat in user_chats:
@@ -827,23 +938,28 @@ def get_chat_history_sections(user_chats):
             user_chat.last_message_date.date()
             > timezone.now().date() - timezone.timedelta(days=1)
         ):
+            user_chat.section = 0
             chat_history_sections[0]["chats"].append(user_chat)
         elif (
             user_chat.last_message_date.date()
             > timezone.now().date() - timezone.timedelta(days=2)
         ):
+            user_chat.section = 1
             chat_history_sections[1]["chats"].append(user_chat)
         elif (
             user_chat.last_message_date.date()
             > timezone.now().date() - timezone.timedelta(days=7)
         ):
+            user_chat.section = 2
             chat_history_sections[2]["chats"].append(user_chat)
         elif (
             user_chat.last_message_date.date()
             > timezone.now().date() - timezone.timedelta(days=30)
         ):
+            user_chat.section = 3
             chat_history_sections[3]["chats"].append(user_chat)
         else:
+            user_chat.section = 4
             chat_history_sections[4]["chats"].append(user_chat)
 
     return chat_history_sections

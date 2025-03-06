@@ -25,16 +25,40 @@
     </div>
   {% endfor %}
 </div>
-
 <button id="expand-all-sources"
         hx-swap-oob="true"
         type="button"
         onclick="expandAllSources({{ message_id }})"
-        class="btn btn-outline-dark me-2"
+        class="btn btn-outline-dark mx-2"
         style="white-space: nowrap">
   <span id="expand-all-label"><i class="bi bi-chevron-double-down me-1"></i>{% trans "Expand all" %}</span>
   <span id="collapse-all-label" class="d-none"><i class="bi bi-chevron-double-up me-1"></i>{% trans "Collapse all" %}</span>
 </button>
+
+{% if highlighted %}
+  <button id="next-highlight"
+          type="button"
+          class="btn btn-outline-dark ms-2"
+          hx-swap-oob="true"
+          style="white-space: nowrap"
+          onclick="nextSourceHighlight({{ message_id }})">
+    <i class="bi bi-arrow-right me-1"></i>
+    {% trans "Next highlight" %}
+  </button>
+  <button id="highlight-all-sources" class="d-none" hx-swap-oob="true"></button>
+{% else %}
+  <button id="highlight-all-sources"
+          type="button"
+          hx-swap-oob="true"
+          hx-get="{% url 'chat:message_sources_highlight' message_id=message_id %}?highlight=true"
+          hx-target="#sources-modal-inner"
+          hx-swap="innerHTML"
+          hx-indicator="#sources-modal-spinner"
+          class="btn btn-outline-dark ms-2"
+          style="white-space: nowrap">
+    <span id="highlight-all-label"><i class="bi bi-pencil me-1"></i>{% trans "Highlight sources" %}</span>
+  </button>
+{% endif %}
 
 <script>
   (function () {
@@ -43,21 +67,21 @@
 
     let uniqueGroups = new Set();
     for (let item of accordionItems) {
-        uniqueGroups.add(item.getAttribute("data-group"));
+      uniqueGroups.add(item.getAttribute("data-group"));
     }
     if (uniqueGroups.size === accordionItems.length) return;
 
     accordionItems.forEach((item, index) => {
-        let currentGroup = item.getAttribute("data-group");
+      let currentGroup = item.getAttribute("data-group");
 
-        // Check if we need to insert an hr before the current item
-        if (lastGroup !== currentGroup && index !== 0) {
-            let hr = document.createElement("hr");
-            hr.style.border = "1px solid";
-            hr.style.margin = "0px";
-            item.parentNode.insertBefore(hr, item);
-        }
-        lastGroup = currentGroup;
+      // Check if we need to insert an hr before the current item
+      if (lastGroup !== currentGroup && index !== 0) {
+        let hr = document.createElement("hr");
+        hr.style.border = "1px solid";
+        hr.style.margin = "0px";
+        item.parentNode.insertBefore(hr, item);
+      }
+      lastGroup = currentGroup;
     });
   })();
 </script>
