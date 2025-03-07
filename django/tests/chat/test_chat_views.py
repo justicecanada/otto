@@ -764,7 +764,6 @@ def test_rename_chat_title(client, all_apps_user):
     client.force_login(user)
     chat = Chat.objects.create(user=user)
     chat.title = "My chat"
-    chat.section = 0
     chat.save()
 
     # Create 3 messages
@@ -778,7 +777,6 @@ def test_rename_chat_title(client, all_apps_user):
             "chat:chat_list_item",
             kwargs={
                 "chat_id": chat.id,
-                "section": chat.section,
                 "current_chat": "True",
             },
         )
@@ -793,7 +791,6 @@ def test_rename_chat_title(client, all_apps_user):
             "chat:rename_chat",
             kwargs={
                 "chat_id": chat.id,
-                "section": chat.section,
                 "current_chat": "True",
             },
         ),
@@ -809,7 +806,6 @@ def test_rename_chat_title(client, all_apps_user):
             "chat:rename_chat",
             kwargs={
                 "chat_id": chat.id,
-                "section": chat.section,
                 "current_chat": "True",
             },
         ),
@@ -824,7 +820,6 @@ def test_rename_chat_title(client, all_apps_user):
             "chat:rename_chat",
             kwargs={
                 "chat_id": chat.id,
-                "section": chat.section,
                 "current_chat": "True",
             },
         )

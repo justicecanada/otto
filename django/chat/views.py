@@ -32,7 +32,7 @@ from chat.models import (
 )
 from chat.utils import (
     bad_url,
-    calculate_section,
+    calculate_section_index,
     change_mode_to_chat_qa,
     copy_options,
     fix_source_links,
@@ -660,7 +660,10 @@ def chat_list_item(request, chat_id, current_chat=None):
     return render(
         request,
         "chat/components/chat_list_item.html",
-        {"chat": chat, "section": calculate_section(chat.last_modification_date)},
+        {
+            "chat": chat,
+            "section": {"index": calculate_section_index(chat.last_modification_date)},
+        },
     )
 
 
@@ -682,7 +685,9 @@ def rename_chat(request, chat_id, current_chat=None):
                 "chat/components/chat_list_item.html",
                 {
                     "chat": chat,
-                    "section": calculate_section(old_last_modification_date),
+                    "section": {
+                        "index": calculate_section_index(old_last_modification_date)
+                    },
                 },
             )
         else:
@@ -692,7 +697,9 @@ def rename_chat(request, chat_id, current_chat=None):
                 {
                     "form": chat_rename_form,
                     "chat": chat,
-                    "section": calculate_section(chat.last_modification_date),
+                    "section": {
+                        "index": calculate_section_index(chat.last_modification_date)
+                    },
                 },
             )
 
@@ -703,7 +710,7 @@ def rename_chat(request, chat_id, current_chat=None):
         {
             "form": chat_rename_form,
             "chat": chat,
-            "section": calculate_section(chat.last_modification_date),
+            "section": {"index": calculate_section_index(chat.last_modification_date)},
         },
     )
 
