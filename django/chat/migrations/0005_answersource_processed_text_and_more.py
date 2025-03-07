@@ -12,18 +12,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="answersource",
-            name="processed_text",
-            field=models.TextField(blank=True, null=True),
-        ),
-        migrations.AddField(
             model_name="chat",
             name="last_modification_date",
             field=models.DateTimeField(default=django.utils.timezone.now),
-        ),
-        migrations.AddField(
-            model_name="message",
-            name="claims_list",
-            field=models.JSONField(blank=True, default=list),
         ),
     ]
