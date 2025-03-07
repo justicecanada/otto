@@ -434,19 +434,19 @@ def test_get_chat_history_sections(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
 
-    # Create chats with different last_message_date
-    chat_today = Chat.objects.create(user=user, last_message_date=timezone.now())
+    # Create chats with different last_modification_date
+    chat_today = Chat.objects.create(user=user, last_modification_date=timezone.now())
     chat_yesterday = Chat.objects.create(
-        user=user, last_message_date=timezone.now() - timezone.timedelta(days=1)
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=1)
     )
     chat_last_7_days = Chat.objects.create(
-        user=user, last_message_date=timezone.now() - timezone.timedelta(days=5)
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=5)
     )
     chat_last_30_days = Chat.objects.create(
-        user=user, last_message_date=timezone.now() - timezone.timedelta(days=20)
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=20)
     )
     chat_older = Chat.objects.create(
-        user=user, last_message_date=timezone.now() - timezone.timedelta(days=40)
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=40)
     )
 
     user_chats = [
@@ -457,16 +457,18 @@ def test_get_chat_history_sections(client, all_apps_user):
         chat_older,
     ]
 
+    # get list of sections
+    # a section is (title, chat(s), index)
     sections = get_chat_history_sections(user_chats)
 
     # Check that each section contains the correct chat
-    assert sections[0]["name"] == "Today"
-    assert sections[0]["chats"] == [chat_today]
-    assert sections[1]["name"] == "Yesterday"
-    assert sections[1]["chats"] == [chat_yesterday]
-    assert sections[2]["name"] == "Last 7 days"
-    assert sections[2]["chats"] == [chat_last_7_days]
-    assert sections[3]["name"] == "Last 30 days"
-    assert sections[3]["chats"] == [chat_last_30_days]
-    assert sections[4]["name"] == "Older"
-    assert sections[4]["chats"] == [chat_older]
+    assert sections[0][1] == "Today"
+    assert sections[0][2] == [chat_today]
+    assert sections[1][1] == "Yesterday"
+    assert sections[1][2] == [chat_yesterday]
+    assert sections[2][1] == "Last 7 days"
+    assert sections[2][2] == [chat_last_7_days]
+    assert sections[3][1] == "Last 30 days"
+    assert sections[3][2] == [chat_last_30_days]
+    assert sections[4][1] == "Older"
+    assert sections[4][2] == [chat_older]
