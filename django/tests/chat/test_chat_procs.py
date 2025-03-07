@@ -462,13 +462,13 @@ def test_get_chat_history_sections(client, all_apps_user):
     sections = get_chat_history_sections(user_chats)
 
     # Check that each section contains the correct chat
-    assert sections[0][1] == "Today"
-    assert sections[0][2] == [chat_today]
-    assert sections[1][1] == "Yesterday"
-    assert sections[1][2] == [chat_yesterday]
-    assert sections[2][1] == "Last 7 days"
-    assert sections[2][2] == [chat_last_7_days]
-    assert sections[3][1] == "Last 30 days"
-    assert sections[3][2] == [chat_last_30_days]
-    assert sections[4][1] == "Older"
-    assert sections[4][2] == [chat_older]
+    assert sections[0][0] == "Today"
+    assert sections[0][1] == [chat_today]
+    assert sections[1][0] == "Yesterday"
+    assert sections[1][1] == [chat_yesterday]
+    assert sections[2][0] == "Last 7 days"
+    assert sections[2][1] == [chat_last_7_days]
+    assert sections[3][0] == "Last 30 days"
+    assert sections[3][1] == [chat_last_30_days]
+    assert sections[4][0] == "Older"
+    assert sections[4][1] == [chat_older]
