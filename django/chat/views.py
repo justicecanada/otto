@@ -178,7 +178,7 @@ def chat(request, chat_id):
         .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
-        .order_by("-last_change_date")
+        .order_by("-last_modification_date")
     )
     # Title chats in sidebar if necessary & set default labels
     llm = None
@@ -660,7 +660,7 @@ def chat_list_item(request, chat_id, current_chat=None):
     return render(
         request,
         "chat/components/chat_list_item.html",
-        {"chat": chat, "section": calculate_section(chat.last_change_date)},
+        {"chat": chat, "section": calculate_section(chat.last_modification_date)},
     )
 
 
@@ -673,14 +673,17 @@ def rename_chat(request, chat_id, current_chat=None):
         chat_rename_form = ChatRenameForm(request.POST)
         if chat_rename_form.is_valid():
             chat.title = chat_rename_form.cleaned_data["title"]
-            # we keep the old last change date since the button will still be displayed in it until the next reload
-            old_last_change_date = chat.last_change_date
-            chat.last_change_date = timezone.now()
+            # we keep the old last change date since the button will still be displayed in the old section until the next reload
+            old_last_modification_date = chat.last_modification_date
+            chat.last_modification_date = timezone.now()
             chat.save()
             return render(
                 request,
                 "chat/components/chat_list_item.html",
-                {"chat": chat, "section": calculate_section(old_last_change_date)},
+                {
+                    "chat": chat,
+                    "section": calculate_section(old_last_modification_date),
+                },
             )
         else:
             return render(
@@ -689,7 +692,7 @@ def rename_chat(request, chat_id, current_chat=None):
                 {
                     "form": chat_rename_form,
                     "chat": chat,
-                    "section": calculate_section(chat.last_change_date),
+                    "section": calculate_section(chat.last_modification_date),
                 },
             )
 
@@ -700,7 +703,7 @@ def rename_chat(request, chat_id, current_chat=None):
         {
             "form": chat_rename_form,
             "chat": chat,
-            "section": calculate_section(chat.last_change_date),
+            "section": calculate_section(chat.last_modification_date),
         },
     )
 
