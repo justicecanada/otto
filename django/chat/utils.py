@@ -924,7 +924,7 @@ def fix_source_links(text, source_document_url):
     return text
 
 
-def calculate_section_index(last_modification_date):
+def label_section_index(last_modification_date):
     """
     Calculate the section of the chat history based on the last change date
     """
@@ -950,15 +950,15 @@ def calculate_section_index(last_modification_date):
 
 def get_chat_history_sections(user_chats):
     chat_history_sections = [
-        {"name": "Today", "chats": [], "index": 0},
-        {"name": "Yesterday", "chats": [], "index": 1},
-        {"name": "Last 7 days", "chats": [], "index": 2},
-        {"name": "Last 30 days", "chats": [], "index": 3},
-        {"name": "Older", "chats": [], "index": 4},
+        ("Today", [], 0),
+        ("Yesterday", [], 1),
+        ("This Week", [], 2),
+        ("This Month", [], 3),
+        ("Older", [], 4),
     ]
 
     for user_chat in user_chats:
-        section_index = calculate_section_index(user_chat.last_modification_date)
-        chat_history_sections[section_index]["chats"].append(user_chat)
+        section_index = label_section_index(user_chat.last_modification_date)
+        chat_history_sections[section_index][1].append(user_chat)
 
     return chat_history_sections
