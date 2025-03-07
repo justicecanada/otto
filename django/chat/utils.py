@@ -926,7 +926,7 @@ def fix_source_links(text, source_document_url):
 
 def label_section_index(last_modification_date):
     """
-    Calculate the section of the chat history based on the last change date
+    Calculate the section of the chat history based on the last modification date
     """
     if last_modification_date.date() > timezone.now().date() - timezone.timedelta(
         days=1
@@ -949,6 +949,9 @@ def label_section_index(last_modification_date):
 
 
 def get_chat_history_sections(user_chats):
+    """
+    Group the chat history into sections formated as (title, chat(s), index)
+    """
     chat_history_sections = [
         ("Today", [], 0),
         ("Yesterday", [], 1),

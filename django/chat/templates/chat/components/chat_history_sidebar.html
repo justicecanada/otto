@@ -21,7 +21,7 @@
     </div>
     <div class="overflow-y-auto overflow-x-hidden p-3 pt-0 flex-grow-1"
          id="chat-history-list">
-      {% for section_name, section_chats, section_index in chat_history_section %}
+      {% for section_name, section_chats, section_index in chat_history_sections %}
         {% if section_chats %}
           <div id="section-{{ section_index }}">
             <div class="chat-history-section-header small text-muted">{{ section_name }}</div>

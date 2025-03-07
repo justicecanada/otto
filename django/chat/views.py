@@ -232,7 +232,7 @@ def chat(request, chat_id):
         "user_chats": user_chats,
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
-        "chat_history_section": get_chat_history_sections(user_chats),
+        "chat_history_sections": get_chat_history_sections(user_chats),
     }
     return render(request, "chat/chat.html", context=context)
 
