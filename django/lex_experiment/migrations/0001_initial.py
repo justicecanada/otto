@@ -2,6 +2,7 @@
 
 import django.db.models.deletion
 from django.db import migrations, models
+from django.core.management import call_command
 
 
 def reset_apps(apps, schema_editor):
