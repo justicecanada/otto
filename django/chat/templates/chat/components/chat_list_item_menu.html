@@ -29,7 +29,9 @@
         <span class="ms-2">{% trans 'Rename' %}</span>
       </button>
       <button type="button"
+              id="delete-chat-{{ chat.id }}"
               class="d-flex align-items-center px-3 py-2 chat-delete dropdown-item"
+              data-section-number="{{ section_index }}"
               hx-delete="{% url 'chat:delete_chat' chat_id=chat.id current_chat=chat.current_chat %}"
               hx-target="closest li"
               role="menuitem">
