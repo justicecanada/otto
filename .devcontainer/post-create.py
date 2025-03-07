@@ -65,6 +65,9 @@ print("Writing temporary .env file...")
 with open(os.path.join(os.path.dirname(__file__), "../django/.env"), "w") as f:
     f.write(f"AZURE_OPENAI_KEY='{client.get_secret('OPENAI-SERVICE-KEY').value}'\n")
     f.write(
+        f"AZURE_OPENAI_CANADA_CENTRAL_KEY='{client.get_secret('OPENAI-CANADA-CENTRAL-KEY').value}'\n"
+    )
+    f.write(
         f"AZURE_COGNITIVE_SERVICE_KEY='{client.get_secret('COGNITIVE-SERVICE-KEY').value}'\n"
     )
     f.write(f"AZURE_ACCOUNT_KEY='{client.get_secret('STORAGE-KEY').value}'\n")

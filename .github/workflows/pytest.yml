@@ -51,6 +51,7 @@ jobs:
     env:
       AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
       AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
+      AZURE_OPENAI_CANADA_CENTRAL_KEY: ${{secrets.AZURE_OPENAI_CANADA_CENTRAL_KEY}}
       DJANGODB_HOST: postgres-service
       VECTORDB_HOST: postgres-service
       LOG_LEVEL: ERROR      
