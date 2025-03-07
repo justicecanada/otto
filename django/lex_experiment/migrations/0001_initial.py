@@ -4,6 +4,10 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+def reset_apps(apps, schema_editor):
+    call_command("reset_app_data", "apps")
+
+
 class Migration(migrations.Migration):
 
     initial = True
@@ -13,6 +17,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(reset_apps),
         migrations.CreateModel(
             name="UserRequestLex",
             fields=[
