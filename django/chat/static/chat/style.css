@@ -791,8 +791,14 @@ div#chat-toolbar {
   padding-right: 30px;
 }
 
-#chat-outer.chat #magic-button {
+#chat-outer.chat #magic-button,
+#chat-outer.qa #magic-button {
   display: inline-block;
+}
+
+#chat-outer.translate #magic-button,
+#chat-outer.summarize #magic-button {
+  display: none;
 }
 
 #file-dropzone {
