@@ -77,22 +77,18 @@
             </div>
             <div class="col-auto p-1 pe-3">
               <button id="magic-button"
-                      class="btn-outline-secondary floating-icon"
+                      class="btn-outline-secondary btn btn-sm text-center "
                       type="button"
                       data-bs-toggle="modal"
                       data-bs-target="#magicModal"
                       aria-label='{% trans "Help me write a good prompt" %}'
                       title='{% trans "Help me write a good prompt" %}'
                       onclick="setMagicPrompt()">
-                <i class="bi bi-magic wand "></i>
+                <i class="bi bi-magic wand "></i> <span>{% trans "Improve prompt" %}</span>
               </button>
-              <button class="btn btn-sm btn-outline-secondary text-center"
-                      type="button"
-                      aria-label='{% trans "Settings" %}'
-                      title='{% trans "Settings" %}'
-                      onclick="document.querySelector('#right-sidebar-toggle').click(); this.blur();">
-                <i class="bi bi-gear"></i><span class="ms-1 hideable">{% trans "Settings" %}</span>
-              </button>
+              <!--<button class="btn btn-sm btn-outline-secondary text-center" type="button" aria-label='{% trans "Settings" %}' title='{% trans "Settings" %}' onclick="document.querySelector('#right-sidebar-toggle').click(); this.blur();">
+                <i class="bi bi-gear"></i><span class="ms-1 hideable"></span>
+              </button>-->
             </div>
           </div>
         </div>
