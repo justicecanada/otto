@@ -30,7 +30,8 @@ known_first_party = [
     "laws",
     "case_prep",
     "template_wizard",
-    "text_extractor"
+    "text_extractor",
+    "lex_experiment"
   ]
 sections = [
     "FUTURE",
