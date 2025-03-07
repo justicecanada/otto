@@ -69,7 +69,7 @@ class Chat(models.Model):
     # Last access time manually updated when chat is opened
     accessed_at = models.DateTimeField(auto_now_add=True)
 
-    last_change_date = models.DateTimeField(default=timezone.now)
+    last_modification_date = models.DateTimeField(default=timezone.now)
 
     loaded_preset = models.ForeignKey("Preset", on_delete=models.SET_NULL, null=True)
 
@@ -636,12 +636,12 @@ def delete_saved_file(sender, instance, **kwargs):
         logger.error(f"Failed to delete saved file: {e}")
 
 
-# @receiver(post_save, sender=Message)
-# def message_post_save(sender, instance, **kwargs):
-#     try:
-#         # Access Chat object to update last_change_date
-#         Chat.objects.filter(pk=instance.chat.pk).update(
-#             last_change_date=timezone.now()
-#         )
-#     except Exception as e:
-#         logger.error(f"Message post save error: {e}")
+@receiver(post_save, sender=Message)
+def message_post_save(sender, instance, **kwargs):
+    try:
+        # Access Chat object to update last_modification_date
+        Chat.objects.filter(pk=instance.chat.pk).update(
+            last_modification_date=timezone.now()
+        )
+    except Exception as e:
+        logger.error(f"Message post save error: {e}")
