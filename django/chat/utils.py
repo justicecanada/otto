@@ -953,11 +953,11 @@ def get_chat_history_sections(user_chats):
     Group the chat history into sections formated as (title, chat(s), index)
     """
     chat_history_sections = [
-        ("Today", [], 0),
-        ("Yesterday", [], 1),
-        ("Last 7 days", [], 2),
-        ("Last 30 days", [], 3),
-        ("Older", [], 4),
+        (_("Today"), [], 0),
+        (_("Yesterday"), [], 1),
+        (_("Last 7 days"), [], 2),
+        (_("Last 30 days"), [], 3),
+        (_("Older"), [], 4),
     ]
 
     for user_chat in user_chats:

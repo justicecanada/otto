@@ -2826,5 +2826,13 @@
     "AI answers may contain mistakes, and are not a replacement for legal advice. Always review the relevant sections below the answer.": {
         "fr": "Les réponses de l’IA peuvent contenir des erreurs et ne remplacent pas les conseils juridiques. Veuillez toujours consulter les sections pertinentes sous la réponse.",
         "fr_auto": "Les réponses de l’IA peuvent contenir des erreurs et ne remplacent pas les conseils juridiques. Consultez toujours les sections pertinentes sous la réponse."
+    },
+    "Yesterday": {
+        "fr": "",
+        "fr_auto": "Hier"
+    },
+    "Older": {
+        "fr": "",
+        "fr_auto": "Plus ancien"
     }
 }
