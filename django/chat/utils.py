@@ -925,24 +925,15 @@ def fix_source_links(text, source_document_url):
 
 
 def label_section_index(last_modification_date):
-    """
-    Calculate the section of the chat history based on the last modification date
-    """
-    if last_modification_date.date() > timezone.now().date() - timezone.timedelta(
-        days=1
-    ):
+    last_modification_date = last_modification_date.date()
+    todays_date = timezone.now().date()
+    if last_modification_date > todays_date - timezone.timedelta(days=1):
         return 0
-    elif last_modification_date.date() > timezone.now().date() - timezone.timedelta(
-        days=2
-    ):
+    elif last_modification_date > todays_date - timezone.timedelta(days=2):
         return 1
-    elif last_modification_date.date() > timezone.now().date() - timezone.timedelta(
-        days=7
-    ):
+    elif last_modification_date > todays_date - timezone.timedelta(days=7):
         return 2
-    elif last_modification_date.date() > timezone.now().date() - timezone.timedelta(
-        days=30
-    ):
+    elif last_modification_date > todays_date - timezone.timedelta(days=30):
         return 3
     else:
         return 4
@@ -950,18 +941,18 @@ def label_section_index(last_modification_date):
 
 def get_chat_history_sections(user_chats):
     """
-    Group the chat history into sections formated as (title, chat(s), index)
+    Group the chat history into sections formatted as [{"label": "(string)", "chats": [list..]}]
     """
     chat_history_sections = [
-        (_("Today"), [], 0),
-        (_("Yesterday"), [], 1),
-        (_("Last 7 days"), [], 2),
-        (_("Last 30 days"), [], 3),
-        (_("Older"), [], 4),
+        {"label": _("Today"), "chats": []},
+        {"label": _("Yesterday"), "chats": []},
+        {"label": _("Last 7 days"), "chats": []},
+        {"label": _("Last 30 days"), "chats": []},
+        {"label": _("Older"), "chats": []},
     ]
 
     for user_chat in user_chats:
         section_index = label_section_index(user_chat.last_modification_date)
-        chat_history_sections[section_index][1].append(user_chat)
+        chat_history_sections[section_index]["chats"].append(user_chat)
 
     return chat_history_sections
