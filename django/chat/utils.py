@@ -952,8 +952,8 @@ def get_chat_history_sections(user_chats):
     chat_history_sections = [
         ("Today", [], 0),
         ("Yesterday", [], 1),
-        ("This Week", [], 2),
-        ("This Month", [], 3),
+        ("Last 7 days", [], 2),
+        ("Last 30 days", [], 3),
         ("Older", [], 4),
     ]
 
