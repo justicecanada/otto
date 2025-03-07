@@ -76,6 +76,16 @@
               </button>
             </div>
             <div class="col-auto p-1 pe-3">
+              <button id="magic-button"
+                      class="btn-outline-secondary floating-icon"
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#magicModal"
+                      aria-label='{% trans "Help me write a good prompt" %}'
+                      title='{% trans "Help me write a good prompt" %}'
+                      onclick="setMagicPrompt()">
+                <i class="bi bi-magic wand "></i>
+              </button>
               <button class="btn btn-sm btn-outline-secondary text-center"
                       type="button"
                       aria-label='{% trans "Settings" %}'
@@ -95,16 +105,6 @@
                     placeholder='{% trans "Type your message here..." %}'
                     required></textarea>
  
-          <button id="magic-button"
-                  class="floating-icon wand-button"
-                  type="button"
-                  data-bs-toggle="modal"
-                  data-bs-target="#magicModal"
-                  aria-label='{% trans "Help me write a good prompt" %}'
-                  title='{% trans "Help me write a good prompt" %}'
-                  onclick="setMagicPrompt()">
-            <i class="bi bi-magic wand"></i>
-          </button>
           <button id="send-button"
                   class="btn btn-outline-secondary"
                   type="submit"
