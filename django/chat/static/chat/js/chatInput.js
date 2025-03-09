@@ -100,6 +100,7 @@ function applyGeneratedPrompt(event) {
 function setMagicPrompt() {
   const chatPrompt = document.getElementById('chat-prompt').value;
   document.getElementById('magic-prompt').value = chatPrompt;
+  document.getElementById('magic-prompt').focus();
 }
 
 function resetPromptModal() {
@@ -109,3 +110,4 @@ function resetPromptModal() {
 }
 
 document.getElementById('magicModal').addEventListener('hidden.bs.modal', resetPromptModal);
+document.getElementById('magicModal').addEventListener('shown.bs.modal', setMagicPrompt);
