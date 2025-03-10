@@ -15,10 +15,6 @@ from chat.llm import OttoLLM
 
 logger = get_logger(__name__)
 
-token_counter = TokenCountingHandler(
-    tokenizer=tiktoken.encoding_for_model("gpt-4").encode
-)
-
 
 class LawManager(models.Manager):
 
