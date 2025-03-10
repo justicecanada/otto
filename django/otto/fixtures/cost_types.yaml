@@ -122,27 +122,3 @@
     unit_name_fr: jetons
     unit_cost: 0.6
     unit_quantity: 1000000
-- model: otto.CostType
-  pk: 15
-  fields:
-    short_name: gpt-4o-2024-11-20-in
-    name: GPT-4o 2024-11-20 Global (input)
-    name_fr: GPT-4o 2024-11-20 Global (entrée)
-    description: API calls to Azure OpenAI GPT-4o 2024-11-20 Global Deployment model (input)
-    description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o 2024-11-20 (entrée)
-    unit_name: tokens
-    unit_name_fr: jetons
-    unit_cost: 2.5
-    unit_quantity: 1000000
-- model: otto.CostType
-  pk: 16
-  fields:
-    short_name: gpt-4o-2024-11-20-out
-    name: GPT-4o 2024-11-20 Global (output)
-    name_fr: GPT-4o 2024-11-20 Global (sortie)
-    description: API calls to Azure OpenAI GPT-4o 2024-11-20 Global Deployment model (output)
-    description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o 2024-11-20 (sortie)
-    unit_name: tokens
-    unit_name_fr: jetons
-    unit_cost: 10
-    unit_quantity: 1000000
