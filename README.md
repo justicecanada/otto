@@ -4,7 +4,7 @@
 
 | Name                                                                                     |    Stmts |     Miss |   Cover |   Missing |
 |----------------------------------------------------------------------------------------- | -------: | -------: | ------: | --------: |
-| django/cache\_tiktoken.py                                                                |        7 |        7 |      0% |      1-16 |
+| django/cache\_tiktoken.py                                                                |        8 |        8 |      0% |      1-18 |
 | django/chat/\_\_init\_\_.py                                                              |        0 |        0 |    100% |           |
 | django/chat/admin.py                                                                     |        1 |        1 |      0% |         1 |
 | django/chat/apps.py                                                                      |        4 |        0 |    100% |           |
@@ -138,7 +138,7 @@
 | django/text\_extractor/urls.py                                                           |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                          |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                          |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                **TOTAL** | **10238** | **1197** | **88%** |           |
+|                                                                                **TOTAL** | **10239** | **1198** | **88%** |           |
 
 
 ## Setup coverage badge
