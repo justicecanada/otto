@@ -260,12 +260,10 @@ class OttoLLM:
         )
 
     def _get_llm(self) -> AzureOpenAI:
-        endpoint = settings.AZURE_OPENAI_ENDPOINT
-        api_key = settings.AZURE_OPENAI_KEY
         return AzureOpenAI(
-            azure_endpoint=endpoint,
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
             api_version=settings.AZURE_OPENAI_VERSION,
-            api_key=api_key,
+            api_key=settings.AZURE_OPENAI_KEY,
             deployment_name=self.deployment,
             model=self.model,
             temperature=self.temperature,
