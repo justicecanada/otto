@@ -4,19 +4,21 @@
 
 | Name                                                                                     |    Stmts |     Miss |   Cover |   Missing |
 |----------------------------------------------------------------------------------------- | -------: | -------: | ------: | --------: |
-| django/cache\_tiktoken.py                                                                |        8 |        8 |      0% |      1-17 |
+| django/cache\_tiktoken.py                                                                |        7 |        7 |      0% |      1-16 |
 | django/chat/\_\_init\_\_.py                                                              |        0 |        0 |    100% |           |
 | django/chat/admin.py                                                                     |        1 |        1 |      0% |         1 |
 | django/chat/apps.py                                                                      |        4 |        0 |    100% |           |
 | django/chat/forms.py                                                                     |      162 |       20 |     88% |42, 49, 106, 139-148, 156-170, 189, 234, 242, 413, 415-417, 497-499 |
-| django/chat/llm.py                                                                       |      103 |       14 |     86% |71, 90-92, 98-100, 124-130, 235, 255 |
+| django/chat/llm.py                                                                       |      103 |       14 |     86% |67, 86-88, 94-96, 120-126, 231, 251 |
 | django/chat/migrations/0001\_initial.py                                                  |        6 |        0 |    100% |           |
 | django/chat/migrations/0002\_initial.py                                                  |        6 |        0 |    100% |           |
 | django/chat/migrations/0003\_initial.py                                                  |        7 |        0 |    100% |           |
 | django/chat/migrations/0004\_alter\_message\_options.py                                  |        4 |        0 |    100% |           |
 | django/chat/migrations/0005\_answersource\_highlighted\_text\_message\_claims\_list.py   |        4 |        0 |    100% |           |
 | django/chat/migrations/0006\_rename\_highlighted\_text\_answersource\_processed\_text.py |        4 |        0 |    100% |           |
+| django/chat/migrations/0007\_auto\_20250303\_1724.py                                     |        7 |        0 |    100% |           |
 | django/chat/migrations/0007\_chat\_last\_modification\_date.py                           |       10 |        2 |     80% |     10-11 |
+| django/chat/migrations/0008\_merge\_20250310\_1421.py                                    |        4 |        0 |    100% |           |
 | django/chat/migrations/\_\_init\_\_.py                                                   |        0 |        0 |    100% |           |
 | django/chat/models.py                                                                    |      342 |       38 |     89% |33, 84, 222-225, 230-236, 244, 364, 381-382, 386-390, 397, 402, 408-409, 412, 441, 461, 479-483, 535, 539-541, 556, 567, 605, 615, 646-647 |
 | django/chat/prompts.py                                                                   |        5 |        0 |    100% |           |
@@ -136,7 +138,7 @@
 | django/text\_extractor/urls.py                                                           |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                          |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                          |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                **TOTAL** | **10232** | **1199** | **88%** |           |
+|                                                                                **TOTAL** | **10242** | **1198** | **88%** |           |
 
 
 ## Setup coverage badge
