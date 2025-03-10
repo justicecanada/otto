@@ -2831,6 +2831,10 @@
         "fr": "Les réponses de l’IA peuvent contenir des erreurs et ne remplacent pas les conseils juridiques. Veuillez toujours consulter les sections pertinentes sous la réponse.",
         "fr_auto": "Les réponses de l’IA peuvent contenir des erreurs et ne remplacent pas les conseils juridiques. Consultez toujours les sections pertinentes sous la réponse."
     },
+    "Improve prompt": {
+        "fr": "",
+        "fr_auto": "Améliorer l'invite"
+    },
     "Yesterday": {
         "fr": "",
         "fr_auto": "Hier"
