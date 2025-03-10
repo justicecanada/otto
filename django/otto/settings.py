@@ -62,7 +62,6 @@ IS_PROD = False
 SITE_URL = urlparse(os.environ.get("SITE_URL"))
 
 AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
-AZURE_OPENAI_CANADA_CENTRAL_KEY = os.environ.get("AZURE_OPENAI_CANADA_CENTRAL_KEY")
 AZURE_COGNITIVE_SERVICE_KEY = os.environ.get("AZURE_COGNITIVE_SERVICE_KEY")
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-secret-key")
 AZURE_ACCOUNT_KEY = os.environ.get(
@@ -100,9 +99,6 @@ SESSION_SAVE_EVERY_REQUEST = True  # Reset the timeout on every request
 
 # OpenAI
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_CANADA_CENTRAL_ENDPOINT = os.environ.get(
-    "AZURE_OPENAI_CANADA_CENTRAL_ENDPOINT"
-)
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
 # TODO: Replace with Cost model (this is used in Template Wizard)
 OPENAI_COST_PER_TOKEN = 0.0020 / 1000
@@ -112,7 +108,7 @@ DEFAULT_CHAT_MODEL = "gpt-4o-mini"
 DEFAULT_QA_MODEL = "gpt-4o-mini"
 DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
-DEFAULT_LAWS_MODEL = "gpt-4o-2024-11-20"
+DEFAULT_LAWS_MODEL = "gpt-4o"
 
 DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
 LIBRARY_RETENTION_DAYS = 30

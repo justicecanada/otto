@@ -51,12 +51,10 @@ class OttoLLM:
     _deployment_to_model_mapping = {
         "gpt-4o-mini": "gpt-4o-mini",
         "gpt-4o": "gpt-4o",
-        "gpt-4o-2024-11-20": "gpt-4o",
     }
     _deployment_to_max_input_tokens_mapping = {
         "gpt-4o-mini": 128000,
         "gpt-4o": 128000,
-        "gpt-4o-2024-11-20": 128000,
     }
 
     def __init__(
@@ -262,16 +260,8 @@ class OttoLLM:
         )
 
     def _get_llm(self) -> AzureOpenAI:
-        endpoint = (
-            settings.AZURE_OPENAI_CANADA_CENTRAL_ENDPOINT
-            if self.deployment == "gpt-4o-2024-11-20"
-            else settings.AZURE_OPENAI_ENDPOINT
-        )
-        api_key = (
-            settings.AZURE_OPENAI_CANADA_CENTRAL_KEY
-            if self.deployment == "gpt-4o-2024-11-20"
-            else settings.AZURE_OPENAI_KEY
-        )
+        endpoint = settings.AZURE_OPENAI_ENDPOINT
+        api_key = settings.AZURE_OPENAI_KEY
         return AzureOpenAI(
             azure_endpoint=endpoint,
             api_version=settings.AZURE_OPENAI_VERSION,

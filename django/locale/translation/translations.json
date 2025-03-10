@@ -2815,13 +2815,9 @@
         "fr": "",
         "fr_auto": "Aucun fait saillant trouvé"
     },
-    "GPT-4o 2024-11-20 (best quality, 15x cost)": {
+    "GPT-4o (best quality, 15x cost)": {
         "fr": "",
-        "fr_auto": "GPT-4o 2024-11-20 (meilleure qualité, coût 15x)"
-    },
-    "GPT-4o 2024-05-13 (legacy model, 25x cost)": {
-        "fr": "",
-        "fr_auto": "GPT-4o 2024-05-13 (ancien modèle, coût 25x)"
+        "fr_auto": "GPT-4o (meilleure qualité, coût 15x)"
     },
     "Find relevant sections of acts and regulations using natural language similarity search.": {
         "fr": "",
