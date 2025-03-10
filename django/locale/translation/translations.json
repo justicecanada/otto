@@ -2815,6 +2815,10 @@
         "fr": "",
         "fr_auto": "Aucun fait saillant trouvé"
     },
+    "GPT-4o (best quality, 15x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4o (meilleure qualité, coût 15x)"
+    },
     "Find relevant sections of acts and regulations using natural language similarity search.": {
         "fr": "",
         "fr_auto": "Trouvez les articles pertinents des lois et des règlements à l’aide de la recherche de similarité en langage naturel."

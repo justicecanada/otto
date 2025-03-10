@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 
 CHAT_MODELS = [
     ("gpt-4o-mini", _("GPT-4o-mini (fastest, best value)")),
-    ("gpt-4o", _("GPT-4o (best quality, but 25x cost)")),
+    ("gpt-4o", _("GPT-4o (best quality, 15x cost)")),
 ]
 SUMMARIZE_STYLES = [
     ("short", _("Short")),
