@@ -241,6 +241,11 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   });
+  document.querySelectorAll('.chat-delete').forEach(button => {
+    button.addEventListener('htmx:afterRequest', () => {
+      deleteChatSection(button);
+    });
+  });
 });
 // On prompt form submit...
 document.addEventListener("htmx:afterSwap", function (event) {
@@ -314,6 +319,37 @@ document.addEventListener('htmx:afterSwap', function (event) {
     }, 100);
   }
 });
+
+// reinitialize the delete button event listener after a chat is modified
+document.addEventListener('htmx:afterRequest', function (event) {
+  if (event.detail?.target?.id.startsWith('chat-list-item')) {
+    const chat_id = event.detail.target.id.split("chat-list-item-")[1];
+    const button = document.getElementById('delete-chat-' + chat_id);
+    if (button) {
+      button.addEventListener('htmx:afterRequest', () => {
+        deleteChatSection(button);
+      });
+    }
+  }
+});
+
+// deletes the list item associated with the deleted chat
+// also checks if the section is now empty and removes it
+function deleteChatSection(button) {
+  // get chat id based on id of button
+  var chat_id = button.id.split("delete-chat-")[1];
+  // remove the chat list item associated with the deleted chat
+  var chat_list_item = document.getElementById('chat-list-item-' + chat_id);
+  chat_list_item.remove();
+
+  // remove the section if it is now empty
+  var section_number = button.getAttribute('data-section-number');
+  var chat_list = document.getElementById('chat-list-' + section_number);
+  if (chat_list.children.length === 0) {
+    var section = document.getElementById('section-' + section_number);
+    section.remove();
+  }
+}
 
 // Message actions
 function thumbMessage(clickedBtn) {

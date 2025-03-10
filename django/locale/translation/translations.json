@@ -2890,5 +2890,17 @@
     "Sections Referred": {
         "fr": "",
         "fr_auto": "Articles renvoyés"
+    },
+    "Improve prompt": {
+        "fr": "",
+        "fr_auto": "Améliorer l'invite"
+    },
+    "Yesterday": {
+        "fr": "",
+        "fr_auto": "Hier"
+    },
+    "Older": {
+        "fr": "",
+        "fr_auto": "Plus ancien"
     }
 }

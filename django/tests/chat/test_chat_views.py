@@ -774,7 +774,11 @@ def test_rename_chat_title(client, all_apps_user):
     # Test the title_chat function
     response = client.get(
         reverse(
-            "chat:chat_list_item", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:chat_list_item",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         )
     )
     assert response.status_code == 200
@@ -784,7 +788,11 @@ def test_rename_chat_title(client, all_apps_user):
     new_title = "My new chat"
     response = client.post(
         reverse(
-            "chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         ),
         data={"title": new_title},
     )
@@ -795,7 +803,11 @@ def test_rename_chat_title(client, all_apps_user):
     # Test invalid form
     response = client.post(
         reverse(
-            "chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         ),
         data={"title": invalid_title},
     )
@@ -804,7 +816,13 @@ def test_rename_chat_title(client, all_apps_user):
 
     # Test get
     response = client.get(
-        reverse("chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"})
+        reverse(
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
+        )
     )
     assert response.status_code == 200
     assert f'value="{new_title}"' in response.content.decode("utf-8")

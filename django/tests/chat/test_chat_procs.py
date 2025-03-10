@@ -1,5 +1,6 @@
 import asyncio
 
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 import pytest
@@ -10,11 +11,13 @@ from chat.llm import OttoLLM
 from chat.models import Chat, Message
 from chat.utils import (
     fix_source_links,
+    get_chat_history_sections,
     htmx_stream,
     summarize_long_text_async,
     url_to_text,
     wrap_llm_response,
 )
+from otto.models import User
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -424,3 +427,48 @@ async def test_combine_batch_generators():
     assert await pruning_test_stream.__anext__() == "<|batchboundary|>"
     # Finally, return pruning message due to empty final stream
     assert await pruning_test_stream.__anext__() == _("**No relevant sources found.**")
+
+
+@pytest.mark.django_db
+def test_get_chat_history_sections(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create chats with different last_modification_date
+    chat_today = Chat.objects.create(user=user, last_modification_date=timezone.now())
+    chat_yesterday = Chat.objects.create(
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=1)
+    )
+    chat_last_7_days = Chat.objects.create(
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=5)
+    )
+    chat_last_30_days = Chat.objects.create(
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=20)
+    )
+    chat_older = Chat.objects.create(
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=40)
+    )
+
+    user_chats = [
+        chat_today,
+        chat_yesterday,
+        chat_last_7_days,
+        chat_last_30_days,
+        chat_older,
+    ]
+
+    # get list of sections
+    # a section is (title, chat(s), index)
+    sections = get_chat_history_sections(user_chats)
+
+    # Check that each section contains the correct chat
+    assert sections[0]["label"] == "Today"
+    assert sections[0]["chats"] == [chat_today]
+    assert sections[1]["label"] == "Yesterday"
+    assert sections[1]["chats"] == [chat_yesterday]
+    assert sections[2]["label"] == "Last 7 days"
+    assert sections[2]["chats"] == [chat_last_7_days]
+    assert sections[3]["label"] == "Last 30 days"
+    assert sections[3]["chats"] == [chat_last_30_days]
+    assert sections[4]["label"] == "Older"
+    assert sections[4]["chats"] == [chat_older]
