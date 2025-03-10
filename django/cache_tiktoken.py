@@ -14,3 +14,5 @@ models = ["gpt-4o-mini", "gpt-4o"]
 # Cache the encodings
 for model in models:
     tiktoken.encoding_for_model(model)
+
+tiktoken.get_encoding("cl100k_base")
