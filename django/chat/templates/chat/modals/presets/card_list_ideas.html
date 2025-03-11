@@ -1,0 +1,192 @@
+{% load i18n %}
+{% load chat_tags %}
+{% load static %}
+{% load rules %}
+<style>
+.card {
+  border: none;
+  box-shadow: 2px 4px 10px -1px rgba(0, 0, 0, 0.442), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: transparent;
+  border-bottom: none;
+  padding-bottom: 0;
+  padding-top: .45rem;
+
+  button {
+    background-color: #0d6efd; !important;
+    border: none;
+
+    i.bi.bi-heart-fill {
+      border-color: var(--app-color-red-1);
+      color: #0d6efd;
+    }
+
+    &:hover {
+      i.bi.bi-heart {
+        border-color: var(--app-color-red-1);
+        color: var(--app-color-red-1);
+      }
+
+      i.bi.bi-star {
+        border-color: var(--app-color-yellow-1);
+        color: var(--app-color-yellow-1);
+      }
+
+      i.bi.bi-heart,
+      i.bi.bi-heart-fill {
+        text-shadow: 0px 0px 7px var(--app-color-red-1);
+      }
+
+      i.bi.bi-star,
+      i.bi.bi-star-fill {
+        text-shadow: 0px 0px 7px var(--app-color-yellow-2);
+      }
+
+      background-color:  #0d6efd !important;
+
+    }
+
+    &:focus-visible {
+      background-color: var(--bg-light-gray);
+      border: none !important;
+      outline: none !important;
+      box-shadow: none;
+
+      &i.bi.bi-heart,
+      &i.bi.bi-heart-fill {
+        border: solid 1px var(--app-color-red-1);
+        background-color: var(--app-color-red-1-hover);
+      }
+
+      &i.bi.bi-start,
+      &i.bi.bi-star-fill {
+        border: solid 1px var(--app-color-yellow-1);
+        background-color: var(--app-color-yellow-2);
+      }
+
+      color:  #0d6efd; 
+    }
+  }
+}
+.card-footer {
+  display: flex !important;
+  gap: 1rem;
+  background-color: transparent;
+  border-top: none;
+  padding-top: 0;
+  padding-bottom: .65rem;
+
+  button {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    flex-grow: 1;
+    background-color: #0d6efd;
+    border: none;
+    color: white;
+
+    &:hover {
+      background-color: var(--bs-light) !important;
+      color: #0d6efd;
+    }
+
+    &:only-child {
+      flex-basis: 100%;
+    }
+  }
+}
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.btn-ghost {
+  background-color: transparent !important;
+  border: none !important;
+
+  &:focus-visible {
+    outline-style: solid !important;
+    outline-color: black !important;
+    outline-width: 2px !important;
+  }
+}
+
+</style>
+
+
+
+<div class="modal-body" id="preset-card-list">
+  <div class="row px-3 pb-3">
+    <div style="top: 0; bottom: 0; min-height: 300px">
+      <div class="col-12 d-flex flex-column h-100">
+        {% if presets|length == 0 %}
+          {% include "chat/modals/presets/empty_card_list.html" %}
+        {% else %}
+          <div class="d-flex justify-content-end mb-3">
+            <button type="button"
+                    class="btn btn-sm btn-outline-dark"
+                    hx-get="{% url 'chat:open_preset_form' chat_id=chat_id %}"
+                    hx-target="#presets-modal-body"
+                    hx-swap="innerHTML transition:true">{% trans "Create preset from current settings" %}</button>
+          </div>
+          <ul class="card-list">
+
+            {# design one #}
+
+            <li class="card">
+              <div class="card-header align-items-center">
+                <div class="card-title my-auto text-truncate me-2 fw-semibold"
+                     style="line-height: 1.25rem;
+                            font-size: 0.875rem;
+                            letter-spacing: -0.025rem"
+                     title="Test preset">test</div>
+                <div class="d-flex align-items-center">
+                  {% include "chat/modals/presets/shared_icon.html" %}
+                  <div id="default-button-1">
+                    <i class="bi-star btn btn-light rounded-circle"></i>
+                  </div>
+                  <i class="bi bi-heart btn btn-light rounded-circle"></i>
+                </div>
+              </div>
+
+              <div class="card-body pt-2"
+                   style="line-height: 1.25rem;
+                          font-size: 0.875rem">
+                <p class="preset-description card-text text-muted"
+                   style="min-height: 4.5rem !important;
+                          -webkit-box-orient: vertical !important;
+                          display: -webkit-box !important;
+                          -webkit-line-clamp: 4 !important;
+                          overflow: hidden !important;
+                          text-overflow: ellipsis !important;
+                          white-space: normal !important">Description</p>
+              </div>
+              <div class="card-footer">
+                <button type="button"
+                        class="btn btn-light fw-semibold flex-grow-1"
+                        data-bs-dismiss="modal"
+                        hx-target="#options-accordion">{% trans "Load" %}</button>
+ 
+                <button type="button"
+                        class="btn btn-light fw-semibold flex-grow-1"
+                        hx-target="#presets-modal-body"
+                        hx-swap="innerHTML transition:true">{% trans "Edit" %}</button>
+ 
+              </div>
+
+            </li>
+
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>

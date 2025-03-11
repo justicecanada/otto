@@ -794,7 +794,7 @@ def message_sources(request, message_id, highlight=False):
 def get_presets(request, chat_id):
     return render(
         request,
-        "chat/modals/presets/card_list.html",
+        "chat/modals/presets/card_list_ideas.html",
         {
             "presets": Preset.objects.get_accessible_presets(
                 request.user, get_language()
