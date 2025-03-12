@@ -86,7 +86,7 @@
 | django/otto/templatetags/tags.py                                                         |       10 |        1 |     90% |        18 |
 | django/otto/translation.py                                                               |       17 |        0 |    100% |           |
 | django/otto/urls.py                                                                      |       13 |        2 |     85% |   95, 100 |
-| django/otto/utils/auth.py                                                                |       36 |        6 |     83% |     18-32 |
+| django/otto/utils/auth.py                                                                |       37 |        9 |     76% |14-28, 62-64 |
 | django/otto/utils/common.py                                                              |       57 |        1 |     98% |        94 |
 | django/otto/utils/decorators.py                                                          |       62 |        4 |     94% |24-25, 65, 87 |
 | django/otto/utils/logging.py                                                             |       15 |        0 |    100% |           |
@@ -138,7 +138,7 @@
 | django/text\_extractor/urls.py                                                           |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                          |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                          |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                **TOTAL** | **10239** | **1198** | **88%** |           |
+|                                                                                **TOTAL** | **10240** | **1201** | **88%** |           |
 
 
 ## Setup coverage badge
