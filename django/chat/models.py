@@ -5,22 +5,19 @@ from django.conf import settings
 from django.db import connections, models
 from django.db.models import BooleanField, Q, Value
 from django.db.models.functions import Coalesce
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from data_fetcher.util import get_request
+from rapidfuzz import fuzz
 from structlog import get_logger
 
-from chat.prompts import (
-    DEFAULT_CHAT_PROMPT,
-    QA_POST_INSTRUCTIONS,
-    QA_PRE_INSTRUCTIONS,
-    QA_PROMPT_TEMPLATE,
-    QA_SYSTEM_PROMPT,
-    current_time_prompt,
-)
+from chat.llm import OttoLLM
+from chat.prompts import current_time_prompt
 from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
 from otto.models import SecurityLabel, User
@@ -72,6 +69,8 @@ class Chat(models.Model):
     # Last access time manually updated when chat is opened
     accessed_at = models.DateTimeField(auto_now_add=True)
 
+    last_modification_date = models.DateTimeField(default=timezone.now)
+
     loaded_preset = models.ForeignKey("Preset", on_delete=models.SET_NULL, null=True)
 
     # AC-20: Allows for the classification of information
@@ -92,43 +91,30 @@ class Chat(models.Model):
 
 class ChatOptionsManager(models.Manager):
     def from_defaults(self, mode=None, chat=None):
+        from chat.utils import copy_options
+
         """
         If a user default exists, copy that into a new ChatOptions object.
         If not, create a new object with some default settings manually.
         Set the mode and chat FK in the new object.
         """
         if chat and chat.user.default_preset:
-            from chat.utils import copy_options
-
+            # A new object must be created before copying options so that FKs can be set
             new_options = self.create()
-            copy_options(chat.user.default_preset.options, new_options, chat.user)
-        else:
-            # Default Otto settings
-            default_library = Library.objects.get_default_library()
-            new_options = self.create(
-                chat_agent=False,
-                qa_library=default_library,
-                chat_system_prompt=_(DEFAULT_CHAT_PROMPT),
-                chat_model=settings.DEFAULT_CHAT_MODEL,
-                qa_model=settings.DEFAULT_QA_MODEL,
-                summarize_model=settings.DEFAULT_SUMMARIZE_MODEL,
-                qa_prompt_template=_(QA_PROMPT_TEMPLATE),
-                qa_pre_instructions=_(QA_PRE_INSTRUCTIONS),
-                qa_post_instructions=_(QA_POST_INSTRUCTIONS),
-                qa_system_prompt=_(QA_SYSTEM_PROMPT),
+            copy_options(
+                chat.user.default_preset.options, new_options, chat.user, chat, mode
             )
-        if mode:
-            new_options.mode = mode
-        if chat:
-            new_options.chat = chat
-        new_options.save()
+        else:
+            default_preset = Preset.objects.get_global_default()
+            new_options = self.create()
+            copy_options(default_preset.options, new_options, chat.user, chat, mode)
 
         return new_options
 
 
 QA_SCOPE_CHOICES = [
     ("all", _("Entire library")),
-    ("data_sources", _("Selected data sources")),
+    ("data_sources", _("Selected folders")),
     ("documents", _("Selected documents")),
 ]
 
@@ -167,7 +153,7 @@ class ChatOptions(models.Model):
     chat_model = models.CharField(max_length=255, default="gpt-4o")
     chat_temperature = models.FloatField(default=0.1)
     chat_system_prompt = models.TextField(blank=True)
-    chat_agent = models.BooleanField(default=True)
+    chat_agent = models.BooleanField(default=False)
 
     # Summarize-specific options
     summarize_model = models.CharField(max_length=255, default="gpt-4o")
@@ -251,6 +237,14 @@ class ChatOptions(models.Model):
 
 
 class PresetManager(models.Manager):
+    def get_global_default(self):
+        # Check the language of the current request
+        request = get_request()
+        if request and request.LANGUAGE_CODE == "fr":
+            return self.get(french_default=True)
+        else:
+            return self.get(english_default=True)
+
     def get_accessible_presets(self, user: User, language: str = None):
         ordering = ["-default", "-favourite"]
         if language:
@@ -277,6 +271,42 @@ class PresetManager(models.Manager):
             .order_by(*ordering)
         )
 
+    def create_from_yaml(self, data):
+        """
+        Create Preset objects from a dictionary loaded from chat/fixtures/presets.yaml
+        """
+        from chat.utils import copy_options
+
+        assert len(data) >= 2, "YAML file must contain at least two presets"
+        created_options = {}
+        for item_name, item in data.items():
+            item["sharing_option"] = "everyone"
+            options_dict = item.pop("options", None)
+            # TODO: Consider allowing different libraries for default presets
+            options_dict["qa_library"] = Library.objects.get_default_library()
+            based_on = item.pop("based_on", None)
+            # Prevent creation of multiple default presets
+            if self.filter(english_default=True).exists():
+                options_dict["english_default"] = False
+            if self.filter(french_default=True).exists():
+                options_dict["french_default"] = False
+            # Case 1: Completely new options, not based on another
+            if not based_on:
+                # Create the ChatOptions object
+                options_object = ChatOptions.objects.create(**options_dict)
+            # Case 2: Based on a previously created options object
+            if based_on:
+                options_object = ChatOptions.objects.create()
+                copy_options(created_options.get(based_on), options_object, None)
+                for key, value in options_dict.items():
+                    setattr(options_object, key, value)
+                options_object.save()
+            # Keep track of the options object for future "based_on" references
+            created_options[item_name] = options_object
+            # Create the Preset object with FK to ChatOptions object
+            item["options"] = options_object
+            self.create(**item)
+
 
 SHARING_OPTIONS = [
     ("private", _("Make private")),
@@ -299,7 +329,9 @@ class Preset(models.Model):
     options = models.ForeignKey(
         ChatOptions, on_delete=models.CASCADE, related_name="preset"
     )
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -316,14 +348,20 @@ class Preset(models.Model):
         choices=SHARING_OPTIONS,
         default="private",
     )
+    english_default = models.BooleanField(default=False)
+    french_default = models.BooleanField(default=False)
 
     @property
     def shared_with(self):
         if self.sharing_option == "everyone":
-            return "Shared with everyone"
+            return _("Shared with everyone")
         elif self.sharing_option == "others":
-            return "Shared with others"
-        return "Private"
+            return _("Shared with others")
+        return _("Private")
+
+    @property
+    def global_default(self):
+        return self.english_default or self.french_default
 
     def toggle_favourite(self, user: User):
         """Sets the favourite flag for the preset.
@@ -358,7 +396,7 @@ class Preset(models.Model):
         else:
             return self.description_fr if self.description_fr else self.description_en
 
-    def set_as_default(self, user: User):
+    def set_as_user_default(self, user: User):
         if user:
             if user.default_preset == self:
                 user.default_preset = None
@@ -397,6 +435,7 @@ class Message(models.Model):
     parent = models.OneToOneField(
         "self", on_delete=models.SET_NULL, null=True, related_name="child"
     )
+    claims_list = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return f"{'(BOT) ' if self.is_bot else ''}msg {self.id}: {self.text}"
@@ -414,6 +453,10 @@ class Message(models.Model):
         return self.answersource_set.all().order_by("id")
 
     @property
+    def has_sources(self):
+        return self.answersource_set.exists()
+
+    @property
     def display_cost(self):
         return display_cad_cost(self.usd_cost)
 
@@ -429,6 +472,16 @@ class Message(models.Model):
             return 0
         return feeback_value
 
+    def update_claims_list(self):
+        """
+        Updates the claims_list field with all claims found in response.
+        """
+        from .utils import extract_claims_from_llm
+
+        # Extract claims from the LLM response
+        self.claims_list = extract_claims_from_llm(self.text)
+        self.save(update_fields=["claims_list"])
+
     class Meta:
         constraints = [
             # Only bot messages can have a parent
@@ -438,6 +491,7 @@ class Message(models.Model):
                 name="check_parent_is_user_message",
             )
         ]
+        ordering = ["id"]
 
 
 class AnswerSourceManager(models.Manager):
@@ -475,6 +529,7 @@ class AnswerSource(models.Model):
 
     min_page = models.IntegerField(null=True)
     max_page = models.IntegerField(null=True)
+    processed_text = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.citation} ({self.node_score:.2f})"
@@ -495,8 +550,11 @@ class AnswerSource(models.Model):
     @property
     def node_text(self):
         """
-        Lookup the node text from the vector DB
+        Lookup the node text from the vector DB (if not already stored here)
         """
+        if self.processed_text:
+            return self.processed_text
+
         if self.document:
             table_id = self.document.data_source.library.uuid_hex
             with connections["vector_db"].cursor() as cursor:
@@ -576,3 +634,14 @@ def delete_saved_file(sender, instance, **kwargs):
         instance.saved_file.safe_delete()
     except Exception as e:
         logger.error(f"Failed to delete saved file: {e}")
+
+
+@receiver(post_save, sender=Message)
+def message_post_save(sender, instance, **kwargs):
+    try:
+        # Access Chat object to update last_modification_date
+        Chat.objects.filter(pk=instance.chat.pk).update(
+            last_modification_date=timezone.now()
+        )
+    except Exception as e:
+        logger.error(f"Message post save error: {e}")

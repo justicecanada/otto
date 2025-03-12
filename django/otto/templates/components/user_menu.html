@@ -1,7 +1,5 @@
 {% load i18n %}
 {% load rules %}
-{% has_perm "otto.manage_users" request.user as can_manage_users %}
-{% has_perm "otto.enable_load_testing" request.user as can_enable_load_testing %}
 
 <li class="nav-item dropdown" id="user-menu">
   <div id="cost-bar-outer"
@@ -28,14 +26,13 @@
     {{ request.user.full_name }}
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
-    {% if can_manage_users %}
+    <li class="d-none" id="user-menu-cost"></li>
+    {% if request.user.is_admin %}
       <li>
         <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
         <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
         <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
       </li>
-    {% endif %}
-    {% if can_enable_load_testing %}
       <li>
         <hr class="dropdown-divider">
       </li>
@@ -47,8 +44,13 @@
         {% endif %}
       </li>
     {% endif %}
+    {% if can_manage_users or can_enable_load_testing %}
+      <li>
+        <hr class="dropdown-divider">
+      </li>
+    {% endif %}
     <li>
-      <hr class="dropdown-divider">
+      <a href="{% url 'terms_of_use' %}" class="dropdown-item">{% trans "Terms of use" %}</a>
     </li>
     <li>
       <a href="{% url 'azure_auth:logout' %}" class="dropdown-item">{% trans "Logout" %}</a>
@@ -61,7 +63,7 @@
   let bs_tooltip = null;
   // On HTMX swap of the "user cost" widget, delete its tooltip
   document.body.addEventListener("htmx:afterSwap", function(event) {
-    if (event.target.id !== "cost-bar-outer") {
+    if (event.target.id !== "user-menu-cost") {
       return;
     } else if (bs_tooltip) {
       bs_tooltip.hide();

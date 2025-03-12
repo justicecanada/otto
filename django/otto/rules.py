@@ -33,7 +33,6 @@ is_data_steward = is_group_member("Data steward")
 
 add_perm("otto.manage_users", is_admin)
 add_perm("otto.access_otto", accepted_terms)
-add_perm("otto.view_github_link", is_admin)
 
 
 @predicate
@@ -91,7 +90,30 @@ def can_access_preset(user, preset):
 
 @predicate
 def can_edit_preset(user, preset):
+    if preset.owner is None:
+        return is_admin(user)
     return user == preset.owner
+
+
+@predicate
+def can_delete_preset(user, preset):
+    if preset.global_default:
+        return False
+    return can_edit_preset(user, preset)
+
+
+@predicate
+def can_edit_preset_sharing(user, preset):
+    if preset.global_default:
+        return False
+    return can_edit_preset(user, preset)
+
+
+@predicate
+def can_quick_save_preset(user, preset):
+    if preset.sharing_option == "everyone":
+        return False
+    return can_edit_preset(user, preset)
 
 
 add_perm("chat.access_chat", can_access_chat)
@@ -99,6 +121,9 @@ add_perm("chat.access_message", can_access_message)
 add_perm("chat.access_file", can_access_file)
 add_perm("chat.access_preset", can_access_preset)
 add_perm("chat.edit_preset", can_edit_preset)
+add_perm("chat.delete_preset", can_delete_preset)
+add_perm("chat.edit_preset_sharing", can_edit_preset_sharing)
+add_perm("chat.quick_save_preset", can_quick_save_preset)
 
 # Template Wizard
 add_perm(

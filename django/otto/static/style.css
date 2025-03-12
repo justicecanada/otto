@@ -171,24 +171,14 @@ div.app-card-other:hover {
 
 div#top-nav-search {
   left: 50%;
-  width: 500px;
-  margin-left: -250px;
+  width: 400px;
+  margin-left: -200px;
   zoom: 0.81;
   top: calc(0.25rem + 1px);
 }
 
-@media (max-width: 900px) {
-  div#top-nav-search {
-    width: 300px;
-    margin-left: -150px;
-  }
 
-  div#top-nav-search-results {
-    margin-left: -100px;
-  }
-}
-
-@media (max-width: 650px) {
+@media (max-width: 1200px) {
   div#top-nav-search {
     display: none;
   }
@@ -205,6 +195,7 @@ div#top-nav-search-results {
   top: 53px;
   border: solid 1px #333;
   scrollbar-width: none;
+  margin-left: -50px;
 }
 
 div#top-nav-search-results a {
@@ -406,4 +397,9 @@ ul.errorlist p {
 [data-bs-theme="dark"] #prompt-form button {
   color: var(--bs-secondary-text);
   background-color: black;
+}
+
+.toast-sticky {
+  /* increase z-index to show over modals */
+  z-index: 1070;
 }

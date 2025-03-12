@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <div class="modal-body preset-form-container">
-  <form class="g-3 mt-1 row"
+  <form class="g-3 row"
         id="edit_preset_form"
         hx-post="{% if preset_id %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' preset_id=preset_id %}{% else %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' %}{% endif %}"
         hx-include="#edit_preset_form"
@@ -33,18 +33,18 @@
         </li>
       </ul>
 
-      <div class="tab-content rounded px-3 mb-3 border">
+      <div class="tab-content rounded px-3 border">
         {% csrf_token %}
         <input type="hidden" name="prompt" value="">
         <div id="error-message"
              class="alert alert-danger d-none mt-3"
              role="alert"
              tabindex="-1"></div>
-        <div class="col-12">
+        <div class="col-12 mt-3">
           <div id="en-content" class="language-content active">
             <div class="mb-3">
               <label class="form-label" for="id_name_en">
-                {% trans "Title (English)" %}<span style="color: red;">*</span>
+                {% trans "Title (English)" %}<span class="ms-1 text-danger">*</span>
               </label>
               {{ form.name_en }}
             </div>
@@ -56,7 +56,7 @@
           <div id="fr-content" class="language-content">
             <div class="mb-3">
               <label class="form-label" for="id_name_fr">
-                {% trans "Title (French)" %}<span style="color: red;">*</span>
+                {% trans "Title (French)" %}<span class="ms-1 text-danger">*</span>
               </label>
               {{ form.name_fr }}
             </div>
@@ -66,20 +66,36 @@
             </div>
           </div>
         </div>
-        <div class="col-12">
-          <label class="form-label" for="id_sharing">{% trans "Privacy controls" %}</label>
-          <div class="sharing-options d-flex gap-4">
-            {% for radio in form.sharing_option %}<div class="form-check">{{ radio }}</div>{% endfor %}
+      </div>
+      <div class="px-3">
+        {% if form.sharing_option %}
+          <div class="col-12 mt-3">
+            <label class="form-label" for="id_sharing">{% trans "Privacy controls" %}</label>
+            <div class="sharing-options d-flex gap-4">
+              {% for radio in form.sharing_option %}
+                <div class="form-check">
+                  {{ radio.tag }}
+                  <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                </div>
+              {% endfor %}
+            </div>
           </div>
-        </div>
-        <div class="col-12" id="public_fields">
-          <div>
-            <label class="form-label" for="id_accessible_to">{% trans "Accessible to: " %}</label>
-            {{ form.accessible_to }}
+          <div class="col-12 mt-2 d-none" id="other_users">
+            <div>
+              <label class="form-label" for="id_accessible_to">{% trans "Share with:" %}</label>
+              {{ form.accessible_to }}
+            </div>
           </div>
-        </div>
+        {% else %}
+          <input type="hidden"
+                 name="sharing_option"
+                 value="{{ form.existing_sharing_option.value }}">
+          <input type="hidden"
+                 name="accessible_to"
+                 value="{{ form.accessible_to.value }}">
+        {% endif %}
         {% if preset_id %}
-          <div class="col-12">
+          <div class="col-12 mt-3">
             <div class="form-check">
               <input class="form-check-input"
                      type="checkbox"
@@ -92,8 +108,18 @@
           </div>
         {% endif %}
       </div>
+      <div id="public-preset-warning"
+           class="col-12 {% if not is_public %}d-none{% endif %}">
+        <div class="mt-3 mx-2 p-2 ps-3 bg-warning-subtle rounded border border-warning">
+          <i class="bi bi-exclamation-triangle text-danger"></i>
+          {% if is_global_default %}
+            <strong>{% trans "This is the default Otto preset. Use caution!" %}</strong>
+          {% endif %}
+          <em>{% trans "Changes will be visible to all Otto users." %}</em>
+        </div>
+      </div>
     </div>
-    <div class="modal-footer pb-0 pt-1 border-0">
+    <div class="modal-footer pb-0">
       <div class="col-12">
         <div class="row">
           <div class="col-6">
@@ -104,7 +130,7 @@
                     hx-swap="innerHTML transition:true"
                     type="button">{% trans "Cancel" %}</button>
  
-            {% if preset_id %}
+            {% if preset_id and can_delete %}
               <button id="delete_preset"
                       class="btn btn-outline-danger flex-fill"
                       hx-get="{% url 'chat:chat_options' chat_id=chat_id action='delete_preset' preset_id=preset_id %}"
@@ -114,7 +140,7 @@
                       type="button">{% trans "Delete" %}</button>
             {% endif %}
           </div>
-          <div class="col-6 text-end">
+          <div class="col-6 text-end pe-0">
             <button class="btn btn-dark flex-fill"
                     type="submit"
                     onclick="handlePresetModalSubmit(event)">{% trans "Save" %}</button>
@@ -127,88 +153,64 @@
 </div>
 
 <script>
-  function handlePresetModalSubmit(event) {
-      const form = document.getElementById("edit_preset_form");
-      const nameEnElement = document.getElementById("id_name_en").value;
-      const nameFrElement = document.getElementById("id_name_fr").value;
-      const sharingOptionElement = document.querySelector('input[name="sharing_option"]:checked');
-      const sharingOption = sharingOptionElement ? sharingOptionElement.value : "";
-      const accessibleToElement = document.querySelector('[name="accessible_to"]');
-      const accessibleTo = accessibleToElement ? accessibleToElement.value : "";
-      const errorMessage = document.getElementById("error-message");
-      let isValid = true;
-      if (!nameEnElement && !nameFrElement) {
-          errorMessage.innerText = "{% trans 'Please provide a title in either English or French.' %}";
-          errorMessage.classList.remove('d-none');
-          event.preventDefault();
-          event.stopPropagation();
-          isValid = false;
-      }
+(function() {
+  const enTab = document.getElementById('en-preset-tab');
+  const frTab = document.getElementById('fr-preset-tab');
+  const enContent = document.getElementById('en-content');
+  const frContent = document.getElementById('fr-content');
 
-      if (sharingOption === 'others' && !accessibleToElement) {
-          errorMessage.innerText = "{% trans 'Please provide at least one user for the accessible field.' %}";
-          errorMessage.classList.remove('d-none');
-          event.preventDefault();
-          event.stopPropagation();
-          isValid = false;
-      }
-
-      if (!form.checkValidity()) {
-          event.preventDefault();
-          event.stopPropagation();
-          isValid = false;
-      }
-      document.querySelector('input[name=\'prompt\']').value = document.getElementById('chat-prompt').value;
-
-      // Only dismiss modal if validation passes
-      if (isValid) {
-          const modal = bootstrap.Modal.getInstance(document.getElementById('presets-modal'));
-          if (modal) {
-              modal.hide();
-          }
-      } else {
-          errorMessage.focus();
-      }
+  function switchLanguage(lang) {
+    if (lang === 'en') {
+      enContent.classList.add('active');
+      frContent.classList.remove('active');
+      enTab.classList.add('active');
+      frTab.classList.remove('active');
+    } else {
+      frContent.classList.add('active');
+      enContent.classList.remove('active');
+      frTab.classList.add('active');
+      enTab.classList.remove('active');
+    }
   }
 
-  document.querySelector('#presets-modal').addEventListener('htmx:afterSettle', function() {
-    const publicFields = document.getElementById('public_fields');
-    const enTab = document.getElementById('en-preset-tab');
-    const frTab = document.getElementById('fr-preset-tab');
-    const enContent = document.getElementById('en-content');
-    const frContent = document.getElementById('fr-content');
-    const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
+  if (enTab && frTab) {
+    enTab.addEventListener('click', () => switchLanguage('en'));
+    frTab.addEventListener('click', () => switchLanguage('fr'));
+  }
 
-    function togglePublicFields() {
-      const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
-      if (selectedOption){
-          publicFields.style.display = selectedOption.value === 'others' ? 'block' : 'none';
-      }
+  const otherUsers = document.getElementById('other_users');
+  if (otherUsers === null) return;
+  
+  const initially_public = {% if is_public %}true{% else %}false{% endif %};
+  const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
+
+  function toggleWarning(display_warning) {
+    if (display_warning) {
+      document.getElementById("public-preset-warning").classList.remove("d-none");
+    } else {
+      document.getElementById("public-preset-warning").classList.add("d-none");
     }
+  }
 
-    function switchLanguage(lang) {
-      if (lang === 'en') {
-        enContent.classList.add('active');
-        frContent.classList.remove('active');
-        enTab.classList.add('active');
-        frTab.classList.remove('active');
+  function toggleOtherUsers() {
+    const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
+    if (selectedOption) {
+      if (selectedOption.value === 'others') {
+        otherUsers.classList.remove('d-none');
       } else {
-        frContent.classList.add('active');
-        enContent.classList.remove('active');
-        frTab.classList.add('active');
-        enTab.classList.remove('active');
+        otherUsers.classList.add('d-none');
+      }
+      if (!initially_public) {
+        toggleWarning(selectedOption.value === "everyone");
       }
     }
+  }
 
-    sharingOptionInputs.forEach(input => {
-        input.addEventListener('change', togglePublicFields);
-    });
-
-    togglePublicFields(); // Set initial state
-
-    if (enTab && frTab) {
-      enTab.addEventListener('click', () => switchLanguage('en'));
-      frTab.addEventListener('click', () => switchLanguage('fr'));
-    }
+  sharingOptionInputs.forEach(input => {
+    input.addEventListener('change', toggleOtherUsers);
   });
+
+  toggleOtherUsers(); // Set initial state
+
+})();
 </script>

@@ -85,9 +85,17 @@ def permission_required(
                 # User does not have a required permission
                 if raise_exception:
                     raise PermissionDenied()
+                # User does not have required permission to edit library so redirect to their personal library
+                elif perms.__contains__("librarian.edit_library"):
+                    return redirect(
+                        reverse(
+                            "librarian:modal_edit_library",
+                            kwargs={"library_id": user.personal_library.id},
+                        )
+                    )
                 else:
                     Notification.objects.create(
-                        user=request.user,
+                        user=user,
                         heading="Access controls",
                         text=_(f"Unauthorized access of URL:") + f" {request.path}",
                         category="error",

@@ -13,7 +13,9 @@ def sync_users():
 
 @shared_task
 def update_laws():
-    call_command("load_laws_xml", "--force_download", "--full")
+    call_command(
+        "load_laws_xml", "--force_download", "--full", "--reset", "--accept_reset"
+    )
 
 
 @shared_task
@@ -34,8 +36,18 @@ def delete_empty_chats():
 
 
 @shared_task
+def delete_translation_files():
+    call_command("delete_translation_files")
+
+
+@shared_task
 def delete_unused_libraries():
     call_command("delete_unused_libraries")
+
+
+@shared_task
+def warn_libraries_pending_deletion():
+    call_command("warn_libraries_pending_deletion")
 
 
 @shared_task

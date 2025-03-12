@@ -1,12 +1,14 @@
 import asyncio
 import tempfile
+from unittest import mock
 
 from django.conf import settings
+from django.contrib import messages
 from django.urls import reverse
 from django.utils import timezone
 
 import pytest
-from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync, sync_to_async
 
 from chat.forms import PresetForm
 from chat.llm import OttoLLM
@@ -77,7 +79,7 @@ def test_chat(client, basic_user, all_apps_user):
     response = client.get(reverse("chat:new_chat"))
     # This should redirect to the accept terms page
     assert response.status_code == 302
-    assert response.url == reverse("accept_terms") + "?next=" + reverse("chat:new_chat")
+    assert response.url == reverse("terms_of_use") + "?next=" + reverse("chat:new_chat")
 
     # Accept the terms
     user.accepted_terms_date = timezone.now()
@@ -772,7 +774,11 @@ def test_rename_chat_title(client, all_apps_user):
     # Test the title_chat function
     response = client.get(
         reverse(
-            "chat:chat_list_item", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:chat_list_item",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         )
     )
     assert response.status_code == 200
@@ -782,7 +788,11 @@ def test_rename_chat_title(client, all_apps_user):
     new_title = "My new chat"
     response = client.post(
         reverse(
-            "chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         ),
         data={"title": new_title},
     )
@@ -793,7 +803,11 @@ def test_rename_chat_title(client, all_apps_user):
     # Test invalid form
     response = client.post(
         reverse(
-            "chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         ),
         data={"title": invalid_title},
     )
@@ -802,7 +816,13 @@ def test_rename_chat_title(client, all_apps_user):
 
     # Test get
     response = client.get(
-        reverse("chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"})
+        reverse(
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
+        )
     )
     assert response.status_code == 200
     assert f'value="{new_title}"' in response.content.decode("utf-8")
@@ -966,16 +986,44 @@ def test_preset(client, basic_user, all_apps_user):
             },
         )
     )
+
+    last_message = list(response.context["messages"])[-1]
     assert response.status_code == 200
     assert "preset_loaded" in response.context
     assert response.context["preset_loaded"] == "true"
+    assert (
+        last_message.level == messages.SUCCESS
+        and last_message.message == "Preset loaded successfully."
+    )
 
-    # Test adding the preset to favorites
+    # Test adding and removing the preset to favorites
     client.force_login(user)
     response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
     assert response.status_code == 200
     preset.refresh_from_db()
     assert user in preset.favourited_by.all()
+    # remove from favourites
+    response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
+    assert response.status_code == 200
+    preset.refresh_from_db()
+    assert user not in preset.favourited_by.all()
+
+    # Test accompanying messages
+    response_messages = list(response.context["messages"])
+    removed_message = response_messages[-1]
+    added_message = response_messages[-2]
+    assert (
+        removed_message.level == messages.SUCCESS
+        and removed_message.message == "Preset removed from favourites."
+    )
+    assert (
+        added_message.level == messages.SUCCESS
+        and added_message.message == "Preset added to favourites."
+    )
+
+    with mock.patch("chat.models.Preset.toggle_favourite", side_effect=ValueError):
+        response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
+        assert response.status_code == 500
 
     # Test setting the preset as default
     response = client.get(reverse("chat:set_preset_default", args=[preset.id, chat.id]))
@@ -1127,6 +1175,7 @@ def test_update_qa_options_from_librarian(client, all_apps_user):
 
 @pytest.mark.django_db
 def test_chat_message_error(client, all_apps_user):
+
     user = all_apps_user()
     client.force_login(user)
     response = client.get(reverse("chat:chat_with_ai"), follow=True)
@@ -1151,7 +1200,7 @@ def test_chat_message_error(client, all_apps_user):
     assert response.status_code == 200
     # We should have a StreamingHttpResponse object.
     # Iterate over the response to get the content
-    content = final_response(response.streaming_content)
+    content = async_to_sync(final_response_helper)(response.streaming_content)
     assert "Error ID" in content.decode("utf-8")
 
 
@@ -1219,3 +1268,42 @@ def test_chat_message_url_validation(client, all_apps_user):
     )
     assert response.status_code == 200
     assert "URL" in response.content.decode()
+
+
+def test_generate_prompt_view(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    # Valid URL
+    response = client.post(
+        reverse("chat:generate_prompt_view"),
+        data={"user_input": "write me an email"},
+    )
+    assert response.status_code == 200
+    # Check that the correct template was used
+    assert "chat/modals/prompt_generator_result.html" in [
+        t.name for t in response.templates
+    ]
+
+    # Check that the context contains the expected values
+    assert response.context["user_input"] == "write me an email"
+    assert len(response.context["output_text"]) > 1
+    assert "Output Format" in response.context["output_text"]
+    assert "# Examples" in response.context["output_text"]
+
+    # Strip non-numeric characters and convert to float
+    cost_str = response.context["cost"].replace("< $", "")
+    cost = float(cost_str)
+    assert cost > 0.000
+
+
+def test_email_chat_author(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    response = client.get(reverse("chat:email_author", args=[chat.id]))
+    assert response.status_code == 200
+    assert "Otto" in response.content.decode()
+    assert f"mailto:{user.email}" in response.content.decode()

@@ -4,9 +4,7 @@ import io
 import math
 import os
 import re
-import tempfile
 from datetime import datetime as dt
-from uuid import uuid4
 
 from django.conf import settings
 
@@ -15,13 +13,6 @@ import markdown
 import tiktoken
 from bs4 import BeautifulSoup
 from docxtpl import DocxTemplate
-from langchain.chains import ReduceDocumentsChain
-from langchain.chains.combine_documents.stuff import StuffDocumentsChain
-from langchain.chains.llm import LLMChain
-from langchain.prompts import PromptTemplate
-from langchain.schema import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_openai import AzureChatOpenAI
 from openai import AzureOpenAI
 from pptx import Presentation
 
@@ -77,6 +68,7 @@ acronym_dict = {
 
 
 def map_reduce(text, language, model_str):
+    # TODO: Rewrite without Langchain classes
 
     length_prompt_en = "Write down a long document with large paragraphs containing multiple sentences that detail all important details of the text (in English). Simply rewrite; do not say 'This document is about...' etc, this not just a summary but a detailed rewording of the information presented. There is no length limit - be as detailed as possible. However, **do not extrapolate** on the text. The document that you will write must be factual and not introduce any new ideas. Remember, do not list information in bullet points, make sure the response is in the form of a long documents with multiple paragraphs."
 

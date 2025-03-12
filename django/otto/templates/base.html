@@ -55,10 +55,9 @@
             </a>
             {{ otto_version|safe }}
           </div>
-
-          {% include 'components/search.html' %}
  
           {% if request.user.is_authenticated %}
+            {% include 'components/search.html' %}
             <button class="navbar-toggler"
                     type="button"
                     data-bs-toggle="collapse"
@@ -100,7 +99,7 @@
       </nav>
     {% endif %}
 
-    <div aria-live="polite" aria-atomic="true" class="sticky-top">{% include "components/toasts.html" %}</div>
+    <div aria-live="polite" aria-atomic="true" class="sticky-top toast-sticky">{% include "components/toasts.html" %}</div>
 
     <div id="main-content-wrapper">
       {% block content_container %}

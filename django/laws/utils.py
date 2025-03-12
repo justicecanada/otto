@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 from django.core.cache import cache
 from django.db import connections
@@ -31,7 +32,7 @@ def get_source_node(node_id):
         if row:
             return {
                 "text": row[0],
-                "metadata": row[1],
+                "metadata": json.loads(row[1]),
             }
     return None
 

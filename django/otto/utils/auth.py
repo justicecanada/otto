@@ -1,11 +1,7 @@
-from django.conf import settings
-from django.core.cache import cache
-from django.http import HttpResponseRedirect
-from django.urls import path, reverse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
 
 from structlog import get_logger
-
-from otto.views import load_test
 
 logger = get_logger(__name__)
 
@@ -45,7 +41,7 @@ PUBLIC_PATHS = [
 
 NO_TERMS_PATHS = PUBLIC_PATHS + [
     "/",
-    "/accept_terms",
+    "/terms_of_use",
     "/i18n/setlang",
     "/feedback",
     "/user_cost",
@@ -62,8 +58,11 @@ class RedirectToLoginMiddleware:
             return self.get_response(request)
         # AC-2, AC-19: User Authentication (Can't be anonymous)
         if not request.user.is_authenticated or request.user.is_anonymous:
+            if request.headers.get("HX-Request"):
+                response = HttpResponse(status=200)
+                response["HX-Redirect"] = reverse("welcome")
+                return response
             return HttpResponseRedirect(reverse("welcome") + "?next=" + request.path)
-
         return self.get_response(request)
 
 
@@ -77,7 +76,7 @@ class AcceptTermsMiddleware:
             return self.get_response(request)
         if not request.user.accepted_terms:
             return HttpResponseRedirect(
-                reverse("accept_terms") + "?next=" + request.path
+                reverse("terms_of_use") + "?next=" + request.path
             )
 
         return self.get_response(request)

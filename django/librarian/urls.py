@@ -7,6 +7,7 @@ from librarian.views import (
     document_stop,
     document_text,
     download_document,
+    email_library_admins,
     modal_create_data_source,
     modal_create_document,
     modal_create_library,
@@ -24,7 +25,7 @@ from librarian.views import (
 
 app_name = "librarian"
 urlpatterns = [
-    path("modal/", modal_library_list, name="modal"),
+    path("modal/", modal_library_list, name="modal_library_list"),
     path("modal/library/create/", modal_create_library, name="modal_create_library"),
     path(
         "modal/library/<int:library_id>/edit/",
@@ -110,5 +111,10 @@ urlpatterns = [
         "document/<int:document_id>/text/",
         document_text,
         name="document_text",
+    ),
+    path(
+        "library/<int:library_id>/email_admins/",
+        email_library_admins,
+        name="email_library_admins",
     ),
 ]

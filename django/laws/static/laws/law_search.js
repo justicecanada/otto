@@ -96,6 +96,7 @@ function showSourceDetails(button) {
   card.classList.add("border-4");
   details.classList.remove('d-none');
 }
+
 function findSimilar(el) {
   const text = el.getAttribute('data-text');
   // Populate the search form with the text
