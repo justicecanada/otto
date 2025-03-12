@@ -19,19 +19,19 @@ class ActsAutocomplete(HTMXAutoComplete):
     model = Law
 
     def get_items(self, search=None, values=None):
-        data = Law.objects.filter(type="act").order_by("title")
+        data = Law.objects.filter(type="act").values("id", "title").order_by("title")
         if search is not None:
             items = [
-                {"label": str(x), "value": str(x.id)}
+                {"label": x["title"], "value": str(x["id"])}
                 for x in data
-                if search == "" or str(search).upper() in f"{x}".upper()
+                if search == "" or str(search).upper() in x["title"].upper()
             ]
             return items
         if values is not None:
             items = [
-                {"label": str(x), "value": str(x.id)}
+                {"label": x["title"], "value": str(x["id"])}
                 for x in data
-                if str(x.id) in values
+                if str(x["id"]) in values
             ]
             return items
 
@@ -47,19 +47,19 @@ class LawsAutocomplete(HTMXAutoComplete):
     model = Law
 
     def get_items(self, search=None, values=None):
-        data = Law.objects.all().order_by("type", "title")
+        data = Law.objects.values("id", "title").order_by("type", "title")
         if search is not None:
             items = [
-                {"label": str(x), "value": str(x.id)}
+                {"label": x["title"], "value": str(x["id"])}
                 for x in data
-                if search == "" or str(search).upper() in f"{x}".upper()
+                if search == "" or str(search).upper() in x["title"].upper()
             ]
             return items
         if values is not None:
             items = [
-                {"label": str(x), "value": str(x.id)}
+                {"label": x["title"], "value": str(x["id"])}
                 for x in data
-                if str(x.id) in values
+                if str(x["id"]) in values
             ]
             return items
 

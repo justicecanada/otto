@@ -1,24 +1,12 @@
-import tempfile
-
-from django.conf import settings
 from django.urls import reverse
 
 import pytest
-from asgiref.sync import sync_to_async
 
 from chat.forms import ChatOptionsForm
-from chat.models import Chat, ChatFile, ChatOptions, Message, Preset
-from chat.utils import htmx_stream, title_chat
-from librarian.models import Library
+from chat.models import Chat, ChatOptions, Message, Preset
+from librarian.models import Library, LibraryUserRole
 
 pytest_plugins = ("pytest_asyncio",)
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
-skip_on_devops_pipeline = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
-)
 
 
 @pytest.mark.django_db
@@ -141,3 +129,158 @@ def test_chat_options(client, all_apps_user):
 
     # Check that the Cowboy AI chat option preset has been deleted
     assert not Preset.objects.filter(name_en="Cowboy AI").exists()
+
+
+@pytest.mark.django_db
+def test_library_list(client, all_apps_user):
+    # Test the list of libraries in the ChatOptionsForm
+    # self.fields["qa_library"] = GroupedLibraryChoiceField...
+    # to make sure they correspond correctly to the LibraryUserRole objects
+
+    def initial_validation_loop():
+        # In this nested function because it is tested twice
+        for user in users:
+            form = ChatOptionsForm(user=user)
+            # choices is something like this:
+            # [('JUS-managed', [(4, 'Public library'), (1, 'Corporate')]), ('Managed by me', [(2, ' '), (7, 'Jane and Bob shared library'), (6, 'Jane private library')])]
+            choices = form.fields["qa_library"].choices
+
+            for category in categories:
+                category_choices = [c[1] for c in choices if c[0] == category]
+                if category_choices:
+                    category_choices_unformatted = category_choices[0]
+                    # Remove extra data attribute
+                    category_choices = [
+                        (c[0], c[1]["label"]) for c in category_choices_unformatted
+                    ]
+                    if category == "JUS-managed":
+                        assert len(category_choices) == public_libraries.count()
+                        for library in public_libraries:
+                            assert (library.id, library.name) in category_choices
+                    elif category == "Managed by me":
+                        assert len(category_choices) == 3
+                        if user == jane:
+                            assert (
+                                jane_private_library.id,
+                                jane_private_library.name,
+                            ) in category_choices
+                        elif user == bob:
+                            assert (
+                                bob_private_library.id,
+                                bob_private_library.name,
+                            ) in category_choices
+                        # The user's personal library should also be there
+                        assert (
+                            user.personal_library.id,
+                            "Chat uploads",
+                        ) in category_choices
+                        # The shared library should also be there
+                        assert (
+                            jane_bob_shared_library.id,
+                            jane_bob_shared_library.name,
+                        ) in category_choices
+                    elif category == "Shared with me":
+                        assert len(category_choices) == 0
+
+    jane = all_apps_user(username="jane")
+    client.force_login(jane)
+    bob = all_apps_user(username="bob")
+    public_library = Library.objects.create(name="Public library", is_public=True)
+    bob_private_library = Library.objects.create(
+        name="Bob private library", is_public=False
+    )
+    LibraryUserRole.objects.create(library=bob_private_library, user=bob, role="admin")
+    jane_private_library = Library.objects.create(
+        name="Jane private library", is_public=False
+    )
+    LibraryUserRole.objects.create(
+        library=jane_private_library, user=jane, role="admin"
+    )
+    jane_bob_shared_library = Library.objects.create(
+        name="Jane and Bob shared library", is_public=False
+    )
+    LibraryUserRole.objects.create(
+        library=jane_bob_shared_library, user=jane, role="admin"
+    )
+    LibraryUserRole.objects.create(
+        library=jane_bob_shared_library, user=bob, role="admin"
+    )
+
+    public_libraries = Library.objects.filter(is_public=True)
+    users = [jane, bob]
+    categories = ["JUS-managed", "Managed by me", "Shared with me"]
+
+    initial_validation_loop()
+
+    # Make bob an admin and jane a contributor of the public library.
+    # (This should not change the way it displays in the form.)
+    LibraryUserRole.objects.create(library=public_library, user=bob, role="admin")
+    LibraryUserRole.objects.create(
+        library=public_library, user=jane, role="contributor"
+    )
+    initial_validation_loop()
+
+    # Now let's make some changes so that shared with me will have some libraries.
+    # On the shared libraries, let's make bob a contributor rather than an admin
+    LibraryUserRole.objects.filter(library=jane_bob_shared_library, user=bob).update(
+        role="contributor"
+    )
+    # Now bob should see the shared library in the "Shared with me" category
+    form = ChatOptionsForm(user=bob)
+    choices = form.fields["qa_library"].choices
+    category_choices = [c[1] for c in choices if c[0] == "Shared with me"]
+    category_choices_unformatted = category_choices[0]
+    # Remove extra data attribute
+    category_choices = [(c[0], c[1]["label"]) for c in category_choices_unformatted]
+    assert len(category_choices) == 1
+    assert (
+        jane_bob_shared_library.id,
+        jane_bob_shared_library.name,
+    ) in category_choices
+    # Check that it is not in the managed by category
+    category_choices = [c[1] for c in choices if c[0] == "Managed by me"]
+    category_choices_unformatted = category_choices[0]
+    # Remove extra data attribute
+    category_choices = [(c[0], c[1]["label"]) for c in category_choices_unformatted]
+    assert len(category_choices) == 2
+    assert (
+        bob_private_library.id,
+        bob_private_library.name,
+    ) in category_choices
+    # Bob's personal library should also be there
+    assert (
+        bob.personal_library.id,
+        "Chat uploads",
+    ) in category_choices
+    # But jane's should not, since Bob is contributor now, not admin
+    assert (
+        jane_bob_shared_library.id,
+        jane_bob_shared_library.name,
+    ) not in category_choices
+
+    # Make Jane a viewer of Bob's personal library.
+    # Jane should now see Bob's personal library in the "Shared with me" category
+    LibraryUserRole.objects.create(
+        library=bob_private_library, user=jane, role="viewer"
+    )
+    form = ChatOptionsForm(user=jane)
+    choices = form.fields["qa_library"].choices
+    category_choices = [c[1] for c in choices if c[0] == "Shared with me"]
+    category_choices_unformatted = category_choices[0]
+    # Remove extra data attribute
+    category_choices = [(c[0], c[1]["label"]) for c in category_choices_unformatted]
+    assert len(category_choices) == 1
+    assert (
+        bob_private_library.id,
+        bob_private_library.name,
+    ) in category_choices
+    # Check that it is not in the managed by category
+    category_choices = [c[1] for c in choices if c[0] == "Managed by me"]
+    category_choices_unformatted = category_choices[0]
+    # Remove extra data attribute
+    category_choices = [(c[0], c[1]["label"]) for c in category_choices_unformatted]
+    assert len(category_choices) == 3
+    assert (
+        bob_private_library.id,
+        bob_private_library.name,
+    ) not in category_choices

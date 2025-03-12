@@ -6,6 +6,9 @@
   {% include 'chat/components/options_2_summarize.html' with options_section_id='summarize' %}
   {% include 'chat/components/options_3_translate.html' with options_section_id='translate' %}
 </div>
+
+{% include "chat/components/chat_label_script.html" %}
+
 <script>
   (function (){
     {% if prompt %}document.querySelector('#chat-prompt').value = '{{ prompt }}';{% endif %}
@@ -13,14 +16,19 @@
       let mode = "{{ options_form.mode.value }}";
       let is_preset_loaded = ("{{ preset_loaded }}" === "true");
       handleModeChange(mode, null, is_preset_loaded);
+      const qa_mode_value = document.getElementById('id_qa_mode').value;
+      switchToDocumentScope();
+      // Update the advanced settings RAG options visibility
+      toggleRagOptions(qa_mode_value);
       setTimeout(updateQaSourceForms, 100);
-    }
-    if ("{{ trigger_library_change }}" === "true") {
-      document.getElementById("id_qa_library").dispatchEvent(new Event('change'));
+    } else if ("{{ trigger_library_change }}" === "true") {
+      // This function calls updateQaSourceForms, so no need to call it twice
+      resetQaAutocompletes();
+    } else {
+      updateQaSourceForms();
     }
   })();
 
-  updateQaSourceForms();
   updateLibraryModalButton();
   updateAutocompleteLibraryid('id_qa_data_sources__textinput');
   updateAutocompleteLibraryid('id_qa_documents__textinput');

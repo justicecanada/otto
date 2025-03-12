@@ -1,17 +1,17 @@
-name: Django CI
+name: Django Pytest CI
 # See https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main", "cloud" ]
+    branches: [ "main" ] 
 
 defaults:
   run:
     shell: bash 
     working-directory: ./django
-
+ 
 jobs:
   # Label of the container job
   test-coverage:
@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     # Docker Hub image that `test-coverage` executes in
     container: python:3.11
+
     permissions:
       # See https://github.com/py-cov-action/python-coverage-comment-action#basic-usage
       pull-requests: write
@@ -43,14 +44,16 @@ jobs:
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
-
+      redis:
+        image: redis:7.0.15-alpine3.20
+        ports:
+          - 6379:6379
     env:
       AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
       AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
       DJANGODB_HOST: postgres-service
       VECTORDB_HOST: postgres-service
-      LOG_LEVEL: ERROR
-
+      LOG_LEVEL: ERROR      
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
@@ -66,7 +69,8 @@ jobs:
     - name: Run tests
       working-directory: ./
       run: |
-        python -m coverage run --source=django -m pytest -k "not skip_on_github_actions" django
+        celery -A otto worker -l INFO --pool=gevent --concurrency=256 &
+        python -m coverage run --source=django --omit 'django/template_wizard/*' -m pytest django
     - name: Display coverage
       working-directory: ./
       run: |
@@ -77,7 +81,7 @@ jobs:
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Store Pull Request comment to be posted
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
       with:
         name: python-coverage-comment-action

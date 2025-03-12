@@ -68,7 +68,9 @@ function clearAutocomplete(field_name) {
 
 function resetQaAutocompletes() {
   const mode = document.getElementById('id_qa_mode');
+  const e = new Event("change");
   mode.value = 'rag';
+  mode.dispatchEvent(e);
   limitScopeSelect();
   updateQaSourceForms();
   clearAutocomplete('qa_data_sources');
@@ -90,7 +92,7 @@ function limitScopeSelect() {
 function switchToDocumentScope() {
   const scope = document.getElementById('id_qa_scope');
   let search_mode = document.getElementById('id_qa_mode').value;
-  if (search_mode === "summarize" || search_mode === "summarize_combined") {
+  if (search_mode !== "rag") {
     if (scope.value === "all") {
       scope.value = "documents";
     }

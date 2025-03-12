@@ -51,14 +51,10 @@ class OttoLLM:
     _deployment_to_model_mapping = {
         "gpt-4o-mini": "gpt-4o-mini",
         "gpt-4o": "gpt-4o",
-        "gpt-4": "gpt-4-1106-preview",
-        "gpt-35": "gpt-35-turbo-0125",
     }
     _deployment_to_max_input_tokens_mapping = {
         "gpt-4o-mini": 128000,
         "gpt-4o": 128000,
-        "gpt-4": 128000,
-        "gpt-35": 16385,
     }
 
     def __init__(
@@ -104,6 +100,12 @@ class OttoLLM:
         Return complete response string from single prompt string (no streaming)
         """
         return self.llm.complete(prompt).text
+
+    def chat_complete(self, chat_history: list):
+        """
+        Return complete response string from list of chat history objects (no streaming)
+        """
+        return self.llm.chat(chat_history).message.content
 
     async def tree_summarize(
         self,
@@ -165,9 +167,10 @@ class OttoLLM:
         filters: MetadataFilters = None,
         top_k: int = 5,
         vector_weight: float = 0.6,
+        hnsw: bool = False,
     ) -> QueryFusionRetriever:
 
-        pg_idx = self.get_index(vector_store_table)
+        pg_idx = self.get_index(vector_store_table, hnsw=hnsw)
 
         vector_retriever = pg_idx.as_retriever(
             vector_store_query_mode="default",
@@ -208,8 +211,9 @@ class OttoLLM:
             hybrid_search=True,
             text_search_config="english",
             perform_setup=True,
+            use_jsonb=True,
             hnsw_kwargs=(
-                {"hnsw_ef_construction": 500, "hnsw_m": 48, "hnsw_ef_search": 500}
+                {"hnsw_ef_construction": 256, "hnsw_m": 32, "hnsw_ef_search": 256}
                 if hnsw
                 else None
             ),
@@ -222,6 +226,9 @@ class OttoLLM:
             show_progress=False,
         )
         return idx
+
+    def temp_index_from_nodes(self, nodes: list) -> VectorStoreIndex:
+        return VectorStoreIndex(embed_model=self.embed_model, nodes=nodes)
 
     def get_response_synthesizer(
         self,

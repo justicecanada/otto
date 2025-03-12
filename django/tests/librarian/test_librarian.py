@@ -1,23 +1,17 @@
 import os
 import time
+from datetime import datetime
 
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.urls import reverse
 
 import pytest
 
 from chat.models import Chat
-from librarian.forms import LibraryDetailForm
+from librarian.forms import DocumentDetailForm, LibraryDetailForm
 from librarian.models import DataSource, Document, Library
 from librarian.views import get_editable_libraries
-
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
-skip_on_devops_pipeline = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
-)
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -79,7 +73,7 @@ def test_editable_library_list_and_library_form(client, all_apps_user, basic_use
 @pytest.mark.django_db
 def test_modal_library_list(client, all_apps_user):
     client.force_login(all_apps_user())
-    url = reverse("librarian:modal")
+    url = reverse("librarian:modal_library_list")
     response = client.get(url)
     assert response.status_code == 200
 
@@ -114,7 +108,34 @@ def test_modal_edit_library_get(client, all_apps_user, basic_user):
     assert response.status_code == 302
 
 
-@skip_on_github_actions
+@pytest.mark.django_db
+def test_modal_edit_library_get_redirect(client, all_apps_user, basic_user):
+    client.force_login(all_apps_user())
+    library = Library.objects.get_default_library()
+    url = reverse("librarian:modal_edit_library", kwargs={"library_id": library.id})
+    response = client.get(url)
+    assert response.status_code == 200
+    user = basic_user()
+    user.groups.add(Group.objects.get(name="AI Assistant user"))
+    # Accept the terms
+    user.accepted_terms_date = datetime.now()
+    user.save()
+    # Basic user should not be able to edit
+    client.force_login(user)
+    response = client.get(url)
+    # Redirects to their personal library
+    assert response.status_code == 302
+
+    url = reverse(
+        "librarian:modal_edit_library", kwargs={"library_id": user.personal_library.id}
+    )
+    assert response.url == url
+    # Try going directly to user's personal library this should work
+    response = client.get(url)
+
+    assert response.status_code == 200
+
+
 @pytest.mark.django_db
 def test_chat_data_source(client, all_apps_user):
     from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
@@ -205,7 +226,6 @@ def test_chat_data_source(client, all_apps_user):
     assert not os.path.exists(file_path)
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_start_stop(client, all_apps_user):
     user = all_apps_user()
@@ -282,7 +302,6 @@ def test_start_stop(client, all_apps_user):
         )
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_modal_views(client, all_apps_user):
     library = Library.objects.get_default_library()
@@ -290,7 +309,7 @@ def test_modal_views(client, all_apps_user):
     client.force_login(user)
     data_source = DataSource.objects.create(library=library)
     # Create a document
-    document = Document.objects.create(data_source=data_source, url="http://google.ca")
+    document = Document.objects.create(data_source=data_source, url="https://canada.ca")
     # Poll for status updates
     url = reverse(
         "librarian:data_source_status", kwargs={"data_source_id": data_source.id}
@@ -421,9 +440,9 @@ def test_poll_status(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
     data_source = DataSource.objects.create(library=library)
-    document = Document.objects.create(data_source=data_source, url="http://google.ca")
+    document = Document.objects.create(data_source=data_source, url="https://canada.ca")
     document2 = Document.objects.create(
-        data_source=data_source, url="http://google.com"
+        data_source=data_source, url="https://canada.ca"
     )
     # Poll for status updates
     url = reverse(
@@ -489,3 +508,78 @@ def test_poll_status(client, all_apps_user):
     )
     response = client.get(url)
     assert response.context["poll_url"] is None
+
+
+@pytest.mark.django_db
+def test_document_url_validation():
+    library = Library.objects.create(name="Test Library")
+    data_source = DataSource.objects.create(name="Test DataSource", library=library)
+    document = Document(data_source=data_source)
+
+    # Valid URL
+    form = DocumentDetailForm(
+        data={
+            "url": "https://canada.ca",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+
+    assert form.is_valid()
+
+    # Subdomain of valid URL
+    form = DocumentDetailForm(
+        data={
+            "url": "https://www.tbs-sct.canada.ca",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+    assert form.is_valid()
+
+    # Invalid URL
+    form = DocumentDetailForm(
+        data={
+            "url": "invalid-url",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+    assert not form.is_valid()
+    assert "url" in form.errors
+
+    form = DocumentDetailForm(
+        data={
+            "url": "https://notallowed.com",
+            "manual_title": "Test Document",
+            "data_source": data_source.id,
+        },
+        instance=document,
+    )
+    assert not form.is_valid()
+    assert "url" in form.errors
+
+
+def test_email_library_admins(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    library = Library.objects.get_default_library()
+
+    response = client.get(reverse("librarian:email_library_admins", args=[library.id]))
+    assert response.status_code == 200
+    assert "Otto" in response.content.decode()
+    assert "mailto:otto@justice.gc.ca" in response.content.decode()
+
+    # Set user as an admin on the library
+    from librarian.models import LibraryUserRole
+
+    LibraryUserRole.objects.create(user=user, library=library, role="admin")
+
+    response = client.get(reverse("librarian:email_library_admins", args=[library.id]))
+    assert response.status_code == 200
+    assert "Otto" in response.content.decode()
+    assert f"mailto:{user.email}" in response.content.decode()
+    assert f"cc=otto@justice.gc.ca" in response.content.decode()

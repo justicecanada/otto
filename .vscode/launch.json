@@ -29,6 +29,18 @@
             }
         },
         {
+            "name": "Python: Run Librarian Tests",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "django/tests/librarian"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "Django: Text Extractor Views Text",
             "type": "debugpy",
             "request": "launch",
@@ -98,6 +110,34 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}"
+        },
+        {
+            "name": "Django: Celery Worker",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "celery",
+            "cwd": "${workspaceFolder}/django",
+            "args": [
+                "-A",
+                "otto",
+                "worker",
+                "-l",
+                "INFO",
+                "--pool=gevent",
+                "--concurrency=256"
+            ],
+            "env": {
+                "GEVENT_SUPPORT": "True"
+            }
+        },
+    ],
+    "compounds": [
+        {
+            "name": "Django: Run Server & Celery Worker",
+            "configurations": [
+                "Django: Run Server",
+                "Django: Celery Worker"
+            ]
         }
     ]
 }

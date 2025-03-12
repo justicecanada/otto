@@ -1,5 +1,6 @@
 {% load i18n %}
 
+<h3 class="h6 mb-3 mx-3">{% trans "Results for &quot;" %}{{ query }}{% trans "&quot;" %}</h3>
 {% if not disable_llm %}
   <div class="card mb-5 blockquote border-success" id="answer-container">
     <div class="card-body pb-1">
@@ -36,7 +37,6 @@
   </div>
 {% else %}
   <div id="sources-container" class="row">
-    <h3 class="h6 mb-3 mx-3">{% trans "Results for &quot;" %}{{ query }}{% trans "&quot;" %}</h3>
     <div class="col">
       {% for source in sources %}
         <!-- Bootstrap card -->

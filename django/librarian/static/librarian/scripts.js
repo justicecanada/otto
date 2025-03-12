@@ -20,7 +20,11 @@ let librarianModalCloseHandler = event => {
     library_id = selected_library_li.getAttribute('data-library-id');
   }
   // Update the QA library select
-  htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion'});
+  htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion'}).then(() => {
+    // Reset QA autocompletes on edit library modal close
+    resetQaAutocompletes();
+    triggerOptionSave();
+  });
 };
 const modalEl = document.getElementById('editLibrariesModal');
 modalEl.addEventListener('hidden.bs.modal', librarianModalCloseHandler);
@@ -29,7 +33,7 @@ const MAX_FILES_PER_DATA_SOURCE = 100;
 const MAX_SIZE_MB = 300;
 // Translations are set in document_list_script.html
 let files_max_string_start = `You can only upload a maximum of`;
-let files_max_string_end = `files per data source.`;
+let files_max_string_end = `files per folder.`;
 let files_remaining_string_end = `files remaining.`;
 let max_file_size_string_start = `You can only upload a total file size of`;
 let max_file_size_string_end = `at one time.`;
@@ -63,4 +67,15 @@ function validateAndUpload() {
 
     document.querySelector('#document-upload-form').dispatchEvent(new Event('startUpload'));
   };
+}
+
+function emailLibraryAdmins(url) {
+  const library_id = document.getElementById("id_qa_library").value;
+  url = url.replace('0', library_id);
+  htmx.ajax('GET', url, {target: '#email_library_admins_link', swap: 'innerHTML'}).then(
+    function () {
+      document.querySelector("#email_library_admins_link a").click();
+      document.querySelector("#email_library_admins_link").innerHTML = '';
+    }
+  );
 }

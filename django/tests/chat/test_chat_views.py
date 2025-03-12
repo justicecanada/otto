@@ -1,12 +1,14 @@
 import asyncio
 import tempfile
+from unittest import mock
 
 from django.conf import settings
+from django.contrib import messages
 from django.urls import reverse
 from django.utils import timezone
 
 import pytest
-from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync, sync_to_async
 
 from chat.forms import PresetForm
 from chat.llm import OttoLLM
@@ -16,13 +18,6 @@ from librarian.models import Library
 from otto.models import App, Notification, SecurityLabel
 
 pytest_plugins = ("pytest_asyncio",)
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
-skip_on_devops_pipeline = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
-)
 
 
 async def final_response_helper(stream):
@@ -84,7 +79,7 @@ def test_chat(client, basic_user, all_apps_user):
     response = client.get(reverse("chat:new_chat"))
     # This should redirect to the accept terms page
     assert response.status_code == 302
-    assert response.url == reverse("accept_terms") + "?next=" + reverse("chat:new_chat")
+    assert response.url == reverse("terms_of_use") + "?next=" + reverse("chat:new_chat")
 
     # Accept the terms
     user.accepted_terms_date = timezone.now()
@@ -162,8 +157,6 @@ def test_chat_message(client, all_apps_user):
 
 
 # TODO: Test Celery tasks
-@skip_on_github_actions
-@skip_on_devops_pipeline
 @pytest.mark.django_db
 def test_translate_file(client, all_apps_user):
     user = all_apps_user()
@@ -298,7 +291,6 @@ def test_chat_routes(client, all_apps_user):
 
 
 # Test delete_chat view
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_delete_chat(client, all_apps_user):
     user = all_apps_user()
@@ -314,7 +306,6 @@ def test_delete_chat(client, all_apps_user):
 
 
 # Test delete_all_chats view
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_delete_all_chats(client, all_apps_user):
     user = all_apps_user()
@@ -536,8 +527,6 @@ def test_chat_summarization_response(client, all_apps_user):
 
 
 # Test chat_response with QA and Translate modes
-# These require additional setup / authentications and won't run on GitHub
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_translate_response(client, all_apps_user):
     user = all_apps_user()
@@ -785,7 +774,11 @@ def test_rename_chat_title(client, all_apps_user):
     # Test the title_chat function
     response = client.get(
         reverse(
-            "chat:chat_list_item", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:chat_list_item",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         )
     )
     assert response.status_code == 200
@@ -795,7 +788,11 @@ def test_rename_chat_title(client, all_apps_user):
     new_title = "My new chat"
     response = client.post(
         reverse(
-            "chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         ),
         data={"title": new_title},
     )
@@ -806,7 +803,11 @@ def test_rename_chat_title(client, all_apps_user):
     # Test invalid form
     response = client.post(
         reverse(
-            "chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         ),
         data={"title": invalid_title},
     )
@@ -815,7 +816,13 @@ def test_rename_chat_title(client, all_apps_user):
 
     # Test get
     response = client.get(
-        reverse("chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"})
+        reverse(
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
+        )
     )
     assert response.status_code == 200
     assert f'value="{new_title}"' in response.content.decode("utf-8")
@@ -932,36 +939,6 @@ def test_preset(client, basic_user, all_apps_user):
 
     # Test editing an existing preset
     client.force_login(user)
-
-    response = client.post(
-        reverse(
-            "chat:chat_options",
-            kwargs={
-                "chat_id": chat.id,
-                "action": "create_preset",
-                "preset_id": preset.id,
-            },
-        ),
-        data={
-            "name_en": "Updated Preset",
-            "description_en": "Updated Description",
-            "sharing_option": "others",
-            "accessible_to": [],
-            "prompt": "",
-        },
-    )
-
-    assert response.status_code == 200
-    # the user did not provide any users for the accessible field with sharing_option=others
-    assert (
-        "Please provide at least one user for the accessible field."
-        in response.content.decode("utf-8")
-    )
-    # the new preset should not have been updated since the form was not valid
-    preset.refresh_from_db()
-    assert preset.name_en == "New Preset"
-
-    # now save it with a valid form
     response = client.post(
         reverse(
             "chat:chat_options",
@@ -1009,16 +986,44 @@ def test_preset(client, basic_user, all_apps_user):
             },
         )
     )
+
+    last_message = list(response.context["messages"])[-1]
     assert response.status_code == 200
     assert "preset_loaded" in response.context
     assert response.context["preset_loaded"] == "true"
+    assert (
+        last_message.level == messages.SUCCESS
+        and last_message.message == "Preset loaded successfully."
+    )
 
-    # Test adding the preset to favorites
+    # Test adding and removing the preset to favorites
     client.force_login(user)
     response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
     assert response.status_code == 200
     preset.refresh_from_db()
     assert user in preset.favourited_by.all()
+    # remove from favourites
+    response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
+    assert response.status_code == 200
+    preset.refresh_from_db()
+    assert user not in preset.favourited_by.all()
+
+    # Test accompanying messages
+    response_messages = list(response.context["messages"])
+    removed_message = response_messages[-1]
+    added_message = response_messages[-2]
+    assert (
+        removed_message.level == messages.SUCCESS
+        and removed_message.message == "Preset removed from favourites."
+    )
+    assert (
+        added_message.level == messages.SUCCESS
+        and added_message.message == "Preset added to favourites."
+    )
+
+    with mock.patch("chat.models.Preset.toggle_favourite", side_effect=ValueError):
+        response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
+        assert response.status_code == 500
 
     # Test setting the preset as default
     response = client.get(reverse("chat:set_preset_default", args=[preset.id, chat.id]))
@@ -1170,6 +1175,7 @@ def test_update_qa_options_from_librarian(client, all_apps_user):
 
 @pytest.mark.django_db
 def test_chat_message_error(client, all_apps_user):
+
     user = all_apps_user()
     client.force_login(user)
     response = client.get(reverse("chat:chat_with_ai"), follow=True)
@@ -1194,5 +1200,110 @@ def test_chat_message_error(client, all_apps_user):
     assert response.status_code == 200
     # We should have a StreamingHttpResponse object.
     # Iterate over the response to get the content
-    content = final_response(response.streaming_content)
+    content = async_to_sync(final_response_helper)(response.streaming_content)
     assert "Error ID" in content.decode("utf-8")
+
+
+@pytest.mark.django_db
+def test_chat_message_url_validation(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    # Valid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://canada.ca"},
+    )
+    assert response.status_code == 200
+    # The error message contains the string "URL" but success message does not
+    assert not "URL" in response.content.decode()
+
+    # Subdomain of valid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://www.tbs-sct.canada.ca"},
+    )
+    assert response.status_code == 200
+    assert not "URL" in response.content.decode()
+
+    # Ends with valid URL, but isn't a subdomain
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://acanada.ca"},
+    )
+    assert response.status_code == 200
+    # This should be a problem
+    assert "URL" in response.content.decode()
+
+    # Is a valid URL, but is http:// only (should be fine, it will correct to https://)
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "http://www.tbs-sct.canada.ca"},
+    )
+    assert response.status_code == 200
+    assert not "URL" in response.content.decode()
+
+    # Is a valid URL, but FTP
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "ftp://canada.ca/fake_file"},
+    )
+    assert response.status_code == 200
+    # This should be a problem
+    assert "URL" in response.content.decode()
+
+    # Invalid URL
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "invalid-url"},
+    )
+    assert response.status_code == 200
+    # This should just be interpreted as a regular chat message
+    assert not "URL" in response.content.decode()
+
+    response = client.post(
+        reverse("chat:chat_message", args=[chat.id]),
+        data={"user-message": "https://notallowed.com"},
+    )
+    assert response.status_code == 200
+    assert "URL" in response.content.decode()
+
+
+def test_generate_prompt_view(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    # Valid URL
+    response = client.post(
+        reverse("chat:generate_prompt_view"),
+        data={"user_input": "write me an email"},
+    )
+    assert response.status_code == 200
+    # Check that the correct template was used
+    assert "chat/modals/prompt_generator_result.html" in [
+        t.name for t in response.templates
+    ]
+
+    # Check that the context contains the expected values
+    assert response.context["user_input"] == "write me an email"
+    assert len(response.context["output_text"]) > 1
+    assert "Output Format" in response.context["output_text"]
+    assert "# Examples" in response.context["output_text"]
+
+    # Strip non-numeric characters and convert to float
+    cost_str = response.context["cost"].replace("< $", "")
+    cost = float(cost_str)
+    assert cost > 0.000
+
+
+def test_email_chat_author(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+
+    response = client.get(reverse("chat:email_author", args=[chat.id]))
+    assert response.status_code == 200
+    assert "Otto" in response.content.decode()
+    assert f"mailto:{user.email}" in response.content.decode()

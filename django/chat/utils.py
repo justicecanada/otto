@@ -1,14 +1,17 @@
 import asyncio
 import html
 import json
+import re
 import sys
 from itertools import groupby
 from typing import AsyncGenerator, Generator
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 import markdown
@@ -16,15 +19,18 @@ import tiktoken
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
 from llama_index.core import PromptTemplate
+from llama_index.core.llms import ChatMessage
 from llama_index.core.prompts import PromptType
 from newspaper import Article
 from structlog import get_logger
+from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS
 from otto.models import SecurityLabel
+from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
 # Markdown instance
@@ -33,7 +39,7 @@ md = markdown.Markdown(
 )
 
 
-def copy_options(source_options, target_options, user=None):
+def copy_options(source_options, target_options, user=None, chat=None, mode=None):
     source_options = model_to_dict(source_options)
     # Remove the fields that are not part of the preset
     for field in ["id", "chat"]:
@@ -52,7 +58,7 @@ def copy_options(source_options, target_options, user=None):
             setattr(target_options, key, value)
 
     request = get_request()
-    user = user or request.user
+    user = user or (request and request.user)
     if not target_options.qa_library or (
         user and not user.has_perm("librarian.view_library", target_options.qa_library)
     ):
@@ -67,6 +73,10 @@ def copy_options(source_options, target_options, user=None):
         target_options.qa_documents.clear()
         target_options.qa_scope = "all"
         target_options.qa_mode = "rag"
+    if chat:
+        target_options.chat = chat
+    if mode:
+        target_options.mode = mode
     target_options.save()
 
 
@@ -238,27 +248,38 @@ async def htmx_stream(
                 await asyncio.sleep(1)
                 first_message = False
 
-            if remove_stop or not cache.get(f"stop_response_{message_id}", False):
-                full_message = response
-            elif not generation_stopped:
-                generation_stopped = True
-                if wrap_markdown:
-                    full_message = close_md_code_blocks(full_message)
-                    stop_warning_message = f"\n\n_{stop_warning_message}_"
-                else:
-                    stop_warning_message = f"<p><em>{stop_warning_message}</em></p>"
-                full_message = f"{full_message}{stop_warning_message}"
-                message = await sync_to_async(Message.objects.get)(id=message_id)
-                message.text = full_message
-                await sync_to_async(message.save)()
-            yield sse_string(
-                full_message,
-                wrap_markdown,
-                dots,
-                remove_stop=remove_stop or generation_stopped,
-            )
+            if response != "<|batchboundary|>":
+                if remove_stop or not cache.get(f"stop_response_{message_id}", False):
+                    full_message = response
+                elif not generation_stopped:
+                    generation_stopped = True
+                    if wrap_markdown:
+                        full_message = close_md_code_blocks(full_message)
+                        stop_warning_message = f"\n\n_{stop_warning_message}_"
+                    else:
+                        stop_warning_message = f"<p><em>{stop_warning_message}</em></p>"
+                    full_message = f"{full_message}{stop_warning_message}"
+                    message = await sync_to_async(Message.objects.get)(id=message_id)
+                    message.text = full_message
+                    await sync_to_async(message.save)()
+            elif generation_stopped:
+                break
+            # Avoid overwhelming client with markdown rendering:
+            # slow down yields if the message is large
+            length = len(full_message)
+            yield_every = length // 2000 + 1
+            if length < 1000 or length % yield_every == 0:
+                yield sse_string(
+                    full_message,
+                    wrap_markdown,
+                    dots=dots if not generation_stopped else False,
+                    remove_stop=remove_stop or generation_stopped,
+                )
             await asyncio.sleep(0.01)
 
+        # yield sse_string(
+        #     full_message, wrap_markdown=False, dots=False, remove_stop=True
+        # )
         yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
         await asyncio.sleep(0.01)
 
@@ -275,7 +296,7 @@ async def htmx_stream(
 
         # Update message text with markdown wrapper to pass to template
         if wrap_markdown:
-            message.text = wrap_llm_response(full_message)
+            message.text = wrap_llm_response(full_message)  # full_message)
         context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
         # Save sources and security label
@@ -300,6 +321,7 @@ async def htmx_stream(
 
     # Render the message template, wrapped in SSE format
     context["message"].json = json.dumps(str(full_message))
+
     yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context
@@ -496,6 +518,12 @@ def get_source_titles(sources):
     ]
 
 
+def create_batches(iterable, n=1):
+    length = len(iterable)
+    for ndx in range(0, length, n):
+        yield iterable[ndx : min(ndx + n, length)]
+
+
 async def combine_response_generators(generators, titles, query, llm, prune=False):
     streams = [{"stream": stream, "status": "running"} for stream in generators]
     final_streams = [f"\n###### *{title}*\n" for title in titles]
@@ -522,7 +550,7 @@ async def combine_response_generators(generators, titles, query, llm, prune=Fals
         if final_result:
             yield (final_result)
         else:
-            yield ("**No relevant sources found.**")
+            yield (_("**No relevant sources found.**"))
         await asyncio.sleep(0)
 
 
@@ -546,6 +574,36 @@ async def combine_response_replacers(generators, titles):
                 stream["status"] = "stopped"
         yield ("\n\n---\n\n".join(final_streams))
         await asyncio.sleep(0)
+
+
+async def combine_batch_generators(generators, pruning=False):
+    # Given a list of generators from either combine_response_replacers or
+    # combine_response_generators, make one generator across batches for htmx_stream
+    final_streams = []
+    for generator in generators:
+        stream = "\n\n---\n\n".join(final_streams)
+        async for response in generator:
+            if stream:
+                # Add line between already-streamed batches and streaming batch
+                stream_value = stream + "\n\n---\n\n" + response
+            else:
+                # Don't need line if there's nothing streamed
+                stream_value = response
+            yield stream_value
+            await asyncio.sleep(0)
+        if pruning and response == _("**No relevant sources found.**"):
+            # If we're pruning (combine_response_generators only) and nothing
+            # relevant was found in the batch, just retain previous batches
+            yield stream
+            await asyncio.sleep(0)
+        else:
+            final_streams.append(response)
+        yield "<|batchboundary|>"
+
+    if not final_streams and pruning:
+        # If we're pruning (combine_response_generators only) and have nothing after
+        # iterating through all batches, stream the pruning message again
+        yield _("**No relevant sources found.**")
 
 
 def group_sources_into_docs(source_nodes):
@@ -574,6 +632,7 @@ def sort_by_max_score(groups):
 
 
 def change_mode_to_chat_qa(chat):
+    chat.options.mode = "qa"
     chat.options.qa_library = chat.user.personal_library
     chat.options.qa_scope = "data_sources"
     chat.options.qa_data_sources.set([chat.data_source])
@@ -587,3 +646,313 @@ def change_mode_to_chat_qa(chat):
             "swap": "true",
         },
     )
+
+
+def bad_url(render_markdown=False):
+    out = _("Sorry, that URL isn't allowed. Otto can only access sites ending in:")
+    out += "\n\n"
+    out += "\n".join([f"* `{url}`" for url in settings.ALLOWED_FETCH_URLS]) + "\n\n"
+    out += (
+        _("(e.g., `justice.gc.ca` or `www.tbs-sct.canada.ca` are also allowed)")
+        + "\n\n"
+    )
+    out += _("As a workaround, you can save the content to a file and upload it here.")
+
+    if render_markdown:
+        out = md.convert(out)
+    return out
+
+
+def generate_prompt(task_or_prompt: str):
+    bind_contextvars(feature="prompt_generator")
+    llm = OttoLLM()
+
+    META_PROMPT = """
+    Given a current prompt and a change description, produce a detailed system prompt to guide a language model in completing the task effectively.
+
+    Your final output will be the full corrected prompt verbatim. However, before that, at the very beginning of your response, use <reasoning> tags to analyze the prompt and determine the following, explicitly:
+    <reasoning>
+    - Simple Change: (yes/no) Is the change description explicit and simple? (If so, skip the rest of these questions.)
+    - Reasoning: (yes/no) Does the current prompt use reasoning, analysis, or chain of thought?
+        - Identify: (max 10 words) if so, which section(s) utilize reasoning?
+        - Conclusion: (yes/no) is the chain of thought used to determine a conclusion?
+        - Ordering: (before/after) is the chain of though located before or after
+    - Structure: (yes/no) does the input prompt have a well defined structure
+    - Examples: (yes/no) does the input prompt have few-shot examples
+        - Representative: (1-5) if present, how representative are the examples?
+    - Complexity: (1-5) how complex is the input prompt?
+        - Task: (1-5) how complex is the implied task?
+        - Necessity: ()
+    - Specificity: (1-5) how detailed and specific is the prompt? (not to be confused with length)
+    - Prioritization: (list) what 1-3 categories are the MOST important to address.
+    - Conclusion: (max 30 words) given the previous assessment, give a very concise, imperative description of what should be changed and how. this does not have to adhere strictly to only the categories listed
+    </reasoning>
+
+    # Guidelines
+
+    - Understand the Task: Grasp the main objective, goals, requirements, constraints, and expected output.
+    - Minimal Changes: If an existing prompt is provided, improve it only if it's simple. For complex prompts, enhance clarity and add missing elements without altering the original structure.
+    - Reasoning Before Conclusions**: Encourage reasoning steps before any conclusions are reached. ATTENTION! If the user provides examples where the reasoning happens afterward, REVERSE the order! NEVER START EXAMPLES WITH CONCLUSIONS!
+        - Reasoning Order: Call out reasoning portions of the prompt and conclusion parts (specific fields by name). For each, determine the ORDER in which this is done, and whether it needs to be reversed.
+        - Conclusion, classifications, or results should ALWAYS appear last.
+    - Examples: Include high-quality examples if helpful, using placeholders [in brackets] for complex elements.
+    - What kinds of examples may need to be included, how many, and whether they are complex enough to benefit from placeholders.
+    - Clarity and Conciseness: Use clear, specific language. Avoid unnecessary instructions or bland statements.
+    - Formatting: Use markdown features for readability. DO NOT USE ``` CODE BLOCKS UNLESS SPECIFICALLY REQUESTED.
+    - Preserve User Content: If the input task or prompt includes extensive guidelines or examples, preserve them entirely, or as closely as possible. If they are vague, consider breaking down into sub-steps. Keep any details, guidelines, examples, variables, or placeholders provided by the user.
+    - Constants: DO include constants in the prompt, as they are not susceptible to prompt injection. Such as guides, rubrics, and examples.
+    - Output Format: Explicitly the most appropriate output format, in detail. This should include length and syntax (e.g. short sentence, paragraph, JSON, etc.)
+        - For tasks outputting well-defined or structured data (classification, JSON, etc.) bias toward outputting a JSON.
+        - JSON should never be wrapped in code blocks (```) unless explicitly requested.
+
+    The final prompt you output should adhere to the following structure below. Do not include any additional commentary, only output the completed system prompt. SPECIFICALLY, do not include any additional messages at the start or end of the prompt. (e.g. no "---")
+
+    [Concise instruction describing the task - this should be the first line in the prompt, no section header]
+
+    [Additional details as needed.]
+
+    [Optional sections with headings or bullet points for detailed steps.]
+
+    # Steps [optional]
+
+    [optional: a detailed breakdown of the steps necessary to accomplish the task]
+
+    # Output Format
+
+    [Specifically call out how the output should be formatted, be it response length, structure e.g. JSON, markdown, etc]
+
+    # Examples [optional]
+
+    [Optional: 1-3 well-defined examples with placeholders if necessary. Clearly mark where examples start and end, and what the input and output are. User placeholders as necessary.]
+    [If the examples are shorter than what a realistic example is expected to be, make a reference with () explaining how real examples should be longer / shorter / different. AND USE PLACEHOLDERS! ]
+
+    # Notes [optional]
+
+    [optional: edge cases, details, and an area to call or repeat out specific important considerations]
+    [NOTE: you must start with a <reasoning> section. the immediate next token you produce should be <reasoning>]
+    """.strip()
+
+    completion = llm.chat_complete(
+        [
+            ChatMessage(role="system", content=META_PROMPT),
+            ChatMessage(
+                role="user", content="Task, Goal, or Current Prompt:\n" + task_or_prompt
+            ),
+        ]
+    )
+
+    usd_cost = llm.create_costs()
+    cost = display_cad_cost(usd_cost)
+    generated_prompt = re.sub(
+        r"<reasoning>.*?</reasoning>", "", completion, flags=re.DOTALL
+    ).strip()
+
+    return generated_prompt, cost
+
+
+def mark_sentences(text: str, good_matches: list) -> str:
+    """
+    Ignoring "\n" and "\r" characters in the text, wrap matching sentences in the text with <mark> tags.
+    Return the original text with the sentences wrapped in <mark> tags, with original newlines preserved.
+    """
+    # Replace newline characters with temporary markers.
+    newline_marker = "<<<NEWLINE>>>"
+    text_temp = text.replace("\n", newline_marker).replace("\r", "")
+
+    good_matches = set(good_matches)
+
+    # For each sentence that should be marked, search and wrap it.
+    for sentence in good_matches:
+        # Remove leading/trailing whitespace and escape regex-special characters.
+        sentence_clean = sentence.strip()
+        # Escape regex special characters.
+        escaped = re.escape(sentence_clean)
+        # Replace literal spaces (escaped as "\ ") with a pattern that allows matching spaces or newline markers.
+        flexible_pattern = escaped.replace(
+            r"\ ",
+            r"(?:\s|" + re.escape(newline_marker) + r"+|" + r")+",
+        )
+        pattern = re.compile(flexible_pattern, flags=re.IGNORECASE)
+        # Wrap any match with <mark> tags.
+        text_temp = pattern.sub(r"<mark>\g<0></mark>", text_temp)
+
+    # Restore original newlines.
+    marked_text = text_temp.replace(newline_marker, "\n")
+    # If there are sections where a mark spans over multiple paragraphs, we must highlight them all.
+    # e.g. <mark>paragraph 1\n\nparagraph 2</mark> -> <mark>paragraph 1</mark>\n\n<mark>paragraph 2</mark>
+    marked_text = re.sub(
+        r"<mark>(.*?)\n\n(.*?)</mark>",
+        r"<mark>\1</mark>\n\n<mark>\2</mark>",
+        marked_text,
+    )
+    # Remove nested <mark> tags
+    marked_text = re.sub(r"<mark>(.*?)<mark>", r"<mark>\1", marked_text)
+    marked_text = re.sub(r"</mark></mark>", r"</mark>", marked_text)
+    return marked_text
+
+
+def highlight_claims(claims_list, text, threshold=0.66):
+    """
+    Highlight sentences in text with <mark> that match a claim in the claims_list.
+    """
+    from langdetect import detect
+    from llama_index.core.schema import TextNode
+    from sentence_splitter import split_text_into_sentences
+
+    lang = detect(text)
+    sentences = split_text_into_sentences(
+        text=text.replace("\n", " ").replace("\r", " "),
+        language="fr" if lang == "fr" else "en",
+    )
+    llm = OttoLLM()
+    index = llm.temp_index_from_nodes(
+        [TextNode(text=sentence) for sentence in sentences]
+    )
+
+    # print("SENTENCES:")
+    # for sentence in sentences:
+    #     print(sentence)
+    # print("CLAIMS:")
+    # for claim in claims_list:
+    #     print(claim)
+
+    good_matches = []
+    for claim in claims_list:
+        retriever = index.as_retriever()
+        nodes = retriever.retrieve(claim)
+        # print("CLAIM:", claim)
+        # print("matches:")
+        # print([(node.score, node.node.text) for node in nodes])
+        # print("\n")
+        for node in nodes:
+            if node.score > threshold:
+                good_matches.append(node.text)
+
+    text = mark_sentences(text, good_matches)
+    return text
+
+
+def extract_claims_from_llm(llm_response_text):
+    llm = OttoLLM()
+    prompt = f"""
+    Based on the following LLM response, extract all factual claims including direct quotes.
+
+    Respond in the format:
+    <claim>whatever the claim is...</claim>
+    <claim>another claim...</claim>
+
+    etc.
+    Include all factual claims as their own sentence. Do not include any analysis or reasoning.
+
+    ---
+    <llm_response>
+    {llm_response_text}
+    </llm_response>
+    """
+    claims_response = llm.complete(prompt)
+    llm.create_costs()
+    # find the claim tags and add whats wrapped in the claim tags to a list
+    claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
+    return claims_list
+
+
+def fix_source_links(text, source_document_url):
+    """
+    Fix internal links in the text by merging them with the source document URL
+    """
+
+    def is_external_link(link):
+        """
+        Check if the link starts with "http"
+        """
+        return link.startswith("http")
+
+    def is_anchor(link):
+        """
+        Check if the link starts with a "#"
+        """
+        return link.startswith("#")
+
+    def merge_link_with_source(link, source_document_url):
+        """
+        Merge the link with the source document URL based on conditions
+        """
+        if link.startswith("/"):
+            first_subdirectory = link.split("/")[1]
+            # If the first subdirectory of the internal link is in the source url, it is merged at that point
+            if "/" + first_subdirectory in source_document_url:
+                source_document_url = source_document_url.split(
+                    "/" + first_subdirectory
+                )[0]
+            # makes sure that we don't have double slashes in the URL
+            elif source_document_url.endswith("/"):
+                source_document_url = source_document_url[:-1]
+        # makes sure we don't have a slash missing in the URL
+        elif not source_document_url.endswith("/") and not is_anchor(link):
+            source_document_url += "/"
+
+        return source_document_url + link
+
+    def remove_link(text, link_tuple):
+        """
+        Replace the link with plain text of the link text: "[text](url)" -> "text"
+        """
+        return text.replace(f"[{link_tuple[0]}]({link_tuple[1]})", f"{link_tuple[0]}")
+
+    # Capture both the url and the text in a tuple, i.e., ('[text]', 'url')
+    links = re.findall(r"\[(.*?)\]\((.*?)\)", text)
+
+    # Check if there are internal links and merge them with the source URL
+    for link_tuple in links:
+        try:
+            # The URL itself is the second group
+            link = link_tuple[1]
+            if not is_external_link(link):
+                if source_document_url:
+                    # Sometimes the internal link is followed by a space and some text like the name of the page
+                    # e.g. (/wiki/Grapheme "Grapheme")
+                    link = link.split(" ")[0]
+                    # Merge the link with the source document URL
+                    modified_link = merge_link_with_source(link, source_document_url)
+                    text = text.replace(link, modified_link)
+                else:
+                    # makes sure we don't have unusable links in the text
+                    text = remove_link(text, link_tuple)
+        except:
+            continue
+
+    return text
+
+
+def label_section_index(last_modification_date):
+    last_modification_date = last_modification_date.date()
+    todays_date = timezone.now().date()
+    if last_modification_date > todays_date - timezone.timedelta(days=1):
+        return 0
+    elif last_modification_date > todays_date - timezone.timedelta(days=2):
+        return 1
+    elif last_modification_date > todays_date - timezone.timedelta(days=7):
+        return 2
+    elif last_modification_date > todays_date - timezone.timedelta(days=30):
+        return 3
+    else:
+        return 4
+
+
+def get_chat_history_sections(user_chats):
+    """
+    Group the chat history into sections formatted as [{"label": "(string)", "chats": [list..]}]
+    """
+    chat_history_sections = [
+        {"label": _("Today"), "chats": []},
+        {"label": _("Yesterday"), "chats": []},
+        {"label": _("Last 7 days"), "chats": []},
+        {"label": _("Last 30 days"), "chats": []},
+        {"label": _("Older"), "chats": []},
+    ]
+
+    for user_chat in user_chats:
+        section_index = label_section_index(user_chat.last_modification_date)
+        chat_history_sections[section_index]["chats"].append(user_chat)
+
+    return chat_history_sections

@@ -1,10 +1,11 @@
 import json
+import re
 
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.forms.models import model_to_dict
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -20,16 +21,8 @@ from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm
 from chat.llm import OttoLLM
-from chat.metrics.activity_metrics import (
-    chat_new_session_started_total,
-    chat_request_type_total,
-    chat_session_restored_total,
-)
-from chat.metrics.feedback_metrics import (
-    chat_negative_feedback_total,
-    chat_positive_feedback_total,
-)
 from chat.models import (
+    AnswerSource,
     Chat,
     ChatFile,
     ChatOptions,
@@ -37,10 +30,21 @@ from chat.models import (
     Preset,
     create_chat_data_source,
 )
-from chat.utils import change_mode_to_chat_qa, copy_options, title_chat
+from chat.utils import (
+    bad_url,
+    change_mode_to_chat_qa,
+    copy_options,
+    fix_source_links,
+    generate_prompt,
+    get_chat_history_sections,
+    highlight_claims,
+    label_section_index,
+    title_chat,
+    wrap_llm_response,
+)
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
-from otto.rules import can_access_preset, can_edit_preset
+from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -71,9 +75,6 @@ def new_chat(request, mode=None):
     empty_chat = Chat.objects.create(user=request.user, mode=mode)
 
     logger.info("New chat created.", chat_id=empty_chat.id, mode=mode)
-
-    # Usage metrics
-    chat_new_session_started_total.labels(user=request.user.upn, mode=mode).inc()
 
     return redirect("chat:chat", chat_id=empty_chat.id)
 
@@ -119,17 +120,25 @@ def chat(request, chat_id):
 
     chat = (
         Chat.objects.filter(id=chat_id)
-        .prefetch_related("options", "data_source")
+        .prefetch_related(
+            "options",
+            "options__qa_library",
+            "options__qa_data_sources",
+            "options__qa_documents",
+        )
         .first()
     )
 
     if not chat:
         return new_chat(request)
-    chat.accessed_at = timezone.now()
-    chat.save()
+    Chat.objects.filter(id=chat_id).update(accessed_at=timezone.now())
 
     # Get chat messages ready
-    messages = Message.objects.filter(chat=chat).order_by("id")
+    messages = (
+        Message.objects.filter(chat=chat)
+        .order_by("date_created")
+        .prefetch_related("answersource_set", "files")
+    )
     for message in messages:
         if message.is_bot:
             message.json = json.dumps(message.text)
@@ -169,7 +178,7 @@ def chat(request, chat_id):
         .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
-        .order_by("-created_at")
+        .order_by("-last_modification_date")
     )
     # Title chats in sidebar if necessary & set default labels
     llm = None
@@ -187,10 +196,7 @@ def chat(request, chat_id):
     if llm:
         llm.create_costs()
 
-    # Usage metrics
     awaiting_response = request.GET.get("awaiting_response") == "True"
-    if len(messages) > 0 and not awaiting_response:
-        chat_session_restored_total.labels(user=request.user.upn, mode=mode)
 
     # When a chat is created from outside Otto, we want to emulate the behaviour
     # of creating a new message - which returns an "awaiting_response" bot message
@@ -226,6 +232,7 @@ def chat(request, chat_id):
         "user_chats": user_chats,
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
+        "chat_history_sections": get_chat_history_sections(user_chats),
     }
     return render(request, "chat/chat.html", context=context)
 
@@ -256,42 +263,50 @@ def chat_message(request, chat_id):
         cache.set(f"stop_response_{chat_bot_messages.last().id}", True, timeout=60)
 
     # Quick-add URL to library (Change mode to QA and data source to current Chat if so)
-    adding_url_to_qa = False
-    if mode == "qa":
-        url_validator = URLValidator()
-        try:
-            url_validator(user_message_text)
-            adding_url_to_qa = True
-        except ValidationError:
-            pass
+    entered_url = False
+    allowed_url = False
+    url_validator = URLValidator()
+    try:
+        url_validator(user_message_text)
+        entered_url = True
+        allowed_url = check_url_allowed(user_message_text)
+    except ValidationError:
+        pass
 
     user_message = Message.objects.create(
         chat=chat, text=user_message_text, is_bot=False, mode=mode
     )
     user_message.is_new_user_message = True
-    response_message = Message.objects.create(
-        chat=chat, text="", is_bot=True, mode=mode, parent=user_message
-    )
-    # usage metrics
-    chat_request_type_total.labels(user=request.user.upn, type=mode).inc()
 
-    # This tells the frontend to display the 3 dots and initiate the streaming response
-    response_init_message = {
-        "is_bot": True,
-        "awaiting_response": True,
-        "id": response_message.id,
-        "date_created": response_message.date_created + timezone.timedelta(seconds=1),
-    }
+    if entered_url and not allowed_url:
+        # Just respond with the error message.
+        response_message = Message.objects.create(
+            chat=chat, is_bot=True, mode=mode, parent=user_message, text=bad_url()
+        )
+        response_message.json = json.dumps(response_message.text)
+    else:
+        response_message = Message.objects.create(
+            chat=chat, is_bot=True, mode=mode, parent=user_message, text=""
+        )
+        # This tells the frontend to display the 3 dots and initiate the streaming response
+        response_message = {
+            "is_bot": True,
+            "awaiting_response": True,
+            "id": response_message.id,
+            "date_created": response_message.date_created
+            + timezone.timedelta(seconds=1),
+        }
+
     context = {
         "chat_messages": [
             user_message,
-            response_init_message,
+            response_message,
         ],
         "mode": mode,
     }
     response = HttpResponse()
     response.write(render_to_string("chat/components/chat_messages.html", context))
-    if adding_url_to_qa:
+    if entered_url and allowed_url and mode == "chat":
         response.write(change_mode_to_chat_qa(chat))
     return response
 
@@ -347,19 +362,8 @@ def done_upload(request, message_id):
     chat = user_message.chat
     response = HttpResponse()
 
-    if mode == "translate":
-        # usage metrics
-        chat_request_type_total.labels(
-            user=request.user.upn, type="document translation"
-        )
-    if mode == "summarize":
-        # usage metrics
-        chat_request_type_total.labels(user=request.user.upn, type="text summarization")
-
     if mode == "qa":
-        # usage metrics
         logger.debug("QA upload")
-        chat_request_type_total.labels(user=request.user.upn, type="qa upload")
         response.write(change_mode_to_chat_qa(chat))
 
     response_init_message = {
@@ -468,17 +472,9 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         message = Message.objects.get(id=message_id)
         message.feedback = message.get_toggled_feedback(feedback)
         message.save()
-        if feedback:
-            chat_positive_feedback_total.labels(
-                user=request.user.upn, message=message_id
-            ).inc()
-        else:
-            chat_negative_feedback_total.labels(
-                user=request.user.upn, message=message_id
-            ).inc()
     except Exception as e:
         # TODO: handle error
-        logger.error("An error occured while providing a chat feedback.", error=e)
+        logger.error("An error occurred while providing a chat feedback.", error=e)
 
     if feedback == -1:
         return feedback_message(request, message_id)
@@ -496,8 +492,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
     chat = Chat.objects.get(id=chat_id)
     # if we are loading a preset, check if the user has access to it
-    if preset_id and not can_access_preset(
-        request.user, Preset.objects.get(id=preset_id)
+    if preset_id and not request.user.has_perm(
+        "chat.access_preset", Preset.objects.get(id=preset_id)
     ):
         return HttpResponse(status=403)
     if action == "reset":
@@ -563,7 +559,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
             if form.is_valid():
                 if preset_id:
-                    preset = get_object_or_404(Preset, id=preset_id, owner=request.user)
+                    preset = get_object_or_404(Preset, id=preset_id)
                     replace_with_settings = request.POST.get(
                         "replace_with_settings", False
                     )
@@ -585,22 +581,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 english_title = form.cleaned_data["name_en"]
                 french_title = form.cleaned_data["name_fr"]
 
-                # check if both titles are empty
-                if english_title == "" and french_title == "":
-                    return render(
-                        request,
-                        "chat/modals/presets/presets_form.html",
-                        {
-                            "form": form,
-                            "chat_id": chat_id,
-                            "preset_id": preset_id,
-                            "error_message": _(
-                                "Please provide a title in either English or French."
-                            ),
-                            "replace_with_settings": replace_with_settings,
-                        },
-                    )
-
                 # Set the fields based on the selected tab
                 preset.name_en = english_title
                 preset.name_fr = french_title
@@ -610,22 +590,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 preset.sharing_option = form.cleaned_data.get("sharing_option", None)
 
                 accessible_to = form.cleaned_data.get("accessible_to", [])
-
-                # Check if the preset is shared with others but no users are selected
-                if preset.sharing_option == "others" and not accessible_to:
-                    return render(
-                        request,
-                        "chat/modals/presets/presets_form.html",
-                        {
-                            "form": form,
-                            "chat_id": chat_id,
-                            "preset_id": preset_id,
-                            "error_message": _(
-                                "Please provide at least one user for the accessible field."
-                            ),
-                            "replace_with_settings": replace_with_settings,
-                        },
-                    )
 
                 preset.save()
 
@@ -639,21 +603,10 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
                 messages.success(
                     request,
-                    _("Preset saved and loaded successfully."),
+                    _("Preset saved successfully."),
                 )
 
-                return render(
-                    request,
-                    "chat/components/chat_options_accordion.html",
-                    {
-                        "options_form": ChatOptionsForm(
-                            instance=preset.options, user=request.user
-                        ),
-                        "prompt": preset.options.prompt,
-                        "preset_loaded": "true",
-                        "preset_id": preset.id,
-                    },
-                )
+                return HttpResponse(status=200)
 
         return HttpResponse(status=500)
     elif action == "update_preset":
@@ -707,7 +660,10 @@ def chat_list_item(request, chat_id, current_chat=None):
     return render(
         request,
         "chat/components/chat_list_item.html",
-        {"chat": chat},
+        {
+            "chat": chat,
+            "section_index": label_section_index(chat.last_modification_date),
+        },
     )
 
 
@@ -720,24 +676,38 @@ def rename_chat(request, chat_id, current_chat=None):
         chat_rename_form = ChatRenameForm(request.POST)
         if chat_rename_form.is_valid():
             chat.title = chat_rename_form.cleaned_data["title"]
+            # we keep the old last change date since the button will still be displayed in the old section until the next reload
+            old_last_modification_date = chat.last_modification_date
+            chat.last_modification_date = timezone.now()
             chat.save()
             return render(
                 request,
                 "chat/components/chat_list_item.html",
-                {"chat": chat},
+                {
+                    "chat": chat,
+                    "section_index": label_section_index(old_last_modification_date),
+                },
             )
         else:
             return render(
                 request,
                 "chat/components/chat_list_item_title_edit.html",
-                {"form": chat_rename_form, "chat": chat},
+                {
+                    "form": chat_rename_form,
+                    "chat": chat,
+                    "section_index": label_section_index(chat.last_modification_date),
+                },
             )
 
     chat_rename_form = ChatRenameForm(data={"title": chat.title})
     return render(
         request,
         "chat/components/chat_list_item_title_edit.html",
-        {"form": chat_rename_form, "chat": chat},
+        {
+            "form": chat_rename_form,
+            "chat": chat,
+            "section_index": label_section_index(chat.last_modification_date),
+        },
     )
 
 
@@ -760,25 +730,50 @@ def set_security_label(request, chat_id, security_label_id):
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def message_sources(request, message_id):
-    import re
+def message_sources(request, message_id, highlight=False):
+    # When called via the URL for highlights, ?highlight=true will make this True.
+    highlight = request.GET.get("highlight", "false").lower() == "true" or highlight
+    already_highlighted = Message.objects.get(id=message_id).claims_list != []
 
-    message = Message.objects.get(id=message_id)
+    def replace_page_tags(match):
+        page_number = match.group(1)
+        return f"**_Page {page_number}_**\n"
+
     sources = []
-
-    for source in message.sources.all():
+    for source in AnswerSource.objects.prefetch_related(
+        "document", "document__data_source", "document__data_source__library", "message"
+    ).filter(message_id=message_id):
         source_text = str(source.node_text)
 
-        def replace_page_tags(match):
-            page_number = match.group(1)
-            return f"<span class='fw-semibold'>Page {page_number}</span>"
+        already_processed = source.processed_text != ""
+        needs_processing = (
+            highlight and not already_highlighted
+        ) or not already_processed
 
-        modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        source_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        source_text = re.sub(r"</page_\d+>", "", source_text)
+
+        if needs_processing:
+            if highlight:
+                claims_list = source.message.claims_list
+                if not claims_list:
+                    source.message.update_claims_list()
+                    claims_list = source.message.claims_list
+                source_text = highlight_claims(claims_list, source_text)
+
+            if source.document:
+                source_text = fix_source_links(source_text, source.document.url)
+
+            source.processed_text = source_text
+            source.save(update_fields=["processed_text"])
+            source_text = wrap_llm_response(source_text)
+        else:
+            source_text = wrap_llm_response(source_text)
 
         source_dict = {
             "citation": source.citation,
             "document": source.document,
-            "node_text": modified_text,
+            "node_text": source_text,
             "group_number": source.group_number,
         }
 
@@ -787,7 +782,11 @@ def message_sources(request, message_id):
     return render(
         request,
         "chat/modals/sources_modal_inner.html",
-        {"message": message, "sources": sources},
+        {
+            "message_id": message_id,
+            "sources": sources,
+            "highlighted": highlight or already_highlighted,
+        },
     )
 
 
@@ -811,13 +810,19 @@ def set_preset_favourite(request, preset_id):
     preset = Preset.objects.get(id=preset_id)
     try:
         is_favourite = preset.toggle_favourite(request.user)
+        if is_favourite:
+            messages.success(request, _("Preset added to favourites."))
+        else:
+            messages.success(request, _("Preset removed from favourites."))
         return render(
             request,
             "chat/modals/presets/favourite.html",
             context={"is_favourite": is_favourite, "preset": preset},
         )
     except ValueError:
-        # TODO: Preset refactor: show friendly error message
+        messages.error(
+            request, _("An error occurred while setting the preset as favourite.")
+        )
         return HttpResponse(status=500)
 
 
@@ -826,7 +831,9 @@ def save_preset(request, chat_id):
 
     chat = Chat.objects.get(id=chat_id)
     # check if chat.loaded_preset is set
-    if chat.loaded_preset and can_edit_preset(request.user, chat.loaded_preset):
+    if chat.loaded_preset and request.user.has_perm(
+        "chat.quick_save_preset", chat.loaded_preset
+    ):
         preset = Preset.objects.get(id=chat.loaded_preset.id)
         return render(
             request,
@@ -849,7 +856,6 @@ def save_preset(request, chat_id):
 def open_preset_form(request, chat_id):
 
     form = PresetForm(user=request.user)
-
     return render(
         request,
         "chat/modals/presets/presets_form.html",
@@ -869,6 +875,9 @@ def edit_preset(request, chat_id, preset_id):
             "form": form,
             "preset_id": preset_id,
             "chat_id": chat_id,
+            "can_delete": request.user.has_perm("chat.delete_preset", preset),
+            "is_public": preset.sharing_option == "everyone",
+            "is_global_default": preset.global_default,
         },
     )
 
@@ -879,7 +888,7 @@ def set_preset_default(request, chat_id: str, preset_id: int):
         new_preset = Preset.objects.get(id=preset_id)
         old_default = Preset.objects.filter(default_for=request.user).first()
 
-        default = new_preset.set_as_default(request.user)
+        default = new_preset.set_as_user_default(request.user)
         is_default = True if default is not None else False
 
         new_html = render_to_string(
@@ -908,10 +917,15 @@ def set_preset_default(request, chat_id: str, preset_id: int):
             )
             response += f'<div id="default-button-{old_default.id}" hx-swap-oob="true">{old_html}</div>'
 
+        messages.success(request, _("Default preset was set successfully."))
+
         return HttpResponse(response)
 
     except ValueError:
         logger.error("Error setting default preset")
+        messages.error(
+            request, _("An error occurred while setting the default preset.")
+        )
         return HttpResponse(status=500)
 
 
@@ -939,3 +953,38 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
             "trigger_library_change": "true" if library != original_library else None,
         },
     )
+
+
+@require_POST
+def generate_prompt_view(request):
+    user_input = request.POST.get("user_input", "")
+    output_text, cost = generate_prompt(user_input)
+    return render(
+        request,
+        "chat/modals/prompt_generator_result.html",
+        {"user_input": user_input, "output_text": output_text, "cost": cost},
+    )
+
+
+def email_author(request, chat_id):
+    chat = get_object_or_404(Chat, pk=chat_id)
+    chat_link = request.build_absolute_uri(reverse("chat:chat", args=[chat_id]))
+    subject = (
+        f"Sharing link for Otto chat | Lien de partage pour le chat Otto: {chat.title}"
+    )
+    body = (
+        "Le message français suit l'anglais.\n---\n"
+        "You are receiving this email because you are the author of the following Otto chat:"
+        f"\n{chat.title}"
+        "\n\nThis link was shared with me, but I don't believe I should have access to it."
+        "\n\nACTION REQUIRED: Please open chat using the link below, and delete it if it contains sensitive information."
+        f"\n\n{chat_link}"
+        "\n\n---\n\n"
+        "Vous recevez ce courriel parce que vous êtes l'auteur du chat Otto suivant :"
+        f"\n{chat.title}"
+        "\n\nCe lien m'a été partagé, mais je ne crois pas que je devrais y avoir accès."
+        "\n\nACTION REQUISE : Veuillez ouvrir le chat en utilisant le lien ci-dessous, et le supprimer s'il contient des informations sensibles."
+        f"\n\n{chat_link}"
+    )
+    mailto_link = generate_mailto(to=chat.user.email, subject=subject, body=body)
+    return HttpResponse(f"<a href='{mailto_link}'>mailto link</a>")

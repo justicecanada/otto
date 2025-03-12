@@ -1,12 +1,6 @@
 {% load static %}
 {% load i18n %}
 
-{% if warn %}
-  <div class="text-muted col text-end mt-2 pe-0" style="line-height:1.75rem">
-    <i class="bi bi-exclamation-triangle"></i>
-    <small>{% trans "Multiple relevant data sources found." %}</small>
-  </div>
-{% endif %}
 <div class="col{% if warn %}-auto{% endif %} text-end mt-2">
   <button type="button"
           class="btn btn-link m-0 p-0 text-body"

@@ -7,16 +7,8 @@ import pytest
 from openpyxl import Workbook
 from structlog import get_logger
 
-from librarian.utils.process_engine import extract_markdown
+from librarian.utils.process_engine import decode_content, extract_markdown
 from otto.models import Cost
-
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
-skip_on_devops_pipeline = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
-)
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -280,3 +272,22 @@ def test_extract_excel():
 
     # Clean up the generated Excel file
     os.remove(excel_path)
+
+
+def test_decode_content_utf8():
+    content = "Hello World".encode("utf-8")
+    result = decode_content(content)
+    assert result == "Hello World"
+
+
+def test_decode_content_cp1252():
+    # smartquote “ is 0x93 in cp1252
+    content = bytes([0x93])
+    result = decode_content(content)
+    assert result == "“"
+
+
+def test_decode_content_with_custom_encodings():
+    content = "Hello World".encode("utf-16")
+    with pytest.raises(Exception):
+        decode_content(content, encodings=["utf-8", "ascii"])

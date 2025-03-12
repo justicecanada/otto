@@ -8,10 +8,6 @@ import pytest
 
 from otto.models import Cost, Group, Notification, User
 
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
 
 @pytest.mark.django_db
 def test_enabling_load_test(client, basic_user, all_apps_user):
@@ -63,7 +59,7 @@ def test_load_tests(client, all_apps_user):
     response = client.get(reverse("load_test"), {"llm_call": ""})
     assert response.status_code == 200
     # Should add 2 cost objects
-    response = client.get(reverse("load_test"), {"llm_call": "gpt-35"})
+    response = client.get(reverse("load_test"), {"llm_call": "gpt-4o"})
     assert response.status_code == 200
     # Should add 1 cost object
     response = client.get(reverse("load_test"), {"embed_text": ""})
@@ -81,7 +77,6 @@ def test_load_tests(client, all_apps_user):
     assert response.status_code == 403
 
 
-@skip_on_github_actions
 @pytest.mark.django_db
 def test_celery_load_tests(client, all_apps_user):
     # Enable the load test (as admin user)

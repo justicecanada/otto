@@ -10,13 +10,6 @@ from librarian.models import DataSource
 from otto.models import SecurityLabel
 
 pytest_plugins = ("pytest_asyncio",)
-skip_on_github_actions = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_GITHUB, reason="Skipping tests on GitHub Actions"
-)
-
-skip_on_devops_pipeline = pytest.mark.skipif(
-    settings.IS_RUNNING_IN_DEVOPS, reason="Skipping tests on DevOps Pipelines"
-)
 
 """
 Test:
@@ -87,3 +80,6 @@ def test_answer_sources(client, all_apps_user, load_example_pdf):
     assert html.count('div class="accordion-body') == len(source_nodes)
     # <page_1> tag should have been converted to "Page 1"
     assert "Page 1" in html
+    # /wiki/Intentionally_blank_page should have been converted to a link
+    # assert "https://en.wikipedia.org/wiki/Intentionally_blank_page" in html
+    # print(html) #disabling this for now, as it is creating an html page from previous message from db

@@ -51,7 +51,18 @@
       <use xlink:href="#exclamation-triangle-fill" />
     </svg>
     <div class="px-3">
-      {% trans "Otto is in preview stage and is not intended to be used in legal proceedings. It is being evaluated by a select group of users at Department of Justice to assess potential risks and improve its safe use. Otto should not replace the advice of a qualified legal professional." %}
+      {% if environment == "prod" %}
+        {% trans "Welcome to the Otto Protected B pilot." %}
+      {% else %}
+        {% trans "Welcome to the Otto pilot development / test environment." %}
+      {% endif %}
+      {% trans "Please abide by the" %}
+      <a href="{% url 'terms_of_use' %}" class="alert-link fw-normal">{% trans "terms of use" %}</a>,
+      {% trans "report issues or suggest improvements by" %}
+      <a href="#"
+         class="alert-link fw-normal"
+         onclick="document.querySelector('#feedback-icon').click();">{% trans "leaving feedback" %}</a>,
+      {% trans "and be patient as we resolve issues." %}
     </div>
   </div>
 

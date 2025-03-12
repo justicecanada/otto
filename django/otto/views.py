@@ -4,6 +4,7 @@ import os
 import time
 from collections import defaultdict
 from datetime import timedelta
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib import messages
@@ -20,9 +21,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import check_for_language
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+import tldextract
 from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -36,15 +38,14 @@ from otto.forms import (
     PilotForm,
     UserGroupForm,
 )
-from otto.metrics.activity_metrics import otto_access_total
 from otto.models import (
     FEATURE_CHOICES,
+    BlockedURL,
     Cost,
     CostType,
     Feature,
     Feedback,
     Pilot,
-    UsageTerm,
 )
 from otto.utils.common import cad_cost, display_cad_cost
 from otto.utils.decorators import permission_required
@@ -103,12 +104,11 @@ def get_categorized_features(user):
         }
         for category, features in categories.items()
     ]
-
-    return categorized_features
+    # Sort the categories by title to push Reporting to the bottom as a temporary measure while under development
+    return sorted(categorized_features, key=lambda x: x["category_title"])
 
 
 def index(request):
-    otto_access_total.labels(user=request.user.upn).inc()
     return render(
         request,
         "index.html",
@@ -127,8 +127,7 @@ def topnav_search_inner(request):
     )
 
 
-@csrf_protect
-def accept_terms(request):
+def terms_of_use(request):
 
     if request.method == "POST":
         logger.info("Terms of conditions were accepted")
@@ -139,21 +138,17 @@ def accept_terms(request):
         return redirect(redirect_url)
 
     redirect_url = request.GET.get("next", "/")
-    usage_terms = UsageTerm.objects.all()
 
     return render(
         request,
-        "accept_terms.html",
+        "terms_of_use.html",
         {
             "hide_breadcrumbs": True,
             "redirect_url": redirect_url,
-            "usage_terms": usage_terms,
         },
     )
 
 
-@csrf_protect
-@login_required
 def feedback_message(request: HttpRequest, message_id=None):
     if message_id == "None":
         message_id = None
@@ -324,7 +319,6 @@ def feedback_download(request):
     return response
 
 
-@login_required
 def notification(request, notification_id):
     """
     For handling deleting of notifications
@@ -337,21 +331,21 @@ def notification(request, notification_id):
     return notifications(request, hide=no_more_notifications)
 
 
-@login_required
 def notifications(request, hide=False):
     """
     Updates the notifications badge and list of notifications
     e.g. on page load, after notification icon clicked, during polling, etc.
     """
+    notifications = request.user.notifications.all().order_by("-created_at")
     return render(
         request,
         "components/notifications_update.html",
         {
-            "notifications": request.user.notifications.all().order_by("-created_at"),
+            "notifications": notifications,
             # Expand the notifications dropdown if there are any errors
-            "show_notifications": request.user.notifications.filter(
-                category="error"
-            ).exists(),
+            "show_notifications": any(
+                n for n in notifications if n.category == "error"
+            ),
             "hide_notifications": hide,
         },
     )
@@ -542,7 +536,7 @@ def manage_pilots_form(request, pilot_id=None):
         pilot.delete()
         response = HttpResponse()
         # Add hx-redirect header to trigger HTMX redirect
-        response["hx-redirect"] = reverse("manage_pilots")
+        response["HX-Redirect"] = reverse("manage_pilots")
         return response
     if pilot_id:
         pilot = get_object_or_404(Pilot, pk=pilot_id)
@@ -622,6 +616,22 @@ def aggregate_costs(costs, x_axis="day", end_date=None):
     return costs
 
 
+@permission_required("otto.manage_users")
+def list_blocked_urls(request):
+    blocked_urls = BlockedURL.objects.all().values("url")
+    # Get the domains from the blocked URLs
+    domains = [
+        tldextract.extract(urlparse(url["url"]).netloc).registered_domain
+        for url in blocked_urls
+    ]
+    domain_counts = {domain: domains.count(domain) for domain in set(domains)}
+    # Sort the domains by the number of blocked URLs
+    domain_counts = dict(
+        sorted(domain_counts.items(), key=lambda item: item[1], reverse=True)
+    )
+    return render(request, "blocked_urls.html", {"domain_counts": domain_counts})
+
+
 # AU-7: Aggregates and presents cost data in a dashboard
 @permission_required("otto.manage_users")
 def cost_dashboard(request):
@@ -687,14 +697,14 @@ def cost_dashboard(request):
 
     # Filter by dates
     if date_group == "last_90_days":
-        start_date = timezone.now().date() - timedelta(days=90)
-        end_date = timezone.now().date() - timedelta(days=1)
+        start_date = timezone.now().date() - timedelta(days=89)
+        end_date = timezone.now().date()
     elif date_group == "last_30_days":
-        start_date = timezone.now().date() - timedelta(days=30)
-        end_date = timezone.now().date() - timedelta(days=1)
+        start_date = timezone.now().date() - timedelta(days=29)
+        end_date = timezone.now().date()
     elif date_group == "last_7_days":
-        start_date = timezone.now().date() - timedelta(days=7)
-        end_date = timezone.now().date() - timedelta(days=1)
+        start_date = timezone.now().date() - timedelta(days=6)
+        end_date = timezone.now().date()
     elif date_group == "today":
         start_date = timezone.now().date()
     elif date_group == "all":
@@ -960,15 +970,24 @@ def user_cost(request):
     cost_percent = max(
         min(int(100 * this_month_cost / monthly_max if monthly_max else 0), 100), 1
     )
-    cost_tooltip = "${:.2f} / ${:.2f} {}<br>(${:.2f} {})".format(
+    request_language = request.LANGUAGE_CODE
+    message = (
+        "{:.2f}$ / {:.2f}$ {}<br>({:.2f}$ {})"
+        if request_language == "fr"
+        else "${:.2f} / ${:.2f} {}<br>(${:.2f} {})"
+    )
+    cost_tooltip = message.format(
         this_month_cost, monthly_max, _("this month"), today_cost, _("today")
     )
+
+    cost_tooltip_short = cost_tooltip.split("<br>")[0]
     return render(
         request,
         "components/user_cost.html",
         {
             "cost_percent": cost_percent,
             "cost_tooltip": cost_tooltip,
+            "cost_tooltip_short": cost_tooltip_short,
             "cost_label": _("User costs"),
         },
     )

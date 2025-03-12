@@ -21,13 +21,20 @@
     </div>
     <div class="overflow-y-auto overflow-x-hidden p-3 pt-0 flex-grow-1"
          id="chat-history-list">
-      <ul class="list-unstyled my-0" id="chat-list">
-        {% for chat in user_chats %}
-          {% if chat.id %}
-            {% include 'chat/components/chat_list_item.html' %}
-          {% endif %}
-        {% endfor %}
-      </ul>
+      {% for section in chat_history_sections %}
+        {% if section.chats %}
+          {% with section_index=forloop.counter0 %}
+            <div id="section-{{ section_index }}">
+              <div class="chat-history-section-header small text-muted">{{ section.label }}</div>
+              <ul class="list-unstyled" id="chat-list-{{ section_index }}">
+                {% for chat in section.chats %}
+                  {% include 'chat/components/chat_list_item.html' %}
+                {% endfor %}
+              </ul>
+            </div>
+          {% endwith %}
+        {% endif %}
+      {% endfor %}
     </div>
     <div class="p-3">
       <button type="button"
@@ -42,3 +49,11 @@
     </div>
   </div>
 </div>
+
+{% block page_script %}
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    scrollToListItem();
+  });
+  </script>
+{% endblock %}

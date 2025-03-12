@@ -61,7 +61,7 @@ As a platform for AI and data services, Otto helps legal professionals improve t
 4. In the Git sidebar, click "Manage unsafe folders" and mark the repository as safe.
 5. From the terminal, run `bash dev_setup.sh` and follow the instructions.
 6. You can now run the server from the "Run and debug" sidebar in VScode or just run (from ./django) `python manage.py runserver` in the VScode terminal.
-7. You will also have to start Celery to process tasks such as file translation or document loading. Run (from ./django) `celery -A otto worker -l INFO --pool=gevent --concurrency=256`. *Note that Celery requires a manual restart when files have changed.*
+7. You will also have to start Celery to process tasks such as file translation or document loading. Run (from ./django) `celery -A otto worker -l INFO --pool=gevent --concurrency=256` or run the `Django: Run Server & Celery Worker` debug configuration in VSCode. *Note that Celery requires a manual restart when files have changed.*
 8. Go to http://localhost:8000 and login to Otto using your Justice account.
 9. From the terminal, run `python manage.py set_admin_user <firstname.lastname@justice.gc.ca>`.
 10. You will now have full permissions when you refresh Otto. You can add other users using the "Manage users > Upload CSV" option. (CSV of pilot users is found in our shared drive).
@@ -78,10 +78,10 @@ All the commands you need to load data into Otto are in `django/initial_setup.sh
 
 If you do not want to reset all your data (e.g. to preserve previously loaded Laws or Libraries), you can run individual commands.
 
-For `reset_app_data`, you can specify the objects to reset. For example, to reset only the apps, terms, and groups data:
+For `reset_app_data`, you can specify the objects to reset. For example, to reset only the apps and groups data:
 
 ```bash
-python manage.py reset_app_data apps terms groups
+python manage.py reset_app_data apps groups
 ```
 
 To reset the libraries and clear out the vector store, run the following command. This will delete all the data in the vector store!
@@ -127,23 +127,7 @@ python django/manage.py load_laws_xml --reset
 * To load all laws (slow and quite expensive - around $20; 8 hours), add the `--full` flag.
 * If you leave off `--reset` it should only add laws which aren't already loaded, so you can incrementally add more.
 
-#### Speed up vector store queries
-
-To speed up queries in the vector store, you may wish to build an HNSW index on the table.
-
-(This is done automatically when the `--full` flag is used to load the laws.)
-
-```bash
-psql -U postgres -h postgres-service
-```
-
-Enter the password. Switch to the llama_index database and create the HNSW index. **This can take a while.** (an hour or more for the full set of laws).
-
-```sql
-\c llama_index
-CREATE INDEX ON data_laws_lois__ USING hnsw (embedding vector_ip_ops) WITH (m = 25, ef_construction = 300);
-```
-
+  
 ### Celery scheduler
 
 To enable the celery scheduler for local testing run the following command (from ./django):
@@ -262,7 +246,7 @@ python django/manage.py collectstatic --noinput
 
 In PowerShell, from the repo root, paste this one-liner to run tests and display the results:
 ```bash
-python -m coverage run --source=django -m pytest django/tests; python -m coverage html; python -m coverage report
+python -m coverage run --source=django --omit 'django/template_wizard/*' -m pytest django/tests; python -m coverage html; python -m coverage report
 ```
 
 You can view the results in more detail by opening `htmlcov/index.html` in your browser.
@@ -367,7 +351,7 @@ The script will:
 
 2. Setup and deploy to Azure Kubernetes Service
 
-See `/setup` folder to follow the `README.md`. These steps will ensure the infrastructure is setup and that the AKS cluster is configured correctly. The final step is to deploy the run the `initial_setup.sh` on the coordinator node.
+See the [otto-infrastructure repo](https://github.com/justicecanada/otto-infrastructure) to follow the `README.md`. These steps will ensure the infrastructure is setup and that the AKS cluster is configured correctly. The final step is to deploy the run the `initial_setup.sh` on the coordinator node.
 
 ## If all else fails
 

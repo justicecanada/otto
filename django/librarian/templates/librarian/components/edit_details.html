@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <div id="librarian-details" {% if swap %}hx-swap-oob="true"{% endif %}>
-  {# {% include "components/messages.html" %} #}
+  {% include "components/messages.html" %}
   {% if detail_form %}
     {{ detail_form }}
     <div id="public-library-warning"
@@ -20,7 +20,7 @@
   {% else %}
     <h6>{% trans "Edit properties" %}</h6>
     <div class="text-center">
-      <em class="small">{% trans "Select a library, data source or document to edit." %}</em>
+      <em class="small">{% trans "Select a library, folder or document to edit." %}</em>
     </div>
   {% endif %}
   {% if focus_el %}<script>document.querySelector('{{ focus_el }}').focus();</script>{% endif %}

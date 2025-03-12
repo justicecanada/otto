@@ -15,10 +15,6 @@ from chat.llm import OttoLLM
 
 logger = get_logger(__name__)
 
-token_counter = TokenCountingHandler(
-    tokenizer=tiktoken.encoding_for_model("gpt-4").encode
-)
-
 
 class LawManager(models.Manager):
 
@@ -102,7 +98,7 @@ class LawManager(models.Manager):
             if fr_hash_changed or force_update:
                 nodes.append(document_fr)
                 nodes.extend(nodes_fr)
-            batch_size = 128
+            batch_size = 16
             logger.debug(
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
             )
@@ -165,5 +161,11 @@ class Law(models.Model):
 
     @classmethod
     def get_index(cls):
-        idx = OttoLLM().get_index("laws_lois__")
+        idx = OttoLLM().get_index("laws_lois__", hnsw=True)
         return idx
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["title"]),
+            models.Index(fields=["type"]),
+        ]

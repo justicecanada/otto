@@ -4,7 +4,9 @@ let optionSaveDelay = 500;
 const handlebar = document.getElementById("right-sidebar-resize-handle");
 const sidebar = document.getElementById("right-sidebar");
 
-const sidebarMinWidth = 350;
+// Check if html has lang="fr" attribute
+const lang_fr = document.documentElement.lang === "fr";
+const sidebarMinWidth = lang_fr ? 400 : 350;
 const sidebarMaxWidth = 600;
 
 // This saves the options when the user changes them via HTMX

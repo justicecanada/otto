@@ -11,6 +11,8 @@ from django.contrib.auth.models import (
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from data_fetcher import cache_within_request
+
 from otto.utils.common import cad_cost, display_cad_cost
 
 
@@ -54,6 +56,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "upn"
     REQUIRED_FIELDS = []
+
+    @property
+    def is_admin(self):
+        # Check if user is member of "Otto admin" group
+        return self.groups.filter(name="Otto admin").exists()
 
     @property
     def accepted_terms(self):
@@ -233,13 +240,6 @@ class Feature(models.Model):
         return self.name
 
 
-class UsageTerm(models.Model):
-    term_text = models.CharField(max_length=2000)
-
-    def __str__(self):
-        return self.term_text
-
-
 class Notification(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
@@ -338,12 +338,6 @@ class Feedback(models.Model):
 
     objects = FeedbackManager()
 
-    def status_display(self):
-        return dict(self.FEEDBACK_STATUS_CHOICES)[self.status]
-
-    def feedback_type_display(self):
-        return dict(self.FEEDBACK_TYPE_CHOICES)[self.feedback_type]
-
 
 class SecurityLabel(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -429,53 +423,68 @@ class CostManager(models.Manager):
 
     def get_user_cost(self, user):
         # Total cost for a user
-        return sum(cost.usd_cost for cost in self.filter(user=user))
+        return sum(
+            cost["usd_cost"] for cost in self.filter(user=user).values("usd_cost")
+        )
 
     def get_user_cost_by_type(self, user, cost_type):
         # Total cost for a user by cost type
         return sum(
-            cost.usd_cost for cost in self.filter(user=user, cost_type=cost_type)
+            cost["usd_cost"]
+            for cost in self.filter(user=user, cost_type=cost_type).values("usd_cost")
         )
 
     def get_user_cost_by_feature(self, user, feature):
         # Total cost for a user by feature
-        return sum(cost.usd_cost for cost in self.filter(user=user, feature=feature))
+        return sum(
+            cost["usd_cost"]
+            for cost in self.filter(user=user, feature=feature).values("usd_cost")
+        )
 
     def get_user_cost_today(self, user):
         # Total cost for a user today
         return sum(
-            cost.usd_cost
-            for cost in self.filter(user=user, date_incurred=datetime.date.today())
+            cost["usd_cost"]
+            for cost in self.filter(
+                user=user, date_incurred=datetime.date.today()
+            ).values("usd_cost")
         )
 
     def get_user_cost_this_month(self, user):
         """Total cost for a user this month to date (starting 1st of the month)"""
         month_start_date = datetime.date.today().replace(day=1)
-
         return sum(
-            cost.usd_cost
+            cost["usd_cost"]
             for cost in self.filter(
                 user=user,
                 date_incurred__gte=month_start_date,
                 date_incurred__lte=datetime.date.today(),
-            )
+            ).values("usd_cost")
         )
 
     def get_total_cost(self):
         # Total cost for all users
-        return sum(cost.usd_cost for cost in self.all())
+        return sum(cost["usd_cost"] for cost in self.all().values("usd_cost"))
 
     def get_total_cost_by_type(self, cost_type):
         # Total cost for all users by cost type
-        return sum(cost.usd_cost for cost in self.filter(cost_type=cost_type))
+        return sum(
+            cost["usd_cost"]
+            for cost in self.filter(cost_type=cost_type).values("usd_cost")
+        )
 
     def get_total_cost_by_feature(self, feature):
         # Total cost for all users by feature
-        return sum(cost.usd_cost for cost in self.filter(feature=feature))
+        return sum(
+            cost["usd_cost"] for cost in self.filter(feature=feature).values("usd_cost")
+        )
 
     def get_pilot_cost(self, pilot):
         # Total cost for a pilot
-        return sum(cost.usd_cost for cost in self.filter(user__pilot=pilot))
+        return sum(
+            cost["usd_cost"]
+            for cost in self.filter(user__pilot=pilot).values("usd_cost")
+        )
 
 
 FEATURE_CHOICES = [
@@ -548,6 +557,7 @@ class Pilot(models.Model):
 
 
 class OttoStatusManager(models.Manager):
+    @cache_within_request
     def singleton(self):
         return self.get_or_create(pk=1)[0]
 
@@ -558,3 +568,11 @@ class OttoStatus(models.Model):
     objects = OttoStatusManager()
     laws_last_refreshed = models.DateTimeField(null=True, blank=True)
     exchange_rate = models.FloatField(null=False, blank=False, default=1.38)
+
+
+class BlockedURL(models.Model):
+    url = models.URLField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.url

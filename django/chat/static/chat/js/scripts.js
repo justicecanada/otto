@@ -9,10 +9,27 @@ const md = markdownit({
     }
 
     return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
-  }
+  },
+  breaks: true,
 });
-
 md.use(katexPlugin);
+
+const md_with_html = markdownit({
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return '<pre><code class="hljs">' +
+          hljs.highlight(str, {language: lang, ignoreIllegals: true}).value +
+          '</code></pre>';
+      } catch (__) { }
+    }
+
+    return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
+  },
+  breaks: true,
+  html: true,
+});
+md_with_html.use(katexPlugin);
 
 function checkTruncation(element) {
   if (element && (element.offsetHeight < element.scrollHeight)) {
@@ -23,6 +40,7 @@ function checkTruncation(element) {
 function render_markdown(element) {
   // Render markdown in the element
   const markdown_text = element.querySelector(".markdown-text");
+  dot_element = element.querySelector(".typing"); // Exists when dots=True on htmx_stream call
   if (markdown_text) {
     let to_parse = markdown_text.dataset.md;
     try {
@@ -30,12 +48,27 @@ function render_markdown(element) {
     } catch (e) {
       to_parse = false;
     }
+    const parent = markdown_text.parentElement;
     if (to_parse) {
-      const parent = markdown_text.parentElement;
       parent.innerHTML = md.render(to_parse);
+      const current_dots = parent.parentElement.querySelector(".typing");
+      // If dots=True on htmx_stream call and we just removed the dots at the beginning of stream,
+      // add a new dots element after parent
+      if (dot_element && !current_dots) {
+        parent.insertAdjacentHTML("afterend", "\n\n" + dot_element.outerHTML);
+      }
+      if (current_dots && !dot_element) {
+        current_dots.remove();
+      }
       // Add the "copy code" button to code blocks
       for (block of parent.querySelectorAll("pre code")) {
         block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
+      }
+    } else if ((after_text = parent.nextElementSibling)) {
+      // If stream is empty (which should only happen between batches), it will stream dots
+      // so we can remove the dot element we manually added above
+      if (after_text.classList.contains("typing")) {
+        after_text.remove();
       }
     }
   }
@@ -47,7 +80,7 @@ let ignoreNextScrollEvent = true;
 
 const copyCodeButtonHTML = `<button type="button" onclick="copyCode(this)"
 class="btn btn-link m-0 p-0 text-muted copy-message-button copy-button"
-title="Copy"><i class="bi bi-clipboard"></i><i class="bi bi-clipboard-fill"></i></button>`;
+title="Copy"><i class="bi bi-copy"></i><i class="bi bi-check-lg"></i></button>`;
 
 function scrollToBottom(smooth = true, force = false) {
   resizePromptContainer();
@@ -77,6 +110,18 @@ function scrollToBottom(smooth = true, force = false) {
     return;
   }
   messagesContainer.scrollTop = hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight;
+}
+
+function scrollToListItem() {
+  setTimeout(() => {
+    const currentChat = document.querySelector('.chat-list-item.current');
+    if (currentChat) {
+      currentChat.scrollIntoView({
+        behavior: 'instant',
+        block: 'center'
+      });
+    }
+  }, 100);
 }
 
 function handleModeChange(mode, element = null, preset_loaded = false) {
@@ -196,6 +241,11 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   });
+  document.querySelectorAll('.chat-delete').forEach(button => {
+    button.addEventListener('htmx:afterRequest', () => {
+      deleteChatSection(button);
+    });
+  });
 });
 // On prompt form submit...
 document.addEventListener("htmx:afterSwap", function (event) {
@@ -209,6 +259,12 @@ document.addEventListener("htmx:afterSwap", function (event) {
   document.querySelectorAll("div.message-text").forEach(function (element) {
     checkTruncation(element);
   });
+  // Markdown rendering, if the response message has data-md property (e.g., error message)
+  let messages = document.querySelectorAll("#messages-container div.markdown-text");
+  let last_message = messages[messages.length - 1];
+  if (last_message && last_message.dataset.md) {
+    render_markdown(last_message.parentElement);
+  }
   document.querySelector("#chat-prompt").value = "";
   document.querySelector("#chat-prompt").focus();
   // Change height back to minimum
@@ -240,6 +296,60 @@ document.addEventListener("keydown", function (event) {
     document.querySelector("#send-button").click();
   }
 });
+
+// Sources modal setup
+document.addEventListener('htmx:afterSwap', function (event) {
+  if (event.detail?.target?.id !== "sources-modal-inner") return;
+  let targetElement = event.detail.target.querySelectorAll(".markdown-text");
+  targetElement.forEach(function (element) {
+    let decodedText = JSON.parse(element.dataset.md);
+    let renderedMarkdown = md_with_html.render(decodedText);
+    element.innerHTML = renderedMarkdown;
+    element.querySelectorAll("a").forEach(function (link) {
+      link.setAttribute("target", "_blank");
+    });
+  });
+  // Hide #next-highlight if there are no "<mark>" elements
+  if (event.detail.target.querySelector("mark") === null) {
+    setTimeout(function () {
+      // Check if the document.querySelector("#next-highlight") is visible
+      if (document.querySelector("#next-highlight").classList.contains("d-none")) return;
+      document.querySelector("#no-highlights").classList.remove("d-none");
+      document.querySelector("#next-highlight").classList.add("d-none");
+    }, 100);
+  }
+});
+
+// reinitialize the delete button event listener after a chat is modified
+document.addEventListener('htmx:afterRequest', function (event) {
+  if (event.detail?.target?.id.startsWith('chat-list-item')) {
+    const chat_id = event.detail.target.id.split("chat-list-item-")[1];
+    const button = document.getElementById('delete-chat-' + chat_id);
+    if (button) {
+      button.addEventListener('htmx:afterRequest', () => {
+        deleteChatSection(button);
+      });
+    }
+  }
+});
+
+// deletes the list item associated with the deleted chat
+// also checks if the section is now empty and removes it
+function deleteChatSection(button) {
+  // get chat id based on id of button
+  var chat_id = button.id.split("delete-chat-")[1];
+  // remove the chat list item associated with the deleted chat
+  var chat_list_item = document.getElementById('chat-list-item-' + chat_id);
+  chat_list_item.remove();
+
+  // remove the section if it is now empty
+  var section_number = button.getAttribute('data-section-number');
+  var chat_list = document.getElementById('chat-list-' + section_number);
+  if (chat_list.children.length === 0) {
+    var section = document.getElementById('section-' + section_number);
+    section.remove();
+  }
+}
 
 // Message actions
 function thumbMessage(clickedBtn) {
@@ -289,13 +399,13 @@ function copyMessage(btn) {
   let messageHtml = messageTextClone.outerHTML;
   let messageText = messageTextClone.innerText;
   // Remove whitespace
-  messageText = messageText.replace(/\s+/g, " ").trim();
+  //messageText = messageText.replace(/\s+/g, " ").trim();
   pasteRich(messageHtml, messageText);
   btn.blur();
   btn.classList.add("clicked");
   setTimeout(function () {
     btn.classList.remove("clicked");
-  }, 300);
+  }, 2200);
 }
 
 function copyCode(btn) {
@@ -525,7 +635,7 @@ function toggleRagOptions(value) {
   var ragOptions = document.querySelectorAll('.qa_rag_option');
 
   ragOptions.forEach(function (option) {
-    if (value === 'summarize') {
+    if (value !== 'rag') {
       option.style.display = 'none';
     } else {
       option.style.display = '';
@@ -538,7 +648,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const ragOptions = document.querySelectorAll(".qa_rag_option");
   const mode = document.getElementById("id_qa_mode");
   ragOptions.forEach(function (option) {
-    if (mode.value === "summarize") {
+    if (mode.value !== "rag") {
       option.style.display = "none";
     }
   });
@@ -552,4 +662,56 @@ function updatePageTitle(title = null) {
   }
   const new_page_title = document.querySelector("#current-chat-title").dataset.pagetitle;
   if (new_page_title) document.title = new_page_title;
+}
+
+function emailChatAuthor(url) {
+  htmx.ajax('GET', url, {target: '#author-mailto-container', swap: 'innerHTML'}).then(
+    function () {
+      document.querySelector("#author-mailto-container a").click();
+      document.querySelector("#author-mailto-container").innerHTML = '';
+    }
+  );
+}
+
+function expandAllSources(message_id, force_expand = false) {
+  const sources = document.querySelectorAll(`#sources-${message_id}-accordion .accordion-item`);
+  const expandAllLabel = document.querySelector(`#expand-all-label`);
+  const collapseAllLabel = document.querySelector(`#collapse-all-label`);
+  const expandAll = collapseAllLabel.classList.contains("d-none") || force_expand;
+  sources.forEach(function (source) {
+    const accordion = new bootstrap.Collapse(source.querySelector('.accordion-collapse'), {toggle: false});
+    expandAll ? accordion.show() : accordion.hide();
+  });
+  if (expandAll) {
+    expandAllLabel.classList.add("d-none");
+    collapseAllLabel.classList.remove("d-none");
+  } else {
+    expandAllLabel.classList.remove("d-none");
+    collapseAllLabel.classList.add("d-none");
+  }
+}
+
+function nextSourceHighlight(message_id) {
+  const highlights = document.querySelectorAll(`#sources-${message_id}-accordion mark`);
+  if (highlights.length === 0) return;
+  const collapseAllLabel = document.querySelector(`#collapse-all-label`);
+  const needToExpand = collapseAllLabel.classList.contains("d-none");
+  if (needToExpand) expandAllSources(message_id, true);
+
+  // Next highlight is either the next after the current one or the first one
+  const currentHighlight = document.querySelector(`#sources-${message_id}-accordion mark.current-highlight`);
+  let nextHighlight = highlights[0];
+  if (currentHighlight) {
+    currentHighlight.classList.remove("current-highlight");
+    const nextIndex = Array.from(highlights).indexOf(currentHighlight) + 1;
+    if (nextIndex < highlights.length) {
+      nextHighlight = highlights[nextIndex];
+    }
+  }
+
+  // Wait for the sources to expand before scrolling to the first highlight
+  setTimeout(() => {
+    nextHighlight.classList.add("current-highlight");
+    nextHighlight.scrollIntoView({behavior: "smooth", block: "center"});
+  }, needToExpand ? 300 : 0);
 }

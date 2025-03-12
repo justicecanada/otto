@@ -1,12 +1,23 @@
 import asyncio
 
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
 import pytest
 from asgiref.sync import sync_to_async
 from bs4 import BeautifulSoup as bs
 
 from chat.llm import OttoLLM
 from chat.models import Chat, Message
-from chat.utils import htmx_stream, summarize_long_text_async, url_to_text
+from chat.utils import (
+    fix_source_links,
+    get_chat_history_sections,
+    htmx_stream,
+    summarize_long_text_async,
+    url_to_text,
+    wrap_llm_response,
+)
+from otto.models import User
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -24,6 +35,89 @@ def test_url_to_text():
     url = "http://aofwgyauhwfg.awfognahwofg/"
     text = url_to_text(url)
     assert text == ""
+
+
+def extract_data_md_content(wrapped_response):
+    """
+    Extract the content of the data-md attribute from the wrapped response.
+    """
+    import re
+
+    match = re.search(r'data-md="([^"]*)"', wrapped_response)
+    if match:
+        return match.group(1)
+    return wrapped_response
+
+
+def test_fix_source_links():
+
+    # test internal link where we need to clean the link text because of a resulting double slash when merging
+    # (e.g. https://travel.gc.ca/travelling/advisories instead of https://travel.gc.ca//travelling/advisories)
+    source_url = "https://travel.gc.ca/"
+    internal_link = "[Travel Advice and Advisories](/travelling/advisories)"
+    text_with_fixed_links = fix_source_links(internal_link, source_url)
+    assert (
+        extract_data_md_content(text_with_fixed_links)
+        == "[Travel Advice and Advisories](https://travel.gc.ca/travelling/advisories)"
+    )
+
+    # test internal link that needs to be merged at a specific point, in our case '/wiki/'
+    # (e.g https://en.wikipedia.org/wiki/Grapheme instead of https://en.wikipedia.org/wiki/Glyph/wiki/Grapheme)
+    source_url = "https://en.wikipedia.org/wiki/Glyph"
+    internal_link = '[grapheme](/wiki/Grapheme "Grapheme")'
+    text_with_fixed_links = fix_source_links(internal_link, source_url)
+    assert (
+        extract_data_md_content(text_with_fixed_links)
+        == '[grapheme](https://en.wikipedia.org/wiki/Grapheme "Grapheme")'
+    )
+
+    # Test internal links without source URL
+    source_url = ""
+    internal_link = '[grapheme](/wiki/Grapheme "Grapheme")'
+    text_with_fixed_links = fix_source_links(internal_link, source_url)
+    assert extract_data_md_content(text_with_fixed_links) == "grapheme"
+
+    # Test anchor links
+    source_url = "https://en.wikipedia.org/wiki/Glyph"
+    anchor_link = "[[2]](#cite_note-Whistler_et_al-3)"
+    text_with_fixed_links = fix_source_links(anchor_link, source_url)
+    assert (
+        extract_data_md_content(text_with_fixed_links)
+        == "[[2]](https://en.wikipedia.org/wiki/Glyph#cite_note-Whistler_et_al-3)"
+    )
+
+    # Test anchor links without source URL
+    source_url = ""
+    anchor_link = "[[2]](#cite_note-Whistler_et_al-3)"
+    text_with_fixed_links = fix_source_links(anchor_link, source_url)
+    assert extract_data_md_content(text_with_fixed_links) == "[2]"
+
+    # Test external links
+    source_url = "https://en.wikipedia.org/wiki/Glyph"
+    external_link = '[external](https://example.com "Example")'
+    text_with_fixed_links = fix_source_links(external_link, source_url)
+    assert (
+        extract_data_md_content(text_with_fixed_links)
+        == '[external](https://example.com "Example")'
+    )
+
+    # Test mixed links
+    source_url = "https://en.wikipedia.org/wiki/Glyph"
+    mixed_links = '[grapheme](/wiki/Grapheme "Grapheme") and [external](https://example.com "Example")'
+    text_with_fixed_links = fix_source_links(mixed_links, source_url)
+    assert (
+        extract_data_md_content(text_with_fixed_links)
+        == '[grapheme](https://en.wikipedia.org/wiki/Grapheme "Grapheme") and [external](https://example.com "Example")'
+    )
+
+    # Test internal link with HTML file
+    source_url = "https://example.com/docs"
+    internal_html_link = '[documentation](this.html "Documentation")'
+    text_with_fixed_links = fix_source_links(internal_html_link, source_url)
+    assert (
+        extract_data_md_content(text_with_fixed_links)
+        == '[documentation](https://example.com/docs/this.html "Documentation")'
+    )
 
 
 @pytest.mark.django_db
@@ -264,3 +358,117 @@ async def test_combine_response_replacers():
     assert final_output.index("Title 2") < final_output.index("fourth thing")
     assert final_output.index("fourth thing") < final_output.index("Title 3")
     assert final_output.index("Title 3") < final_output.index("sixth thing")
+
+
+@pytest.mark.asyncio
+async def test_combine_batch_generators():
+    from chat.utils import (
+        combine_batch_generators,
+        combine_response_replacers,
+        create_batches,
+    )
+
+    async def stream_generator1():
+        yield "first thing"
+        yield "second thing"
+
+    async def stream_generator2():
+        yield "third thing"
+        yield "fourth thing"
+
+    async def stream_generator3():
+        yield "fifth thing"
+        yield _("**No relevant sources found.**")
+
+    titles = ["Title 1", "Title 2", "Title 3"]
+    generators = [stream_generator1(), stream_generator2(), stream_generator3()]
+
+    title_batches = create_batches(titles, 2)
+    generator_batches = create_batches(generators, 2)
+
+    batch_generators = [
+        combine_response_replacers(batch_responses, batch_titles)
+        for batch_responses, batch_titles in zip(generator_batches, title_batches)
+    ]
+    # Batches should be [[first, second], [third]]
+    assert len(batch_generators) == 2
+
+    response_stream = combine_batch_generators(batch_generators)
+
+    final_output = ""
+    async for yielded_output in response_stream:
+        if yielded_output != "<|batchboundary|>":
+            final_output = yielded_output
+
+    assert "second thing" in final_output
+    assert "third thing" not in final_output
+    assert "fifth thing" not in final_output
+    assert "Title 1" in final_output
+
+    # Check the ordering
+    assert final_output.index("Title 1") < final_output.index("second thing")
+    assert final_output.index("second thing") < final_output.index("Title 2")
+    assert final_output.index("Title 2") < final_output.index("fourth thing")
+    assert final_output.index("fourth thing") < final_output.index("Title 3")
+    assert final_output.index("Title 3") < final_output.index(
+        "**No relevant sources found.**"
+    )
+
+    # Test pruning using single batch with no title
+    pruning_generators = [stream_generator3()]
+    pruning_test_stream = combine_batch_generators(pruning_generators, pruning=True)
+
+    # First, it should yield values from the generator
+    assert await pruning_test_stream.__anext__() == "fifth thing"
+    assert await pruning_test_stream.__anext__() == _("**No relevant sources found.**")
+    # Afterwards, should yield an empty string from irrelevant batch
+    assert await pruning_test_stream.__anext__() == ""
+    # Then the batch boundary token
+    assert await pruning_test_stream.__anext__() == "<|batchboundary|>"
+    # Finally, return pruning message due to empty final stream
+    assert await pruning_test_stream.__anext__() == _("**No relevant sources found.**")
+
+
+@pytest.mark.django_db
+def test_get_chat_history_sections(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create chats with different last_modification_date
+    chat_today = Chat.objects.create(user=user, last_modification_date=timezone.now())
+    chat_yesterday = Chat.objects.create(
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=1)
+    )
+    chat_last_7_days = Chat.objects.create(
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=5)
+    )
+    chat_last_30_days = Chat.objects.create(
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=20)
+    )
+    chat_older = Chat.objects.create(
+        user=user, last_modification_date=timezone.now() - timezone.timedelta(days=40)
+    )
+
+    user_chats = [
+        chat_today,
+        chat_yesterday,
+        chat_last_7_days,
+        chat_last_30_days,
+        chat_older,
+    ]
+
+    # get list of sections
+    # a section is (title, chat(s), index)
+    sections = get_chat_history_sections(user_chats)
+
+    # Check that each section contains the correct chat
+    assert sections[0]["label"] == "Today"
+    assert sections[0]["chats"] == [chat_today]
+    assert sections[1]["label"] == "Yesterday"
+    assert sections[1]["chats"] == [chat_yesterday]
+    assert sections[2]["label"] == "Last 7 days"
+    assert sections[2]["chats"] == [chat_last_7_days]
+    assert sections[3]["label"] == "Last 30 days"
+    assert sections[3]["chats"] == [chat_last_30_days]
+    assert sections[4]["label"] == "Older"
+    assert sections[4]["chats"] == [chat_older]

@@ -75,14 +75,22 @@
                 <i class="bi bi-upload"></i><span class="ms-1 hideable">{% trans "Upload" %}</span>
               </button>
             </div>
-            <div class="col-auto p-1 pe-3">
-              <button class="btn btn-sm btn-outline-secondary text-center"
+            <div class="col-auto p-1 pe-3 ">
+              <button id="magic-button"
+                      class="btn btn-sm btn-outline-secondary text-center d-none"
                       type="button"
-                      aria-label='{% trans "Settings" %}'
-                      title='{% trans "Settings" %}'
-                      onclick="document.querySelector('#right-sidebar-toggle').click(); this.blur();">
+                      data-bs-toggle="modal"
+                      data-bs-target="#magicModal"
+                      title='{% trans "Improve prompt" %}'
+                      aria-label='{% trans "Improve prompt" %}'
+                      onclick="setMagicPrompt()">
+                <i class="bi bi-magic wand "></i><span class="ms-1 hideable">{% trans "Improve prompt" %}</span>
+              </button>
+              {% comment %}
+              <button class="btn btn-sm btn-outline-secondary text-center" type="button" aria-label='{% trans "Settings" %}' title='{% trans "Settings" %}' onclick="document.querySelector('#right-sidebar-toggle').click(); this.blur();">
                 <i class="bi bi-gear"></i><span class="ms-1 hideable">{% trans "Settings" %}</span>
               </button>
+              {% endcomment %}
             </div>
           </div>
         </div>
@@ -94,6 +102,7 @@
                     aria-label='{% trans "Message" %}'
                     placeholder='{% trans "Type your message here..." %}'
                     required></textarea>
+ 
           <button id="send-button"
                   class="btn btn-outline-secondary"
                   type="submit"
@@ -105,6 +114,8 @@
     </form>
   </div>
 </div>
+ 
+{% include 'chat/modals/prompt_generator.html' %}
 
 {% block page_script %}
   <script src="{% static 'chat/js/chatInput.js' %}"></script>

@@ -135,10 +135,6 @@ a.mode-link:hover {
   border: 1px solid #ddd;
 }
 
-div.message p:last-of-type {
-  margin-bottom: 0 !important;
-}
-
 #bot-typing {
   display: none;
 }
@@ -153,6 +149,10 @@ div.message p:last-of-type {
   top: 0;
   left: 0;
   width: 20px;
+}
+
+.message-text>*:not(:last-child)+.typing {
+  margin-top: 25px;
 }
 
 .typing span {
@@ -277,10 +277,11 @@ pre .copy-button:focus {
   font-weight: 500;
 }
 
+.chat-list-item.current button.options,
 #left-sidebar li:hover button.options,
 #left-sidebar li:focus button.options,
 #left-sidebar button.options:focus {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 
@@ -400,12 +401,22 @@ form#dropzone-basic {
   height: calc(100vh - 3rem);
 }
 
+/* Enlarge .chat-sidebar to 400px when <html lang="fr"> */
+html[lang="fr"] .chat-sidebar {
+  width: 400px;
+  min-width: 400px;
+}
+
 .chat-sidebar.hidden {
   display: none;
 }
 
 .chat-sidebar-toggle.hidden {
   display: none;
+}
+
+.chat-history-section-header {
+  padding: 10px 0 5px;
 }
 
 .preset-actions {
@@ -626,6 +637,10 @@ div.message-text blockquote {
   line-clamp: 8;
 }
 
+code {
+  color: #800;
+}
+
 .truncate:not(.show-all) .message-text pre code,
 .truncate:not(.show-all) .message-text blockquote {
   overflow: hidden;
@@ -776,6 +791,14 @@ div#chat-toolbar {
   display: block;
 }
 
+#chat-outer.chat #chat-prompt {
+  padding-right: 30px;
+}
+
+#chat-outer.chat #magic-button {
+  display: inline-block !important;
+}
+
 #file-dropzone {
   height: 100%;
   width: 100%;
@@ -794,6 +817,55 @@ div#chat-toolbar {
 
 .sources-modal .accordion-body.scrolling-content {
   font-size: 0.95rem;
+}
+
+#sources-modal-inner .markdown-text * {
+  font-size: medium;
+}
+
+#sources-modal-inner .markdown-text table {
+  margin-bottom: 1rem;
+}
+
+#sources-modal-inner .markdown-text blockquote {
+  border-left: solid 2px #ccc;
+  padding-left: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+#sources-modal-inner .markdown-text headings {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+#sources-modal-inner .accordion-header {
+  position: sticky;
+  top: 0;
+}
+
+#sources-modal-inner .accordion-button:focus {
+  box-shadow: none;
+  outline: solid 1px var(--bs-accordion-border-color);
+}
+
+#sources-modal-inner .accordion-button:focus-visible {
+  background: var(--bs-accordion-active-bg);
+}
+
+#sources-modal-inner .accordion-button:not(.collapsed) {
+  background-color: white;
+  color: black;
+}
+
+#sources-modal-inner .markdown-text th,
+#sources-modal-inner .markdown-text td {
+  border: solid 1px var(--bs-border-color);
+  padding: 0.25rem;
+}
+
+#sources-modal-inner mark.current-highlight {
+  background: var(--app-color-purple-1-hover);
 }
 
 #prompt-form-resize-handle {
@@ -1077,7 +1149,6 @@ ul#preset-edit-tabs {
 
 .preset-form-container .nav-link {
   color: var(--bs-body-color);
-  font-size: 0.875rem;
   font-weight: 600;
 
   &:hover {
@@ -1266,4 +1337,11 @@ ul#preset-edit-tabs {
 math[display="block"] {
   margin-top: 1rem;
   padding-bottom: 1rem;
+}
+
+#shared-chat-warning {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  box-shadow: 0 0px 5px rgba(0, 0, 0, 0.4);
 }

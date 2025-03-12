@@ -10,8 +10,9 @@ from django.core.management.base import BaseCommand
 import yaml
 from django_extensions.management.utils import signalcommand
 
+from chat.models import Preset
 from librarian.models import DataSource, Document, Library
-from otto.models import App, UsageTerm
+from otto.models import App
 
 
 class Command(BaseCommand):
@@ -22,7 +23,7 @@ class Command(BaseCommand):
             "objects",
             nargs="*",
             type=str,
-            help="Specify objects to reset (apps, terms, groups, libraries, library_mini, security_labels, cost_types)",
+            help="Specify objects to reset (apps, groups, libraries, library_mini, security_labels, cost_types, presets)",
         )
         parser.add_argument("--all", action="store_true", help="Reset all objects")
 
@@ -36,49 +37,48 @@ class Command(BaseCommand):
         vector_db_user = settings.DATABASES["vector_db"]["USER"]
         vector_db_password = settings.DATABASES["vector_db"]["PASSWORD"]
         vector_db_host = settings.DATABASES["vector_db"]["HOST"]
+        vector_db_port = settings.DATABASES["vector_db"]["PORT"]
 
         # Set system-wide environment variable PGPASSWORD to avoid password prompt
         os.environ["PGPASSWORD"] = vector_db_password
 
-        try:
-            # Create the database
-            subprocess.run(
-                [
-                    "psql",
-                    "-U",
-                    vector_db_user,
-                    "-h",
-                    vector_db_host,
-                    "-d",
-                    "postgres",
-                    "-c",
-                    f"CREATE DATABASE {vector_db_name}",
-                ],
-                check=True,
-            )
-        except subprocess.CalledProcessError:
-            self.stdout.write(
-                self.style.WARNING(
-                    f"Database {vector_db_name} already exists. Skipping creation."
+        if settings.ENVIRONMENT == "LOCAL":
+            try:
+                # Create the vector database (local only)
+                subprocess.run(
+                    [
+                        "psql",
+                        "-U",
+                        vector_db_user,
+                        "-h",
+                        vector_db_host,
+                        "-d",
+                        "postgres",
+                        "-c",
+                        f"CREATE DATABASE {vector_db_name}",
+                    ],
+                    check=True,
                 )
-            )
+            except subprocess.CalledProcessError:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"Database {vector_db_name} already exists. Skipping creation."
+                    )
+                )
 
         if reset_all:
             self.reset_groups()
             self.reset_apps()
-            self.reset_usage_terms()
             self.reset_security_labels()
             self.reset_libraries()
             self.reset_cost_types()
+            self.reset_presets()
         else:
             if "groups" in objects_to_reset:
                 self.reset_groups()
 
             if "apps" in objects_to_reset:
                 self.reset_apps()
-
-            if "terms" in objects_to_reset:
-                self.reset_usage_terms()
 
             if "cost_types" in objects_to_reset:
                 self.reset_cost_types()
@@ -91,6 +91,9 @@ class Command(BaseCommand):
 
             if "library_mini" in objects_to_reset:
                 self.reset_libraries("library_mini.yaml")
+
+            if "presets" in objects_to_reset:
+                self.reset_presets()
 
     def reset_apps(self):
         yaml_file_path = os.path.join(
@@ -116,32 +119,6 @@ class Command(BaseCommand):
             App.objects.create_from_yaml(app_data)
 
         self.stdout.write(self.style.SUCCESS("Apps reset successfully."))
-
-    def reset_usage_terms(self):
-        yaml_file_path = os.path.join(
-            settings.BASE_DIR, "otto", "fixtures", "terms.yaml"
-        )
-
-        with open(yaml_file_path, "r", encoding="utf-8") as yaml_file:
-            terms_data = yaml.safe_load(yaml_file)
-
-        if not terms_data:
-            self.stdout.write(
-                self.style.WARNING(
-                    "No data found in the YAML file. Nothing to reset for UsageTerms."
-                )
-            )
-            return
-
-        # Clear out existing UsageTerm instances
-        UsageTerm.objects.all().delete()
-
-        # Create new UsageTerm instances based on YAML data
-        for term_data in terms_data:
-            term_fields = term_data.get("fields", {})
-            UsageTerm.objects.create(**term_fields)
-
-        self.stdout.write(self.style.SUCCESS("UsageTerms reset successfully."))
 
     def reset_groups(self):
         yaml_file_path = os.path.join(
@@ -237,6 +214,20 @@ class Command(BaseCommand):
                 "Libraries, DataSources, and Documents reset successfully."
             )
         )
+
+    def reset_presets(self):
+        yaml_file_path = os.path.join(
+            settings.BASE_DIR, "chat", "fixtures", "presets.yaml"
+        )
+
+        with open(yaml_file_path, "r", encoding="utf-8") as yaml_file:
+            presets_data = yaml.safe_load(yaml_file)
+
+        # Delete existing "default presets" (which have no owner)
+        Preset.objects.filter(owner=None).delete()
+        Preset.objects.create_from_yaml(presets_data)
+
+        self.stdout.write(self.style.SUCCESS("Presets reset successfully."))
 
     def reset_security_labels(self):
         # Simply call manage.py loaddata security_labels.yaml
