@@ -2842,5 +2842,117 @@
     "Older": {
         "fr": "",
         "fr_auto": "Plus ancien"
+    },
+    "Done": {
+        "fr": "",
+        "fr_auto": "Fait"
+    },
+    "Start a new chat at any time.": {
+        "fr": "",
+        "fr_auto": "Commencez un nouveau clavardage à tout moment."
+    },
+    "Start a new chat at any time by clicking this button.": {
+        "fr": "",
+        "fr_auto": "Commencez un nouveau clavardage à tout moment en cliquant sur ce bouton."
+    },
+    "Current chat": {
+        "fr": "",
+        "fr_auto": "Clavardage actuel"
+    },
+    "Your current chat will appear in bolded characters.": {
+        "fr": "",
+        "fr_auto": "Votre chat actuel apparaîtra en caractères gras."
+    },
+    "Chat options": {
+        "fr": "",
+        "fr_auto": "Options de clavardage"
+    },
+    "Click on the ellipsis icon to view more options.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur l’icône de points de suspension pour voir plus d’options."
+    },
+    "Rename your chats or to delete them entirely.": {
+        "fr": "",
+        "fr_auto": "Renommez vos clavardages ou supprimez-les complètement."
+    },
+    "Using the AI Assistant": {
+        "fr": "",
+        "fr_auto": "Utilisation de l’assistant IA"
+    },
+    "Use the textbox to start.": {
+        "fr": "",
+        "fr_auto": "Utilisez la zone de texte pour commencer."
+    },
+    "Modes": {
+        "fr": "",
+        "fr_auto": "Modes"
+    },
+    ".": {
+        "fr": "",
+        "fr_auto": "."
+    },
+    "You can show or hide the AI Assistant\\": {
+        "fr": "",
+        "fr_auto": "Vous pouvez afficher ou masquer l’assistant IA\\"
+    },
+    "Settings are tied to the current chat in use. Saving is done automatically when a change is detected.": {
+        "fr": "",
+        "fr_auto": "Les paramètres sont liés au clavardage actuel utilisé. L’enregistrement se fait automatiquement lorsqu’un changement est détecté."
+    },
+    "Mode": {
+        "fr": "",
+        "fr_auto": "Mode"
+    },
+    "Selecting a mode in the settings list will automatically set your chat session to that mode.": {
+        "fr": "",
+        "fr_auto": "En sélectionnant un mode dans la liste des paramètres, votre session de clavardage sera automatiquement réglée sur ce mode."
+    },
+    "Preset": {
+        "fr": "",
+        "fr_auto": "Préréglage"
+    },
+    "Save your current settings in a preset to re-use them in other chats, share them with others, or set them as your default.": {
+        "fr": "",
+        "fr_auto": "Enregistrez vos paramètres actuels dans un préréglage pour les réutiliser dans d’autres chats, les partager avec d’autres personnes ou les définir par défaut."
+    },
+    "Made a mistake? Reset all your settings to their default state.": {
+        "fr": "",
+        "fr_auto": "Vous avez fait une erreur? Réinitialisez tous vos paramètres à leur état par défaut."
+    },
+    "You can also view or edit the full list of existing presets you created or that were shared with you.": {
+        "fr": "",
+        "fr_auto": "Vous pouvez également consulter ou modifier la liste complète des préréglages existants que vous avez créés ou qui ont été partagés avec vous."
+    },
+    "Help": {
+        "fr": "",
+        "fr_auto": "Aide"
+    },
+    "AI Assistant Walkthrough (1 min)": {
+        "fr": "",
+        "fr_auto": "Procédure pas à pas de l’assistant IA (1 min)"
+    },
+    "Start a tour of Otto": {
+        "fr": "",
+        "fr_auto": "Commencez une visite d’Otto"
+    },
+    "Start using Otto": {
+        "fr": "",
+        "fr_auto": "Commencez à utiliser Otto"
+    },
+    "Start using Otto by selecting an application.": {
+        "fr": "",
+        "fr_auto": "Commencez à utiliser Otto en sélectionnant une application."
+    },
+    "Cost allocation": {
+        "fr": "",
+        "fr_auto": "Répartition des coûts"
+    },
+    "This meter gradually fills up as you use Otto. It represents the amount of money left out of your weekly allocation. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center to grant an exemption.": {
+        "fr": "",
+        "fr_auto": "Ce compteur se remplit graduellement au fur et à mesure que vous utilisez Otto. Il représente le montant d’argent laissé de côté de votre allocation hebdomadaire. Si vous atteignez votre limite, vous ne pourrez plus utiliser Otto et devrez contacter le Centre d’analyse d’affaires pour accorder une exemption."
+    },
+    "Click on this icon to submit feedback about Otto. Let us know what went wrong, or suggest an improvement.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur cette icône pour soumettre des commentaires sur Otto. Faites-nous savoir ce qui n’a pas fonctionné ou suggérez une amélioration."
     }
 }
