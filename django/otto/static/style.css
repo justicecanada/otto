@@ -1,5 +1,17 @@
 @import url('css/variables.css');
 
+html {
+  visibility: hidden;
+}
+
+html[data-bs-theme="dark"] {
+  visibility: visible;
+}
+
+html[data-bs-theme="light"] {
+  visibility: visible;
+}
+
 .navbar-nav {
   flex-direction: row;
 }
@@ -60,7 +72,7 @@ footer a {
 }
 
 nav#breadcrumbs {
-  background: var(--bg-light-gray);
+  background: var(--app-primary-bg);
 }
 
 nav#breadcrumbs a {
@@ -387,6 +399,16 @@ ul.errorlist ul:not(:last-child) {
 
 ul.errorlist p {
   margin-bottom: 0.25rem;
+}
+
+#step-content {
+  background-color: var(--otto-tab-body-bg-color);
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary,
+[data-bs-theme="dark"] #prompt-form button {
+  color: var(--bs-secondary-text);
+  background-color: black;
 }
 
 .toast-sticky {

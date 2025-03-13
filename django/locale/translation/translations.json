@@ -2842,5 +2842,9 @@
     "Older": {
         "fr": "",
         "fr_auto": "Plus ancien"
+    },
+    "Toggle theme": {
+        "fr": "",
+        "fr_auto": "Basculer le thème"
     }
 }
