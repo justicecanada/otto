@@ -273,6 +273,11 @@ pre .copy-button:focus {
   position: relative;
 }
 
+[data-bs-theme="dark"] .new-chat-btn {
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-text-body) !important;
+}
+
 #left-sidebar li.current {
   font-weight: 500;
 }
@@ -298,6 +303,14 @@ pre .copy-button:focus {
 
 #left-sidebar li a {
   text-wrap: nowrap;
+}
+
+.sidebar-settings-header {
+  font-size: 1rem;
+
+  [data-bs-theme="dark"] & {
+    color: var(--bs-light-text-emphasis);
+  }
 }
 
 #left-sidebar li a span {
@@ -334,6 +347,7 @@ pre .copy-button:focus {
 
 #right-sidebar .accordion-button.collapsed {
   font-weight: normal !important;
+  background-color: transparent !important;
 }
 
 #right-sidebar .accordion-button:focus-visible {
@@ -343,10 +357,13 @@ pre .copy-button:focus {
 #right-sidebar .accordion-button:focus,
 #right-sidebar .accordion-button:not(.collapsed) {
   box-shadow: none !important;
+  color: var(--bs-text-body) !important;
+  background-color: transparent !important;
 }
 
 #right-sidebar .accordion-button::after {
   zoom: 0.9;
+  color: var(--bs-text-body) !important;
 }
 
 #right-sidebar .accordion-header {
@@ -354,10 +371,15 @@ pre .copy-button:focus {
   top: 0;
 }
 
+
 #new-chat-button {
   margin-left: -4px;
   margin-top: -5px;
   margin-bottom: -1px;
+}
+
+.chat-title {
+  color: var(--bs-light-text-emphasis);
 }
 
 #chat-options,
@@ -401,6 +423,10 @@ form#dropzone-basic {
   height: calc(100vh - 3rem);
 }
 
+[data-bs-theme="dark"] .chat-sidebar {
+  background: var(--bs-dark-bg-subtle) !important;
+}
+
 /* Enlarge .chat-sidebar to 400px when <html lang="fr"> */
 html[lang="fr"] .chat-sidebar {
   width: 400px;
@@ -424,6 +450,11 @@ html[lang="fr"] .chat-sidebar {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   column-gap: 0.5rem;
   place-items: stretch;
+}
+
+[data-bs-theme="dark"] .preset-btn {
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-text-body);
 }
 
 #chat-flexbox {
@@ -936,6 +967,11 @@ div#chat-toolbar {
   }
 }
 
+[data-bs-theme="dark"] #advancedQaModalButton {
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-text-body) !important;
+}
+
 #chat-modes button {
   margin-bottom: -1px;
   background: var(--app-primary-bg);
@@ -967,7 +1003,7 @@ div#chat-toolbar {
 #chat-outer.qa #chat-modes button.qa-option,
 #chat-outer.document_qa #chat-modes button.document_qa-option,
 #chat-outer.chat #chat-modes button.chat-option {
-  background: var(--bs-white);
+  background: var(--bs-body-bg);
   color: var(--bs-text-body) !important;
   border-bottom: solid 1px white !important;
   z-index: 10;
@@ -977,7 +1013,7 @@ div#chat-toolbar {
 
 #chat-modes button:hover,
 #chat-modes button:focus {
-  background: white;
+  background: var(--bd-body-bg);
   color: var(--bs-gray) !important;
 }
 
@@ -1140,6 +1176,11 @@ ul.errorlist {
 .btn-outline-initially-black:not(:hover):not(:focus) {
   color: var(--bs-black);
   border-color: var(--bs-black) !important;
+
+  [data-bs-theme="dark"] & {
+    color: var(--bs-text-body);
+    border-color: var(--bs-border-color) !important;
+  }
 }
 
 :root {

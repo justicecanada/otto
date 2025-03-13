@@ -1,5 +1,17 @@
 @import url('css/variables.css');
 
+html {
+  visibility: hidden;
+}
+
+html[data-bs-theme="dark"] {
+  visibility: visible;
+}
+
+html[data-bs-theme="light"] {
+  visibility: visible;
+}
+
 .navbar-nav {
   flex-direction: row;
 }
