@@ -12,6 +12,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("chat", "0008_merge_20250310_1421"),
+        ("librarian", "0002_initial"),
     ]
 
     operations = [
