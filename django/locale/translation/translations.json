@@ -2842,5 +2842,13 @@
     "Older": {
         "fr": "",
         "fr_auto": "Plus ancien"
+    },
+    "Browse Presets": {
+        "fr": "Menu des préréglages",
+        "fr_auto": "Parcourir les préréglages"
+    },
+    "Save Settings": {
+        "fr": "Enregistrer",
+        "fr_auto": "Sauvegarder les paramètres"
     }
 }
