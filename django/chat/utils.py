@@ -37,15 +37,22 @@ from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
 # Markdown instance
-# md = markdown.Markdown(
-#     extensions=["fenced_code", "nl2br", "tables", "extra"], tab_length=2
-# )
-md = (
-    MarkdownIt("commonmark", {"breaks": True, "html": True})
-    .use(front_matter_plugin)
-    .use(footnote_plugin)
-    .enable("table")
+md = markdown.Markdown(
+    extensions=["fenced_code", "nl2br", "tables", "extra"], tab_length=2
 )
+# md = (
+#     MarkdownIt("commonmark", {"breaks": True, "html": True})
+#     .use(front_matter_plugin)
+#     .use(footnote_plugin)
+#     .enable("table")
+# )
+# md = (
+#     MarkdownIt()
+#     .use(front_matter_plugin)
+#     .use(footnote_plugin)
+#     .disable("image")
+#     .enable("table")
+# )
 
 
 def copy_options(source_options, target_options, user=None, chat=None, mode=None):
