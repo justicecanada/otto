@@ -2843,6 +2843,14 @@
         "fr": "",
         "fr_auto": "Plus ancien"
     },
+    "Browse presets": {
+        "fr": "Menu des préréglages",
+        "fr_auto": "Parcourir les préréglages"
+    },
+    "Save settings": {
+        "fr": "Enregistrer",
+        "fr_auto": "Sauvegarder les paramètres"
+    },
     "(Optional) Define AI model's role, background information, and rules to follow.": {
         "fr": "",
         "fr_auto": "(Facultatif) Définissez le rôle du modèle d’IA, les informations générales et les règles à suivre."

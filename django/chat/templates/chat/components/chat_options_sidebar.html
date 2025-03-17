@@ -20,6 +20,36 @@
               style="margin-top: -4px"
               aria-label='{% trans "Close" %}'></button>
     </div>
+    <div class="row p-2">
+      <div class="col pe-1"
+           data-bs-toggle="modal"
+           data-bs-target="#presets-modal">
+        <button type="button"
+                id="presets-modal-button"
+                class="btn btn-sm btn-outline-dark w-100"
+                title="{% trans "Open presets menu" %}"
+                hx-get="{% url 'chat:get_presets' chat_id=chat.id %}"
+                hx-target="#presets-modal-body"
+                hx-swap="innerHTML"
+                onclick="document.getElementById('presets-modal-body').innerHTML = '';">
+          <i class="bi bi-folder"></i>
+          <span class="">{% trans 'Browse presets' %}</span>
+        </button>
+      </div>
+      <div class="col ps-1"
+           data-bs-toggle="modal"
+           data-bs-target="#presets-modal">
+        <button type="button"
+                class="btn btn-sm btn-outline-dark w-100"
+                title="{% trans "Save preset from current settings" %}"
+                hx-get="{% url 'chat:save_preset' chat_id=chat.id %}"
+                hx-target="#presets-modal-body"
+                hx-swap="innerHTML transition:true">
+          <i class="bi bi-floppy2-fill"></i>
+          <span class="">{% trans 'Save settings' %}</span>
+        </button>
+      </div>
+    </div>
     <form class="overflow-y-auto overflow-x-hidden flex-grow-1"
           id="chat-options"
           hx-trigger="optionsChanged"
@@ -31,50 +61,6 @@
       {% include 'chat/components/chat_options_accordion.html' %}
     </form>
 
-    <div class="p-3 border-top">
-      <h6 class="small">{% trans 'Settings presets' %}</h6>
-      <div class="row">
-        <div class="col pe-1"
-             data-bs-toggle="modal"
-             data-bs-target="#presets-modal">
-          <button type="button"
-                  id="presets-modal-button"
-                  class="btn btn-sm btn-outline-dark w-100"
-                  title="{% trans "Open presets menu" %}"
-                  hx-get="{% url 'chat:get_presets' chat_id=chat.id %}"
-                  hx-target="#presets-modal-body"
-                  hx-swap="innerHTML"
-                  onclick="document.getElementById('presets-modal-body').innerHTML = '';">
-            <i class="bi bi-folder"></i>
-            <span class="">{% trans 'Browse' %}</span>
-          </button>
-        </div>
-        <div class="col px-0"
-             data-bs-toggle="modal"
-             data-bs-target="#presets-modal">
-          <button type="button"
-                  class="btn btn-sm btn-outline-dark w-100"
-                  title="{% trans "Save preset from current settings" %}"
-                  hx-get="{% url 'chat:save_preset' chat_id=chat.id %}"
-                  hx-target="#presets-modal-body"
-                  hx-swap="innerHTML transition:true">
-            <i class="bi bi-floppy2-fill"></i>
-            <span class="">{% trans 'Save' %}</span>
-          </button>
-        </div>
-        <span class="col ps-1">
-          <button type="button"
-                  class="btn btn-sm btn-outline-dark w-100"
-                  title="{% trans 'Reset settings to default' %}"
-                  hx-get="{% url 'chat:chat_options' chat_id=chat.id action='reset' %}"
-                  hx-target="#options-accordion"
-                  hx-swap="outerHTML">
-            <i class="bi bi-arrow-counterclockwise"></i>
-            <span class="">{% trans 'Reset' %}</span>
-          </button>
-        </span>
-      </div>
-    </div>
   </div>
 </div>
 
