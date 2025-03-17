@@ -99,7 +99,7 @@ function applyGeneratedPrompt(event) {
 
 function setMagicPrompt() {
   const chatPrompt = document.getElementById('chat-prompt').value;
-  document.getElementById('magic-prompt').value = chatPrompt;
+  document.getElementById('magic-gprompt').value = chatPrompt;
   document.getElementById('magic-prompt').focus();
 }
 

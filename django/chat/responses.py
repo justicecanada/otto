@@ -631,6 +631,7 @@ def qa_response(chat, response_message, switch_mode=False):
         if chat.options.qa_answer_mode != "per-source":
             response = synthesizer.synthesize(query=input, nodes=source_nodes)
             response_generator = response.response_gen
+            response_generator = response_generator
             response_replacer = None
 
         else:

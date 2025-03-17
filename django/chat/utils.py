@@ -21,6 +21,9 @@ from data_fetcher.util import get_request
 from llama_index.core import PromptTemplate
 from llama_index.core.llms import ChatMessage
 from llama_index.core.prompts import PromptType
+from markdown_it import MarkdownIt
+from mdit_py_plugins.footnote import footnote_plugin
+from mdit_py_plugins.front_matter import front_matter_plugin
 from newspaper import Article
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -34,8 +37,14 @@ from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
 # Markdown instance
-md = markdown.Markdown(
-    extensions=["fenced_code", "nl2br", "tables", "extra"], tab_length=2
+# md = markdown.Markdown(
+#     extensions=["fenced_code", "nl2br", "tables", "extra"], tab_length=2
+# )
+md = (
+    MarkdownIt("commonmark", {"breaks": True, "html": True})
+    .use(front_matter_plugin)
+    .use(footnote_plugin)
+    .enable("table")
 )
 
 
