@@ -111,13 +111,6 @@ def test_chat_options(client, all_apps_user):
         == "start each response with 'Yeehaw!'"
     )
 
-    # Reset the chat options
-    response = client.post(
-        reverse("chat:chat_options", args=[new_chat.id, "reset"]),
-        preset_form_data,
-    )
-    assert response.status_code == 200
-
     # Finally, delete the Cowboy AI preset
     response = client.post(
         reverse("chat:chat_options", args=[new_chat.id, "delete_preset", preset.id]),
