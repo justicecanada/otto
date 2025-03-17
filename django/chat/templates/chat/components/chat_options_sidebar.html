@@ -20,36 +20,34 @@
               style="margin-top: -4px"
               aria-label='{% trans "Close" %}'></button>
     </div>
-    <div class="p-2 border-top">
-      <div class="row">
-        <div class="col pe-1"
-             data-bs-toggle="modal"
-             data-bs-target="#presets-modal">
-          <button type="button"
-                  id="presets-modal-button"
-                  class="btn btn-sm btn-outline-dark w-100"
-                  title="{% trans "Open presets menu" %}"
-                  hx-get="{% url 'chat:get_presets' chat_id=chat.id %}"
-                  hx-target="#presets-modal-body"
-                  hx-swap="innerHTML"
-                  onclick="document.getElementById('presets-modal-body').innerHTML = '';">
-            <i class="bi bi-folder"></i>
-            <span class="">{% trans 'Browse Presets' %}</span>
-          </button>
-        </div>
-        <div class="col ps-1"
-             data-bs-toggle="modal"
-             data-bs-target="#presets-modal">
-          <button type="button"
-                  class="btn btn-sm btn-outline-dark w-100"
-                  title="{% trans "Save preset from current settings" %}"
-                  hx-get="{% url 'chat:save_preset' chat_id=chat.id %}"
-                  hx-target="#presets-modal-body"
-                  hx-swap="innerHTML transition:true">
-            <i class="bi bi-floppy2-fill"></i>
-            <span class="">{% trans 'Save Settings' %}</span>
-          </button>
-        </div>
+    <div class="row p-2">
+      <div class="col pe-1"
+           data-bs-toggle="modal"
+           data-bs-target="#presets-modal">
+        <button type="button"
+                id="presets-modal-button"
+                class="btn btn-sm btn-outline-dark w-100"
+                title="{% trans "Open presets menu" %}"
+                hx-get="{% url 'chat:get_presets' chat_id=chat.id %}"
+                hx-target="#presets-modal-body"
+                hx-swap="innerHTML"
+                onclick="document.getElementById('presets-modal-body').innerHTML = '';">
+          <i class="bi bi-folder"></i>
+          <span class="">{% trans 'Browse Presets' %}</span>
+        </button>
+      </div>
+      <div class="col ps-1"
+           data-bs-toggle="modal"
+           data-bs-target="#presets-modal">
+        <button type="button"
+                class="btn btn-sm btn-outline-dark w-100"
+                title="{% trans "Save preset from current settings" %}"
+                hx-get="{% url 'chat:save_preset' chat_id=chat.id %}"
+                hx-target="#presets-modal-body"
+                hx-swap="innerHTML transition:true">
+          <i class="bi bi-floppy2-fill"></i>
+          <span class="">{% trans 'Save Settings' %}</span>
+        </button>
       </div>
     </div>
     <form class="overflow-y-auto overflow-x-hidden flex-grow-1"
