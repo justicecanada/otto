@@ -9,17 +9,17 @@
     style="box-shadow: None !important;
            border: 1px solid rgb(33, 37, 41) !important">
   <div class="card-header flex-column">
-    <div class="d-flex justify-content-between w-100 fs-4">
+    <div class="d-flex justify-content-between w-100 fs-5">
       <div class="me-auto">{% include "chat/modals/presets/shared_icon.html" %}</div>
       <div class="d-flex align-items-center">
         <div id="default-button-{{ preset.id }}">{% include "chat/modals/presets/default_icon.html" %}</div>
         {% if can_edit_preset %}
           <button id="share-button" type="button" class="btn btn-light rounded-circle">
-            <i class="bi bi-share me-2 fs-4"></i>
+            <i class="bi bi-share me-2 fs-5"></i>
           </button>
           <button id="delete-preset-button"
                   type="button"
-                  class="btn btn-light rounded-circle fs-4">
+                  class="btn btn-light rounded-circle fs-5">
             <i class="bi bi-trash me-2"></i>
           </button>
         {% endif %}
@@ -27,7 +27,7 @@
     </div>
  
  
-    <div class="card-title text-truncate me-2 fw-semibold fs-4 me-auto"
+    <div class="card-title text-truncate me-2 fw-semibold fs-5 me-auto"
          style="letter-spacing: -0.025rem"
          title="{% if LANGUAGE_CODE == 'en' %} {% if preset.name_en %} {{ preset.name_en }} {% else %} {{ preset.name_fr }} {% endif %} {% else %} {% if preset.name_fr %} {{ preset.name_fr }} {% else %} {{ preset.name_en }} {% endif %} {% endif %}">
 
