@@ -1147,6 +1147,10 @@ ul#preset-edit-tabs {
   z-index: 1;
 }
 
+#preset-card-list {
+  background-color: rgb(241, 241, 241);
+}
+
 .preset-form-container .nav-link {
   color: var(--bs-body-color);
   font-weight: 600;

@@ -6,13 +6,23 @@
 {% get_current_language as LANGUAGE_CODE %}
 <li class="card p-3"
     data-default="{{ preset.default }}"
-    style="box-shadow: None !important;
-           border: 1px solid rgb(33, 37, 41) !important">
+    style="box-shadow: 1px solid !important">
   <div class="card-header flex-column">
     <div class="d-flex justify-content-between w-100 fs-5">
       <div class="me-auto">{% include "chat/modals/presets/shared_icon.html" %}</div>
       <div class="d-flex align-items-center">
-        <div id="default-button-{{ preset.id }}">{% include "chat/modals/presets/default_icon.html" %}</div>
+        <div id="default-button-{{ preset.id }}">
+          <button type="button"
+                  class="btn btn-light rounded-circle"
+                  title="{% if preset.default %}{% trans 'Remove default' %}{% else %}{% trans 'Set as default' %}{% endif %}"
+                  hx-get="{% url 'chat:set_preset_default' chat_id=chat_id preset_id=preset.id %}"
+                  hx-target="this"
+                  hx-swap="outerHTML">
+            <i class="bi {% if preset.default or is_default %}bi-star-fill{% else %}bi-star{% endif %} fs-5"
+               style="{% if preset.default or is_default %}color: var(--app-color-yellow-1);
+                      {% endif %}"></i>
+          </button>
+        </div>
         {% if can_edit_preset %}
           <button id="share-button" type="button" class="btn btn-light rounded-circle">
             <i class="bi bi-share me-2 fs-5"></i>
@@ -27,7 +37,7 @@
     </div>
  
  
-    <div class="card-title text-truncate me-2 fw-semibold fs-5 me-auto"
+    <div class="card-title text-truncate me-2 fw-semibold fs-4 me-auto"
          style="letter-spacing: -0.025rem"
          title="{% if LANGUAGE_CODE == 'en' %} {% if preset.name_en %} {{ preset.name_en }} {% else %} {{ preset.name_fr }} {% endif %} {% else %} {% if preset.name_fr %} {{ preset.name_fr }} {% else %} {{ preset.name_en }} {% endif %} {% endif %}">
 
@@ -46,14 +56,13 @@
       {% endif %}
     </div>
   </div>
-
-
   <div class="card-body pt-2">
     <p class="preset-description card-text text-muted"
-       style="min-height: 4.5rem !important;
+       style="line-height: 1.5;
+              min-height: calc(1.5em * 2);
               -webkit-box-orient: vertical !important;
               display: -webkit-box !important;
-              -webkit-line-clamp: 4 !important;
+              -webkit-line-clamp: 2 !important;
               overflow: hidden !important;
               text-overflow: ellipsis !important;
               white-space: normal !important">{% get_preset_description preset LANGUAGE_CODE %}</p>
@@ -71,6 +80,8 @@
               class="btn btn-light btn-outline-dark fw-semibold flex-grow-1 fs-6"
               hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
               hx-target="#presets-modal-body"
+              style="background-color: white !important;
+                     color: black !important"
               hx-swap="innerHTML transition:true">{% trans "Edit" %}</button>
     {% endif %}
   </div>
