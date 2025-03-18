@@ -496,30 +496,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         "chat.access_preset", Preset.objects.get(id=preset_id)
     ):
         return HttpResponse(status=403)
-    if action == "reset":
-        # Check if chat.options already exists
-        if hasattr(chat, "options") and chat.options:
-            # Delete the existing ChatOptions object
-            chat.options.delete()
 
-        chat.options = ChatOptions.objects.from_defaults(chat=chat)
-        chat.loaded_preset = None
-        chat.save()
-        logger.info("Resetting chat options to default.", chat_id=chat_id)
-
-        return render(
-            request,
-            "chat/components/chat_options_accordion.html",
-            {
-                "options_form": ChatOptionsForm(
-                    instance=chat.options, user=request.user
-                ),
-                "preset_loaded": "true",
-                "prompt": chat.options.prompt,
-            },
-        )
-
-    elif action == "load_preset":
+    if action == "load_preset":
         logger.info(
             "Loading chat options from a preset.",
             chat_id=chat_id,
