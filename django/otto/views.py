@@ -536,7 +536,7 @@ def manage_pilots_form(request, pilot_id=None):
         pilot.delete()
         response = HttpResponse()
         # Add hx-redirect header to trigger HTMX redirect
-        response["hx-redirect"] = reverse("manage_pilots")
+        response["HX-Redirect"] = reverse("manage_pilots")
         return response
     if pilot_id:
         pilot = get_object_or_404(Pilot, pk=pilot_id)

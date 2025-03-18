@@ -415,6 +415,10 @@ html[lang="fr"] .chat-sidebar {
   display: none;
 }
 
+.chat-history-section-header {
+  padding: 10px 0 5px;
+}
+
 .preset-actions {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -792,7 +796,7 @@ div#chat-toolbar {
 }
 
 #chat-outer.chat #magic-button {
-  display: inline-block;
+  display: inline-block !important;
 }
 
 #file-dropzone {
@@ -1333,25 +1337,6 @@ ul#preset-edit-tabs {
 math[display="block"] {
   margin-top: 1rem;
   padding-bottom: 1rem;
-}
-
-#magic-button {
-  background-color: transparent !important;
-  color: var(--bs-secondary);
-  border: none;
-  top: 4px;
-  right: 47px;
-  width: 35px;
-  height: 30px;
-  position: absolute;
-  z-index: 10;
-  display: none;
-}
-
-#magic-button:hover,
-#magic-button:focus,
-#magic-button:active {
-  color: var(--app-color-purple-1) !important;
 }
 
 #shared-chat-warning {

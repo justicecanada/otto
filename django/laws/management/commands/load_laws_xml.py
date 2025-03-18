@@ -4,7 +4,6 @@ import shutil
 import time
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
-from math import ceil
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -18,15 +17,11 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
-from laws.models import Law, token_counter
+from laws.models import Law
 from otto.models import Cost, OttoStatus
 from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
-
-
-def _price_tokens(token_counter):
-    return 0.000178 * token_counter.total_embedding_token_count / 1000
 
 
 def _download_repo(force_download=False):
