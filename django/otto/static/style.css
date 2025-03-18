@@ -4,12 +4,36 @@ html {
   visibility: hidden;
 }
 
-html[data-bs-theme="dark"] {
+html[data-bs-theme="dark"],
+html[data-bs-theme="light"] {
   visibility: visible;
 }
 
-html[data-bs-theme="light"] {
-  visibility: visible;
+
+[data-bs-theme="dark"] .btn-outline-dark {
+  color: var(--bs-body-text);
+  background-color: var(--bs-btn-color);
+  border-color: var(--bs-border-color);
+
+  &:hover {
+    color: var(--bs-body-text-hover);
+    background-color: var(--bs-body-bg-hover);
+    border-color: var(--bs-border-color);
+  }
+}
+
+[data-bs-theme="dark"] .btn-light {
+  color: var(--bs-body-text);
+  background-color: var(--bs-body-bg);
+  border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .card {
+  background-color: var(--bs-dark-bg-subtle) !important;
+}
+
+[data-bs-theme="dark"] .text-dark {
+  color: var(--bs-body-text) !important;
 }
 
 .navbar-nav {
@@ -274,6 +298,15 @@ li.notification:last-of-type {
   zoom: 0.7;
 }
 
+
+[data-bs-theme="dark"] .phac_aspc_form_autocomplete {
+  background-color: var(--bs-body-bg);
+  border-color: var(--bs-border-color);
+
+  &::after {
+    border-color: var(--bs-border-color);
+  }
+}
 
 div.phac_aspc_form_autocomplete div.results.show {
   margin-top: calc(.375rem - 1px);

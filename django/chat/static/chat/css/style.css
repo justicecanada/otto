@@ -1,6 +1,25 @@
 @import url('/static/css/variables.css');
 
 
+[data-bs-theme="dark"] .preset-btn {
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-text-body);
+}
+
+[data-bs-theme="dark"] .new-chat-btn {
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-text-body) !important;
+}
+
+[data-bs-theme="dark"] .chat-sidebar {
+  background: var(--bs-dark-bg-subtle) !important;
+}
+
+[data-bs-theme="dark"] #advancedQaModalButton {
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-text-body) !important;
+}
+
 body.chat {
   overflow-y: hidden;
 }
@@ -273,10 +292,6 @@ pre .copy-button:focus {
   position: relative;
 }
 
-[data-bs-theme="dark"] .new-chat-btn {
-  border-color: var(--bs-border-color) !important;
-  color: var(--bs-text-body) !important;
-}
 
 #left-sidebar li.current {
   font-weight: 500;
@@ -423,10 +438,6 @@ form#dropzone-basic {
   height: calc(100vh - 3rem);
 }
 
-[data-bs-theme="dark"] .chat-sidebar {
-  background: var(--bs-dark-bg-subtle) !important;
-}
-
 /* Enlarge .chat-sidebar to 400px when <html lang="fr"> */
 html[lang="fr"] .chat-sidebar {
   width: 400px;
@@ -450,11 +461,6 @@ html[lang="fr"] .chat-sidebar {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   column-gap: 0.5rem;
   place-items: stretch;
-}
-
-[data-bs-theme="dark"] .preset-btn {
-  border-color: var(--bs-border-color) !important;
-  color: var(--bs-text-body);
 }
 
 #chat-flexbox {
@@ -566,6 +572,11 @@ html[lang="fr"] .chat-sidebar {
   border: solid 1px #cdccff;
   width: fit-content;
   max-width: 90%;
+
+  [data-bs-theme="dark"] & {
+    background: var(--bs-info-bg-subtle);
+    border: solid 1px var(--bs-primary-bg-subtle);
+  }
 }
 
 @media screen and (max-width: 1600px) {
@@ -604,6 +615,11 @@ li.message-file {
   border: solid 1px #f1dda2;
   background: #fff8e2;
   position: relative;
+
+  [data-bs-theme="dark"] & {
+    border: solid 1px var(--bs-warning-bg);
+    background: var(--bs-warning-bg-subtle);
+  }
 }
 
 .message-blob .dropdown {
@@ -802,6 +818,10 @@ div#chat-toolbar {
   margin-bottom: -1px;
   min-height: 40px;
   background: var(--app-primary-bg);
+
+  [data-bs-theme="dark"] & {
+    background-color: var(--bs-body-bg) !important;
+  }
 }
 
 #prompt-form-container .option,
@@ -967,11 +987,6 @@ div#chat-toolbar {
   }
 }
 
-[data-bs-theme="dark"] #advancedQaModalButton {
-  border-color: var(--bs-border-color) !important;
-  color: var(--bs-text-body) !important;
-}
-
 #chat-modes button {
   margin-bottom: -1px;
   background: var(--app-primary-bg);
@@ -1005,7 +1020,7 @@ div#chat-toolbar {
 #chat-outer.chat #chat-modes button.chat-option {
   background: var(--bs-body-bg);
   color: var(--bs-text-body) !important;
-  border-bottom: solid 1px white !important;
+  border-bottom: none !important;
   z-index: 10;
   font-weight: 500;
   padding-bottom: 7px;
