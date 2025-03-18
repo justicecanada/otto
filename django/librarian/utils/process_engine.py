@@ -121,6 +121,7 @@ def guess_content_type(
         "application/pdf",
         "application/xml",
         "application/vnd.ms-outlook",
+        "application/zip",
         "text/html",
         "text/markdown",
         "text/csv",

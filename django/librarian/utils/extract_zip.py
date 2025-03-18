@@ -13,6 +13,8 @@ logger = get_logger(__name__)
 
 
 def extract_file(content, data_source_id):
+    from librarian.utils.process_engine import guess_content_type
+
     binary_stream = BytesIO(content)
     cwd = Path.cwd()
     directory = f"{cwd}/media/{data_source_id}/zip_files"
@@ -23,21 +25,22 @@ def extract_file(content, data_source_id):
                 path = archive.extract(info.filename, directory)
                 with open(path, "rb") as f:
                     name = Path(path).name
-                    suffix = Path(path).suffix
-                    if suffix == ".msg":
-                        content_type = "application/vnd.ms-outlook"
-                    elif suffix == ".eml":
-                        content_type = "message/rfc822"
-                    elif suffix == ".zip":
-                        content_type = "application/zip"
-                    else:
-                        content_type = suffix
+                    content_type = guess_content_type(f, name)
+                    # suffix = Path(path).suffix
+                    # if suffix == ".msg":
+                    #     content_type = "application/vnd.ms-outlook"
+                    # elif suffix == ".eml":
+                    #     content_type = "message/rfc822"
+                    # elif suffix == ".zip":
+                    #     content_type = "application/zip"
+                    # else:
+                    #     content_type = suffix
                     process_file(f, data_source_id, name, content_type)
                 file_info = f"Filename: {info.filename}\nModified: {datetime.datetime(*info.date_time)}\nNormal size: {info.file_size} bytes\nCompressed size: {info.compress_size} bytes\n--------------------\n"
                 info_list.append(file_info)
             md = f"Compressed files\n\n".join(info_list)
         except Exception as e:
-            logger.error(f"Failed to extract Outlook email: {e}")
+            logger.error(f"Failed to extract Zip file: {e}")
             md = ""
         shutil.rmtree(directory, ignore_errors=True)
         return md
