@@ -350,14 +350,54 @@ def msg_to_markdown(content):
         return md
 
 
+def has_page_break(paragraph):
+    from docx.oxml.ns import qn
+
+    # Check if the paragraph contains a page break
+    for run in paragraph.runs:
+        for br in run._element.findall(qn("w:br")):
+            if br.get(qn("w:type")) == "page":
+                return True
+    return False
+
+
+def has_section_break(paragraph):
+    from docx.oxml.ns import qn
+
+    # Check if the paragraph contains a section break
+    for run in paragraph.runs:
+        for sectPr in run._element.findall(qn("w:sectPr")):
+            return True
+    return False
+
+
 def docx_to_markdown(content):
     import mammoth
+    from docx import Document
 
+    # with io.BytesIO(content) as docx_file:
+    #     result = mammoth.convert_to_html(docx_file)
+    # html = result.value
+    # Identify page breaks using python-docx
     with io.BytesIO(content) as docx_file:
-        result = mammoth.convert_to_html(docx_file)
-    html = result.value
+        doc = Document(docx_file)
+        paragraphs = doc.paragraphs
 
-    return _convert_html_to_markdown(html)
+        # Add page break markers to the HTML content
+        page_number = 1
+        page_break_html = f"<page_{page_number}>"
+        html_with_pages = page_break_html
+        for paragraph in paragraphs:
+            if has_page_break(paragraph) or has_section_break(paragraph):
+                page_number += 1
+                page_break_html = f"</page_{page_number - 1}><page_{page_number}>"
+                # html += page_break_html
+                html_with_pages += page_break_html
+            html_with_pages += paragraph.text + "\n"
+        # Close the last page tag
+        html_with_pages += f"</page_{page_number}>"
+
+    return _convert_html_to_markdown(html_with_pages)  # html
 
 
 def pptx_to_markdown(content):
