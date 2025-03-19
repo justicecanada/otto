@@ -2974,5 +2974,65 @@
     "(Optional) Final reminders of desired behaviour. Keep this fairly short.": {
         "fr": "",
         "fr_auto": "(Facultatif) Derniers rappels du comportement souhaité. Soyez assez bref."
+    },
+    "Start interactive tour": {
+        "fr": "",
+        "fr_auto": "Commencer la visite interactive"
+    },
+    "Email the Otto team": {
+        "fr": "",
+        "fr_auto": "Envoyez un courriel à l’équipe d’Otto"
+    },
+    "of": {
+        "fr": "",
+        "fr_auto": "de"
+    },
+    "Click the Otto logo in the top left to return to this page at any time.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur le logo Otto en haut à gauche pour revenir à cette page en tout temps."
+    },
+    "Switch language": {
+        "fr": "",
+        "fr_auto": "Changer de langue"
+    },
+    "Switch the user interface language between English and French.": {
+        "fr": "",
+        "fr_auto": "Changez la langue de l’interface utilisateur entre l’anglais et le français."
+    },
+    "Cost meter": {
+        "fr": "",
+        "fr_auto": "Compteur de coûts"
+    },
+    "This meter gradually fills up as you use Otto. It represents the amount of money left out of your monthly personal budget. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center for a temporary exemption.": {
+        "fr": "",
+        "fr_auto": "Ce compteur se remplit graduellement au fur et à mesure que vous utilisez Otto. Il représente le montant d’argent laissé de côté dans votre budget personnel mensuel. Si vous atteignez votre limite, vous ne pourrez plus utiliser Otto et devrez communiquer avec le Centre d’analyse d’affaires pour obtenir une exemption temporaire."
+    },
+    "Get help": {
+        "fr": "",
+        "fr_auto": "Obtenir de l’aide"
+    },
+    "Click the question mark icon to view this tour again, open the user guide, or get help from the Otto team.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur l’icône en forme de point d’interrogation pour revoir cette visite, ouvrir le guide de l’utilisateur ou obtenir de l’aide de l’équipe d’Otto."
+    },
+    "Welcome tour:": {
+        "fr": "",
+        "fr_auto": "Visite de bienvenue :"
+    },
+    "It looks like this is your first time here.": {
+        "fr": "",
+        "fr_auto": "On dirait que c’est la première fois que vous êtes ici."
+    },
+    "Please take a quick tour to get familiar with the platform.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite rapide pour vous familiariser avec la plateforme."
+    },
+    "Begin tour": {
+        "fr": "",
+        "fr_auto": "Commencer la visite"
+    },
+    "Otto homepage": {
+        "fr": "",
+        "fr_auto": "Page d’accueil d’Otto"
     }
 }
