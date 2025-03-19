@@ -233,6 +233,9 @@ def chat(request, chat_id):
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
         "chat_history_sections": get_chat_history_sections(user_chats),
+        "has_tour": True,
+        "tour_name": _("AI Assistant"),
+        "force_tour": not request.user.ai_assistant_tour_completed,
     }
     return render(request, "chat/chat.html", context=context)
 

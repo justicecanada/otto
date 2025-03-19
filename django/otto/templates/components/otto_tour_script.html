@@ -49,7 +49,11 @@
         element: "#help-button",
         popover: {
           title: "{% trans 'Get help' %}",
-          description: "{% trans 'Click the question mark icon to view this tour again, open the user guide, or get help from the Otto team.' %}"
+          description: "{% trans 'Click the question mark icon to view this tour again, open the user guide, or get help from the Otto team.' %}",
+          onNextClick: () => {
+            htmx.ajax("POST", '{% url "mark_tour_completed" tour_name="homepage" %}', {swap: "none"});
+            driverObj.moveNext();
+          },
         }
       },
     ],
@@ -58,4 +62,11 @@
       helpMenu.hide();
     }
   });
+  {% if force_tour %}
+  // Open a bootstrap modal welcoming the user
+  setTimeout(() => {
+    const modal = new bootstrap.Modal(document.getElementById('tour-modal'));
+    modal.show();
+  }, 1000);
+  {% endif %}
 </script>

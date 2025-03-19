@@ -100,7 +100,11 @@
         element: "#right-sidebar>div>div:last-of-type>:nth-child(1)",
         popover: {
           title: "{% trans 'Preset' %}",
-          description: "{% trans 'You can also view or edit the full list of existing presets you created or that were shared with you.'%}"
+          description: "{% trans 'You can also view or edit the full list of existing presets you created or that were shared with you.'%}",
+          onNextClick: () => {
+            htmx.ajax("POST", '{% url "mark_tour_completed" tour_name="ai_assistant" %}', {swap: "none"});
+            driverObj.moveNext();
+          },
         }
       }
     ],
@@ -156,4 +160,12 @@
       chatSidebar.click();          
     }        
   }
+
+  {% if force_tour %}
+  // Open a bootstrap modal welcoming the user
+  setTimeout(() => {
+    const modal = new bootstrap.Modal(document.getElementById('tour-modal'));
+    modal.show();
+  }, 1000);
+  {% endif %}
 </script>

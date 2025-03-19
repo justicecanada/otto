@@ -11,15 +11,14 @@
     <i class="bi bi-question-circle"></i>
   </button>
   <ul id="help-menu" class="dropdown-menu dropdown-menu-end">
-    <li>
-      <button id="start-tour" class="a dropdown-item" onclick="driverObj.drive();">
-        <i class="bi bi-airplane me-2"></i>
-        {% trans 'Start interactive tour' %}
-      </button>
-    </li>
-    <li>
-      <hr class="dropdown-divider">
-    </li>
+    {% if has_tour %}
+      <li>
+        <button id="start-tour" class="a dropdown-item" onclick="driverObj.drive();">
+          <i class="bi bi-airplane me-2"></i>
+          {% trans 'Start interactive tour' %}
+        </button>
+      </li>
+    {% endif %}
     <li>
       <a id="contact-us"
          class="a dropdown-item"

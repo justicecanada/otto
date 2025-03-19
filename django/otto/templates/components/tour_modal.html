@@ -1,0 +1,31 @@
+{% load i18n %}
+
+<div class="modal fade"
+     id="tour-modal"
+     tabindex="-1"
+     aria-labelledby="tour-modal-title"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tour-modal-title">
+          <span>{% trans "Welcome tour:" %} {{ tour_name }}</span>
+        </h5>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label='{% trans "Close" %} '></button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-text">{% trans "It looks like this is your first time here." %}</p>
+        <p class="modal-text">{% trans "Please take a quick tour to get familiar with the platform." %}</p>
+        <div class="d-flex justify-content-center">
+          <button type="button"
+                  class="btn btn-primary"
+                  onclick="driverObj.drive();"
+                  data-bs-dismiss="modal">{% trans "Begin tour" %}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
