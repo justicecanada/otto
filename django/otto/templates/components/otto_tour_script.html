@@ -1,0 +1,35 @@
+{% load i18n %}
+<script>
+  let driver =  window.driver.js.driver;
+  let driverObj = driver({
+    showProgress: true,
+    disableActiveInteraction: true,
+    popoverClass: "bs-popover-auto",
+    prevBtnText: "{% trans 'Previous' %}",
+    nextBtnText: "{% trans 'Next' %}",
+    doneBtnText: "{% trans 'Done' %}",
+    steps: [
+      {
+        element: "#app-list",
+        popover: {
+          title: "{% trans 'Start using Otto'%}",
+          description: "{% trans 'Start using Otto by selecting an application.'%}"
+        }
+      },
+      {
+        element: "#cost-bar-inner",
+        popover: {
+          title: "{% trans 'Cost allocation'%}",
+          description: "{% trans 'This meter gradually fills up as you use Otto. It represents the amount of money left out of your weekly allocation. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center to grant an exemption.'%}"
+        }
+      },
+      {
+        element: "#feedback-icon",
+        popover: {
+          title: "{% trans 'Feedback'%}",
+          description: "{% trans 'Click on this icon to submit feedback about Otto. Let us know what went wrong, or suggest an improvement.'%}"
+        }
+      }
+    ],
+  });
+</script>

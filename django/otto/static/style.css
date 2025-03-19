@@ -393,3 +393,14 @@ ul.errorlist p {
   /* increase z-index to show over modals */
   z-index: 1070;
 }
+
+/* Driver.js overrides */
+
+.driver-popover * {
+  font-family: var(--bs-body-font-family) !important;
+}
+
+.driver-popover *:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25);
+}
