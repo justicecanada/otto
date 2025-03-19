@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 from django.core.cache import cache
@@ -8,6 +9,13 @@ from celery import shared_task
 
 @shared_task
 def sync_users():
+    loop = asyncio.get_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(async_sync_users())
+    loop.close()
+
+
+async def async_sync_users():
     call_command("sync_users")
 
 
