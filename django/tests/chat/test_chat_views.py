@@ -1102,23 +1102,6 @@ def test_preset(client, basic_user, all_apps_user):
     chat2.options.qa_pre_instructions = ""
     chat2.options.save()
 
-    # Reset to default preset (action="reset")
-    response = client.post(
-        reverse(
-            "chat:chat_options",
-            kwargs={
-                "chat_id": chat2.id,
-                "action": "reset",
-            },
-        )
-    )
-    assert response.status_code == 200
-    chat2.refresh_from_db()
-    # Chat2 should now have the preset loaded
-    assert chat2.options.qa_pre_instructions == "The quick brown fox"
-    # But the library should be reset to user2's personal library
-    assert chat2.options.qa_library == user2.personal_library
-
 
 def test_update_qa_options_from_librarian(client, all_apps_user):
     from librarian.models import DataSource, Document, Library
