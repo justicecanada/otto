@@ -8,20 +8,6 @@
     background: var(--bs-light);
     min-height: 100vh;
   }
-
-  #start-tour, #contact-us {
-    &:active {
-      background-color: var(--bs-gray-300) !important;
-      color: black;
-    }
-    
-  }
-
-  #help-button {
-    &.btn {
-      border-color: transparent !important;
-    }
-  }
   </style>
 
   <script src="{% static 'thirdparty/driver.js.iife.1.3.4.js' %}"></script>
@@ -82,64 +68,10 @@
       </div>
     {% endfor %}
   </div>
-
-  <div class="dropdown position-fixed bottom-0 end-0 m-3 bg-light rounded-circle">
-    <button type="button"
-            id="help-button"
-            class="btn"
-            title="{% trans 'Help' %}"
-            data-bs-toggle="dropdown"
-            aria-controls="help-menu"
-            aria-haspopup="true"
-            aria-expanded="false">
-      <i class="bi bi-question-circle fs-5 text-muted"></i>
-    </button>
-    <ul id="help-menu"
-        role="menu"
-        class="dropdown-menu bg-light shadow"
-        aria-labelledby="help-button">
-      <li role="presentation">
-        <button id="start-tour"
-                role="menuitem"
-                class="d-flex dropdown-item g-0 bg-light"
-                onclick="driverObj.drive();">
-          <div class="me-2">
-            <i class="bi bi-airplane" style="font-size: .80rem;"></i>
-          </div>
-          {% trans 'Start a tour of Otto' %}
-        </button>
-      </li>
-      <li role="presentation">
-        <a id="contact-us"
-           role="menuitem"
-           class="d-flex dropdown-item g-0 bg-light"
-           href="mailto:otto@justice.gc.ca">
-          <div class="me-2">
-            <i class="bi bi-envelope" style="font-size: .85rem"></i>
-          </div>
-        {% trans 'Contact us' %}</a>
-      </li>
-    </ul>
-  </div>
 {% endblock %}
 
 {% block page_script %}
-  <script>
-      let driver =  window.driver.js.driver;
-      let driverObj = driver({
-        showProgress: true,
-        disableActiveInteraction: true,
-        popoverClass: "bs-popover-auto",
-        prevBtnText: "{% trans 'Previous' %}",
-        nextBtnText: "{% trans 'Next' %}",
-        doneBtnText: "{% trans 'Done' %}",
-        steps: [          
-          { element: "#app-list", popover: { title: "{% trans 'Start using Otto'%}", description: "{% trans 'Start using Otto by selecting an application.'%}" } },
-          { element: "#cost-bar-inner", popover: { title: "{% trans 'Cost allocation'%}", description: "{% trans 'This meter gradually fills up as you use Otto. It represents the amount of money left out of your weekly allocation. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center to grant an exemption.'%}"} },
-          { element: "#feedback-icon", popover: { title: "{% trans 'Feedback'%}", description: "{% trans 'Click on this icon to submit feedback about Otto. Let us know what went wrong, or suggest an improvement.'%}"} }
-        ],
-      });
-  </script>
+  {% include "components/otto_tour_script.html" %}
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const logoElement = document.querySelector('#otto-logo');

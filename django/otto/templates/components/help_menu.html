@@ -1,0 +1,32 @@
+{% load i18n %}
+<li class="nav-item dropdown">
+  <button type="button"
+          id="help-button"
+          class="btn btn-dark text-muted px-1 ms-1"
+          style="min-width: 25px"
+          title="{% trans 'Help' %}"
+          data-bs-toggle="dropdown"
+          data-bs-auto-close="outside"
+          aria-expanded="false">
+    <i class="bi bi-question-circle"></i>
+  </button>
+  <ul id="help-menu" class="dropdown-menu dropdown-menu-end">
+    <li>
+      <button id="start-tour" class="a dropdown-item" onclick="driverObj.drive();">
+        <i class="bi bi-airplane me-2"></i>
+        {% trans 'Start interactive tour' %}
+      </button>
+    </li>
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+    <li>
+      <a id="contact-us"
+         class="a dropdown-item"
+         href="mailto:otto@justice.gc.ca">
+        <i class="bi bi-envelope me-2"></i>
+        {% trans 'Email the Otto team' %}
+      </a>
+    </li>
+  </ul>
+</li>

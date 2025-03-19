@@ -42,7 +42,9 @@
            class="btn btn-primary position-absolute visually-hidden-focusable ms-2">{% trans "Skip to main content" %}</a>
         <div class="container-fluid">
           <div>
-            <a class="navbar-brand text-white me-0" href="{% url 'index' %}">
+            <a class="navbar-brand text-white me-0"
+               href="{% url 'index' %}"
+               id="home-link">
               <img src="{% static 'otto-icon.png' %}"
                    width="27"
                    height="auto"
@@ -71,10 +73,11 @@
                  id="navbar-dropdown">
               <ul class="navbar-nav position-relative">
                 {% include 'components/user_menu.html' %}
+                {% include 'components/notifications.html' %}
+                {% include 'components/feedback/feedback_icon.html' %}
+                {% include 'components/help_menu.html' %}
+                {% include 'components/language_toggle.html' %}
               </ul>
-              {% include 'components/notifications.html' %}
-              {% include 'components/feedback/feedback_icon.html' %}
-              {% include 'components/language_toggle.html' %}
             </div>
           {% endif %}
 

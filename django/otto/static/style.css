@@ -4,7 +4,7 @@
   flex-direction: row;
 }
 
-#user-menu .dropdown-item {
+#navbar-dropdown .dropdown-item {
 
   &:focus,
   &:focus-visible,

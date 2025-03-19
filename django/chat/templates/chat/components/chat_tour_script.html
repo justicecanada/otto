@@ -104,6 +104,10 @@
         }
       }
     ],
+    onPopoverRender: () => {
+      const helpMenu = new bootstrap.Dropdown(document.querySelector("#help-menu"));
+      helpMenu.hide();
+    }
   });
 
   function showChatContextMenuEllipsis(){
