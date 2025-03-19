@@ -6,7 +6,7 @@
 {% get_current_language as LANGUAGE_CODE %}
 <li class="card p-3"
     data-default="{{ preset.default }}"
-    style="box-shadow: 1px solid !important">
+    style="box-shadow: 1px solid">
   <div class="card-header flex-column">
     <div class="d-flex justify-content-between w-100 fs-5">
       <div class="me-auto">{% include "chat/modals/presets/shared_icon.html" %}</div>
@@ -57,31 +57,33 @@
     </div>
   </div>
   <div class="card-body pt-2">
-    <p class="preset-description card-text text-muted"
-       style="line-height: 1.5;
-              min-height: calc(1.5em * 2);
-              -webkit-box-orient: vertical !important;
-              display: -webkit-box !important;
-              -webkit-line-clamp: 2 !important;
-              overflow: hidden !important;
-              text-overflow: ellipsis !important;
-              white-space: normal !important">{% get_preset_description preset LANGUAGE_CODE %}</p>
+    <div class="text-wrapper">
+      <p class="preset-description card-text text-muted"
+         style="line-height: 1.5;
+                min-height: calc(1.5em * 2);
+                -webkit-box-orient: vertical;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: normal">{% get_preset_description preset LANGUAGE_CODE %}</p>
+    </div>
   </div>
   <div class="card-footer w-100">
     <button type="button"
             class="btn btn-lg fw-semibold fs-6"
             data-bs-dismiss="modal"
-            style="background-color: var(--app-color-blue-1) !important;
-                   color: white !important"
+            style="background-color: var(--app-color-blue-1);
+                   color: white"
             hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
             hx-target="#options-accordion">{% trans "Load" %}</button>
     {% if can_edit_preset %}
       <button type="button"
-              class="btn btn-light btn-outline-dark fw-semibold flex-grow-1 fs-6"
+              class="btn btn-lg btn-outline-dark fw-semibold fs-6"
               hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
               hx-target="#presets-modal-body"
-              style="background-color: white !important;
-                     color: black !important"
+              style="background-color: white;
+                     color: black"
               hx-swap="innerHTML transition:true">{% trans "Edit" %}</button>
     {% endif %}
   </div>
