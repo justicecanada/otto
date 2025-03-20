@@ -3034,5 +3034,33 @@
     "Otto homepage": {
         "fr": "",
         "fr_auto": "Page d’accueil d’Otto"
+    },
+    "Welcome to the AI Assistant!": {
+        "fr": "",
+        "fr_auto": "Bienvenue à l’assistant IA!"
+    },
+    "It looks like this is your first time using the AI Assistant.": {
+        "fr": "",
+        "fr_auto": "Il semble que ce soit la première fois que vous utilisez l’assistant IA."
+    },
+    "Please take a quick tour to get familiar with the main features.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite rapide pour vous familiariser avec les principales caractéristiques."
+    },
+    "(required on first use)": {
+        "fr": "",
+        "fr_auto": "(requis lors de la première utilisation)"
+    },
+    "Start tour": {
+        "fr": "",
+        "fr_auto": "Commencer la visite"
+    },
+    "Welcome to Otto!": {
+        "fr": "",
+        "fr_auto": "Bienvenue chez Otto!"
+    },
+    "Reset flags for demo": {
+        "fr": "",
+        "fr_auto": "Réinitialiser les indicateurs pour la démo"
     }
 }
