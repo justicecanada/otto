@@ -80,26 +80,4 @@
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
-  "workbench.colorCustomizations": {
-    "terminal.background": "#2E3440",
-    "terminal.foreground": "#E5E9F0",
-    "terminalCursor.background": "#E5E9F0",
-    "terminalCursor.foreground": "#E5E9F0",
-    "terminal.ansiBlack": "#2E3440",
-    "terminal.ansiBlue": "#EBCB8B",
-    "terminal.ansiBrightBlack": "#4C566A",
-    "terminal.ansiBrightBlue": "#EBCB8B",
-    "terminal.ansiBrightCyan": "#D08770",
-    "terminal.ansiBrightGreen": "#BF616A",
-    "terminal.ansiBrightMagenta": "#A3BE8C",
-    "terminal.ansiBrightRed": "#88C0D0",
-    "terminal.ansiBrightWhite": "#8FBCBB",
-    "terminal.ansiBrightYellow": "#5E81AC",
-    "terminal.ansiCyan": "#A3BE8C",
-    "terminal.ansiGreen": "#BF616A",
-    "terminal.ansiMagenta": "#84726d",
-    "terminal.ansiRed": "#88C0D0",
-    "terminal.ansiWhite": "#E5E9F0",
-    "terminal.ansiYellow": "#5E81AC"
-  }
 }
