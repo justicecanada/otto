@@ -1,20 +1,22 @@
 {% load i18n %}
 
-<form action="{% url 'set_language' %}" method="post">
-  {% csrf_token %}
-  <input name="next" type="hidden" value="{{ redirect_to }}" />
-  {% get_current_language as LANGUAGE_CODE %}
-  {% if LANGUAGE_CODE == "en" %}
-    <input name="language" type="hidden" value="fr" />
-    <button type="submit"
-            id="language-toggle"
-            class="btn btn-link text-muted px-1 me-0"
-            lang="fr">Français</button>
-  {% else %}
-    <input name="language" type="hidden" value="en" />
-    <button type="submit"
-            id="language-toggle"
-            class="btn btn-link text-muted px-1 me-0"
-            lang="en">English</button>
-  {% endif %}
-</form>
+<li>
+  <form action="{% url 'set_language' %}" method="post">
+    {% csrf_token %}
+    <input name="next" type="hidden" value="{{ redirect_to }}" />
+    {% get_current_language as LANGUAGE_CODE %}
+    {% if LANGUAGE_CODE == "en" %}
+      <input name="language" type="hidden" value="fr" />
+      <button type="submit"
+              id="language-toggle"
+              class="btn btn-link text-muted px-1 me-0"
+              lang="fr">Français</button>
+    {% else %}
+      <input name="language" type="hidden" value="en" />
+      <button type="submit"
+              id="language-toggle"
+              class="btn btn-link text-muted px-1 me-0"
+              lang="en">English</button>
+    {% endif %}
+  </form>
+</li>

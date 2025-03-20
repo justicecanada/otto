@@ -4,7 +4,7 @@
   flex-direction: row;
 }
 
-#user-menu .dropdown-item {
+#top-right-nav .dropdown-item {
 
   &:focus,
   &:focus-visible,
@@ -27,9 +27,6 @@
   }
 }
 
-#navbar-dropdown>*+* {
-  margin-left: 0.5rem;
-}
 
 /* Make the footer div centered, small, and bottom of the page */
 #footer {
@@ -392,4 +389,20 @@ ul.errorlist p {
 .toast-sticky {
   /* increase z-index to show over modals */
   z-index: 1070;
+}
+
+/* Driver.js overrides */
+
+.driver-popover * {
+  font-family: var(--bs-body-font-family) !important;
+}
+
+.driver-popover *:focus {
+  outline: 0;
+  box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25);
+}
+
+svg.driver-overlay {
+  /* Match Bootstrap modal overlay */
+  opacity: 0.72;
 }

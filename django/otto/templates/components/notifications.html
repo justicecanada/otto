@@ -1,18 +1,16 @@
 {% load i18n %}
-<ul class="navbar-nav">
-  <li class="nav-item dropdown">
-    <button class="btn btn-dark text-muted px-1 me-0 text-center"
-            style="min-width:25px"
-            data-bs-toggle="dropdown"
-            data-bs-auto-close="outside"
-            aria-expanded="false"
-            hx-get="{% url 'notifications' %}"
-            hx-trigger="load delay:100ms, click"
-            hx-swap="none"
-            title="{% trans 'Notifications' %}"
-            id="notifications-toggle">{% include 'components/notifications_bell.html' %}</button>
-    <ul class="dropdown-menu dropdown-menu-end" id="notifications-ul">
-      {% include 'components/notifications_list.html' %}
-    </ul>
-  </li>
-</ul>
+<li class="nav-item dropdown">
+  <button class="btn btn-dark text-muted px-1 ms-1 text-center"
+          style="min-width:25px"
+          data-bs-toggle="dropdown"
+          data-bs-auto-close="outside"
+          aria-expanded="false"
+          hx-get="{% url 'notifications' %}"
+          hx-trigger="load delay:100ms, click"
+          hx-swap="none"
+          title="{% trans 'Notifications' %}"
+          id="notifications-toggle">{% include 'components/notifications_bell.html' %}</button>
+  <ul class="dropdown-menu dropdown-menu-end" id="notifications-ul">
+    {% include 'components/notifications_list.html' %}
+  </ul>
+</li>

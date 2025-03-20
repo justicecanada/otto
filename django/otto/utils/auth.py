@@ -45,6 +45,10 @@ NO_TERMS_PATHS = PUBLIC_PATHS + [
     "/i18n/setlang",
     "/feedback",
     "/user_cost",
+    "/user_management/mark_tour_completed/homepage",
+    "/user_management/mark_tour_completed/ai_assistant",
+    "/user_management/mark_tour_completed/laws",
+    "/user_management/reset_completion_flags",
 ]
 
 

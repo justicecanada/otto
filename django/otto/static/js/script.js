@@ -26,4 +26,3 @@ document.addEventListener('htmx:afterRequest', function (event) {
     });
   });
 })();
-

@@ -1,0 +1,160 @@
+{% load i18n %}
+
+<script>
+startTour = () => {
+  // TODO: Always ensure that tour starts with a blank chat in Chat mode
+  driverObj.drive();
+};
+
+let tourSteps = [
+  // #chat-welcome: Safe use of the AI Assistant and mode descriptions
+  // #chat-modes: Use the tabs to select different modes
+  // #chat-inputs: Use the textbox to send a message to Otto (animate a message being typed and sent, or force user to do so)
+  // #messages-container: View the messages sent and received
+  // .nav-link.qa-option: Switch to Q&A mode
+  // #right-sidebar: Settings sidebar updated to show Q&A mode options
+  // Library dropdown: Select the document library to search
+  // Search mode: RAG vs full documents (important!)
+  // Filter results: Optionally, limit to certain folders or documents (important for "full documents" mode!)
+  // Model: Note that this option is in all the modes. Efficiency vs. Quality tradeoff.
+  // #chat-inputs: Use the textbox to send Q&A message to Otto (animate a message being typed and sent, or force user to do so)
+  // #messages-container: View the response, highlight sources link. (but don't click it)
+  // Upload button: You can upload your own documents to use as sources. These will be deleted when the chat is deleted. You can also drag files into the chat.
+  // Edit libraries button: You can also create your own persistent and shareable document libraries. These will be deleted after 30 days inactivity. (don't show modal - out of scope)
+  // Summarize settings
+  // Summarize a URL. Note that you can also enter URLs in Q&A mode.
+  // Custom summarize prompt
+  // Summarize the URL again
+  // Summarize a URL that isn't allowed - highlight the domain restrictions.
+  // Translate settings: Set the desired language. You can translate free text using the chat input or upload files to be translated.
+  // Browse presets: Find examples of settings for particular uses.
+  // Save preset: Save your current settings as a preset. You can share your presets with others, and set them as your default for new chats.
+  // New chat button: When changing topics, it's best to start a new chat. This will reset the settings to the default.
+  // Existing chats: See your previous chats. You can rename, delete, and set security label for a chat. Chats are deleted after 30 days inactivity.
+];
+
+// Keeping track of extra steps for our convenience as we refine the tour
+tourSteps = [
+  {
+    element: "#new-chat-button",
+    popover: {
+      title: "{% trans 'Start a new chat at any time.'%}",
+      description: "{% trans 'Start a new chat at any time by clicking this button.'%}"
+    }
+  },
+  {
+    element: ".chat-list-item.current",
+    popover: {
+      title: "{% trans 'Current chat'%}",
+      description: "{% trans 'Your current chat will appear in bolded characters.'%}",
+      onNextClick: () => { showChatContextMenuEllipsis(); driverObj.moveNext(); }
+    }
+  },
+  {
+    element: ".chat-list-item.current > div > button",
+    popover: {
+      title: "{% trans 'Chat options'%}",
+      description: "{% trans 'Click on the ellipsis icon to view more options.'%}",
+      onNextClick: () => { showChatContextMenu(); driverObj.moveNext(); }
+    }
+  },
+  {
+    element: ".chat-list-item.current > div > button ~ div",
+    popover: {
+      title: "{% trans 'Chat options'%}",
+      description: "{% trans 'Rename your chats or to delete them entirely.'%}",
+      onNextClick: () => { driverObj.moveNext(); },
+      onPrevClick: () => { showChatContextMenu(); driverObj.movePrevious(); }
+    }
+  },
+  {
+    element: "#chat-inputs",
+    popover: {
+      title: "{% trans 'Using the AI Assistant'%}",
+      description: "{% trans 'Use the textbox to start.'%}",
+      onPrevClick: () => { showChatContextMenu(); driverObj.movePrevious(); }
+    }
+  },
+  {
+    element: "#chat-modes",
+    popover: {
+      title: "{% trans 'Modes' %}",
+      description: "{% trans 'Select different modes by clicking the tabs.'%}"
+    }
+  },
+  {
+    element: "#right-sidebar",
+    popover: {
+      title: "{% trans 'Settings'%}",
+      description: "{% trans 'Settings are tied to the current chat in use. Saving is done automatically when a change is detected.'%}",
+      onNextClick: () => { handleModeChange("qa"); driverObj.moveNext(); }
+    }
+  },
+  {
+    element: ".accordion-item.qa",
+    popover: {
+      title: "{% trans 'Q&A mode'%}",
+      description: "{% trans 'Selecting a mode in the settings list will automatically set your chat session to that mode.'%}",
+    }
+  },
+  {
+    element: "#presets-modal-button",
+    popover: {
+      title: "{% trans 'Presets' %}",
+      description: "{% trans 'Browse settings presets and create your own to share with others.'%}",
+      onNextClick: () => {
+        htmx.ajax("POST", '{% url "mark_tour_completed" tour_name="ai_assistant" %}', {swap: "none"});
+        driverObj.moveNext();
+      },
+    }
+  }
+];
+
+
+function showChatContextMenuEllipsis(){
+  const chatContextMenuEllipsis = document.querySelector('.chat-list-item.current > div > button');
+  chatContextMenuEllipsis.focus();                
+}
+
+function showChatContextMenu(){
+  const chatContextMenuEllipsis = document.querySelector('.chat-list-item.current > div > button');
+  chatContextMenuEllipsis.click();        
+}
+
+function toggleChatAccordion(){
+  let chatAccordionButton = document.querySelector('.accordion-item.chat>h5>button');
+  if(chatAccordionButton.classList.contains('collapsed')){
+    chatAccordionButton.click();
+  }               
+}      
+
+function toggleQAAccordion(){
+  document.querySelector('.accordion-item.qa>h5>button').click();        
+}
+
+function toggleRightSidebar(isPrevious=false) {
+  const chatSidebar = document.getElementById('right-sidebar-toggle');
+  if (chatSidebar.classList.contains('hidden')) {
+    if(isPrevious){
+      document.getElementById('close-right-sidebar').click();
+    }         
+    return;
+  }
+  chatSidebar.click();
+  toggleChatAccordion();
+}
+
+function openLeftSidebar() {
+  const chatSidebar = document.getElementById('left-sidebar-toggle');
+  if (chatSidebar) {
+    chatSidebar.click();          
+  }        
+}
+
+function closeLeftSidebar() {
+  const chatSidebar = document.getElementById('close-left-sidebar');
+  if (chatSidebar) {
+    chatSidebar.click();          
+  }        
+}
+</script>
