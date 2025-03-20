@@ -351,13 +351,35 @@ def msg_to_markdown(content):
 
 
 def docx_to_markdown(content):
-    import mammoth
+    from docx import Document
 
+    # Identify page breaks using python-docx
     with io.BytesIO(content) as docx_file:
-        result = mammoth.convert_to_html(docx_file)
-    html = result.value
+        doc = Document(docx_file)
+        paragraphs = doc.paragraphs
 
-    return _convert_html_to_markdown(html)
+        # Add page break markers to the HTML content
+        page_number = 1
+        page_break_html = f"<page_{page_number}>"
+        html_with_pages = page_break_html
+        for paragraph in paragraphs:
+            if contains_page_break(paragraph):
+                page_number += 1
+                page_break_html = f"</page_{page_number - 1}><page_{page_number}>"
+                html_with_pages += page_break_html
+            html_with_pages += f"<p>{paragraph.text}</p>\n"
+        # Close the last page tag
+        html_with_pages += f"</page_{page_number}>"
+
+    return _convert_html_to_markdown(html_with_pages)
+
+
+def contains_page_break(paragraph):
+    # Check if the paragraph contains a page break
+    for run in paragraph.runs:
+        if run.contains_page_break:
+            return True
+    return False
 
 
 def pptx_to_markdown(content):
