@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 from django.conf import settings
@@ -5,6 +6,7 @@ from django.conf import settings
 from asgiref.sync import sync_to_async
 from attr import dataclass
 from azure.identity import ClientSecretCredential
+from channels.db import database_sync_to_async
 from kiota_abstractions.api_error import APIError
 from msgraph import GraphServiceClient
 from msgraph.generated.users.users_request_builder import UsersRequestBuilder
@@ -98,14 +100,24 @@ async def get_entra_user_async(user_id: str) -> EntraUser:
     return result
 
 
-async def sync_users_with_entra_async():
+def sync_users_with_entra():
     """Syncs entra users with Otto. Users in Otto not present in entra are flagged as inactive."""
-
-    users = await get_entra_users_async()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        users = loop.run_until_complete(get_entra_users_async())
+    finally:
+        loop.close()
 
     logger.info("Updating Otto...")
+    update_or_create_users(users)
+
+    set_inactive_users(users)
+
+
+def update_or_create_users(users):
     for user in users:
-        await User.objects.aupdate_or_create(
+        User.objects.update_or_create(
             upn=user.upn,
             defaults={
                 "oid": user.id,
@@ -117,18 +129,17 @@ async def sync_users_with_entra_async():
             },
         )
 
-    await set_inactive_users_async(users)
 
 # AC-2(3): Inactive Accounts
-async def set_inactive_users_async(users):
+def set_inactive_users(users):
     logger.info("Setting Inactive Users...")
     users_upn = [user.upn for user in users]
-    inactive_users = await sync_to_async(User.objects.exclude)(upn__in=users_upn)
+    inactive_users = User.objects.exclude(upn__in=users_upn)
 
-    async for inactive_user in inactive_users:
+    for inactive_user in inactive_users:
         inactive_user.is_active = False
 
-    await User.objects.abulk_update(inactive_users, ["is_active"])
+    User.objects.bulk_update(inactive_users, ["is_active"])
 
 
 def __filter_users(users) -> list[EntraUser]:
