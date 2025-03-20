@@ -848,14 +848,27 @@ def edit_preset(request, chat_id, preset_id):
 
     return render(
         request,
-        "chat/modals/presets/presets_form.html",
+        "chat/modals/presets/presets_edit_form.html",
         {
             "form": form,
             "preset_id": preset_id,
             "chat_id": chat_id,
             "can_delete": request.user.has_perm("chat.delete_preset", preset),
-            "is_public": preset.sharing_option == "everyone",
-            "is_global_default": preset.global_default,
+        },
+    )
+
+
+@permission_required("chat.edit_preset_sharing", objectgetter(Preset, "preset_id"))
+def share_preset(request, chat_id, preset_id):
+    preset = get_object_or_404(Preset, id=preset_id)
+    form = PresetForm(instance=preset, user=request.user)
+    return render(
+        request,
+        "chat/modals/presets/presets_share_form.html",
+        {
+            "preset": preset,
+            "form": form,
+            "chat_id": chat_id,
         },
     )
 

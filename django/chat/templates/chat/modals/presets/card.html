@@ -3,6 +3,8 @@
 {% load static %}
 {% load rules %}
 {% has_perm "chat.edit_preset" user preset as can_edit_preset %}
+{% has_perm "chat.delete_preset" user preset as can_delete %}
+{% has_perm "chat.edit_preset_sharing" user preset as can_edit_preset_sharing %}
 {% get_current_language as LANGUAGE_CODE %}
 <li class="card p-3"
     data-default="{{ preset.default }}"
@@ -24,13 +26,23 @@
                       {% endif %}"></i>
           </button>
         </div>
-        {% if can_edit_preset %}
-          <button id="share-button" type="button" class="btn btn-light rounded-circle">
+        {% if can_edit_preset_sharing %}
+          <button id="share-button"
+                  type="button"
+                  class="btn btn-light rounded-circle"
+                  hx-get="{% url 'chat:share_preset' chat_id=chat_id preset_id=preset.id %}"
+                  hx-target="#presets-modal-body">
             <i class="bi bi-share me-2 fs-5"></i>
           </button>
+        {% endif %}
+        {% if can_delete %}
           <button id="delete-preset-button"
                   type="button"
-                  class="btn btn-light rounded-circle fs-5">
+                  class="btn btn-light rounded-circle fs-5"
+                  hx-get="{% url 'chat:chat_options' chat_id=chat_id action='delete_preset' preset_id=preset.id %}"
+                  hx-target="#presets-modal-body"
+                  hx-swap="innerHTML transition:true"
+                  hx-confirm="{% trans 'Are you sure you want to delete this preset?' %}">
             <i class="bi bi-trash me-2"></i>
           </button>
         {% endif %}

@@ -101,6 +101,11 @@ urlpatterns = [
         name="edit_preset",
     ),
     path(
+        "id/<str:chat_id>/options/presets/<str:preset_id>/share/",
+        views.share_preset,
+        name="share_preset",
+    ),
+    path(
         "id/<str:chat_id>/options/presets/save_options/",
         views.save_preset,
         name="save_preset",

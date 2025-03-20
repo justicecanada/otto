@@ -1,0 +1,143 @@
+{% load i18n %}
+
+<div class="modal-body preset-form-container">
+  <form class="g-3 row"
+        id="edit_preset_form"
+        hx-post="{% if preset_id %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' preset_id=preset_id %}{% else %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' %}{% endif %}"
+        hx-include="#edit_preset_form"
+        hx-target="#presets-modal-body"
+        hx-swap="innerHTML">
+    <div class="d-flex flex-column">
+      <ul class="nav nav-tabs nav-fill mx-3"
+          id="preset-edit-tabs"
+          role="tablist">
+        <li class="nav-item" role="presentation">
+          <button id="en-preset-tab"
+                  class="active nav-link"
+                  data-bs-target="#en-preset-tab-pane"
+                  data-bs-toggle="pill"
+                  type="button"
+                  role="tab"
+                  aria-controls="en-preset-tab-pane"
+                  aria-selected="true">{% trans "English" %}</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button id="fr-preset-tab"
+                  class="nav-link"
+                  data-bs-target="#fr-preset-tab-pane"
+                  data-bs-toggle="pill"
+                  type="button"
+                  role="tab"
+                  aria-controls="fr-preset-tab-pane"
+                  aria-selected="false">{% trans "French" %}</button>
+        </li>
+      </ul>
+
+      <div class="tab-content rounded px-3 border">
+        {% csrf_token %}
+        <input type="hidden" name="prompt" value="">
+        <div id="error-message"
+             class="alert alert-danger d-none mt-3"
+             role="alert"
+             tabindex="-1"></div>
+        <div class="col-12 mt-3">
+          <div id="en-content" class="language-content active">
+            <div class="mb-3">
+              <label class="form-label" for="id_name_en">
+                {% trans "Title (English)" %}<span class="ms-1 text-danger">*</span>
+              </label>
+              {{ form.name_en }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="id_description_en">{% trans "Description (English)" %}</label>
+              {{ form.description_en }}
+            </div>
+          </div>
+          <div id="fr-content" class="language-content">
+            <div class="mb-3">
+              <label class="form-label" for="id_name_fr">
+                {% trans "Title (French)" %}<span class="ms-1 text-danger">*</span>
+              </label>
+              {{ form.name_fr }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="id_description_fr">{% trans "Description (French)" %}</label>
+              {{ form.description_fr }}
+            </div>
+          </div>
+        </div>
+        <div class="col-12 mt-3">
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="checkbox"
+                   id="id_replace_with_settings"
+                   name="replace_with_settings"
+                   {% if replace_with_settings %}checked{% endif %}>
+
+            <label class="form-check-label" for="id_replace_with_settings">{% trans "Replace with current settings" %}</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer pb-0">
+      <div class="col-12">
+        <div class="row">
+          <div class="col-6">
+            <button id="cancel_preset"
+                    class="btn btn-outline-secondary flex-fill me-2"
+                    hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
+                    hx-target="#presets-modal-body"
+                    hx-swap="innerHTML transition:true"
+                    type="button">{% trans "Cancel" %}</button>
+ 
+            {% if preset_id and can_delete %}
+              <button id="delete_preset"
+                      class="btn btn-outline-danger flex-fill"
+                      hx-get="{% url 'chat:chat_options' chat_id=chat_id action='delete_preset' preset_id=preset_id %}"
+                      hx-target="#presets-modal-body"
+                      hx-swap="innerHTML transition:true"
+                      hx-confirm="{% trans 'Are you sure you want to delete this preset?' %}"
+                      type="button">{% trans "Delete" %}</button>
+            {% endif %}
+          </div>
+          <div class="col-6 text-end pe-0">
+            <button class="btn btn-dark flex-fill"
+                    type="submit"
+                    onclick="handlePresetModalSubmit(event)">{% trans "Save" %}</button>
+ 
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+(function() {
+  const enTab = document.getElementById('en-preset-tab');
+  const frTab = document.getElementById('fr-preset-tab');
+  const enContent = document.getElementById('en-content');
+  const frContent = document.getElementById('fr-content');
+
+  function switchLanguage(lang) {
+    if (lang === 'en') {
+      enContent.classList.add('active');
+      frContent.classList.remove('active');
+      enTab.classList.add('active');
+      frTab.classList.remove('active');
+    } else {
+      frContent.classList.add('active');
+      enContent.classList.remove('active');
+      frTab.classList.add('active');
+      enTab.classList.remove('active');
+    }
+  }
+
+  if (enTab && frTab) {
+    enTab.addEventListener('click', () => switchLanguage('en'));
+    frTab.addEventListener('click', () => switchLanguage('fr'));
+  }
+
+
+})();
+</script>

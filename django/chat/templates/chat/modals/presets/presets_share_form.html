@@ -1,0 +1,114 @@
+{% load i18n %}
+
+<div class="modal-body preset-form-container">
+  <form class="g-3 row"
+        id="edit_preset_form"
+        hx-post="{% if preset_id %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' preset_id=preset_id %}{% else %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' %}{% endif %}"
+        hx-include="#edit_preset_form"
+        hx-target="#presets-modal-body"
+        hx-swap="innerHTML">
+    <div class="d-flex flex-column">
+ 
+
+      <div class="px-3">
+        {% if form.sharing_option %}
+          <div class="col-12 mt-3">
+            <label class="form-label" for="id_sharing">{% trans "Privacy controls" %}</label>
+            <div class="sharing-options d-flex gap-4">
+              {% for radio in form.sharing_option %}
+                <div class="form-check">
+                  {{ radio.tag }}
+                  <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-12 mt-2 d-none" id="other_users">
+            <div>
+              <label class="form-label" for="id_accessible_to">{% trans "Share with:" %}</label>
+              {{ form.accessible_to }}
+            </div>
+          </div>
+        {% else %}
+          <input type="hidden"
+                 name="sharing_option"
+                 value="{{ form.existing_sharing_option.value }}">
+          <input type="hidden"
+                 name="accessible_to"
+                 value="{{ form.accessible_to.value }}">
+        {% endif %}
+      </div>
+      <div id="public-preset-warning"
+           class="col-12 {% if not is_public %}d-none{% endif %}">
+        <div class="mt-3 mx-2 p-2 ps-3 bg-warning-subtle rounded border border-warning">
+          <i class="bi bi-exclamation-triangle text-danger"></i>
+          {% if is_global_default %}
+            <strong>{% trans "This is the default Otto preset. Use caution!" %}</strong>
+          {% endif %}
+          <em>{% trans "Changes will be visible to all Otto users." %}</em>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer pb-0">
+      <div class="col-12">
+        <div class="row">
+          <div class="col-6">
+            <button id="cancel_preset"
+                    class="btn btn-outline-secondary flex-fill me-2"
+                    hx-get="{% url 'chat:get_presets' chat_id=chat_id %}"
+                    hx-target="#presets-modal-body"
+                    hx-swap="innerHTML transition:true"
+                    type="button">{% trans "Cancel" %}</button>
+
+          </div>
+          <div class="col-6 text-end pe-0">
+            <button class="btn btn-dark flex-fill"
+                    type="submit"
+                    onclick="handlePresetModalSubmit(event)">{% trans "Save" %}</button>
+ 
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+(function() {
+
+  const otherUsers = document.getElementById('other_users');
+  if (otherUsers === null) return;
+  
+  const initially_public = {% if is_public %}true{% else %}false{% endif %};
+  const sharingOptionInputs = document.querySelectorAll('input[name="sharing_option"]');
+
+  function toggleWarning(display_warning) {
+    if (display_warning) {
+      document.getElementById("public-preset-warning").classList.remove("d-none");
+    } else {
+      document.getElementById("public-preset-warning").classList.add("d-none");
+    }
+  }
+
+  function toggleOtherUsers() {
+    const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
+    if (selectedOption) {
+      if (selectedOption.value === 'others') {
+        otherUsers.classList.remove('d-none');
+      } else {
+        otherUsers.classList.add('d-none');
+      }
+      if (!initially_public) {
+        toggleWarning(selectedOption.value === "everyone");
+      }
+    }
+  }
+
+  sharingOptionInputs.forEach(input => {
+    input.addEventListener('change', toggleOtherUsers);
+  });
+
+  toggleOtherUsers(); // Set initial state
+
+})();
+</script>

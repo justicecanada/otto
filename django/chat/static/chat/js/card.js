@@ -22,7 +22,7 @@ wrappers.forEach((wrapper) => {
             expandedText.style.padding = '0.5em';
             expandedText.style.boxShadow = '0px 4px 6px rgb(0 0 0 / 0.1)';
             expandedText.whiteSpace = 'normal';
-
+            expandedText.style.zIndex = '1';
             // Prevent the overlay from capturing mouse events
             expandedText.style.pointerEvents = 'none';
 
