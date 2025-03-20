@@ -356,20 +356,30 @@ div.phac_aspc_form_autocomplete .results .item {
 .security-label-UC,
 .security-label-NC {
   /* bootstrap bg-light colors */
-  background: #f8f9fa;
-  border-color: #e9ecef;
+  background: var(--otto-tab-body-bg-color);
+  color: var(--otto-primary-text-color);
+
+
+  [data-bs-theme="dark"] & {
+    background: var(--otto-tab-body-bg-color);
+    color: var(--otto-primary-text-color);
+  }
+}
+
+[data-bs-theme="dark"] .btn-outline-success {
+  background-color: var(--library-bulk-btn-bg);
 }
 
 .security-label-PA {
   /* light warning colors */
-  background: #fff3cd;
-  border-color: #ffeeba;
+  background: var(--otto-tab-body-bg-color);
+  border-color: #fcda72;
 }
 
 .security-label-PB {
   /* light danger colors */
-  background: #f8d7da;
-  border-color: #f5c6cb;
+  background: var(--otto-tab-body-bg-color);
+  border-color: #fb7380;
 }
 
 .icn-spinner {

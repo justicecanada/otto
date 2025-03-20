@@ -1,9 +1,11 @@
 :root {
+  --bg-white: white;
+  --bg-black: black;
   --bg-light-gray: #f1f1f1;
   --otto-primary-text-color: var(--bs-body-color);
   --otto-tab-body-bg-color: white;
   --app-primary-bg: #f8f9fa;
-  --app-color-purple-1: #6c23e0;
+  --app-color-purple-1: rgba(152, 87, 255, 0.78);
   --app-color-purple-1-hover: #6c23e030;
   --app-color-purple-2: #c536f0;
   --app-color-purple-2-hover: #c536f035;
@@ -11,7 +13,7 @@
   --app-color-purple-3-hover: #f092f044;
   --app-color-green-1: #067856;
   --app-color-green-1-hover: #19875440;
-  --app-color-green-2: #09bc87;
+  --app-color-green-2: #60d6b3;
   --app-color-green-2-hover: #09bc8740;
   --app-color-green-3: #54e4b9;
   --app-color-green-3-hover: rgba(84, 228, 185, 0.35);
@@ -39,22 +41,46 @@
   --app-color-yellow-2-hover: #ffd64940;
   --app-color-yellow-3: #ffeb9c;
   --app-color-yellow-3-hover: #ffeb9c40;
+  --nav-text-color: #272727;
+  --nav-text-color-hover: #646464;
+  --chat-user-message-blob-bg: #e9ebf9;
+  --chat-bot-message-blob-bg: #f1f2f4;
+  --chat-typing-span: #4669b4;
+  --img-icon-border: #dee2e6;
+  --app-border: #ccc;
+  --chat-footer-border: #ddd;
+  --chat-outer-bg: #f8f9fa;
+  --chat-message-bg: rgba(255, 255, 255, 0.5);
+  --chat-message-border: rgba(0, 0, 0, 0.2);
+  --chat-message-progress-bar-bg: rgb(80 34 189 / 45%);
+  --chat-file-drop: rgba(0, 0, 0, 0.8);
+  --chat-group-item: rgb(237 245 254);
+  --chat-group-item-hover: #555555;
+  --chat-preset-tab-not-active: #eaeaea;
+  --chat-preset-form-container: #a2a2a2;
+  --chat-mode-link-bg: #888;
+  --chat-mode-link-border: #eee;
+  --chat-delete-focus: #dc2626;
+  --chat-code-color: #800;
+  --text-extractor-sub-text: #888;
+  --chat-user-choice-button-hover: #acacac;
+  --darkgray: darkgray;
 }
 
 [data-bs-theme="dark"] {
   --otto-primary-text-color: var(--bs-body-color);
   --otto-tab-body-bg-color: var(--bs-dark-bg-subtle);
   --app-primary-bg: var(--bs-body-bg);
-  --app-color-purple-1: #6c23e0;
-  --app-color-purple-1-hover: #6c23e030;
+  --app-color-purple-1: #9c73df;
+  --app-color-purple-1-hover: #9468db77;
   --app-color-purple-2: #c536f0;
   --app-color-purple-2-hover: #c536f035;
   --app-color-purple-3: #f092f0;
   --app-color-purple-3-hover: #f092f044;
   --app-color-green-1: #067856;
   --app-color-green-1-hover: #19875440;
-  --app-color-green-2: #09bc87;
-  --app-color-green-2-hover: #09bc8740;
+  --app-color-green-2: #60d6b3;
+  --app-color-green-2-hover: #04533c;
   --app-color-green-3: #54e4b9;
   --app-color-green-3-hover: rgba(84, 228, 185, 0.35);
   --app-color-blue-1: #0d6efd;
@@ -70,12 +96,45 @@
   --app-color-orange-3: #ffbb7d;
   --app-color-orange-3-hover: #ffbb7d40;
   --app-color-red-1: #dc3545;
-  --app-color-red-1-hover: #dc354540;
+  --app-color-red-1-hover: #58151c;
   --app-color-red-2: #ff5b6c;
-  --app-color-red-2-hover: #ff5b6c40;
+  --app-color-red-2-hover: #64242a;
   --app-color-red-3: #ff8e9b;
-  --app-color-red-3-hover: #ff8e9b40;
+  --app-color-red-3-hover: #573035;
   --app-color-yellow-1: #ffc107;
-  --app-color-yellow-1-hover: #ffc107;
+  --app-color-yellow-1-hover: #684f04;
   --bs-light: #333;
+  --nav-text-color: #cecece;
+  --nav-text-color-hover: #a3a3a3;
+  --chat-user-message-blob-bg: #2b2a44;
+  --chat-bot-message-blob-bg: #29282f;
+  --chat-typing-span: #9abaffc0;
+  --img-icon-border: #dee2e6;
+  --app-border: #ccc;
+  --chat-footer-border: #ddd;
+  --chat-outer-bg: #f8f9fa;
+  --chat-message-bg: rgba(255, 255, 255, 0.5);
+  --chat-message-border: rgba(0, 0, 0, 0.2);
+  --chat-message-progress-bar-bg: rgb(80 34 189 / 45%);
+  --chat-file-drop: rgba(0, 0, 0, 0.8);
+  --chat-group-item: rgb(237 245 254);
+  --chat-preset-tab-not-active: #1f1f24;
+  --chat-preset-form-container: #a2a2a2;
+  --chat-mode-link-bg: #888;
+  --chat-mode-link-border: #eee;
+  --chat-delete-focus: #dc2626;
+  --chat-code-color: #800;
+  --text-extractor-sub-text: #e4e4e4;
+  --chat-user-choice-button-hover: #acacac;
+  --darkgray: darkgray;
+  --library-bulk-btn-bg: #092417;
+}
+
+.navbar .nav-link {
+  color: var(--nav-text-color);
+  transition: color 0.2s ease-in-out;
+}
+
+.navbar .nav-link:hover {
+  color: var(--nav-text-hover-color);
 }

@@ -33,14 +33,14 @@
 
             <ul class="nav nav-tabs px-3 border-bottom-0">
                 <li class="nav-item">
-                    <a class="nav-link text-black{% if active_step == 1 %} active fw-semibold{% endif %}"
+                    <a class="nav-link{% if active_step == 1 %} active fw-semibold{% endif %}"
                        href="{% url 'template_wizard:index' %}">{% trans "Step 1: Get started" %}</a>
                 </li>
                 <li class="nav-item">
                     {% if active_step < 2 %}
                         <span class="nav-link disabled">{% trans "Step 2: Select data" %}</span>
                     {% else %}
-                        <a class="nav-link text-black{% if active_step == 2 %} active fw-semibold{% endif %}"
+                        <a class="nav-link{% if active_step == 2 %} active fw-semibold{% endif %}"
                            {% if report %}href="{% url 'template_wizard:select_data' report.id %}"{% endif %}>
                             {% trans "Step 2: Select data" %}
                         </a>
@@ -50,7 +50,7 @@
                     {% if active_step < 3 %}
                         <span class="nav-link disabled">{% trans "Step 3: Generate report" %}</span>
                     {% else %}
-                        <a class="nav-link text-black{% if active_step == 3 %} active fw-semibold{% endif %}"
+                        <a class="nav-link{% if active_step == 3 %} active fw-semibold{% endif %}"
                            {% if report %}href="{% url 'template_wizard:pick_template' report.id %}"{% endif %}>
                             {% trans "Step 3: Generate report" %}
                         </a>
