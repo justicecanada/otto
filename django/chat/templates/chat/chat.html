@@ -15,7 +15,8 @@
 {% block page_script %}
   <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
   <script>const chat_id = "{{ chat.id }}";</script>
-  {% include "chat/components/chat_tour_script.html" %}
+  {% include "chat/components/chat_tour_steps.html" %}
+  {% include "components/tour_script.html" %}
 {% endblock %}
 
 {% block page_title %}
@@ -112,6 +113,7 @@
   {% include "chat/modals/sources_modal_outer.html" %}
   {% include "chat/modals/presets/modal.html" %}
   {% include "librarian/modal_outer.html" %}
+  {% include "chat/modals/chat_tour_modal.html" %}
 
   <script src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
   <script src="{% static 'thirdparty/katex.min.js' %}"></script>

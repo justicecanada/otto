@@ -68,10 +68,13 @@
       </div>
     {% endfor %}
   </div>
+
+  {% include "components/otto_tour_modal.html" %}
 {% endblock %}
 
 {% block page_script %}
-  {% include "components/otto_tour_script.html" %}
+  {% include "components/otto_tour_steps.html" %}
+  {% include "components/tour_script.html" %}
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const logoElement = document.querySelector('#otto-logo');

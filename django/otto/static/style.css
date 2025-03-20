@@ -400,7 +400,12 @@ ul.errorlist p {
   font-family: var(--bs-body-font-family) !important;
 }
 
-.driver-popover *:focus-visible {
+.driver-popover *:focus {
   outline: 0;
   box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25);
+}
+
+svg.driver-overlay {
+  /* Match Bootstrap modal overlay */
+  opacity: 0.72;
 }

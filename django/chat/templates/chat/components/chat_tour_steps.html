@@ -1,0 +1,151 @@
+{% load i18n %}
+
+<script>
+const tourSteps = [
+  {
+    element: "#new-chat-button",
+    popover: {
+      title: "{% trans 'Start a new chat at any time.'%}",
+      description: "{% trans 'Start a new chat at any time by clicking this button.'%}"
+    }
+  },
+  {
+    element: ".chat-list-item.current",
+    popover: {
+      title: "{% trans 'Current chat'%}",
+      description: "{% trans 'Your current chat will appear in bolded characters.'%}",
+      onNextClick: () => { showChatContextMenuEllipsis(); driverObj.moveNext(); }
+    }
+  },
+  {
+    element: ".chat-list-item.current > div > button",
+    popover: {
+      title: "{% trans 'Chat options'%}",
+      description: "{% trans 'Click on the ellipsis icon to view more options.'%}",
+      onNextClick: () => { showChatContextMenu(); driverObj.moveNext(); }
+    }
+  },
+  {
+    element: ".chat-list-item.current > div > button ~ div",
+    popover: {
+      title: "{% trans 'Chat options'%}",
+      description: "{% trans 'Rename your chats or to delete them entirely.'%}",
+      onNextClick: () => { closeLeftSidebar(); driverObj.moveNext(); },
+      onPrevClick: () => { showChatContextMenu(); driverObj.movePrevious(); }
+    }
+  },
+  {
+    element: "#chat-inputs",
+    popover: {
+      title: "{% trans 'Using the AI Assistant'%}",
+      description: "{% trans 'Use the textbox to start.'%}",
+      onPrevClick: () => { openLeftSidebar(); showChatContextMenu(); driverObj.movePrevious(); }
+    }
+  },
+  {
+    element: "#chat-modes",
+    popover: {
+      title: "{% trans 'Modes' %}",
+      description: "{% trans '.'%}"
+    }
+  },
+  {
+    element: "#chat-toolbar > div > div:last-of-type > button",
+    popover: {
+      title: "{% trans 'Settings' %}",
+      description: "{% trans 'You can show or hide the AI Assistant\'s settings using the settings button.'%}",
+      onNextClick: () => { toggleRightSidebar(); driverObj.moveNext(); }
+    }
+  },
+  {
+    element: "#right-sidebar",
+    popover: {
+      title: "{% trans 'Settings'%}",
+      description: "{% trans 'Settings are tied to the current chat in use. Saving is done automatically when a change is detected.'%}",
+      onNextClick: () => { toggleQAAccordion(); driverObj.moveNext(); },
+      onPrevClick: () => { toggleRightSidebar(true); driverObj.movePrevious(); }
+    }
+  },
+  {
+    element: ".accordion-item.qa",
+    popover: {
+      title: "{% trans 'Mode'%}",
+      description: "{% trans 'Selecting a mode in the settings list will automatically set your chat session to that mode.'%}",
+      onPrevClick: () => { toggleChatAccordion(); driverObj.movePrevious(); }
+    }
+  },
+  {
+    element: "#right-sidebar>div>div:last-of-type>:nth-child(2)",
+    popover: {
+      title: "{% trans 'Preset' %}",
+      description: "{% trans 'Save your current settings in a preset to re-use them in other chats, share them with others, or set them as your default.'%}"
+    }
+  },
+  {
+    element: "#right-sidebar>div>div:last-of-type>:nth-child(3)",
+    popover: {
+      title: "{% trans 'Preset' %}",
+      description: "{% trans 'Made a mistake? Reset all your settings to their default state.' %}"
+    }
+  },
+  {
+    element: "#right-sidebar>div>div:last-of-type>:nth-child(1)",
+    popover: {
+      title: "{% trans 'Preset' %}",
+      description: "{% trans 'You can also view or edit the full list of existing presets you created or that were shared with you.'%}",
+      onNextClick: () => {
+        htmx.ajax("POST", '{% url "mark_tour_completed" tour_name="ai_assistant" %}', {swap: "none"});
+        driverObj.moveNext();
+      },
+    }
+  }
+];
+
+
+function showChatContextMenuEllipsis(){
+  const chatContextMenuEllipsis = document.querySelector('.chat-list-item.current > div > button');
+  chatContextMenuEllipsis.focus();                
+}
+
+function showChatContextMenu(){
+  const chatContextMenuEllipsis = document.querySelector('.chat-list-item.current > div > button');
+  chatContextMenuEllipsis.click();        
+}
+
+function toggleChatAccordion(){
+  let chatAccordionButton = document.querySelector('.accordion-item.chat>h5>button');
+  if(chatAccordionButton.classList.contains('collapsed')){
+    chatAccordionButton.click();
+  }               
+}      
+
+function toggleQAAccordion(){
+  document.querySelector('.accordion-item.qa>h5>button').click();        
+}
+
+function toggleRightSidebar(isPrevious=false) {
+  const chatSidebar = document.getElementById('right-sidebar-toggle');
+  if (chatSidebar.classList.contains('hidden')) {
+    if(isPrevious){
+      document.getElementById('close-right-sidebar').click();
+    }         
+    return;
+  }
+  chatSidebar.click();
+  toggleChatAccordion();
+}
+
+function openLeftSidebar() {
+  const chatSidebar = document.getElementById('left-sidebar-toggle');
+  if (chatSidebar) {
+    chatSidebar.click();          
+  }        
+}
+
+function closeLeftSidebar() {
+  const chatSidebar = document.getElementById('close-left-sidebar');
+  if (chatSidebar) {
+    chatSidebar.click();          
+  }        
+}
+</script>

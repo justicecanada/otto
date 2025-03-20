@@ -1,0 +1,52 @@
+{% load i18n %}
+
+<script>
+const tourSteps = [
+  {
+    element: "#app-list",
+    popover: {
+      title: "{% trans 'Start using Otto' %}",
+      description: "{% trans 'Start using Otto by selecting an application.' %}"
+    },
+  },
+  {
+    element: "#home-link",
+    popover: {
+      title: "{% trans 'Go to homepage' %}",
+      description: "{% trans 'Click the Otto logo in the top left to return to this page at any time.' %}"
+    }
+  },
+  {
+    element: "#language-toggle",
+    popover: {
+      title: "{% trans 'Switch language' %}",
+      description: "{% trans 'Switch the user interface language between English and French.' %}"
+    }
+  },
+  {
+    element: "#cost-bar-inner",
+    popover: {
+      title: "{% trans 'Cost meter' %}",
+      description: "{% trans 'This meter gradually fills up as you use Otto. It represents the amount of money left out of your monthly personal budget. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center for a temporary exemption.' %}"
+    }
+  },
+  {
+    element: "#feedback-icon",
+    popover: {
+      title: "{% trans 'Feedback' %}",
+      description: "{% trans 'Click on this icon to submit feedback about Otto. Let us know what went wrong, or suggest an improvement.'%}"
+    }
+  },
+  {
+    element: "#help-button",
+    popover: {
+      title: "{% trans 'Get help' %}",
+      description: "{% trans 'Click the question mark icon to view this tour again, open the user guide, or get help from the Otto team.' %}",
+      onNextClick: () => {
+        htmx.ajax("POST", '{% url "mark_tour_completed" tour_name="homepage" %}', {swap: "none"});
+        driverObj.moveNext();
+      },
+    }
+  },
+];
+</script>
