@@ -3062,5 +3062,13 @@
     "Reset flags for demo": {
         "fr": "",
         "fr_auto": "Réinitialiser les indicateurs pour la démo"
+    },
+    "Please take a 1-minute tour to get familiar with the main features.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite d’une minute pour vous familiariser avec les principales caractéristiques."
+    },
+    "Please take a 1-minute tour to get familiar with the platform.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite guidée de 1 minute pour vous familiariser avec la plateforme."
     }
 }
