@@ -3,37 +3,40 @@
 <script>
 const tourSteps = [
   {
-    element: "#app-list",
+    element: "#user-menu-button",
     popover: {
-      title: "{% trans 'Start using Otto' %}",
-      description: "{% trans 'Start using Otto by selecting an application.' %}"
-    },
-  },
-  {
-    element: "#home-link",
-    popover: {
-      title: "{% trans 'Go to homepage' %}",
-      description: "{% trans 'Click the Otto logo in the top left to return to this page at any time.' %}"
-    }
-  },
-  {
-    element: "#language-toggle",
-    popover: {
-      title: "{% trans 'Switch language' %}",
-      description: "{% trans 'Switch the user interface language between English and French.' %}"
+      title: "{% trans 'User menu' %}",
+      description: "{% trans 'Click your name to see your monthly Otto usage, access the Terms of Use, or Logout.' %}",
+      onNextClick: () => {
+        // Animate meter id="cost-bar-inner" from values 0 to 100
+        const meter = document.getElementById("cost-bar-inner");
+        const originalValue = meter.value;
+        let value = 0;
+        const interval = setInterval(() => {
+          value += 5;
+          meter.value = value;
+          if (value >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+              meter.value = originalValue;
+            }, 2000);
+          }
+        }, 50);
+        driverObj.moveNext();
+      },
     }
   },
   {
     element: "#cost-bar-inner",
     popover: {
       title: "{% trans 'Cost meter' %}",
-      description: "{% trans 'This meter gradually fills up as you use Otto. It represents the amount of money left out of your monthly personal budget. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center for a temporary exemption.' %}"
+      description: "{% trans 'This meter gradually fills up as you use Otto. It represents your monthly personal budget. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center for a temporary exemption.' %}"
     }
   },
   {
     element: "#feedback-icon",
     popover: {
-      title: "{% trans 'Feedback' %}",
+      title: "{% trans 'Leave feedback' %}",
       description: "{% trans 'Click on this icon to submit feedback about Otto. Let us know what went wrong, or suggest an improvement.'%}"
     }
   },
@@ -48,5 +51,25 @@ const tourSteps = [
       },
     }
   },
+  {
+    element: "#app-list",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Tour complete!' %}",
+      description: "{% trans 'Start using Otto by clicking one of the app tiles.' %}",
+    },
+  },
 ];
+
+// Keeping track of extra steps for our convenience as we refine the tour
+removedSteps = [
+  {
+    element: "#home-link",
+    popover: {
+      title: "{% trans 'Go to homepage' %}",
+      description: "{% trans 'Click the Otto logo in the top left to return to this page at any time.' %}"
+    }
+  },
+]
+delete removedSteps;
 </script>

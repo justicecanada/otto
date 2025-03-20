@@ -18,7 +18,8 @@
   </div>
   <button class="btn btn-dark text-muted dropdown-toggle px-2"
           data-bs-toggle="dropdown"
-          aria-expanded="false">
+          aria-expanded="false"
+          id="user-menu-button">
     {% if can_enable_load_testing and load_test_enabled %}
       <i class="bi bi-shield-exclamation text-danger"
          title="{% trans 'Load testing URL is enabled' %}"></i>

@@ -60,18 +60,8 @@
  
           {% if request.user.is_authenticated %}
             {% include 'components/search.html' %}
-            <button class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbar-dropdown"
-                    aria-controls="navbar-dropdown"
-                    aria-expanded="false"
-                    aria-label="{% trans 'Toggle user menu' %}">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse flex-fill-lg justify-content-end"
-                 id="navbar-dropdown">
-              <ul class="navbar-nav position-relative">
+            <div class="collapse navbar-collapse flex-fill-lg justify-content-end">
+              <ul class="navbar-nav position-relative" id="top-right-nav">
                 {% include 'components/user_menu.html' %}
                 {% include 'components/notifications.html' %}
                 {% include 'components/feedback/feedback_icon.html' %}

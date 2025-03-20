@@ -4,7 +4,7 @@
   flex-direction: row;
 }
 
-#navbar-dropdown .dropdown-item {
+#top-right-nav .dropdown-item {
 
   &:focus,
   &:focus-visible,
@@ -27,9 +27,6 @@
   }
 }
 
-#navbar-dropdown>*+* {
-  margin-left: 0.5rem;
-}
 
 /* Make the footer div centered, small, and bottom of the page */
 #footer {

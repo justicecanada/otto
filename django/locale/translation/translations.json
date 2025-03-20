@@ -3062,5 +3062,33 @@
     "Reset flags for demo": {
         "fr": "",
         "fr_auto": "Réinitialiser les indicateurs pour la démo"
+    },
+    "Please take a 1-minute tour to get familiar with the main features.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite d’une minute pour vous familiariser avec les principales caractéristiques."
+    },
+    "Please take a 1-minute tour to get familiar with the platform.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite guidée de 1 minute pour vous familiariser avec la plateforme."
+    },
+    "User menu": {
+        "fr": "",
+        "fr_auto": "Menu utilisateur"
+    },
+    "Click your name to see your monthly Otto usage, access the Terms of Use, or Logout.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur votre nom pour voir votre utilisation mensuelle d’Otto, accéder aux conditions d’utilisation ou se déconnecter."
+    },
+    "This meter gradually fills up as you use Otto. It represents your monthly personal budget. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center for a temporary exemption.": {
+        "fr": "",
+        "fr_auto": "Ce compteur se remplit graduellement au fur et à mesure que vous utilisez Otto. Il représente votre budget personnel mensuel. Si vous atteignez votre limite, vous ne pourrez plus utiliser Otto et devrez communiquer avec le Centre d’analyse d’affaires pour obtenir une exemption temporaire."
+    },
+    "Tour complete!": {
+        "fr": "",
+        "fr_auto": "Visite terminée!"
+    },
+    "Start using Otto by clicking one of the app tiles.": {
+        "fr": "",
+        "fr_auto": "Commencez à utiliser Otto en cliquant sur l’une des vignettes de l’application."
     }
 }
