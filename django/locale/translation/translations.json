@@ -2842,5 +2842,25 @@
     "Older": {
         "fr": "",
         "fr_auto": "Plus ancien"
+    },
+    "Browse presets": {
+        "fr": "Menu des préréglages",
+        "fr_auto": "Parcourir les préréglages"
+    },
+    "Save settings": {
+        "fr": "Enregistrer",
+        "fr_auto": "Sauvegarder les paramètres"
+    },
+    "(Optional) Define AI model's role, background information, and rules to follow.": {
+        "fr": "",
+        "fr_auto": "(Facultatif) Définissez le rôle du modèle d’IA, les informations générales et les règles à suivre."
+    },
+    "(Recommended) What AI model should do with context, query, and formatting instructions.": {
+        "fr": "",
+        "fr_auto": "(Recommandé) Ce que le modèle d’IA devrait faire avec le contexte, la requête et les instructions de formatage."
+    },
+    "(Optional) Final reminders of desired behaviour. Keep this fairly short.": {
+        "fr": "",
+        "fr_auto": "(Facultatif) Derniers rappels du comportement souhaité. Soyez assez bref."
     }
 }
