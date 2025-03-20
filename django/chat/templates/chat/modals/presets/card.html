@@ -74,7 +74,7 @@
     <button type="button"
             class="btn btn-lg fw-semibold fs-6"
             data-bs-dismiss="modal"
-            style="background-color: var(--app-color-blue-1);
+            style="background-color: rgb(108, 117, 125);
                    color: white"
             hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
             hx-target="#options-accordion">{% trans "Load" %}</button>
