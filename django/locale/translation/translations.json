@@ -3090,5 +3090,25 @@
     "Start using Otto by clicking one of the app tiles.": {
         "fr": "",
         "fr_auto": "Commencez à utiliser Otto en cliquant sur l’une des vignettes de l’application."
+    },
+    "Select different modes by clicking the tabs.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez différents modes en cliquant sur les onglets."
+    },
+    "Q&A mode": {
+        "fr": "",
+        "fr_auto": "Mode Q&R"
+    },
+    "Presets": {
+        "fr": "",
+        "fr_auto": "Préréglages"
+    },
+    "Browse settings presets and create your own to share with others.": {
+        "fr": "",
+        "fr_auto": "Parcourez les paramètres prédéfinis et créez les vôtres pour les partager avec d’autres."
+    },
+    "Please take a 5-minute tour to get familiar with the main features.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite de 5 minutes pour vous familiariser avec les principales caractéristiques."
     }
 }
