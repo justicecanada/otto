@@ -1,6 +1,6 @@
 <div class="accordion-item {{ options_section_id }}">
   <h5 class="accordion-header">
-    <button class="accordion-button text-black fw-semibold bg-light py-2 px-3 collapsed"
+    <button class="accordion-button fw-semibold py-2 px-3 collapsed"
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#options-accordion-{{ options_section_id }}"
@@ -14,7 +14,7 @@
        class="accordion-collapse collapse{% if swap or options_form.mode.value == options_section_id %} show{% endif %}"
        data-bs-parent="#options-accordion"
        {% if swap %}hx-swap-oob="true" hx-ext="morph"{% endif %}>
-    <div class="accordion-body bg-light p-0 pb-2">
+    <div class="accordion-body p-0 pb-2">
       {% block accordion_body %}{% endblock %}
     </div>
   </div>

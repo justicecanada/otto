@@ -2,7 +2,7 @@
 
 {% if is_favourite or preset.favourite %}
   <button type="button"
-          class="btn btn-light rounded-circle"
+          class="btn rounded-circle"
           title="{% trans 'Remove from favourites' %}"
           hx-get="{% url 'chat:set_preset_favourite' preset_id=preset.id %}"
           hx-target="this"
@@ -11,7 +11,7 @@
   </button>
 {% else %}
   <button type="button"
-          class="btn btn-light rounded-circle"
+          class="btn rounded-circle"
           title="{% trans 'Add to favourites' %}"
           hx-get="{% url 'chat:set_preset_favourite' preset_id=preset.id %}"
           hx-target="this"

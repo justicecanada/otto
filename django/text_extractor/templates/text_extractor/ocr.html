@@ -6,6 +6,10 @@
   {% trans "Text Extractor - Otto" %}
 {% endblock %}
 
+{% block page_css %}
+  <link rel="stylesheet" href="{% static 'text_extractor/style.css' %}">
+{% endblock %}
+
 {% block breadcrumb %}
   {{ block.super }}
   <li class="breadcrumb-item">
