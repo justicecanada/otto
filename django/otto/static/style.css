@@ -28,6 +28,11 @@ html[data-bs-theme="light"] {
   border-color: var(--bs-border-color);
 }
 
+[data-bs-theme="dark"] .btn-light:hover {
+  background-color: var(--btn-hover) !important;
+}
+
+
 [data-bs-theme="dark"] .card {
   background-color: var(--bs-dark-bg-subtle) !important;
 }
@@ -298,6 +303,16 @@ li.notification:last-of-type {
   zoom: 0.7;
 }
 
+[data-bs-theme="light"] [data-bs-theme="dark"] .text-bg-light {
+  color: var(--black) !important;
+  background-color: RGBA(var(--bs-light-rgb), var(--bs-bg-opacity, 1)) !important;
+}
+
+[data-bs-theme="dark"] [data-bs-theme="dark"] .text-bg-light {
+  color: var(--otto-primary-text-color) !important;
+  background-color: var(--app-primary-bg) !important;
+}
+
 
 [data-bs-theme="dark"] .phac_aspc_form_autocomplete {
   background-color: var(--bs-body-bg);
@@ -373,13 +388,13 @@ div.phac_aspc_form_autocomplete .results .item {
 .security-label-PA {
   /* light warning colors */
   background: var(--otto-tab-body-bg-color);
-  border-color: #fcda72;
+  border-color: var(--security-PA-border);
 }
 
 .security-label-PB {
   /* light danger colors */
   background: var(--otto-tab-body-bg-color);
-  border-color: #fb7380;
+  border-color: var(--security-PB-border);
 }
 
 .icn-spinner {
@@ -448,10 +463,18 @@ ul.errorlist p {
   background-color: var(--otto-tab-body-bg-color);
 }
 
+.btn-outline-secondary,
+.btn-secondary {
+  background-color: var(--btn-secondary);
+  color: var(--otto-primary-text-color);
+  border: transparent;
+}
+
 [data-bs-theme="dark"] .btn-outline-secondary,
-[data-bs-theme="dark"] #prompt-form button {
+[data-bs-theme="dark"] #prompt-form button,
+[data-bs-theme="dark"] .btn-secondary {
   color: var(--bs-secondary-text);
-  background-color: black;
+  background-color: var(--btn-secondary);
 }
 
 .toast-sticky {

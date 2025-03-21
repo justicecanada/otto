@@ -386,7 +386,7 @@ pre .copy-button:focus {
 #right-sidebar .accordion-button:not(.collapsed) {
   box-shadow: none !important;
   color: var(--bs-text-body) !important;
-  background-color: transparent !important;
+  background-color: var(--app-primary-bg) !important;
 }
 
 #right-sidebar .accordion-button::after {
@@ -544,7 +544,7 @@ html[lang="fr"] .chat-sidebar {
 }
 
 #prompt-form button {
-  background: var(--bg-white);
+  background: var(--btn-secondary);
   border-color: var(--bs-border-color);
 }
 
@@ -1002,7 +1002,7 @@ div#chat-toolbar {
 
 #chat-modes button {
   margin-bottom: -1px;
-  background: var(--app-primary-bg);
+  background: var(--btn-secondary);
   color: var(--bs-gray-700);
   padding-top: 6px;
   padding-bottom: 7px;

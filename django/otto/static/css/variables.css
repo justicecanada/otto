@@ -5,7 +5,7 @@
   --otto-primary-text-color: var(--bs-body-color);
   --otto-tab-body-bg-color: white;
   --app-primary-bg: #f8f9fa;
-  --app-color-purple-1: rgba(152, 87, 255, 0.78);
+  --app-color-purple-1: #9857ffc7;
   --app-color-purple-1-hover: #6c23e030;
   --app-color-purple-2: #c536f0;
   --app-color-purple-2-hover: #c536f035;
@@ -16,11 +16,11 @@
   --app-color-green-2: #60d6b3;
   --app-color-green-2-hover: #09bc8740;
   --app-color-green-3: #54e4b9;
-  --app-color-green-3-hover: rgba(84, 228, 185, 0.35);
+  --app-color-green-3-hover: #54e4b959;
   --app-color-blue-1: #0d6efd;
   --app-color-blue-1-hover: #0d6efd40;
   --app-color-blue-2: #87befc;
-  --app-color-blue-2-hover: rgba(135, 190, 252, 0.4);
+  --app-color-blue-2-hover: #87befc66;
   --app-color-blue-3: #b5dfff;
   --app-color-blue-3-hover: #b5dfff40;
   --app-color-orange-1: #ff8c00;
@@ -50,11 +50,11 @@
   --app-border: #ccc;
   --chat-footer-border: #ddd;
   --chat-outer-bg: #f8f9fa;
-  --chat-message-bg: rgba(255, 255, 255, 0.5);
-  --chat-message-border: rgba(0, 0, 0, 0.2);
-  --chat-message-progress-bar-bg: rgb(80 34 189 / 45%);
-  --chat-file-drop: rgba(0, 0, 0, 0.8);
-  --chat-group-item: rgb(237 245 254);
+  --chat-message-bg: #ffffff80;
+  --chat-message-border: #00000033;
+  --chat-message-progress-bar-bg: #5022bd73;
+  --chat-file-drop: #000000cc;
+  --chat-group-item: #edf5fe;
   --chat-group-item-hover: #555555;
   --chat-preset-tab-not-active: #eaeaea;
   --chat-preset-form-container: #a2a2a2;
@@ -65,6 +65,9 @@
   --text-extractor-sub-text: #888;
   --chat-user-choice-button-hover: #acacac;
   --darkgray: darkgray;
+  --security-PA-border: #fcda72;
+  --security-PB-border: #fb7380;
+  --btn-secondary: #f3f3f3;
 }
 
 [data-bs-theme="dark"] {
@@ -82,11 +85,11 @@
   --app-color-green-2: #60d6b3;
   --app-color-green-2-hover: #04533c;
   --app-color-green-3: #54e4b9;
-  --app-color-green-3-hover: rgba(84, 228, 185, 0.35);
+  --app-color-green-3-hover: #54e4b959;
   --app-color-blue-1: #0d6efd;
   --app-color-blue-1-hover: #0d6efd40;
   --app-color-blue-2: #87befc;
-  --app-color-blue-2-hover: rgba(135, 190, 252, 0.4);
+  --app-color-blue-2-hover: #87befc66;
   --app-color-blue-3: #b5dfff;
   --app-color-blue-3-hover: #b5dfff40;
   --app-color-orange-1: #ff8c00;
@@ -113,11 +116,11 @@
   --app-border: #ccc;
   --chat-footer-border: #ddd;
   --chat-outer-bg: #f8f9fa;
-  --chat-message-bg: rgba(255, 255, 255, 0.5);
-  --chat-message-border: rgba(0, 0, 0, 0.2);
-  --chat-message-progress-bar-bg: rgb(80 34 189 / 45%);
-  --chat-file-drop: rgba(0, 0, 0, 0.8);
-  --chat-group-item: rgb(237 245 254);
+  --chat-message-bg: #ffffff80;
+  --chat-message-border: #00000033;
+  --chat-message-progress-bar-bg: #5022bd73;
+  --chat-file-drop: #000000cc;
+  --chat-group-item: #edf5fe;
   --chat-preset-tab-not-active: #1f1f24;
   --chat-preset-form-container: #a2a2a2;
   --chat-mode-link-bg: #888;
@@ -128,6 +131,9 @@
   --chat-user-choice-button-hover: #acacac;
   --darkgray: darkgray;
   --library-bulk-btn-bg: #092417;
+  --text-secondary: #a7a7a7;
+  --btn-hover: #0f0f14b5;
+  --btn-secondary: #141416ea;
 }
 
 .navbar .nav-link {

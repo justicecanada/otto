@@ -22,6 +22,10 @@ body {
   height: 0;
 }
 
+[data-bs-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
+}
+
 .typing span {
   content: "";
   -webkit-animation: blink 1.5s infinite;
