@@ -69,7 +69,7 @@
       </div>
       <div class="col-12 mt-3 px-3">
         <label class="form-label" for="id_replace_with_settings">{% trans "Settings Options" %}</label>
-        <div class="form-check">
+        <div class="form-check" style="width: auto">
           <input class="form-check-input"
                  type="checkbox"
                  id="id_replace_with_settings"
@@ -77,8 +77,9 @@
                  {% if replace_with_settings %}checked{% endif %}>
 
           <label class="form-check-label" for="id_replace_with_settings">{% trans "Replace with current settings" %}</label>
-          <div class="alert alert-warning replace-settings-warning w-100 d-none"
-               role="alert">
+          <div class="alert alert-warning replace-settings-warning d-none"
+               role="alert"
+               style="width: fit-content">
             {% trans "Warning, this will replace the settings of the preset with the current settings of the chat." %}
           </div>
         </div>
