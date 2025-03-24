@@ -66,15 +66,20 @@
             </div>
           </div>
         </div>
-        <div class="col-12 mt-3">
-          <div class="form-check">
-            <input class="form-check-input"
-                   type="checkbox"
-                   id="id_replace_with_settings"
-                   name="replace_with_settings"
-                   {% if replace_with_settings %}checked{% endif %}>
+      </div>
+      <div class="col-12 mt-3 px-3">
+        <label class="form-label" for="id_replace_with_settings">{% trans "Settings Options" %}</label>
+        <div class="form-check">
+          <input class="form-check-input"
+                 type="checkbox"
+                 id="id_replace_with_settings"
+                 name="replace_with_settings"
+                 {% if replace_with_settings %}checked{% endif %}>
 
-            <label class="form-check-label" for="id_replace_with_settings">{% trans "Replace with current settings" %}</label>
+          <label class="form-check-label" for="id_replace_with_settings">{% trans "Replace with current settings" %}</label>
+          <div class="alert alert-warning replace-settings-warning w-100 d-none"
+               role="alert">
+            {% trans "Warning, this will replace the settings of the preset with the current settings of the chat." %}
           </div>
         </div>
       </div>
@@ -138,6 +143,15 @@
     frTab.addEventListener('click', () => switchLanguage('fr'));
   }
 
-
+  const replace_with_settings = document.querySelector('input[name="replace_with_settings"]');
+  replace_with_settings.addEventListener('change', () => {
+    if (replace_with_settings.checked) {
+      warning = document.querySelector('.replace-settings-warning');
+      warning.classList.remove('d-none');
+    } else {
+      warning = document.querySelector('.replace-settings-warning');
+      warning.classList.add('d-none');
+    }
+  });
 })();
 </script>
