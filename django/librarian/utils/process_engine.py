@@ -123,6 +123,7 @@ def guess_content_type(
         "application/xml",
         "application/vnd.ms-outlook",
         "application/x-zip-compressed",
+        "application/zip",
         "text/html",
         "text/markdown",
         "text/csv",
@@ -155,7 +156,7 @@ def guess_content_type(
             return "application/vnd.ms-outlook"
 
         if path.endswith(".zip"):
-            return "application/x-zip-compressed"
+            return "application/zip"
         # Use filetype library to guess the content type
         kind = filetype.guess(content)
         if kind and not path.endswith(".md"):
@@ -192,7 +193,7 @@ def get_process_engine_from_type(type):
         return "POWERPOINT"
     elif "application/vnd.ms-outlook" in type:
         return "OUTLOOK_MSG"
-    elif "application/x-zip-compressed" in type:
+    elif "application/zip" in type or "application/x-zip-compressed" in type:
         return "ZIP"
     elif "application/pdf" in type:
         return "PDF"
@@ -755,7 +756,7 @@ def resize_to_azure_requirements(content):
             return content
 
 
-def process_file(file, data_source_id, name, content_type):
+def process_file(file, data_source_id):
     from librarian.utils.process_engine import generate_hash
 
     file_hash = generate_hash(file.read())
@@ -777,11 +778,11 @@ def process_file(file, data_source_id, name, content_type):
                 existing_document.process()
             return
     else:
-        file_obj = SavedFile.objects.create(content_type=content_type)
-        file_obj.file.save(name, file)
+        file_obj = SavedFile.objects.create(content_type=file.content_type)
+        file_obj.file.save(file.name, file)
         file_obj.generate_hash()
 
     document = Document.objects.create(
-        data_source_id=data_source_id, file=file_obj, filename=name
+        data_source_id=data_source_id, file=file_obj, filename=file.name
     )
     document.process()

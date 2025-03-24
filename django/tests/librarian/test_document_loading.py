@@ -161,6 +161,24 @@ def test_extract_png():
         assert "Elephant" in md_chunks[0]
 
 
+@pytest.mark.django_db
+def test_extract_zip():
+    # Load a ZIP file
+    with open(os.path.join(this_dir, "test_files/example.zip"), "rb") as f:
+        content = f.read()
+        md, md_chunks = extract_markdown(content, "ZIP")
+        assert len(md) > 0
+        assert len(md_chunks) > 0
+        assert "example.txt" in md
+        assert "example.txt" in md_chunks[0]
+        assert "example.docx" in md
+        assert "example.docx" in md_chunks[0]
+        assert "example.pdf" in md
+        assert "example.pdf" in md_chunks[0]
+        assert "example.pptx" in md
+        assert "example.pptx" in md_chunks[0]
+
+
 def test_resize_to_azure_requirements():
     import io
 
