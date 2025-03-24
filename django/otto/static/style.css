@@ -243,10 +243,16 @@ div#top-nav-search-results a {
   width: 500px;
 }
 
-div#top-nav-search-results a:focus {
+[data-bs-theme="light"] [data-bs-theme="dark"] div#top-nav-search-results a:focus {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   outline: none !important;
-  background: white !important;
+  background: var(--bs-gray-500) !important;
+}
+
+[data-bs-theme="dark"] [data-bs-theme="dark"] div#top-nav-search-results a:focus {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  outline: none !important;
+  background: var(--search-bar-focus-bg) !important;
 }
 
 div#top-nav-search-results div.list-group {

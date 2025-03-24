@@ -72,7 +72,6 @@
   --search-bar-bg-hover: #e6e6e6;
   --chat-delete-text: #b10e0e;
   --prompt-send-btn-bg: white;
-  --terms-of-use-agree-text: #00be5c;
 }
 
 [data-bs-theme="dark"] {
@@ -141,6 +140,7 @@
   --btn-secondary: #141416ea;
   --welcome-btn-bg: #474747;
   --search-bar-bg-hover: #474747;
+  --search-bar-focus-bg: #252527;
   --chat-delete-text: #ff5e5e;
   --prompt-send-btn-bg: #1a1e20;
   --terms-of-use-agree-text: #00aa52;
