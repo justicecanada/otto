@@ -9,6 +9,7 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 import filetype
 import openpyxl  # Add this import for handling Excel files
@@ -249,7 +250,7 @@ def extract_markdown(
         logger.debug("File is corrupted")
         # print in chat response that file is corrupted
         return (
-            "File is corrupted, please upload a proper docx, pdf or excel file.",
+            _("File is corrupted, please upload a proper docx, pdf or excel file."),
             None,
         )
     try:
@@ -382,7 +383,7 @@ def docx_to_markdown(content):
                 result = mammoth.convert_to_html(docx_file)
         except BadZipFile:
             logger.error(f"Failed to extract text from .docx file. Bad zip file.")
-            raise Exception("Bad document file")
+            raise Exception(_("Bad document file"))
     html = result.value
 
     return _convert_html_to_markdown(html)

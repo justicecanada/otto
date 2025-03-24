@@ -2862,5 +2862,13 @@
     "(Optional) Final reminders of desired behaviour. Keep this fairly short.": {
         "fr": "",
         "fr_auto": "(Facultatif) Derniers rappels du comportement souhaité. Soyez assez bref."
+    },
+    "Bad document file": {
+        "fr": "",
+        "fr_auto": "Mauvais fichier de document"
+    },
+    "File is corrupted, please upload a proper docx, pdf or excel file.": {
+        "fr": "",
+        "fr_auto": "Le fichier est corrompu, veuillez télécharger un fichier docx, pdf ou excel correct."
     }
 }
