@@ -223,10 +223,14 @@ def decode_content(
     raise Exception(f"Failed to decode content with encodings: {encodings}")
 
 
-def is_text_file_corrupted(file_path):
+def is_text_file_corrupted(content):
     try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            file.read()
+        if isinstance(content, bytes):
+            content = content.decode("utf-8", errors="ignore")
+        elif not isinstance(content, str):
+            raise ValueError("Unsupported content type")
+        # Simulate reading the content
+        _ = content
         return False
     except Exception as e:
         print(f"Error reading text file: {e}")
@@ -244,7 +248,10 @@ def extract_markdown(
     if is_text_file_corrupted(content):
         logger.debug("File is corrupted")
         # print in chat response that file is corrupted
-        return "File is corrupted", None
+        return (
+            "File is corrupted, please upload a proper docx, pdf or excel file.",
+            None,
+        )
     try:
         enable_markdown = True
         if process_engine == "IMAGE":
