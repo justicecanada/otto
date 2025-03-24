@@ -372,10 +372,17 @@ def msg_to_markdown(content):
 
 
 def docx_to_markdown(content):
+    from zipfile import BadZipFile, ZipFile
+
     import mammoth
 
     with io.BytesIO(content) as docx_file:
-        result = mammoth.convert_to_html(docx_file)
+        try:
+            with ZipFile(file=docx_file, mode="r"):
+                result = mammoth.convert_to_html(docx_file)
+        except BadZipFile:
+            logger.error(f"Failed to extract text from .docx file. Bad zip file.")
+            raise Exception("Bad document file")
     html = result.value
 
     return _convert_html_to_markdown(html)
