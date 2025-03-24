@@ -16,8 +16,8 @@ html[data-bs-theme="light"] {
   border-color: var(--bs-border-color);
 
   &:hover {
-    color: var(--bs-body-text-hover);
-    background-color: var(--bs-body-bg-hover);
+    color: var(--bs-black);
+    background-color: var(--btn-hover);
     border-color: var(--bs-border-color);
   }
 }
@@ -306,11 +306,23 @@ li.notification:last-of-type {
 [data-bs-theme="light"] [data-bs-theme="dark"] .text-bg-light {
   color: var(--black) !important;
   background-color: RGBA(var(--bs-light-rgb), var(--bs-bg-opacity, 1)) !important;
+
+  &:hover {
+    background-color: var(--bs-gray-400) !important;
+  }
 }
 
 [data-bs-theme="dark"] [data-bs-theme="dark"] .text-bg-light {
   color: var(--otto-primary-text-color) !important;
   background-color: var(--app-primary-bg) !important;
+
+  &:hover {
+    background-color: var(--bs-gray-800) !important;
+  }
+}
+
+[data-bs-theme="dark"] [data-bs-theme="dark"] .text-bg-light:focus {
+  background-color: var(--bs-black) !important;
 }
 
 
@@ -465,16 +477,15 @@ ul.errorlist p {
 
 .btn-outline-secondary,
 .btn-secondary {
-  background-color: var(--btn-secondary);
+  background-color: var(--prompt-send-btn-bg);
   color: var(--otto-primary-text-color);
-  border: transparent;
 }
 
 [data-bs-theme="dark"] .btn-outline-secondary,
 [data-bs-theme="dark"] #prompt-form button,
 [data-bs-theme="dark"] .btn-secondary {
   color: var(--bs-secondary-text);
-  background-color: var(--btn-secondary);
+  background-color: var(--prompt-send-btn-bg);
 }
 
 .toast-sticky {

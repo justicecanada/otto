@@ -290,6 +290,22 @@ pre .copy-button:focus {
       color: var(--chat-delete-focus) !important
     }
   }
+
+  [data-bs-theme="dark"] & {
+    &.chat-delete {
+      color: var(--chat-delete-text) !important
+    }
+
+    &:hover,
+    &:focus {
+      background-color: var(--prompt-send-btn-bg);
+      color: var(--bs-gray-200);
+
+      &.chat-delete {
+        color: var(--chat-delete-text) !important
+      }
+    }
+  }
 }
 
 #left-sidebar li {
@@ -544,7 +560,7 @@ html[lang="fr"] .chat-sidebar {
 }
 
 #prompt-form button {
-  background: var(--btn-secondary);
+  background: var(--bg-white);
   border-color: var(--bs-border-color);
 }
 
@@ -1018,7 +1034,6 @@ div#chat-toolbar {
 #chat-modes li:first-child button {
   border-top-left-radius: 5px !important;
   left: 0px;
-  border-left: transparent !important;
 }
 
 /* The last button should have a top right radius */

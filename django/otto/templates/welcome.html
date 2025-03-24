@@ -20,15 +20,40 @@
     min-height: 41px;
     font-size: 15px;
     font-weight: 600;
-    color: #5e5e5e;
-    border: 1px solid #8c8c8c;
+    color: var(--text-extractor-sub-text);
     border-radius: 4px;
     text-decoration: none;
+    background-color: var(--welcome-btn-bg);
+
+    &:hover {
+      background-color:  var(--chat-mode-link-bg);
+      color: var(--welcome-btn-bg);
   }
-  main.py-md-5.py-3 {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    [data-bs-theme="dark"] & {
+      color: var(--text-extractor-sub-text);
+      background-color: var(--welcome-btn-bg);
+      &:hover {
+        background-color:  var(--chat-mode-link-bg);
+      }
+    }
   }
+    .logo-dark {
+      display: none;
+    }
+
+    [data-bs-theme="dark"] .logo-light {
+      display: none;
+    }
+
+    [data-bs-theme="dark"] .logo-dark {
+      display: inline;
+    }
+
+
+    main.py-md-5.py-3 {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
   
   </style>
 {% endblock %}
@@ -80,11 +105,28 @@
               overflow:hidden;
               text-align:center;
               padding-right:12px">
-    <img src="{% static 'doj-logo.png' %}"
-         alt=""
-         width="350px"
-         height="36px"
-         style="margin-top:27px">
+    <div style="height:90px;
+                overflow:hidden;
+                text-align:center;
+                padding-right:12px">
+      <img src="{% static 'doj-logo.png' %}"
+           alt=""
+           width="350px"
+           height="36px"
+           class="logo-light"
+           style="margin-top:27px">
+ 
+      <img src="{% static 'doj-dark-mode.png' %}"
+           alt=""
+           width="350px"
+           height="36px"
+           class="logo-dark"
+           style="margin-top:27px">
+
+      <span class="visually-hidden" lang="en">Department of Justice Canada</span>
+      <span class="visually-hidden" lang="fr">Ministère de la Justice Canada</span>
+    </div>
+
     <span class="visually-hidden" lang="en">Department of Justice Canada</span>
     <span class="visually-hidden" lang="fr">Ministère de la Justice Canada</span>
   </div>
