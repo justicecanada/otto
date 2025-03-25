@@ -309,8 +309,13 @@ def pdf_to_text_pdfium(content):
     # Fast and cheap, but no OCR or layout analysis
     import pypdfium2 as pdfium
 
+    try:
+        pdf = pdfium.PdfDocument(content)
+    except Exception as e:
+        logger.error(f"Failed to extract text from PDF file: {e}")
+        raise Exception(_("Corrupt PDF file."))
+
     text = ""
-    pdf = pdfium.PdfDocument(content)
     for i, page in enumerate(pdf):
         text_page = page.get_textpage()
         text_content = text_page.get_text_range()
@@ -361,7 +366,7 @@ def docx_to_markdown(content):
             result = mammoth.convert_to_html(docx_file)
         except Exception as e:
             logger.error(f"Failed to extract text from .docx file: {e}")
-            raise Exception(_("Corrupt file"))
+            raise Exception(_("Corrupt docx file."))
     html = result.value
 
     return _convert_html_to_markdown(html)
@@ -370,8 +375,14 @@ def docx_to_markdown(content):
 def pptx_to_markdown(content):
     import pptx
 
-    pptx_file = io.BytesIO(content)
-    prs = pptx.Presentation(pptx_file)
+    with io.BytesIO(content) as ppt_file:
+        try:
+            prs = pptx.Presentation(ppt_file)
+        except Exception as e:
+            logger.error(f"Failed to extract text from .pptx file: {e}")
+            raise Exception(_("Corrupt pptx file."))
+    # pptx_file = io.BytesIO(content)
+    # prs = pptx.Presentation(pptx_file)
 
     # extract text from each slide
     all_html = ""

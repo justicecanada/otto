@@ -2863,8 +2863,8 @@
         "fr": "",
         "fr_auto": "(Facultatif) Derniers rappels du comportement souhaité. Soyez assez bref."
     },
-    "Corrupt file": {
+    "Corrupt docx file.": {
         "fr": "",
-        "fr_auto": "Fichier corrompu"
+        "fr_auto": "Fichier docx corrompu."
     }
 }
