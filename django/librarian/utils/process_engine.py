@@ -381,8 +381,6 @@ def pptx_to_markdown(content):
         except Exception as e:
             logger.error(f"Failed to extract text from .pptx file: {e}")
             raise Exception(_("Corrupt pptx file."))
-    # pptx_file = io.BytesIO(content)
-    # prs = pptx.Presentation(pptx_file)
 
     # extract text from each slide
     all_html = ""
