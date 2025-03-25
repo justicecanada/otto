@@ -50,5 +50,5 @@ def process(directory, data_source_id):
             with open(path, "rb") as f:
                 name = Path(path).name
                 content_type = guess_content_type(file, name)
-                # print(f"Relpath: {os.path.relpath(path, directory)}")
+                print(f"Relpath: {os.path.relpath(path, directory)}")
                 process_file(f, data_source_id, name, content_type)

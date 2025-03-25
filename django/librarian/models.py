@@ -395,6 +395,8 @@ class Document(models.Model):
     # may be uploaded under different filenames
     filename = models.CharField(max_length=500, null=True, blank=True)
 
+    # TODO - Add filepath field and populate to value of filename in migration TextField
+
     # Specific to PDF documents.
     # The extraction method *that was used* to extract text from the PDF
     pdf_extraction_method = models.CharField(
