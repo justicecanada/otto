@@ -2866,5 +2866,13 @@
     "Corrupt docx file.": {
         "fr": "",
         "fr_auto": "Fichier docx corrompu."
+    },
+    "Corrupt PDF file.": {
+        "fr": "",
+        "fr_auto": "Fichier PDF corrompu."
+    },
+    "Corrupt pptx file.": {
+        "fr": "",
+        "fr_auto": "Fichier pptx corrompu."
     }
 }
