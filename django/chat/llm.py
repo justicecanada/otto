@@ -12,8 +12,11 @@ from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
+from structlog import get_logger
 
 from otto.models import Cost
+
+logger = get_logger(__name__)
 
 
 class OttoVectorStore(PGVectorStore):
@@ -117,13 +120,23 @@ class OttoLLM:
         Stream complete response (not single tokens) from context string and query.
         Optional: summary template (must include "{context_str}" and "{query_str}".)
         """
-        response = await self._get_tree_summarizer(
-            summary_template=template
-        ).aget_response(query, [context])
-        response_text = ""
-        async for chunk in response:
-            response_text += chunk
-            yield response_text
+        try:
+            #### code inside the llama index tree sumarizer
+            # summary_template = self._get_tree_summarizer(
+            #     summary_template=template
+            # )._summary_template.partial_format(query_str=query)
+            # text_chunks = self._get_tree_summarizer(
+            #     summary_template=template
+            # )._prompt_helper.repack(summary_template, text_chunks=[context])
+            response = await self._get_tree_summarizer(
+                summary_template=template
+            ).aget_response(query, [context])
+            response_text = ""
+            async for chunk in response:
+                response_text += chunk
+                yield response_text
+        except Exception as e:
+            logger.error(f"Error in tree_summarize: {e}")
 
     # Token counting / cost tracking
     @property
