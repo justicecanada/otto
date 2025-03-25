@@ -60,6 +60,10 @@ class OttoLLM:
         "gpt-4o-mini": 128000,
         "gpt-4o": 128000,
     }
+    _deployment_to_max_output_tokens_mapping = {
+        "gpt-4o-mini": 16384,
+        "gpt-4o": 16384,
+    }
 
     def __init__(
         self,
@@ -80,6 +84,9 @@ class OttoLLM:
         self.mock_embedding = mock_embedding
         self.embed_model = self._get_embed_model()
         self.max_input_tokens = self._deployment_to_max_input_tokens_mapping[deployment]
+        self.max_output_tokens = self._deployment_to_max_output_tokens_mapping[
+            deployment
+        ]
 
     # Convenience methods to interact with LLM
     # Each will return a complete response (not single tokens)
@@ -123,8 +130,8 @@ class OttoLLM:
         """
         try:
             custom_prompt_helper = PromptHelper(
-                context_window=128000,
-                num_output=4096,
+                context_window=self.max_input_tokens,
+                num_output=self.max_output_tokens,
             )
             response = await self._get_tree_summarizer(
                 summary_template=template, prompt_helper=custom_prompt_helper
