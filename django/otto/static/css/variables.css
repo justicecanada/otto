@@ -55,7 +55,6 @@
   --chat-message-progress-bar-bg: #5022bd73;
   --chat-file-drop: #000000cc;
   --chat-group-item: #edf5fe;
-  --chat-group-item-hover: #555555;
   --chat-preset-tab-not-active: #eaeaea;
   --chat-preset-form-container: #a2a2a2;
   --chat-mode-link-bg: #888;
@@ -67,7 +66,6 @@
   --darkgray: darkgray;
   --security-PA-border: #fcda72;
   --security-PB-border: #fb7380;
-  --btn-secondary: #f3f3f3;
   --welcome-btn-bg: #e6e6e6;
   --search-bar-bg-hover: #e6e6e6;
   --chat-delete-text: #b10e0e;
@@ -124,7 +122,7 @@
   --chat-message-border: #00000033;
   --chat-message-progress-bar-bg: #5022bd73;
   --chat-file-drop: #000000cc;
-  --chat-group-item: #edf5fe;
+  --chat-group-item: #343a40;
   --chat-preset-tab-not-active: #1f1f24;
   --chat-preset-form-container: #a2a2a2;
   --chat-mode-link-bg: #888;
@@ -137,10 +135,8 @@
   --library-bulk-btn-bg: #092417;
   --text-secondary: #a7a7a7;
   --btn-hover: #0f0f14b5;
-  --btn-secondary: #141416ea;
   --welcome-btn-bg: #474747;
-  --search-bar-bg-hover: #474747;
-  --search-bar-focus-bg: #252527;
+  --search-bar-hover-bg: #3e474f;
   --chat-delete-text: #ff5e5e;
   --prompt-send-btn-bg: #1a1e20;
   --terms-of-use-agree-text: #00aa52;

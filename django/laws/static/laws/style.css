@@ -22,6 +22,10 @@ body {
   height: 0;
 }
 
+[data-bs-theme="dark"] .bg-light {
+  background-color: transparent !important;
+}
+
 [data-bs-theme="dark"] .text-secondary {
   color: var(--text-secondary) !important;
 }

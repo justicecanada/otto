@@ -16,8 +16,7 @@ html[data-bs-theme="light"] {
   border-color: var(--bs-border-color);
 
   &:hover {
-    color: var(--bs-black);
-    background-color: var(--btn-hover);
+    background-color: var(--search-bar-hover-bg);
     border-color: var(--bs-border-color);
   }
 }
@@ -249,10 +248,11 @@ div#top-nav-search-results a {
   background: var(--bs-gray-500) !important;
 }
 
-[data-bs-theme="dark"] [data-bs-theme="dark"] div#top-nav-search-results a:focus {
+[data-bs-theme="dark"] [data-bs-theme="dark"] div#top-nav-search-results a:focus,
+[data-bs-theme="dark"] [data-bs-theme="dark"] div#top-nav-search-results a:hover {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   outline: none !important;
-  background: var(--search-bar-focus-bg) !important;
+  background: var(--search-bar-hover-bg) !important;
 }
 
 div#top-nav-search-results div.list-group {
@@ -335,6 +335,7 @@ li.notification:last-of-type {
 [data-bs-theme="dark"] .phac_aspc_form_autocomplete {
   background-color: var(--bs-body-bg);
   border-color: var(--bs-border-color);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
 
   &::after {
     border-color: var(--bs-border-color);
@@ -347,8 +348,20 @@ div.phac_aspc_form_autocomplete div.results.show {
   width: 100%;
 }
 
+[data-bs-theme="dark"] .phac_aspc_form_autocomplete .results {
+  background-color: var(--app-primary-bg);
+}
+
 div.phac_aspc_form_autocomplete_focus_ring {
   padding: 0;
+}
+
+[data-bs-theme="dark"] .phac_aspc_form_autocomplete ul.ac_container li.chip {
+  background-color: var(--search-bar-hover-bg);
+  color: var(--otto-primary-text-color);
+  background-image: linear-gradient(#282d32 50%, #23272b 52%, #1e2225 100%);
+  box-shadow: none;
+  border-color: var(--chat-user-choice-button-hover);
 }
 
 div.phac_aspc_form_autocomplete_focus_ring.active {
@@ -368,6 +381,14 @@ div.phac_aspc_form_autocomplete_focus_ring.active>div {
 
 div.phac_aspc_form_autocomplete .results .item {
   padding: 1px 1rem 1px 1rem;
+
+  [data-bs-theme="dark"] & {
+    color: var(--otto-primary-text-color);
+
+    &:hover {
+      background-color: var(--search-bar-hover-bg);
+    }
+  }
 }
 
 .spinner {
@@ -382,8 +403,13 @@ div.phac_aspc_form_autocomplete .results .item {
 .security-label {
   font-weight: normal;
   border: solid 1px #ccc;
-  color: #000;
   text-align: center;
+  color: var(--otto-primary-text-color);
+
+  [data-bs-theme="dark"] & {
+    background: var(--otto-tab-body-bg-color);
+    color: var(--otto-primary-text-color);
+  }
 }
 
 .security-label-UC,
@@ -401,6 +427,16 @@ div.phac_aspc_form_autocomplete .results .item {
 
 [data-bs-theme="dark"] .btn-outline-success {
   background-color: var(--library-bulk-btn-bg);
+  color: var(--terms-of-use-agree-text);
+}
+
+[data-bs-theme="dark"] .btn-outline-danger {
+  color: var(--chat-delete-text);
+  border-color: var(--chat-delete-text);
+
+  &:hover {
+    background-color: var(--app-color-red-2-hover);
+  }
 }
 
 .security-label-PA {
@@ -481,15 +517,31 @@ ul.errorlist p {
   background-color: var(--otto-tab-body-bg-color);
 }
 
+.btn-preset-save:hover,
+.btn-outline-secondary:hover {
+  color: var(--bg-black);
+  background-color: var(--bs-gray-500) !important;
+  border-color: transparent;
+
+  [data-bs-theme="dark"] & {
+    color: var(--bg-white);
+    background-color: var(--bs-gray-700) !important;
+    border-color: transparent;
+  }
+}
+
 .btn-outline-secondary,
-.btn-secondary {
-  background-color: var(--prompt-send-btn-bg);
+.btn-secondary,
+.btn-preset-save {
+  background-color: var(--bs-gray-200);
   color: var(--otto-primary-text-color);
+  border-color: transparent;
 }
 
 [data-bs-theme="dark"] .btn-outline-secondary,
 [data-bs-theme="dark"] #prompt-form button,
-[data-bs-theme="dark"] .btn-secondary {
+[data-bs-theme="dark"] .btn-secondary,
+[data-bs-theme="dark"] .btn-preset-save {
   color: var(--bs-secondary-text);
   background-color: var(--prompt-send-btn-bg);
 }
