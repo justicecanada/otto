@@ -224,20 +224,6 @@ def decode_content(
     raise Exception(f"Failed to decode content with encodings: {encodings}")
 
 
-def is_text_file_corrupted(content):
-    try:
-        if isinstance(content, bytes):
-            content = content.decode("utf-8", errors="ignore")
-        elif not isinstance(content, str):
-            raise ValueError("Unsupported content type")
-        # Simulate reading the content
-        _ = content
-        return False
-    except Exception as e:
-        print(f"Error reading text file: {e}")
-        return True
-
-
 def extract_markdown(
     content,
     process_engine,
@@ -246,13 +232,7 @@ def extract_markdown(
     chunk_size=768,
     selector=None,
 ):
-    if is_text_file_corrupted(content):
-        logger.debug("File is corrupted")
-        # print in chat response that file is corrupted
-        return (
-            _("Corrupt file"),
-            None,
-        )
+
     try:
         enable_markdown = True
         if process_engine == "IMAGE":
@@ -381,7 +361,7 @@ def docx_to_markdown(content):
             result = mammoth.convert_to_html(docx_file)
         except Exception as e:
             logger.error(f"Failed to extract text from .docx file: {e}")
-            raise Exception(_("Bad document file"))
+            raise Exception(_("Corrupt file"))
     html = result.value
 
     return _convert_html_to_markdown(html)
