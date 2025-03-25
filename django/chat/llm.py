@@ -134,7 +134,7 @@ class OttoLLM:
                 num_output=self.max_output_tokens,
             )
             response = await self._get_tree_summarizer(
-                summary_template=template, prompt_helper=custom_prompt_helper
+                prompt_helper=custom_prompt_helper, summary_template=template
             ).aget_response(query, [context])
             response_text = ""
             async for chunk in response:
