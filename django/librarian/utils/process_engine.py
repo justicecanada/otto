@@ -250,7 +250,7 @@ def extract_markdown(
         logger.debug("File is corrupted")
         # print in chat response that file is corrupted
         return (
-            _("File is corrupted, please upload a proper docx, pdf or excel file."),
+            _("Corrupt file"),
             None,
         )
     try:

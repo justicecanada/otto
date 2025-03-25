@@ -2867,8 +2867,8 @@
         "fr": "",
         "fr_auto": "Mauvais fichier de document"
     },
-    "File is corrupted, please upload a proper docx, pdf or excel file.": {
+    "Corrupt file": {
         "fr": "",
-        "fr_auto": "Le fichier est corrompu, veuillez télécharger un fichier docx, pdf ou excel correct."
+        "fr_auto": "Fichier corrompu"
     }
 }
