@@ -56,7 +56,7 @@
 | django/librarian/translation.py                                                          |        8 |        0 |    100% |           |
 | django/librarian/urls.py                                                                 |        4 |        0 |    100% |           |
 | django/librarian/utils/markdown\_splitter.py                                             |      183 |       10 |     95% |72, 75-77, 88, 123, 137, 260, 270, 277 |
-| django/librarian/utils/process\_engine.py                                                |      441 |       57 |     87% |44-46, 51, 147, 152, 162-163, 167, 173, 176, 183, 185, 187, 189, 195, 197, 199, 246, 259, 271-272, 285-294, 296-298, 343-349, 386, 410, 426-428, 477-481, 487-491, 495, 543-544, 578, 665, 687 |
+| django/librarian/utils/process\_engine.py                                                |      462 |       55 |     88% |45-47, 52, 148, 153, 163-164, 168, 174, 177, 184, 186, 188, 190, 196, 198, 200, 248, 261, 273-274, 287-296, 298-300, 350-356, 402, 426, 442-444, 493-497, 503-507, 511, 559-560, 594 |
 | django/librarian/views.py                                                                |      304 |       38 |     88% |71-92, 98, 126-148, 181, 241-242, 247, 311-312, 331, 338-340, 458, 463 |
 | django/manage.py                                                                         |       11 |       11 |      0% |      3-23 |
 | django/otto/\_\_init\_\_.py                                                              |        2 |        0 |    100% |           |
@@ -104,11 +104,12 @@
 | django/tests/chat/test\_chat\_translate.py                                               |       37 |        0 |    100% |           |
 | django/tests/chat/test\_chat\_views.py                                                   |      648 |       12 |     98% |31, 581-599 |
 | django/tests/chat/test\_highlights.py                                                    |       50 |        0 |    100% |           |
-| django/tests/conftest.py                                                                 |      170 |        5 |     97% |36, 210, 240-244 |
+| django/tests/conftest.py                                                                 |      212 |        6 |     97% |40, 214, 244-248, 341 |
 | django/tests/laws/conftest.py                                                            |        9 |        0 |    100% |           |
 | django/tests/laws/test\_laws\_utils.py                                                   |       45 |        0 |    100% |           |
 | django/tests/laws/test\_laws\_views.py                                                   |       48 |        0 |    100% |           |
 | django/tests/librarian/test\_document\_loading.py                                        |      179 |        0 |    100% |           |
+| django/tests/librarian/test\_file\_uploads.py                                            |       81 |        0 |    100% |           |
 | django/tests/librarian/test\_librarian.py                                                |      277 |        0 |    100% |           |
 | django/tests/librarian/test\_markdown\_splitter.py                                       |      282 |        0 |    100% |           |
 | django/tests/otto/test\_budget.py                                                        |       37 |        0 |    100% |           |
@@ -138,7 +139,7 @@
 | django/text\_extractor/urls.py                                                           |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                          |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                          |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                **TOTAL** | **10225** | **1201** | **88%** |           |
+|                                                                                **TOTAL** | **10369** | **1200** | **88%** |           |
 
 
 ## Setup coverage badge
