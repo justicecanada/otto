@@ -673,9 +673,13 @@ def pdf_to_text_azure_read(content: bytes) -> str:
 
 def csv_to_markdown(content):
     """Convert CSV content to markdown table."""
-    with io.StringIO(content.decode("utf-8")) as csv_file:
-        reader = csv.reader(csv_file)
-        rows = list(reader)
+    try:
+        with io.StringIO(content.decode("utf-8")) as csv_file:
+            reader = csv.reader(csv_file)
+            rows = list(reader)
+    except Exception as e:
+        logger.error(f"Failed to extract text from CSV file: {e}")
+        raise Exception(_("Corrupt CSV file."))
 
     if not rows:
         return ""
@@ -693,7 +697,12 @@ def csv_to_markdown(content):
 
 def excel_to_markdown(content):
     """Convert Excel content to markdown tables."""
-    workbook = openpyxl.load_workbook(io.BytesIO(content))
+    try:
+        workbook = openpyxl.load_workbook(io.BytesIO(content))
+    except Exception as e:
+        logger.error(f"Failed to extract text from Excel file: {e}")
+        raise Exception(_("Corrupt Excel file."))
+
     markdown = ""
     for sheet in workbook.sheetnames:
         markdown += f"# {sheet}\n\n"
