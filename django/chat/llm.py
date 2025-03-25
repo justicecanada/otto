@@ -5,6 +5,7 @@ import tiktoken
 from llama_index.core import PromptTemplate, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
 from llama_index.core.embeddings import MockEmbedding
+from llama_index.core.indices.prompt_helper import PromptHelper
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
@@ -121,15 +122,12 @@ class OttoLLM:
         Optional: summary template (must include "{context_str}" and "{query_str}".)
         """
         try:
-            #### code inside the llama index tree sumarizer
-            # summary_template = self._get_tree_summarizer(
-            #     summary_template=template
-            # )._summary_template.partial_format(query_str=query)
-            # text_chunks = self._get_tree_summarizer(
-            #     summary_template=template
-            # )._prompt_helper.repack(summary_template, text_chunks=[context])
+            custom_prompt_helper = PromptHelper(
+                context_window=128000,
+                num_output=4096,
+            )
             response = await self._get_tree_summarizer(
-                summary_template=template
+                summary_template=template, prompt_helper=custom_prompt_helper
             ).aget_response(query, [context])
             response_text = ""
             async for chunk in response:
@@ -259,12 +257,14 @@ class OttoLLM:
 
     # Private helpers
     def _get_tree_summarizer(
-        self, summary_template: PromptTemplate = None
+        self,
+        summary_template: PromptTemplate = None,
+        prompt_helper: PromptHelper = None,
     ) -> TreeSummarize:
         return TreeSummarize(
             llm=self.llm,
             callback_manager=self._callback_manager,
-            prompt_helper=None,
+            prompt_helper=prompt_helper,
             summary_template=summary_template,
             output_cls=None,
             streaming=True,
