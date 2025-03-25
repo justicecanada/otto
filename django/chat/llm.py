@@ -265,8 +265,8 @@ class OttoLLM:
     # Private helpers
     def _get_tree_summarizer(
         self,
-        summary_template: PromptTemplate = None,
         prompt_helper: PromptHelper = None,
+        summary_template: PromptTemplate = None,
     ) -> TreeSummarize:
         return TreeSummarize(
             llm=self.llm,
