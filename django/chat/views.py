@@ -658,14 +658,23 @@ def rename_chat(request, chat_id, current_chat=None):
             old_last_modification_date = chat.last_modification_date
             chat.last_modification_date = timezone.now()
             chat.save()
-            return render(
-                request,
-                "chat/components/chat_list_item.html",
-                {
-                    "chat": chat,
-                    "section_index": label_section_index(old_last_modification_date),
-                },
-            )
+            # Re-fetch the chat to ensure we have fresh data
+            chat.refresh_from_db()
+            context = {
+                "chat": chat,
+                "security_labels": SecurityLabel.objects.all(),
+                "section_index": label_section_index(old_last_modification_date),
+                "swap_oob": True,
+            }
+            return render(request, "chat/components/chat_list_item.html", context)
+            # return render(
+            #     request,
+            #     "chat/components/chat_list_item.html",
+            #     {
+            #         "chat": chat,
+            #         "section_index": label_section_index(old_last_modification_date),
+            #     },
+            # )
         else:
             return render(
                 request,
