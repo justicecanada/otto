@@ -172,7 +172,11 @@ def feedback_message(request: HttpRequest, message_id=None):
             )
             return HttpResponse(status=200)
         else:
-            return HttpResponse(form.errors, status=400)
+            messages.error(
+                request,
+                _("Error submitting feedback."),
+            )
+            return HttpResponse(status=200)
     else:
         form = FeedbackForm(request.user, message_id)
     return render(
