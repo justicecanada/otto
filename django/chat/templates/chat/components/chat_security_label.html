@@ -15,7 +15,7 @@
                 hx-get="{% url 'chat:set_security_label' chat.id security_label.id %}"
                 hx-target="closest .dropdown"
                 hx-swap="outerHTML"
-                {% if security_label == chat.security_label %}disabled{% endif %}>
+                {% if security_label.id == chat.security_label.id %}disabled{% endif %}>
           <span class="security-label-{{ security_label.acronym }} security-label chat-security-label badge rounded-pill me-2">{{ security_label.acronym }}</span>
           <span class="me-1">{{ security_label }}</span>
         </button>
