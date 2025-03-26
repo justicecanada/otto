@@ -9,7 +9,7 @@
 | django/chat/admin.py                                                                     |        1 |        1 |      0% |         1 |
 | django/chat/apps.py                                                                      |        4 |        0 |    100% |           |
 | django/chat/forms.py                                                                     |      162 |       20 |     88% |42, 49, 106, 139-148, 156-170, 189, 234, 242, 413, 415-417, 497-499 |
-| django/chat/llm.py                                                                       |      103 |       14 |     86% |67, 86-88, 94-96, 120-126, 231, 251 |
+| django/chat/llm.py                                                                       |      112 |       18 |     84% |75, 97-99, 105-107, 133-148, 253, 275 |
 | django/chat/migrations/0001\_initial.py                                                  |        6 |        0 |    100% |           |
 | django/chat/migrations/0002\_initial.py                                                  |        6 |        0 |    100% |           |
 | django/chat/migrations/0003\_initial.py                                                  |        7 |        0 |    100% |           |
@@ -139,7 +139,7 @@
 | django/text\_extractor/urls.py                                                           |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                          |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                          |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                **TOTAL** | **10369** | **1200** | **88%** |           |
+|                                                                                **TOTAL** | **10378** | **1204** | **88%** |           |
 
 
 ## Setup coverage badge
