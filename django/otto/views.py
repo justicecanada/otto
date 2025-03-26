@@ -982,8 +982,10 @@ def user_cost(request):
         from django.utils.safestring import mark_safe
 
         message_str = _("You will be logged out soon due to inactivity.")
-        message_str += f"<br><a href='#' class='alert-link' hx-get='{reverse('extend_session')}' hx-swap='none'>{_('Click here to extend your session.')}</a>"
-        messages.warning(request, mark_safe(message_str), extra_tags="keep-open")
+        message_str += f"<br><a href='#' class='alert-link' hx-get='{reverse('extend_session')}' hx-swap='none'>"
+        message_str += _("Click here to extend your session.")
+        message_str += "</a>"
+        messages.warning(request, mark_safe(message_str), extra_tags="keep-open focus")
 
     return render(
         request,

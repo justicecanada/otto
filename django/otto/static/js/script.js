@@ -24,6 +24,9 @@ document.addEventListener('htmx:afterRequest', function (event) {
         }
         const toast = new bootstrap.Toast(element, toastOptions);
         toast.show();
+        if (element.classList.contains("focus")) {
+          element.focus();
+        }
       }
 
       // If the element has a link, remove the toast when link is clicked
