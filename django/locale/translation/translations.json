@@ -1545,7 +1545,7 @@
     },
     "&quot;": {
         "fr": "",
-        "fr_auto": "&quot;"
+        "fr_auto": "»"
     },
     "Part": {
         "fr": "",
@@ -2617,7 +2617,7 @@
     },
     "this month": {
         "fr": "",
-        "fr_auto": "cette mois"
+        "fr_auto": "durant ce mois"
     },
     "User costs": {
         "fr": "",
@@ -2786,5 +2786,13 @@
     "Untitled document": {
         "fr": "",
         "fr_auto": "Document sans titre"
+    },
+    "The user must match the 'created_by' and 'modified_by' fields.": {
+        "fr": "",
+        "fr_auto": "L’utilisateur doit faire correspondre les champs « created_by » et « modified_by »."
+    },
+    "Error submitting feedback.": {
+        "fr": "",
+        "fr_auto": "Erreur en soumettant des commentaires."
     }
 }
