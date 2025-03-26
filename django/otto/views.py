@@ -977,8 +977,8 @@ def user_cost(request):
         this_month_cost, monthly_max, _("this month"), today_cost, _("today")
     )
 
-    # Check if the session will expire soon
-    if request.session.get_expiry_age() <= 100:
+    # TODO: Check if the session will expire soon (get_expire_age is not returning the correct value!)
+    if request.session.get_expiry_age() <= 90:
         from django.utils.safestring import mark_safe
 
         message_str = _("You will be logged out soon due to inactivity.")

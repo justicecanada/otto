@@ -44,15 +44,11 @@ class HtmxMessageMiddleware(MiddlewareMixin):
 
 
 class ExtendSessionMiddleware(MiddlewareMixin):
-    """
-    Middleware that extends the session timeout, except for certain paths.
-    """
-
     def process_response(
         self, request: HttpRequest, response: HttpResponse
     ) -> HttpResponse:
         no_extend_paths = ["/user_cost"]
         no_trailing_dash_path = request.path.rstrip("/") or "/"
-        if no_trailing_dash_path not in no_extend_paths:
+        if not (no_trailing_dash_path in no_extend_paths):
             request.session.set_expiry(settings.SESSION_COOKIE_AGE)
         return response
