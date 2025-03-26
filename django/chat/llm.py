@@ -123,6 +123,8 @@ class OttoLLM:
         context: str,
         query: str = "summarize the text",
         template: PromptTemplate = None,
+        chunk_size_limit: int = 64000,
+        chunk_overlap_ratio: float = 0.1,
     ):
         """
         Stream complete response (not single tokens) from context string and query.
@@ -132,6 +134,8 @@ class OttoLLM:
             custom_prompt_helper = PromptHelper(
                 context_window=self.max_input_tokens,
                 num_output=self.max_output_tokens,
+                chunk_size_limit=chunk_size_limit,
+                chunk_overlap_ratio=chunk_overlap_ratio,
             )
             response = await self._get_tree_summarizer(
                 prompt_helper=custom_prompt_helper, summary_template=template
