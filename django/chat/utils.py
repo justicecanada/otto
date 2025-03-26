@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 import markdown
@@ -921,3 +922,37 @@ def fix_source_links(text, source_document_url):
             continue
 
     return text
+
+
+def label_section_index(last_modification_date):
+    last_modification_date = last_modification_date.date()
+    todays_date = timezone.now().date()
+    if last_modification_date > todays_date - timezone.timedelta(days=1):
+        return 0
+    elif last_modification_date > todays_date - timezone.timedelta(days=2):
+        return 1
+    elif last_modification_date > todays_date - timezone.timedelta(days=7):
+        return 2
+    elif last_modification_date > todays_date - timezone.timedelta(days=30):
+        return 3
+    else:
+        return 4
+
+
+def get_chat_history_sections(user_chats):
+    """
+    Group the chat history into sections formatted as [{"label": "(string)", "chats": [list..]}]
+    """
+    chat_history_sections = [
+        {"label": _("Today"), "chats": []},
+        {"label": _("Yesterday"), "chats": []},
+        {"label": _("Last 7 days"), "chats": []},
+        {"label": _("Last 30 days"), "chats": []},
+        {"label": _("Older"), "chats": []},
+    ]
+
+    for user_chat in user_chats:
+        section_index = label_section_index(user_chat.last_modification_date)
+        chat_history_sections[section_index]["chats"].append(user_chat)
+
+    return chat_history_sections

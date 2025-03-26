@@ -2815,6 +2815,10 @@
         "fr": "",
         "fr_auto": "Aucun fait saillant trouvé"
     },
+    "GPT-4o (best quality, 15x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4o (meilleure qualité, coût 15x)"
+    },
     "Find relevant sections of acts and regulations using natural language similarity search.": {
         "fr": "",
         "fr_auto": "Trouvez les articles pertinents des lois et des règlements à l’aide de la recherche de similarité en langage naturel."
@@ -2826,5 +2830,65 @@
     "AI answers may contain mistakes, and are not a replacement for legal advice. Always review the relevant sections below the answer.": {
         "fr": "Les réponses de l’IA peuvent contenir des erreurs et ne remplacent pas les conseils juridiques. Veuillez toujours consulter les sections pertinentes sous la réponse.",
         "fr_auto": "Les réponses de l’IA peuvent contenir des erreurs et ne remplacent pas les conseils juridiques. Consultez toujours les sections pertinentes sous la réponse."
+    },
+    "Improve prompt": {
+        "fr": "",
+        "fr_auto": "Améliorer l'invite"
+    },
+    "Yesterday": {
+        "fr": "",
+        "fr_auto": "Hier"
+    },
+    "Older": {
+        "fr": "",
+        "fr_auto": "Plus ancien"
+    },
+    "Browse presets": {
+        "fr": "Menu des préréglages",
+        "fr_auto": "Parcourir les préréglages"
+    },
+    "Save settings": {
+        "fr": "Enregistrer",
+        "fr_auto": "Sauvegarder les paramètres"
+    },
+    "(Optional) Define AI model's role, background information, and rules to follow.": {
+        "fr": "",
+        "fr_auto": "(Facultatif) Définissez le rôle du modèle d’IA, les informations générales et les règles à suivre."
+    },
+    "(Recommended) What AI model should do with context, query, and formatting instructions.": {
+        "fr": "",
+        "fr_auto": "(Recommandé) Ce que le modèle d’IA devrait faire avec le contexte, la requête et les instructions de formatage."
+    },
+    "(Optional) Final reminders of desired behaviour. Keep this fairly short.": {
+        "fr": "",
+        "fr_auto": "(Facultatif) Derniers rappels du comportement souhaité. Soyez assez bref."
+    },
+    "Corrupt docx file.": {
+        "fr": "",
+        "fr_auto": "Fichier docx corrompu."
+    },
+    "Corrupt PDF file.": {
+        "fr": "",
+        "fr_auto": "Fichier PDF corrompu."
+    },
+    "Corrupt pptx file.": {
+        "fr": "",
+        "fr_auto": "Fichier pptx corrompu."
+    },
+    "Corrupt csv file.": {
+        "fr": "",
+        "fr_auto": "Fichier csv corrompu."
+    },
+    "Corrupt excel file.": {
+        "fr": "",
+        "fr_auto": "Fichier ecxel corrompu."
+    },
+    "Corrupt CSV file.": {
+        "fr": "",
+        "fr_auto": "Fichier CSV corrompu."
+    },
+    "Corrupt Excel file.": {
+        "fr": "",
+        "fr_auto": "Fichier Excel corrompu."
     }
 }

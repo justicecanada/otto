@@ -75,14 +75,22 @@
                 <i class="bi bi-upload"></i><span class="ms-1 hideable">{% trans "Upload" %}</span>
               </button>
             </div>
-            <div class="col-auto p-1 pe-3">
-              <button class="btn btn-sm btn-outline-secondary text-center"
+            <div class="col-auto p-1 pe-3 ">
+              <button id="magic-button"
+                      class="btn btn-sm btn-outline-secondary text-center d-none"
                       type="button"
-                      aria-label='{% trans "Settings" %}'
-                      title='{% trans "Settings" %}'
-                      onclick="document.querySelector('#right-sidebar-toggle').click(); this.blur();">
+                      data-bs-toggle="modal"
+                      data-bs-target="#magicModal"
+                      title='{% trans "Improve prompt" %}'
+                      aria-label='{% trans "Improve prompt" %}'
+                      onclick="setMagicPrompt()">
+                <i class="bi bi-magic wand "></i><span class="ms-1 hideable">{% trans "Improve prompt" %}</span>
+              </button>
+              {% comment %}
+              <button class="btn btn-sm btn-outline-secondary text-center" type="button" aria-label='{% trans "Settings" %}' title='{% trans "Settings" %}' onclick="document.querySelector('#right-sidebar-toggle').click(); this.blur();">
                 <i class="bi bi-gear"></i><span class="ms-1 hideable">{% trans "Settings" %}</span>
               </button>
+              {% endcomment %}
             </div>
           </div>
         </div>
@@ -95,16 +103,6 @@
                     placeholder='{% trans "Type your message here..." %}'
                     required></textarea>
  
-          <button id="magic-button"
-                  class="floating-icon wand-button"
-                  type="button"
-                  data-bs-toggle="modal"
-                  data-bs-target="#magicModal"
-                  aria-label='{% trans "Help me write a good prompt" %}'
-                  title='{% trans "Help me write a good prompt" %}'
-                  onclick="setMagicPrompt()">
-            <i class="bi bi-magic wand"></i>
-          </button>
           <button id="send-button"
                   class="btn btn-outline-secondary"
                   type="submit"

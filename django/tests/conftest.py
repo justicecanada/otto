@@ -1,3 +1,4 @@
+import io
 import os
 import shutil
 import uuid
@@ -13,7 +14,10 @@ from django.test import override_settings
 import pytest
 import pytest_asyncio
 from asgiref.sync import sync_to_async
+from docx import Document
+from openpyxl import Workbook
 from PIL import Image, ImageDraw, ImageFont
+from pptx import Presentation
 from reportlab.pdfgen import canvas
 
 from text_extractor.models import OutputFile
@@ -286,3 +290,52 @@ def output_file():
     output_file.usd_cost = 0
 
     return output_file
+
+
+@pytest.fixture
+def sample_docx():
+    doc = Document()
+    doc.add_heading("Test Heading", 0)
+    doc.add_paragraph("Test paragraph")
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+@pytest.fixture
+def sample_pptx():
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[0])
+    slide.shapes.title.text = "Test Slide"
+    slide.placeholders[1].text = "Test Content"
+    buffer = io.BytesIO()
+    prs.save(buffer)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+@pytest.fixture
+def sample_excel():
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Sheet1"
+    ws["A1"] = "Header1"
+    ws["B1"] = "Header2"
+    ws["A2"] = "Value1"
+    ws["B2"] = "Value2"
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+@pytest.fixture
+def sample_csv():
+    return b"Header1,Header2\nValue1,Value2"
+
+
+@pytest.fixture
+def sample_pdf():
+    # Mock PDF content for testing
+    return b"%PDF-1.4\n..."
