@@ -6,10 +6,9 @@ document.addEventListener('htmx:afterRequest', function (event) {
 });
 
 (function () {
-  const toastOptions = {delay: 5000};
-
   htmx.onLoad(() => {
     htmx.findAll(".toast").forEach((element) => {
+      const toastOptions = {delay: 5000};
       let toast = bootstrap.Toast.getInstance(element);
 
       // Remove hidden toasts (optional)
@@ -20,10 +19,26 @@ document.addEventListener('htmx:afterRequest', function (event) {
 
       // Show new ones
       if (!toast) {
+        if (element.classList.contains("keep-open")) {
+          toastOptions.delay = 60000;
+        }
         const toast = new bootstrap.Toast(element, toastOptions);
         toast.show();
+      }
+
+      // If the element has a link, remove the toast when link is clicked
+      let element_link = element.querySelector("a");
+      if (element_link) {
+        element_link.addEventListener("click", (e) => {
+          let element = e.target.closest(".toast");
+          if (element) {
+            // Without the timeout, the response message rarely appears
+            setTimeout(() => {
+              element.remove();
+            }, 1);
+          }
+        });
       }
     });
   });
 })();
-

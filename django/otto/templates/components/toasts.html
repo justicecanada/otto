@@ -24,19 +24,19 @@
      id="toasts"
      hx-swap-oob="afterbegin">
   {% for message in messages %}
-    <div class="toast px-2 py-1 bg-light"
+    <div class="toast px-2 py-1 bg-light {% if 'keep-open' in message.tags %}keep-open{% endif %}"
          role="alert"
          aria-live="assertive"
          aria-atomic="true">
       <div class="row g-0 align-items-center">
         <div class="col-1" style="padding: .75rem; .5rem;">
-          {% if message.tags == "success" %}
+          {% if "success" in message.tags %}
             <i class="bi bi-check-circle success-toast-icon"></i>
-          {% elif message.tags == "error" %}
+          {% elif "error" in message.tags %}
             <i class="bi bi-x-circle-fill error-toast-icon"></i>
-          {% elif message.tags == "warning" %}
+          {% elif "warning" in message.tags %}
             <i class="bi bi-exclamation-triangle warning-toast-icon"></i>
-          {% elif message.tags == "info" %}
+          {% elif "info" in message.tags %}
             <i class="bi bi-info-circle info-toast-icon"></i>
           {% endif %}
  

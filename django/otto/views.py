@@ -964,6 +964,9 @@ def cost_dashboard(request):
 
 
 def user_cost(request):
+    """
+    Refreshes the user cost widget and checks for imminent session timeout
+    """
     today_cost = cad_cost(Cost.objects.get_user_cost_today(request.user))
     monthly_max = request.user.this_month_max
     this_month_cost = cad_cost(Cost.objects.get_user_cost_this_month(request.user))
@@ -973,6 +976,15 @@ def user_cost(request):
     cost_tooltip = "${:.2f} / ${:.2f} {}<br>(${:.2f} {})".format(
         this_month_cost, monthly_max, _("this month"), today_cost, _("today")
     )
+
+    # Check if the session will expire soon
+    if request.session.get_expiry_age() <= 100:
+        from django.utils.safestring import mark_safe
+
+        message_str = _("You will be logged out soon due to inactivity.")
+        message_str += f"<br><a href='#' class='alert-link' hx-get='{reverse('extend_session')}' hx-swap='none'>{_('Click here to extend your session.')}</a>"
+        messages.warning(request, mark_safe(message_str), extra_tags="keep-open")
+
     return render(
         request,
         "components/user_cost.html",
@@ -982,6 +994,15 @@ def user_cost(request):
             "cost_label": _("User costs"),
         },
     )
+
+
+def extend_session(request):
+    """
+    Simply returns a message that message has been extended.
+    Actual extension of session happens through ExtendSessionMiddleware.
+    """
+    messages.success(request, _("Session extended"))
+    return HttpResponse(status=200)
 
 
 @csrf_exempt

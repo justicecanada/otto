@@ -93,10 +93,6 @@ AZURE_AUTH = {
 LOGIN_URL = "/azure_auth/login"
 LOGIN_REDIRECT_URL = "/"  # Or any other endpoint
 
-# Session timeout. 24 hours is allowed for WCAG and meets security requirement
-SESSION_COOKIE_AGE = 60 * 60 * 24  # 24 hours, in seconds
-SESSION_SAVE_EVERY_REQUEST = True  # Reset the timeout on every request
-
 # OpenAI
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
@@ -180,6 +176,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     # SC-10, SC-23: Django default session management
+    "otto.utils.middleware.ExtendSessionMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     # AC-2, AC-3, IA-2, IA-6, IA-8: Authentication, AC-14: Limited Access
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -358,10 +355,11 @@ X_FRAME_OPTIONS = "SAMEORIGIN"  # Required for iframe on same origin
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # SC-10: Session Timeout
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
-SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+SESSION_COOKIE_AGE = 60 * 60  # 1 hour
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_SAVE_EVERY_REQUEST = True
+# Extended through middleware on all requests but /user_cost (which polls)
+SESSION_SAVE_EVERY_REQUEST = False
 
 # Security
 
