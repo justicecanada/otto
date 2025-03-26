@@ -1545,7 +1545,7 @@
     },
     "&quot;": {
         "fr": "",
-        "fr_auto": "&quot;"
+        "fr_auto": "»"
     },
     "Part": {
         "fr": "",
@@ -2617,7 +2617,7 @@
     },
     "this month": {
         "fr": "",
-        "fr_auto": "cette mois"
+        "fr_auto": "durant ce mois"
     },
     "User costs": {
         "fr": "",
@@ -2786,5 +2786,17 @@
     "Untitled document": {
         "fr": "",
         "fr_auto": "Document sans titre"
+    },
+    "You will be logged out soon due to inactivity.": {
+        "fr": "Vous serez bientôt déconnecté en raison de votre inactivité.",
+        "fr_auto": "Vous serez bientôt déconnecté en raison de votre inactivité."
+    },
+    "Click here to extend your session.": {
+        "fr": "Cliquez ici pour prolonger votre session de travail.",
+        "fr_auto": "Cliquez ici pour prolonger votre séance."
+    },
+    "Session extended": {
+        "fr": "Votre session a été prolongé",
+        "fr_auto": "Prolongation de la session de travail"
     }
 }
