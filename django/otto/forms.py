@@ -50,6 +50,7 @@ class FeedbackForm(ModelForm):
 
     def __init__(self, user, message_id, *args, **kwargs):
         super(FeedbackForm, self).__init__(*args, **kwargs)
+        self.user = user
         self.fields["created_by"].initial = user
         self.fields["modified_by"].initial = user
         self.fields["otto_version"].initial = settings.OTTO_VERSION_HASH
@@ -76,6 +77,18 @@ class FeedbackForm(ModelForm):
                 self.fields["app"].initial = "chat"
 
             self.fields["chat_message"].initial = message_id
+
+    def clean(self):
+        cleaned_data = super().clean()
+        created_by = cleaned_data.get("created_by")
+        modified_by = cleaned_data.get("modified_by")
+
+        if self.user != created_by or self.user != modified_by:
+            raise forms.ValidationError(
+                _("The user must match the 'created_by' and 'modified_by' fields.")
+            )
+
+        return cleaned_data
 
 
 class FeedbackMetadataForm(ModelForm):
