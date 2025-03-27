@@ -659,7 +659,6 @@ def rename_chat(request, chat_id, current_chat=None):
             chat.last_modification_date = timezone.now()
             chat.save()
 
-            # chat.refresh_from_db()
             context = {
                 "chat": chat,
                 "security_labels": SecurityLabel.objects.all(),
