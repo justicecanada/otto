@@ -4,5 +4,5 @@ tr.clickable-row {
 
 body {
   min-height: 100vh;
-  background: var(--bs-light);
+  background: var(--app-primary-bg);
 }

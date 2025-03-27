@@ -1,6 +1,6 @@
 body {
   min-height: 100vh;
-  background: var(--bs-light);
+  background: var(--app-primary-bg);
 }
 
 #answer-container {
@@ -20,6 +20,14 @@ body {
   left: 1rem;
   width: 20px;
   height: 0;
+}
+
+[data-bs-theme="dark"] .bg-light {
+  background-color: transparent !important;
+}
+
+[data-bs-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
 }
 
 .typing span {

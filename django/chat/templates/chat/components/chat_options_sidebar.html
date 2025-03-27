@@ -10,7 +10,7 @@
       <span class="visually-hidden">{% trans "Drag or use the left and right arrows to resize." %}</span>
     </button>
     <div class="offcanvas-header d-flex pb-2 border-bottom p-3">
-      <h5 class="offcanvas-title pb-1" style="font-size: 1rem">
+      <h5 class="offcanvas-title pb-1 sidebar-settings-header">
         <i class="bi bi-gear me-2"></i>{% trans "Settings" %}
       </h5>
       <button type="button"
@@ -26,14 +26,14 @@
            data-bs-target="#presets-modal">
         <button type="button"
                 id="presets-modal-button"
-                class="btn btn-sm btn-outline-dark w-100"
+                class="btn btn-sm btn-outline-dark preset-btn w-100"
                 title="{% trans "Open presets menu" %}"
                 hx-get="{% url 'chat:get_presets' chat_id=chat.id %}"
                 hx-target="#presets-modal-body"
                 hx-swap="innerHTML"
                 onclick="document.getElementById('presets-modal-body').innerHTML = '';">
           <i class="bi bi-folder"></i>
-          <span class="">{% trans 'Browse presets' %}</span>
+          <span>{% trans 'Browse presets' %}</span>
         </button>
       </div>
       <div class="col ps-1"
@@ -46,7 +46,7 @@
                 hx-target="#presets-modal-body"
                 hx-swap="innerHTML transition:true">
           <i class="bi bi-floppy2-fill"></i>
-          <span class="">{% trans 'Save settings' %}</span>
+          <span>{% trans 'Save settings' %}</span>
         </button>
       </div>
     </div>
