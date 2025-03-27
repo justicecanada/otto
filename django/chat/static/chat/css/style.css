@@ -276,6 +276,10 @@ pre .copy-button:focus {
   transition: linear 0.2s;
 }
 
+[data-bs-theme="dark"] .dropdown-header {
+  color: var(--text-secondary);
+}
+
 .options-menu button {
 
   padding-left: 0;
