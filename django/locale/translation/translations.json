@@ -2862,5 +2862,33 @@
     "(Optional) Final reminders of desired behaviour. Keep this fairly short.": {
         "fr": "",
         "fr_auto": "(Facultatif) Derniers rappels du comportement souhaité. Soyez assez bref."
+    },
+    "Corrupt docx file.": {
+        "fr": "",
+        "fr_auto": "Fichier docx corrompu."
+    },
+    "Corrupt PDF file.": {
+        "fr": "",
+        "fr_auto": "Fichier PDF corrompu."
+    },
+    "Corrupt pptx file.": {
+        "fr": "",
+        "fr_auto": "Fichier pptx corrompu."
+    },
+    "Corrupt csv file.": {
+        "fr": "",
+        "fr_auto": "Fichier csv corrompu."
+    },
+    "Corrupt excel file.": {
+        "fr": "",
+        "fr_auto": "Fichier ecxel corrompu."
+    },
+    "Corrupt CSV file.": {
+        "fr": "",
+        "fr_auto": "Fichier CSV corrompu."
+    },
+    "Corrupt Excel file.": {
+        "fr": "",
+        "fr_auto": "Fichier Excel corrompu."
     }
 }
