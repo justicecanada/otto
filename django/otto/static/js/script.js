@@ -7,10 +7,20 @@ document.addEventListener('htmx:afterRequest', function (event) {
 
 (function () {
   htmx.onLoad(() => {
+    let remove_these_toasts = [];
+    let uniqueFound = false;
     htmx.findAll(".toast").forEach((element) => {
       const toastOptions = {delay: 5000};
       let toast = bootstrap.Toast.getInstance(element);
 
+      // Handle unique toasts
+      if (element.classList.contains("unique")) {
+        if (uniqueFound) {
+          remove_these_toasts.push(element);
+        } else {
+          uniqueFound = true;
+        }
+      }
       // Remove hidden toasts (optional)
       if (toast && !toast.isShown()) {
         toast.dispose();
@@ -42,6 +52,9 @@ document.addEventListener('htmx:afterRequest', function (event) {
           }
         });
       }
+    });
+    remove_these_toasts.forEach((element) => {
+      element.remove();
     });
   });
 })();

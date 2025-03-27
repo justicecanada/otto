@@ -977,15 +977,32 @@ def user_cost(request):
         this_month_cost, monthly_max, _("this month"), today_cost, _("today")
     )
 
-    # TODO: Check if the session will expire soon (get_expire_age is not returning the correct value!)
-    if request.session.get_expiry_age() <= 90:
+    # Check if the session will expire soon
+    try:
+        # session.get_expire_age() does not return the correct value, so we track
+        # the last activity time ourselves
+        last_activity_str = request.session.get("last_activity")
+        time_since_last_activity = timezone.now() - timezone.datetime.fromisoformat(
+            last_activity_str
+        )
+        time_until_expire = (
+            settings.SESSION_COOKIE_AGE - time_since_last_activity.total_seconds()
+        )
+    except Exception as e:
+        time_until_expire = 1000
+    # 5 minute warning
+    if time_until_expire < 60 * 5:
         from django.utils.safestring import mark_safe
 
         message_str = _("You will be logged out soon due to inactivity.")
         message_str += f"<br><a href='#' class='alert-link' hx-get='{reverse('extend_session')}' hx-swap='none'>"
         message_str += _("Click here to extend your session.")
         message_str += "</a>"
-        messages.warning(request, mark_safe(message_str), extra_tags="keep-open focus")
+        messages.warning(
+            request,
+            mark_safe(message_str),
+            extra_tags="keep-open focus unique",
+        )
 
     return render(
         request,

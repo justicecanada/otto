@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.messages import get_messages
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 
 
@@ -50,5 +51,8 @@ class ExtendSessionMiddleware(MiddlewareMixin):
         no_extend_paths = ["/user_cost"]
         no_trailing_dash_path = request.path.rstrip("/") or "/"
         if not (no_trailing_dash_path in no_extend_paths):
+            # session.get_expire_age() does not return the correct value, so we track
+            # the last activity time ourselves
+            request.session["last_activity"] = str(timezone.now())
             request.session.set_expiry(settings.SESSION_COOKIE_AGE)
         return response
