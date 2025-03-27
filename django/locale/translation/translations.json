@@ -2906,5 +2906,13 @@
     "Corrupt Excel file.": {
         "fr": "",
         "fr_auto": "Fichier Excel corrompu."
+    },
+    "The user must match the 'created_by' and 'modified_by' fields.": {
+        "fr": "",
+        "fr_auto": "L’utilisateur doit faire correspondre les champs « created_by » et « modified_by »."
+    },
+    "Error submitting feedback.": {
+        "fr": "",
+        "fr_auto": "Erreur en soumettant des commentaires."
     }
 }
