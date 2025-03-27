@@ -64,8 +64,10 @@
   --text-extractor-sub-text: #888;
   --chat-user-choice-button-hover: #acacac;
   --darkgray: darkgray;
-  --security-PA-border: #fcda72;
-  --security-PB-border: #fb7380;
+  --security-PA-bg: #fff3cd;
+  --security-PA-border: #ffeeba;
+  --security-PB-bg: #f8d7da;
+  --security-PB-border: #f5c6cb;
   --welcome-btn-bg: #e6e6e6;
   --search-bar-bg-hover: #e6e6e6;
   --chat-delete-text: #b10e0e;
@@ -132,6 +134,8 @@
   --text-extractor-sub-text: #e4e4e4;
   --chat-user-choice-button-hover: #acacac;
   --darkgray: darkgray;
+  --security-PA-border: #fcda72;
+  --security-PB-border: #fb7380;
   --library-bulk-btn-bg: #092417;
   --text-secondary: #a7a7a7;
   --btn-hover: #0f0f14b5;

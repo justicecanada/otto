@@ -272,7 +272,6 @@ pre .copy-button:focus {
   bottom: 0.1rem;
   right: 0;
   margin: 0 auto !important;
-  background: var(--app-primary-bg);
   opacity: 0;
   transition: linear 0.2s;
 }
@@ -378,10 +377,6 @@ pre .copy-button:focus {
 #right-sidebar .accordion-item .accordion-button,
 #right-sidebar .px-3 {
   padding-left: calc(1rem - 2px) !important;
-
-  [data-bs-theme="light"] & {
-    background-color: var(--bs-light);
-  }
 }
 
 #right-sidebar .accordion-item {
@@ -439,7 +434,11 @@ pre .copy-button:focus {
 }
 
 .chat-title {
-  color: var(--bs-light-text-emphasis);
+  color: var(--bg-black);
+
+  [data-bs-theme="dark"] & {
+    color: var(--bs-light-text-emphasis);
+  }
 }
 
 #chat-options,
@@ -1171,7 +1170,6 @@ div.message-text pre {
   position: relative;
   width: 32px;
   font-size: 11px;
-  background: var(--otto-tab-body-bg-color);
   color: var(--otto-primary-text-color);
 
   [data-bs-theme="dark"] & {
@@ -1284,12 +1282,12 @@ ul#preset-edit-tabs {
 
   &:not(.active) {
     background-color: var(--chat-preset-tab-not-active);
-    border-bottom: var(--bs-gray-200);
+    border-bottom: 0.25px solid var(--bs-gray-200);
     font-weight: 400;
 
     [data-bs-theme="dark"] & {
       background-color: var(--chat-preset-tab-not-active);
-      border-bottom: 0.25px solid var(--bs-gray-700) !important;
+      border-bottom: 0.25px solid var(--bs-gray-700);
     }
   }
 }
