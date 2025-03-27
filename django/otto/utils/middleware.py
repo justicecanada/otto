@@ -1,9 +1,15 @@
+from importlib import import_module
+
 from django.conf import settings
 from django.contrib.messages import get_messages
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
+
+from otto.models import Visitor
+
+engine = import_module(settings.SESSION_ENGINE)
 
 
 # Code referenced: https://github.com/bblanchon/django-htmx-messages-framework/tree/oob
@@ -56,3 +62,23 @@ class ExtendSessionMiddleware(MiddlewareMixin):
             request.session["last_activity"] = str(timezone.now())
             request.session.set_expiry(settings.SESSION_COOKIE_AGE)
         return response
+
+
+class PreventConcurrentLoginsMiddleware(MiddlewareMixin):
+    """
+    Prevent multiple concurrent logins for a single user.
+    Adapted from https://github.com/pcraston/django-preventconcurrentlogins/blob/master/preventconcurrentlogins/middleware.py
+    """
+
+    def process_request(self, request):
+        if request.user.is_authenticated:
+            key_from_cookie = request.session.session_key
+            if hasattr(request.user, "visitor"):
+                session_key_in_visitor_db = request.user.visitor.session_key
+                if session_key_in_visitor_db != key_from_cookie:
+                    # Delete the Session object from database and cache
+                    engine.SessionStore(session_key_in_visitor_db).delete()
+                    request.user.visitor.session_key = key_from_cookie
+                    request.user.visitor.save()
+            else:
+                Visitor.objects.create(user=request.user, session_key=key_from_cookie)
