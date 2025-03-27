@@ -64,7 +64,7 @@
 | django/otto/asgi.py                                                                      |        8 |        8 |      0% |     10-24 |
 | django/otto/celery.py                                                                    |       16 |        1 |     94% |        78 |
 | django/otto/context\_processors.py                                                       |       11 |        4 |     64% |     10-14 |
-| django/otto/forms.py                                                                     |       68 |        4 |     94% |72, 74, 202-203 |
+| django/otto/forms.py                                                                     |       76 |        4 |     95% |73, 75, 215-216 |
 | django/otto/management/commands/delete\_empty\_chats.py                                  |       19 |        1 |     95% |        29 |
 | django/otto/management/commands/delete\_old\_chats.py                                    |       21 |        2 |     90% |    32, 36 |
 | django/otto/management/commands/delete\_text\_extractor\_files.py                        |       18 |        0 |    100% |           |
@@ -91,7 +91,7 @@
 | django/otto/utils/decorators.py                                                          |       62 |        4 |     94% |24-25, 65, 87 |
 | django/otto/utils/logging.py                                                             |       15 |        0 |    100% |           |
 | django/otto/utils/middleware.py                                                          |       17 |        1 |     94% |        23 |
-| django/otto/views.py                                                                     |      541 |      111 |     79% |59, 64, 69-83, 123, 132-142, 154, 275, 375, 427-430, 446-447, 471, 481-484, 513-523, 535-540, 543, 552, 554-557, 559-560, 562-565, 588, 596, 605, 621-632, 738-739, 770, 772, 774, 788, 790, 797-798, 801-804, 814-820, 830, 832, 834, 839-859, 898, 907-916, 1013, 1044, 1077-1100 |
+| django/otto/views.py                                                                     |      542 |      111 |     80% |59, 64, 69-83, 123, 132-142, 154, 279, 379, 431-434, 450-451, 475, 485-488, 517-527, 539-544, 547, 556, 558-561, 563-564, 566-569, 592, 600, 609, 625-636, 742-743, 774, 776, 778, 792, 794, 801-802, 805-808, 818-824, 834, 836, 838, 843-863, 902, 911-920, 1017, 1048, 1081-1104 |
 | django/otto/wsgi.py                                                                      |        4 |        4 |      0% |     10-16 |
 | django/postgres\_wrapper/\_\_init\_\_.py                                                 |        0 |        0 |    100% |           |
 | django/postgres\_wrapper/base.py                                                         |        6 |        0 |    100% |           |
@@ -139,7 +139,7 @@
 | django/text\_extractor/urls.py                                                           |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                          |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                          |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                **TOTAL** | **10378** | **1204** | **88%** |           |
+|                                                                                **TOTAL** | **10387** | **1204** | **88%** |           |
 
 
 ## Setup coverage badge
