@@ -193,9 +193,10 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
-    # AU-6: Aupports structured logging, facilitating the review and analysis of audit records for inappropriate or unusual activity
+    # AU-6: Supports structured logging, facilitating the review and analysis of audit records for inappropriate or unusual activity
     "django_structlog.middlewares.RequestMiddleware",
     "otto.utils.middleware.HtmxMessageMiddleware",
+    "otto.utils.middleware.PreventConcurrentLoginsMiddleware",
 ]
 
 if IS_RUNNING_TESTS:
