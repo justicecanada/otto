@@ -75,11 +75,12 @@
 | django/otto/management/commands/update\_exchange\_rate.py                                |       19 |        0 |    100% |           |
 | django/otto/management/commands/warn\_libraries\_pending\_deletion.py                    |       26 |        3 |     88% |     29-33 |
 | django/otto/migrations/0001\_initial.py                                                  |        8 |        0 |    100% |           |
+| django/otto/migrations/0002\_visitor.py                                                  |        6 |        0 |    100% |           |
 | django/otto/migrations/\_\_init\_\_.py                                                   |        0 |        0 |    100% |           |
-| django/otto/models.py                                                                    |      281 |       30 |     89% |28-30, 83-86, 119, 123-126, 161, 200, 203, 219, 240, 258, 375, 378, 432, 439, 467, 471, 478, 484, 533-534, 548, 552, 556, 578 |
+| django/otto/models.py                                                                    |      284 |       30 |     89% |28-30, 83-86, 119, 123-126, 161, 207, 210, 226, 247, 265, 382, 385, 439, 446, 474, 478, 485, 491, 540-541, 555, 559, 563, 585 |
 | django/otto/rules.py                                                                     |      157 |       18 |     89% |26, 41, 48, 50, 100-102, 107-109, 114-116, 145, 211-213, 249 |
 | django/otto/secure\_models.py                                                            |      248 |       91 |     63% |21-22, 61, 86-100, 129-130, 135-136, 149-154, 183-224, 248, 268-269, 307, 337, 350, 359, 378, 393, 398, 403, 409-415, 418, 423, 437, 442, 447, 454-482, 485-486, 491-498, 501-502, 508-522, 536-537, 542-552, 557-558, 561-562 |
-| django/otto/settings.py                                                                  |      160 |       23 |     86% |38-41, 51-52, 217-226, 296, 309, 366-373, 405, 495-496 |
+| django/otto/settings.py                                                                  |      160 |       23 |     86% |38-41, 51-52, 218-227, 297, 310, 367-374, 406, 496-497 |
 | django/otto/tasks.py                                                                     |       43 |        7 |     84% |11, 16, 40, 60, 73-75 |
 | django/otto/templatetags/\_\_init\_\_.py                                                 |        0 |        0 |    100% |           |
 | django/otto/templatetags/filters.py                                                      |       10 |        1 |     90% |         8 |
@@ -90,7 +91,7 @@
 | django/otto/utils/common.py                                                              |       57 |        1 |     98% |        94 |
 | django/otto/utils/decorators.py                                                          |       62 |        4 |     94% |24-25, 65, 87 |
 | django/otto/utils/logging.py                                                             |       15 |        0 |    100% |           |
-| django/otto/utils/middleware.py                                                          |       27 |        1 |     96% |        25 |
+| django/otto/utils/middleware.py                                                          |       41 |        1 |     98% |        31 |
 | django/otto/views.py                                                                     |      558 |      120 |     78% |59, 64, 69-83, 123, 132-142, 154, 279, 379, 431-434, 450-451, 475, 485-488, 517-527, 539-544, 547, 556, 558-561, 563-564, 566-569, 592, 600, 609, 625-636, 742-743, 774, 776, 778, 792, 794, 801-802, 805-808, 818-824, 834, 836, 838, 843-863, 902, 911-920, 999, 1006-1012, 1035-1036, 1056, 1087, 1120-1143 |
 | django/otto/wsgi.py                                                                      |        4 |        4 |      0% |     10-16 |
 | django/postgres\_wrapper/\_\_init\_\_.py                                                 |        0 |        0 |    100% |           |
@@ -139,7 +140,7 @@
 | django/text\_extractor/urls.py                                                           |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                          |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                          |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                **TOTAL** | **10410** | **1213** | **88%** |           |
+|                                                                                **TOTAL** | **10433** | **1213** | **88%** |           |
 
 
 ## Setup coverage badge
