@@ -5,7 +5,7 @@ name: Django Localization CI
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "pilot" ]
 
 defaults:
   run:

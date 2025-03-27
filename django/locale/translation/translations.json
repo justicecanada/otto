@@ -2787,6 +2787,18 @@
         "fr": "",
         "fr_auto": "Document sans titre"
     },
+    "You will be logged out soon due to inactivity.": {
+        "fr": "Vous serez bientôt déconnecté en raison de votre inactivité.",
+        "fr_auto": "Vous serez bientôt déconnecté en raison de votre inactivité."
+    },
+    "Click here to extend your session.": {
+        "fr": "Cliquez ici pour prolonger votre session de travail.",
+        "fr_auto": "Cliquez ici pour prolonger votre séance."
+    },
+    "Session extended": {
+        "fr": "Votre session a été prolongé",
+        "fr_auto": "Prolongation de la session de travail"
+    },
     "The user must match the 'created_by' and 'modified_by' fields.": {
         "fr": "",
         "fr_auto": "L’utilisateur doit faire correspondre les champs « created_by » et « modified_by »."
