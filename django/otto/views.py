@@ -968,6 +968,9 @@ def cost_dashboard(request):
 
 
 def user_cost(request):
+    """
+    Refreshes the user cost widget and checks for imminent session timeout
+    """
     today_cost = cad_cost(Cost.objects.get_user_cost_today(request.user))
     monthly_max = request.user.this_month_max
     this_month_cost = cad_cost(Cost.objects.get_user_cost_this_month(request.user))
@@ -983,8 +986,35 @@ def user_cost(request):
     cost_tooltip = message.format(
         this_month_cost, monthly_max, _("this month"), today_cost, _("today")
     )
-
     cost_tooltip_short = cost_tooltip.split("<br>")[0]
+
+    # Check if the session will expire soon
+    try:
+        # session.get_expire_age() does not return the correct value, so we track
+        # the last activity time ourselves
+        last_activity_str = request.session.get("last_activity")
+        time_since_last_activity = timezone.now() - timezone.datetime.fromisoformat(
+            last_activity_str
+        )
+        time_until_expire = (
+            settings.SESSION_COOKIE_AGE - time_since_last_activity.total_seconds()
+        )
+    except Exception as e:
+        time_until_expire = 1000
+    # 5 minute warning
+    if time_until_expire < 60 * 5:
+        from django.utils.safestring import mark_safe
+
+        message_str = _("You will be logged out soon due to inactivity.")
+        message_str += f"<br><a href='#' class='alert-link' hx-get='{reverse('extend_session')}' hx-swap='none'>"
+        message_str += _("Click here to extend your session.")
+        message_str += "</a>"
+        messages.warning(
+            request,
+            mark_safe(message_str),
+            extra_tags="keep-open focus unique",
+        )
+
     return render(
         request,
         "components/user_cost.html",
@@ -995,6 +1025,15 @@ def user_cost(request):
             "cost_label": _("User costs"),
         },
     )
+
+
+def extend_session(request):
+    """
+    Simply returns a message that message has been extended.
+    Actual extension of session happens through ExtendSessionMiddleware.
+    """
+    messages.success(request, _("Session extended"))
+    return HttpResponse(status=200)
 
 
 @csrf_exempt

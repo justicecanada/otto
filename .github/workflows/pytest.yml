@@ -3,9 +3,9 @@ name: Django Pytest CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "pilot" ]
   pull_request:
-    branches: [ "main" ] 
+    branches: [ "main", "pilot" ] 
 
 defaults:
   run:
