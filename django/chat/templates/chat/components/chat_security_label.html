@@ -1,9 +1,7 @@
 
 {% load i18n %}
 
-<div class="dropdown"
-     id="chat-security-label-{{ chat.id }}"
-     {% if swap_oob %}hx-swap-oob="true"{% endif %}>
+<div class="dropdown" id="chat-security-label-{{ chat.id }}">
   <button class="btn btn-none security-label-{{ chat.security_label.acronym }} security-label chat-security-label badge rounded-pill btn-dark"
           title="{{ chat.security_label }}"
           type="button"
@@ -16,9 +14,8 @@
       <li>
         <button class="dropdown-item"
                 hx-get="{% url 'chat:set_security_label' chat.id security_label.id %}"
-                hx-target="closest div.dropdown"
+                hx-target="closest .dropdown"
                 hx-swap="outerHTML"
-                onclick="this.closest('div.dropdown').querySelector('button').innerHTML = '...';"
                 {% if security_label == chat.security_label %}disabled{% endif %}>
           <span class="security-label-{{ security_label.acronym }} security-label chat-security-label badge rounded-pill me-2">{{ security_label.acronym }}</span>
           <span class="me-1">{{ security_label }}</span>
