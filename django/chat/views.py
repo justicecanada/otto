@@ -663,7 +663,6 @@ def rename_chat(request, chat_id, current_chat=None):
                 "chat": chat,
                 "security_labels": SecurityLabel.objects.all(),
                 "section_index": label_section_index(old_last_modification_date),
-                "swap_oob": True,
             }
             return render(request, "chat/components/chat_list_item.html", context)
         else:
