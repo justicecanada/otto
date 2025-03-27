@@ -280,7 +280,7 @@ DJANGODB_PGBOUNCER = os.environ.get("DJANGODB_PGBOUNCER", "False") == "True"
 VECTORDB_PGBOUNCER = os.environ.get("VECTORDB_PGBOUNCER", "False") == "True"
 pgbouncer_options = {
     "DISABLE_SERVER_SIDE_CURSORS": True,
-    "CONN_MAX_AGE": 600,  # 10 minutes
+    "CONN_MAX_AGE": 0,
 }
 
 # If the database is set in the environment variables, use that instead
