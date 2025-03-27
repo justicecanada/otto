@@ -4,6 +4,8 @@ import math
 import os
 import tempfile
 import uuid
+from datetime import datetime
+from decimal import Decimal
 from io import BytesIO
 
 from django.conf import settings
@@ -23,6 +25,8 @@ from structlog import get_logger
 
 from chat.llm import OttoLLM
 from otto.utils.common import display_cad_cost
+
+from .schemas import Address, Appellant, Representative, TaxAppeal
 
 logger = get_logger(__name__)
 
@@ -285,7 +289,8 @@ def add_extracted_files(output_file, access_key):
     return output_file
 
 
-def lex_prompts(content):
+# def lex_prompts(content):
+def lex_prompts(content: str) -> tuple[TaxAppeal, float]:
 
     client = AzureOpenAI(
         api_key=settings.AZURE_OPENAI_KEY,
@@ -293,58 +298,58 @@ def lex_prompts(content):
         azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
     )
     model_str = settings.DEFAULT_CHAT_MODEL
-    system_prompt = "You are a legal professional tasked with reviewing a legal document. Your job is to extract and write down specific information from the content provided. Use only the facts presented in the content. When extracting information, write only the relevant details without any additional context or explanation. If the information is not found, simply state 'Not found' without providing further details."
-
-    client = AzureOpenAI(
-        api_key=settings.AZURE_OPENAI_KEY,
-        api_version=settings.AZURE_OPENAI_VERSION,
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+    # system_prompt = "You are a legal professional tasked with reviewing a legal document. Your job is to extract and write down specific information from the content provided. Use only the facts presented in the content. When extracting information, write only the relevant details without any additional context or explanation. If the information is not found, simply state 'Not found' without providing further details."
+    system_prompt = """You are a legal professional tasked with reviewing a legal document. If any information is not found, enter "Not found".
+    Extract the information and return it in JSON format matching this structure:
+    {
+        "court_number": "string",
+        "appellant": {
+            "name": "string",
+            "address": {
+                "street": "string",
+                "city": "string",
+                "province": "string",
+                "postal_code": "string",
+                "country": "string"
+            }
+        },
+        "class_level": "string",
+        "filing_date": "YYYY-MM-DD",
+        "representative": {
+            "name": "string",
+            "address": {
+                "street": "string",
+                "city": "string",
+                "province": "string",
+                "postal_code": "string",
+                "country": "string"
+            }
+        },
+        "taxation_years": ["string"],
+        "total_tax_amount": "string",
+        "sections_referred": ["string"]
+    }"""
+    response = client.chat.completions.create(
+        model=model_str,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": content},
+        ],
+        temperature=0.1,
     )
-    model_str = settings.DEFAULT_CHAT_MODEL
 
-    questions = [
-        "What is the Tax Court of Canada Court No.?",
-        "What is the Appellant or Appellants Name?",
-        "What is the Appellant's street number and name from the address?",
-        "What is the Appellant's city from the address?",
-        "What is the Appellant's province from the address?",
-        "What is the Appellant's postal code from the address?",
-        "What is the Appellant's country from the address?",
-        "What is the Tax Court of Canada Class Level?",
-        "What is the filed date of the Notice of Appeal?",
-        "What is the Representative's name?",
-        "What is the Representative's street number and name from the address?",
-        "What is the Representative's city from the address?",
-        "What is the Representative's province from the address?",
-        "What is the Representative's postal code from address?",
-        "What is the Representative's country from the address?",
-        "What are the taxation years?",
-        "What is the total tax amount?",
-        "What section or subsections are referred to in the Notice of Appeal?",
-    ]
+    json_response = response.choices[0].message.content
+    json_response = json_response.replace("```json", "").replace("```", "").strip()
 
-    def get_answer(question):
-        response = client.chat.completions.create(
-            model=model_str,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": "### Content: " + content},
-                {"role": "user", "content": "### Question: " + question},
-            ],
-            temperature=0.1,
-        )
-        return response.choices[0].message.content
+    # Parse the response into TaxAppeal model
+    try:
+        tax_appeal = TaxAppeal.model_validate_json(json_response)
+    except Exception as e:
+        logger.error(f"Failed to parse response: {e}")
+        logger.debug(f"Raw response: {json_response}")
+        raise
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = list(executor.map(get_answer, questions))
+    # Calculate cost
+    cost = Cost.objects.new(cost_type="gpt-4o-mini-in", count=1)
 
-    # Calculate the cost based on the number of API calls
-    num_api_calls = len(questions)
-    cost = Cost.objects.new(cost_type="gpt-4o-mini-in", count=num_api_calls)
-    # llm = OttoLLM()
-    # cost = llm.create_costs()
-
-    return [
-        {"question": question, "answer": answer}
-        for question, answer in zip(questions, results)
-    ], (cost.usd_cost if cost else 0)
+    return tax_appeal, (cost.usd_cost if cost else 0)
