@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify
 from structlog import get_logger
 
+from librarian.utils.extract_emails import extract_msg
 from librarian.utils.markdown_splitter import MarkdownSplitter
 from otto.models import Cost
 
@@ -231,6 +232,7 @@ def extract_markdown(
     base_url=None,
     chunk_size=768,
     selector=None,
+    data_source_id=None,
 ):
 
     try:
@@ -261,7 +263,8 @@ def extract_markdown(
             md = decode_content(content)
         elif process_engine == "OUTLOOK_MSG":
             enable_markdown = False
-            md = msg_to_markdown(content)
+            # md = msg_to_markdown(content)
+            md = extract_msg(content, data_source_id)
         elif process_engine == "CSV":
             md = csv_to_markdown(content)
         elif process_engine == "EXCEL":
