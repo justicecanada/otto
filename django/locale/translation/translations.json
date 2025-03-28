@@ -2910,5 +2910,13 @@
     "Error submitting feedback.": {
         "fr": "",
         "fr_auto": "Erreur en soumettant des commentaires."
+    },
+    "Default": {
+        "fr": "",
+        "fr_auto": "Défaut"
+    },
+    "(best, $)": {
+        "fr": "",
+        "fr_auto": "(meilleur, $)"
     }
 }

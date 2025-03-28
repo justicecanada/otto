@@ -188,7 +188,7 @@ def test_chat_data_source(client, all_apps_user):
     nodes = retriever.retrieve("What is this about?")
     assert len(nodes) > 0
 
-    assert document.pdf_method == "text only"
+    assert document.pdf_method == "OCR"
     assert document.truncated_text.startswith(document.extracted_text[:10])
     assert "$" in document.display_cost
 
