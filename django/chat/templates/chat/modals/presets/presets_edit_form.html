@@ -3,7 +3,7 @@
 <div class="modal-body preset-form-container">
   <form class="g-3 row"
         id="edit_preset_form"
-        hx-post="{% if preset_id %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' preset_id=preset_id %}{% else %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' %}{% endif %}"
+        hx-post="{% url 'chat:chat_options' chat_id=chat_id action='create_preset' preset_id=preset_id %}"
         hx-include="#edit_preset_form"
         hx-target="#presets-modal-body"
         hx-swap="innerHTML">
@@ -109,7 +109,7 @@
           <div class="col-6 text-end pe-0">
             <button class="btn btn-dark flex-fill"
                     type="submit"
-                    onclick="handlePresetModalSubmit(event)">{% trans "Save" %}</button>
+                    onclick="handlePresetEditSubmit(event)">{% trans "Save" %}</button>
  
           </div>
         </div>

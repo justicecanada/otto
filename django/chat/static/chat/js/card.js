@@ -18,7 +18,7 @@ wrappers.forEach((wrapper) => {
             expandedText.style.left = element.offsetLeft + 'px';
             expandedText.style.width = element.offsetWidth + 'px';
             expandedText.style.backgroundColor = 'rgb(255, 255, 255)';
-            expandedText.style.border = '1px solid rgb(148, 148, 148)';
+            expandedText.style.border = '1px solid rgb(89, 50, 50)';
             expandedText.style.padding = '0.5em';
             expandedText.style.boxShadow = '0px 4px 6px rgb(0 0 0 / 0.1)';
             expandedText.whiteSpace = 'normal';
@@ -40,5 +40,4 @@ wrappers.forEach((wrapper) => {
         });
     };
 });
-
 

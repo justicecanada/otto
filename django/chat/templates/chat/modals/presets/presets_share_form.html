@@ -3,13 +3,15 @@
 <div class="modal-body preset-form-container">
   <form class="g-3 row"
         id="edit_preset_form"
-        hx-post="{% if preset_id %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' preset_id=preset_id %}{% else %}{% url 'chat:chat_options' chat_id=chat_id action='create_preset' %}{% endif %}"
+        hx-post="{% url 'chat:chat_options' chat_id=chat_id action='create_preset' preset_id=preset_id %}"
         hx-include="#edit_preset_form"
         hx-target="#presets-modal-body"
         hx-swap="innerHTML">
     <div class="d-flex flex-column">
- 
-
+      <div id="error-message"
+           class="alert alert-danger d-none mt-3"
+           role="alert"
+           tabindex="-1"></div>
       <div class="px-3">
         {% if form.sharing_option %}
           <div class="col-12 mt-3">
@@ -64,7 +66,7 @@
           <div class="col-6 text-end pe-0">
             <button class="btn btn-dark flex-fill"
                     type="submit"
-                    onclick="handlePresetModalSubmit(event)">{% trans "Save" %}</button>
+                    onclick="handlePresetSharingSubmit(event, closeModalWhenDone=true)">{% trans "Save" %}</button>
  
           </div>
         </div>

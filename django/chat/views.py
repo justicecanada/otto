@@ -19,7 +19,13 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm
+from chat.forms import (
+    ChatOptionsForm,
+    ChatRenameForm,
+    CreatePresetForm,
+    PresetInformationForm,
+    SharingPresetForm,
+)
 from chat.llm import OttoLLM
 from chat.models import (
     AnswerSource,
@@ -533,58 +539,80 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         )
     elif action == "create_preset":
         if request.method == "POST":
-            form = PresetForm(data=request.POST, user=request.user)
 
-            if form.is_valid():
-                if preset_id:
-                    preset = get_object_or_404(Preset, id=preset_id)
-                    replace_with_settings = request.POST.get(
-                        "replace_with_settings", False
+            edit_sharing = "sharing_option" in request.POST
+            edit_title_and_description = "name_en" in request.POST
+            replace_with_settings = (
+                "replace_with_settings" in request.POST
+                and request.POST["replace_with_settings"] == "on"
+            )
+
+            if preset_id:
+                preset = get_object_or_404(Preset, id=preset_id)
+                if edit_sharing:
+                    # Sharing form is being submitted
+                    form = SharingPresetForm(
+                        data=request.POST,
+                        instance=preset,
+                        user=request.user,
                     )
                 else:
-                    # Create a new Preset object
-                    preset = Preset()
-                    preset.options = ChatOptions.objects.create()
-                    preset.owner = request.user
-                    preset_id = preset.id
-                    replace_with_settings = True
+                    # Title/description form is being submitted
+                    form = PresetInformationForm(
+                        data=request.POST,
+                        instance=preset,
+                    )
 
-                # save the current chat settings
+            else:
+                form = CreatePresetForm(data=request.POST, user=request.user)
+                # in this case the user is saving from the preset creation modal
+                preset = Preset()
+                preset.options = ChatOptions.objects.create()
+                preset.owner = request.user
+                preset_id = preset.id
+                replace_with_settings = True
+                edit_title_and_description = True
+                edit_sharing = True
+
+            if form.is_valid():
+
                 if replace_with_settings:
-                    # copy the options from the chat to the preset
                     copy_options(chat.options, preset.options)
                     preset.options.prompt = request.POST.get("prompt", "")
                     preset.options.save()
 
-                english_title = form.cleaned_data["name_en"]
-                french_title = form.cleaned_data["name_fr"]
+                if edit_title_and_description:
+                    english_title = form.cleaned_data["name_en"]
+                    french_title = form.cleaned_data["name_fr"]
 
-                # Set the fields based on the selected tab
-                preset.name_en = english_title
-                preset.name_fr = french_title
-                preset.description_en = form.cleaned_data["description_en"]
-                preset.description_fr = form.cleaned_data["description_fr"]
+                    preset.name_en = english_title
+                    preset.name_fr = french_title
+                    preset.description_en = form.cleaned_data["description_en"]
+                    preset.description_fr = form.cleaned_data["description_fr"]
 
-                preset.sharing_option = form.cleaned_data.get("sharing_option", None)
-
-                accessible_to = form.cleaned_data.get("accessible_to", [])
-
-                preset.save()
-
-                # clear the accessible_to field if the user changes the sharing option to private
-                if preset.sharing_option == "private" and len(accessible_to) > 0:
-                    accessible_to = []
-
-                preset.accessible_to.set(accessible_to)
-                chat.loaded_preset = preset
-                chat.save()
+                if edit_sharing:
+                    preset.sharing_option = form.cleaned_data.get(
+                        "sharing_option", None
+                    )
+                    accessible_to = form.cleaned_data.get("accessible_to", [])
+                    preset.save()
+                    if preset.sharing_option == "private" and len(accessible_to) > 0:
+                        accessible_to = []
+                    preset.accessible_to.set(accessible_to)
+                else:
+                    preset.save()
 
                 messages.success(
                     request,
                     _("Preset saved successfully."),
                 )
 
-                return HttpResponse(status=200)
+                if preset_id:
+                    return redirect("chat:get_presets", chat_id=chat_id)
+                else:
+                    chat.loaded_preset = preset
+                    chat.save()
+                    return HttpResponse(status=200)
 
         return HttpResponse(status=500)
     elif action == "update_preset":
@@ -822,7 +850,7 @@ def save_preset(request, chat_id):
             },
         )
     else:
-        form = PresetForm(user=request.user)
+        form = CreatePresetForm(user=request.user)
         return render(
             request,
             "chat/modals/presets/presets_form.html",
@@ -833,7 +861,7 @@ def save_preset(request, chat_id):
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def open_preset_form(request, chat_id):
 
-    form = PresetForm(user=request.user)
+    form = CreatePresetForm(user=request.user)
     return render(
         request,
         "chat/modals/presets/presets_form.html",
@@ -844,7 +872,7 @@ def open_preset_form(request, chat_id):
 @permission_required("chat.edit_preset", objectgetter(Preset, "preset_id"))
 def edit_preset(request, chat_id, preset_id):
     preset = get_object_or_404(Preset, id=preset_id)
-    form = PresetForm(instance=preset, user=request.user)
+    form = PresetInformationForm(instance=preset)
 
     return render(
         request,
@@ -861,12 +889,12 @@ def edit_preset(request, chat_id, preset_id):
 @permission_required("chat.edit_preset_sharing", objectgetter(Preset, "preset_id"))
 def share_preset(request, chat_id, preset_id):
     preset = get_object_or_404(Preset, id=preset_id)
-    form = PresetForm(instance=preset, user=request.user)
+    form = SharingPresetForm(instance=preset, user=request.user)
     return render(
         request,
         "chat/modals/presets/presets_share_form.html",
         {
-            "preset": preset,
+            "preset_id": preset_id,
             "form": form,
             "chat_id": chat_id,
         },

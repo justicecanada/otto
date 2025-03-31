@@ -1148,7 +1148,7 @@ ul#preset-edit-tabs {
 }
 
 #preset-card-list {
-  background-color: rgb(233, 232, 232);
+  /* background-color: rgb(233, 232, 232); */
 }
 
 .preset-form-container .nav-link {
@@ -1206,7 +1206,7 @@ ul#preset-edit-tabs {
 }
 
 .card {
-  border: none;
+  /* border: none; */
   /* box-shadow: 2px 4px 10px -1px rgb(0 0 0 / 0.1), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important; */
 }
 
