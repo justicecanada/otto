@@ -162,6 +162,13 @@ class UserOptions(models.Model):
         return f"Options for {self.user.upn}"
 
 
+class Visitor(models.Model):
+    user = models.OneToOneField(
+        User, null=False, related_name="visitor", on_delete=models.CASCADE
+    )
+    session_key = models.CharField(null=False, max_length=40)
+
+
 class AppManager(models.Manager):
 
     def create_from_yaml(self, app_data):
