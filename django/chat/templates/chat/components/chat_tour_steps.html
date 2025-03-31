@@ -2,7 +2,16 @@
 
 <script>
 startTour = () => {
-  // TODO: Always ensure that tour starts with a blank chat in Chat mode
+  // Check that #no-messages-placeholder is visible
+  const noMessagesPlaceholder = document.querySelector("#no-messages-placeholder");
+  if (noMessagesPlaceholder === null) {
+    const redirect_url = "{% url 'chat:chat_with_ai' %}?start_tour=true";
+    window.location = redirect_url;
+    return;
+  } else if (!document.querySelector("#chat-outer").classList.contains("chat")) {
+    console.log('blah')
+    handleModeChange("chat");
+  }
   driverObj.drive();
 };
 

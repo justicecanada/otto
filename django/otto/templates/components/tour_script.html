@@ -19,9 +19,13 @@
       }, 10);
     }
   });
-  {% if force_tour %}
-  // Open a bootstrap modal welcoming the user
-  const modal = new bootstrap.Modal(document.getElementById('tour-modal'));
-  modal.show();
+  {% if start_tour %}
+  setTimeout(() => {
+    driverObj.drive();
+  }, 300);
+  {% elif force_tour %}
+    // Open a bootstrap modal welcoming the user
+    const modal = new bootstrap.Modal(document.getElementById('tour-modal'));
+    modal.show();
   {% endif %}
 </script>
