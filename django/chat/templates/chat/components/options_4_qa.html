@@ -7,37 +7,41 @@
 {% endblock %}
 
 {% block accordion_body %}
-  <div class="px-3 row">
-    <label class="col col-form-label-sm"
-           for="{{ options_form.qa_library.auto_id }}">{% trans "Library" %}</label>
-    <div class="col-auto col-form-label-sm">
-      <a class="link-primary text-decoration-underline text-dark"
-         href="#"
-         onclick="emailLibraryAdmins('{% url 'librarian:email_library_admins' 0 %}');">{% trans "Email administrators" %}</a>
-      <div id="email_library_admins_link"></div>
+  <div id="library-dropdown-outer">
+    <div class="px-3 row">
+      <label class="col col-form-label-sm"
+             for="{{ options_form.qa_library.auto_id }}">{% trans "Library" %}</label>
+      <div class="col-auto col-form-label-sm">
+        <a class="link-primary text-decoration-underline text-dark"
+           href="#"
+           onclick="emailLibraryAdmins('{% url 'librarian:email_library_admins' 0 %}');">{% trans "Email administrators" %}</a>
+        <div id="email_library_admins_link"></div>
+      </div>
     </div>
-  </div>
-  <div class="px-3 row">
-    <div class="col pe-0">{{ options_form.qa_library }}</div>
-    <div class="col-auto ps-2">
-      <button type="button"
-              id="editLibrariesButton"
-              class="btn btn-outline-dark btn-sm"
-              hx-get="{% url 'librarian:modal_edit_library' options_form.qa_library.value %}"
-              hx-target="#editLibrariesInner"
-              hx-indicator="#librarian-modal-spinner"
-              hx-swap="innerHTML"
-              onclick="document.getElementById('editLibrariesInner').innerHTML='';"
-              data-bs-toggle="modal"
-              data-bs-target="#editLibrariesModal">{% trans "Edit libraries" %}</button>
+    <div class="px-3 row">
+      <div class="col pe-0">{{ options_form.qa_library }}</div>
+      <div class="col-auto ps-2">
+        <button type="button"
+                id="editLibrariesButton"
+                class="btn btn-outline-dark btn-sm"
+                hx-get="{% url 'librarian:modal_edit_library' options_form.qa_library.value %}"
+                hx-target="#editLibrariesInner"
+                hx-indicator="#librarian-modal-spinner"
+                hx-swap="innerHTML"
+                onclick="document.getElementById('editLibrariesInner').innerHTML='';"
+                data-bs-toggle="modal"
+                data-bs-target="#editLibrariesModal">{% trans "Edit libraries" %}</button>
+      </div>
     </div>
   </div>
 
-  <div class="px-3 mt-2">
-    <label class="col-form-label col-form-label-sm"
-           for="{{ options_form.qa_mode.auto_id }}">{% trans "Search mode" %}</label>
+  <div id="qa-search-mode-outer">
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.qa_mode.auto_id }}">{% trans "Search mode" %}</label>
+    </div>
+    <div class="px-3">{{ options_form.qa_mode }}</div>
   </div>
-  <div class="px-3">{{ options_form.qa_mode }}</div>
 
   {% include "chat/components/options_qa_scope.html" %}
 

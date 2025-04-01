@@ -2,9 +2,7 @@
 
 <script>
 startTour = () => {
-  // Check that #no-messages-placeholder is visible
-  const noMessagesPlaceholder = document.querySelector("#no-messages-placeholder");
-  if (noMessagesPlaceholder === null) {
+  if (document.querySelectorAll("div.message-outer").length > 0) {
     const redirect_url = "{% url 'chat:chat_with_ai' %}?start_tour=true";
     window.location = redirect_url;
     return;
@@ -17,18 +15,136 @@ startTour = () => {
 
 let tourSteps = [
   // #chat-welcome: Safe use of the AI Assistant and mode descriptions
+  {
+    element: "#chat-welcome",
+    popover: {
+      title: "{% trans 'Welcome to the AI Assistant' %}",
+      description: "{% trans 'When you start a new chat, the welcome message reminds you of appropriate usage for the selected mode.'%}"
+    }
+  },
   // #chat-modes: Use the tabs to select different modes
+  {
+    element: "#chat-modes",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Select a mode' %}",
+      description: "{% trans 'Use the tabs to select different modes. The welcome message will update with guidance for the selected mode.' %}",
+      onNextClick: () => { handleModeChange("chat"); driverObj.moveNext(); }
+    }
+  },
   // #chat-inputs: Use the textbox to send a message to Otto (animate a message being typed and sent, or force user to do so)
+  {
+    element: "#chat-prompt",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Send a message' %}",
+      description: "{% trans 'You can interact with the AI by sending a chat message.' %}",
+      onNextClick: async () => {
+        // Check if there are any div.message-outer elements
+        let messages_exist = document.querySelectorAll("div.message-outer").length > 0;
+        if (!messages_exist) {
+          // If no messages exist, send a message
+          const chatInput = document.querySelector("#chat-prompt");
+          let chatMessage = "{% trans 'Hello, Otto!' %}";
+          // Animate typing the message
+          while (chatMessage.length > 0) {
+            chatInput.value += chatMessage.charAt(0);
+            chatMessage = chatMessage.slice(1);
+            // Simulate typing delay
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+          const sendButton = document.querySelector("#send-button");
+          sendButton.click();
+        }
+        driverObj.moveNext();
+      }
+    }
+  },
   // #messages-container: View the messages sent and received
+  {
+    element: "#messages-container",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Messages area' %}",
+      description: "{% trans 'Your sent messages and the AI\'s responses appear here.' %}"
+    }
+  },
   // .nav-link.qa-option: Switch to Q&A mode
+  {
+    element: ".nav-link.qa-option",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Switch to Q&A mode' %}",
+      description: "{% trans 'Q&A mode lets you ask questions and extract information from uploaded documents. Click the Q&A tab to try it.' %}",
+      onNextClick: () => {
+        handleModeChange("qa");
+        driverObj.moveNext();
+      }
+    }
+  },
   // #right-sidebar: Settings sidebar updated to show Q&A mode options
-  // Library dropdown: Select the document library to search
+  {
+    element: "#right-sidebar",
+    disableActiveInteraction: true,
+    popover: {
+      title: "{% trans 'Settings sidebar' %}",
+      description: "{% trans 'All AI assistant modes have editable settings in the right sidebar. The Q&A settings are especially important.' %}"
+    }
+  },
+  // #library-dropdown-outer: Select the document library to search
+  {
+    element: "#library-dropdown-outer",
+    disableActiveInteraction: true,
+    popover: {
+      title: "{% trans 'Select Q&A library' %}",
+      description: "{% trans 'By default, the \"Corporate\" library is selected. This contains some HR-related information such as collective agreements.' %}",
+      onNextClick: () => {
+        const chatInput = document.querySelector("#chat-prompt");
+        let chatMessage = "{% trans 'What is LP-02 step 3 pay in 2024?' %}";
+        chatInput.value = chatMessage;
+        const sendButton = document.querySelector("#send-button");
+        sendButton.click();
+        // Wait for the message to be sent and the response to be received
+        setTimeout(() => {
+          driverObj.moveNext();
+        }, 500);
+      }
+    }
+  },
+  // #messages-container: View the messages sent and received
+  {
+    element: "#chat-container",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Q&A response' %}",
+      description: "{% trans 'In Q&A mode, the AI searches through the library to find the answer. This allows it to provide references for verification.' %}",
+    }
+  },
+  // Upload button: You can upload your own documents to use as sources. These will be deleted when the chat is deleted. You can also drag files into the chat.
+  {
+    element: "#upload-button",
+    disableActiveInteraction: true,
+    popover: {
+      title: "{% trans 'Upload your own files' %}",
+      description: "{% trans 'You can upload many types of files for Q&A, summarization or translation. These files are stored in the chat and will be deleted after 30 days inactivity. You can also drag and drop files into the chat. Uploading a file will switch the Q&A library to \"Chat uploads\".' %}",
+      onNextClick: () => {
+        
+      }
+    }
+  },
   // Search mode: RAG vs full documents (important!)
+  {
+    element: "#qa-search-mode-outer",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Q&A search mode' %}",
+      description: "{% trans 'By default, Q&A mode will quickly search for the most relevant \"chunks\" from the library. The AI will then read those chunks and provide an answer based. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!' %}",
+    }
+  },
   // Filter results: Optionally, limit to certain folders or documents (important for "full documents" mode!)
   // Model: Note that this option is in all the modes. Efficiency vs. Quality tradeoff.
   // #chat-inputs: Use the textbox to send Q&A message to Otto (animate a message being typed and sent, or force user to do so)
   // #messages-container: View the response, highlight sources link. (but don't click it)
-  // Upload button: You can upload your own documents to use as sources. These will be deleted when the chat is deleted. You can also drag files into the chat.
   // Edit libraries button: You can also create your own persistent and shareable document libraries. These will be deleted after 30 days inactivity. (don't show modal - out of scope)
   // Summarize settings
   // Summarize a URL. Note that you can also enter URLs in Q&A mode.
@@ -43,7 +159,7 @@ let tourSteps = [
 ];
 
 // Keeping track of extra steps for our convenience as we refine the tour
-tourSteps = [
+deletedSteps = [
   {
     element: "#new-chat-button",
     popover: {
@@ -118,6 +234,7 @@ tourSteps = [
     }
   }
 ];
+delete deletedSteps;
 
 
 function showChatContextMenuEllipsis(){
