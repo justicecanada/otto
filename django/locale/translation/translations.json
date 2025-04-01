@@ -2911,6 +2911,14 @@
         "fr": "",
         "fr_auto": "Erreur en soumettant des commentaires."
     },
+    "Chat updated successfully.": {
+        "fr": "",
+        "fr_auto": "Le clavardage a été mis à jour avec succès."
+    },
+    "Chat created successfully.": {
+        "fr": "",
+        "fr_auto": "Chat créé avec succès."
+    },
     "Default": {
         "fr": "",
         "fr_auto": "Défaut"
