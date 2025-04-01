@@ -152,8 +152,7 @@
             "name": "Django: Run Server & Celery Worker",
             "configurations": [
                 "Django: Run Server",
-                "Django: Celery Worker",
-                "Django: Celery Beat"
+                "Django: Celery Worker"
             ]
         }
     ]
