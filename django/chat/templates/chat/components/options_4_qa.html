@@ -45,11 +45,14 @@
 
   {% include "chat/components/options_qa_scope.html" %}
 
-  <div class="px-3 mt-2">
-    <label class="col-form-label col-form-label-sm"
-           for="{{ options_form.qa_model.auto_id }}">{% trans "Model" %}</label>
+  <div id="qa-model-outer">
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.qa_model.auto_id }}">{% trans "Model" %}</label>
+    </div>
+    <div class="px-3">{{ options_form.qa_model }}</div>
   </div>
-  <div class="px-3">{{ options_form.qa_model }}</div>
+ 
   <div class="px-3 mt-3">
     <button type="button"
             id="advancedQaModalButton"
