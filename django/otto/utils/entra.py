@@ -104,6 +104,8 @@ def sync_users_with_entra():
     asyncio.set_event_loop(loop)
     try:
         users = loop.run_until_complete(get_entra_users_async())
+    except Exception as e:
+        logger.exception(f"Error trying to retrieve entra users: {e}")
     finally:
         loop.close()
 
@@ -133,6 +135,8 @@ def set_inactive_users(users):
     logger.info("Setting Inactive Users...")
     users_upn = [user.upn for user in users]
     inactive_users = User.objects.exclude(upn__in=users_upn)
+
+    logger.info(f"Deactivating {len(inactive_users)} inactive user(s)")
 
     for inactive_user in inactive_users:
         inactive_user.is_active = False
