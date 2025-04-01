@@ -1,7 +1,5 @@
-import asyncio
 import time
 
-from django.core.cache import cache
 from django.core.management import call_command
 
 from celery import shared_task
