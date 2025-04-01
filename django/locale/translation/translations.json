@@ -3166,5 +3166,93 @@
     "(best, $)": {
         "fr": "",
         "fr_auto": "(meilleur, $)"
+    },
+    "Welcome to the AI Assistant": {
+        "fr": "",
+        "fr_auto": "Bienvenue à l’Assistant IA"
+    },
+    "When you start a new chat, the welcome message reminds you of appropriate usage for the selected mode.": {
+        "fr": "",
+        "fr_auto": "Lorsque vous commencez un nouveau clavardage, le message de bienvenue vous rappelle l’utilisation appropriée du mode sélectionné."
+    },
+    "Select a mode": {
+        "fr": "",
+        "fr_auto": "Sélectionnez un mode"
+    },
+    "Use the tabs to select different modes. The welcome message will update with guidance for the selected mode.": {
+        "fr": "",
+        "fr_auto": "Utilisez les onglets pour sélectionner différents modes. Le message de bienvenue sera mis à jour avec des directives pour le mode sélectionné."
+    },
+    "Send a message": {
+        "fr": "",
+        "fr_auto": "Envoyer un message"
+    },
+    "You can interact with the AI by sending a chat message.": {
+        "fr": "",
+        "fr_auto": "Vous pouvez interagir avec l’IA en envoyant un message de clavardage."
+    },
+    "Hello, Otto!": {
+        "fr": "",
+        "fr_auto": "Bonjour, Otto!"
+    },
+    "Messages area": {
+        "fr": "",
+        "fr_auto": "Zone des messages"
+    },
+    "Your sent messages and the AI\\": {
+        "fr": "",
+        "fr_auto": "Vos messages envoyés et l’IA"
+    },
+    "Switch to Q&A mode": {
+        "fr": "",
+        "fr_auto": "Passez en mode Questions et réponses"
+    },
+    "Q&A mode lets you ask questions and extract information from uploaded documents. Click the Q&A tab to try it.": {
+        "fr": "",
+        "fr_auto": "Le mode Q&R vous permet de poser des questions et d’extraire de l’information à partir de documents téléchargés. Cliquez sur l’onglet Questions et réponses pour l’essayer."
+    },
+    "Settings sidebar": {
+        "fr": "",
+        "fr_auto": "Barre latérale des paramètres"
+    },
+    "All AI assistant modes have editable settings in the right sidebar. The Q&A settings are especially important.": {
+        "fr": "",
+        "fr_auto": "Tous les modes d’assistant IA ont des paramètres modifiables dans la barre latérale droite. Les paramètres de questions et réponses sont particulièrement importants."
+    },
+    "Select Q&A library": {
+        "fr": "",
+        "fr_auto": "Sélectionnez la bibliothèque de questions et réponses"
+    },
+    "By default, the \\\"Corporate\\\" library is selected. This contains some HR-related information such as collective agreements.": {
+        "fr": "",
+        "fr_auto": "Par défaut, la bibliothèque \\\"Corporate\\ » est sélectionnée. Il contient des renseignements liés aux RH, comme les conventions collectives."
+    },
+    "What is LP-02 step 3 pay in 2024?": {
+        "fr": "",
+        "fr_auto": "Qu’est-ce que la rémunération de l’échelon 3 du LP-02 en 2024?"
+    },
+    "Q&A response": {
+        "fr": "",
+        "fr_auto": "Réponse aux questions et réponses"
+    },
+    "In Q&A mode, the AI searches through the library to find the answer. This allows it to provide references for verification.": {
+        "fr": "",
+        "fr_auto": "En mode Q&R, l’IA cherche dans la bibliothèque pour trouver la réponse. Cela lui permet de fournir des références à des fins de vérification."
+    },
+    "Upload your own files": {
+        "fr": "",
+        "fr_auto": "Téléchargez vos propres fichiers"
+    },
+    "You can upload many types of files for Q&A, summarization or translation. These files are stored in the chat and will be deleted after 30 days inactivity. You can also drag and drop files into the chat. Uploading a file will switch the Q&A library to \\\"Chat uploads\\\".": {
+        "fr": "",
+        "fr_auto": "Vous pouvez télécharger de nombreux types de fichiers pour les questions et réponses, les résumés ou les traductions. Ces fichiers sont stockés dans le clavardage et seront supprimés après 30 jours d’inactivité. Vous pouvez également faire glisser et déposer des fichiers dans le clavardage. Le téléchargement d’un fichier fera passer la bibliothèque de questions et réponses à \\\"Téléchargements de clavardage\\ »."
+    },
+    "Q&A search mode": {
+        "fr": "",
+        "fr_auto": "Mode de recherche Q&R"
+    },
+    "By default, Q&A mode will quickly search for the most relevant \\\"chunks\\\" from the library. The AI will then read those chunks and provide an answer based. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!": {
+        "fr": "",
+        "fr_auto": "Par défaut, le mode Q&A recherchera rapidement les \\\"morceaux\\ » les plus pertinents dans la bibliothèque. L’IA lira ensuite ces morceaux et fournira une réponse basée. Pour certaines questions, vous devrez peut-être demander à l’IA de lire le document complet. ATTENTION : Ce mode peut être coûteux lorsqu’il y a beaucoup de documents!"
     }
 }
