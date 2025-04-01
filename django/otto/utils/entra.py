@@ -3,10 +3,8 @@ import os
 
 from django.conf import settings
 
-from asgiref.sync import sync_to_async
 from attr import dataclass
 from azure.identity import ClientSecretCredential
-from channels.db import database_sync_to_async
 from kiota_abstractions.api_error import APIError
 from msgraph import GraphServiceClient
 from msgraph.generated.users.users_request_builder import UsersRequestBuilder
