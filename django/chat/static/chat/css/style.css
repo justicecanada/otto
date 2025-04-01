@@ -1072,7 +1072,7 @@ div#chat-toolbar {
 #chat-modes button:hover,
 #chat-modes button:focus {
   background: var(--bd-body-bg);
-  color: var(--bs-gray) !important;
+  color: var(--bs-secondary-color) !important;
 }
 
 #chat-modes button {

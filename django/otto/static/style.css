@@ -593,7 +593,7 @@ ul.errorlist p {
 [data-bs-theme="dark"] #prompt-form button,
 [data-bs-theme="dark"] .btn-secondary,
 [data-bs-theme="dark"] .btn-preset-save {
-  color: var(--bs-secondary-text);
+  color: var(--bs-secondary-color);
   background-color: var(--prompt-send-btn-bg);
 }
 
