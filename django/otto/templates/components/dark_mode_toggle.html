@@ -9,28 +9,3 @@
   <i class="bi theme-icon-active bi-moon-stars" id="theme-icon"></i>
   <span class="visually-hidden" id="bd-theme-text">{% trans "Toggle theme" %}</span>
 </button>
-
-{% block page_script %}
-  <script>
-    const getStoredTheme = () => localStorage.getItem('Ottotheme')
-    const setStoredTheme = theme => localStorage.setItem('Ottotheme', theme)
-
-    const getPreferredTheme = () => {
-      const storedTheme = getStoredTheme()
-      if (storedTheme) {
-        return storedTheme
-      }
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    }
-
-    const setTheme = theme => {
-      document.documentElement.setAttribute('data-bs-theme', theme)
-      const icon = document.getElementById('theme-icon')
-      icon.className = `bi theme-icon-active ${theme === 'dark' ? 'bi-moon-stars' : 'bi-sun'}`
-    }
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      setTheme(getPreferredTheme())
-    });    
-  </script>
-{% endblock %}

@@ -58,3 +58,26 @@ document.addEventListener('htmx:afterRequest', function (event) {
     });
   });
 })();
+
+const getStoredTheme = () => localStorage.getItem('Ottotheme');
+const setStoredTheme = theme => localStorage.setItem('Ottotheme', theme);
+
+const getPreferredTheme = () => {
+  const storedTheme = getStoredTheme();
+  if (storedTheme) {
+    return storedTheme;
+  }
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
+
+const setTheme = theme => {
+  document.documentElement.setAttribute('data-bs-theme', theme);
+  const icon = document.getElementById('theme-icon');
+  if (icon) {
+    icon.className = `bi theme-icon-active ${theme === 'dark' ? 'bi-moon-stars' : 'bi-sun'}`;
+  }
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+  setTheme(getPreferredTheme());
+});
