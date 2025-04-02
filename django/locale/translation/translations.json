@@ -2971,6 +2971,10 @@
         "fr": "",
         "fr_auto": "Cliquez sur cette icône pour soumettre des commentaires sur Otto. Faites-nous savoir ce qui n’a pas fonctionné ou suggérez une amélioration."
     },
+    "Toggle theme": {
+        "fr": "",
+        "fr_auto": "Basculer le thème"
+    },
     "Browse presets": {
         "fr": "Menu des préréglages",
         "fr_auto": "Parcourir les préréglages"

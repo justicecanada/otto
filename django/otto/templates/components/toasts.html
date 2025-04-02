@@ -24,7 +24,7 @@
      id="toasts"
      hx-swap-oob="afterbegin">
   {% for message in messages %}
-    <div class="toast px-2 py-1 bg-light {% for tag in message.tags %}{{ tag }}{% endfor %}"
+    <div class="toast px-2 py-1 {% for tag in message.tags %}{{ tag }}{% endfor %}"
          role="alert"
          aria-live="assertive"
          aria-atomic="true"
