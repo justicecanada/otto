@@ -60,7 +60,8 @@
   --chat-group-item: #edf5fe;
   --chat-preset-tab-not-active: #eaeaea;
   --chat-preset-form-container: #a2a2a2;
-  --chat-preset-card-color: #616b75;
+  --chat-preset-card-color-1: #616b75;
+  --chat-preset-card-color-2: black;
   --chat-mode-link-bg: #888;
   --chat-mode-link-border: #eee;
   --chat-delete-focus: #dc2626;

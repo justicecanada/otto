@@ -1326,7 +1326,7 @@ ul#preset-edit-tabs {
   padding-top: .45rem;
 
   button {
-    color: var(--chat-preset-card-color) !important;
+    color: var(--chat-preset-card-color-1) !important;
     background-color: transparent;
     border: none;
 
@@ -1383,20 +1383,20 @@ ul#preset-edit-tabs {
 
   .share-icon {
     .text-secondary {
-      color: var(--chat-preset-card-color) !important;
+      color: var(--chat-preset-card-color-1) !important;
     }
   }
 
   .card-title {
     margin-bottom: 0;
-    color: black;
+    color: var(--chat-preset-card-color-2);
   }
 
 }
 
 .card-body {
   .text-muted {
-    color: var(--chat-preset-card-color) !important;
+    color: var(--chat-preset-card-color-2) !important;
   }
 }
 
@@ -1432,14 +1432,14 @@ ul#preset-edit-tabs {
   }
 
   .load-button {
-    background-color: var(--chat-preset-card-color);
+    background-color: var(--chat-preset-card-color-1);
     color: white;
   }
 
   .edit-button {
     background-color: white;
-    color: var(--chat-preset-card-color);
-    border: 1px solid var(--chat-preset-card-color);
+    color: var(--chat-preset-card-color-2);
+    border: 1px solid var(--chat-preset-card-color-1);
   }
 }
 
@@ -1451,13 +1451,17 @@ ul#preset-edit-tabs {
   gap: 2rem;
   padding-left: 0;
   padding-right: 0;
+
+  .card {
+    border: 1px solid var(--chat-preset-card-color-1);
+  }
 }
 
 .expanded-text-overlay {
   position: absolute;
   background-color: rgb(255, 255, 255);
-  color: var(--chat-preset-card-color);
-  border: 1px solid var(--chat-preset-card-color);
+  color: var(--chat-preset-card-color-2);
+  border: 1px solid var(--chat-preset-card-color-1);
   padding: 0.5em;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.468);
   white-space: normal;
