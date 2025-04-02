@@ -703,7 +703,7 @@ div.message-text h5 {
 
 div.message-text blockquote {
   padding: 0.5rem 0.5rem 0.5rem 1rem;
-  background: var(--chat-message-bg);
+  background: var(--chat-message-blockquote-bg);
   border-radius: 0.25rem;
   border: solid 1px var(--chat-message-border);
   border-left-width: 3px;
