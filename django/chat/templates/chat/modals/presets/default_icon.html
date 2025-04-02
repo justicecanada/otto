@@ -1,6 +1,6 @@
 {% load i18n %}
 <button type="button"
-        class="btn btn-light rounded-circle"
+        class="btn rounded-circle"
         title="{% if preset.default %}{% trans 'Remove default' %}{% else %}{% trans 'Set as default' %}{% endif %}"
         hx-get="{% url 'chat:set_preset_default' chat_id=chat_id preset_id=preset.id %}"
         hx-target="this"

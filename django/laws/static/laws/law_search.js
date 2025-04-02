@@ -16,7 +16,9 @@ function setActiveTab(e) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  document.getElementById('basic-search-input').focus();
+  setTimeout(() => {
+    document.getElementById('basic-search-input').focus();
+  }, 100);
 
   const textarea = document.getElementById("basic-search-input");
   const clearButton = document.getElementById("clear-button");
