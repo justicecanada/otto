@@ -45,12 +45,15 @@
   --nav-text-color-hover: #646464;
   --chat-user-message-blob-bg: #e9ebf9;
   --chat-bot-message-blob-bg: #f1f2f4;
+  --chat-user-message-border: #dbdef7;
+  --chat-bot-message-border: var(--bs-light-border-subtle);
   --chat-typing-span: #4669b4;
   --img-icon-border: #dee2e6;
   --app-border: #ccc;
   --chat-footer-border: #ddd;
   --chat-outer-bg: #f8f9fa;
   --chat-message-bg: #ffffff80;
+
   --chat-message-border: #00000033;
   --chat-message-progress-bar-bg: #5022bd73;
   --chat-file-drop: #000000cc;
@@ -115,6 +118,8 @@
   --nav-text-color-hover: #a3a3a3;
   --chat-user-message-blob-bg: #2b2a44;
   --chat-bot-message-blob-bg: #29282f;
+  --chat-user-message-border: var(--chat-user-message-blob-bg);
+  --chat-bot-message-border: var(--chat-bot-message-blob-bg);
   --chat-typing-span: #9abaffc0;
   --img-icon-border: #dee2e6;
   --app-border: #ccc;
@@ -130,7 +135,7 @@
   --chat-mode-link-bg: #888;
   --chat-mode-link-border: #eee;
   --chat-delete-focus: #dc2626;
-  --chat-code-color: #800;
+  --chat-code-color: rgb(236, 162, 162);
   --text-extractor-sub-text: #e4e4e4;
   --chat-user-choice-button-hover: #acacac;
   --darkgray: darkgray;

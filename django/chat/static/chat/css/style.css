@@ -617,12 +617,9 @@ html[lang="fr"] .chat-sidebar {
   padding: 0.5rem 0.75rem 0.5rem 0.75rem;
   margin-bottom: 0.5rem;
   background: var(--chat-user-message-blob-bg);
+  border: solid 1px;
+  border-color: var(--chat-user-message-border);
   width: fit-content;
-  max-width: 90%;
-
-  [data-bs-theme="dark"] & {
-    background: var(--chat-user-message-blob-bg);
-  }
 }
 
 @media screen and (max-width: 1600px) {
@@ -659,11 +656,7 @@ li.message-file {
 
 .bot .message-blob {
   background: var(--chat-bot-message-blob-bg);
-  position: relative;
-
-  [data-bs-theme="dark"] & {
-    background: var(--chat-bot-message-blob-bg);
-  }
+  border-color: var(--chat-bot-message-border);
 }
 
 .message-blob .dropdown {
