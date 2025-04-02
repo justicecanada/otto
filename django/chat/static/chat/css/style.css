@@ -1,6 +1,29 @@
 @import url('/static/css/variables.css');
 
 
+[data-bs-theme="dark"] .preset-btn {
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-text-body);
+}
+
+[data-bs-theme="dark"] .new-chat-btn {
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-text-body) !important;
+}
+
+[data-bs-theme="dark"] .chat-sidebar {
+  background: var(--bs-dark-bg-subtle) !important;
+}
+
+[data-bs-theme="dark"] #advancedQaModalButton {
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-text-body) !important;
+}
+
+[data-bs-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
+}
+
 body.chat {
   overflow-y: hidden;
 }
@@ -9,7 +32,7 @@ body.chat {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--bs-light);
+  background: var(--app-primary-bg);
 }
 
 @media screen and (max-width: 991.98px) {
@@ -31,8 +54,8 @@ ol.breadcrumb {
 }
 
 #chat-footer {
-  background-color: #f1f1f1;
-  border-top: 1px solid #ddd;
+  background-color: var(--bg-light-gray);
+  border-top: 1px solid var(--chat-footer-border);
 }
 
 .textbox {
@@ -41,7 +64,7 @@ ol.breadcrumb {
   width: 100%;
   padding: 6px;
   font-size: 16px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--app-border);
   border-radius: 5px;
   resize: none;
   overflow: hidden;
@@ -54,8 +77,8 @@ ol.breadcrumb {
   vertical-align: middle;
   line-height: 30px;
   border-radius: .5rem !important;
-  background-color: #fff;
-  border: 1px solid #dee2e6;
+  background-color: var(--bg-white);
+  border: 1px solid var(--img-icon-border);
   padding: .25rem;
   width: 40px;
   height: 40px;
@@ -67,8 +90,8 @@ ol.breadcrumb {
   vertical-align: middle;
   line-height: 30px;
   border-radius: .5rem !important;
-  background-color: #fff;
-  border: 1px solid #dee2e6;
+  background-color: var(--bg-white);
+  border: 1px solid var(--img-icon-border);
   padding: .25rem;
   width: 40px;
   height: 40px;
@@ -97,7 +120,7 @@ ol.breadcrumb {
 }
 
 .dataframe {
-  border: 1px solid #ccc;
+  border: 1px solid var(--app-border);
 }
 
 .align-self-end {
@@ -113,11 +136,11 @@ a.mode-link {
 }
 
 a.mode-link .text {
-  color: #888;
+  color: var(--chat-mode-link-bg);
 }
 
 a.mode-link:hover {
-  outline: solid 3px #eee;
+  outline: solid 3px var(--chat-mode-link-border);
 }
 
 .instruction {
@@ -131,8 +154,8 @@ a.mode-link:hover {
   bottom: 0;
   width: 100%;
   padding: 10px;
-  background-color: #f1f1f1;
-  border: 1px solid #ddd;
+  background-color: var(--bg-light-gray);
+  border: 1px solid var(--chat-footer-border);
 }
 
 #bot-typing {
@@ -163,12 +186,16 @@ a.mode-link:hover {
   animation-fill-mode: both;
   height: 8px;
   width: 8px;
-  background: #3b5998;
+  background: var(--chat-typing-span);
   position: absolute;
   left: 0;
   top: 50%;
   margin-top: -9px;
   border-radius: 50%;
+
+  [data-bs-theme="dark"] & {
+    background: var(--chat-typing-span);
+  }
 }
 
 .typing span:nth-child(2) {
@@ -245,9 +272,12 @@ pre .copy-button:focus {
   bottom: 0.1rem;
   right: 0;
   margin: 0 auto !important;
-  background: var(--bs-light);
   opacity: 0;
   transition: linear 0.2s;
+}
+
+[data-bs-theme="dark"] .dropdown-header {
+  color: var(--text-secondary);
 }
 
 .options-menu button {
@@ -264,7 +294,23 @@ pre .copy-button:focus {
     color: var(--bs-black);
 
     &.chat-delete {
-      color: #dc2626 !important
+      color: var(--chat-delete-focus) !important
+    }
+  }
+
+  [data-bs-theme="dark"] & {
+    &.chat-delete {
+      color: var(--chat-delete-text) !important
+    }
+
+    &:hover,
+    &:focus {
+      background-color: var(--prompt-send-btn-bg);
+      color: var(--bs-gray-200);
+
+      &.chat-delete {
+        color: var(--chat-delete-text) !important
+      }
     }
   }
 }
@@ -272,6 +318,7 @@ pre .copy-button:focus {
 #left-sidebar li {
   position: relative;
 }
+
 
 #left-sidebar li.current {
   font-weight: 500;
@@ -298,6 +345,14 @@ pre .copy-button:focus {
 
 #left-sidebar li a {
   text-wrap: nowrap;
+}
+
+.sidebar-settings-header {
+  font-size: 1rem;
+
+  [data-bs-theme="dark"] & {
+    color: var(--bs-light-text-emphasis);
+  }
 }
 
 #left-sidebar li a span {
@@ -330,10 +385,24 @@ pre .copy-button:focus {
 
 #right-sidebar .accordion-item {
   border-left: solid 3px var(--bs-light);
+
+  [data-bs-theme="light"] & {
+    background-color: var(--bs-light);
+  }
 }
 
 #right-sidebar .accordion-button.collapsed {
   font-weight: normal !important;
+  background-color: transparent !important;
+}
+
+[data-bs-theme="dark"] .list-group-item+.list-group-item {
+  background-color: var(----app-primary-bg);
+}
+
+
+[data-bs-theme="dark"] #right-sidebar .accordion-button:not(.collapsed)::after {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>");
 }
 
 #right-sidebar .accordion-button:focus-visible {
@@ -343,10 +412,17 @@ pre .copy-button:focus {
 #right-sidebar .accordion-button:focus,
 #right-sidebar .accordion-button:not(.collapsed) {
   box-shadow: none !important;
+  color: var(--bs-text-body) !important;
+  background-color: var(--app-primary-bg) !important;
 }
 
 #right-sidebar .accordion-button::after {
   zoom: 0.9;
+  color: var(--bs-text-body) !important;
+}
+
+[data-bs-theme="dark"] #right-sidebar .accordion-button::after {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>");
 }
 
 #right-sidebar .accordion-header {
@@ -354,10 +430,19 @@ pre .copy-button:focus {
   top: 0;
 }
 
+
 #new-chat-button {
   margin-left: -4px;
   margin-top: -5px;
   margin-bottom: -1px;
+}
+
+.chat-title {
+  color: var(--bg-black);
+
+  [data-bs-theme="dark"] & {
+    color: var(--bs-light-text-emphasis);
+  }
 }
 
 #chat-options,
@@ -435,10 +520,14 @@ html[lang="fr"] .chat-sidebar {
 
 #chat-outer {
   position: relative;
-  background: #f8f9fa;
+  background: var(--chat-outer-bg);
   top: 0;
   height: calc(100vh - 3rem);
   overflow: hidden;
+
+  [data-bs-theme="dark"] & {
+    background: var(--bs-dark-bg-subtle) !important;
+  }
 }
 
 
@@ -486,7 +575,7 @@ html[lang="fr"] .chat-sidebar {
 }
 
 #prompt-form button {
-  background: white;
+  background: var(--bg-white);
   border-color: var(--bs-border-color);
 }
 
@@ -517,7 +606,7 @@ html[lang="fr"] .chat-sidebar {
 #chat-container .add-message-divider {
   position: absolute;
   width: 100%;
-  background: white;
+  background: var(--bg-white);
   height: 10px;
   left: 0;
   margin-top: -6px;
@@ -527,10 +616,10 @@ html[lang="fr"] .chat-sidebar {
   border-radius: 5px;
   padding: 0.5rem 0.75rem 0.5rem 0.75rem;
   margin-bottom: 0.5rem;
-  background: #f4f4ff;
-  border: solid 1px #cdccff;
+  background: var(--chat-user-message-blob-bg);
+  border: solid 1px;
+  border-color: var(--chat-user-message-border);
   width: fit-content;
-  max-width: 90%;
 }
 
 @media screen and (max-width: 1600px) {
@@ -566,9 +655,8 @@ li.message-file {
 }
 
 .bot .message-blob {
-  border: solid 1px #f1dda2;
-  background: #fff8e2;
-  position: relative;
+  background: var(--chat-bot-message-blob-bg);
+  border-color: var(--chat-bot-message-border);
 }
 
 .message-blob .dropdown {
@@ -590,7 +678,7 @@ div.message-text :last-child {
 .message-text th,
 .message-text td {
   padding: 0.3rem;
-  border: solid 1px darkgray;
+  border: solid 1px var(--darkgray);
 }
 
 .message-text strong,
@@ -615,9 +703,9 @@ div.message-text h5 {
 
 div.message-text blockquote {
   padding: 0.5rem 0.5rem 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--chat-message-blockquote-bg);
   border-radius: 0.25rem;
-  border: solid 1px rgba(0, 0, 0, 0.2);
+  border: solid 1px var(--chat-message-border);
   border-left-width: 3px;
 }
 
@@ -638,7 +726,7 @@ div.message-text blockquote {
 }
 
 code {
-  color: #800;
+  color: var(--chat-code-color);
 }
 
 .truncate:not(.show-all) .message-text pre code,
@@ -656,9 +744,9 @@ code {
   padding: 10px;
   display: block;
   overflow-x: auto;
-  border: solid 1px rgba(0, 0, 0, 0.2);
+  border: solid 1px var(--chat-message-border);
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--chat-message-bg);
 }
 
 .message-outer:hover .dropdown,
@@ -715,7 +803,7 @@ div#prompt-form-container {
 }
 
 .message-text .progress-bar {
-  background: rgb(80 34 189 / 45%);
+  background: var(--chat-message-progress-bar-bg);
 }
 
 .message-actions {
@@ -766,7 +854,11 @@ div#chat-toolbar {
   border-color: var(--bs-border-color);
   margin-bottom: -1px;
   min-height: 40px;
-  background: var(--bs-light);
+  background: var(--app-primary-bg);
+
+  [data-bs-theme="dark"] & {
+    background-color: var(--bs-body-bg) !important;
+  }
 }
 
 #prompt-form-container .option,
@@ -802,7 +894,7 @@ div#chat-toolbar {
 #file-dropzone {
   height: 100%;
   width: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--chat-file-drop);
   z-index: 100;
   position: relative;
 }
@@ -828,7 +920,7 @@ div#chat-toolbar {
 }
 
 #sources-modal-inner .markdown-text blockquote {
-  border-left: solid 2px #ccc;
+  border-left: solid 2px var(--app-border);
   padding-left: 0.5rem;
   margin-bottom: 1.5rem;
 }
@@ -854,7 +946,7 @@ div#chat-toolbar {
 }
 
 #sources-modal-inner .accordion-button:not(.collapsed) {
-  background-color: white;
+  background-color: var(--bg-white);
   color: black;
 }
 
@@ -950,7 +1042,6 @@ div#chat-toolbar {
 #chat-modes li:first-child button {
   border-top-left-radius: 5px !important;
   left: 0px;
-  border-left: transparent !important;
 }
 
 /* The last button should have a top right radius */
@@ -963,9 +1054,9 @@ div#chat-toolbar {
 #chat-outer.qa #chat-modes button.qa-option,
 #chat-outer.document_qa #chat-modes button.document_qa-option,
 #chat-outer.chat #chat-modes button.chat-option {
-  background: var(--bs-white);
+  background: var(--bs-body-bg);
   color: var(--bs-text-body) !important;
-  border-bottom: solid 1px white !important;
+  border-bottom: none !important;
   z-index: 10;
   font-weight: 500;
   padding-bottom: 7px;
@@ -973,8 +1064,8 @@ div#chat-toolbar {
 
 #chat-modes button:hover,
 #chat-modes button:focus {
-  background: white;
-  color: var(--bs-gray) !important;
+  background: var(--bd-body-bg);
+  color: var(--bs-secondary-color) !important;
 }
 
 #chat-modes button {
@@ -1076,6 +1167,12 @@ div.message-text pre {
   position: relative;
   width: 32px;
   font-size: 11px;
+  color: var(--otto-primary-text-color);
+
+  [data-bs-theme="dark"] & {
+    background: var(--otto-tab-body-bg-color);
+    color: var(--otto-primary-text-color);
+  }
 }
 
 
@@ -1098,9 +1195,12 @@ div.message-text pre {
 }
 
 .list-group-item[role="option"][aria-selected="true"] {
-  background-color: rgb(237 245 254);
+  background-color: var(--chat-group-item);
   z-index: 2;
-  outline: solid 1px var(--bs-body-color);
+
+  [data-bs-theme="dark"] & {
+    background-color: var(--chat-group-item);
+  }
 }
 
 .list-group-item[role="option"][aria-selected="true"]:not(:focus) {}
@@ -1136,6 +1236,11 @@ ul.errorlist {
 .btn-outline-initially-black:not(:hover):not(:focus) {
   color: var(--bs-black);
   border-color: var(--bs-black) !important;
+
+  [data-bs-theme="dark"] & {
+    color: var(--bs-text-body);
+    border-color: var(--bs-border-color) !important;
+  }
 }
 
 :root {
@@ -1159,9 +1264,16 @@ ul#preset-edit-tabs {
     color: var(--bs-gray-900);
     outline: none;
 
+    [data-bs-theme="dark"] & {
+      color: var(--bs-body-color);
+    }
+
     &:not(.active) {
       background-color: var(--bs-light);
-      border-bottom: var(--preset-tab-border-color);
+
+      [data-bs-theme="dark"] & {
+        background-color: var(--bs-gray-700);
+      }
     }
   }
 
@@ -1170,15 +1282,14 @@ ul#preset-edit-tabs {
   }
 
   &:not(.active) {
-    background-color: #eaeaea;
-    border-bottom: var(--preset-tab-border-color);
+    background-color: var(--chat-preset-tab-not-active);
+    border-bottom: 0.25px solid var(--bs-gray-200);
     font-weight: 400;
-  }
 
-  &.active {
-    border-top: var(--preset-tab-border-color) !important;
-    border-left: var(--preset-tab-border-color) !important;
-    border-right: var(--preset-tab-border-color) !important;
+    [data-bs-theme="dark"] & {
+      background-color: var(--chat-preset-tab-not-active);
+      border-bottom: 0.25px solid var(--bs-gray-700);
+    }
   }
 }
 
@@ -1191,12 +1302,12 @@ ul#preset-edit-tabs {
 }
 
 .preset-form-container form-check-input.form-check-input:checked {
-  background-color: black;
-  border-color: black;
+  background-color: var(--bg-black);
+  border-color: var(--bg-black);
 }
 
 .preset-form-container .form-check-input:focus {
-  border-color: #a2a2a2;
+  border-color: var(--chat-preset-form-container);
   box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
 }
 
@@ -1206,8 +1317,12 @@ ul#preset-edit-tabs {
 }
 
 .card {
-  /* border: none; */
-  /* box-shadow: 2px 4px 10px -1px rgb(0 0 0 / 0.1), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important; */
+  <<<<<<< HEAD: django/chat/static/chat/style.css
+    /* border: none; */
+    /* box-shadow: 2px 4px 10px -1px rgb(0 0 0 / 0.1), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important; */
+    =======border: none;
+  box-shadow: 2px 4px 10px -1px var(--chat-message-border), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important;
+  >>>>>>>main: django/chat/static/chat/css/style.css
 }
 
 .card-header {
@@ -1332,7 +1447,7 @@ ul#preset-edit-tabs {
 .preset-form-user-choice .card-button {}
 
 .preset-form-user-choice .card-button:hover {
-  border: 1px solid #acacac;
+  border: 1px solid var(--chat-user-choice-button-hover);
 
 }
 

@@ -132,7 +132,7 @@
  
             {% if preset_id and can_delete %}
               <button id="delete_preset"
-                      class="btn btn-outline-danger flex-fill"
+                      class="btn btn-danger flex-fill"
                       hx-get="{% url 'chat:chat_options' chat_id=chat_id action='delete_preset' preset_id=preset_id %}"
                       hx-target="#presets-modal-body"
                       hx-swap="innerHTML transition:true"
@@ -141,7 +141,7 @@
             {% endif %}
           </div>
           <div class="col-6 text-end pe-0">
-            <button class="btn btn-dark flex-fill"
+            <button class="btn btn-preset-save flex-fill"
                     type="submit"
                     onclick="handlePresetCreationSubmit(event)">{% trans "Save" %}</button>
  

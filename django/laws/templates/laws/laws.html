@@ -39,17 +39,17 @@
       <ul class="nav nav-tabs px-3 border-bottom-0">
         <li class="nav-item">
           <button id="basic-search-tab"
-                  class="nav-link text-black active fw-semibold"
+                  class="nav-link active fw-semibold text-body"
                   onclick="setActiveTab(this);">{% trans "Basic search" %}</button>
         </li>
         <li class="nav-item">
           <button id="advanced-search-tab"
-                  class="nav-link text-black"
+                  class="nav-link text-body"
                   onclick="setActiveTab(this);">{% trans "Advanced search" %}</button>
         </li>
       </ul>
 
-      <div id="step-content" class="bg-white rounded">
+      <div id="step-content" class="rounded">
         <div class="tab-pane fade show active p-3 border rounded" id="search-form">
           {% block step_content %}
             {% include 'laws/search_form.html' %}

@@ -130,6 +130,22 @@
                 "GEVENT_SUPPORT": "True"
             }
         },
+        {
+            "name": "Django: Celery Beat",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "celery",
+            "cwd": "${workspaceFolder}/django",
+            "args": [
+                "-A",
+                "otto",
+                "beat",
+                "-l",
+                "INFO",
+                "--scheduler",
+                "django_celery_beat.schedulers:DatabaseScheduler"
+            ]
+        }
     ],
     "compounds": [
         {

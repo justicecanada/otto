@@ -4,31 +4,54 @@
 
 {% block page_css %}
   <style>
-  body {
-    /* background: var(--bs-light);*/
-    min-height: 100vh;
-  }
-  nav {
-    display: none !important;
-  }
-  .signin-with-microsoft {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 12px;
-    margin: 12px;
-    min-height: 41px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #5e5e5e;
-    border: 1px solid #8c8c8c;
-    border-radius: 4px;
-    text-decoration: none;
-  }
-  main.py-md-5.py-3 {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-  }
+    body {
+      background: white;
+      min-height: 100vh;
+      [data-bs-theme="dark"] & {
+        background: linear-gradient(180deg, rgba(33, 37, 41, 1) 0%, rgba(33, 37, 41, 1) 30%, rgba(0, 0, 0, 1) 90%);
+      }
+    }
+
+    nav {
+      display: none !important;
+    }
+
+    .signin-with-microsoft {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      margin: 12px;
+      min-height: 41px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #5e5e5e;
+      border: 1px solid #8c8c8c;
+
+      [data-bs-theme="dark"] & {
+        color: var(--text-extractor-sub-text);
+        background-color: var(--welcome-btn-bg);
+      }
+    }
+
+    #logo-dark {
+      display: none;
+    }
+
+    [data-bs-theme="dark"] #logo-light {
+      display: none;
+    }
+
+    [data-bs-theme="dark"] #logo-dark {
+      display: block;
+    }
+
+    main.py-md-5.py-3 {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
   
   </style>
 {% endblock %}
@@ -80,11 +103,21 @@
               overflow:hidden;
               text-align:center;
               padding-right:12px">
-    <img src="{% static 'doj-logo.png' %}"
-         alt=""
-         width="350px"
-         height="36px"
-         style="margin-top:27px">
+    <div id="logo-light">
+      <img src="{% static 'doj-logo.png' %}"
+           alt=""
+           width="350px"
+           height="36px"
+           style="margin-top:27px">
+    </div>
+    <div id="logo-dark">
+      <img src="{% static 'doj-logo-dark.png' %}"
+           alt=""
+           width="350px"
+           height="36px"
+           style="margin-top:27px">
+    </div>
+
     <span class="visually-hidden" lang="en">Department of Justice Canada</span>
     <span class="visually-hidden" lang="fr">Ministère de la Justice Canada</span>
   </div>

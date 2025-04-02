@@ -26,6 +26,29 @@
     {% block page_css %}{% endblock %}
 
     <script src="{% static 'thirdparty/js-cookie-3.0.1.min.js' %}"></script>
+    <script>
+      (function() {
+        const getStoredTheme = () => localStorage.getItem('Ottotheme');
+        const setStoredTheme = theme => localStorage.setItem('Ottotheme', theme);
+
+        const getPreferredTheme = () => {
+          const storedTheme = getStoredTheme();
+          if (storedTheme) {
+            return storedTheme;
+          }
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+
+        const setTheme = theme => {
+          document.documentElement.setAttribute('data-bs-theme', theme);
+          const icon = document.getElementById('theme-icon');
+          if (icon) {
+            icon.className = `bi theme-icon-active ${theme === 'dark' ? 'bi-moon-stars' : 'bi-sun'}`;
+          }
+        };
+        setTheme(getPreferredTheme());
+      })();
+    </script>
     <title>
       {% block page_title %}
         Otto | {% trans "Empowering Justice efficiency with data and AI" %}
@@ -55,7 +78,7 @@
             </a>
             {{ otto_version|safe }}
           </div>
- 
+
           {% if request.user.is_authenticated %}
             {% include 'components/search.html' %}
             <button class="navbar-toggler"
@@ -74,6 +97,7 @@
               </ul>
               {% include 'components/notifications.html' %}
               {% include 'components/feedback/feedback_icon.html' %}
+              {% include 'components/dark_mode_toggle.html' %}
               {% include 'components/language_toggle.html' %}
             </div>
           {% endif %}
