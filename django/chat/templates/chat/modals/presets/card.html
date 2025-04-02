@@ -12,7 +12,7 @@
            height">
   <div class="card-header flex-column">
     <div class="d-flex justify-content-between w-100 fs-6 header-buttons-and-icons">
-      <div class="me-auto">{% include "chat/modals/presets/shared_icon.html" %}</div>
+      <div class="me-auto share-icon">{% include "chat/modals/presets/shared_icon.html" %}</div>
       <div class="d-flex align-items-center">
         <div id="default-button-{{ preset.id }}">
           <button type="button"
@@ -87,19 +87,15 @@
   </div>
   <div class="card-footer w-100">
     <button type="button"
-            class="btn btn-lg fw-semibold fs-6"
+            class="btn btn-lg fw-semibold fs-6 load-button"
             data-bs-dismiss="modal"
-            style="background-color: rgb(108, 117, 125);
-                   color: white"
             hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
             hx-target="#options-accordion">{% trans "Load" %}</button>
     {% if can_edit_preset %}
       <button type="button"
-              class="btn btn-lg btn-outline-dark fw-semibold fs-6"
+              class="btn btn-lg btn-outline-dark fw-semibold fs-6 edit-button"
               hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
               hx-target="#presets-modal-body"
-              style="background-color: white;
-                     color: black"
               hx-swap="innerHTML transition:true">{% trans "Edit" %}</button>
     {% endif %}
   </div>

@@ -1316,15 +1316,6 @@ ul#preset-edit-tabs {
   overflow-y: auto;
 }
 
-.card {
-  <<<<<<< HEAD: django/chat/static/chat/style.css
-    /* border: none; */
-    /* box-shadow: 2px 4px 10px -1px rgb(0 0 0 / 0.1), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important; */
-    =======border: none;
-  box-shadow: 2px 4px 10px -1px var(--chat-message-border), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important;
-  >>>>>>>main: django/chat/static/chat/css/style.css
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -1335,6 +1326,7 @@ ul#preset-edit-tabs {
   padding-top: .45rem;
 
   button {
+    color: var(--chat-preset-card-color) !important;
     background-color: transparent;
     border: none;
 
@@ -1344,6 +1336,7 @@ ul#preset-edit-tabs {
     }
 
     &:hover {
+
       i.bi.bi-heart {
         border-color: var(--app-color-red-1);
         color: var(--app-color-red-1);
@@ -1387,10 +1380,24 @@ ul#preset-edit-tabs {
       box-shadow: none;
     }
   }
+
+  .share-icon {
+    .text-secondary {
+      color: var(--chat-preset-card-color) !important;
+    }
+  }
+
+  .card-title {
+    margin-bottom: 0;
+    color: black;
+  }
+
 }
 
-.card-title {
-  margin-bottom: 0;
+.card-body {
+  .text-muted {
+    color: var(--chat-preset-card-color) !important;
+  }
 }
 
 .card-footer {
@@ -1421,8 +1428,21 @@ ul#preset-edit-tabs {
     &:only-child {
       flex-basis: 100%;
     }
+
+  }
+
+  .load-button {
+    background-color: var(--chat-preset-card-color);
+    color: white;
+  }
+
+  .edit-button {
+    background-color: white;
+    color: var(--chat-preset-card-color);
+    border: 1px solid var(--chat-preset-card-color);
   }
 }
+
 
 
 .card-list {
@@ -1436,7 +1456,8 @@ ul#preset-edit-tabs {
 .expanded-text-overlay {
   position: absolute;
   background-color: rgb(255, 255, 255);
-  border: 1px solid rgb(89, 50, 50);
+  color: var(--chat-preset-card-color);
+  border: 1px solid var(--chat-preset-card-color);
   padding: 0.5em;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.468);
   white-space: normal;
@@ -1444,7 +1465,9 @@ ul#preset-edit-tabs {
   pointer-events: none;
 }
 
-.preset-form-user-choice .card-button {}
+.preset-form-user-choice .card-button {
+  color: black;
+}
 
 .preset-form-user-choice .card-button:hover {
   border: 1px solid var(--chat-user-choice-button-hover);
