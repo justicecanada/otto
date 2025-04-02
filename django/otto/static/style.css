@@ -43,6 +43,10 @@ html[data-bs-theme="light"] {
   color: var(--bs-body-text) !important;
 }
 
+[data-bs-theme="dark"] .text-success {
+  color: #51c17e !important;
+}
+
 .navbar-nav {
   flex-direction: row;
 }
