@@ -2859,6 +2859,118 @@
         "fr": "",
         "fr_auto": "Plus ancien"
     },
+    "Done": {
+        "fr": "",
+        "fr_auto": "Fait"
+    },
+    "Start a new chat at any time.": {
+        "fr": "",
+        "fr_auto": "Commencez un nouveau clavardage à tout moment."
+    },
+    "Start a new chat at any time by clicking this button.": {
+        "fr": "",
+        "fr_auto": "Commencez un nouveau clavardage à tout moment en cliquant sur ce bouton."
+    },
+    "Current chat": {
+        "fr": "",
+        "fr_auto": "Clavardage actuel"
+    },
+    "Your current chat will appear in bolded characters.": {
+        "fr": "",
+        "fr_auto": "Votre chat actuel apparaîtra en caractères gras."
+    },
+    "Chat options": {
+        "fr": "",
+        "fr_auto": "Options de clavardage"
+    },
+    "Click on the ellipsis icon to view more options.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur l’icône de points de suspension pour voir plus d’options."
+    },
+    "Rename your chats or to delete them entirely.": {
+        "fr": "",
+        "fr_auto": "Renommez vos clavardages ou supprimez-les complètement."
+    },
+    "Using the AI Assistant": {
+        "fr": "",
+        "fr_auto": "Utilisation de l’assistant IA"
+    },
+    "Use the textbox to start.": {
+        "fr": "",
+        "fr_auto": "Utilisez la zone de texte pour commencer."
+    },
+    "Modes": {
+        "fr": "",
+        "fr_auto": "Modes"
+    },
+    ".": {
+        "fr": "",
+        "fr_auto": "."
+    },
+    "You can show or hide the AI Assistant\\": {
+        "fr": "",
+        "fr_auto": "Vous pouvez afficher ou masquer l’assistant IA\\"
+    },
+    "Settings are tied to the current chat in use. Saving is done automatically when a change is detected.": {
+        "fr": "",
+        "fr_auto": "Les paramètres sont liés au clavardage actuel utilisé. L’enregistrement se fait automatiquement lorsqu’un changement est détecté."
+    },
+    "Mode": {
+        "fr": "",
+        "fr_auto": "Mode"
+    },
+    "Selecting a mode in the settings list will automatically set your chat session to that mode.": {
+        "fr": "",
+        "fr_auto": "En sélectionnant un mode dans la liste des paramètres, votre session de clavardage sera automatiquement réglée sur ce mode."
+    },
+    "Preset": {
+        "fr": "",
+        "fr_auto": "Préréglage"
+    },
+    "Save your current settings in a preset to re-use them in other chats, share them with others, or set them as your default.": {
+        "fr": "",
+        "fr_auto": "Enregistrez vos paramètres actuels dans un préréglage pour les réutiliser dans d’autres chats, les partager avec d’autres personnes ou les définir par défaut."
+    },
+    "Made a mistake? Reset all your settings to their default state.": {
+        "fr": "",
+        "fr_auto": "Vous avez fait une erreur? Réinitialisez tous vos paramètres à leur état par défaut."
+    },
+    "You can also view or edit the full list of existing presets you created or that were shared with you.": {
+        "fr": "",
+        "fr_auto": "Vous pouvez également consulter ou modifier la liste complète des préréglages existants que vous avez créés ou qui ont été partagés avec vous."
+    },
+    "Help": {
+        "fr": "",
+        "fr_auto": "Aide"
+    },
+    "AI Assistant Walkthrough (1 min)": {
+        "fr": "",
+        "fr_auto": "Procédure pas à pas de l’assistant IA (1 min)"
+    },
+    "Start a tour of Otto": {
+        "fr": "",
+        "fr_auto": "Commencez une visite d’Otto"
+    },
+    "Start using Otto": {
+        "fr": "",
+        "fr_auto": "Commencez à utiliser Otto"
+    },
+    "Start using Otto by selecting an application.": {
+        "fr": "",
+        "fr_auto": "Commencez à utiliser Otto en sélectionnant une application."
+    },
+    "Cost allocation": {
+        "fr": "",
+        "fr_auto": "Répartition des coûts"
+    },
+    "This meter gradually fills up as you use Otto. It represents the amount of money left out of your weekly allocation. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center to grant an exemption.": {
+        "fr": "",
+        "fr_auto": "Ce compteur se remplit graduellement au fur et à mesure que vous utilisez Otto. Il représente le montant d’argent laissé de côté de votre allocation hebdomadaire. Si vous atteignez votre limite, vous ne pourrez plus utiliser Otto et devrez contacter le Centre d’analyse d’affaires pour accorder une exemption."
+    },
+    "Click on this icon to submit feedback about Otto. Let us know what went wrong, or suggest an improvement.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur cette icône pour soumettre des commentaires sur Otto. Faites-nous savoir ce qui n’a pas fonctionné ou suggérez une amélioration."
+    },
     "Toggle theme": {
         "fr": "",
         "fr_auto": "Basculer le thème"
@@ -2882,6 +2994,142 @@
     "(Optional) Final reminders of desired behaviour. Keep this fairly short.": {
         "fr": "",
         "fr_auto": "(Facultatif) Derniers rappels du comportement souhaité. Soyez assez bref."
+    },
+    "Start interactive tour": {
+        "fr": "",
+        "fr_auto": "Commencer la visite interactive"
+    },
+    "Email the Otto team": {
+        "fr": "",
+        "fr_auto": "Envoyez un courriel à l’équipe d’Otto"
+    },
+    "of": {
+        "fr": "",
+        "fr_auto": "de"
+    },
+    "Click the Otto logo in the top left to return to this page at any time.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur le logo Otto en haut à gauche pour revenir à cette page en tout temps."
+    },
+    "Switch language": {
+        "fr": "",
+        "fr_auto": "Changer de langue"
+    },
+    "Switch the user interface language between English and French.": {
+        "fr": "",
+        "fr_auto": "Changez la langue de l’interface utilisateur entre l’anglais et le français."
+    },
+    "Cost meter": {
+        "fr": "",
+        "fr_auto": "Compteur de coûts"
+    },
+    "This meter gradually fills up as you use Otto. It represents the amount of money left out of your monthly personal budget. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center for a temporary exemption.": {
+        "fr": "",
+        "fr_auto": "Ce compteur se remplit graduellement au fur et à mesure que vous utilisez Otto. Il représente le montant d’argent laissé de côté dans votre budget personnel mensuel. Si vous atteignez votre limite, vous ne pourrez plus utiliser Otto et devrez communiquer avec le Centre d’analyse d’affaires pour obtenir une exemption temporaire."
+    },
+    "Get help": {
+        "fr": "",
+        "fr_auto": "Obtenir de l’aide"
+    },
+    "Click the question mark icon to view this tour again, open the user guide, or get help from the Otto team.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur l’icône en forme de point d’interrogation pour revoir cette visite, ouvrir le guide de l’utilisateur ou obtenir de l’aide de l’équipe d’Otto."
+    },
+    "Welcome tour:": {
+        "fr": "",
+        "fr_auto": "Visite de bienvenue :"
+    },
+    "It looks like this is your first time here.": {
+        "fr": "",
+        "fr_auto": "On dirait que c’est la première fois que vous êtes ici."
+    },
+    "Please take a quick tour to get familiar with the platform.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite rapide pour vous familiariser avec la plateforme."
+    },
+    "Begin tour": {
+        "fr": "",
+        "fr_auto": "Commencer la visite"
+    },
+    "Otto homepage": {
+        "fr": "",
+        "fr_auto": "Page d’accueil d’Otto"
+    },
+    "Welcome to the AI Assistant!": {
+        "fr": "",
+        "fr_auto": "Bienvenue à l’assistant IA!"
+    },
+    "It looks like this is your first time using the AI Assistant.": {
+        "fr": "",
+        "fr_auto": "Il semble que ce soit la première fois que vous utilisez l’assistant IA."
+    },
+    "Please take a quick tour to get familiar with the main features.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite rapide pour vous familiariser avec les principales caractéristiques."
+    },
+    "(required on first use)": {
+        "fr": "",
+        "fr_auto": "(requis lors de la première utilisation)"
+    },
+    "Start tour": {
+        "fr": "",
+        "fr_auto": "Commencer la visite"
+    },
+    "Welcome to Otto!": {
+        "fr": "",
+        "fr_auto": "Bienvenue chez Otto!"
+    },
+    "Reset flags for demo": {
+        "fr": "",
+        "fr_auto": "Réinitialiser les indicateurs pour la démo"
+    },
+    "Please take a 1-minute tour to get familiar with the main features.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite d’une minute pour vous familiariser avec les principales caractéristiques."
+    },
+    "Please take a 1-minute tour to get familiar with the platform.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite guidée de 1 minute pour vous familiariser avec la plateforme."
+    },
+    "User menu": {
+        "fr": "",
+        "fr_auto": "Menu utilisateur"
+    },
+    "Click your name to see your monthly Otto usage, access the Terms of Use, or Logout.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur votre nom pour voir votre utilisation mensuelle d’Otto, accéder aux conditions d’utilisation ou se déconnecter."
+    },
+    "This meter gradually fills up as you use Otto. It represents your monthly personal budget. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center for a temporary exemption.": {
+        "fr": "",
+        "fr_auto": "Ce compteur se remplit graduellement au fur et à mesure que vous utilisez Otto. Il représente votre budget personnel mensuel. Si vous atteignez votre limite, vous ne pourrez plus utiliser Otto et devrez communiquer avec le Centre d’analyse d’affaires pour obtenir une exemption temporaire."
+    },
+    "Tour complete!": {
+        "fr": "",
+        "fr_auto": "Visite terminée!"
+    },
+    "Start using Otto by clicking one of the app tiles.": {
+        "fr": "",
+        "fr_auto": "Commencez à utiliser Otto en cliquant sur l’une des vignettes de l’application."
+    },
+    "Select different modes by clicking the tabs.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez différents modes en cliquant sur les onglets."
+    },
+    "Q&A mode": {
+        "fr": "",
+        "fr_auto": "Mode Q&R"
+    },
+    "Presets": {
+        "fr": "",
+        "fr_auto": "Préréglages"
+    },
+    "Browse settings presets and create your own to share with others.": {
+        "fr": "",
+        "fr_auto": "Parcourez les paramètres prédéfinis et créez les vôtres pour les partager avec d’autres."
+    },
+    "Please take a 5-minute tour to get familiar with the main features.": {
+        "fr": "",
+        "fr_auto": "Veuillez faire une visite de 5 minutes pour vous familiariser avec les principales caractéristiques."
     },
     "Corrupt docx file.": {
         "fr": "",
@@ -2930,5 +3178,217 @@
     "(best, $)": {
         "fr": "",
         "fr_auto": "(meilleur, $)"
+    },
+    "Welcome to the AI Assistant": {
+        "fr": "",
+        "fr_auto": "Bienvenue à l’Assistant IA"
+    },
+    "When you start a new chat, the welcome message reminds you of appropriate usage for the selected mode.": {
+        "fr": "",
+        "fr_auto": "Lorsque vous commencez un nouveau clavardage, le message de bienvenue vous rappelle l’utilisation appropriée du mode sélectionné."
+    },
+    "Select a mode": {
+        "fr": "",
+        "fr_auto": "Sélectionnez un mode"
+    },
+    "Use the tabs to select different modes. The welcome message will update with guidance for the selected mode.": {
+        "fr": "",
+        "fr_auto": "Utilisez les onglets pour sélectionner différents modes. Le message de bienvenue sera mis à jour avec des directives pour le mode sélectionné."
+    },
+    "Send a message": {
+        "fr": "",
+        "fr_auto": "Envoyer un message"
+    },
+    "You can interact with the AI by sending a chat message.": {
+        "fr": "",
+        "fr_auto": "Vous pouvez interagir avec l’IA en envoyant un message de clavardage."
+    },
+    "Hello, Otto!": {
+        "fr": "",
+        "fr_auto": "Bonjour, Otto!"
+    },
+    "Messages area": {
+        "fr": "",
+        "fr_auto": "Zone des messages"
+    },
+    "Your sent messages and the AI\\": {
+        "fr": "",
+        "fr_auto": "Vos messages envoyés et l’IA"
+    },
+    "Switch to Q&A mode": {
+        "fr": "",
+        "fr_auto": "Passez en mode Questions et réponses"
+    },
+    "Q&A mode lets you ask questions and extract information from uploaded documents. Click the Q&A tab to try it.": {
+        "fr": "",
+        "fr_auto": "Le mode Q&R vous permet de poser des questions et d’extraire de l’information à partir de documents téléchargés. Cliquez sur l’onglet Questions et réponses pour l’essayer."
+    },
+    "Settings sidebar": {
+        "fr": "",
+        "fr_auto": "Barre latérale des paramètres"
+    },
+    "All AI assistant modes have editable settings in the right sidebar. The Q&A settings are especially important.": {
+        "fr": "",
+        "fr_auto": "Tous les modes d’assistant IA ont des paramètres modifiables dans la barre latérale droite. Les paramètres de questions et réponses sont particulièrement importants."
+    },
+    "Select Q&A library": {
+        "fr": "",
+        "fr_auto": "Sélectionnez la bibliothèque de questions et réponses"
+    },
+    "By default, the \\\"Corporate\\\" library is selected. This contains some HR-related information such as collective agreements.": {
+        "fr": "",
+        "fr_auto": "Par défaut, la bibliothèque \\\"Corporate\\ » est sélectionnée. Il contient des renseignements liés aux RH, comme les conventions collectives."
+    },
+    "What is LP-02 step 3 pay in 2024?": {
+        "fr": "",
+        "fr_auto": "Qu’est-ce que la rémunération de l’échelon 3 du LP-02 en 2024?"
+    },
+    "Q&A response": {
+        "fr": "",
+        "fr_auto": "Réponse aux questions et réponses"
+    },
+    "In Q&A mode, the AI searches through the library to find the answer. This allows it to provide references for verification.": {
+        "fr": "",
+        "fr_auto": "En mode Q&R, l’IA cherche dans la bibliothèque pour trouver la réponse. Cela lui permet de fournir des références à des fins de vérification."
+    },
+    "Upload your own files": {
+        "fr": "",
+        "fr_auto": "Téléchargez vos propres fichiers"
+    },
+    "You can upload many types of files for Q&A, summarization or translation. These files are stored in the chat and will be deleted after 30 days inactivity. You can also drag and drop files into the chat. Uploading a file will switch the Q&A library to \\\"Chat uploads\\\".": {
+        "fr": "",
+        "fr_auto": "Vous pouvez télécharger de nombreux types de fichiers pour les questions et réponses, les résumés ou les traductions. Ces fichiers sont stockés dans le clavardage et seront supprimés après 30 jours d’inactivité. Vous pouvez également faire glisser et déposer des fichiers dans le clavardage. Le téléchargement d’un fichier fera passer la bibliothèque de questions et réponses à \\\"Téléchargements de clavardage\\ »."
+    },
+    "Editing libraries": {
+        "fr": "",
+        "fr_auto": "Modifier les bibliothèques"
+    },
+    "Instead of uploading files to a chat, you might want to create a document library. This allows you to query the same documents across multiple chats, or share your Q&A library with others. Use the \\\"Edit libraries\\\" function to upload, organize and share document libraries.": {
+        "fr": "",
+        "fr_auto": "Au lieu de télécharger des fichiers dans un clavardage, vous voudrez peut-être créer une bibliothèque de documents. Cela vous permet d’interroger les mêmes documents sur plusieurs clavardages ou de partager votre bibliothèque de questions et réponses avec d’autres personnes. Utilisez la fonction « Modifier les bibliothèques » pour télécharger, organiser et partager des bibliothèques de documents."
+    },
+    "Q&A search mode": {
+        "fr": "",
+        "fr_auto": "Mode de recherche Q&R"
+    },
+    "By default, Q&A mode will quickly search for the most relevant \\\"chunks\\\" from the library. The AI will then read those chunks and provide an answer based. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!": {
+        "fr": "",
+        "fr_auto": "Par défaut, le mode Q&A recherchera rapidement les \\\"morceaux\\ » les plus pertinents dans la bibliothèque. L’IA lira ensuite ces morceaux et fournira une réponse basée. Pour certaines questions, vous devrez peut-être demander à l’IA de lire le document complet. ATTENTION : Ce mode peut être coûteux lorsqu’il y a beaucoup de documents!"
+    },
+    "Q&A filters": {
+        "fr": "",
+        "fr_auto": "Filtres de questions et réponses"
+    },
+    "In the full document modes, select the documents or folders you want the AI to read.": {
+        "fr": "",
+        "fr_auto": "Dans les modes de document complet, sélectionnez les documents ou les dossiers que vous voulez que l’IA lise."
+    },
+    "Select AI model": {
+        "fr": "",
+        "fr_auto": "Sélectionnez le modèle d’IA"
+    },
+    "When accuracy is paramount, select the more expensive GPT-4o model. (This setting is available in all modes.)": {
+        "fr": "",
+        "fr_auto": "Lorsque la précision est primordiale, sélectionnez le modèle GPT-4o plus coûteux. (Ce paramètre est disponible dans tous les modes.)"
+    },
+    "To customize the behaviour further, you can edit advanced settings by clicking here. For example, you can change the number of top sources that the AI will read, or customize the response format": {
+        "fr": "",
+        "fr_auto": "Pour personnaliser davantage le comportement, vous pouvez modifier les paramètres avancés en cliquant ici. Par exemple, vous pouvez modifier le nombre de sources principales que l’IA lira ou personnaliser le format de réponse"
+    },
+    "Summarize mode": {
+        "fr": "",
+        "fr_auto": "Mode de résumé"
+    },
+    "In summarize mode, you can upload documents, paste long text or enter a URL (canada.ca, *.gc.ca, CanLii and Wikipedia only). Like in Q&A \\\"full documents\\\" mode, the AI will read the entire document before responding. Let\\": {
+        "fr": "",
+        "fr_auto": "En mode résumé, vous pouvez télécharger des documents, coller du texte long ou entrer une URL (canada.ca, *.gc.ca, CanLii et Wikipédia seulement). Comme dans le mode Q&R \\« documents complets \\ », l’IA lira l’intégralité du document avant de répondre. Let\\"
+    },
+    "Summarize response": {
+        "fr": "",
+        "fr_auto": "Résumer la réponse"
+    },
+    "By default, the summary will be quite short, but this is adjustable in the settings sidebar.": {
+        "fr": "",
+        "fr_auto": "Par défaut, le résumé sera assez court, mais il est réglable dans la barre latérale des paramètres."
+    },
+    "Summarize settings": {
+        "fr": "",
+        "fr_auto": "Résumer les paramètres"
+    },
+    "There are 3 preset length settings, but you can add additional instructions or override the prompt entirely. A custom summarize prompt is the easiest way to extract exactly the information you want from a document.": {
+        "fr": "",
+        "fr_auto": "Il y a 3 réglages de longueur prédéfinis, mais vous pouvez ajouter des instructions supplémentaires ou remplacer complètement l’invite. Une invite de résumé personnalisée est le moyen le plus simple d’extraire exactement l’information que vous voulez d’un document."
+    },
+    "My team at Department of Justice Canada has developed a generative AI tool. What are the top 7 pieces of guidance I should provide users? Write a 1000-word Buzzfeed-style listicle with nice formatting. The audience is end-users.": {
+        "fr": "",
+        "fr_auto": "Mon équipe au ministère de la Justice du Canada a mis au point un outil d’IA générative. Quels sont les 7 principaux conseils que je devrais fournir aux utilisateurs? Rédigez une liste de 1000 mots de style Buzzfeed avec un bon formatage. Le public est constitué d’utilisateurs finaux."
+    },
+    "Summary with custom prompt": {
+        "fr": "",
+        "fr_auto": "Résumé avec invite personnalisée"
+    },
+    "The AI now generates a summary according to the custom prompt!": {
+        "fr": "",
+        "fr_auto": "L’IA génère maintenant un résumé selon l’invite personnalisée!"
+    },
+    "Switching back to chat mode": {
+        "fr": "",
+        "fr_auto": "Retour en mode clavardage"
+    },
+    "We\\": {
+        "fr": "",
+        "fr_auto": "Nous \\"
+    },
+    "Our tool is called Otto, so please use that name. Otto is actually approved for Protected B data unlike many generative AI tools. Also would prefer a bit more bold and italics, and lots of emojis. More memorable titles for the tips, maybe alliterative or rhyming. 300 words max.": {
+        "fr": "",
+        "fr_auto": "Notre outil s’appelle Otto, alors veuillez utiliser ce nom. Otto est en fait approuvé pour les données Protected B contrairement à de nombreux outils d’IA générative. Je préférerais aussi un peu plus de gras et d’italique, et beaucoup d’emojis. Des titres plus mémorables pour les pointes, peut-être allitératifs ou rimés. 300 mots max."
+    },
+    "Human in the loop": {
+        "fr": "",
+        "fr_auto": "Humain dans la boucle"
+    },
+    "Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\\": {
+        "fr": "",
+        "fr_auto": "N’oubliez pas que l’assistant d’IA n’est qu’un outil pour vous aider à atteindre vos objectifs. Soyez précis et vous\\"
+    },
+    "Translation options": {
+        "fr": "",
+        "fr_auto": "Options de traduction"
+    },
+    "In translate mode, you can upload files or directly input text (in any language). Select the target language in the sidebar.": {
+        "fr": "",
+        "fr_auto": "En mode traduction, vous pouvez télécharger des fichiers ou entrer directement du texte (dans n’importe quelle langue). Sélectionnez la langue cible dans la barre latérale."
+    },
+    "Browse presets created by the Otto team or other users. You can also save your current settings as a preset, and choose your default settings for new chats.": {
+        "fr": "",
+        "fr_auto": "Parcourez les préréglages créés par l’équipe Otto ou d’autres utilisateurs. Vous pouvez également enregistrer vos paramètres actuels en tant que préréglage et choisir vos paramètres par défaut pour les nouvelles conversations."
+    },
+    "Your chats remain accessible in the left sidebar, but are deleted after 30 days of inactivity. The current chat is bolded.": {
+        "fr": "",
+        "fr_auto": "Vos discussions restent accessibles dans la barre latérale gauche, mais sont supprimées après 30 jours d’inactivité. Le clavardage actuel est en gras."
+    },
+    "Rename and delete chats": {
+        "fr": "",
+        "fr_auto": "Renommer et supprimer des clavardages"
+    },
+    "When you hover over a chat title, three dots appear. Click the dots to rename or delete a chat manually.": {
+        "fr": "",
+        "fr_auto": "Lorsque vous passez la souris sur le titre d’un clavardage, trois points apparaissent. Cliquez sur les points pour renommer ou supprimer un clavardage manuellement."
+    },
+    "Start a new chat": {
+        "fr": "",
+        "fr_auto": "Démarrer un nouveau clavardage"
+    },
+    "When you are changing topics, always start a new chat. This reduces cost and improves quality. The tour is now complete!": {
+        "fr": "",
+        "fr_auto": "Lorsque vous changez de sujet, commencez toujours une nouvelle discussion. Cela réduit les coûts et améliore la qualité. La visite est maintenant terminée!"
+    },
+    "Light and dark themes": {
+        "fr": "",
+        "fr_auto": "Thèmes clairs et sombres"
+    },
+    "Click the sun or moon icon to switch between dark and light themes.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur l’icône du soleil ou de la lune pour basculer entre les thèmes sombres et clairs."
     }
 }

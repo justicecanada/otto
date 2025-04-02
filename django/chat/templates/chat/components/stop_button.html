@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <div id="stop-button" hx-swap-oob="true">
-  <button class="btn bg-light border-secondary text-secondary btn-sm"
+  <button class="btn btn-outline-secondary btn-sm"
           title='{% trans "Stop" %}'
           type="button"
           hx-get="{% url 'chat:stop_response' message_id=message.id %}"

@@ -31,7 +31,7 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    # Always store lowercase email addresses. This is done when user is created.
+    objects = CustomUserManager()
     upn = models.CharField(max_length=255, unique=True)
     email = models.EmailField()
     oid = models.CharField(max_length=255, null=True)
@@ -50,9 +50,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         related_name="default_for",
     )
     monthly_max = models.IntegerField(default=settings.DEFAULT_MONTHLY_MAX)
-    monthly_bonus = models.IntegerField(default=0)  # Resets each Sunday to 0
-
-    objects = CustomUserManager()
+    monthly_bonus = models.IntegerField(default=0)  # Resets each month to 0
+    homepage_tour_completed = models.BooleanField(default=False)
+    ai_assistant_tour_completed = models.BooleanField(default=False)
+    laws_search_tour_completed = models.BooleanField(default=False)
 
     USERNAME_FIELD = "upn"
     REQUIRED_FIELDS = []

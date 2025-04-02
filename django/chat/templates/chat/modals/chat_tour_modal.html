@@ -1,0 +1,33 @@
+{% load i18n %}
+
+<div class="modal fade"
+     id="tour-modal"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false"
+     tabindex="-1"
+     aria-labelledby="tour-modal-title"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tour-modal-title">
+          <span>{% trans "Welcome to the AI Assistant!" %}</span>
+        </h5>
+      </div>
+      <div class="modal-body">
+        <p class="modal-text">{% trans "It looks like this is your first time using the AI Assistant." %}</p>
+        <p class="modal-text">
+          {% trans "Please take a 5-minute tour to get familiar with the main features." %} <em>{% trans "(required on first use)" %}</em>
+        </p>
+        <div class="d-flex justify-content-center">
+          <button type="button"
+                  class="btn btn-primary"
+                  onclick="startTour();"
+                  data-bs-dismiss="modal">
+            <i class="bi bi-airplane me-2"></i>{% trans "Start tour" %}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
