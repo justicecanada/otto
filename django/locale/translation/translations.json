@@ -2890,5 +2890,21 @@
     "Corrupt Excel file.": {
         "fr": "",
         "fr_auto": "Fichier Excel corrompu."
+    },
+    "Favorite": {
+        "fr": "",
+        "fr_auto": "Favori"
+    },
+    "Share": {
+        "fr": "",
+        "fr_auto": "Partager"
+    },
+    "Settings Options": {
+        "fr": "",
+        "fr_auto": "Options de paramètres"
+    },
+    "Warning, this will update the preset with the current settings of the chat.": {
+        "fr": "",
+        "fr_auto": "Attention, cela mettra à jour le préréglage avec les paramètres actuels du chat."
     }
 }
