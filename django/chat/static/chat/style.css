@@ -1249,13 +1249,15 @@ ul#preset-edit-tabs {
         text-shadow: 0px 0px 7px var(--app-color-yellow-2);
       }
 
-      i.bi.bi-share,
-      i.bi.bi-share-fill {
+      i.bi.bi-share {
+        border-color: var(--app-color-blue-1);
+        color: var(--app-color-blue-1);
         text-shadow: 0px 0px 7px var(--app-color-blue-1);
       }
 
-      i.bi.bi-trash,
-      i.bi.bi-trash-fill {
+      i.bi.bi-trash {
+        border-color: var(--app-color-red-1);
+        color: var(--app-color-red-1);
         text-shadow: 0px 0px 7px var(--app-color-red-1);
       }
 
@@ -1265,38 +1267,15 @@ ul#preset-edit-tabs {
     }
 
     &:focus-visible {
-      background-color: var(--bg-light-gray);
       border: none !important;
       outline: none !important;
       box-shadow: none;
-
-      &i.bi.bi-heart,
-      &i.bi.bi-heart-fill {
-        border: solid 1px var(--app-color-red-1);
-        background-color: var(--app-color-red-1-hover);
-      }
-
-      &i.bi.bi-start,
-      &i.bi.bi-star-fill {
-        border: solid 1px var(--app-color-yellow-1);
-        background-color: var(--app-color-yellow-2);
-      }
-
-      &i.bi.bi-share,
-      &i.bi.bi-share-fill {
-        border: solid 1px var(--app-color-blue-1);
-        background-color: var(--app-color-blue-2);
-      }
-
-      &i.bi.bi-trash,
-      &i.bi.bi-trash-fill {
-        border: solid 1px var(--app-color-red-1);
-        background-color: var(--app-color-red-1-hover);
-      }
-
-      color: transparent;
     }
   }
+}
+
+.card-title {
+  margin-bottom: 0;
 }
 
 .card-footer {
@@ -1317,6 +1296,13 @@ ul#preset-edit-tabs {
       color: white !important;
     }
 
+    &:focus-visible {
+      outline-style: solid !important;
+      outline-color: black !important;
+      outline-width: 2px !important;
+      box-shadow: black 0 0 0 0.25rem !important;
+    }
+
     &:only-child {
       flex-basis: 100%;
     }
@@ -1332,21 +1318,18 @@ ul#preset-edit-tabs {
   padding-right: 0;
 }
 
-.btn-ghost {
-  background-color: transparent !important;
-  border: none !important;
-
-  &:focus-visible {
-    outline-style: solid !important;
-    outline-color: black !important;
-    outline-width: 2px !important;
-  }
+.expanded-text-overlay {
+  position: absolute;
+  background-color: rgb(255, 255, 255);
+  border: 1px solid rgb(89, 50, 50);
+  padding: 0.5em;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.468);
+  white-space: normal;
+  z-index: 1;
+  pointer-events: none;
 }
 
-.preset-form-user-choice .card-button {
-  border: 1px solid transparent;
-  /* Other styles */
-}
+.preset-form-user-choice .card-button {}
 
 .preset-form-user-choice .card-button:hover {
   border: 1px solid #acacac;

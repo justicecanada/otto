@@ -247,6 +247,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
+
 // On prompt form submit...
 document.addEventListener("htmx:afterSwap", function (event) {
   if (event.detail?.target?.id != "messages-container") return;
@@ -330,6 +331,15 @@ document.addEventListener('htmx:afterRequest', function (event) {
         deleteChatSection(button);
       });
     }
+  }
+});
+
+document.addEventListener('htmx:afterSwap', function (event) {
+  if (event.detail?.target?.id === 'presets-modal-body') {
+    // we need this timeout to make sure the modal is fully loaded
+    setTimeout(() => {
+      PresetDescription();
+    }, 100);
   }
 });
 
@@ -714,4 +724,40 @@ function nextSourceHighlight(message_id) {
     nextHighlight.classList.add("current-highlight");
     nextHighlight.scrollIntoView({behavior: "smooth", block: "center"});
   }, needToExpand ? 300 : 0);
+}
+
+function PresetDescription() {
+  var hasOverflow = (element) => {
+    return element.scrollHeight > element.clientHeight;
+  };
+
+  var wrappers = document.querySelectorAll('.text-wrapper');
+  wrappers.forEach((wrapper) => {
+    let element = wrapper.querySelector('.preset-description');
+    if (hasOverflow(element)) {
+      let cardBody = wrapper.closest('.card').querySelector('.card-body');
+
+      wrapper.addEventListener('mouseenter', () => {
+        // Create an overlay for the expanded text
+        let expandedText = document.createElement('div');
+        expandedText.className = 'expanded-text-overlay';
+        expandedText.textContent = element.textContent;
+        expandedText.style.top = element.offsetTop + 'px';
+        expandedText.style.left = element.offsetLeft + 'px';
+        expandedText.style.width = element.offsetWidth + 'px';
+        cardBody.appendChild(expandedText);
+
+      });
+
+      wrapper.addEventListener('mouseleave', () => {
+        // Remove the overlay and restore the truncated text visibility
+        let overlay = cardBody.querySelector('.expanded-text-overlay');
+        if (overlay) {
+          overlay.remove();
+        }
+        element.style.opacity = '1'; // Restore visibility
+      });
+    };
+  });
+
 }

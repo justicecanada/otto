@@ -11,7 +11,7 @@
     style="box-shadow: 1px solid;
            height">
   <div class="card-header flex-column">
-    <div class="d-flex justify-content-between w-100 fs-6">
+    <div class="d-flex justify-content-between w-100 fs-6 header-buttons-and-icons">
       <div class="me-auto">{% include "chat/modals/presets/shared_icon.html" %}</div>
       <div class="d-flex align-items-center">
         <div id="default-button-{{ preset.id }}">
@@ -29,6 +29,7 @@
         {% if can_edit_preset_sharing %}
           <button id="share-button"
                   type="button"
+                  title="Share preset"
                   class="btn btn-light rounded-circle"
                   hx-get="{% url 'chat:share_preset' chat_id=chat_id preset_id=preset.id %}"
                   hx-target="#presets-modal-body"
@@ -40,6 +41,7 @@
           <button id="delete-preset-button"
                   type="button"
                   class="btn btn-light rounded-circle fs-6"
+                  title="Delete preset"
                   hx-get="{% url 'chat:chat_options' chat_id=chat_id action='delete_preset' preset_id=preset.id %}"
                   hx-target="#presets-modal-body"
                   hx-swap="innerHTML transition:true"
@@ -103,8 +105,3 @@
   </div>
 
 </li>
-
-
-{% block page_script %}
-  <script src="{% static 'chat/js/card.js' %}"></script>
-{% endblock %}
