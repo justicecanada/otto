@@ -1,24 +1,17 @@
 {% load i18n %}
 
-{% block page_css %}
-  <style>
-    #feedback-icon:hover {
-      background-color: transparent;
-      border-color: transparent;
-    }
-  </style>
-{% endblock page_css %}
-
-<button id="feedback-icon"
-        type="button"
-        data-bs-toggle="modal"
-        data-bs-target="#modal"
-        hx-get="{% url 'user_feedback' %}"
-        hx-trigger="click"
-        hx-target="#feedback-modal-body"
-        hx-swap="innerHTML"
-        onclick="this.blur();"
-        class="btn btn-dark text-muted px-1 text-center"
-        title="{% trans 'Leave feedback' %}">
-  <i class="bi bi-exclamation-square"></i>
-</button>
+<li class="nav-item">
+  <button id="feedback-icon"
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#modal"
+          hx-get="{% url 'user_feedback' %}"
+          hx-trigger="click"
+          hx-target="#feedback-modal-body"
+          hx-swap="innerHTML"
+          onclick="this.blur();"
+          class="btn btn-dark text-muted px-1 ms-1"
+          title="{% trans 'Leave feedback' %}">
+    <i class="bi bi-exclamation-square"></i>
+  </button>
+</li>

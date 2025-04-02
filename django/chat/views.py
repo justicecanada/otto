@@ -75,8 +75,12 @@ def new_chat(request, mode=None):
     empty_chat = Chat.objects.create(user=request.user, mode=mode)
 
     logger.info("New chat created.", chat_id=empty_chat.id, mode=mode)
+    q = request.META["QUERY_STRING"]
+    redirect_url = reverse("chat:chat", args=[empty_chat.id])
+    if q:
+        redirect_url += "?" + q
 
-    return redirect("chat:chat", chat_id=empty_chat.id)
+    return redirect(redirect_url)
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
@@ -233,6 +237,10 @@ def chat(request, chat_id):
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
         "chat_history_sections": get_chat_history_sections(user_chats),
+        "has_tour": True,
+        "tour_name": _("AI Assistant"),
+        "force_tour": not request.user.ai_assistant_tour_completed,
+        "start_tour": request.GET.get("start_tour") == "true",
     }
     return render(request, "chat/chat.html", context=context)
 
@@ -496,30 +504,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         "chat.access_preset", Preset.objects.get(id=preset_id)
     ):
         return HttpResponse(status=403)
-    if action == "reset":
-        # Check if chat.options already exists
-        if hasattr(chat, "options") and chat.options:
-            # Delete the existing ChatOptions object
-            chat.options.delete()
 
-        chat.options = ChatOptions.objects.from_defaults(chat=chat)
-        chat.loaded_preset = None
-        chat.save()
-        logger.info("Resetting chat options to default.", chat_id=chat_id)
-
-        return render(
-            request,
-            "chat/components/chat_options_accordion.html",
-            {
-                "options_form": ChatOptionsForm(
-                    instance=chat.options, user=request.user
-                ),
-                "preset_loaded": "true",
-                "prompt": chat.options.prompt,
-            },
-        )
-
-    elif action == "load_preset":
+    if action == "load_preset":
         logger.info(
             "Loading chat options from a preset.",
             chat_id=chat_id,
@@ -680,14 +666,13 @@ def rename_chat(request, chat_id, current_chat=None):
             old_last_modification_date = chat.last_modification_date
             chat.last_modification_date = timezone.now()
             chat.save()
-            return render(
-                request,
-                "chat/components/chat_list_item.html",
-                {
-                    "chat": chat,
-                    "section_index": label_section_index(old_last_modification_date),
-                },
-            )
+
+            context = {
+                "chat": chat,
+                "security_labels": SecurityLabel.objects.all(),
+                "section_index": label_section_index(old_last_modification_date),
+            }
+            return render(request, "chat/components/chat_list_item.html", context)
         else:
             return render(
                 request,

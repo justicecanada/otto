@@ -11,14 +11,7 @@
         <i class="bi bi-grip-horizontal"></i>
         <span class="visually-hidden">{% trans "Drag or use the up and down arrows to resize." %}</span>
       </button>
-      <div id="stop-button" class="d-none">
-        <button class="btn btn-outline-secondary btn-sm"
-                title='{% trans "Stop" %}'
-                type="button">
-          <i class="bi bi-stop-circle"></i>
-          <span class="d-none d-md-inline">{% trans "Stop" %}</span>
-        </button>
-      </div>
+      <div id="stop-button" class="d-none"></div>
       <div class="form-group mb-3" id="chat-inputs">
         <div class="card" id="chat-toolbar">
           <div class="row">
@@ -69,6 +62,7 @@
             <div class="col-auto py-1 px-0 translate-option summarize-option qa-option option">
               <button class="btn btn-sm btn-outline-secondary col-auto text-center"
                       type="button"
+                      id="upload-button"
                       aria-label='{% trans "Upload" %}'
                       title='{% trans "Upload" %}'
                       onclick="document.querySelector('#chat-file-input').value=null; document.querySelector('#chat-file-input').click();">
