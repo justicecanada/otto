@@ -2911,24 +2911,20 @@
         "fr": "",
         "fr_auto": "Fichier Excel corrompu."
     },
-    "Error submitting feedback.": {
+    "Favorite": {
         "fr": "",
-        "fr_auto": "Erreur en soumettant des commentaires."
+        "fr_auto": "Favori"
     },
-    "Chat updated successfully.": {
+    "Share": {
         "fr": "",
-        "fr_auto": "Le clavardage a été mis à jour avec succès."
+        "fr_auto": "Partager"
     },
-    "Chat created successfully.": {
+    "Settings Options": {
         "fr": "",
-        "fr_auto": "Chat créé avec succès."
+        "fr_auto": "Options de paramètres"
     },
-    "Default": {
+    "Warning, this will update the preset with the current settings of the chat.": {
         "fr": "",
-        "fr_auto": "Défaut"
-    },
-    "(best, $)": {
-        "fr": "",
-        "fr_auto": "(meilleur, $)"
+        "fr_auto": "Attention, cela mettra à jour le préréglage avec les paramètres actuels du chat."
     }
 }
