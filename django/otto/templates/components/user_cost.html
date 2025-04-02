@@ -8,20 +8,20 @@
      data-bs-html="true"
      data-bs-title="{{ cost_tooltip }}"
      style="position: absolute;
-            bottom: -3px;
+            bottom: -2px;
             width: calc(100% - 0.75rem);
             margin-left: 0.2rem;
             z-index: 1">
-     <meter aria-label="{{ cost_label }}"
-            id="cost-bar-inner"
-            class="w-100 d-block"
-            style="height: 12px"
-            min="0"
-            max="100"
-            low="60"
-            high="80"
-            optimum="0"
-            value="{{ cost_percent }}">{{ cost_tooltip }}</meter>
+       <meter aria-label="{{ cost_label }}"
+              id="cost-bar-inner"
+              class="w-100 d-block"
+              style="height: 12px"
+              min="0"
+              max="100"
+              low="60"
+              high="80"
+              optimum="0"
+              value="{{ cost_percent }}">{{ cost_tooltip }}</meter>
 </div>
 
 <li id="user-menu-cost"

@@ -3382,5 +3382,13 @@
     "When you are changing topics, always start a new chat. This reduces cost and improves quality. The tour is now complete!": {
         "fr": "",
         "fr_auto": "Lorsque vous changez de sujet, commencez toujours une nouvelle discussion. Cela réduit les coûts et améliore la qualité. La visite est maintenant terminée!"
+    },
+    "Light and dark themes": {
+        "fr": "",
+        "fr_auto": "Thèmes clairs et sombres"
+    },
+    "Click the sun or moon icon to switch between dark and light themes.": {
+        "fr": "",
+        "fr_auto": "Cliquez sur l’icône du soleil ou de la lune pour basculer entre les thèmes sombres et clairs."
     }
 }
