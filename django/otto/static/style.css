@@ -598,3 +598,55 @@ svg.driver-overlay {
   /* Match Bootstrap modal overlay */
   opacity: 0.72;
 }
+
+[data-bs-theme="dark"] .driver-popover {
+  background-color: var(--bs-light-bg-subtle);
+  color: white;
+  border: solid 3px var(--bs-light-border-subtle);
+}
+
+[data-bs-theme="dark"] .driver-popover-progress-text {
+  color: var(--otto-primary-text-color);
+}
+
+[data-bs-theme="dark"] .driver-popover-arrow {
+  border: 5px solid var(--bs-light-border-subtle);
+  margin: 3px;
+}
+
+[data-bs-theme="dark"] .driver-popover-arrow-side-left {
+  left: 100%;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-top-color: transparent
+}
+
+[data-bs-theme="dark"] .driver-popover-arrow-side-right {
+  right: 100%;
+  border-left-color: transparent;
+  border-bottom-color: transparent;
+  border-top-color: transparent
+}
+
+[data-bs-theme="dark"] .driver-popover-arrow-side-top {
+  top: 100%;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent
+}
+
+[data-bs-theme="dark"] .driver-popover-arrow-side-bottom {
+  bottom: 100%;
+  border-left-color: transparent;
+  border-top-color: transparent;
+  border-right-color: transparent
+}
+
+[data-bs-theme="dark"] .driver-popover *:focus {
+  box-shadow: 0 0 0 .25rem rgb(62 105 169);
+}
+
+[data-bs-theme="dark"] .driver-popover-close-btn:hover,
+[data-bs-theme="dark"] .driver-popover-close-btn:focus {
+  color: #fff;
+}
