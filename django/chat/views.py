@@ -833,6 +833,7 @@ def save_preset(request, chat_id):
             {
                 "chat_id": chat_id,
                 "preset": preset,
+                "is_default": request.user.default_preset == preset,
             },
         )
     else:

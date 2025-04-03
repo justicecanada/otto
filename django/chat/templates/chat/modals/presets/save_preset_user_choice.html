@@ -33,6 +33,11 @@
                 Vous avez actuellement le préréglage nommé "{{ preset.name_fr|default:preset.name_en }}" chargé. Cela le mettra à jour avec vos dernières modifications.
               {% endif %}
             </p>
+            {% if is_default %}
+              <div class="alert alert-warning" role="alert">
+                {% trans 'Warning: You currently have the default preset loaded. Updating it will change your default settings.' %}
+              </div>
+            {% endif %}
           </div>
         </button>
       </form>

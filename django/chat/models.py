@@ -104,6 +104,8 @@ class ChatOptionsManager(models.Manager):
             copy_options(
                 chat.user.default_preset.options, new_options, chat.user, chat, mode
             )
+            chat.loaded_preset = chat.user.default_preset
+            chat.save()
         else:
             default_preset = Preset.objects.get_global_default()
             new_options = self.create()
