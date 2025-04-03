@@ -440,35 +440,14 @@ class ChatRenameForm(ModelForm):
         }
 
 
-class PresetForm(forms.ModelForm):
+class SharingPresetForm(forms.ModelForm):
     User = get_user_model()
 
     class Meta:
         model = Preset
-        fields = [
-            "name_en",
-            "name_fr",
-            "description_en",
-            "description_fr",
-            "accessible_to",
-            "sharing_option",
-        ]
+        fields = ["sharing_option", "accessible_to"]
 
         widgets = {
-            "name_en": forms.TextInput(attrs={"class": "form-control"}),
-            "name_fr": forms.TextInput(attrs={"class": "form-control"}),
-            "description_en": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3}
-            ),
-            "description_fr": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3}
-            ),
-            "is_public": forms.CheckboxInput(
-                attrs={
-                    "class": "form-check-input",
-                    "type": "checkbox",
-                }
-            ),
             "sharing_option": forms.RadioSelect(attrs={"class": "form-check-input"}),
         }
 
@@ -487,6 +466,53 @@ class PresetForm(forms.ModelForm):
             },
         ),
     )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if self.instance.pk and not user.has_perm(
+            "chat.edit_preset_sharing", self.instance
+        ):
+            self.fields.pop("sharing_option")
+            # Add a hidden field to store the existing sharing_option
+            self.fields["existing_sharing_option"] = forms.CharField(
+                widget=forms.HiddenInput(), initial=self.instance.sharing_option
+            )
+        elif user and is_group_member("Otto admin")(user):
+            self.fields["sharing_option"].choices = [
+                ("private", _("Make private")),
+                ("everyone", _("Share with everyone")),
+                ("others", _("Share with others")),
+            ]
+        else:
+            self.fields["sharing_option"].choices = [
+                ("private", _("Make private")),
+                ("others", _("Share with others")),
+            ]
+
+
+class PresetInformationForm(forms.ModelForm):
+    class Meta:
+        model = Preset
+        fields = ["name_en", "name_fr", "description_en", "description_fr"]
+
+        widgets = {
+            "name_en": forms.TextInput(attrs={"class": "form-control"}),
+            "name_fr": forms.TextInput(attrs={"class": "form-control"}),
+            "description_en": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+            "description_fr": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+        }
+
+
+class CreatePresetForm(SharingPresetForm, PresetInformationForm):
+    class Meta:
+        model = Preset
+        fields = SharingPresetForm.Meta.fields + PresetInformationForm.Meta.fields
+        widgets = SharingPresetForm.Meta.widgets | PresetInformationForm.Meta.widgets
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)

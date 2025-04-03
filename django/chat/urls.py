@@ -91,14 +91,14 @@ urlpatterns = [
         name="get_presets",
     ),
     path(
-        "presets/<str:preset_id>/favourite/",
-        views.set_preset_favourite,
-        name="set_preset_favourite",
-    ),
-    path(
         "id/<str:chat_id>/options/presets/<str:preset_id>/edit/",
         views.edit_preset,
         name="edit_preset",
+    ),
+    path(
+        "id/<str:chat_id>/options/presets/<str:preset_id>/share/",
+        views.share_preset,
+        name="share_preset",
     ),
     path(
         "id/<str:chat_id>/options/presets/save_options/",
