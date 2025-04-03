@@ -2,12 +2,14 @@
 
 <script>
 startTour = () => {
-  if (document.querySelectorAll("div.message-outer").length > 0) {
+  // Check if start_tour flag is set
+  const urlParams = new URLSearchParams(window.location.search);
+  const start_tour = urlParams.get('start_tour');
+  if (start_tour !== "true") {
+    // If not, redirect to a new chat with start_tour=true
     const redirect_url = "{% url 'chat:chat_with_ai' %}?start_tour=true";
     window.location = redirect_url;
     return;
-  } else if (!document.querySelector("#chat-outer").classList.contains("chat")) {
-    handleModeChange("chat");
   }
   driverObj.drive();
 };
