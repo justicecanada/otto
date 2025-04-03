@@ -810,27 +810,6 @@ def get_presets(request, chat_id):
     )
 
 
-@permission_required("chat.access_preset", objectgetter(Preset, "preset_id"))
-def set_preset_favourite(request, preset_id):
-    preset = Preset.objects.get(id=preset_id)
-    try:
-        is_favourite = preset.toggle_favourite(request.user)
-        if is_favourite:
-            messages.success(request, _("Preset added to favourites."))
-        else:
-            messages.success(request, _("Preset removed from favourites."))
-        return render(
-            request,
-            "chat/modals/presets/favourite.html",
-            context={"is_favourite": is_favourite, "preset": preset},
-        )
-    except ValueError:
-        messages.error(
-            request, _("An error occurred while setting the preset as favourite.")
-        )
-        return HttpResponse(status=500)
-
-
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def save_preset(request, chat_id):
 

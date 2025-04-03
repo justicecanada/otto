@@ -10,7 +10,7 @@ from django.utils import timezone
 import pytest
 from asgiref.sync import async_to_sync, sync_to_async
 
-from chat.forms import PresetForm
+from chat.forms import CreatePresetForm
 from chat.llm import OttoLLM
 from chat.models import Chat, ChatFile, ChatOptions, Message, Preset
 from chat.utils import htmx_stream, title_chat
@@ -886,7 +886,7 @@ def test_preset(client, basic_user, all_apps_user):
     chat = Chat.objects.create(user=user)
 
     # Instantiate the form with a regular user
-    form = PresetForm(user=user)
+    form = CreatePresetForm(user=user)
     assert form.fields["sharing_option"].choices == [
         ("private", "Make private"),
         ("others", "Share with others"),
@@ -895,7 +895,7 @@ def test_preset(client, basic_user, all_apps_user):
     client.force_login(user)
     chat = Chat.objects.create(user=user)
     # Instantiate the form with a user with admin rights
-    form = PresetForm(user=user)
+    form = CreatePresetForm(user=user)
     assert form.fields["sharing_option"].choices == [
         ("private", "Make private"),
         ("everyone", "Share with everyone"),
@@ -939,6 +939,7 @@ def test_preset(client, basic_user, all_apps_user):
 
     # Test editing an existing preset
     client.force_login(user)
+    # first we edit the description
     response = client.post(
         reverse(
             "chat:chat_options",
@@ -951,12 +952,27 @@ def test_preset(client, basic_user, all_apps_user):
         data={
             "name_en": "Updated Preset",
             "description_en": "Updated Description",
+            "prompt": "",
+        },
+    )
+    assert response.status_code == 302
+    # then we change the sharing option
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat.id,
+                "action": "create_preset",
+                "preset_id": preset.id,
+            },
+        ),
+        data={
             "sharing_option": "others",
             "accessible_to": [user2.id],
             "prompt": "",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 302
     preset.refresh_from_db()
     assert preset.name_en == "Updated Preset"
     assert preset.description_en == "Updated Description"
@@ -996,36 +1012,8 @@ def test_preset(client, basic_user, all_apps_user):
         and last_message.message == "Preset loaded successfully."
     )
 
-    # Test adding and removing the preset to favorites
-    client.force_login(user)
-    response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
-    assert response.status_code == 200
-    preset.refresh_from_db()
-    assert user in preset.favourited_by.all()
-    # remove from favourites
-    response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
-    assert response.status_code == 200
-    preset.refresh_from_db()
-    assert user not in preset.favourited_by.all()
-
-    # Test accompanying messages
-    response_messages = list(response.context["messages"])
-    removed_message = response_messages[-1]
-    added_message = response_messages[-2]
-    assert (
-        removed_message.level == messages.SUCCESS
-        and removed_message.message == "Preset removed from favourites."
-    )
-    assert (
-        added_message.level == messages.SUCCESS
-        and added_message.message == "Preset added to favourites."
-    )
-
-    with mock.patch("chat.models.Preset.toggle_favourite", side_effect=ValueError):
-        response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
-        assert response.status_code == 500
-
     # Test setting the preset as default
+    client.force_login(user)
     response = client.get(reverse("chat:set_preset_default", args=[preset.id, chat.id]))
     assert response.status_code == 200
     user.refresh_from_db()

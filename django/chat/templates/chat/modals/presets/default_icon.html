@@ -1,11 +1,11 @@
 {% load i18n %}
 <button type="button"
-        class="btn rounded-circle"
+        class="btn btn-light rounded-circle"
         title="{% if preset.default %}{% trans 'Remove default' %}{% else %}{% trans 'Set as default' %}{% endif %}"
         hx-get="{% url 'chat:set_preset_default' chat_id=chat_id preset_id=preset.id %}"
         hx-target="this"
         hx-swap="outerHTML">
-      <i class="bi {% if preset.default or is_default %}bi-star-fill{% else %}bi-star{% endif %} fs-6"
-         style="{% if preset.default or is_default %}color: var(--app-color-yellow-1);
-                {% endif %}"></i>
+  <i class="bi {% if preset.default or is_default %}bi-star-fill{% else %}bi-star{% endif %} fs-6"
+     style="{% if preset.default or is_default %}color: var(--app-color-yellow-1);
+            {% endif %}"></i>
 </button>
