@@ -81,8 +81,12 @@ def new_chat(request, mode=None):
     empty_chat = Chat.objects.create(user=request.user, mode=mode)
 
     logger.info("New chat created.", chat_id=empty_chat.id, mode=mode)
+    q = request.META["QUERY_STRING"]
+    redirect_url = reverse("chat:chat", args=[empty_chat.id])
+    if q:
+        redirect_url += "?" + q
 
-    return redirect("chat:chat", chat_id=empty_chat.id)
+    return redirect(redirect_url)
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
@@ -239,6 +243,10 @@ def chat(request, chat_id):
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
         "chat_history_sections": get_chat_history_sections(user_chats),
+        "has_tour": True,
+        "tour_name": _("AI Assistant"),
+        "force_tour": not request.user.ai_assistant_tour_completed,
+        "start_tour": request.GET.get("start_tour") == "true",
     }
     return render(request, "chat/chat.html", context=context)
 

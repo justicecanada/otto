@@ -115,6 +115,8 @@ def index(request):
         {
             "hide_breadcrumbs": True,
             "categorized_features": get_categorized_features(request.user),
+            "has_tour": True,
+            "force_tour": not request.user.homepage_tour_completed,
         },
     )
 
@@ -1159,3 +1161,25 @@ def enable_load_testing(request):
 def disable_load_testing(request):
     cache.set("load_testing_enabled", False)
     return render(request, "components/user_menu.html", {})
+
+
+@permission_required("otto.manage_users")
+def reset_completion_flags(request):
+    # Resets the tour and accepted_terms flags for the current user
+    request.user.homepage_tour_completed = False
+    request.user.ai_assistant_tour_completed = False
+    request.user.laws_search_tour_completed = False
+    request.user.accepted_terms_date = None
+    request.user.save()
+    return redirect("welcome")
+
+
+def mark_tour_completed(request, tour_name):
+    # Tour properties on user object like this:
+    # homepage_tour_completed = models.BooleanField(default=False)
+    # ai_assistant_tour_completed = models.BooleanField(default=False)
+    # laws_search_tour_completed = models.BooleanField(default=False)
+    tour_property = f"{tour_name}_tour_completed"
+    setattr(request.user, tour_property, True)
+    request.user.save()
+    return HttpResponse(status=200)

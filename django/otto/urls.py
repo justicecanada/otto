@@ -53,6 +53,16 @@ urlpatterns = [
     path("user_cost/", views.user_cost, name="user_cost"),
     path("extend_session/", views.extend_session, name="extend_session"),
     path("terms_of_use/", views.terms_of_use, name="terms_of_use"),
+    path(
+        "user_management/mark_tour_completed/<str:tour_name>/",
+        views.mark_tour_completed,
+        name="mark_tour_completed",
+    ),
+    path(
+        "user_management/reset_completion_flags/",
+        views.reset_completion_flags,
+        name="reset_completion_flags",
+    ),
     path("feedback/", views.feedback_message, name="user_feedback"),
     path("feedback/<int:message_id>/", views.feedback_message, name="user_feedback"),
     path(
