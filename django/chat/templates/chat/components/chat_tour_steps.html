@@ -2,14 +2,18 @@
 
 <script>
 startTour = () => {
-  if (document.querySelectorAll("div.message-outer").length > 0) {
+  // Check if start_tour flag is set
+  const urlParams = new URLSearchParams(window.location.search);
+  const start_tour = urlParams.get('start_tour');
+  if (start_tour !== "true") {
+    // If not, redirect to a new chat with start_tour=true
     const redirect_url = "{% url 'chat:chat_with_ai' %}?start_tour=true";
     window.location = redirect_url;
     return;
-  } else if (!document.querySelector("#chat-outer").classList.contains("chat")) {
-    handleModeChange("chat");
   }
   driverObj.drive();
+  // Remove the URL params from the location bar (but don't refresh)
+  history.replaceState({}, document.title, window.location.pathname);
 };
 
 let tourSteps = [
@@ -39,6 +43,7 @@ let tourSteps = [
       title: "{% trans 'Send a message' %}",
       description: "{% trans 'You can interact with the AI by sending a chat message.' %}",
       onNextClick: async () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         // Check if there are any div.message-outer elements
         let messages_exist = document.querySelectorAll("div.message-outer").length > 0;
         if (!messages_exist) {
@@ -99,6 +104,7 @@ let tourSteps = [
       title: "{% trans 'Select Q&A library' %}",
       description: "{% trans 'By default, the \"Corporate\" library is selected. This contains some HR-related information such as collective agreements.' %}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         const chatInput = document.querySelector("#chat-prompt");
         let chatMessage = "{% trans 'What is LP-02 step 3 pay in 2024?' %}";
         chatInput.value = chatMessage;
@@ -126,6 +132,7 @@ let tourSteps = [
       title: "{% trans 'Upload your own files' %}",
       description: "{% trans 'You can upload many types of files for Q&A, summarization or translation. These files are stored in the chat and will be deleted after 30 days inactivity. You can also drag and drop files into the chat. Uploading a file will switch the Q&A library to \"Chat uploads\".' %}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         openSidebar("right-sidebar");
         driverObj.moveNext();
       }
@@ -146,8 +153,9 @@ let tourSteps = [
     disableActiveInteraction: false,
     popover: {
       title: "{% trans 'Q&A search mode' %}",
-      description: "{% trans 'By default, Q&A mode will quickly search for the most relevant \"chunks\" from the library. The AI will then read those chunks and provide an answer based. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!' %}",
+      description: "{% trans 'By default, Q&A mode will quickly search for the most relevant \"chunks\" from the library. The AI will then read those chunks and provide an answer. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!' %}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         document.querySelector("#id_qa_mode").value = "summarize";
         document.querySelector("#id_qa_mode").dispatchEvent(new Event("change"));
         driverObj.moveNext();
@@ -180,6 +188,7 @@ let tourSteps = [
       title: "{% trans 'Advanced Q&A settings' %}",
       description: "{% trans 'To customize the behaviour further, you can edit advanced settings by clicking here. For example, you can change the number of top sources that the AI will read, or customize the response format' %}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         handleModeChange("summarize");
         document.querySelector("#id_qa_mode").value = "rag";
         document.querySelector("#id_qa_mode").dispatchEvent(new Event("change"));
@@ -196,6 +205,7 @@ let tourSteps = [
       title: "{% trans 'Summarize mode' %}",
       description: "{% trans 'In summarize mode, you can upload documents, paste long text or enter a URL (canada.ca, *.gc.ca, CanLii and Wikipedia only). Like in Q&A \"full documents\" mode, the AI will read the entire document before responding. Let\'s try summarizing a long page on Canada.ca.' %}",
       onNextClick: async () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         const chatInput = document.querySelector("#chat-prompt");
         let chatMessage = "https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/guide-use-generative-ai.html";
         // Animate typing the message
@@ -218,6 +228,7 @@ let tourSteps = [
       title: "{% trans 'Summarize response' %}",
       description: "{% trans 'By default, the summary will be quite short, but this is adjustable in the settings sidebar.' %}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         openSidebar("right-sidebar");
         driverObj.moveNext();
       }
@@ -232,6 +243,7 @@ let tourSteps = [
       title: "{% trans 'Summarize settings' %}",
       description: "{% trans 'There are 3 preset length settings, but you can add additional instructions or override the prompt entirely. A custom summarize prompt is the easiest way to extract exactly the information you want from a document.' %}",
       onNextClick: async () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         // Check if there are any div.message-outer elements
         let summarize_prompt = document.querySelector("#id_summarize_prompt");
         let prompt = "{% trans 'My team at Department of Justice Canada has developed a generative AI tool. What are the top 7 pieces of guidance I should provide users? Write a 1000-word Buzzfeed-style listicle with nice formatting. The audience is end-users.' %}";
@@ -263,6 +275,7 @@ let tourSteps = [
       title: "{% trans 'Summary with custom prompt' %}",
       description: "{% trans 'The AI now generates a summary according to the custom prompt!' %}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         handleModeChange("chat");
         driverObj.moveNext();
       }
@@ -276,6 +289,7 @@ let tourSteps = [
       title: "{% trans 'Switching back to chat mode' %}",
       description: "{% trans 'We\'ve seen in Q&A and Summarize mode that the AI reads documents, or chunks of documents, to provide an informed response. In Chat mode, the AI reads the previous messages to understand the context. When you want to iterate on some text, switch to Chat mode and describe the changes you want made. (If you\'re having trouble expressing what you want, try the \"Improve prompt\" tool!)' %}",
       onNextClick: async () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         const chatInput = document.querySelector("#chat-prompt");
         let chatMessage = "{% trans 'Our tool is called Otto, so please use that name. Otto is actually approved for Protected B data unlike many generative AI tools. Also would prefer a bit more bold and italics, and lots of emojis. More memorable titles for the tips, maybe alliterative or rhyming. 300 words max.' %}";
         // Animate typing the message
@@ -298,6 +312,7 @@ let tourSteps = [
       title: "{% trans 'Human in the loop' %}",
       description: "{% trans 'Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\'ll be more likely to get the results you want.' %}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         handleModeChange("translate");
         openSidebar("right-sidebar");
         driverObj.moveNext();
@@ -320,6 +335,7 @@ let tourSteps = [
       title: "{% trans 'Settings presets' %}",
       description: "{% trans 'Browse presets created by the Otto team or other users. You can also save your current settings as a preset, and choose your default settings for new chats.' %}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         showHideSidebars();
         openSidebar("left-sidebar");
         driverObj.moveNext();
@@ -333,6 +349,7 @@ let tourSteps = [
       title: "{% trans 'Chat history' %}",
       description: "{% trans 'Your chats remain accessible in the left sidebar, but are deleted after 30 days of inactivity. The current chat is bolded.' %}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         showChatContextMenu();
         driverObj.moveNext();
       }
@@ -344,6 +361,7 @@ let tourSteps = [
       title: "{% trans 'Rename and delete chats'%}",
       description: "{% trans 'When you hover over a chat title, three dots appear. Click the dots to rename or delete a chat manually.'%}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         let element = document.querySelector(".chat-list-item.current div.dropdown-menu");
         let bsDropdown = new bootstrap.Dropdown(element);
         bsDropdown.hide();
@@ -362,6 +380,7 @@ let tourSteps = [
       title: "{% trans 'Start a new chat' %}",
       description: "{% trans 'When you are changing topics, always start a new chat. This reduces cost and improves quality. The tour is now complete!' %}",
       onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
         showHideSidebars();
         driverObj.moveNext();
       }

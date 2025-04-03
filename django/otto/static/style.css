@@ -551,23 +551,11 @@ ul.errorlist p {
 
 .btn-preset-save:hover,
 .btn-outline-secondary:hover {
-  color: var(--bg-black);
-  background-color: var(--bs-gray-500) !important;
-  border-color: transparent;
-
   [data-bs-theme="dark"] & {
     color: var(--bg-white);
     background-color: var(--bs-gray-700) !important;
     border-color: transparent;
   }
-}
-
-.btn-outline-secondary,
-.btn-secondary,
-.btn-preset-save {
-  background-color: var(--bs-gray-200);
-  color: var(--otto-primary-text-color);
-  border-color: transparent;
 }
 
 [data-bs-theme="dark"] .btn-outline-secondary,
