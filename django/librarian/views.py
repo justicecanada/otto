@@ -275,6 +275,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     else:
         poll_url = None
 
+    # Don't show chats that don't have any Q&A documents
+    if data_sources and selected_library.is_personal_library:
+        data_sources = [ds for ds in data_sources if ds.documents.count() > 0]
+
     context = {
         "libraries": libraries,
         "selected_library": selected_library,
