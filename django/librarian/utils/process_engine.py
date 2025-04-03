@@ -9,6 +9,7 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 import filetype
 import openpyxl  # Add this import for handling Excel files
@@ -240,6 +241,7 @@ def extract_markdown(
     selector=None,
     data_source_id=None,
 ):
+
     try:
         enable_markdown = True
         if process_engine == "IMAGE":
@@ -319,8 +321,13 @@ def pdf_to_text_pdfium(content):
     # Fast and cheap, but no OCR or layout analysis
     import pypdfium2 as pdfium
 
+    try:
+        pdf = pdfium.PdfDocument(content)
+    except Exception as e:
+        logger.error(f"Failed to extract text from PDF file: {e}")
+        raise Exception(_("Corrupt PDF file."))
+
     text = ""
-    pdf = pdfium.PdfDocument(content)
     for i, page in enumerate(pdf):
         text_page = page.get_textpage()
         text_content = text_page.get_text_range()
@@ -363,10 +370,15 @@ def msg_to_markdown(content):
 
 
 def docx_to_markdown(content):
+
     import mammoth
 
     with io.BytesIO(content) as docx_file:
-        result = mammoth.convert_to_html(docx_file)
+        try:
+            result = mammoth.convert_to_html(docx_file)
+        except Exception as e:
+            logger.error(f"Failed to extract text from .docx file: {e}")
+            raise Exception(_("Corrupt docx file."))
     html = result.value
 
     return _convert_html_to_markdown(html)
@@ -375,8 +387,12 @@ def docx_to_markdown(content):
 def pptx_to_markdown(content):
     import pptx
 
-    pptx_file = io.BytesIO(content)
-    prs = pptx.Presentation(pptx_file)
+    with io.BytesIO(content) as ppt_file:
+        try:
+            prs = pptx.Presentation(ppt_file)
+        except Exception as e:
+            logger.error(f"Failed to extract text from .pptx file: {e}")
+            raise Exception(_("Corrupt pptx file."))
 
     # extract text from each slide
     all_html = ""
@@ -669,9 +685,13 @@ def pdf_to_text_azure_read(content: bytes) -> str:
 
 def csv_to_markdown(content):
     """Convert CSV content to markdown table."""
-    with io.StringIO(content.decode("utf-8")) as csv_file:
-        reader = csv.reader(csv_file)
-        rows = list(reader)
+    try:
+        with io.StringIO(content.decode("utf-8")) as csv_file:
+            reader = csv.reader(csv_file)
+            rows = list(reader)
+    except Exception as e:
+        logger.error(f"Failed to extract text from CSV file: {e}")
+        raise Exception(_("Corrupt CSV file."))
 
     if not rows:
         return ""
@@ -689,7 +709,12 @@ def csv_to_markdown(content):
 
 def excel_to_markdown(content):
     """Convert Excel content to markdown tables."""
-    workbook = openpyxl.load_workbook(io.BytesIO(content))
+    try:
+        workbook = openpyxl.load_workbook(io.BytesIO(content))
+    except Exception as e:
+        logger.error(f"Failed to extract text from Excel file: {e}")
+        raise Exception(_("Corrupt Excel file."))
+
     markdown = ""
     for sheet in workbook.sheetnames:
         markdown += f"# {sheet}\n\n"

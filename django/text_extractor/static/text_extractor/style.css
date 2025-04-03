@@ -1,0 +1,5 @@
+@import url('/static/css/variables.css');
+
+[data-bs-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
+}

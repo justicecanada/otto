@@ -66,20 +66,27 @@ promptResizeHandle.addEventListener('mousedown', function (e) {
   isResizing = true;
   lastDownY = e.clientY;
   originalHeight = document.querySelector('#chat-prompt').clientHeight;
-});
-document.addEventListener('mousemove', function (e) {
-  if (!isResizing) return;
-  let textarea = document.querySelector('#chat-prompt');
-  let newHeight = Math.max(Math.min(originalHeight + lastDownY - e.clientY, chatPromptMaxHeight), chatPromptMinHeight);
-  textarea.style.height = newHeight + 'px';
-  resizeOtherElements(newHeight);
-});
-document.addEventListener('mouseup', function () {
-  if (isResizing) {
-    isResizing = false;
-    lastHeight = document.querySelector('#chat-prompt').clientHeight + 1;
-    document.querySelector('#chat-prompt').focus();
+
+  function mouseMoveHandler(e) {
+    if (!isResizing) return;
+    let textarea = document.querySelector('#chat-prompt');
+    let newHeight = Math.max(Math.min(originalHeight + lastDownY - e.clientY, chatPromptMaxHeight), chatPromptMinHeight);
+    textarea.style.height = newHeight + 'px';
+    resizeOtherElements(newHeight);
   }
+
+  function mouseUpHandler() {
+    if (isResizing) {
+      isResizing = false;
+      lastHeight = document.querySelector('#chat-prompt').clientHeight + 1;
+      document.querySelector('#chat-prompt').focus();
+    }
+    document.removeEventListener('mousemove', mouseMoveHandler);
+    document.removeEventListener('mouseup', mouseUpHandler);
+  }
+
+  document.addEventListener('mousemove', mouseMoveHandler);
+  document.addEventListener('mouseup', mouseUpHandler);
 });
 
 // Prompt generator

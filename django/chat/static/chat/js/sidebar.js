@@ -62,18 +62,25 @@ handlebar.addEventListener("keydown", handleRightSidebarResize);
     isResizing = true;
     lastDownX = e.clientX;
     originalWidth = document.querySelector('#right-sidebar').clientWidth;
-  });
-  document.addEventListener('mousemove', function (e) {
-    if (!isResizing) return;
-    let sidebar = document.querySelector('#right-sidebar');
-    let newWidth = Math.max(Math.min(originalWidth + lastDownX - e.clientX, sidebarMaxWidth), sidebarMinWidth);
-    sidebar.style.width = newWidth + 'px';
-    sidebar.style.minWidth = newWidth + 'px';
-    resizePromptContainer();
-  });
-  document.addEventListener('mouseup', function () {
-    if (isResizing) {
-      isResizing = false;
+
+    function onMouseMove(e) {
+      if (!isResizing) return;
+      let sidebar = document.querySelector('#right-sidebar');
+      let newWidth = Math.max(Math.min(originalWidth + lastDownX - e.clientX, sidebarMaxWidth), sidebarMinWidth);
+      sidebar.style.width = newWidth + 'px';
+      sidebar.style.minWidth = newWidth + 'px';
+      resizePromptContainer();
     }
+
+    function onMouseUp() {
+      if (isResizing) {
+        isResizing = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      }
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   });
 })();
