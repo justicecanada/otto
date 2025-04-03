@@ -150,6 +150,12 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
                             Q(chat=chat) | Q(chat__messages__isnull=False)
                         ).distinct()
                     )
+                # Only show chats that have Documents (or are the current chat)
+                data = [
+                    x
+                    for x in data
+                    if x.documents.count() > 0 or (x.chat and str(x.chat.id) == chat_id)
+                ]
         else:
             data = DataSource.objects.all()
         if search is not None:

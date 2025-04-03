@@ -3276,7 +3276,7 @@
         "fr_auto": "Passez en mode Questions et réponses"
     },
     "Q&A mode lets you ask questions and extract information from uploaded documents. Click the Q&A tab to try it.": {
-        "fr": "",
+        "fr": "Le mode Q&R vous permet de poser des questions et d’extraire de l’information à partir de documents téléversés. Cliquez sur l’onglet Questions et réponses pour l’essayer.",
         "fr_auto": "Le mode Q&R vous permet de poser des questions et d’extraire de l’information à partir de documents téléchargés. Cliquez sur l’onglet Questions et réponses pour l’essayer."
     },
     "Settings sidebar": {
@@ -3292,11 +3292,11 @@
         "fr_auto": "Sélectionnez la bibliothèque de questions et réponses"
     },
     "By default, the \\\"Corporate\\\" library is selected. This contains some HR-related information such as collective agreements.": {
-        "fr": "",
+        "fr": "Par défaut, la bibliothèque « Ministériel » est sélectionnée. Elle contient des renseignements liés aux RH, comme les conventions collectives.",
         "fr_auto": "Par défaut, la bibliothèque \\\"Corporate\\ » est sélectionnée. Il contient des renseignements liés aux RH, comme les conventions collectives."
     },
     "What is LP-02 step 3 pay in 2024?": {
-        "fr": "",
+        "fr": "Quelle-est la rémunération de l’échelon 3 du LP-02 en 2024?",
         "fr_auto": "Qu’est-ce que la rémunération de l’échelon 3 du LP-02 en 2024?"
     },
     "Q&A response": {
@@ -3312,7 +3312,7 @@
         "fr_auto": "Téléchargez vos propres fichiers"
     },
     "You can upload many types of files for Q&A, summarization or translation. These files are stored in the chat and will be deleted after 30 days inactivity. You can also drag and drop files into the chat. Uploading a file will switch the Q&A library to \\\"Chat uploads\\\".": {
-        "fr": "",
+        "fr": "Vous pouvez télécharger de nombreux types de fichiers pour les questions et réponses, les résumés ou les traductions. Ces fichiers sont stockés dans le clavardage et seront supprimés après 30 jours d’inactivité. Vous pouvez également faire glisser et déposer des fichiers dans le clavardage. Le téléchargement d’un fichier fera passer la bibliothèque de questions et réponses à \\\"Téléchargements de clavardage\\ ».",
         "fr_auto": "Vous pouvez télécharger de nombreux types de fichiers pour les questions et réponses, les résumés ou les traductions. Ces fichiers sont stockés dans le clavardage et seront supprimés après 30 jours d’inactivité. Vous pouvez également faire glisser et déposer des fichiers dans le clavardage. Le téléchargement d’un fichier fera passer la bibliothèque de questions et réponses à \\\"Téléchargements de clavardage\\ »."
     },
     "Editing libraries": {
@@ -3320,16 +3320,16 @@
         "fr_auto": "Modifier les bibliothèques"
     },
     "Instead of uploading files to a chat, you might want to create a document library. This allows you to query the same documents across multiple chats, or share your Q&A library with others. Use the \\\"Edit libraries\\\" function to upload, organize and share document libraries.": {
-        "fr": "",
+        "fr": "Au lieu de télécharger des fichiers dans un clavardage, vous pouvez créer une bibliothèque de documents. Celle-ci vous permettra d’interroger les mêmes documents sur plusieurs sessions de clavardages ou de partager votre bibliothèque de questions et réponses avec d’autres personnes. Utilisez la fonction « Modifier les bibliothèques » pour télécharger, organiser et partager des bibliothèques de documents.",
         "fr_auto": "Au lieu de télécharger des fichiers dans un clavardage, vous voudrez peut-être créer une bibliothèque de documents. Cela vous permet d’interroger les mêmes documents sur plusieurs clavardages ou de partager votre bibliothèque de questions et réponses avec d’autres personnes. Utilisez la fonction « Modifier les bibliothèques » pour télécharger, organiser et partager des bibliothèques de documents."
     },
     "Q&A search mode": {
         "fr": "",
         "fr_auto": "Mode de recherche Q&R"
     },
-    "By default, Q&A mode will quickly search for the most relevant \\\"chunks\\\" from the library. The AI will then read those chunks and provide an answer based. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!": {
-        "fr": "",
-        "fr_auto": "Par défaut, le mode Q&A recherchera rapidement les \\\"morceaux\\ » les plus pertinents dans la bibliothèque. L’IA lira ensuite ces morceaux et fournira une réponse basée. Pour certaines questions, vous devrez peut-être demander à l’IA de lire le document complet. ATTENTION : Ce mode peut être coûteux lorsqu’il y a beaucoup de documents!"
+    "By default, Q&A mode will quickly search for the most relevant \\\"chunks\\\" from the library. The AI will then read those chunks and provide an answer. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!": {
+        "fr": "Par défaut, le mode Q&A recherchera rapidement les « morceaux » les plus pertinents dans la bibliothèque. L’IA lira ensuite ces morceaux et fournira une réponse. Pour certaines questions, vous devrez peut-être demander à l’IA de lire le document complet. ATTENTION : Ce mode peut être coûteux lorsqu’il y a beaucoup de documents!",
+        "fr_auto": "Par défaut, le mode Q&A recherchera rapidement les \\\"morceaux\\ » les plus pertinents dans la bibliothèque. L’IA lira ensuite ces morceaux et fournira une réponse. Pour certaines questions, vous devrez peut-être demander à l’IA de lire le document complet. ATTENTION : Ce mode peut être coûteux lorsqu’il y a beaucoup de documents!"
     },
     "Q&A filters": {
         "fr": "",
@@ -3348,7 +3348,7 @@
         "fr_auto": "Lorsque la précision est primordiale, sélectionnez le modèle GPT-4o plus coûteux. (Ce paramètre est disponible dans tous les modes.)"
     },
     "To customize the behaviour further, you can edit advanced settings by clicking here. For example, you can change the number of top sources that the AI will read, or customize the response format": {
-        "fr": "",
+        "fr": "Pour personnaliser davantage le comportement du système, vous pouvez modifier les paramètres avancés en cliquant ici. Par exemple, vous pouvez modifier le nombre de sources principales que l’IA lira ou personnaliser le format de réponse",
         "fr_auto": "Pour personnaliser davantage le comportement, vous pouvez modifier les paramètres avancés en cliquant ici. Par exemple, vous pouvez modifier le nombre de sources principales que l’IA lira ou personnaliser le format de réponse"
     },
     "Summarize mode": {
@@ -3400,7 +3400,7 @@
         "fr_auto": "Notre outil s’appelle Otto, alors veuillez utiliser ce nom. Otto est en fait approuvé pour les données Protected B contrairement à de nombreux outils d’IA générative. Je préférerais aussi un peu plus de gras et d’italique, et beaucoup d’emojis. Des titres plus mémorables pour les pointes, peut-être allitératifs ou rimés. 300 mots max."
     },
     "Human in the loop": {
-        "fr": "",
+        "fr": "Avec intervention humaine",
         "fr_auto": "Humain dans la boucle"
     },
     "Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\\": {
@@ -3412,15 +3412,15 @@
         "fr_auto": "Options de traduction"
     },
     "In translate mode, you can upload files or directly input text (in any language). Select the target language in the sidebar.": {
-        "fr": "",
+        "fr": "En mode traduction, vous pouvez téléverser des fichiers ou écrire directement dans le champs de texte (dans la langue de votre choix). Sélectionnez la langue cible dans la barre latérale.",
         "fr_auto": "En mode traduction, vous pouvez télécharger des fichiers ou entrer directement du texte (dans n’importe quelle langue). Sélectionnez la langue cible dans la barre latérale."
     },
     "Browse presets created by the Otto team or other users. You can also save your current settings as a preset, and choose your default settings for new chats.": {
-        "fr": "",
+        "fr": "Parcourez les préréglages créés par l’équipe d'Otto ou créés par d’autres utilisateurs. Vous pouvez également enregistrer vos paramètres actuels en tant que préréglage et choisir vos paramètres par défaut pour les nouvelles conversations.",
         "fr_auto": "Parcourez les préréglages créés par l’équipe Otto ou d’autres utilisateurs. Vous pouvez également enregistrer vos paramètres actuels en tant que préréglage et choisir vos paramètres par défaut pour les nouvelles conversations."
     },
     "Your chats remain accessible in the left sidebar, but are deleted after 30 days of inactivity. The current chat is bolded.": {
-        "fr": "",
+        "fr": "Vos discussions restent accessibles dans la barre latérale gauche, mais sont supprimées après 30 jours d’inactivité. Le clavardage actuel apparait en charactère gras.",
         "fr_auto": "Vos discussions restent accessibles dans la barre latérale gauche, mais sont supprimées après 30 jours d’inactivité. Le clavardage actuel est en gras."
     },
     "Rename and delete chats": {
@@ -3436,7 +3436,7 @@
         "fr_auto": "Démarrer un nouveau clavardage"
     },
     "When you are changing topics, always start a new chat. This reduces cost and improves quality. The tour is now complete!": {
-        "fr": "",
+        "fr": "Lorsque vous changez de sujet, commencez toujours une nouvelle discussion. Cela réduit les coûts et améliore la qualité des réponses. La visite est maintenant terminée!",
         "fr_auto": "Lorsque vous changez de sujet, commencez toujours une nouvelle discussion. Cela réduit les coûts et améliore la qualité. La visite est maintenant terminée!"
     },
     "Light and dark themes": {
@@ -3446,5 +3446,9 @@
     "Click the sun or moon icon to switch between dark and light themes.": {
         "fr": "",
         "fr_auto": "Cliquez sur l’icône du soleil ou de la lune pour basculer entre les thèmes sombres et clairs."
+    },
+    "No documents in this chat.": {
+        "fr": "",
+        "fr_auto": "Aucun document dans ce clavardage."
     }
 }
