@@ -150,7 +150,7 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
                             Q(chat=chat) | Q(chat__messages__isnull=False)
                         ).distinct()
                     )
-                # Only show data sources that have Documents (data.documents.count() > 0)
+                # Only show chats that have Documents (or are the current chat)
                 data = [
                     x
                     for x in data
