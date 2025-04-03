@@ -3390,5 +3390,9 @@
     "Click the sun or moon icon to switch between dark and light themes.": {
         "fr": "",
         "fr_auto": "Cliquez sur l’icône du soleil ou de la lune pour basculer entre les thèmes sombres et clairs."
+    },
+    "No documents in this chat.": {
+        "fr": "",
+        "fr_auto": "Aucun document dans ce clavardage."
     }
 }

@@ -131,24 +131,11 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             )
             if form.is_valid():
                 form.save()
-                if data_source.chat_id:
-                    messages.success(
-                        request,
-                        (
-                            _("Chat updated successfully.")
-                            if item_id
-                            else _("Chat created successfully.")
-                        ),
-                    )
+                if item_id:
+                    toast_message = _("Folder updated successfully.")
                 else:
-                    messages.success(
-                        request,
-                        (
-                            _("Folder updated successfully.")
-                            if item_id
-                            else _("Folder created successfully.")
-                        ),
-                    )
+                    toast_message = _("Folder created successfully.")
+                messages.success(request, toast_message)
                 selected_data_source = form.instance
                 item_id = selected_data_source.id
                 selected_library = selected_data_source.library
@@ -287,6 +274,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             )
     else:
         poll_url = None
+
+    # Don't show chats that don't have any Q&A documents
+    if data_sources and selected_library.is_personal_library:
+        data_sources = [ds for ds in data_sources if ds.documents.count() > 0]
 
     context = {
         "libraries": libraries,
