@@ -8,7 +8,7 @@
 | django/chat/\_\_init\_\_.py                                                              |        0 |        0 |    100% |           |
 | django/chat/admin.py                                                                     |        1 |        1 |      0% |         1 |
 | django/chat/apps.py                                                                      |        4 |        0 |    100% |           |
-| django/chat/forms.py                                                                     |      162 |       20 |     88% |42, 49, 106, 139-148, 156-170, 189, 234, 242, 413, 415-417, 497-499 |
+| django/chat/forms.py                                                                     |      163 |       21 |     87% |42, 49, 106, 139-154, 162-176, 195, 240, 248, 419, 421-423, 503-505 |
 | django/chat/llm.py                                                                       |      112 |       18 |     84% |75, 97-99, 105-107, 133-148, 253, 275 |
 | django/chat/migrations/0001\_initial.py                                                  |        6 |        0 |    100% |           |
 | django/chat/migrations/0002\_initial.py                                                  |        6 |        0 |    100% |           |
@@ -57,7 +57,7 @@
 | django/librarian/urls.py                                                                 |        4 |        0 |    100% |           |
 | django/librarian/utils/markdown\_splitter.py                                             |      183 |       10 |     95% |72, 75-77, 88, 123, 137, 260, 270, 277 |
 | django/librarian/utils/process\_engine.py                                                |      462 |       55 |     88% |45-47, 52, 148, 153, 163-164, 168, 174, 177, 184, 186, 188, 190, 196, 198, 200, 248, 261, 273-274, 287-296, 298-300, 350-356, 402, 426, 442-444, 493-497, 503-507, 511, 559-560, 594 |
-| django/librarian/views.py                                                                |      306 |       40 |     87% |71-92, 98, 126-158, 191, 251-252, 257, 321-322, 341, 348-350, 468, 473 |
+| django/librarian/views.py                                                                |      309 |       42 |     86% |71-92, 98, 126-145, 178, 238-239, 244, 280, 312-313, 332, 339-341, 459, 464 |
 | django/manage.py                                                                         |       11 |       11 |      0% |      3-23 |
 | django/otto/\_\_init\_\_.py                                                              |        2 |        0 |    100% |           |
 | django/otto/admin.py                                                                     |        0 |        0 |    100% |           |
@@ -142,7 +142,7 @@
 | django/text\_extractor/urls.py                                                           |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                          |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                          |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                **TOTAL** | **10471** | **1232** | **88%** |           |
+|                                                                                **TOTAL** | **10475** | **1235** | **88%** |           |
 
 
 ## Setup coverage badge
