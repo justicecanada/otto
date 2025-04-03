@@ -1327,15 +1327,12 @@ ul#preset-edit-tabs {
 
   button {
     color: var(--chat-preset-card-color-1) !important;
-    background-color: transparent;
+    background-color: transparent !important;
     border: none;
 
-    i.bi.bi-heart-fill {
-      border-color: var(--app-color-red-1);
-      color: var(--app-color-red-1);
-    }
-
     &:hover {
+      background-color: transparent !important;
+      border: none;
 
       i.bi.bi-heart {
         border-color: var(--app-color-red-1);
@@ -1369,21 +1366,25 @@ ul#preset-edit-tabs {
         text-shadow: 0px 0px 7px var(--app-color-red-1);
       }
 
-
-      background-color: transparent !important;
-
     }
 
     &:focus-visible {
-      border: none !important;
-      outline: none !important;
-      box-shadow: none;
+      outline-style: solid !important;
+      outline-color: black !important;
+      outline-width: 2px !important;
+      box-shadow: black 0 0 0 0.25rem !important;
+
+      [data-bs-theme="dark"] & {
+        outline-color: var(--otto-primary-text-color) !important;
+        box-shadow: var(--otto-primary-text-color) 0 0 0 0.25rem !important;
+      }
+
     }
   }
 
   .share-icon {
     .text-secondary {
-      color: var(--chat-preset-card-color-1) !important;
+      color: var(--chat-preset-card-color-1);
     }
   }
 
@@ -1413,17 +1414,31 @@ ul#preset-edit-tabs {
     line-height: 1.25rem;
     flex-grow: 1;
 
-    &:hover {
-      background-color: black !important;
-      color: white !important;
-    }
-
     &:focus-visible {
       outline-style: solid !important;
       outline-color: black !important;
       outline-width: 2px !important;
       box-shadow: black 0 0 0 0.25rem !important;
+
+      [data-bs-theme="dark"] & {
+        outline-color: var(--otto-primary-text-color) !important;
+        box-shadow: var(--otto-primary-text-color) 0 0 0 0.25rem !important;
+      }
+
     }
+
+    &:hover {
+      background-color: black;
+      color: white;
+      border: 1px solid var(--chat-preset-card-color-1);
+
+      [data-bs-theme="dark"] & {
+        background-color: var(--search-bar-hover-bg);
+        color: var(--otto-primary-text-color);
+        border: 1px solid var(--search-bar-hover-bg);
+      }
+    }
+
 
     &:only-child {
       flex-basis: 100%;
@@ -1433,11 +1448,12 @@ ul#preset-edit-tabs {
 
   .load-button {
     background-color: var(--chat-preset-card-color-1);
-    color: white;
+    color: #f8f9fa;
+
   }
 
   .edit-button {
-    background-color: white;
+    background-color: transparent;
     color: var(--chat-preset-card-color-2);
     border: 1px solid var(--chat-preset-card-color-1);
   }
@@ -1459,7 +1475,12 @@ ul#preset-edit-tabs {
 
 .expanded-text-overlay {
   position: absolute;
-  background-color: rgb(255, 255, 255);
+  background-color: white;
+
+  [data-bs-theme="dark"] & {
+    background-color: var(--bs-dark-bg-subtle);
+  }
+
   color: var(--chat-preset-card-color-2);
   border: 1px solid var(--chat-preset-card-color-1);
   padding: 0.5em;

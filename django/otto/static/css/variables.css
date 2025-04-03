@@ -136,6 +136,8 @@
   --chat-preset-tab-not-active: #1f1f24;
   --chat-preset-form-container: #a2a2a2;
   --chat-preset-card-color: rgb(108, 117, 125);
+  --chat-preset-card-color-1: #616b75;
+  --chat-preset-card-color-2: var(--otto-primary-text-color);
   --chat-mode-link-bg: #888;
   --chat-mode-link-border: #eee;
   --chat-delete-focus: #dc2626;
