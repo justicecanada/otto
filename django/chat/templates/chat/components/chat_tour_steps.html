@@ -153,7 +153,7 @@ let tourSteps = [
     disableActiveInteraction: false,
     popover: {
       title: "{% trans 'Q&A search mode' %}",
-      description: "{% trans 'By default, Q&A mode will quickly search for the most relevant \"chunks\" from the library. The AI will then read those chunks and provide an answer based. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!' %}",
+      description: "{% trans 'By default, Q&A mode will quickly search for the most relevant \"chunks\" from the library. The AI will then read those chunks and provide an answer. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!' %}",
       onNextClick: () => {
         document.querySelector("button.driver-popover-next-btn").disabled = true;
         document.querySelector("#id_qa_mode").value = "summarize";
