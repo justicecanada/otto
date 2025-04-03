@@ -6,10 +6,10 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from lex_experiment.models import OutputFileLex, UserRequestLex
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
+from lex_experiment.models import OutputFileLex, UserRequestLex
 from otto.secure_models import AccessKey
 from otto.utils.common import display_cad_cost, file_size_to_string
 from otto.utils.decorators import app_access_required, budget_required
@@ -107,13 +107,33 @@ def poll_tasks(request, user_request_id):
             output_file.status = "SUCCESS"
             if not output_file.pdf_file:
                 output_file = add_extracted_files(output_file, access_key)
-            question_results, cost_llm = lex_prompts(
+            tax_appeal, cost_llm = lex_prompts(
                 output_file.txt_file.read().decode("utf-8")
             )
-            output_file.answers = [res["answer"] for res in question_results]
+            output_file.answers = [
+                tax_appeal.court_number,
+                tax_appeal.appellant.name,
+                tax_appeal.appellant.address.street,
+                tax_appeal.appellant.address.city,
+                tax_appeal.appellant.address.province,
+                tax_appeal.appellant.address.postal_code,
+                tax_appeal.appellant.address.country,
+                tax_appeal.class_level,
+                tax_appeal.filing_date.strftime("%Y-%m-%d"),
+                tax_appeal.representative.name,
+                tax_appeal.representative.address.street,
+                tax_appeal.representative.address.city,
+                tax_appeal.representative.address.province,
+                tax_appeal.representative.address.postal_code,
+                tax_appeal.representative.address.country,
+                ", ".join(tax_appeal.taxation_years),
+                str(tax_appeal.total_tax_amount),
+                ", ".join(tax_appeal.sections_referred),
+            ]
+
             output_file.usd_cost = Decimal(output_file.usd_cost) + Decimal(cost_llm)
             output_file.save(access_key=access_key)
-            all_docs_results[output_file.file_name] = question_results
+            all_docs_results[output_file.file_name] = tax_appeal
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
         else:
