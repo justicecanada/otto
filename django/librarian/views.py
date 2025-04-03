@@ -131,24 +131,11 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             )
             if form.is_valid():
                 form.save()
-                if data_source.chat_id:
-                    messages.success(
-                        request,
-                        (
-                            _("Chat updated successfully.")
-                            if item_id
-                            else _("Chat created successfully.")
-                        ),
-                    )
+                if item_id:
+                    toast_message = _("Folder updated successfully.")
                 else:
-                    messages.success(
-                        request,
-                        (
-                            _("Folder updated successfully.")
-                            if item_id
-                            else _("Folder created successfully.")
-                        ),
-                    )
+                    toast_message = _("Folder created successfully.")
+                messages.success(request, toast_message)
                 selected_data_source = form.instance
                 item_id = selected_data_source.id
                 selected_library = selected_data_source.library
