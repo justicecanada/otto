@@ -1,6 +1,6 @@
 
 // Chat options: handle library / data source etc. selection changes
-
+let chatUrls = []; // Global array to store all entered URLs
 function updateLibraryModalButton() {
   const selectElement = document.getElementById('id_qa_library');
   const selectedLibraryId = selectElement.value;
@@ -27,7 +27,7 @@ function updateQaSourceForms() {
 
 // TODO: abstract this into a JS helper class for Autocomplete widgets
 // and contribute upstream to django-htmx-autocomplete repo
-function updateAutocompleteLibraryid(element_id) {
+function updateAutocompleteLibraryid(element_id, entered_urls = []) {
   // Add hx-vals to the autocomplete elements
   const input_element = document.getElementById(element_id);
 
@@ -38,6 +38,12 @@ function updateAutocompleteLibraryid(element_id) {
   hx_vals = hx_vals.slice(0, -1);
   // Now add the library_id key to the hx-vals string
   hx_vals += ", library_id: document.getElementById('id_qa_library').value, chat_id: chat_id}";
+  // Add all entered URLs
+  if (entered_urls.length > 0) {
+    hx_vals += `, entered_urls: ${JSON.stringify(entered_urls)}`;
+  }
+
+  hx_vals += "}";
   input_element.setAttribute('hx-vals', hx_vals);
 }
 
@@ -45,8 +51,8 @@ function updateAutocompleteLibraryid(element_id) {
 // Monitor the related input elements for hx-swaps and then update the library ID again.
 document.addEventListener("htmx:afterSettle", function (event) {
   if (event.target.id == "id_qa_data_sources" || event.target.id == "id_qa_documents") {
-    updateAutocompleteLibraryid('id_qa_data_sources__textinput');
-    updateAutocompleteLibraryid('id_qa_documents__textinput');
+    updateAutocompleteLibraryid('id_qa_data_sources__textinput', chatUrls);
+    updateAutocompleteLibraryid('id_qa_documents__textinput', chatUrls);
     // Unlike the other widgets, the autocomplete doesn't have a change event to trigger
     // the ChatOption form save, but we can trigger it now
     triggerOptionSave();
@@ -64,6 +70,11 @@ function clearAutocomplete(field_name) {
   chips.forEach(chip => chip.remove());
   info.innerHTML = '';
   sr_desc.innerHTML = '';
+
+  // Reset the URLs when clearing the autocomplete
+  if (field_name === 'qa_data_sources') {
+    chatUrls = [];
+  }
 }
 
 function resetQaAutocompletes() {
@@ -75,6 +86,8 @@ function resetQaAutocompletes() {
   updateQaSourceForms();
   clearAutocomplete('qa_data_sources');
   clearAutocomplete('qa_documents');
+  // Reset the URLs when resetting the autocompletes
+  chatUrls = [];
 }
 
 function limitScopeSelect() {

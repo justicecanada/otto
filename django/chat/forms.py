@@ -2,6 +2,8 @@ from urllib.parse import urlparse
 
 from django import forms
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db.models import Q
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
@@ -158,6 +160,23 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
                 ]
         else:
             data = DataSource.objects.all()
+        # Include URLs entered by the user
+        entered_url = request.GET.get("entered_url", None)
+        if entered_url:
+            url_validator = URLValidator()
+            try:
+                url_validator(entered_url)
+                # Add the URL as a temporary data source
+                data = list(data) + [
+                    DataSource(
+                        id="temp_url",
+                        label=mark_safe(
+                            f"<span class='fw-semibold'>{entered_url}</span>"
+                        ),
+                    )
+                ]
+            except ValidationError:
+                pass
         if search is not None:
             items = [
                 {
