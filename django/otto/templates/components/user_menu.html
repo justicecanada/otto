@@ -28,11 +28,13 @@
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
     <li class="d-none" id="user-menu-cost"></li>
+    {% if request.user.is_operations_admin %}
+      <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
+      <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
+    {% endif %}
     {% if request.user.is_admin %}
       <li>
         <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
-        <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
-        <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
         <a class="a dropdown-item" href="{% url 'reset_completion_flags' %}">{% trans "Reset flags for demo" %}</a>
       </li>
       <li>

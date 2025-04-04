@@ -64,6 +64,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.groups.filter(name="Otto admin").exists()
 
     @property
+    def is_operations_admin(self):
+        # Check if user is member of "Operations admin" group or "Otto admin" group
+        return self.groups.filter(name__in=["Operations admin", "Otto admin"]).exists()
+
+    @property
     def accepted_terms(self):
         return self.accepted_terms_date is not None
 

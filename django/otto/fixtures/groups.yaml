@@ -10,3 +10,9 @@
   pk: 2
   fields:
     name: Data steward
+
+#Operations admin: can view and manage feedback, view cost dashboards
+- model: auth.Group
+  pk: 3
+  fields:
+    name: Operations admin
