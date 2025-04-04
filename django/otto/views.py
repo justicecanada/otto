@@ -193,7 +193,7 @@ def feedback_message(request: HttpRequest, message_id=None):
     )
 
 
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_feedback")
 def feedback_dashboard(request, page_number=None):
     if page_number is None:
         page_number = 1
@@ -212,7 +212,7 @@ def feedback_dashboard(request, page_number=None):
     return render(request, "feedback_dashboard.html", context)
 
 
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_feedback")
 def feedback_stats(request):
     stats = Feedback.objects.get_feedback_stats()
     return render(
@@ -220,7 +220,7 @@ def feedback_stats(request):
     )
 
 
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_feedback")
 def feedback_list(request, page_number=None):
     from django.core.paginator import Paginator
 
@@ -259,7 +259,7 @@ def feedback_list(request, page_number=None):
     return render(request, "components/feedback/dashboard/feedback_list.html", context)
 
 
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_feedback")
 def feedback_dashboard_update(request, feedback_id, form_type):
     feedback = Feedback.objects.get(id=feedback_id)
 
@@ -283,7 +283,7 @@ def feedback_dashboard_update(request, feedback_id, form_type):
         return HttpResponse(status=405)
 
 
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_feedback")
 def feedback_download(request):
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="otto_feedback.csv"'
@@ -639,7 +639,7 @@ def list_blocked_urls(request):
 
 
 # AU-7: Aggregates and presents cost data in a dashboard
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_cost_dashboard")
 def cost_dashboard(request):
     """
     Displays a responsive dashboard with cost data.
