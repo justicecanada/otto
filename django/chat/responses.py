@@ -392,6 +392,18 @@ def qa_response(chat, response_message, switch_mode=False):
                 error_string += _("new document(s) ready for Q&A.")
             yield error_string
         elif adding_url:
+            # Update the library to "Chat Uploads"
+            chat_uploads_library = await sync_to_async(
+                lambda: Library.objects.filter(name="Chat uploads").first()
+            )()
+
+            if not chat_uploads_library:
+                raise ValueError(
+                    "Chat uploads library not found. Please ensure it exists in the database."
+                )
+
+            chat.options.qa_library = chat_uploads_library
+            await sync_to_async(chat.options.save)()
             yield _("URL ready for Q&A.")
         else:
             yield f"{len(files)} " + _("new document(s) ready for Q&A.")
