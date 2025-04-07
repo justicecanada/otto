@@ -41,23 +41,6 @@
 
 - model: otto.App
   fields:
-    handle: template_wizard
-    name_en: Template Wizard
-    name_fr: Assistant de modèle
-    prod_ready: true
-    user_group: Template Wizard user
-    features:
-      - fields:
-          short_name: "template_wizard"
-          name_en: Template Wizard
-          name_fr: Assistant de modèle
-          description_en: Under development
-          description_fr: En cours de développement
-          url: template_wizard:index
-          category: reporting
-
-- model: otto.App
-  fields:
     handle: laws
     name_en: Legislation Search
     name_fr: Recherche de législation
