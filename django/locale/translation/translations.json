@@ -3422,5 +3422,13 @@
     "Enter text or upload files to translate (select language in sidebar)": {
         "fr": "",
         "fr_auto": "Entrez du texte ou téléchargez des fichiers à traduire (sélectionnez la langue dans la barre latérale)"
+    },
+    "o3-mini (adds reasoning, 7x cost)": {
+        "fr": "",
+        "fr_auto": "o3-mini (ajoute un raisonnement, coût 7x)"
+    },
+    "GPT-4o (best accuracy, 15x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4o (meilleure précision, coût 15x)"
     }
 }
