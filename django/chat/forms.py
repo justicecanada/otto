@@ -22,7 +22,6 @@ CHAT_MODELS = [
     ("gpt-4o-mini", _("GPT-4o-mini (fastest, best value)")),
     ("o3-mini", _("o3-mini (adds reasoning, 7x cost)")),
     ("gpt-4o", _("GPT-4o (best accuracy, 15x cost)")),
-    # ("o1", _("o1 (best reasoning, 100x cost)")),
 ]
 SUMMARIZE_STYLES = [
     ("short", _("Short")),
