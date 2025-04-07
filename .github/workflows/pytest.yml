@@ -70,7 +70,7 @@ jobs:
       working-directory: ./
       run: |
         celery -A otto worker -l INFO --pool=gevent --concurrency=256 &
-        python -m coverage run --source=django --omit 'django/template_wizard/*' -m pytest django
+        python -m coverage run --source=django -m pytest django
     - name: Display coverage
       working-directory: ./
       run: |
