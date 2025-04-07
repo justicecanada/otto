@@ -24,7 +24,6 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-import tldextract
 from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -47,7 +46,7 @@ from otto.models import (
     Feedback,
     Pilot,
 )
-from otto.utils.common import cad_cost, display_cad_cost
+from otto.utils.common import cad_cost, display_cad_cost, get_tld_extractor
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
@@ -627,7 +626,7 @@ def list_blocked_urls(request):
     blocked_urls = BlockedURL.objects.all().values("url")
     # Get the domains from the blocked URLs
     domains = [
-        tldextract.extract(urlparse(url["url"]).netloc).registered_domain
+        get_tld_extractor()(urlparse(url["url"]).netloc).registered_domain
         for url in blocked_urls
     ]
     domain_counts = {domain: domains.count(domain) for domain in set(domains)}
