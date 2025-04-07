@@ -81,10 +81,6 @@ def process_document_helper(document, llm, pdf_method="default"):
     if not (url or file):
         raise ValueError("URL or file is required")
 
-    # PDFium is giving us issues with threading. For now, always use Azure OCR.
-    if pdf_method == "default":
-        pdf_method = "azure_read"
-
     if url:
         logger.info("Processing URL", url=url)
         base_url = (
