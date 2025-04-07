@@ -293,6 +293,7 @@ async def htmx_stream(
             title_llm = OttoLLM()
             await sync_to_async(title_chat)(chat.id, force_title=False, llm=title_llm)
             await sync_to_async(title_llm.create_costs)()
+            await sync_to_async(message.chat.refresh_from_db)()
 
         # Update message text with markdown wrapper to pass to template
         if wrap_markdown:
