@@ -52,11 +52,11 @@
 | django/librarian/migrations/0002\_initial.py                                             |        7 |        0 |    100% |           |
 | django/librarian/migrations/\_\_init\_\_.py                                              |        0 |        0 |    100% |           |
 | django/librarian/models.py                                                               |      330 |       48 |     85% |53-55, 123, 125, 133, 135, 137, 147, 172-174, 192, 196, 250, 312-313, 318, 329-332, 405, 422-431, 435, 453, 481-483, 493-494, 500, 516, 542-543, 553-554, 564-565, 578-579 |
-| django/librarian/tasks.py                                                                |      115 |       39 |     66% |42-75, 82, 96, 109, 119, 139, 161-163, 174-177, 196-197 |
+| django/librarian/tasks.py                                                                |      113 |       39 |     65% |42-75, 82, 92, 105, 115, 135, 157-159, 170-173, 192-193 |
 | django/librarian/translation.py                                                          |        8 |        0 |    100% |           |
 | django/librarian/urls.py                                                                 |        4 |        0 |    100% |           |
 | django/librarian/utils/markdown\_splitter.py                                             |      183 |       10 |     95% |72, 75-77, 88, 123, 137, 260, 270, 277 |
-| django/librarian/utils/process\_engine.py                                                |      462 |       55 |     88% |45-47, 52, 148, 153, 163-164, 168, 174, 177, 184, 186, 188, 190, 196, 198, 200, 248, 261, 273-274, 287-296, 298-300, 350-356, 402, 426, 442-444, 493-497, 503-507, 511, 559-560, 594 |
+| django/librarian/utils/process\_engine.py                                                |      464 |       55 |     88% |45-47, 52, 148, 153, 163-164, 168, 174, 177, 184, 186, 188, 190, 196, 198, 200, 248, 261, 273-274, 287-296, 298-300, 353-359, 405, 429, 445-447, 496-500, 506-510, 514, 562-563, 597 |
 | django/librarian/views.py                                                                |      309 |       42 |     86% |71-92, 98, 126-145, 178, 238-239, 244, 280, 312-313, 332, 339-341, 459, 464 |
 | django/manage.py                                                                         |       11 |       11 |      0% |      3-23 |
 | django/otto/\_\_init\_\_.py                                                              |        2 |        0 |    100% |           |
@@ -90,7 +90,7 @@
 | django/otto/translation.py                                                               |       17 |        0 |    100% |           |
 | django/otto/urls.py                                                                      |       13 |        2 |     85% |  106, 111 |
 | django/otto/utils/auth.py                                                                |       37 |        9 |     76% |14-28, 66-68 |
-| django/otto/utils/common.py                                                              |       57 |        1 |     98% |        94 |
+| django/otto/utils/common.py                                                              |       59 |        1 |     98% |        97 |
 | django/otto/utils/decorators.py                                                          |       62 |        4 |     94% |24-25, 65, 87 |
 | django/otto/utils/logging.py                                                             |       15 |        0 |    100% |           |
 | django/otto/utils/middleware.py                                                          |       41 |        1 |     98% |        31 |
@@ -142,7 +142,7 @@
 | django/text\_extractor/urls.py                                                           |        4 |        0 |    100% |           |
 | django/text\_extractor/utils.py                                                          |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                                          |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                                                **TOTAL** | **10475** | **1235** | **88%** |           |
+|                                                                                **TOTAL** | **10477** | **1235** | **88%** |           |
 
 
 ## Setup coverage badge
