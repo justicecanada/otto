@@ -55,14 +55,17 @@ class OttoLLM:
     _deployment_to_model_mapping = {
         "gpt-4o-mini": "gpt-4o-mini",
         "gpt-4o": "gpt-4o",
+        "o3-mini": "o3-mini",
     }
     _deployment_to_max_input_tokens_mapping = {
         "gpt-4o-mini": 128000,
         "gpt-4o": 128000,
+        "o3-mini": 200000,
     }
     _deployment_to_max_output_tokens_mapping = {
         "gpt-4o-mini": 16384,
         "gpt-4o": 16384,
+        "o3-mini": 100000,
     }
 
     def __init__(
@@ -123,7 +126,7 @@ class OttoLLM:
         context: str,
         query: str = "summarize the text",
         template: PromptTemplate = None,
-        chunk_size_limit: int = 64000,
+        chunk_size_limit: int | None = None,
         chunk_overlap_ratio: float = 0.1,
     ):
         """
@@ -133,7 +136,7 @@ class OttoLLM:
         try:
             custom_prompt_helper = PromptHelper(
                 context_window=self.max_input_tokens,
-                num_output=self.max_output_tokens,
+                num_output=min(self.max_output_tokens, 16384),
                 chunk_size_limit=chunk_size_limit,
                 chunk_overlap_ratio=chunk_overlap_ratio,
             )

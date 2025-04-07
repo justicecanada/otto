@@ -36,13 +36,13 @@ azure-storage-blob==12.24.1
 msgraph-sdk==1.5.3
 
 # LLM-related ------------------------------------------------------------------
-openai==1.56.2
-llama-index-core==0.12.2
-llama-index-llms-azure-openai==0.3.0
-llama-index-vector-stores-postgres==0.3.2
-llama-index-llms-openai==0.3.2
+openai==1.70.0
+llama-index-core==0.12.28
+llama-index-llms-azure-openai==0.3.2
+llama-index-vector-stores-postgres==0.4.2
+llama-index-llms-openai==0.3.30
 llama-index-embeddings-azure-openai==0.3.0
-tiktoken==0.8.0
+tiktoken==0.9.0
 
 # Document extraction ----------------------------------------------------------
 beautifulsoup4==4.12.3
