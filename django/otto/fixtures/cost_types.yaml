@@ -122,3 +122,51 @@
     unit_name_fr: jetons
     unit_cost: 0.6
     unit_quantity: 1000000
+- model: otto.CostType
+  pk: 15
+  fields:
+    short_name: o3-mini-in
+    name: o3-mini Global (input)
+    name_fr: o3-mini Global (entrée)
+    description: API calls to Azure OpenAI o3-mini Global Deployment model (input)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI o3-mini (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 1.10
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 16
+  fields:
+    short_name: o3-mini-out
+    name: o3-mini Global (output)
+    name_fr: o3-mini Global (sortie)
+    description: API calls to Azure OpenAI o3-mini Global Deployment model (output)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI o3-mini (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 4.40
+    unit_quantity: 1000000
+# - model: otto.CostType
+#   pk: 17
+#   fields:
+#     short_name: o1-in
+#     name: o1 Global (input)
+#     name_fr: o1 Global (entrée)
+#     description: API calls to Azure OpenAI o1 Global Deployment model (input)
+#     description_fr: Appels API au modèle de déploiement global Azure OpenAI o1 (entrée)
+#     unit_name: tokens
+#     unit_name_fr: jetons
+#     unit_cost: 15
+#     unit_quantity: 1000000
+# - model: otto.CostType
+#   pk: 18
+#   fields:
+#     short_name: o1-out
+#     name: o1 Global (output)
+#     name_fr: o1 Global (sortie)
+#     description: API calls to Azure OpenAI o1 Global Deployment model (output)
+#     description_fr: Appels API au modèle de déploiement global Azure OpenAI o1 (sortie)
+#     unit_name: tokens
+#     unit_name_fr: jetons
+#     unit_cost: 60
+#     unit_quantity: 1000000
