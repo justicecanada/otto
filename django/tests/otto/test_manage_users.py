@@ -93,7 +93,7 @@ def test_manage_users_upload(client, all_apps_user):
     # Test with a csv file ("users.csv" in this directory)
     """
     upn,pilot_id,roles,monthly_max
-    Firstname.Lastname@justice.gc.ca,bac,AI assistant user|text extractor user,100
+    Firstname.Lastname@justice.gc.ca,bac,AI Assistant user|Text Extractor user,100
     """
     this_dir = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(this_dir, "users.csv"), "rb") as file:
