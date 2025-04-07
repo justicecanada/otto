@@ -3410,5 +3410,17 @@
     "Enter text to translate (select language in sidebar)": {
         "fr": "",
         "fr_auto": "Entrez le texte à traduire (sélectionnez la langue dans la barre latérale)"
+    },
+    "Ask a question about the selected documents, upload files or enter a URL to add": {
+        "fr": "",
+        "fr_auto": "Posez une question sur les documents sélectionnés, téléchargez des fichiers ou entrez une URL à ajouter"
+    },
+    "Enter a URL, paste long text or upload files to summarize": {
+        "fr": "",
+        "fr_auto": "Entrez une URL, collez du texte long ou téléchargez des fichiers pour résumer"
+    },
+    "Enter text or upload files to translate (select language in sidebar)": {
+        "fr": "",
+        "fr_auto": "Entrez du texte ou téléchargez des fichiers à traduire (sélectionnez la langue dans la barre latérale)"
     }
 }
