@@ -18,6 +18,8 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
+# from chat.decorators import get_chat
+from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import Message
 from chat.prompts import current_time_prompt
@@ -392,19 +394,20 @@ def qa_response(chat, response_message, switch_mode=False):
                 error_string += _("new document(s) ready for Q&A.")
             yield error_string
         elif adding_url:
-            # Update the library to "Chat Uploads"
-            chat_uploads_library = await sync_to_async(
-                lambda: Library.objects.filter(name="Chat uploads").first()
-            )()
+            # Render the updated dropdown menu
+            updated_library_dropdown = await sync_to_async(render_to_string)(
+                "chat/components/options_4_qa.html",
+                {
+                    "options_form": await sync_to_async(ChatOptionsForm)(
+                        instance=chat.options, user=chat.user
+                    )
+                },
+            )
+            # Include the updated dropdown in the response
+            yield f'<div id="library-dropdown-outer">{updated_library_dropdown}</div>'
 
-            if not chat_uploads_library:
-                raise ValueError(
-                    "Chat uploads library not found. Please ensure it exists in the database."
-                )
-
-            chat.options.qa_library = chat_uploads_library
-            await sync_to_async(chat.options.save)()
             yield _("URL ready for Q&A.")
+
         else:
             yield f"{len(files)} " + _("new document(s) ready for Q&A.")
 
@@ -430,6 +433,7 @@ def qa_response(chat, response_message, switch_mode=False):
             existing_document = Document.objects.filter(
                 data_source=chat.data_source, url=user_message.text
             ).first()
+
             if not existing_document:
                 document = Document.objects.create(
                     data_source=chat.data_source,
@@ -439,6 +443,20 @@ def qa_response(chat, response_message, switch_mode=False):
                 document = existing_document
             # URLs are always re-processed
             document.process()
+
+            # Update the backend library to "Chat uploads"
+            chat_uploads_library = Library.objects.filter(
+                is_personal_library=True, created_by=chat.user
+            ).first()
+
+            if not chat_uploads_library:
+                raise ValueError(
+                    "Chat uploads library not found. Please ensure it exists in the database."
+                )
+
+            chat.options.qa_library = chat_uploads_library
+            chat.options.save()
+
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,

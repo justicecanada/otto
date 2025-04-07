@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block accordion_body %}
-  <div id="library-dropdown-outer">
+  <div id="library-dropdown-outer" hx-swap="outerHTML">
     <div class="px-3 row">
       <label class="col col-form-label-sm"
              for="{{ options_form.qa_library.auto_id }}">{% trans "Library" %}</label>
