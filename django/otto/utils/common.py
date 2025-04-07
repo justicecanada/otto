@@ -1,9 +1,12 @@
 import os
+from threading import Lock
 from urllib.parse import quote, urlparse
 
 from django.conf import settings
 
 import tldextract
+
+pdfium_lock = Lock()
 
 
 def file_size_to_string(filesize):
