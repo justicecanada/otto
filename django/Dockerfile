@@ -36,4 +36,7 @@ RUN mkdir -p $TIKTOKEN_CACHE_DIR
 # Run the tiktoken caching script
 RUN python /django/cache_tiktoken.py
 
+# Compile the translation files
+RUN python /django/manage.py load_app_localization
+
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]
