@@ -126,7 +126,7 @@ class OttoLLM:
         context: str,
         query: str = "summarize the text",
         template: PromptTemplate = None,
-        chunk_size_limit: int = 64000,
+        chunk_size_limit: int | None = None,
         chunk_overlap_ratio: float = 0.1,
     ):
         """
@@ -136,7 +136,7 @@ class OttoLLM:
         try:
             custom_prompt_helper = PromptHelper(
                 context_window=self.max_input_tokens,
-                num_output=self.max_output_tokens,
+                num_output=min(self.max_output_tokens, 16384),
                 chunk_size_limit=chunk_size_limit,
                 chunk_overlap_ratio=chunk_overlap_ratio,
             )
