@@ -125,12 +125,6 @@ add_perm("chat.delete_preset", can_delete_preset)
 add_perm("chat.edit_preset_sharing", can_edit_preset_sharing)
 add_perm("chat.quick_save_preset", can_quick_save_preset)
 
-# Template Wizard
-add_perm(
-    "template_wizard.access_lex_wizard",
-    is_group_member("Litigation briefing user") | is_admin,
-)
-
 
 # Librarian
 # Ensures a simple query is used to get the roles for a user

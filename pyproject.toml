@@ -29,7 +29,6 @@ known_first_party = [
     "otto",
     "laws",
     "case_prep",
-    "template_wizard",
     "text_extractor"
   ]
 sections = [
