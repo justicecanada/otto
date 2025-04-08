@@ -3,6 +3,9 @@ from threading import Lock
 from urllib.parse import quote, urlparse
 
 from django.conf import settings
+from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.urls import reverse
 
 import tldextract
 
@@ -115,3 +118,14 @@ def get_tld_extractor():
         suffix_list_urls=[os.path.join(settings.BASE_DIR, "effective_tld_names.dat")],
         cache_dir=os.path.join(settings.BASE_DIR, "tld_cache"),
     )
+
+
+def robust_redirect(request, redirect_url):
+    """
+    Checks if HTMX request and redirects accordingly
+    """
+    if request.headers.get("HX-Request"):
+        response = HttpResponse(status=200)
+        response["HX-Redirect"] = redirect_url
+        return response
+    return redirect(redirect_url)
