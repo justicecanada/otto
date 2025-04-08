@@ -115,7 +115,9 @@ def get_tld_extractor():
     Returns a tldextract.TLDExtract instance with the default suffix list
     """
     return tldextract.TLDExtract(
-        suffix_list_urls=[os.path.join(settings.BASE_DIR, "effective_tld_names.dat")],
+        suffix_list_urls=[
+            "file://" + os.path.join(settings.BASE_DIR, "effective_tld_names.dat")
+        ],
         cache_dir=os.path.join(settings.BASE_DIR, "tld_cache"),
     )
 
