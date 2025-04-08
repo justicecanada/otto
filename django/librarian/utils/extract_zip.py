@@ -4,6 +4,8 @@ from io import BytesIO
 from pathlib import Path
 from zipfile import ZipFile
 
+from django.utils.translation import gettext as _
+
 from structlog import get_logger
 
 logger = get_logger(__name__)
@@ -25,7 +27,7 @@ def process_zip_file(content, data_source_id):
             print(traceback.format_exc())
             logger.error(f"Failed to extract Zip file: {e}")
         shutil.rmtree(directory, ignore_errors=True)
-    return ""
+    return _("Zip file extracted successfully.")
 
 
 def extract_nested_zips(path):
