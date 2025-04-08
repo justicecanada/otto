@@ -50,8 +50,8 @@
 | django/otto/templatetags/tags.py                                      |       10 |        1 |     90% |        18 |
 | django/otto/translation.py                                            |       17 |        0 |    100% |           |
 | django/otto/utils/auth.py                                             |       37 |        9 |     76% |14-28, 66-68 |
-| django/otto/utils/common.py                                           |       62 |        1 |     98% |        98 |
-| django/otto/utils/decorators.py                                       |       62 |        4 |     94% |24-25, 65, 87 |
+| django/otto/utils/common.py                                           |       71 |        4 |     94% |101, 128-130 |
+| django/otto/utils/decorators.py                                       |       63 |        4 |     94% |25-26, 66, 88 |
 | django/otto/utils/logging.py                                          |       15 |        0 |    100% |           |
 | django/otto/utils/middleware.py                                       |       41 |        1 |     98% |        31 |
 | django/otto/views.py                                                  |      570 |      130 |     77% |58, 63, 68-82, 124, 133-143, 155, 280, 380, 432-435, 451-452, 476, 486-489, 518-528, 540-545, 548, 557, 559-562, 564-565, 567-570, 593, 601, 610, 626-637, 743-744, 775, 777, 779, 793, 795, 802-803, 806-809, 819-825, 835, 837, 839, 844-864, 903, 912-921, 1000, 1007-1013, 1036-1037, 1057, 1088, 1121-1144, 1168-1173, 1181-1184 |
@@ -60,7 +60,7 @@
 | django/text\_extractor/tasks.py                                       |       18 |        2 |     89% |     34-35 |
 | django/text\_extractor/utils.py                                       |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                       |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                             **TOTAL** | **6827** | **1179** | **83%** |           |
+|                                                             **TOTAL** | **6837** | **1182** | **83%** |           |
 
 
 ## Setup coverage badge
