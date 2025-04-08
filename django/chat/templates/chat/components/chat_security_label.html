@@ -1,7 +1,9 @@
 
 {% load i18n %}
 
-<div class="dropdown">
+<div class="dropdown"
+     id="chat-security-label-{{ chat.id }}"
+     {% if swap_oob %}hx-swap-oob="true"{% endif %}>
   <button class="security-btn btn btn-none security-label-{{ chat.security_label.acronym }} security-label chat-security-label badge rounded-pill btn-dark"
           title="{{ chat.security_label }}"
           type="button"
@@ -10,7 +12,6 @@
   <ul class="dropdown-menu">
     <li class="dropdown-header">{% trans "Set security label" %}</li>
     {% for security_label in security_labels %}
- 
       <li>
         <button class="dropdown-item"
                 hx-get="{% url 'chat:set_security_label' chat.id security_label.id %}"

@@ -28,8 +28,13 @@
            style="top: 1px"
            title="{% trans 'Personal library' %}"></i><span class="visually-hidden">{% trans "Personal library" %}</span>
       {% elif item_type == "data_source" %}
-        <span class="security-label-{{ item.security_label.acronym }} security-label badge rounded-pill"
-              title="{{ item.security_label }}">{{ item.security_label.acronym }}</span>
+        {% if item.chat %}
+          <span class="security-label-{{ item.chat.security_label.acronym }} security-label badge rounded-pill"
+                title="{{ item.chat.security_label }}">{{ item.chat.security_label.acronym }}</span>
+        {% else %}
+          <span class="security-label-{{ item.security_label.acronym }} security-label badge rounded-pill"
+                title="{{ item.security_label }}">{{ item.security_label.acronym }}</span>
+        {% endif %}
       {% elif item.status %}
         {% include "librarian/components/item_status_icon.html" %}
       {% endif %}
