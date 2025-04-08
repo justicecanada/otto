@@ -96,9 +96,6 @@ LOGIN_REDIRECT_URL = "/"  # Or any other endpoint
 # OpenAI
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
-# TODO: Replace with Cost model (this is used in Template Wizard)
-OPENAI_COST_PER_TOKEN = 0.0020 / 1000
-OPENAI_EMBEDDING_COST_PER_TOKEN = 0.0004 / 1000
 
 DEFAULT_CHAT_MODEL = "gpt-4o-mini"
 DEFAULT_QA_MODEL = "gpt-4o-mini"
@@ -162,7 +159,6 @@ INSTALLED_APPS = [
     "librarian",
     "chat",
     "laws",
-    "template_wizard",
     # Third-party apps
     "channels",
     "django_cleanup.apps.CleanupConfig",

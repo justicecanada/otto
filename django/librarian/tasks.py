@@ -81,10 +81,6 @@ def process_document_helper(document, llm, pdf_method="default"):
     if not (url or file):
         raise ValueError("URL or file is required")
 
-    # PDFium is giving us issues with threading. For now, always use Azure OCR.
-    if pdf_method == "default":
-        pdf_method = "azure_read"
-
     if url:
         logger.info("Processing URL", url=url)
         base_url = (
@@ -156,7 +152,7 @@ def process_document_helper(document, llm, pdf_method="default"):
     vector_store_index.delete_ref_doc(document_uuid, delete_from_docstore=True)
     # Insert new nodes in batches
     batch_size = 16
-    for i in tqdm(range(0, len(nodes), batch_size)):
+    for i in range(0, len(nodes), batch_size):
         if i > 0:
             percent_complete = i / len(nodes) * 100
             if current_task:
