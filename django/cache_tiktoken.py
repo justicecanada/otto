@@ -9,7 +9,7 @@ cache_dir = os.environ.get("TIKTOKEN_CACHE_DIR", "/opt/tiktoken_cache")
 os.makedirs(cache_dir, exist_ok=True)
 
 # Models to cache
-models = ["gpt-4o-mini", "gpt-4o"]
+models = ["gpt-4o-mini", "gpt-4o", "o3-mini"]
 
 # Cache the encodings
 for model in models:

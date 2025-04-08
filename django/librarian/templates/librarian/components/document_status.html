@@ -79,8 +79,17 @@
             <li>
               <a class="dropdown-item small"
                  href="#"
+                 hx-get="{% url 'librarian:document_start' document.id 'default' %}">
+                <span>{% trans "Text only" %}</span>
+                <span class="text-muted">{% trans "(default, $)" %}</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
                  hx-get="{% url 'librarian:document_start' document.id 'azure_read' %}">
-                <span>{% trans "Default" %}</span>
+                <span>{% trans "PDF OCR" %}</span>
+                <span class="text-muted">{% trans "(more robust, $$)" %}</span>
               </a>
             </li>
             <li>
@@ -88,7 +97,7 @@
                  href="#"
                  hx-get="{% url 'librarian:document_start' document.id 'azure_layout' %}">
                 <span>{% trans "PDF layout & OCR" %}</span>
-                <span class="text-muted">{% trans "(best, $)" %}</span>
+                <span class="text-muted">{% trans "(best, $$$)" %}</span>
               </a>
             </li>
           </ul>

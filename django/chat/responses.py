@@ -99,6 +99,10 @@ def chat_response(
         for message in chat.messages.all().order_by("date_created")
     ]
 
+    if chat_history[-1].role == MessageRole.ASSISTANT and not chat_history[-1].content:
+        # The last message is likely an empty placeholder - remove it to avoid errors
+        chat_history.pop()
+
     model = chat.options.chat_model
     temperature = chat.options.chat_temperature
 
