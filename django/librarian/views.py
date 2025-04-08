@@ -317,7 +317,12 @@ def poll_status(request, data_source_id, document_id=None):
     return render(
         request,
         "librarian/components/poll_update.html",
-        {"documents": documents, "poll_url": poll_url, "selected_document": document},
+        {
+            "documents": documents,
+            "poll_url": poll_url,
+            "selected_document": document,
+            "selected_data_source": DataSource.objects.get(id=data_source_id),
+        },
     )
 
 
@@ -495,7 +500,7 @@ def upload(request, data_source_id):
                 filename=file.name,
                 file__sha256_hash=file_hash,
             ).first()
-            # Skip if filename and hash are the same, and processing status is SUCCESS
+            # Skip if filename and hash are the same, but reprocess if ERROR status
             if existing_document:
                 if existing_document.status == "ERROR":
                     existing_document.process()
