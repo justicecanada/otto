@@ -229,6 +229,8 @@ async def htmx_stream(
         # Stream the response text
         first_message = True
         async for response in response_replacer:
+            if response is None:
+                continue
             if first_message and switch_mode:
                 full_message = render_to_string(
                     "chat/components/mode_switch_message.html",
