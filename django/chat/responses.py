@@ -407,9 +407,9 @@ def qa_response(chat, response_message, switch_mode=False):
                 filename=file.filename,
                 file__sha256_hash=file.saved_file.sha256_hash,
             ).first()
-            # Skip if filename and hash are the same, and processing status is SUCCESS
+            # Skip if filename and hash are the same, but reprocess if ERROR status
             if existing_document:
-                if existing_document.status != "SUCCESS":
+                if existing_document.status == "ERROR":
                     existing_document.process()
                 continue
             document = Document.objects.create(

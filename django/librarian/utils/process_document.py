@@ -18,11 +18,22 @@ def process_file(file, data_source_id, name=None, content_type=None):
     if file_exists:
         file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
         logger.info(f"Found existing SavedFile for {name}", saved_file_id=file_obj.id)
-        return
     else:
         file_obj = SavedFile.objects.create(content_type=content_type)
         file_obj.file.save(name, file)
         file_obj.generate_hash()
+
+    existing_document = Document.objects.filter(
+        data_source_id=data_source_id,
+        filename=name,
+        file__sha256_hash=file_obj.sha256_hash,
+    ).first()
+
+    # Skip if filename and hash are the same, but reprocess if ERROR status
+    if existing_document:
+        if existing_document.status == "ERROR":
+            existing_document.process()
+        return
 
     document = Document.objects.create(
         data_source_id=data_source_id, file=file_obj, filename=name

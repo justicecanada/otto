@@ -241,7 +241,6 @@ def extract_markdown(
     selector=None,
     data_source_id=None,
 ):
-
     try:
         enable_markdown = True
         if process_engine == "IMAGE":

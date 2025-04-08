@@ -497,7 +497,7 @@ def upload(request, data_source_id):
             ).first()
             # Skip if filename and hash are the same, and processing status is SUCCESS
             if existing_document:
-                if existing_document.status != "SUCCESS":
+                if existing_document.status == "ERROR":
                     existing_document.process()
                 continue
         else:
