@@ -115,7 +115,7 @@ def create_nodes(chunks, document):
 
 
 def guess_content_type(
-    content: str | bytes, content_type: str = None, path: str = ""
+    content: str | bytes, content_type: str = "", path: str = ""
 ) -> str:
 
     # We consider these content types to be reliable and do not need further guessing

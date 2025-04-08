@@ -16,17 +16,19 @@ def process_zip_file(content, data_source_id):
     with ZipFile(file=binary_stream, mode="r") as archive:
         try:
             archive.extractall(directory)
-            walk(directory)
-            process(directory, data_source_id)
-            md = ""
+            extract_nested_zips(directory)
+            process_directory(directory, data_source_id)
         except Exception as e:
+            # print trace
+            import traceback
+
+            print(traceback.format_exc())
             logger.error(f"Failed to extract Zip file: {e}")
-            md = ""
         shutil.rmtree(directory, ignore_errors=True)
-        return md
+    return ""
 
 
-def walk(path):
+def extract_nested_zips(path):
     for root, dirs, files in os.walk(path):
         for file in files:
             file_name = os.path.join(root, file)
@@ -37,10 +39,10 @@ def walk(path):
                 with ZipFile(file_name) as zipObj:
                     zipObj.extractall(current_directory)
                 os.remove(file_name)
-                walk(current_directory)
+                extract_nested_zips(current_directory)
 
 
-def process(directory, data_source_id):
+def process_directory(directory, data_source_id):
     from librarian.utils.process_document import process_file
     from librarian.utils.process_engine import guess_content_type
 
@@ -49,6 +51,5 @@ def process(directory, data_source_id):
             path = os.path.join(root, file)
             with open(path, "rb") as f:
                 name = Path(path).name
-                suffix = Path(path).suffix
-                content_type = guess_content_type(file, suffix)
+                content_type = guess_content_type(f, path=path)
                 process_file(f, data_source_id, name, content_type)

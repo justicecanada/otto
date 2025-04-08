@@ -133,6 +133,10 @@ def process_document_helper(document, llm, pdf_method="default"):
         selector=document.selector,
         data_source_id=document.data_source.id,
     )
+    if process_engine == "ZIP":
+        Document.objects.filter(id=document.id).delete()
+        return
+
     if current_task:
         current_task.update_state(
             state="PROCESSING",
