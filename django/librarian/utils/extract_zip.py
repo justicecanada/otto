@@ -12,11 +12,11 @@ logger = get_logger(__name__)
 def process_zip_file(content, data_source_id):
     binary_stream = BytesIO(content)
     cwd = Path.cwd()
-    directory = f"{cwd}/media/zip/{data_source_id}"
+    directory = f"{cwd}/media/{data_source_id}/zip"
     with ZipFile(file=binary_stream, mode="r") as archive:
         try:
             archive.extractall(directory)
-            unzip(directory)
+            walk(directory)
             process(directory, data_source_id)
             md = ""
         except Exception as e:
@@ -26,7 +26,7 @@ def process_zip_file(content, data_source_id):
         return md
 
 
-def unzip(path):
+def walk(path):
     for root, dirs, files in os.walk(path):
         for file in files:
             file_name = os.path.join(root, file)
@@ -37,7 +37,7 @@ def unzip(path):
                 with ZipFile(file_name) as zipObj:
                     zipObj.extractall(current_directory)
                 os.remove(file_name)
-                unzip(current_directory)
+                walk(current_directory)
 
 
 def process(directory, data_source_id):
@@ -49,6 +49,6 @@ def process(directory, data_source_id):
             path = os.path.join(root, file)
             with open(path, "rb") as f:
                 name = Path(path).name
-                content_type = guess_content_type(file, name)
-                print(f"Relpath: {os.path.relpath(path, directory)}")
+                suffix = Path(path).suffix
+                content_type = guess_content_type(file, suffix)
                 process_file(f, data_source_id, name, content_type)

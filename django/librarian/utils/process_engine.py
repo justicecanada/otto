@@ -782,35 +782,3 @@ def resize_to_azure_requirements(content):
             image.save(output, format="PNG")
             content = output.getvalue()
             return content
-
-
-def process_file(file, data_source_id):
-    from librarian.utils.process_engine import generate_hash
-
-    file_hash = generate_hash(file.read())
-    file_exists = SavedFile.objects.filter(sha256_hash=file_hash).exists()
-    if file_exists:
-        file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
-        logger.info(
-            f"Found existing SavedFile for {file.name}", saved_file_id=file_obj.id
-        )
-        # Check if identical document already exists in the DataSource
-        existing_document = Document.objects.filter(
-            data_source_id=data_source_id,
-            filename=file.name,
-            file__sha256_hash=file_hash,
-        ).first()
-        # Skip if filename and hash are the same, and processing status is SUCCESS
-        if existing_document:
-            if existing_document.status != "SUCCESS":
-                existing_document.process()
-            return
-    else:
-        file_obj = SavedFile.objects.create(content_type=file.content_type)
-        file_obj.file.save(file.name, file)
-        file_obj.generate_hash()
-
-    document = Document.objects.create(
-        data_source_id=data_source_id, file=file_obj, filename=file.name
-    )
-    document.process()

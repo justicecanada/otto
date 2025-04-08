@@ -1,7 +1,3 @@
-import asyncio
-import shutil
-import zipfile
-from io import BytesIO
 from pathlib import Path
 
 from structlog import get_logger
@@ -9,13 +5,11 @@ from structlog import get_logger
 logger = get_logger(__name__)
 
 
-def process_file(file, data_source_id, name=None, content_type=None, file_hash=None):
+def process_file(file, data_source_id, name=None, content_type=None):
     from librarian.models import Document, SavedFile
     from librarian.utils.process_engine import generate_hash
 
     logger.info(f"Processing file {file.name}")
-    # logger.info(f"Processing file {file.content_type}")
-    # print(f"Processing file {file.content_type}")
 
     # Check if the file is already stored on the server
     file_hash = generate_hash(file.read())
