@@ -1462,10 +1462,10 @@ math[display="block"] {
   pointer-events: none;
   transition: opacity 0.3s ease;
   background-color: var(--otto-tab-body-bg-color);
-  border: 2px solid var(--bs-gray-400);
+  border: 2px solid var(--bs-border-color);
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: 80%;
+  background-position: 50% 64%;
+  background-size: 67%;
   background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='black'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>");
 
   [data-bs-theme="dark"] & {
