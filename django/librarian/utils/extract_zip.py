@@ -18,19 +18,20 @@ def process_zip_file(content, data_source_id):
     with ZipFile(file=binary_stream, mode="r") as archive:
         try:
             archive.extractall(directory)
-            extract_nested_zips(directory)
+            file_info = extract_nested_zips(directory)
             process_directory(directory, data_source_id)
+            root_level_files = ", ".join(archive.namelist())
+            file_info.insert(0, (f"Files: {root_level_files}\n"))
+            md = "".join(file_info)
         except Exception as e:
-            # print trace
-            import traceback
-
-            print(traceback.format_exc())
             logger.error(f"Failed to extract Zip file: {e}")
+            md = ""
         shutil.rmtree(directory, ignore_errors=True)
-    return _("Zip file extracted successfully.")
+        return md
 
 
 def extract_nested_zips(path):
+    fileinfo = []
     for root, dirs, files in os.walk(path):
         for file in files:
             file_name = os.path.join(root, file)
@@ -40,8 +41,12 @@ def extract_nested_zips(path):
                     os.makedirs(current_directory)
                 with ZipFile(file_name) as zipObj:
                     zipObj.extractall(current_directory)
+                    fileinfo.append(
+                        format_file_info(file_name, path, zipObj.namelist())
+                    )
                 os.remove(file_name)
                 extract_nested_zips(current_directory)
+    return fileinfo
 
 
 def process_directory(directory, data_source_id):
@@ -55,3 +60,9 @@ def process_directory(directory, data_source_id):
                 name = Path(path).name
                 content_type = guess_content_type(f, path=path)
                 process_file(f, data_source_id, name, content_type)
+
+
+def format_file_info(file_name, path, namelist) -> str:
+    relative_path = os.path.relpath(file_name, path)
+    files = ", ".join(namelist)
+    return f"Filename: {relative_path} - Files: {files}\n"
