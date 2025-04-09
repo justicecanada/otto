@@ -1,8 +1,15 @@
+import os
+from threading import Lock
 from urllib.parse import quote, urlparse
 
 from django.conf import settings
+from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.urls import reverse
 
 import tldextract
+
+pdfium_lock = Lock()
 
 
 def file_size_to_string(filesize):
@@ -70,7 +77,7 @@ def check_url_allowed(url):
         return False
 
     # Extract the domain
-    extracted = tldextract.extract(urlparse(url).netloc)
+    extracted = get_tld_extractor()(urlparse(url).netloc)
     domain = f"{extracted.domain}.{extracted.suffix}"
 
     # Check if the domain matches or is a subdomain of an allowed domain
@@ -101,3 +108,24 @@ def generate_mailto(to, cc=None, subject="Otto", body=None):
     if body:
         mailto += f"&body={body}"
     return mailto
+
+
+def get_tld_extractor():
+    """
+    Returns a tldextract.TLDExtract instance with the default suffix list
+    """
+    return tldextract.TLDExtract(
+        suffix_list_urls=[os.path.join(settings.BASE_DIR, "effective_tld_names.dat")],
+        cache_dir=os.path.join(settings.BASE_DIR, "tld_cache"),
+    )
+
+
+def robust_redirect(request, redirect_url):
+    """
+    Checks if HTMX request and redirects accordingly
+    """
+    if request.headers.get("HX-Request"):
+        response = HttpResponse(status=200)
+        response["HX-Redirect"] = redirect_url
+        return response
+    return redirect(redirect_url)
