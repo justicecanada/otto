@@ -398,18 +398,6 @@ def qa_response(chat, response_message, switch_mode=False):
                 error_string += _("new document(s) ready for Q&A.")
             yield error_string
         elif adding_url:
-            # Render the updated dropdown menu
-            updated_library_dropdown = await sync_to_async(render_to_string)(
-                "chat/components/options_4_qa.html",
-                {
-                    "options_form": await sync_to_async(ChatOptionsForm)(
-                        instance=chat.options, user=chat.user
-                    )
-                },
-            )
-            # Include the updated dropdown in the response
-            yield f'<div id="library-dropdown-outer">{updated_library_dropdown}</div>'
-
             yield _("URL ready for Q&A.")
 
         else:
@@ -460,6 +448,19 @@ def qa_response(chat, response_message, switch_mode=False):
 
             chat.options.qa_library = chat_uploads_library
             chat.options.save()
+            # Render sidebar
+            # sidebar_html = await sync_to_async(render_to_string)(
+            #     "chat/components/chat_options_accordion.html",
+            #     {
+            #         "options_form": ChatOptionsForm(
+            #             instance=chat.options, user=chat.user
+            #         ),
+            #         "trigger_library_change": "true",  # Trigger library change
+            #     },
+            # )
+
+            # # Yield the updated sidebar HTML
+            # yield sidebar_html
 
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
