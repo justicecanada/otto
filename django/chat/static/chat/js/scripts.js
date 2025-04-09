@@ -717,3 +717,44 @@ function nextSourceHighlight(message_id) {
     nextHighlight.scrollIntoView({behavior: "smooth", block: "center"});
   }, needToExpand ? 300 : 0);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const scrollContainer = document.getElementById("chat-container");
+  const scrollBtn = document.getElementById("scroll-btn");
+
+  if (!scrollContainer || !scrollBtn) {
+    console.warn("Missing scroll container or button");
+    return;
+  }
+
+  function checkScroll() {
+    const scrollHeight = scrollContainer.scrollHeight;
+    const clientHeight = scrollContainer.clientHeight;
+    const scrollTop = scrollContainer.scrollTop;
+
+    const canScroll = scrollHeight > clientHeight + 1;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+
+    const shouldShow = canScroll && distanceFromBottom > 150;
+
+    scrollBtn.style.opacity = shouldShow ? "1" : "0";
+    scrollBtn.style.pointerEvents = shouldShow ? "auto" : "none";
+  }
+
+  function scrollToBottom() {
+    scrollContainer.scrollTo({
+      top: scrollContainer.scrollHeight,
+      behavior: "smooth"
+    });
+  }
+
+  window.scrollToBottom = scrollToBottom;
+
+  scrollContainer.addEventListener("scroll", checkScroll);
+  const observer = new MutationObserver(checkScroll);
+  observer.observe(scrollContainer, {childList: true, subtree: true});
+
+  checkScroll();
+});
+
+

@@ -1456,3 +1456,26 @@ math[display="block"] {
   z-index: 5;
   box-shadow: 0 0px 5px rgba(0, 0, 0, 0.4);
 }
+
+#scroll-btn {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  background-color: var(--otto-tab-body-bg-color);
+  border: 2px solid var(--bs-gray-400);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 80%;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='black'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>");
+
+  [data-bs-theme="dark"] & {
+    background-color: var(--otto-tab-body-bg-color);
+    border: 2px solid var(--bs-gray-700);
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>");
+  }
+}
+
+#scroll-btn.visible {
+  opacity: 1 !important;
+  pointer-events: auto;
+}
