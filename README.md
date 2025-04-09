@@ -50,7 +50,7 @@
 | django/otto/templatetags/tags.py                                      |       10 |        1 |     90% |        18 |
 | django/otto/translation.py                                            |       17 |        0 |    100% |           |
 | django/otto/utils/auth.py                                             |       37 |        9 |     76% |14-28, 66-68 |
-| django/otto/utils/common.py                                           |       71 |        4 |     94% |101, 128-130 |
+| django/otto/utils/common.py                                           |       71 |        4 |     94% |101, 130-132 |
 | django/otto/utils/decorators.py                                       |       63 |        4 |     94% |25-26, 66, 88 |
 | django/otto/utils/logging.py                                          |       15 |        0 |    100% |           |
 | django/otto/utils/middleware.py                                       |       41 |        1 |     98% |        31 |
