@@ -246,7 +246,7 @@ python django/manage.py collectstatic --noinput
 
 In PowerShell, from the repo root, paste this one-liner to run tests and display the results:
 ```bash
-python -m coverage run --source=django --omit 'django/template_wizard/*' -m pytest django/tests; python -m coverage html; python -m coverage report
+python -m coverage run --source=django -m pytest django/tests; python -m coverage html; python -m coverage report
 ```
 
 You can view the results in more detail by opening `htmlcov/index.html` in your browser.

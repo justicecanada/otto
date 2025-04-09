@@ -101,6 +101,10 @@ def chat_response(
         for message in chat.messages.all().order_by("date_created")
     ]
 
+    if chat_history[-1].role == MessageRole.ASSISTANT and not chat_history[-1].content:
+        # The last message is likely an empty placeholder - remove it to avoid errors
+        chat_history.pop()
+
     model = chat.options.chat_model
     temperature = chat.options.chat_temperature
 
@@ -382,7 +386,7 @@ def qa_response(chat, response_message, switch_mode=False):
             lambda: list(ds.documents.filter(status="ERROR", file__in=saved_files))
         )()
         num_completed_documents = await sync_to_async(
-            lambda: ds.documents.filter(status="ERROR", file__in=saved_files).count()
+            lambda: ds.documents.filter(status="SUCCESS", file__in=saved_files).count()
         )()
         if error_documents:
             error_string = _("Error processing the following document(s):")

@@ -309,23 +309,26 @@ def pdf_to_text_pdfium(content):
     # Fast and cheap, but no OCR or layout analysis
     import pypdfium2 as pdfium
 
-    try:
-        pdf = pdfium.PdfDocument(content)
-    except Exception as e:
-        logger.error(f"Failed to extract text from PDF file: {e}")
-        raise Exception(_("Corrupt PDF file."))
+    from otto.utils.common import pdfium_lock
 
-    text = ""
-    for i, page in enumerate(pdf):
-        text_page = page.get_textpage()
-        text_content = text_page.get_text_range()
-        if text_content:
-            text += f"<page_{i+1}>\n"
-            text += text_content + "\n"
-            text += f"</page_{i+1}>\n"
-        # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
-        text_page.close()
-    pdf.close()
+    with pdfium_lock:
+        try:
+            pdf = pdfium.PdfDocument(content)
+        except Exception as e:
+            logger.error(f"Failed to extract text from PDF file: {e}")
+            raise Exception(_("Corrupt PDF file."))
+
+        text = ""
+        for i, page in enumerate(pdf):
+            text_page = page.get_textpage()
+            text_content = text_page.get_text_range()
+            if text_content:
+                text += f"<page_{i+1}>\n"
+                text += text_content + "\n"
+                text += f"</page_{i+1}>\n"
+            # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
+            text_page.close()
+        pdf.close()
 
     return text
 
