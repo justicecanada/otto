@@ -21,6 +21,9 @@ RUN wget -q --header="Host: pki-icp.canada.ca" http://167.43.15.18/aia/GoC-GdC-R
     && update-ca-certificates
 
 COPY requirements*.txt /tmp/pip-tmp/
+
+RUN pip3 --disable-pip-version-check install --upgrade pip setuptools wheel
+
 RUN pip3 --disable-pip-version-check --no-cache-dir install \
     -r /tmp/pip-tmp/requirements.txt \
     && rm -rf /tmp/pip-tmp
