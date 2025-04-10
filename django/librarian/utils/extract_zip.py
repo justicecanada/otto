@@ -20,7 +20,7 @@ def process_zip_file(content, root_document_id):
     # Nested file path is used to keep track of the root file path for other archive file types (e.g .msg, .eml) that are unzipped and trigger their own processing
     document = Document.objects.get(id=root_document_id)
     data_source_id = document.data_source.id
-    root_nested_file_path = document.file.nested_file_path
+    root_file_path = document.filepath
     directory = f"{cwd}/media/{data_source_id}/zip"
 
     with ZipFile(file=binary_stream, mode="r") as archive:
@@ -28,7 +28,7 @@ def process_zip_file(content, root_document_id):
             archive.extractall(directory)
             file_info = extract_nested_zips(directory, level=1)
             process_directory(
-                directory, document.data_source.id, document.name, root_nested_file_path
+                directory, document.data_source.id, document.name, root_file_path
             )
             file_info.insert(
                 0,
@@ -63,9 +63,7 @@ def extract_nested_zips(path: str, level: int = 0) -> list[str]:
     return fileinfo
 
 
-def process_directory(
-    directory, data_source_id, root_document_name, root_nested_file_path
-):
+def process_directory(directory, data_source_id, root_document_name, root_file_path):
     from librarian.utils.process_document import process_file
     from librarian.utils.process_engine import guess_content_type
 
@@ -75,8 +73,8 @@ def process_directory(
             with open(path, "rb") as f:
                 name = Path(path).name
                 content_type = guess_content_type(f, path=path)
-                nested_file_path = f"{root_nested_file_path}/{name}"
-                if not root_nested_file_path:
+                nested_file_path = f"{root_file_path}/{name}"
+                if not root_file_path:
                     rel_path = os.path.relpath(path, directory)
                     nested_file_path = f"{root_document_name}/{rel_path}"
                 process_file(f, data_source_id, nested_file_path, name, content_type)
