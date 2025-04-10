@@ -61,25 +61,15 @@
             {% include 'chat/components/chat_messages.html' %}
           </div>
           <button id="scroll-btn"
-                  class="position-fixed"
-                  style="left: 50%;
-                         transform: translateX(-50%);
-                         bottom: 150px;
-                         opacity: 0;
-                         pointer-events: none;
-                         transition: opacity 0.3s ease;
-                         z-index: 9999;
-                         width: 32px;
-                         height: 32px;
-                         border-radius: 50%"
-                  onClick="scrollToBottom()"></button>
+                  class="position-fixed rounded-circle"
+                  onclick="scrollToBottom(true, true)"></button>
         </div>
         {% include 'chat/components/chat_input.html' %}
       </div>
       {% include 'chat/components/chat_options_sidebar.html' %}
     </div>
   </main>
- 
+
   {% include "chat/modals/advanced_qa_modal.html" %}
   {# For modals below, contents ("inner" template) are loaded through HTMX #}
   {% include "chat/modals/sources_modal_outer.html" %}

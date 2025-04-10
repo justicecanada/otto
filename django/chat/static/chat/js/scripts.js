@@ -189,13 +189,19 @@ document.querySelector("#chat-container").addEventListener("scroll", function ()
   }
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
+    const scrollBtn = document.querySelector("#scroll-btn");
     if (this.scrollTop + this.clientHeight < this.scrollHeight - 5) {
       preventAutoScrolling = true;
+      scrollBtn.classList.add("show");
     } else {
       preventAutoScrolling = false;
+      scrollBtn.classList.remove("show");
     }
   }, 10);
 });
+
+const scrollBtn = document.querySelector("#scroll-btn");
+if (scrollBtn) scrollBtn.classList.remove("show");
 
 // Some resizing hacks to make the prompt form the same width as the messages
 function resizePromptContainer() {
@@ -725,43 +731,54 @@ function nextSourceHighlight(message_id) {
   }, needToExpand ? 300 : 0);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const scrollContainer = document.getElementById("chat-container");
-  const scrollBtn = document.getElementById("scroll-btn");
+// document.addEventListener("DOMContentLoaded", () => {
+//   const scrollContainer = document.getElementById("chat-container");
+//   const scrollBtn = document.getElementById("scroll-btn");
 
-  if (!scrollContainer || !scrollBtn) {
-    console.warn("Missing scroll container or button");
-    return;
-  }
+//   if (!scrollContainer || !scrollBtn) {
+//     console.warn("Missing scroll container or button");
+//     return;
+//   }
 
-  function checkScroll() {
-    const scrollHeight = scrollContainer.scrollHeight;
-    const clientHeight = scrollContainer.clientHeight;
-    const scrollTop = scrollContainer.scrollTop;
+//   let autoScrollEnabled = true;
 
-    const canScroll = scrollHeight > clientHeight + 1;
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+//   function isAtBottom() {
+//     const threshold = 20;
+//     return scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < threshold;
+//   }
 
-    const shouldShow = canScroll && distanceFromBottom > 150;
+//   function checkScroll() {
+//     const atBottom = isAtBottom();
 
-    scrollBtn.style.opacity = shouldShow ? "1" : "0";
-    scrollBtn.style.pointerEvents = shouldShow ? "auto" : "none";
-  }
+//     autoScrollEnabled = atBottom;
 
-  function scrollToBottom() {
-    scrollContainer.scrollTo({
-      top: scrollContainer.scrollHeight,
-      behavior: "smooth"
-    });
-  }
+//     scrollBtn.style.opacity = atBottom ? "0" : "1";
+//     scrollBtn.style.pointerEvents = atBottom ? "none" : "auto";
+//   }
 
-  window.scrollToBottom = scrollToBottom;
+//   function scrollToBottom() {
+//     scrollContainer.scrollTo({
+//       top: scrollContainer.scrollHeight,
+//       behavior: "smooth"
+//     });
+//     autoScrollEnabled = true;
+//   }
 
-  scrollContainer.addEventListener("scroll", checkScroll);
-  const observer = new MutationObserver(checkScroll);
-  observer.observe(scrollContainer, {childList: true, subtree: true});
+//   window.scrollToBottom = scrollToBottom;
 
-  checkScroll();
-});
+//   scrollContainer.addEventListener("scroll", () => {
+//     checkScroll();
+//   });
 
+//   const observer = new MutationObserver(() => {
+//     if (autoScrollEnabled) {
+//       scrollToBottom();
+//     }
+//     checkScroll();
+//   });
+
+//   observer.observe(scrollContainer, {childList: true, subtree: true});
+
+//   checkScroll();
+// });
 
