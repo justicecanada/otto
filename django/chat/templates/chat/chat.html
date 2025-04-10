@@ -60,6 +60,9 @@
             {% endif %}
             {% include 'chat/components/chat_messages.html' %}
           </div>
+          <button id="scroll-btn"
+                  class="position-fixed rounded-circle"
+                  onclick="scrollToBottom(true, true)"></button>
         </div>
         {% include 'chat/components/chat_input.html' %}
       </div>
