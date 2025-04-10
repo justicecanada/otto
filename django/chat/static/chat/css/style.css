@@ -566,7 +566,7 @@ html[lang="fr"] .chat-sidebar {
 }
 
 #chat-inputs {
-  box-shadow: rgba(0, 0, 0, 0.1) 0 0 8px;
+  box-shadow: rgba(0, 0, 0, 0.15) 0 0 8px;
   border-radius: 6px;
 }
 
@@ -855,6 +855,7 @@ div#chat-toolbar {
   margin-bottom: -1px;
   min-height: 40px;
   background: var(--app-primary-bg);
+  box-shadow: none !important;
 
   [data-bs-theme="dark"] & {
     background-color: var(--bs-body-bg) !important;
