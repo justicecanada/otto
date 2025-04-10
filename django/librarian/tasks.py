@@ -77,7 +77,7 @@ def process_document(
 
 def process_document_helper(document, llm, pdf_method="default"):
     url = document.url
-    file = document.file
+    file = document.saved_file
     if not (url or file):
         raise ValueError("URL or file is required")
 
@@ -130,7 +130,9 @@ def process_document_helper(document, llm, pdf_method="default"):
         pdf_method=pdf_method,
         base_url=base_url,
         selector=document.selector,
+        root_document_id=document.id,
     )
+
     if current_task:
         current_task.update_state(
             state="PROCESSING",

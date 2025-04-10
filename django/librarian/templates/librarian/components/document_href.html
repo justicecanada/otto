@@ -5,7 +5,7 @@
   <a class="{% if button %}float-end ps-3 ms-3 mb-3 btn btn-light border{% endif %}"
      href="{{ document.url }}"
      target="_blank">{{ document.name }} <i class="bi bi-box-arrow-up-right"></i></a>
-{% elif document.file %}
+{% elif document.saved_file %}
   <a class="{% if button %}float-end ps-3 ms-3 mb-3 btn btn-light border{% endif %}"
      href="{% url 'librarian:download_document' document.id %}">{{ document.name }} <i class="bi bi-file-earmark-arrow-down"></i></a>
 {% endif %}
