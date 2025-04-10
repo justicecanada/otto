@@ -1,4 +1,5 @@
 import asyncio
+import json
 import traceback
 import uuid
 
@@ -19,7 +20,6 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 # from chat.decorators import get_chat
-from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import Message
 from chat.prompts import current_time_prompt
@@ -435,32 +435,6 @@ def qa_response(chat, response_message, switch_mode=False):
                 document = existing_document
             # URLs are always re-processed
             document.process()
-
-            # Update the backend library to "Chat uploads"
-            chat_uploads_library = Library.objects.filter(
-                is_personal_library=True, created_by=chat.user
-            ).first()
-
-            if not chat_uploads_library:
-                raise ValueError(
-                    "Chat uploads library not found. Please ensure it exists in the database."
-                )
-
-            chat.options.qa_library = chat_uploads_library
-            chat.options.save()
-            # Render sidebar
-            # sidebar_html = await sync_to_async(render_to_string)(
-            #     "chat/components/chat_options_accordion.html",
-            #     {
-            #         "options_form": ChatOptionsForm(
-            #             instance=chat.options, user=chat.user
-            #         ),
-            #         "trigger_library_change": "true",  # Trigger library change
-            #     },
-            # )
-
-            # # Yield the updated sidebar HTML
-            # yield sidebar_html
 
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
