@@ -85,7 +85,7 @@ def load_example_pdf(django_db_blocker):
             pdf_file = ContentFile(f.read(), name="example.pdf")
             saved_file = SavedFile.objects.create(file=pdf_file)
             d = Document.objects.create(
-                file=saved_file,
+                saved_file=saved_file,
                 filename="example.pdf",
                 data_source=DataSource.objects.get(name_en="Wikipedia"),
             )

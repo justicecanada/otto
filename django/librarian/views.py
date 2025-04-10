@@ -317,7 +317,12 @@ def poll_status(request, data_source_id, document_id=None):
     return render(
         request,
         "librarian/components/poll_update.html",
-        {"documents": documents, "poll_url": poll_url, "selected_document": document},
+        {
+            "documents": documents,
+            "poll_url": poll_url,
+            "selected_document": document,
+            "selected_data_source": DataSource.objects.get(id=data_source_id),
+        },
     )
 
 
@@ -493,11 +498,11 @@ def upload(request, data_source_id):
             existing_document = Document.objects.filter(
                 data_source_id=data_source_id,
                 filename=file.name,
-                file__sha256_hash=file_hash,
+                saved_file__sha256_hash=file_hash,
             ).first()
-            # Skip if filename and hash are the same, and processing status is SUCCESS
+            # Skip if filename and hash are the same, but reprocess if ERROR status
             if existing_document:
-                if existing_document.status != "SUCCESS":
+                if existing_document.status == "ERROR":
                     existing_document.process()
                 continue
         else:
@@ -506,7 +511,7 @@ def upload(request, data_source_id):
             file_obj.generate_hash()
 
         document = Document.objects.create(
-            data_source_id=data_source_id, file=file_obj, filename=file.name
+            data_source_id=data_source_id, saved_file=file_obj, filename=file.name
         )
         document.process()
     # Update the modal with the new documents
@@ -521,7 +526,7 @@ def download_document(request, document_id):
     # AC-20: Provide an audit trail of interactions with external information sources
     logger.info("Downloading file for QA document", document_id=document_id)
     document = get_object_or_404(Document, pk=document_id)
-    file_obj = document.file
+    file_obj = document.saved_file
     file = file_obj.file
     # Download the file, don't display it
     response = HttpResponse(file, content_type=file_obj.content_type)
