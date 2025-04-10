@@ -396,6 +396,7 @@ class Document(models.Model):
     filename = models.CharField(max_length=500, null=True, blank=True)
 
     # TODO - Add filepath field and populate to value of filename in migration TextField
+    filepath = models.CharField(max_length=500, null=True, blank=True)
 
     # Specific to PDF documents.
     # The extraction method *that was used* to extract text from the PDF
@@ -513,7 +514,6 @@ class SavedFile(models.Model):
     content_type = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     eof = models.BooleanField(default=True)
-    nested_file_path = models.CharField(max_length=500, null=True, blank=True)
 
     def __str__(self):
         return self.file.name

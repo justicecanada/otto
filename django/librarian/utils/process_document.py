@@ -18,7 +18,7 @@ def process_file(file, data_source_id, nested_file_path, name, content_type):
         logger.info(f"Found existing SavedFile for {name}", saved_file_id=file_obj.id)
     else:
         file_obj = SavedFile.objects.create(
-            content_type=content_type, nested_file_path=nested_file_path
+            content_type=content_type,
         )
         file_obj.file.save(name, file)
         file_obj.generate_hash()
@@ -36,6 +36,9 @@ def process_file(file, data_source_id, nested_file_path, name, content_type):
         return
 
     document = Document.objects.create(
-        data_source_id=data_source_id, file=file_obj, filename=name
+        data_source_id=data_source_id,
+        file=file_obj,
+        filename=name,
+        filepath=nested_file_path,
     )
     document.process()

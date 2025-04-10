@@ -63,7 +63,7 @@
         {% endif %}
       </div>
     </div>
- 
+
     <div class="col-auto">
       {% if document.celery_task_id %}
         <button type="button"
@@ -168,6 +168,12 @@
           <a href="{% url 'librarian:document_text' document.id %}"
              target="_blank"
              rel="noopener noreferrer">{% trans "View all" %}</a>
+        </dd>
+      {% endif %}
+      {% if document.filepath %}
+        <dt>{% trans "File path" %}</dt>
+        <dd>
+          {{ document.filepath }}
         </dd>
       {% endif %}
     </dl>
