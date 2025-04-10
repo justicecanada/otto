@@ -75,8 +75,19 @@ function render_markdown(element) {
 }
 
 // Chat window UI
-let preventAutoScrolling = false;
-let ignoreNextScrollEvent = true;
+let autoscroll = true;
+const scrollBtn = document.querySelector("#scroll-btn");
+
+document.querySelector("#chat-container").addEventListener("scroll", function () {
+  const threshold = 10; // pixels from the bottom considered "at the bottom"
+  if ((this.scrollHeight - this.scrollTop - this.clientHeight) > threshold) {
+    autoscroll = false;
+    scrollBtn.classList.add("show");
+  } else {
+    autoscroll = true;
+    scrollBtn.classList.remove("show");
+  }
+});
 
 const copyCodeButtonHTML = `<button type="button" onclick="copyCode(this)"
 class="btn btn-link m-0 p-0 text-muted copy-message-button copy-button"
@@ -84,32 +95,23 @@ title="Copy"><i class="bi bi-copy"></i><i class="bi bi-check-lg"></i></button>`;
 
 function scrollToBottom(smooth = true, force = false) {
   resizePromptContainer();
-  if (preventAutoScrolling && !force) {
+  if (!autoscroll && !force) {
     return;
   }
-
-  ignoreNextScrollEvent = true;
-
   let messagesContainer = document.querySelector("#chat-container");
-  let hashContainer = null;
-  let hashRect = null;
-  let containerRect = messagesContainer.getBoundingClientRect();
-
-  if (window.location.hash) {
-    hashContainer = document.querySelector(window.location.hash);
-    hashRect = hashContainer.getBoundingClientRect();
+  let destination = messagesContainer.scrollHeight;
+  // If there is currently a response streaming, disable smooth
+  if (document.querySelector(".chat-streaming-response")) {
+    smooth = false;
   }
-
-  const offset = (hashRect ? hashRect.top : 0) - containerRect.top;
-
   if (smooth) {
     messagesContainer.scrollTo({
-      top: hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight,
-      behavior: "smooth",
+      top: destination,
+      behavior: "smooth"
     });
     return;
   }
-  messagesContainer.scrollTop = hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight;
+  messagesContainer.scrollTop = destination;
 }
 
 function scrollToListItem() {
@@ -180,29 +182,6 @@ function toggleAriaSelected(mode) {
   });
 }
 
-// When the user scrolls up, prevent auto-scrolling
-let debounceTimer;
-document.querySelector("#chat-container").addEventListener("scroll", function () {
-  if (ignoreNextScrollEvent) {
-    ignoreNextScrollEvent = false;
-    return;
-  }
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    const scrollBtn = document.querySelector("#scroll-btn");
-    if (this.scrollTop + this.clientHeight < this.scrollHeight - 5) {
-      preventAutoScrolling = true;
-      scrollBtn.classList.add("show");
-    } else {
-      preventAutoScrolling = false;
-      scrollBtn.classList.remove("show");
-    }
-  }, 10);
-});
-
-const scrollBtn = document.querySelector("#scroll-btn");
-if (scrollBtn) scrollBtn.classList.remove("show");
-
 // Some resizing hacks to make the prompt form the same width as the messages
 function resizePromptContainer() {
   let chatContainer = document.querySelector("#chat-container");
@@ -261,6 +240,7 @@ document.addEventListener("DOMContentLoaded", function () {
       deleteChatSection(button);
     });
   });
+
 });
 // On prompt form submit...
 document.addEventListener("htmx:afterSwap", function (event) {
@@ -730,55 +710,3 @@ function nextSourceHighlight(message_id) {
     nextHighlight.scrollIntoView({behavior: "smooth", block: "center"});
   }, needToExpand ? 300 : 0);
 }
-
-// document.addEventListener("DOMContentLoaded", () => {
-//   const scrollContainer = document.getElementById("chat-container");
-//   const scrollBtn = document.getElementById("scroll-btn");
-
-//   if (!scrollContainer || !scrollBtn) {
-//     console.warn("Missing scroll container or button");
-//     return;
-//   }
-
-//   let autoScrollEnabled = true;
-
-//   function isAtBottom() {
-//     const threshold = 20;
-//     return scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < threshold;
-//   }
-
-//   function checkScroll() {
-//     const atBottom = isAtBottom();
-
-//     autoScrollEnabled = atBottom;
-
-//     scrollBtn.style.opacity = atBottom ? "0" : "1";
-//     scrollBtn.style.pointerEvents = atBottom ? "none" : "auto";
-//   }
-
-//   function scrollToBottom() {
-//     scrollContainer.scrollTo({
-//       top: scrollContainer.scrollHeight,
-//       behavior: "smooth"
-//     });
-//     autoScrollEnabled = true;
-//   }
-
-//   window.scrollToBottom = scrollToBottom;
-
-//   scrollContainer.addEventListener("scroll", () => {
-//     checkScroll();
-//   });
-
-//   const observer = new MutationObserver(() => {
-//     if (autoScrollEnabled) {
-//       scrollToBottom();
-//     }
-//     checkScroll();
-//   });
-
-//   observer.observe(scrollContainer, {childList: true, subtree: true});
-
-//   checkScroll();
-// });
-
