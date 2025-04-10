@@ -1807,6 +1807,10 @@
         "fr": "Texte extrait",
         "fr_auto": "Texte extrait"
     },
+    "File path": {
+        "fr": "Chemin d’accès au fichier",
+        "fr_auto": "Chemin d’accès au fichier"
+    },
     "View all": {
         "fr": "",
         "fr_auto": "Voir tout"

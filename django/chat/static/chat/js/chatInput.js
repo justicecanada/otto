@@ -29,7 +29,12 @@ function resizeOtherElements() {
   // Check if the chatContainer is scrolled to bottom
   let isScrolledToBottom = chatContainer.scrollHeight - chatContainer.clientHeight <= chatContainer.scrollTop + 1;
   chatContainer.style.paddingBottom = `${chatInputHeight}px`;
-  if (isScrolledToBottom) chatContainer.scrollTop = chatContainer.scrollHeight;
+  if (isScrolledToBottom) {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    document.querySelector("#scroll-btn").classList.remove("show");
+  } else {
+    document.querySelector("#scroll-btn").classList.add("show");
+  }
 }
 
 function handleChatPromptResize(event) {
