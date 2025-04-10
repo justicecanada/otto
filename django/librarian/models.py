@@ -384,7 +384,7 @@ class Document(models.Model):
     url_content_type = models.CharField(max_length=255, null=True, blank=True)
 
     # Specific to file-based documents
-    file = models.ForeignKey(
+    saved_file = models.ForeignKey(
         "SavedFile",
         on_delete=models.SET_NULL,
         null=True,
@@ -394,9 +394,8 @@ class Document(models.Model):
     # Filename stored here instead of in the File object since one file (hash)
     # may be uploaded under different filenames
     filename = models.CharField(max_length=500, null=True, blank=True)
-
-    # TODO - Add filepath field and populate to value of filename in migration TextField
-    filepath = models.CharField(max_length=500, null=True, blank=True)
+    # File path as extracted from zip, email, etc. (e.g. "something.zip/inner-file.txt")
+    file_path = models.TextField(null=True, blank=True)
 
     # Specific to PDF documents.
     # The extraction method *that was used* to extract text from the PDF
@@ -461,8 +460,8 @@ class Document(models.Model):
 
     @property
     def content_type(self):
-        if self.file:
-            return self.file.content_type
+        if self.saved_file:
+            return self.saved_file.content_type
         else:
             return self.url_content_type
 
@@ -480,7 +479,7 @@ class Document(models.Model):
         bind_contextvars(document_id=self.id)
 
         # Logic for updating the document embeddings, metadata, etc.
-        if not (self.file or self.url):
+        if not (self.saved_file or self.url):
             self.status = "ERROR"
             self.save()
             return

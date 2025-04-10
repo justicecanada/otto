@@ -526,7 +526,7 @@ def download_document(request, document_id):
     # AC-20: Provide an audit trail of interactions with external information sources
     logger.info("Downloading file for QA document", document_id=document_id)
     document = get_object_or_404(Document, pk=document_id)
-    file_obj = document.file
+    file_obj = document.saved_file
     file = file_obj.file
     # Download the file, don't display it
     response = HttpResponse(file, content_type=file_obj.content_type)
