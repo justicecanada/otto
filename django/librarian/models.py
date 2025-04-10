@@ -570,9 +570,8 @@ def document_post_save(sender, instance, **kwargs):
 @receiver(post_delete, sender=Document)
 def document_post_delete(sender, instance, **kwargs):
     try:
-        # pytest Error been thrown because created Document doesn't have file. Test passes without if but error thrown
-        if instance.file is not None:
-            instance.file.safe_delete()
+        if instance.saved_file is not None:
+            instance.saved_file.safe_delete()
         # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
         Library.objects.filter(pk=instance.data_source.library.pk).update(
             accessed_at=timezone.now()
