@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_5aabb7febf6ec373_tasks_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-04-10 17:22 +0000
+            created at 2025-04-10 19:02 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -191,7 +191,7 @@
     <p class="run"><span class="n"><a id="t109" href="#t109">109</a></span><span class="t">    <span class="nam">llm</span> <span class="op">=</span> <span class="nam">OttoLLM</span><span class="op">(</span><span class="nam">model</span><span class="op">,</span> <span class="nam">temperature</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t110" href="#t110">110</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t111" href="#t111">111</a></span><span class="t">    <span class="nam">tokens</span> <span class="op">=</span> <span class="nam">num_tokens_from_string</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t112" href="#t112">112</a></span><span class="t">        <span class="str">" "</span><span class="op">.</span><span class="nam">join</span><span class="op">(</span><span class="nam">message</span><span class="op">.</span><span class="nam">content</span> <span class="key">for</span> <span class="nam">message</span> <span class="key">in</span> <span class="nam">chat_history</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t112" href="#t112">112</a></span><span class="t">        <span class="str">" "</span><span class="op">.</span><span class="nam">join</span><span class="op">(</span><span class="nam">message</span><span class="op">.</span><span class="nam">content</span> <span class="key">or</span> <span class="str">""</span> <span class="key">for</span> <span class="nam">message</span> <span class="key">in</span> <span class="nam">chat_history</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t113" href="#t113">113</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t114" href="#t114">114</a></span><span class="t">    <span class="key">if</span> <span class="nam">tokens</span> <span class="op">></span> <span class="nam">llm</span><span class="op">.</span><span class="nam">max_input_tokens</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t115" href="#t115">115</a></span><span class="t">        <span class="com"># In this case, just return an error. No LLM costs are incurred.</span>&nbsp;</span><span class="r"></span></p>
@@ -881,7 +881,7 @@
             <a class="nav" href="z_5aabb7febf6ec373_tasks_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
-            created at 2025-04-10 17:22 +0000
+            created at 2025-04-10 19:02 +0000
         </p>
     </div>
 </footer>
