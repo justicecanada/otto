@@ -123,7 +123,7 @@
       {% if document.filename %}
         <dt>{% trans "Filename" %}</dt>
         <dd>
-          {% if document.file %}
+          {% if document.saved_file %}
             <a href="{% url 'librarian:download_document' document.id %}">{{ document.filename }}</a>
           {% else %}
             {{ document.filename }}
@@ -170,10 +170,10 @@
              rel="noopener noreferrer">{% trans "View all" %}</a>
         </dd>
       {% endif %}
-      {% if document.filepath %}
+      {% if document.file_path %}
         <dt>{% trans "File path" %}</dt>
         <dd>
-          {{ document.filepath }}
+          {{ document.file_path }}
         </dd>
       {% endif %}
     </dl>

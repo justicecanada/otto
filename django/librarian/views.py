@@ -498,7 +498,7 @@ def upload(request, data_source_id):
             existing_document = Document.objects.filter(
                 data_source_id=data_source_id,
                 filename=file.name,
-                file__sha256_hash=file_hash,
+                saved_file__sha256_hash=file_hash,
             ).first()
             # Skip if filename and hash are the same, but reprocess if ERROR status
             if existing_document:
@@ -511,7 +511,7 @@ def upload(request, data_source_id):
             file_obj.generate_hash()
 
         document = Document.objects.create(
-            data_source_id=data_source_id, file=file_obj, filename=file.name
+            data_source_id=data_source_id, saved_file=file_obj, filename=file.name
         )
         document.process()
     # Update the modal with the new documents

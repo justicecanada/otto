@@ -381,10 +381,14 @@ def qa_response(chat, response_message, switch_mode=False):
 
         saved_files = [file.saved_file for file in files]
         error_documents = await sync_to_async(
-            lambda: list(ds.documents.filter(status="ERROR", file__in=saved_files))
+            lambda: list(
+                ds.documents.filter(status="ERROR", saved_file__in=saved_files)
+            )
         )()
         num_completed_documents = await sync_to_async(
-            lambda: ds.documents.filter(status="SUCCESS", file__in=saved_files).count()
+            lambda: ds.documents.filter(
+                status="SUCCESS", saved_file__in=saved_files
+            ).count()
         )()
         if error_documents:
             error_string = _("Error processing the following document(s):")
@@ -405,7 +409,7 @@ def qa_response(chat, response_message, switch_mode=False):
             existing_document = Document.objects.filter(
                 data_source=chat.data_source,
                 filename=file.filename,
-                file__sha256_hash=file.saved_file.sha256_hash,
+                saved_file__sha256_hash=file.saved_file.sha256_hash,
             ).first()
             # Skip if filename and hash are the same, but reprocess if ERROR status
             if existing_document:
@@ -414,7 +418,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 continue
             document = Document.objects.create(
                 data_source=chat.data_source,
-                file=file.saved_file,
+                saved_file=file.saved_file,
                 filename=file.filename,
             )
             document.process()

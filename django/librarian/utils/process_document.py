@@ -26,7 +26,7 @@ def process_file(file, data_source_id, nested_file_path, name, content_type):
     existing_document = Document.objects.filter(
         data_source_id=data_source_id,
         filename=name,
-        file__sha256_hash=file_obj.sha256_hash,
+        saved_file__sha256_hash=file_obj.sha256_hash,
     ).first()
 
     # Skip if filename and hash are the same, but reprocess if ERROR status
@@ -37,8 +37,8 @@ def process_file(file, data_source_id, nested_file_path, name, content_type):
 
     document = Document.objects.create(
         data_source_id=data_source_id,
-        file=file_obj,
+        saved_file=file_obj,
         filename=name,
-        filepath=nested_file_path,
+        file_path=nested_file_path,
     )
     document.process()

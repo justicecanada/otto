@@ -85,8 +85,8 @@ def create_nodes(chunks, document):
     metadata = {"node_type": "document", "data_source_uuid": data_source_uuid}
     if document.title:
         metadata["title"] = document.title
-    if document.url or document.filename:
-        metadata["source"] = document.filepath or document.url or document.filename
+    if document.file_path or document.url or document.filename:
+        metadata["source"] = document.file_path or document.url or document.filename
     document_node = TextNode(text="", id_=document_uuid, metadata=metadata)
     document_node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
         node_id=document_node.node_id

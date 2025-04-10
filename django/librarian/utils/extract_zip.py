@@ -20,7 +20,7 @@ def process_zip_file(content, root_document_id):
     # Nested file path is used to keep track of the root file path for other archive file types (e.g .msg, .eml) that are unzipped and trigger their own processing
     document = Document.objects.get(id=root_document_id)
     data_source_id = document.data_source.id
-    root_file_path = document.filepath
+    root_file_path = document.file_path
     directory = f"{cwd}/media/{data_source_id}/zip"
 
     with ZipFile(file=binary_stream, mode="r") as archive:
@@ -32,9 +32,7 @@ def process_zip_file(content, root_document_id):
             )
             file_info.insert(
                 0,
-                format_file_info(
-                    document.filename, root_nested_file_path, archive.namelist()
-                ),
+                format_file_info(document.filename, root_file_path, archive.namelist()),
             )
             md = "\n".join(file_info)
         except Exception as e:
@@ -88,9 +86,10 @@ def format_file_info(
 
     relative_path = os.path.relpath(file_name, path)
     out_str = ""
-    if level == 0:
-        out_str = _indent(relative_path) + "\n"
+    out_str = _indent(relative_path) + "\n"
     level += 1
     for file in namelist:
+        if file.endswith(".zip"):
+            continue
         out_str += _indent(file) + "\n"
     return out_str[:-1]  # Remove the last newline character
