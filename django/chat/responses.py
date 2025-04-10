@@ -384,7 +384,7 @@ def qa_response(chat, response_message, switch_mode=False):
             lambda: list(ds.documents.filter(status="ERROR", file__in=saved_files))
         )()
         num_completed_documents = await sync_to_async(
-            lambda: ds.documents.filter(status="ERROR", file__in=saved_files).count()
+            lambda: ds.documents.filter(status="SUCCESS", file__in=saved_files).count()
         )()
         if error_documents:
             error_string = _("Error processing the following document(s):")
