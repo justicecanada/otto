@@ -240,6 +240,7 @@ def extract_markdown(
     chunk_size=768,
     selector=None,
     data_source_id=None,
+    root_document_id=None,
 ):
     try:
         enable_markdown = True
@@ -272,7 +273,7 @@ def extract_markdown(
             md = msg_to_markdown(content)
         elif process_engine == "ZIP":
             enable_markdown = False
-            md = process_zip_file(content, data_source_id)
+            md = process_zip_file(content, root_document_id)
         elif process_engine == "CSV":
             md = csv_to_markdown(content)
         elif process_engine == "EXCEL":

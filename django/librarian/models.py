@@ -513,6 +513,7 @@ class SavedFile(models.Model):
     content_type = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     eof = models.BooleanField(default=True)
+    nested_file_path = models.CharField(max_length=500, null=True, blank=True)
 
     def __str__(self):
         return self.file.name
