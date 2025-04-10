@@ -1459,14 +1459,15 @@ math[display="block"] {
 }
 
 #scroll-btn {
-  position: fixed;
+  position: sticky;
+  margin-left: -16px;
   inset-inline: 0;
   margin-inline: auto;
-  bottom: 150px;
+  bottom: 10px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
-  z-index: 9999;
+  z-index: 2;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -1476,11 +1477,11 @@ math[display="block"] {
   background-position: 50% 64%;
   background-size: 67%;
   background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='black'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>");
+  left: 50%;
+  margin-top: -32px;
 }
 
 [data-bs-theme="dark"] #scroll-btn {
-  background-color: var(--otto-tab-body-bg-color);
-  border: 2px solid var(--bs-gray-700);
   background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>");
 }
 

@@ -45,7 +45,7 @@
           <i class="bi bi-gear"></i>
           <span class="visually-hidden">{% trans "Toggle chat options sidebar" %}</span>
         </button>
-        <div class="container px-5">
+        <div class="container px-5 position-relative">
           {% if pinned_messages %}
             <div id="pinned-messages-container" class="pb-1 pt-3 border-bottom">
               {% with messages=pinned_messages %}
@@ -60,9 +60,7 @@
             {% endif %}
             {% include 'chat/components/chat_messages.html' %}
           </div>
-          <button id="scroll-btn"
-                  class="position-fixed rounded-circle"
-                  onclick="scrollToBottom(true, true)"></button>
+          <button id="scroll-btn" onclick="scrollToBottom(true, true)"></button>
         </div>
         {% include 'chat/components/chat_input.html' %}
       </div>
