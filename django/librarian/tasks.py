@@ -109,7 +109,6 @@ def process_document_helper(document, llm, pdf_method="default"):
                 },
             )
         content = file.file.read()
-        # print(content)
         content_type = guess_content_type(content, file.content_type, document.filename)
 
     if current_task:

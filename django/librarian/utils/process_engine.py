@@ -85,8 +85,9 @@ def create_nodes(chunks, document):
     metadata = {"node_type": "document", "data_source_uuid": data_source_uuid}
     if document.title:
         metadata["title"] = document.title
-    if document.file_path or document.url or document.filename:
-        metadata["source"] = document.file_path or document.url or document.filename
+    source = document.file_path or document.url or document.filename
+    if source:
+        metadata["source"] = source
     document_node = TextNode(text="", id_=document_uuid, metadata=metadata)
     document_node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
         node_id=document_node.node_id
@@ -239,7 +240,6 @@ def extract_markdown(
     base_url=None,
     chunk_size=768,
     selector=None,
-    data_source_id=None,
     root_document_id=None,
 ):
     try:

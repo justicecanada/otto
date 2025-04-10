@@ -3434,9 +3434,5 @@
     "GPT-4o (best accuracy, 15x cost)": {
         "fr": "",
         "fr_auto": "GPT-4o (meilleure précision, coût 15x)"
-    },
-    "Zip file extracted successfully.": {
-        "fr": "",
-        "fr_auto": "Fichier zip extrait avec succès."
     }
 }

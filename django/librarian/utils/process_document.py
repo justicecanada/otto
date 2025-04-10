@@ -1,11 +1,13 @@
-from pathlib import Path
-
 from structlog import get_logger
 
 logger = get_logger(__name__)
 
 
 def process_file(file, data_source_id, nested_file_path, name, content_type):
+    """
+    Slightly duplicated from chat/views.py (which handles JS file uploads in chat)
+    TODO: Consider refactoring chat/views.py to use this function
+    """
     from librarian.models import Document, SavedFile
     from librarian.utils.process_engine import generate_hash
 
@@ -17,9 +19,7 @@ def process_file(file, data_source_id, nested_file_path, name, content_type):
         file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
         logger.info(f"Found existing SavedFile for {name}", saved_file_id=file_obj.id)
     else:
-        file_obj = SavedFile.objects.create(
-            content_type=content_type,
-        )
+        file_obj = SavedFile.objects.create(content_type=content_type)
         file_obj.file.save(name, file)
         file_obj.generate_hash()
 

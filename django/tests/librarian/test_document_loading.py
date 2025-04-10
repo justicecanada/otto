@@ -1,8 +1,6 @@
 import os
 import re
 
-from django.conf import settings
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 import pytest
@@ -10,7 +8,7 @@ from openpyxl import Workbook
 from structlog import get_logger
 
 from chat.models import Chat
-from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
+from librarian.models import DataSource, Document
 from librarian.utils.process_engine import decode_content, extract_markdown
 from otto.models import Cost
 

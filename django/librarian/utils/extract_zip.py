@@ -1,6 +1,5 @@
 import os
 import shutil
-import uuid
 from io import BytesIO
 from pathlib import Path
 from zipfile import ZipFile
