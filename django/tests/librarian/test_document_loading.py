@@ -2,11 +2,15 @@ import os
 import re
 
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
 
 import pytest
 from openpyxl import Workbook
 from structlog import get_logger
 
+from chat.models import Chat
+from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
 from librarian.utils.process_engine import decode_content, extract_markdown
 from otto.models import Cost
 
@@ -162,11 +166,28 @@ def test_extract_png():
 
 
 @pytest.mark.django_db
-def test_extract_zip():
+def test_extract_zip(client, all_apps_user):
+
+    user = all_apps_user()
+    client.force_login(user)
+
+    chat = Chat.objects.create(user=user)
+    # Ensure that a data source was created
+    data_source = DataSource.objects.filter(chat=chat).first()
+    assert data_source is not None
+    # Upload a file to the data source
+    url = reverse("librarian:upload", kwargs={"data_source_id": data_source.id})
+    with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
+        response = client.post(url, {"file": f})
+        assert response.status_code == 200
+    # Ensure that a document was created
+    document = Document.objects.filter(data_source=data_source).first()
+    document_id = document.id
+    assert document is not None
     # Load a ZIP file
     with open(os.path.join(this_dir, "test_files/example.zip"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "ZIP")
+        md, md_chunks = extract_markdown(content, "ZIP", root_document_id=document_id)
         assert len(md) > 0
         assert len(md_chunks) > 0
         assert "example.txt" in md
