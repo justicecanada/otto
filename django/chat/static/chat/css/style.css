@@ -1457,22 +1457,15 @@ math[display="block"] {
   box-shadow: 0 0px 5px rgba(0, 0, 0, 0.4);
 }
 
-#prompt-form-container {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  z-index: 1;
-}
-
 #scroll-btn {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-8px);
+  position: fixed;
+  inset-inline: 0;
+  margin-inline: auto;
+  bottom: 150px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
-  z-index: 10;
+  z-index: 9999;
   width: 32px;
   height: 32px;
   border-radius: 50%;
