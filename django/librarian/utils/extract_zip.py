@@ -1,5 +1,6 @@
 import os
 import shutil
+import uuid
 from io import BytesIO
 from pathlib import Path
 from zipfile import ZipFile
@@ -19,9 +20,8 @@ def process_zip_file(content, root_document_id):
     # Document needed here to access root nested file path and data source id
     # Nested file path is used to keep track of the root file path for other archive file types (e.g .msg, .eml) that are unzipped and trigger their own processing
     document = Document.objects.get(id=root_document_id)
-    data_source_id = document.data_source.id
     root_file_path = document.file_path
-    directory = f"{cwd}/media/{data_source_id}/zip"
+    directory = f"{cwd}/media/{root_document_id}/zip"
 
     with ZipFile(file=binary_stream, mode="r") as archive:
         try:
