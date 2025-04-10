@@ -99,7 +99,7 @@
                     data-summarize-placeholder='{% trans "Enter a URL, paste long text or upload files to summarize" %}'
                     data-translate-placeholder='{% trans "Enter text or upload files to translate (select language in sidebar)" %}'
                     required></textarea>
- 
+
           <button id="send-button"
                   class="btn btn-outline-secondary"
                   type="submit"
@@ -110,8 +110,9 @@
       </div>
     </form>
   </div>
+  <button id="scroll-btn" type="button" onclick="scrollToBottom(true, true)"></button>
 </div>
- 
+
 {% include 'chat/modals/prompt_generator.html' %}
 
 {% block page_script %}
