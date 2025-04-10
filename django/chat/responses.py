@@ -109,7 +109,7 @@ def chat_response(
     llm = OttoLLM(model, temperature)
 
     tokens = num_tokens_from_string(
-        " ".join(message.content for message in chat_history)
+        " ".join(message.content or "" for message in chat_history)
     )
     if tokens > llm.max_input_tokens:
         # In this case, just return an error. No LLM costs are incurred.
