@@ -26,13 +26,17 @@ def process_zip_file(content, root_document_id):
     with ZipFile(file=binary_stream, mode="r") as archive:
         try:
             archive.extractall(directory)
-            file_info = extract_nested_zips(directory)
+            file_info = extract_nested_zips(directory, level=1)
             process_directory(
                 directory, document.data_source.id, document.name, root_nested_file_path
             )
-            root_level_files = ", ".join(archive.namelist())
-            file_info.insert(0, (f"Files: {root_level_files}\n"))
-            md = "".join(file_info)
+            file_info.insert(
+                0,
+                format_file_info(
+                    document.filename, root_nested_file_path, archive.namelist()
+                ),
+            )
+            md = "\n".join(file_info)
         except Exception as e:
             logger.error(f"Failed to extract Zip file: {e}")
             md = ""
@@ -40,7 +44,7 @@ def process_zip_file(content, root_document_id):
         return md
 
 
-def extract_nested_zips(path):
+def extract_nested_zips(path: str, level: int = 0) -> list[str]:
     fileinfo = []
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -52,10 +56,10 @@ def extract_nested_zips(path):
                 with ZipFile(file_name) as zipObj:
                     zipObj.extractall(current_directory)
                     fileinfo.append(
-                        format_file_info(file_name, path, zipObj.namelist())
+                        format_file_info(file_name, path, zipObj.namelist(), level)
                     )
                 os.remove(file_name)
-                extract_nested_zips(current_directory)
+                fileinfo += extract_nested_zips(current_directory, level + 1)
     return fileinfo
 
 
@@ -78,7 +82,17 @@ def process_directory(
                 process_file(f, data_source_id, nested_file_path, name, content_type)
 
 
-def format_file_info(file_name, path, namelist) -> str:
+def format_file_info(
+    file_name: str, path: str, namelist: list[str], level: int = 0
+) -> str:
+    def _indent(text: str) -> str:
+        return " " * 2 * level + text
+
     relative_path = os.path.relpath(file_name, path)
-    files = ", ".join(namelist)
-    return f"Filename: {relative_path} - Files: {files}\n"
+    out_str = ""
+    if level == 0:
+        out_str = _indent(relative_path) + "\n"
+    level += 1
+    for file in namelist:
+        out_str += _indent(file) + "\n"
+    return out_str[:-1]  # Remove the last newline character
