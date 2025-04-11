@@ -261,10 +261,12 @@ document.addEventListener("htmx:afterSwap", function (event) {
     render_markdown(last_message.parentElement);
   }
   document.querySelector("#chat-prompt").value = "";
-  document.querySelector("#chat-prompt").focus();
+  if (!chat_tour_in_progress) {
+    document.querySelector("#chat-prompt").focus();
+  }
   // Change height back to minimum
-  document.querySelector("#chat-prompt").style.height = "85px";
-  lastHeight = 85;
+  document.querySelector("#chat-prompt").style.height = chatPromptMinHeight + "px";
+  lastHeight = chatPromptMinHeight;
   scrollToBottom(false, true);
 });
 // When streaming response is updated
