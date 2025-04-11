@@ -10,7 +10,7 @@ function resizeTextarea() {
   // Reset the height to its default to get the correct scrollHeight
   textarea.style.height = 'auto';
   // Calculate the new height and limit it to 400px
-  let newHeight = Math.min(Math.max(textarea.scrollHeight + 3, lastHeight), chatPromptMaxHeight);
+  let newHeight = Math.min(Math.max(textarea.scrollHeight, lastHeight), chatPromptMaxHeight);
   lastHeight = newHeight;
   textarea.style.height = newHeight + 'px';
   resizeOtherElements();
