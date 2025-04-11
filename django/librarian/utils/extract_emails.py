@@ -54,16 +54,8 @@ def extract_msg(content, root_document_id):
                                     if os.path.isfile(path):
                                         with open(path, "rb") as f:
                                             name = Path(path).name
-                                            nested_file_path = (
-                                                f"{root_file_path}/{name}"
-                                            )
-                                            if not root_file_path:
-                                                rel_path = os.path.relpath(
-                                                    path, directory
-                                                )
-                                                nested_file_path = (
-                                                    f"{document.name}/{rel_path}"
-                                                )
+                                            print(Path(path))
+                                            nested_file_path = f"{root_file_path or document.filename}/{name}"
                                             content_type = guess_content_type(
                                                 f, path=path
                                             )
@@ -84,7 +76,17 @@ def extract_msg(content, root_document_id):
                                     data.get("date"), "%a, %d %b %Y %H:%M:%S %z"
                                 )
                                 email["body"] = data.get("body")
-            combined_email = f"From: {email.get('from')}\nTo: {email.get('to')}\nSubject: {email.get('subject')}\nDate: {email.get('sent_date')}\nAttachments: {email.get('attachments')}\n\n{email.get('body')}"
+            combined_email = f"From: {email.get('from')}\n" f"To: {email.get('to')}\n"
+            if email.get("cc"):
+                combined_email += f"Cc: {email.get('cc')}\n"
+            if email.get("bcc"):
+                combined_email += f"Bcc: {email.get('bcc')}\n"
+            combined_email += (
+                f"Subject: {email.get('subject')}\n"
+                f"Date: {email.get('sent_date')}\n"
+                f"Attachments: {email.get('attachments')}\n\n"
+                f"{email.get('body')}"
+            )
             md = combined_email
         except subprocess.CalledProcessError as e:
             logger.error(f"Command failed with exit code {e.returncode}")
