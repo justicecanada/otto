@@ -52,8 +52,8 @@ def extract_msg(content, root_document_id):
                                 email_attachments = []
                                 for path in attachments:
                                     if os.path.isfile(path):
+                                        name = Path(path).name
                                         with open(path, "rb") as f:
-                                            name = Path(path).name
                                             print(Path(path))
                                             nested_file_path = f"{root_file_path or document.filename}/{name}"
                                             content_type = guess_content_type(
@@ -66,8 +66,7 @@ def extract_msg(content, root_document_id):
                                                 name,
                                                 content_type,
                                             )
-                                        attachment = Path(path).name
-                                        email_attachments.append(attachment)
+                                        email_attachments.append(name)
                                 email["attachments"] = ", ".join(email_attachments)
                                 email["from"] = data.get("from")
                                 email["to"] = data.get("to")
