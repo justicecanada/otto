@@ -5,26 +5,26 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import weakref
 from datetime import datetime
-from email import policy
-from email.iterators import typed_subpart_iterator
-from email.parser import BytesParser
 from pathlib import Path
 
-from django.urls import reverse
-
-import requests
 from structlog import get_logger
 
-from librarian.models import Document, SavedFile
+from librarian.models import Document
 
 logger = get_logger(__name__)
 
 
-def extract_msg(content, data_source_id):
+def extract_msg(content, root_document_id):
+    from librarian.utils.process_document import process_file
+    from librarian.utils.process_engine import guess_content_type
+
     cwd = Path.cwd()
-    directory = f"{cwd}/media/extracted_emails"
+
+    document = Document.objects.get(id=root_document_id)
+    root_file_path = document.file_path
+
+    directory = f"{cwd}/media/{root_document_id}/email"
     with tempfile.NamedTemporaryFile(suffix=".msg") as temp_file:
         temp_file.write(content)
         temp_file_path = temp_file.name
@@ -50,24 +50,33 @@ def extract_msg(content, data_source_id):
                                 data = json.load(f)
                                 attachments = data.get("attachments")
                                 email_attachments = []
-                                for attachment in attachments:
-                                    if os.path.isfile(attachment):
-                                        with open(attachment, "rb") as f:
-                                            name = Path(attachment).name
-                                            suffix = Path(attachment).suffix
-                                            # content_type = suffix
-                                            if suffix == ".msg":
-                                                content_type = (
-                                                    "application/vnd.ms-outlook"
-                                                )
-                                            else:
-                                                content_type = suffix
-                                            process_file(
-                                                f, data_source_id, name, content_type
+                                for path in attachments:
+                                    if os.path.isfile(path):
+                                        with open(path, "rb") as f:
+                                            name = Path(path).name
+                                            nested_file_path = (
+                                                f"{root_file_path}/{name}"
                                             )
-
+                                            if not root_file_path:
+                                                rel_path = os.path.relpath(
+                                                    path, directory
+                                                )
+                                                nested_file_path = (
+                                                    f"{document.name}/{rel_path}"
+                                                )
+                                            content_type = guess_content_type(
+                                                f, path=path
+                                            )
+                                            process_file(
+                                                f,
+                                                document.data_source.id,
+                                                nested_file_path,
+                                                name,
+                                                content_type,
+                                            )
+                                        attachment = Path(path).name
                                         email_attachments.append(attachment)
-                                email["attachments"] = email_attachments
+                                email["attachments"] = ",".join(email_attachments)
                                 email["from"] = data.get("from")
                                 email["to"] = data.get("to")
                                 email["subject"] = data.get("subject")
@@ -75,7 +84,7 @@ def extract_msg(content, data_source_id):
                                     data.get("date"), "%a, %d %b %Y %H:%M:%S %z"
                                 )
                                 email["body"] = data.get("body")
-            combined_email = f"From: {email.get('from')}\nTo: {email.get('to')}\nSubject: {email.get('subject')}\nDate: {email.get('sent_date')}\n\n{email.get('body')}"
+            combined_email = f"From: {email.get('from')}\nTo: {email.get('to')}\nSubject: {email.get('subject')}\nDate: {email.get('sent_date')}\nAttachments: {email.get('attachments')}\n\n{email.get('body')}"
             md = combined_email
         except subprocess.CalledProcessError as e:
             logger.error(f"Command failed with exit code {e.returncode}")
@@ -86,35 +95,3 @@ def extract_msg(content, data_source_id):
             md = ""
         shutil.rmtree(directory, ignore_errors=True)
         return md
-
-
-def process_file(file, data_source_id, name, content_type):
-    from librarian.utils.process_engine import generate_hash
-
-    file_hash = generate_hash(file.read())
-    file_exists = SavedFile.objects.filter(sha256_hash=file_hash).exists()
-    if file_exists:
-        file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
-        logger.info(
-            f"Found existing SavedFile for {file.name}", saved_file_id=file_obj.id
-        )
-        # Check if identical document already exists in the DataSource
-        existing_document = Document.objects.filter(
-            data_source_id=data_source_id,
-            filename=file.name,
-            file__sha256_hash=file_hash,
-        ).first()
-        # Skip if filename and hash are the same, and processing status is SUCCESS
-        if existing_document:
-            if existing_document.status != "SUCCESS":
-                existing_document.process()
-            return
-    else:
-        file_obj = SavedFile.objects.create(content_type=content_type)
-        file_obj.file.save(name, file)
-        file_obj.generate_hash()
-
-    document = Document.objects.create(
-        data_source_id=data_source_id, file=file_obj, filename=name
-    )
-    document.process()

@@ -124,6 +124,12 @@ function scrollToListItem() {
   }, 100);
 }
 
+function updatePlaceholder(mode) {
+  // Update placeholder text
+  const chat_prompt = document.querySelector("#chat-prompt");
+  chat_prompt.placeholder = chat_prompt.dataset[`${mode}Placeholder`];
+}
+
 function handleModeChange(mode, element = null, preset_loaded = false) {
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
@@ -131,7 +137,9 @@ function handleModeChange(mode, element = null, preset_loaded = false) {
   if (!preset_loaded) {triggerOptionSave();}
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
-
+  // Dispatch change event for search mode in order to trigger advance settings options
+  document.getElementById('id_qa_mode').dispatchEvent(new Event("change"));
+  updatePlaceholder(mode);
   resizeOtherElements();
   // If the invoking element is an accordion-button we can stop
   if (element && element.classList.contains("accordion-button")) return;
@@ -226,6 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
   resizeTextarea();
   let mode = document.querySelector('#chat-outer').classList[0];
   updateAccordion(mode);
+  updatePlaceholder(mode);
   document.querySelector("#chat-prompt").focus();
   if (document.querySelector("#no-messages-placeholder") === null) {
     setTimeout(scrollToBottom, 100);

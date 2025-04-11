@@ -11,6 +11,7 @@
           content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <script src="{% static 'thirdparty/htmx.min.js' %}"></script>
     <script src="{% static 'thirdparty/idiomorph-ext.min.js' %}"></script>
+ 
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet"
@@ -19,13 +20,33 @@
           href="{% static 'thirdparty/css/bootstrap-icons.min.css' %}" />
     <script src="{% static 'thirdparty/bootstrap.bundle.min.js' %}"
             crossorigin="anonymous"></script>
-
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'style.css' %}" />
     <link rel="icon" type="image/x-icon" href="{% static 'otto-icon.png' %}" />
     {% block page_css %}{% endblock %}
 
     <script src="{% static 'thirdparty/js-cookie-3.0.1.min.js' %}"></script>
+    <script>
+      const getStoredTheme = () => localStorage.getItem('Ottotheme');
+      const setStoredTheme = theme => localStorage.setItem('Ottotheme', theme);
+
+      const getPreferredTheme = () => {
+        const storedTheme = getStoredTheme();
+        if (storedTheme) {
+          return storedTheme;
+        }
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      };
+
+      const setTheme = theme => {
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        const icon = document.getElementById('theme-icon');
+        if (icon) {
+          icon.className = `bi theme-icon-active ${theme === 'dark' ? 'bi-sun' : 'bi-moon-stars'}`;
+        }
+      };
+      setTheme(getPreferredTheme());
+    </script>
     <title>
       {% block page_title %}
         Otto | {% trans "Empowering Justice efficiency with data and AI" %}
@@ -39,10 +60,13 @@
            data-bs-theme="dark"
            id="top-nav">
         <a href="#main-content-wrapper"
-           class="btn btn-primary position-absolute visually-hidden-focusable ms-2">{% trans "Skip to main content" %}</a>
+           class="btn btn-primary position-absolute visually-hidden-focusable ms-2"
+           style="z-index:10">{% trans "Skip to main content" %}</a>
         <div class="container-fluid">
           <div>
-            <a class="navbar-brand text-white me-0" href="{% url 'index' %}">
+            <a class="navbar-brand text-white me-0"
+               href="{% url 'index' %}"
+               id="home-link">
               <img src="{% static 'otto-icon.png' %}"
                    width="27"
                    height="auto"
@@ -55,26 +79,18 @@
             </a>
             {{ otto_version|safe }}
           </div>
- 
+
           {% if request.user.is_authenticated %}
             {% include 'components/search.html' %}
-            <button class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbar-dropdown"
-                    aria-controls="navbar-dropdown"
-                    aria-expanded="false"
-                    aria-label="{% trans 'Toggle user menu' %}">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse flex-fill-lg justify-content-end"
-                 id="navbar-dropdown">
-              <ul class="navbar-nav position-relative">
+            <div class="collapse navbar-collapse flex-fill-lg justify-content-end">
+              <ul class="navbar-nav position-relative" id="top-right-nav">
                 {% include 'components/user_menu.html' %}
+                {% include 'components/notifications.html' %}
+                {% include 'components/feedback/feedback_icon.html' %}
+                {% include 'components/dark_mode_toggle.html' %}
+                {% include 'components/help_menu.html' %}
+                {% include 'components/language_toggle.html' %}
               </ul>
-              {% include 'components/notifications.html' %}
-              {% include 'components/feedback/feedback_icon.html' %}
-              {% include 'components/language_toggle.html' %}
             </div>
           {% endif %}
 
@@ -110,7 +126,6 @@
       {% endblock %}
       {% block flash_messages %}{% endblock %}
       {% include "components/feedback/feedback_modal.html" %}
- 
     </div>
 
     <script>

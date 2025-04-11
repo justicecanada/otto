@@ -77,7 +77,7 @@ def process_document(
 
 def process_document_helper(document, llm, pdf_method="default"):
     url = document.url
-    file = document.file
+    file = document.saved_file
     if not (url or file):
         raise ValueError("URL or file is required")
 
@@ -130,8 +130,9 @@ def process_document_helper(document, llm, pdf_method="default"):
         pdf_method=pdf_method,
         base_url=base_url,
         selector=document.selector,
-        data_source_id=document.data_source_id,
+        root_document_id=document.id,
     )
+
     if current_task:
         current_task.update_state(
             state="PROCESSING",
@@ -153,7 +154,7 @@ def process_document_helper(document, llm, pdf_method="default"):
     vector_store_index.delete_ref_doc(document_uuid, delete_from_docstore=True)
     # Insert new nodes in batches
     batch_size = 16
-    for i in tqdm(range(0, len(nodes), batch_size)):
+    for i in range(0, len(nodes), batch_size):
         if i > 0:
             percent_complete = i / len(nodes) * 100
             if current_task:

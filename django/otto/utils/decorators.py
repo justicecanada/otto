@@ -11,6 +11,7 @@ from structlog import get_logger
 
 from otto.models import App, Notification
 from otto.rules import ADMINISTRATIVE_PERMISSIONS
+from otto.utils.common import robust_redirect
 
 logger = get_logger(__name__)
 
@@ -22,7 +23,7 @@ def app_access_required(app_handle):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 logger.info("User is not authenticated", category="security")
-                return redirect(reverse("index"))
+                return robust_redirect(request, reverse("index"))
 
             app = App.objects.get(handle=app_handle)
             if not request.user.has_perm("otto.access_app", app):
@@ -37,7 +38,7 @@ def app_access_required(app_handle):
                     text=_("You are not authorized to access") + f" {app.name}",
                     category="error",
                 )
-                return redirect(reverse("index"))
+                return robust_redirect(request, reverse("index"))
 
             return func(request, *args, **kwargs)
 
@@ -100,7 +101,7 @@ def permission_required(
                         text=_(f"Unauthorized access of URL:") + f" {request.path}",
                         category="error",
                     )
-                    return redirect(reverse("index"))
+                    return robust_redirect(request, reverse("index"))
             else:
                 # User has all required permissions -- allow the view to execute
                 if bool(ADMINISTRATIVE_PERMISSIONS.intersection(perms)):

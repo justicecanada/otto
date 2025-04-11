@@ -7,7 +7,7 @@
        hx-swap="outerHTML"
        hx-trigger='load delay:100ms'
        style="position: absolute;
-              bottom: -3px;
+              bottom: -2px;
               width: calc(100% - 0.75rem);
               margin-left: 0.2rem;
               z-index: 1">
@@ -18,7 +18,8 @@
   </div>
   <button class="btn btn-dark text-muted dropdown-toggle px-2"
           data-bs-toggle="dropdown"
-          aria-expanded="false">
+          aria-expanded="false"
+          id="user-menu-button">
     {% if can_enable_load_testing and load_test_enabled %}
       <i class="bi bi-shield-exclamation text-danger"
          title="{% trans 'Load testing URL is enabled' %}"></i>
@@ -27,11 +28,14 @@
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
     <li class="d-none" id="user-menu-cost"></li>
+    {% if request.user.is_operations_admin %}
+      <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
+      <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
+    {% endif %}
     {% if request.user.is_admin %}
       <li>
         <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
-        <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
-        <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
+        <a class="a dropdown-item" href="{% url 'reset_completion_flags' %}">{% trans "Reset flags for demo" %}</a>
       </li>
       <li>
         <hr class="dropdown-divider">

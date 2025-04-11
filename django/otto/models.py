@@ -31,7 +31,7 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    # Always store lowercase email addresses. This is done when user is created.
+    objects = CustomUserManager()
     upn = models.CharField(max_length=255, unique=True)
     email = models.EmailField()
     oid = models.CharField(max_length=255, null=True)
@@ -50,9 +50,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         related_name="default_for",
     )
     monthly_max = models.IntegerField(default=settings.DEFAULT_MONTHLY_MAX)
-    monthly_bonus = models.IntegerField(default=0)  # Resets each Sunday to 0
-
-    objects = CustomUserManager()
+    monthly_bonus = models.IntegerField(default=0)  # Resets each month to 0
+    homepage_tour_completed = models.BooleanField(default=False)
+    ai_assistant_tour_completed = models.BooleanField(default=False)
+    laws_search_tour_completed = models.BooleanField(default=False)
 
     USERNAME_FIELD = "upn"
     REQUIRED_FIELDS = []
@@ -61,6 +62,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_admin(self):
         # Check if user is member of "Otto admin" group
         return self.groups.filter(name="Otto admin").exists()
+
+    @property
+    def is_operations_admin(self):
+        # Check if user is member of "Operations admin" group or "Otto admin" group
+        return self.groups.filter(name__in=["Operations admin", "Otto admin"]).exists()
 
     @property
     def accepted_terms(self):
@@ -159,6 +165,13 @@ class UserOptions(models.Model):
 
     def __str__(self):
         return f"Options for {self.user.upn}"
+
+
+class Visitor(models.Model):
+    user = models.OneToOneField(
+        User, null=False, related_name="visitor", on_delete=models.CASCADE
+    )
+    session_key = models.CharField(null=False, max_length=40)
 
 
 class AppManager(models.Manager):

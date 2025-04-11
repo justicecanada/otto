@@ -11,7 +11,6 @@ from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
-from django.core.management import call_command
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -19,11 +18,11 @@ from django.utils.translation import gettext as _
 import pytest
 from structlog import get_logger
 
-from chat.models import Chat, ChatFile, ChatOptions, Message
+from chat.models import Chat, ChatFile, Message
 from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
 from librarian.utils.process_engine import generate_hash
 from otto.models import Notification
-from otto.secure_models import AccessControl, AccessKey
+from otto.secure_models import AccessKey
 from text_extractor.models import OutputFile, UserRequest
 
 logger = get_logger(__name__)
@@ -89,7 +88,7 @@ def test_redundant_librarian_upload(client, all_apps_user):
     documents = data_source.documents.all()
     assert documents.count() == 2
     # Check that both documents reference the same SavedFile
-    assert documents.first().file == documents.last().file
+    assert documents.first().saved_file == documents.last().saved_file
     # Check media directory. There should be only 1 file
     folder = os.path.dirname(saved_files[0].file.path)
     assert len(os.listdir(folder)) == 1

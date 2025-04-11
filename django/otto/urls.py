@@ -23,7 +23,6 @@ urlpatterns = [
     path("librarian/", include("librarian.urls")),
     path("laws/", include("laws.urls")),
     path("text_extractor/", include("text_extractor.urls")),
-    path("template_wizard/", include("template_wizard.urls")),
     path("user_management/", views.manage_users, name="manage_users"),
     path("user_management/form/", views.manage_users_form, name="manage_users_form"),
     path(
@@ -51,7 +50,18 @@ urlpatterns = [
     path("load_test/disable", views.disable_load_testing, name="disable_load_testing"),
     path("load_test/", views.load_test, name="load_test"),
     path("user_cost/", views.user_cost, name="user_cost"),
+    path("extend_session/", views.extend_session, name="extend_session"),
     path("terms_of_use/", views.terms_of_use, name="terms_of_use"),
+    path(
+        "user_management/mark_tour_completed/<str:tour_name>/",
+        views.mark_tour_completed,
+        name="mark_tour_completed",
+    ),
+    path(
+        "user_management/reset_completion_flags/",
+        views.reset_completion_flags,
+        name="reset_completion_flags",
+    ),
     path("feedback/", views.feedback_message, name="user_feedback"),
     path("feedback/<int:message_id>/", views.feedback_message, name="user_feedback"),
     path(

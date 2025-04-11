@@ -1,0 +1,521 @@
+{% load i18n %}
+
+<script>
+startTour = () => {
+  // Check if start_tour flag is set
+  const urlParams = new URLSearchParams(window.location.search);
+  const start_tour = urlParams.get('start_tour');
+  if (start_tour !== "true") {
+    // If not, redirect to a new chat with start_tour=true
+    const redirect_url = "{% url 'chat:chat_with_ai' %}?start_tour=true";
+    window.location = redirect_url;
+    return;
+  }
+  driverObj.drive();
+  // Remove the URL params from the location bar (but don't refresh)
+  history.replaceState({}, document.title, window.location.pathname);
+};
+
+let tourSteps = [
+  // #chat-welcome: Safe use of the AI Assistant and mode descriptions
+  {
+    element: "#chat-welcome",
+    popover: {
+      title: "{% trans 'Welcome to the AI Assistant' %}",
+      description: "{% trans 'When you start a new chat, the welcome message reminds you of appropriate usage for the selected mode.'%}"
+    }
+  },
+  // #chat-modes: Use the tabs to select different modes
+  {
+    element: "#chat-modes",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Select a mode' %}",
+      description: "{% trans 'Use the tabs to select different modes. The welcome message will update with guidance for the selected mode.' %}",
+      onNextClick: () => { handleModeChange("chat"); driverObj.moveNext(); }
+    }
+  },
+  // #chat-inputs: Use the textbox to send a message to Otto (animate a message being typed and sent, or force user to do so)
+  {
+    element: "#chat-prompt",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Send a message' %}",
+      description: "{% trans 'You can interact with the AI by sending a chat message.' %}",
+      onNextClick: async () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        // Check if there are any div.message-outer elements
+        let messages_exist = document.querySelectorAll("div.message-outer").length > 0;
+        if (!messages_exist) {
+          // If no messages exist, send a message
+          const chatInput = document.querySelector("#chat-prompt");
+          let chatMessage = "{% trans 'Hello, Otto!' %}";
+          // Animate typing the message
+          while (chatMessage.length > 0) {
+            chatInput.value += chatMessage.charAt(0);
+            chatMessage = chatMessage.slice(1);
+            // Simulate typing delay
+            await new Promise(resolve => setTimeout(resolve, 25));
+          }
+          const sendButton = document.querySelector("#send-button");
+          sendButton.click();
+        }
+        driverObj.moveNext();
+      }
+    }
+  },
+  // #messages-container: View the messages sent and received
+  {
+    element: "#messages-container",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Messages area' %}",
+      description: "{% trans 'Your sent messages and the AI\'s responses appear here.' %}"
+    }
+  },
+  // .nav-link.qa-option: Switch to Q&A mode
+  {
+    element: ".nav-link.qa-option",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Switch to Q&A mode' %}",
+      description: "{% trans 'Q&A mode lets you ask questions and extract information from uploaded documents. Click the Q&A tab to try it.' %}",
+      onNextClick: () => {
+        handleModeChange("qa");
+        openSidebar("right-sidebar");
+        driverObj.moveNext();
+      }
+    }
+  },
+  // #right-sidebar: Settings sidebar updated to show Q&A mode options
+  {
+    element: "#right-sidebar",
+    disableActiveInteraction: true,
+    popover: {
+      title: "{% trans 'Settings sidebar' %}",
+      description: "{% trans 'All AI assistant modes have editable settings in the right sidebar. The Q&A settings are especially important.' %}"
+    }
+  },
+  // #library-dropdown-outer: Select the document library to search
+  {
+    element: "#library-dropdown-outer",
+    disableActiveInteraction: true,
+    popover: {
+      title: "{% trans 'Select Q&A library' %}",
+      description: "{% trans 'By default, the \"Corporate\" library is selected. This contains some HR-related information such as collective agreements.' %}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        const chatInput = document.querySelector("#chat-prompt");
+        let chatMessage = "{% trans 'What is LP-02 step 3 pay in 2024?' %}";
+        chatInput.value = chatMessage;
+        const sendButton = document.querySelector("#send-button");
+        sendButton.click();
+        showHideSidebars();
+        driverObj.moveNext();
+      }
+    }
+  },
+  // #messages-container: View the messages sent and received
+  {
+    element: "#chat-container",
+    disableActiveInteraction: true,
+    popover: {
+      title: "{% trans 'Q&A response' %}",
+      description: "{% trans 'In Q&A mode, the AI searches through the library to find the answer. This allows it to provide references for verification.' %}",
+    }
+  },
+  // Upload button: You can upload your own documents to use as sources. These will be deleted when the chat is deleted. You can also drag files into the chat.
+  {
+    element: "#upload-button",
+    disableActiveInteraction: true,
+    popover: {
+      title: "{% trans 'Upload your own files' %}",
+      description: "{% trans 'You can upload many types of files for Q&A, summarization or translation. These files are stored in the chat and will be deleted after 30 days inactivity. You can also drag and drop files into the chat. Uploading a file will switch the Q&A library to \"Chat uploads\".' %}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        openSidebar("right-sidebar");
+        driverObj.moveNext();
+      }
+    }
+  },
+  // Edit libraries button: You can also create your own persistent and shareable document libraries. These will be deleted after 30 days inactivity. (don't show modal - out of scope)
+  {
+    element: "#editLibrariesButton",
+    disableActiveInteraction: true,
+    popover: {
+      title: "{% trans 'Editing libraries' %}",
+      description: "{% trans 'Instead of uploading files to a chat, you might want to create a document library. This allows you to query the same documents across multiple chats, or share your Q&A library with others. Use the \"Edit libraries\" function to upload, organize and share document libraries.' %}"
+    }
+  },
+  // Search mode: RAG vs full documents (important!)
+  {
+    element: "#qa-search-mode-outer",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Q&A search mode' %}",
+      description: "{% trans 'By default, Q&A mode will quickly search for the most relevant \"chunks\" from the library. The AI will then read those chunks and provide an answer. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!' %}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        document.querySelector("#id_qa_mode").value = "summarize";
+        document.querySelector("#id_qa_mode").dispatchEvent(new Event("change"));
+        driverObj.moveNext();
+      }
+    }
+  },
+  // Filter results: Optionally, limit to certain folders or documents (important for "full documents" mode!)
+  {
+    element: "#qa_scope",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Q&A filters' %}",
+      description: "{% trans 'In the full document modes, select the documents or folders you want the AI to read.' %}",
+    }
+  },
+  // Model: Note that this option is in all the modes. Efficiency vs. Quality tradeoff.
+  {
+    element: "#qa-model-outer",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Select AI model' %}",
+      description: "{% trans 'When accuracy is paramount, select the more expensive GPT-4o model. (This setting is available in all modes.)' %}"
+    }
+  },
+  // Advanced settings
+  {
+    element: "#advancedQaModalButton",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Advanced Q&A settings' %}",
+      description: "{% trans 'To customize the behaviour further, you can edit advanced settings by clicking here. For example, you can change the number of top sources that the AI will read, or customize the response format' %}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        handleModeChange("summarize");
+        document.querySelector("#id_qa_mode").value = "rag";
+        document.querySelector("#id_qa_mode").dispatchEvent(new Event("change"));
+        showHideSidebars();
+        driverObj.moveNext();
+      }
+    },
+  },
+  // Summarize a URL. Note that you can also enter URLs in Q&A mode.
+  {
+    element: "#chat-inputs",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Summarize mode' %}",
+      description: "{% trans 'In summarize mode, you can upload documents, paste long text or enter a URL (canada.ca, *.gc.ca, CanLii and Wikipedia only). Like in Q&A \"full documents\" mode, the AI will read the entire document before responding. Let\'s try summarizing a long page on Canada.ca.' %}",
+      onNextClick: async () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        const chatInput = document.querySelector("#chat-prompt");
+        let chatMessage = "https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/guide-use-generative-ai.html";
+        // Animate typing the message
+        while (chatMessage.length > 0) {
+          chatInput.value += chatMessage.charAt(0);
+          chatMessage = chatMessage.slice(1);
+          // Simulate typing delay
+          await new Promise(resolve => setTimeout(resolve, 3));
+        }
+        document.querySelector("#send-button").click();
+        driverObj.moveNext();
+      }
+    }
+  },
+  // #messages-container: View the messages sent and received
+  {
+    element: "#chat-container",
+    disableActiveInteraction: true,
+    popover: {
+      title: "{% trans 'Summarize response' %}",
+      description: "{% trans 'By default, the summary will be quite short, but this is adjustable in the settings sidebar.' %}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        openSidebar("right-sidebar");
+        driverObj.moveNext();
+      }
+    }
+  },
+  // Summarize settings
+  // Custom summarize prompt
+  {
+    element: "div.accordion-item.summarize",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Summarize settings' %}",
+      description: "{% trans 'There are 3 preset length settings, but you can add additional instructions or override the prompt entirely. A custom summarize prompt is the easiest way to extract exactly the information you want from a document.' %}",
+      onNextClick: async () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        // Check if there are any div.message-outer elements
+        let summarize_prompt = document.querySelector("#id_summarize_prompt");
+        let prompt = "{% trans 'My team at Department of Justice Canada has developed a generative AI tool. What are the top 7 pieces of guidance I should provide users? Write a 1000-word Buzzfeed-style listicle with nice formatting. The audience is end-users.' %}";
+        summarize_prompt.value = "";
+        // Animate typing the message
+        while (prompt.length > 0) {
+          summarize_prompt.value += prompt.charAt(0);
+          prompt = prompt.slice(1);
+          // Simulate typing delay
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        triggerOptionSave();
+        const chatInput = document.querySelector("#chat-prompt");
+        let chatMessage = "https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/guide-use-generative-ai.html";
+        chatInput.value = chatMessage;
+        const sendButton = document.querySelector("#send-button");
+        await new Promise(resolve => setTimeout(resolve, 200));
+        sendButton.click();
+        showHideSidebars();
+        driverObj.moveNext();
+      },
+    }
+  },
+  // Summarize the URL again
+  {
+    element: "#chat-container",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Summary with custom prompt' %}",
+      description: "{% trans 'The AI now generates a summary according to the custom prompt!' %}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        handleModeChange("chat");
+        driverObj.moveNext();
+      }
+    }
+  },
+  // Chat mode: Improve prompt
+  {
+    element: "#chat-inputs",
+    disableActiveInteraction: true,
+    popover: {
+      title: "{% trans 'Switching back to chat mode' %}",
+      description: "{% trans 'We\'ve seen in Q&A and Summarize mode that the AI reads documents, or chunks of documents, to provide an informed response. In Chat mode, the AI reads the previous messages to understand the context. When you want to iterate on some text, switch to Chat mode and describe the changes you want made. (If you\'re having trouble expressing what you want, try the \"Improve prompt\" tool!)' %}",
+      onNextClick: async () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        const chatInput = document.querySelector("#chat-prompt");
+        let chatMessage = "{% trans 'Our tool is called Otto, so please use that name. Otto is actually approved for Protected B data unlike many generative AI tools. Also would prefer a bit more bold and italics, and lots of emojis. More memorable titles for the tips, maybe alliterative or rhyming. 300 words max.' %}";
+        // Animate typing the message
+        while (chatMessage.length > 0) {
+          chatInput.value += chatMessage.charAt(0);
+          chatMessage = chatMessage.slice(1);
+          // Simulate typing delay
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        document.querySelector("#send-button").click();
+        driverObj.moveNext();
+      }
+    }
+  },
+  // Summarize the URL again
+  {
+    element: "#chat-container",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Human in the loop' %}",
+      description: "{% trans 'Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\'ll be more likely to get the results you want.' %}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        handleModeChange("translate");
+        openSidebar("right-sidebar");
+        driverObj.moveNext();
+      }
+    }
+  },
+  // Translate settings: Set the desired language. You can translate free text using the chat input or upload files to be translated.
+  {
+    element: "div.accordion-item.translate",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Translation options' %}",
+      description: "{% trans 'In translate mode, you can upload files or directly input text (in any language). Select the target language in the sidebar.' %}"
+    }
+  },
+  // Browse presets: Find examples of settings for particular uses.
+  {
+    element: "#presets-buttons-outer",
+    popover: {
+      title: "{% trans 'Settings presets' %}",
+      description: "{% trans 'Browse presets created by the Otto team or other users. You can also save your current settings as a preset, and choose your default settings for new chats.' %}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        showHideSidebars();
+        openSidebar("left-sidebar");
+        driverObj.moveNext();
+      }
+    }
+  },
+  // Existing chats: See your previous chats. You can rename, delete, and set security label for a chat. Chats are deleted after 30 days inactivity.
+  {
+    element: "#chat-history-list",
+    popover: {
+      title: "{% trans 'Chat history' %}",
+      description: "{% trans 'Your chats remain accessible in the left sidebar, but are deleted after 30 days of inactivity. The current chat is bolded.' %}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        showChatContextMenu();
+        driverObj.moveNext();
+      }
+    }
+  },
+  {
+    element: ".chat-list-item.current div.dropdown-menu",
+    popover: {
+      title: "{% trans 'Rename and delete chats'%}",
+      description: "{% trans 'When you hover over a chat title, three dots appear. Click the dots to rename or delete a chat manually.'%}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        let element = document.querySelector(".chat-list-item.current div.dropdown-menu");
+        let bsDropdown = new bootstrap.Dropdown(element);
+        bsDropdown.hide();
+        document.querySelector('.chat-list-item.current > div > button').blur();
+        // Mark the tour as completed
+        htmx.ajax("POST", '{% url "mark_tour_completed" tour_name="ai_assistant" %}', {swap: "none"});
+        driverObj.moveNext();
+      },
+    }
+  },
+  // New chat button: When changing topics, it's best to start a new chat. This will reset the settings to the default.
+  {
+    element: "#new-chat-button-outer",
+    disableActiveInteraction: false,
+    popover: {
+      title: "{% trans 'Start a new chat' %}",
+      description: "{% trans 'When you are changing topics, always start a new chat. This reduces cost and improves quality. The tour is now complete!' %}",
+      onNextClick: () => {
+        document.querySelector("button.driver-popover-next-btn").disabled = true;
+        showHideSidebars();
+        driverObj.moveNext();
+      }
+    },
+  }
+];
+
+// Keeping track of extra steps for our convenience as we refine the tour
+deletedSteps = [
+  {
+    element: "#new-chat-button",
+    popover: {
+      title: "{% trans 'Start a new chat at any time.'%}",
+      description: "{% trans 'Start a new chat at any time by clicking this button.'%}"
+    }
+  },
+  {
+    element: ".chat-list-item.current",
+    popover: {
+      title: "{% trans 'Current chat'%}",
+      description: "{% trans 'Your current chat will appear in bolded characters.'%}",
+      onNextClick: () => { showChatContextMenuEllipsis(); driverObj.moveNext(); }
+    }
+  },
+  {
+    element: ".chat-list-item.current > div > button",
+    popover: {
+      title: "{% trans 'Chat options'%}",
+      description: "{% trans 'Click on the ellipsis icon to view more options.'%}",
+      onNextClick: () => { showChatContextMenu(); driverObj.moveNext(); }
+    }
+  },
+  {
+    element: ".chat-list-item.current > div > button ~ div",
+    popover: {
+      title: "{% trans 'Chat options'%}",
+      description: "{% trans 'Rename your chats or to delete them entirely.'%}",
+      onNextClick: () => { driverObj.moveNext(); },
+      onPrevClick: () => { showChatContextMenu(); driverObj.movePrevious(); }
+    }
+  },
+  {
+    element: "#chat-inputs",
+    popover: {
+      title: "{% trans 'Using the AI Assistant'%}",
+      description: "{% trans 'Use the textbox to start.'%}",
+      onPrevClick: () => { showChatContextMenu(); driverObj.movePrevious(); }
+    }
+  },
+  {
+    element: "#chat-modes",
+    popover: {
+      title: "{% trans 'Modes' %}",
+      description: "{% trans 'Select different modes by clicking the tabs.'%}"
+    }
+  },
+  {
+    element: "#right-sidebar",
+    popover: {
+      title: "{% trans 'Settings'%}",
+      description: "{% trans 'Settings are tied to the current chat in use. Saving is done automatically when a change is detected.'%}",
+      onNextClick: () => { handleModeChange("qa"); driverObj.moveNext(); }
+    }
+  },
+  {
+    element: ".accordion-item.qa",
+    popover: {
+      title: "{% trans 'Q&A mode'%}",
+      description: "{% trans 'Selecting a mode in the settings list will automatically set your chat session to that mode.'%}",
+    }
+  },
+  {
+    element: "#presets-modal-button",
+    popover: {
+      title: "{% trans 'Settings presets' %}",
+      description: "{% trans 'Browse settings presets and create your own to share with others.' %}",
+      onNextClick: () => {
+        htmx.ajax("POST", '{% url "mark_tour_completed" tour_name="ai_assistant" %}', {swap: "none"});
+        driverObj.moveNext();
+      },
+    }
+  }
+];
+delete deletedSteps;
+
+
+function showChatContextMenuEllipsis(){
+  const chatContextMenuEllipsis = document.querySelector('.chat-list-item.current > div > button');
+  chatContextMenuEllipsis.focus();
+}
+
+function hideChatContextMenu(){
+  const chatContextMenuEllipsis = document.querySelector('.chat-list-item.current > div > button');
+  chatContextMenuEllipsis.blur();
+}
+
+function showChatContextMenu(){
+  const chatContextMenuEllipsis = document.querySelector('.chat-list-item.current > div > button');
+  chatContextMenuEllipsis.click();
+}
+
+function toggleChatAccordion(){
+  let chatAccordionButton = document.querySelector('.accordion-item.chat>h5>button');
+  if(chatAccordionButton.classList.contains('collapsed')){
+    chatAccordionButton.click();
+  }               
+}      
+
+function toggleQAAccordion(){
+  document.querySelector('.accordion-item.qa>h5>button').click();        
+}
+
+function toggleRightSidebar(isPrevious=false) {
+  const chatSidebar = document.getElementById('right-sidebar-toggle');
+  if (chatSidebar.classList.contains('hidden')) {
+    if(isPrevious){
+      document.getElementById('close-right-sidebar').click();
+    }         
+    return;
+  }
+  chatSidebar.click();
+  toggleChatAccordion();
+}
+
+function openLeftSidebar() {
+  const chatSidebar = document.getElementById('left-sidebar-toggle');
+  if (chatSidebar) {
+    chatSidebar.click();          
+  }        
+}
+
+function closeLeftSidebar() {
+  const chatSidebar = document.getElementById('close-left-sidebar');
+  if (chatSidebar) {
+    chatSidebar.click();          
+  }        
+}
+</script>

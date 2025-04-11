@@ -1,0 +1,33 @@
+{% load i18n %}
+<script>
+  let driver = window.driver.js.driver;
+  let driverObj = driver({
+    showProgress: true,
+    allowClose: "{% if not force_tour %}true{% endif %}" === "true",
+    popoverClass: "bs-popover-auto",
+    disableActiveInteraction: true,
+    prevBtnText: "← {% trans 'Previous' %}",
+    nextBtnText: "{% trans 'Next' %} →",
+    doneBtnText: "{% trans 'Done' %}",
+    showButtons: ["next", "close"],
+    allowKeyboardControl: false,
+    progressText: "{% verbatim %}{{current}}{% endverbatim %} {% trans 'of' %} {% verbatim %}{{total}}{% endverbatim %}",
+    steps: tourSteps,
+    onPopoverRender: () => {
+      const helpMenu = new bootstrap.Dropdown(document.querySelector("#help-menu"));
+      helpMenu.hide();
+      setTimeout(() => {
+        document.querySelector('button.driver-popover-next-btn').focus();
+      }, 10);
+    }
+  });
+  {% if start_tour %}
+  setTimeout(() => {
+    startTour();
+  }, 300);
+  {% elif force_tour %}
+    // Open a bootstrap modal welcoming the user
+    const modal = new bootstrap.Modal(document.getElementById('tour-modal'));
+    modal.show();
+  {% endif %}
+</script>

@@ -75,8 +75,22 @@ def new_chat(request, mode=None):
     empty_chat = Chat.objects.create(user=request.user, mode=mode)
 
     logger.info("New chat created.", chat_id=empty_chat.id, mode=mode)
+    redirect_url = reverse("chat:chat", args=[empty_chat.id])
 
-    return redirect("chat:chat", chat_id=empty_chat.id)
+    start_tour = request.GET.get("start_tour") == "true"
+    if start_tour:
+        # Reset settings to Otto default
+        if get_language() == "fr":
+            preset = Preset.objects.get(french_default=True)
+        else:
+            preset = Preset.objects.get(english_default=True)
+        empty_chat.loaded_preset = preset
+        empty_chat.save()
+        # Update the chat options with the preset options
+        copy_options(preset.options, empty_chat.options)
+        redirect_url += "?start_tour=true"
+
+    return redirect(redirect_url)
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
@@ -233,6 +247,10 @@ def chat(request, chat_id):
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
         "chat_history_sections": get_chat_history_sections(user_chats),
+        "has_tour": True,
+        "tour_name": _("AI Assistant"),
+        "force_tour": not request.user.ai_assistant_tour_completed,
+        "start_tour": request.GET.get("start_tour") == "true",
     }
     return render(request, "chat/chat.html", context=context)
 
@@ -658,14 +676,13 @@ def rename_chat(request, chat_id, current_chat=None):
             old_last_modification_date = chat.last_modification_date
             chat.last_modification_date = timezone.now()
             chat.save()
-            return render(
-                request,
-                "chat/components/chat_list_item.html",
-                {
-                    "chat": chat,
-                    "section_index": label_section_index(old_last_modification_date),
-                },
-            )
+
+            context = {
+                "chat": chat,
+                "security_labels": SecurityLabel.objects.all(),
+                "section_index": label_section_index(old_last_modification_date),
+            }
+            return render(request, "chat/components/chat_list_item.html", context)
         else:
             return render(
                 request,
