@@ -54,7 +54,6 @@ def extract_msg(content, root_document_id):
                                     if os.path.isfile(path):
                                         name = Path(path).name
                                         with open(path, "rb") as f:
-                                            print(Path(path))
                                             nested_file_path = f"{root_file_path or document.filename}/{name}"
                                             content_type = guess_content_type(
                                                 f, path=path
