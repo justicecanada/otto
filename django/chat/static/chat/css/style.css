@@ -964,7 +964,7 @@ div#chat-toolbar {
 #prompt-form-resize-handle {
   position: absolute;
   top: -4px;
-  height: 3px;
+  height: 15px;
   width: 100%;
   cursor: ns-resize;
   display: block;
@@ -972,6 +972,7 @@ div#chat-toolbar {
   border: none !important;
   padding: 0;
   background: none !important;
+  z-index: 3;
 
   i {
     display: none !important;
@@ -979,16 +980,15 @@ div#chat-toolbar {
     margin-top: -1.65rem;
     font-size: 1.5rem;
     z-index: 100;
-    background-color: var(--bs-light);
   }
 
-  &:focus,
-  &:hover {
-    background: var(--bs-gray-800);
+  &:focus-visible {
+    background: none !important;
     color: initial !important;
+    z-index: 0;
   }
 
-  &:focus>i {
+  &:focus-visible>i {
     display: block !important;
   }
 }
@@ -1002,14 +1002,15 @@ div#chat-toolbar {
 #right-sidebar-resize-handle {
   position: absolute;
   top: 0;
-  left: -1px;
-  width: 3px;
+  left: -3px;
+  width: 8px;
   height: 100%;
   cursor: ew-resize;
   display: block;
   outline: none !important;
   border: none !important;
   padding: 0;
+  z-index: 3;
 
   i {
     display: none !important;
@@ -1020,7 +1021,7 @@ div#chat-toolbar {
     background-color: var(--bs-light);
   }
 
-  &:focus>i {
+  &:focus-visible>i {
     display: block !important;
   }
 }
@@ -1460,7 +1461,7 @@ math[display="block"] {
 
 #scroll-btn {
   position: sticky;
-  margin-left: -16px;
+  /* margin-left: -16px; */
   inset-inline: 0;
   margin-inline: auto;
   bottom: 10px;

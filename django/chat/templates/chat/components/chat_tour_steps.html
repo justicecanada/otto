@@ -1,7 +1,9 @@
 {% load i18n %}
 
 <script>
+let chat_tour_in_progress = false;
 startTour = () => {
+  chat_tour_in_progress = true;
   // Check if start_tour flag is set
   const urlParams = new URLSearchParams(window.location.search);
   const start_tour = urlParams.get('start_tour');
