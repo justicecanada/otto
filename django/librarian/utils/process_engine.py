@@ -20,6 +20,7 @@ from markdownify import markdownify
 from structlog import get_logger
 
 from librarian.models import Document, SavedFile
+from librarian.utils.extract_emails import extract_msg
 from librarian.utils.extract_zip import process_zip_file
 from librarian.utils.markdown_splitter import MarkdownSplitter
 from otto.models import Cost
@@ -269,8 +270,9 @@ def extract_markdown(
         elif process_engine == "MARKDOWN":
             md = decode_content(content)
         elif process_engine == "OUTLOOK_MSG":
+            print("Processing Outlook email")
             enable_markdown = False
-            md = msg_to_markdown(content)
+            md = extract_msg(content, root_document_id)
         elif process_engine == "ZIP":
             enable_markdown = False
             md = process_zip_file(content, root_document_id)
