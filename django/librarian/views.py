@@ -322,6 +322,9 @@ def poll_status(request, data_source_id, document_id=None):
             "poll_url": poll_url,
             "selected_document": document,
             "selected_data_source": DataSource.objects.get(id=data_source_id),
+            "selected_library": Library.objects.get(
+                id=DataSource.objects.get(id=data_source_id).library_id
+            ),
         },
     )
 
