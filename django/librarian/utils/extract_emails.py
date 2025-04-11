@@ -76,7 +76,7 @@ def extract_msg(content, root_document_id):
                                             )
                                         attachment = Path(path).name
                                         email_attachments.append(attachment)
-                                email["attachments"] = ",".join(email_attachments)
+                                email["attachments"] = ", ".join(email_attachments)
                                 email["from"] = data.get("from")
                                 email["to"] = data.get("to")
                                 email["subject"] = data.get("subject")
