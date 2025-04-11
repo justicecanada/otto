@@ -381,8 +381,8 @@ let tourSteps = [
       description: "{% trans 'When you are changing topics, always start a new chat. This reduces cost and improves quality. The tour is now complete!' %}",
       onNextClick: () => {
         document.querySelector("button.driver-popover-next-btn").disabled = true;
-        showHideSidebars();
-        driverObj.moveNext();
+        // Redirect to new chat page
+        window.location = "{% url 'chat:new_chat' %}";
       }
     },
   }
