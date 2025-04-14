@@ -26,7 +26,7 @@
 | django/librarian/models.py                                            |      331 |       48 |     85% |53-55, 123, 125, 133, 135, 137, 147, 172-174, 192, 196, 250, 312-313, 318, 329-332, 407, 424-433, 437, 455, 483-485, 495-496, 502, 518, 544-545, 555-556, 566-567, 579-580 |
 | django/librarian/tasks.py                                             |      113 |       39 |     65% |42-75, 82, 92, 105, 115, 137, 159-161, 172-175, 194-195 |
 | django/librarian/translation.py                                       |        8 |        0 |    100% |           |
-| django/librarian/utils/extract\_emails.py                             |       63 |        9 |     86% |79, 81, 89-95 |
+| django/librarian/utils/extract\_emails.py                             |       65 |        9 |     86% |81, 83, 91-97 |
 | django/librarian/utils/extract\_zip.py                                |       68 |       12 |     82% |37-39, 50-59, 92 |
 | django/librarian/utils/markdown\_splitter.py                          |      183 |       10 |     95% |72, 75-77, 88, 123, 137, 260, 270, 277 |
 | django/librarian/utils/process\_document.py                           |       21 |        3 |     86% | 19-20, 35 |
@@ -63,7 +63,7 @@
 | django/text\_extractor/tasks.py                                       |       18 |        2 |     89% |     34-35 |
 | django/text\_extractor/utils.py                                       |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
 | django/text\_extractor/views.py                                       |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
-|                                                             **TOTAL** | **7002** | **1214** | **83%** |           |
+|                                                             **TOTAL** | **7004** | **1214** | **83%** |           |
 
 
 ## Setup coverage badge
