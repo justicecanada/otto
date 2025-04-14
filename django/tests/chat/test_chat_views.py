@@ -996,35 +996,6 @@ def test_preset(client, basic_user, all_apps_user):
         and last_message.message == "Preset loaded successfully."
     )
 
-    # Test adding and removing the preset to favorites
-    client.force_login(user)
-    response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
-    assert response.status_code == 200
-    preset.refresh_from_db()
-    assert user in preset.favourited_by.all()
-    # remove from favourites
-    response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
-    assert response.status_code == 200
-    preset.refresh_from_db()
-    assert user not in preset.favourited_by.all()
-
-    # Test accompanying messages
-    response_messages = list(response.context["messages"])
-    removed_message = response_messages[-1]
-    added_message = response_messages[-2]
-    assert (
-        removed_message.level == messages.SUCCESS
-        and removed_message.message == "Preset removed from favourites."
-    )
-    assert (
-        added_message.level == messages.SUCCESS
-        and added_message.message == "Preset added to favourites."
-    )
-
-    with mock.patch("chat.models.Preset.toggle_favourite", side_effect=ValueError):
-        response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
-        assert response.status_code == 500
-
     # Test setting the preset as default
     response = client.get(reverse("chat:set_preset_default", args=[preset.id, chat.id]))
     assert response.status_code == 200

@@ -104,6 +104,8 @@ class ChatOptionsManager(models.Manager):
             copy_options(
                 chat.user.default_preset.options, new_options, chat.user, chat, mode
             )
+            chat.loaded_preset = chat.user.default_preset
+            chat.save()
         else:
             default_preset = Preset.objects.get_global_default()
             new_options = self.create()
@@ -246,7 +248,7 @@ class PresetManager(models.Manager):
             return self.get(english_default=True)
 
     def get_accessible_presets(self, user: User, language: str = None):
-        ordering = ["-default", "-favourite"]
+        ordering = ["-default"]
         if language:
             ordering.append(f"name_{language}")
 
@@ -257,11 +259,6 @@ class PresetManager(models.Manager):
         return (
             presets.distinct()
             .annotate(
-                favourite=Coalesce(
-                    Q(favourited_by__in=[user]),
-                    Value(False),
-                    output_field=BooleanField(),
-                ),
                 default=Coalesce(
                     Q(default_for__in=[user]),
                     Value(False),
@@ -338,9 +335,6 @@ class Preset(models.Model):
     accessible_to = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="accessible_presets"
     )
-    favourited_by = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="favourited_presets"
-    )
     is_deleted = models.BooleanField(default=False)
 
     sharing_option = models.CharField(
@@ -362,24 +356,6 @@ class Preset(models.Model):
     @property
     def global_default(self):
         return self.english_default or self.french_default
-
-    def toggle_favourite(self, user: User):
-        """Sets the favourite flag for the preset.
-        Returns True if the preset was added to the favourites, False if it was removed.
-        Raises ValueError if user is None.
-        """
-
-        if user:
-            try:
-                self.favourited_by.get(pk=user.id)
-                self.favourited_by.remove(user)
-                return False
-            except:
-                self.favourited_by.add(user)
-                return True
-        else:
-            logger.error("User must be set to set user default.")
-            raise ValueError("User must be set to set user default")
 
     def delete_preset(self, user: User):
         # TODO: Preset refactor: Delete preset if no other presets are using it
