@@ -747,6 +747,7 @@ code {
   border: solid 1px var(--chat-message-border);
   border-radius: 5px;
   background: var(--chat-message-bg);
+  color: var(--chat-message-text-color);
 }
 
 .message-outer:hover .dropdown,
