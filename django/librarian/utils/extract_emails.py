@@ -69,6 +69,8 @@ def extract_msg(content, root_document_id):
                                 email["attachments"] = ", ".join(email_attachments)
                                 email["from"] = data.get("from")
                                 email["to"] = data.get("to")
+                                email["cc"] = data.get("cc")
+                                email["bcc"] = data.get("bcc")
                                 email["subject"] = data.get("subject")
                                 email["sent_date"] = datetime.strptime(
                                     data.get("date"), "%a, %d %b %Y %H:%M:%S %z"
