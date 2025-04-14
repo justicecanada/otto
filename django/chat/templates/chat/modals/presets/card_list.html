@@ -7,13 +7,6 @@
         {% if presets|length == 0 %}
           {% include "chat/modals/presets/empty_card_list.html" %}
         {% else %}
-          <div class="d-flex justify-content-end mb-3">
-            <button type="button"
-                    class="btn btn-sm btn-outline-dark"
-                    hx-get="{% url 'chat:open_preset_form' chat_id=chat_id %}"
-                    hx-target="#presets-modal-body"
-                    hx-swap="innerHTML transition:true">{% trans "Create preset from current settings" %}</button>
-          </div>
           <ul class="card-list">
             {% for preset in presets %}
               {% include "chat/modals/presets/card.html" %}

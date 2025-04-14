@@ -2,10 +2,10 @@
 
 <span style="padding: .375rem .75rem;">
   {% if preset.shared_with == "Private" %}
-    <i class="bi bi-person-fill-lock text-secondary"
+    <i class="bi bi-person-lock text-secondary"
        title="{% trans 'Private' %}"></i>
   {% elif preset.shared_with == "Shared with everyone" %}
- 
+
     <i class="bi bi-globe-americas text-secondary"
        title="{% trans 'Shared with everyone' %}"></i>
   {% else %}
