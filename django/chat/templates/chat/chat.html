@@ -45,7 +45,7 @@
           <i class="bi bi-gear"></i>
           <span class="visually-hidden">{% trans "Toggle chat options sidebar" %}</span>
         </button>
-        <div class="container px-5">
+        <div class="container px-5 position-relative">
           {% if pinned_messages %}
             <div id="pinned-messages-container" class="pb-1 pt-3 border-bottom">
               {% with messages=pinned_messages %}
@@ -60,13 +60,14 @@
             {% endif %}
             {% include 'chat/components/chat_messages.html' %}
           </div>
+          <button id="scroll-btn" onclick="scrollToBottom(true, true)"></button>
         </div>
         {% include 'chat/components/chat_input.html' %}
       </div>
       {% include 'chat/components/chat_options_sidebar.html' %}
     </div>
   </main>
- 
+
   {% include "chat/modals/advanced_qa_modal.html" %}
   {# For modals below, contents ("inner" template) are loaded through HTMX #}
   {% include "chat/modals/sources_modal_outer.html" %}
@@ -82,6 +83,6 @@
   <script src="{% static 'chat/js/scripts.js' %}"></script>
   <script src="{% static 'librarian/scripts.js' %}"></script>
 
-  <link rel="stylesheet" href="{% static 'thirdparty/css/highlightjs.css' %}">
+  <link rel="stylesheet" href="{% static 'chat/css/highlightjs.css' %}">
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
 {% endblock %}

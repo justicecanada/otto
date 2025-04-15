@@ -324,7 +324,7 @@ def chat_message(request, chat_id):
     }
     response = HttpResponse()
     response.write(render_to_string("chat/components/chat_messages.html", context))
-    if entered_url and allowed_url and mode == "chat":
+    if entered_url and allowed_url and (mode == "chat" or mode == "qa"):
         response.write(change_mode_to_chat_qa(chat))
     return response
 

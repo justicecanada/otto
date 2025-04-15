@@ -1,12 +1,14 @@
 import os
 import re
 
-from django.conf import settings
+from django.urls import reverse
 
 import pytest
 from openpyxl import Workbook
 from structlog import get_logger
 
+from chat.models import Chat
+from librarian.models import DataSource, Document, Library
 from librarian.utils.process_engine import decode_content, extract_markdown
 from otto.models import Cost
 
@@ -137,11 +139,34 @@ def test_extract_text():
         assert "Paragraph page 1" in md_chunks[0]
 
 
-def test_extract_outlook_msg():
+@pytest.mark.django_db
+def test_extract_outlook_msg(client, all_apps_user):
+    # library = Library.objects.get_default_library()
+    # user = all_apps_user()
+    # client.force_login(user)
+    # data_source = DataSource.objects.create(library=library)
+    user = all_apps_user()
+    client.force_login(user)
+
+    chat = Chat.objects.create(user=user)
+    # Ensure that a data source was created
+    data_source = DataSource.objects.filter(chat=chat).first()
+    assert data_source is not None
+    # Upload a file to the data source
+    url = reverse("librarian:upload", kwargs={"data_source_id": data_source.id})
+    with open(os.path.join(this_dir, "test_files/elephants.msg"), "rb") as f:
+        response = client.post(url, {"file": f})
+        assert response.status_code == 200
+    # Ensure that a document was created
+    document = Document.objects.filter(data_source=data_source).first()
+    document_id = document.id
+    assert document is not None
     # Load an Outlook MSG file
     with open(os.path.join(this_dir, "test_files/elephants.msg"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "OUTLOOK_MSG")
+        md, md_chunks = extract_markdown(
+            content, "OUTLOOK_MSG", root_document_id=document_id
+        )
         assert not "<page_1>" in md
         assert len(md) > 0
         assert len(md_chunks) > 0
@@ -159,6 +184,41 @@ def test_extract_png():
         assert len(md_chunks) == 1
         assert "Elephant" in md
         assert "Elephant" in md_chunks[0]
+
+
+@pytest.mark.django_db
+def test_extract_zip(client, all_apps_user):
+
+    user = all_apps_user()
+    client.force_login(user)
+
+    chat = Chat.objects.create(user=user)
+    # Ensure that a data source was created
+    data_source = DataSource.objects.filter(chat=chat).first()
+    assert data_source is not None
+    # Upload a file to the data source
+    url = reverse("librarian:upload", kwargs={"data_source_id": data_source.id})
+    with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
+        response = client.post(url, {"file": f})
+        assert response.status_code == 200
+    # Ensure that a document was created
+    document = Document.objects.filter(data_source=data_source).first()
+    document_id = document.id
+    assert document is not None
+    # Load a ZIP file
+    with open(os.path.join(this_dir, "test_files/example.zip"), "rb") as f:
+        content = f.read()
+        md, md_chunks = extract_markdown(content, "ZIP", root_document_id=document_id)
+        assert len(md) > 0
+        assert len(md_chunks) > 0
+        assert "example.txt" in md
+        assert "example.txt" in md_chunks[0]
+        assert "example.docx" in md
+        assert "example.docx" in md_chunks[0]
+        assert "example.pdf" in md
+        assert "example.pdf" in md_chunks[0]
+        assert "example.pptx" in md
+        assert "example.pptx" in md_chunks[0]
 
 
 def test_resize_to_azure_requirements():

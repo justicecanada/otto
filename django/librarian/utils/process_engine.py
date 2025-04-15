@@ -19,6 +19,9 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify
 from structlog import get_logger
 
+from librarian.models import Document, SavedFile
+from librarian.utils.extract_emails import extract_msg
+from librarian.utils.extract_zip import process_zip_file
 from librarian.utils.markdown_splitter import MarkdownSplitter
 from otto.models import Cost
 
@@ -83,8 +86,9 @@ def create_nodes(chunks, document):
     metadata = {"node_type": "document", "data_source_uuid": data_source_uuid}
     if document.title:
         metadata["title"] = document.title
-    if document.url or document.filename:
-        metadata["source"] = document.url or document.filename
+    source = document.file_path or document.url or document.filename
+    if source:
+        metadata["source"] = source
     document_node = TextNode(text="", id_=document_uuid, metadata=metadata)
     document_node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
         node_id=document_node.node_id
@@ -113,7 +117,7 @@ def create_nodes(chunks, document):
 
 
 def guess_content_type(
-    content: str | bytes, content_type: str = None, path: str = ""
+    content: str | bytes, content_type: str = "", path: str = ""
 ) -> str:
 
     # We consider these content types to be reliable and do not need further guessing
@@ -121,6 +125,8 @@ def guess_content_type(
         "application/pdf",
         "application/xml",
         "application/vnd.ms-outlook",
+        "application/x-zip-compressed",
+        "application/zip",
         "text/html",
         "text/markdown",
         "text/csv",
@@ -152,6 +158,8 @@ def guess_content_type(
         if path.endswith(".msg"):
             return "application/vnd.ms-outlook"
 
+        if path.endswith(".zip"):
+            return "application/zip"
         # Use filetype library to guess the content type
         kind = filetype.guess(content)
         if kind and not path.endswith(".md"):
@@ -188,6 +196,8 @@ def get_process_engine_from_type(type):
         return "POWERPOINT"
     elif "application/vnd.ms-outlook" in type:
         return "OUTLOOK_MSG"
+    elif "application/zip" in type or "application/x-zip-compressed" in type:
+        return "ZIP"
     elif "application/pdf" in type:
         return "PDF"
     elif "text/html" in type:
@@ -231,8 +241,8 @@ def extract_markdown(
     base_url=None,
     chunk_size=768,
     selector=None,
+    root_document_id=None,
 ):
-
     try:
         enable_markdown = True
         if process_engine == "IMAGE":
@@ -260,8 +270,12 @@ def extract_markdown(
         elif process_engine == "MARKDOWN":
             md = decode_content(content)
         elif process_engine == "OUTLOOK_MSG":
+            print("Processing Outlook email")
             enable_markdown = False
-            md = msg_to_markdown(content)
+            md = extract_msg(content, root_document_id)
+        elif process_engine == "ZIP":
+            enable_markdown = False
+            md = process_zip_file(content, root_document_id)
         elif process_engine == "CSV":
             md = csv_to_markdown(content)
         elif process_engine == "EXCEL":

@@ -164,7 +164,7 @@ def test_chat_data_source(client, all_apps_user):
     assert document is not None
 
     # Get the file path of the uploaded file
-    file_path = document.file.file.path
+    file_path = document.saved_file.file.path
 
     llm = OttoLLM(mock_embedding=True)
     process_document_helper(document, llm)
