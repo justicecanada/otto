@@ -744,9 +744,8 @@ code {
   padding: 10px;
   display: block;
   overflow-x: auto;
-  border: solid 1px var(--chat-message-border);
+  border: solid 1px;
   border-radius: 5px;
-  background: var(--chat-message-bg);
 }
 
 .message-outer:hover .dropdown,
