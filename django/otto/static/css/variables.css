@@ -53,7 +53,6 @@
   --chat-footer-border: #ddd;
   --chat-outer-bg: #f8f9fa;
   --chat-message-bg: #ffffff80;
-  --chat-message-text-color: #444444;
   --chat-message-blockquote-bg: var(--chat-message-bg);
   --chat-message-border: #00000033;
   --chat-message-progress-bar-bg: #5022bd73;
@@ -127,7 +126,6 @@
   --chat-footer-border: #ddd;
   --chat-outer-bg: #f8f9fa;
   --chat-message-bg: #212529;
-  --chat-message-text-color: #ffffff;
   --chat-message-blockquote-bg: rgba(255, 255, 255, 0.1);
   --chat-message-border: #ffffff80;
   --chat-message-progress-bar-bg: #5022bd73;
