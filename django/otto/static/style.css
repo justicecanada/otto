@@ -212,6 +212,10 @@ div.app-card-other:hover {
 #top-nav-search-input input {
   border-width: 2px;
   border-color: var(--search-bar-border);
+
+  [data-bs-theme="dark"] [data-bs-theme="dark"] & {
+    border-color: var(--bs-border-color);
+  }
 }
 
 div#top-nav-search {
