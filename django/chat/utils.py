@@ -29,7 +29,7 @@ from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS
-from otto.models import SecurityLabel
+from otto.models import Cost, SecurityLabel
 from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
@@ -167,6 +167,7 @@ async def htmx_stream(
     source_nodes: list = [],
     switch_mode: bool = False,
     remove_stop: bool = False,
+    continue_button: bool = False,
 ) -> AsyncGenerator:
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
@@ -190,7 +191,11 @@ async def htmx_stream(
 
     # Helper function to format a string as an SSE message
     def sse_string(
-        message: str, wrap_markdown=True, dots=False, remove_stop=False
+        message: str,
+        wrap_markdown=True,
+        dots=False,
+        remove_stop=False,
+        continue_button=False,
     ) -> str:
         sse_joiner = "\ndata: "
         if wrap_markdown:
@@ -199,6 +204,13 @@ async def htmx_stream(
             message += dots
         out_string = "data: "
         out_string += sse_joiner.join(message.split("\n"))
+
+        if continue_button:
+            # Render the form template asynchronously
+            out_string += render_to_string(
+                "chat/components/continue_button.html"
+            ).replace("\n", "")
+
         if remove_stop:
             out_string += "<div hx-swap-oob='true' id='stop-button'></div>"
         out_string += "\n\n"  # End of SSE message
@@ -276,13 +288,20 @@ async def htmx_stream(
                     wrap_markdown,
                     dots=dots if not generation_stopped else False,
                     remove_stop=remove_stop or generation_stopped,
+                    continue_button=continue_button,
                 )
             await asyncio.sleep(0.01)
 
         # yield sse_string(
         #     full_message, wrap_markdown=False, dots=False, remove_stop=True
         # )
-        yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
+        yield sse_string(
+            full_message,
+            wrap_markdown,
+            dots=False,
+            remove_stop=True,
+            continue_button=continue_button,
+        )
         await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
@@ -331,6 +350,7 @@ async def htmx_stream(
         ),
         wrap_markdown=False,
         remove_stop=True,
+        continue_button=continue_button,
     )
 
 
@@ -959,3 +979,32 @@ def get_chat_history_sections(user_chats):
         chat_history_sections[section_index]["chats"].append(user_chat)
 
     return chat_history_sections
+
+
+def estimate_cost_of_string(text, model):
+
+    num_tokens = num_tokens_from_string(text, model)
+    cost = Cost.objects.new(model + "-in", num_tokens)
+
+    return cost.usd_cost
+
+
+def estimate_cost_of_request(chat, response_message):
+    user_message_text = response_message.parent.text
+    data_sources = chat.options.qa_data_sources
+    model = chat.options.qa_model
+
+    cost = estimate_cost_of_string(
+        user_message_text,
+        model,
+    )
+
+    if len(data_sources.all()) > 0:
+        for data_source in data_sources.all():
+            for document in data_source.documents.all():
+                cost += estimate_cost_of_string(
+                    document.extracted_text,
+                    model,
+                )
+
+    return display_cad_cost(cost)

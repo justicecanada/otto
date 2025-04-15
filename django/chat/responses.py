@@ -27,6 +27,7 @@ from chat.utils import (
     combine_response_generators,
     combine_response_replacers,
     create_batches,
+    estimate_cost_of_request,
     get_source_titles,
     group_sources_into_docs,
     htmx_stream,
@@ -55,6 +56,13 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
         chat = response_message.chat
         mode = chat.options.mode
 
+        estimate_cost = estimate_cost_of_request(chat, response_message)
+        if estimate_cost:
+            return cost_warning_response(
+                chat,
+                response_message,
+            )
+
         # For costing and logging. Contextvars are accessible anytime during the request
         # including in async functions (i.e. htmx_stream) and Celery tasks.
         bind_contextvars(message_id=message_id, feature=mode)
@@ -74,6 +82,27 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
             return error_response(chat, response_message, _("Invalid mode."))
     except Exception as e:
         return error_response(chat, response_message, e)
+
+
+def cost_warning_response(chat, response_message):
+
+    cost_warning = "This request will be expensive. Are you sure you want to continue?"
+
+    model = chat.options.chat_model
+    temperature = chat.options.chat_temperature
+
+    llm = OttoLLM(model, temperature)
+    # This will only be reached in an error case
+    return StreamingHttpResponse(
+        streaming_content=htmx_stream(
+            chat,
+            response_message.id,
+            llm,
+            response_str=cost_warning,
+            continue_button=True,
+        ),
+        content_type="text/event-stream",
+    )
 
 
 def chat_response(
