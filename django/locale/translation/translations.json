@@ -3434,5 +3434,37 @@
     "GPT-4o (best accuracy, 15x cost)": {
         "fr": "",
         "fr_auto": "GPT-4o (meilleure précision, coût 15x)"
+    },
+    "No description available": {
+        "fr": "",
+        "fr_auto": "Aucune description disponible"
+    },
+    "English metadata": {
+        "fr": "",
+        "fr_auto": "Métadonnées en anglais"
+    },
+    "French metadata": {
+        "fr": "",
+        "fr_auto": "Métadonnées en français"
+    },
+    "Sharing": {
+        "fr": "",
+        "fr_auto": "Partage"
+    },
+    "Save preset": {
+        "fr": "",
+        "fr_auto": "Enregistrer le préréglage"
+    },
+    "Update preset": {
+        "fr": "",
+        "fr_auto": "Mettre à jour le préréglage"
+    },
+    "Update preset:": {
+        "fr": "",
+        "fr_auto": "Préréglage de mise à jour :"
+    },
+    "Create new preset": {
+        "fr": "",
+        "fr_auto": "Créer un nouveau préréglage"
     }
 }

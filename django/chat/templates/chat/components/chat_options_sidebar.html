@@ -44,7 +44,8 @@
                 title="{% trans "Save preset from current settings" %}"
                 hx-get="{% url 'chat:save_preset' chat_id=chat.id %}"
                 hx-target="#presets-modal-body"
-                hx-swap="innerHTML transition:true">
+                hx-swap="innerHTML"
+                onclick="document.getElementById('presets-modal-body').innerHTML = '';">
           <i class="bi bi-floppy2-fill"></i>
           <span>{% trans 'Save settings' %}</span>
         </button>
