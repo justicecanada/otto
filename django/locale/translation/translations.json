@@ -1807,6 +1807,10 @@
         "fr": "Texte extrait",
         "fr_auto": "Texte extrait"
     },
+    "File path": {
+        "fr": "Chemin d’accès au fichier",
+        "fr_auto": "Chemin d’accès au fichier"
+    },
     "View all": {
         "fr": "",
         "fr_auto": "Voir tout"
@@ -3394,5 +3398,41 @@
     "No documents in this chat.": {
         "fr": "",
         "fr_auto": "Aucun document dans ce clavardage."
+    },
+    "Enter a message to chat with the AI": {
+        "fr": "",
+        "fr_auto": "Entrez un message pour discuter avec l’IA"
+    },
+    "Ask a question about the selected documents, or enter a URL to add": {
+        "fr": "",
+        "fr_auto": "Posez une question sur les documents sélectionnés ou entrez une URL à ajouter"
+    },
+    "Enter a URL or paste long text to summarize": {
+        "fr": "",
+        "fr_auto": "Entrez une URL ou collez un texte long pour résumer"
+    },
+    "Enter text to translate (select language in sidebar)": {
+        "fr": "",
+        "fr_auto": "Entrez le texte à traduire (sélectionnez la langue dans la barre latérale)"
+    },
+    "Ask a question about the selected documents, upload files or enter a URL to add": {
+        "fr": "",
+        "fr_auto": "Posez une question sur les documents sélectionnés, téléchargez des fichiers ou entrez une URL à ajouter"
+    },
+    "Enter a URL, paste long text or upload files to summarize": {
+        "fr": "",
+        "fr_auto": "Entrez une URL, collez du texte long ou téléchargez des fichiers pour résumer"
+    },
+    "Enter text or upload files to translate (select language in sidebar)": {
+        "fr": "",
+        "fr_auto": "Entrez du texte ou téléchargez des fichiers à traduire (sélectionnez la langue dans la barre latérale)"
+    },
+    "o3-mini (adds reasoning, 7x cost)": {
+        "fr": "",
+        "fr_auto": "o3-mini (ajoute un raisonnement, coût 7x)"
+    },
+    "GPT-4o (best accuracy, 15x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4o (meilleure précision, coût 15x)"
     }
 }

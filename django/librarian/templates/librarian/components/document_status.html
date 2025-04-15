@@ -63,7 +63,7 @@
         {% endif %}
       </div>
     </div>
- 
+
     <div class="col-auto">
       {% if document.celery_task_id %}
         <button type="button"
@@ -79,8 +79,17 @@
             <li>
               <a class="dropdown-item small"
                  href="#"
+                 hx-get="{% url 'librarian:document_start' document.id 'default' %}">
+                <span>{% trans "Text only" %}</span>
+                <span class="text-muted">{% trans "(default, $)" %}</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
                  hx-get="{% url 'librarian:document_start' document.id 'azure_read' %}">
-                <span>{% trans "Default" %}</span>
+                <span>{% trans "PDF OCR" %}</span>
+                <span class="text-muted">{% trans "(more robust, $$)" %}</span>
               </a>
             </li>
             <li>
@@ -88,7 +97,7 @@
                  href="#"
                  hx-get="{% url 'librarian:document_start' document.id 'azure_layout' %}">
                 <span>{% trans "PDF layout & OCR" %}</span>
-                <span class="text-muted">{% trans "(best, $)" %}</span>
+                <span class="text-muted">{% trans "(best, $$$)" %}</span>
               </a>
             </li>
           </ul>
@@ -114,7 +123,7 @@
       {% if document.filename %}
         <dt>{% trans "Filename" %}</dt>
         <dd>
-          {% if document.file %}
+          {% if document.saved_file %}
             <a href="{% url 'librarian:download_document' document.id %}">{{ document.filename }}</a>
           {% else %}
             {{ document.filename }}
@@ -159,6 +168,12 @@
           <a href="{% url 'librarian:document_text' document.id %}"
              target="_blank"
              rel="noopener noreferrer">{% trans "View all" %}</a>
+        </dd>
+      {% endif %}
+      {% if document.file_path %}
+        <dt>{% trans "File path" %}</dt>
+        <dd>
+          {{ document.file_path }}
         </dd>
       {% endif %}
     </dl>
