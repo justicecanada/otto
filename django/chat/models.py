@@ -365,12 +365,14 @@ class Preset(models.Model):
         self.is_deleted = True
         self.save()
 
-    def get_description(self, language: str):
-        language = language.lower()
-        if language == "en":
-            return self.description_en if self.description_en else self.description_fr
+    @property
+    def description_auto(self):
+        request = get_request()
+        if request and request.LANGUAGE_CODE == "fr":
+            description = self.description_fr or self.description_en
         else:
-            return self.description_fr if self.description_fr else self.description_en
+            description = self.description_en or self.description_fr
+        return description or _("No description available")
 
     def set_as_user_default(self, user: User):
         if user:
@@ -386,6 +388,14 @@ class Preset(models.Model):
 
     def __str__(self):
         return f"Preset {self.id}: {self.name_en}"
+
+    @property
+    def name_auto(self):
+        request = get_request()
+        if request and request.LANGUAGE_CODE == "fr":
+            return self.name_fr or self.name_en
+        else:
+            return self.name_en or self.name_fr
 
 
 class Message(models.Model):

@@ -1280,9 +1280,13 @@ ul#preset-edit-tabs {
   }
 
   &:not(.active) {
-    background-color: var(--chat-preset-tab-not-active);
-    border-bottom: 0.25px solid var(--bs-gray-200);
+    /* background-color: var(--chat-preset-tab-not-active); */
+    /* border-bottom: 0.25px solid var(--bs-gray-200); */
     font-weight: 400;
+
+
+
+
 
     [data-bs-theme="dark"] & {
       background-color: var(--chat-preset-tab-not-active);
@@ -1291,23 +1295,14 @@ ul#preset-edit-tabs {
   }
 }
 
-.card-footer {
+#preset-card-list .card-footer {
   display: flex !important;
   gap: 1rem;
   background-color: transparent;
   border-top: none;
   padding-top: 0;
-  padding-bottom: .65rem;
 
   button {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    flex-grow: 1;
-
-    &:hover {
-      background-color: var(--bs-light) !important;
-    }
-
     &:only-child {
       flex-basis: 100%;
     }
@@ -1337,12 +1332,11 @@ ul#preset-edit-tabs {
   overflow-y: auto;
 }
 
-.card {
-  border: none;
-  box-shadow: 2px 4px 10px -1px var(--chat-message-border), 0px 1px 8px -2px rgb(0 0 0 / 0.1) !important;
+#preset-card-list .card-title {
+  font-size: 1.15rem;
 }
 
-.card-header {
+#preset-card-list .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1411,9 +1405,9 @@ ul#preset-edit-tabs {
 .card-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 2rem;
-  padding-left: 0;
-  padding-right: 0;
+  gap: 1.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0;
 }
 
 .btn-ghost {
@@ -1428,13 +1422,16 @@ ul#preset-edit-tabs {
 }
 
 .preset-form-user-choice .card-button {
-  border: 1px solid transparent;
-  /* Other styles */
+  padding: 0;
 }
 
 .preset-form-user-choice .card-button:hover {
   border: 1px solid var(--chat-user-choice-button-hover);
+}
 
+.preset-form-user-choice .card-button:hover,
+.preset-form-user-choice .card-button:focus-visible {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
 }
 
 .preset-form-user-choice .submit-overlay {

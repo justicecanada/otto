@@ -4,33 +4,26 @@
 <div class="modal-body preset-form-user-choice">
   <div class="row">
     <div class="col-md-6 d-flex flex-grow-1">
- 
+
       <!-- Update Existing Preset Card -->
       <form hx-post="{% url 'chat:chat_options' chat_id=chat_id action='update_preset' preset_id=preset.id %}"
-            hx-swap="innerHTML transition:true"
+            hx-swap="innerHTML"
             data-bs-dismiss="modal"
             class="d-flex flex-grow-1">
         {% csrf_token %}
         <button type="submit"
-                title="{% trans 'Update Preset' %}"
-                class="card d-flex flex-grow-1 text-decoration-none text-dark card-button">
+                title="{% trans 'Update preset' %}"
+                class="card d-flex flex-grow-1 text-decoration-none text-dark card-button border">
 
           <div class="card-header">
-            <h5 class="card-title mb-0">
-              {# the template variable makes blocktrans break down for some reason #}
-              {% if LANGUAGE_CODE == 'en' %}
-                Update Preset {{ preset.name_en|default:preset.name_fr }}
-              {% else %}
-                Mettre à jour le préréglage {{ preset.name_fr|default:preset.name_en }}
-              {% endif %}
-            </h5>
+            <h5 class="card-title mb-0">{% trans "Update preset:" %} {{ preset.name_auto }}</h5>
           </div>
           <div class="card-body">
             <p class="card-text">
               {% if LANGUAGE_CODE == 'en' %}
-                You currently have the preset named "{{ preset.name_en|default:preset.name_fr }}" loaded. This will update it with your latest changes.
+                You currently have the preset "{{ preset.name_auto }}" loaded. This will update it with your latest changes.
               {% else %}
-                Vous avez actuellement le préréglage nommé "{{ preset.name_fr|default:preset.name_en }}" chargé. Cela le mettra à jour avec vos dernières modifications.
+                Vous avez actuellement le préréglage "{{ preset.name_auto }}" chargé. Cela le mettra à jour avec vos dernières modifications.
               {% endif %}
             </p>
           </div>
@@ -42,15 +35,15 @@
     <div class="col-md-6 d-flex flex-grow-1">
       <form hx-post="{% url 'chat:open_preset_form' chat_id=chat_id %}"
             hx-target="#presets-modal-body"
-            hx-swap="innerHTML transition:true"
+            hx-swap="innerHTML"
             class="d-flex flex-grow-1">
         {% csrf_token %}
         <button type="submit"
-                title="{% trans 'Create New Preset' %}"
-                class="card d-flex flex-grow-1 text-decoration-none text-dark card-button">
+                title="{% trans 'Create new preset' %}"
+                class="card d-flex flex-grow-1 text-decoration-none text-dark card-button border">
 
           <div class="card-header">
-            <h5 class="card-title mb-0">{% trans "Create New Preset" %}</h5>
+            <h5 class="card-title mb-0">{% trans "Create new preset" %}</h5>
           </div>
           <div class="card-body">
             <p class="card-text">{% trans "Create a new preset from your current settings." %}</p>
