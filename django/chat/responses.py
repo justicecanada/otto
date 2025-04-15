@@ -99,13 +99,17 @@ def chat_response(
         for message in chat.messages.all().order_by("date_created")
     ]
 
+    if chat_history[-1].role == MessageRole.ASSISTANT and not chat_history[-1].content:
+        # The last message is likely an empty placeholder - remove it to avoid errors
+        chat_history.pop()
+
     model = chat.options.chat_model
     temperature = chat.options.chat_temperature
 
     llm = OttoLLM(model, temperature)
 
     tokens = num_tokens_from_string(
-        " ".join(message.content for message in chat_history)
+        " ".join(message.content or "" for message in chat_history)
     )
     if tokens > llm.max_input_tokens:
         # In this case, just return an error. No LLM costs are incurred.
@@ -377,10 +381,14 @@ def qa_response(chat, response_message, switch_mode=False):
 
         saved_files = [file.saved_file for file in files]
         error_documents = await sync_to_async(
-            lambda: list(ds.documents.filter(status="ERROR", file__in=saved_files))
+            lambda: list(
+                ds.documents.filter(status="ERROR", saved_file__in=saved_files)
+            )
         )()
         num_completed_documents = await sync_to_async(
-            lambda: ds.documents.filter(status="ERROR", file__in=saved_files).count()
+            lambda: ds.documents.filter(
+                status="SUCCESS", saved_file__in=saved_files
+            ).count()
         )()
         if error_documents:
             error_string = _("Error processing the following document(s):")
@@ -401,16 +409,16 @@ def qa_response(chat, response_message, switch_mode=False):
             existing_document = Document.objects.filter(
                 data_source=chat.data_source,
                 filename=file.filename,
-                file__sha256_hash=file.saved_file.sha256_hash,
+                saved_file__sha256_hash=file.saved_file.sha256_hash,
             ).first()
-            # Skip if filename and hash are the same, and processing status is SUCCESS
+            # Skip if filename and hash are the same, but reprocess if ERROR status
             if existing_document:
-                if existing_document.status != "SUCCESS":
+                if existing_document.status == "ERROR":
                     existing_document.process()
                 continue
             document = Document.objects.create(
                 data_source=chat.data_source,
-                file=file.saved_file,
+                saved_file=file.saved_file,
                 filename=file.filename,
             )
             document.process()

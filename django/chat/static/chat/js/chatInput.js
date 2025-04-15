@@ -10,7 +10,7 @@ function resizeTextarea() {
   // Reset the height to its default to get the correct scrollHeight
   textarea.style.height = 'auto';
   // Calculate the new height and limit it to 400px
-  let newHeight = Math.min(Math.max(textarea.scrollHeight + 3, lastHeight), chatPromptMaxHeight);
+  let newHeight = Math.min(Math.max(textarea.scrollHeight, lastHeight), chatPromptMaxHeight);
   lastHeight = newHeight;
   textarea.style.height = newHeight + 'px';
   resizeOtherElements();
@@ -29,7 +29,12 @@ function resizeOtherElements() {
   // Check if the chatContainer is scrolled to bottom
   let isScrolledToBottom = chatContainer.scrollHeight - chatContainer.clientHeight <= chatContainer.scrollTop + 1;
   chatContainer.style.paddingBottom = `${chatInputHeight}px`;
-  if (isScrolledToBottom) chatContainer.scrollTop = chatContainer.scrollHeight;
+  if (isScrolledToBottom) {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    document.querySelector("#scroll-btn").classList.remove("show");
+  } else {
+    document.querySelector("#scroll-btn").classList.add("show");
+  }
 }
 
 function handleChatPromptResize(event) {

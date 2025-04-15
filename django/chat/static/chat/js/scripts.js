@@ -75,8 +75,19 @@ function render_markdown(element) {
 }
 
 // Chat window UI
-let preventAutoScrolling = false;
-let ignoreNextScrollEvent = true;
+let autoscroll = true;
+const scrollBtn = document.querySelector("#scroll-btn");
+
+document.querySelector("#chat-container").addEventListener("scroll", function () {
+  const threshold = 10; // pixels from the bottom considered "at the bottom"
+  if ((this.scrollHeight - this.scrollTop - this.clientHeight) > threshold) {
+    autoscroll = false;
+    scrollBtn.classList.add("show");
+  } else {
+    autoscroll = true;
+    scrollBtn.classList.remove("show");
+  }
+});
 
 const copyCodeButtonHTML = `<button type="button" onclick="copyCode(this)"
 class="btn btn-link m-0 p-0 text-muted copy-message-button copy-button"
@@ -84,32 +95,23 @@ title="Copy"><i class="bi bi-copy"></i><i class="bi bi-check-lg"></i></button>`;
 
 function scrollToBottom(smooth = true, force = false) {
   resizePromptContainer();
-  if (preventAutoScrolling && !force) {
+  if (!autoscroll && !force) {
     return;
   }
-
-  ignoreNextScrollEvent = true;
-
   let messagesContainer = document.querySelector("#chat-container");
-  let hashContainer = null;
-  let hashRect = null;
-  let containerRect = messagesContainer.getBoundingClientRect();
-
-  if (window.location.hash) {
-    hashContainer = document.querySelector(window.location.hash);
-    hashRect = hashContainer.getBoundingClientRect();
+  let destination = messagesContainer.scrollHeight;
+  // If there is currently a response streaming, disable smooth
+  if (document.querySelector(".chat-streaming-response")) {
+    smooth = false;
   }
-
-  const offset = (hashRect ? hashRect.top : 0) - containerRect.top;
-
   if (smooth) {
     messagesContainer.scrollTo({
-      top: hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight,
-      behavior: "smooth",
+      top: destination,
+      behavior: "smooth"
     });
     return;
   }
-  messagesContainer.scrollTop = hashContainer ? messagesContainer.scrollTop + offset : messagesContainer.scrollHeight;
+  messagesContainer.scrollTop = destination;
 }
 
 function scrollToListItem() {
@@ -124,6 +126,12 @@ function scrollToListItem() {
   }, 100);
 }
 
+function updatePlaceholder(mode) {
+  // Update placeholder text
+  const chat_prompt = document.querySelector("#chat-prompt");
+  chat_prompt.placeholder = chat_prompt.dataset[`${mode}Placeholder`];
+}
+
 function handleModeChange(mode, element = null, preset_loaded = false) {
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
@@ -133,7 +141,7 @@ function handleModeChange(mode, element = null, preset_loaded = false) {
   document.querySelector('#chat-outer').classList = [mode];
   // Dispatch change event for search mode in order to trigger advance settings options
   document.getElementById('id_qa_mode').dispatchEvent(new Event("change"));
-
+  updatePlaceholder(mode);
   resizeOtherElements();
   // If the invoking element is an accordion-button we can stop
   if (element && element.classList.contains("accordion-button")) return;
@@ -174,23 +182,6 @@ function toggleAriaSelected(mode) {
   });
 }
 
-// When the user scrolls up, prevent auto-scrolling
-let debounceTimer;
-document.querySelector("#chat-container").addEventListener("scroll", function () {
-  if (ignoreNextScrollEvent) {
-    ignoreNextScrollEvent = false;
-    return;
-  }
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    if (this.scrollTop + this.clientHeight < this.scrollHeight - 5) {
-      preventAutoScrolling = true;
-    } else {
-      preventAutoScrolling = false;
-    }
-  }, 10);
-});
-
 // Some resizing hacks to make the prompt form the same width as the messages
 function resizePromptContainer() {
   let chatContainer = document.querySelector("#chat-container");
@@ -228,6 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
   resizeTextarea();
   let mode = document.querySelector('#chat-outer').classList[0];
   updateAccordion(mode);
+  updatePlaceholder(mode);
   document.querySelector("#chat-prompt").focus();
   if (document.querySelector("#no-messages-placeholder") === null) {
     setTimeout(scrollToBottom, 100);
@@ -248,6 +240,7 @@ document.addEventListener("DOMContentLoaded", function () {
       deleteChatSection(button);
     });
   });
+
 });
 // On prompt form submit...
 document.addEventListener("htmx:afterSwap", function (event) {
@@ -268,10 +261,12 @@ document.addEventListener("htmx:afterSwap", function (event) {
     render_markdown(last_message.parentElement);
   }
   document.querySelector("#chat-prompt").value = "";
-  document.querySelector("#chat-prompt").focus();
+  if (!chat_tour_in_progress) {
+    document.querySelector("#chat-prompt").focus();
+  }
   // Change height back to minimum
-  document.querySelector("#chat-prompt").style.height = "85px";
-  lastHeight = 85;
+  document.querySelector("#chat-prompt").style.height = chatPromptMinHeight + "px";
+  lastHeight = chatPromptMinHeight;
   scrollToBottom(false, true);
 });
 // When streaming response is updated
