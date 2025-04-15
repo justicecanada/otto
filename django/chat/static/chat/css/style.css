@@ -1280,13 +1280,9 @@ ul#preset-edit-tabs {
   }
 
   &:not(.active) {
-    /* background-color: var(--chat-preset-tab-not-active); */
-    /* border-bottom: 0.25px solid var(--bs-gray-200); */
+    background-color: var(--chat-preset-tab-not-active);
+    border-bottom: 0.25px solid var(--bs-gray-200);
     font-weight: 400;
-
-
-
-
 
     [data-bs-theme="dark"] & {
       background-color: var(--chat-preset-tab-not-active);
@@ -1343,7 +1339,29 @@ ul#preset-edit-tabs {
   background-color: transparent;
   border-bottom: none;
   padding-bottom: 0;
-  padding-top: .45rem;
+  padding-top: 0.66rem;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   button {
     background-color: transparent;
