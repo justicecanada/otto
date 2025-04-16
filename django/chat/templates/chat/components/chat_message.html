@@ -40,10 +40,12 @@
           <div class="markdown-text" data-md="{{ message.json }}">
             {% if message.text == "" %}
               {% include "chat/components/default_error_messages.html" %}
+            {% elif message.cancel_message %}
+              <div>{{ message.text|escape }}</div>
             {% endif %}
           </div>
         </div>
-        <div id="continue-button"></div>
+        <div id="continue-button-{{ message.id }}"></div>
       {% else %}
         {# There cannot be any space between div.message-text and its contents (whitespace: pre-wrap) #}
         <div class="message-text">{{ message.text|escape }}</div>

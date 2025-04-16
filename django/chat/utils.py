@@ -195,7 +195,7 @@ async def htmx_stream(
         wrap_markdown=True,
         dots=False,
         remove_stop=False,
-        continue_button=False,
+        continue_button=None,
     ) -> str:
         sse_joiner = "\ndata: "
         if wrap_markdown:
@@ -207,9 +207,7 @@ async def htmx_stream(
 
         if continue_button:
             # Render the form template asynchronously
-            out_string += render_to_string(
-                "chat/components/continue_button.html"
-            ).replace("\n", "")
+            out_string += continue_button
 
         if remove_stop:
             out_string += "<div hx-swap-oob='true' id='stop-button'></div>"
@@ -231,7 +229,10 @@ async def htmx_stream(
     if switch_mode:
         mode = chat.options.mode
         mode_str = {"qa": _("Q&A"), "chat": _("Chat")}[mode]
-
+    if continue_button:
+        continue_button = render_to_string(
+            "chat/components/continue_button.html", {"message_id": message_id}
+        ).replace("\n", "")
     try:
         if response_generator:
             response_replacer = stream_to_replacer(response_generator)
