@@ -46,15 +46,33 @@ def process_ocr_document(file_content, file_name, merged, idx):
         import traceback
         import uuid
 
+        from pypdf.errors import PdfPageCountError
+
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
-        # logger.error(
-        #     f"Error processing document: {file_name}",
-        #     error_id=error_id,
-        #     error=full_error,
-        # )
+        logger.error(
+            f"Error processing file {file_name} in task {current_task.request.id}: {full_error}"
+        )
+        # # Handle specific exceptions
+        # if isinstance(e, UnboundLocalError):
+        #     return {
+        #         "error": True,
+        #         "full_error": full_error,
+        #         "message": f"Failed: Your file's extension is not supported, please upload images or pdf files",
+        #         "error_id": error_id,
+        #     }
+        # elif isinstance(e, PdfPageCountError):
+        #     return {
+        #         "error": True,
+        #         "full_error": full_error,
+        #         "message": f"Failed: The file '{file_name}' appears to be corrupted or is not a valid PDF.",
+        #         "error_id": error_id,
+        #     }
+        # else:
+        # Fallback for other exceptions
         return {
             "error": True,
-            "message": f"Failed: check your file for corruption or type mismatch",
+            "full_error": full_error,
+            "message": f"Failed: Check your file for corruption of type mismatch",
             "error_id": error_id,
         }

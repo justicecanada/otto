@@ -144,6 +144,15 @@ def create_searchable_pdf(input_file, add_header, merged=False):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
         temp.write(file_content)
         temp_path = temp.name
+    try:
+        input_file.name.lower().endswith(
+            img_extensions
+        ) or input_file.name.lower().endswith(".pdf")
+    except AttributeError:
+        return {
+            "error": True,
+            "message": f"Failed: Your file's extension is not supported, please upload images or pdf files",
+        }
 
     if input_file.name.lower().endswith(".pdf"):
         image_pages = convert_from_path(
@@ -180,12 +189,6 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             for page in image_pages:
                 page.save(temp_resized, "PDF")
             temp_path = temp_resized.name
-
-    else:
-
-        raise ValueError(
-            f"Unsupported file type:{input_file}. Supported extensions: .pdf or {img_extensions}"
-        )
 
     # Running OCR using Azure Form Recognizer Read API------
     document_analysis_client = DocumentAnalysisClient(
