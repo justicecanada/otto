@@ -1489,3 +1489,9 @@ math[display="block"] {
   opacity: 1;
   pointer-events: auto;
 }
+
+.continue-button {
+  background-color: var(--app-color-yellow-1);
+  color: black;
+  border: None;
+}

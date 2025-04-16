@@ -60,10 +60,7 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
 
         estimate_cost = estimate_cost_of_request(chat, response_message)
         if estimate_cost and not skip_cost:
-            return cost_warning_response(
-                chat,
-                response_message,
-            )
+            return cost_warning_response(chat, response_message, estimate_cost)
 
         # For costing and logging. Contextvars are accessible anytime during the request
         # including in async functions (i.e. htmx_stream) and Celery tasks.
@@ -86,7 +83,7 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
         return error_response(chat, response_message, e)
 
 
-def cost_warning_response(chat, response_message):
+def cost_warning_response(chat, response_message, estimate_cost):
 
     cost_warning = "This request will be expensive. Are you sure you want to continue?"
 
@@ -94,7 +91,8 @@ def cost_warning_response(chat, response_message):
     temperature = chat.options.chat_temperature
 
     continue_button = render_to_string(
-        "chat/components/continue_button.html", {"message_id": response_message.id}
+        "chat/components/continue_button.html",
+        {"message_id": response_message.id, "estimate_cost": estimate_cost},
     ).replace("\n", "")
 
     llm = OttoLLM(model, temperature)

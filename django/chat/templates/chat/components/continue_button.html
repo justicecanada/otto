@@ -1,13 +1,11 @@
 {% load i18n %}
 {% load static %}
 
-<div id='continue-button-{{ message_id }}' hx-swap-oob='true'>
+<div id='continue-button-{{ message_id }}' hx-swap-oob='true' class="pt-2">
         <button hx-post="{% url 'chat:cost_warning' message_id=message_id %}?cost_approved=true"
-                class="btn btn-primary"
-                hx-target="#message_{{ message_id }}">{% trans "Continue" %}</button>
+                class="btn btn-primary continue-button me-1"
+                hx-target="#message_{{ message_id }}">{% trans "Continue with " %}{{ estimate_cost }}$</button>
         <button class="btn btn-secondary"
                 hx-post="{% url 'chat:cost_warning' message_id=message_id %}?cost_approved=false"
                 hx-target="#message_{{ message_id }}">{% trans "Cancel" %}</button>
-
-
 </div>
