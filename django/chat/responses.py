@@ -173,9 +173,22 @@ def summarize_response(chat, response_message):
     if len(files) > 0:
         titles = [file.filename for file in files]
         responses = []
+        corrupt_files = []
         for file in files:
             if not file.text:
-                file.extract_text(pdf_method="default")
+                try:
+                    file.extract_text(pdf_method="default")
+                except Exception as e:
+                    titles.remove(file.filename)
+                    corrupt_files.append(file.filename)
+                    logger.error(
+                        "Error extracting text from file",
+                        error_id=str(uuid.uuid4())[:7],
+                        message_id=response_message.id,
+                        chat_id=chat.id,
+                        error=traceback.format_exc(),
+                    )
+                    continue
             if not cache.get(f"stop_response_{response_message.id}", False):
                 responses.append(
                     summarize_long_text(
@@ -189,6 +202,12 @@ def summarize_response(chat, response_message):
                     )
                 )
 
+        if corrupt_files:
+            corrupt_files_string = _("The following file(s) could not be processed:")
+            for file in corrupt_files:
+                corrupt_files_string += f"\n- {file}"
+            responses.append(corrupt_files_string)
+            titles.append(corrupt_files_string)
         title_batches = create_batches(titles, batch_size)
         response_batches = create_batches(responses, batch_size)
         batch_generators = [
