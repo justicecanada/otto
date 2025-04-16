@@ -7,6 +7,7 @@ from io import BytesIO
 
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.shortcuts import render
 
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
@@ -181,6 +182,7 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             temp_path = temp_resized.name
 
     else:
+
         raise ValueError(
             f"Unsupported file type:{input_file}. Supported extensions: .pdf or {img_extensions}"
         )
@@ -326,9 +328,23 @@ def add_extracted_files(output_file, access_key):
     if len(output_file.celery_task_ids) == 1:
         # Single file processing/ not merged
         task_id = output_file.celery_task_ids[0]
-        result = process_ocr_document.AsyncResult(task_id)
-        pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+        result = process_ocr_document.AsyncResult(task_id).get()
+        # pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+        if result.get("error"):
+            # Handle the error case
+            logger.error(
+                f"Task {task_id} failed with error: {result['message']} (Error ID: {result['error_id']})"
+            )
+            output_file.status = "FAILURE"
+            output_file.error_message = result["message"]
+            output_file.save(access_key=access_key)
+            return  # Exit early since the task failed
 
+        # Handle the success case
+        pdf_bytes_content = result["pdf_bytes"]
+        txt_file_content = result["txt_file"]
+        cost = result["cost"]
+        input_name = result["input_name"]
         # double check if input name has extension, maybe this is already done
         output_name = shorten_input_name(input_name)
 
@@ -345,14 +361,25 @@ def add_extracted_files(output_file, access_key):
         merged_text_content = ""
 
         for task_id in output_file.celery_task_ids:
-            result = process_ocr_document.AsyncResult(task_id)
-            try:
-                pdf_bytes_content, txt_file_content, cost, input_name = result.get()
-            except Exception as e:
+            result = process_ocr_document.AsyncResult(task_id).get()
+            if result.get("error"):
+                # Handle the error case for individual tasks
+                logger.error(
+                    f"Task {task_id} failed with error: {result['message']} (Error ID: {result['error_id']})"
+                )
                 output_file.status = "FAILURE"
                 output_file.save(access_key=access_key)
-                logger.error(f"Task {task_id} failed with error: {e}")
                 continue  # Skip this task and continue with others
+            pdf_bytes_content = result["pdf_bytes"]
+            txt_file_content = result["txt_file"]
+            cost = result["cost"]
+            # try:
+            #     pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+            # except Exception as e:
+            #     output_file.status = "FAILURE"
+            #     output_file.save(access_key=access_key)
+            #     logger.error(f"Task {task_id} failed with error: {e}")
+            #     continue  # Skip this task and continue with others
 
             # Accumulate total cost
             total_cost += cost

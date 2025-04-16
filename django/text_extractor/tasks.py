@@ -1,3 +1,4 @@
+import logging
 import os
 from io import BytesIO
 
@@ -6,6 +7,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from celery import current_task, shared_task
 
 from .utils import create_searchable_pdf
+
+logger = logging.getLogger(__name__)
 
 
 # passing the OCR method to celery
@@ -30,6 +33,28 @@ def process_ocr_document(file_content, file_name, merged, idx):
         pdf_bytes = BytesIO()
         ocr_file.write(pdf_bytes)
 
-        return pdf_bytes.getvalue(), txt_file, cost, input_name
+        # return pdf_bytes.getvalue(), txt_file, cost, input_name
+        return {
+            "error": False,
+            "pdf_bytes": pdf_bytes.getvalue(),
+            "txt_file": txt_file,
+            "cost": cost,
+            "input_name": input_name,
+        }
+
     except Exception as e:
-        raise e
+        import traceback
+        import uuid
+
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        # logger.error(
+        #     f"Error processing document: {file_name}",
+        #     error_id=error_id,
+        #     error=full_error,
+        # )
+        return {
+            "error": True,
+            "message": f"Cannot run OCR on '{file_name}'. Please check your file type.",
+            "error_id": error_id,
+        }
