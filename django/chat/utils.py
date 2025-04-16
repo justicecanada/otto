@@ -167,7 +167,7 @@ async def htmx_stream(
     source_nodes: list = [],
     switch_mode: bool = False,
     remove_stop: bool = False,
-    continue_button: bool = False,
+    continue_button: str = None,
 ) -> AsyncGenerator:
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
@@ -229,10 +229,6 @@ async def htmx_stream(
     if switch_mode:
         mode = chat.options.mode
         mode_str = {"qa": _("Q&A"), "chat": _("Chat")}[mode]
-    if continue_button:
-        continue_button = render_to_string(
-            "chat/components/continue_button.html", {"message_id": message_id}
-        ).replace("\n", "")
     try:
         if response_generator:
             response_replacer = stream_to_replacer(response_generator)
@@ -289,7 +285,6 @@ async def htmx_stream(
                     wrap_markdown,
                     dots=dots if not generation_stopped else False,
                     remove_stop=remove_stop or generation_stopped,
-                    continue_button=continue_button,
                 )
             await asyncio.sleep(0.01)
 
@@ -301,7 +296,6 @@ async def htmx_stream(
             wrap_markdown,
             dots=False,
             remove_stop=True,
-            continue_button=continue_button,
         )
         await asyncio.sleep(0.01)
 

@@ -93,6 +93,10 @@ def cost_warning_response(chat, response_message):
     model = chat.options.chat_model
     temperature = chat.options.chat_temperature
 
+    continue_button = render_to_string(
+        "chat/components/continue_button.html", {"message_id": response_message.id}
+    ).replace("\n", "")
+
     llm = OttoLLM(model, temperature)
     # This will only be reached in an error case
     return StreamingHttpResponse(
@@ -101,7 +105,7 @@ def cost_warning_response(chat, response_message):
             response_message.id,
             llm,
             response_str=cost_warning,
-            continue_button=True,
+            continue_button=continue_button,
         ),
         content_type="text/event-stream",
     )
