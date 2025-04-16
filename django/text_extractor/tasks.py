@@ -55,6 +55,6 @@ def process_ocr_document(file_content, file_name, merged, idx):
         # )
         return {
             "error": True,
-            "message": f"Cannot run OCR on '{file_name}'. Please check your file type.",
+            "message": f"Failed: check your file for corruption or type mismatch",
             "error_id": error_id,
         }

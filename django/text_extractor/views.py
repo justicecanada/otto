@@ -117,16 +117,13 @@ def submit_document(request):
         return render(request, "text_extractor/completed_documents.html", context)
 
     except Exception as e:
-        # Improve error logging
         import traceback
         import uuid
 
-        # logger.error(f"ERROR: {str(e)}")
-        # logger.error(traceback.format_exc())
         full_error = traceback.format_exc()
-        error_id = str(uuid.uid4())[:7]
+        error_id = str(uuid.uuid4())[:7]
         logger.error(
-            f"Error running OCR on document: {output_files[-1].file_name}",
+            f"Error running OCR on documents",
             user_request_id=user_request.id,
             error_id=error_id,
             error=full_error,

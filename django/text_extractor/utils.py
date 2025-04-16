@@ -368,6 +368,7 @@ def add_extracted_files(output_file, access_key):
                     f"Task {task_id} failed with error: {result['message']} (Error ID: {result['error_id']})"
                 )
                 output_file.status = "FAILURE"
+                output_file.error_message = result["message"]
                 output_file.save(access_key=access_key)
                 continue  # Skip this task and continue with others
             pdf_bytes_content = result["pdf_bytes"]
