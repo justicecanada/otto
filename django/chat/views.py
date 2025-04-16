@@ -351,7 +351,7 @@ def cost_warning(request, message_id):
         message.awaiting_response = True
     else:
         message.cancel_message = str(_("Request cancelled."))
-        message.text = cancel_message
+        message.text = message.cancel_message
         message.awaiting_response = False
         message.json = json.dumps(message.text)
         message.save()
