@@ -47,14 +47,12 @@ batch_size = (
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def otto_response(
-    request, message_id=None, switch_mode=False, skip_agent=False, skip_cost=False
-):
+def otto_response(request, message_id=None, switch_mode=False, skip_agent=False):
     """
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
     """
     response_message = Message.objects.get(id=message_id)
-    skip_cost = request.GET.get("skip_cost", "false").lower() == "true"
+    skip_cost = request.GET.get("cost_approved", "false").lower() == "true"
 
     try:
         chat = response_message.chat

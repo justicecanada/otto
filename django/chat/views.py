@@ -341,44 +341,25 @@ def delete_message(request, message_id):
     return HttpResponse()
 
 
-def continue_message(request, message_id):
+def cost_warning(request, message_id):
     """
     Continue a message after user approves
     """
-    message = Message.objects.get(id=message_id)
-    response_message = {
-        "is_bot": True,
-        "awaiting_response": True,
-        "id": message_id,
-        "date_created": message.date_created + timezone.timedelta(seconds=1),
-    }
-    skip_cost = True
-
-    context = {
-        "message": response_message,
-        "mode": message.mode,
-        "skip_cost": skip_cost,
-    }
-    html = render_to_string("chat/components/chat_message.html", context)
-    return HttpResponse(html)
-
-
-def cancel_message(request, message_id):
-    """
-    Cancel a pending message response
-    """
-    # Get the specific bot message that was awaiting confirmation
-    message = Message.objects.get(id=message_id)
-
-    message.text = str(_("Request cancelled."))
-    message.awaiting_response = False
-    message.cancel_message = True
-    message.json = json.dumps(message.text)
-    message.save()
+    message = Message.objects.get(id=message_id, is_bot=True)
+    cost_approved = request.GET.get("cost_approved", "false") == "true"
+    if cost_approved:
+        message.awaiting_response = True
+    else:
+        message.text = str(_("Request cancelled."))
+        message.awaiting_response = False
+        message.json = json.dumps(message.text)
+        message.cancel_message = message.text
+        message.save()
 
     context = {
         "message": message,
         "mode": message.mode,
+        "cost_approved": cost_approved,
     }
     html = render_to_string("chat/components/chat_message.html", context)
     return HttpResponse(html)

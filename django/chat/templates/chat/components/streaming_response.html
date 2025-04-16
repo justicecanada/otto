@@ -1,5 +1,5 @@
 <div hx-ext="sse"
-     sse-connect="{% url 'chat:chat_response' message_id=message.id %}?skip_cost={{ skip_cost }}"
+     sse-connect="{% url 'chat:chat_response' message_id=message.id %}?cost_approved={{ cost_approved }}"
      sse-swap="message"
      class="chat-streaming-response"
      id="response-{{ message.id }}">

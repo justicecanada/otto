@@ -37,14 +37,9 @@ urlpatterns = [
         name="stop_response",
     ),
     path(
-        "message/<int:message_id>/response/continue/",
-        views.continue_message,
-        name="continue_message",
-    ),
-    path(
-        "message/<int:message_id>/cancel/",
-        views.cancel_message,
-        name="cancel_message",
+        "message/<int:message_id>/response/cost_warning/",
+        views.cost_warning,
+        name="cost_warning",
     ),
     path(
         "message/<int:message_id>/sources/",

@@ -41,7 +41,7 @@
             {% if message.text == "" %}
               {% include "chat/components/default_error_messages.html" %}
             {% elif message.cancel_message %}
-              <div>{{ message.text|escape }}</div>
+              <div>{{ message.cancel_message|escape }}</div>
             {% endif %}
           </div>
         </div>
