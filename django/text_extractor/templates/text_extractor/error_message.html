@@ -1,12 +1,18 @@
 {% load i18n %}
 
+<!--<div id="error_message" class="my-4 alert alert-danger" role="alert" hx-swap-oob="true" style="max-width: 500px; margin: 0 auto">{% trans "Sorry, we ran into an error." %}</div>-->
 <div id="error_message"
      class="my-4 alert alert-danger"
      role="alert"
      hx-swap-oob="true"
      style="max-width: 500px;
-            margin: 0 auto">{% trans "Sorry, we ran into an error." %}</div>
-
+            margin: 0 auto">
+  {% if error_message %}
+    {{ error_message }}
+  {% else %}
+    {% trans "Sorry, we ran into an error." %}
+  {% endif %}
+</div>
 <script>
   document.getElementById('merge_documents').classList.add('d-none');
   document.getElementById('file-upload-field').value = '';

@@ -2,15 +2,18 @@ import io
 import math
 import os
 import tempfile
+import traceback
 import uuid
 from io import BytesIO
 
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.shortcuts import render
 
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from pdf2image import convert_from_path
+from pdf2image.exceptions import PDFPageCountError
 from PIL import Image, ImageSequence
 from PIL.Image import Resampling
 from pypdf import PdfReader, PdfWriter
@@ -143,36 +146,83 @@ def create_searchable_pdf(input_file, add_header, merged=False):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
         temp.write(file_content)
         temp_path = temp.name
+    try:
+        input_file.name.lower().endswith(
+            img_extensions
+        ) or input_file.name.lower().endswith(".pdf")
+    except AttributeError:
+        logger.error("AttributeError: input_file does not have a file extension.")
+        return {
+            "error": True,
+            "message": f"Error: Your file's extension is not supported, please upload images or pdf files",
+        }
 
     if input_file.name.lower().endswith(".pdf"):
-        image_pages = convert_from_path(
-            temp_path, dpi=100
-        )  # Adjust DPI as needed for compression
+        try:
+            image_pages = convert_from_path(
+                temp_path, dpi=100
+            )  # Adjust DPI as needed for compression
 
-        # Save the compressed images to a new temporary file
-        with tempfile.NamedTemporaryFile(
-            delete=False, suffix=".pdf"
-        ) as temp_compressed:
-            for page in image_pages:
-                page.save(
-                    temp_compressed, "PDF", resolution=50
-                )  # Adjust resolution as needed
-            temp_path = temp_compressed.name
+            # Save the compressed images to a new temporary file
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=".pdf"
+            ) as temp_compressed:
+                for page in image_pages:
+                    page.save(
+                        temp_compressed, "PDF", resolution=50
+                    )  # Adjust resolution as needed
+                temp_path = temp_compressed.name
+        except PDFPageCountError as e:
+            full_error = traceback.format_exc()
+            error_id = str(uuid.uuid4())[:7]
+            logger.error(
+                f"PDFPageCountError while processing {input_file.name} in {error_id}: {full_error}"
+            )
+            return {
+                "error": True,
+                "message": f"Error: The file '{input_file.name}' is not a valid PDF or is corrupted.",
+                "error_id": error_id,
+            }
+        except Exception as e:
+            full_error = traceback.format_exc()
+            error_id = str(uuid.uuid4())[:7]
+            logger.error(
+                f"Error converting pdfs into images in {error_id}: {full_error}"
+            )
+            # Fallback for other exceptions
+            return {
+                "error": True,
+                "full_error": full_error,
+                "message": f"Error: occured while converting pdfs into images",
+                "error_id": error_id,
+            }
 
     elif input_file.name.lower().endswith(img_extensions):
-        if merged:
-            with Image.open(temp_path) as img:
-                image_pages_original = ImageSequence.Iterator(img)
-                image_pages = [
-                    resize_image_to_a4(image) for image in image_pages_original
-                ]
-        else:
-            with Image.open(temp_path) as img:
-                image_pages_original = ImageSequence.Iterator(img)
-                image_pages = [
-                    resize_to_azure_requirements(image)
-                    for image in image_pages_original
-                ]
+        try:
+            if merged:
+                with Image.open(temp_path) as img:
+                    image_pages_original = ImageSequence.Iterator(img)
+                    image_pages = [
+                        resize_image_to_a4(image) for image in image_pages_original
+                    ]
+            else:
+                with Image.open(temp_path) as img:
+                    image_pages_original = ImageSequence.Iterator(img)
+                    image_pages = [
+                        resize_to_azure_requirements(image)
+                        for image in image_pages_original
+                    ]
+        except Exception as e:
+            full_error = traceback.format_exc()
+            error_id = str(uuid.uuid4())[:7]
+            logger.error(
+                f"Error processing image {input_file.name} in {error_id}: {full_error}"
+            )
+            return {
+                "error": True,
+                "message": f"Error: The file '{input_file.name}' cannot be processed.",
+                "error_id": error_id,
+            }
 
         # Save the resized images to a new temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_resized:
@@ -180,23 +230,30 @@ def create_searchable_pdf(input_file, add_header, merged=False):
                 page.save(temp_resized, "PDF")
             temp_path = temp_resized.name
 
-    else:
-        raise ValueError(
-            f"Unsupported file type:{input_file}. Supported extensions: .pdf or {img_extensions}"
+    try:
+        # Running OCR using Azure Form Recognizer Read API------
+        document_analysis_client = DocumentAnalysisClient(
+            endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+            credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+            headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
         )
+        with open(temp_path, "rb") as f:
+            poller = document_analysis_client.begin_analyze_document(
+                "prebuilt-read", document=f
+            )
 
-    # Running OCR using Azure Form Recognizer Read API------
-    document_analysis_client = DocumentAnalysisClient(
-        endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-        credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
-        headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
-    )
-    with open(temp_path, "rb") as f:
-        poller = document_analysis_client.begin_analyze_document(
-            "prebuilt-read", document=f
+        ocr_results = poller.result()
+    except Exception as e:
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"Error running Azure's document intelligence API on in {error_id}: {full_error}"
         )
-
-    ocr_results = poller.result()
+        return {
+            "error": True,
+            "message": f"Error: Azure's document intelligence API failed to process the file.",
+            "error_id": error_id,
+        }
 
     num_pages = len(ocr_results.pages)
     logger.debug(
@@ -209,105 +266,121 @@ def create_searchable_pdf(input_file, add_header, merged=False):
 
     all_text = "\n".join(all_text)
 
-    # Generate OCR overlay layer
-    output = PdfWriter()
+    try:
+        # Generate OCR overlay layer
+        output = PdfWriter()
 
-    for page_id, page in enumerate(ocr_results.pages):
-        ocr_overlay = io.BytesIO()
-        # Calculate overlay PDF page size
-        if image_pages[page_id].height > image_pages[page_id].width:
-            page_scale = float(image_pages[page_id].height) / pagesizes.letter[1]
-        else:
-            page_scale = float(image_pages[page_id].width) / pagesizes.letter[1]
+        for page_id, page in enumerate(ocr_results.pages):
+            ocr_overlay = io.BytesIO()
+            # Calculate overlay PDF page size
+            if image_pages[page_id].height > image_pages[page_id].width:
+                page_scale = float(image_pages[page_id].height) / pagesizes.letter[1]
+            else:
+                page_scale = float(image_pages[page_id].width) / pagesizes.letter[1]
 
-        page_width = float(image_pages[page_id].width) / page_scale
-        page_height = float(image_pages[page_id].height) / page_scale
+            page_width = float(image_pages[page_id].width) / page_scale
+            page_height = float(image_pages[page_id].height) / page_scale
 
-        scale = (page_width / page.width + page_height / page.height) / 2.0
-        pdf_canvas = canvas.Canvas(ocr_overlay, pagesize=(page_width, page_height))
+            scale = (page_width / page.width + page_height / page.height) / 2.0
+            pdf_canvas = canvas.Canvas(ocr_overlay, pagesize=(page_width, page_height))
 
-        # Add image into PDF page
-        pdf_canvas.drawInlineImage(
-            image_pages[page_id],
-            0,
-            0,
-            width=page_width,
-            height=page_height,
-            preserveAspectRatio=True,
-        )
+            # Add image into PDF page
+            pdf_canvas.drawInlineImage(
+                image_pages[page_id],
+                0,
+                0,
+                width=page_width,
+                height=page_height,
+                preserveAspectRatio=True,
+            )
 
-        text = pdf_canvas.beginText()
-        # Set text rendering mode to invisible
-        text.setTextRenderMode(3)
+            text = pdf_canvas.beginText()
+            # Set text rendering mode to invisible
+            text.setTextRenderMode(3)
 
-        for word in page.words:
-            # Calculate optimal font size
-            desired_text_width = (
-                max(
-                    dist(word.polygon[0], word.polygon[1]),
-                    dist(word.polygon[3], word.polygon[2]),
+            for word in page.words:
+                # Calculate optimal font size
+                desired_text_width = (
+                    max(
+                        dist(word.polygon[0], word.polygon[1]),
+                        dist(word.polygon[3], word.polygon[2]),
+                    )
+                    * scale
                 )
-                * scale
-            )
-            desired_text_height = (
-                max(
-                    dist(word.polygon[1], word.polygon[2]),
-                    dist(word.polygon[0], word.polygon[3]),
+                desired_text_height = (
+                    max(
+                        dist(word.polygon[1], word.polygon[2]),
+                        dist(word.polygon[0], word.polygon[3]),
+                    )
+                    * scale
                 )
-                * scale
-            )
-            font_size = desired_text_height
-            actual_text_width = pdf_canvas.stringWidth(
-                word.content, default_font, font_size
-            )
-
-            # Calculate text rotation angle
-            text_angle = math.atan2(
-                (
-                    word.polygon[1].y
-                    - word.polygon[0].y
-                    + word.polygon[2].y
-                    - word.polygon[3].y
+                font_size = desired_text_height
+                actual_text_width = pdf_canvas.stringWidth(
+                    word.content, default_font, font_size
                 )
-                / 2.0,
-                (
-                    word.polygon[1].x
-                    - word.polygon[0].x
-                    + word.polygon[2].x
-                    - word.polygon[3].x
+
+                # Calculate text rotation angle
+                text_angle = math.atan2(
+                    (
+                        word.polygon[1].y
+                        - word.polygon[0].y
+                        + word.polygon[2].y
+                        - word.polygon[3].y
+                    )
+                    / 2.0,
+                    (
+                        word.polygon[1].x
+                        - word.polygon[0].x
+                        + word.polygon[2].x
+                        - word.polygon[3].x
+                    )
+                    / 2.0,
                 )
-                / 2.0,
-            )
-            text.setFont(default_font, font_size)
-            text.setTextTransform(
-                math.cos(text_angle),
-                -math.sin(text_angle),
-                math.sin(text_angle),
-                math.cos(text_angle),
-                word.polygon[3].x * scale,
-                page_height - word.polygon[3].y * scale,
-            )
-            text.setHorizScale(desired_text_width / actual_text_width * 100)
-            text.textOut(word.content + " ")
+                text.setFont(default_font, font_size)
+                text.setTextTransform(
+                    math.cos(text_angle),
+                    -math.sin(text_angle),
+                    math.sin(text_angle),
+                    math.cos(text_angle),
+                    word.polygon[3].x * scale,
+                    page_height - word.polygon[3].y * scale,
+                )
+                text.setHorizScale(desired_text_width / actual_text_width * 100)
+                text.textOut(word.content + " ")
 
-        # add header
-        if add_header:
-            header_text = f"Filename: {str(input_file)}"
-            pdf_canvas.setFont(default_font, 10)
-            pdf_canvas.drawString(30, page_height - 30, header_text)
+            # add header
+            if add_header:
+                header_text = f"Filename: {str(input_file)}"
+                pdf_canvas.setFont(default_font, 10)
+                pdf_canvas.drawString(30, page_height - 30, header_text)
 
-        pdf_canvas.drawText(text)
-        pdf_canvas.save()
+            pdf_canvas.drawText(text)
+            pdf_canvas.save()
 
-        # Move to the beginning of the buffer
-        ocr_overlay.seek(0)
+            # Move to the beginning of the buffer
+            ocr_overlay.seek(0)
 
-        # Create a new PDF page
-        new_pdf_page = PdfReader(ocr_overlay)  # changed
-        output.add_page(new_pdf_page.pages[0])
+            # Create a new PDF page
+            new_pdf_page = PdfReader(ocr_overlay)  # changed
+            output.add_page(new_pdf_page.pages[0])
+    except Exception as e:
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(f"Error creating PDF overlay after OCR {error_id}: {full_error}")
+        return {
+            "error": True,
+            "message": f"Error: Failed to create PDF overlay after OCR.",
+            "error_id": error_id,
+        }
 
     cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
-    return output, all_text, cost.usd_cost
+    # return output, all_text, cost.usd_cost
+    return {
+        "error": False,
+        "output": output,
+        "all_text": all_text,
+        "cost": cost.usd_cost,
+    }
 
 
 def shorten_input_name(input_name):
@@ -326,9 +399,23 @@ def add_extracted_files(output_file, access_key):
     if len(output_file.celery_task_ids) == 1:
         # Single file processing/ not merged
         task_id = output_file.celery_task_ids[0]
-        result = process_ocr_document.AsyncResult(task_id)
-        pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+        result = process_ocr_document.AsyncResult(task_id).get()
+        # pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+        if result.get("error"):
+            # Handle the error case
+            logger.error(
+                f"Task {task_id} failed with error: {result['message']} (Error ID: {result['error_id']})"
+            )
+            output_file.status = "FAILURE"
+            output_file.error_message = result["message"]
+            output_file.save(access_key=access_key)
+            return  # Exit early since the task failed
 
+        # Handle the success case
+        pdf_bytes_content = result["pdf_bytes"]
+        txt_file_content = result["txt_file"]
+        cost = result["cost"]
+        input_name = result["input_name"]
         # double check if input name has extension, maybe this is already done
         output_name = shorten_input_name(input_name)
 
@@ -345,14 +432,26 @@ def add_extracted_files(output_file, access_key):
         merged_text_content = ""
 
         for task_id in output_file.celery_task_ids:
-            result = process_ocr_document.AsyncResult(task_id)
-            try:
-                pdf_bytes_content, txt_file_content, cost, input_name = result.get()
-            except Exception as e:
+            result = process_ocr_document.AsyncResult(task_id).get()
+            if result.get("error"):
+                # Handle the error case for individual tasks
+                logger.error(
+                    f"Task {task_id} failed with error: {result['message']} (Error ID: {result['error_id']})"
+                )
                 output_file.status = "FAILURE"
+                output_file.error_message = result["message"]
                 output_file.save(access_key=access_key)
-                logger.error(f"Task {task_id} failed with error: {e}")
                 continue  # Skip this task and continue with others
+            pdf_bytes_content = result["pdf_bytes"]
+            txt_file_content = result["txt_file"]
+            cost = result["cost"]
+            # try:
+            #     pdf_bytes_content, txt_file_content, cost, input_name = result.get()
+            # except Exception as e:
+            #     output_file.status = "FAILURE"
+            #     output_file.save(access_key=access_key)
+            #     logger.error(f"Task {task_id} failed with error: {e}")
+            #     continue  # Skip this task and continue with others
 
             # Accumulate total cost
             total_cost += cost

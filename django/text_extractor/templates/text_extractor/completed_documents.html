@@ -44,7 +44,13 @@
         <div class="document-status document-status-{{ document.status }}">
           <i class="bi bi-exclamation-circle-fill text-danger small me-1"
              aria-hidden="true"></i>
-          <span>{% trans 'Error' %}</span>
+          <span>
+            {% if output_file.error_message %}
+              {{ output_file.error_message }}
+            {% else %}
+              {% trans 'Error' %}
+            {% endif %}
+          </span>
         </div>
       {% endif %}
     </td>
