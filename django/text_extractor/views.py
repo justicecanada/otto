@@ -126,7 +126,7 @@ def submit_document(request):
             request,
             "text_extractor/error_message.html",
             {
-                "error_message": f"Error: One or more of your files is not a valid PDF or is corrupted."
+                "error_message": f"Error: One or more of your files is not a valid PDF/image or is corrupted."
             },
         )
     except Exception as e:

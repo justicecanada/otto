@@ -198,19 +198,31 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             }
 
     elif input_file.name.lower().endswith(img_extensions):
-        if merged:
-            with Image.open(temp_path) as img:
-                image_pages_original = ImageSequence.Iterator(img)
-                image_pages = [
-                    resize_image_to_a4(image) for image in image_pages_original
-                ]
-        else:
-            with Image.open(temp_path) as img:
-                image_pages_original = ImageSequence.Iterator(img)
-                image_pages = [
-                    resize_to_azure_requirements(image)
-                    for image in image_pages_original
-                ]
+        try:
+            if merged:
+                with Image.open(temp_path) as img:
+                    image_pages_original = ImageSequence.Iterator(img)
+                    image_pages = [
+                        resize_image_to_a4(image) for image in image_pages_original
+                    ]
+            else:
+                with Image.open(temp_path) as img:
+                    image_pages_original = ImageSequence.Iterator(img)
+                    image_pages = [
+                        resize_to_azure_requirements(image)
+                        for image in image_pages_original
+                    ]
+        except Exception as e:
+            full_error = traceback.format_exc()
+            error_id = str(uuid.uuid4())[:7]
+            logger.error(
+                f"Error processing image {input_file.name} in {error_id}: {full_error}"
+            )
+            return {
+                "error": True,
+                "message": f"Error: The file '{input_file.name}' cannot be processed.",
+                "error_id": error_id,
+            }
 
         # Save the resized images to a new temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_resized:
@@ -218,18 +230,30 @@ def create_searchable_pdf(input_file, add_header, merged=False):
                 page.save(temp_resized, "PDF")
             temp_path = temp_resized.name
 
-    # Running OCR using Azure Form Recognizer Read API------
-    document_analysis_client = DocumentAnalysisClient(
-        endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-        credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
-        headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
-    )
-    with open(temp_path, "rb") as f:
-        poller = document_analysis_client.begin_analyze_document(
-            "prebuilt-read", document=f
+    try:
+        # Running OCR using Azure Form Recognizer Read API------
+        document_analysis_client = DocumentAnalysisClient(
+            endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+            credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+            headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
         )
+        with open(temp_path, "rb") as f:
+            poller = document_analysis_client.begin_analyze_document(
+                "prebuilt-read", document=f
+            )
 
-    ocr_results = poller.result()
+        ocr_results = poller.result()
+    except Exception as e:
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"Error running Azure's document intelligence API on in {error_id}: {full_error}"
+        )
+        return {
+            "error": True,
+            "message": f"Error: Azure's document intelligence API failed to process the file.",
+            "error_id": error_id,
+        }
 
     num_pages = len(ocr_results.pages)
     logger.debug(
@@ -242,102 +266,112 @@ def create_searchable_pdf(input_file, add_header, merged=False):
 
     all_text = "\n".join(all_text)
 
-    # Generate OCR overlay layer
-    output = PdfWriter()
+    try:
+        # Generate OCR overlay layer
+        output = PdfWriter()
 
-    for page_id, page in enumerate(ocr_results.pages):
-        ocr_overlay = io.BytesIO()
-        # Calculate overlay PDF page size
-        if image_pages[page_id].height > image_pages[page_id].width:
-            page_scale = float(image_pages[page_id].height) / pagesizes.letter[1]
-        else:
-            page_scale = float(image_pages[page_id].width) / pagesizes.letter[1]
+        for page_id, page in enumerate(ocr_results.pages):
+            ocr_overlay = io.BytesIO()
+            # Calculate overlay PDF page size
+            if image_pages[page_id].height > image_pages[page_id].width:
+                page_scale = float(image_pages[page_id].height) / pagesizes.letter[1]
+            else:
+                page_scale = float(image_pages[page_id].width) / pagesizes.letter[1]
 
-        page_width = float(image_pages[page_id].width) / page_scale
-        page_height = float(image_pages[page_id].height) / page_scale
+            page_width = float(image_pages[page_id].width) / page_scale
+            page_height = float(image_pages[page_id].height) / page_scale
 
-        scale = (page_width / page.width + page_height / page.height) / 2.0
-        pdf_canvas = canvas.Canvas(ocr_overlay, pagesize=(page_width, page_height))
+            scale = (page_width / page.width + page_height / page.height) / 2.0
+            pdf_canvas = canvas.Canvas(ocr_overlay, pagesize=(page_width, page_height))
 
-        # Add image into PDF page
-        pdf_canvas.drawInlineImage(
-            image_pages[page_id],
-            0,
-            0,
-            width=page_width,
-            height=page_height,
-            preserveAspectRatio=True,
-        )
+            # Add image into PDF page
+            pdf_canvas.drawInlineImage(
+                image_pages[page_id],
+                0,
+                0,
+                width=page_width,
+                height=page_height,
+                preserveAspectRatio=True,
+            )
 
-        text = pdf_canvas.beginText()
-        # Set text rendering mode to invisible
-        text.setTextRenderMode(3)
+            text = pdf_canvas.beginText()
+            # Set text rendering mode to invisible
+            text.setTextRenderMode(3)
 
-        for word in page.words:
-            # Calculate optimal font size
-            desired_text_width = (
-                max(
-                    dist(word.polygon[0], word.polygon[1]),
-                    dist(word.polygon[3], word.polygon[2]),
+            for word in page.words:
+                # Calculate optimal font size
+                desired_text_width = (
+                    max(
+                        dist(word.polygon[0], word.polygon[1]),
+                        dist(word.polygon[3], word.polygon[2]),
+                    )
+                    * scale
                 )
-                * scale
-            )
-            desired_text_height = (
-                max(
-                    dist(word.polygon[1], word.polygon[2]),
-                    dist(word.polygon[0], word.polygon[3]),
+                desired_text_height = (
+                    max(
+                        dist(word.polygon[1], word.polygon[2]),
+                        dist(word.polygon[0], word.polygon[3]),
+                    )
+                    * scale
                 )
-                * scale
-            )
-            font_size = desired_text_height
-            actual_text_width = pdf_canvas.stringWidth(
-                word.content, default_font, font_size
-            )
-
-            # Calculate text rotation angle
-            text_angle = math.atan2(
-                (
-                    word.polygon[1].y
-                    - word.polygon[0].y
-                    + word.polygon[2].y
-                    - word.polygon[3].y
+                font_size = desired_text_height
+                actual_text_width = pdf_canvas.stringWidth(
+                    word.content, default_font, font_size
                 )
-                / 2.0,
-                (
-                    word.polygon[1].x
-                    - word.polygon[0].x
-                    + word.polygon[2].x
-                    - word.polygon[3].x
+
+                # Calculate text rotation angle
+                text_angle = math.atan2(
+                    (
+                        word.polygon[1].y
+                        - word.polygon[0].y
+                        + word.polygon[2].y
+                        - word.polygon[3].y
+                    )
+                    / 2.0,
+                    (
+                        word.polygon[1].x
+                        - word.polygon[0].x
+                        + word.polygon[2].x
+                        - word.polygon[3].x
+                    )
+                    / 2.0,
                 )
-                / 2.0,
-            )
-            text.setFont(default_font, font_size)
-            text.setTextTransform(
-                math.cos(text_angle),
-                -math.sin(text_angle),
-                math.sin(text_angle),
-                math.cos(text_angle),
-                word.polygon[3].x * scale,
-                page_height - word.polygon[3].y * scale,
-            )
-            text.setHorizScale(desired_text_width / actual_text_width * 100)
-            text.textOut(word.content + " ")
+                text.setFont(default_font, font_size)
+                text.setTextTransform(
+                    math.cos(text_angle),
+                    -math.sin(text_angle),
+                    math.sin(text_angle),
+                    math.cos(text_angle),
+                    word.polygon[3].x * scale,
+                    page_height - word.polygon[3].y * scale,
+                )
+                text.setHorizScale(desired_text_width / actual_text_width * 100)
+                text.textOut(word.content + " ")
 
-        # add header
-        if add_header:
-            header_text = f"Filename: {str(input_file)}"
-            pdf_canvas.setFont(default_font, 10)
-            pdf_canvas.drawString(30, page_height - 30, header_text)
+            # add header
+            if add_header:
+                header_text = f"Filename: {str(input_file)}"
+                pdf_canvas.setFont(default_font, 10)
+                pdf_canvas.drawString(30, page_height - 30, header_text)
 
-        pdf_canvas.drawText(text)
-        pdf_canvas.save()
+            pdf_canvas.drawText(text)
+            pdf_canvas.save()
 
-        # Move to the beginning of the buffer
-        ocr_overlay.seek(0)
+            # Move to the beginning of the buffer
+            ocr_overlay.seek(0)
 
-        # Create a new PDF page
-        new_pdf_page = PdfReader(ocr_overlay)  # changed
-        output.add_page(new_pdf_page.pages[0])
+            # Create a new PDF page
+            new_pdf_page = PdfReader(ocr_overlay)  # changed
+            output.add_page(new_pdf_page.pages[0])
+    except Exception as e:
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(f"Error creating PDF overlay after OCR {error_id}: {full_error}")
+        return {
+            "error": True,
+            "message": f"Error: Failed to create PDF overlay after OCR.",
+            "error_id": error_id,
+        }
 
     cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
     # return output, all_text, cost.usd_cost
