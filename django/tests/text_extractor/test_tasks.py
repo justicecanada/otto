@@ -26,14 +26,12 @@ def test_process_ocr_document_image(mock_image_file3):
         # Assertions
         current_task_mock.update_state.assert_called_once_with(state="PROCESSING")
 
-        assert result[1] == "RIF drawing"
-        assert type(result[2]) == Decimal
-        assert result[2] >= 0
-        assert result[3] == "temp_image"
-
-        # Check the PDF content
-        pdf_bytes = BytesIO(result[0])
-        assert pdf_bytes.getvalue() != b""
+        assert result["txt_file"] == "RIF drawing"
+        assert type(result["cost"]) == Decimal
+        assert result["cost"] >= 0
+        assert result["input_name"] == "temp_image"
+        assert result["error"] is False
+        assert result["pdf_bytes"] != b""
 
 
 @pytest.mark.django_db
@@ -51,11 +49,9 @@ def test_process_ocr_document_pdf(mock_pdf_file3):
 
         current_task_mock.update_state.assert_called_once_with(state="PROCESSING")
 
-        assert result[1] == "Page 1\nPage 2\nPage 3"
-        assert type(result[2]) == Decimal
-        assert result[2] >= 0
-        assert result[3] == "temp_file1"
-
-        # Check the PDF content and ensure it's not empty
-        pdf_bytes = BytesIO(result[0])
-        assert pdf_bytes.getvalue() != b""
+        assert result["txt_file"] == "Page 1\nPage 2\nPage 3"
+        assert type(result["cost"]) == Decimal
+        assert result["cost"] >= 0
+        assert result["input_name"] == "temp_file1"
+        assert result["error"] is False
+        assert result["pdf_bytes"] != b""
