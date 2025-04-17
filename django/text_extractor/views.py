@@ -4,6 +4,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
+from pdf2image.exceptions import PDFPageCountError
+from pypdf.errors import PdfStreamError
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
@@ -116,6 +118,17 @@ def submit_document(request):
 
         return render(request, "text_extractor/completed_documents.html", context)
 
+    except PdfStreamError as e:
+        logger.error(
+            f"PDFStreamError while processing files - invalid or corrupted pdf uploaded"
+        )
+        return render(
+            request,
+            "text_extractor/error_message.html",
+            {
+                "error_message": f"Error: One or more of your files is not a valid PDF or is corrupted."
+            },
+        )
     except Exception as e:
         import traceback
         import uuid
@@ -123,15 +136,16 @@ def submit_document(request):
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
         logger.error(
-            f"Error running OCR on documents",
+            f"Sorry, we ran into an error while running OCR",
             user_request_id=user_request.id,
             error_id=error_id,
             error=full_error,
         )
+
         return render(
             request,
             "text_extractor/error_message.html",
-            {"error_message": str(full_error) + f" ({_('Error ID')}: {error_id})"},
+            {"error_message": f"Error running OCR on documents"},
         )
 
 

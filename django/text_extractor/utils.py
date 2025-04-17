@@ -2,6 +2,7 @@ import io
 import math
 import os
 import tempfile
+import traceback
 import uuid
 from io import BytesIO
 
@@ -12,6 +13,7 @@ from django.shortcuts import render
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from pdf2image import convert_from_path
+from pdf2image.exceptions import PDFPageCountError
 from PIL import Image, ImageSequence
 from PIL.Image import Resampling
 from pypdf import PdfReader, PdfWriter
@@ -149,25 +151,51 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             img_extensions
         ) or input_file.name.lower().endswith(".pdf")
     except AttributeError:
+        logger.error("AttributeError: input_file does not have a file extension.")
         return {
             "error": True,
-            "message": f"Failed: Your file's extension is not supported, please upload images or pdf files",
+            "message": f"Error: Your file's extension is not supported, please upload images or pdf files",
         }
 
     if input_file.name.lower().endswith(".pdf"):
-        image_pages = convert_from_path(
-            temp_path, dpi=100
-        )  # Adjust DPI as needed for compression
+        try:
+            image_pages = convert_from_path(
+                temp_path, dpi=100
+            )  # Adjust DPI as needed for compression
 
-        # Save the compressed images to a new temporary file
-        with tempfile.NamedTemporaryFile(
-            delete=False, suffix=".pdf"
-        ) as temp_compressed:
-            for page in image_pages:
-                page.save(
-                    temp_compressed, "PDF", resolution=50
-                )  # Adjust resolution as needed
-            temp_path = temp_compressed.name
+            # Save the compressed images to a new temporary file
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=".pdf"
+            ) as temp_compressed:
+                for page in image_pages:
+                    page.save(
+                        temp_compressed, "PDF", resolution=50
+                    )  # Adjust resolution as needed
+                temp_path = temp_compressed.name
+        except PDFPageCountError as e:
+            full_error = traceback.format_exc()
+            error_id = str(uuid.uuid4())[:7]
+            logger.error(
+                f"PDFPageCountError while processing {input_file.name} in {error_id}: {full_error}"
+            )
+            return {
+                "error": True,
+                "message": f"Error: The file '{input_file.name}' is not a valid PDF or is corrupted.",
+                "error_id": error_id,
+            }
+        except Exception as e:
+            full_error = traceback.format_exc()
+            error_id = str(uuid.uuid4())[:7]
+            logger.error(
+                f"Error converting pdfs into images in {error_id}: {full_error}"
+            )
+            # Fallback for other exceptions
+            return {
+                "error": True,
+                "full_error": full_error,
+                "message": f"Error: occured while converting pdfs into images",
+                "error_id": error_id,
+            }
 
     elif input_file.name.lower().endswith(img_extensions):
         if merged:
@@ -312,7 +340,13 @@ def create_searchable_pdf(input_file, add_header, merged=False):
         output.add_page(new_pdf_page.pages[0])
 
     cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
-    return output, all_text, cost.usd_cost
+    # return output, all_text, cost.usd_cost
+    return {
+        "error": False,
+        "output": output,
+        "all_text": all_text,
+        "cost": cost.usd_cost,
+    }
 
 
 def shorten_input_name(input_name):

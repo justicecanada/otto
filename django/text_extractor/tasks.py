@@ -25,9 +25,14 @@ def process_ocr_document(file_content, file_name, merged, idx):
             size=len(file_content),
             charset=None,
         )
-        ocr_file, txt_file, cost = create_searchable_pdf(
-            file, merged and idx > 0, merged
-        )
+        # ocr_file, txt_file, cost = create_searchable_pdf(
+        #     file, merged and idx > 0, merged
+        # )
+        result = create_searchable_pdf(file, merged and idx > 0, merged)
+
+        ocr_file = result["output"]
+        txt_file = result["all_text"]
+        cost = result["cost"]
 
         input_name, _ = os.path.splitext(file.name)
         pdf_bytes = BytesIO()
@@ -46,33 +51,15 @@ def process_ocr_document(file_content, file_name, merged, idx):
         import traceback
         import uuid
 
-        from pypdf.errors import PdfPageCountError
-
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
         logger.error(
             f"Error processing file {file_name} in task {current_task.request.id}: {full_error}"
         )
-        # # Handle specific exceptions
-        # if isinstance(e, UnboundLocalError):
-        #     return {
-        #         "error": True,
-        #         "full_error": full_error,
-        #         "message": f"Failed: Your file's extension is not supported, please upload images or pdf files",
-        #         "error_id": error_id,
-        #     }
-        # elif isinstance(e, PdfPageCountError):
-        #     return {
-        #         "error": True,
-        #         "full_error": full_error,
-        #         "message": f"Failed: The file '{file_name}' appears to be corrupted or is not a valid PDF.",
-        #         "error_id": error_id,
-        #     }
-        # else:
         # Fallback for other exceptions
         return {
             "error": True,
             "full_error": full_error,
-            "message": f"Failed: Check your file for corruption of type mismatch",
+            "message": f"Error: Check your file for corruption of type mismatch",
             "error_id": error_id,
         }
