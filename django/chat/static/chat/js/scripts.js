@@ -182,6 +182,22 @@ function toggleAriaSelected(mode) {
   });
 }
 
+
+// Close the sidebars that are in "overlay mode" when clicking outside of them
+document.addEventListener('click', function (e) {
+  let clicked_element = e.target;
+  let left_sidebar = document.querySelector('#left-sidebar');
+  let right_sidebar = document.querySelector('#right-sidebar');
+  if (!(clicked_element.closest(".chat-sidebar-toggle") || left_sidebar.contains(clicked_element) || right_sidebar.contains(clicked_element))) {
+    if (window.getComputedStyle(left_sidebar).position === "absolute" && !left_sidebar.classList.contains("hidden")) {
+      closeSidebar("left-sidebar");
+    }
+    if (window.getComputedStyle(right_sidebar).position === "absolute" && !right_sidebar.classList.contains("hidden")) {
+      closeSidebar("right-sidebar");
+    }
+  }
+});
+
 // Some resizing hacks to make the prompt form the same width as the messages
 function resizePromptContainer() {
   let chatContainer = document.querySelector("#chat-container");
