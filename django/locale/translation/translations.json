@@ -3438,5 +3438,9 @@
     "Error extracting text from file. Try copying and pasting the text.": {
         "fr": "",
         "fr_auto": "Erreur lors de l’extraction du texte du fichier. Essayez de copier et coller le texte."
+    },
+    "Mark complete": {
+        "fr": "",
+        "fr_auto": "Marquer comme terminé"
     }
 }
