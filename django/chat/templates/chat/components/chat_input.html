@@ -94,7 +94,10 @@
                     id="chat-prompt"
                     autocomplete="off"
                     aria-label='{% trans "Message" %}'
-                    placeholder='{% trans "Type your message here..." %}'
+                    data-chat-placeholder='{% trans "Enter a message to chat with the AI" %}'
+                    data-qa-placeholder='{% trans "Ask a question about the selected documents, upload files or enter a URL to add" %}'
+                    data-summarize-placeholder='{% trans "Enter a URL, paste long text or upload files to summarize" %}'
+                    data-translate-placeholder='{% trans "Enter text or upload files to translate (select language in sidebar)" %}'
                     required></textarea>
  
           <button id="send-button"

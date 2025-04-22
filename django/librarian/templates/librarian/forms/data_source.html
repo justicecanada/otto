@@ -11,61 +11,65 @@
   {# No delete URL needed when creating a new data source #}
 {% endif %}
 
-<form id="data-source-form" hx-post="{{ form_action_url }}">
-  {{ form.non_field_errors }}
-  <h6>
-    {% if form.instance.id %}
-      {% trans "Edit folder" %}
-    {% else %}
-      {% trans "Create folder" %}
-    {% endif %}
-  </h6>
-  {% csrf_token %}
-  {# For some reason I just CANNOT get {{ form.id }} to render, so I have to do this #}
-  <input type="hidden"
-         name="id"
-         value="{{ form.instance.id|default_if_none:'' }}">
-  {{ form.library }}
-  <div class="mb-3">
-    <label for="{{ form.name_en.id_for_label }}"
-           class="col-form-label col-form-label-sm">{% trans "Name (English)" %}</label>
-    {{ form.name_en.errors }}
-    {{ form.name_en }}
-  </div>
-  <div class="mb-3">
-    <label for="{{ form.name_fr.id_for_label }}"
-           class="col-form-label col-form-label-sm">{% trans "Name (French)" %}</label>
-    {{ form.name_fr.errors }}
-    {{ form.name_fr }}
-  </div>
-  <div class="mb-3">
-    <label for="{{ form.security_label.id_for_label }}"
-           class="col-form-label col-form-label-sm">{% trans "Security label " %}</label>
-    {{ form.security_label.errors }}
-    {{ form.security_label }}
-  </div>
-  <div class="mb-3">
-    <label for="{{ form.order.id_for_label }}"
-           class="col-form-label col-form-label-sm">{% trans "Order" %}</label>
-    {{ form.order.errors }}
-    {{ form.order }}
-  </div>
-  <div class="row">
-    <div class="col">
-      <button type="submit" class="btn btn-sm btn-primary me-1">{% trans "Save changes" %}</button>
-      <button type="button"
-              class="btn btn-sm btn-outline-secondary"
-              hx-get="{{ cancel_url }}">{% trans "Cancel" %}</button>
+{% if form.instance.id and form.instance.chat_id %}
+  <h6>{% trans "Chat uploads" %} - {{ form.instance.chat.title }}</h6>
+{% else %}
+  <form id="data-source-form" hx-post="{{ form_action_url }}">
+    {{ form.non_field_errors }}
+    <h6>
+      {% if form.instance.id %}
+        {% trans "Edit folder" %}
+      {% else %}
+        {% trans "Create folder" %}
+      {% endif %}
+    </h6>
+    {% csrf_token %}
+    {# For some reason I just CANNOT get {{ form.id }} to render, so I have to do this #}
+    <input type="hidden"
+           name="id"
+           value="{{ form.instance.id|default_if_none:'' }}">
+    {{ form.library }}
+    <div class="mb-3">
+      <label for="{{ form.name_en.id_for_label }}"
+             class="col-form-label col-form-label-sm">{% trans "Name (English)" %}</label>
+      {{ form.name_en.errors }}
+      {{ form.name_en }}
     </div>
-    {% if form.instance.id and form.deletable %}
-      <div class="col-auto">
+    <div class="mb-3">
+      <label for="{{ form.name_fr.id_for_label }}"
+             class="col-form-label col-form-label-sm">{% trans "Name (French)" %}</label>
+      {{ form.name_fr.errors }}
+      {{ form.name_fr }}
+    </div>
+    <div class="mb-3">
+      <label for="{{ form.security_label.id_for_label }}"
+             class="col-form-label col-form-label-sm">{% trans "Security label " %}</label>
+      {{ form.security_label.errors }}
+      {{ form.security_label }}
+    </div>
+    <div class="mb-3">
+      <label for="{{ form.order.id_for_label }}"
+             class="col-form-label col-form-label-sm">{% trans "Order" %}</label>
+      {{ form.order.errors }}
+      {{ form.order }}
+    </div>
+    <div class="row">
+      <div class="col">
+        <button type="submit" class="btn btn-sm btn-primary me-1">{% trans "Save changes" %}</button>
         <button type="button"
-                class="btn btn-sm btn-outline-danger"
-                hx-delete="{{ delete_url }}"
-                hx-confirm="{% trans 'DANGER: Are you sure you want to delete this folder? This action is permanent.' %}">
-          {% trans "Delete" %}
-        </button>
+                class="btn btn-sm btn-outline-secondary"
+                hx-get="{{ cancel_url }}">{% trans "Cancel" %}</button>
       </div>
-    {% endif %}
-  </div>
-</form>
+      {% if form.instance.id and form.deletable %}
+        <div class="col-auto">
+          <button type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  hx-delete="{{ delete_url }}"
+                  hx-confirm="{% trans 'DANGER: Are you sure you want to delete this folder? This action is permanent.' %}">
+            {% trans "Delete" %}
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </form>
+{% endif %}

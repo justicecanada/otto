@@ -81,10 +81,20 @@ def new_chat(request, mode=None):
     empty_chat = Chat.objects.create(user=request.user, mode=mode)
 
     logger.info("New chat created.", chat_id=empty_chat.id, mode=mode)
-    q = request.META["QUERY_STRING"]
     redirect_url = reverse("chat:chat", args=[empty_chat.id])
-    if q:
-        redirect_url += "?" + q
+
+    start_tour = request.GET.get("start_tour") == "true"
+    if start_tour:
+        # Reset settings to Otto default
+        if get_language() == "fr":
+            preset = Preset.objects.get(french_default=True)
+        else:
+            preset = Preset.objects.get(english_default=True)
+        empty_chat.loaded_preset = preset
+        empty_chat.save()
+        # Update the chat options with the preset options
+        copy_options(preset.options, empty_chat.options)
+        redirect_url += "?start_tour=true"
 
     return redirect(redirect_url)
 
@@ -320,7 +330,7 @@ def chat_message(request, chat_id):
     }
     response = HttpResponse()
     response.write(render_to_string("chat/components/chat_messages.html", context))
-    if entered_url and allowed_url and mode == "chat":
+    if entered_url and allowed_url and (mode == "chat" or mode == "qa"):
         response.write(change_mode_to_chat_qa(chat))
     return response
 

@@ -20,7 +20,8 @@ logger = get_logger(__name__)
 
 CHAT_MODELS = [
     ("gpt-4o-mini", _("GPT-4o-mini (fastest, best value)")),
-    ("gpt-4o", _("GPT-4o (best quality, 15x cost)")),
+    ("o3-mini", _("o3-mini (adds reasoning, 7x cost)")),
+    ("gpt-4o", _("GPT-4o (best accuracy, 15x cost)")),
 ]
 SUMMARIZE_STYLES = [
     ("short", _("Short")),
@@ -150,6 +151,12 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
                             Q(chat=chat) | Q(chat__messages__isnull=False)
                         ).distinct()
                     )
+                # Only show chats that have Documents (or are the current chat)
+                data = [
+                    x
+                    for x in data
+                    if x.documents.count() > 0 or (x.chat and str(x.chat.id) == chat_id)
+                ]
         else:
             data = DataSource.objects.all()
         if search is not None:

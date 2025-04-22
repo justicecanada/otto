@@ -16,6 +16,8 @@ from librarian.models import LibraryUserRole
 
 ADMINISTRATIVE_PERMISSIONS = {
     "otto.manage_users",
+    "otto.manage_feedback",
+    "otto.manage_cost_dashboard",
     "librarian.manage_public_libraries",
     "librarian.manage_library_users",
 }
@@ -29,6 +31,7 @@ def accepted_terms(user):
 # AC-16(2): Security Attribute Modification
 # "is_group_member" returns a predicate
 is_admin = is_group_member("Otto admin")
+is_operations_admin = is_group_member("Operations admin")
 is_data_steward = is_group_member("Data steward")
 
 add_perm("otto.manage_users", is_admin)
@@ -58,9 +61,21 @@ def can_access_app(user, app):
     return is_group_member(app.user_group.name)(user)
 
 
+@predicate
+def can_access_feedback(user):
+    return is_admin(user) or is_operations_admin(user)
+
+
+@predicate
+def can_access_cost_dashboard(user):
+    return is_admin(user) or is_operations_admin(user)
+
+
 add_perm("otto.view_app", can_view_app)
 add_perm("otto.access_app", can_access_app)
 add_perm("otto.enable_load_testing", can_enable_load_testing)
+add_perm("otto.manage_feedback", can_access_feedback)
+add_perm("otto.manage_cost_dashboard", can_access_cost_dashboard)
 
 
 # AI Assistant
@@ -124,12 +139,6 @@ add_perm("chat.edit_preset", can_edit_preset)
 add_perm("chat.delete_preset", can_delete_preset)
 add_perm("chat.edit_preset_sharing", can_edit_preset_sharing)
 add_perm("chat.quick_save_preset", can_quick_save_preset)
-
-# Template Wizard
-add_perm(
-    "template_wizard.access_lex_wizard",
-    is_group_member("Litigation briefing user") | is_admin,
-)
 
 
 # Librarian
