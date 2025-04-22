@@ -184,7 +184,7 @@ function toggleAriaSelected(mode) {
 
 
 // Close the sidebars that are in "overlay mode" when clicking outside of them
-document.addEventListener('click', function (e) {
+document.querySelector("#chat-container").addEventListener('click', function (e) {
   let clicked_element = e.target;
   let left_sidebar = document.querySelector('#left-sidebar');
   let right_sidebar = document.querySelector('#right-sidebar');
