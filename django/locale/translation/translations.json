@@ -3435,8 +3435,8 @@
         "fr": "",
         "fr_auto": "GPT-4o (meilleure précision, coût 15x)"
     },
-    "The following file(s) could not be processed:": {
+    "Error extracting text from file. Try copying and pasting the text.": {
         "fr": "",
-        "fr_auto": "Les dossiers suivants n’ont pas pu être traités :"
+        "fr_auto": "Erreur lors de l’extraction du texte du fichier. Essayez de copier et coller le texte."
     }
 }
