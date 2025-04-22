@@ -424,21 +424,31 @@ def chunk_upload(request, message_id):
     nextSlice = request.POST["nextSlice"]
 
     if file == "" or file_name == "" or file_id == "" or end == "" or nextSlice == "":
+        logger.info(
+            f"File upload failed. Missing parameters: {file}, {file_name}, {file_id}, {end}, {nextSlice}"
+        )
         return JsonResponse({"data": "Invalid request"})
     else:
         if file_id == "null":
+            logger.info("File_id is null - Uploading new file.", message_id=message_id)
             chat_file_arguments = dict(
                 message_id=message_id,
                 filename=file_name,
             )
             if existing_file:
+                logger.info(
+                    f"File already exists - using existing file. {existing_file.id}"
+                )
                 chat_file_arguments.update(saved_file=existing_file)
             else:
+                logger.info("File does not exist - creating new file.")
                 chat_file_arguments.update(content_type=content_type, eof=int(end))
             file_obj = ChatFile.objects.create(**chat_file_arguments)
             if not existing_file:
+                logger.info("Saving new file.")
                 file_obj.saved_file.file.save(file_name, request.FILES["file"])
             if int(end) or existing_file:
+                logger.info("File upload completed.")
                 file_obj.saved_file.generate_hash()
                 return JsonResponse(
                     {"data": "Uploaded successfully", "file_id": file_obj.id}
@@ -446,16 +456,34 @@ def chunk_upload(request, message_id):
             else:
                 return JsonResponse({"file_id": file_obj.id})
         else:
+            logger.info("File_id is not null")
             file_obj = ChatFile.objects.get(id=file_id)
+            logger.info(
+                f"File Object - Name : {file_obj.filename} - ID : {file_obj.id}"
+            )
             if not file_obj or file_obj.saved_file.eof:
+                logger.info(
+                    f"No file object: {file_obj} or No file object eof: {file_obj.saved_file.eof}"
+                )
                 return JsonResponse({"data": "Invalid request"})
             # Append the chunk to the file with write mode ab+
             with open(file_obj.saved_file.file.path, "ab+") as f:
+                logger.info(f"Opening file: {file_obj.saved_file.file.path}")
+                logger.info(f"Attempting to seek to {nextSlice}")
                 f.seek(int(nextSlice))
+                logger.info(f"Attempting to write file: {file}")
                 f.write(file)
+            logger.info(f"File written successfully: {file_obj.saved_file.file.path}")
+            logger.info(
+                f"Attempting to update saved_file.eof: {file_obj.saved_file.eof}"
+            )
             file_obj.saved_file.eof = int(end)
+            logger.info(f"Attempting to save file obj: {file_obj}")
             file_obj.save()
             if int(end):
+                logger.info(
+                    f"Attempting to generated saved_file hash: {file_obj.saved_file}"
+                )
                 file_obj.saved_file.generate_hash()
                 return JsonResponse(
                     {
