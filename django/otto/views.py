@@ -115,9 +115,9 @@ def index(request):
             "hide_breadcrumbs": True,
             "categorized_features": get_categorized_features(request.user),
             "has_tour": True,
-            "force_tour": not (
-                request.user.homepage_tour_completed or request.user.is_admin
-            ),
+            "force_tour": not request.user.homepage_tour_completed,
+            "tour_skippable": request.user.is_admin
+            or request.user.homepage_tour_completed,
         },
     )
 
