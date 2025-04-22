@@ -75,6 +75,7 @@
   --search-bar-bg-hover: #e6e6e6;
   --chat-delete-text: #b10e0e;
   --prompt-send-btn-bg: white;
+  --search-bar-border: #808080;
 }
 
 [data-bs-theme="dark"] {
