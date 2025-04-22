@@ -249,7 +249,9 @@ def chat(request, chat_id):
         "chat_history_sections": get_chat_history_sections(user_chats),
         "has_tour": True,
         "tour_name": _("AI Assistant"),
-        "force_tour": not request.user.ai_assistant_tour_completed,
+        "force_tour": not (
+            request.user.ai_assistant_tour_completed or request.user.is_admin
+        ),
         "start_tour": request.GET.get("start_tour") == "true",
     }
     return render(request, "chat/chat.html", context=context)
