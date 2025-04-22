@@ -3434,5 +3434,9 @@
     "GPT-4o (best accuracy, 15x cost)": {
         "fr": "",
         "fr_auto": "GPT-4o (meilleure précision, coût 15x)"
+    },
+    "Error extracting text from file. Try copying and pasting the text.": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’extraction du texte du fichier. Essayez de copier et coller le texte."
     }
 }
