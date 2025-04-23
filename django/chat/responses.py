@@ -423,7 +423,7 @@ def qa_response(chat, response_message, switch_mode=False):
         elif adding_url:
             yield _("URL ready for Q&A.")
         else:
-            yield f"{len(files)} " + _("new document(s) ready for Q&A.")
+            yield f"{num_completed_documents} " + _("new document(s) ready for Q&A.")
 
     if len(files) > 0 or adding_url:
         for file in files:
