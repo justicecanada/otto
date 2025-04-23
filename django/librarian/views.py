@@ -26,6 +26,7 @@ from .models import DataSource, Document, Library, LibraryUserRole, SavedFile
 
 logger = get_logger(__name__)
 IN_PROGRESS_STATUSES = ["PENDING", "INIT", "PROCESSING"]
+END_STATUSES = ["SUCCESS", "ERROR", "BLOCKED"]
 
 
 def get_editable_libraries(user):
@@ -448,7 +449,7 @@ def data_source_stop(request, data_source_id):
     # Stop all celery tasks for documents within this data source
     data_source = get_object_or_404(DataSource, id=data_source_id)
     for document in data_source.documents.defer("extracted_text").all():
-        if document.status in ["PENDING", "INIT", "PROCESSING"]:
+        if document.status not in END_STATUSES:
             document.stop()
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
@@ -463,12 +464,12 @@ def data_source_start(request, data_source_id, pdf_method="default", scope="all"
     data_source = get_object_or_404(DataSource, id=data_source_id)
     if scope == "all":
         for document in data_source.documents.defer("extracted_text").all():
-            if document.status in ["PENDING", "INIT", "PROCESSING"]:
+            if document.status not in END_STATUSES:
                 document.stop()
             document.process(pdf_method=pdf_method)
     elif scope == "incomplete":
         for document in data_source.documents.defer("extracted_text").all():
-            if document.status in ["PENDING", "INIT", "PROCESSING"]:
+            if document.status not in END_STATUSES:
                 document.stop()
             if document.status not in ["SUCCESS"]:
                 document.process(pdf_method=pdf_method)
