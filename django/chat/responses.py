@@ -386,6 +386,7 @@ def qa_response(chat, response_message, switch_mode=False):
         adding_url = False
 
     async def add_files_to_library():
+        message_created_at = response_message.date_created
         ds = chat.data_source
         processing_count = await sync_to_async(
             lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
@@ -400,15 +401,14 @@ def qa_response(chat, response_message, switch_mode=False):
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
             )()
 
-        saved_files = [file.saved_file for file in files]
         error_documents = await sync_to_async(
             lambda: list(
-                ds.documents.filter(status="ERROR", saved_file__in=saved_files)
+                ds.documents.filter(status="ERROR", created_at__gt=message_created_at)
             )
         )()
         num_completed_documents = await sync_to_async(
             lambda: ds.documents.filter(
-                status="SUCCESS", saved_file__in=saved_files
+                status="SUCCESS", created_at__gt=message_created_at
             ).count()
         )()
         if error_documents:

@@ -133,6 +133,11 @@ def process_document_helper(document, llm, pdf_method="default"):
         root_document_id=document.id,
     )
 
+    if document.content_type in ["application/x-zip-compressed", "application/zip"]:
+        # Delete the document; we've already extracted the contents
+        document.delete()
+        return
+
     if current_task:
         current_task.update_state(
             state="PROCESSING",
