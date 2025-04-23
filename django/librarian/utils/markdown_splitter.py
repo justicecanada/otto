@@ -100,12 +100,14 @@ class MarkdownSplitter:
         * chunk ends with <page_n+1> (with no content for that page)
         """
         html_string = html_string.strip()
+        print(f"HTML string: {html_string}")
         # Closing tag as the first line?
         if html_string.split("\n", 1)[0].startswith("</page_"):
             if 1 in range(len(html_string.split("\n", 1))):
                 html_string = html_string.split("\n", 1)[1]
             else:
-                html_string = html_string = html_string.split("\n", 1)[0]
+                html_string = html_string.split("\n", 1)[0]
+        # Opening tag as the first line?
         # Opening tag as the last line?
         if html_string.rsplit("\n", 1)[-1].startswith("<page_"):
             html_string = html_string.rsplit("\n", 1)[0]
