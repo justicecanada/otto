@@ -26,6 +26,13 @@
                   data-bs-dismiss="modal">
             <i class="bi bi-airplane me-2"></i>{% trans "Start tour" %}
           </button>
+          {% if tour_skippable %}
+            <button type="button"
+                    class="btn btn-outline-dark ms-2"
+                    data-bs-dismiss="modal"
+                    hx-post="{% url "mark_tour_completed" tour_name="homepage" %}"
+                    hx-swap="none">{% trans "Mark complete" %}</button>
+          {% endif %}
         </div>
       </div>
     </div>
