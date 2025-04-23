@@ -32,6 +32,7 @@ from chat.utils import (
     htmx_stream,
     num_tokens_from_string,
     sort_by_max_score,
+    stream_to_replacer,
     summarize_long_text,
     url_to_text,
 )
@@ -169,26 +170,43 @@ def summarize_response(chat, response_message):
     model = chat.options.summarize_model
 
     llm = OttoLLM(model)
+    error_str = ""
 
     if len(files) > 0:
         titles = [file.filename for file in files]
         responses = []
         for file in files:
+            if cache.get(f"stop_response_{response_message.id}", False):
+                break
             if not file.text:
-                file.extract_text(pdf_method="default")
-            if not cache.get(f"stop_response_{response_message.id}", False):
-                responses.append(
-                    summarize_long_text(
-                        file.text,
-                        llm,
-                        summary_length,
-                        target_language,
-                        custom_summarize_prompt,
-                        gender_neutral,
-                        instructions,
+                try:
+                    file.extract_text(pdf_method="default")
+                except Exception as e:
+                    error_id = str(uuid.uuid4())[:7]
+                    error_str = _(
+                        "Error extracting text from file. Try copying and pasting the text."
                     )
+                    error_str += f" _({_('Error ID')}: {error_id})_"
+                    responses.append(stream_to_replacer([error_str]))
+                    logger.error(
+                        "Error extracting text from file",
+                        error_id=error_id,
+                        message_id=response_message.id,
+                        chat_id=chat.id,
+                        error=traceback.format_exc(),
+                    )
+                    continue
+            responses.append(
+                summarize_long_text(
+                    file.text,
+                    llm,
+                    summary_length,
+                    target_language,
+                    custom_summarize_prompt,
+                    gender_neutral,
+                    instructions,
                 )
-
+            )
         title_batches = create_batches(titles, batch_size)
         response_batches = create_batches(responses, batch_size)
         batch_generators = [
@@ -211,44 +229,47 @@ def summarize_response(chat, response_message):
             content_type="text/event-stream",
         )
     elif user_message.text == "":
-        summary = _("No text to summarize.")
+        error_str = _("No text to summarize.")
     else:
+        # Text input is a URL or plain text
         url_validator = URLValidator()
         try:
             url_validator(user_message.text)
             text_to_summarize = url_to_text(user_message.text)
+            # Check if response text is too short (most likely a website blocking Otto)
+            if len(text_to_summarize.split()) < 35:
+                error_str = _(
+                    "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here."
+                )
         except ValidationError:
             text_to_summarize = user_message.text
 
-        # Check if response text is too short (most likely a website blocking Otto)
-        if len(text_to_summarize.split()) < 35:
-            summary = _(
-                "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here."
-            )
-        else:
-            response = summarize_long_text(
-                text_to_summarize,
+    if error_str:
+        return StreamingHttpResponse(
+            streaming_content=htmx_stream(
+                chat,
+                response_message.id,
                 llm,
-                summary_length,
-                target_language,
-                custom_summarize_prompt,
-                gender_neutral,
-                instructions,
-            )
-            return StreamingHttpResponse(
-                streaming_content=htmx_stream(
-                    chat,
-                    response_message.id,
-                    llm,
-                    response_replacer=response,
-                ),
-                content_type="text/event-stream",
-            )
+                response_str=error_str,
+            ),
+            content_type="text/event-stream",
+        )
 
-    # This will only be reached in an error case
+    response = summarize_long_text(
+        text_to_summarize,
+        llm,
+        summary_length,
+        target_language,
+        custom_summarize_prompt,
+        gender_neutral,
+        instructions,
+    )
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
-            chat, response_message.id, llm, response_str=summary
+            chat,
+            response_message.id,
+            llm,
+            response_replacer=response,
         ),
         content_type="text/event-stream",
     )

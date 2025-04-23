@@ -250,6 +250,8 @@ def chat(request, chat_id):
         "has_tour": True,
         "tour_name": _("AI Assistant"),
         "force_tour": not request.user.ai_assistant_tour_completed,
+        "tour_skippable": request.user.is_admin
+        or request.user.ai_assistant_tour_completed,
         "start_tour": request.GET.get("start_tour") == "true",
     }
     return render(request, "chat/chat.html", context=context)
