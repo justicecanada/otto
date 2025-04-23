@@ -19,7 +19,6 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify
 from structlog import get_logger
 
-from librarian.models import Document, SavedFile
 from librarian.utils.extract_emails import extract_msg
 from librarian.utils.extract_zip import process_zip_file
 from librarian.utils.markdown_splitter import MarkdownSplitter
