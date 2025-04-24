@@ -374,18 +374,6 @@ class Preset(models.Model):
             description = self.description_en or self.description_fr
         return description or _("No description available")
 
-    def set_as_user_default(self, user: User):
-        if user:
-            if user.default_preset == self:
-                user.default_preset = None
-            else:
-                user.default_preset = self
-            user.save()
-            return user.default_preset
-        else:
-            logger.error("User must be set to set user default.")
-            raise ValueError("User must be set to set user default")
-
     def __str__(self):
         return f"Preset {self.id}: {self.name_en}"
 

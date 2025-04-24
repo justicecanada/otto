@@ -52,8 +52,6 @@ from otto.utils.decorators import (
 )
 from otto.views import feedback_message
 
-from .models import Preset
-
 app_name = "chat"
 logger = get_logger(__name__)
 User = get_user_model()
@@ -789,6 +787,10 @@ def message_sources(request, message_id, highlight=False):
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def get_presets(request, chat_id):
+    # If user has no default preset, set it to the global default (based on language)
+    if not request.user.default_preset:
+        request.user.default_preset = Preset.objects.get_global_default()
+        request.user.save()
     return render(
         request,
         "chat/modals/presets/card_list.html",
@@ -864,27 +866,26 @@ def set_preset_default(request, chat_id: str, preset_id: int):
     try:
         selected_preset = Preset.objects.get(id=preset_id)
         old_default_preset = Preset.objects.filter(default_for=request.user).first()
+        request.user.default_preset = selected_preset
+        request.user.save()
+        messages.success(request, _("Default preset updated."), extra_tags="unique")
 
-        selected_preset.default = selected_preset.set_as_user_default(request.user)
+        # Add the "default" styling to the selected preset
+        selected_preset.default = True
         context = {
             "preset": selected_preset,
             "chat_id": chat_id,
             "swap": True,
         }
-        # Add the "default" styling to the selected preset
         response_str = render_to_string(
             "chat/modals/presets/default_icon.html", context, request
         )
-
-        if old_default_preset and old_default_preset.id != preset_id:
-            old_default_preset.default = False
-            context.update({"preset": old_default_preset})
-            # Remove the "default" styling from the old default preset
-            response_str += render_to_string(
-                "chat/modals/presets/default_icon.html", context, request
-            )
-
-        messages.success(request, _("Default preset changed successfully."))
+        # Remove the "default" styling from the old default preset
+        old_default_preset.default = False
+        context.update({"preset": old_default_preset})
+        response_str += render_to_string(
+            "chat/modals/presets/default_icon.html", context, request
+        )
 
         return HttpResponse(response_str)
 

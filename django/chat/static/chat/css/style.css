@@ -1339,30 +1339,16 @@ ul#preset-edit-tabs {
   border-bottom: none;
   padding-bottom: 0;
   padding-top: 0.66rem;
+  min-height: 3rem;
 
   button {
     background-color: transparent;
     border: none;
 
-    i.bi.bi-heart-fill {
-      border-color: var(--app-color-red-1);
-      color: var(--app-color-red-1);
-    }
-
     &:hover {
-      i.bi.bi-heart {
-        border-color: var(--app-color-red-1);
-        color: var(--app-color-red-1);
-      }
-
       i.bi.bi-star {
         border-color: var(--app-color-yellow-1);
         color: var(--app-color-yellow-1);
-      }
-
-      i.bi.bi-heart,
-      i.bi.bi-heart-fill {
-        text-shadow: 0px 0px 7px var(--app-color-red-1);
       }
 
       i.bi.bi-star,
@@ -1371,28 +1357,10 @@ ul#preset-edit-tabs {
       }
 
       background-color: transparent !important;
-
     }
 
     &:focus-visible {
-      background-color: var(--bg-light-gray);
-      border: none !important;
-      outline: none !important;
-      box-shadow: none;
-
-      &i.bi.bi-heart,
-      &i.bi.bi-heart-fill {
-        border: solid 1px var(--app-color-red-1);
-        background-color: var(--app-color-red-1-hover);
-      }
-
-      &i.bi.bi-start,
-      &i.bi.bi-star-fill {
-        border: solid 1px var(--app-color-yellow-1);
-        background-color: var(--app-color-yellow-2);
-      }
-
-      color: transparent;
+      outline: solid 2px;
     }
   }
 }
