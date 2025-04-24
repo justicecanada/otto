@@ -9,7 +9,7 @@
         title="{{ preset.name_auto }}">{{ preset.name_auto }}</h6>
     <div class="d-flex align-items-center">
       {% include "chat/modals/presets/shared_icon.html" %}
-      <div id="default-button-{{ preset.id }}">{% include "chat/modals/presets/default_icon.html" %}</div>
+      {% include "chat/modals/presets/default_icon.html" %}
     </div>
   </div>
 
@@ -28,14 +28,14 @@
             class="btn btn-outline-dark flex-grow-1 mb-2"
             data-bs-dismiss="modal"
             hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
-            hx-target="#options-accordion">{% trans "Load" %}</button>
+            hx-target="#options-accordion">{% trans "Load settings" %}</button>
     {% if can_edit_preset %}
       <button type="button"
               class="btn btn-outline-dark flex-grow-1 mb-2"
               style="opacity: 0.55"
               hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
               hx-target="#presets-modal-body"
-              hx-swap="innerHTML">{% trans "Edit" %}</button>
+              hx-swap="innerHTML">{% trans "Edit / share" %}</button>
     {% endif %}
   </div>
 

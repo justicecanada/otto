@@ -862,41 +862,31 @@ def edit_preset(request, chat_id, preset_id):
 @permission_required("chat.access_preset", objectgetter(Preset, "preset_id"))
 def set_preset_default(request, chat_id: str, preset_id: int):
     try:
-        new_preset = Preset.objects.get(id=preset_id)
-        old_default = Preset.objects.filter(default_for=request.user).first()
+        selected_preset = Preset.objects.get(id=preset_id)
+        old_default_preset = Preset.objects.filter(default_for=request.user).first()
 
-        default = new_preset.set_as_user_default(request.user)
-        is_default = True if default is not None else False
-
-        new_html = render_to_string(
-            "chat/modals/presets/default_icon.html",
-            {
-                "preset": new_preset,
-                "chat_id": chat_id,
-                "is_default": is_default,
-            },
-            request=request,
+        selected_preset.default = selected_preset.set_as_user_default(request.user)
+        context = {
+            "preset": selected_preset,
+            "chat_id": chat_id,
+            "swap": True,
+        }
+        # Add the "default" styling to the selected preset
+        response_str = render_to_string(
+            "chat/modals/presets/default_icon.html", context, request
         )
 
-        response = (
-            f'<div id="default-button-{preset_id}" hx-swap-oob="true">{new_html}</div>'
-        )
-
-        if old_default and old_default.id != preset_id:
-            old_html = render_to_string(
-                "chat/modals/presets/default_icon.html",
-                {
-                    "preset": old_default,
-                    "chat_id": chat_id,
-                    "is_default": False,
-                },
-                request=request,
+        if old_default_preset and old_default_preset.id != preset_id:
+            old_default_preset.default = False
+            context.update({"preset": old_default_preset})
+            # Remove the "default" styling from the old default preset
+            response_str += render_to_string(
+                "chat/modals/presets/default_icon.html", context, request
             )
-            response += f'<div id="default-button-{old_default.id}" hx-swap-oob="true">{old_html}</div>'
 
-        messages.success(request, _("Default preset was set successfully."))
+        messages.success(request, _("Default preset changed successfully."))
 
-        return HttpResponse(response)
+        return HttpResponse(response_str)
 
     except ValueError:
         logger.error("Error setting default preset")
