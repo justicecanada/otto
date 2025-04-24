@@ -880,12 +880,14 @@ def set_preset_default(request, chat_id: str, preset_id: int):
         response_str = render_to_string(
             "chat/modals/presets/default_icon.html", context, request
         )
+
         # Remove the "default" styling from the old default preset
-        old_default_preset.default = False
-        context.update({"preset": old_default_preset})
-        response_str += render_to_string(
-            "chat/modals/presets/default_icon.html", context, request
-        )
+        if old_default_preset:
+            old_default_preset.default = False
+            context.update({"preset": old_default_preset})
+            response_str += render_to_string(
+                "chat/modals/presets/default_icon.html", context, request
+            )
 
         return HttpResponse(response_str)
 
