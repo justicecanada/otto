@@ -59,7 +59,7 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
         mode = chat.options.mode
 
         estimate_cost = estimate_cost_of_request(chat, response_message)
-        if estimate_cost and not skip_cost:
+        if estimate_cost >= 0.00 and not skip_cost:
             return cost_warning_response(chat, response_message, estimate_cost)
 
         # For costing and logging. Contextvars are accessible anytime during the request

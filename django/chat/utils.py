@@ -29,8 +29,8 @@ from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS
-from otto.models import Cost, SecurityLabel
-from otto.utils.common import display_cad_cost
+from otto.models import CostType, SecurityLabel
+from otto.utils.common import cad_cost
 
 logger = get_logger(__name__)
 # Markdown instance
@@ -976,30 +976,61 @@ def get_chat_history_sections(user_chats):
     return chat_history_sections
 
 
-def estimate_cost_of_string(text, model):
+# def estimate_cost_of_string(text, model, translate_type=None):
 
-    num_tokens = num_tokens_from_string(text, model)
-    cost = Cost.objects.new(model + "-in", num_tokens)
+#     num_tokens = num_tokens_from_string(text, model)
+#     if translate_type:
+#         cost = Cost.objects.new(translate_type, num_tokens)
+#     else:
+#         cost = Cost.objects.new(model + "-in", num_tokens)
 
-    return cost.usd_cost
+#     return cost.usd_cost
+
+
+def estimate_cost_of_string(text, cost_type):
+
+    if cost_type.startswith("translate-"):
+        count = len(text)
+    else:
+        count = num_tokens_from_string(text, cost_type.split("-in")[0])
+
+    cost_type = CostType.objects.get(short_name=cost_type)
+    usd_cost = (count * cost_type.unit_cost) / cost_type.unit_quantity
+
+    return usd_cost
 
 
 def estimate_cost_of_request(chat, response_message):
     user_message_text = response_message.parent.text
-    data_sources = chat.options.qa_data_sources
     model = chat.options.qa_model
+    mode = chat.options.mode
 
     cost = estimate_cost_of_string(
         user_message_text,
-        model,
+        "translate-text" if mode == "translate" else model + "-in",
     )
 
-    if len(data_sources.all()) > 0:
-        for data_source in data_sources.all():
-            for document in data_source.documents.all():
-                cost += estimate_cost_of_string(
-                    document.extracted_text,
-                    model,
-                )
+    if mode == "qa":
+        if chat.options.qa_scope == "documents":
+            for doc in chat.options.qa_documents.all():
+                cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
+        elif chat.options.qa_scope == "data_sources":
+            data_sources = chat.options.qa_data_sources
+            for data_source in data_sources.all():
+                for doc in data_source.documents.all():
+                    cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
+        elif chat.options.qa_scope == "all":
+            data_sources = chat.options.qa_library.sorted_data_sources
+            for data_source in data_sources.all():
+                for doc in data_source.documents.all():
+                    cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
+    elif mode == "summarize" or "translate":
+        for file in response_message.parent.sorted_files.all():
+            if not file.text:
+                file.extract_text(pdf_method="default")
+            cost += estimate_cost_of_string(
+                file.text,
+                "translate-file" if mode == "translate" else model + "-in",
+            )
 
-    return display_cad_cost(cost)
+    return cad_cost(cost)
