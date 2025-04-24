@@ -3458,5 +3458,9 @@
     "Mark complete": {
         "fr": "",
         "fr_auto": "Marquer comme terminé"
+    },
+    "Warning: You currently have the default preset loaded. Updating it will change your default settings.": {
+        "fr": "",
+        "fr_auto": "Avertissement : Vous avez actuellement le préréglage par défaut chargé. Sa mise à jour modifiera vos paramètres par défaut."
     }
 }
