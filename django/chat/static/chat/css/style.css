@@ -1304,6 +1304,93 @@ ul#preset-edit-tabs {
   }
 }
 
+#preset-card-list .info-section {
+  margin-bottom: 0.5rem;
+  position: relative;
+  top: -0.5rem;
+}
+
+#preset-card-list .preset-mode-badge {
+  font-weight: normal;
+  color: var(--bs-text-body);
+
+  &.chat {
+    background: var(--app-color-red-2-hover);
+  }
+
+  &.qa {
+    background: var(--app-color-purple-1-hover);
+  }
+
+  &.summarize {
+    background: var(--app-color-green-2-hover);
+  }
+
+  &.translate {
+    background: var(--app-color-yellow-1-hover);
+  }
+}
+
+#preset-card-list .card {
+  border-left: solid 5px;
+  cursor: pointer;
+
+  &.chat {
+    border-left-color: var(--app-color-red-2-hover);
+
+    &:hover {
+      border-left-color: var(--app-color-red-2);
+      box-shadow: 0 0 0 0.25rem var(--app-color-red-2-hover);
+    }
+  }
+
+  &.qa {
+    border-left-color: var(--app-color-purple-1-hover);
+
+    &:hover {
+      border-left-color: var(--app-color-purple-1);
+      box-shadow: 0 0 0 0.25rem var(--app-color-purple-1-hover);
+    }
+  }
+
+  &.summarize {
+    border-left-color: var(--app-color-green-2-hover);
+
+    &:hover {
+      border-left-color: var(--app-color-green-2);
+      box-shadow: 0 0 0 0.25rem var(--app-color-green-2-hover);
+    }
+  }
+
+  &.translate {
+    border-left-color: var(--app-color-yellow-1-hover);
+
+    &:hover {
+      border-left-color: var(--app-color-yellow-1);
+      box-shadow: 0 0 0 0.25rem var(--app-color-yellow-1-hover);
+    }
+  }
+}
+
+.edit-icon {
+  .only-hover {
+    display: none;
+  }
+
+  &:hover .only-hover {
+    display: inline;
+  }
+
+  .non-hover {
+    display: inline;
+  }
+
+  &:hover .non-hover {
+    display: none;
+  }
+}
+
+
 .preset-form-container .language-content {
   display: none;
 }
@@ -1329,6 +1416,7 @@ ul#preset-edit-tabs {
 
 #preset-card-list .card-title {
   font-size: 1.15rem;
+  line-height: 1.5rem;
 }
 
 #preset-card-list .card-header {
@@ -1344,6 +1432,7 @@ ul#preset-edit-tabs {
   button {
     background-color: transparent;
     border: none;
+    text-wrap: nowrap;
 
     &:hover {
       i.bi.bi-star {
@@ -1363,6 +1452,16 @@ ul#preset-edit-tabs {
       outline: solid 2px;
     }
   }
+}
+
+#preset-card-list .preset-description {
+  min-height: 2.5rem !important;
+  -webkit-box-orient: vertical !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: normal !important;
 }
 
 .card-list {

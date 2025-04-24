@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static %}
 
 <div class="modal-body" id="preset-card-list">
   <div class="row">
@@ -7,7 +8,7 @@
         {% if presets|length == 0 %}
           {% include "chat/modals/presets/empty_card_list.html" %}
         {% else %}
-          <ul class="card-list">
+          <ul class="card-list list-unstyled">
             {% for preset in presets %}
               {% include "chat/modals/presets/card.html" %}
             {% endfor %}
@@ -16,5 +17,6 @@
       </div>
     </div>
   </div>
-
 </div>
+
+<script src="{% static 'chat/js/card.js' %}"></script>
