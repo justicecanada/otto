@@ -3474,5 +3474,21 @@
     "Mark complete": {
         "fr": "",
         "fr_auto": "Marquer comme terminé"
+    },
+    "Load settings": {
+        "fr": "",
+        "fr_auto": "Réglages de charge"
+    },
+    "Edit / share": {
+        "fr": "",
+        "fr_auto": "Modifier / partager"
+    },
+    "Default for new chats": {
+        "fr": "",
+        "fr_auto": "Par défaut pour les nouvelles conversations"
+    },
+    "Default preset updated.": {
+        "fr": "",
+        "fr_auto": "Préréglage par défaut mis à jour."
     }
 }
