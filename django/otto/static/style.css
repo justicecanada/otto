@@ -211,6 +211,7 @@ div.app-card-other:hover {
 
 #top-nav-search-input input {
   border-width: 2px;
+  border-color: var(--search-bar-border);
 }
 
 div#top-nav-search {
