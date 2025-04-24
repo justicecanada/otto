@@ -1458,7 +1458,7 @@ ul#preset-edit-tabs {
   min-height: 2.5rem !important;
   -webkit-box-orient: vertical !important;
   display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
+  -webkit-line-clamp: 4 !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: normal !important;
