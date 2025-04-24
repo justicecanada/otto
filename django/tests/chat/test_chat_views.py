@@ -996,6 +996,7 @@ def test_preset(client, basic_user, all_apps_user):
         and last_message.message == "Preset loaded successfully."
     )
 
+    client.force_login(user)
     # Test setting the preset as default
     response = client.get(reverse("chat:set_preset_default", args=[preset.id, chat.id]))
     assert response.status_code == 200
