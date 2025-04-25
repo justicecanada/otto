@@ -3534,5 +3534,13 @@
     "Shared": {
         "fr": "",
         "fr_auto": "Partagé"
+    },
+    "This request might be expensive. Are you sure you want to continue?": {
+        "fr": "",
+        "fr_auto": "Cette demande peut être coûteuse. Êtes-vous sûr de vouloir continuer?"
+    },
+    "Continue at estimated cost ": {
+        "fr": "",
+        "fr_auto": "Continuer au coût estimatif "
     }
 }
