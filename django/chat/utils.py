@@ -82,8 +82,13 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
 
 def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
     """Returns the number of tokens in a text string."""
-    encoding = tiktoken.encoding_for_model(model)
-    num_tokens = len(encoding.encode(string))
+    string = string or ""
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+        num_tokens = len(encoding.encode(string))
+    except:
+        # Estimate the number of tokens using a simple heuristic (1 token = 4 chars)
+        num_tokens = len(string) // 4
     return num_tokens
 
 
@@ -977,7 +982,6 @@ def get_chat_history_sections(user_chats):
 
 
 def estimate_cost_of_string(text, cost_type):
-
     if cost_type.startswith("translate-"):
         count = len(text)
     else:
@@ -991,7 +995,7 @@ def estimate_cost_of_string(text, cost_type):
 
 def estimate_cost_of_request(chat, response_message):
     user_message_text = response_message.parent.text
-    model = chat.options.qa_model
+    model = chat.options.chat_model
     mode = chat.options.mode
 
     cost = estimate_cost_of_string(
@@ -1000,6 +1004,7 @@ def estimate_cost_of_request(chat, response_message):
     )
 
     if mode == "qa" and chat.options.qa_mode != "rag":
+        model = chat.options.qa_model
         if chat.options.qa_scope == "documents":
             for doc in chat.options.qa_documents.all():
                 cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
@@ -1012,12 +1017,16 @@ def estimate_cost_of_request(chat, response_message):
                 for doc in data_source.documents.all():
                     cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
     elif mode == "summarize" or "translate":
+        model = chat.options.summarize_model
         for file in response_message.parent.sorted_files.all():
             if not file.text:
-                file.extract_text(pdf_method="default")
-            cost += estimate_cost_of_string(
-                file.text,
-                "translate-file" if mode == "translate" else model + "-in",
-            )
+                try:
+                    file.extract_text(pdf_method="default")
+                    cost += estimate_cost_of_string(
+                        file.text,
+                        "translate-file" if mode == "translate" else model + "-in",
+                    )
+                except:
+                    continue
 
     return cad_cost(cost)

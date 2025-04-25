@@ -49,7 +49,7 @@ batch_size = (
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def otto_response(
-    request, message_id=None, switch_mode=False, skip_agent=False, cost_threshold=10.00
+    request, message_id=None, switch_mode=False, skip_agent=False, cost_threshold=0.05
 ):
     """
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
@@ -88,19 +88,18 @@ def otto_response(
 
 def cost_warning_response(chat, response_message, estimate_cost):
 
-    cost_warning = "This request will be expensive. Are you sure you want to continue?"
+    cost_warning = _(
+        "This request might be expensive. Are you sure you want to continue?"
+    )
 
-    model = chat.options.chat_model
-    temperature = chat.options.chat_temperature
-
-    formatted_cost = f"{estimate_cost:.3f}"
+    formatted_cost = f"{estimate_cost:.2f}"
 
     continue_button = render_to_string(
         "chat/components/cost_warning_buttons.html",
         {"message_id": response_message.id, "estimate_cost": formatted_cost},
     ).replace("\n", "")
 
-    llm = OttoLLM(model, temperature)
+    llm = OttoLLM()
     # This will only be reached in an error case
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
