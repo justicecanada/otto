@@ -3434,5 +3434,13 @@
     "GPT-4o (best accuracy, 15x cost)": {
         "fr": "",
         "fr_auto": "GPT-4o (meilleure précision, coût 15x)"
+    },
+    "Request cancelled.": {
+        "fr": "",
+        "fr_auto": "Demande annulée."
+    },
+    "Continue with ": {
+        "fr": "",
+        "fr_auto": "Continuer avec "
     }
 }
