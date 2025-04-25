@@ -1494,4 +1494,9 @@ math[display="block"] {
   background-color: var(--app-color-yellow-1);
   color: black;
   border: None;
+
+  &:hover {
+    background-color: var(--app-color-yellow-1-hover);
+    color: black;
+  }
 }
