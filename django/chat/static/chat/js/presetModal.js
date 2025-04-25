@@ -6,7 +6,7 @@
     const elements = document.querySelectorAll('#preset-card-list .preset-description');
     elements.forEach((element) => {
         if (hasOverflow(element)) {
-            element.setAttribute('title', element.innerText);
+            element.title = element.innerText;
         }
     });
 
