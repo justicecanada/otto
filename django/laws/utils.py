@@ -1,5 +1,7 @@
 import asyncio
 import json
+import traceback
+import uuid
 
 from django.core.cache import cache
 from django.db import connections
@@ -7,9 +9,12 @@ from django.utils.translation import gettext as _
 
 import tiktoken
 from asgiref.sync import sync_to_async
+from structlog import get_logger
 
 from chat.utils import wrap_llm_response
 from otto.utils.common import display_cad_cost
+
+logger = get_logger(__name__)
 
 
 def num_tokens(string: str, model_name: str) -> int:
@@ -94,6 +99,13 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
     except Exception as e:
         error = str(e)
         full_message = _("An error occurred:") + f"\n```\n{error}\n```"
+        error_id = str(uuid.uid4())[:7]
+        logger.error(
+            f"Error in generating response",
+            query_uuid=query_uuid,
+            error_id=error_id,
+            error=full_message,
+        )
 
     cost = await sync_to_async(llm.create_costs)()
     display_cost = await sync_to_async(display_cad_cost)(cost)
@@ -114,4 +126,12 @@ async def htmx_sse_error():
     yield (
         f"data: <div hx-swap-oob='true' id='answer-sse'>"
         f"<div>{error_message}</div></div>\n\n"
+    )
+    # logging error here
+    full_error = traceback.format_exc()
+    error_id = str(uuid.uid4())[:7]
+    logger.error(
+        error_message,
+        error_id=error_id,
+        error=full_error,
     )
