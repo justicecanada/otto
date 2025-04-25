@@ -7,6 +7,7 @@
 
       <!-- Update Existing Preset Card -->
       <form hx-post="{% url 'chat:chat_options' chat_id=chat_id action='update_preset' preset_id=preset.id %}"
+            {% if confirm_message %}hx-confirm="{{ confirm_message }}"{% endif %}
             hx-swap="innerHTML"
             data-bs-dismiss="modal"
             class="d-flex flex-grow-1">
@@ -26,6 +27,7 @@
                 Vous avez actuellement le préréglage "{{ preset.name_auto }}" chargé. Cela le mettra à jour avec vos dernières modifications.
               {% endif %}
             </p>
+            {% include "chat/modals/presets/public_preset_warning.html" %}
           </div>
         </button>
       </form>

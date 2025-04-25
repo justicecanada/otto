@@ -95,16 +95,7 @@
                  value="{{ form.accessible_to.value }}">
         {% endif %}
       </div>
-      <div id="public-preset-warning"
-           class="col-12 {% if not is_public %}d-none{% endif %}">
-        <div class="mt-3 mx-2 p-2 ps-3 bg-warning-subtle rounded border border-warning">
-          <i class="bi bi-exclamation-triangle text-danger"></i>
-          {% if is_global_default %}
-            <strong>{% trans "This is the default Otto preset. Use caution!" %}</strong>
-          {% endif %}
-          <em>{% trans "Changes will be visible to all Otto users." %}</em>
-        </div>
-      </div>
+      {% include "chat/modals/presets/public_preset_warning.html" %}
     </div>
     <div class="modal-footer pb-0">
       <div class="col-12">

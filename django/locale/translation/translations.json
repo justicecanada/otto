@@ -3494,5 +3494,21 @@
     "Only me": {
         "fr": "",
         "fr_auto": "Seulement moi"
+    },
+    "This preset is set as your default for new chats. Are you sure you want to overwrite it?": {
+        "fr": "",
+        "fr_auto": "Ce préréglage est défini par défaut pour les nouvelles discussions. Êtes-vous sûr de vouloir l’écraser?"
+    },
+    "This preset is shared with other users. Are you sure you want to overwrite it?": {
+        "fr": "",
+        "fr_auto": "Ce préréglage est partagé avec d’autres utilisateurs. Êtes-vous sûr de vouloir l’écraser?"
+    },
+    "WARNING: This preset is shared with all Otto users. Are you sure you want to overwrite it?": {
+        "fr": "",
+        "fr_auto": "AVERTISSEMENT : Ce préréglage est partagé avec tous les utilisateurs d’Otto. Êtes-vous sûr de vouloir l’écraser?"
+    },
+    "DANGER: This preset is set as the default for all Otto users. Are you sure you want to overwrite it?": {
+        "fr": "",
+        "fr_auto": "DANGER : Ce préréglage est défini par défaut pour tous les utilisateurs d’Otto. Êtes-vous sûr de vouloir l’écraser?"
     }
 }

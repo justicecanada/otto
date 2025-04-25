@@ -810,17 +810,37 @@ def save_preset(request, chat_id):
     chat = Chat.objects.get(id=chat_id)
     # check if chat.loaded_preset is set
     if chat.loaded_preset and request.user.has_perm(
-        "chat.quick_save_preset", chat.loaded_preset
+        "chat.edit_preset", chat.loaded_preset
     ):
         preset = Preset.objects.get(id=chat.loaded_preset.id)
+        context = {
+            "chat_id": chat_id,
+            "preset": preset,
+            "is_user_default": request.user.default_preset == preset,
+            "is_public": preset.sharing_option == "everyone",
+            "is_shared": preset.sharing_option == "others",
+            "is_global_default": preset.global_default,
+        }
+        if context["is_user_default"]:
+            context["confirm_message"] = _(
+                "This preset is set as your default for new chats. Are you sure you want to overwrite it?"
+            )
+        if context["is_shared"]:
+            context["confirm_message"] = _(
+                "This preset is shared with other users. Are you sure you want to overwrite it?"
+            )
+        if context["is_public"]:
+            context["confirm_message"] = _(
+                "WARNING: This preset is shared with all Otto users. Are you sure you want to overwrite it?"
+            )
+        if context["is_global_default"]:
+            context["confirm_message"] = _(
+                "DANGER: This preset is set as the default for all Otto users. Are you sure you want to overwrite it?"
+            )
         return render(
             request,
             "chat/modals/presets/save_preset_user_choice.html",
-            {
-                "chat_id": chat_id,
-                "preset": preset,
-                "is_default": request.user.default_preset == preset,
-            },
+            context,
         )
     else:
         form = PresetForm(user=request.user)
