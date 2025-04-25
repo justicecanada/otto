@@ -30,7 +30,7 @@ from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS
 from otto.models import CostType, SecurityLabel
-from otto.utils.common import cad_cost
+from otto.utils.common import cad_cost, display_cad_cost
 
 logger = get_logger(__name__)
 # Markdown instance
