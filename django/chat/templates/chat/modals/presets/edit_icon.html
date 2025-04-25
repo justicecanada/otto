@@ -1,0 +1,10 @@
+{% load i18n %}
+
+<button type="button"
+        class="btn px-0 me-2 edit-icon text-secondary"
+        hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
+        hx-target="#presets-modal-body">
+  <span class="non-hover"><i class="bi bi-pencil"></i></span>
+  <span class="only-hover"><i class="bi bi-pencil-fill"></i></span>
+  <small>{% trans "Edit / share" %}</small>
+</button>
