@@ -2351,6 +2351,14 @@
         "fr": "",
         "fr_auto": "Utilisateurs sélectionnés..."
     },
+    "Copy all email addresses": {
+        "fr": "",
+        "fr_auto": "Copier toutes les adresses électroniques"
+    },
+    "Bulk edit roles": {
+        "fr": "",
+        "fr_auto": "Modifier les rôles en bloc"
+    },
     "UPN": {
         "fr": "",
         "fr_auto": "L’UPN"
