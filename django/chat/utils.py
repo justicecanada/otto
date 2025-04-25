@@ -976,17 +976,6 @@ def get_chat_history_sections(user_chats):
     return chat_history_sections
 
 
-# def estimate_cost_of_string(text, model, translate_type=None):
-
-#     num_tokens = num_tokens_from_string(text, model)
-#     if translate_type:
-#         cost = Cost.objects.new(translate_type, num_tokens)
-#     else:
-#         cost = Cost.objects.new(model + "-in", num_tokens)
-
-#     return cost.usd_cost
-
-
 def estimate_cost_of_string(text, cost_type):
 
     if cost_type.startswith("translate-"):
