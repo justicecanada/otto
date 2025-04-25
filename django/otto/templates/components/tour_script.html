@@ -3,7 +3,7 @@
   let driver = window.driver.js.driver;
   let driverObj = driver({
     showProgress: true,
-    allowClose: "{% if not force_tour %}true{% endif %}" === "true",
+    allowClose: "{% if tour_skippable %}true{% endif %}" === "true",
     popoverClass: "bs-popover-auto",
     disableActiveInteraction: true,
     prevBtnText: "← {% trans 'Previous' %}",
