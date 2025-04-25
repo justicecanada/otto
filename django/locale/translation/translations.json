@@ -2347,6 +2347,10 @@
         "fr": "",
         "fr_auto": "Modifier/ajouter des utilisateurs"
     },
+    "Selected users...": {
+        "fr": "",
+        "fr_auto": "Utilisateurs sélectionnés..."
+    },
     "UPN": {
         "fr": "",
         "fr_auto": "L’UPN"
