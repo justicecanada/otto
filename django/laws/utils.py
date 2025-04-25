@@ -99,7 +99,7 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
     except Exception as e:
         error = str(e)
         full_message = _("An error occurred:") + f"\n```\n{error}\n```"
-        error_id = str(uuid.uid4())[:7]
+        error_id = str(uuid.uuid4())[:7]
         logger.error(
             f"Error in generating response",
             query_uuid=query_uuid,
@@ -129,7 +129,7 @@ async def htmx_sse_error():
     )
     # logging error here
     full_error = traceback.format_exc()
-    error_id = str(uuid.uid4())[:7]
+    error_id = str(uuid.uuid4())[:7]
     logger.error(
         error_message,
         error_id=error_id,
