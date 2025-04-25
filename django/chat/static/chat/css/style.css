@@ -1372,7 +1372,7 @@ ul#preset-edit-tabs {
   }
 }
 
-.edit-icon {
+.hover-change-content {
   .only-hover {
     display: none;
   }

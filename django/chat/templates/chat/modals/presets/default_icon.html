@@ -1,6 +1,6 @@
 {% load i18n %}
 <div id="default-button-{{ preset.id }}"
-     class="ms-1 text-secondary"
+     class="ms-1 text-secondary preset-default-button"
      {% if swap %}hx-swap-oob="true"{% endif %}>
   {% if preset.default %}
     <div style="margin-right: 1px; text-wrap: nowrap;">
@@ -14,7 +14,7 @@
             hx-get="{% url 'chat:set_preset_default' chat_id=chat_id preset_id=preset.id %}"
             hx-swap="none">
       <i class="bi bi-star"></i>
-      <small>{% trans 'Set as default' %}</small>
+      <small class="visually-hidden">{% trans 'Set as default' %}</small>
     </button>
   {% endif %}
 </div>

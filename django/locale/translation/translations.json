@@ -3510,5 +3510,21 @@
     "DANGER: This preset is set as the default for all Otto users. Are you sure you want to overwrite it?": {
         "fr": "",
         "fr_auto": "DANGER : Ce préréglage est défini par défaut pour tous les utilisateurs d’Otto. Êtes-vous sûr de vouloir l’écraser?"
+    },
+    "Loaded": {
+        "fr": "",
+        "fr_auto": "Chargé"
+    },
+    "modified": {
+        "fr": "",
+        "fr_auto": "modifié"
+    },
+    "Everyone": {
+        "fr": "",
+        "fr_auto": "Tout le monde"
+    },
+    "Shared": {
+        "fr": "",
+        "fr_auto": "Partagé"
     }
 }

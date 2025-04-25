@@ -18,17 +18,9 @@
 
   <div class="card-body pt-2">
     <div class="info-section">
-      {# Badge for the preset.options.mode #}
-      {% if preset.options.mode == "qa" %}
-        <span class="badge preset-mode-badge qa">{% trans "Q&A" %}</span>
-      {% elif preset.options.mode == "summarize" %}
-        <span class="badge preset-mode-badge summarize">{% trans "Summarize" %}</span>
-      {% elif preset.options.mode == "translate" %}
-        <span class="badge preset-mode-badge translate">{% trans "Translate" %}</span>
-      {% elif preset.options.mode == "chat" %}
-        <span class="badge preset-mode-badge chat">{% trans "Chat" %}</span>
-      {% endif %}
+      {% include "chat/modals/presets/mode_badge.html" %}
       {% include "chat/modals/presets/shared_icon.html" %}
+      {% include "chat/modals/presets/current_icon.html" %}
     </div>
 
     <p class="preset-description card-text">{{ preset.description_auto }}</p>

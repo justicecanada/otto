@@ -67,10 +67,10 @@
           </div>
         </div>
       </div>
-      <div class="px-3">
-        {% if form.sharing_option %}
-          <div class="col-12 mt-3">
-            <label class="form-label" for="id_sharing">{% trans "Sharing" %}</label>
+      {% if form.sharing_option %}
+        <div class="card mt-3 p-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold mb-3" for="id_sharing">{% trans "Sharing" %}</label>
             <div class="sharing-options d-flex gap-4">
               {% for radio in form.sharing_option %}
                 <div class="form-check">
@@ -86,15 +86,15 @@
               {{ form.accessible_to }}
             </div>
           </div>
-        {% else %}
-          <input type="hidden"
-                 name="sharing_option"
-                 value="{{ form.existing_sharing_option.value }}">
-          <input type="hidden"
-                 name="accessible_to"
-                 value="{{ form.accessible_to.value }}">
-        {% endif %}
-      </div>
+        </div>
+      {% else %}
+        <input type="hidden"
+               name="sharing_option"
+               value="{{ form.existing_sharing_option.value }}">
+        <input type="hidden"
+               name="accessible_to"
+               value="{{ form.accessible_to.value }}">
+      {% endif %}
       {% include "chat/modals/presets/public_preset_warning.html" %}
     </div>
     <div class="modal-footer pb-0">
