@@ -116,6 +116,8 @@ def index(request):
             "categorized_features": get_categorized_features(request.user),
             "has_tour": True,
             "force_tour": not request.user.homepage_tour_completed,
+            "tour_skippable": request.user.is_admin
+            or request.user.homepage_tour_completed,
         },
     )
 

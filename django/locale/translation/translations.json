@@ -3434,5 +3434,97 @@
     "GPT-4o (best accuracy, 15x cost)": {
         "fr": "",
         "fr_auto": "GPT-4o (meilleure précision, coût 15x)"
+    },
+    "No description available": {
+        "fr": "",
+        "fr_auto": "Aucune description disponible"
+    },
+    "English metadata": {
+        "fr": "",
+        "fr_auto": "Métadonnées en anglais"
+    },
+    "French metadata": {
+        "fr": "",
+        "fr_auto": "Métadonnées en français"
+    },
+    "Sharing": {
+        "fr": "",
+        "fr_auto": "Partage"
+    },
+    "Save preset": {
+        "fr": "",
+        "fr_auto": "Enregistrer le préréglage"
+    },
+    "Update preset": {
+        "fr": "",
+        "fr_auto": "Mettre à jour le préréglage"
+    },
+    "Update preset:": {
+        "fr": "",
+        "fr_auto": "Préréglage de mise à jour :"
+    },
+    "Create new preset": {
+        "fr": "",
+        "fr_auto": "Créer un nouveau préréglage"
+    },
+    "Error extracting text from file. Try copying and pasting the text.": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’extraction du texte du fichier. Essayez de copier et coller le texte."
+    },
+    "Mark complete": {
+        "fr": "",
+        "fr_auto": "Marquer comme terminé"
+    },
+    "Load settings": {
+        "fr": "",
+        "fr_auto": "Réglages de charge"
+    },
+    "Edit / share": {
+        "fr": "",
+        "fr_auto": "Modifier / partager"
+    },
+    "Default for new chats": {
+        "fr": "",
+        "fr_auto": "Par défaut pour les nouvelles conversations"
+    },
+    "Default preset updated.": {
+        "fr": "",
+        "fr_auto": "Préréglage par défaut mis à jour."
+    },
+    "Only me": {
+        "fr": "",
+        "fr_auto": "Seulement moi"
+    },
+    "This preset is set as your default for new chats. Are you sure you want to overwrite it?": {
+        "fr": "",
+        "fr_auto": "Ce préréglage est défini par défaut pour les nouvelles discussions. Êtes-vous sûr de vouloir l’écraser?"
+    },
+    "This preset is shared with other users. Are you sure you want to overwrite it?": {
+        "fr": "",
+        "fr_auto": "Ce préréglage est partagé avec d’autres utilisateurs. Êtes-vous sûr de vouloir l’écraser?"
+    },
+    "WARNING: This preset is shared with all Otto users. Are you sure you want to overwrite it?": {
+        "fr": "",
+        "fr_auto": "AVERTISSEMENT : Ce préréglage est partagé avec tous les utilisateurs d’Otto. Êtes-vous sûr de vouloir l’écraser?"
+    },
+    "DANGER: This preset is set as the default for all Otto users. Are you sure you want to overwrite it?": {
+        "fr": "",
+        "fr_auto": "DANGER : Ce préréglage est défini par défaut pour tous les utilisateurs d’Otto. Êtes-vous sûr de vouloir l’écraser?"
+    },
+    "Loaded": {
+        "fr": "",
+        "fr_auto": "Chargé"
+    },
+    "modified": {
+        "fr": "",
+        "fr_auto": "modifié"
+    },
+    "Everyone": {
+        "fr": "",
+        "fr_auto": "Tout le monde"
+    },
+    "Shared": {
+        "fr": "",
+        "fr_auto": "Partagé"
     }
 }

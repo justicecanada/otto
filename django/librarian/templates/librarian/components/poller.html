@@ -5,8 +5,8 @@
        hx-get="{{ poll_url }}"
        hx-trigger="every 2s"
        hx-ext="morph"
-       hx-swap="morph:innerHTML"
-       hx-target="#librarian-documents"
+       hx-swap="morph:outerHTML"
+       hx-target="#librarian-document-list"
        hx-swap-oob="true"></div>
 {% else %}
   {# Stop polling #}

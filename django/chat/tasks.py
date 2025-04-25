@@ -12,7 +12,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 from structlog import get_logger
 from structlog.contextvars import get_contextvars
 
-from otto.models import Cost, User
+from otto.models import Cost
 
 logger = get_logger(__name__)
 ten_minutes = 600
@@ -32,6 +32,8 @@ def azure_delete(path):
 
 @shared_task(soft_time_limit=ten_minutes)
 def translate_file(file_path, target_language):
+    if target_language == "fr":
+        target_language = "fr-ca"
     input_file_path = None
     output_file_path = None
     try:
@@ -75,9 +77,6 @@ def translate_file(file_path, target_language):
         request_context = get_contextvars()
         out_message = Message.objects.get(id=request_context.get("message_id"))
         for document in result:
-            from django.core.files import File
-
-            from librarian.models import SavedFile
 
             if document.status == "Succeeded":
                 new_file = ChatFile.objects.create(

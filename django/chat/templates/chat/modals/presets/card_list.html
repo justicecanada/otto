@@ -1,20 +1,14 @@
 {% load i18n %}
+{% load static %}
 
 <div class="modal-body" id="preset-card-list">
-  <div class="row px-3 pb-3">
+  <div class="row">
     <div style="top: 0; bottom: 0; min-height: 300px">
       <div class="col-12 d-flex flex-column h-100">
         {% if presets|length == 0 %}
           {% include "chat/modals/presets/empty_card_list.html" %}
         {% else %}
-          <div class="d-flex justify-content-end mb-3">
-            <button type="button"
-                    class="btn btn-sm btn-outline-dark"
-                    hx-get="{% url 'chat:open_preset_form' chat_id=chat_id %}"
-                    hx-target="#presets-modal-body"
-                    hx-swap="innerHTML transition:true">{% trans "Create preset from current settings" %}</button>
-          </div>
-          <ul class="card-list">
+          <ul class="card-list list-unstyled">
             {% for preset in presets %}
               {% include "chat/modals/presets/card.html" %}
             {% endfor %}
@@ -23,5 +17,6 @@
       </div>
     </div>
   </div>
-
 </div>
+
+<script src="{% static 'chat/js/presetModal.js' %}"></script>
