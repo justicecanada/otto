@@ -52,8 +52,6 @@ from otto.utils.decorators import (
 )
 from otto.views import feedback_message
 
-from .models import Preset
-
 app_name = "chat"
 logger = get_logger(__name__)
 User = get_user_model()
@@ -250,6 +248,8 @@ def chat(request, chat_id):
         "has_tour": True,
         "tour_name": _("AI Assistant"),
         "force_tour": not request.user.ai_assistant_tour_completed,
+        "tour_skippable": request.user.is_admin
+        or request.user.ai_assistant_tour_completed,
         "start_tour": request.GET.get("start_tour") == "true",
     }
     return render(request, "chat/chat.html", context=context)
@@ -810,6 +810,10 @@ def message_sources(request, message_id, highlight=False):
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def get_presets(request, chat_id):
+    # If user has no default preset, set it to the global default (based on language)
+    if not request.user.default_preset:
+        request.user.default_preset = Preset.objects.get_global_default()
+        request.user.save()
     return render(
         request,
         "chat/modals/presets/card_list.html",
@@ -818,30 +822,10 @@ def get_presets(request, chat_id):
                 request.user, get_language()
             ),
             "chat_id": chat_id,
+            "chat": Chat.objects.get(id=chat_id),
             "user": request.user,
         },
     )
-
-
-@permission_required("chat.access_preset", objectgetter(Preset, "preset_id"))
-def set_preset_favourite(request, preset_id):
-    preset = Preset.objects.get(id=preset_id)
-    try:
-        is_favourite = preset.toggle_favourite(request.user)
-        if is_favourite:
-            messages.success(request, _("Preset added to favourites."))
-        else:
-            messages.success(request, _("Preset removed from favourites."))
-        return render(
-            request,
-            "chat/modals/presets/favourite.html",
-            context={"is_favourite": is_favourite, "preset": preset},
-        )
-    except ValueError:
-        messages.error(
-            request, _("An error occurred while setting the preset as favourite.")
-        )
-        return HttpResponse(status=500)
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
@@ -850,16 +834,37 @@ def save_preset(request, chat_id):
     chat = Chat.objects.get(id=chat_id)
     # check if chat.loaded_preset is set
     if chat.loaded_preset and request.user.has_perm(
-        "chat.quick_save_preset", chat.loaded_preset
+        "chat.edit_preset", chat.loaded_preset
     ):
         preset = Preset.objects.get(id=chat.loaded_preset.id)
+        context = {
+            "chat_id": chat_id,
+            "preset": preset,
+            "is_user_default": request.user.default_preset == preset,
+            "is_public": preset.sharing_option == "everyone",
+            "is_shared": preset.sharing_option == "others",
+            "is_global_default": preset.global_default,
+        }
+        if context["is_user_default"]:
+            context["confirm_message"] = _(
+                "This preset is set as your default for new chats. Are you sure you want to overwrite it?"
+            )
+        if context["is_shared"]:
+            context["confirm_message"] = _(
+                "This preset is shared with other users. Are you sure you want to overwrite it?"
+            )
+        if context["is_public"]:
+            context["confirm_message"] = _(
+                "WARNING: This preset is shared with all Otto users. Are you sure you want to overwrite it?"
+            )
+        if context["is_global_default"]:
+            context["confirm_message"] = _(
+                "DANGER: This preset is set as the default for all Otto users. Are you sure you want to overwrite it?"
+            )
         return render(
             request,
             "chat/modals/presets/save_preset_user_choice.html",
-            {
-                "chat_id": chat_id,
-                "preset": preset,
-            },
+            context,
         )
     else:
         form = PresetForm(user=request.user)
@@ -903,41 +908,32 @@ def edit_preset(request, chat_id, preset_id):
 @permission_required("chat.access_preset", objectgetter(Preset, "preset_id"))
 def set_preset_default(request, chat_id: str, preset_id: int):
     try:
-        new_preset = Preset.objects.get(id=preset_id)
-        old_default = Preset.objects.filter(default_for=request.user).first()
+        selected_preset = Preset.objects.get(id=preset_id)
+        old_default_preset = Preset.objects.filter(default_for=request.user).first()
+        request.user.default_preset = selected_preset
+        request.user.save()
+        messages.success(request, _("Default preset updated."), extra_tags="unique")
 
-        default = new_preset.set_as_user_default(request.user)
-        is_default = True if default is not None else False
-
-        new_html = render_to_string(
-            "chat/modals/presets/default_icon.html",
-            {
-                "preset": new_preset,
-                "chat_id": chat_id,
-                "is_default": is_default,
-            },
-            request=request,
+        # Add the "default" styling to the selected preset
+        selected_preset.default = True
+        context = {
+            "preset": selected_preset,
+            "chat_id": chat_id,
+            "swap": True,
+        }
+        response_str = render_to_string(
+            "chat/modals/presets/default_icon.html", context, request
         )
 
-        response = (
-            f'<div id="default-button-{preset_id}" hx-swap-oob="true">{new_html}</div>'
-        )
-
-        if old_default and old_default.id != preset_id:
-            old_html = render_to_string(
-                "chat/modals/presets/default_icon.html",
-                {
-                    "preset": old_default,
-                    "chat_id": chat_id,
-                    "is_default": False,
-                },
-                request=request,
+        # Remove the "default" styling from the old default preset
+        if old_default_preset:
+            old_default_preset.default = False
+            context.update({"preset": old_default_preset})
+            response_str += render_to_string(
+                "chat/modals/presets/default_icon.html", context, request
             )
-            response += f'<div id="default-button-{old_default.id}" hx-swap-oob="true">{old_html}</div>'
 
-        messages.success(request, _("Default preset was set successfully."))
-
-        return HttpResponse(response)
+        return HttpResponse(response_str)
 
     except ValueError:
         logger.error("Error setting default preset")
