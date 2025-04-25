@@ -1,0 +1,12 @@
+{% load i18n %}
+
+{% if chat.loaded_preset == preset %}
+  <span class="badge text-success fw-normal pe-0">
+    <i class="bi bi-check-circle"></i>
+    <span>{% trans "Loaded" %}</span>
+    {# TODO: check if preset is modified #}
+    {% if chat.loaded_preset_modified %}
+      <span>({% trans "modified" %})</span>
+    {% endif %}
+  </span>
+{% endif %}

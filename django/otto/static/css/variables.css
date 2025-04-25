@@ -58,7 +58,7 @@
   --chat-message-progress-bar-bg: #5022bd73;
   --chat-file-drop: #000000cc;
   --chat-group-item: #edf5fe;
-  --chat-preset-tab-not-active: #eaeaea;
+  --chat-preset-tab-not-active: var(--bs-light);
   --chat-preset-form-container: #a2a2a2;
   --chat-mode-link-bg: #888;
   --chat-mode-link-border: #eee;
