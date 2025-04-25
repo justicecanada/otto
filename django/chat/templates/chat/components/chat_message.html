@@ -45,7 +45,7 @@
             {% endif %}
           </div>
         </div>
-        <div id="continue-button-{{ message.id }}"></div>
+        <div id="cost_warning_buttons_{{ message.id }}"></div>
       {% else %}
         {# There cannot be any space between div.message-text and its contents (whitespace: pre-wrap) #}
         <div class="message-text">{{ message.text|escape }}</div>

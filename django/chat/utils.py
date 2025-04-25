@@ -999,17 +999,15 @@ def estimate_cost_of_request(chat, response_message):
         "translate-text" if mode == "translate" else model + "-in",
     )
 
-    if mode == "qa":
+    if mode == "qa" and chat.options.qa_mode != "rag":
         if chat.options.qa_scope == "documents":
             for doc in chat.options.qa_documents.all():
                 cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
-        elif chat.options.qa_scope == "data_sources":
-            data_sources = chat.options.qa_data_sources
-            for data_source in data_sources.all():
-                for doc in data_source.documents.all():
-                    cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
-        elif chat.options.qa_scope == "all":
-            data_sources = chat.options.qa_library.sorted_data_sources
+        else:
+            if chat.options.qa_scope == "all":
+                data_sources = chat.options.qa_library.sorted_data_sources
+            else:
+                data_sources = chat.options.qa_data_sources
             for data_source in data_sources.all():
                 for doc in data_source.documents.all():
                     cost += estimate_cost_of_string(doc.extracted_text, model + "-in")

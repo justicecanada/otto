@@ -90,9 +90,11 @@ def cost_warning_response(chat, response_message, estimate_cost):
     model = chat.options.chat_model
     temperature = chat.options.chat_temperature
 
+    formatted_cost = f"{estimate_cost:.3f}"
+
     continue_button = render_to_string(
-        "chat/components/continue_button.html",
-        {"message_id": response_message.id, "estimate_cost": estimate_cost},
+        "chat/components/cost_warning_buttons.html",
+        {"message_id": response_message.id, "estimate_cost": formatted_cost},
     ).replace("\n", "")
 
     llm = OttoLLM(model, temperature)
