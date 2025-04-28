@@ -394,6 +394,7 @@ def manage_users(request):
 
 @permission_required("otto.manage_users")
 def manage_users_form(request, user_id=None):
+    user_ids = request.GET.get("user_ids")
     if user_id:
         logger.info("Accessing user roles form", update_user_id=user_id)
         user = User.objects.get(id=user_id)
@@ -404,6 +405,17 @@ def manage_users_form(request, user_id=None):
                 "pilot": user.pilot,
                 "monthly_max": user.monthly_max,
                 "monthly_bonus": user.monthly_bonus,
+            }
+        )
+    elif user_ids:
+        logger.info("Accessing user roles form", update_user_id=user_ids)
+        user_id_list = [
+            int(user_id) for user_id in user_ids.split(",") if user_id.isdigit()
+        ]
+        users = User.objects.filter(id__in=user_id_list)
+        form = UserGroupForm(
+            initial={
+                "upn": users,
             }
         )
     else:
