@@ -436,6 +436,7 @@ def manage_users_upload(request):
                     except ValidationError as e:
                         email = ""
                         logger.error(f"UPN must be an email address ({upn}): {e}")
+
                         continue
                     # Get or create the pilot
                     pilot_id = row.get("pilot_id", None)
@@ -492,6 +493,13 @@ def manage_users_upload(request):
                             group = roles.get(name__iexact=role)
                             user.groups.add(group)
                         except ObjectDoesNotExist:
+                            full_error = traceback.format_exc()
+                            error_id = str(uuid.uuid4())[:7]
+                            logger.error(
+                                f"Role {role} does not exist: {e}",
+                                error_id=error_id,
+                                error=full_error,
+                            )
                             pass
                 except Exception as e:
                     full_error = traceback.format_exc()
