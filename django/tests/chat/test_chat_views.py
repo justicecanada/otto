@@ -226,10 +226,10 @@ def test_cost_warning(mock_estimate_cost, client, all_apps_user):
     content = async_to_sync(final_response_helper)(response.streaming_content)
     content_str = content.decode("utf-8")
 
-    assert "This request will be expensive." in content_str
+    assert "We estimated that this request might be expensive." in content_str
     assert f"id='cost-warning-buttons-{response_message.id}'" in content_str
     # Check if the cost is displayed (formatted to 3 decimal places)
-    assert "20.000$" in content_str
+    assert "$20.00" in content_str
 
     # 2. Test the "Cancel" action
     cancel_url = reverse("chat:cost_warning", args=[response_message.id])
