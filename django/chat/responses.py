@@ -88,9 +88,7 @@ def otto_response(
 
 def cost_warning_response(chat, response_message, estimate_cost):
 
-    cost_warning = _(
-        "This request might be expensive. Are you sure you want to continue?"
-    )
+    cost_warning = _("We estimated that this request might be expensive.")
 
     formatted_cost = f"{estimate_cost:.2f}"
 

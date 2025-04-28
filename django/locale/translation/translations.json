@@ -3535,10 +3535,6 @@
         "fr": "",
         "fr_auto": "Partagé"
     },
-    "This request might be expensive. Are you sure you want to continue?": {
-        "fr": "",
-        "fr_auto": "Cette demande peut être coûteuse. Êtes-vous sûr de vouloir continuer?"
-    },
     "Continue at estimated cost ": {
         "fr": "",
         "fr_auto": "Continuer au coût estimatif "
@@ -3546,5 +3542,9 @@
     "AI can make mistakes. Verify the output if you intend to rely upon it.": {
         "fr": "",
         "fr_auto": "L’IA peut faire des erreurs. Vérifiez le résultat si vous avez l’intention de vous fier à lui."
+    },
+    "We estimated that this request might be expensive.": {
+        "fr": "",
+        "fr_auto": "Nous avons estimé que cette demande pourrait être coûteuse."
     }
 }
