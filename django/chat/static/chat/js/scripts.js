@@ -551,15 +551,12 @@ class FileUpload {
         }
       } else {
         alert("Error uploading file: " + this.file.name + " - " + xhr.statusText + " - " + xhr.status);
-        console.log("Else block in on.load");
-        // alert(xhr.statusText);
       }
     };
 
     xhr.onerror = () => {
       console.log("onerror handler");
       alert("Error uploading file: " + this.file.name + " - " + xhr.statusText + " - " + xhr.status);
-      // alert(xhr.statusText);
     };
 
     xhr.send(formData);
