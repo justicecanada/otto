@@ -124,13 +124,6 @@ def can_edit_preset_sharing(user, preset):
     return can_edit_preset(user, preset)
 
 
-@predicate
-def can_quick_save_preset(user, preset):
-    if preset.sharing_option == "everyone":
-        return False
-    return can_edit_preset(user, preset)
-
-
 add_perm("chat.access_chat", can_access_chat)
 add_perm("chat.access_message", can_access_message)
 add_perm("chat.access_file", can_access_file)
@@ -138,7 +131,6 @@ add_perm("chat.access_preset", can_access_preset)
 add_perm("chat.edit_preset", can_edit_preset)
 add_perm("chat.delete_preset", can_delete_preset)
 add_perm("chat.edit_preset_sharing", can_edit_preset_sharing)
-add_perm("chat.quick_save_preset", can_quick_save_preset)
 
 
 # Librarian
