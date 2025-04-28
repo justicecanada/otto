@@ -3542,5 +3542,9 @@
     "Continue at estimated cost ": {
         "fr": "",
         "fr_auto": "Continuer au coût estimatif "
+    },
+    "AI can make mistakes. Verify the output if you intend to rely upon it.": {
+        "fr": "",
+        "fr_auto": "L’IA peut faire des erreurs. Vérifiez le résultat si vous avez l’intention de vous fier à lui."
     }
 }
