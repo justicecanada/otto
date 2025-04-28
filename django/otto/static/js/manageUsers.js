@@ -1,7 +1,6 @@
 let selectedUsers = [];
 function copyToClipboard() {
-  let emailAddresses = selectedUsers.map(user => user.upn).join('; ');
-  emailAddresses + ';';
+  let emailAddresses = selectedUsers.map(user => user.upn).join('; ') + ';';
   navigator.clipboard.writeText(emailAddresses).then(function () {
     alert('Email addresses copied to clipboard');
   }, function (err) {
