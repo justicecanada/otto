@@ -1,5 +1,7 @@
 import json
 import re
+import traceback
+import uuid
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -289,6 +291,14 @@ def chat_message(request, chat_id):
         entered_url = True
         allowed_url = check_url_allowed(user_message_text)
     except ValidationError:
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"Validation error in user message:",
+            chat_id=chat_id,
+            error_id=error_id,
+            error=full_error,
+        )
         pass
 
     user_message = Message.objects.create(
@@ -492,7 +502,14 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         message.save()
     except Exception as e:
         # TODO: handle error
-        logger.error("An error occurred while providing a chat feedback.", error=e)
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"An error occurred while providing a chat feedback.",
+            message_id=message_id,
+            error_id=error_id,
+            error=full_error,
+        )
 
     if feedback == -1:
         return feedback_message(request, message_id)
@@ -913,7 +930,15 @@ def set_preset_default(request, chat_id: str, preset_id: int):
         return HttpResponse(response_str)
 
     except ValueError:
-        logger.error("Error setting default preset")
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"Error setting default preset:",
+            chat_id=chat_id,
+            preset_id=preset_id,
+            error_id=error_id,
+            error=full_error,
+        )
         messages.error(
             request, _("An error occurred while setting the default preset.")
         )

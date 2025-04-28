@@ -1,3 +1,6 @@
+import traceback
+import uuid
+
 from django.conf import settings
 
 import sqlalchemy
@@ -148,7 +151,13 @@ class OttoLLM:
                 response_text += chunk
                 yield response_text
         except Exception as e:
-            logger.error(f"Error in tree_summarize: {e}")
+            full_error = traceback.format_exc()
+            error_id = str(uuid.uuid4())[:7]
+            logger.error(
+                f"Error in tree_summarize: {e}",
+                error_id=error_id,
+                full_error=full_error,
+            )
 
     # Token counting / cost tracking
     @property

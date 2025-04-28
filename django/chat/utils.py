@@ -3,6 +3,8 @@ import html
 import json
 import re
 import sys
+import traceback
+import uuid
 from itertools import groupby
 from typing import AsyncGenerator, Generator
 
@@ -99,6 +101,7 @@ def url_to_text(url):
         article.parse()
         return article.text
     except:
+        logger.info(f"Failed to download article from {url}")
         return ""
 
 
@@ -136,7 +139,10 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
                 )
                 sources.append(source)
             except Exception as e:
-                logger.debug("Error saving source:", node, e)
+                error_id = str(uuid.uuid4())[:7]
+                logger.exception(
+                    "Error saving source %s (%s)", node.node.ref_doc_id, error_id
+                )
 
     security_labels = [
         source.document.data_source.security_label.acronym for source in sources
@@ -313,7 +319,9 @@ async def htmx_stream(
 
     except Exception as e:
         message = await sync_to_async(Message.objects.get)(id=message_id)
-        full_message = _("An error occurred.")
+        full_message = _(
+            "An error occurred."
+        )  # should this be changed to logging error?
         import traceback
 
         traceback.print_exc()

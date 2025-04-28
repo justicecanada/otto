@@ -1,4 +1,5 @@
 import os
+import traceback
 import uuid
 from datetime import datetime
 from threading import Thread
@@ -96,7 +97,13 @@ def translate_file(file_path, target_language):
         logger.error(f"Translation task timed out for {file_path}")
         raise Exception(f"Translation task timed out for {file_path}")
     except Exception as e:
-        logger.error(f"Error translating {file_path}: {e}")
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"Error translating {file_path}: {e}",
+            error_id=error_id,
+            full_error=full_error,
+        )
         raise Exception(f"Error translating {file_path}")
     finally:
         if input_file_path:

@@ -1,4 +1,5 @@
 import re
+import traceback
 import uuid
 
 from django.conf import settings
@@ -618,4 +619,8 @@ def message_post_save(sender, instance, **kwargs):
             last_modification_date=timezone.now()
         )
     except Exception as e:
-        logger.error(f"Message post save error: {e}")
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"Message post save error: {e}", error_id=error_id, full_error=full_error
+        )

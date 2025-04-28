@@ -74,6 +74,15 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
         else:
             return error_response(chat, response_message, _("Invalid mode."))
     except Exception as e:
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"Error processing chat response",
+            message_id=message_id,
+            chat_id=chat.id,
+            error_id=error_id,
+            error=full_error,
+        )
         return error_response(chat, response_message, e)
 
 
