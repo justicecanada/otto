@@ -49,11 +49,7 @@ batch_size = (
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def otto_response(
-<<<<<<< HEAD
     request, message_id=None, switch_mode=False, skip_agent=False, cost_threshold=0.50
-=======
-    request, message_id=None, switch_mode=False, skip_agent=False, cost_threshold=0.05
->>>>>>> 36c637e723cbe8d0784ef94c3110c06400b5d9f3
 ):
     """
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
