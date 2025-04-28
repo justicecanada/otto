@@ -2,6 +2,8 @@ import csv
 import io
 import os
 import time
+import traceback
+import uuid
 from collections import defaultdict
 from datetime import timedelta
 from urllib.parse import urlparse
@@ -452,6 +454,10 @@ def manage_users_upload(request):
                         monthly_max = int(monthly_max)
                     except Exception as e:
                         monthly_max = None
+                        logger.info(
+                            f"monthly_max is not an integer ({monthly_max}): {e}"
+                        )
+
                     user = User.objects.filter(upn__iexact=upn).first()
                     if not user:
                         user = User.objects.create_user(
@@ -488,7 +494,13 @@ def manage_users_upload(request):
                         except ObjectDoesNotExist:
                             pass
                 except Exception as e:
-                    logger.error(f"Error processing row {row}: {e}")
+                    full_error = traceback.format_exc()
+                    error_id = str(uuid.uuid4())[:7]
+                    logger.error(
+                        f"Error processing row {row}: {e}",
+                        error_id=error_id,
+                        error=full_error,
+                    )
 
         else:
             logger.info("No csv file found in the submitted form.")
@@ -1004,6 +1016,7 @@ def user_cost(request):
         )
     except Exception as e:
         time_until_expire = 1000
+        logger.info("Session expiration check failed", error=e)
     # 5 minute warning
     if time_until_expire < 60 * 5:
         from django.utils.safestring import mark_safe
