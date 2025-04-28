@@ -981,7 +981,8 @@ def estimate_cost_of_string(text, cost_type):
     if cost_type.startswith("translate-"):
         count = len(text)
     else:
-        count = num_tokens_from_string(text, cost_type.split("-in")[0])
+        # we estimate every 4 characters as 1 token
+        count = len(text) // 4
 
     cost_type = CostType.objects.get(short_name=cost_type)
     usd_cost = (count * cost_type.unit_cost) / cost_type.unit_quantity
@@ -989,28 +990,38 @@ def estimate_cost_of_string(text, cost_type):
     return usd_cost
 
 
-def estimate_cost_of_request(chat, response_message):
+def estimate_cost_of_request(chat, response_message, response_estimation_count=1000):
     user_message_text = response_message.parent.text
     model = chat.options.qa_model
     mode = chat.options.mode
+    cost_type = model + "-in"
 
+    # estimate the cost of the user message
     cost = estimate_cost_of_string(
         user_message_text,
         "translate-text" if mode == "translate" else model + "-in",
     )
 
-    if mode == "qa" and chat.options.qa_mode != "rag":
-        if chat.options.qa_scope == "documents":
-            for doc in chat.options.qa_documents.all():
-                cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
+    # estimate the cost of the documents
+    if mode == "qa":
+        if chat.options.qa_mode == "rag":
+            count = 768 * chat.options.qa_topk
+            cost_type = CostType.objects.get(short_name=model + "-in")
+            cost += (count * cost_type.unit_cost) / cost_type.unit_quantity
         else:
-            if chat.options.qa_scope == "all":
-                data_sources = chat.options.qa_library.sorted_data_sources
-            else:
-                data_sources = chat.options.qa_data_sources
-            for data_source in data_sources.all():
-                for doc in data_source.documents.all():
+            if chat.options.qa_scope == "documents":
+                for doc in chat.options.qa_documents.all():
                     cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
+            else:
+                if chat.options.qa_scope == "all":
+                    data_sources = chat.options.qa_library.sorted_data_sources
+                else:
+                    data_sources = chat.options.qa_data_sources
+                for data_source in data_sources.all():
+                    for doc in data_source.documents.all():
+                        cost += estimate_cost_of_string(
+                            doc.extracted_text, model + "-in"
+                        )
     elif mode == "summarize" or "translate":
         for file in response_message.parent.sorted_files.all():
             if not file.text:
@@ -1019,5 +1030,12 @@ def estimate_cost_of_request(chat, response_message):
                 file.text,
                 "translate-file" if mode == "translate" else model + "-in",
             )
+
+    # estimate the cost of the response message
+    if mode != "translate":
+        cost_type = CostType.objects.get(short_name=model + "-out")
+        cost += (
+            response_estimation_count * cost_type.unit_cost
+        ) / cost_type.unit_quantity
 
     return cad_cost(cost)
