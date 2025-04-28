@@ -1,6 +1,7 @@
 import asyncio
 import html
 import json
+import os
 import re
 import sys
 from itertools import groupby
@@ -959,3 +960,92 @@ def get_chat_history_sections(user_chats):
         chat_history_sections[section_index]["chats"].append(user_chat)
 
     return chat_history_sections
+
+
+def reassemble_chunks(file_obj):
+    """
+    Reassembles saved temporary chunk files into the final saved file.
+
+    It mimics the original chunk_upload behavior by opening the file saved on the
+    initial chunk (or creating one if not yet present) in append (ab+) mode and
+    then appending the contents of each temporary chunk file from:
+       MEDIA_ROOT/uploads/tmp/<file_obj.id>/chunk_<offset>.tmp
+
+    A Redis-backed lock is used to ensure that only one process assembles the file.
+    """
+    lock_key = f"assemble_{file_obj.id}"
+    lock_acquired = cache.add(lock_key, "locked", timeout=60)
+    if not lock_acquired:
+        logger.info(
+            "Assembly already in progress for file %s, skipping duplicate assembly.",
+            file_obj.id,
+        )
+        return
+
+    try:
+        # Build temp directory path where chunks are stored
+        temp_dir = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp", str(file_obj.id))
+        if not os.path.exists(temp_dir):
+            logger.info("Temporary directory for file %s does not exist.", file_obj.id)
+            return
+
+        # List chunk files; assumes names like "chunk_<offset>.tmp"
+        chunk_files = os.listdir(temp_dir)
+        if not chunk_files:
+            logger.info(
+                "No chunk files found in temp directory for file %s.", file_obj.id
+            )
+            return
+
+        # Sort chunk files by name
+        chunk_files.sort()
+
+        # Create an empty file to append to, if not already present.
+        try:
+            # If the file field is already associated, obtain its path.
+            final_file_path = file_obj.saved_file.file.path
+        except ValueError:
+            # No file is associated yet. Create a new empty file.
+            # For example, if your FileField normally stores its files under settings.MEDIA_ROOT/files/
+            final_relative_path = os.path.join("files", file_obj.filename)
+            final_file_path = os.path.join(settings.MEDIA_ROOT, final_relative_path)
+            # Ensure the final directory exists.
+            os.makedirs(os.path.dirname(final_file_path), exist_ok=True)
+            # Create an empty file.
+            with open(final_file_path, "wb") as f:
+                pass
+            # Update the model’s FileField with the new file.
+            file_obj.saved_file.file.name = final_relative_path
+            file_obj.saved_file.save()
+            logger.info(
+                "Created new empty final file for file_obj %s at %s.",
+                file_obj.id,
+                final_file_path,
+            )
+
+        # Open the final file in append binary mode.
+        with open(final_file_path, "ab+") as final_file:
+            for chunk_filename in chunk_files:
+                chunk_path = os.path.join(temp_dir, chunk_filename)
+                with open(chunk_path, "rb") as chunk_file:
+                    data = chunk_file.read()
+                    final_file.write(data)
+                logger.info(
+                    "Appended chunk %s to final file %s.",
+                    chunk_filename,
+                    final_file_path,
+                )
+
+        logger.info("File %s reassembled successfully.", file_obj.id)
+
+        file_obj.saved_file.generate_hash()
+
+        # Clean up: remove all chunk files and delete the temporary folder.
+        for chunk_filename in chunk_files:
+            os.remove(os.path.join(temp_dir, chunk_filename))
+        os.rmdir(temp_dir)
+
+    except Exception as e:
+        logger.error("Error during chunk assembly for file %s: %s", file_obj.id, str(e))
+    finally:
+        cache.delete(lock_key)

@@ -1,6 +1,8 @@
 import json
+import os
 import re
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -39,6 +41,7 @@ from chat.utils import (
     get_chat_history_sections,
     highlight_claims,
     label_section_index,
+    reassemble_chunks,
     title_chat,
     wrap_llm_response,
 )
@@ -369,16 +372,28 @@ def init_upload(request, chat_id):
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def done_upload(request, message_id):
     """
-    Creates a "files uploaded" message in the chat and initiates the response
+    Creates a "files uploaded" message, assembles file chunks for all files
+    associated with the message, and initiates the final response.
     """
+    # Retrieve the user's message.
     user_message = Message.objects.get(id=message_id)
     mode = user_message.mode
     logger.info("File upload completed.", message_id=message_id, mode=mode)
+
+    # Create the response message.
     response_message = Message.objects.create(
         chat=user_message.chat, text="", is_bot=True, mode=mode, parent=user_message
     )
     chat = user_message.chat
     response = HttpResponse()
+
+    # Get all ChatFile objects associated with the user message.
+    file_objs = ChatFile.objects.filter(message_id=message_id)
+    if not file_objs.exists():
+        logger.error("No files associated with message %s", message_id)
+    else:
+        for file_obj in file_objs:
+            reassemble_chunks(file_obj)
 
     if mode == "qa":
         logger.debug("QA upload")
@@ -396,7 +411,7 @@ def done_upload(request, message_id):
             response_init_message,
         ],
         "mode": mode,
-        # You can't really stop file translations or QA uploads, so don't show the button
+        # Hide stop button when not allowed.
         "hide_stop_button": mode in ["translate", "qa"],
     }
     response.write(
@@ -410,89 +425,94 @@ def done_upload(request, message_id):
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def chunk_upload(request, message_id):
     """
-    Returns JSON for the file upload progress
-    Based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader
+    Handles a single file chunk upload.
+    Instead of appending to a single file, saves each chunk as a separate file
+    in a temporary directory based on the ChatFile's id.
     """
     hash = request.POST["hash"]
     existing_file = SavedFile.objects.filter(sha256_hash=hash).first()
 
-    file = request.FILES["file"].read()
+    chunk_data = request.FILES["file"].read()
     content_type = request.POST["content_type"]
     file_name = request.POST["filename"]
     file_id = request.POST["file_id"]
     end = request.POST["end"]
     nextSlice = request.POST["nextSlice"]
 
-    if file == "" or file_name == "" or file_id == "" or end == "" or nextSlice == "":
+    if not all([chunk_data, file_name, file_id, end, nextSlice]):
         logger.info(
-            f"File upload failed. Missing parameters: {file}, {file_name}, {file_id}, {end}, {nextSlice}"
+            f"File upload failed. Missing required parameters (file, content_type, filename, file_id, end, nextSlice).",
         )
         return JsonResponse({"data": "Invalid request"})
-    else:
-        if file_id == "null":
-            logger.info("File_id is null - Uploading new file.", message_id=message_id)
-            chat_file_arguments = dict(
-                message_id=message_id,
-                filename=file_name,
+
+    # Create a base temporary folder (ensure it exists)
+    base_temp_path = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp")
+    os.makedirs(base_temp_path, exist_ok=True)
+
+    if file_id == "null":
+        logger.info("File_id is null - Uploading new file.", message_id=message_id)
+        # Create a ChatFile instance; its pk will serve as a unique folder name for the chunks.
+        chat_file_arguments = dict(
+            message_id=message_id,
+            filename=file_name,
+        )
+        if existing_file:
+            logger.info(
+                f"File already exists - using existing file. {existing_file.id}"
             )
-            if existing_file:
-                logger.info(
-                    f"File already exists - using existing file. {existing_file.id}"
-                )
-                chat_file_arguments.update(saved_file=existing_file)
-            else:
-                logger.info("File does not exist - creating new file.")
-                chat_file_arguments.update(content_type=content_type, eof=int(end))
-            file_obj = ChatFile.objects.create(**chat_file_arguments)
-            if not existing_file:
-                logger.info("Saving new file.")
-                file_obj.saved_file.file.save(file_name, request.FILES["file"])
-            if int(end) or existing_file:
-                logger.info("File upload completed.")
-                file_obj.saved_file.generate_hash()
-                return JsonResponse(
-                    {"data": "Uploaded successfully", "file_id": file_obj.id}
-                )
-            else:
-                return JsonResponse({"file_id": file_obj.id})
+            chat_file_arguments.update(saved_file=existing_file)
         else:
-            logger.info("File_id is not null")
-            file_obj = ChatFile.objects.get(id=file_id)
-            logger.info(
-                f"File Object - Name : {file_obj.filename} - ID : {file_obj.id}"
-            )
-            if not file_obj or file_obj.saved_file.eof:
-                logger.info(
-                    f"No file object: {file_obj} or No file object eof: {file_obj.saved_file.eof}"
-                )
-                return JsonResponse({"data": "Invalid request"})
-            # Append the chunk to the file with write mode ab+
-            with open(file_obj.saved_file.file.path, "ab+") as f:
-                logger.info(f"Opening file: {file_obj.saved_file.file.path}")
-                logger.info(f"Attempting to seek to {nextSlice}")
-                f.seek(int(nextSlice))
-                logger.info(f"Attempting to write file: {file}")
-                f.write(file)
-            logger.info(f"File written successfully: {file_obj.saved_file.file.path}")
-            logger.info(
-                f"Attempting to update saved_file.eof: {file_obj.saved_file.eof}"
-            )
+            logger.info("File does not exist - creating new file.")
+            chat_file_arguments.update(content_type=content_type, eof=int(end))
+        file_obj = ChatFile.objects.create(**chat_file_arguments)
+
+        # Create the temporary directory for this file’s chunks using file_obj.id
+        temp_dir = os.path.join(base_temp_path, str(file_obj.id))
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # Save the current chunk with a filename using nextSlice
+        chunk_filename = os.path.join(temp_dir, f"chunk_{nextSlice}.tmp")
+        with open(chunk_filename, "wb") as f:
+            f.write(chunk_data)
+        logger.info(f"Saved chunk at {chunk_filename}")
+
+        # If this is already the final chunk, update eof.
+        if int(end) or existing_file:
             file_obj.saved_file.eof = int(end)
-            logger.info(f"Attempting to save file obj: {file_obj}")
             file_obj.save()
-            if int(end):
-                logger.info(
-                    f"Attempting to generated saved_file hash: {file_obj.saved_file}"
-                )
-                file_obj.saved_file.generate_hash()
-                return JsonResponse(
-                    {
-                        "data": "Uploaded successfully",
-                        "file_id": file_obj.id,
-                    }
-                )
-            else:
-                return JsonResponse({"file_id": file_obj.id})
+            return JsonResponse(
+                {"data": "Uploaded successfully", "file_id": file_obj.id}
+            )
+        else:
+            return JsonResponse({"file_id": file_obj.id})
+    else:
+        logger.info("File_id is not null")
+        try:
+            file_obj = ChatFile.objects.get(id=file_id)
+        except ChatFile.DoesNotExist:
+            logger.error("File object does not exist")
+            return JsonResponse({"data": "Invalid request"})
+
+        # Path to the temporary folder for this file’s chunks
+        temp_dir = os.path.join(base_temp_path, str(file_obj.id))
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # Save the chunk using its nextSlice as the filename identifier
+        chunk_filename = os.path.join(temp_dir, f"chunk_{nextSlice}.tmp")
+        with open(chunk_filename, "wb") as f:
+            f.write(chunk_data)
+        logger.info(f"Saved chunk at {chunk_filename}")
+
+        # If this was the final chunk, update the eof marker
+        if int(end):
+            file_obj.saved_file.eof = 1
+            file_obj.save()
+            logger.info("Final chunk received for file.")
+            return JsonResponse(
+                {"data": "Uploaded successfully", "file_id": file_obj.id}
+            )
+        else:
+            return JsonResponse({"file_id": file_obj.id})
 
 
 @permission_required("chat.access_file", objectgetter(ChatFile, "file_id"))
