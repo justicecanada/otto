@@ -48,9 +48,7 @@ batch_size = (
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def otto_response(
-    request, message_id=None, switch_mode=False, skip_agent=False, cost_threshold=0.50
-):
+def otto_response(request, message_id=None, switch_mode=False, skip_agent=False):
     """
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
     """
@@ -62,7 +60,7 @@ def otto_response(
         mode = chat.options.mode
 
         estimate_cost = estimate_cost_of_request(chat, response_message)
-        if estimate_cost >= cost_threshold and not skip_cost:
+        if estimate_cost >= settings.WARN_COST and not skip_cost:
             return cost_warning_response(chat, response_message, estimate_cost)
 
         # For costing and logging. Contextvars are accessible anytime during the request

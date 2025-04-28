@@ -524,3 +524,5 @@ ALLOWED_FETCH_URLS = [
     "canlii.org",
     "wikipedia.org",
 ]
+
+WARN_COST = 0.5

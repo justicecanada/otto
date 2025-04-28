@@ -730,8 +730,8 @@ function nextSourceHighlight(message_id) {
 }
 
 function clearRemainingCostWarningButtons() {
-  const warningButtons = document.querySelectorAll(".cost-warning-buttons");
-  warningButtons.forEach(function (button) {
-    button.remove();
-  });
+  const warningButton = document.querySelector(".cost-warning-buttons");
+  if (warningButton) {
+    warningButton.remove();
+  }
 }
