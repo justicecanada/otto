@@ -437,6 +437,7 @@ def chunk_upload(request, message_id):
     file_id = request.POST["file_id"]
     end = request.POST["end"]
     nextSlice = request.POST["nextSlice"]
+    existing_file = None
 
     if not all([chunk_data, file_name, file_id, end, nextSlice]):
         logger.info(
@@ -449,6 +450,7 @@ def chunk_upload(request, message_id):
         filename=file_name,
         content_type=content_type,
         eof=int(end),
+        sha256_hash_from_client=hash,
     )
 
     logger.info(f"Uploading file chunk {nextSlice} for {file_name}.")
@@ -462,15 +464,15 @@ def chunk_upload(request, message_id):
             logger.info("File_id is null - Uploading new file.", message_id=message_id)
         # Create a ChatFile instance; its pk will serve as a unique folder name for the chunks.
         file_obj = ChatFile.objects.create(**chat_file_arguments)
-
-    if not existing_file:
+    else:
         # If this is not the first chunk, get the existing file object
         file_obj = ChatFile.objects.filter(id=file_id).first()
         if not file_obj:
             logger.error(f"File ID {file_id} not found.")
             return JsonResponse({"data": "Invalid file ID"})
 
-        # Create a temporary folder (ensure it exists)
+    if not existing_file:
+        # Create a temporary folder (if it doesn't already exist)
         base_temp_path = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp")
         temp_dir = os.path.join(base_temp_path, str(file_obj.id))
         os.makedirs(temp_dir, exist_ok=True)
@@ -482,7 +484,7 @@ def chunk_upload(request, message_id):
         logger.info(f"Saved chunk at {chunk_filename}")
 
     # If this was the final chunk, update the eof marker
-    if int(end or existing_file):
+    if end or existing_file:
         file_obj.saved_file.eof = 1
         file_obj.save()
         return JsonResponse({"data": "Uploaded successfully", "file_id": file_obj.id})
