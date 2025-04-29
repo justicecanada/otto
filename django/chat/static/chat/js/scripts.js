@@ -550,12 +550,13 @@ class FileUpload {
           }
         }
       } else {
-        alert(xhr.statusText);
+        alert("Error uploading file: " + this.file.name + " - " + xhr.statusText + " - " + xhr.status);
       }
     };
 
     xhr.onerror = () => {
-      alert(xhr.statusText);
+      console.log("onerror handler");
+      alert("Error uploading file: " + this.file.name + " - " + xhr.statusText + " - " + xhr.status);
     };
 
     xhr.send(formData);
