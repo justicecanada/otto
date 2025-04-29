@@ -150,7 +150,7 @@ def test_redundant_chat_upload(client, all_apps_user):
                 "filename": os.path.basename(this_file_path),
                 "end": 1,
                 "file_id": "null",
-                "nextSlice": "null",
+                "nextSlice": "0",
                 "content_type": "text/plain",
             },
         )
