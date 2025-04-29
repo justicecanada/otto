@@ -3530,5 +3530,73 @@
     "AI can make mistakes. Verify the output if you intend to rely upon it.": {
         "fr": "",
         "fr_auto": "L’IA peut faire des erreurs. Vérifiez le résultat si vous avez l’intention de vous fier à lui."
+    },
+    "Error processing file {file_name} in task {current_task.request.id}: {full_error}": {
+        "fr": "",
+        "fr_auto": "Erreur de traitement du fichier {file_name} dans la tâche {current_task.request.id} : {full_error}"
+    },
+    "Error: Check your file for corruption of type mismatch": {
+        "fr": "",
+        "fr_auto": "Erreur : Vérifiez que votre fichier n’est pas corrompu par incompatibilité de type"
+    },
+    "AttributeError: input_file does not have a file extension.": {
+        "fr": "",
+        "fr_auto": "AttributeError : input_file n’a pas d’extension de fichier."
+    },
+    "PDFPageCountError while processing {input_file.name} in {error_id}: {full_error}": {
+        "fr": "",
+        "fr_auto": "PDFPageCountError lors du traitement de {input_file.name} dans {error_id} : {full_error}"
+    },
+    "Error converting pdfs into images in {error_id}: {full_error}": {
+        "fr": "",
+        "fr_auto": "Erreur lors de la conversion de pdf en images dans {error_id} : {full_error}"
+    },
+    "Error processing image {input_file.name} in {error_id}: {full_error}": {
+        "fr": "",
+        "fr_auto": "Erreur de traitement de l’image {input_file.name} dans {error_id} : {full_error}"
+    },
+    "Error running Azure's document intelligence API on in {error_id}: {full_error}": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’exécution de l’API d’intelligence de documents d’Azure dans {error_id} : {full_error}"
+    },
+    "Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages.": {
+        "fr": "",
+        "fr_auto": "Azure Form Recognizer a terminé le texte OCR pour les pages {len(ocr_results.pages)}."
+    },
+    "Error creating PDF overlay after OCR {error_id}: {full_error}": {
+        "fr": "",
+        "fr_auto": "Erreur lors de la superposition PDF après OCR {error_id} : {full_error}"
+    },
+    "Task {task_id} failed with error: {result['message']} (Error ID: {result['error_id']})": {
+        "fr": "",
+        "fr_auto": "La tâche {task_id} a échoué avec l’erreur : {result['message']} (ID d’erreur : {result['error_id']})"
+    },
+    "Failed to parse PDF from task {task_id}: {e}": {
+        "fr": "",
+        "fr_auto": "Échec de l’analyse du PDF à partir de la tâche {task_id} : {e}"
+    },
+    "Failed to write merged PDF: {e}": {
+        "fr": "",
+        "fr_auto": "Échec de la rédaction du PDF fusionné : {e}"
+    },
+    "Received {len(files)} files": {
+        "fr": "",
+        "fr_auto": "Fichiers {len(files)} reçus"
+    },
+    "PDFStreamError while processing files - invalid or corrupted pdf uploaded": {
+        "fr": "",
+        "fr_auto": "PDFStreamErreur lors du traitement des fichiers - PDF valide ou corrompu téléchargé"
+    },
+    "Error: One or more of your files is not a valid PDF/image or is corrupted.": {
+        "fr": "",
+        "fr_auto": "Erreur : Un ou plusieurs de vos fichiers ne sont pas un PDF/image valide ou sont corrompus."
+    },
+    "Sorry, we ran into an error while running OCR": {
+        "fr": "",
+        "fr_auto": "Désolé, nous avons rencontré une erreur lors de l’exécution de l’OCR"
+    },
+    "Error running OCR on documents": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’exécution de la ROC sur les documents"
     }
 }
