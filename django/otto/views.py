@@ -394,18 +394,32 @@ def manage_users(request):
 
 @permission_required("otto.manage_users")
 def manage_users_form(request, user_id=None):
-    if user_id:
-        logger.info("Accessing user roles form", update_user_id=user_id)
-        user = User.objects.get(id=user_id)
-        form = UserGroupForm(
-            initial={
-                "upn": [user],
-                "group": user.groups.all(),
-                "pilot": user.pilot,
-                "monthly_max": user.monthly_max,
-                "monthly_bonus": user.monthly_bonus,
-            }
-        )
+    user_ids = request.GET.get("user_ids")
+    if user_ids:
+        user_ids = [int(_id) for _id in user_ids.split(",") if _id.isdigit()]
+    elif user_id:
+        user_ids = [user_id]
+    if user_ids:
+        logger.info("Accessing user roles form", update_user_id=user_ids)
+
+        users = User.objects.filter(id__in=user_ids)
+        form_values = {"upn": users}
+        multiple_values = {
+            "group": [
+                ",".join(sorted(str(g) for g in user.groups.all())) for user in users
+            ],
+            "pilot": [user.pilot for user in users],
+            "monthly_max": [user.monthly_max for user in users],
+            "monthly_bonus": [user.monthly_bonus for user in users],
+        }
+        # Add fields to form_values only if they are the same for all users
+        for k, v in multiple_values.items():
+            if len(set(v)) == 1:
+                form_values[k] = v[0]
+        if form_values.get("group"):
+            # We actually need a list of Group objects; we just couldn't compare them easily
+            form_values["group"] = users.first().groups.all()
+        form = UserGroupForm(initial=form_values)
     else:
         form = UserGroupForm()
     return render(request, "components/user_roles_modal.html", {"form": form})
