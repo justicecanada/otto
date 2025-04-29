@@ -150,7 +150,7 @@ def test_redundant_chat_upload(client, all_apps_user):
                 "filename": os.path.basename(this_file_path),
                 "end": 1,
                 "file_id": "null",
-                "nextSlice": "null",
+                "nextSlice": "0",
                 "content_type": "text/plain",
             },
         )
@@ -162,6 +162,12 @@ def test_redundant_chat_upload(client, all_apps_user):
     # Check that a ChatFile was created
     chat_files = ChatFile.objects.all()
     assert chat_files.count() == 1
+
+    # To complete the upload, we need to call the "done upload" endpoint
+    done_url = reverse("chat:done_upload", kwargs={"message_id": message.id})
+    response = client.get(done_url)
+    assert response.status_code == 200
+
     # Check media directory
     assert os.path.exists(saved_files[0].file.path)
 
