@@ -1020,8 +1020,6 @@ def reassemble_chunks(file_obj):
                     "Appended chunk %s for file_obj %s", chunk_filename, file_obj.id
                 )
 
-        logger.info("File %s reassembled successfully.", file_obj.id)
-
         # Generate and check hash
         file_obj.saved_file.generate_hash()
         if file_obj.saved_file.sha256_hash != file_obj.sha256_hash_from_client:
@@ -1032,7 +1030,7 @@ def reassemble_chunks(file_obj):
                 file_obj.sha256_hash_from_client,
             )
         else:
-            logger.info("Hash match confirmed for file %s", file_obj.id)
+            logger.info("File %s reassembled successfully.", file_obj.id)
 
         # Cleanup temporary chunks
         for chunk_filename in chunk_files:

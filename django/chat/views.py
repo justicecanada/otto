@@ -393,7 +393,8 @@ def done_upload(request, message_id):
         logger.error("No files associated with message %s", message_id)
     else:
         for file_obj in file_objs:
-            reassemble_chunks(file_obj)
+            if not file_obj.saved_file.sha256_hash:
+                reassemble_chunks(file_obj)
 
     if mode == "qa":
         logger.debug("QA upload")
@@ -445,11 +446,12 @@ def chunk_upload(request, message_id):
         )
         return JsonResponse({"data": "Invalid request"})
 
+    end = int(end)
+
     chat_file_arguments = dict(
         message_id=message_id,
         filename=file_name,
-        content_type=content_type,
-        eof=int(end),
+        eof=end,
         sha256_hash_from_client=hash,
     )
 
@@ -460,6 +462,7 @@ def chunk_upload(request, message_id):
         existing_file = SavedFile.objects.filter(sha256_hash=hash).first()
         if existing_file:
             logger.info(f"Using existing SavedFile with ID {existing_file.id}")
+            chat_file_arguments["saved_file"] = existing_file
         else:
             logger.info("File_id is null - Uploading new file.", message_id=message_id)
         # Create a ChatFile instance; its pk will serve as a unique folder name for the chunks.
@@ -472,6 +475,8 @@ def chunk_upload(request, message_id):
             return JsonResponse({"data": "Invalid file ID"})
 
     if not existing_file:
+        file_obj.saved_file.content_type = content_type
+        file_obj.saved_file.save(update_fields=["content_type"])
         # Create a temporary folder (if it doesn't already exist)
         base_temp_path = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp")
         temp_dir = os.path.join(base_temp_path, str(file_obj.id))
@@ -484,7 +489,7 @@ def chunk_upload(request, message_id):
         logger.info(f"Saved chunk at {chunk_filename}")
 
     # If this was the final chunk, update the eof marker
-    if end or existing_file:
+    if end == 1 or existing_file:
         file_obj.saved_file.eof = 1
         file_obj.save()
         return JsonResponse({"data": "Uploaded successfully", "file_id": file_obj.id})
