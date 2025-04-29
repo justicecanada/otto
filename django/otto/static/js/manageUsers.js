@@ -18,13 +18,19 @@ $(document).ready(function () {
         orderable: false,
         render: DataTable.render.select(),
         targets: 0
+      },
+      {
+        targets: -1, // Target the last column
+        visible: false, // Hide the column
+        searchable: false // Exclude it from search
       }
     ],
     select: {
       style: 'os',
       selector: 'td:first-child'
     },
-    order: [[1, 'asc']]
+    order: [[1, 'asc']],
+    paging: false
   };
   var table = $('#users').DataTable(dataTableConfig);
   table.on('select', function (e, dt, type, indexes) {
