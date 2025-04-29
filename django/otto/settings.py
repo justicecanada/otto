@@ -525,4 +525,4 @@ ALLOWED_FETCH_URLS = [
     "wikipedia.org",
 ]
 
-WARN_COST = 0.5
+WARN_COST = 1.0

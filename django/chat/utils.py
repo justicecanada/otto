@@ -172,7 +172,7 @@ async def htmx_stream(
     source_nodes: list = [],
     switch_mode: bool = False,
     remove_stop: bool = False,
-    continue_button: str = None,
+    cost_warning_buttons: str = None,
 ) -> AsyncGenerator:
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
@@ -200,7 +200,7 @@ async def htmx_stream(
         wrap_markdown=True,
         dots=False,
         remove_stop=False,
-        continue_button=None,
+        cost_warning_buttons=None,
     ) -> str:
         sse_joiner = "\ndata: "
         if wrap_markdown:
@@ -210,9 +210,9 @@ async def htmx_stream(
         out_string = "data: "
         out_string += sse_joiner.join(message.split("\n"))
 
-        if continue_button:
+        if cost_warning_buttons:
             # Render the form template asynchronously
-            out_string += continue_button
+            out_string += cost_warning_buttons
 
         if remove_stop:
             out_string += "<div hx-swap-oob='true' id='stop-button'></div>"
@@ -350,7 +350,7 @@ async def htmx_stream(
         ),
         wrap_markdown=False,
         remove_stop=True,
-        continue_button=continue_button,
+        cost_warning_buttons=cost_warning_buttons,
     )
 
 
