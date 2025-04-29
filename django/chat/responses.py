@@ -104,25 +104,17 @@ def cost_warning_response(chat, response_message, estimate_cost, over_budget=Fal
         cost_warning = _(
             f"This request is estimated to cost ${formatted_cost}, which exceeds your remaining monthly budget. Please contact an Otto administrator or wait until the 1st for the limit to reset."
         )
-        cost_warning_buttons = render_to_string(
-            "chat/components/cost_warning_buttons.html",
-            {
-                "message_id": response_message.id,
-                "estimate_cost": formatted_cost,
-                "continue_button": False,
-            },
-        ).replace("\n", "")
     else:
         cost_warning = _("We estimated that this request might be expensive.")
 
-        cost_warning_buttons = render_to_string(
-            "chat/components/cost_warning_buttons.html",
-            {
-                "message_id": response_message.id,
-                "estimate_cost": formatted_cost,
-                "continue_button": True,
-            },
-        ).replace("\n", "")
+    cost_warning_buttons = render_to_string(
+        "chat/components/cost_warning_buttons.html",
+        {
+            "message_id": response_message.id,
+            "estimate_cost": formatted_cost,
+            "continue_button": not over_budget,
+        },
+    ).replace("\n", "")
 
     llm = OttoLLM()
     # This will only be reached in an error case
