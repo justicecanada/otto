@@ -488,7 +488,7 @@ LOGGING = {
 }
 
 if ENVIRONMENT == "LOCAL":
-    LOGGING["root"]["handlers"] = ["console"]
+    LOGGING["root"]["handlers"] = ["json"]
 elif IS_RUNNING_TESTS:
     LOGGING["root"]["handlers"] = ["null"]
 

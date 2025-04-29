@@ -43,7 +43,7 @@ def submit_document(request):
         return JsonResponse({"error": "Invalid request method."}, status=400)
 
     files = request.FILES.getlist("file_upload")
-    logger.debug(f"Received {len(files)} files")
+    logger.debug(_("Received {len(files)} files"))
     access_key = AccessKey(user=request.user)
     merged = request.POST.get("merge_docs_checkbox", False) == "on"
 
@@ -120,13 +120,17 @@ def submit_document(request):
 
     except PdfStreamError as e:
         logger.error(
-            f"PDFStreamError while processing files - invalid or corrupted pdf uploaded"
+            _(
+                "PDFStreamError while processing files - invalid or corrupted pdf uploaded"
+            )
         )
         return render(
             request,
             "text_extractor/error_message.html",
             {
-                "error_message": f"Error: One or more of your files is not a valid PDF/image or is corrupted."
+                "error_message": _(
+                    "Error: One or more of your files is not a valid PDF/image or is corrupted."
+                )
             },
         )
     except Exception as e:
@@ -136,7 +140,7 @@ def submit_document(request):
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
         logger.error(
-            f"Sorry, we ran into an error while running OCR",
+            _("Sorry, we ran into an error while running OCR"),
             user_request_id=user_request.id,
             error_id=error_id,
             error=full_error,
@@ -145,7 +149,7 @@ def submit_document(request):
         return render(
             request,
             "text_extractor/error_message.html",
-            {"error_message": f"Error running OCR on documents"},
+            {"error_message": _("Error running OCR on documents")},
         )
 
 
