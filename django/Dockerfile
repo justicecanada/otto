@@ -15,6 +15,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
 
+# Copy GoC Root CA before Python certificate configuration
+COPY GoC-GdC-Root-A.crt /usr/local/share/ca-certificates/
+RUN chmod 644 /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
+    && update-ca-certificates
+
 COPY requirements*.txt /tmp/pip-tmp/
 
 RUN pip3 --disable-pip-version-check install --upgrade pip setuptools wheel
