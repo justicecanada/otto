@@ -1,11 +1,12 @@
 {% load i18n %}
 
-<li class="chat-list-item{% if chat.current_chat %} current{% endif %}">
+<li class="chat-list-item{% if chat.current_chat %} current{% endif %}"
+    id="chat-list-item-{{ chat.id }}">
   <div class="row border-bottom py-2 flex-nowrap">
     <div class="col-auto pe-0">{% include 'chat/components/chat_security_label.html' %}</div>
     <div class="col ps-2 pe-2 overflow-x-hidden">
       <a href="{% url 'chat:chat' chat_id=chat.id %}"
-         class="text-dark text-decoration-none">
+         class="text-decoration-none">
         {% if chat.current_chat %}
           <span class="chat-title fw-semibold" id="current-chat-title">{{ chat.title }}</span>
         {% else %}
@@ -15,5 +16,4 @@
     </div>
   </div>
   {% include 'chat/components/chat_list_item_menu.html' %}
- 
 </li>

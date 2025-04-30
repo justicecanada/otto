@@ -41,6 +41,11 @@ urlpatterns = [
         views.message_sources,
         name="message_sources",
     ),
+    path(
+        "message/<int:message_id>/sources/highlight/",
+        views.message_sources,  # same view, but highlight will be read from query params
+        name="message_sources_highlight",
+    ),
     path("message/<int:message_id>/upload/", views.chunk_upload, name="chunk_upload"),
     path("message/<int:message_id>/upload/done", views.done_upload, name="done_upload"),
     path("file/<int:file_id>/", views.download_file, name="download_file"),
@@ -84,11 +89,6 @@ urlpatterns = [
         "id/<str:chat_id>/options/presets/",
         views.get_presets,
         name="get_presets",
-    ),
-    path(
-        "presets/<str:preset_id>/favourite/",
-        views.set_preset_favourite,
-        name="set_preset_favourite",
     ),
     path(
         "id/<str:chat_id>/options/presets/<str:preset_id>/edit/",

@@ -3,9 +3,9 @@ name: Django Pytest CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "pilot" ]
   pull_request:
-    branches: [ "main" ] 
+    branches: [ "main", "pilot" ] 
 
 defaults:
   run:
@@ -60,7 +60,7 @@ jobs:
       run: |
         apt-get update
         apt-get install -y postgresql-client poppler-utils
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade pip setuptools wheel
         pip install -r requirements.txt
         pip install -r requirements_dev.txt
     - name: Collect static files
@@ -70,7 +70,7 @@ jobs:
       working-directory: ./
       run: |
         celery -A otto worker -l INFO --pool=gevent --concurrency=256 &
-        python -m coverage run --source=django --omit 'django/template_wizard/*' -m pytest django
+        python -m coverage run --source=django -m pytest django
     - name: Display coverage
       working-directory: ./
       run: |

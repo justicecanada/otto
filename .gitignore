@@ -52,4 +52,5 @@ test_media
 ~*
 
 # Ignore load testing results
-#load_testing/.results/*
+load_testing/.results/*
+tld_cache/

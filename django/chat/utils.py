@@ -1,6 +1,7 @@
 import asyncio
 import html
 import json
+import os
 import re
 import sys
 from itertools import groupby
@@ -11,6 +12,7 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 import markdown
@@ -228,6 +230,8 @@ async def htmx_stream(
         # Stream the response text
         first_message = True
         async for response in response_replacer:
+            if response is None:
+                continue
             if first_message and switch_mode:
                 full_message = render_to_string(
                     "chat/components/mode_switch_message.html",
@@ -276,6 +280,9 @@ async def htmx_stream(
                 )
             await asyncio.sleep(0.01)
 
+        # yield sse_string(
+        #     full_message, wrap_markdown=False, dots=False, remove_stop=True
+        # )
         yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
         await asyncio.sleep(0.01)
 
@@ -289,10 +296,11 @@ async def htmx_stream(
             title_llm = OttoLLM()
             await sync_to_async(title_chat)(chat.id, force_title=False, llm=title_llm)
             await sync_to_async(title_llm.create_costs)()
+            await sync_to_async(message.chat.refresh_from_db)()
 
         # Update message text with markdown wrapper to pass to template
         if wrap_markdown:
-            message.text = wrap_llm_response(full_message)
+            message.text = wrap_llm_response(full_message)  # full_message)
         context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
         # Save sources and security label
@@ -317,6 +325,7 @@ async def htmx_stream(
 
     # Render the message template, wrapped in SSE format
     context["message"].json = json.dumps(str(full_message))
+
     yield sse_string(
         await sync_to_async(render_to_string)(
             "chat/components/chat_message.html", context
@@ -743,3 +752,292 @@ def generate_prompt(task_or_prompt: str):
     ).strip()
 
     return generated_prompt, cost
+
+
+def mark_sentences(text: str, good_matches: list) -> str:
+    """
+    Ignoring "\n" and "\r" characters in the text, wrap matching sentences in the text with <mark> tags.
+    Return the original text with the sentences wrapped in <mark> tags, with original newlines preserved.
+    """
+    # Replace newline characters with temporary markers.
+    newline_marker = "<<<NEWLINE>>>"
+    text_temp = text.replace("\n", newline_marker).replace("\r", "")
+
+    good_matches = set(good_matches)
+
+    # For each sentence that should be marked, search and wrap it.
+    for sentence in good_matches:
+        # Remove leading/trailing whitespace and escape regex-special characters.
+        sentence_clean = sentence.strip()
+        # Escape regex special characters.
+        escaped = re.escape(sentence_clean)
+        # Replace literal spaces (escaped as "\ ") with a pattern that allows matching spaces or newline markers.
+        flexible_pattern = escaped.replace(
+            r"\ ",
+            r"(?:\s|" + re.escape(newline_marker) + r"+|" + r")+",
+        )
+        pattern = re.compile(flexible_pattern, flags=re.IGNORECASE)
+        # Wrap any match with <mark> tags.
+        text_temp = pattern.sub(r"<mark>\g<0></mark>", text_temp)
+
+    # Restore original newlines.
+    marked_text = text_temp.replace(newline_marker, "\n")
+    # If there are sections where a mark spans over multiple paragraphs, we must highlight them all.
+    # e.g. <mark>paragraph 1\n\nparagraph 2</mark> -> <mark>paragraph 1</mark>\n\n<mark>paragraph 2</mark>
+    marked_text = re.sub(
+        r"<mark>(.*?)\n\n(.*?)</mark>",
+        r"<mark>\1</mark>\n\n<mark>\2</mark>",
+        marked_text,
+    )
+    # Remove nested <mark> tags
+    marked_text = re.sub(r"<mark>(.*?)<mark>", r"<mark>\1", marked_text)
+    marked_text = re.sub(r"</mark></mark>", r"</mark>", marked_text)
+    return marked_text
+
+
+def highlight_claims(claims_list, text, threshold=0.66):
+    """
+    Highlight sentences in text with <mark> that match a claim in the claims_list.
+    """
+    from langdetect import detect
+    from llama_index.core.schema import TextNode
+    from sentence_splitter import split_text_into_sentences
+
+    lang = detect(text)
+    sentences = split_text_into_sentences(
+        text=text.replace("\n", " ").replace("\r", " "),
+        language="fr" if lang == "fr" else "en",
+    )
+    llm = OttoLLM()
+    index = llm.temp_index_from_nodes(
+        [TextNode(text=sentence) for sentence in sentences]
+    )
+
+    # print("SENTENCES:")
+    # for sentence in sentences:
+    #     print(sentence)
+    # print("CLAIMS:")
+    # for claim in claims_list:
+    #     print(claim)
+
+    good_matches = []
+    for claim in claims_list:
+        retriever = index.as_retriever()
+        nodes = retriever.retrieve(claim)
+        # print("CLAIM:", claim)
+        # print("matches:")
+        # print([(node.score, node.node.text) for node in nodes])
+        # print("\n")
+        for node in nodes:
+            if node.score > threshold:
+                good_matches.append(node.text)
+
+    text = mark_sentences(text, good_matches)
+    return text
+
+
+def extract_claims_from_llm(llm_response_text):
+    llm = OttoLLM()
+    prompt = f"""
+    Based on the following LLM response, extract all factual claims including direct quotes.
+
+    Respond in the format:
+    <claim>whatever the claim is...</claim>
+    <claim>another claim...</claim>
+
+    etc.
+    Include all factual claims as their own sentence. Do not include any analysis or reasoning.
+
+    ---
+    <llm_response>
+    {llm_response_text}
+    </llm_response>
+    """
+    claims_response = llm.complete(prompt)
+    llm.create_costs()
+    # find the claim tags and add whats wrapped in the claim tags to a list
+    claims_list = re.findall(r"<claim>(.*?)</claim>", claims_response)
+    return claims_list
+
+
+def fix_source_links(text, source_document_url):
+    """
+    Fix internal links in the text by merging them with the source document URL
+    """
+
+    def is_external_link(link):
+        """
+        Check if the link starts with "http"
+        """
+        return link.startswith("http")
+
+    def is_anchor(link):
+        """
+        Check if the link starts with a "#"
+        """
+        return link.startswith("#")
+
+    def merge_link_with_source(link, source_document_url):
+        """
+        Merge the link with the source document URL based on conditions
+        """
+        if link.startswith("/"):
+            first_subdirectory = link.split("/")[1]
+            # If the first subdirectory of the internal link is in the source url, it is merged at that point
+            if "/" + first_subdirectory in source_document_url:
+                source_document_url = source_document_url.split(
+                    "/" + first_subdirectory
+                )[0]
+            # makes sure that we don't have double slashes in the URL
+            elif source_document_url.endswith("/"):
+                source_document_url = source_document_url[:-1]
+        # makes sure we don't have a slash missing in the URL
+        elif not source_document_url.endswith("/") and not is_anchor(link):
+            source_document_url += "/"
+
+        return source_document_url + link
+
+    def remove_link(text, link_tuple):
+        """
+        Replace the link with plain text of the link text: "[text](url)" -> "text"
+        """
+        return text.replace(f"[{link_tuple[0]}]({link_tuple[1]})", f"{link_tuple[0]}")
+
+    # Capture both the url and the text in a tuple, i.e., ('[text]', 'url')
+    links = re.findall(r"\[(.*?)\]\((.*?)\)", text)
+
+    # Check if there are internal links and merge them with the source URL
+    for link_tuple in links:
+        try:
+            # The URL itself is the second group
+            link = link_tuple[1]
+            if not is_external_link(link):
+                if source_document_url:
+                    # Sometimes the internal link is followed by a space and some text like the name of the page
+                    # e.g. (/wiki/Grapheme "Grapheme")
+                    link = link.split(" ")[0]
+                    # Merge the link with the source document URL
+                    modified_link = merge_link_with_source(link, source_document_url)
+                    text = text.replace(link, modified_link)
+                else:
+                    # makes sure we don't have unusable links in the text
+                    text = remove_link(text, link_tuple)
+        except:
+            continue
+
+    return text
+
+
+def label_section_index(last_modification_date):
+    last_modification_date = last_modification_date.date()
+    todays_date = timezone.now().date()
+    if last_modification_date > todays_date - timezone.timedelta(days=1):
+        return 0
+    elif last_modification_date > todays_date - timezone.timedelta(days=2):
+        return 1
+    elif last_modification_date > todays_date - timezone.timedelta(days=7):
+        return 2
+    elif last_modification_date > todays_date - timezone.timedelta(days=30):
+        return 3
+    else:
+        return 4
+
+
+def get_chat_history_sections(user_chats):
+    """
+    Group the chat history into sections formatted as [{"label": "(string)", "chats": [list..]}]
+    """
+    chat_history_sections = [
+        {"label": _("Today"), "chats": []},
+        {"label": _("Yesterday"), "chats": []},
+        {"label": _("Last 7 days"), "chats": []},
+        {"label": _("Last 30 days"), "chats": []},
+        {"label": _("Older"), "chats": []},
+    ]
+
+    for user_chat in user_chats:
+        section_index = label_section_index(user_chat.last_modification_date)
+        chat_history_sections[section_index]["chats"].append(user_chat)
+
+    return chat_history_sections
+
+
+def reassemble_chunks(file_obj):
+    """
+    Reassembles saved temporary chunk files into the final saved file.
+    Uses a Redis-backed lock for process safety.
+    """
+    lock_key = f"assemble_{file_obj.id}"
+    lock_acquired = cache.add(lock_key, "locked", timeout=60)
+    if not lock_acquired:
+        logger.info(
+            "Assembly already in progress for file %s. Skipping duplicate assembly.",
+            file_obj.id,
+        )
+        return
+
+    try:
+        temp_dir = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp", str(file_obj.id))
+        if not os.path.exists(temp_dir):
+            logger.info("Temporary directory for file %s does not exist.", file_obj.id)
+            return
+
+        chunk_files = os.listdir(temp_dir)
+        if not chunk_files:
+            logger.info(
+                "No chunk files found in temp directory for file %s.", file_obj.id
+            )
+            return
+
+        # Sort numerically
+        chunk_files.sort(
+            key=lambda name: int(name.replace("chunk_", "").replace(".tmp", ""))
+        )
+        logger.debug("Sorted chunks for file %s: %s", file_obj.id, chunk_files)
+
+        # Log details about each chunk
+        for chunk_filename in chunk_files:
+            chunk_path = os.path.join(temp_dir, chunk_filename)
+            size = os.path.getsize(chunk_path)
+            logger.debug("Chunk %s: size %d bytes", chunk_filename, size)
+
+        # Assemble the file: start with the first chunk
+        first_chunk_path = os.path.join(temp_dir, chunk_files[0])
+        with open(first_chunk_path, "rb") as chunk_file:
+            file_obj.saved_file.file.save(file_obj.filename, chunk_file)
+        logger.debug("Saved first chunk for file_obj %s", file_obj.id)
+
+        # Append subsequent chunks
+        if len(chunk_files) > 1:
+            for chunk_filename in chunk_files[1:]:
+                chunk_path = os.path.join(temp_dir, chunk_filename)
+                with open(chunk_path, "rb") as chunk_file:
+                    with open(file_obj.saved_file.file.path, "ab+") as f:
+                        data = chunk_file.read()
+                        f.write(data)
+                        f.flush()  # Ensure data is flushed to disk
+                logger.debug(
+                    "Appended chunk %s for file_obj %s", chunk_filename, file_obj.id
+                )
+
+        # Generate and check hash
+        file_obj.saved_file.generate_hash()
+        if file_obj.saved_file.sha256_hash != file_obj.sha256_hash_from_client:
+            logger.error(
+                "Hash mismatch for file %s: %s != %s",
+                file_obj.id,
+                file_obj.saved_file.sha256_hash,
+                file_obj.sha256_hash_from_client,
+            )
+        else:
+            logger.info("File %s reassembled successfully.", file_obj.id)
+
+        # Cleanup temporary chunks
+        for chunk_filename in chunk_files:
+            os.remove(os.path.join(temp_dir, chunk_filename))
+        os.rmdir(temp_dir)
+
+    except Exception as e:
+        logger.error("Error during chunk assembly for file %s: %s", file_obj.id, str(e))
+    finally:
+        cache.delete(lock_key)

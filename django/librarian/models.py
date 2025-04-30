@@ -157,7 +157,11 @@ class Library(models.Model):
         self.save()
 
     def __str__(self):
-        return self.name or "Untitled library"
+        return str(
+            _("Chat uploads")
+            if self.is_personal_library
+            else (self.name or _("Untitled library"))
+        )
 
     @transaction.atomic
     def delete(self, *args, **kwargs):
@@ -318,6 +322,15 @@ class DataSource(models.Model):
         data_source_time = self.modified_at if not self.chat else self.chat.accessed_at
         return f"{chat_title} ({data_source_time.strftime('%y/%m/%d %I:%M %p')})"
 
+    @property
+    def short_label(self):
+        if not self.library.is_personal_library:
+            return str(self)
+        chat_title = (
+            self.chat.title if self.chat and self.chat.title else _("Untitled chat")
+        )
+        return chat_title
+
 
 class Document(models.Model):
     """
@@ -371,7 +384,7 @@ class Document(models.Model):
     url_content_type = models.CharField(max_length=255, null=True, blank=True)
 
     # Specific to file-based documents
-    file = models.ForeignKey(
+    saved_file = models.ForeignKey(
         "SavedFile",
         on_delete=models.SET_NULL,
         null=True,
@@ -381,6 +394,8 @@ class Document(models.Model):
     # Filename stored here instead of in the File object since one file (hash)
     # may be uploaded under different filenames
     filename = models.CharField(max_length=500, null=True, blank=True)
+    # File path as extracted from zip, email, etc. (e.g. "something.zip/inner-file.txt")
+    file_path = models.TextField(null=True, blank=True)
 
     # Specific to PDF documents.
     # The extraction method *that was used* to extract text from the PDF
@@ -424,6 +439,13 @@ class Document(models.Model):
         )
 
     @property
+    def href_button(self):
+        return render_to_string(
+            "librarian/components/document_href.html",
+            {"document": self, "button": True},
+        )
+
+    @property
     def truncated_text(self):
         if self.extracted_text:
             truncated_text = self.extracted_text[:500]
@@ -438,8 +460,8 @@ class Document(models.Model):
 
     @property
     def content_type(self):
-        if self.file:
-            return self.file.content_type
+        if self.saved_file:
+            return self.saved_file.content_type
         else:
             return self.url_content_type
 
@@ -457,7 +479,7 @@ class Document(models.Model):
         bind_contextvars(document_id=self.id)
 
         # Logic for updating the document embeddings, metadata, etc.
-        if not (self.file or self.url):
+        if not (self.saved_file or self.url):
             self.status = "ERROR"
             self.save()
             return
@@ -548,9 +570,8 @@ def document_post_save(sender, instance, **kwargs):
 @receiver(post_delete, sender=Document)
 def document_post_delete(sender, instance, **kwargs):
     try:
-        # pytest Error been thrown because created Document doesn't have file. Test passes without if but error thrown
-        if instance.file is not None:
-            instance.file.safe_delete()
+        if instance.saved_file is not None:
+            instance.saved_file.safe_delete()
         # Access library to update accessed_at field in order to reset the 30 days for deletion of unused libraries
         Library.objects.filter(pk=instance.data_source.library.pk).update(
             accessed_at=timezone.now()

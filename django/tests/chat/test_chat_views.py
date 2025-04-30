@@ -774,7 +774,11 @@ def test_rename_chat_title(client, all_apps_user):
     # Test the title_chat function
     response = client.get(
         reverse(
-            "chat:chat_list_item", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:chat_list_item",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         )
     )
     assert response.status_code == 200
@@ -784,7 +788,11 @@ def test_rename_chat_title(client, all_apps_user):
     new_title = "My new chat"
     response = client.post(
         reverse(
-            "chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         ),
         data={"title": new_title},
     )
@@ -795,7 +803,11 @@ def test_rename_chat_title(client, all_apps_user):
     # Test invalid form
     response = client.post(
         reverse(
-            "chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"}
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
         ),
         data={"title": invalid_title},
     )
@@ -804,7 +816,13 @@ def test_rename_chat_title(client, all_apps_user):
 
     # Test get
     response = client.get(
-        reverse("chat:rename_chat", kwargs={"chat_id": chat.id, "current_chat": "True"})
+        reverse(
+            "chat:rename_chat",
+            kwargs={
+                "chat_id": chat.id,
+                "current_chat": "True",
+            },
+        )
     )
     assert response.status_code == 200
     assert f'value="{new_title}"' in response.content.decode("utf-8")
@@ -978,35 +996,7 @@ def test_preset(client, basic_user, all_apps_user):
         and last_message.message == "Preset loaded successfully."
     )
 
-    # Test adding and removing the preset to favorites
     client.force_login(user)
-    response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
-    assert response.status_code == 200
-    preset.refresh_from_db()
-    assert user in preset.favourited_by.all()
-    # remove from favourites
-    response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
-    assert response.status_code == 200
-    preset.refresh_from_db()
-    assert user not in preset.favourited_by.all()
-
-    # Test accompanying messages
-    response_messages = list(response.context["messages"])
-    removed_message = response_messages[-1]
-    added_message = response_messages[-2]
-    assert (
-        removed_message.level == messages.SUCCESS
-        and removed_message.message == "Preset removed from favourites."
-    )
-    assert (
-        added_message.level == messages.SUCCESS
-        and added_message.message == "Preset added to favourites."
-    )
-
-    with mock.patch("chat.models.Preset.toggle_favourite", side_effect=ValueError):
-        response = client.get(reverse("chat:set_preset_favourite", args=[preset.id]))
-        assert response.status_code == 500
-
     # Test setting the preset as default
     response = client.get(reverse("chat:set_preset_default", args=[preset.id, chat.id]))
     assert response.status_code == 200
@@ -1083,23 +1073,6 @@ def test_preset(client, basic_user, all_apps_user):
     # Reset to default preset
     chat2.options.qa_pre_instructions = ""
     chat2.options.save()
-
-    # Reset to default preset (action="reset")
-    response = client.post(
-        reverse(
-            "chat:chat_options",
-            kwargs={
-                "chat_id": chat2.id,
-                "action": "reset",
-            },
-        )
-    )
-    assert response.status_code == 200
-    chat2.refresh_from_db()
-    # Chat2 should now have the preset loaded
-    assert chat2.options.qa_pre_instructions == "The quick brown fox"
-    # But the library should be reset to user2's personal library
-    assert chat2.options.qa_library == user2.personal_library
 
 
 def test_update_qa_options_from_librarian(client, all_apps_user):

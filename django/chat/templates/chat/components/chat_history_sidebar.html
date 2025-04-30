@@ -3,31 +3,40 @@
      class="chat-sidebar bg-light hidden"
      aria-label='{% trans "Chat history" %}'>
   <div class="border-end h-100 overflow-hidden d-flex flex-column">
-    <div class="offcanvas-header d-flex pb-2 p-3">
-      <a class="btn btn-outline-dark fw-semibold w-100 text-start me-3"
-         id="new-chat-button"
-         href="{% url 'chat:new_chat' %}">
-        <i class="bi bi-plus-square me-2"></i>
-        {% trans "New chat" %}
-      </a>
-      <div class="col-auto">
-        <button type="button"
-                class="btn-close"
-                id="close-left-sidebar"
-                aria-controls="left-sidebar"
-                style="margin-top: -4px"
-                aria-label='{% trans "Close" %}'></button>
+    <div id="new-chat-button-outer">
+      <div class="offcanvas-header d-flex pb-2 p-3">
+        <a class="btn btn-outline-dark new-chat-btn fw-semibold w-100 text-start me-3"
+           id="new-chat-button"
+           href="{% url 'chat:new_chat' %}">
+          <i class="bi bi-plus-square me-2"></i>
+          {% trans "New chat" %}
+        </a>
+        <div class="col-auto">
+          <button type="button"
+                  class="btn-close"
+                  id="close-left-sidebar"
+                  aria-controls="left-sidebar"
+                  style="margin-top: -4px"
+                  aria-label='{% trans "Close" %}'></button>
+        </div>
       </div>
     </div>
     <div class="overflow-y-auto overflow-x-hidden p-3 pt-0 flex-grow-1"
          id="chat-history-list">
-      <ul class="list-unstyled my-0" id="chat-list">
-        {% for chat in user_chats %}
-          {% if chat.id %}
-            {% include 'chat/components/chat_list_item.html' %}
-          {% endif %}
-        {% endfor %}
-      </ul>
+      {% for section in chat_history_sections %}
+        {% if section.chats %}
+          {% with section_index=forloop.counter0 %}
+            <div id="section-{{ section_index }}">
+              <div class="chat-history-section-header small text-muted">{{ section.label }}</div>
+              <ul class="list-unstyled" id="chat-list-{{ section_index }}">
+                {% for chat in section.chats %}
+                  {% include 'chat/components/chat_list_item.html' %}
+                {% endfor %}
+              </ul>
+            </div>
+          {% endwith %}
+        {% endif %}
+      {% endfor %}
     </div>
     <div class="p-3">
       <button type="button"

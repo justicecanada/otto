@@ -24,7 +24,6 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-import tldextract
 from azure_auth.views import azure_auth_login as azure_auth_login
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -47,7 +46,7 @@ from otto.models import (
     Feedback,
     Pilot,
 )
-from otto.utils.common import cad_cost, display_cad_cost
+from otto.utils.common import cad_cost, display_cad_cost, get_tld_extractor
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
@@ -115,6 +114,10 @@ def index(request):
         {
             "hide_breadcrumbs": True,
             "categorized_features": get_categorized_features(request.user),
+            "has_tour": True,
+            "force_tour": not request.user.homepage_tour_completed,
+            "tour_skippable": request.user.is_admin
+            or request.user.homepage_tour_completed,
         },
     )
 
@@ -172,7 +175,11 @@ def feedback_message(request: HttpRequest, message_id=None):
             )
             return HttpResponse(status=200)
         else:
-            return HttpResponse(form.errors, status=400)
+            messages.error(
+                request,
+                _("Error submitting feedback."),
+            )
+            return HttpResponse(status=200)
     else:
         form = FeedbackForm(request.user, message_id)
     return render(
@@ -187,7 +194,7 @@ def feedback_message(request: HttpRequest, message_id=None):
     )
 
 
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_feedback")
 def feedback_dashboard(request, page_number=None):
     if page_number is None:
         page_number = 1
@@ -206,7 +213,7 @@ def feedback_dashboard(request, page_number=None):
     return render(request, "feedback_dashboard.html", context)
 
 
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_feedback")
 def feedback_stats(request):
     stats = Feedback.objects.get_feedback_stats()
     return render(
@@ -214,7 +221,7 @@ def feedback_stats(request):
     )
 
 
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_feedback")
 def feedback_list(request, page_number=None):
     from django.core.paginator import Paginator
 
@@ -253,7 +260,7 @@ def feedback_list(request, page_number=None):
     return render(request, "components/feedback/dashboard/feedback_list.html", context)
 
 
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_feedback")
 def feedback_dashboard_update(request, feedback_id, form_type):
     feedback = Feedback.objects.get(id=feedback_id)
 
@@ -277,7 +284,7 @@ def feedback_dashboard_update(request, feedback_id, form_type):
         return HttpResponse(status=405)
 
 
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_feedback")
 def feedback_download(request):
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="otto_feedback.csv"'
@@ -387,18 +394,32 @@ def manage_users(request):
 
 @permission_required("otto.manage_users")
 def manage_users_form(request, user_id=None):
-    if user_id:
-        logger.info("Accessing user roles form", update_user_id=user_id)
-        user = User.objects.get(id=user_id)
-        form = UserGroupForm(
-            initial={
-                "upn": [user],
-                "group": user.groups.all(),
-                "pilot": user.pilot,
-                "monthly_max": user.monthly_max,
-                "monthly_bonus": user.monthly_bonus,
-            }
-        )
+    user_ids = request.GET.get("user_ids")
+    if user_ids:
+        user_ids = [int(_id) for _id in user_ids.split(",") if _id.isdigit()]
+    elif user_id:
+        user_ids = [user_id]
+    if user_ids:
+        logger.info("Accessing user roles form", update_user_id=user_ids)
+
+        users = User.objects.filter(id__in=user_ids)
+        form_values = {"upn": users}
+        multiple_values = {
+            "group": [
+                ",".join(sorted(str(g) for g in user.groups.all())) for user in users
+            ],
+            "pilot": [user.pilot for user in users],
+            "monthly_max": [user.monthly_max for user in users],
+            "monthly_bonus": [user.monthly_bonus for user in users],
+        }
+        # Add fields to form_values only if they are the same for all users
+        for k, v in multiple_values.items():
+            if len(set(v)) == 1:
+                form_values[k] = v[0]
+        if form_values.get("group"):
+            # We actually need a list of Group objects; we just couldn't compare them easily
+            form_values["group"] = users.first().groups.all()
+        form = UserGroupForm(initial=form_values)
     else:
         form = UserGroupForm()
     return render(request, "components/user_roles_modal.html", {"form": form})
@@ -536,7 +557,7 @@ def manage_pilots_form(request, pilot_id=None):
         pilot.delete()
         response = HttpResponse()
         # Add hx-redirect header to trigger HTMX redirect
-        response["hx-redirect"] = reverse("manage_pilots")
+        response["HX-Redirect"] = reverse("manage_pilots")
         return response
     if pilot_id:
         pilot = get_object_or_404(Pilot, pk=pilot_id)
@@ -621,7 +642,7 @@ def list_blocked_urls(request):
     blocked_urls = BlockedURL.objects.all().values("url")
     # Get the domains from the blocked URLs
     domains = [
-        tldextract.extract(urlparse(url["url"]).netloc).registered_domain
+        get_tld_extractor()(urlparse(url["url"]).netloc).registered_domain
         for url in blocked_urls
     ]
     domain_counts = {domain: domains.count(domain) for domain in set(domains)}
@@ -633,7 +654,7 @@ def list_blocked_urls(request):
 
 
 # AU-7: Aggregates and presents cost data in a dashboard
-@permission_required("otto.manage_users")
+@permission_required("otto.manage_cost_dashboard")
 def cost_dashboard(request):
     """
     Displays a responsive dashboard with cost data.
@@ -964,16 +985,53 @@ def cost_dashboard(request):
 
 
 def user_cost(request):
+    """
+    Refreshes the user cost widget and checks for imminent session timeout
+    """
     today_cost = cad_cost(Cost.objects.get_user_cost_today(request.user))
     monthly_max = request.user.this_month_max
     this_month_cost = cad_cost(Cost.objects.get_user_cost_this_month(request.user))
     cost_percent = max(
         min(int(100 * this_month_cost / monthly_max if monthly_max else 0), 100), 1
     )
-    cost_tooltip = "${:.2f} / ${:.2f} {}<br>(${:.2f} {})".format(
+    request_language = request.LANGUAGE_CODE
+    message = (
+        "{:.2f}$ / {:.2f}$ {}<br>({:.2f}$ {})"
+        if request_language == "fr"
+        else "${:.2f} / ${:.2f} {}<br>(${:.2f} {})"
+    )
+    cost_tooltip = message.format(
         this_month_cost, monthly_max, _("this month"), today_cost, _("today")
     )
     cost_tooltip_short = cost_tooltip.split("<br>")[0]
+
+    # Check if the session will expire soon
+    try:
+        # session.get_expire_age() does not return the correct value, so we track
+        # the last activity time ourselves
+        last_activity_str = request.session.get("last_activity")
+        time_since_last_activity = timezone.now() - timezone.datetime.fromisoformat(
+            last_activity_str
+        )
+        time_until_expire = (
+            settings.SESSION_COOKIE_AGE - time_since_last_activity.total_seconds()
+        )
+    except Exception as e:
+        time_until_expire = 1000
+    # 5 minute warning
+    if time_until_expire < 60 * 5:
+        from django.utils.safestring import mark_safe
+
+        message_str = _("You will be logged out soon due to inactivity.")
+        message_str += f"<br><a href='#' class='alert-link' hx-get='{reverse('extend_session')}' hx-swap='none'>"
+        message_str += _("Click here to extend your session.")
+        message_str += "</a>"
+        messages.warning(
+            request,
+            mark_safe(message_str),
+            extra_tags="keep-open focus unique",
+        )
+
     return render(
         request,
         "components/user_cost.html",
@@ -984,6 +1042,15 @@ def user_cost(request):
             "cost_label": _("User costs"),
         },
     )
+
+
+def extend_session(request):
+    """
+    Simply returns a message that message has been extended.
+    Actual extension of session happens through ExtendSessionMiddleware.
+    """
+    messages.success(request, _("Session extended"))
+    return HttpResponse(status=200)
 
 
 @csrf_exempt
@@ -1109,3 +1176,25 @@ def enable_load_testing(request):
 def disable_load_testing(request):
     cache.set("load_testing_enabled", False)
     return render(request, "components/user_menu.html", {})
+
+
+@permission_required("otto.manage_users")
+def reset_completion_flags(request):
+    # Resets the tour and accepted_terms flags for the current user
+    request.user.homepage_tour_completed = False
+    request.user.ai_assistant_tour_completed = False
+    request.user.laws_search_tour_completed = False
+    request.user.accepted_terms_date = None
+    request.user.save()
+    return redirect("welcome")
+
+
+def mark_tour_completed(request, tour_name):
+    # Tour properties on user object like this:
+    # homepage_tour_completed = models.BooleanField(default=False)
+    # ai_assistant_tour_completed = models.BooleanField(default=False)
+    # laws_search_tour_completed = models.BooleanField(default=False)
+    tour_property = f"{tour_name}_tour_completed"
+    setattr(request.user, tour_property, True)
+    request.user.save()
+    return HttpResponse(status=200)

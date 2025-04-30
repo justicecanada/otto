@@ -9,6 +9,7 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 import filetype
 import openpyxl  # Add this import for handling Excel files
@@ -18,6 +19,8 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify
 from structlog import get_logger
 
+from librarian.utils.extract_emails import extract_msg
+from librarian.utils.extract_zip import process_zip_file
 from librarian.utils.markdown_splitter import MarkdownSplitter
 from otto.models import Cost
 
@@ -82,8 +85,9 @@ def create_nodes(chunks, document):
     metadata = {"node_type": "document", "data_source_uuid": data_source_uuid}
     if document.title:
         metadata["title"] = document.title
-    if document.url or document.filename:
-        metadata["source"] = document.url or document.filename
+    source = document.file_path or document.url or document.filename
+    if source:
+        metadata["source"] = source
     document_node = TextNode(text="", id_=document_uuid, metadata=metadata)
     document_node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
         node_id=document_node.node_id
@@ -112,7 +116,7 @@ def create_nodes(chunks, document):
 
 
 def guess_content_type(
-    content: str | bytes, content_type: str = None, path: str = ""
+    content: str | bytes, content_type: str = "", path: str = ""
 ) -> str:
 
     # We consider these content types to be reliable and do not need further guessing
@@ -120,6 +124,8 @@ def guess_content_type(
         "application/pdf",
         "application/xml",
         "application/vnd.ms-outlook",
+        "application/x-zip-compressed",
+        "application/zip",
         "text/html",
         "text/markdown",
         "text/csv",
@@ -151,6 +157,8 @@ def guess_content_type(
         if path.endswith(".msg"):
             return "application/vnd.ms-outlook"
 
+        if path.endswith(".zip"):
+            return "application/zip"
         # Use filetype library to guess the content type
         kind = filetype.guess(content)
         if kind and not path.endswith(".md"):
@@ -187,6 +195,8 @@ def get_process_engine_from_type(type):
         return "POWERPOINT"
     elif "application/vnd.ms-outlook" in type:
         return "OUTLOOK_MSG"
+    elif "application/zip" in type or "application/x-zip-compressed" in type:
+        return "ZIP"
     elif "application/pdf" in type:
         return "PDF"
     elif "text/html" in type:
@@ -230,6 +240,7 @@ def extract_markdown(
     base_url=None,
     chunk_size=768,
     selector=None,
+    root_document_id=None,
 ):
     try:
         enable_markdown = True
@@ -258,8 +269,12 @@ def extract_markdown(
         elif process_engine == "MARKDOWN":
             md = decode_content(content)
         elif process_engine == "OUTLOOK_MSG":
+            print("Processing Outlook email")
             enable_markdown = False
-            md = msg_to_markdown(content)
+            md = extract_msg(content, root_document_id)
+        elif process_engine == "ZIP":
+            enable_markdown = False
+            md = process_zip_file(content, root_document_id)
         elif process_engine == "CSV":
             md = csv_to_markdown(content)
         elif process_engine == "EXCEL":
@@ -307,18 +322,26 @@ def pdf_to_text_pdfium(content):
     # Fast and cheap, but no OCR or layout analysis
     import pypdfium2 as pdfium
 
-    text = ""
-    pdf = pdfium.PdfDocument(content)
-    for i, page in enumerate(pdf):
-        text_page = page.get_textpage()
-        text_content = text_page.get_text_range()
-        if text_content:
-            text += f"<page_{i+1}>\n"
-            text += text_content + "\n"
-            text += f"</page_{i+1}>\n"
-        # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
-        text_page.close()
-    pdf.close()
+    from otto.utils.common import pdfium_lock
+
+    with pdfium_lock:
+        try:
+            pdf = pdfium.PdfDocument(content)
+        except Exception as e:
+            logger.error(f"Failed to extract text from PDF file: {e}")
+            raise Exception(_("Corrupt PDF file."))
+
+        text = ""
+        for i, page in enumerate(pdf):
+            text_page = page.get_textpage()
+            text_content = text_page.get_text_range()
+            if text_content:
+                text += f"<page_{i+1}>\n"
+                text += text_content + "\n"
+                text += f"</page_{i+1}>\n"
+            # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
+            text_page.close()
+        pdf.close()
 
     return text
 
@@ -351,10 +374,15 @@ def msg_to_markdown(content):
 
 
 def docx_to_markdown(content):
+
     import mammoth
 
     with io.BytesIO(content) as docx_file:
-        result = mammoth.convert_to_html(docx_file)
+        try:
+            result = mammoth.convert_to_html(docx_file)
+        except Exception as e:
+            logger.error(f"Failed to extract text from .docx file: {e}")
+            raise Exception(_("Corrupt docx file."))
     html = result.value
 
     return _convert_html_to_markdown(html)
@@ -363,8 +391,12 @@ def docx_to_markdown(content):
 def pptx_to_markdown(content):
     import pptx
 
-    pptx_file = io.BytesIO(content)
-    prs = pptx.Presentation(pptx_file)
+    with io.BytesIO(content) as ppt_file:
+        try:
+            prs = pptx.Presentation(ppt_file)
+        except Exception as e:
+            logger.error(f"Failed to extract text from .pptx file: {e}")
+            raise Exception(_("Corrupt pptx file."))
 
     # extract text from each slide
     all_html = ""
@@ -657,9 +689,13 @@ def pdf_to_text_azure_read(content: bytes) -> str:
 
 def csv_to_markdown(content):
     """Convert CSV content to markdown table."""
-    with io.StringIO(content.decode("utf-8")) as csv_file:
-        reader = csv.reader(csv_file)
-        rows = list(reader)
+    try:
+        with io.StringIO(content.decode("utf-8")) as csv_file:
+            reader = csv.reader(csv_file)
+            rows = list(reader)
+    except Exception as e:
+        logger.error(f"Failed to extract text from CSV file: {e}")
+        raise Exception(_("Corrupt CSV file."))
 
     if not rows:
         return ""
@@ -677,7 +713,12 @@ def csv_to_markdown(content):
 
 def excel_to_markdown(content):
     """Convert Excel content to markdown tables."""
-    workbook = openpyxl.load_workbook(io.BytesIO(content))
+    try:
+        workbook = openpyxl.load_workbook(io.BytesIO(content))
+    except Exception as e:
+        logger.error(f"Failed to extract text from Excel file: {e}")
+        raise Exception(_("Corrupt Excel file."))
+
     markdown = ""
     for sheet in workbook.sheetnames:
         markdown += f"# {sheet}\n\n"

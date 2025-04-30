@@ -15,6 +15,12 @@
           <span class="spinner-border" aria-hidden="true"></span>
           <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
         </div>
+        <button id="highlight-all-sources" class="d-none"></button>
+        <button id="next-highlight" class="d-none"></button>
+        <span class="d-none mx-2 text-muted d-inline-block"
+              id="no-highlights"
+              style="white-space: nowrap">{% trans "No highlights found" %}</span>
+        <button id="expand-all-sources" class="d-none"></button>
         <button type="button"
                 class="btn-close"
                 data-bs-dismiss="modal"
@@ -24,3 +30,26 @@
     </div>
   </div>
 </div>
+
+<script>
+function expandAllSources(message_id) {
+  const sources = document.querySelectorAll(`#sources-${message_id}-accordion .accordion-collapse`);
+  sources.forEach(function (source) {
+    source.classList.toggle("expanded");
+  });
+}
+(function(){
+  const modalEl = document.getElementById('sources-modal');
+  modalEl.addEventListener('hidden.bs.modal', ()=>{
+    let btn1 = document.querySelector("#expand-all-sources");
+    let btn2 = document.querySelector("#highlight-all-sources");
+    let btn3 = document.querySelector("#next-highlight");
+    let noHighlights = document.querySelector("#no-highlights");
+    if (btn1) btn1.classList.add("d-none");
+    if (btn2) btn2.classList.add("d-none");
+    if (btn3) btn3.classList.add("d-none");
+    if (noHighlights) noHighlights.classList.add("d-none");
+  });
+})();
+
+</script>

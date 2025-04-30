@@ -16,6 +16,9 @@ RUN apt-get update \
     && rm -rf /var/cache/apt/archives/*
 
 COPY requirements*.txt /tmp/pip-tmp/
+
+RUN pip3 --disable-pip-version-check install --upgrade pip setuptools wheel
+
 RUN pip3 --disable-pip-version-check --no-cache-dir install \
     -r /tmp/pip-tmp/requirements.txt \
     && rm -rf /tmp/pip-tmp

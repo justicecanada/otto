@@ -5,6 +5,7 @@ import tiktoken
 from llama_index.core import PromptTemplate, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
 from llama_index.core.embeddings import MockEmbedding
+from llama_index.core.indices.prompt_helper import PromptHelper
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
@@ -12,8 +13,11 @@ from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
+from structlog import get_logger
 
 from otto.models import Cost
+
+logger = get_logger(__name__)
 
 
 class OttoVectorStore(PGVectorStore):
@@ -51,14 +55,17 @@ class OttoLLM:
     _deployment_to_model_mapping = {
         "gpt-4o-mini": "gpt-4o-mini",
         "gpt-4o": "gpt-4o",
-        "gpt-4": "gpt-4-1106-preview",
-        "gpt-35": "gpt-35-turbo-0125",
+        "o3-mini": "o3-mini",
     }
     _deployment_to_max_input_tokens_mapping = {
         "gpt-4o-mini": 128000,
         "gpt-4o": 128000,
-        "gpt-4": 128000,
-        "gpt-35": 16385,
+        "o3-mini": 200000,
+    }
+    _deployment_to_max_output_tokens_mapping = {
+        "gpt-4o-mini": 16384,
+        "gpt-4o": 16384,
+        "o3-mini": 100000,
     }
 
     def __init__(
@@ -80,6 +87,9 @@ class OttoLLM:
         self.mock_embedding = mock_embedding
         self.embed_model = self._get_embed_model()
         self.max_input_tokens = self._deployment_to_max_input_tokens_mapping[deployment]
+        self.max_output_tokens = self._deployment_to_max_output_tokens_mapping[
+            deployment
+        ]
 
     # Convenience methods to interact with LLM
     # Each will return a complete response (not single tokens)
@@ -116,18 +126,29 @@ class OttoLLM:
         context: str,
         query: str = "summarize the text",
         template: PromptTemplate = None,
+        chunk_size_limit: int | None = None,
+        chunk_overlap_ratio: float = 0.1,
     ):
         """
         Stream complete response (not single tokens) from context string and query.
         Optional: summary template (must include "{context_str}" and "{query_str}".)
         """
-        response = await self._get_tree_summarizer(
-            summary_template=template
-        ).aget_response(query, [context])
-        response_text = ""
-        async for chunk in response:
-            response_text += chunk
-            yield response_text
+        try:
+            custom_prompt_helper = PromptHelper(
+                context_window=self.max_input_tokens,
+                num_output=min(self.max_output_tokens, 16384),
+                chunk_size_limit=chunk_size_limit,
+                chunk_overlap_ratio=chunk_overlap_ratio,
+            )
+            response = await self._get_tree_summarizer(
+                prompt_helper=custom_prompt_helper, summary_template=template
+            ).aget_response(query, [context])
+            response_text = ""
+            async for chunk in response:
+                response_text += chunk
+                yield response_text
+        except Exception as e:
+            logger.error(f"Error in tree_summarize: {e}")
 
     # Token counting / cost tracking
     @property
@@ -231,6 +252,9 @@ class OttoLLM:
         )
         return idx
 
+    def temp_index_from_nodes(self, nodes: list) -> VectorStoreIndex:
+        return VectorStoreIndex(embed_model=self.embed_model, nodes=nodes)
+
     def get_response_synthesizer(
         self,
         qa_prompt_template="{context}\n{query}",
@@ -247,12 +271,14 @@ class OttoLLM:
 
     # Private helpers
     def _get_tree_summarizer(
-        self, summary_template: PromptTemplate = None
+        self,
+        prompt_helper: PromptHelper = None,
+        summary_template: PromptTemplate = None,
     ) -> TreeSummarize:
         return TreeSummarize(
             llm=self.llm,
             callback_manager=self._callback_manager,
-            prompt_helper=None,
+            prompt_helper=prompt_helper,
             summary_template=summary_template,
             output_cls=None,
             streaming=True,

@@ -42,6 +42,30 @@ class Command(BaseCommand):
         # Set system-wide environment variable PGPASSWORD to avoid password prompt
         os.environ["PGPASSWORD"] = vector_db_password
 
+        if settings.ENVIRONMENT == "LOCAL":
+            try:
+                # Create the vector database (local only)
+                subprocess.run(
+                    [
+                        "psql",
+                        "-U",
+                        vector_db_user,
+                        "-h",
+                        vector_db_host,
+                        "-d",
+                        "postgres",
+                        "-c",
+                        f"CREATE DATABASE {vector_db_name}",
+                    ],
+                    check=True,
+                )
+            except subprocess.CalledProcessError:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"Database {vector_db_name} already exists. Skipping creation."
+                    )
+                )
+
         if reset_all:
             self.reset_groups()
             self.reset_apps()
