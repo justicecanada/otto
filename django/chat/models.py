@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import connections, models
 from django.db.models import BooleanField, Q, Value
 from django.db.models.functions import Coalesce
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
@@ -13,8 +13,10 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from data_fetcher.util import get_request
+from rapidfuzz import fuzz
 from structlog import get_logger
 
+from chat.llm import OttoLLM
 from chat.prompts import current_time_prompt
 from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
@@ -67,6 +69,8 @@ class Chat(models.Model):
     # Last access time manually updated when chat is opened
     accessed_at = models.DateTimeField(auto_now_add=True)
 
+    last_modification_date = models.DateTimeField(default=timezone.now)
+
     loaded_preset = models.ForeignKey("Preset", on_delete=models.SET_NULL, null=True)
 
     # AC-20: Allows for the classification of information
@@ -100,6 +104,8 @@ class ChatOptionsManager(models.Manager):
             copy_options(
                 chat.user.default_preset.options, new_options, chat.user, chat, mode
             )
+            chat.loaded_preset = chat.user.default_preset
+            chat.save()
         else:
             default_preset = Preset.objects.get_global_default()
             new_options = self.create()
@@ -242,7 +248,7 @@ class PresetManager(models.Manager):
             return self.get(english_default=True)
 
     def get_accessible_presets(self, user: User, language: str = None):
-        ordering = ["-default", "-favourite"]
+        ordering = ["-default"]
         if language:
             ordering.append(f"name_{language}")
 
@@ -253,11 +259,6 @@ class PresetManager(models.Manager):
         return (
             presets.distinct()
             .annotate(
-                favourite=Coalesce(
-                    Q(favourited_by__in=[user]),
-                    Value(False),
-                    output_field=BooleanField(),
-                ),
                 default=Coalesce(
                     Q(default_for__in=[user]),
                     Value(False),
@@ -334,9 +335,6 @@ class Preset(models.Model):
     accessible_to = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="accessible_presets"
     )
-    favourited_by = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="favourited_presets"
-    )
     is_deleted = models.BooleanField(default=False)
 
     sharing_option = models.CharField(
@@ -359,24 +357,6 @@ class Preset(models.Model):
     def global_default(self):
         return self.english_default or self.french_default
 
-    def toggle_favourite(self, user: User):
-        """Sets the favourite flag for the preset.
-        Returns True if the preset was added to the favourites, False if it was removed.
-        Raises ValueError if user is None.
-        """
-
-        if user:
-            try:
-                self.favourited_by.get(pk=user.id)
-                self.favourited_by.remove(user)
-                return False
-            except:
-                self.favourited_by.add(user)
-                return True
-        else:
-            logger.error("User must be set to set user default.")
-            raise ValueError("User must be set to set user default")
-
     def delete_preset(self, user: User):
         # TODO: Preset refactor: Delete preset if no other presets are using it
         if self.owner != user:
@@ -385,27 +365,25 @@ class Preset(models.Model):
         self.is_deleted = True
         self.save()
 
-    def get_description(self, language: str):
-        language = language.lower()
-        if language == "en":
-            return self.description_en if self.description_en else self.description_fr
+    @property
+    def description_auto(self):
+        request = get_request()
+        if request and request.LANGUAGE_CODE == "fr":
+            description = self.description_fr or self.description_en
         else:
-            return self.description_fr if self.description_fr else self.description_en
-
-    def set_as_user_default(self, user: User):
-        if user:
-            if user.default_preset == self:
-                user.default_preset = None
-            else:
-                user.default_preset = self
-            user.save()
-            return user.default_preset
-        else:
-            logger.error("User must be set to set user default.")
-            raise ValueError("User must be set to set user default")
+            description = self.description_en or self.description_fr
+        return description or _("No description available")
 
     def __str__(self):
         return f"Preset {self.id}: {self.name_en}"
+
+    @property
+    def name_auto(self):
+        request = get_request()
+        if request and request.LANGUAGE_CODE == "fr":
+            return self.name_fr or self.name_en
+        else:
+            return self.name_en or self.name_fr
 
 
 class Message(models.Model):
@@ -431,6 +409,7 @@ class Message(models.Model):
     parent = models.OneToOneField(
         "self", on_delete=models.SET_NULL, null=True, related_name="child"
     )
+    claims_list = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return f"{'(BOT) ' if self.is_bot else ''}msg {self.id}: {self.text}"
@@ -466,6 +445,16 @@ class Message(models.Model):
         if self.feedback == feeback_value:
             return 0
         return feeback_value
+
+    def update_claims_list(self):
+        """
+        Updates the claims_list field with all claims found in response.
+        """
+        from .utils import extract_claims_from_llm
+
+        # Extract claims from the LLM response
+        self.claims_list = extract_claims_from_llm(self.text)
+        self.save(update_fields=["claims_list"])
 
     class Meta:
         constraints = [
@@ -514,6 +503,7 @@ class AnswerSource(models.Model):
 
     min_page = models.IntegerField(null=True)
     max_page = models.IntegerField(null=True)
+    processed_text = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.citation} ({self.node_score:.2f})"
@@ -534,8 +524,11 @@ class AnswerSource(models.Model):
     @property
     def node_text(self):
         """
-        Lookup the node text from the vector DB
+        Lookup the node text from the vector DB (if not already stored here)
         """
+        if self.processed_text:
+            return self.processed_text
+
         if self.document:
             table_id = self.document.data_source.library.uuid_hex
             with connections["vector_db"].cursor() as cursor:
@@ -581,6 +574,8 @@ class ChatFile(models.Model):
     eof = models.BooleanField(default=False)
     # The text extracted from the file
     text = models.TextField(blank=True)
+    # The hash of the file provided by the client (for verification after full upload)
+    sha256_hash_from_client = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return f"File {self.id}: {self.filename}"
@@ -615,3 +610,14 @@ def delete_saved_file(sender, instance, **kwargs):
         instance.saved_file.safe_delete()
     except Exception as e:
         logger.error(f"Failed to delete saved file: {e}")
+
+
+@receiver(post_save, sender=Message)
+def message_post_save(sender, instance, **kwargs):
+    try:
+        # Access Chat object to update last_modification_date
+        Chat.objects.filter(pk=instance.chat.pk).update(
+            last_modification_date=timezone.now()
+        )
+    except Exception as e:
+        logger.error(f"Message post save error: {e}")

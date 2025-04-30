@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="accordion accordion-flush"
      id="sources-{{ message_id }}-accordion">
   {% for source in sources %}
@@ -17,30 +18,70 @@
       <div id="sources-{{ message_id }}-text-{{ forloop.counter }}"
            class="accordion-collapse collapse">
         <div class="accordion-body scrolling-content" style="">
-          {% if source.document %}<div class="float-end ps-3">{{ source.document.href|safe }}</div>{% endif %}
-          <div style="white-space:pre-wrap;">{{ source.node_text|safe }}</div>
+          {% if source.document %}{{ source.document.href_button|safe }}{% endif %}
+          {{ source.node_text|safe }}
         </div>
       </div>
     </div>
   {% endfor %}
-
 </div>
+<button id="expand-all-sources"
+        hx-swap-oob="true"
+        type="button"
+        onclick="expandAllSources({{ message_id }})"
+        class="btn btn-outline-dark mx-2"
+        style="white-space: nowrap">
+  <span id="expand-all-label"><i class="bi bi-chevron-double-down me-1"></i>{% trans "Expand all" %}</span>
+  <span id="collapse-all-label" class="d-none"><i class="bi bi-chevron-double-up me-1"></i>{% trans "Collapse all" %}</span>
+</button>
+
+{% if highlighted %}
+  <button id="next-highlight"
+          type="button"
+          class="btn btn-outline-dark ms-2"
+          hx-swap-oob="true"
+          style="white-space: nowrap"
+          onclick="nextSourceHighlight({{ message_id }})">
+    <i class="bi bi-arrow-right me-1"></i>
+    {% trans "Next highlight" %}
+  </button>
+  <button id="highlight-all-sources" class="d-none" hx-swap-oob="true"></button>
+{% else %}
+  <button id="highlight-all-sources"
+          type="button"
+          hx-swap-oob="true"
+          hx-get="{% url 'chat:message_sources_highlight' message_id=message_id %}?highlight=true"
+          hx-target="#sources-modal-inner"
+          hx-swap="innerHTML"
+          hx-indicator="#sources-modal-spinner"
+          class="btn btn-outline-dark ms-2"
+          style="white-space: nowrap">
+    <span id="highlight-all-label"><i class="bi bi-pencil me-1"></i>{% trans "Highlight sources" %}</span>
+  </button>
+{% endif %}
 
 <script>
-    var accordionItems = document.getElementById("sources-{{ message_id }}-accordion").querySelectorAll(".accordion-item");
-    var lastGroup = null;
+  (function () {
+    let accordionItems = document.querySelectorAll("sources-{{ message_id }}-accordion .accordion-item");
+    let lastGroup = null;
+
+    let uniqueGroups = new Set();
+    for (let item of accordionItems) {
+      uniqueGroups.add(item.getAttribute("data-group"));
+    }
+    if (uniqueGroups.size === accordionItems.length) return;
 
     accordionItems.forEach((item, index) => {
-        var currentGroup = item.getAttribute("data-group");
+      let currentGroup = item.getAttribute("data-group");
 
-        // Check if we need to insert an hr before the current item
-        if (lastGroup !== currentGroup && index !== 0) {
-            var hr = document.createElement("hr");
-            hr.style.border = "2px solid";
-            hr.style.margin = "0px";
-            item.parentNode.insertBefore(hr, item);
-        }
-
-        lastGroup = currentGroup;
+      // Check if we need to insert an hr before the current item
+      if (lastGroup !== currentGroup && index !== 0) {
+        let hr = document.createElement("hr");
+        hr.style.border = "1px solid";
+        hr.style.margin = "0px";
+        item.parentNode.insertBefore(hr, item);
+      }
+      lastGroup = currentGroup;
     });
+  })();
 </script>

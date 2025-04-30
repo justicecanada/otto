@@ -112,12 +112,6 @@
         </div>
       </div>
     </div>
-    {% if documents %}
-      {% include "librarian/components/items_list.html" with items=documents selected_item=selected_document listbox_label="documents-label" item_type="document" %}
-    {% else %}
-      <div class="text-center">
-        <em class="small">{% trans "No documents in this folder." %}</em>
-      </div>
-    {% endif %}
+    {% include "librarian/components/document_list_inner.html" %}
   {% endif %}
 </div>

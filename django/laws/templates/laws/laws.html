@@ -30,24 +30,26 @@
 {% block content_container %}
   <div id="laws-outer">
     <div class="container py-3 px-0" id="search-container">
-      <h2 class="mb-4 px-4 mt-2">
+      <h2 class="mb-2 px-4 mt-2">
         <a href="{% url 'laws:index' %}" class="text-decoration-none text-body">{% trans "Legislation Search" %}</a>
       </h2>
-
+      <p class="mx-4 mb-4">
+        {% trans "Find relevant sections of acts and regulations using natural language similarity search." %}
+      </p>
       <ul class="nav nav-tabs px-3 border-bottom-0">
         <li class="nav-item">
           <button id="basic-search-tab"
-                  class="nav-link text-black active fw-semibold"
+                  class="nav-link active fw-semibold text-body"
                   onclick="setActiveTab(this);">{% trans "Basic search" %}</button>
         </li>
         <li class="nav-item">
           <button id="advanced-search-tab"
-                  class="nav-link text-black"
+                  class="nav-link text-body"
                   onclick="setActiveTab(this);">{% trans "Advanced search" %}</button>
         </li>
       </ul>
 
-      <div id="step-content" class="bg-white rounded">
+      <div id="step-content" class="rounded">
         <div class="tab-pane fade show active p-3 border rounded" id="search-form">
           {% block step_content %}
             {% include 'laws/search_form.html' %}
@@ -62,15 +64,18 @@
     <div class="container py-3 px-0" id="result-container" aria-live="polite">
       {% if sources %}
         {% include "laws/search_result.html" %}
-      {% elif last_updated %}
-        <p class="ms-4 mt-2 text-secondary">
-          {% trans "Last refreshed from the" %}
-          <a href="https://github.com/justicecanada/laws-lois-xml"
-             target="_blank"
-             class="text-secondary">laws-lois-xml</a>
-          {% trans "repository on" %}
-          {{ last_updated }}
-        </p>
+      {% else %}
+        {% include "laws/laws_warning.html" %}
+        {% if last_updated %}
+          <p class="m-4 text-secondary">
+            {% trans "Last refreshed from the" %}
+            <a href="https://github.com/justicecanada/laws-lois-xml"
+               target="_blank"
+               class="text-secondary">laws-lois-xml</a>
+            {% trans "repository on" %}
+            {{ last_updated }}
+          </p>
+        {% endif %}
       {% endif %}
     </div>
   </div>
@@ -82,6 +87,6 @@
 
   <script src="{% static 'laws/law_search.js' %}"></script>
 
-  <link rel="stylesheet" href="{% static 'thirdparty/css/highlightjs.css' %}">
+  <link rel="stylesheet" href="{% static 'chat/css/highlightjs.css' %}">
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
 {% endblock %}

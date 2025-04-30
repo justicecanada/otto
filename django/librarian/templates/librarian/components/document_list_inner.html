@@ -1,0 +1,17 @@
+{% load i18n %}
+
+<div id="librarian-document-list">
+  {% if documents %}
+    {% include "librarian/components/items_list.html" with items=documents selected_item=selected_document listbox_label="documents-label" item_type="document" %}
+  {% else %}
+    <div class="text-center">
+      <em class="small">
+        {% if selected_data_source and selected_data_source.chat_id %}
+          {% trans "No documents in this chat." %}
+        {% else %}
+          {% trans "No documents in this folder." %}
+        {% endif %}
+      </em>
+    </div>
+  {% endif %}
+</div>

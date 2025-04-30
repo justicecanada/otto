@@ -1,0 +1,16 @@
+{% load i18n %}
+
+<li class="nav-item">
+  <button type="button"
+          class="btn btn-dark text-muted px-1 ms-1"
+          id="theme"
+          onclick="const theme = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark'; setStoredTheme(theme); setTheme(theme);"
+          aria-label="{% trans 'Toggle theme' %}"
+          title="{% trans 'Toggle theme' %}"
+          aria-expanded="false">
+    <i class="bi theme-icon-active bi-moon-stars" id="theme-icon"></i>
+    <span class="visually-hidden" id="bd-theme-text">{% trans "Toggle theme" %}</span>
+  </button>
+</li>
+{# Run setTheme again to update the icon #}
+<script>setTheme(getPreferredTheme());</script>

@@ -10,7 +10,7 @@ function resizeTextarea() {
   // Reset the height to its default to get the correct scrollHeight
   textarea.style.height = 'auto';
   // Calculate the new height and limit it to 400px
-  let newHeight = Math.min(Math.max(textarea.scrollHeight + 3, lastHeight), chatPromptMaxHeight);
+  let newHeight = Math.min(Math.max(textarea.scrollHeight, lastHeight), chatPromptMaxHeight);
   lastHeight = newHeight;
   textarea.style.height = newHeight + 'px';
   resizeOtherElements();
@@ -29,7 +29,12 @@ function resizeOtherElements() {
   // Check if the chatContainer is scrolled to bottom
   let isScrolledToBottom = chatContainer.scrollHeight - chatContainer.clientHeight <= chatContainer.scrollTop + 1;
   chatContainer.style.paddingBottom = `${chatInputHeight}px`;
-  if (isScrolledToBottom) chatContainer.scrollTop = chatContainer.scrollHeight;
+  if (isScrolledToBottom) {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    document.querySelector("#scroll-btn").classList.remove("show");
+  } else {
+    document.querySelector("#scroll-btn").classList.add("show");
+  }
 }
 
 function handleChatPromptResize(event) {
@@ -66,20 +71,27 @@ promptResizeHandle.addEventListener('mousedown', function (e) {
   isResizing = true;
   lastDownY = e.clientY;
   originalHeight = document.querySelector('#chat-prompt').clientHeight;
-});
-document.addEventListener('mousemove', function (e) {
-  if (!isResizing) return;
-  let textarea = document.querySelector('#chat-prompt');
-  let newHeight = Math.max(Math.min(originalHeight + lastDownY - e.clientY, chatPromptMaxHeight), chatPromptMinHeight);
-  textarea.style.height = newHeight + 'px';
-  resizeOtherElements(newHeight);
-});
-document.addEventListener('mouseup', function () {
-  if (isResizing) {
-    isResizing = false;
-    lastHeight = document.querySelector('#chat-prompt').clientHeight + 1;
-    document.querySelector('#chat-prompt').focus();
+
+  function mouseMoveHandler(e) {
+    if (!isResizing) return;
+    let textarea = document.querySelector('#chat-prompt');
+    let newHeight = Math.max(Math.min(originalHeight + lastDownY - e.clientY, chatPromptMaxHeight), chatPromptMinHeight);
+    textarea.style.height = newHeight + 'px';
+    resizeOtherElements(newHeight);
   }
+
+  function mouseUpHandler() {
+    if (isResizing) {
+      isResizing = false;
+      lastHeight = document.querySelector('#chat-prompt').clientHeight + 1;
+      document.querySelector('#chat-prompt').focus();
+    }
+    document.removeEventListener('mousemove', mouseMoveHandler);
+    document.removeEventListener('mouseup', mouseUpHandler);
+  }
+
+  document.addEventListener('mousemove', mouseMoveHandler);
+  document.addEventListener('mouseup', mouseUpHandler);
 });
 
 // Prompt generator
@@ -100,6 +112,7 @@ function applyGeneratedPrompt(event) {
 function setMagicPrompt() {
   const chatPrompt = document.getElementById('chat-prompt').value;
   document.getElementById('magic-prompt').value = chatPrompt;
+  document.getElementById('magic-prompt').focus();
 }
 
 function resetPromptModal() {
@@ -109,3 +122,4 @@ function resetPromptModal() {
 }
 
 document.getElementById('magicModal').addEventListener('hidden.bs.modal', resetPromptModal);
+document.getElementById('magicModal').addEventListener('shown.bs.modal', setMagicPrompt);

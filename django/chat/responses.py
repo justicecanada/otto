@@ -32,6 +32,7 @@ from chat.utils import (
     htmx_stream,
     num_tokens_from_string,
     sort_by_max_score,
+    stream_to_replacer,
     summarize_long_text,
     url_to_text,
 )
@@ -99,13 +100,17 @@ def chat_response(
         for message in chat.messages.all().order_by("date_created")
     ]
 
+    if chat_history[-1].role == MessageRole.ASSISTANT and not chat_history[-1].content:
+        # The last message is likely an empty placeholder - remove it to avoid errors
+        chat_history.pop()
+
     model = chat.options.chat_model
     temperature = chat.options.chat_temperature
 
     llm = OttoLLM(model, temperature)
 
     tokens = num_tokens_from_string(
-        " ".join(message.content for message in chat_history)
+        " ".join(message.content or "" for message in chat_history)
     )
     if tokens > llm.max_input_tokens:
         # In this case, just return an error. No LLM costs are incurred.
@@ -165,26 +170,43 @@ def summarize_response(chat, response_message):
     model = chat.options.summarize_model
 
     llm = OttoLLM(model)
+    error_str = ""
 
     if len(files) > 0:
         titles = [file.filename for file in files]
         responses = []
         for file in files:
+            if cache.get(f"stop_response_{response_message.id}", False):
+                break
             if not file.text:
-                file.extract_text(pdf_method="default")
-            if not cache.get(f"stop_response_{response_message.id}", False):
-                responses.append(
-                    summarize_long_text(
-                        file.text,
-                        llm,
-                        summary_length,
-                        target_language,
-                        custom_summarize_prompt,
-                        gender_neutral,
-                        instructions,
+                try:
+                    file.extract_text(pdf_method="default")
+                except Exception as e:
+                    error_id = str(uuid.uuid4())[:7]
+                    error_str = _(
+                        "Error extracting text from file. Try copying and pasting the text."
                     )
+                    error_str += f" _({_('Error ID')}: {error_id})_"
+                    responses.append(stream_to_replacer([error_str]))
+                    logger.error(
+                        "Error extracting text from file",
+                        error_id=error_id,
+                        message_id=response_message.id,
+                        chat_id=chat.id,
+                        error=traceback.format_exc(),
+                    )
+                    continue
+            responses.append(
+                summarize_long_text(
+                    file.text,
+                    llm,
+                    summary_length,
+                    target_language,
+                    custom_summarize_prompt,
+                    gender_neutral,
+                    instructions,
                 )
-
+            )
         title_batches = create_batches(titles, batch_size)
         response_batches = create_batches(responses, batch_size)
         batch_generators = [
@@ -207,44 +229,47 @@ def summarize_response(chat, response_message):
             content_type="text/event-stream",
         )
     elif user_message.text == "":
-        summary = _("No text to summarize.")
+        error_str = _("No text to summarize.")
     else:
+        # Text input is a URL or plain text
         url_validator = URLValidator()
         try:
             url_validator(user_message.text)
             text_to_summarize = url_to_text(user_message.text)
+            # Check if response text is too short (most likely a website blocking Otto)
+            if len(text_to_summarize.split()) < 35:
+                error_str = _(
+                    "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here."
+                )
         except ValidationError:
             text_to_summarize = user_message.text
 
-        # Check if response text is too short (most likely a website blocking Otto)
-        if len(text_to_summarize.split()) < 35:
-            summary = _(
-                "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here."
-            )
-        else:
-            response = summarize_long_text(
-                text_to_summarize,
+    if error_str:
+        return StreamingHttpResponse(
+            streaming_content=htmx_stream(
+                chat,
+                response_message.id,
                 llm,
-                summary_length,
-                target_language,
-                custom_summarize_prompt,
-                gender_neutral,
-                instructions,
-            )
-            return StreamingHttpResponse(
-                streaming_content=htmx_stream(
-                    chat,
-                    response_message.id,
-                    llm,
-                    response_replacer=response,
-                ),
-                content_type="text/event-stream",
-            )
+                response_str=error_str,
+            ),
+            content_type="text/event-stream",
+        )
 
-    # This will only be reached in an error case
+    response = summarize_long_text(
+        text_to_summarize,
+        llm,
+        summary_length,
+        target_language,
+        custom_summarize_prompt,
+        gender_neutral,
+        instructions,
+    )
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
-            chat, response_message.id, llm, response_str=summary
+            chat,
+            response_message.id,
+            llm,
+            response_replacer=response,
         ),
         content_type="text/event-stream",
     )
@@ -361,6 +386,7 @@ def qa_response(chat, response_message, switch_mode=False):
         adding_url = False
 
     async def add_files_to_library():
+        message_created_at = response_message.date_created
         ds = chat.data_source
         processing_count = await sync_to_async(
             lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
@@ -375,12 +401,15 @@ def qa_response(chat, response_message, switch_mode=False):
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
             )()
 
-        saved_files = [file.saved_file for file in files]
         error_documents = await sync_to_async(
-            lambda: list(ds.documents.filter(status="ERROR", file__in=saved_files))
+            lambda: list(
+                ds.documents.filter(status="ERROR", created_at__gt=message_created_at)
+            )
         )()
         num_completed_documents = await sync_to_async(
-            lambda: ds.documents.filter(status="ERROR", file__in=saved_files).count()
+            lambda: ds.documents.filter(
+                status="SUCCESS", created_at__gt=message_created_at
+            ).count()
         )()
         if error_documents:
             error_string = _("Error processing the following document(s):")
@@ -394,23 +423,23 @@ def qa_response(chat, response_message, switch_mode=False):
         elif adding_url:
             yield _("URL ready for Q&A.")
         else:
-            yield f"{len(files)} " + _("new document(s) ready for Q&A.")
+            yield f"{num_completed_documents} " + _("new document(s) ready for Q&A.")
 
     if len(files) > 0 or adding_url:
         for file in files:
             existing_document = Document.objects.filter(
                 data_source=chat.data_source,
                 filename=file.filename,
-                file__sha256_hash=file.saved_file.sha256_hash,
+                saved_file__sha256_hash=file.saved_file.sha256_hash,
             ).first()
-            # Skip if filename and hash are the same, and processing status is SUCCESS
+            # Skip if filename and hash are the same, but reprocess if ERROR status
             if existing_document:
-                if existing_document.status != "SUCCESS":
+                if existing_document.status == "ERROR":
                     existing_document.process()
                 continue
             document = Document.objects.create(
                 data_source=chat.data_source,
-                file=file.saved_file,
+                saved_file=file.saved_file,
                 filename=file.filename,
             )
             document.process()

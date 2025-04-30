@@ -5,7 +5,7 @@
 {% block body_classes %}chat{% endblock %}
 
 {% block page_css %}
-  <link rel="stylesheet" href="{% static 'chat/style.css' %}">
+  <link rel="stylesheet" href="{% static 'chat/css/style.css' %}">
 {% endblock %}
 
 {% block page_title %}
@@ -27,7 +27,7 @@
           {% trans "to report the issue." %}
           <span id="author-mailto-container"></span>
         </div>
-        <div class="container px-5">
+        <div class="container px-5 position-relative">
           <div id="messages-container" class="py-3 px-2">{% include 'chat/components/chat_messages.html' %}</div>
         </div>
       </div>
@@ -42,6 +42,6 @@
   <script src="{% static 'chat/js/scripts.js' %}"></script>
   <script src="{% static 'librarian/scripts.js' %}"></script>
 
-  <link rel="stylesheet" href="{% static 'thirdparty/css/highlightjs.css' %}">
+  <link rel="stylesheet" href="{% static 'chat/css/highlightjs.css' %}">
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
 {% endblock %}

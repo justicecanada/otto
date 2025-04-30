@@ -1,7 +1,11 @@
 :root {
+  --bg-white: white;
+  --bg-black: black;
   --bg-light-gray: #f1f1f1;
-
-  --app-color-purple-1: #6c23e0;
+  --otto-primary-text-color: var(--bs-body-color);
+  --otto-tab-body-bg-color: white;
+  --app-primary-bg: #f8f9fa;
+  --app-color-purple-1: #9857ffc7;
   --app-color-purple-1-hover: #6c23e030;
   --app-color-purple-2: #c536f0;
   --app-color-purple-2-hover: #c536f035;
@@ -9,14 +13,14 @@
   --app-color-purple-3-hover: #f092f044;
   --app-color-green-1: #067856;
   --app-color-green-1-hover: #19875440;
-  --app-color-green-2: #09bc87;
+  --app-color-green-2: #60d6b3;
   --app-color-green-2-hover: #09bc8740;
   --app-color-green-3: #54e4b9;
-  --app-color-green-3-hover: rgba(84, 228, 185, 0.35);
+  --app-color-green-3-hover: #54e4b959;
   --app-color-blue-1: #0d6efd;
   --app-color-blue-1-hover: #0d6efd40;
   --app-color-blue-2: #87befc;
-  --app-color-blue-2-hover: rgba(135, 190, 252, 0.4);
+  --app-color-blue-2-hover: #87befc66;
   --app-color-blue-3: #b5dfff;
   --app-color-blue-3-hover: #b5dfff40;
   --app-color-orange-1: #ff8c00;
@@ -37,4 +41,122 @@
   --app-color-yellow-2-hover: #ffd64940;
   --app-color-yellow-3: #ffeb9c;
   --app-color-yellow-3-hover: #ffeb9c40;
+  --nav-text-color: #272727;
+  --nav-text-color-hover: #646464;
+  --chat-user-message-blob-bg: #e9ebf9;
+  --chat-bot-message-blob-bg: #f1f2f4;
+  --chat-user-message-border: #dbdef7;
+  --chat-bot-message-border: var(--bs-light-border-subtle);
+  --chat-typing-span: #4669b4;
+  --img-icon-border: #dee2e6;
+  --app-border: #ccc;
+  --chat-footer-border: #ddd;
+  --chat-outer-bg: #f8f9fa;
+  --chat-message-bg: #ffffff80;
+  --chat-message-blockquote-bg: var(--chat-message-bg);
+  --chat-message-border: #00000033;
+  --chat-message-progress-bar-bg: #5022bd73;
+  --chat-file-drop: #000000cc;
+  --chat-group-item: #edf5fe;
+  --chat-preset-tab-not-active: var(--bs-light);
+  --chat-preset-form-container: #a2a2a2;
+  --chat-mode-link-bg: #888;
+  --chat-mode-link-border: #eee;
+  --chat-delete-focus: #dc2626;
+  --chat-code-color: #800;
+  --text-extractor-sub-text: #888;
+  --chat-user-choice-button-hover: #acacac;
+  --darkgray: darkgray;
+  --security-PA-bg: #fff3cd;
+  --security-PA-border: #ffeeba;
+  --security-PB-bg: #f8d7da;
+  --security-PB-border: #f5c6cb;
+  --welcome-btn-bg: #e6e6e6;
+  --search-bar-bg-hover: #e6e6e6;
+  --chat-delete-text: #b10e0e;
+  --prompt-send-btn-bg: white;
+  --search-bar-border: #808080;
+}
+
+[data-bs-theme="dark"] {
+  --otto-primary-text-color: var(--bs-body-color);
+  --otto-tab-body-bg-color: var(--bs-dark-bg-subtle);
+  --app-primary-bg: var(--bs-body-bg);
+  --app-color-purple-1: #9c73df;
+  --app-color-purple-1-hover: #9468db77;
+  --app-color-purple-2: #c536f0;
+  --app-color-purple-2-hover: #c536f035;
+  --app-color-purple-3: #f092f0;
+  --app-color-purple-3-hover: #f092f044;
+  --app-color-green-1: #067856;
+  --app-color-green-1-hover: #19875440;
+  --app-color-green-2: #60d6b3;
+  --app-color-green-2-hover: #04533c;
+  --app-color-green-3: #54e4b9;
+  --app-color-green-3-hover: #54e4b959;
+  --app-color-blue-1: #0d6efd;
+  --app-color-blue-1-hover: #0d6efd40;
+  --app-color-blue-2: #87befc;
+  --app-color-blue-2-hover: #87befc66;
+  --app-color-blue-3: #b5dfff;
+  --app-color-blue-3-hover: #b5dfff40;
+  --app-color-orange-1: #ff8c00;
+  --app-color-orange-1-hover: #ff8c0040;
+  --app-color-orange-2: #ff9e4f;
+  --app-color-orange-2-hover: #ff9e4f40;
+  --app-color-orange-3: #ffbb7d;
+  --app-color-orange-3-hover: #ffbb7d40;
+  --app-color-red-1: #dc3545;
+  --app-color-red-1-hover: #58151c;
+  --app-color-red-2: #ff5b6c;
+  --app-color-red-2-hover: #64242a;
+  --app-color-red-3: #ff8e9b;
+  --app-color-red-3-hover: #573035;
+  --app-color-yellow-1: #ffc107;
+  --app-color-yellow-1-hover: #684f04;
+  --bs-light: #333;
+  --nav-text-color: #cecece;
+  --nav-text-color-hover: #a3a3a3;
+  --chat-user-message-blob-bg: #2b2a44;
+  --chat-bot-message-blob-bg: #29282f;
+  --chat-user-message-border: var(--chat-user-message-blob-bg);
+  --chat-bot-message-border: var(--chat-bot-message-blob-bg);
+  --chat-typing-span: #9abaffc0;
+  --img-icon-border: #dee2e6;
+  --app-border: #ccc;
+  --chat-footer-border: #ddd;
+  --chat-outer-bg: #f8f9fa;
+  --chat-message-bg: #e0e0e0;
+  --chat-message-blockquote-bg: rgba(255, 255, 255, 0.1);
+  --chat-message-border: #00000033;
+  --chat-message-progress-bar-bg: #5022bd73;
+  --chat-file-drop: #000000cc;
+  --chat-group-item: #343a40;
+  --chat-preset-tab-not-active: #1f1f24;
+  --chat-preset-form-container: #a2a2a2;
+  --chat-mode-link-bg: #888;
+  --chat-mode-link-border: #eee;
+  --chat-delete-focus: #dc2626;
+  --chat-code-color: rgb(236, 162, 162);
+  --text-extractor-sub-text: #e4e4e4;
+  --chat-user-choice-button-hover: #acacac;
+  --darkgray: darkgray;
+  --security-PA-border: #fcda72;
+  --security-PB-border: #fb7380;
+  --library-bulk-btn-bg: #092417;
+  --text-secondary: #a7a7a7;
+  --btn-hover: #0f0f14b5;
+  --welcome-btn-bg: #474747;
+  --search-bar-hover-bg: #3e474f;
+  --chat-delete-text: #ff5e5e;
+  --prompt-send-btn-bg: #1a1e20;
+}
+
+.navbar .nav-link {
+  color: var(--nav-text-color);
+  transition: color 0.2s ease-in-out;
+}
+
+.navbar .nav-link:hover {
+  color: var(--nav-text-hover-color);
 }

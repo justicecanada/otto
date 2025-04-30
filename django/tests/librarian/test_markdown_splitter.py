@@ -124,6 +124,13 @@ def test_close_page_tags_simple():
     result = markdown_splitter._close_page_tags(html_string)
     assert result == expected_output
 
+    # Case 5: Starts with a closing page tag, followed by nothing else
+    markdown_splitter = MarkdownSplitter()
+    html_string = "</page_1>"
+    expected_output = "<page_1>\n</page_1>"
+    result = markdown_splitter._close_page_tags(html_string)
+    assert result == expected_output
+
 
 def test_close_page_tags_complex_1():
     # Case 5: Multiple valid page tags

@@ -1,11 +1,7 @@
-from django.conf import settings
-from django.core.cache import cache
-from django.http import HttpResponseRedirect
-from django.urls import path, reverse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
 
 from structlog import get_logger
-
-from otto.views import load_test
 
 logger = get_logger(__name__)
 
@@ -49,6 +45,10 @@ NO_TERMS_PATHS = PUBLIC_PATHS + [
     "/i18n/setlang",
     "/feedback",
     "/user_cost",
+    "/user_management/mark_tour_completed/homepage",
+    "/user_management/mark_tour_completed/ai_assistant",
+    "/user_management/mark_tour_completed/laws",
+    "/user_management/reset_completion_flags",
 ]
 
 
@@ -62,8 +62,11 @@ class RedirectToLoginMiddleware:
             return self.get_response(request)
         # AC-2, AC-19: User Authentication (Can't be anonymous)
         if not request.user.is_authenticated or request.user.is_anonymous:
+            if request.headers.get("HX-Request"):
+                response = HttpResponse(status=200)
+                response["HX-Redirect"] = reverse("welcome")
+                return response
             return HttpResponseRedirect(reverse("welcome") + "?next=" + request.path)
-
         return self.get_response(request)
 
 

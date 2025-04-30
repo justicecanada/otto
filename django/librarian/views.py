@@ -26,6 +26,7 @@ from .models import DataSource, Document, Library, LibraryUserRole, SavedFile
 
 logger = get_logger(__name__)
 IN_PROGRESS_STATUSES = ["PENDING", "INIT", "PROCESSING"]
+END_STATUSES = ["SUCCESS", "ERROR", "BLOCKED"]
 
 
 def get_editable_libraries(user):
@@ -131,14 +132,11 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             )
             if form.is_valid():
                 form.save()
-                messages.success(
-                    request,
-                    (
-                        _("Folder updated successfully.")
-                        if item_id
-                        else _("Folder created successfully.")
-                    ),
-                )
+                if item_id:
+                    toast_message = _("Folder updated successfully.")
+                else:
+                    toast_message = _("Folder created successfully.")
+                messages.success(request, toast_message)
                 selected_data_source = form.instance
                 item_id = selected_data_source.id
                 selected_library = selected_data_source.library
@@ -278,6 +276,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     else:
         poll_url = None
 
+    # Don't show chats that don't have any Q&A documents
+    if data_sources and selected_library.is_personal_library:
+        data_sources = [ds for ds in data_sources if ds.documents.count() > 0]
+
     context = {
         "libraries": libraries,
         "selected_library": selected_library,
@@ -316,7 +318,15 @@ def poll_status(request, data_source_id, document_id=None):
     return render(
         request,
         "librarian/components/poll_update.html",
-        {"documents": documents, "poll_url": poll_url, "selected_document": document},
+        {
+            "documents": documents,
+            "poll_url": poll_url,
+            "selected_document": document,
+            "selected_data_source": DataSource.objects.get(id=data_source_id),
+            "selected_library": Library.objects.get(
+                id=DataSource.objects.get(id=data_source_id).library_id
+            ),
+        },
     )
 
 
@@ -439,7 +449,7 @@ def data_source_stop(request, data_source_id):
     # Stop all celery tasks for documents within this data source
     data_source = get_object_or_404(DataSource, id=data_source_id)
     for document in data_source.documents.defer("extracted_text").all():
-        if document.status in ["PENDING", "INIT", "PROCESSING"]:
+        if document.status not in END_STATUSES:
             document.stop()
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
@@ -454,12 +464,12 @@ def data_source_start(request, data_source_id, pdf_method="default", scope="all"
     data_source = get_object_or_404(DataSource, id=data_source_id)
     if scope == "all":
         for document in data_source.documents.defer("extracted_text").all():
-            if document.status in ["PENDING", "INIT", "PROCESSING"]:
+            if document.status not in END_STATUSES:
                 document.stop()
             document.process(pdf_method=pdf_method)
     elif scope == "incomplete":
         for document in data_source.documents.defer("extracted_text").all():
-            if document.status in ["PENDING", "INIT", "PROCESSING"]:
+            if document.status not in END_STATUSES:
                 document.stop()
             if document.status not in ["SUCCESS"]:
                 document.process(pdf_method=pdf_method)
@@ -492,11 +502,11 @@ def upload(request, data_source_id):
             existing_document = Document.objects.filter(
                 data_source_id=data_source_id,
                 filename=file.name,
-                file__sha256_hash=file_hash,
+                saved_file__sha256_hash=file_hash,
             ).first()
-            # Skip if filename and hash are the same, and processing status is SUCCESS
+            # Skip if filename and hash are the same, but reprocess if ERROR status
             if existing_document:
-                if existing_document.status != "SUCCESS":
+                if existing_document.status == "ERROR":
                     existing_document.process()
                 continue
         else:
@@ -505,7 +515,7 @@ def upload(request, data_source_id):
             file_obj.generate_hash()
 
         document = Document.objects.create(
-            data_source_id=data_source_id, file=file_obj, filename=file.name
+            data_source_id=data_source_id, saved_file=file_obj, filename=file.name
         )
         document.process()
     # Update the modal with the new documents
@@ -520,7 +530,7 @@ def download_document(request, document_id):
     # AC-20: Provide an audit trail of interactions with external information sources
     logger.info("Downloading file for QA document", document_id=document_id)
     document = get_object_or_404(Document, pk=document_id)
-    file_obj = document.file
+    file_obj = document.saved_file
     file = file_obj.file
     # Download the file, don't display it
     response = HttpResponse(file, content_type=file_obj.content_type)

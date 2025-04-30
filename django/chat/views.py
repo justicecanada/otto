@@ -1,7 +1,8 @@
 import json
+import os
 import re
-from urllib.parse import quote
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -35,8 +36,14 @@ from chat.utils import (
     bad_url,
     change_mode_to_chat_qa,
     copy_options,
+    fix_source_links,
     generate_prompt,
+    get_chat_history_sections,
+    highlight_claims,
+    label_section_index,
+    reassemble_chunks,
     title_chat,
+    wrap_llm_response,
 )
 from librarian.models import Library, SavedFile
 from otto.models import SecurityLabel
@@ -47,8 +54,6 @@ from otto.utils.decorators import (
     permission_required,
 )
 from otto.views import feedback_message
-
-from .models import Preset
 
 app_name = "chat"
 logger = get_logger(__name__)
@@ -71,8 +76,22 @@ def new_chat(request, mode=None):
     empty_chat = Chat.objects.create(user=request.user, mode=mode)
 
     logger.info("New chat created.", chat_id=empty_chat.id, mode=mode)
+    redirect_url = reverse("chat:chat", args=[empty_chat.id])
 
-    return redirect("chat:chat", chat_id=empty_chat.id)
+    start_tour = request.GET.get("start_tour") == "true"
+    if start_tour:
+        # Reset settings to Otto default
+        if get_language() == "fr":
+            preset = Preset.objects.get(french_default=True)
+        else:
+            preset = Preset.objects.get(english_default=True)
+        empty_chat.loaded_preset = preset
+        empty_chat.save()
+        # Update the chat options with the preset options
+        copy_options(preset.options, empty_chat.options)
+        redirect_url += "?start_tour=true"
+
+    return redirect(redirect_url)
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
@@ -174,7 +193,7 @@ def chat(request, chat_id):
         .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
-        .order_by("-created_at")
+        .order_by("-last_modification_date")
     )
     # Title chats in sidebar if necessary & set default labels
     llm = None
@@ -228,6 +247,13 @@ def chat(request, chat_id):
         "user_chats": user_chats,
         "mode": mode,
         "security_labels": SecurityLabel.objects.all(),
+        "chat_history_sections": get_chat_history_sections(user_chats),
+        "has_tour": True,
+        "tour_name": _("AI Assistant"),
+        "force_tour": not request.user.ai_assistant_tour_completed,
+        "tour_skippable": request.user.is_admin
+        or request.user.ai_assistant_tour_completed,
+        "start_tour": request.GET.get("start_tour") == "true",
     }
     return render(request, "chat/chat.html", context=context)
 
@@ -291,6 +317,7 @@ def chat_message(request, chat_id):
             "date_created": response_message.date_created
             + timezone.timedelta(seconds=1),
         }
+
     context = {
         "chat_messages": [
             user_message,
@@ -300,7 +327,7 @@ def chat_message(request, chat_id):
     }
     response = HttpResponse()
     response.write(render_to_string("chat/components/chat_messages.html", context))
-    if entered_url and allowed_url and mode == "chat":
+    if entered_url and allowed_url and (mode == "chat" or mode == "qa"):
         response.write(change_mode_to_chat_qa(chat))
     return response
 
@@ -345,16 +372,29 @@ def init_upload(request, chat_id):
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def done_upload(request, message_id):
     """
-    Creates a "files uploaded" message in the chat and initiates the response
+    Creates a "files uploaded" message, assembles file chunks for all files
+    associated with the message, and initiates the final response.
     """
+    # Retrieve the user's message.
     user_message = Message.objects.get(id=message_id)
     mode = user_message.mode
     logger.info("File upload completed.", message_id=message_id, mode=mode)
+
+    # Create the response message.
     response_message = Message.objects.create(
         chat=user_message.chat, text="", is_bot=True, mode=mode, parent=user_message
     )
     chat = user_message.chat
     response = HttpResponse()
+
+    # Get all ChatFile objects associated with the user message.
+    file_objs = ChatFile.objects.filter(message_id=message_id)
+    if not file_objs.exists():
+        logger.error("No files associated with message %s", message_id)
+    else:
+        for file_obj in file_objs:
+            if not file_obj.saved_file.sha256_hash:
+                reassemble_chunks(file_obj)
 
     if mode == "qa":
         logger.debug("QA upload")
@@ -386,61 +426,75 @@ def done_upload(request, message_id):
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
 def chunk_upload(request, message_id):
     """
-    Returns JSON for the file upload progress
-    Based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader
+    Handles a single file chunk upload.
+    Saves each chunk as a separate file in a tmp directory based on the ChatFile's id.
+    Returns JsonResponse for the file upload progress
+    Loosely based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader
     """
     hash = request.POST["hash"]
-    existing_file = SavedFile.objects.filter(sha256_hash=hash).first()
-
-    file = request.FILES["file"].read()
+    chunk_data = request.FILES["file"].read()
     content_type = request.POST["content_type"]
     file_name = request.POST["filename"]
     file_id = request.POST["file_id"]
     end = request.POST["end"]
     nextSlice = request.POST["nextSlice"]
+    existing_file = None
 
-    if file == "" or file_name == "" or file_id == "" or end == "" or nextSlice == "":
+    if not all([chunk_data, file_name, file_id, end, nextSlice]):
+        logger.info(
+            f"File upload failed. Missing required parameters (file, content_type, filename, file_id, end, nextSlice).",
+        )
         return JsonResponse({"data": "Invalid request"})
-    else:
-        if file_id == "null":
-            chat_file_arguments = dict(
-                message_id=message_id,
-                filename=file_name,
-            )
-            if existing_file:
-                chat_file_arguments.update(saved_file=existing_file)
-            else:
-                chat_file_arguments.update(content_type=content_type, eof=int(end))
-            file_obj = ChatFile.objects.create(**chat_file_arguments)
-            if not existing_file:
-                file_obj.saved_file.file.save(file_name, request.FILES["file"])
-            if int(end) or existing_file:
-                file_obj.saved_file.generate_hash()
-                return JsonResponse(
-                    {"data": "Uploaded successfully", "file_id": file_obj.id}
-                )
-            else:
-                return JsonResponse({"file_id": file_obj.id})
+
+    end = int(end)
+
+    chat_file_arguments = dict(
+        message_id=message_id,
+        filename=file_name,
+        eof=end,
+        sha256_hash_from_client=hash,
+    )
+
+    logger.info(f"Uploading file chunk {nextSlice} for {file_name}.")
+
+    if file_id == "null":
+        # First chunk. Check for existing file with the same hash.
+        existing_file = SavedFile.objects.filter(sha256_hash=hash).first()
+        if existing_file:
+            logger.info(f"Using existing SavedFile with ID {existing_file.id}")
+            chat_file_arguments["saved_file"] = existing_file
         else:
-            file_obj = ChatFile.objects.get(id=file_id)
-            if not file_obj or file_obj.saved_file.eof:
-                return JsonResponse({"data": "Invalid request"})
-            # Append the chunk to the file with write mode ab+
-            with open(file_obj.saved_file.file.path, "ab+") as f:
-                f.seek(int(nextSlice))
-                f.write(file)
-            file_obj.saved_file.eof = int(end)
-            file_obj.save()
-            if int(end):
-                file_obj.saved_file.generate_hash()
-                return JsonResponse(
-                    {
-                        "data": "Uploaded successfully",
-                        "file_id": file_obj.id,
-                    }
-                )
-            else:
-                return JsonResponse({"file_id": file_obj.id})
+            logger.info("File_id is null - Uploading new file.", message_id=message_id)
+        # Create a ChatFile instance; its pk will serve as a unique folder name for the chunks.
+        file_obj = ChatFile.objects.create(**chat_file_arguments)
+    else:
+        # If this is not the first chunk, get the existing file object
+        file_obj = ChatFile.objects.filter(id=file_id).first()
+        if not file_obj:
+            logger.error(f"File ID {file_id} not found.")
+            return JsonResponse({"data": "Invalid file ID"})
+
+    if not existing_file:
+        file_obj.saved_file.content_type = content_type
+        file_obj.saved_file.save(update_fields=["content_type"])
+        # Create a temporary folder (if it doesn't already exist)
+        base_temp_path = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp")
+        temp_dir = os.path.join(base_temp_path, str(file_obj.id))
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # Save the chunk using its nextSlice as the filename identifier
+        chunk_filename = os.path.join(temp_dir, f"chunk_{nextSlice}.tmp")
+        with open(chunk_filename, "wb") as f:
+            f.write(chunk_data)
+        logger.info(f"Saved chunk at {chunk_filename}")
+
+    # If this was the final chunk, update the eof marker
+    if end == 1 or existing_file:
+        file_obj.saved_file.eof = 1
+        file_obj.save()
+        return JsonResponse({"data": "Uploaded successfully", "file_id": file_obj.id})
+
+    return JsonResponse({"file_id": file_obj.id})
 
 
 @permission_required("chat.access_file", objectgetter(ChatFile, "file_id"))
@@ -490,30 +544,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         "chat.access_preset", Preset.objects.get(id=preset_id)
     ):
         return HttpResponse(status=403)
-    if action == "reset":
-        # Check if chat.options already exists
-        if hasattr(chat, "options") and chat.options:
-            # Delete the existing ChatOptions object
-            chat.options.delete()
 
-        chat.options = ChatOptions.objects.from_defaults(chat=chat)
-        chat.loaded_preset = None
-        chat.save()
-        logger.info("Resetting chat options to default.", chat_id=chat_id)
-
-        return render(
-            request,
-            "chat/components/chat_options_accordion.html",
-            {
-                "options_form": ChatOptionsForm(
-                    instance=chat.options, user=request.user
-                ),
-                "preset_loaded": "true",
-                "prompt": chat.options.prompt,
-            },
-        )
-
-    elif action == "load_preset":
+    if action == "load_preset":
         logger.info(
             "Loading chat options from a preset.",
             chat_id=chat_id,
@@ -654,7 +686,10 @@ def chat_list_item(request, chat_id, current_chat=None):
     return render(
         request,
         "chat/components/chat_list_item.html",
-        {"chat": chat},
+        {
+            "chat": chat,
+            "section_index": label_section_index(chat.last_modification_date),
+        },
     )
 
 
@@ -667,24 +702,37 @@ def rename_chat(request, chat_id, current_chat=None):
         chat_rename_form = ChatRenameForm(request.POST)
         if chat_rename_form.is_valid():
             chat.title = chat_rename_form.cleaned_data["title"]
+            # we keep the old last change date since the button will still be displayed in the old section until the next reload
+            old_last_modification_date = chat.last_modification_date
+            chat.last_modification_date = timezone.now()
             chat.save()
-            return render(
-                request,
-                "chat/components/chat_list_item.html",
-                {"chat": chat},
-            )
+
+            context = {
+                "chat": chat,
+                "security_labels": SecurityLabel.objects.all(),
+                "section_index": label_section_index(old_last_modification_date),
+            }
+            return render(request, "chat/components/chat_list_item.html", context)
         else:
             return render(
                 request,
                 "chat/components/chat_list_item_title_edit.html",
-                {"form": chat_rename_form, "chat": chat},
+                {
+                    "form": chat_rename_form,
+                    "chat": chat,
+                    "section_index": label_section_index(chat.last_modification_date),
+                },
             )
 
     chat_rename_form = ChatRenameForm(data={"title": chat.title})
     return render(
         request,
         "chat/components/chat_list_item_title_edit.html",
-        {"form": chat_rename_form, "chat": chat},
+        {
+            "form": chat_rename_form,
+            "chat": chat,
+            "section_index": label_section_index(chat.last_modification_date),
+        },
     )
 
 
@@ -707,24 +755,50 @@ def set_security_label(request, chat_id, security_label_id):
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def message_sources(request, message_id):
-    sources = []
+def message_sources(request, message_id, highlight=False):
+    # When called via the URL for highlights, ?highlight=true will make this True.
+    highlight = request.GET.get("highlight", "false").lower() == "true" or highlight
+    already_highlighted = Message.objects.get(id=message_id).claims_list != []
 
+    def replace_page_tags(match):
+        page_number = match.group(1)
+        return f"**_Page {page_number}_**\n"
+
+    sources = []
     for source in AnswerSource.objects.prefetch_related(
-        "document", "document__data_source", "document__data_source__library"
+        "document", "document__data_source", "document__data_source__library", "message"
     ).filter(message_id=message_id):
         source_text = str(source.node_text)
 
-        def replace_page_tags(match):
-            page_number = match.group(1)
-            return f"<span class='fw-semibold'>Page {page_number}</span>"
+        already_processed = source.processed_text != ""
+        needs_processing = (
+            highlight and not already_highlighted
+        ) or not already_processed
 
-        modified_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        source_text = re.sub(r"<page_(\d+)>", replace_page_tags, source_text)
+        source_text = re.sub(r"</page_\d+>", "", source_text)
+
+        if needs_processing:
+            if highlight:
+                claims_list = source.message.claims_list
+                if not claims_list:
+                    source.message.update_claims_list()
+                    claims_list = source.message.claims_list
+                source_text = highlight_claims(claims_list, source_text)
+
+            if source.document:
+                source_text = fix_source_links(source_text, source.document.url)
+
+            source.processed_text = source_text
+            source.save(update_fields=["processed_text"])
+            source_text = wrap_llm_response(source_text)
+        else:
+            source_text = wrap_llm_response(source_text)
 
         source_dict = {
             "citation": source.citation,
             "document": source.document,
-            "node_text": modified_text,
+            "node_text": source_text,
             "group_number": source.group_number,
         }
 
@@ -733,12 +807,20 @@ def message_sources(request, message_id):
     return render(
         request,
         "chat/modals/sources_modal_inner.html",
-        {"message_id": message_id, "sources": sources},
+        {
+            "message_id": message_id,
+            "sources": sources,
+            "highlighted": highlight or already_highlighted,
+        },
     )
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def get_presets(request, chat_id):
+    # If user has no default preset, set it to the global default (based on language)
+    if not request.user.default_preset:
+        request.user.default_preset = Preset.objects.get_global_default()
+        request.user.save()
     return render(
         request,
         "chat/modals/presets/card_list.html",
@@ -747,30 +829,10 @@ def get_presets(request, chat_id):
                 request.user, get_language()
             ),
             "chat_id": chat_id,
+            "chat": Chat.objects.get(id=chat_id),
             "user": request.user,
         },
     )
-
-
-@permission_required("chat.access_preset", objectgetter(Preset, "preset_id"))
-def set_preset_favourite(request, preset_id):
-    preset = Preset.objects.get(id=preset_id)
-    try:
-        is_favourite = preset.toggle_favourite(request.user)
-        if is_favourite:
-            messages.success(request, _("Preset added to favourites."))
-        else:
-            messages.success(request, _("Preset removed from favourites."))
-        return render(
-            request,
-            "chat/modals/presets/favourite.html",
-            context={"is_favourite": is_favourite, "preset": preset},
-        )
-    except ValueError:
-        messages.error(
-            request, _("An error occurred while setting the preset as favourite.")
-        )
-        return HttpResponse(status=500)
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
@@ -779,16 +841,37 @@ def save_preset(request, chat_id):
     chat = Chat.objects.get(id=chat_id)
     # check if chat.loaded_preset is set
     if chat.loaded_preset and request.user.has_perm(
-        "chat.quick_save_preset", chat.loaded_preset
+        "chat.edit_preset", chat.loaded_preset
     ):
         preset = Preset.objects.get(id=chat.loaded_preset.id)
+        context = {
+            "chat_id": chat_id,
+            "preset": preset,
+            "is_user_default": request.user.default_preset == preset,
+            "is_public": preset.sharing_option == "everyone",
+            "is_shared": preset.sharing_option == "others",
+            "is_global_default": preset.global_default,
+        }
+        if context["is_user_default"]:
+            context["confirm_message"] = _(
+                "This preset is set as your default for new chats. Are you sure you want to overwrite it?"
+            )
+        if context["is_shared"]:
+            context["confirm_message"] = _(
+                "This preset is shared with other users. Are you sure you want to overwrite it?"
+            )
+        if context["is_public"]:
+            context["confirm_message"] = _(
+                "WARNING: This preset is shared with all Otto users. Are you sure you want to overwrite it?"
+            )
+        if context["is_global_default"]:
+            context["confirm_message"] = _(
+                "DANGER: This preset is set as the default for all Otto users. Are you sure you want to overwrite it?"
+            )
         return render(
             request,
             "chat/modals/presets/save_preset_user_choice.html",
-            {
-                "chat_id": chat_id,
-                "preset": preset,
-            },
+            context,
         )
     else:
         form = PresetForm(user=request.user)
@@ -832,41 +915,32 @@ def edit_preset(request, chat_id, preset_id):
 @permission_required("chat.access_preset", objectgetter(Preset, "preset_id"))
 def set_preset_default(request, chat_id: str, preset_id: int):
     try:
-        new_preset = Preset.objects.get(id=preset_id)
-        old_default = Preset.objects.filter(default_for=request.user).first()
+        selected_preset = Preset.objects.get(id=preset_id)
+        old_default_preset = Preset.objects.filter(default_for=request.user).first()
+        request.user.default_preset = selected_preset
+        request.user.save()
+        messages.success(request, _("Default preset updated."), extra_tags="unique")
 
-        default = new_preset.set_as_user_default(request.user)
-        is_default = True if default is not None else False
-
-        new_html = render_to_string(
-            "chat/modals/presets/default_icon.html",
-            {
-                "preset": new_preset,
-                "chat_id": chat_id,
-                "is_default": is_default,
-            },
-            request=request,
+        # Add the "default" styling to the selected preset
+        selected_preset.default = True
+        context = {
+            "preset": selected_preset,
+            "chat_id": chat_id,
+            "swap": True,
+        }
+        response_str = render_to_string(
+            "chat/modals/presets/default_icon.html", context, request
         )
 
-        response = (
-            f'<div id="default-button-{preset_id}" hx-swap-oob="true">{new_html}</div>'
-        )
-
-        if old_default and old_default.id != preset_id:
-            old_html = render_to_string(
-                "chat/modals/presets/default_icon.html",
-                {
-                    "preset": old_default,
-                    "chat_id": chat_id,
-                    "is_default": False,
-                },
-                request=request,
+        # Remove the "default" styling from the old default preset
+        if old_default_preset:
+            old_default_preset.default = False
+            context.update({"preset": old_default_preset})
+            response_str += render_to_string(
+                "chat/modals/presets/default_icon.html", context, request
             )
-            response += f'<div id="default-button-{old_default.id}" hx-swap-oob="true">{old_html}</div>'
 
-        messages.success(request, _("Default preset was set successfully."))
-
-        return HttpResponse(response)
+        return HttpResponse(response_str)
 
     except ValueError:
         logger.error("Error setting default preset")
