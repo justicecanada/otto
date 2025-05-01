@@ -3,7 +3,6 @@ import os
 from io import BytesIO
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.utils.translation import gettext as _
 
 from celery import current_task, shared_task
 
@@ -52,6 +51,8 @@ def process_ocr_document(file_content, file_name, merged, idx):
         import traceback
         import uuid
 
+        from django.utils.translation import gettext as _
+
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
         logger.error(
@@ -61,7 +62,7 @@ def process_ocr_document(file_content, file_name, merged, idx):
         return {
             "error": True,
             "full_error": full_error,
-            "error_message": _("Error ID: %(error_id)s: Corruption/Type mismatch")
-            % {"error_id": error_id},
             "error_id": error_id,
+            "message": _("Corruption/Type mismatch.\n ")
+            + "\nError ID: %(error_id)s" % {"error_id": error_id},
         }
