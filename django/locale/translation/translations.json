@@ -2043,6 +2043,10 @@
         "fr": "Questions fréquemment posées",
         "fr_auto": "Questions fréquemment posées"
     },
+    "User guide": {
+        "fr": "Guide d'utilisateur",
+        "fr_auto": "Guide de l'utilisateur"
+    },
     "Blocked URLs": {
         "fr": "URL bloquées",
         "fr_auto": "URL bloquées"

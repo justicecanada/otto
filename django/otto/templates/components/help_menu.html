@@ -20,6 +20,26 @@
       </li>
     {% endif %}
     <li>
+      <a id="user-guide"
+         class="a dropdown-item"
+         href="https://013gc.sharepoint.com/:w:/r/sites/BACentre598/_layouts/15/Doc.aspx?sourcedoc=%7B7BD09186-FD49-4481-A6C0-53B79050D885%7D&file=Otto%20Guide.docx&action=default&mobileredirect=true"
+         target="_blank">
+        <i class="bi bi-journal-text me-2"></i>
+        {% trans 'User guide' %}
+      </a>
+    </li>
+    <li>
+      <a id="frequently-asked-questions"
+         class="a dropdown-item"
+         href="{% url 'frequently_asked_questions' %}">
+        <i class="bi bi-question-circle me-2"></i>
+        {% trans 'Frequently Asked Questions' %}
+      </a>
+    </li>
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+    <li>
       <a id="contact-us"
          class="a dropdown-item"
          href="mailto:otto@justice.gc.ca">
@@ -27,14 +47,5 @@
         {% trans 'Email the Otto team' %}
       </a>
     </li>
-    <li>
-      <a id="contact-us"
-         class="a dropdown-item"
-         href="{% url 'frequently_asked_questions' %}">
-        <i class="bi bi-question me-2"></i>
-        {% trans 'Frequently Asked Questions' %}
-      </a>
-    </li>
-
   </ul>
 </li>
