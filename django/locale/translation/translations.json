@@ -3874,5 +3874,9 @@
     "Sorry, we ran into an error. Error ID: %%(error_id)s.": {
         "fr": "",
         "fr_auto": "Désolé, nous avons rencontré une erreur. ID d’erreur :%%(error_id)s."
+    },
+    "Corruption/Type mismatch.\n ": {
+        "fr": "",
+        "fr_auto": "Corruption et incompatibilité de type.\n "
     }
 }
