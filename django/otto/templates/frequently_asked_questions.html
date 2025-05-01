@@ -20,11 +20,11 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question1"
                   aria-expanded="false"
-                  aria-controls="question1">What is Otto?</button>
+                  aria-controls="question1">{% trans "What is Otto?" %}</button>
         </h2>
         <div id="question1" class="accordion-collapse collapse">
           <div class="accordion-body">
-            Otto is a platform for data & AI tools developed by and for the Department of Justice Canada, designed to enhance the workflow and efficiency of corporate and legal professionals through automation and generative AI.
+            {% blocktrans %}Otto is a platform for data & AI tools developed by and for the Department of Justice Canada, designed to enhance the workflow and efficiency of corporate and legal professionals through automation and generative AI.{% endblocktrans %}
           </div>
         </div>
       </div>
@@ -35,11 +35,11 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question2"
                   aria-expanded="false"
-                  aria-controls="question2">What is the Otto Pro-B Pilot?</button>
+                  aria-controls="question2">{% trans "What is the Otto Pro-B Pilot?" %}</button>
         </h2>
         <div id="question2" class="accordion-collapse collapse">
           <div class="accordion-body">
-            The BAC is launching a limited user pilot in a Protected B environment. The pilot includes ~625 users split into 65 distinct pilot groups with specific use cases covering all types of Justice work. The pilot will run for approximately 8 months. Following its conclusion, results and feedback will be used to refine the tools, which will then be deployed to all JUS employees.
+            {% blocktrans %}Justice's Business Analytics Centre (BAC) is launching a limited user pilot in a Protected B environment. The pilot includes ~625 users split into 65 distinct pilot groups with specific use cases covering all types of Justice work. The pilot will run for approximately 8 months. Following its conclusion, results and feedback will be used to refine the tools, which will then be deployed to all JUS employees.{% endblocktrans %}
           </div>
         </div>
       </div>
@@ -50,32 +50,32 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question3"
                   aria-expanded="false"
-                  aria-controls="question3">What can Otto do for me?</button>
+                  aria-controls="question3">{% trans "What can Otto do for me?" %}</button>
         </h2>
         <div id="question3" class="accordion-collapse collapse">
           <div class="accordion-body">
             <p>
-              Otto is designed to enhance the workflow and efficiency of corporate and legal professionals by providing various capabilities, including:
+              {% blocktrans %}Otto is designed to enhance the workflow and efficiency of corporate and legal professionals by providing various capabilities, including:{% endblocktrans %}
             </p>
 
             <ol class="list-group list-group-numbered">
               <li class="list-group-item">
-                <strong>Chat</strong> - Engage in general-purpose conversations for assistance with writing and other straightforward tasks.
+                <strong>{% trans "Chat" %}</strong> - {% trans "Engage in general-purpose conversations for assistance with writing and other straightforward tasks." %}
               </li>
               <li class="list-group-item">
-                <strong>Q&#38;A</strong> - Retrieve answers from uploaded documents. Users can share or personalize libraries of documents to query.
+                <strong>{% trans "Q&A" %}</strong> - {% trans "Retrieve answers from uploaded documents. Users can share or personalize libraries of documents to query." %}
               </li>
               <li class="list-group-item">
-                <strong>Summarization</strong> - Summarize content from text, webpages, or uploaded documents at user-specified lengths.
+                <strong>{% trans "Summarization" %}</strong> - {% trans "Summarize content from text, webpages, or uploaded documents at user-specified lengths." %}
               </li>
               <li class="list-group-item">
-                <strong>Translation</strong> - Translate content into French or English.
+                <strong>{% trans "Translation" %}</strong> - {% trans "Translate content into French or English." %}
               </li>
               <li class="list-group-item">
-                <strong>Text Extraction</strong> - Extract text from images or scanned PDFs &#8210; including handwritten text &#8210; using advanced Optical Character Recognition &#40;OCR&#41;.
+                <strong>{% trans "Text Extraction" %}</strong> - {% trans "Extract text from images or scanned PDFs – including handwritten text – using advanced Optical Character Recognition (OCR)." %}
               </li>
               <li class="list-group-item">
-                <strong>Legislation Search</strong> - Query Canadian acts and regulations using natural language to find relevant sections and get AI answers to questions.
+                <strong>{% trans "Legislation Search" %}</strong> - {% trans "Query Canadian acts and regulations using natural language to find relevant sections and get AI answers to questions." %}
               </li>
             </ol>
           </div>
@@ -88,14 +88,14 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question4"
                   aria-expanded="false"
-                  aria-controls="question4">When should I use Otto?</button>
+                  aria-controls="question4">{% trans "When should I use Otto?" %}</button>
         </h2>
         <div id="question4" class="accordion-collapse collapse">
           <div class="accordion-body">
-            You should use Otto when you need AI assistance with tasks such as AI text generation, question answering, document summarization, translation to English and French, extracting text from images or scanned PDFs, or searching Canadian laws and regulations.  Otto is intended for streamlining workflows, improving efficiency, and accessing accurate information pertaining to the Canadian Department of Justice.
+            {% blocktrans %}You should use Otto when you need AI assistance with tasks such as AI text generation, question answering, document summarization, translation to English and French, extracting text from images or scanned PDFs, or searching Canadian laws and regulations.  Otto is intended for streamlining workflows, improving efficiency, and accessing accurate information pertaining to the Canadian Department of Justice.{% endblocktrans %}
             <br />
             <br />
-            Otto is meant to save you time and effort by providing quick, reliable answers to your questions. Whether you're looking for general information or need help navigating internal policies, this tool can help streamline your work and point you in the right direction.
+            {% blocktrans %}Otto is meant to save you time and effort by providing quick, reliable answers to your questions. Whether you're looking for general information or need help navigating internal policies, this tool can help streamline your work and point you in the right direction.{% endblocktrans %}
           </div>
         </div>
       </div>
@@ -106,25 +106,27 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question5"
                   aria-expanded="false"
-                  aria-controls="question5">What are Otto&#39;s limitations?</button>
+                  aria-controls="question5">{% trans "What are Otto's limitations?" %}</button>
         </h2>
         <div id="question5" class="accordion-collapse collapse">
           <div class="accordion-body">
             <ul>
-              <li>Otto has no internet access so its general knowledge is not necessarily up to date.</li>
+              <li>{% trans "Otto has no internet access so its general knowledge is not necessarily up to date." %}</li>
               <li>
-                Otto may not be used to automate decision-making that affects the rights, privileges or interests of individuals, or to automate steps needed to make decisions.
+                {% trans "Otto may not be used to automate decision-making that affects the rights, privileges or interests of individuals, or to automate steps needed to make decisions." %}
               </li>
-              <li>Otto cannot process documents or data classified above the Protected B level.</li>
-              <li>The AI may produce inaccurate or incomplete responses if user prompts are unclear or lack sufficient detail.</li>
+              <li>{% trans "Otto cannot process documents or data classified above the Protected B level." %}</li>
               <li>
-                Users are limited to a monthly budget of $32 for AI use and exceeding this requires a request to administrators.
-              </li>
-              <li>
-                Due to the nature of the AI and the data used for training, Otto may occasionally generate hallucinations or irrelevant information. Human verification of output is required if the output is to be relied upon.
+                {% trans "The AI may produce inaccurate or incomplete responses if user prompts are unclear or lack sufficient detail." %}
               </li>
               <li>
-                Otto is not a repository for information of business value.  It is for transitory information only.  Document libraries and chats are deleted after 30 days of inactivity.
+                {% trans "Users are limited to a monthly budget of $32 for AI use and exceeding this requires a request to administrators." %}
+              </li>
+              <li>
+                {% trans "Due to the nature of the AI and the data used for training, Otto may occasionally generate hallucinations or irrelevant information. Human verification of output is required if the output is to be relied upon." %}
+              </li>
+              <li>
+                {% trans "Otto is not a repository for information of business value.  It is for transitory information only.  Document libraries and chats are deleted after 30 days of inactivity." %}
               </li>
             </ul>
           </div>
@@ -137,11 +139,11 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question6"
                   aria-expanded="false"
-                  aria-controls="question6">Can Otto replace human experts?</button>
+                  aria-controls="question6">{% trans "Can Otto replace human experts?" %}</button>
         </h2>
         <div id="question6" class="accordion-collapse collapse">
           <div class="accordion-body">
-            No, Otto is not a replacement for human experts. Otto is a tool designed to assist and complement your work. For complex or sensitive matters, you should always consult a qualified professional or departmental subject matter experts.
+            {% blocktrans %}No, Otto is not a replacement for human experts. Otto is a tool designed to assist and complement your work. For complex or sensitive matters, you should always consult a qualified professional or departmental subject matter experts.{% endblocktrans %}
           </div>
         </div>
       </div>
@@ -152,11 +154,11 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question7"
                   aria-expanded="false"
-                  aria-controls="question7">Is Otto secure?</button>
+                  aria-controls="question7">{% trans "Is Otto secure?" %}</button>
         </h2>
         <div id="question7" class="accordion-collapse collapse">
           <div class="accordion-body">
-            Otto is designed to operate within the secure environment of the Government of Canada for information up to and including Protected B. Data is encrypted at rest and stored only in Canadian Microsoft Azure data centers. Otto is only accessible to Justice employees through the Justice network. Otto does not store or share sensitive information outside of this environment.
+            {% blocktrans %}Otto is designed to operate within the secure environment of the Government of Canada for information up to and including Protected B. Data is encrypted at rest and stored only in Canadian Microsoft Azure data centers. Otto is only accessible to Justice employees through the Justice network. Otto does not store or share sensitive information outside of this environment.{% endblocktrans %}
           </div>
         </div>
       </div>
@@ -167,11 +169,11 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question8"
                   aria-expanded="false"
-                  aria-controls="question8">How do I access Otto?</button>
+                  aria-controls="question8">{% trans "How do I access Otto?" %}</button>
         </h2>
         <div id="question8" class="accordion-collapse collapse">
           <div class="accordion-body">
-            Otto can be accessed via the URL  https://otto-pilot.cloud.justice.gc.ca/. You must be connected to the Justice network.
+            {% blocktrans %}Otto can be accessed via the URL <a href="https://otto-pilot.cloud.justice.gc.ca/">https://otto-pilot.cloud.justice.gc.ca/</a>. You must be connected to the Justice network.{% endblocktrans %}
           </div>
         </div>
       </div>
@@ -182,11 +184,11 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question9"
                   aria-expanded="false"
-                  aria-controls="question9">Who can I contact if I have questions about Otto?</button>
+                  aria-controls="question9">{% trans "Who can I contact if I have questions about Otto?" %}</button>
         </h2>
         <div id="question9" class="accordion-collapse collapse">
           <div class="accordion-body">
-            Feedback and bug reporting is collected in-app through a feedback form. Please direct all other questions to the mailbox at otto@justice.gc.ca .
+            {% blocktrans %}Feedback and bug reporting is collected in-app through a feedback form. Please direct all other questions to the mailbox at otto@justice.gc.ca .{% endblocktrans %}
           </div>
         </div>
       </div>
@@ -197,11 +199,13 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question10"
                   aria-expanded="false"
-                  aria-controls="question10">How do I  ensure the accuracy of information from Otto?</button>
+                  aria-controls="question10">
+            {% trans "How do I  ensure the accuracy of information from Otto?" %}
+          </button>
         </h2>
         <div id="question10" class="accordion-collapse collapse">
           <div class="accordion-body">
-            Otto relies on pre-existing knowledge and trusted internal documents to provide information. Otto retrieves answers from user-uploaded documents and displays page-numbered references and relevant links for verification. Additionally, users can customize prompts and settings to refine how information is extracted and presented, ensuring clarity and reliability. For certain questions, Otto will attempt to let users know if there are limitations to its responses and may recommend consulting the appropriate resources or experts.  If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs.
+            {% blocktrans %}Otto relies on pre-existing knowledge and trusted internal documents to provide information. Otto retrieves answers from user-uploaded documents and displays page-numbered references and relevant links for verification. Additionally, users can customize prompts and settings to refine how information is extracted and presented, ensuring clarity and reliability. For certain questions, Otto will attempt to let users know if there are limitations to its responses and may recommend consulting the appropriate resources or experts.  If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs.{% endblocktrans %}
           </div>
         </div>
       </div>
@@ -213,12 +217,12 @@
                   data-bs-target="#question11"
                   aria-expanded="false"
                   aria-controls="question11">
-            Can Otto help me with bilingual &#40;English/French&#41; questions?
+            {% trans "Can Otto help me with bilingual (English/French) questions?" %}
           </button>
         </h2>
         <div id="question11" class="accordion-collapse collapse">
           <div class="accordion-body">
-            Yes, Otto can assist with bilingual &#40;English/French&#41; questions. Users can ask questions directly in both Official Language&#40;s&#41;. It also offers a translation tool for translating content between English and French,and from other languages into English and French. Additionally, users can set the desired language for summaries and other outputs.
+            {% blocktrans %}Yes, Otto can assist with bilingual (English/French) questions. Users can ask questions directly in both Official Language(s). It also offers a translation tool for translating content between English and French,and from other languages into English and French. Additionally, users can set the desired language for summaries and other outputs.{% endblocktrans %}
           </div>
         </div>
       </div>
@@ -229,19 +233,19 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question12"
                   aria-expanded="false"
-                  aria-controls="question12">Can I insert URLs in Otto?</button>
+                  aria-controls="question12">{% trans "Can I insert URLs in Otto?" %}</button>
         </h2>
         <div id="question12" class="accordion-collapse collapse">
           <div class="accordion-body">
-            <p>The AI assistant in Otto can access websites from the following domains.</p>
+            <p>{% trans "The AI assistant in Otto can access websites from the following domains." %}</p>
             <ul>
-              <li>canada.ca</li>
-              <li>gc.ca</li>
-              <li>canlii.org</li>
-              <li>wikipedia.org</li>
+              <li>{% trans "canada.ca" %}</li>
+              <li>{% trans "gc.ca" %}</li>
+              <li>{% trans "canlii.org" %}</li>
+              <li>{% trans "wikipedia.org" %}</li>
             </ul>
             <p>
-              URLs that are not from these domains will not work. As a workaround, you can save relevant content to a file and upload it inside the AI assistant for querying.
+              {% blocktrans %}URLs that are not from these domains will not work. As a workaround, you can save relevant content to a file and upload it inside the AI assistant for querying.{% endblocktrans %}
             </p>
           </div>
         </div>
@@ -253,11 +257,13 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question13"
                   aria-expanded="false"
-                  aria-controls="question13">Can I upload documents that come from a third party?</button>
+                  aria-controls="question13">
+            {% trans "Can I upload documents that come from a third party?" %}
+          </button>
         </h2>
         <div id="question13" class="accordion-collapse collapse">
           <div class="accordion-body">
-            Users must respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto. For example, the license to use a document may restrict saving an electronic copy.
+            {% blocktrans %}Users must respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto. For example, the license to use a document may restrict saving an electronic copy.{% endblocktrans %}
           </div>
         </div>
       </div>
