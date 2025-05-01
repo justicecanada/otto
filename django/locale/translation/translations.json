@@ -3618,5 +3618,13 @@
     "An error occurred while summarizing the text. ": {
         "fr": "",
         "fr_auto": "Une erreur s’est produite lors du résumé du texte. "
+    },
+    "Error ID: %(error_id)s: Corruption/Type mismatch": {
+        "fr": "",
+        "fr_auto": "ID d’erreur :%(error_id)s : Corruption/Incohérence de type"
+    },
+    "Error ID: %(error_id)s - Failed to create PDF overlay after OCR.": {
+        "fr": "",
+        "fr_auto": "ID d’erreur :%(error_id)s - Impossible de créer une superposition PDF après l’OCR."
     }
 }
