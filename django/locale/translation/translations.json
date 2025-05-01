@@ -3562,5 +3562,9 @@
     "Changes will overwrite properties of all selected users": {
         "fr": "",
         "fr_auto": "Les modifications remplaceront les propriétés de tous les utilisateurs sélectionnés"
+    },
+    "This request is estimated to cost ${formatted_cost}, which exceeds your remaining monthly budget. Please contact an Otto administrator or wait until the 1st for the limit to reset.": {
+        "fr": "",
+        "fr_auto": "Le coût de cette demande est estimé à {formatted_cost} $, ce qui dépasse votre budget mensuel restant. Veuillez contacter un administrateur Otto ou attendre le 1er pour que la limite soit réinitialisée."
     }
 }
