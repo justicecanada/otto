@@ -2347,6 +2347,18 @@
         "fr": "",
         "fr_auto": "Modifier/ajouter des utilisateurs"
     },
+    "Selected users...": {
+        "fr": "",
+        "fr_auto": "Utilisateurs sélectionnés..."
+    },
+    "Copy all email addresses": {
+        "fr": "",
+        "fr_auto": "Copier toutes les adresses électroniques"
+    },
+    "Bulk edit roles": {
+        "fr": "",
+        "fr_auto": "Modifier les rôles en bloc"
+    },
     "UPN": {
         "fr": "",
         "fr_auto": "L’UPN"
@@ -3546,5 +3558,9 @@
     "We estimated that this request might be expensive.": {
         "fr": "",
         "fr_auto": "Nous avons estimé que cette demande pourrait être coûteuse."
+    },
+    "Changes will overwrite properties of all selected users": {
+        "fr": "",
+        "fr_auto": "Les modifications remplaceront les propriétés de tous les utilisateurs sélectionnés"
     }
 }

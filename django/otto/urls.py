@@ -30,6 +30,11 @@ urlpatterns = [
         views.manage_users_form,
         name="manage_users_form",
     ),
+    path(
+        "user_management/form/<str:user_ids>/",
+        views.manage_users_form,
+        name="manage_users_form",
+    ),
     path("user_management/upload/", views.manage_users_upload, name="upload_users"),
     path(
         "user_management/download/", views.manage_users_download, name="download_users"

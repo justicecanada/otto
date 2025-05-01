@@ -1,6 +1,7 @@
 import asyncio
 import html
 import json
+import os
 import re
 import sys
 from itertools import groupby
@@ -1078,3 +1079,84 @@ def estimate_cost_of_request(chat, response_message, response_estimation_count=1
         ) / cost_type.unit_quantity
 
     return cad_cost(cost)
+
+
+def reassemble_chunks(file_obj):
+    """
+    Reassembles saved temporary chunk files into the final saved file.
+    Uses a Redis-backed lock for process safety.
+    """
+    lock_key = f"assemble_{file_obj.id}"
+    lock_acquired = cache.add(lock_key, "locked", timeout=60)
+    if not lock_acquired:
+        logger.info(
+            "Assembly already in progress for file %s. Skipping duplicate assembly.",
+            file_obj.id,
+        )
+        return
+
+    try:
+        temp_dir = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp", str(file_obj.id))
+        if not os.path.exists(temp_dir):
+            logger.info("Temporary directory for file %s does not exist.", file_obj.id)
+            return
+
+        chunk_files = os.listdir(temp_dir)
+        if not chunk_files:
+            logger.info(
+                "No chunk files found in temp directory for file %s.", file_obj.id
+            )
+            return
+
+        # Sort numerically
+        chunk_files.sort(
+            key=lambda name: int(name.replace("chunk_", "").replace(".tmp", ""))
+        )
+        logger.debug("Sorted chunks for file %s: %s", file_obj.id, chunk_files)
+
+        # Log details about each chunk
+        for chunk_filename in chunk_files:
+            chunk_path = os.path.join(temp_dir, chunk_filename)
+            size = os.path.getsize(chunk_path)
+            logger.debug("Chunk %s: size %d bytes", chunk_filename, size)
+
+        # Assemble the file: start with the first chunk
+        first_chunk_path = os.path.join(temp_dir, chunk_files[0])
+        with open(first_chunk_path, "rb") as chunk_file:
+            file_obj.saved_file.file.save(file_obj.filename, chunk_file)
+        logger.debug("Saved first chunk for file_obj %s", file_obj.id)
+
+        # Append subsequent chunks
+        if len(chunk_files) > 1:
+            for chunk_filename in chunk_files[1:]:
+                chunk_path = os.path.join(temp_dir, chunk_filename)
+                with open(chunk_path, "rb") as chunk_file:
+                    with open(file_obj.saved_file.file.path, "ab+") as f:
+                        data = chunk_file.read()
+                        f.write(data)
+                        f.flush()  # Ensure data is flushed to disk
+                logger.debug(
+                    "Appended chunk %s for file_obj %s", chunk_filename, file_obj.id
+                )
+
+        # Generate and check hash
+        file_obj.saved_file.generate_hash()
+        if file_obj.saved_file.sha256_hash != file_obj.sha256_hash_from_client:
+            logger.error(
+                "Hash mismatch for file %s: %s != %s",
+                file_obj.id,
+                file_obj.saved_file.sha256_hash,
+                file_obj.sha256_hash_from_client,
+            )
+        else:
+            logger.info("File %s reassembled successfully.", file_obj.id)
+
+        # Cleanup temporary chunks
+        for chunk_filename in chunk_files:
+            os.remove(os.path.join(temp_dir, chunk_filename))
+        os.rmdir(temp_dir)
+
+    except Exception as e:
+        logger.error("Error during chunk assembly for file %s: %s", file_obj.id, str(e))
+    finally:
+        cache.delete(lock_key)
