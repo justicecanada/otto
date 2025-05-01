@@ -57,7 +57,7 @@ if ($skipNetworkCheck -ne "y") {
 }
 
 # Build Docker image
-docker build -t ${IMAGE_NAME}:${SPECIFIC_TAG} -f ./django/Dockerfile ./django
+docker build -t ${IMAGE_NAME}:${SPECIFIC_TAG} -f ./django/Dockerfile.sandbox ./django
 
 # Tag Docker image for ACR
 docker tag ${IMAGE_NAME}:${SPECIFIC_TAG} ${IMAGE_NAME}:latest
