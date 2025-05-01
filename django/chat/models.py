@@ -575,6 +575,8 @@ class ChatFile(models.Model):
     eof = models.BooleanField(default=False)
     # The text extracted from the file
     text = models.TextField(blank=True)
+    # The hash of the file provided by the client (for verification after full upload)
+    sha256_hash_from_client = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return f"File {self.id}: {self.filename}"
