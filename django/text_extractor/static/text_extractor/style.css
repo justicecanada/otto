@@ -1,5 +1,10 @@
 @import url('/static/css/variables.css');
 
+body {
+  min-height: 100vh;
+  background: var(--app-primary-bg);
+}
+
 [data-bs-theme="dark"] .text-secondary {
   color: var(--text-secondary) !important;
 }
