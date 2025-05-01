@@ -2432,7 +2432,7 @@
         "fr_auto": "Participation aux activités pilotes"
     },
     "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested.": {
-        "fr": "",
+        "fr": "Vous faites partie d’un groupe sélectionné « d'utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande.",
         "fr_auto": "Vous faites partie d’un groupe sélectionné d'«utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande."
     },
     "Security, privacy and information management": {
@@ -3447,6 +3447,14 @@
         "fr": "",
         "fr_auto": "GPT-4o (meilleure précision, coût 15x)"
     },
+    "Request cancelled.": {
+        "fr": "",
+        "fr_auto": "Demande annulée."
+    },
+    "Continue with ": {
+        "fr": "",
+        "fr_auto": "Continuer avec "
+    },
     "No description available": {
         "fr": "",
         "fr_auto": "Aucune description disponible"
@@ -3539,13 +3547,33 @@
         "fr": "",
         "fr_auto": "Partagé"
     },
+    "Continue at estimated cost ": {
+        "fr": "",
+        "fr_auto": "Continuer au coût estimatif "
+    },
     "AI can make mistakes. Verify the output if you intend to rely upon it.": {
         "fr": "",
         "fr_auto": "L’IA peut faire des erreurs. Vérifiez le résultat si vous avez l’intention de vous fier à lui."
     },
+    "We estimated that this request might be expensive.": {
+        "fr": "",
+        "fr_auto": "Nous avons estimé que cette demande pourrait être coûteuse."
+    },
     "Changes will overwrite properties of all selected users": {
         "fr": "",
         "fr_auto": "Les modifications remplaceront les propriétés de tous les utilisateurs sélectionnés"
+    },
+    "This request is estimated to cost ${formatted_cost}, which exceeds your remaining monthly budget. Please contact an Otto administrator or wait until the 1st for the limit to reset.": {
+        "fr": "",
+        "fr_auto": "Le coût de cette demande est estimé à {formatted_cost} $, ce qui dépasse votre budget mensuel restant. Veuillez contacter un administrateur Otto ou attendre le 1er pour que la limite soit réinitialisée."
+    },
+    "Error: {e}": {
+        "fr": "",
+        "fr_auto": "Erreur : {e}"
+    },
+    "This request could be expensive. Are you sure?": {
+        "fr": "",
+        "fr_auto": "Cette demande pourrait être coûteuse. Es-tu certain?"
     },
     "Use with unclassified, Protected A or": {
         "fr": "",
