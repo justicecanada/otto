@@ -729,3 +729,10 @@ function nextSourceHighlight(message_id) {
     nextHighlight.scrollIntoView({behavior: "smooth", block: "center"});
   }, needToExpand ? 300 : 0);
 }
+
+function clearRemainingCostWarningButtons() {
+  const warningButton = document.querySelector(".cost-warning-buttons");
+  if (warningButton) {
+    warningButton.remove();
+  }
+}

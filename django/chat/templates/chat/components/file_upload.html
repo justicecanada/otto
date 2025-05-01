@@ -76,5 +76,7 @@
   fileForm.addEventListener('change', function (e) {
     // Send the init_file_upload event
     fileForm.dispatchEvent(new Event('init_file_upload'));
+    // if there's a warning cost in the previous message we remove it
+    clearRemainingCostWarningButtons();
   });
 </script>

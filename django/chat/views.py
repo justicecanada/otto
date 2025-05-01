@@ -346,6 +346,29 @@ def delete_message(request, message_id):
     return HttpResponse()
 
 
+def cost_warning(request, message_id):
+    """
+    Continue a message after user approves
+    """
+    message = Message.objects.get(id=message_id, is_bot=True)
+    cost_approved = request.GET.get("cost_approved", "false") == "true"
+    if cost_approved:
+        message.awaiting_response = True
+    else:
+        message.text = _("Request cancelled.")
+        message.awaiting_response = False
+        message.json = json.dumps(message.text)
+        message.save()
+
+    context = {
+        "message": message,
+        "mode": message.mode,
+        "cost_approved": cost_approved,
+    }
+    html = render_to_string("chat/components/chat_message.html", context)
+    return HttpResponse(html)
+
+
 @require_GET
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 @budget_required

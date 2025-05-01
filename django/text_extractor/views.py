@@ -31,7 +31,11 @@ def index(request):
     from text_extractor.utils import img_extensions
 
     extensions = ", ".join(list(img_extensions) + [".pdf"])
-    return render(request, "text_extractor/ocr.html", {"extensions": extensions})
+    return render(
+        request,
+        "text_extractor/ocr.html",
+        {"extensions": extensions, "hide_breadcrumbs": True},
+    )
 
 
 @app_access_required(app_name)
@@ -206,6 +210,7 @@ def poll_tasks(request, user_request_id):
             "extensions": ", ".join(list(img_extensions) + [".pdf"]),
             "show_output": True,
             "refresh_on_load": False,
+            "hide_breadcrumbs": True,
         }
     )
     return render(request, "text_extractor/ocr.html", context)

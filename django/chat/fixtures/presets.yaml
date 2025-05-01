@@ -61,7 +61,7 @@ default_en:
       Remember, under no circumstances should you reference information not explicitly included in the provided context.
       Failure to adhere to the context-only rule will result in incorrect answers. Any deviation from the context will be considered a failure to comply with the guidelines.
     chat_model: "gpt-4o-mini"
-    qa_model: "gpt-4o-mini"
+    qa_model: "o3-mini"
     summarize_model: "gpt-4o-mini"
     summarize_style: "short"
     summarize_language: "en"
@@ -130,6 +130,7 @@ structured_summary_en:
   description_fr: "Résumé détaillé avec des titres et des puces, en anglais"
   options:
     mode: "summarize"
+    summarize_model: "o3-mini"
     summarize_style: "long"
     summarize_instructions: |
       Start the summary with an outline / executive summary. Then proceed to write the rest of the summary in the format of section headings and bullet points.
@@ -142,6 +143,7 @@ structured_summary_fr:
   description_fr: "Résumé détaillé avec des titres et des puces, en français"
   options:
     mode: "summarize"
+    summarize_model: "o3-mini"
     summarize_style: "long"
     summarize_instructions: |
       Commencez le résumé par un plan / résumé exécutif. Puis passez à écrire le résumé complet dans le format des titres de section et des puces.

@@ -37,6 +37,11 @@ urlpatterns = [
         name="stop_response",
     ),
     path(
+        "message/<int:message_id>/response/cost_warning/",
+        views.cost_warning,
+        name="cost_warning",
+    ),
+    path(
         "message/<int:message_id>/sources/",
         views.message_sources,
         name="message_sources",
