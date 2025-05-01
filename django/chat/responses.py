@@ -31,6 +31,7 @@ from chat.utils import (
     get_source_titles,
     group_sources_into_docs,
     htmx_stream,
+    is_text_to_summarize,
     num_tokens_from_string,
     sort_by_max_score,
     stream_to_replacer,
@@ -135,9 +136,6 @@ def chat_response(
     response_message,
     switch_mode=False,
 ):
-
-    def is_text_to_summarize(message):
-        return message.mode == "summarize" and not message.is_bot
 
     system_prompt = current_time_prompt() + chat.options.chat_system_prompt
     chat_history = [ChatMessage(role=MessageRole.SYSTEM, content=system_prompt)]

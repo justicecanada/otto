@@ -28,7 +28,7 @@ from structlog.contextvars import bind_contextvars
 from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
-from chat.prompts import QA_PRUNING_INSTRUCTIONS
+from chat.prompts import QA_PRUNING_INSTRUCTIONS, current_time_prompt
 from otto.models import CostType, SecurityLabel
 from otto.utils.common import cad_cost, display_cad_cost
 
@@ -981,6 +981,10 @@ def get_chat_history_sections(user_chats):
     return chat_history_sections
 
 
+def is_text_to_summarize(message):
+    return message.mode == "summarize" and not message.is_bot
+
+
 def estimate_cost_of_string(text, cost_type):
     if cost_type.startswith("translate-"):
         count = len(text)
@@ -1009,25 +1013,39 @@ def estimate_cost_of_request(chat, response_message, response_estimation_count=1
     # estimate the cost of the documents
     if mode == "qa":
         model = chat.options.qa_model
+
+        # gather the documents
+        if chat.options.qa_scope == "documents":
+            docs = chat.options.qa_documents.all()
+        else:
+            if chat.options.qa_scope == "all":
+                data_sources = chat.options.qa_library.sorted_data_sources
+            else:
+                data_sources = chat.options.qa_data_sources
+            docs = [
+                doc
+                for data_source in data_sources.all()
+                for doc in data_source.documents.all()
+            ]
+
+        # estimate number of chunks if in rag mode, else estimate the cost of the texts
         if chat.options.qa_mode == "rag":
-            count = 768 * chat.options.qa_topk
+            total_chunks_of_library = 0
+            for doc in docs:
+                if doc.num_chunks is not None:
+                    total_chunks_of_library += doc.num_chunks
+                else:
+                    continue
+            chunk_count = min(total_chunks_of_library, chat.options.qa_topk)
+            count = 768 * chunk_count
             cost_type = CostType.objects.get(short_name=model + "-in")
             cost += (count * cost_type.unit_cost) / cost_type.unit_quantity
         else:
-            if chat.options.qa_scope == "documents":
-                for doc in chat.options.qa_documents.all():
+            for doc in docs:
+                if doc.extracted_text is not None:
                     cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
-            else:
-                if chat.options.qa_scope == "all":
-                    data_sources = chat.options.qa_library.sorted_data_sources
-                else:
-                    data_sources = chat.options.qa_data_sources
-                for data_source in data_sources.all():
-                    for doc in data_source.documents.all():
-                        cost += estimate_cost_of_string(
-                            doc.extracted_text, model + "-in"
-                        )
-    elif mode == "summarize" or "translate":
+
+    elif mode == "summarize" or mode == "translate":
         model = chat.options.summarize_model
         for file in response_message.parent.sorted_files.all():
             if not file.text:
@@ -1039,6 +1057,18 @@ def estimate_cost_of_request(chat, response_message, response_estimation_count=1
                     )
                 except:
                     continue
+
+    elif mode == "chat":
+
+        system_prompt = current_time_prompt() + chat.options.chat_system_prompt
+        history_text = system_prompt
+        for message in chat.messages.all():
+            if not is_text_to_summarize(message):
+                history_text += message.text
+            else:
+                history_text += "<text to summarize...>"
+
+        cost += estimate_cost_of_string(history_text, model + "-in")
 
     # estimate the cost of the response message
     if mode != "translate":
