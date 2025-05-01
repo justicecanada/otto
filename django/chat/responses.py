@@ -106,7 +106,7 @@ def cost_warning_response(chat, response_message, estimate_cost, over_budget=Fal
             f"This request is estimated to cost ${formatted_cost}, which exceeds your remaining monthly budget. Please contact an Otto administrator or wait until the 1st for the limit to reset."
         )
     else:
-        cost_warning = _("We estimated that this request might be expensive.")
+        cost_warning = _("This request could be expensive. Are you sure?")
 
     cost_warning_buttons = render_to_string(
         "chat/components/cost_warning_buttons.html",

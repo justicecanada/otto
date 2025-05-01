@@ -6,12 +6,12 @@
      hx-swap-oob='true'>
         {% if continue_button %}
                 <button hx-post="{% url 'chat:cost_warning' message_id=message_id %}?cost_approved=true"
-                        class="btn btn-primary continue-button me-1"
+                        class="btn btn-warning continue-button me-1 mb-1"
                         hx-target="#message_{{ message_id }}">
                         {% trans "Continue at estimated cost " %}${{ estimate_cost }}
                 </button>
         {% endif %}
-        <button class="btn btn-secondary"
+        <button class="btn btn-secondary mb-1"
                 hx-post="{% url 'chat:cost_warning' message_id=message_id %}?cost_approved=false"
                 hx-target="#message_{{ message_id }}">{% trans "Cancel" %}</button>
 </div>
