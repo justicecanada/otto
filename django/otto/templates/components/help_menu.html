@@ -20,6 +20,27 @@
       </li>
     {% endif %}
     <li>
+      {# TODO add link to en and fr user guides #}
+      <a id="user-guide"
+         class="a dropdown-item"
+         href="{% if LANGUAGE_CODE == 'fr' %}https://collaboration.justice.gc.ca/ts/lps-spj/asb-dgas/bac-caa/_layouts/15/DocIdRedir.aspx?ID=1010-1069292447-2{% else %}https://collaboration.justice.gc.ca/ts/lps-spj/asb-dgas/bac-caa/_layouts/15/DocIdRedir.aspx?ID=1010-1069292447-1{% endif %}"
+         target="_blank">
+        <i class="bi bi-journal-text me-2"></i>
+        {% trans 'User guide' %}
+      </a>
+    </li>
+    <li>
+      <a id="frequently-asked-questions"
+         class="a dropdown-item"
+         href="{% url 'frequently_asked_questions' %}">
+        <i class="bi bi-question-circle me-2"></i>
+        {% trans 'Frequently Asked Questions' %}
+      </a>
+    </li>
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+    <li>
       <a id="contact-us"
          class="a dropdown-item"
          href="mailto:otto@justice.gc.ca">

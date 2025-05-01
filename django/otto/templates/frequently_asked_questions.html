@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block page_title %}
+  {% trans "Frequently Asked Questions" %}
+{% endblock %}
+
+{% block content_container %}
+  <div class="container my-4 position-relative">
+    <div class="d-flex d-flex-row align-items-center justify-content-between mt-5 mb-3">
+      <h3>{% trans "Frequently Asked Questions" %}</h3>
+      <button type="button" class="btn btn-primary" id="toggleCollapseButton">{% trans "Expand all" %}</button>
+    </div>
+    <div class="accordion" id="frequentlyAskedQuestions">
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question1"
+                  aria-expanded="false"
+                  aria-controls="question1">{% trans "What is Otto?" %}</button>
+        </h2>
+        <div id="question1" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {% blocktrans %}Otto is a platform for data & AI tools developed by and for the Department of Justice Canada, designed to enhance the workflow and efficiency of corporate and legal professionals through automation and generative AI.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question2"
+                  aria-expanded="false"
+                  aria-controls="question2">{% trans "What is the Otto Pro-B Pilot?" %}</button>
+        </h2>
+        <div id="question2" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {% blocktrans %}Justice's Business Analytics Centre (BAC) is launching a limited user pilot in a Protected B environment. The pilot includes ~625 users split into 65 distinct pilot groups with specific use cases covering all types of Justice work. The pilot will run for approximately 8 months. Following its conclusion, results and feedback will be used to refine the tools, which will then be deployed to all JUS employees.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question3"
+                  aria-expanded="false"
+                  aria-controls="question3">{% trans "What can Otto do for me?" %}</button>
+        </h2>
+        <div id="question3" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <p>
+              {% blocktrans %}Otto is designed to enhance the workflow and efficiency of corporate and legal professionals by providing various capabilities, including:{% endblocktrans %}
+            </p>
+
+            <ol class="list-group list-group-numbered">
+              <li class="list-group-item">
+                <strong>{% trans "Chat" %}</strong> - {% trans "Engage in general-purpose conversations for assistance with writing and other straightforward tasks." %}
+              </li>
+              <li class="list-group-item">
+                <strong>{% trans "Q&A" %}</strong> - {% trans "Retrieve answers from uploaded documents. Users can share or personalize libraries of documents to query." %}
+              </li>
+              <li class="list-group-item">
+                <strong>{% trans "Summarization" %}</strong> - {% trans "Summarize content from text, webpages, or uploaded documents at user-specified lengths." %}
+              </li>
+              <li class="list-group-item">
+                <strong>{% trans "Translation" %}</strong> - {% trans "Translate content into French or English." %}
+              </li>
+              <li class="list-group-item">
+                <strong>{% trans "Text Extraction" %}</strong> - {% trans "Extract text from images or scanned PDFs – including handwritten text – using advanced Optical Character Recognition (OCR)." %}
+              </li>
+              <li class="list-group-item">
+                <strong>{% trans "Legislation Search" %}</strong> - {% trans "Query Canadian acts and regulations using natural language to find relevant sections and get AI answers to questions." %}
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question4"
+                  aria-expanded="false"
+                  aria-controls="question4">{% trans "When should I use Otto?" %}</button>
+        </h2>
+        <div id="question4" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {% blocktrans %}You should use Otto when you need AI assistance with tasks such as AI text generation, question answering, document summarization, translation to English and French, extracting text from images or scanned PDFs, or searching Canadian laws and regulations.  Otto is intended for streamlining workflows, improving efficiency, and accessing accurate information pertaining to the Canadian Department of Justice.{% endblocktrans %}
+            <br />
+            <br />
+            {% blocktrans %}Otto is meant to save you time and effort by providing quick, reliable answers to your questions. Whether you're looking for general information or need help navigating internal policies, this tool can help streamline your work and point you in the right direction.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question5"
+                  aria-expanded="false"
+                  aria-controls="question5">{% trans "What are Otto's limitations?" %}</button>
+        </h2>
+        <div id="question5" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <ul>
+              <li>{% trans "Otto has no internet access so its general knowledge is not necessarily up to date." %}</li>
+              <li>
+                {% trans "Otto may not be used to automate decision-making that affects the rights, privileges or interests of individuals, or to automate steps needed to make decisions." %}
+              </li>
+              <li>{% trans "Otto cannot process documents or data classified above the Protected B level." %}</li>
+              <li>
+                {% trans "The AI may produce inaccurate or incomplete responses if user prompts are unclear or lack sufficient detail." %}
+              </li>
+              <li>
+                {% trans "Users are limited to a monthly budget of $32 for AI use and exceeding this requires a request to administrators." %}
+              </li>
+              <li>
+                {% trans "Due to the nature of the AI and the data used for training, Otto may occasionally generate hallucinations or irrelevant information. Human verification of output is required if the output is to be relied upon." %}
+              </li>
+              <li>
+                {% trans "Otto is not a repository for information of business value.  It is for transitory information only.  Document libraries and chats are deleted after 30 days of inactivity." %}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question6"
+                  aria-expanded="false"
+                  aria-controls="question6">{% trans "Can Otto replace human experts?" %}</button>
+        </h2>
+        <div id="question6" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {% blocktrans %}No, Otto is not a replacement for human experts. Otto is a tool designed to assist and complement your work. For complex or sensitive matters, you should always consult a qualified professional or departmental subject matter experts.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question7"
+                  aria-expanded="false"
+                  aria-controls="question7">{% trans "Is Otto secure?" %}</button>
+        </h2>
+        <div id="question7" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {% blocktrans %}Otto is designed to operate within the secure environment of the Government of Canada for information up to and including Protected B. Data is encrypted at rest and stored only in Canadian Microsoft Azure data centers. Otto is only accessible to Justice employees through the Justice network. Otto does not store or share sensitive information outside of this environment.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question8"
+                  aria-expanded="false"
+                  aria-controls="question8">{% trans "How do I access Otto?" %}</button>
+        </h2>
+        <div id="question8" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {% blocktrans %}Otto can be accessed via the URL <a href="https://otto-pilot.cloud.justice.gc.ca/">https://otto-pilot.cloud.justice.gc.ca/</a>. You must be connected to the Justice network.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question9"
+                  aria-expanded="false"
+                  aria-controls="question9">{% trans "Who can I contact if I have questions about Otto?" %}</button>
+        </h2>
+        <div id="question9" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {% blocktrans %}Feedback and bug reporting is collected in-app through a feedback form. Please direct all other questions to the mailbox at <a href="mailto:otto@justice.gc.ca">otto@justice.gc.ca</a>.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question10"
+                  aria-expanded="false"
+                  aria-controls="question10">
+            {% trans "How do I  ensure the accuracy of information from Otto?" %}
+          </button>
+        </h2>
+        <div id="question10" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {% blocktrans %}Otto relies on pre-existing knowledge and trusted internal documents to provide information. Otto retrieves answers from user-uploaded documents and displays page-numbered references and relevant links for verification. Additionally, users can customize prompts and settings to refine how information is extracted and presented, ensuring clarity and reliability. For certain questions, Otto will attempt to let users know if there are limitations to its responses and may recommend consulting the appropriate resources or experts.  If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question11"
+                  aria-expanded="false"
+                  aria-controls="question11">
+            {% trans "Can Otto help me with bilingual (English/French) questions?" %}
+          </button>
+        </h2>
+        <div id="question11" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {% blocktrans %}Yes, Otto can assist with bilingual (English/French) questions. Users can ask questions directly in both Official Language(s). It also offers a translation tool for translating content between English and French,and from other languages into English and French. Additionally, users can set the desired language for summaries and other outputs.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question12"
+                  aria-expanded="false"
+                  aria-controls="question12">{% trans "Can I insert URLs in Otto?" %}</button>
+        </h2>
+        <div id="question12" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <p>{% trans "The AI assistant in Otto can access websites from the following domains." %}</p>
+            <ul>
+              <li>{% trans "canada.ca" %}</li>
+              <li>{% trans "gc.ca" %}</li>
+              <li>{% trans "canlii.org" %}</li>
+              <li>{% trans "wikipedia.org" %}</li>
+            </ul>
+            <p>
+              {% blocktrans %}URLs that are not from these domains will not work. As a workaround, you can save relevant content to a file and upload it inside the AI assistant for querying.{% endblocktrans %}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#question13"
+                  aria-expanded="false"
+                  aria-controls="question13">
+            {% trans "Can I upload documents that come from a third party?" %}
+          </button>
+        </h2>
+        <div id="question13" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {% blocktrans %}Users must respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto. For example, the license to use a document may restrict saving an electronic copy.{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+{% endblock %}
+
+{% block page_script %}
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const collapseAllText = `{% trans 'Collapse all' %}`;
+      const expandAllText = `{% trans 'Expand all' %}`;
+      const toggleButton = document.getElementById("toggleCollapseButton");
+      const accordion = document.getElementById("frequentlyAskedQuestions");
+
+      toggleButton.addEventListener("click", () => {
+        const collapseContents = accordion.querySelectorAll(".accordion-collapse");
+        const action = toggleButton.innerHTML === collapseAllText ? "collapse" : "expand";
+
+        collapseContents.forEach(content => {
+          const collapseInstance = new bootstrap.Collapse(content, { toggle: false });
+          action === "collapse" ? collapseInstance.hide() : collapseInstance.show();
+        });
+
+        toggleButton.innerHTML = action === "collapse" ? expandAllText : collapseAllText;
+      });
+    });
+  </script>
+{% endblock %}

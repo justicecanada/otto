@@ -132,6 +132,16 @@ def topnav_search_inner(request):
     )
 
 
+def frequently_asked_questions(request):
+    return render(
+        request,
+        "frequently_asked_questions.html",
+        {
+            "hide_breadcrumbs": True,
+        },
+    )
+
+
 def terms_of_use(request):
 
     if request.method == "POST":
