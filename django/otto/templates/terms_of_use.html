@@ -68,12 +68,22 @@
     <p>{% trans "For more information, please review the following:" %}</p>
     <ul>
       <li>
-        <a href="https://jusnet.justice.gc.ca/eng/about-apropos/pdsg-pdwl/ohs-sst/icpg-gcpr/index.html"
-           target="_blank">{% trans "Handling and Safeguarding Sensitive Information" %}</a>
+        {% if LANGUAGE_CODE == "fr" %}
+          <a href="https://jusnet.justice.gc.ca/fra/apropos-about/pdwl-pdsg/sst-ohs/gcpr-icpg/index.html"
+             target="_blank">{% trans "Handling and Safeguarding Sensitive Information" %}</a>
+        {% else %}
+          <a href="https://jusnet.justice.gc.ca/eng/about-apropos/pdsg-pdwl/ohs-sst/icpg-gcpr/index.html"
+             target="_blank">{% trans "Handling and Safeguarding Sensitive Information" %}</a>
+        {% endif %}
       </li>
       <li>
-        <a href="https://jusnet.justice.gc.ca/eng/about-apropos/pdsg-pdwl/atip-aiprp/proto/proto.html"
-           target="_blank">{% trans "Privacy protocol for non-administrative purposes - JUSnet" %}</a>
+        {% if LANGUAGE_CODE == "fr" %}
+          <a href="https://jusnet.justice.gc.ca/fra/apropos-about/pdwl-pdsg/aiprp-atip/proto/proto.html"
+             target="_blank">{% trans "Privacy protocol for non-administrative purposes - JUSnet" %}</a>
+        {% else %}
+          <a href="https://jusnet.justice.gc.ca/eng/about-apropos/pdsg-pdwl/atip-aiprp/proto/proto.html"
+             target="_blank">{% trans "Privacy protocol for non-administrative purposes - JUSnet" %}</a>
+        {% endif %}
       </li>
     </ul>
 
@@ -90,10 +100,17 @@
     <p>{% trans "For more information, please review the following:" %}</p>
     <ul>
       <li>
-        <a href="https://collaboration.justice.gc.ca/co/im-gi/Shared%20Documents/Information%20of%20Business%20Value%20vs%20Transitory%20Information%20-%20Information%20Management%20(IM)%20Guidelines.aspx"
-           target="_blank">
-          {% trans "Information of Business Value vs Transitory Information - Information Management (IM) Guidelines" %}
-        </a>
+        {% if LANGUAGE_CODE == "fr" %}
+          <a href="https://collaboration.justice.gc.ca/ts/isb-DSI/is-si/isp/Policy/IM%20Infographic%20-%20Business%20Value%20vs%20Transitory%20Information%20-%20FR.pdf"
+             target="_blank">
+            {% trans "Information of Business Value vs Transitory Information - Information Management (IM) Guidelines" %}
+          </a>
+        {% else %}
+          <a href="https://collaboration.justice.gc.ca/co/im-gi/Shared%20Documents/Information%20of%20Business%20Value%20vs%20Transitory%20Information%20-%20Information%20Management%20(IM)%20Guidelines.aspx"
+             target="_blank">
+            {% trans "Information of Business Value vs Transitory Information - Information Management (IM) Guidelines" %}
+          </a>
+        {% endif %}
       </li>
     </ul>
 
@@ -104,12 +121,22 @@
     </p>
     <ul>
       <li>
-        <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/guide-use-generative-ai.html"
-           target="_blank">{% trans "Guide on the use of generative artificial intelligence - Canada.ca" %}</a>
+        {% if LANGUAGE_CODE == "fr" %}
+          <a href="https://www.canada.ca/fr/gouvernement/systeme/gouvernement-numerique/innovations-gouvernementales-numeriques/utilisation-responsable-ai/guide-utilisation-intelligence-artificielle-generative.html"
+             target="_blank">{% trans "Guide on the use of generative artificial intelligence - Canada.ca" %}</a>
+        {% else %}
+          <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/guide-use-generative-ai.html"
+             target="_blank">{% trans "Guide on the use of generative artificial intelligence - Canada.ca" %}</a>
+        {% endif %}
       </li>
       <li>
-        <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/generative-ai-your-daily-work.html"
-           target="_blank">{% trans "Generative AI in your daily work - Canada.ca" %}</a>
+        {% if LANGUAGE_CODE == "fr" %}
+          <a href="https://www.canada.ca/fr/gouvernement/systeme/gouvernement-numerique/innovations-gouvernementales-numeriques/utilisation-responsable-ai/ia-generative-votre-travail-quotidien.html"
+             target="_blank">{% trans "Generative AI in your daily work - Canada.ca" %}</a>
+        {% else %}
+          <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/generative-ai-your-daily-work.html"
+             target="_blank">{% trans "Generative AI in your daily work - Canada.ca" %}</a>
+        {% endif %}
       </li>
     </ul>
     <p>
@@ -120,8 +147,6 @@
       {% trans "If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs. Citations provided in outputs from Otto can assist with this verification." %}
     </p>
   </div>
-
-
 
   {% if not request.user.accepted_terms_date %}
     <hr>
