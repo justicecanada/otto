@@ -1078,6 +1078,9 @@ def estimate_cost_of_request(chat, response_message, response_estimation_count=1
             response_estimation_count * cost_type.unit_cost
         ) / cost_type.unit_quantity
 
+        # testing has shown that for modes that are not translations, the estimation is 20% below
+        cost = cost + (cost * 0.2)
+
     return cad_cost(cost)
 
 
