@@ -155,7 +155,9 @@ def create_searchable_pdf(input_file, add_header, merged=False):
         logger.error(_("AttributeError: input_file does not have a file extension."))
         return {
             "error": True,
-            "message": f"Error: Your file's extension is not supported, please upload images or pdf files",
+            "message": _(
+                "Error: Your file's extension is not supported, please upload images or pdf files"
+            ),
         }
 
     if input_file.name.lower().endswith(".pdf"):
@@ -183,7 +185,9 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             )
             return {
                 "error": True,
-                "message": f"Error: The file '{input_file.name}' is not a valid PDF or is corrupted.",
+                "message": _(
+                    "Error: The file '{input_file.name}' is not a valid PDF or is corrupted."
+                ),
                 "error_id": error_id,
             }
         except Exception as e:
@@ -196,7 +200,10 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             return {
                 "error": True,
                 "full_error": full_error,
-                "message": f"Error: occured while converting pdfs into images",
+                "message": _(
+                    "Error ID:%(error_id)s - Error occurred while converting pdfs into images"
+                )
+                % {"error_id": error_id},
                 "error_id": error_id,
             }
 
@@ -225,7 +232,10 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             )
             return {
                 "error": True,
-                "message": f"Error: The file '{input_file.name}' cannot be processed.",
+                "message": _(
+                    "Error ID: %(error_id)s -The file '{input_file.name}' cannot be processed."
+                )
+                % {"error_id": error_id},
                 "error_id": error_id,
             }
 
@@ -258,7 +268,10 @@ def create_searchable_pdf(input_file, add_header, merged=False):
         )
         return {
             "error": True,
-            "message": f"Error: Azure's document intelligence API failed to process the file.",
+            "message": _(
+                "Error ID: %(error_id)s - Azure's document intelligence API failed to process the file."
+            )
+            % {"error_id": error_id},
             "error_id": error_id,
         }
 
