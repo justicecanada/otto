@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load static %}
 
 {% block page_title %}
   {% trans "Frequently Asked Questions" %}
@@ -9,7 +10,7 @@
   <div class="container mt-4 position-relative">
     <div class="d-flex d-flex-row align-items-center justify-content-between mt-5 mb-3">
       <h3>{% trans "Frequently Asked Questions" %}</h3>
-      <button type="button" class="btn btn-primary" onclick="expandAll()">{% trans "Expand all" %}</button>
+      <button type="button" class="btn btn-primary" id="toggleCollapseButton">{% trans "Expand all" %}</button>
     </div>
     <div class="accordion" id="frequentlyAskedQuestions">
       <div class="accordion-item">
@@ -275,5 +276,32 @@
         collapseInstance.show();
       });
     }
+  </script>
+{% endblock %}
+
+{% block page_script %}
+  <script src="{% static 'thirdparty/jquery3.7.1.min.js' %}"
+          crossorigin="anonymous"></script>
+  <script>
+      var collapse_all = `{% trans 'Collapse all' %}`;
+      var expand_all = `{% trans 'Expand all' %}`;
+      $("#toggleCollapseButton").click( function() {
+        var $this = $(this);
+        var $accordion = $("#frequentlyAskedQuestions");
+        let button = document.getElementById("toggleCollapseButton");
+        var $collapseButtons = $accordion.find(".accordion-button");
+        var $collapseContents = $accordion.find(".accordion-collapse");
+ 
+        if ($collapseButtons.hasClass("collapsed")) {
+          $collapseButtons.removeClass("collapsed");
+          $collapseContents.collapse("show");
+          button.innerHTML = collapse_all;
+        }
+        else {
+          $collapseButtons.addClass("collapsed");
+          $collapseContents.collapse("hide");
+          button.innerHTML = expand_all;
+        }
+      });
   </script>
 {% endblock %}
