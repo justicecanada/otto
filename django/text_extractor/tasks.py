@@ -62,6 +62,7 @@ def process_ocr_document(file_content, file_name, merged, idx):
         return {
             "error": True,
             "full_error": full_error,
-            "message": _("Error: Check your file for corruption of type mismatch"),
+            "message": _("Error ID: %(error_id)s: Corruption/Type mismatch")
+            % {"error_id": error_id},
             "error_id": error_id,
         }

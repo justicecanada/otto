@@ -469,9 +469,6 @@ def manage_users_upload(request):
                         monthly_max = int(monthly_max)
                     except Exception as e:
                         monthly_max = None
-                        logger.info(
-                            f"monthly_max is not an integer ({monthly_max}): {e}"
-                        )
 
                     user = User.objects.filter(upn__iexact=upn).first()
                     if not user:
