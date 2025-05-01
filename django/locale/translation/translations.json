@@ -3838,5 +3838,25 @@
     "Safe use of Text Extractor": {
         "fr": "",
         "fr_auto": "Utilisation sécuritaire de l’extracteur de texte"
+    },
+    "Error: Your file's extension is not supported, please upload images or pdf files": {
+        "fr": "",
+        "fr_auto": "Erreur : L’extension de votre fichier n’est pas prise en charge, veuillez télécharger des images ou des fichiers pdf"
+    },
+    "Error: The file '{input_file.name}' is not a valid PDF or is corrupted.": {
+        "fr": "",
+        "fr_auto": "Erreur : Le fichier '{input_file.name}' n’est pas un PDF valide ou est corrompu."
+    },
+    "Error ID:%(error_id)s - Error occurred while converting pdfs into images": {
+        "fr": "",
+        "fr_auto": "ID d’erreur :%(error_id)s - Erreur lors de la conversion de PDF en images"
+    },
+    "Error ID: %(error_id)s -The file '{input_file.name}' cannot be processed.": {
+        "fr": "",
+        "fr_auto": "ID d’erreur :%(error_id)s -Le fichier '{input_file.name}' ne peut pas être traité."
+    },
+    "Error ID: %(error_id)s - Azure's document intelligence API failed to process the file.": {
+        "fr": "",
+        "fr_auto": "ID d’erreur :%(error_id)s - L’API d’intelligence documentaire d’Azure n’a pas réussi à traiter le fichier."
     }
 }
