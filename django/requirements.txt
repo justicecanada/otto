@@ -81,4 +81,4 @@ django-redis==5.4.0
 django-celery-beat==2.7.0
 
 # GPL-licensed: Use only through CLI to maintain Otto's MIT license ------------
-extract_msg==0.52.0
+extract_msg==0.54.1
