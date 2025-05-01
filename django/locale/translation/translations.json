@@ -3614,5 +3614,9 @@
     "Error running OCR on documents": {
         "fr": "",
         "fr_auto": "Erreur lors de l’exécution de la ROC sur les documents"
+    },
+    "An error occurred while summarizing the text. ": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors du résumé du texte. "
     }
 }
