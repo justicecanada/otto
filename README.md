@@ -61,7 +61,7 @@
 | django/text\_extractor/models.py                                      |       17 |        1 |     94% |        28 |
 | django/text\_extractor/tasks.py                                       |       18 |        2 |     89% |     34-35 |
 | django/text\_extractor/utils.py                                       |      211 |       42 |     80% |57-80, 115-116, 164-166, 184, 295-297, 351-355, 362-363, 369, 375-379 |
-| django/text\_extractor/views.py                                       |      108 |       21 |     81% |41, 59-74, 84, 98-106, 119-125, 142, 146, 163, 173, 193-194 |
+| django/text\_extractor/views.py                                       |      108 |       21 |     81% |45, 63-78, 88, 102-110, 123-129, 146, 150, 167, 177, 198-199 |
 |                                                             **TOTAL** | **7071** | **1237** | **83%** |           |
 
 
