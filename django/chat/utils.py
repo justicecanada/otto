@@ -1000,7 +1000,7 @@ def estimate_cost_of_string(text, cost_type):
     return usd_cost
 
 
-def estimate_cost_of_request(chat, response_message, response_estimation_count=1000):
+def estimate_cost_of_request(chat, response_message, response_estimation_count=512):
     user_message_text = response_message.parent.text
     model = chat.options.chat_model
     mode = chat.options.mode
