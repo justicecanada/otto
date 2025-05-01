@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sys
+from decimal import Decimal
 from itertools import groupby
 from typing import AsyncGenerator, Generator
 
@@ -1079,8 +1080,7 @@ def estimate_cost_of_request(chat, response_message, response_estimation_count=1
         ) / cost_type.unit_quantity
 
         # testing has shown that for modes that are not translations, the estimation is 20% below
-        cost = cost + (cost * 0.2)
-
+        cost = cost + (cost * Decimal("0.2"))
     return cad_cost(cost)
 
 
