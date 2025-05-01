@@ -2043,6 +2043,10 @@
         "fr": "Questions fréquemment posées",
         "fr_auto": "Questions fréquemment posées"
     },
+    "Expand All": {
+        "fr": "",
+        "fr_auto": "Développer tout"
+    },
     "User guide": {
         "fr": "Guide d'utilisateur",
         "fr_auto": "Guide de l'utilisateur"
