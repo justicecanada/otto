@@ -376,7 +376,10 @@ def create_searchable_pdf(input_file, add_header, merged=False):
         logger.error(_("Error creating PDF overlay after OCR {error_id}: {full_error}"))
         return {
             "error": True,
-            "message": f"Error: Failed to create PDF overlay after OCR.",
+            "message": _(
+                "Error ID: %(error_id)s - Failed to create PDF overlay after OCR."
+            )
+            % {"error_id": error_id},
             "error_id": error_id,
         }
 
