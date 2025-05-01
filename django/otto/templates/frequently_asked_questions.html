@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content_container %}
-  <div class="container mt-4 position-relative">
+  <div class="container my-4 position-relative">
     <div class="d-flex d-flex-row align-items-center justify-content-between mt-5 mb-3">
       <h3>{% trans "Frequently Asked Questions" %}</h3>
       <button type="button" class="btn btn-primary" id="toggleCollapseButton">{% trans "Expand all" %}</button>
@@ -15,14 +15,14 @@
     <div class="accordion" id="frequentlyAskedQuestions">
       <div class="accordion-item">
         <h2 class="accordion-header">
-          <button class="accordion-button"
+          <button class="accordion-button collapsed"
                   type="button"
                   data-bs-toggle="collapse"
                   data-bs-target="#question1"
-                  aria-expanded="true"
+                  aria-expanded="false"
                   aria-controls="question1">What is Otto?</button>
         </h2>
-        <div id="question1" class="accordion-collapse collapse show">
+        <div id="question1" class="accordion-collapse collapse">
           <div class="accordion-body">
             Otto is a platform for data & AI tools developed by and for the Department of Justice Canada, designed to enhance the workflow and efficiency of corporate and legal professionals through automation and generative AI.
           </div>
@@ -152,7 +152,7 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question7"
                   aria-expanded="false"
-                  aria-controls="question7">Is Otto Secure?</button>
+                  aria-controls="question7">Is Otto secure?</button>
         </h2>
         <div id="question7" class="accordion-collapse collapse">
           <div class="accordion-body">
@@ -253,55 +253,38 @@
                   data-bs-toggle="collapse"
                   data-bs-target="#question13"
                   aria-expanded="false"
-                  aria-controls="question13">
-            What if I want Otto to consider a document that comes from a third party?
-          </button>
+                  aria-controls="question13">Can I upload documents that come from a third party?</button>
         </h2>
         <div id="question13" class="accordion-collapse collapse">
           <div class="accordion-body">
-            Users must respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto.  For example, the license to use a document may restrict saving an electronic copy.
+            Users must respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto. For example, the license to use a document may restrict saving an electronic copy.
           </div>
         </div>
       </div>
 
     </div>
   </div>
-  <script>
-    function expandAll() {
-      const accordionItems = document.querySelectorAll('.accordion-collapse');
-      accordionItems.forEach(item => {
-        const collapseInstance = new bootstrap.Collapse(item, {
-          toggle: false
-        });
-        collapseInstance.show();
-      });
-    }
-  </script>
 {% endblock %}
 
 {% block page_script %}
-  <script src="{% static 'thirdparty/jquery3.7.1.min.js' %}"
-          crossorigin="anonymous"></script>
   <script>
-      var collapse_all = `{% trans 'Collapse all' %}`;
-      var expand_all = `{% trans 'Expand all' %}`;
-      $("#toggleCollapseButton").click( function() {
-        var $this = $(this);
-        var $accordion = $("#frequentlyAskedQuestions");
-        let button = document.getElementById("toggleCollapseButton");
-        var $collapseButtons = $accordion.find(".accordion-button");
-        var $collapseContents = $accordion.find(".accordion-collapse");
- 
-        if ($collapseButtons.hasClass("collapsed")) {
-          $collapseButtons.removeClass("collapsed");
-          $collapseContents.collapse("show");
-          button.innerHTML = collapse_all;
-        }
-        else {
-          $collapseButtons.addClass("collapsed");
-          $collapseContents.collapse("hide");
-          button.innerHTML = expand_all;
-        }
+    document.addEventListener("DOMContentLoaded", () => {
+      const collapseAllText = `{% trans 'Collapse all' %}`;
+      const expandAllText = `{% trans 'Expand all' %}`;
+      const toggleButton = document.getElementById("toggleCollapseButton");
+      const accordion = document.getElementById("frequentlyAskedQuestions");
+
+      toggleButton.addEventListener("click", () => {
+        const collapseContents = accordion.querySelectorAll(".accordion-collapse");
+        const action = toggleButton.innerHTML === collapseAllText ? "collapse" : "expand";
+
+        collapseContents.forEach(content => {
+          const collapseInstance = new bootstrap.Collapse(content, { toggle: false });
+          action === "collapse" ? collapseInstance.hide() : collapseInstance.show();
+        });
+
+        toggleButton.innerHTML = action === "collapse" ? expandAllText : collapseAllText;
       });
+    });
   </script>
 {% endblock %}
