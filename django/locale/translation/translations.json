@@ -2039,6 +2039,14 @@
         "fr": "Gérer les utilisateurs",
         "fr_auto": "Gérer les utilisateurs"
     },
+    "Frequently Asked Questions": {
+        "fr": "Questions fréquemment posées",
+        "fr_auto": "Questions fréquemment posées"
+    },
+    "User guide": {
+        "fr": "Guide d'utilisateur",
+        "fr_auto": "Guide de l'utilisateur"
+    },
     "Blocked URLs": {
         "fr": "URL bloquées",
         "fr_auto": "URL bloquées"
@@ -3563,6 +3571,190 @@
         "fr": "",
         "fr_auto": "Les modifications remplaceront les propriétés de tous les utilisateurs sélectionnés"
     },
+    "What is Otto?": {
+        "fr": "",
+        "fr_auto": "Qu’est-ce qu’Otto?"
+    },
+    "Otto is a platform for data & AI tools developed by and for the Department of Justice Canada, designed to enhance the workflow and efficiency of corporate and legal professionals through automation and generative AI.": {
+        "fr": "",
+        "fr_auto": "Otto est une plateforme d’outils de données et d’IA développée par et pour le ministère de la Justice du Canada, conçue pour améliorer le flux de travail et l’efficacité des professionnels des entreprises et du droit grâce à l’automatisation et à l’IA générative."
+    },
+    "What is the Otto Pro-B Pilot?": {
+        "fr": "",
+        "fr_auto": "Qu’est-ce que le pilote Otto Pro-B?"
+    },
+    "Justice's Business Analytics Centre (BAC) is launching a limited user pilot in a Protected B environment. The pilot includes ~625 users split into 65 distinct pilot groups with specific use cases covering all types of Justice work. The pilot will run for approximately 8 months. Following its conclusion, results and feedback will be used to refine the tools, which will then be deployed to all JUS employees.": {
+        "fr": "",
+        "fr_auto": "Le Centre d’analyse des affaires (BAC) du ministère de la Justice lance un projet pilote limité d’utilisateurs dans un environnement Protégé B. Le projet pilote comprend ~625 utilisateurs répartis en 65 groupes pilotes distincts avec des cas d’utilisation spécifiques couvrant tous les types de travail dans le domaine de la justice. Le projet pilote durera environ 8 mois. À la suite de sa conclusion, les résultats et la rétroaction seront utilisés pour peaufiner les outils, qui seront ensuite déployés auprès de tous les employés de JUS."
+    },
+    "What can Otto do for me?": {
+        "fr": "",
+        "fr_auto": "Qu’est-ce qu’Otto peut faire pour moi?"
+    },
+    "Otto is designed to enhance the workflow and efficiency of corporate and legal professionals by providing various capabilities, including:": {
+        "fr": "",
+        "fr_auto": "Otto est conçu pour améliorer le flux de travail et l’efficacité des professionnels des entreprises et du droit en offrant diverses capacités, notamment :"
+    },
+    "Engage in general-purpose conversations for assistance with writing and other straightforward tasks.": {
+        "fr": "",
+        "fr_auto": "Engagez-vous dans des conversations générales pour obtenir de l’aide à la rédaction et à d’autres tâches simples."
+    },
+    "Retrieve answers from uploaded documents. Users can share or personalize libraries of documents to query.": {
+        "fr": "",
+        "fr_auto": "Récupérez les réponses des documents téléchargés. Les utilisateurs peuvent partager ou personnaliser des bibliothèques de documents à interroger."
+    },
+    "Summarize content from text, webpages, or uploaded documents at user-specified lengths.": {
+        "fr": "",
+        "fr_auto": "Résumer le contenu du texte, des pages Web ou des documents téléchargés à la longueur spécifiée par l’utilisateur."
+    },
+    "Translate content into French or English.": {
+        "fr": "",
+        "fr_auto": "Traduire le contenu en français ou en anglais."
+    },
+    "Text Extraction": {
+        "fr": "",
+        "fr_auto": "Extraction de texte"
+    },
+    "Extract text from images or scanned PDFs – including handwritten text – using advanced Optical Character Recognition (OCR).": {
+        "fr": "",
+        "fr_auto": "Extraire du texte d’images ou de PDF numérisés – y compris du texte manuscrit – à l’aide de la reconnaissance optique de caractères (OCR) avancée."
+    },
+    "Query Canadian acts and regulations using natural language to find relevant sections and get AI answers to questions.": {
+        "fr": "",
+        "fr_auto": "Interrogez les lois et règlements canadiens en utilisant le langage naturel pour trouver les sections pertinentes et obtenir des réponses aux questions de l’IA."
+    },
+    "When should I use Otto?": {
+        "fr": "",
+        "fr_auto": "Quand devrais-je utiliser Otto?"
+    },
+    "You should use Otto when you need AI assistance with tasks such as AI text generation, question answering, document summarization, translation to English and French, extracting text from images or scanned PDFs, or searching Canadian laws and regulations.  Otto is intended for streamlining workflows, improving efficiency, and accessing accurate information pertaining to the Canadian Department of Justice.": {
+        "fr": "",
+        "fr_auto": "Vous devriez utiliser Otto lorsque vous avez besoin de l’aide de l’IA pour des tâches telles que la génération de texte en IA, la réponse aux questions, le résumé de documents, la traduction en anglais et en français, l’extraction de texte à partir d’images ou de PDF numérisés ou la recherche dans les lois et règlements canadiens.  Otto est destiné à rationaliser les flux de travail, à améliorer l’efficacité et à accéder à de l’information exacte concernant le ministère de la Justice du Canada."
+    },
+    "Otto is meant to save you time and effort by providing quick, reliable answers to your questions. Whether you're looking for general information or need help navigating internal policies, this tool can help streamline your work and point you in the right direction.": {
+        "fr": "",
+        "fr_auto": "Otto est destiné à vous faire gagner du temps et des efforts en fournissant des réponses rapides et fiables à vos questions. Que vous recherchiez des informations générales ou que vous ayez besoin d’aide pour naviguer dans les politiques internes, cet outil peut vous aider à rationaliser votre travail et à vous orienter dans la bonne direction."
+    },
+    "What are Otto's limitations?": {
+        "fr": "",
+        "fr_auto": "Quelles sont les limites d’Otto?"
+    },
+    "Otto has no internet access so its general knowledge is not necessarily up to date.": {
+        "fr": "",
+        "fr_auto": "Otto n’a pas d’accès à Internet, donc ses connaissances générales ne sont pas nécessairement à jour."
+    },
+    "Otto may not be used to automate decision-making that affects the rights, privileges or interests of individuals, or to automate steps needed to make decisions.": {
+        "fr": "",
+        "fr_auto": "Otto ne peut pas être utilisé pour automatiser la prise de décisions qui touchent les droits, les privilèges ou les intérêts des personnes, ni pour automatiser les étapes nécessaires à la prise de décisions."
+    },
+    "Otto cannot process documents or data classified above the Protected B level.": {
+        "fr": "",
+        "fr_auto": "Otto ne peut pas traiter des documents ou des données classés au-dessus du niveau Protégé B."
+    },
+    "The AI may produce inaccurate or incomplete responses if user prompts are unclear or lack sufficient detail.": {
+        "fr": "",
+        "fr_auto": "L’IA peut produire des réponses inexactes ou incomplètes si les invites de l’utilisateur ne sont pas claires ou manquent de détails."
+    },
+    "Users are limited to a monthly budget of $32 for AI use and exceeding this requires a request to administrators.": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs sont limités à un budget mensuel de 32 $ pour l’utilisation de l’IA et le dépassement de ce budget nécessite une demande aux administrateurs."
+    },
+    "Due to the nature of the AI and the data used for training, Otto may occasionally generate hallucinations or irrelevant information. Human verification of output is required if the output is to be relied upon.": {
+        "fr": "",
+        "fr_auto": "En raison de la nature de l’IA et des données utilisées pour l’entraînement, Otto peut occasionnellement générer des hallucinations ou des informations non pertinentes. Une vérification humaine de la production est nécessaire si l’on peut se fier à la production."
+    },
+    "Otto is not a repository for information of business value.  It is for transitory information only.  Document libraries and chats are deleted after 30 days of inactivity.": {
+        "fr": "",
+        "fr_auto": "Otto n’est pas un dépôt d’information à valeur opérationnelle.  Il s’agit uniquement d’informations transitoires.  Les bibliothèques de documents et les clavardages sont supprimés après 30 jours d’inactivité."
+    },
+    "Can Otto replace human experts?": {
+        "fr": "",
+        "fr_auto": "Otto peut-il remplacer les experts humains?"
+    },
+    "No, Otto is not a replacement for human experts. Otto is a tool designed to assist and complement your work. For complex or sensitive matters, you should always consult a qualified professional or departmental subject matter experts.": {
+        "fr": "",
+        "fr_auto": "Non, Otto ne remplace pas les experts humains. Otto est un outil conçu pour vous aider et compléter votre travail. Pour les questions complexes ou délicates, vous devriez toujours consulter un professionnel qualifié ou des experts en la matière."
+    },
+    "Is Otto secure?": {
+        "fr": "",
+        "fr_auto": "Otto est-il sécurisé?"
+    },
+    "Otto is designed to operate within the secure environment of the Government of Canada for information up to and including Protected B. Data is encrypted at rest and stored only in Canadian Microsoft Azure data centers. Otto is only accessible to Justice employees through the Justice network. Otto does not store or share sensitive information outside of this environment.": {
+        "fr": "",
+        "fr_auto": "Otto est conçu pour fonctionner dans l’environnement sécurisé du gouvernement du Canada pour l’information jusqu’à Protégé B. Les données sont chiffrées au repos et stockées uniquement dans les centres de données Microsoft Azure canadiens. Otto n’est accessible qu’aux employés du ministère de la Justice par l’intermédiaire du réseau du Justice. Otto ne stocke ni ne partage de renseignements sensibles en dehors de cet environnement."
+    },
+    "How do I access Otto?": {
+        "fr": "",
+        "fr_auto": "Comment puis-je accéder à Otto?"
+    },
+    "Otto can be accessed via the URL <a href=\"https://otto-pilot.cloud.justice.gc.ca/\">https://otto-pilot.cloud.justice.gc.ca/</a>. You must be connected to the Justice network.": {
+        "fr": "",
+        "fr_auto": "Otto est accessible via l’URL <a href=\"https://otto-pilot.cloud.justice.gc.ca/\">https://otto-pilot.cloud.justice.gc.ca/</a>. Vous devez être connecté au réseau de la justice."
+    },
+    "Who can I contact if I have questions about Otto?": {
+        "fr": "",
+        "fr_auto": "Qui puis-je contacter si j’ai des questions au sujet d’Otto?"
+    },
+    "Feedback and bug reporting is collected in-app through a feedback form. Please direct all other questions to the mailbox at otto@justice.gc.ca .": {
+        "fr": "",
+        "fr_auto": "Les commentaires et les rapports de bogues sont recueillis dans l’application par le biais d’un formulaire de rétroaction. Veuillez adresser toutes les autres questions à la boîte aux lettres au otto@justice.gc.ca ."
+    },
+    "How do I  ensure the accuracy of information from Otto?": {
+        "fr": "",
+        "fr_auto": "Comment puis-je m’assurer de l’exactitude des informations d’Otto?"
+    },
+    "Otto relies on pre-existing knowledge and trusted internal documents to provide information. Otto retrieves answers from user-uploaded documents and displays page-numbered references and relevant links for verification. Additionally, users can customize prompts and settings to refine how information is extracted and presented, ensuring clarity and reliability. For certain questions, Otto will attempt to let users know if there are limitations to its responses and may recommend consulting the appropriate resources or experts.  If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs.": {
+        "fr": "",
+        "fr_auto": "Otto s’appuie sur des connaissances préexistantes et des documents internes fiables pour fournir de l’information. Otto récupère les réponses des documents téléchargés par les utilisateurs et affiche des références numérotées et des liens pertinents pour vérification. De plus, les utilisateurs peuvent personnaliser les invites et les paramètres pour affiner la façon dont l’information est extraite et présentée, ce qui garantit la clarté et la fiabilité. Pour certaines questions, Otto tentera d’informer les utilisateurs s’il y a des limites à ses réponses et peut recommander de consulter les ressources ou les experts appropriés.  Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants."
+    },
+    "Can Otto help me with bilingual (English/French) questions?": {
+        "fr": "",
+        "fr_auto": "Otto peut-il m’aider avec des questions bilingues (anglais/français)?"
+    },
+    "Yes, Otto can assist with bilingual (English/French) questions. Users can ask questions directly in both Official Language(s). It also offers a translation tool for translating content between English and French,and from other languages into English and French. Additionally, users can set the desired language for summaries and other outputs.": {
+        "fr": "",
+        "fr_auto": "Oui, Otto peut répondre aux questions bilingues (anglais/français). Les utilisateurs peuvent poser des questions directement dans les deux langues officielles. Il offre également un outil de traduction pour traduire du contenu entre l’anglais et le français, et d’autres langues vers l’anglais et le français. De plus, les utilisateurs peuvent définir la langue souhaitée pour les résumés et autres résultats."
+    },
+    "Can I insert URLs in Otto?": {
+        "fr": "",
+        "fr_auto": "Puis-je insérer des URL dans Otto?"
+    },
+    "The AI assistant in Otto can access websites from the following domains.": {
+        "fr": "",
+        "fr_auto": "L’assistant IA d’Otto peut accéder à des sites Web à partir des domaines suivants."
+    },
+    "canada.ca": {
+        "fr": "",
+        "fr_auto": "canada.ca"
+    },
+    "gc.ca": {
+        "fr": "",
+        "fr_auto": "gc.ca"
+    },
+    "canlii.org": {
+        "fr": "",
+        "fr_auto": "canlii.org"
+    },
+    "wikipedia.org": {
+        "fr": "",
+        "fr_auto": "wikipedia.org"
+    },
+    "URLs that are not from these domains will not work. As a workaround, you can save relevant content to a file and upload it inside the AI assistant for querying.": {
+        "fr": "",
+        "fr_auto": "Les URL qui ne proviennent pas de ces domaines ne fonctionneront pas. Comme solution de contournement, vous pouvez enregistrer le contenu pertinent dans un fichier et le télécharger dans l’assistant d’IA pour l’interroger."
+    },
+    "Can I upload documents that come from a third party?": {
+        "fr": "",
+        "fr_auto": "Puis-je télécharger des documents qui proviennent d’un tiers?"
+    },
+    "Users must respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto. For example, the license to use a document may restrict saving an electronic copy.": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs doivent respecter toutes les restrictions légales ou contractuelles applicables qui peuvent s’appliquer au téléchargement de ces documents sur Otto. Par exemple, la licence d’utilisation d’un document peut restreindre l’enregistrement d’une copie électronique."
+    },
+    "Feedback and bug reporting is collected in-app through a feedback form. Please direct all other questions to the mailbox at <a href=\"mailto:otto@justice.gc.ca\">otto@justice.gc.ca</a>.": {
+        "fr": "",
+        "fr_auto": "Les commentaires et les rapports de bogues sont recueillis dans l’application par le biais d’un formulaire de rétroaction. Veuillez adresser toutes les autres questions à la boîte aux lettres à <a href=\"mailto:otto@justice.gc.ca\">otto@justice.gc.ca</a>."
+    },
     "This request is estimated to cost ${formatted_cost}, which exceeds your remaining monthly budget. Please contact an Otto administrator or wait until the 1st for the limit to reset.": {
         "fr": "",
         "fr_auto": "Le coût de cette demande est estimé à {formatted_cost} $, ce qui dépasse votre budget mensuel restant. Veuillez contacter un administrateur Otto ou attendre le 1er pour que la limite soit réinitialisée."
@@ -3758,5 +3950,9 @@
     "Safe use of Text Extractor": {
         "fr": "",
         "fr_auto": "Utilisation sécuritaire de l’extracteur de texte"
+    },
+    "Otto can be accessed via the URL <a href=\"%(site_url)s\">%(site_url)s</a>. You must be connected to the Justice network.": {
+        "fr": "",
+        "fr_auto": "Otto est accessible via l’URL <a href=\"%(site_url)s\">%(site_url)s</a>. Vous devez être connecté au réseau de la justice."
     }
 }
