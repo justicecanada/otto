@@ -344,7 +344,7 @@ async def htmx_stream(
         error_id = str(uuid.uuid4())[:7]
         full_message += f"\n\n```\n{full_message}\n```\n\n"
         full_message += f" _({_('Error ID')}: {error_id})_"
-        logger.error(
+        logger.exception(
             "Error processing chat response",
             error_id=error_id,
             message_id=message.id,
@@ -1159,7 +1159,7 @@ def reassemble_chunks(file_obj):
         # Generate and check hash
         file_obj.saved_file.generate_hash()
         if file_obj.saved_file.sha256_hash != file_obj.sha256_hash_from_client:
-            logger.error(
+            logger.exception(
                 "Hash mismatch for file %s: %s != %s",
                 file_obj.id,
                 file_obj.saved_file.sha256_hash,
@@ -1174,6 +1174,8 @@ def reassemble_chunks(file_obj):
         os.rmdir(temp_dir)
 
     except Exception as e:
-        logger.error("Error during chunk assembly for file %s: %s", file_obj.id, str(e))
+        logger.exception(
+            "Error during chunk assembly for file %s: %s", file_obj.id, str(e)
+        )
     finally:
         cache.delete(lock_key)

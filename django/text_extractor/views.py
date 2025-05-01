@@ -123,7 +123,7 @@ def submit_document(request):
         return render(request, "text_extractor/completed_documents.html", context)
 
     except PdfStreamError as e:
-        logger.error(
+        logger.exception(
             _(
                 "PDFStreamError while processing files - invalid or corrupted pdf uploaded"
             )
@@ -143,7 +143,7 @@ def submit_document(request):
 
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
-        logger.error(
+        logger.exception(
             _("Sorry, we ran into an error while running OCR"),
             user_request_id=user_request.id,
             error_id=error_id,

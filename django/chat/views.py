@@ -415,7 +415,7 @@ def done_upload(request, message_id):
     # Get all ChatFile objects associated with the user message.
     file_objs = ChatFile.objects.filter(message_id=message_id)
     if not file_objs.exists():
-        logger.error("No files associated with message %s", message_id)
+        logger.exception("No files associated with message %s", message_id)
     else:
         for file_obj in file_objs:
             if not file_obj.saved_file.sha256_hash:
@@ -496,7 +496,7 @@ def chunk_upload(request, message_id):
         # If this is not the first chunk, get the existing file object
         file_obj = ChatFile.objects.filter(id=file_id).first()
         if not file_obj:
-            logger.error(f"File ID {file_id} not found.")
+            logger.exception(f"File ID {file_id} not found.")
             return JsonResponse({"data": "Invalid file ID"})
 
     if not existing_file:
@@ -549,7 +549,7 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         # TODO: handle error, SHOW TO USER?
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
-        logger.error(
+        logger.exception(
             f"An error occurred while providing a chat feedback.",
             message_id=message_id,
             error_id=error_id,
@@ -981,7 +981,7 @@ def set_preset_default(request, chat_id: str, preset_id: int):
             _("An error occurred while setting the default preset.")
             + f" _({_('Error ID')}: {error_id})_"
         )
-        logger.error(
+        logger.exception(
             f"Error setting default preset:",
             chat_id=chat_id,
             preset_id=preset_id,

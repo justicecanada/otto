@@ -81,7 +81,7 @@ async def get_entra_users_async():
     except APIError as e:
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
-        logger.error(
+        logger.exception(
             f"Error trying to retrieve batch {batch_number} of entra users: {e.error.message} details: {error_id, full_error}"
         )
 

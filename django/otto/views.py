@@ -449,7 +449,7 @@ def manage_users_upload(request):
                         email = upn
                     except ValidationError as e:
                         email = ""
-                        logger.error(f"UPN must be an email address ({upn}): {e}")
+                        logger.exception(f"UPN must be an email address ({upn}): {e}")
 
                         continue
                     # Get or create the pilot
@@ -506,7 +506,7 @@ def manage_users_upload(request):
                         except ObjectDoesNotExist:
                             full_error = traceback.format_exc()
                             error_id = str(uuid.uuid4())[:7]
-                            logger.error(
+                            logger.exception(
                                 f"Role {role} does not exist: {e}",
                                 error_id=error_id,
                                 error=full_error,
@@ -515,7 +515,7 @@ def manage_users_upload(request):
                 except Exception as e:
                     full_error = traceback.format_exc()
                     error_id = str(uuid.uuid4())[:7]
-                    logger.error(
+                    logger.exception(
                         f"Error processing row {row}: {e}",
                         error_id=error_id,
                         error=full_error,

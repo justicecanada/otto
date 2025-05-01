@@ -105,7 +105,7 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
             + f"\n```\n{error}\n```"
         )
 
-        logger.error(
+        logger.exception(
             f"Error in generating response",
             query_uuid=query_uuid,
             error_id=error_id,
@@ -136,7 +136,7 @@ async def htmx_sse_error():
         f"data: <div hx-swap-oob='true' id='answer-sse'>"
         f"<div>{error_message}</div></div>\n\n"
     )
-    logger.error(
+    logger.exception(
         error_message,
         error_id=error_id,
         error=full_error,

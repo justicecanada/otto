@@ -455,7 +455,7 @@ def search(request):
             "error": e,
         }
         full_error = traceback.format_exc()
-        logger.error(
+        logger.exception(
             f"Could not find sources for query {query}",
             query_uuid=query_uuid,
             error=full_error,

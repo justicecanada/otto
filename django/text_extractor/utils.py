@@ -152,7 +152,9 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             img_extensions
         ) or input_file.name.lower().endswith(".pdf")
     except AttributeError:
-        logger.error(_("AttributeError: input_file does not have a file extension."))
+        logger.exception(
+            _("AttributeError: input_file does not have a file extension.")
+        )
         return {
             "error": True,
             "message": _(
@@ -178,7 +180,7 @@ def create_searchable_pdf(input_file, add_header, merged=False):
         except PDFPageCountError as e:
             full_error = traceback.format_exc()
             error_id = str(uuid.uuid4())[:7]
-            logger.error(
+            logger.exception(
                 _(
                     "PDFPageCountError while processing {input_file.name} in {error_id}: {full_error}"
                 )
@@ -193,7 +195,7 @@ def create_searchable_pdf(input_file, add_header, merged=False):
         except Exception as e:
             full_error = traceback.format_exc()
             error_id = str(uuid.uuid4())[:7]
-            logger.error(
+            logger.exception(
                 _("Error converting pdfs into images in {error_id}: {full_error}")
             )
             # Fallback for other exceptions
@@ -225,7 +227,7 @@ def create_searchable_pdf(input_file, add_header, merged=False):
         except Exception as e:
             full_error = traceback.format_exc()
             error_id = str(uuid.uuid4())[:7]
-            logger.error(
+            logger.exception(
                 _(
                     "Error processing image {input_file.name} in {error_id}: {full_error}"
                 )
@@ -261,7 +263,7 @@ def create_searchable_pdf(input_file, add_header, merged=False):
     except Exception as e:
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
-        logger.error(
+        logger.exception(
             _(
                 "Error running Azure's document intelligence API on in {error_id}: {full_error}"
             )
@@ -386,7 +388,9 @@ def create_searchable_pdf(input_file, add_header, merged=False):
     except Exception as e:
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
-        logger.error(_("Error creating PDF overlay after OCR {error_id}: {full_error}"))
+        logger.exception(
+            _("Error creating PDF overlay after OCR {error_id}: {full_error}")
+        )
         return {
             "error": True,
             "message": _(
@@ -426,7 +430,7 @@ def add_extracted_files(output_file, access_key):
         # pdf_bytes_content, txt_file_content, cost, input_name = result.get()
         if result.get("error"):
             # Handle the error case
-            logger.error(
+            logger.exception(
                 _(
                     "Task {task_id} failed with error: {result['message']} (Error ID: {result['error_id']})"
                 )
@@ -460,7 +464,7 @@ def add_extracted_files(output_file, access_key):
             result = process_ocr_document.AsyncResult(task_id).get()
             if result.get("error"):
                 # Handle the error case for individual tasks
-                logger.error(
+                logger.exception(
                     _(
                         "Task {task_id} failed with error: {result['message']} (Error ID: {result['error_id']})"
                     )
@@ -488,7 +492,7 @@ def add_extracted_files(output_file, access_key):
                 for page in pdf_reader.pages:
                     merged_pdf_writer.add_page(page)
             except Exception as e:
-                logger.error(_("Failed to parse PDF from task {task_id}: {e}"))
+                logger.exception(_("Failed to parse PDF from task {task_id}: {e}"))
                 continue  # Skip this PDF and continue with others
 
             # Accumulate text content
@@ -499,7 +503,7 @@ def add_extracted_files(output_file, access_key):
         try:
             merged_pdf_writer.write(merged_pdf_bytes_io)
         except Exception as e:
-            logger.error(_("Failed to write merged PDF: {e}"))
+            logger.exception(_("Failed to write merged PDF: {e}"))
             output_file.status = "FAILURE"
             output_file.save(access_key=access_key)
             raise e
