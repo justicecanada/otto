@@ -20,6 +20,5 @@ def otto_version(request):
     return {
         "environment": environment,
         "otto_version": version_html,
-        "site_url": f"https://{settings.SITE_URL.netloc}",
         "load_test_enabled": cache.get("load_testing_enabled", False),
     }
