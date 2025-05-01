@@ -3734,5 +3734,9 @@
     "Users must respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto. For example, the license to use a document may restrict saving an electronic copy.": {
         "fr": "",
         "fr_auto": "Les utilisateurs doivent respecter toutes les restrictions légales ou contractuelles applicables qui peuvent s’appliquer au téléchargement de ces documents sur Otto. Par exemple, la licence d’utilisation d’un document peut restreindre l’enregistrement d’une copie électronique."
+    },
+    "Feedback and bug reporting is collected in-app through a feedback form. Please direct all other questions to the mailbox at <a href=\"mailto:otto@justice.gc.ca\">otto@justice.gc.ca</a>.": {
+        "fr": "",
+        "fr_auto": "Les commentaires et les rapports de bogues sont recueillis dans l’application par le biais d’un formulaire de rétroaction. Veuillez adresser toutes les autres questions à la boîte aux lettres à <a href=\"mailto:otto@justice.gc.ca\">otto@justice.gc.ca</a>."
     }
 }
