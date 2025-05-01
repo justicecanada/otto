@@ -1,66 +1,37 @@
 {% load i18n %}
-{% load chat_tags %}
-{% load static %}
 {% load rules %}
 {% has_perm "chat.edit_preset" user preset as can_edit_preset %}
-{% get_current_language as LANGUAGE_CODE %}
-<li class="card" data-default="{{ preset.default }}">
+
+<li class="card {{ preset.options.mode }}"
+    tabindex="0"
+    data-default="{{ preset.default }}">
   <div class="card-header align-items-center">
-    <div class="card-title my-auto text-truncate me-2 fw-semibold"
-         style="line-height: 1.25rem;
-                font-size: 0.875rem;
-                letter-spacing: -0.025rem"
-         title="{% if LANGUAGE_CODE == 'en' %} {% if preset.name_en %} {{ preset.name_en }} {% else %} {{ preset.name_fr }} {% endif %} {% else %} {% if preset.name_fr %} {{ preset.name_fr }} {% else %} {{ preset.name_en }} {% endif %} {% endif %}">
-      {% if LANGUAGE_CODE == 'en' %}
-        {% if preset.name_en %}
-          {{ preset.name_en }}
-        {% else %}
-          {{ preset.name_fr }}
-        {% endif %}
-      {% else %}
-        {% if preset.name_fr %}
-          {{ preset.name_fr }}
-        {% else %}
-          {{ preset.name_en }}
-        {% endif %}
-      {% endif %}
-    </div>
+    <h6 class="card-title my-auto text-truncate me-2"
+        title="{{ preset.name_auto }}">{{ preset.name_auto }}</h6>
     <div class="d-flex align-items-center">
-      {% include "chat/modals/presets/shared_icon.html" %}
-      <div id="default-button-{{ preset.id }}">{% include "chat/modals/presets/default_icon.html" %}</div>
-      {% include "chat/modals/presets/favourite.html" %}
+      {% if can_edit_preset %}
+        {% include "chat/modals/presets/edit_icon.html" %}
+      {% endif %}
+      {% include "chat/modals/presets/default_icon.html" %}
     </div>
   </div>
 
-  <div class="card-body pt-2"
-       style="line-height: 1.25rem;
-              font-size: 0.875rem">
-    <p class="preset-description card-text text-muted"
-       style="min-height: 4.5rem !important;
-              -webkit-box-orient: vertical !important;
-              display: -webkit-box !important;
-              -webkit-line-clamp: 4 !important;
-              overflow: hidden !important;
-              text-overflow: ellipsis !important;
-              white-space: normal !important">{% get_preset_description preset LANGUAGE_CODE %}</p>
-  </div>
-  <div class="card-footer">
-    <button type="button"
-            class="btn btn-light fw-semibold flex-grow-1"
-            data-bs-dismiss="modal"
-            hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
-            hx-target="#options-accordion">{% trans "Load" %}</button>
-    {% if can_edit_preset %}
-      <button type="button"
-              class="btn btn-light fw-semibold flex-grow-1"
-              hx-get="{% url 'chat:edit_preset' chat_id=chat_id preset_id=preset.id %}"
-              hx-target="#presets-modal-body"
-              hx-swap="innerHTML transition:true">{% trans "Edit" %}</button>
-    {% endif %}
+  <div class="card-body pt-2">
+    <div class="info-section">
+      {% include "chat/modals/presets/mode_badge.html" %}
+      {% include "chat/modals/presets/shared_icon.html" %}
+      {% include "chat/modals/presets/current_icon.html" %}
+    </div>
+
+    <p class="preset-description card-text">{{ preset.description_auto }}</p>
+
   </div>
 
+  <div class="visually-hidden">
+    <a class="preset-load-link"
+       data-bs-dismiss="modal"
+       href="#"
+       hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
+       hx-target="#options-accordion">{% trans "Load settings" %}</a>
+  </div>
 </li>
-
-{% block page_script %}
-  <script src="{% static 'chat/js/card.js' %}"></script>
-{% endblock %}

@@ -5,14 +5,14 @@
   <p class="text-muted mb-4">
     {% trans "Create a new preset to use your chat settings in other sessions or shared them with others." %}
   </p>
- 
+
   <button type="button"
           class="btn btn-sm btn-outline-dark"
           hx-get="{% url 'chat:open_preset_form' chat_id=chat_id %}"
           hx-target="#presets-modal-body"
-          hx-swap="innerHTML transition:true">
+          hx-swap="innerHTML">
     <i class="bi bi-floppy2-fill me-2"></i>
     {% trans "Create preset from current settings" %}
   </button>
- 
+
 </div>

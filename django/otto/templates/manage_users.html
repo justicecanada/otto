@@ -44,36 +44,63 @@
                   data-bs-toggle="modal"
                   data-bs-target="#bulkUploadModal">{% trans "Upload CSV" %}</button>
           <button type="button"
-                  class="btn btn-primary"
+                  class="btn btn-primary me-1"
                   hx-get="{% url 'manage_users_form' %}"
                   hx-target="#user-roles-form"
                   hx-indicator="#modal-spinner"
                   onclick="document.getElementById('user-roles-form').innerHTML='';"
                   data-bs-toggle="modal"
                   data-bs-target="#addUserModal">{% trans "Modify/add users" %}</button>
+          <div id="editDropdownMenu" class="dropdown me-1 d-none">
+            <button class="btn btn-outline-primary dropdown-toggle"
+                    type="button"
+                    id="dropdownMenuButton"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">{% trans "Selected users..." %}</button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <button class="dropdown-item" type="button" onclick="copyToClipboard()">{% trans "Copy all email addresses" %}</button>
+              </li>
+              <li>
+                <button class="dropdown-item"
+                        type="button"
+                        hx-get="{% url 'manage_users_form' %}"
+                        hx-vals='js:{"user_ids": getUserIds()}'
+                        hx-target="#user-roles-form"
+                        hx-indicator="#modal-spinner"
+                        onclick="document.getElementById('user-roles-form').innerHTML='';"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addUserModal"
+                        hx-swap="innerHTML">{% trans "Bulk edit roles" %}</button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
       <p class="fw-semibold">{% trans "Only displaying users with roles assigned." %}</p>
- 
+
       <!-- Bootstrap table of users -->
       <div class="table-responsive">
         <table class="table table-striped" id="users">
           <thead>
             <tr>
               {# <th>{% trans "Name" %}</th> #}
+              <th></th>
               <th>{% trans "UPN" %}</th>
               <th>{% trans "Last login" %}</th>
               <th>{% trans "Costs" %}</th>
               <th>{% trans "Roles" %}</th>
               <th>{% trans "Pilot" %}</th>
               <th>{% trans "Manage" %}</th>
+              <th class="d-none"></th>
             </tr>
           </thead>
           <tbody>
             {% for u in users %}
               <tr>
                 {# <th>{{ u.lastname_firstname }}</th> #}
+                <td></td>
                 <th>{{ u.upn }}</th>
                 <td>
                   {% comment %}ISO date is for sorting to work properly{% endcomment %}
@@ -106,6 +133,7 @@
                      data-bs-toggle="modal"
                      data-bs-target="#addUserModal">{% trans "Edit user" %}</a>
                 </td>
+                <td class="d-none">{{ u.id }}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -228,12 +256,5 @@
   <script src="{% static 'thirdparty/jquery3.7.1.min.js' %}"
           crossorigin="anonymous"></script>
   <script src="{% static 'thirdparty/datatables.min.js' %}"></script>
-  <script>
-  $(document).ready(function() {
-    let dataTableConfig = {
-      "paginate": false,
-    };
-    $('#users').DataTable(dataTableConfig);
-  });
-  </script>
+  <script src="{% static 'js/manageUsers.js' %}"></script>
 {% endblock %}

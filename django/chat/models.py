@@ -104,6 +104,8 @@ class ChatOptionsManager(models.Manager):
             copy_options(
                 chat.user.default_preset.options, new_options, chat.user, chat, mode
             )
+            chat.loaded_preset = chat.user.default_preset
+            chat.save()
         else:
             default_preset = Preset.objects.get_global_default()
             new_options = self.create()
@@ -246,7 +248,7 @@ class PresetManager(models.Manager):
             return self.get(english_default=True)
 
     def get_accessible_presets(self, user: User, language: str = None):
-        ordering = ["-default", "-favourite"]
+        ordering = ["-default"]
         if language:
             ordering.append(f"name_{language}")
 
@@ -257,11 +259,6 @@ class PresetManager(models.Manager):
         return (
             presets.distinct()
             .annotate(
-                favourite=Coalesce(
-                    Q(favourited_by__in=[user]),
-                    Value(False),
-                    output_field=BooleanField(),
-                ),
                 default=Coalesce(
                     Q(default_for__in=[user]),
                     Value(False),
@@ -338,9 +335,6 @@ class Preset(models.Model):
     accessible_to = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="accessible_presets"
     )
-    favourited_by = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="favourited_presets"
-    )
     is_deleted = models.BooleanField(default=False)
 
     sharing_option = models.CharField(
@@ -363,24 +357,6 @@ class Preset(models.Model):
     def global_default(self):
         return self.english_default or self.french_default
 
-    def toggle_favourite(self, user: User):
-        """Sets the favourite flag for the preset.
-        Returns True if the preset was added to the favourites, False if it was removed.
-        Raises ValueError if user is None.
-        """
-
-        if user:
-            try:
-                self.favourited_by.get(pk=user.id)
-                self.favourited_by.remove(user)
-                return False
-            except:
-                self.favourited_by.add(user)
-                return True
-        else:
-            logger.error("User must be set to set user default.")
-            raise ValueError("User must be set to set user default")
-
     def delete_preset(self, user: User):
         # TODO: Preset refactor: Delete preset if no other presets are using it
         if self.owner != user:
@@ -389,27 +365,25 @@ class Preset(models.Model):
         self.is_deleted = True
         self.save()
 
-    def get_description(self, language: str):
-        language = language.lower()
-        if language == "en":
-            return self.description_en if self.description_en else self.description_fr
+    @property
+    def description_auto(self):
+        request = get_request()
+        if request and request.LANGUAGE_CODE == "fr":
+            description = self.description_fr or self.description_en
         else:
-            return self.description_fr if self.description_fr else self.description_en
-
-    def set_as_user_default(self, user: User):
-        if user:
-            if user.default_preset == self:
-                user.default_preset = None
-            else:
-                user.default_preset = self
-            user.save()
-            return user.default_preset
-        else:
-            logger.error("User must be set to set user default.")
-            raise ValueError("User must be set to set user default")
+            description = self.description_en or self.description_fr
+        return description or _("No description available")
 
     def __str__(self):
         return f"Preset {self.id}: {self.name_en}"
+
+    @property
+    def name_auto(self):
+        request = get_request()
+        if request and request.LANGUAGE_CODE == "fr":
+            return self.name_fr or self.name_en
+        else:
+            return self.name_en or self.name_fr
 
 
 class Message(models.Model):
@@ -600,6 +574,8 @@ class ChatFile(models.Model):
     eof = models.BooleanField(default=False)
     # The text extracted from the file
     text = models.TextField(blank=True)
+    # The hash of the file provided by the client (for verification after full upload)
+    sha256_hash_from_client = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return f"File {self.id}: {self.filename}"

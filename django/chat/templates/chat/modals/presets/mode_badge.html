@@ -1,0 +1,12 @@
+{% load i18n %}
+
+{# Badge for the preset.options.mode #}
+{% if preset.options.mode == "qa" %}
+  <span class="badge preset-mode-badge qa">{% trans "Q&A" %}</span>
+{% elif preset.options.mode == "summarize" %}
+  <span class="badge preset-mode-badge summarize">{% trans "Summarize" %}</span>
+{% elif preset.options.mode == "translate" %}
+  <span class="badge preset-mode-badge translate">{% trans "Translate" %}</span>
+{% elif preset.options.mode == "chat" %}
+  <span class="badge preset-mode-badge chat">{% trans "Chat" %}</span>
+{% endif %}

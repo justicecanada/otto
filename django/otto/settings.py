@@ -98,10 +98,10 @@ AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
 
 DEFAULT_CHAT_MODEL = "gpt-4o-mini"
-DEFAULT_QA_MODEL = "gpt-4o-mini"
+DEFAULT_QA_MODEL = "o3-mini"
 DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
-DEFAULT_LAWS_MODEL = "gpt-4o"
+DEFAULT_LAWS_MODEL = "o3-mini"
 
 DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
 LIBRARY_RETENTION_DAYS = 30
@@ -525,3 +525,5 @@ ALLOWED_FETCH_URLS = [
     "canlii.org",
     "wikipedia.org",
 ]
+
+WARN_COST = 1.0

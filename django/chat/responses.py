@@ -27,15 +27,20 @@ from chat.utils import (
     combine_response_generators,
     combine_response_replacers,
     create_batches,
+    estimate_cost_of_request,
     get_source_titles,
     group_sources_into_docs,
     htmx_stream,
+    is_text_to_summarize,
     num_tokens_from_string,
     sort_by_max_score,
+    stream_to_replacer,
     summarize_long_text,
     url_to_text,
 )
 from librarian.models import DataSource, Document, Library
+from otto.models import Cost
+from otto.utils.common import cad_cost
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
@@ -51,9 +56,26 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
     """
     response_message = Message.objects.get(id=message_id)
+    skip_cost = request.GET.get("cost_approved", "false").lower() == "true"
+
     try:
         chat = response_message.chat
         mode = chat.options.mode
+
+        estimate_cost = estimate_cost_of_request(chat, response_message)
+        user_cost_this_month = cad_cost(
+            Cost.objects.get_user_cost_this_month(request.user)
+        )
+        this_month_max = request.user.this_month_max
+        if (estimate_cost + user_cost_this_month) >= this_month_max:
+            return cost_warning_response(
+                chat,
+                response_message,
+                estimate_cost,
+                over_budget=True,
+            )
+        elif (estimate_cost >= settings.WARN_COST) and not skip_cost:
+            return cost_warning_response(chat, response_message, estimate_cost)
 
         # For costing and logging. Contextvars are accessible anytime during the request
         # including in async functions (i.e. htmx_stream) and Celery tasks.
@@ -76,14 +98,44 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
         return error_response(chat, response_message, e)
 
 
+def cost_warning_response(chat, response_message, estimate_cost, over_budget=False):
+
+    formatted_cost = f"{estimate_cost:.2f}"
+    if over_budget:
+        cost_warning = _(
+            f"This request is estimated to cost ${formatted_cost}, which exceeds your remaining monthly budget. Please contact an Otto administrator or wait until the 1st for the limit to reset."
+        )
+    else:
+        cost_warning = _("This request could be expensive. Are you sure?")
+
+    cost_warning_buttons = render_to_string(
+        "chat/components/cost_warning_buttons.html",
+        {
+            "message_id": response_message.id,
+            "estimate_cost": formatted_cost,
+            "continue_button": not over_budget,
+        },
+    ).replace("\n", "")
+
+    llm = OttoLLM()
+
+    return StreamingHttpResponse(
+        streaming_content=htmx_stream(
+            chat,
+            response_message.id,
+            llm,
+            response_str=cost_warning,
+            cost_warning_buttons=cost_warning_buttons,
+        ),
+        content_type="text/event-stream",
+    )
+
+
 def chat_response(
     chat,
     response_message,
     switch_mode=False,
 ):
-
-    def is_text_to_summarize(message):
-        return message.mode == "summarize" and not message.is_bot
 
     system_prompt = current_time_prompt() + chat.options.chat_system_prompt
     chat_history = [ChatMessage(role=MessageRole.SYSTEM, content=system_prompt)]
@@ -169,26 +221,43 @@ def summarize_response(chat, response_message):
     model = chat.options.summarize_model
 
     llm = OttoLLM(model)
+    error_str = ""
 
     if len(files) > 0:
         titles = [file.filename for file in files]
         responses = []
         for file in files:
+            if cache.get(f"stop_response_{response_message.id}", False):
+                break
             if not file.text:
-                file.extract_text(pdf_method="default")
-            if not cache.get(f"stop_response_{response_message.id}", False):
-                responses.append(
-                    summarize_long_text(
-                        file.text,
-                        llm,
-                        summary_length,
-                        target_language,
-                        custom_summarize_prompt,
-                        gender_neutral,
-                        instructions,
+                try:
+                    file.extract_text(pdf_method="default")
+                except Exception as e:
+                    error_id = str(uuid.uuid4())[:7]
+                    error_str = _(
+                        "Error extracting text from file. Try copying and pasting the text."
                     )
+                    error_str += f" _({_('Error ID')}: {error_id})_"
+                    responses.append(stream_to_replacer([error_str]))
+                    logger.error(
+                        "Error extracting text from file",
+                        error_id=error_id,
+                        message_id=response_message.id,
+                        chat_id=chat.id,
+                        error=traceback.format_exc(),
+                    )
+                    continue
+            responses.append(
+                summarize_long_text(
+                    file.text,
+                    llm,
+                    summary_length,
+                    target_language,
+                    custom_summarize_prompt,
+                    gender_neutral,
+                    instructions,
                 )
-
+            )
         title_batches = create_batches(titles, batch_size)
         response_batches = create_batches(responses, batch_size)
         batch_generators = [
@@ -211,44 +280,47 @@ def summarize_response(chat, response_message):
             content_type="text/event-stream",
         )
     elif user_message.text == "":
-        summary = _("No text to summarize.")
+        error_str = _("No text to summarize.")
     else:
+        # Text input is a URL or plain text
         url_validator = URLValidator()
         try:
             url_validator(user_message.text)
             text_to_summarize = url_to_text(user_message.text)
+            # Check if response text is too short (most likely a website blocking Otto)
+            if len(text_to_summarize.split()) < 35:
+                error_str = _(
+                    "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here."
+                )
         except ValidationError:
             text_to_summarize = user_message.text
 
-        # Check if response text is too short (most likely a website blocking Otto)
-        if len(text_to_summarize.split()) < 35:
-            summary = _(
-                "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here."
-            )
-        else:
-            response = summarize_long_text(
-                text_to_summarize,
+    if error_str:
+        return StreamingHttpResponse(
+            streaming_content=htmx_stream(
+                chat,
+                response_message.id,
                 llm,
-                summary_length,
-                target_language,
-                custom_summarize_prompt,
-                gender_neutral,
-                instructions,
-            )
-            return StreamingHttpResponse(
-                streaming_content=htmx_stream(
-                    chat,
-                    response_message.id,
-                    llm,
-                    response_replacer=response,
-                ),
-                content_type="text/event-stream",
-            )
+                response_str=error_str,
+            ),
+            content_type="text/event-stream",
+        )
 
-    # This will only be reached in an error case
+    response = summarize_long_text(
+        text_to_summarize,
+        llm,
+        summary_length,
+        target_language,
+        custom_summarize_prompt,
+        gender_neutral,
+        instructions,
+    )
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
-            chat, response_message.id, llm, response_str=summary
+            chat,
+            response_message.id,
+            llm,
+            response_replacer=response,
         ),
         content_type="text/event-stream",
     )
@@ -365,6 +437,7 @@ def qa_response(chat, response_message, switch_mode=False):
         adding_url = False
 
     async def add_files_to_library():
+        message_created_at = response_message.date_created
         ds = chat.data_source
         processing_count = await sync_to_async(
             lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
@@ -379,15 +452,14 @@ def qa_response(chat, response_message, switch_mode=False):
                 lambda: ds.documents.filter(status__in=["INIT", "PROCESSING"]).count()
             )()
 
-        saved_files = [file.saved_file for file in files]
         error_documents = await sync_to_async(
             lambda: list(
-                ds.documents.filter(status="ERROR", saved_file__in=saved_files)
+                ds.documents.filter(status="ERROR", created_at__gt=message_created_at)
             )
         )()
         num_completed_documents = await sync_to_async(
             lambda: ds.documents.filter(
-                status="SUCCESS", saved_file__in=saved_files
+                status="SUCCESS", created_at__gt=message_created_at
             ).count()
         )()
         if error_documents:
@@ -402,7 +474,7 @@ def qa_response(chat, response_message, switch_mode=False):
         elif adding_url:
             yield _("URL ready for Q&A.")
         else:
-            yield f"{len(files)} " + _("new document(s) ready for Q&A.")
+            yield f"{num_completed_documents} " + _("new document(s) ready for Q&A.")
 
     if len(files) > 0 or adding_url:
         for file in files:

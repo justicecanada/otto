@@ -1,8 +1,10 @@
 import asyncio
 import html
 import json
+import os
 import re
 import sys
+from decimal import Decimal
 from itertools import groupby
 from typing import AsyncGenerator, Generator
 
@@ -28,9 +30,9 @@ from structlog.contextvars import bind_contextvars
 from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, Message
-from chat.prompts import QA_PRUNING_INSTRUCTIONS
-from otto.models import SecurityLabel
-from otto.utils.common import display_cad_cost
+from chat.prompts import QA_PRUNING_INSTRUCTIONS, current_time_prompt
+from otto.models import CostType, SecurityLabel
+from otto.utils.common import cad_cost, display_cad_cost
 
 logger = get_logger(__name__)
 # Markdown instance
@@ -82,8 +84,13 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
 
 def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
     """Returns the number of tokens in a text string."""
-    encoding = tiktoken.encoding_for_model(model)
-    num_tokens = len(encoding.encode(string))
+    string = string or ""
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+        num_tokens = len(encoding.encode(string))
+    except:
+        # Estimate the number of tokens using a simple heuristic (1 token = 4 chars)
+        num_tokens = len(string) // 4
     return num_tokens
 
 
@@ -167,6 +174,7 @@ async def htmx_stream(
     source_nodes: list = [],
     switch_mode: bool = False,
     remove_stop: bool = False,
+    cost_warning_buttons: str = None,
 ) -> AsyncGenerator:
     """
     Formats responses into HTTP Server-Sent Events (SSE) for HTMX streaming.
@@ -190,7 +198,11 @@ async def htmx_stream(
 
     # Helper function to format a string as an SSE message
     def sse_string(
-        message: str, wrap_markdown=True, dots=False, remove_stop=False
+        message: str,
+        wrap_markdown=True,
+        dots=False,
+        remove_stop=False,
+        cost_warning_buttons=None,
     ) -> str:
         sse_joiner = "\ndata: "
         if wrap_markdown:
@@ -199,6 +211,11 @@ async def htmx_stream(
             message += dots
         out_string = "data: "
         out_string += sse_joiner.join(message.split("\n"))
+
+        if cost_warning_buttons:
+            # Render the form template asynchronously
+            out_string += cost_warning_buttons
+
         if remove_stop:
             out_string += "<div hx-swap-oob='true' id='stop-button'></div>"
         out_string += "\n\n"  # End of SSE message
@@ -219,7 +236,6 @@ async def htmx_stream(
     if switch_mode:
         mode = chat.options.mode
         mode_str = {"qa": _("Q&A"), "chat": _("Chat")}[mode]
-
     try:
         if response_generator:
             response_replacer = stream_to_replacer(response_generator)
@@ -282,7 +298,12 @@ async def htmx_stream(
         # yield sse_string(
         #     full_message, wrap_markdown=False, dots=False, remove_stop=True
         # )
-        yield sse_string(full_message, wrap_markdown, dots=False, remove_stop=True)
+        yield sse_string(
+            full_message,
+            wrap_markdown,
+            dots=False,
+            remove_stop=True,
+        )
         await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
@@ -331,6 +352,7 @@ async def htmx_stream(
         ),
         wrap_markdown=False,
         remove_stop=True,
+        cost_warning_buttons=cost_warning_buttons,
     )
 
 
@@ -959,3 +981,185 @@ def get_chat_history_sections(user_chats):
         chat_history_sections[section_index]["chats"].append(user_chat)
 
     return chat_history_sections
+
+
+def is_text_to_summarize(message):
+    return message.mode == "summarize" and not message.is_bot
+
+
+def estimate_cost_of_string(text, cost_type):
+    if cost_type.startswith("translate-"):
+        count = len(text)
+    else:
+        # we estimate every 4 characters as 1 token
+        count = len(text) // 4
+
+    cost_type = CostType.objects.get(short_name=cost_type)
+    usd_cost = (count * cost_type.unit_cost) / cost_type.unit_quantity
+
+    return usd_cost
+
+
+def estimate_cost_of_request(chat, response_message, response_estimation_count=512):
+    user_message_text = response_message.parent.text
+    model = chat.options.chat_model
+    mode = chat.options.mode
+    cost_type = model + "-in"
+
+    # estimate the cost of the user message
+    cost = estimate_cost_of_string(
+        user_message_text,
+        "translate-text" if mode == "translate" else model + "-in",
+    )
+
+    # estimate the cost of the documents
+    if mode == "qa":
+        model = chat.options.qa_model
+
+        # gather the documents
+        if chat.options.qa_scope == "documents":
+            docs = chat.options.qa_documents.all()
+        else:
+            if chat.options.qa_scope == "all":
+                data_sources = chat.options.qa_library.sorted_data_sources
+            else:
+                data_sources = chat.options.qa_data_sources
+            docs = [
+                doc
+                for data_source in data_sources.all()
+                for doc in data_source.documents.all()
+            ]
+
+        # estimate number of chunks if in rag mode, else estimate the cost of the texts
+        if chat.options.qa_mode == "rag":
+            total_chunks_of_library = 0
+            for doc in docs:
+                if doc.num_chunks is not None:
+                    total_chunks_of_library += doc.num_chunks
+                else:
+                    continue
+            chunk_count = min(total_chunks_of_library, chat.options.qa_topk)
+            count = 768 * chunk_count
+            cost_type = CostType.objects.get(short_name=model + "-in")
+            cost += (count * cost_type.unit_cost) / cost_type.unit_quantity
+        else:
+            for doc in docs:
+                if doc.extracted_text is not None:
+                    cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
+
+    elif mode == "summarize" or mode == "translate":
+        model = chat.options.summarize_model
+        for file in response_message.parent.sorted_files.all():
+            if not file.text:
+                try:
+                    file.extract_text(pdf_method="default")
+                    cost += estimate_cost_of_string(
+                        file.text,
+                        "translate-file" if mode == "translate" else model + "-in",
+                    )
+                except:
+                    continue
+
+    elif mode == "chat":
+
+        system_prompt = current_time_prompt() + chat.options.chat_system_prompt
+        history_text = system_prompt
+        for message in chat.messages.all():
+            if not is_text_to_summarize(message):
+                history_text += message.text
+            else:
+                history_text += "<text to summarize...>"
+
+        cost += estimate_cost_of_string(history_text, model + "-in")
+
+    # estimate the cost of the response message
+    if mode != "translate":
+        cost_type = CostType.objects.get(short_name=model + "-out")
+        cost += (
+            response_estimation_count * cost_type.unit_cost
+        ) / cost_type.unit_quantity
+
+        # testing has shown that for modes that are not translations, the estimation is 20% below
+        cost = cost + (cost * Decimal("0.2"))
+    return cad_cost(cost)
+
+
+def reassemble_chunks(file_obj):
+    """
+    Reassembles saved temporary chunk files into the final saved file.
+    Uses a Redis-backed lock for process safety.
+    """
+    lock_key = f"assemble_{file_obj.id}"
+    lock_acquired = cache.add(lock_key, "locked", timeout=60)
+    if not lock_acquired:
+        logger.info(
+            "Assembly already in progress for file %s. Skipping duplicate assembly.",
+            file_obj.id,
+        )
+        return
+
+    try:
+        temp_dir = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp", str(file_obj.id))
+        if not os.path.exists(temp_dir):
+            logger.info("Temporary directory for file %s does not exist.", file_obj.id)
+            return
+
+        chunk_files = os.listdir(temp_dir)
+        if not chunk_files:
+            logger.info(
+                "No chunk files found in temp directory for file %s.", file_obj.id
+            )
+            return
+
+        # Sort numerically
+        chunk_files.sort(
+            key=lambda name: int(name.replace("chunk_", "").replace(".tmp", ""))
+        )
+        logger.debug("Sorted chunks for file %s: %s", file_obj.id, chunk_files)
+
+        # Log details about each chunk
+        for chunk_filename in chunk_files:
+            chunk_path = os.path.join(temp_dir, chunk_filename)
+            size = os.path.getsize(chunk_path)
+            logger.debug("Chunk %s: size %d bytes", chunk_filename, size)
+
+        # Assemble the file: start with the first chunk
+        first_chunk_path = os.path.join(temp_dir, chunk_files[0])
+        with open(first_chunk_path, "rb") as chunk_file:
+            file_obj.saved_file.file.save(file_obj.filename, chunk_file)
+        logger.debug("Saved first chunk for file_obj %s", file_obj.id)
+
+        # Append subsequent chunks
+        if len(chunk_files) > 1:
+            for chunk_filename in chunk_files[1:]:
+                chunk_path = os.path.join(temp_dir, chunk_filename)
+                with open(chunk_path, "rb") as chunk_file:
+                    with open(file_obj.saved_file.file.path, "ab+") as f:
+                        data = chunk_file.read()
+                        f.write(data)
+                        f.flush()  # Ensure data is flushed to disk
+                logger.debug(
+                    "Appended chunk %s for file_obj %s", chunk_filename, file_obj.id
+                )
+
+        # Generate and check hash
+        file_obj.saved_file.generate_hash()
+        if file_obj.saved_file.sha256_hash != file_obj.sha256_hash_from_client:
+            logger.error(
+                "Hash mismatch for file %s: %s != %s",
+                file_obj.id,
+                file_obj.saved_file.sha256_hash,
+                file_obj.sha256_hash_from_client,
+            )
+        else:
+            logger.info("File %s reassembled successfully.", file_obj.id)
+
+        # Cleanup temporary chunks
+        for chunk_filename in chunk_files:
+            os.remove(os.path.join(temp_dir, chunk_filename))
+        os.rmdir(temp_dir)
+
+    except Exception as e:
+        logger.error("Error during chunk assembly for file %s: %s", file_obj.id, str(e))
+    finally:
+        cache.delete(lock_key)

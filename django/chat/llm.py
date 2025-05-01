@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.translation import gettext as _
 
 import sqlalchemy
 import tiktoken
@@ -149,6 +150,7 @@ class OttoLLM:
                 yield response_text
         except Exception as e:
             logger.error(f"Error in tree_summarize: {e}")
+            yield _(f"Error: {e}")
 
     # Token counting / cost tracking
     @property

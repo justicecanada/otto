@@ -34,7 +34,7 @@
         <a href="{% url 'laws:index' %}" class="text-decoration-none text-body">{% trans "Legislation Search" %}</a>
       </h2>
       <p class="mx-4 mb-4">
-        {% trans "Find relevant sections of acts and regulations using natural language similarity search." %}
+        {% trans "Search acts and regulations using natural language. Find relevant sections of laws." %}
       </p>
       <ul class="nav nav-tabs px-3 border-bottom-0">
         <li class="nav-item">
@@ -87,6 +87,6 @@
 
   <script src="{% static 'laws/law_search.js' %}"></script>
 
-  <link rel="stylesheet" href="{% static 'thirdparty/css/highlightjs.css' %}">
+  <link rel="stylesheet" href="{% static 'chat/css/highlightjs.css' %}">
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
 {% endblock %}

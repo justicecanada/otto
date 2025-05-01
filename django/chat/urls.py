@@ -37,6 +37,11 @@ urlpatterns = [
         name="stop_response",
     ),
     path(
+        "message/<int:message_id>/response/cost_warning/",
+        views.cost_warning,
+        name="cost_warning",
+    ),
+    path(
         "message/<int:message_id>/sources/",
         views.message_sources,
         name="message_sources",
@@ -89,11 +94,6 @@ urlpatterns = [
         "id/<str:chat_id>/options/presets/",
         views.get_presets,
         name="get_presets",
-    ),
-    path(
-        "presets/<str:preset_id>/favourite/",
-        views.set_preset_favourite,
-        name="set_preset_favourite",
     ),
     path(
         "id/<str:chat_id>/options/presets/<str:preset_id>/edit/",
