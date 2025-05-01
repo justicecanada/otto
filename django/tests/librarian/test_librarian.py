@@ -571,7 +571,8 @@ def test_email_library_admins(client, all_apps_user):
     response = client.get(reverse("librarian:email_library_admins", args=[library.id]))
     assert response.status_code == 200
     assert "Otto" in response.content.decode()
-    assert "mailto:otto@justice.gc.ca" in response.content.decode()
+    # TODO: add otto email address
+    assert "mailto:todo" in response.content.decode()
 
     # Set user as an admin on the library
     from librarian.models import LibraryUserRole
@@ -582,4 +583,5 @@ def test_email_library_admins(client, all_apps_user):
     assert response.status_code == 200
     assert "Otto" in response.content.decode()
     assert f"mailto:{user.email}" in response.content.decode()
-    assert f"cc=otto@justice.gc.ca" in response.content.decode()
+    # TODO: add otto email address
+    assert f"cc=todo" in response.content.decode()

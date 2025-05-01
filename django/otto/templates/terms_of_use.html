@@ -5,7 +5,7 @@
 {% get_current_language as LANGUAGE_CODE %}
 
 {% block body %}
- 
+
   <!-- Title -->
   <div class="mb-5 mx-5">
     <h2 class="mb-3">{% trans "Terms of use for Otto Protected B Pilot" %}</h2>
@@ -50,7 +50,8 @@
     </p>
     <p>
       {% trans "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. If this is not possible, contact the Otto team at the following email address to report a privacy issue:" %}
-      <a href="mailto:otto@justice.gc.ca">otto@justice.gc.ca</a>
+      {# TODO: add otto email address #}
+      <a href="mailto:"></a>
     </p>
     <h3 class="h4 mt-4">{% trans "Appropriate and inappropriate uses" %}</h3>
     <p>
@@ -122,7 +123,7 @@
     </p>
   </div>
 
- 
+
   {% if not request.user.accepted_terms_date %}
     <hr>
     <form method="post" id="accessRequestForm" class="mx-5">

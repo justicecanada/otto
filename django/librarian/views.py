@@ -549,7 +549,8 @@ def document_text(request, document_id):
 
 
 def email_library_admins(request, library_id):
-    otto_email = "otto@justice.gc.ca"
+    # TODO: add otto email address
+    otto_email = "todo"
     library = get_object_or_404(Library, pk=library_id)
     library_admin_emails = list(
         LibraryUserRole.objects.filter(library=library, role="admin").values_list(
