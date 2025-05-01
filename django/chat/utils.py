@@ -322,10 +322,16 @@ async def htmx_stream(
         message = await sync_to_async(Message.objects.get)(id=message_id)
         full_message = _("An error occurred.")
         error_id = str(uuid.uuid4())[:7]
-        if full_message:
-            full_message += f"\n\n```\n{full_message}\n```\n\n"
+        full_message += f"\n\n```\n{full_message}\n```\n\n"
         full_message += f" _({_('Error ID')}: {error_id})_"
-        traceback.print_exc()
+        logger.error(
+            "Error processing chat response",
+            error_id=error_id,
+            message_id=message.id,
+            chat_id=chat.id,
+            error=traceback.format_exc(),
+        )
+        # traceback.print_exc()
         message.text = full_message
         await sync_to_async(message.save)()
         message.text = wrap_llm_response(full_message)
