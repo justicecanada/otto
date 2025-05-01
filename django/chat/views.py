@@ -291,14 +291,6 @@ def chat_message(request, chat_id):
         entered_url = True
         allowed_url = check_url_allowed(user_message_text)
     except ValidationError:
-        full_error = traceback.format_exc()
-        error_id = str(uuid.uuid4())[:7]
-        logger.error(
-            f"Validation error in user message:",
-            chat_id=chat_id,
-            error_id=error_id,
-            error=full_error,
-        )
         pass
 
     user_message = Message.objects.create(
@@ -501,7 +493,7 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         message.feedback = message.get_toggled_feedback(feedback)
         message.save()
     except Exception as e:
-        # TODO: handle error
+        # TODO: handle error, SHOW TO USER?
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
         logger.error(
@@ -932,6 +924,10 @@ def set_preset_default(request, chat_id: str, preset_id: int):
     except ValueError:
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
+        response_str = (
+            _("An error occurred while setting the default preset.")
+            + f" _({_('Error ID')}: {error_id})_"
+        )
         logger.error(
             f"Error setting default preset:",
             chat_id=chat_id,
@@ -939,9 +935,7 @@ def set_preset_default(request, chat_id: str, preset_id: int):
             error_id=error_id,
             error=full_error,
         )
-        messages.error(
-            request, _("An error occurred while setting the default preset.")
-        )
+        messages.error(request, response_str)
         return HttpResponse(status=500)
 
 

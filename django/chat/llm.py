@@ -2,6 +2,7 @@ import traceback
 import uuid
 
 from django.conf import settings
+from django.utils.translation import gettext as _
 
 import sqlalchemy
 import tiktoken
@@ -157,6 +158,10 @@ class OttoLLM:
                 f"Error in tree_summarize: {e}",
                 error_id=error_id,
                 full_error=full_error,
+            )
+            yield _(
+                f"An error occurred while summarizing the text. "
+                f"Error ID: {error_id}."
             )
 
     # Token counting / cost tracking

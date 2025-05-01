@@ -321,7 +321,16 @@ def translate_response(chat, response_message):
                 else:
                     yield await sync_to_async(file_msg)(response_message, len(files))
         except:
-            raise Exception(_("Error translating files."))
+            error_id = str(uuid.uuid4())[:7]
+            error_str = _("Error translating files.")
+            error_str += f" _({_('Error ID')}: {error_id})_"
+            logger.error(
+                "Error translating files",
+                error_id=error_id,
+                full_error=traceback.format_exc(),
+            )
+            yield error_str
+            # raise Exception(_("Error translating files."))
 
     if len(files) > 0:
         # Initiate the Celery task for translating each file with Azure
