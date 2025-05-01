@@ -5,7 +5,7 @@
 {% get_current_language as LANGUAGE_CODE %}
 
 {% block body %}
- 
+
   <!-- Title -->
   <div class="mb-5 mx-5">
     <h2 class="mb-3">{% trans "Terms of use for Otto Protected B Pilot" %}</h2>
@@ -16,113 +16,113 @@
       </p>
     {% endif %}
   </div>
-
-  <!-- Terms -->
+  <!-- Terms of Use -->
   <div class="mb-4 mx-5">
-    <h3 class="h4">{% trans "Participation in pilot activities" %}</h3>
+    <h2 class="h3 fw-bold">{% trans "Terms of use for Otto Protected B Pilot" %}</h2>
+
+    <!-- Participation in pilot activities -->
+    <h3 class="h4 mt-4">{% trans "Participation in pilot activities" %}</h3>
     <p>
       {% trans "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested." %}
     </p>
-    <h3 class="h4 mt-4">{% trans "Security, privacy and information management" %}</h3>
-    {% if environment == "prod" %}
-      <p>
-        {% trans "Otto is approved for up to and including Protected B information. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Additionally, when using Otto with clients’ legal information, employees must ensure the client is aware their information is being entered into an AI tool, understands the potential risks and advantages of the technology, and consents to the use of AI tools." %}
-      </p>
-      <p>
-        {% trans "Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information." %}
-      </p>
-      <p>
-        {% trans "You must not input any information classified above Protected B, either through uploads or direct text input." %}
-      </p>
-    {% else %}
-      <p class="fw-bold">{% trans "This is a development / testing environment. Use unclassified information only." %}</p>
-    {% endif %}
+
+    <!-- Inappropriate uses and limitations of Otto -->
+    <h3 class="h4 mt-4">{% trans "Inappropriate uses and limitations of Otto" %}</h3>
     <p>
-      {% trans "Limit documents that you upload to Otto only to those you need to perform your tasks. Share document libraries and chats only with those who require access. Avoid uploading personal information except as needed for specific tasks, and actively delete classified or personal information when it is no longer needed." %}
-    </p>
-    {% if environment == "prod" %}
-      <p>
-        {% trans "In the AI assistant, apply security classification labels to chats and document libraries when they contain classified and/or personal information." %}
-      </p>
-    {% endif %}
-    <p>
-      {% trans "In the AI assistant, document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted." %}
+      {% trans "You must read and follow the notices within these Terms of Use and in the notices within Otto tools." %}
     </p>
     <p>
-      {% trans "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. If this is not possible, contact the Otto team at the following email address to report a privacy issue:" %}
-      <a href="mailto:otto@justice.gc.ca">otto@justice.gc.ca</a>
-    </p>
-    <h3 class="h4 mt-4">{% trans "Appropriate and inappropriate uses" %}</h3>
-    <p>
-      {% trans "Read and follow the notices within Otto tools like the AI assistant. Certain tools such as the Chat mode should not be trusted to provide factual information. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library." %}
+      {% trans "AI Assistant's Chat mode should not be trusted to provide factual information, as it is more prone to hallucination and bias in the output. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library." %}
     </p>
     <p>
-      {% trans "Otto may not be used for automated decision-making. Do not use it for administrative decisions affecting individuals." %}
+      {% trans "Otto may not be used to automate decision-making (administrative decisions affecting the rights, privileges or interests of individuals). Examples of decision-making include many human resources activities or program or funding decisions. Otto should not be used as a tool for decision-makers, nor to automate steps needed to make decisions. The use of AI for activities related to or impacting decision-making raises several legal and policy issues which are not detailed here or in other Otto documentation." %}
     </p>
     <p>
-      {% trans "Otto is not a substitute for professional legal advice. Avoid using it for decisions with legal implications." %}
+      {% trans "The AI Assistant does not connect to legal databases like Westlaw, Lexis, CanLII or Justipedia. It should not be used for searching for legislation, case law, opinions, etc. Only the Legislation Search tool should be used for questions about Canadian federal laws." %}
     </p>
     <p>
-      {% trans "Otto does not connect to legal databases like Westlaw, Lexis or CanLII. It should not be used for legal research of case law." %}
-      {% trans "Only the Legislation Search tool can be trusted for questions about Canadian federal laws." %}
+      {% trans "Otto is not a substitute for professional legal advice. Legal professionals must analyze and understand the unique complexities of client matters, exercise professional judgment, and provide tailored strategic advice." %}
     </p>
-    <p>{% trans "Translations should undergo human review prior to use in a legal or official capacity." %}</p>
+    <p>
+      {% trans "For examples of appropriate use cases, please see the " %}
+      <a href="https://013gc.sharepoint.com/:w:/s/BACentre598/EYaR0HtJ_YFEpsBTt5BQ2IUBhWWGuFtuGRJpLbmfoXrjbA"
+         target="_blank">{% trans "Otto user guide." %}</a>
+    </p>
+
+    <!-- Security and privacy -->
+    <h3 class="h4 mt-4">{% trans "Security and privacy" %}</h3>
+    <p>
+      {% trans "Otto is approved for information up to and including Protected B. This normally includes information subject to solicitor-client privilege. Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information that are considered Protected B. In such cases, the use of Otto should be considered on a case-by-case basis." %}
+    </p>
+    <p>{% trans "You must not input any information above Protected B, either through uploads or direct text input." %}</p>
+    <p>
+      {% trans "Apply security classification labels to chats and document libraries when they contain Protected and/or personal information." %}
+    </p>
+    <p>
+      {% trans "Avoid uploading personal information except as needed for specific tasks. Share document libraries and chats only with those who require access (i.e. need to know if personal information is included)." %}
+    </p>
+    <p>
+      {% trans "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. To report other privacy or security issues, email the Otto team at" %}
+      <a href="mailto:otto@justice.gc.ca">otto@justice.gc.ca</a>.
+    </p>
+    <p>{% trans "For more information, please review the following:" %}</p>
+    <ul>
+      <li>
+        <a href="https://jusnet.justice.gc.ca/eng/about-apropos/pdsg-pdwl/ohs-sst/icpg-gcpr/index.html"
+           target="_blank">{% trans "Handling and Safeguarding Sensitive Information" %}</a>
+      </li>
+      <li>
+        <a href="https://jusnet.justice.gc.ca/eng/about-apropos/pdsg-pdwl/atip-aiprp/proto/proto.html"
+           target="_blank">{% trans "Privacy protocol for non-administrative purposes - JUSnet" %}</a>
+      </li>
+    </ul>
+
+    <!-- Information management -->
+    <h3 class="h4 mt-4">{% trans "Information management" %}</h3>
+    <p>{% trans "Otto is for transitory information only. It is not a repository for information of business value." %}</p>
+    <p>{% trans "Only upload to Otto the documents you need to perform your tasks." %}</p>
+    <p>
+      {% trans "When working with documents obtained from third parties, respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto." %}
+    </p>
+    <p>
+      {% trans "Actively delete protected or personal information when it is no longer needed. Document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted." %}
+    </p>
+    <p>{% trans "For more information, please review the following:" %}</p>
+    <ul>
+      <li>
+        <a href="https://collaboration.justice.gc.ca/co/im-gi/Shared%20Documents/Information%20of%20Business%20Value%20vs%20Transitory%20Information%20-%20Information%20Management%20(IM)%20Guidelines.aspx"
+           target="_blank">
+          {% trans "Information of Business Value vs Transitory Information - Information Management (IM) Guidelines" %}
+        </a>
+      </li>
+    </ul>
+
+    <!-- Responsible and ethical use of AI -->
     <h3 class="h4 mt-4">{% trans "Responsible and ethical use of AI" %}</h3>
     <p>
       {% trans "Follow policies and best practices for the responsible use of AI. Refer to and follow the guidance in the following policy documents:" %}
     </p>
     <ul>
-      {% if LANGUAGE_CODE == "en" %}
-        <li>
-          <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/guide-use-generative-ai.html"
-             target="_blank">Guide on the use of generative artificial intelligence - Canada.ca</a>
-        </li>
-        <li>
-          <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/generative-ai-your-daily-work.html"
-             target="_blank">Generative AI in your daily work - Canada.ca</a>
-        </li>
-        <li>
-          <a href="https://jusnet.justice.gc.ca/eng/about-apropos/pdsg-pdwl/atip-aiprp/proto/proto.html"
-             target="_blank">Privacy protocol for non-administrative purposes - JUSnet</a>
-        </li>
-      {% else %}
-        <li>
-          <a href="https://www.canada.ca/fr/gouvernement/systeme/gouvernement-numerique/innovations-gouvernementales-numeriques/utilisation-responsable-ai/guide-utilisation-intelligence-artificielle-generative.html"
-             target="_blank">Guide sur l’utilisation de l’intelligence artificielle générative - Canada.ca</a>
-        </li>
-        <li>
-          <a href="https://www.canada.ca/fr/gouvernement/systeme/gouvernement-numerique/innovations-gouvernementales-numeriques/utilisation-responsable-ai/ia-generative-votre-travail-quotidien.html"
-             target="_blank">L’IA générative dans votre travail au quotidien - Canada.ca</a>
-        </li>
-        <li>
-          <a href="https://jusnet.justice.gc.ca/fra/apropos-about/pdwl-pdsg/aiprp-atip/proto/proto.html"
-             target="_blank">Protocole Relatif à la Protection Des Renseignements Personnels Utilisés à Des Fins Non Administratives - JUSnet</a>
-        </li>
-      {% endif %}
       <li>
-        <a href="https://013gc.sharepoint.com/:w:/r/sites/BACentre598/Shared%20Documents/General/Data%20Strategy/Data%20Governance/AIDGC/3.%20Decks%20%26%20Other%20Documents%20for%20Presentation/Justice%20Gen%20AI%20Guidelines%20-%20Current%20Draft.docx?d=wadd3ae7b485b4ee3b307c85738a441a0&csf=1&web=1&e=ZJYcxh"
-           target="_blank">{% trans "Justice Generative AI Guidelines - Current Draft" %}</a>
-        {% if LANGUAGE_CODE != "en" %}(anglais seulement; traduction en cours){% endif %}
+        <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/guide-use-generative-ai.html"
+           target="_blank">{% trans "Guide on the use of generative artificial intelligence - Canada.ca" %}</a>
+      </li>
+      <li>
+        <a href="https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/generative-ai-your-daily-work.html"
+           target="_blank">{% trans "Generative AI in your daily work - Canada.ca" %}</a>
       </li>
     </ul>
     <p>
-      {% trans "You are encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, such as those catalogued by the University of Windsor and the Law Society of Alberta in the documents" %}
-      <a href="https://uwindsor-law.libguides.com/AI/Regulation"
-         target="_blank">{% trans "Artificial Intelligence Regulation" %}</a>
-      {% if LANGUAGE_CODE != "en" %}(anglais seulement){% endif %}
-      {% trans "and" %}
-      <a href="https://www.lawsociety.ab.ca/resource-centre/key-resources/professional-conduct/gen-ai-rules-of-engagement-for-canadian-lawyers/"
-         target="_blank">{% trans "Gen AI Rules of Engagement for Canadian Lawyers" %}</a>
-      {% if LANGUAGE_CODE != "en" %}(anglais seulement){% endif %}
-      {% trans "respectively." %}
+      {% trans "Legal professionals must consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, as well as guidance from law societies. You should endeavor to notify clients when AI tools are being used." %}
     </p>
     <p>{% trans "Always be aware that AI can make mistakes, even when you have provided it with documents." %}</p>
     <p class="fw-semibold">
-      {% trans "For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content." %}
+      {% trans "If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs. Citations provided in outputs from Otto can assist with this verification." %}
     </p>
   </div>
 
- 
+
+
   {% if not request.user.accepted_terms_date %}
     <hr>
     <form method="post" id="accessRequestForm" class="mx-5">

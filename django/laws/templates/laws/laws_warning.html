@@ -1,17 +1,31 @@
 {% load i18n %}
-<div class="alert alert-warning d-flex align-items-center mb-4"
-     role="alert">
-  <svg class="flex-shrink-0"
-       width="24"
-       height="24"
-       role="img"
-       aria-label="{% trans 'Warning:' %}">
-    <use xlink:href="#exclamation-triangle-fill" />
-  </svg>
-  <div class="px-3">
+<div class="alert alert-warning mb-4 mx-3" role="alert">
+  <div class="row">
+    <div class="col-auto pe-0">
+      <svg class="flex-shrink-0 bi me-2"
+           width="24"
+           height="24"
+           role="img"
+           aria-label='{% trans "Warning" %}:'>
+        <use xlink:href="#exclamation-triangle-fill"></use>
+      </svg>
+    </div>
+    <div class="col ps-1">
+      <h5 class="text-align-center mb-3">{% trans "Safe use of Legislation Search" %}</h5>
+    </div>
+  </div>
+  <div class="row">
+    <p>
+      <strong class="fw-semibold">{% trans "Not for legal advice:" %}</strong>
+      {% trans "Only humans can exercise the required professional judgement to critically analyze client matters and provide tailored strategic advice." %}
+    </p>
+    <p>
+      <strong class="fw-semibold">{% trans "Human review required:" %}</strong>
+      {% trans "AI can make mistakes. Verify the output if you intend to rely upon it." %}
+    </p>
     <p class="mb-0">
-      <strong>{% trans "Not for legal advice:" %}</strong>
-      {% trans "AI answers may contain mistakes, and are not a replacement for legal advice. Always review the relevant sections below the answer." %}
+      <strong class="fw-semibold">{% trans "Only federal legislation:" %}</strong>
+      {% trans "Case law and other legal sources are not included in this tool." %}
     </p>
   </div>
 </div>
