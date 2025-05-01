@@ -118,7 +118,7 @@ def cost_warning_response(chat, response_message, estimate_cost, over_budget=Fal
     ).replace("\n", "")
 
     llm = OttoLLM()
-    # This will only be reached in an error case
+
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
