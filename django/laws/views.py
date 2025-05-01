@@ -411,7 +411,6 @@ def search(request):
             sources = retriever.retrieve(query)
         except:
             sources = None
-            # logging info here
             logger.info(
                 "No sources found",
                 query=query,
@@ -455,13 +454,10 @@ def search(request):
             "disable_llm": True,
             "error": e,
         }
-        # logging error here
         full_error = traceback.format_exc()
-        error_id = str(uuid.uuid4())[:7]
         logger.error(
             f"Could not find sources for query {query}",
             query_uuid=query_uuid,
-            error_id=error_id,
             error=full_error,
         )
 

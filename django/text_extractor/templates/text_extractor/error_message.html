@@ -9,8 +9,11 @@
             margin: 0 auto">
   {% if error_message %}
     {{ error_message }}
+    {% if error_id %}
+      ({% trans "Error ID" %}: {{ error_id }})
+    {% endif %}
   {% else %}
-    {% trans "Sorry, we ran into an error." %}
+    {% trans "Sorry, we ran into an error. Error ID: %(error_id)s." %}
   {% endif %}
 </div>
 <script>

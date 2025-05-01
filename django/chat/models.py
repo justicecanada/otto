@@ -622,7 +622,4 @@ def message_post_save(sender, instance, **kwargs):
         )
     except Exception as e:
         full_error = traceback.format_exc()
-        error_id = str(uuid.uuid4())[:7]
-        logger.error(
-            f"Message post save error: {e}", error_id=error_id, full_error=full_error
-        )
+        logger.error(f"Message post save error: {e}", full_error=full_error)

@@ -110,10 +110,7 @@ def sync_users_with_entra():
         users = loop.run_until_complete(get_entra_users_async())
     except Exception as e:
         full_error = traceback.format_exc()
-        error_id = str(uuid.uuid4())[:7]
-        logger.exception(
-            f"Error trying to retrieve entra users: {error_id, full_error}"
-        )
+        logger.exception(f"Error trying to retrieve entra users: {full_error}")
     finally:
         loop.close()
 

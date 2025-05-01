@@ -520,6 +520,9 @@ def manage_users_upload(request):
                         error_id=error_id,
                         error=full_error,
                     )
+                    messages.error = (
+                        (request, _("Error processing row. Error ID: ") + error_id),
+                    )
 
         else:
             logger.info("No csv file found in the submitted form.")
