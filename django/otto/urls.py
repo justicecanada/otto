@@ -57,6 +57,7 @@ urlpatterns = [
     path("user_cost/", views.user_cost, name="user_cost"),
     path("extend_session/", views.extend_session, name="extend_session"),
     path("terms_of_use/", views.terms_of_use, name="terms_of_use"),
+    path("faqs/", views.faqs, name="faqs"),
     path(
         "user_management/mark_tour_completed/<str:tour_name>/",
         views.mark_tour_completed,
