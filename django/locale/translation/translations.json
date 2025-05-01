@@ -2432,7 +2432,7 @@
         "fr_auto": "Participation aux activités pilotes"
     },
     "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested.": {
-        "fr": "",
+        "fr": "Vous faites partie d’un groupe sélectionné « d'utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande.",
         "fr_auto": "Vous faites partie d’un groupe sélectionné d'«utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande."
     },
     "Security, privacy and information management": {
@@ -3447,6 +3447,14 @@
         "fr": "",
         "fr_auto": "GPT-4o (meilleure précision, coût 15x)"
     },
+    "Request cancelled.": {
+        "fr": "",
+        "fr_auto": "Demande annulée."
+    },
+    "Continue with ": {
+        "fr": "",
+        "fr_auto": "Continuer avec "
+    },
     "No description available": {
         "fr": "",
         "fr_auto": "Aucune description disponible"
@@ -3539,9 +3547,17 @@
         "fr": "",
         "fr_auto": "Partagé"
     },
+    "Continue at estimated cost ": {
+        "fr": "",
+        "fr_auto": "Continuer au coût estimatif "
+    },
     "AI can make mistakes. Verify the output if you intend to rely upon it.": {
         "fr": "",
         "fr_auto": "L’IA peut faire des erreurs. Vérifiez le résultat si vous avez l’intention de vous fier à lui."
+    },
+    "We estimated that this request might be expensive.": {
+        "fr": "",
+        "fr_auto": "Nous avons estimé que cette demande pourrait être coûteuse."
     },
     "Changes will overwrite properties of all selected users": {
         "fr": "",
@@ -3626,5 +3642,201 @@
     "Error ID: %(error_id)s - Failed to create PDF overlay after OCR.": {
         "fr": "",
         "fr_auto": "ID d’erreur :%(error_id)s - Impossible de créer une superposition PDF après l’OCR."
+    },
+    "This request is estimated to cost ${formatted_cost}, which exceeds your remaining monthly budget. Please contact an Otto administrator or wait until the 1st for the limit to reset.": {
+        "fr": "",
+        "fr_auto": "Le coût de cette demande est estimé à {formatted_cost} $, ce qui dépasse votre budget mensuel restant. Veuillez contacter un administrateur Otto ou attendre le 1er pour que la limite soit réinitialisée."
+    },
+    "Error: {e}": {
+        "fr": "",
+        "fr_auto": "Erreur : {e}"
+    },
+    "This request could be expensive. Are you sure?": {
+        "fr": "",
+        "fr_auto": "Cette demande pourrait être coûteuse. Es-tu certain?"
+    },
+    "Use with unclassified, Protected A or": {
+        "fr": "",
+        "fr_auto": "À utiliser avec des produits non classifiés, protégés A ou"
+    },
+    "Specific legislation may impose additional requirements pertaining to certain classes of sensitive information that are considered Protected B. In such cases, the use of Otto should be considered on a case-by-case basis.": {
+        "fr": "",
+        "fr_auto": "Une législation particulière peut imposer des exigences supplémentaires relatives à certaines catégories de renseignements sensibles qui sont considérées comme protégées B. Dans de tels cas, l’utilisation d’Otto doit être envisagée au cas par cas."
+    },
+    "information only.": {
+        "fr": "",
+        "fr_auto": "information seulement."
+    },
+    "Not for legal research:": {
+        "fr": "",
+        "fr_auto": "Pas pour la recherche juridique :"
+    },
+    "Does not connect to legal databases like Westlaw, Lexis, CanLII or Justipedia.": {
+        "fr": "",
+        "fr_auto": "Ne se connecte pas à des bases de données juridiques comme Westlaw, Lexis, CanLII ou Justipedia."
+    },
+    "Only legal professionals can critically analyze client matters and provide legal advice.": {
+        "fr": "",
+        "fr_auto": "Seuls les professionnels du droit peuvent analyser de manière critique les affaires des clients et fournir des conseils juridiques."
+    },
+    "Do not use for making or assisting in making": {
+        "fr": "",
+        "fr_auto": "Ne pas utiliser pour fabriquer ou aider à la fabrication"
+    },
+    "Administrative decisions are decisions affecting individuals, their rights, privileges or interests.": {
+        "fr": "",
+        "fr_auto": "Les décisions administratives sont des décisions touchant des personnes, leurs droits, privilèges ou intérêts."
+    },
+    "administrative decisions": {
+        "fr": "",
+        "fr_auto": "décisions administratives"
+    },
+    "Limit information shared. Chats and Q&A libraries are deleted after 30 days inactivity.": {
+        "fr": "",
+        "fr_auto": "Limitez l’information partagée. Les clavardages et les bibliothèques de questions et réponses sont supprimés après 30 jours d’inactivité."
+    },
+    "Chat mode is not suitable for factual research because it may hallucinate or provide biased outputs.": {
+        "fr": "",
+        "fr_auto": "Le mode clavardage ne convient pas à la recherche factuelle parce qu’il peut halluciner ou fournir des résultats biaisés."
+    },
+    "\n            <strong>Summarize</strong> uploaded documents. You can also paste long text or enter a URL for a web page.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Résumer</strong> les documents téléchargés. Vous pouvez également coller du texte long ou entrer une URL pour une page Web.\n          "
+    },
+    "Search acts and regulations using natural language. Find relevant sections of laws.": {
+        "fr": "",
+        "fr_auto": "Rechercher des lois et des règlements en langage naturel. Trouvez les articles pertinents des lois."
+    },
+    "Safe use of Legislation Search": {
+        "fr": "",
+        "fr_auto": "Utilisation sécuritaire de la législation Recherche"
+    },
+    "Only humans can exercise the required professional judgement to critically analyze client matters and provide tailored strategic advice.": {
+        "fr": "",
+        "fr_auto": "Seuls les humains peuvent exercer le jugement professionnel requis pour analyser de manière critique les questions des clients et fournir des conseils stratégiques personnalisés."
+    },
+    "Only federal legislation:": {
+        "fr": "",
+        "fr_auto": "Seule la législation fédérale :"
+    },
+    "Case law and other legal sources are not included in this tool.": {
+        "fr": "",
+        "fr_auto": "La jurisprudence et les autres sources juridiques ne sont pas incluses dans cet outil."
+    },
+    "Inappropriate uses and limitations of Otto": {
+        "fr": "",
+        "fr_auto": "Utilisations inappropriées et limites d’Otto"
+    },
+    "You must read and follow the notices within these Terms of Use and in the notices within Otto tools.": {
+        "fr": "",
+        "fr_auto": "Vous devez lire et suivre les avis contenus dans les présentes conditions d’utilisation et dans les avis contenus dans les outils Otto."
+    },
+    "AI Assistant's Chat mode should not be trusted to provide factual information, as it is more prone to hallucination and bias in the output. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.": {
+        "fr": "",
+        "fr_auto": "Il ne faut pas faire confiance au mode Chat de l’Assistant IA pour fournir des informations factuelles, car il est plus sujet aux hallucinations et aux biais dans la sortie. Utilisez plutôt les modes Questions et réponses et Résumé pour ancrer les réponses de l’IA dans des sources fiables telles que des documents que vous téléchargez ou une bibliothèque de documents partagée."
+    },
+    "Otto may not be used to automate decision-making (administrative decisions affecting the rights, privileges or interests of individuals). Examples of decision-making include many human resources activities or program or funding decisions. Otto should not be used as a tool for decision-makers, nor to automate steps needed to make decisions. The use of AI for activities related to or impacting decision-making raises several legal and policy issues which are not detailed here or in other Otto documentation.": {
+        "fr": "",
+        "fr_auto": "Otto ne peut pas être utilisé pour automatiser la prise de décisions (décisions administratives touchant les droits, les privilèges ou les intérêts des personnes). Parmi les exemples de prise de décisions, mentionnons de nombreuses activités de ressources humaines ou des décisions de programme ou de financement. Otto ne doit pas être utilisé comme un outil pour les décideurs, ni pour automatiser les étapes nécessaires à la prise de décisions. L’utilisation de l’IA pour des activités liées à la prise de décisions ou ayant une incidence sur la prise de décisions soulève plusieurs questions juridiques et politiques qui ne sont pas détaillées ici ou dans d’autres documents d’Otto."
+    },
+    "The AI Assistant does not connect to legal databases like Westlaw, Lexis, CanLII or Justipedia. It should not be used for searching for legislation, case law, opinions, etc. Only the Legislation Search tool should be used for questions about Canadian federal laws.": {
+        "fr": "",
+        "fr_auto": "L’assistant IA ne se connecte pas à des bases de données juridiques comme Westlaw, Lexis, CanLII ou Justipedia. Il ne devrait pas être utilisé pour rechercher des lois, de la jurisprudence, des opinions, etc. Seul l’outil de recherche de lois doit être utilisé pour les questions sur les lois fédérales canadiennes."
+    },
+    "Otto is not a substitute for professional legal advice. Legal professionals must analyze and understand the unique complexities of client matters, exercise professional judgment, and provide tailored strategic advice.": {
+        "fr": "",
+        "fr_auto": "Otto ne remplace pas les conseils juridiques professionnels. Les professionnels du droit doivent analyser et comprendre la complexité unique des affaires des clients, exercer un jugement professionnel et fournir des conseils stratégiques personnalisés."
+    },
+    "For examples of appropriate use cases, please see the ": {
+        "fr": "",
+        "fr_auto": "Pour des exemples de cas d’utilisation appropriés, veuillez consulter le "
+    },
+    "Otto user guide.": {
+        "fr": "",
+        "fr_auto": "Guide de l’utilisateur d’Otto."
+    },
+    "Security and privacy": {
+        "fr": "",
+        "fr_auto": "Sécurité et confidentialité"
+    },
+    "Otto is approved for information up to and including Protected B. This normally includes information subject to solicitor-client privilege. Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information that are considered Protected B. In such cases, the use of Otto should be considered on a case-by-case basis.": {
+        "fr": "",
+        "fr_auto": "Otto est approuvé pour l’information jusqu’à Protégé B. Cela comprend normalement les renseignements protégés par le secret professionnel de l’avocat. Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires relatives à certaines catégories de renseignements sensibles qui sont considérés comme protégés B. Dans de tels cas, l’utilisation d’Otto doit être envisagée au cas par cas."
+    },
+    "You must not input any information above Protected B, either through uploads or direct text input.": {
+        "fr": "",
+        "fr_auto": "Vous ne devez pas saisir d’informations au-dessus de Protégé B, que ce soit par téléchargement ou saisie directe de texte."
+    },
+    "Apply security classification labels to chats and document libraries when they contain Protected and/or personal information.": {
+        "fr": "",
+        "fr_auto": "Appliquez des étiquettes de classification de sécurité aux clavardages et aux bibliothèques de documents lorsqu’ils contiennent des renseignements protégés ou personnels."
+    },
+    "Avoid uploading personal information except as needed for specific tasks. Share document libraries and chats only with those who require access (i.e. need to know if personal information is included).": {
+        "fr": "",
+        "fr_auto": "Évitez de télécharger des renseignements personnels, sauf si cela est nécessaire pour des tâches spécifiques. Partagez les bibliothèques de documents et les clavardages uniquement avec les personnes qui ont besoin d’y accéder (c.-à-d. qui ont besoin de savoir si des renseignements personnels sont inclus)."
+    },
+    "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. To report other privacy or security issues, email the Otto team at": {
+        "fr": "",
+        "fr_auto": "Si des renseignements vous sont partagés par l’intermédiaire d’Otto auxquels vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un courriel aux auteurs ou aux administrateurs de la bibliothèque. Pour signaler d’autres problèmes de confidentialité ou de sécurité, envoyez un courriel à l’équipe d’Otto à l’adresse suivante :"
+    },
+    "For more information, please review the following:": {
+        "fr": "",
+        "fr_auto": "Pour plus d’informations, veuillez consulter les documents suivants :"
+    },
+    "Handling and Safeguarding Sensitive Information": {
+        "fr": "",
+        "fr_auto": "Traitement et protection des renseignements sensibles"
+    },
+    "Privacy protocol for non-administrative purposes - JUSnet": {
+        "fr": "",
+        "fr_auto": "Protocole de confidentialité à des fins non administratives - JUSnet"
+    },
+    "Information management": {
+        "fr": "",
+        "fr_auto": "Gestion de l’information"
+    },
+    "Otto is for transitory information only. It is not a repository for information of business value.": {
+        "fr": "",
+        "fr_auto": "Otto est à titre d’information transitoire seulement. Il ne s’agit pas d’un dépôt d’information à valeur opérationnelle."
+    },
+    "Only upload to Otto the documents you need to perform your tasks.": {
+        "fr": "",
+        "fr_auto": "Téléchargez uniquement sur Otto les documents dont vous avez besoin pour effectuer vos tâches."
+    },
+    "When working with documents obtained from third parties, respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto.": {
+        "fr": "",
+        "fr_auto": "Lorsque vous travaillez avec des documents obtenus de tiers, respectez toutes les restrictions légales ou contractuelles applicables qui peuvent s’appliquer au téléchargement de ces documents sur Otto."
+    },
+    "Actively delete protected or personal information when it is no longer needed. Document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted.": {
+        "fr": "",
+        "fr_auto": "Supprimez activement les renseignements protégés ou personnels lorsqu’ils ne sont plus nécessaires. Les bibliothèques de documents et les clavardages seront supprimés après 30 jours d’inactivité. Cela signifie que si vous n’ouvrez pas un chat pendant 30 jours, il sera automatiquement supprimé avec tous les fichiers téléchargés sur le chat. Pour les bibliothèques, si aucun changement n’a été apporté et qu’aucune requête de questions n’a été effectuée pendant 30 jours, la bibliothèque sera automatiquement supprimée."
+    },
+    "Information of Business Value vs Transitory Information - Information Management (IM) Guidelines": {
+        "fr": "",
+        "fr_auto": "Information à valeur opérationnelle par rapport à l’information transitoire - Lignes directrices sur la gestion de l’information (GI)"
+    },
+    "Guide on the use of generative artificial intelligence - Canada.ca": {
+        "fr": "",
+        "fr_auto": "Guide sur l’utilisation de l’intelligence artificielle générative - Canada.ca"
+    },
+    "Generative AI in your daily work - Canada.ca": {
+        "fr": "",
+        "fr_auto": "L’IA générative dans votre travail quotidien - Canada.ca"
+    },
+    "Legal professionals must consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, as well as guidance from law societies. You should endeavor to notify clients when AI tools are being used.": {
+        "fr": "",
+        "fr_auto": "Les professionnels du droit doivent consulter les directives et les avis des cours et des tribunaux concernant l’utilisation de l’intelligence artificielle, ainsi que les directives des ordres professionnels de juristes. Vous devez vous efforcer d’informer les clients lorsque des outils d’IA sont utilisés."
+    },
+    "If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs. Citations provided in outputs from Otto can assist with this verification.": {
+        "fr": "",
+        "fr_auto": "Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants. Les citations fournies dans les résultats d’Otto peuvent aider à cette vérification."
+    },
+    "Extract text and handwriting from scanned PDF and images with AI-enabled OCR.": {
+        "fr": "",
+        "fr_auto": "Extrayez du texte et de l’écriture manuscrite de PDF et d’images numérisés grâce à l’OCR activée par l’IA."
+    },
+    "Safe use of Text Extractor": {
+        "fr": "",
+        "fr_auto": "Utilisation sécuritaire de l’extracteur de texte"
     }
 }

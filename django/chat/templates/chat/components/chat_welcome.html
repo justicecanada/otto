@@ -23,7 +23,9 @@
             {% if environment == "prod" %}
               <p>
                 <strong>{% trans "Protected B approved:" %}</strong>
-                {% trans "Use with unclassified, Protected A or Protected B information only." %}
+                {% trans "Use with unclassified, Protected A or" %}
+                <abbr title="{% trans 'Specific legislation may impose additional requirements pertaining to certain classes of sensitive information that are considered Protected B. In such cases, the use of Otto should be considered on a case-by-case basis.' %}">{% trans "Protected B" %}</abbr>
+                {% trans "information only." %}
               </p>
             {% else %}
               <p>
@@ -36,16 +38,21 @@
               {% trans "AI can make mistakes. Verify the output if you intend to rely upon it." %}
             </p>
             <p>
-              <strong>{% trans "Not for legal advice or research:" %}</strong>
-              {% trans "Does not connect to legal databases like Westlaw, Lexis or CanLII." %}
+              <strong>{% trans "Not for legal research:" %}</strong>
+              {% trans "Does not connect to legal databases like Westlaw, Lexis, CanLII or Justipedia." %}
+            </p>
+            <p>
+              <strong>{% trans "Not for legal advice:" %}</strong>
+              {% trans "Only legal professionals can critically analyze client matters and provide legal advice." %}
             </p>
             <p>
               <strong>{% trans "Not for decision-making:" %}</strong>
-              {% trans "Do not use for legal decisions, administrative decisions affecting individuals, etc." %}
+              {% trans "Do not use for making or assisting in making" %}
+              <abbr title="{% trans 'Administrative decisions are decisions affecting individuals, their rights, privileges or interests.' %}">{% trans "administrative decisions" %}</abbr>.
             </p>
             <p class="mb-0">
               <strong>{% trans "Information management:" %}</strong>
-              {% trans "Limit information shared in chats and Q&A libraries (deleted after 30 days inactivity)." %}
+              {% trans "Limit information shared. Chats and Q&A libraries are deleted after 30 days inactivity." %}
             </p>
           </div>
         </div>
@@ -56,10 +63,12 @@
             <strong>Chat</strong> with a secure AI for brainstorming, writing assistance and text formatting.
           {% endblocktrans %}
         </p>
-        <p class="mb-0 option chat-option">{% trans "Chat mode is not suitable for factual research." %}</p>
+        <p class="mb-0 option chat-option">
+          {% trans "Chat mode is not suitable for factual research because it may hallucinate or provide biased outputs." %}
+        </p>
         <p class="option summarize-option">
           {% blocktrans %}
-            <strong>Summarize</strong> uploaded documents. You may also input free text or enter a URL for a web page.
+            <strong>Summarize</strong> uploaded documents. You can also paste long text or enter a URL for a web page.
           {% endblocktrans %}
         </p>
         <p class="mb-0 option summarize-option">

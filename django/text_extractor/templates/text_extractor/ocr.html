@@ -10,92 +10,102 @@
   <link rel="stylesheet" href="{% static 'text_extractor/style.css' %}">
 {% endblock %}
 
-{% block breadcrumb %}
-  {{ block.super }}
-  <li class="breadcrumb-item">
-    <a href="{% url 'text_extractor:index' %}">{% trans "Text Extractor" %}</a>
-  </li>
-{% endblock %}
-
 {% block content_container %}
-  <div class="container pt-5">
-    <form method="post"
-          enctype="multipart/form-data"
-          hx-post="{% url 'text_extractor:submit_document' %}"
-          hx-target="#completed_documents_body"
-          hx-swap="innerHTML"
-          id="submit_document_form"
-          hx-indicator="#spinner"
-          onsubmit="document.getElementById('submit').disabled = true;">
-      {% csrf_token %}
-      <h2 class="h3" id="upload-label">{% trans "Upload scanned PDFs or images" %}</h2>
-      <p class="text-secondary mb-4">{% trans "Maximum 2000 files / 300mb total" %}</p>
-      <div class="mb-4">
-        <input class="form-control"
-               id="file-upload-field"
-               name="file_upload"
-               type="file"
-               accept="{{ extensions }}"
-               hx-trigger="change"
-               hx-select="#submit"
-               aria-labelledby="upload-label"
-               multiple>
-        <div class="form-check d-none mt-3" id="merge_documents">
-          <input class="form-check-input border-secondary"
-                 type="checkbox"
-                 name="merge_docs_checkbox"
-                 id="merge_docs_checkbox">
-          <label class="form-check-label" for="merge_docs_checkbox">{% trans "Merge multiple files into one document" %}</label>
-        </div>
+  <div class="container py-3 px-0">
+    <h2 class="my-2 px-4">
+      <a href="{% url 'text_extractor:index' %}"
+         class="text-decoration-none text-body">{% trans "Text Extractor" %}</a>
+    </h2>
+    <p class="mb-4 mx-4">{% trans "Extract text and handwriting from scanned PDF and images with AI-enabled OCR." %}</p>
+    <div class="card">
+      <div class="card-body p-4">
+        <form method="post"
+              enctype="multipart/form-data"
+              hx-post="{% url 'text_extractor:submit_document' %}"
+              hx-target="#completed_documents_body"
+              hx-swap="innerHTML"
+              id="submit_document_form"
+              hx-indicator="#spinner"
+              onsubmit="document.getElementById('submit').disabled = true;">
+          {% csrf_token %}
+          <h3 class="h4" id="upload-label">{% trans "Upload scanned PDFs or images" %}</h3>
+          <p class="text-secondary mb-4">{% trans "Maximum 2000 files / 300mb total" %}</p>
+          <div class="mb-4">
+            <input class="form-control"
+                   id="file-upload-field"
+                   name="file_upload"
+                   type="file"
+                   accept="{{ extensions }}"
+                   hx-trigger="change"
+                   hx-select="#submit"
+                   aria-labelledby="upload-label"
+                   multiple>
+            <div class="form-check d-none mt-3" id="merge_documents">
+              <input class="form-check-input border-secondary"
+                     type="checkbox"
+                     name="merge_docs_checkbox"
+                     id="merge_docs_checkbox">
+              <label class="form-check-label" for="merge_docs_checkbox">{% trans "Merge multiple files into one document" %}</label>
+            </div>
+          </div>
+          <div class="row mb-1">
+            <div class="col-auto">
+              <button type="submit" class="btn btn-primary" id="submit" disabled="">{% trans "Submit" %}</button>
+            </div>
+            <div class="col" style="margin-top:2px;">
+              <div class="spinner text-primary" role="status" id="spinner">
+                <span class="visually-hidden">Loading...</span>
+                <span class="spinner-border" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
-      <div class="row mb-4">
-        <div class="col-auto">
-          <button type="submit" class="btn btn-primary" id="submit" disabled="">{% trans "Submit" %}</button>
-        </div>
-        <div class="col" style="margin-top:2px;">
-          <div class="spinner text-primary" role="status" id="spinner">
-            <span class="visually-hidden">Loading...</span>
-            <span class="spinner-border" aria-hidden="true"></span>
+    </div>
+
+    <div id="error_message" role="alert"></div>
+
+    <div id="completed-documents">
+      {% if not show_output %}
+        {# Initial warning message - cleared when form submitted #}
+        {% include "text_extractor/ocr_warning.html" %}
+      {% endif %}
+      <div class="card mt-4 {% if not show_output %}d-none{% endif %}"
+           aria-live="polite"
+           aria-atomic="true">
+        <div class="card-body p-4">
+          <div>
+            {# "Completed documents" also includes in-progress now that we're using celery #}
+            <h3 class="h4 mb-3">{% trans "Output documents" %}</h3>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col" width="50%">{% trans "Document name" %}</th>
+                  <th scope="col" width="20%">{% trans "Status" %}</th>
+                  <th scope="col" width="10%">{% trans "Cost" %}</th>
+                  <th scope="col" width="20%">
+                    {% trans "Downloads" %}
+                    <a class="ms-1 d-none fw-normal icon-link"
+                       id="download-all-files"
+                       type="button"
+                       href="#"
+                       onclick="downloadAllFiles();">
+                      <i class="bi bi-download h5"></i>
+                      {% trans "Download all files..." %}
+                    </a>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="completed_documents_body">
+                {% include 'text_extractor/completed_documents.html' %}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-    </form>
 
-    <div id="error_message" role="alert"></div>
- 
-    <div class="mt-5 {% if not show_output %}d-none{% endif %}"
-         id="completed-documents"
-         aria-live="polite"
-         aria-atomic="true">
-      <hr class="m-0">
-      {# "Completed documents" also includes in-progress now that we're using celery #}
-      <h2 class="h3 mt-4 pt-2 mb-3">{% trans "Output documents" %}</h2>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col" width="50%">{% trans "Document name" %}</th>
-            <th scope="col" width="20%">{% trans "Status" %}</th>
-            <th scope="col" width="10%">{% trans "Cost" %}</th>
-            <th scope="col" width="20%">
-              {% trans "Downloads" %}
-              <a class="ms-1 d-none fw-normal icon-link"
-                 id="download-all-files"
-                 type="button"
-                 href="#"
-                 onclick="downloadAllFiles();">
-                <i class="bi bi-download h5"></i>
-                {% trans "Download all files..." %}
-              </a>
-            </th>
-          </tr>
-        </thead>
-        <tbody id="completed_documents_body">
-          {% include 'text_extractor/completed_documents.html' %}
-        </tbody>
-      </table>
     </div>
   </div>
-
   <script>
 function downloadAllFiles() {
   const downloadLinks = document.querySelectorAll('td a.icon-link');
@@ -127,5 +137,11 @@ document.getElementById('file-upload-field').addEventListener('change', function
   // make sure the error button is removed
   document.getElementById('error_message').classList.add('d-none');
 });
+
+{% if not show_output %}
+  setTimeout(() => {
+    document.querySelector('#file-upload-field').focus();
+  }, 100);
+{% endif %}
   </script>
 {% endblock %}

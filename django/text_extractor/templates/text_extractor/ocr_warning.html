@@ -1,0 +1,36 @@
+{% load i18n %}
+<div class="alert alert-warning my-4 mx-3" role="alert" id="ocr-warning">
+  <div class="row">
+    <div class="col-auto pe-0">
+      <svg class="flex-shrink-0 bi me-2"
+           width="24"
+           height="24"
+           role="img"
+           aria-label='{% trans "Warning" %}:'>
+        <use xlink:href="#exclamation-triangle-fill"></use>
+      </svg>
+    </div>
+    <div class="col ps-1">
+      <h5 class="text-align-center mb-3">{% trans "Safe use of Text Extractor" %}</h5>
+    </div>
+  </div>
+  <div class="row">
+    {% if environment == "prod" %}
+      <p>
+        <strong class="fw-semibold">{% trans "Protected B approved:" %}</strong>
+        {% trans "Use with unclassified, Protected A or" %}
+        <abbr title="{% trans 'Specific legislation may impose additional requirements pertaining to certain classes of sensitive information that are considered Protected B. In such cases, the use of Otto should be considered on a case-by-case basis.' %}">{% trans "Protected B" %}</abbr>
+        {% trans "information only." %}
+      </p>
+    {% else %}
+      <p>
+        <strong class="fw-semibold">{% trans "Unclassified only:" %}</strong>
+        {% trans "This is a development / testing environment. Use unclassified information only." %}
+      </p>
+    {% endif %}
+    <p class="mb-0">
+      <strong class="fw-semibold">{% trans "Human review required:" %}</strong>
+      {% trans "AI can make mistakes. Verify the output if you intend to rely upon it." %}
+    </p>
+  </div>
+</div>
