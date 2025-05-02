@@ -329,6 +329,7 @@ def pdf_to_text_pdfium(content):
             pdf = pdfium.PdfDocument(content)
         except Exception as e:
             logger.error(f"Failed to extract text from PDF file: {e}")
+            pdf.close()
             raise Exception(_("Corrupt PDF file."))
 
         text = ""
