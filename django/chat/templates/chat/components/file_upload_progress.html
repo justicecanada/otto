@@ -2,10 +2,10 @@
 
 <form class="progress-container d-none"
       aria-role="status"
-      hx-post="{% url 'chat:done_upload' message_id=message.id %}"
+      hx-post="{% url 'chat:file_upload' message_id=message.id %}"
       hx-swap="outerHTML"
       hx-target="#message_{{ message.id }}"
-      hx-trigger="done_upload"
+      hx-trigger="load"
       style="width: 500px"
       id="progress-{{ message.id }}">
   <div class="row mb-2 fileupload-intro">
@@ -30,23 +30,3 @@
     </div>
   </div>
 </form>
-<script>
-  (function () {
-    let upload_url = "{% url 'chat:chunk_upload' message_id=message.id %}";
-    let message_id = "{{ message.id }}";
-    let file_input = document.querySelector('#chat-file-input');
-    let uploader = new FileUpload(file_input, upload_url, message_id);
-    uploader.upload();
-    // Copy the '.option select' form elements from #prompt-form into this form
-    let prompt_form = document.querySelector('#prompt-form');
-    let progress_form = document.querySelector('#progress-' + message_id);
-    let options = prompt_form.querySelectorAll('.option select');
-    for (option of options) {
-      let hiddenInput = document.createElement('input');
-      hiddenInput.type = 'hidden';
-      hiddenInput.name = option.name;
-      hiddenInput.value = option.value;
-      progress_form.appendChild(hiddenInput);
-    }
-  })();
-</script>

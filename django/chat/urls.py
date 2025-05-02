@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import path
+from django.urls import include, path
 
 from . import responses, views
 
@@ -15,7 +15,8 @@ urlpatterns = [
     path("qa/", views.new_qa, name="qa"),
     path("document-qa/", views.new_document_qa, name="document_qa"),
     path("id/<str:chat_id>/", views.chat, name="chat"),
-    path("id/<str:chat_id>/upload/", views.init_upload, name="init_upload"),
+    path("id/<str:chat_id>/upload/init", views.init_upload, name="init_upload"),
+    path("id/<str:chat_id>/upload/done", views.done_upload, name="done_upload"),
     path(
         "id/<str:chat_id>/delete/<str:current_chat>",
         views.delete_chat,
@@ -51,8 +52,6 @@ urlpatterns = [
         views.message_sources,  # same view, but highlight will be read from query params
         name="message_sources_highlight",
     ),
-    path("message/<int:message_id>/upload/", views.chunk_upload, name="chunk_upload"),
-    path("message/<int:message_id>/upload/done", views.done_upload, name="done_upload"),
     path("file/<int:file_id>/", views.download_file, name="download_file"),
     path(
         "thumbs-feedback/<int:message_id>/<str:feedback>",
