@@ -529,8 +529,6 @@ class SavedFile(models.Model):
         if self.chat_files.exists() or self.documents.exists():
             logger.info(f"File {self.file.name} has associated objects; not deleting")
             return
-        if self.file:
-            self.file.delete(False)
         self.delete()
 
 
