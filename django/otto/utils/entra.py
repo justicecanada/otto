@@ -1,6 +1,4 @@
 import asyncio
-import os
-import traceback
 import uuid
 
 from django.conf import settings
@@ -79,10 +77,8 @@ async def get_entra_users_async():
             next_iteration = result.odata_next_link
             batch_number += 1
     except APIError as e:
-        full_error = traceback.format_exc()
-        error_id = str(uuid.uuid4())[:7]
         logger.exception(
-            f"Error trying to retrieve batch {batch_number} of entra users: {e.error.message} details: {error_id, full_error}"
+            f"Error trying to retrieve batch {batch_number} of entra users: {e}"
         )
 
     return entra_users_list
@@ -109,8 +105,7 @@ def sync_users_with_entra():
     try:
         users = loop.run_until_complete(get_entra_users_async())
     except Exception as e:
-        full_error = traceback.format_exc()
-        logger.exception(f"Error trying to retrieve entra users: {full_error}")
+        logger.exception(f"Error trying to retrieve entra users: {e}")
     finally:
         loop.close()
 

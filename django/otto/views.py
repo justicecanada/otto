@@ -2,7 +2,6 @@ import csv
 import io
 import os
 import time
-import traceback
 import uuid
 from collections import defaultdict
 from datetime import timedelta
@@ -459,7 +458,7 @@ def manage_users_upload(request):
                         email = upn
                     except ValidationError as e:
                         email = ""
-                        logger.exception(f"UPN must be an email address ({upn}): {e}")
+                        logger.error(f"UPN must be an email address ({upn}): {e}")
 
                         continue
                     # Get or create the pilot
@@ -514,21 +513,12 @@ def manage_users_upload(request):
                             group = roles.get(name__iexact=role)
                             user.groups.add(group)
                         except ObjectDoesNotExist:
-                            full_error = traceback.format_exc()
-                            error_id = str(uuid.uuid4())[:7]
-                            logger.exception(
-                                f"Role {role} does not exist: {e}",
-                                error_id=error_id,
-                                error=full_error,
-                            )
                             pass
                 except Exception as e:
-                    full_error = traceback.format_exc()
                     error_id = str(uuid.uuid4())[:7]
-                    logger.exception(
+                    logger.error(
                         f"Error processing row {row}: {e}",
                         error_id=error_id,
-                        error=full_error,
                     )
                     messages.error = (
                         (request, _("Error processing row. Error ID: ") + error_id),

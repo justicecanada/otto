@@ -1,5 +1,4 @@
 import os
-import traceback
 import uuid
 from datetime import datetime
 from threading import Thread
@@ -97,8 +96,8 @@ def translate_file(file_path, target_language):
         logger.error(f"Translation task timed out for {file_path}")
         raise Exception(f"Translation task timed out for {file_path}")
     except Exception as e:
+        logger.exception(f"Error translating {file_path}: {e}")
         raise Exception(f"Error translating {file_path}")
-
     finally:
         if input_file_path:
             Thread(target=azure_delete, args=(input_file_path,)).start()

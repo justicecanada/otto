@@ -1,5 +1,4 @@
 import asyncio
-import traceback
 import uuid
 
 from django.conf import settings
@@ -95,15 +94,6 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
         else:
             return error_response(chat, response_message, _("Invalid mode."))
     except Exception as e:
-        full_error = traceback.format_exc()
-        error_id = str(uuid.uuid4())[:7]
-        logger.error(
-            f"Error processing chat response",
-            message_id=message_id,
-            chat_id=chat.id,
-            error_id=error_id,
-            error=full_error,
-        )
         return error_response(chat, response_message, e)
 
 
@@ -248,12 +238,11 @@ def summarize_response(chat, response_message):
                     )
                     error_str += f" _({_('Error ID')}: {error_id})_"
                     responses.append(stream_to_replacer([error_str]))
-                    logger.error(
+                    logger.exception(
                         "Error extracting text from file",
                         error_id=error_id,
                         message_id=response_message.id,
                         chat_id=chat.id,
-                        error=traceback.format_exc(),
                     )
                     continue
             responses.append(
@@ -375,10 +364,11 @@ def translate_response(chat, response_message):
             error_id = str(uuid.uuid4())[:7]
             error_str = _("Error translating files.")
             error_str += f" _({_('Error ID')}: {error_id})_"
-            logger.error(
+            logger.exception(
                 "Error translating files",
                 error_id=error_id,
-                full_error=traceback.format_exc(),
+                message_id=response_message.id,
+                chat_id=chat.id,
             )
             yield error_str
             # raise Exception(_("Error translating files."))
@@ -784,12 +774,11 @@ def error_response(chat, response_message, error_message=None):
     if error_message and settings.DEBUG:
         response_str += f"\n\n```\n{error_message}\n```\n\n"
     response_str += f" _({_('Error ID')}: {error_id})_"
-    logger.error(
+    logger.exception(
         "Error processing chat response",
         error_id=error_id,
         message_id=response_message.id,
         chat_id=chat.id,
-        error=traceback.format_exc(),
     )
     return StreamingHttpResponse(
         streaming_content=htmx_stream(

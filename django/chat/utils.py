@@ -4,7 +4,6 @@ import json
 import os
 import re
 import sys
-import traceback
 import uuid
 from decimal import Decimal
 from itertools import groupby
@@ -146,9 +145,10 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
                 )
                 sources.append(source)
             except Exception as e:
-                error_id = str(uuid.uuid4())[:7]
-                logger.exception(
-                    "Error saving source %s (%s)", node.node.ref_doc_id, error_id
+                logger.error(
+                    "Error saving source %s (%s)",
+                    ref_doc_id=node.node.ref_doc_id,
+                    node=node,
                 )
 
     security_labels = [
@@ -342,16 +342,13 @@ async def htmx_stream(
         message = await sync_to_async(Message.objects.get)(id=message_id)
         full_message = _("An error occurred.")
         error_id = str(uuid.uuid4())[:7]
-        full_message += f"\n\n```\n{full_message}\n```\n\n"
         full_message += f" _({_('Error ID')}: {error_id})_"
         logger.exception(
             "Error processing chat response",
             error_id=error_id,
             message_id=message.id,
             chat_id=chat.id,
-            error=traceback.format_exc(),
         )
-        # traceback.print_exc()
         message.text = full_message
         await sync_to_async(message.save)()
         message.text = wrap_llm_response(full_message)
@@ -1159,7 +1156,7 @@ def reassemble_chunks(file_obj):
         # Generate and check hash
         file_obj.saved_file.generate_hash()
         if file_obj.saved_file.sha256_hash != file_obj.sha256_hash_from_client:
-            logger.exception(
+            logger.error(
                 "Hash mismatch for file %s: %s != %s",
                 file_obj.id,
                 file_obj.saved_file.sha256_hash,

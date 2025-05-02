@@ -56,7 +56,7 @@ def process_ocr_document(file_content, file_name, merged, idx):
         full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
         logger.exception(
-            f"Error processing file {file_name} in task {current_task.request.id}: {full_error}"
+            f"Error processing file {file_name} in task {current_task.request.id}: {e}"
         )
         # Fallback for other exceptions
         return {

@@ -1,6 +1,5 @@
 import asyncio
 import json
-import traceback
 import uuid
 
 from django.core.cache import cache
@@ -97,19 +96,16 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
                 yield format_llm_string(full_message)
             await asyncio.sleep(0.01)
     except Exception as e:
-        error = str(e)
         error_id = str(uuid.uuid4())[:7]
-        full_message = (
-            _("An error occurred:")
-            + f"\n```\nError ID: {error_id}\n```"
-            + f"\n```\n{error}\n```"
+        full_message = format_llm_string(
+            _("An error occurred while processing the request. ")
+            + f" _({_('Error ID')}: {error_id})_"
         )
-
         logger.exception(
             f"Error in generating response",
             query_uuid=query_uuid,
             error_id=error_id,
-            error=full_message,
+            error=e,
         )
 
     cost = await sync_to_async(llm.create_costs)()
@@ -127,11 +123,12 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
 
 
 async def htmx_sse_error():
-    full_error = traceback.format_exc()
     error_id = str(uuid.uuid4())[:7]
     error_message = (
-        _("An error occurred while processing the request. Error_ID: ") + error_id
+        _("An error occurred while processing the request. ")
+        + f" _({_('Error ID')}: {error_id})_"
     )
+
     yield (
         f"data: <div hx-swap-oob='true' id='answer-sse'>"
         f"<div>{error_message}</div></div>\n\n"
@@ -139,5 +136,4 @@ async def htmx_sse_error():
     logger.exception(
         error_message,
         error_id=error_id,
-        error=full_error,
     )

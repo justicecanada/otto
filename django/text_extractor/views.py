@@ -138,16 +138,9 @@ def submit_document(request):
             },
         )
     except Exception as e:
-        import traceback
-        import uuid
-
-        full_error = traceback.format_exc()
-        error_id = str(uuid.uuid4())[:7]
         logger.exception(
             _("Sorry, we ran into an error while running OCR"),
             user_request_id=user_request.id,
-            error_id=error_id,
-            error=full_error,
         )
 
         return render(

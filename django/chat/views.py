@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import traceback
 import uuid
 
 from django.conf import settings
@@ -415,7 +414,7 @@ def done_upload(request, message_id):
     # Get all ChatFile objects associated with the user message.
     file_objs = ChatFile.objects.filter(message_id=message_id)
     if not file_objs.exists():
-        logger.exception("No files associated with message %s", message_id)
+        logger.error("No files associated with message %s", message_id)
     else:
         for file_obj in file_objs:
             if not file_obj.saved_file.sha256_hash:
@@ -496,7 +495,7 @@ def chunk_upload(request, message_id):
         # If this is not the first chunk, get the existing file object
         file_obj = ChatFile.objects.filter(id=file_id).first()
         if not file_obj:
-            logger.exception(f"File ID {file_id} not found.")
+            logger.error(f"File ID {file_id} not found.")
             return JsonResponse({"data": "Invalid file ID"})
 
     if not existing_file:
@@ -546,14 +545,9 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         message.feedback = message.get_toggled_feedback(feedback)
         message.save()
     except Exception as e:
-        # TODO: handle error, SHOW TO USER?
-        full_error = traceback.format_exc()
-        error_id = str(uuid.uuid4())[:7]
         logger.exception(
-            f"An error occurred while providing a chat feedback.",
+            f"An error occurred while providing thumbs up/down feedback.",
             message_id=message_id,
-            error_id=error_id,
-            error=full_error,
         )
 
     if feedback == -1:
@@ -974,19 +968,18 @@ def set_preset_default(request, chat_id: str, preset_id: int):
 
         return HttpResponse(response_str)
 
-    except ValueError:
-        full_error = traceback.format_exc()
+    except ValueError as e:
         error_id = str(uuid.uuid4())[:7]
         response_str = (
             _("An error occurred while setting the default preset.")
             + f" _({_('Error ID')}: {error_id})_"
         )
-        logger.exception(
+        logger.error(
             f"Error setting default preset:",
             chat_id=chat_id,
             preset_id=preset_id,
             error_id=error_id,
-            error=full_error,
+            error=e,
         )
         messages.error(request, response_str)
         return HttpResponse(status=500)
