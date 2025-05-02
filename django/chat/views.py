@@ -416,7 +416,11 @@ def done_upload(request, message_id):
         logger.error("No files associated with message %s", message_id)
     else:
         for file_obj in file_objs:
-            if not file_obj.saved_file.sha256_hash:
+            if (
+                not file_obj.saved_file.sha256_hash
+                or not file_obj.saved_file.file
+                or not os.path.exists(file_obj.saved_file.file.path)
+            ):
                 reassemble_chunks(file_obj)
 
     if mode == "qa":
@@ -462,6 +466,7 @@ def chunk_upload(request, message_id):
     end = request.POST["end"]
     nextSlice = request.POST["nextSlice"]
     existing_file = None
+    is_good_file = False
 
     if not all([chunk_data, file_name, file_id, end, nextSlice]):
         logger.info(
@@ -483,11 +488,25 @@ def chunk_upload(request, message_id):
     if file_id == "null":
         # First chunk. Check for existing file with the same hash.
         existing_file = SavedFile.objects.filter(sha256_hash=hash).first()
-        if existing_file:
-            logger.info(f"Using existing SavedFile with ID {existing_file.id}")
+
+        # Check if existing file has valid file on disk
+        if (
+            existing_file
+            and existing_file.file
+            and os.path.exists(existing_file.file.path)
+        ):
+            logger.info(f"Using good existing SavedFile with ID {existing_file.id}")
+            chat_file_arguments["saved_file"] = existing_file
+            is_good_file = True
+        elif existing_file:
+            # Bad file - exists in DB but missing or invalid file on disk
+            logger.info(f"Found bad SavedFile with ID {existing_file.id}, will fix it")
             chat_file_arguments["saved_file"] = existing_file
         else:
-            logger.info("File_id is null - Uploading new file.", message_id=message_id)
+            logger.info(
+                "No existing file found - Uploading new file.", message_id=message_id
+            )
+
         # Create a ChatFile instance; its pk will serve as a unique folder name for the chunks.
         file_obj = ChatFile.objects.create(**chat_file_arguments)
     else:
@@ -497,7 +516,11 @@ def chunk_upload(request, message_id):
             logger.error(f"File ID {file_id} not found.")
             return JsonResponse({"data": "Invalid file ID"})
 
-    if not existing_file:
+    # If we have a good file, no need to save chunks
+    if is_good_file:
+        end = 1
+    else:
+        # For bad or new files, save the chunks
         file_obj.saved_file.content_type = content_type
         file_obj.saved_file.save(update_fields=["content_type"])
         # Create a temporary folder (if it doesn't already exist)
@@ -512,7 +535,7 @@ def chunk_upload(request, message_id):
         logger.info(f"Saved chunk at {chunk_filename}")
 
     # If this was the final chunk, update the eof marker
-    if end == 1 or existing_file:
+    if end == 1:
         file_obj.saved_file.eof = 1
         file_obj.save()
         return JsonResponse({"data": "Uploaded successfully", "file_id": file_obj.id})
