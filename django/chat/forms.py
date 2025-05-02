@@ -529,28 +529,15 @@ class PresetForm(forms.ModelForm):
 
 
 class UploadForm(FileFormMixin, forms.Form):
-    # message_id = forms.IntegerField()
     input_file = MultipleUploadedFileField()
 
-    def clean(self):
-        print("cleaning form")
-        cleaned_data = super().clean()
-        user = get_request().user
-        # message_id = cleaned_data["message_id"]
-        # message = Message.objects.filter(id=message_id).first()
-
-        # if not message or not user.has_perm("access_message"):
-        # raise ValidationError("User not allowed to upload files to this message")
-
-        return cleaned_data
-
     def save(self):
-        print("saving form")
+        saved_files = []
         for f in self.cleaned_data["input_file"]:
-            print("f")
             try:
-                saved_file = SavedFile.objects.create(file=f)
+                saved_files.append(SavedFile.objects.create(file=f))
             finally:
                 f.close()
 
         self.delete_temporary_files()
+        return saved_files

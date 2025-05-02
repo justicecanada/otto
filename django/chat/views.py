@@ -367,23 +367,31 @@ def cost_warning(request, message_id):
     return HttpResponse(html)
 
 
+@require_POST
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def save_upload(request, chat_id):
     """
     Handles the form submission after JS upload
     """
     chat = Chat.objects.get(id=chat_id)
-    if request.method == "POST":
-        form = UploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            upload = form.save()
-            messages.success(request, _("File uploaded successfully."))
-            return HttpResponse(status=200)
-        else:
-            messages.error(request, _("There was an error uploading your file."))
-            return HttpResponse(status=200)
-    else:
-        return HttpResponse(status=405)
+    form = UploadForm(request.POST, request.FILES)
+    if not form.is_valid():
+        messages.error(request, _("There was an error uploading your file."))
+        return HttpResponse(status=200)
+
+    mode = chat.options.mode
+    if mode == "chat":
+        mode = "qa"
+    logger.info("File upload initiated.", chat_id=chat_id, mode=mode)
+    message = Message.objects.create(chat=chat, text="", is_bot=False, mode=mode)
+    saved_files = form.save()
+    for saved_file in saved_files:
+        chat_file = ChatFile.objects.create(
+            message_id=message.id, filename=saved_file.file.name, saved_file=saved_file
+        )
+
+    messages.success(request, _("File uploaded successfully."))
+    return HttpResponse(status=200)
 
 
 @require_GET
