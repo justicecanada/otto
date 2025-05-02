@@ -3954,5 +3954,9 @@
     "Otto can be accessed via the URL <a href=\"%(site_url)s\">%(site_url)s</a>. You must be connected to the Justice network.": {
         "fr": "",
         "fr_auto": "Otto est accessible via l’URL <a href=\"%(site_url)s\">%(site_url)s</a>. Vous devez être connecté au réseau de la justice."
+    },
+    "%(count)d identical document(s) already exist in the library. ": {
+        "fr": "",
+        "fr_auto": "%(count)d Documents(s) identiques(s) existent(s) déjà dans la bibliothèque. "
     }
 }
