@@ -3,7 +3,8 @@
       method="post"
       enctype="multipart/form-data"
       hx-post="{% url 'chat:upload' chat.id %}"
-      hx-swap="none"
+      hx-swap="beforeend"
+      hx-target="#messages-container"
       hx-encoding="multipart/form-data">
   {% csrf_token %}
   {{ upload_form }}

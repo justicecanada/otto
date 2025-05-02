@@ -379,16 +379,47 @@ def save_upload(request, chat_id):
         messages.error(request, _("There was an error uploading your file."))
         return HttpResponse(status=200)
 
-    mode = chat.options.mode
-    if mode == "chat":
-        mode = "qa"
-    logger.info("File upload initiated.", chat_id=chat_id, mode=mode)
-    message = Message.objects.create(chat=chat, text="", is_bot=False, mode=mode)
+    if chat.options.mode == "chat":
+        chat.options.mode = "qa"
+        chat.save()
+    logger.info("File upload initiated.", chat_id=chat_id, mode=chat.options.mode)
+    user_message = Message.objects.create(
+        chat=chat, text="", is_bot=False, mode=chat.options.mode
+    )
     saved_files = form.save()
     for saved_file in saved_files:
         chat_file = ChatFile.objects.create(
-            message_id=message.id, filename=saved_file.file.name, saved_file=saved_file
+            message_id=user_message.id,
+            filename=saved_file.file.name,
+            saved_file=saved_file,
         )
+    response_message = Message.objects.create(
+        chat=chat, text="", is_bot=True, mode=chat.options.mode, parent=user_message
+    )
+    response = HttpResponse()
+    if chat.options.mode == "qa":
+        logger.debug("QA upload")
+        response.write(change_mode_to_chat_qa(chat))
+    response_init_message = {
+        "is_bot": True,
+        "awaiting_response": True,
+        "id": response_message.id,
+        "date_created": user_message.date_created + timezone.timedelta(seconds=1),
+    }
+    context = {
+        "chat_messages": [
+            user_message,
+            response_init_message,
+        ],
+        "mode": chat.options.mode,
+        # You can't really stop file translations or QA uploads, so don't show the button
+        "hide_stop_button": chat.options.mode in ["translate", "qa"],
+    }
+    response.write(
+        render_to_string("chat/components/chat_messages.html", context=context)
+    )
+    response.write("<script>scrollToBottom(false, true);</script>")
+    return response
 
     messages.success(request, _("File uploaded successfully."))
     return HttpResponse(status=200)
