@@ -4078,5 +4078,13 @@
     "%(count)d identical document(s) already exist in the library. ": {
         "fr": "",
         "fr_auto": "%(count)d Documents(s) identiques(s) existent(s) déjà dans la bibliothèque. "
+    },
+    "An error occurred while summarizing the text.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors du résumé du texte."
+    },
+    "An error occurred while processing the request. ": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors du traitement de la demande. "
     }
 }
