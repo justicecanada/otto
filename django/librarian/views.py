@@ -1,4 +1,4 @@
-# views.py
+import os
 from dataclasses import dataclass
 
 from django.contrib import messages
@@ -488,13 +488,16 @@ def upload(request, data_source_id):
     <input type="file" name="file" id="document-file-input" multiple>
     """
     bind_contextvars(feature="librarian")
+    existing_document_count = 0
 
     for file in request.FILES.getlist("file"):
         # Check if the file is already stored on the server
         file_hash = generate_hash(file.read())
-        file_exists = SavedFile.objects.filter(sha256_hash=file_hash).exists()
-        if file_exists:
-            file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
+        # Further check that the file is on disk
+        file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
+        file_exists = file_obj is not None
+        is_good_file = file_exists and os.path.exists(file_obj.file.path)
+        if is_good_file:
             logger.info(
                 f"Found existing SavedFile for {file.name}", saved_file_id=file_obj.id
             )
@@ -506,11 +509,13 @@ def upload(request, data_source_id):
             ).first()
             # Skip if filename and hash are the same, but reprocess if ERROR status
             if existing_document:
+                existing_document_count += 1
                 if existing_document.status == "ERROR":
                     existing_document.process()
                 continue
         else:
-            file_obj = SavedFile.objects.create(content_type=file.content_type)
+            if not file_exists:
+                file_obj = SavedFile.objects.create(content_type=file.content_type)
             file_obj.file.save(file.name, file)
             file_obj.generate_hash()
 
@@ -520,6 +525,12 @@ def upload(request, data_source_id):
         document.process()
     # Update the modal with the new documents
     request.method = "GET"
+    if existing_document_count > 0:
+        messages.warning(
+            request,
+            _("%(count)d identical document(s) already exist in the library. ")
+            % {"count": existing_document_count},
+        )
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
 

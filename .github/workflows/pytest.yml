@@ -18,7 +18,7 @@ jobs:
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-latest
     # Docker Hub image that `test-coverage` executes in
-    container: python:3.11
+    container: python:3.13
 
     permissions:
       # See https://github.com/py-cov-action/python-coverage-comment-action#basic-usage

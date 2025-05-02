@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views import defaults as default_views
 
 from autocomplete import HTMXAutoComplete
@@ -12,6 +11,7 @@ from . import views
 urlpatterns = [
     path("healthz/", views.health_check, name="health_check"),
     path("", views.index, name="index"),
+    re_path(r"^upload/", include("django_file_form.urls")),
     path("search/", views.topnav_search_inner, name="search_inner"),
     path("welcome/", views.welcome, name="welcome"),
     # AC-2: Entra Integration Helper App Configuration
@@ -37,7 +37,9 @@ urlpatterns = [
     ),
     path("user_management/upload/", views.manage_users_upload, name="upload_users"),
     path(
-        "user_management/download/", views.manage_users_download, name="download_users"
+        "user_management/download/",
+        views.manage_users_download,
+        name="download_users",
     ),
     path("user_management/pilots/", views.manage_pilots, name="manage_pilots"),
     path(
@@ -75,7 +77,9 @@ urlpatterns = [
     path("feedback/", views.feedback_message, name="user_feedback"),
     path("feedback/<int:message_id>/", views.feedback_message, name="user_feedback"),
     path(
-        "user_management/feedback", views.feedback_dashboard, name="feedback_dashboard"
+        "user_management/feedback",
+        views.feedback_dashboard,
+        name="feedback_dashboard",
     ),
     path(
         "user_management/feedback/<int:page_number>",
@@ -88,7 +92,11 @@ urlpatterns = [
         views.feedback_list,
         name="feedback_list",
     ),
-    path("user_management/feedback/stats", views.feedback_stats, name="feedback_stats"),
+    path(
+        "user_management/feedback/stats",
+        views.feedback_stats,
+        name="feedback_stats",
+    ),
     path(
         "user_management/feedback/<int:feedback_id>/<str:form_type>",
         views.feedback_dashboard_update,
@@ -101,7 +109,9 @@ urlpatterns = [
     ),
     path("user_management/blocked_urls", views.list_blocked_urls, name="blocked_urls"),
     path(
-        "notifications/<int:notification_id>/", views.notification, name="notification"
+        "notifications/<int:notification_id>/",
+        views.notification,
+        name="notification",
     ),
     path("notifications/", views.notifications, name="notifications"),
     path("i18n/", include("django.conf.urls.i18n")),

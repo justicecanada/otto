@@ -1,0 +1,7 @@
+
+<form id="example-form" method="post" enctype="multipart/form-data">
+  {% csrf_token %} {{ upload_form }}
+  {% for hidden in upload_form.hidden_fields %}{{ hidden }}{% endfor %}
+</form>
+
+<script>initUploadFields(document.getElementById("example-form"));</script>

@@ -530,7 +530,7 @@ class SavedFile(models.Model):
             logger.info(f"File {self.file.name} has associated objects; not deleting")
             return
         if self.file:
-            self.file.delete(False)
+            self.file.delete(True)
         self.delete()
 
 

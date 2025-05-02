@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 from data_fetcher.util import get_request
+from django_file_form.forms import FileFormMixin, MultipleUploadedFileField
 from rules import is_group_member
 from structlog import get_logger
 
@@ -517,3 +518,7 @@ class PresetForm(forms.ModelForm):
                 ("private", _("Make private")),
                 ("others", _("Share with others")),
             ]
+
+
+class UploadForm(FileFormMixin, forms.Form):
+    input_files = MultipleUploadedFileField()
