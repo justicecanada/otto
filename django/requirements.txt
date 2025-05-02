@@ -47,7 +47,7 @@ tiktoken==0.9.0
 
 # Document extraction ----------------------------------------------------------
 beautifulsoup4==4.12.3
-markdownify==0.13.1
+markdownify==0.14.1
 Markdown==3.7
 bleach==6.2.0
 newspaper3k==0.2.8
