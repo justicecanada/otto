@@ -620,6 +620,7 @@ html[lang="fr"] .chat-sidebar {
   border: solid 1px;
   border-color: var(--chat-user-message-border);
   width: fit-content;
+  max-width: 100%;
 }
 
 @media screen and (max-width: 1600px) {

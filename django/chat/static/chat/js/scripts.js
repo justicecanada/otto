@@ -550,12 +550,13 @@ class FileUpload {
           }
         }
       } else {
-        alert(xhr.statusText);
+        alert("Error uploading file: " + this.file.name + " - " + xhr.statusText + " - " + xhr.status);
       }
     };
 
     xhr.onerror = () => {
-      alert(xhr.statusText);
+      console.log("onerror handler");
+      alert("Error uploading file: " + this.file.name + " - " + xhr.statusText + " - " + xhr.status);
     };
 
     xhr.send(formData);
@@ -727,4 +728,11 @@ function nextSourceHighlight(message_id) {
     nextHighlight.classList.add("current-highlight");
     nextHighlight.scrollIntoView({behavior: "smooth", block: "center"});
   }, needToExpand ? 300 : 0);
+}
+
+function clearRemainingCostWarningButtons() {
+  const warningButton = document.querySelector(".cost-warning-buttons");
+  if (warningButton) {
+    warningButton.remove();
+  }
 }

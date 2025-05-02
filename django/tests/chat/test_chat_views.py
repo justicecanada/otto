@@ -203,6 +203,53 @@ def test_translate_file(client, all_apps_user):
         # assert "data-md=" not in final_text
 
 
+@pytest.mark.django_db
+@mock.patch("chat.responses.estimate_cost_of_request", return_value=20.00)
+def test_cost_warning(mock_estimate_cost, client, all_apps_user):
+    """
+    Test that the cost warning appears for expensive requests and handles user choice.
+    """
+    user = all_apps_user()
+    client.force_login(user)
+    chat = Chat.objects.create(user=user)
+    message = Message.objects.create(chat=chat, text="Expensive request")
+    response_message = Message.objects.create(
+        chat=chat, mode="chat", is_bot=True, parent=message
+    )
+
+    # 1. Test that the warning appears on initial request
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+    assert response.get("content-type") == "text/event-stream"
+
+    # Check the streaming content for the warning and buttons
+    content = async_to_sync(final_response_helper)(response.streaming_content)
+    content_str = content.decode("utf-8")
+
+    assert "expensive" in content_str
+    assert f"id='cost-warning-buttons-{response_message.id}'" in content_str
+    # Check if the cost is displayed (formatted to 2 decimal places)
+    assert "$20.00" in content_str
+
+    # 2. Test the "Cancel" action
+    cancel_url = reverse("chat:cost_warning", args=[response_message.id])
+    response = client.post(f"{cancel_url}?cost_approved=false")
+    assert response.status_code == 200
+    response_message.refresh_from_db()
+    assert response_message.text == "Request cancelled."
+
+    # Reset message state for the next part
+    response_message.awaiting_response = False
+    response_message.text = ""
+    response_message.save()
+
+    # 3. Test the "Continue" action
+    continue_url = reverse("chat:cost_warning", args=[response_message.id])
+    response = client.post(f"{continue_url}?cost_approved=true")
+    assert response.status_code == 200
+    assert response.context["cost_approved"] is True
+
+
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_htmx_stream_stop(client, all_apps_user):

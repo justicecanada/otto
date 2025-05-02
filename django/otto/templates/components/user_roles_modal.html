@@ -7,7 +7,12 @@
       {{ field }}
     </div>
   {% endfor %}
+  <div class="mt-3 mx-2 p-2 ps-3 bg-warning-subtle rounded border border-warning">
+    <i class="bi bi-exclamation-triangle text-danger"></i>
+    <em>{% trans "Changes will overwrite properties of all selected users" %}</em>
+  </div>
 </div>
+
 <div class="modal-footer">
   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
   <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>

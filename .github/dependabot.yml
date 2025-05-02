@@ -11,3 +11,7 @@ updates:
     directory: "/"
     schedule:
       interval: monthly
+  - package-ecosystem: "docker"
+    directory: "/django/"
+    schedule:
+      interval: monthly

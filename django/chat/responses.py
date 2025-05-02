@@ -27,9 +27,11 @@ from chat.utils import (
     combine_response_generators,
     combine_response_replacers,
     create_batches,
+    estimate_cost_of_request,
     get_source_titles,
     group_sources_into_docs,
     htmx_stream,
+    is_text_to_summarize,
     num_tokens_from_string,
     sort_by_max_score,
     stream_to_replacer,
@@ -37,6 +39,8 @@ from chat.utils import (
     url_to_text,
 )
 from librarian.models import DataSource, Document, Library
+from otto.models import Cost
+from otto.utils.common import cad_cost
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
@@ -52,9 +56,26 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
     """
     response_message = Message.objects.get(id=message_id)
+    skip_cost = request.GET.get("cost_approved", "false").lower() == "true"
+
     try:
         chat = response_message.chat
         mode = chat.options.mode
+
+        estimate_cost = estimate_cost_of_request(chat, response_message)
+        user_cost_this_month = cad_cost(
+            Cost.objects.get_user_cost_this_month(request.user)
+        )
+        this_month_max = request.user.this_month_max
+        if (estimate_cost + user_cost_this_month) >= this_month_max:
+            return cost_warning_response(
+                chat,
+                response_message,
+                estimate_cost,
+                over_budget=True,
+            )
+        elif (estimate_cost >= settings.WARN_COST) and not skip_cost:
+            return cost_warning_response(chat, response_message, estimate_cost)
 
         # For costing and logging. Contextvars are accessible anytime during the request
         # including in async functions (i.e. htmx_stream) and Celery tasks.
@@ -77,14 +98,44 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
         return error_response(chat, response_message, e)
 
 
+def cost_warning_response(chat, response_message, estimate_cost, over_budget=False):
+
+    formatted_cost = f"{estimate_cost:.2f}"
+    if over_budget:
+        cost_warning = _(
+            f"This request is estimated to cost ${formatted_cost}, which exceeds your remaining monthly budget. Please contact an Otto administrator or wait until the 1st for the limit to reset."
+        )
+    else:
+        cost_warning = _("This request could be expensive. Are you sure?")
+
+    cost_warning_buttons = render_to_string(
+        "chat/components/cost_warning_buttons.html",
+        {
+            "message_id": response_message.id,
+            "estimate_cost": formatted_cost,
+            "continue_button": not over_budget,
+        },
+    ).replace("\n", "")
+
+    llm = OttoLLM()
+
+    return StreamingHttpResponse(
+        streaming_content=htmx_stream(
+            chat,
+            response_message.id,
+            llm,
+            response_str=cost_warning,
+            cost_warning_buttons=cost_warning_buttons,
+        ),
+        content_type="text/event-stream",
+    )
+
+
 def chat_response(
     chat,
     response_message,
     switch_mode=False,
 ):
-
-    def is_text_to_summarize(message):
-        return message.mode == "summarize" and not message.is_bot
 
     system_prompt = current_time_prompt() + chat.options.chat_system_prompt
     chat_history = [ChatMessage(role=MessageRole.SYSTEM, content=system_prompt)]
