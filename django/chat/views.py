@@ -522,7 +522,7 @@ def chunk_upload(request, message_id):
     else:
         # For bad or new files, save the chunks
         file_obj.saved_file.content_type = content_type
-        file_obj.saved_file.save(update_fields=["content_type"])
+        file_obj.saved_file.save()
         # Create a temporary folder (if it doesn't already exist)
         base_temp_path = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp")
         temp_dir = os.path.join(base_temp_path, str(file_obj.id))
