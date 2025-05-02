@@ -1,7 +1,14 @@
 
-<form id="example-form" method="post" enctype="multipart/form-data">
-  {% csrf_token %} {{ upload_form }}
+<form id="example-form"
+      method="post"
+      enctype="multipart/form-data"
+      hx-post="{% url 'chat:upload' chat.id %}"
+      hx-swap="none"
+      hx-encoding="multipart/form-data">
+  {% csrf_token %}
+  {{ upload_form }}
   {% for hidden in upload_form.hidden_fields %}{{ hidden }}{% endfor %}
+  <input type="submit" value="Save" />
 </form>
 
 <script>initUploadFields(document.getElementById("example-form"));</script>

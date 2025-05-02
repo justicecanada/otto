@@ -2,6 +2,7 @@ from urllib.parse import urlparse
 
 from django import forms
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
@@ -14,8 +15,15 @@ from django_file_form.forms import FileFormMixin, MultipleUploadedFileField
 from rules import is_group_member
 from structlog import get_logger
 
-from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
-from librarian.models import DataSource, Document, Library, LibraryUserRole
+from chat.models import (
+    QA_MODE_CHOICES,
+    QA_SCOPE_CHOICES,
+    Chat,
+    ChatOptions,
+    Message,
+    Preset,
+)
+from librarian.models import DataSource, Document, Library, SavedFile
 
 logger = get_logger(__name__)
 
@@ -521,4 +529,28 @@ class PresetForm(forms.ModelForm):
 
 
 class UploadForm(FileFormMixin, forms.Form):
-    input_files = MultipleUploadedFileField()
+    # message_id = forms.IntegerField()
+    input_file = MultipleUploadedFileField()
+
+    def clean(self):
+        print("cleaning form")
+        cleaned_data = super().clean()
+        user = get_request().user
+        # message_id = cleaned_data["message_id"]
+        # message = Message.objects.filter(id=message_id).first()
+
+        # if not message or not user.has_perm("access_message"):
+        # raise ValidationError("User not allowed to upload files to this message")
+
+        return cleaned_data
+
+    def save(self):
+        print("saving form")
+        for f in self.cleaned_data["input_file"]:
+            print("f")
+            try:
+                saved_file = SavedFile.objects.create(file=f)
+            finally:
+                f.close()
+
+        self.delete_temporary_files()

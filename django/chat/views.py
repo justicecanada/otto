@@ -367,6 +367,25 @@ def cost_warning(request, message_id):
     return HttpResponse(html)
 
 
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def save_upload(request, chat_id):
+    """
+    Handles the form submission after JS upload
+    """
+    chat = Chat.objects.get(id=chat_id)
+    if request.method == "POST":
+        form = UploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            upload = form.save()
+            messages.success(request, _("File uploaded successfully."))
+            return HttpResponse(status=200)
+        else:
+            messages.error(request, _("There was an error uploading your file."))
+            return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=405)
+
+
 @require_GET
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 @budget_required
@@ -390,6 +409,181 @@ def init_upload(request, chat_id):
         "file_upload": True,
     }
     return render(request, "chat/components/chat_messages.html", context=context)
+
+
+@require_POST
+@permission_required("chat.access_message", objectgetter(Message, "message_id"))
+def chunk_upload(request, message_id):
+    """
+    Handles a single file chunk upload.
+    Saves each chunk as a separate file in a tmp directory based on the ChatFile's id.
+    Returns JsonResponse for the file upload progress
+    Loosely based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader
+    """
+    hash = request.POST["hash"]
+    chunk_data = request.FILES["file"].read()
+    content_type = request.POST["content_type"]
+    file_name = request.POST["filename"]
+    file_id = request.POST["file_id"]
+    end = request.POST["end"]
+    nextSlice = request.POST["nextSlice"]
+    existing_file = None
+    is_good_file = False
+
+    if not all([chunk_data, file_name, file_id, end, nextSlice]):
+        logger.info(
+            f"File upload failed. Missing required parameters (file, content_type, filename, file_id, end, nextSlice).",
+        )
+        return JsonResponse({"data": "Invalid request"})
+
+    end = int(end)
+
+    chat_file_arguments = dict(
+        message_id=message_id,
+        filename=file_name,
+        eof=end,
+        sha256_hash_from_client=hash,
+    )
+
+    logger.info(f"Uploading file chunk {nextSlice} for {file_name}.")
+
+    if file_id == "null":
+        # First chunk. Check for existing file with the same hash.
+        existing_file = SavedFile.objects.filter(sha256_hash=hash).first()
+
+        # Check if existing file has valid file on disk
+        if (
+            existing_file
+            and existing_file.file
+            and os.path.exists(existing_file.file.path)
+        ):
+            logger.info(f"Using good existing SavedFile with ID {existing_file.id}")
+            chat_file_arguments["saved_file"] = existing_file
+            is_good_file = True
+        elif existing_file:
+            # Bad file - exists in DB but missing or invalid file on disk
+            logger.info(f"Found bad SavedFile with ID {existing_file.id}, will fix it")
+            chat_file_arguments["saved_file"] = existing_file
+        else:
+            logger.info(
+                "No existing file found - Uploading new file.", message_id=message_id
+            )
+
+        # Create a ChatFile instance; its pk will serve as a unique folder name for the chunks.
+        file_obj = ChatFile.objects.create(**chat_file_arguments)
+    else:
+        # If this is not the first chunk, get the existing file object
+        file_obj = ChatFile.objects.filter(id=file_id).first()
+        if not file_obj:
+            logger.error(f"File ID {file_id} not found.")
+            return JsonResponse({"data": "Invalid file ID"})
+
+    # If we have a good file, no need to save chunks
+    if is_good_file:
+        end = 1
+    else:
+        # For bad or new files, save the chunks
+        file_obj.saved_file.content_type = content_type
+        file_obj.saved_file.save()
+        # Create a temporary folder (if it doesn't already exist)
+        base_temp_path = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp")
+        temp_dir = os.path.join(base_temp_path, str(file_obj.id))
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # Save the chunk using its nextSlice as the filename identifier
+        chunk_filename = os.path.join(temp_dir, f"chunk_{nextSlice}.tmp")
+        with open(chunk_filename, "wb") as f:
+            f.write(chunk_data)
+        logger.info(f"Saved chunk at {chunk_filename}")
+
+    # If this was the final chunk, update the eof marker
+    if end == 1:
+        file_obj.saved_file.eof = 1
+        file_obj.save()
+        return JsonResponse({"data": "Uploaded successfully", "file_id": file_obj.id})
+
+    return JsonResponse({"file_id": file_obj.id})
+
+
+def reassemble_chunks(file_obj):
+    """
+    Reassembles saved temporary chunk files into the final saved file.
+    Uses a Redis-backed lock for process safety.
+    """
+    lock_key = f"assemble_{file_obj.id}"
+    lock_acquired = cache.add(lock_key, "locked", timeout=60)
+    if not lock_acquired:
+        logger.info(
+            "Assembly already in progress for file %s. Skipping duplicate assembly.",
+            file_obj.id,
+        )
+        return
+
+    try:
+        temp_dir = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp", str(file_obj.id))
+        if not os.path.exists(temp_dir):
+            logger.info("Temporary directory for file %s does not exist.", file_obj.id)
+            return
+
+        chunk_files = os.listdir(temp_dir)
+        if not chunk_files:
+            logger.info(
+                "No chunk files found in temp directory for file %s.", file_obj.id
+            )
+            return
+
+        # Sort numerically
+        chunk_files.sort(
+            key=lambda name: int(name.replace("chunk_", "").replace(".tmp", ""))
+        )
+        logger.debug("Sorted chunks for file %s: %s", file_obj.id, chunk_files)
+
+        # Log details about each chunk
+        for chunk_filename in chunk_files:
+            chunk_path = os.path.join(temp_dir, chunk_filename)
+            size = os.path.getsize(chunk_path)
+            logger.debug("Chunk %s: size %d bytes", chunk_filename, size)
+
+        # Assemble the file: start with the first chunk
+        first_chunk_path = os.path.join(temp_dir, chunk_files[0])
+        with open(first_chunk_path, "rb") as chunk_file:
+            file_obj.saved_file.file.save(file_obj.filename, chunk_file)
+        logger.debug("Saved first chunk for file_obj %s", file_obj.id)
+
+        # Append subsequent chunks
+        if len(chunk_files) > 1:
+            for chunk_filename in chunk_files[1:]:
+                chunk_path = os.path.join(temp_dir, chunk_filename)
+                with open(chunk_path, "rb") as chunk_file:
+                    with open(file_obj.saved_file.file.path, "ab+") as f:
+                        data = chunk_file.read()
+                        f.write(data)
+                        f.flush()  # Ensure data is flushed to disk
+                logger.debug(
+                    "Appended chunk %s for file_obj %s", chunk_filename, file_obj.id
+                )
+
+        # Generate and check hash
+        file_obj.saved_file.generate_hash()
+        if file_obj.saved_file.sha256_hash != file_obj.sha256_hash_from_client:
+            logger.error(
+                "Hash mismatch for file %s: %s != %s",
+                file_obj.id,
+                file_obj.saved_file.sha256_hash,
+                file_obj.sha256_hash_from_client,
+            )
+        else:
+            logger.info("File %s reassembled successfully.", file_obj.id)
+
+        # Cleanup temporary chunks
+        for chunk_filename in chunk_files:
+            os.remove(os.path.join(temp_dir, chunk_filename))
+        os.rmdir(temp_dir)
+
+    except Exception as e:
+        logger.error("Error during chunk assembly for file %s: %s", file_obj.id, str(e))
+    finally:
+        cache.delete(lock_key)
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))

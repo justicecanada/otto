@@ -17,6 +17,7 @@ urlpatterns = [
     path("id/<str:chat_id>/", views.chat, name="chat"),
     path("id/<str:chat_id>/upload/init", views.init_upload, name="init_upload"),
     path("id/<str:chat_id>/upload/done", views.done_upload, name="done_upload"),
+    path("id/<str:chat_id>/upload", views.save_upload, name="upload"),
     path(
         "id/<str:chat_id>/delete/<str:current_chat>",
         views.delete_chat,
