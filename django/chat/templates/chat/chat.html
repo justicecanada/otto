@@ -26,7 +26,6 @@
 
 {% block content_container %}
   <main id="chat-outer" class="{{ mode }}">
-    {% include 'chat/components/file_upload.html' %}
     <div id="chat-flexbox" class="d-flex justify-content-between mb-3">
       {% include 'chat/components/chat_history_sidebar.html' %}
       <div id="chat-container" class="flex-grow-1">
@@ -57,9 +56,9 @@
           {% endif %}
           <div id="messages-container"
                class="{% if pinned_messages %}pt-2{% else %}pt-3{% endif %} px-2">
+            {% include 'chat/components/upload_form.html' %}
             {% if not chat_messages and not pinned_messages %}
               {% include 'chat/components/chat_welcome.html' %}
-              {% include 'chat/components/upload_form.html' %}
             {% endif %}
             {% include 'chat/components/chat_messages.html' %}
           </div>
