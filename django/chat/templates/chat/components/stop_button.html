@@ -1,6 +1,11 @@
 {% load i18n %}
 
 <div id="stop-button" hx-swap-oob="true">
+  <div id="stop-spinner"
+       class="spinner position-absolute top-50 end-100 translate-middle-y me-2">
+    <span class="spinner-border spinner-border-sm ms-2" aria-hidden="true"></span>
+    <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+  </div>
   <button class="btn btn-outline-secondary btn-sm"
           title='{% trans "Stop" %}'
           type="button"
@@ -10,8 +15,4 @@
     <i class="bi bi-stop-circle"></i>
     <span class="d-none d-md-inline">{% trans "Stop" %}</span>
   </button>
-  <div id="stop-spinner" class="spinner">
-    <span class="spinner-border spinner-border-sm ms-2" aria-hidden="true"></span>
-    <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
-  </div>
 </div>
