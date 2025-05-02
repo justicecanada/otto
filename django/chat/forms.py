@@ -535,7 +535,9 @@ class UploadForm(FileFormMixin, forms.Form):
         saved_files = []
         for f in self.cleaned_data["input_file"]:
             try:
-                saved_files.append(SavedFile.objects.create(file=f))
+                saved_files.append(
+                    {"filename": str(f), "saved_file": SavedFile.objects.create(file=f)}
+                )
             finally:
                 f.close()
 

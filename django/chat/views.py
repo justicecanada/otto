@@ -390,8 +390,8 @@ def save_upload(request, chat_id):
     for saved_file in saved_files:
         chat_file = ChatFile.objects.create(
             message_id=user_message.id,
-            filename=saved_file.file.name,
-            saved_file=saved_file,
+            filename=saved_file["filename"],
+            saved_file=saved_file["saved_file"],
         )
     response_message = Message.objects.create(
         chat=chat, text="", is_bot=True, mode=chat.options.mode, parent=user_message
