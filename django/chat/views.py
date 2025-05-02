@@ -421,9 +421,6 @@ def save_upload(request, chat_id):
     response.write("<script>scrollToBottom(false, true);</script>")
     return response
 
-    messages.success(request, _("File uploaded successfully."))
-    return HttpResponse(status=200)
-
 
 @require_GET
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
