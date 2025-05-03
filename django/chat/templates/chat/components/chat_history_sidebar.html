@@ -40,13 +40,21 @@
     </div>
     <div class="p-3">
       <button type="button"
-              class="btn btn-outline-danger btn-outline-initially-black w-100 d-flex justify-content-center align-items-center"
+              class="btn btn-outline-danger btn-outline-initially-black w-100 position-relative"
               id="delete-all-chats"
               hx-target="#chat-history-list"
               hx-post="{% url 'chat:delete_all_chats' %}"
+              hx-indicator="#delete-spinner"
               hx-confirm='{% trans "Are you sure you want to delete all chats? This action is irreversible." %}'>
-        <i class="bi bi-trash me-2"></i>
-        <span>{% trans "Delete all chats" %}</span>
+        <span class="d-flex justify-content-center align-items-center">
+          <i class="bi bi-trash me-2"></i>
+          <span>{% trans "Delete all chats" %}</span>
+        </span>
+        <div id="delete-spinner"
+             class="spinner position-absolute top-50 end-0 translate-middle-y me-3">
+          <span class="spinner-border spinner-border-sm ms-2" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+        </div>
       </button>
     </div>
   </div>
