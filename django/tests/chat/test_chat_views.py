@@ -380,37 +380,6 @@ def test_delete_all_chats(client, all_apps_user):
     assert response["HX-Redirect"] == reverse("chat:new_chat")
 
 
-# Test init_upload view
-@pytest.mark.django_db
-def test_init_upload(client, all_apps_user):
-    user = all_apps_user()
-    client.force_login(user)
-    chat = Chat.objects.create(user=user)
-    response = client.get(reverse("chat:init_upload", args=[chat.id]))
-    assert response.status_code == 200
-
-
-# Test done_upload view with modes "translate", "summarize" and "qa"
-@pytest.mark.django_db
-def test_done_upload(client, all_apps_user):
-    user = all_apps_user()
-    client.force_login(user)
-    chat = Chat.objects.create(user=user)
-    message = Message.objects.create(chat=chat, text="Hello", mode="translate")
-    response = client.get(reverse("chat:done_upload", args=[message.id]))
-    assert response.status_code == 200
-    message = Message.objects.create(chat=chat, text="Hello", mode="summarize")
-    response = client.get(reverse("chat:done_upload", args=[message.id]))
-    assert response.status_code == 200
-    message = Message.objects.create(chat=chat, text="Hello", mode="qa")
-    response = client.get(reverse("chat:done_upload", args=[message.id]))
-    assert response.status_code == 200
-
-
-# TODO: Test chunk_upload (somewhat difficult)
-# See tests/otto/test_cleanup.py for a partial test of chunk upload
-
-
 # Test download_file view
 @pytest.mark.django_db
 def test_download_file(client, all_apps_user):

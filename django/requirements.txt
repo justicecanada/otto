@@ -19,6 +19,7 @@ django-cleanup==9.0.0
 django-azure-auth==2.0.0
 gevent==24.11.1
 django-data-fetcher==2.2
+django-file-form==3.9.0
 
 # Logging ----------------------------------------------------------------------
 django-structlog[celery,commands]==9.0.1

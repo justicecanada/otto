@@ -1,0 +1,59 @@
+
+<form id="chat-upload-form"
+      method="post"
+      enctype="multipart/form-data"
+      hx-post="{% url 'chat:upload' chat.id %}"
+      hx-swap="beforeend"
+      hx-target="#messages-container"
+      hx-encoding="multipart/form-data">
+  {% csrf_token %}
+  {{ upload_form }}
+  {% for hidden in upload_form.hidden_fields %}{{ hidden }}{% endfor %}
+  <input type="submit" value="Save" id="chat-upload-submit" />
+</form>
+
+<script>
+(function(){
+  const upload_message = document.getElementById("chat-upload-message");
+  const file_input = document.getElementById("id_input_file");
+  function submitUploadsIfComplete() {
+    const form = document.getElementById("chat-upload-form");
+    const allDone = Array.from(form.querySelectorAll(".dff-file")).every(file => {
+      return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
+    });
+    if (allDone) {
+      form.dispatchEvent(new Event('submit'));
+      upload_message.classList.add("submitting");
+    }
+    hideIfNoFiles();
+  }
+  function hideIfNoFiles() {
+    const form = document.getElementById("chat-upload-form");
+    const numFiles = form.querySelectorAll(".dff-file").length;
+    if (numFiles === 0) {
+      upload_message.classList.add("d-none");
+    } else {
+      upload_message.classList.remove("d-none");
+    }
+  }
+  initUploadFields(document.getElementById("chat-upload-form"), {
+    supportDropArea: false,
+    callbacks: {
+      onSuccess: (upload) => submitUploadsIfComplete(),
+      onError: (upload) => submitUploadsIfComplete(),
+      onDelete: (upload) => submitUploadsIfComplete(),
+    }
+  });
+  file_input.addEventListener("change", function() {
+    // Show the upload message
+    upload_message.classList.remove("d-none");
+    // Hide the welcome message, if visible
+    if (document.querySelector("#no-messages-placeholder") !== null) {
+      document.querySelector("#no-messages-placeholder").remove();
+    }
+    setTimeout(() => {
+      scrollToBottom(false, true);
+    }, 50);
+  });
+})();
+</script>
