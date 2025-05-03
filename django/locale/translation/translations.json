@@ -3962,5 +3962,9 @@
     "There was an error uploading your file.": {
         "fr": "",
         "fr_auto": "Il y a eu une erreur lors du téléchargement de votre fichier."
+    },
+    "now": {
+        "fr": "",
+        "fr_auto": "maintenant"
     }
 }
