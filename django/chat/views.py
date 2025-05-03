@@ -386,10 +386,9 @@ def save_upload(request, chat_id):
     user_message = Message.objects.create(
         chat=chat, text="", is_bot=False, mode=chat.options.mode
     )
-    # TODO: Check for matching hash SavedFile, like Librarian does. Implement in form.save()
     saved_files = form.save()
     for saved_file in saved_files:
-        chat_file = ChatFile.objects.create(
+        ChatFile.objects.create(
             message_id=user_message.id,
             filename=saved_file["filename"],
             saved_file=saved_file["saved_file"],

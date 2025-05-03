@@ -1,8 +1,8 @@
+import os
 from urllib.parse import urlparse
 
 from django import forms
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
@@ -15,15 +15,9 @@ from django_file_form.forms import FileFormMixin, MultipleUploadedFileField
 from rules import is_group_member
 from structlog import get_logger
 
-from chat.models import (
-    QA_MODE_CHOICES,
-    QA_SCOPE_CHOICES,
-    Chat,
-    ChatOptions,
-    Message,
-    Preset,
-)
+from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
 from librarian.models import DataSource, Document, Library, SavedFile
+from librarian.utils.process_engine import generate_hash
 
 logger = get_logger(__name__)
 
@@ -535,9 +529,17 @@ class UploadForm(FileFormMixin, forms.Form):
         saved_files = []
         for f in self.cleaned_data["input_file"]:
             try:
-                saved_files.append(
-                    {"filename": str(f), "saved_file": SavedFile.objects.create(file=f)}
-                )
+                # Check if the file is already stored on the server
+                file_hash = generate_hash(f.read())
+                file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
+                file_exists = file_obj is not None
+                if not file_exists:
+                    file_obj = SavedFile.objects.create(file=f)
+                    file_obj.generate_hash()
+                elif not os.path.exists(file_obj.file.path):
+                    # If matching SavedFile exists but is not on disk, save it again
+                    file_obj.file.save(str(f), f, save=True)
+                saved_files.append({"filename": str(f), "saved_file": file_obj})
             finally:
                 f.close()
 
