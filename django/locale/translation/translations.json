@@ -3956,8 +3956,8 @@
         "fr_auto": "Otto est accessible via l’URL <a href=\"%(site_url)s\">%(site_url)s</a>. Vous devez être connecté au réseau de la justice."
     },
     "%(count)d identical document(s) already exist in the library. ": {
-        "fr": "",
-        "fr_auto": "%(count)d identical document(s) already exist in the library. "
+        "fr": "%(count)d document(s) identique(s) existent déjà dans la bibliothèque. ",
+        "fr_auto": "%(count)d document(s) identique(s) existent déjà dans la bibliothèque. "
     },
     "There was an error uploading your file.": {
         "fr": "",
@@ -3968,7 +3968,7 @@
         "fr_auto": "maintenant"
     },
     "files translated:": {
-        "fr": "",
+        "fr": "fichiers traduits :",
         "fr_auto": "Fichiers traduits :"
     },
     "file": {
@@ -3980,7 +3980,7 @@
         "fr_auto": "téléchargé"
     },
     "for Q&A:": {
-        "fr": "",
+        "fr": "pour les questions et réponses :",
         "fr_auto": "Pour les questions et réponses :"
     },
     "file(s) uploaded": {
@@ -3988,7 +3988,7 @@
         "fr_auto": "fichier(s) téléchargé(s)"
     },
     "file uploaded": {
-        "fr": "",
+        "fr": "fichier téléchargé",
         "fr_auto": "Fichier téléchargé"
     },
     "files uploaded": {
