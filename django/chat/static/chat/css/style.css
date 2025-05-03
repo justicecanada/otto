@@ -1182,6 +1182,10 @@ div.message-text pre {
   --bs-modal-width: calc(min(100vw - 4rem, 1430px));
 }
 
+#editLibrariesInner div.modal-body>div.row>div {
+  min-height: 450px;
+}
+
 #editLibrariesModal .list-group-item {
   border-left: 0;
   border-right: 0;
