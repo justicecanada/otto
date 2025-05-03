@@ -4,6 +4,7 @@
       enctype="multipart/form-data"
       hx-post="{% url 'chat:upload' chat.id %}"
       hx-swap="beforeend"
+      {% if swap_upload_form %}hx-swap-oob="true"{% endif %}
       hx-target="#messages-container"
       hx-encoding="multipart/form-data">
   {% csrf_token %}
@@ -13,21 +14,23 @@
 </form>
 
 <script>
-function submitUploadsIfComplete() {
-  const form = document.getElementById("chat-upload-form");
-  const allSuccess = Array.from(form.querySelectorAll(".dff-file")).every(file => {
-    return file.classList.contains("dff-upload-success");
+(function(){
+  function submitUploadsIfComplete() {
+    const form = document.getElementById("chat-upload-form");
+    const allSuccess = Array.from(form.querySelectorAll(".dff-file")).every(file => {
+      return file.classList.contains("dff-upload-success");
+    });
+    if (allSuccess) {
+      form.dispatchEvent(new Event('submit'));
+    }
+  }
+  initUploadFields(document.getElementById("chat-upload-form"), {
+    supportDropArea: false,
+    callbacks: {
+      onSuccess: (upload) => submitUploadsIfComplete(),
+    }
   });
-  if (allSuccess) {
-    form.dispatchEvent(new Event('submit'));
-  }
-}
-initUploadFields(document.getElementById("chat-upload-form"), {
-  supportDropArea: false,
-  callbacks: {
-    onSuccess: (upload) => submitUploadsIfComplete(),
-  }
-});
+})();
 </script>
 
 <style>

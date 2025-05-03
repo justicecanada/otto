@@ -418,6 +418,17 @@ def save_upload(request, chat_id):
     response.write(
         render_to_string("chat/components/chat_messages.html", context=context)
     )
+    response.write(
+        render_to_string(
+            "chat/components/upload_form.html",
+            context={
+                "swap_upload_form": True,
+                "upload_form": UploadForm(),
+                "chat": chat,
+                "csrf_token": request.POST.get("csrfmiddlewaretoken"),
+            },
+        )
+    )
     response.write("<script>scrollToBottom(false, true);</script>")
     return response
 
