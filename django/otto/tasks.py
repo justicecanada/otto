@@ -73,6 +73,14 @@ def delete_tmp_upload_files():
     call_command("delete_unused_files")
 
 
+@shared_task
+def delete_dangling_savedfiles():
+    from librarian.models import SavedFile
+
+    for saved_file in SavedFile.objects.all():
+        saved_file.safe_delete()
+
+
 # LOAD TESTING TASKS
 
 
