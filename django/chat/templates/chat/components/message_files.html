@@ -2,18 +2,21 @@
 
 <p class="mb-2">
   {% if message.is_bot %}
-    {% blocktrans with num_files=message.num_files total_files=message.parent.num_files %}
-      Translated {{ num_files }}/{{ total_files }} files:
-    {% endblocktrans %}
+    {{ message.num_files }}/{{ message.parent.num_files }} {% trans "files translated:" %}
   {% else %}
-    {% blocktrans with num_files=message.num_files s=message.num_files|pluralize %}
-      Uploaded {{ num_files }} file{{ s }}
-    {% endblocktrans %}
-    {% if message.mode == "translate" %}
-      {% trans "for translation:" %}
-    {% elif message.mode == "summarize" %}
-      {% trans "for summarization:" %}
+    {{ message.num_files }}
+    {% if message.num_files == 1 %}
+      {% trans "file uploaded" %}
+    {% else %}
+      {% trans "files uploaded" %}
     {% endif %}
+  {% endif %}
+  {% if message.mode == "translate" %}
+    {% trans "for translation:" %}
+  {% elif message.mode == "qa" %}
+    {% trans "for Q&A:" %}
+  {% elif message.mode == "summarize" %}
+    {% trans "for summarization:" %}
   {% endif %}
 </p>
 <ul class="list-unstyled mb-1">

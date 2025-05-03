@@ -165,6 +165,7 @@ INSTALLED_APPS = [
     "text_extractor",
     "django_celery_beat",
     "lex_experiment",
+    "django_file_form",
 ]
 
 MIDDLEWARE = [
@@ -527,3 +528,12 @@ ALLOWED_FETCH_URLS = [
 ]
 
 WARN_COST = 1.0
+
+FILE_FORM_UPLOAD_DIR = "tmp_uploads_dir"
+FILE_FORM_MUST_LOGIN = True
+
+
+temp_upload_dir = os.path.join(MEDIA_ROOT, FILE_FORM_UPLOAD_DIR)
+
+if not os.path.exists(temp_upload_dir):
+    os.mkdir(temp_upload_dir)

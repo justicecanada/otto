@@ -4010,5 +4010,45 @@
     "Otto can be accessed via the URL <a href=\"%(site_url)s\">%(site_url)s</a>. You must be connected to the Justice network.": {
         "fr": "",
         "fr_auto": "Otto est accessible via l’URL <a href=\"%(site_url)s\">%(site_url)s</a>. Vous devez être connecté au réseau de la justice."
+    },
+    "%(count)d identical document(s) already exist in the library. ": {
+        "fr": "%(count)d document(s) identique(s) existent déjà dans la bibliothèque. ",
+        "fr_auto": "%(count)d document(s) identique(s) existent déjà dans la bibliothèque. "
+    },
+    "There was an error uploading your file.": {
+        "fr": "",
+        "fr_auto": "Il y a eu une erreur lors du téléchargement de votre fichier."
+    },
+    "now": {
+        "fr": "",
+        "fr_auto": "maintenant"
+    },
+    "files translated:": {
+        "fr": "fichiers traduits :",
+        "fr_auto": "Fichiers traduits :"
+    },
+    "file": {
+        "fr": "",
+        "fr_auto": "fichier"
+    },
+    "uploaded": {
+        "fr": "",
+        "fr_auto": "téléchargé"
+    },
+    "for Q&A:": {
+        "fr": "pour les questions et réponses :",
+        "fr_auto": "Pour les questions et réponses :"
+    },
+    "file(s) uploaded": {
+        "fr": "",
+        "fr_auto": "fichier(s) téléchargé(s)"
+    },
+    "file uploaded": {
+        "fr": "fichier téléchargé",
+        "fr_auto": "Fichier téléchargé"
+    },
+    "files uploaded": {
+        "fr": "",
+        "fr_auto": "fichiers téléchargés"
     }
 }

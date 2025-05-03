@@ -264,8 +264,6 @@ document.addEventListener("htmx:afterSwap", function (event) {
   if (document.querySelector("#no-messages-placeholder") !== null) {
     document.querySelector("#no-messages-placeholder").remove();
   }
-  if (event.detail.pathInfo.requestPath.includes('upload'))
-    return;
   // Check truncation
   document.querySelectorAll("div.message-text").forEach(function (element) {
     checkTruncation(element);
@@ -448,121 +446,6 @@ function copyPromptToTextInput(btn, messageMode) {
   inputArea.dispatchEvent(new Event('change'));
   inputArea.focus();
 }
-
-
-// File upload (based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader)
-class FileUpload {
-
-  constructor(input, upload_url, message_id) {
-    this.input = input;
-    this.upload_url = upload_url;
-    this.message_id = message_id;
-    this.progress_bar = document.querySelector(`#message_${message_id} .progress-bar`);
-    this.cur_filename = document.querySelector(`#message_${message_id} .filename`);
-    this.cur_filenum = document.querySelector(`#message_${message_id} .filenum`);
-    this.total_filenum = document.querySelector(`#message_${message_id} .total-filenum`);
-    this.progress_container = document.querySelector(`#message_${message_id} .progress-container`);
-    this.max_chunk_size = 1024 * 512; // 512kb
-  }
-
-  upload() {
-    this.total_filenum.innerHTML = this.input.files.length;
-    this.cur_file_idx = 0;
-    this.initFileUpload(this.cur_file_idx);
-  }
-
-  async sha256(buffer) {
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  initFileUpload(i) {
-    const file = this.input.files[i];
-    this.file = file;
-    this.cur_filename.innerHTML = file.name;
-    this.cur_filenum.innerHTML = i + 1;
-    this.progress_container.classList.remove("d-none");
-    scrollToBottom(false);
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const buffer = e.target.result;
-      const hash = await this.sha256(buffer);
-      // console.log(`SHA-256 hash for ${file.name}: ${hash}`);
-      this.upload_file(0, null, hash);
-    };
-
-    reader.readAsArrayBuffer(file);
-  }
-
-  upload_file(start, file_id, hash) {
-    const formData = new FormData();
-    const nextChunk = start + this.max_chunk_size + 1;
-    const currentChunk = this.file.slice(start, nextChunk);
-    const uploadedChunk = start + currentChunk.size;
-    const end = (uploadedChunk >= this.file.size) ? 1 : 0;
-
-    formData.append('file', currentChunk);
-    formData.append('hash', hash);
-    formData.append('filename', this.file.name);
-    formData.append('end', end);
-    formData.append('file_id', file_id);
-    formData.append('nextSlice', nextChunk);
-    formData.append('content_type', this.file.type);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', this.upload_url, true);
-    xhr.setRequestHeader("X-CSRFToken", document.querySelector('[name=csrfmiddlewaretoken]').value);
-
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) {
-        const percent = (this.file.size < this.max_chunk_size)
-          ? Math.round((e.loaded / e.total) * 100)
-          : Math.round((uploadedChunk / this.file.size) * 100);
-        this.progress_bar.style.width = percent + "%";
-        this.progress_bar.parentElement.setAttribute("aria-valuenow", percent);
-      }
-    });
-
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        const res = JSON.parse(xhr.responseText);
-        if (res.data === "Invalid request") {
-          alert(res.data);
-        } else if (nextChunk < this.file.size && res.data !== "Uploaded successfully") {
-          // upload file in chunks
-          this.upload_file(nextChunk, res.file_id, hash);
-        } else {
-          // Upload finished. Upload the next file, if there is one
-          this.cur_file_idx++;
-          if (this.cur_file_idx < this.input.files.length) {
-            // Replace the progress bar with a new one
-            const new_progress = this.progress_bar.parentElement.cloneNode(true);
-            new_progress.querySelector('.progress-bar').style.width = "0%";
-            new_progress.setAttribute("aria-valuenow", 0);
-            this.progress_bar.parentElement.replaceWith(new_progress);
-            this.progress_bar = new_progress.querySelector('.progress-bar');
-            this.initFileUpload(this.cur_file_idx);
-          } else {
-            // All files uploaded! Trigger the final response
-            htmx.trigger(`#message_${this.message_id} .progress-container`, "done_upload");
-          }
-        }
-      } else {
-        alert("Error uploading file: " + this.file.name + " - " + xhr.statusText + " - " + xhr.status);
-      }
-    };
-
-    xhr.onerror = () => {
-      console.log("onerror handler");
-      alert("Error uploading file: " + this.file.name + " - " + xhr.statusText + " - " + xhr.status);
-    };
-
-    xhr.send(formData);
-  }
-}
-
 
 function closeSidebar(sidebarID, resizePrompt = true) {
   document.querySelector("#" + sidebarID).classList.add("hidden");
