@@ -37,9 +37,7 @@ urlpatterns = [
     ),
     path("user_management/upload/", views.manage_users_upload, name="upload_users"),
     path(
-        "user_management/download/",
-        views.manage_users_download,
-        name="download_users",
+        "user_management/download/", views.manage_users_download, name="download_users"
     ),
     path("user_management/pilots/", views.manage_pilots, name="manage_pilots"),
     path(
@@ -77,9 +75,7 @@ urlpatterns = [
     path("feedback/", views.feedback_message, name="user_feedback"),
     path("feedback/<int:message_id>/", views.feedback_message, name="user_feedback"),
     path(
-        "user_management/feedback",
-        views.feedback_dashboard,
-        name="feedback_dashboard",
+        "user_management/feedback", views.feedback_dashboard, name="feedback_dashboard"
     ),
     path(
         "user_management/feedback/<int:page_number>",
@@ -92,11 +88,7 @@ urlpatterns = [
         views.feedback_list,
         name="feedback_list",
     ),
-    path(
-        "user_management/feedback/stats",
-        views.feedback_stats,
-        name="feedback_stats",
-    ),
+    path("user_management/feedback/stats", views.feedback_stats, name="feedback_stats"),
     path(
         "user_management/feedback/<int:feedback_id>/<str:form_type>",
         views.feedback_dashboard_update,
@@ -109,9 +101,7 @@ urlpatterns = [
     ),
     path("user_management/blocked_urls", views.list_blocked_urls, name="blocked_urls"),
     path(
-        "notifications/<int:notification_id>/",
-        views.notification,
-        name="notification",
+        "notifications/<int:notification_id>/", views.notification, name="notification"
     ),
     path("notifications/", views.notifications, name="notifications"),
     path("i18n/", include("django.conf.urls.i18n")),
