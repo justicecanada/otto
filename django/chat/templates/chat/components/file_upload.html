@@ -30,9 +30,9 @@
     e.preventDefault();
     e.stopPropagation();
     
-    document.querySelector('#chat-file-input').value = null;
-    document.querySelector('#chat-file-input').files = e.dataTransfer.files;
-    document.querySelector('#chat-file-form').dispatchEvent(new Event('change'));
+    document.querySelector('#id_input_file').value = null;
+    document.querySelector('#id_input_file').files = e.dataTransfer.files;
+    document.querySelector('#id_input_file').dispatchEvent(new Event('change'));
     hideOverlay();
   }
   function handleDragEnter(e) {
@@ -71,12 +71,4 @@
   window.addEventListener('dragexit', handleDragLeave);
   dropZone.addEventListener('drop', onDrop);
 
-  // Monitor the form #chat-file-form for changes
-  let fileForm = document.querySelector('#chat-file-form');
-  fileForm.addEventListener('change', function (e) {
-    // Send the init_file_upload event
-    fileForm.dispatchEvent(new Event('init_file_upload'));
-    // if there's a warning cost in the previous message we remove it
-    clearRemainingCostWarningButtons();
-  });
 </script>

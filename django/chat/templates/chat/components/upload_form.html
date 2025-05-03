@@ -12,4 +12,11 @@
   <input type="submit" value="Save" id="chat-upload-submit" />
 </form>
 
-<script>initUploadFields(document.getElementById("chat-upload-form"));</script>
+<script>
+initUploadFields(document.getElementById("chat-upload-form"), {
+  supportDropArea: false,
+  callbacks: {
+    onSuccess: (upload) => console.log("Success", upload),
+  }
+});
+</script>
