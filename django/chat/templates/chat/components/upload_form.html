@@ -18,18 +18,30 @@
   const file_input = document.getElementById("id_input_file");
   function submitUploadsIfComplete() {
     const form = document.getElementById("chat-upload-form");
-    const allSuccess = Array.from(form.querySelectorAll(".dff-file")).every(file => {
-      return file.classList.contains("dff-upload-success");
+    const allDone = Array.from(form.querySelectorAll(".dff-file")).every(file => {
+      return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
-    if (allSuccess) {
+    if (allDone) {
       form.dispatchEvent(new Event('submit'));
       upload_message.classList.add("submitting");
+    }
+    hideIfNoFiles();
+  }
+  function hideIfNoFiles() {
+    const form = document.getElementById("chat-upload-form");
+    const numFiles = form.querySelectorAll(".dff-file").length;
+    if (numFiles === 0) {
+      upload_message.classList.add("d-none");
+    } else {
+      upload_message.classList.remove("d-none");
     }
   }
   initUploadFields(document.getElementById("chat-upload-form"), {
     supportDropArea: false,
     callbacks: {
       onSuccess: (upload) => submitUploadsIfComplete(),
+      onError: (upload) => submitUploadsIfComplete(),
+      onDelete: (upload) => submitUploadsIfComplete(),
     }
   });
   file_input.addEventListener("change", function() {
