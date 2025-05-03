@@ -416,17 +416,20 @@ def save_upload(request, chat_id):
         "hide_stop_button": chat.options.mode in ["translate", "qa"],
     }
     response.write(
-        render_to_string("chat/components/chat_messages.html", context=context)
+        render_to_string(
+            "chat/components/chat_messages.html", context=context, request=request
+        )
     )
     response.write(
         render_to_string(
-            "chat/components/upload_form.html",
+            "chat/components/chat_upload_message.html",
             context={
-                "swap_upload_form": True,
+                "swap_upload_message": True,
                 "upload_form": UploadForm(),
                 "chat": chat,
                 "csrf_token": request.POST.get("csrfmiddlewaretoken"),
             },
+            request=request,
         )
     )
     response.write("<script>scrollToBottom(false, true);</script>")

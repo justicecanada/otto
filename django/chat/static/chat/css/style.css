@@ -1554,3 +1554,53 @@ math[display="block"] {
   opacity: 1;
   pointer-events: auto;
 }
+
+/* Chat file upload */
+#chat-upload-message {
+  .spinner-border {
+    display: none;
+  }
+
+  &.submitting {
+    .spinner-border {
+      display: inline-block;
+    }
+
+    i {
+      display: none;
+    }
+  }
+
+  /* Overriding styles from django-file-form */
+  .dff-uploader {
+    .dff-files {
+      padding: 0;
+      max-width: none;
+      outline: none;
+      margin: 0;
+    }
+
+    .dff-files span:first-of-type {
+      margin-left: 0;
+    }
+
+    .dff-files .dff-file {
+      margin-bottom: 0;
+    }
+
+    .dff-filesize {
+      color: var(--bs-secondary-color);
+      margin-left: 10px !important;
+    }
+
+    a.dff-delete {
+      display: none;
+    }
+  }
+
+  #id_input_file,
+  label[for="id_input_file"],
+  #chat-upload-submit {
+    display: none;
+  }
+}

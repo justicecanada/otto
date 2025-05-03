@@ -4,7 +4,6 @@
       enctype="multipart/form-data"
       hx-post="{% url 'chat:upload' chat.id %}"
       hx-swap="beforeend"
-      {% if swap_upload_form %}hx-swap-oob="true"{% endif %}
       hx-target="#messages-container"
       hx-encoding="multipart/form-data">
   {% csrf_token %}
@@ -15,13 +14,16 @@
 
 <script>
 (function(){
+  const upload_message = document.getElementById("chat-upload-message");
+  const file_input = document.getElementById("id_input_file");
   function submitUploadsIfComplete() {
     const form = document.getElementById("chat-upload-form");
     const allSuccess = Array.from(form.querySelectorAll(".dff-file")).every(file => {
       return file.classList.contains("dff-upload-success");
     });
     if (allSuccess) {
-      form.dispatchEvent(new Event('submit'));
+      // form.dispatchEvent(new Event('submit'));
+      upload_message.classList.add("submitting");
     }
   }
   initUploadFields(document.getElementById("chat-upload-form"), {
@@ -30,13 +32,16 @@
       onSuccess: (upload) => submitUploadsIfComplete(),
     }
   });
+  file_input.addEventListener("change", function() {
+    // Show the upload message
+    upload_message.classList.remove("d-none");
+    // Hide the welcome message, if visible
+    if (document.querySelector("#no-messages-placeholder") !== null) {
+      document.querySelector("#no-messages-placeholder").remove();
+    }
+    setTimeout(() => {
+      scrollToBottom(false, true);
+    }, 50);
+  });
 })();
 </script>
-
-<style>
-#id_input_file,
-label[for="id_input_file"],
-#chat-upload-submit {
-  display: none;
-}
-</style>
