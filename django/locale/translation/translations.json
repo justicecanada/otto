@@ -3957,7 +3957,7 @@
     },
     "%(count)d identical document(s) already exist in the library. ": {
         "fr": "",
-        "fr_auto": "%(count)d Documents(s) identiques(s) existent(s) déjà dans la bibliothèque. "
+        "fr_auto": "%(count)d identical document(s) already exist in the library. "
     },
     "There was an error uploading your file.": {
         "fr": "",
@@ -3966,5 +3966,33 @@
     "now": {
         "fr": "",
         "fr_auto": "maintenant"
+    },
+    "files translated:": {
+        "fr": "",
+        "fr_auto": "Fichiers traduits :"
+    },
+    "file": {
+        "fr": "",
+        "fr_auto": "fichier"
+    },
+    "uploaded": {
+        "fr": "",
+        "fr_auto": "téléchargé"
+    },
+    "for Q&A:": {
+        "fr": "",
+        "fr_auto": "Pour les questions et réponses :"
+    },
+    "file(s) uploaded": {
+        "fr": "",
+        "fr_auto": "fichier(s) téléchargé(s)"
+    },
+    "file uploaded": {
+        "fr": "",
+        "fr_auto": "Fichier téléchargé"
+    },
+    "files uploaded": {
+        "fr": "",
+        "fr_auto": "fichiers téléchargés"
     }
 }
