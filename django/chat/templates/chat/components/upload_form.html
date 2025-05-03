@@ -13,10 +13,19 @@
 </form>
 
 <script>
+function submitUploadsIfComplete() {
+  const form = document.getElementById("chat-upload-form");
+  const allSuccess = Array.from(form.querySelectorAll(".dff-file")).every(file => {
+    return file.classList.contains("dff-upload-success");
+  });
+  if (allSuccess) {
+    form.dispatchEvent(new Event('submit'));
+  }
+}
 initUploadFields(document.getElementById("chat-upload-form"), {
   supportDropArea: false,
   callbacks: {
-    onSuccess: (upload) => console.log("Success", upload),
+    onSuccess: (upload) => submitUploadsIfComplete(),
   }
 });
 </script>
