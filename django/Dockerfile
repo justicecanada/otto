@@ -15,9 +15,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/archives/*
 
-# Copy GoC Root CA before Python certificate configuration
-COPY GoC-GdC-Root-A.crt /usr/local/share/ca-certificates/
-RUN chmod 644 /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
+# Download and install the GoC root certificate using wget
+# TODO: Remove the header and replace the IP with the domain name when the host no longer resets the connection from the secondary IP
+RUN wget -q --header="Host: pki-icp.canada.ca" http://167.43.15.18/aia/GoC-GdC-Root-A.crt -O /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
+    && chmod 644 /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt \
     && update-ca-certificates
 
 COPY requirements*.txt /tmp/pip-tmp/
