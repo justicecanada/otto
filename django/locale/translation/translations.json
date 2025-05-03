@@ -2881,11 +2881,11 @@
     },
     "Information Extracted": {
         "fr": "",
-        "fr_auto": "Renseignements extraits"
+        "fr_auto": "Informations extraites"
     },
     "Document": {
         "fr": "",
-        "fr_auto": "Document"
+        "fr_auto": "Le document"
     },
     "Tax Court No.": {
         "fr": "",
@@ -2901,11 +2901,11 @@
     },
     "Tax Court Level": {
         "fr": "",
-        "fr_auto": "Au niveau de la Cour de l’impôt"
+        "fr_auto": "Niveau de la Cour de l’impôt"
     },
     "Filed Date of NoA": {
         "fr": "",
-        "fr_auto": "Date de dépôt de l’avis d’approbation"
+        "fr_auto": "Date de dépôt de l’AA"
     },
     "Representative's Name": {
         "fr": "",
@@ -2925,7 +2925,7 @@
     },
     "Sections Referred": {
         "fr": "",
-        "fr_auto": "Articles renvoyés"
+        "fr_auto": "Sections renvoyées"
     },
     "Improve prompt": {
         "fr": "",
@@ -4050,5 +4050,45 @@
     "files uploaded": {
         "fr": "",
         "fr_auto": "fichiers téléchargés"
+    },
+    "Appl's Street": {
+        "fr": "",
+        "fr_auto": "Rue Appl"
+    },
+    "Appl's City": {
+        "fr": "",
+        "fr_auto": "La ville d’Appl"
+    },
+    "Appl's Province": {
+        "fr": "",
+        "fr_auto": "Province d’Appl"
+    },
+    "Appl's Postal Code": {
+        "fr": "",
+        "fr_auto": "Code postal d’Appl"
+    },
+    "Appl's Country": {
+        "fr": "",
+        "fr_auto": "Pays d’Appl"
+    },
+    "Rep's Street": {
+        "fr": "",
+        "fr_auto": "Rue du Représentant"
+    },
+    "Rep's City": {
+        "fr": "",
+        "fr_auto": "Ville du Représentant"
+    },
+    "Rep's Province": {
+        "fr": "",
+        "fr_auto": "Province du représentant"
+    },
+    "Rep's Postal Code": {
+        "fr": "",
+        "fr_auto": "Code postal du représentant"
+    },
+    "Rep's Country": {
+        "fr": "",
+        "fr_auto": "Pays du représentant"
     }
 }
