@@ -31,20 +31,25 @@
   function handleDragEnter(e) {
     // make sure we're dragging a file
     var dt = (e && e.dataTransfer);
-    var isFile = (dt && dt.types && dt.types.length == 1 && dt.types[0] == "Files");
-    if (isFile) {
-      // check if the mode is "chat"; if so, switch to QA mode
-      if (document.querySelector('#id_mode').value == 'chat') {
-        handleModeChange('qa');
-      }
-      showOverlay();
+    if (!dt) {
+      return;
     }
+    // required to create an array for Firefox 
+    Array.from(dt.types)?.forEach((type) => {
+      if (type === "Files") {
+        // check if the mode is "chat"; if so, switch to QA mode
+        if (document.querySelector('#id_mode').value == 'chat') {
+          handleModeChange('qa');
+        }
+        showOverlay();
+      }
+    });    
   }
 
   function handleDragLeave(e) {
-    // was our dragleave off the page?
-    if (e && e.pageX == 0 && e.pageY == 0) {
-      // then hide the overlay
+    // Check if the related target is not a child of the drop zone
+    const dropZoneElement = document.querySelector('#file-dropzone');
+    if (!e.relatedTarget || !dropZoneElement.contains(e.relatedTarget)) {
       hideOverlay();
     }
   }
