@@ -42,6 +42,13 @@ RUN wget -q --header="Host: pki-icp.canada.ca" \
     chmod 644 /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt && \
     update-ca-certificates --fresh
 
+# Vulnerability CVE-2024-6345 is fixed in setuptools 70.0.0
+# and later. The vulnerability is present in all versions of
+# setuptools prior to 70.0.0; however, the fix is not included in
+# the Python 3.11-slim-bookworm image. This is a workaround to
+# ensure that the latest version of setuptools is installed.
+RUN pip3 install --upgrade "setuptools>=70.0"
+
 # Install Python dependencies
 COPY requirements*.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check install --upgrade pip setuptools wheel && \
