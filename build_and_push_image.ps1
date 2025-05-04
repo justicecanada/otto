@@ -10,7 +10,8 @@ if ($subscription -eq "") {
     Write-Host "Available subscriptions:"
     az account list --query "[].{SubscriptionId:id, Name:name}" --output table
     $SUBSCRIPTION_ID = Read-Host -Prompt "Enter the Subscription ID you want to use"
-} else {
+}
+else {
     # Look up the ID of the subscription name provided
     $SUBSCRIPTION_ID = az account list --query "[?name=='$subscription'].id" -o tsv
     Write-Host "Using subscription ID: $SUBSCRIPTION_ID"
@@ -22,7 +23,8 @@ if ($acr -eq "") {
     Write-Host "Available container registries:"
     az acr list --query "[].{Name:name, ResourceGroup:resourceGroup}" --output table
     $REGISTRY_NAME = Read-Host -Prompt "Enter the registry name you want to use"
-} else {
+}
+else {
     $REGISTRY_NAME = $acr
     Write-Host "Using registry name: $REGISTRY_NAME"
 }
@@ -57,7 +59,7 @@ if ($skipNetworkCheck -ne "y") {
 }
 
 # Build Docker image
-docker build -t ${IMAGE_NAME}:${SPECIFIC_TAG} -f ./django/Dockerfile.sandbox ./django
+docker build -t ${IMAGE_NAME}:${SPECIFIC_TAG} -f ./django/Dockerfile ./django
 
 # Tag Docker image for ACR
 docker tag ${IMAGE_NAME}:${SPECIFIC_TAG} ${IMAGE_NAME}:latest
