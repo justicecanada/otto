@@ -39,9 +39,15 @@ RUN pip3 --disable-pip-version-check --no-cache-dir install \
 #     sed -i 's/return _certifi_where()/return "\/etc\/ssl\/certs\/ca-certificates.crt"/' /usr/local/lib/python3.13/site-packages/certifi/core.py
 
 # # AFTER
-RUN rm -f $(python -c "import certifi; print(certifi.where())") && \
-    ln -s /etc/ssl/certs/ca-certificates.crt $(python -c "import certifi; print(certifi.where())") && \
-    sed -i "s|return _certifi_where()|return '/etc/ssl/certs/ca-certificates.crt'|" $(python -c "import certifi; print(certifi.__file__)")
+
+# Replace existing certifi configuration
+RUN rm -f $(python3 -c "import certifi; print(certifi.where())") && \
+    ln -s /etc/ssl/certs/ca-certificates.crt $(python3 -c "import certifi; print(certifi.where())") && \
+    sed -i "s|return _certifi_where()|return '/etc/ssl/certs/ca-certificates.crt'|" $(python3 -c "import certifi; print(certifi.__file__)")
+
+# Ensure OpenSSL uses correct CA bundle
+RUN rm -f /usr/lib/ssl/cert.pem && \
+    ln -s /etc/ssl/certs/ca-certificates.crt /usr/lib/ssl/cert.pem
 
 
 COPY . /django
