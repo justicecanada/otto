@@ -32,9 +32,17 @@ RUN pip3 --disable-pip-version-check --no-cache-dir install \
 # Ensure Python uses the system CA bundle instead of certifi’s,
 # so that any custom or organization CA certificates (like the GoC root CA)
 # injected at runtime are trusted by all Python HTTPS clients.
-RUN rm -f /usr/local/lib/python3.13/site-packages/certifi/cacert.pem && \
-    ln -s /etc/ssl/certs/ca-certificates.crt /usr/local/lib/python3.13/site-packages/certifi/cacert.pem && \
-    sed -i 's/return _certifi_where()/return "\/etc\/ssl\/certs\/ca-certificates.crt"/' /usr/local/lib/python3.13/site-packages/certifi/core.py
+
+# # BEFORE
+# RUN rm -f /usr/local/lib/python3.13/site-packages/certifi/cacert.pem && \
+#     ln -s /etc/ssl/certs/ca-certificates.crt /usr/local/lib/python3.13/site-packages/certifi/cacert.pem && \
+#     sed -i 's/return _certifi_where()/return "\/etc\/ssl\/certs\/ca-certificates.crt"/' /usr/local/lib/python3.13/site-packages/certifi/core.py
+
+# # AFTER
+RUN rm -f $(python -c "import certifi; print(certifi.where())") && \
+    ln -s /etc/ssl/certs/ca-certificates.crt $(python -c "import certifi; print(certifi.where())") && \
+    sed -i "s|return _certifi_where()|return '/etc/ssl/certs/ca-certificates.crt'|" $(python -c "import certifi; print(certifi.__file__)")
+
 
 COPY . /django
 
