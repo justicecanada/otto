@@ -1608,3 +1608,42 @@ label[for="id_chat-input_file"],
 label[for="id_librarian-input_file"] {
   display: none;
 }
+
+#librarian-upload-message {
+  font-style: italic;
+  margin-right: 0.5rem;
+}
+
+#librarian-upload-form {
+  font-style: normal;
+  position: absolute;
+  top: 2rem;
+  right: 0px;
+  z-index: 1;
+  width: 530px;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 0 10px;
+  background: var(--bs-body-bg);
+
+  span.dff-filename {
+    margin-left: 0;
+    width: 274px;
+    display: inline-block;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    /* no wrap either */
+    white-space: nowrap !important;
+  }
+
+  .dff-files {
+    margin: 0 !important;
+    outline: none !important;
+    padding-bottom: 0 !important;
+  }
+
+  .diff-invalid-files ul {
+    margin: 0;
+  }
+}
