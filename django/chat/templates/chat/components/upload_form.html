@@ -50,11 +50,14 @@
     });
     file_input.addEventListener("change", function () {
       // Check if the total size of all files exceeds the limit
-      const totalSize = Array.from(this.files).reduce((acc, file) => acc + file.size, 0);
+      const totalSize = Array.from(form.querySelectorAll(".dff-file")).reduce((acc, file) => {
+        return acc + file.file.size;
+      }, 0);
+      // Update the size display
       sizeDisplay.textContent = `${(totalSize / 1024 / 1024).toFixed(1)}MB / ${MAX_TOTAL_SIZE / 1024 / 1024}MB`;
       if (totalSize > MAX_TOTAL_SIZE) {
         sizeDisplay.classList.add('text-danger');
-        this.value = '';
+        sizeDisplay.textContent += ' (exceeds limit)';
         return;
       } else {
         sizeDisplay.classList.remove('text-danger');
