@@ -540,7 +540,7 @@ def direct_upload(request, data_source_id):
 
     for file in request.FILES.getlist("file"):
         # Check if the file is already stored on the server
-        file_hash = generate_hash(file.read())
+        file_hash = generate_hash(file)
         # Further check that the file is on disk
         file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
         file_exists = file_obj is not None

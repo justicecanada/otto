@@ -12,7 +12,7 @@ def process_file(file, data_source_id, nested_file_path, name, content_type):
     from librarian.utils.process_engine import generate_hash
 
     # Check if the file is already stored on the server
-    file_hash = generate_hash(file.read())
+    file_hash = generate_hash(file)
     logger.info(f"Generated hash for {file_hash}")
     file_exists = SavedFile.objects.filter(sha256_hash=file_hash).exists()
     if file_exists:
