@@ -99,7 +99,7 @@ def can_access_preset(user, preset):
     return (
         user == preset.owner
         or user in preset.accessible_to.all()
-        or preset.shared_with == "Shared with everyone"
+        or preset.sharing_option == "everyone"
     )
 
 
