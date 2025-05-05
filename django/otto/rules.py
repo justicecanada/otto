@@ -4,7 +4,6 @@ See https://github.com/dfunckt/django-rules
 """
 
 from django.conf import settings
-from django.utils.translation import gettext as _
 
 from data_fetcher import cache_within_request
 from rules import add_perm, is_group_member, predicate
@@ -100,7 +99,7 @@ def can_access_preset(user, preset):
     return (
         user == preset.owner
         or user in preset.accessible_to.all()
-        or preset.shared_with == _("Shared with everyone")
+        or preset.sharing_option == "everyone"
     )
 
 
