@@ -69,6 +69,10 @@ RUN chmod +x /django/*.sh
 RUN mkdir -p $TIKTOKEN_CACHE_DIR && \
     python /django/cache_tiktoken.py
 
-RUN python3 manage.py compilemessages
+# Copy the .env.example file to .env
+COPY .env.example /django/.env
+
+RUN python3 manage.py compilemessages && \
+    rm -f /django/.env
 
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]
