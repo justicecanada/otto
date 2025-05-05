@@ -11,7 +11,3 @@ echo "Running migrations..."
 # Collect static files
 echo "Collecting static files..."
 { python manage.py collectstatic --noinput --clear || { echo "Error: Collect static files failed"; exit 1; } }
-
-# Load app localization
-echo "Loading app localization..."
-{ python3 manage.py load_app_localization || { echo "Error: Load app localization failed"; exit 1; } }
