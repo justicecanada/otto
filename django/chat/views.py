@@ -462,7 +462,7 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         message.save()
     except Exception as e:
         logger.exception(
-            f"An error occurred while providing thumbs up/down feedback.",
+            f"An error occurred while providing thumbs up/down feedback.:{e}",
             message_id=message_id,
         )
 

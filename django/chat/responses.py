@@ -239,7 +239,7 @@ def summarize_response(chat, response_message):
                     error_str += f" _({_('Error ID')}: {error_id})_"
                     responses.append(stream_to_replacer([error_str]))
                     logger.exception(
-                        "Error extracting text from file",
+                        f"Error extracting text from file:{e}",
                         error_id=error_id,
                         message_id=response_message.id,
                         chat_id=chat.id,
@@ -365,7 +365,7 @@ def translate_response(chat, response_message):
             error_str = _("Error translating files.")
             error_str += f" _({_('Error ID')}: {error_id})_"
             logger.exception(
-                "Error translating files",
+                f"Error translating files",
                 error_id=error_id,
                 message_id=response_message.id,
                 chat_id=chat.id,

@@ -178,11 +178,10 @@ def create_searchable_pdf(input_file, add_header, merged=False):
                     )  # Adjust resolution as needed
                 temp_path = temp_compressed.name
         except PDFPageCountError as e:
-            full_error = traceback.format_exc()
             error_id = str(uuid.uuid4())[:7]
             logger.exception(
                 _(
-                    "PDFPageCountError while processing {input_file.name} in {error_id}: {full_error}"
+                    "PDFPageCountError while processing {input_file.name} in {error_id}: {e}"
                 )
             )
             return {
@@ -193,15 +192,12 @@ def create_searchable_pdf(input_file, add_header, merged=False):
                 "error_id": error_id,
             }
         except Exception as e:
-            full_error = traceback.format_exc()
             error_id = str(uuid.uuid4())[:7]
-            logger.exception(
-                _("Error converting pdfs into images in {error_id}: {full_error}")
-            )
+            logger.exception(_("Error converting pdfs into images in {error_id}: {e}"))
             # Fallback for other exceptions
             return {
                 "error": True,
-                "full_error": full_error,
+                "full_error": e,
                 "message": _(
                     "Error ID:%(error_id)s - Error occurred while converting pdfs into images"
                 )
@@ -225,12 +221,9 @@ def create_searchable_pdf(input_file, add_header, merged=False):
                         for image in image_pages_original
                     ]
         except Exception as e:
-            full_error = traceback.format_exc()
             error_id = str(uuid.uuid4())[:7]
             logger.exception(
-                _(
-                    "Error processing image {input_file.name} in {error_id}: {full_error}"
-                )
+                _("Error processing image {input_file.name} in {error_id}: {e}")
             )
             return {
                 "error": True,
@@ -261,12 +254,9 @@ def create_searchable_pdf(input_file, add_header, merged=False):
 
         ocr_results = poller.result()
     except Exception as e:
-        full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
         logger.exception(
-            _(
-                "Error running Azure's document intelligence API on in {error_id}: {full_error}"
-            )
+            _("Error running Azure's document intelligence API on in {error_id}: {e}")
         )
         return {
             "error": True,
@@ -386,10 +376,9 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             new_pdf_page = PdfReader(ocr_overlay)  # changed
             output.add_page(new_pdf_page.pages[0])
     except Exception as e:
-        full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
         logger.exception(
-            _("Error creating PDF overlay after OCR {error_id}: {full_error}")
+            _("Error creating PDF overlay after OCR with ErrorID- {error_id}: {e}")
         )
         return {
             "error": True,

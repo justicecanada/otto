@@ -53,7 +53,6 @@ def process_ocr_document(file_content, file_name, merged, idx):
 
         from django.utils.translation import gettext as _
 
-        full_error = traceback.format_exc()
         error_id = str(uuid.uuid4())[:7]
         logger.exception(
             f"Error processing file {file_name} in task {current_task.request.id}: {e}"
@@ -61,7 +60,6 @@ def process_ocr_document(file_content, file_name, merged, idx):
         # Fallback for other exceptions
         return {
             "error": True,
-            "full_error": full_error,
             "error_id": error_id,
             "message": _("Corruption/Type mismatch.\n ")
             + "\nError ID: %(error_id)s" % {"error_id": error_id},
