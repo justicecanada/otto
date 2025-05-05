@@ -14,3 +14,6 @@
 </div>
 
 {% include "librarian/components/poller.html" %}
+{% if selected_data_source and selected_data_source.id %}
+  {% include "librarian/components/upload_form.html" %}
+{% endif %}

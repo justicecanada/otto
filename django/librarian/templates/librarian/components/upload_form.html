@@ -1,0 +1,20 @@
+{% load i18n %}
+
+<div id="librarian-upload-message"
+     class="d-none position-relative ms-2"
+     hx-swap-oob="true">
+  {% trans "Uploading..." %}
+  <form id="librarian-upload-form"
+        class="border rounded small"
+        enctype="multipart/form-data"
+        hx-encoding="multipart/form-data"
+        hx-post="{% url 'librarian:upload' selected_data_source.id %}"
+        hx-target="#editLibrariesInner"
+        hx-ext="morph"
+        hx-swap="morph:innerHTML"
+        hx-indicator="#librarian-modal-spinner">
+    {% csrf_token %}
+    {{ upload_form }}
+    {% for hidden in upload_form.hidden_fields %}{{ hidden }}{% endfor %}
+  </form>
+</div>
