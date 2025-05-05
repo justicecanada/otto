@@ -254,7 +254,7 @@ def chat(request, chat_id):
         "tour_skippable": request.user.is_admin
         or request.user.ai_assistant_tour_completed,
         "start_tour": request.GET.get("start_tour") == "true",
-        "upload_form": UploadForm(),
+        "upload_form": UploadForm(prefix="chat"),
     }
     return render(request, "chat/chat.html", context=context)
 
@@ -375,7 +375,7 @@ def save_upload(request, chat_id):
     Handles the form submission after JS upload
     """
     chat = Chat.objects.get(id=chat_id)
-    form = UploadForm(request.POST, request.FILES)
+    form = UploadForm(request.POST, request.FILES, prefix="chat")
     if not form.is_valid():
         messages.error(request, _("There was an error uploading your file."))
         return HttpResponse(status=200)
@@ -426,7 +426,7 @@ def save_upload(request, chat_id):
             "chat/components/chat_upload_message.html",
             context={
                 "swap_upload_message": True,
-                "upload_form": UploadForm(),
+                "upload_form": UploadForm(prefix="chat"),
                 "chat": chat,
                 "csrf_token": request.POST.get("csrfmiddlewaretoken"),
             },

@@ -4142,5 +4142,13 @@
     "Error creating PDF overlay after OCR with ErrorID- {error_id}: {e}": {
         "fr": "",
         "fr_auto": "Erreur lors de la superposition PDF après l’OCR avec ErrorID- {error_id} : {e}"
+    },
+    "There was an error uploading your files.": {
+        "fr": "",
+        "fr_auto": "Il y a eu une erreur lors du téléchargement de vos fichiers."
+    },
+    "Uploading...": {
+        "fr": "",
+        "fr_auto": "Téléchargement..."
     }
 }
