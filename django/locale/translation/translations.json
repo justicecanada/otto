@@ -2873,7 +2873,7 @@
     },
     "Improve prompt": {
         "fr": "",
-        "fr_auto": "Améliorer l'invite"
+        "fr_auto": "Améliorer la requête"
     },
     "Yesterday": {
         "fr": "",
@@ -3341,7 +3341,7 @@
     },
     "There are 3 preset length settings, but you can add additional instructions or override the prompt entirely. A custom summarize prompt is the easiest way to extract exactly the information you want from a document.": {
         "fr": "",
-        "fr_auto": "Il y a 3 réglages de longueur prédéfinis, mais vous pouvez ajouter des instructions supplémentaires ou remplacer complètement l’invite. Une invite de résumé personnalisée est le moyen le plus simple d’extraire exactement l’information que vous voulez d’un document."
+        "fr_auto": "Il y a 3 réglages de longueur prédéfinis, mais vous pouvez ajouter des instructions supplémentaires ou remplacer complètement la requête. Une requête de résumé personnalisée est le moyen le plus simple d’extraire exactement l’information que vous voulez d’un document."
     },
     "My team at Department of Justice Canada has developed a generative AI tool. What are the top 7 pieces of guidance I should provide users? Write a 1000-word Buzzfeed-style listicle with nice formatting. The audience is end-users.": {
         "fr": "",
@@ -3349,11 +3349,11 @@
     },
     "Summary with custom prompt": {
         "fr": "",
-        "fr_auto": "Résumé avec invite personnalisée"
+        "fr_auto": "Résumé avec requête personnalisée"
     },
     "The AI now generates a summary according to the custom prompt!": {
         "fr": "",
-        "fr_auto": "L’IA génère maintenant un résumé selon l’invite personnalisée!"
+        "fr_auto": "L’IA génère maintenant un résumé selon la requête personnalisée!"
     },
     "Switching back to chat mode": {
         "fr": "",
@@ -3449,7 +3449,7 @@
     },
     "o3-mini (adds reasoning, 7x cost)": {
         "fr": "",
-        "fr_auto": "o3-mini (ajoute un raisonnement, coût 7x)"
+        "fr_auto": "o3-mini (ajoute du raisonnement, coût 7x)"
     },
     "GPT-4o (best accuracy, 15x cost)": {
         "fr": "",
@@ -3513,7 +3513,7 @@
     },
     "Default for new chats": {
         "fr": "",
-        "fr_auto": "Par défaut pour les nouvelles conversations"
+        "fr_auto": "Par défaut pour nouveaux clavardages"
     },
     "Default preset updated.": {
         "fr": "",
@@ -3653,7 +3653,7 @@
     },
     "The AI may produce inaccurate or incomplete responses if user prompts are unclear or lack sufficient detail.": {
         "fr": "",
-        "fr_auto": "L’IA peut produire des réponses inexactes ou incomplètes si les invites de l’utilisateur ne sont pas claires ou manquent de détails."
+        "fr_auto": "L’IA peut produire des réponses inexactes ou incomplètes si les requêtes de l’utilisateur ne sont pas claires ou manquent de détails."
     },
     "Users are limited to a monthly budget of $32 for AI use and exceeding this requires a request to administrators.": {
         "fr": "",
@@ -3705,7 +3705,7 @@
     },
     "Otto relies on pre-existing knowledge and trusted internal documents to provide information. Otto retrieves answers from user-uploaded documents and displays page-numbered references and relevant links for verification. Additionally, users can customize prompts and settings to refine how information is extracted and presented, ensuring clarity and reliability. For certain questions, Otto will attempt to let users know if there are limitations to its responses and may recommend consulting the appropriate resources or experts.  If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs.": {
         "fr": "",
-        "fr_auto": "Otto s’appuie sur des connaissances préexistantes et des documents internes fiables pour fournir de l’information. Otto récupère les réponses des documents téléchargés par les utilisateurs et affiche des références numérotées et des liens pertinents pour vérification. De plus, les utilisateurs peuvent personnaliser les invites et les paramètres pour affiner la façon dont l’information est extraite et présentée, ce qui garantit la clarté et la fiabilité. Pour certaines questions, Otto tentera d’informer les utilisateurs s’il y a des limites à ses réponses et peut recommander de consulter les ressources ou les experts appropriés.  Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants."
+        "fr_auto": "Otto s’appuie sur des connaissances préexistantes et des documents internes fiables pour fournir de l’information. Otto récupère les réponses des documents téléchargés par les utilisateurs et affiche des références numérotées et des liens pertinents pour vérification. De plus, les utilisateurs peuvent personnaliser les requêtes et les paramètres pour affiner la façon dont l’information est extraite et présentée, ce qui garantit la clarté et la fiabilité. Pour certaines questions, Otto tentera d’informer les utilisateurs s’il y a des limites à ses réponses et peut recommander de consulter les ressources ou les experts appropriés.  Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants."
     },
     "Can Otto help me with bilingual (English/French) questions?": {
         "fr": "",
