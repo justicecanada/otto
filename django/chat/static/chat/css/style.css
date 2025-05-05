@@ -1637,7 +1637,7 @@ label[for="id_librarian-input_file"] {
   .dff-filesize {
     color: var(--bs-secondary-color);
     position: relative;
-    top: -1px;
+    top: -1.5px;
   }
 
   span.dff-filename {

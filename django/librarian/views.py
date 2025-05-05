@@ -13,6 +13,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.forms import UploadForm
+from librarian.utils.process_engine import generate_hash
 from otto.utils.common import generate_mailto
 from otto.utils.decorators import budget_required, permission_required
 
@@ -511,6 +512,63 @@ def upload(request, data_source_id):
             continue
         document = Document.objects.create(
             data_source_id=data_source_id, saved_file=file_obj, filename=filename
+        )
+        document.process()
+    # Update the modal with the new documents
+    request.method = "GET"
+    if existing_document_count > 0:
+        messages.warning(
+            request,
+            _("%(count)d identical document(s) already exist in the library. ")
+            % {"count": existing_document_count},
+        )
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+@permission_required(
+    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
+)
+@budget_required
+def direct_upload(request, data_source_id):
+    """
+    TODO: Remove this! It's currently only used in tests.
+    Handles POST request for (multiple) document upload
+    <input type="file" name="file" id="document-file-input" multiple>
+    """
+    bind_contextvars(feature="librarian")
+    existing_document_count = 0
+
+    for file in request.FILES.getlist("file"):
+        # Check if the file is already stored on the server
+        file_hash = generate_hash(file.read())
+        # Further check that the file is on disk
+        file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
+        file_exists = file_obj is not None
+        is_good_file = file_exists and os.path.exists(file_obj.file.path)
+        if is_good_file:
+            logger.info(
+                f"Found existing SavedFile for {file.name}", saved_file_id=file_obj.id
+            )
+            # Check if identical document already exists in the DataSource
+            existing_document = Document.objects.filter(
+                data_source_id=data_source_id,
+                filename=file.name,
+                saved_file__sha256_hash=file_hash,
+            ).first()
+            # Skip if filename and hash are the same, but reprocess if ERROR status
+            if existing_document:
+                existing_document_count += 1
+                if existing_document.status == "ERROR":
+                    existing_document.process()
+                continue
+        else:
+            if not file_exists:
+                file_obj = SavedFile.objects.create(content_type=file.content_type)
+            file_obj.file.save(file.name, file)
+            file_obj.generate_hash()
+
+        document = Document.objects.create(
+            data_source_id=data_source_id, saved_file=file_obj, filename=file.name
         )
         document.process()
     # Update the modal with the new documents
