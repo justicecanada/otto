@@ -12,7 +12,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from librarian.utils.process_engine import generate_hash
+from chat.forms import UploadForm
 from otto.utils.common import generate_mailto
 from otto.utils.decorators import budget_required, permission_required
 
@@ -294,6 +294,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "poll_url": poll_url,
         "poll_response": "poll" in request.GET,
         "has_error": has_error,
+        "upload_form": UploadForm(prefix="librarian"),
     }
     return render(request, "librarian/modal_inner.html", context)
 
@@ -484,43 +485,32 @@ def data_source_start(request, data_source_id, pdf_method="default", scope="all"
 @budget_required
 def upload(request, data_source_id):
     """
-    Handles POST request for (multiple) document upload
-    <input type="file" name="file" id="document-file-input" multiple>
+    Handles the form submission after JS upload using UploadForm and django-file-form
     """
     bind_contextvars(feature="librarian")
     existing_document_count = 0
+    form = UploadForm(request.POST, request.FILES, prefix="librarian")
+    if not form.is_valid():
+        messages.error(request, _("There was an error uploading your files."))
+        return modal_view(request, item_type="data_source", item_id=data_source_id)
 
-    for file in request.FILES.getlist("file"):
-        # Check if the file is already stored on the server
-        file_hash = generate_hash(file.read())
-        # Further check that the file is on disk
-        file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
-        file_exists = file_obj is not None
-        is_good_file = file_exists and os.path.exists(file_obj.file.path)
-        if is_good_file:
-            logger.info(
-                f"Found existing SavedFile for {file.name}", saved_file_id=file_obj.id
-            )
-            # Check if identical document already exists in the DataSource
-            existing_document = Document.objects.filter(
-                data_source_id=data_source_id,
-                filename=file.name,
-                saved_file__sha256_hash=file_hash,
-            ).first()
-            # Skip if filename and hash are the same, but reprocess if ERROR status
-            if existing_document:
-                existing_document_count += 1
-                if existing_document.status == "ERROR":
-                    existing_document.process()
-                continue
-        else:
-            if not file_exists:
-                file_obj = SavedFile.objects.create(content_type=file.content_type)
-            file_obj.file.save(file.name, file)
-            file_obj.generate_hash()
-
+    saved_files = form.save()
+    for saved_file in saved_files:
+        file_obj = saved_file["saved_file"]
+        filename = saved_file["filename"]
+        # Check if identical document already exists in the DataSource
+        existing_document = Document.objects.filter(
+            data_source_id=data_source_id,
+            filename=filename,
+            saved_file=file_obj,
+        ).first()
+        if existing_document:
+            existing_document_count += 1
+            if existing_document.status == "ERROR":
+                existing_document.process()
+            continue
         document = Document.objects.create(
-            data_source_id=data_source_id, saved_file=file_obj, filename=file.name
+            data_source_id=data_source_id, saved_file=file_obj, filename=filename
         )
         document.process()
     # Update the modal with the new documents

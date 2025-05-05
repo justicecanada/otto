@@ -9,13 +9,12 @@
   {% csrf_token %}
   {{ upload_form }}
   {% for hidden in upload_form.hidden_fields %}{{ hidden }}{% endfor %}
-  <input type="submit" value="Save" id="chat-upload-submit" />
 </form>
 
 <script>
 (function(){
   const upload_message = document.getElementById("chat-upload-message");
-  const file_input = document.getElementById("id_input_file");
+  const file_input = document.getElementById("id_chat-input_file");
   function submitUploadsIfComplete() {
     const form = document.getElementById("chat-upload-form");
     const allDone = Array.from(form.querySelectorAll(".dff-file")).every(file => {
@@ -37,6 +36,7 @@
     }
   }
   initUploadFields(document.getElementById("chat-upload-form"), {
+    prefix: "chat",
     supportDropArea: false,
     callbacks: {
       onSuccess: (upload) => submitUploadsIfComplete(),

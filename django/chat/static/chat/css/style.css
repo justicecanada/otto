@@ -1570,6 +1570,9 @@ math[display="block"] {
       display: none;
     }
   }
+}
+
+#chat-outer {
 
   /* Overriding styles from django-file-form */
   .dff-uploader {
@@ -1597,10 +1600,11 @@ math[display="block"] {
       display: none;
     }
   }
+}
 
-  #id_input_file,
-  label[for="id_input_file"],
-  #chat-upload-submit {
-    display: none;
-  }
+#id_chat-input_file,
+#id_librarian-input_file,
+label[for="id_chat-input_file"],
+label[for="id_librarian-input_file"] {
+  display: none;
 }
