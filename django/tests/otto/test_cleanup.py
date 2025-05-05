@@ -48,7 +48,9 @@ def test_redundant_librarian_upload(client, all_apps_user):
         library=user_library,
         name="Test Data Source",
     )
-    upload_url = reverse("librarian:upload", kwargs={"data_source_id": data_source.id})
+    upload_url = reverse(
+        "librarian:direct_upload", kwargs={"data_source_id": data_source.id}
+    )
     # Test uploading this file
     this_file_path = os.path.abspath(__file__)
     with open(this_file_path, "rb") as f:

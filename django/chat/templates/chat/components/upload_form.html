@@ -1,4 +1,3 @@
-
 <form id="chat-upload-form"
       method="post"
       enctype="multipart/form-data"
@@ -9,20 +8,25 @@
   {% csrf_token %}
   {{ upload_form }}
   {% for hidden in upload_form.hidden_fields %}{{ hidden }}{% endfor %}
-  <input type="submit" value="Save" id="chat-upload-submit" />
 </form>
 
 <script>
 (function(){
   const upload_message = document.getElementById("chat-upload-message");
-  const file_input = document.getElementById("id_input_file");
+  const file_input = document.getElementById("id_chat-input_file");
   function submitUploadsIfComplete() {
     const form = document.getElementById("chat-upload-form");
     const allDone = Array.from(form.querySelectorAll(".dff-file")).every(file => {
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
     if (allDone) {
-      form.dispatchEvent(new Event('submit'));
+      // Use htmx directly instead of native form submission
+      htmx.trigger(form, 'htmx:beforeRequest');
+      htmx.ajax('POST', form.getAttribute('hx-post'), {
+        source: form,
+        target: form.getAttribute('hx-target'),
+        swap: form.getAttribute('hx-swap')
+      });
       upload_message.classList.add("submitting");
     }
     hideIfNoFiles();
@@ -37,6 +41,7 @@
     }
   }
   initUploadFields(document.getElementById("chat-upload-form"), {
+    prefix: "chat",
     supportDropArea: false,
     callbacks: {
       onSuccess: (upload) => submitUploadsIfComplete(),
