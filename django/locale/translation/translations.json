@@ -1512,7 +1512,7 @@
         "fr_auto": "Recherche avancée"
     },
     "Last refreshed from the": {
-        "fr": "",
+        "fr": "Dernière actualisation à partir de",
         "fr_auto": "Dernière actualisation à partir de l'"
     },
     "repository on": {
@@ -3436,16 +3436,16 @@
         "fr_auto": "Entrez le texte à traduire (sélectionnez la langue dans la barre latérale)"
     },
     "Ask a question about the selected documents, upload files or enter a URL to add": {
-        "fr": "",
+        "fr": "Posez une question sur les documents sélectionnés, téléversez des fichiers ou entrez une URL à ajouter",
         "fr_auto": "Posez une question sur les documents sélectionnés, téléchargez des fichiers ou entrez une URL à ajouter"
     },
     "Enter a URL, paste long text or upload files to summarize": {
-        "fr": "",
+        "fr": "Entrez une URL, collez du texte long ou téléversez des fichiers pour résumer",
         "fr_auto": "Entrez une URL, collez du texte long ou téléchargez des fichiers pour résumer"
     },
     "Enter text or upload files to translate (select language in sidebar)": {
-        "fr": "",
-        "fr_auto": "Entrez du texte ou téléchargez des fichiers à traduire (sélectionnez la langue dans la barre latérale)"
+        "fr": "Entrez du texte ou téléversez des fichiers à traduire (sélectionnez la langue dans la barre latérale)",
+        "fr_auto": "Entrez du texte ou téléversez des fichiers à traduire (sélectionnez la langue dans la barre latérale)"
     },
     "o3-mini (adds reasoning, 7x cost)": {
         "fr": "o3-mini (ajoute du raisonnement, coût 7x)",
