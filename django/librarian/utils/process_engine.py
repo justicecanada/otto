@@ -118,13 +118,11 @@ def create_nodes(chunks, document):
 def guess_content_type(
     content: str | bytes, content_type: str = "", path: str = ""
 ) -> str:
-
     # We consider these content types to be reliable and do not need further guessing
     trusted_content_types = [
         "application/pdf",
         "application/xml",
         "application/vnd.ms-outlook",
-        "application/x-zip-compressed",
         "application/zip",
         "text/html",
         "text/markdown",
@@ -159,6 +157,9 @@ def guess_content_type(
 
         if path.endswith(".zip"):
             return "application/zip"
+
+        if path.endswith(".docx"):
+            return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         # Use filetype library to guess the content type
         kind = filetype.guess(content)
         if kind and not path.endswith(".md"):
@@ -269,7 +270,6 @@ def extract_markdown(
         elif process_engine == "MARKDOWN":
             md = decode_content(content)
         elif process_engine == "OUTLOOK_MSG":
-            print("Processing Outlook email")
             enable_markdown = False
             md = extract_msg(content, root_document_id)
         elif process_engine == "ZIP":
