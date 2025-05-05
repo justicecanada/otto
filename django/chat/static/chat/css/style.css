@@ -1620,16 +1620,19 @@ label[for="id_librarian-input_file"] {
   top: 2rem;
   right: 0px;
   z-index: 1;
-  width: 530px;
   max-height: 400px;
   overflow-y: auto;
   overflow-x: hidden;
   box-shadow: rgba(0, 0, 0, 0.1) 0 0 10px;
   background: var(--bs-body-bg);
 
+  .dff-file {
+    white-space: nowrap !important;
+  }
+
   span.dff-filename {
     margin-left: 0;
-    width: 263px;
+    width: 250px;
     display: inline-block;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -1637,6 +1640,10 @@ label[for="id_librarian-input_file"] {
     white-space: nowrap !important;
     position: relative;
     top: 4px;
+  }
+
+  .dff-progress {
+    width: 200px !important;
   }
 
   .dff-files {
@@ -1649,8 +1656,9 @@ label[for="id_librarian-input_file"] {
     margin: 0;
   }
 
-  /* Hide the Cancel text */
-  .dff-cancel {
+  /* Hide the Cancel/Delete text */
+  .dff-cancel,
+  .dff-delete {
     /* Hide the text by moving it off-screen */
     text-indent: -9999px;
     display: inline-block;
@@ -1659,7 +1667,8 @@ label[for="id_librarian-input_file"] {
   }
 
   /* Add a red "X" icon using a pseudo-element */
-  .dff-cancel::before {
+  .dff-cancel::before,
+  .dff-delete::before {
     content: "\00D7";
     position: absolute;
     top: 0;
