@@ -1629,7 +1629,7 @@ label[for="id_librarian-input_file"] {
 
   span.dff-filename {
     margin-left: 0;
-    width: 274px;
+    width: 263px;
     display: inline-block;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -1648,4 +1648,25 @@ label[for="id_librarian-input_file"] {
   .diff-invalid-files ul {
     margin: 0;
   }
+
+  /* Hide the Cancel text */
+  .dff-cancel {
+    /* Hide the text by moving it off-screen */
+    text-indent: -9999px;
+    display: inline-block;
+    position: relative;
+    top: -2px;
+  }
+
+  /* Add a red "X" icon using a pseudo-element */
+  .dff-cancel::before {
+    content: "\00D7";
+    position: absolute;
+    top: 0;
+    font-size: 1rem;
+    left: 0;
+    color: red;
+    text-indent: 0;
+  }
+
 }
