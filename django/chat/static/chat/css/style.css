@@ -1635,6 +1635,8 @@ label[for="id_librarian-input_file"] {
     text-overflow: ellipsis !important;
     /* no wrap either */
     white-space: nowrap !important;
+    position: relative;
+    top: 4px;
   }
 
   .dff-files {
