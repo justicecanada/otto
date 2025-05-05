@@ -12,6 +12,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
+from chat.forms import UploadForm
 from librarian.utils.process_engine import generate_hash
 from otto.utils.common import generate_mailto
 from otto.utils.decorators import budget_required, permission_required
@@ -294,6 +295,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "poll_url": poll_url,
         "poll_response": "poll" in request.GET,
         "has_error": has_error,
+        "upload_form": UploadForm(prefix="librarian"),
     }
     return render(request, "librarian/modal_inner.html", context)
 
@@ -484,6 +486,52 @@ def data_source_start(request, data_source_id, pdf_method="default", scope="all"
 @budget_required
 def upload(request, data_source_id):
     """
+    Handles the form submission after JS upload using UploadForm and django-file-form
+    """
+    bind_contextvars(feature="librarian")
+    existing_document_count = 0
+    form = UploadForm(request.POST, request.FILES, prefix="librarian")
+    if not form.is_valid():
+        messages.error(request, _("There was an error uploading your files."))
+        return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+    saved_files = form.save()
+    for saved_file in saved_files:
+        file_obj = saved_file["saved_file"]
+        filename = saved_file["filename"]
+        # Check if identical document already exists in the DataSource
+        existing_document = Document.objects.filter(
+            data_source_id=data_source_id,
+            filename=filename,
+            saved_file=file_obj,
+        ).first()
+        if existing_document:
+            existing_document_count += 1
+            if existing_document.status == "ERROR":
+                existing_document.process()
+            continue
+        document = Document.objects.create(
+            data_source_id=data_source_id, saved_file=file_obj, filename=filename
+        )
+        document.process()
+    # Update the modal with the new documents
+    request.method = "GET"
+    if existing_document_count > 0:
+        messages.warning(
+            request,
+            _("%(count)d identical document(s) already exist in the library. ")
+            % {"count": existing_document_count},
+        )
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+@permission_required(
+    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
+)
+@budget_required
+def direct_upload(request, data_source_id):
+    """
+    TODO: Remove this! It's currently only used in tests.
     Handles POST request for (multiple) document upload
     <input type="file" name="file" id="document-file-input" multiple>
     """

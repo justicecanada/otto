@@ -3994,5 +3994,13 @@
     "files uploaded": {
         "fr": "",
         "fr_auto": "fichiers téléchargés"
+    },
+    "There was an error uploading your files.": {
+        "fr": "",
+        "fr_auto": "Il y a eu une erreur lors du téléchargement de vos fichiers."
+    },
+    "Uploading...": {
+        "fr": "",
+        "fr_auto": "Téléchargement..."
     }
 }

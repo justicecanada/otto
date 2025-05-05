@@ -154,7 +154,7 @@ def test_chat_data_source(client, all_apps_user):
     data_source_id = data_source.id
     assert data_source is not None
     # Upload a file to the data source
-    url = reverse("librarian:upload", kwargs={"data_source_id": data_source.id})
+    url = reverse("librarian:direct_upload", kwargs={"data_source_id": data_source.id})
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         response = client.post(url, {"file": f})
         assert response.status_code == 200
@@ -236,7 +236,7 @@ def test_start_stop(client, all_apps_user):
     data_source_id = data_source.id
     assert data_source is not None
     # Upload a file to the data source
-    url = reverse("librarian:upload", kwargs={"data_source_id": data_source.id})
+    url = reverse("librarian:direct_upload", kwargs={"data_source_id": data_source.id})
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         response = client.post(url, {"file": f})
         assert response.status_code == 200

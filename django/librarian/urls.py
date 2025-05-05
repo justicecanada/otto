@@ -3,6 +3,7 @@ from django.urls import path
 from librarian.views import (
     data_source_start,
     data_source_stop,
+    direct_upload,
     document_start,
     document_stop,
     document_text,
@@ -85,6 +86,11 @@ urlpatterns = [
     ),
     # Document upload and processing
     path("modal/upload/to/<int:data_source_id>/", upload, name="upload"),
+    path(
+        "modal/upload/to/<int:data_source_id>/direct/",
+        direct_upload,
+        name="direct_upload",
+    ),
     path(
         "document/<int:document_id>/start/<str:pdf_method>",
         document_start,
