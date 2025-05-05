@@ -948,7 +948,7 @@
         "fr_auto": "Instructions supplémentaires"
     },
     "Custom summarize prompt": {
-        "fr": "requête de résumé personnalisée",
+        "fr": "Requête de résumé personnalisée",
         "fr_auto": "Invite de résumé personnalisée"
     },
     "(overrides all previous settings)": {
