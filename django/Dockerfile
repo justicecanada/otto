@@ -69,4 +69,8 @@ RUN chmod +x /django/*.sh
 RUN mkdir -p $TIKTOKEN_CACHE_DIR && \
     python /django/cache_tiktoken.py
 
+# Preload localization files
+RUN python3 manage.py load_app_localization && \
+    rm -f /django/.env.example
+
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]
