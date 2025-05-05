@@ -1572,9 +1572,20 @@ math[display="block"] {
   }
 }
 
-#chat-outer {
+/* JS file uploads - overriding Django-File-Form styles */
+#id_chat-input_file,
+#id_librarian-input_file,
+label[for="id_chat-input_file"],
+label[for="id_librarian-input_file"] {
+  display: none;
+}
 
-  /* Overriding styles from django-file-form */
+
+#chat-upload-form {
+  .dff-container {
+    margin-top: -3px;
+  }
+
   .dff-uploader {
     .dff-files {
       padding: 0;
@@ -1592,21 +1603,11 @@ math[display="block"] {
     }
 
     .dff-filesize {
-      color: var(--bs-secondary-color);
       margin-left: 10px !important;
+      top: -2px !important;
     }
 
-    a.dff-delete {
-      display: none;
-    }
   }
-}
-
-#id_chat-input_file,
-#id_librarian-input_file,
-label[for="id_chat-input_file"],
-label[for="id_librarian-input_file"] {
-  display: none;
 }
 
 #librarian-upload-message {
@@ -1625,9 +1626,18 @@ label[for="id_librarian-input_file"] {
   overflow-x: hidden;
   box-shadow: rgba(0, 0, 0, 0.1) 0 0 10px;
   background: var(--bs-body-bg);
+}
 
+#librarian-upload-form,
+#chat-upload-form {
   .dff-file {
     white-space: nowrap !important;
+  }
+
+  .dff-filesize {
+    color: var(--bs-secondary-color);
+    position: relative;
+    top: -1px;
   }
 
   span.dff-filename {
@@ -1657,6 +1667,10 @@ label[for="id_librarian-input_file"] {
   }
 
   /* Hide the Cancel/Delete text */
+  a.dff-delete {
+    display: none;
+  }
+
   .dff-cancel,
   .dff-delete {
     /* Hide the text by moving it off-screen */
@@ -1664,6 +1678,7 @@ label[for="id_librarian-input_file"] {
     display: inline-block;
     position: relative;
     top: -2px;
+    margin-right: 10px;
   }
 
   /* Add a red "X" icon using a pseudo-element */
