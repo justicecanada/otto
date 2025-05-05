@@ -51,9 +51,21 @@ def fetch_from_url(url):
 
 def generate_hash(file_obj, block_size=65536):
     hasher = hashlib.sha256()
-    for chunk in file_obj.chunks(block_size):
-        hasher.update(chunk)
-    file_obj.seek(0)  # Reset file pointer to the beginning
+    # Always seek to the beginning before reading
+    if hasattr(file_obj, "seek"):
+        file_obj.seek(0)
+    if hasattr(file_obj, "chunks"):
+        for chunk in file_obj.chunks(block_size):
+            hasher.update(chunk)
+    else:
+        while True:
+            chunk = file_obj.read(block_size)
+            if not chunk:
+                break
+            hasher.update(chunk)
+    # Always seek back to the beginning after reading
+    if hasattr(file_obj, "seek"):
+        file_obj.seek(0)
     return hasher.hexdigest()
 
 
