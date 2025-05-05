@@ -375,6 +375,16 @@ def save_upload(request, chat_id):
     """
     chat = Chat.objects.get(id=chat_id)
     form = UploadForm(request.POST, request.FILES, prefix="chat")
+    
+    MAX_TOTAL_SIZE = 10 * 1024 * 1024  # 10MB
+    total_size = sum(f.size for f in request.FILES.getlist('input_file'))
+    
+    if total_size > MAX_TOTAL_SIZE:
+        messages.error(request, _("Total upload size exceeds %(limit)sMB limit") % {
+            'limit': MAX_TOTAL_SIZE//1024//1024
+        })
+        return HttpResponse(status=413)
+
     if not form.is_valid():
         messages.error(request, _("There was an error uploading your file."))
         return HttpResponse(status=200)

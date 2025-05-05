@@ -1,64 +1,73 @@
-<form id="chat-upload-form"
-      method="post"
-      enctype="multipart/form-data"
-      hx-post="{% url 'chat:upload' chat.id %}"
-      hx-swap="beforeend"
-      hx-target="#messages-container"
-      hx-encoding="multipart/form-data">
+<form id="chat-upload-form" method="post" enctype="multipart/form-data" hx-post="{% url 'chat:upload' chat.id %}"
+  hx-swap="beforeend" hx-target="#messages-container" hx-encoding="multipart/form-data">
   {% csrf_token %}
   {{ upload_form }}
   {% for hidden in upload_form.hidden_fields %}{{ hidden }}{% endfor %}
 </form>
 
 <script>
-(function(){
-  const upload_message = document.getElementById("chat-upload-message");
-  const file_input = document.getElementById("id_chat-input_file");
-  function submitUploadsIfComplete() {
-    const form = document.getElementById("chat-upload-form");
-    const allDone = Array.from(form.querySelectorAll(".dff-file")).every(file => {
-      return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
-    });
-    if (allDone) {
-      // Use htmx directly instead of native form submission
-      htmx.trigger(form, 'htmx:beforeRequest');
-      htmx.ajax('POST', form.getAttribute('hx-post'), {
-        source: form,
-        target: form.getAttribute('hx-target'),
-        swap: form.getAttribute('hx-swap')
+  (function () {
+    const MAX_TOTAL_SIZE = 10 * 1024 * 1024; // 10MB
+    const sizeDisplay = document.createElement('div');
+    sizeDisplay.className = 'text-small text-muted mt-2';
+    document.querySelector('#chat-upload-form').parentElement.appendChild(sizeDisplay);
+    const upload_message = document.getElementById("chat-upload-message");
+    const file_input = document.getElementById("id_chat-input_file");
+    function submitUploadsIfComplete() {
+      const form = document.getElementById("chat-upload-form");
+      const allDone = Array.from(form.querySelectorAll(".dff-file")).every(file => {
+        return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
       });
-      upload_message.classList.add("submitting");
+      if (allDone) {
+        // Use htmx directly instead of native form submission
+        htmx.trigger(form, 'htmx:beforeRequest');
+        htmx.ajax('POST', form.getAttribute('hx-post'), {
+          source: form,
+          target: form.getAttribute('hx-target'),
+          swap: form.getAttribute('hx-swap')
+        });
+        upload_message.classList.add("submitting");
+      }
+      hideIfNoFiles();
     }
-    hideIfNoFiles();
-  }
-  function hideIfNoFiles() {
-    const form = document.getElementById("chat-upload-form");
-    const numFiles = form.querySelectorAll(".dff-file").length;
-    if (numFiles === 0) {
-      upload_message.classList.add("d-none");
-    } else {
+    function hideIfNoFiles() {
+      const form = document.getElementById("chat-upload-form");
+      const numFiles = form.querySelectorAll(".dff-file").length;
+      if (numFiles === 0) {
+        upload_message.classList.add("d-none");
+      } else {
+        upload_message.classList.remove("d-none");
+      }
+    }
+    initUploadFields(document.getElementById("chat-upload-form"), {
+      prefix: "chat",
+      supportDropArea: false,
+      callbacks: {
+        onSuccess: (upload) => submitUploadsIfComplete(),
+        onError: (upload) => submitUploadsIfComplete(),
+        onDelete: (upload) => submitUploadsIfComplete(),
+      }
+    });
+    file_input.addEventListener("change", function () {
+      // Check if the total size of all files exceeds the limit
+      const totalSize = Array.from(this.files).reduce((acc, file) => acc + file.size, 0);
+      sizeDisplay.textContent = `${(totalSize / 1024 / 1024).toFixed(1)}MB / ${MAX_TOTAL_SIZE / 1024 / 1024}MB`;
+      if (totalSize > MAX_TOTAL_SIZE) {
+        sizeDisplay.classList.add('text-danger');
+        this.value = '';
+        return;
+      } else {
+        sizeDisplay.classList.remove('text-danger');
+      }
+      // Show the upload message
       upload_message.classList.remove("d-none");
-    }
-  }
-  initUploadFields(document.getElementById("chat-upload-form"), {
-    prefix: "chat",
-    supportDropArea: false,
-    callbacks: {
-      onSuccess: (upload) => submitUploadsIfComplete(),
-      onError: (upload) => submitUploadsIfComplete(),
-      onDelete: (upload) => submitUploadsIfComplete(),
-    }
-  });
-  file_input.addEventListener("change", function() {
-    // Show the upload message
-    upload_message.classList.remove("d-none");
-    // Hide the welcome message, if visible
-    if (document.querySelector("#no-messages-placeholder") !== null) {
-      document.querySelector("#no-messages-placeholder").remove();
-    }
-    setTimeout(() => {
-      scrollToBottom(false, true);
-    }, 50);
-  });
-})();
+      // Hide the welcome message, if visible
+      if (document.querySelector("#no-messages-placeholder") !== null) {
+        document.querySelector("#no-messages-placeholder").remove();
+      }
+      setTimeout(() => {
+        scrollToBottom(false, true);
+      }, 50);
+    });
+  })();
 </script>
