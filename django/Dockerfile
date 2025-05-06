@@ -19,11 +19,9 @@ FROM python:3.11-slim-bookworm
 
 ARG SITE_URL
 ARG ENTRA_REDIRECT_URI
-ARG AZURE_OPENAI_KEY
 ARG AZURE_OPENAI_ENDPOINT
 ARG AZURE_OPENAI_VERSION
 ARG AZURE_COGNITIVE_SERVICE_ENDPOINT
-ARG AZURE_COGNITIVE_SERVICE_KEY
 ARG AZURE_COGNITIVE_SERVICE_REGION
 
 WORKDIR /django
@@ -88,9 +86,9 @@ RUN mkdir -p $TIKTOKEN_CACHE_DIR && \
 
 # Preload localization files
 RUN --mount=type=secret,id=azure_openai_key \
-    --mount=type=secret,id=azure_coginitive_service_key \
+    --mount=type=secret,id=azure_cognitive_service_key \
     AZURE_OPENAI_KEY=$(cat /run/secrets/azure_openai_key) \
-    AZURE_COGNITIVE_SERVICE_KEY=$(cat /run/secrets/azure_coginitive_service_key) \
+    AZURE_COGNITIVE_SERVICE_KEY=$(cat /run/secrets/azure_cognitive_service_key) \
     python3 manage.py load_app_localization
 
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]
