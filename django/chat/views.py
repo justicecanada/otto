@@ -376,6 +376,7 @@ def save_upload(request, chat_id):
     chat = Chat.objects.get(id=chat_id)
     form = UploadForm(request.POST, request.FILES, prefix="chat")
     if not form.is_valid():
+        logger.error("File upload error.", errors=form.errors)
         messages.error(request, _("There was an error uploading your files."))
         response = HttpResponse()
         response.write(

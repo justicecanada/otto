@@ -88,7 +88,7 @@ function initLibrarianUploadForm() {
           const fileElements = document.querySelectorAll('#librarian-upload-form .dff-file');
           const fileElement = Array.from(fileElements).find((fileElement) => {
             const filenameElement = fileElement.querySelector('.dff-filename');
-            return filenameElement && filenameElement.innerText === upload.name;
+            return filenameElement && filenameElement.innerHTML === upload.name;
           });
           if (fileElement) {
             // Remove cancel link and progress bar
