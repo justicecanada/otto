@@ -512,6 +512,7 @@ def upload(request, data_source_id):
             )
             document.process()
     else:
+        logger.error("Error uploading files:", errors=form.errors)
         messages.error(request, _("There was an error uploading your files."))
 
     # Update the modal with the new documents
