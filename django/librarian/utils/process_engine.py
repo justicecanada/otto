@@ -49,13 +49,24 @@ def fetch_from_url(url):
         raise Exception(f"Failed to fetch from URL: {e}")
 
 
-def generate_hash(content):
-    if isinstance(content, str):
-        sha256_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+def generate_hash(file_obj, block_size=65536):
+    hasher = hashlib.sha256()
+    # Always seek to the beginning before reading
+    if hasattr(file_obj, "seek"):
+        file_obj.seek(0)
+    if hasattr(file_obj, "chunks"):
+        for chunk in file_obj.chunks(block_size):
+            hasher.update(chunk)
     else:
-        sha256_hash = hashlib.sha256(content).hexdigest()
-
-    return sha256_hash
+        while True:
+            chunk = file_obj.read(block_size)
+            if not chunk:
+                break
+            hasher.update(chunk)
+    # Always seek back to the beginning after reading
+    if hasattr(file_obj, "seek"):
+        file_obj.seek(0)
+    return hasher.hexdigest()
 
 
 def extract_html_metadata(content):

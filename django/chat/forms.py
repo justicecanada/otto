@@ -530,12 +530,11 @@ class UploadForm(FileFormMixin, forms.Form):
         for f in self.cleaned_data["input_file"]:
             try:
                 # Check if the file is already stored on the server
-                file_hash = generate_hash(f.read())
+                file_hash = generate_hash(f)
                 file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
                 file_exists = file_obj is not None
                 if not file_exists:
-                    file_obj = SavedFile.objects.create(file=f)
-                    file_obj.generate_hash()
+                    file_obj = SavedFile.objects.create(file=f, sha256_hash=file_hash)
                 elif not os.path.exists(file_obj.file.path):
                     # If matching SavedFile exists but is not on disk, save it again
                     file_obj.file.save(str(f), f, save=True)
