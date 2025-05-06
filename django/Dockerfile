@@ -65,7 +65,7 @@ RUN mkdir -p $TIKTOKEN_CACHE_DIR && \
     python /django/cache_tiktoken.py
 
 # Preload localization files
-RUN python3 manage.py load_app_localization --no-translation && \
+RUN python3 manage.py load_app_localization && \
     rm -f /django/.env.example
 
 # Ensure Python uses the system CA bundle instead of certifi’s
