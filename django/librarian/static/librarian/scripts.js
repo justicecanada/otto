@@ -29,46 +29,6 @@ let librarianModalCloseHandler = event => {
 const modalEl = document.getElementById('editLibrariesModal');
 modalEl.addEventListener('hidden.bs.modal', librarianModalCloseHandler);
 
-const MAX_FILES_PER_DATA_SOURCE = 100;
-const MAX_SIZE_MB = 300;
-// Translations are set in document_list_script.html
-let files_max_string_start = `You can only upload a maximum of`;
-let files_max_string_end = `files per folder.`;
-let files_remaining_string_end = `files remaining.`;
-let max_file_size_string_start = `You can only upload a total file size of`;
-let max_file_size_string_end = `at one time.`;
-
-function validateAndUpload() {
-  document.querySelectorAll('#librarian-documents li.temp').forEach((el) => {el.remove();});
-  let current_file_count = document.querySelectorAll('#librarian-documents li.list-group-item').length;
-  const fileInput = document.querySelector('#document-file-input');
-  fileInput.value = null;
-  fileInput.click();
-
-  fileInput.onchange = function () {
-    const files = fileInput.files;
-    let files_remaining = MAX_FILES_PER_DATA_SOURCE - current_file_count;
-    if (files.length > files_remaining) {
-      alert(`${files_max_string_start} ${MAX_FILES_PER_DATA_SOURCE} ${files_max_string_end} (${files_remaining} ${files_remaining_string_end})`);
-      fileInput.value = null;
-      return;
-    }
-
-    let totalSize = 0;
-    for (let i = 0; i < files.length; i++) {
-      totalSize += files[i].size;
-    }
-
-    if (totalSize > MAX_SIZE_MB * 1024 * 1024) {
-      alert(`${max_file_size_string_start} ${MAX_SIZE_MB} MB ${max_file_size_string_end}`);
-      fileInput.value = null;
-      return;
-    }
-
-    document.querySelector('#document-upload-form').dispatchEvent(new Event('startUpload'));
-  };
-}
-
 function emailLibraryAdmins(url) {
   const library_id = document.getElementById("id_qa_library").value;
   url = url.replace('0', library_id);
@@ -79,3 +39,86 @@ function emailLibraryAdmins(url) {
     }
   );
 }
+
+function initLibrarianUploadForm() {
+  const upload_message = document.getElementById("librarian-upload-message");
+  const details_container = document.getElementById("librarian-details");
+  const file_input = document.getElementById("id_librarian-input_file");
+  function submitUploadsIfComplete() {
+    const form = document.getElementById("librarian-upload-form");
+    const allDone = Array.from(form.querySelectorAll(".dff-file")).every(file => {
+      return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
+    });
+    if (allDone) {
+      form.dispatchEvent(new Event('submit'));
+    }
+    hideIfNoFiles();
+  }
+  function hideIfNoFiles() {
+    const form = document.getElementById("librarian-upload-form");
+    const numFiles = form.querySelectorAll(".dff-file").length;
+    if (numFiles === 0) {
+      upload_message.classList.add("d-none");
+      details_container.classList.remove("d-none");
+    } else {
+      upload_message.classList.remove("d-none");
+      details_container.classList.add("d-none");
+    }
+  }
+  initUploadFields(document.getElementById("librarian-upload-form"), {
+    prefix: "librarian",
+    supportDropArea: false,
+    callbacks: {
+      onSuccess: (upload) => submitUploadsIfComplete(),
+      onError: (upload) => submitUploadsIfComplete(),
+      onDelete: (upload) => submitUploadsIfComplete(),
+      onProgress: (bytesUploaded, bytesTotal, upload) => {
+        if (bytesTotal > LIBRARIAN_MAX_UPLOAD_SIZE) {
+          // Find the .dff-file which contains span.dff-filename with text `upload.name`;
+          const fileElements = document.querySelectorAll('#librarian-upload-form .dff-file');
+          const fileElement = Array.from(fileElements).find((fileElement) => {
+            const filenameElement = fileElement.querySelector('.dff-filename');
+            return filenameElement && filenameElement.innerText === upload.name;
+          });
+          if (fileElement) {
+            // Remove cancel link and progress bar
+            const cancel_link = fileElement.querySelector('a.dff-cancel');
+            const progress_bar = fileElement.querySelector('.dff-progress');
+            const error_message = fileElement.querySelector('.dff-error');
+            if (cancel_link) {
+              cancel_link.remove();
+            }
+            if (progress_bar) {
+              progress_bar.remove();
+            }
+            if (!error_message) {
+              const error_message = document.createElement('span');
+              error_message.className = 'dff-error';
+              error_message.innerText = LIBRARIAN_UPLOAD_TOO_LARGE;
+              fileElement.appendChild(error_message);
+            }
+          }
+          // Send "terminate" signal to delete the partial upload
+          upload.abort(true);
+          // Wait 1 second before adding class dff-upload-fail to the dff-file
+          // to allow the error message to be displayed
+          setTimeout(() => {
+            fileElement.classList.add("dff-upload-fail");
+            submitUploadsIfComplete();
+          }, 3000);
+        }
+      },
+    }
+  });
+  file_input.addEventListener("change", function () {
+    // Show the upload container
+    upload_message.classList.remove("d-none");
+    details_container.classList.add("d-none");
+  });
+}
+
+document.addEventListener('htmx:afterSwap', function (event) {
+  if (event.target.id === "librarian-upload-message") {
+    initLibrarianUploadForm();
+  }
+});

@@ -344,7 +344,7 @@
         "fr_auto": "Partager avec d’autres"
     },
     "Shared with others": {
-        "fr": "Partagé avec d’autres utilisateurs",
+        "fr": "Partagé avec certains utilisateurs",
         "fr_auto": "Partagé avec d’autres"
     },
     "Stop all": {
@@ -896,7 +896,7 @@
         "fr_auto": "N’aime pas"
     },
     "Edit in new prompt": {
-        "fr": "Modifier dans une nouvelle invite",
+        "fr": "Modifier dans une nouvelle requête",
         "fr_auto": "Modifier dans une nouvelle invite"
     },
     "Delete message": {
@@ -948,7 +948,7 @@
         "fr_auto": "Instructions supplémentaires"
     },
     "Custom summarize prompt": {
-        "fr": "Invite de résumé personnalisée",
+        "fr": "Requête de résumé personnalisée",
         "fr_auto": "Invite de résumé personnalisée"
     },
     "(overrides all previous settings)": {
@@ -968,7 +968,7 @@
         "fr_auto": "Mode de recherche"
     },
     "Edit advanced settings and prompts": {
-        "fr": "Modifier les paramètres avancés et les invites",
+        "fr": "Modifier les paramètres avancés et les requêtes",
         "fr_auto": "Modifier les paramètres avancés et les invites"
     },
     "Filter results": {
@@ -1020,7 +1020,7 @@
         "fr_auto": "à des fins de résumé :"
     },
     "System prompt": {
-        "fr": "Invite du système",
+        "fr": "Requête du système",
         "fr_auto": "Invite système"
     },
     "Maximum sources": {
@@ -1060,7 +1060,7 @@
         "fr_auto": "Grossier"
     },
     "GPT-4o-mini (fastest, best value)": {
-        "fr": "GPT-4o-mini (le plus rapide, meilleur rapport qualité-prix)",
+        "fr": "GPT-4o-mini (rapide et économique)",
         "fr_auto": "GPT-4o-mini (le plus rapide, meilleur rapport qualité-prix)"
     },
     "GPT-4o (best quality, but 25x cost)": {
@@ -1124,7 +1124,7 @@
         "fr_auto": "Traduire du texte et des fichiers en anglais ou en français"
     },
     "Help me write a good prompt": {
-        "fr": "",
+        "fr": "Aidez-moi à écrire une bonne requête",
         "fr_auto": "Aidez-moi à écrire une bonne invite"
     },
     "Save preset from current settings": {
@@ -1304,7 +1304,7 @@
         "fr_auto": "Créez un nouveau préréglage à partir de vos paramètres actuels."
     },
     "Improve prompt using AI": {
-        "fr": "Améliorer l’invite à l’aide de l’IA",
+        "fr": "Améliorer la requête à l’aide de l’IA",
         "fr_auto": "Améliorer l’invite à l’aide de l’IA"
     },
     "Loading": {
@@ -1312,11 +1312,11 @@
         "fr_auto": "Chargement"
     },
     "Generate a more detailed version of your prompt. Use this as a starting point for further edits.": {
-        "fr": "Générez une version plus détaillée de votre invite. Utilisez ceci comme point de départ pour d’autres modifications.",
+        "fr": "Générez une version plus détaillée de votre requête. Utilisez ceci comme point de départ pour d’autres modifications.",
         "fr_auto": "Générez une version plus détaillée de votre invite. Utilisez ceci comme point de départ pour d’autres modifications."
     },
     "Type your prompt here...": {
-        "fr": "Écrivez votre invite ici...",
+        "fr": "Écrivez votre requête ici...",
         "fr_auto": "Tapez votre invite ici..."
     },
     "Generate": {
@@ -1324,11 +1324,11 @@
         "fr_auto": "Générer"
     },
     "Your prompt": {
-        "fr": "Votre invite",
+        "fr": "Votre requête",
         "fr_auto": "Votre invite"
     },
     "AI-generated prompt": {
-        "fr": "Invite générée par l’IA",
+        "fr": "Requête générée par l’IA",
         "fr_auto": "Invite générée par l’IA"
     },
     "Regenerate": {
@@ -1336,7 +1336,7 @@
         "fr_auto": "Régénérer"
     },
     "Use this prompt": {
-        "fr": "Utilisez cette invite",
+        "fr": "Utilisez cette requête",
         "fr_auto": "Utilisez cette invite"
     },
     "QA library for settings preset not accessible. It has been reset to your personal library.": {
@@ -1512,7 +1512,7 @@
         "fr_auto": "Recherche avancée"
     },
     "Last refreshed from the": {
-        "fr": "",
+        "fr": "Dernière actualisation à partir de",
         "fr_auto": "Dernière actualisation à partir de l'"
     },
     "repository on": {
@@ -2928,7 +2928,7 @@
         "fr_auto": "Sections renvoyées"
     },
     "Improve prompt": {
-        "fr": "",
+        "fr": "Améliorer la requête",
         "fr_auto": "Améliorer l'invite"
     },
     "Yesterday": {
@@ -3396,7 +3396,7 @@
         "fr_auto": "Résumer les paramètres"
     },
     "There are 3 preset length settings, but you can add additional instructions or override the prompt entirely. A custom summarize prompt is the easiest way to extract exactly the information you want from a document.": {
-        "fr": "",
+        "fr": "Il y a 3 réglages de longueur prédéfinis, mais vous pouvez ajouter des instructions supplémentaires ou remplacer complètement la requête. Une requête de résumé personnalisée est le moyen le plus simple d’extraire exactement l’information que vous voulez d’un document.",
         "fr_auto": "Il y a 3 réglages de longueur prédéfinis, mais vous pouvez ajouter des instructions supplémentaires ou remplacer complètement l’invite. Une invite de résumé personnalisée est le moyen le plus simple d’extraire exactement l’information que vous voulez d’un document."
     },
     "My team at Department of Justice Canada has developed a generative AI tool. What are the top 7 pieces of guidance I should provide users? Write a 1000-word Buzzfeed-style listicle with nice formatting. The audience is end-users.": {
@@ -3404,11 +3404,11 @@
         "fr_auto": "Mon équipe au ministère de la Justice du Canada a mis au point un outil d’IA générative. Quels sont les 7 principaux conseils que je devrais fournir aux utilisateurs? Rédigez une liste de 1000 mots de style Buzzfeed avec un bon formatage. Le public est constitué d’utilisateurs finaux."
     },
     "Summary with custom prompt": {
-        "fr": "",
+        "fr": "Résumé avec requête personnalisée",
         "fr_auto": "Résumé avec invite personnalisée"
     },
     "The AI now generates a summary according to the custom prompt!": {
-        "fr": "",
+        "fr": "L’IA génère maintenant un résumé selon la requête personnalisée!",
         "fr_auto": "L’IA génère maintenant un résumé selon l’invite personnalisée!"
     },
     "Switching back to chat mode": {
@@ -3492,19 +3492,19 @@
         "fr_auto": "Entrez le texte à traduire (sélectionnez la langue dans la barre latérale)"
     },
     "Ask a question about the selected documents, upload files or enter a URL to add": {
-        "fr": "",
+        "fr": "Posez une question sur les documents sélectionnés, téléversez des fichiers ou entrez une URL à ajouter",
         "fr_auto": "Posez une question sur les documents sélectionnés, téléchargez des fichiers ou entrez une URL à ajouter"
     },
     "Enter a URL, paste long text or upload files to summarize": {
-        "fr": "",
+        "fr": "Entrez une URL, collez du texte long ou téléversez des fichiers pour résumer",
         "fr_auto": "Entrez une URL, collez du texte long ou téléchargez des fichiers pour résumer"
     },
     "Enter text or upload files to translate (select language in sidebar)": {
-        "fr": "",
-        "fr_auto": "Entrez du texte ou téléchargez des fichiers à traduire (sélectionnez la langue dans la barre latérale)"
+        "fr": "Entrez du texte ou téléversez des fichiers à traduire (sélectionnez la langue dans la barre latérale)",
+        "fr_auto": "Entrez du texte ou téléversez des fichiers à traduire (sélectionnez la langue dans la barre latérale)"
     },
     "o3-mini (adds reasoning, 7x cost)": {
-        "fr": "",
+        "fr": "o3-mini (ajoute du raisonnement, coût 7x)",
         "fr_auto": "o3-mini (ajoute un raisonnement, coût 7x)"
     },
     "GPT-4o (best accuracy, 15x cost)": {
@@ -3568,7 +3568,7 @@
         "fr_auto": "Modifier / partager"
     },
     "Default for new chats": {
-        "fr": "",
+        "fr": "Par défaut pour nouveaux clavardages",
         "fr_auto": "Par défaut pour les nouvelles conversations"
     },
     "Default preset updated.": {
@@ -3708,7 +3708,7 @@
         "fr_auto": "Otto ne peut pas traiter des documents ou des données classés au-dessus du niveau Protégé B."
     },
     "The AI may produce inaccurate or incomplete responses if user prompts are unclear or lack sufficient detail.": {
-        "fr": "",
+        "fr": "L’IA peut produire des réponses inexactes ou incomplètes si les requêtes de l’utilisateur ne sont pas claires ou manquent de détails.",
         "fr_auto": "L’IA peut produire des réponses inexactes ou incomplètes si les invites de l’utilisateur ne sont pas claires ou manquent de détails."
     },
     "Users are limited to a monthly budget of $32 for AI use and exceeding this requires a request to administrators.": {
@@ -3760,8 +3760,8 @@
         "fr_auto": "Comment puis-je m’assurer de l’exactitude des informations d’Otto?"
     },
     "Otto relies on pre-existing knowledge and trusted internal documents to provide information. Otto retrieves answers from user-uploaded documents and displays page-numbered references and relevant links for verification. Additionally, users can customize prompts and settings to refine how information is extracted and presented, ensuring clarity and reliability. For certain questions, Otto will attempt to let users know if there are limitations to its responses and may recommend consulting the appropriate resources or experts.  If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs.": {
-        "fr": "",
-        "fr_auto": "Otto s’appuie sur des connaissances préexistantes et des documents internes fiables pour fournir de l’information. Otto récupère les réponses des documents téléchargés par les utilisateurs et affiche des références numérotées et des liens pertinents pour vérification. De plus, les utilisateurs peuvent personnaliser les invites et les paramètres pour affiner la façon dont l’information est extraite et présentée, ce qui garantit la clarté et la fiabilité. Pour certaines questions, Otto tentera d’informer les utilisateurs s’il y a des limites à ses réponses et peut recommander de consulter les ressources ou les experts appropriés.  Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants."
+        "fr": "Otto s’appuie sur des connaissances préexistantes et des documents internes fiables pour fournir de l’information. Otto récupère les réponses des documents téléchargés par les utilisateurs et affiche des références numérotées et des liens pertinents pour vérification. De plus, les utilisateurs peuvent personnaliser les requêtes et les paramètres pour affiner la façon dont l’information est extraite et présentée, ce qui garantit la clarté et la fiabilité. Pour certaines questions, Otto tentera d’informer les utilisateurs s’il y a des limites à ses réponses et peut recommander de consulter les ressources ou les experts appropriés.  Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants.",
+        "fr_auto": "Otto s’appuie sur des connaissances préexistantes et des documents internes fiables pour fournir de l’information. Otto récupère les réponses des documents téléchargés par les utilisateurs et affiche des références numérotées et des liens pertinents pour vérification. De plus, les utilisateurs peuvent personnaliser les requêtes et les paramètres pour affiner la façon dont l’information est extraite et présentée, ce qui garantit la clarté et la fiabilité. Pour certaines questions, Otto tentera d’informer les utilisateurs s’il y a des limites à ses réponses et peut recommander de consulter les ressources ou les experts appropriés.  Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants."
     },
     "Can Otto help me with bilingual (English/French) questions?": {
         "fr": "",
@@ -4090,5 +4090,21 @@
     "Rep's Country": {
         "fr": "",
         "fr_auto": "Pays du représentant"
+    },
+    "There was an error uploading your files.": {
+        "fr": "",
+        "fr_auto": "Il y a eu une erreur lors du téléchargement de vos fichiers."
+    },
+    "Uploading...": {
+        "fr": "",
+        "fr_auto": "Téléchargement..."
+    },
+    "File too large (max 10MB)": {
+        "fr": "",
+        "fr_auto": "Fichier trop volumineux (max 10 Mo)"
+    },
+    "File too large (max 100MB)": {
+        "fr": "",
+        "fr_auto": "Fichier trop volumineux (max 100 Mo)"
     }
 }

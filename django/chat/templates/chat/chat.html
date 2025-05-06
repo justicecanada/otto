@@ -15,7 +15,13 @@
 
 {% block page_script %}
   <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
-  <script>const chat_id = "{{ chat.id }}";</script>
+  <script>
+    const chat_id = "{{ chat.id }}";
+    const CHAT_MAX_UPLOAD_SIZE = 10000000; // 10MB
+    const CHAT_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}';
+    const LIBRARIAN_MAX_UPLOAD_SIZE = 100000000; // 100MB
+    const LIBRARIAN_UPLOAD_TOO_LARGE = '{% trans "File too large (max 100MB)" %}';
+  </script>
   {% include "chat/components/chat_tour_steps.html" %}
   {% include "components/tour_script.html" %}
 {% endblock %}

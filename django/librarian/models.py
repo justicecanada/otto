@@ -522,8 +522,9 @@ class SavedFile(models.Model):
 
         if self.file:
             with self.file.open("rb") as f:
-                self.sha256_hash = generate_hash(f.read())
+                self.sha256_hash = generate_hash(f)
                 self.save()
+        return self.sha256_hash
 
     def safe_delete(self):
         if self.chat_files.exists() or self.documents.exists():

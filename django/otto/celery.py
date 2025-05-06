@@ -42,6 +42,11 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.delete_empty_chats",
         "schedule": crontab(hour=2, minute=0),
     },
+    # Delete dangling SavedFilesevery day at 3:00 am UTC
+    "delete-dangling-savedfiles-every-morning": {
+        "task": "otto.tasks.delete_dangling_savedfiles",
+        "schedule": crontab(hour=2, minute=30),
+    },
     # Delete dangling azure translation files every day at 3:30 am UTC
     "delete-translation-files-every-morning": {
         "task": "otto.tasks.delete_translation_files",
