@@ -175,9 +175,9 @@ def chat_response(
                     "2. Using summarize mode, which can handle longer texts\n"
                     "3. Using a different model\n"
                 ),
+                switch_mode=switch_mode,
             ),
             content_type="text/event-stream",
-            switch_mode=switch_mode,
         )
 
     return StreamingHttpResponse(
