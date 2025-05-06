@@ -376,8 +376,22 @@ def save_upload(request, chat_id):
     chat = Chat.objects.get(id=chat_id)
     form = UploadForm(request.POST, request.FILES, prefix="chat")
     if not form.is_valid():
-        messages.error(request, _("There was an error uploading your file."))
-        return HttpResponse(status=200)
+        logger.error("File upload error.", errors=form.errors)
+        messages.error(request, _("There was an error uploading your files."))
+        response = HttpResponse()
+        response.write(
+            render_to_string(
+                "chat/components/chat_upload_message.html",
+                context={
+                    "swap_upload_message": True,
+                    "upload_form": UploadForm(prefix="chat"),
+                    "chat": chat,
+                    "csrf_token": request.POST.get("csrfmiddlewaretoken"),
+                },
+                request=request,
+            )
+        )
+        return response
 
     if chat.options.mode == "chat":
         chat.options.mode = "qa"

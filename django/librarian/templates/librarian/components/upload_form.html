@@ -15,6 +15,5 @@
         hx-indicator="#librarian-modal-spinner">
     {% csrf_token %}
     {{ upload_form }}
-    {% for hidden in upload_form.hidden_fields %}{{ hidden }}{% endfor %}
   </form>
 </div>

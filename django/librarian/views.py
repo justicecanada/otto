@@ -491,29 +491,30 @@ def upload(request, data_source_id):
     bind_contextvars(feature="librarian")
     existing_document_count = 0
     form = UploadForm(request.POST, request.FILES, prefix="librarian")
-    if not form.is_valid():
+    if form.is_valid():
+        saved_files = form.save()
+        for saved_file in saved_files:
+            file_obj = saved_file["saved_file"]
+            filename = saved_file["filename"]
+            # Check if identical document already exists in the DataSource
+            existing_document = Document.objects.filter(
+                data_source_id=data_source_id,
+                filename=filename,
+                saved_file=file_obj,
+            ).first()
+            if existing_document:
+                existing_document_count += 1
+                if existing_document.status == "ERROR":
+                    existing_document.process()
+                continue
+            document = Document.objects.create(
+                data_source_id=data_source_id, saved_file=file_obj, filename=filename
+            )
+            document.process()
+    else:
+        logger.error("Error uploading files:", errors=form.errors)
         messages.error(request, _("There was an error uploading your files."))
-        return modal_view(request, item_type="data_source", item_id=data_source_id)
 
-    saved_files = form.save()
-    for saved_file in saved_files:
-        file_obj = saved_file["saved_file"]
-        filename = saved_file["filename"]
-        # Check if identical document already exists in the DataSource
-        existing_document = Document.objects.filter(
-            data_source_id=data_source_id,
-            filename=filename,
-            saved_file=file_obj,
-        ).first()
-        if existing_document:
-            existing_document_count += 1
-            if existing_document.status == "ERROR":
-                existing_document.process()
-            continue
-        document = Document.objects.create(
-            data_source_id=data_source_id, saved_file=file_obj, filename=filename
-        )
-        document.process()
     # Update the modal with the new documents
     request.method = "GET"
     if existing_document_count > 0:
