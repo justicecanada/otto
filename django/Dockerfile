@@ -17,6 +17,14 @@
 
 FROM python:3.11-slim-bookworm
 
+ARG SITE_URL
+ARG AZURE_OPENAI_KEY
+ARG AZURE_OPENAI_ENDPOINT
+
+ENV SITE_URL=$SITE_URL \
+    AZURE_OPENAI_KEY=$AZURE_OPENAI_KEY \
+    AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT
+
 WORKDIR /django
 
 # Environment variables for non-interactive install and tiktoken cache
@@ -69,13 +77,7 @@ RUN chmod +x /django/*.sh
 RUN mkdir -p $TIKTOKEN_CACHE_DIR && \
     python /django/cache_tiktoken.py
 
-# Mount the local .env file so that it can be used in the build
-COPY ./.env /django/.env
-
 # Preload localization files
 RUN python3 manage.py load_app_localization
-
-# Remove the .env file after preloading localization files
-RUN rm -f /django/.env
 
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]
