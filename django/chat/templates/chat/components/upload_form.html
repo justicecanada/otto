@@ -7,11 +7,11 @@
       hx-encoding="multipart/form-data">
   {% csrf_token %}
   {{ upload_form }}
-  {% for hidden in upload_form.hidden_fields %}{{ hidden }}{% endfor %}
 </form>
 
 <script>
 (function(){
+  const metadata = {};
   const upload_message = document.getElementById("chat-upload-message");
   const file_input = document.getElementById("id_chat-input_file");
   function submitUploadsIfComplete() {
@@ -20,13 +20,7 @@
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
     if (allDone) {
-      // Use htmx directly instead of native form submission
-      htmx.trigger(form, 'htmx:beforeRequest');
-      htmx.ajax('POST', form.getAttribute('hx-post'), {
-        source: form,
-        target: form.getAttribute('hx-target'),
-        swap: form.getAttribute('hx-swap')
-      });
+      document.getElementById("chat-upload-form").dispatchEvent(new Event("submit"));
       upload_message.classList.add("submitting");
     }
     hideIfNoFiles();
@@ -44,7 +38,17 @@
     prefix: "chat",
     supportDropArea: false,
     callbacks: {
-      onSuccess: (upload) => submitUploadsIfComplete(),
+      onSuccess: (upload) => {
+        const filename = upload.name;
+        const contentType = upload.upload.file.type;
+        metadata[filename] = {type: contentType};
+        const metadataField = document.querySelector("#id_chat-input_file-metadata");
+        if (metadataField) {
+          metadataField.value = JSON.stringify(metadata);
+        }
+        console.log(metadataField);
+        submitUploadsIfComplete();
+      },
       onError: (upload) => submitUploadsIfComplete(),
       onDelete: (upload) => submitUploadsIfComplete(),
       onProgress: (bytesUploaded, bytesTotal, upload) => {

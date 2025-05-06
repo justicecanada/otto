@@ -1,3 +1,4 @@
+import json
 import os
 from urllib.parse import urlparse
 
@@ -527,14 +528,18 @@ class UploadForm(FileFormMixin, forms.Form):
 
     def save(self):
         saved_files = []
+        metadata = json.loads(self.cleaned_data["input_file-metadata"])
         for f in self.cleaned_data["input_file"]:
             try:
+                content_type = metadata[str(f)].get("type", "")
                 # Check if the file is already stored on the server
                 file_hash = generate_hash(f)
                 file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()
                 file_exists = file_obj is not None
                 if not file_exists:
-                    file_obj = SavedFile.objects.create(file=f, sha256_hash=file_hash)
+                    file_obj = SavedFile.objects.create(
+                        file=f, sha256_hash=file_hash, content_type=content_type
+                    )
                 elif not os.path.exists(file_obj.file.path):
                     # If matching SavedFile exists but is not on disk, save it again
                     file_obj.file.save(str(f), f, save=True)
