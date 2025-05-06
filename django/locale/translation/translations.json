@@ -4010,5 +4010,9 @@
     "File too large (max 100MB)": {
         "fr": "",
         "fr_auto": "Fichier trop volumineux (max 100 Mo)"
+    },
+    "File too large (max 25MB)": {
+        "fr": "",
+        "fr_auto": "Fichier trop volumineux (max 25 Mo)"
     }
 }
