@@ -75,12 +75,12 @@
           }
           // Send "terminate" signal to delete the partial upload
           upload.abort(true);
-          // Wait 1 second before adding class dff-upload-fail to the dff-file
+          // Wait 2 seconds before adding class dff-upload-fail to the dff-file
           // to allow the error message to be displayed
           setTimeout(() => {
             fileElement.classList.add("dff-upload-fail");
             submitUploadsIfComplete();
-          }, 3000);
+          }, 2000);
         }
       },
     }
