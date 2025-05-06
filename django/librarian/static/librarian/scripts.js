@@ -72,6 +72,42 @@ function initLibrarianUploadForm() {
       onSuccess: (upload) => submitUploadsIfComplete(),
       onError: (upload) => submitUploadsIfComplete(),
       onDelete: (upload) => submitUploadsIfComplete(),
+      onProgress: (bytesUploaded, bytesTotal, upload) => {
+        if (bytesTotal > MAX_UPLOAD_SIZE) {
+          // Find the .dff-file which contains span.dff-filename with text `upload.name`;
+          const fileElements = document.querySelectorAll('.dff-file');
+          const fileElement = Array.from(fileElements).find((fileElement) => {
+            const filenameElement = fileElement.querySelector('.dff-filename');
+            return filenameElement && filenameElement.innerText === upload.name;
+          });
+          if (fileElement) {
+            // Remove cancel link and progress bar
+            const cancel_link = fileElement.querySelector('a.dff-cancel');
+            const progress_bar = fileElement.querySelector('.dff-progress');
+            const error_message = fileElement.querySelector('.dff-error');
+            if (cancel_link) {
+              cancel_link.remove();
+            }
+            if (progress_bar) {
+              progress_bar.remove();
+            }
+            if (!error_message) {
+              const error_message = document.createElement('span');
+              error_message.className = 'dff-error';
+              error_message.innerText = UPLOAD_TOO_LARGE;
+              fileElement.appendChild(error_message);
+            }
+          }
+          // Send "terminate" signal to delete the partial upload
+          upload.abort(true);
+          // Wait 1 second before adding class dff-upload-fail to the dff-file
+          // to allow the error message to be displayed
+          setTimeout(() => {
+            fileElement.classList.add("dff-upload-fail");
+            submitUploadsIfComplete();
+          }, 3000);
+        }
+      },
     }
   });
   file_input.addEventListener("change", function () {
