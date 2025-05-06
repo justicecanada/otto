@@ -528,6 +528,7 @@ class UploadForm(FileFormMixin, forms.Form):
     def save(self):
         saved_files = []
         for f in self.cleaned_data["input_file"]:
+            print(f.__dict__)
             try:
                 # Check if the file is already stored on the server
                 file_hash = generate_hash(f)
