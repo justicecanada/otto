@@ -99,7 +99,7 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
         error_id = str(uuid.uuid4())[:7]
         full_message = format_llm_string(
             _("An error occurred while processing the request. ")
-            + f" _({_('Error ID')}: {error_id})_"
+            + f" _({_('Error ID:')} {error_id})_"
         )
         logger.exception(
             f"Error in generating response",
@@ -126,7 +126,7 @@ async def htmx_sse_error():
     error_id = str(uuid.uuid4())[:7]
     error_message = (
         _("An error occurred while processing the request. ")
-        + f" _({_('Error ID')}: {error_id})_"
+        + f" _({_('Error ID:')} {error_id})_"
     )
 
     yield (

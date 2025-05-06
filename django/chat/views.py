@@ -902,7 +902,7 @@ def set_preset_default(request, chat_id: str, preset_id: int):
         error_id = str(uuid.uuid4())[:7]
         response_str = (
             _("An error occurred while setting the default preset.")
-            + f" _({_('Error ID')}: {error_id})_"
+            + f" _({_('Error ID:')} {error_id})_"
         )
         logger.error(
             f"Error setting default preset:",

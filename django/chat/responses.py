@@ -236,7 +236,7 @@ def summarize_response(chat, response_message):
                     error_str = _(
                         "Error extracting text from file. Try copying and pasting the text."
                     )
-                    error_str += f" _({_('Error ID')}: {error_id})_"
+                    error_str += f" _({_('Error ID:')} {error_id})_"
                     responses.append(stream_to_replacer([error_str]))
                     logger.exception(
                         f"Error extracting text from file:{e}",
@@ -363,7 +363,7 @@ def translate_response(chat, response_message):
         except:
             error_id = str(uuid.uuid4())[:7]
             error_str = _("Error translating files.")
-            error_str += f" _({_('Error ID')}: {error_id})_"
+            error_str += f" _({_('Error ID:')} {error_id})_"
             logger.exception(
                 f"Error translating files",
                 error_id=error_id,
@@ -472,8 +472,10 @@ def qa_response(chat, response_message, switch_mode=False):
         )()
         if error_documents:
             error_string = _("Error processing the following document(s):")
-            doc_names_for_error = [doc.filename for doc in error_documents]
-            error_docs_joined = "\n\n - " + "\n\n - ".join(doc_names_for_error)
+            doc_errors = [
+                f"{doc.filename} _{doc.status_details}_" for doc in error_documents
+            ]
+            error_docs_joined = "\n\n - " + "\n\n - ".join(doc_errors)
             error_string += error_docs_joined
             if len(error_documents) != len(files):
                 error_string += f"\n\n{num_completed_documents} "
@@ -773,7 +775,7 @@ def error_response(chat, response_message, error_message=None):
 
     if error_message and settings.DEBUG:
         response_str += f"\n\n```\n{error_message}\n```\n\n"
-    response_str += f" _({_('Error ID')}: {error_id})_"
+    response_str += f" _({_('Error ID:')} {error_id})_"
     logger.exception(
         "Error processing chat response",
         error_id=error_id,

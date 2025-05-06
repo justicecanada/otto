@@ -3649,7 +3649,7 @@
     },
     "Error ID: %(error_id)s - Failed to create PDF overlay after OCR.": {
         "fr": "",
-        "fr_auto": "ID d’erreur :%(error_id)s - Impossible de créer une superposition PDF après l’OCR."
+        "fr_auto": "Error ID: %(error_id)s - Failed to create PDF overlay after OCR."
     },
     "What is Otto?": {
         "fr": "",
@@ -4041,15 +4041,15 @@
     },
     "Error ID:%(error_id)s - Error occurred while converting pdfs into images": {
         "fr": "",
-        "fr_auto": "ID d’erreur :%(error_id)s - Erreur lors de la conversion de PDF en images"
+        "fr_auto": "Error ID:%(error_id)s - Error occurred while converting pdfs into images"
     },
     "Error ID: %(error_id)s -The file '{input_file.name}' cannot be processed.": {
         "fr": "",
-        "fr_auto": "ID d’erreur :%(error_id)s -Le fichier '{input_file.name}' ne peut pas être traité."
+        "fr_auto": "Error ID: %(error_id)s -The file '{input_file.name}' cannot be processed."
     },
     "Error ID: %(error_id)s - Azure's document intelligence API failed to process the file.": {
         "fr": "",
-        "fr_auto": "ID d’erreur :%(error_id)s - L’API d’intelligence documentaire d’Azure n’a pas réussi à traiter le fichier."
+        "fr_auto": "Error ID: %(error_id)s - Azure's document intelligence API failed to process the file."
     },
     "An error occurred while processing the request. Error_ID: ": {
         "fr": "",

@@ -342,7 +342,7 @@ async def htmx_stream(
         message = await sync_to_async(Message.objects.get)(id=message_id)
         full_message = _("An error occurred.")
         error_id = str(uuid.uuid4())[:7]
-        full_message += f" _({_('Error ID')}: {error_id})_"
+        full_message += f" _({_('Error ID:')} {error_id})_"
         logger.exception(
             "Error processing chat response",
             error_id=error_id,

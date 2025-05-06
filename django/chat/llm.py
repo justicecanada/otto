@@ -155,7 +155,7 @@ class OttoLLM:
             logger.exception(f"Error in tree_summarize: {e}", error_id=error_id)
             yield _(
                 "An error occurred while summarizing the text."
-            ) + f" _({_('Error ID')}: {error_id})_"
+            ) + f" _({_('Error ID:')} {error_id})_"
 
     # Token counting / cost tracking
     @property
