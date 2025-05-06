@@ -73,7 +73,7 @@ function initLibrarianUploadForm() {
       onError: (upload) => submitUploadsIfComplete(),
       onDelete: (upload) => submitUploadsIfComplete(),
       onProgress: (bytesUploaded, bytesTotal, upload) => {
-        if (bytesTotal > MAX_UPLOAD_SIZE) {
+        if (bytesTotal > LIBRARIAN_MAX_UPLOAD_SIZE) {
           // Find the .dff-file which contains span.dff-filename with text `upload.name`;
           const fileElements = document.querySelectorAll('.dff-file');
           const fileElement = Array.from(fileElements).find((fileElement) => {
@@ -94,7 +94,7 @@ function initLibrarianUploadForm() {
             if (!error_message) {
               const error_message = document.createElement('span');
               error_message.className = 'dff-error';
-              error_message.innerText = UPLOAD_TOO_LARGE;
+              error_message.innerText = LIBRARIAN_UPLOAD_TOO_LARGE;
               fileElement.appendChild(error_message);
             }
           }
