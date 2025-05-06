@@ -75,7 +75,7 @@ function initLibrarianUploadForm() {
       onProgress: (bytesUploaded, bytesTotal, upload) => {
         if (bytesTotal > LIBRARIAN_MAX_UPLOAD_SIZE) {
           // Find the .dff-file which contains span.dff-filename with text `upload.name`;
-          const fileElements = document.querySelectorAll('.dff-file');
+          const fileElements = document.querySelectorAll('#librarian-upload-form .dff-file');
           const fileElement = Array.from(fileElements).find((fileElement) => {
             const filenameElement = fileElement.querySelector('.dff-filename');
             return filenameElement && filenameElement.innerText === upload.name;
