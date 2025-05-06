@@ -531,7 +531,10 @@ class UploadForm(FileFormMixin, forms.Form):
         metadata = json.loads(self.cleaned_data["input_file-metadata"])
         for f in self.cleaned_data["input_file"]:
             try:
-                content_type = metadata[str(f)].get("type", "")
+                try:
+                    content_type = metadata[str(f)].get("type", "")
+                except:
+                    content_type = ""
                 # Check if the file is already stored on the server
                 file_hash = generate_hash(f)
                 file_obj = SavedFile.objects.filter(sha256_hash=file_hash).first()

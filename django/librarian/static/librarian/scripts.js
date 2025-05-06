@@ -41,6 +41,7 @@ function emailLibraryAdmins(url) {
 }
 
 function initLibrarianUploadForm() {
+  const metadata = {};
   const upload_message = document.getElementById("librarian-upload-message");
   const details_container = document.getElementById("librarian-details");
   const file_input = document.getElementById("id_librarian-input_file");
@@ -69,7 +70,17 @@ function initLibrarianUploadForm() {
     prefix: "librarian",
     supportDropArea: false,
     callbacks: {
-      onSuccess: (upload) => submitUploadsIfComplete(),
+      onSuccess: (upload) => {
+        const filename = upload.name;
+        const contentType = upload.upload.file.type;
+        metadata[filename] = {type: contentType};
+        const metadataField = document.querySelector("#id_librarian-input_file-metadata");
+        if (metadataField) {
+          metadataField.value = JSON.stringify(metadata);
+        }
+        console.log(metadataField);
+        submitUploadsIfComplete();
+      },
       onError: (upload) => submitUploadsIfComplete(),
       onDelete: (upload) => submitUploadsIfComplete(),
       onProgress: (bytesUploaded, bytesTotal, upload) => {
