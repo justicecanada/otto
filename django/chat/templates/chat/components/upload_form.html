@@ -46,7 +46,8 @@
         onSuccess: (upload) => submitUploadsIfComplete(),
         onError: (upload) => submitUploadsIfComplete(),
         onDelete: (upload) => submitUploadsIfComplete(),
-      }
+      },
+      chunkSize: 1024 * 1024, // 1MB
     });
     file_input.addEventListener("change", function () {
       // Check if the total size of all files exceeds the limit

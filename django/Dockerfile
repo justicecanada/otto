@@ -54,6 +54,11 @@ RUN pip3 --disable-pip-version-check install --upgrade pip "setuptools>=70.0" wh
     -r /tmp/pip-tmp/requirements.txt && \
     rm -rf /tmp/pip-tmp
 
+# Ensure Python uses the system CA bundle instead of certifi’s
+RUN rm -f /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
+    ln -s /etc/ssl/certs/ca-certificates.crt /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
+    sed -i 's|return _certifi_where()|return "/etc/ssl/certs/ca-certificates.crt"|' /usr/local/lib/python3.11/site-packages/certifi/core.py
+
 # Copy application code
 COPY . /django
 
@@ -65,12 +70,6 @@ RUN mkdir -p $TIKTOKEN_CACHE_DIR && \
     python /django/cache_tiktoken.py
 
 # Preload localization files
-RUN python3 manage.py load_app_localization && \
-    rm -f /django/.env.example
-
-# Ensure Python uses the system CA bundle instead of certifi’s
-RUN rm -f /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
-    ln -s /etc/ssl/certs/ca-certificates.crt /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
-    sed -i 's|return _certifi_where()|return "/etc/ssl/certs/ca-certificates.crt"|' /usr/local/lib/python3.11/site-packages/certifi/core.py
+RUN python3 manage.py load_app_localization
 
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]

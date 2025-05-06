@@ -20,7 +20,7 @@ let librarianModalCloseHandler = event => {
     library_id = selected_library_li.getAttribute('data-library-id');
   }
   // Update the QA library select
-  htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion'}).then(() => {
+  htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, { target: '#options-accordion' }).then(() => {
     // Reset QA autocompletes on edit library modal close
     resetQaAutocompletes();
     triggerOptionSave();
@@ -32,7 +32,7 @@ modalEl.addEventListener('hidden.bs.modal', librarianModalCloseHandler);
 function emailLibraryAdmins(url) {
   const library_id = document.getElementById("id_qa_library").value;
   url = url.replace('0', library_id);
-  htmx.ajax('GET', url, {target: '#email_library_admins_link', swap: 'innerHTML'}).then(
+  htmx.ajax('GET', url, { target: '#email_library_admins_link', swap: 'innerHTML' }).then(
     function () {
       document.querySelector("#email_library_admins_link a").click();
       document.querySelector("#email_library_admins_link").innerHTML = '';
@@ -72,7 +72,8 @@ function initLibrarianUploadForm() {
       onSuccess: (upload) => submitUploadsIfComplete(),
       onError: (upload) => submitUploadsIfComplete(),
       onDelete: (upload) => submitUploadsIfComplete(),
-    }
+    },
+    chunkSize: 1024 * 1024 * 1, // 1MB
   });
   file_input.addEventListener("change", function () {
     // Show the upload container
