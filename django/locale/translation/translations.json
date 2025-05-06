@@ -4081,6 +4081,14 @@
     },
     "There was an error uploading your file.": {
         "fr": "",
+        "fr_auto": "%(count)d Documents(s) identiques(s) existent(s) déjà dans la bibliothèque. "
+    },
+    "An error occurred while summarizing the text.": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors du résumé du texte."
+    },
+    "An error occurred while processing the request. ": {
+        "fr": "",
         "fr_auto": "Il y a eu une erreur lors du téléchargement de votre fichier."
     },
     "now": {
@@ -4114,6 +4122,26 @@
     "files uploaded": {
         "fr": "",
         "fr_auto": "fichiers téléchargés"
+    },
+    "PDFPageCountError while processing {input_file.name} in {error_id}: {e}": {
+        "fr": "",
+        "fr_auto": "PDFPageCountError lors du traitement de {input_file.name} dans {error_id} : {e}"
+    },
+    "Error converting pdfs into images in {error_id}: {e}": {
+        "fr": "",
+        "fr_auto": "Erreur lors de la conversion de pdf en images dans {error_id} : {e}"
+    },
+    "Error processing image {input_file.name} in {error_id}: {e}": {
+        "fr": "",
+        "fr_auto": "Erreur de traitement de l’image {input_file.name} dans {error_id} : {e}"
+    },
+    "Error running Azure's document intelligence API on in {error_id}: {e}": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’exécution de l’API de renseignements de documents d’Azure dans {error_id} : {e}"
+    },
+    "Error creating PDF overlay after OCR with ErrorID- {error_id}: {e}": {
+        "fr": "",
+        "fr_auto": "Erreur lors de la superposition PDF après l’OCR avec ErrorID- {error_id} : {e}"
     },
     "There was an error uploading your files.": {
         "fr": "",
