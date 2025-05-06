@@ -70,7 +70,7 @@ RUN mkdir -p $TIKTOKEN_CACHE_DIR && \
     python /django/cache_tiktoken.py
 
 # Mount the local .env file so that it can be used in the build
-COPY .env /django/.env
+COPY ./.env /django/.env
 
 # Preload localization files
 RUN python3 manage.py load_app_localization
