@@ -4002,5 +4002,13 @@
     "Uploading...": {
         "fr": "",
         "fr_auto": "Téléchargement..."
+    },
+    "File too large (max 10MB)": {
+        "fr": "",
+        "fr_auto": "Fichier trop volumineux (max 10 Mo)"
+    },
+    "File too large (max 100MB)": {
+        "fr": "",
+        "fr_auto": "Fichier trop volumineux (max 100 Mo)"
     }
 }
