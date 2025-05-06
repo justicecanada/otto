@@ -78,7 +78,6 @@ function initLibrarianUploadForm() {
         if (metadataField) {
           metadataField.value = JSON.stringify(metadata);
         }
-        console.log(metadataField);
         submitUploadsIfComplete();
       },
       onError: (upload) => submitUploadsIfComplete(),
