@@ -49,13 +49,24 @@ def fetch_from_url(url):
         raise Exception(f"Failed to fetch from URL: {e}")
 
 
-def generate_hash(content):
-    if isinstance(content, str):
-        sha256_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+def generate_hash(file_obj, block_size=65536):
+    hasher = hashlib.sha256()
+    # Always seek to the beginning before reading
+    if hasattr(file_obj, "seek"):
+        file_obj.seek(0)
+    if hasattr(file_obj, "chunks"):
+        for chunk in file_obj.chunks(block_size):
+            hasher.update(chunk)
     else:
-        sha256_hash = hashlib.sha256(content).hexdigest()
-
-    return sha256_hash
+        while True:
+            chunk = file_obj.read(block_size)
+            if not chunk:
+                break
+            hasher.update(chunk)
+    # Always seek back to the beginning after reading
+    if hasattr(file_obj, "seek"):
+        file_obj.seek(0)
+    return hasher.hexdigest()
 
 
 def extract_html_metadata(content):
@@ -118,14 +129,13 @@ def create_nodes(chunks, document):
 def guess_content_type(
     content: str | bytes, content_type: str = "", path: str = ""
 ) -> str:
-
     # We consider these content types to be reliable and do not need further guessing
     trusted_content_types = [
         "application/pdf",
         "application/xml",
         "application/vnd.ms-outlook",
-        "application/x-zip-compressed",
         "application/zip",
+        "application/x-zip-compressed",
         "text/html",
         "text/markdown",
         "text/csv",
@@ -159,6 +169,9 @@ def guess_content_type(
 
         if path.endswith(".zip"):
             return "application/zip"
+
+        if path.endswith(".docx"):
+            return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         # Use filetype library to guess the content type
         kind = filetype.guess(content)
         if kind and not path.endswith(".md"):
@@ -269,7 +282,6 @@ def extract_markdown(
         elif process_engine == "MARKDOWN":
             md = decode_content(content)
         elif process_engine == "OUTLOOK_MSG":
-            print("Processing Outlook email")
             enable_markdown = False
             md = extract_msg(content, root_document_id)
         elif process_engine == "ZIP":

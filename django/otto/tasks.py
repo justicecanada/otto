@@ -64,6 +64,23 @@ def update_exchange_rate():
     call_command("update_exchange_rate")
 
 
+@shared_task
+def delete_tmp_upload_files():
+    """
+    Deletes temporary upload files that were never saved to the database (cancelled, etc.)
+    https://mbraak.github.io/django-file-form/usage/
+    """
+    call_command("delete_unused_files")
+
+
+@shared_task
+def delete_dangling_savedfiles():
+    from librarian.models import SavedFile
+
+    for saved_file in SavedFile.objects.all():
+        saved_file.safe_delete()
+
+
 # LOAD TESTING TASKS
 
 

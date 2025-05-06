@@ -1182,6 +1182,10 @@ div.message-text pre {
   --bs-modal-width: calc(min(100vw - 4rem, 1430px));
 }
 
+#editLibrariesInner div.modal-body>div.row>div {
+  min-height: 450px;
+}
+
 #editLibrariesModal .list-group-item {
   border-left: 0;
   border-right: 0;
@@ -1549,4 +1553,144 @@ math[display="block"] {
 #scroll-btn.show {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* Chat file upload */
+#chat-upload-message {
+  .spinner-border {
+    display: none;
+  }
+
+  &.submitting {
+    .spinner-border {
+      display: inline-block;
+    }
+
+    i {
+      display: none;
+    }
+  }
+}
+
+/* JS file uploads - overriding Django-File-Form styles */
+#id_chat-input_file,
+#id_librarian-input_file,
+label[for="id_chat-input_file"],
+label[for="id_librarian-input_file"] {
+  display: none;
+}
+
+
+#chat-upload-form {
+  .dff-container {
+    margin-top: -3px;
+  }
+
+  .dff-uploader {
+    .dff-files {
+      padding: 0;
+      max-width: none;
+      outline: none;
+      margin: 0;
+    }
+
+    .dff-files span:first-of-type {
+      margin-left: 0;
+    }
+
+    .dff-files .dff-file {
+      margin-bottom: 0;
+    }
+
+    .dff-filesize {
+      margin-left: 10px !important;
+      top: -2px !important;
+    }
+
+  }
+}
+
+#librarian-upload-message {
+  font-style: italic;
+  margin-right: 0.5rem;
+}
+
+#librarian-upload-form {
+  font-style: normal;
+  position: absolute;
+  top: 2rem;
+  right: 0px;
+  z-index: 1;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 0 10px;
+  background: var(--bs-body-bg);
+}
+
+#librarian-upload-form,
+#chat-upload-form {
+  .dff-file {
+    white-space: nowrap !important;
+  }
+
+  .dff-filesize {
+    color: var(--bs-secondary-color);
+    position: relative;
+    top: -1.5px;
+  }
+
+  span.dff-filename {
+    margin-left: 0;
+    width: 250px;
+    display: inline-block;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    /* no wrap either */
+    white-space: nowrap !important;
+    position: relative;
+    top: 4px;
+  }
+
+  .dff-progress {
+    width: 200px !important;
+  }
+
+  .dff-files {
+    margin: 0 !important;
+    outline: none !important;
+    padding-bottom: 0 !important;
+  }
+
+  .diff-invalid-files ul {
+    margin: 0;
+  }
+
+  /* Hide the Cancel/Delete text */
+  a.dff-delete {
+    display: none;
+  }
+
+  .dff-cancel,
+  .dff-delete {
+    /* Hide the text by moving it off-screen */
+    text-indent: -9999px;
+    display: inline-block;
+    position: relative;
+    top: -2px;
+    margin-right: 10px;
+  }
+
+  /* Add a red "X" icon using a pseudo-element */
+  .dff-cancel::before,
+  .dff-delete::before {
+    content: "\00D7";
+    position: absolute;
+    top: 0;
+    font-size: 1rem;
+    left: 0;
+    color: red;
+    text-indent: 0;
+  }
+
 }

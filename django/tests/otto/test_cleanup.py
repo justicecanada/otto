@@ -48,7 +48,9 @@ def test_redundant_librarian_upload(client, all_apps_user):
         library=user_library,
         name="Test Data Source",
     )
-    upload_url = reverse("librarian:upload", kwargs={"data_source_id": data_source.id})
+    upload_url = reverse(
+        "librarian:direct_upload", kwargs={"data_source_id": data_source.id}
+    )
     # Test uploading this file
     this_file_path = os.path.abspath(__file__)
     with open(this_file_path, "rb") as f:
@@ -108,106 +110,6 @@ def test_redundant_librarian_upload(client, all_apps_user):
     assert saved_files.count() == 0
     # Check media directory
     len(os.listdir(folder)) == 0
-
-
-@pytest.mark.django_db
-def test_redundant_chat_upload(client, all_apps_user):
-    """
-    Start a new chat.
-    Upload a file using chunk_upload route.
-    Check the media directory for the file
-    Upload the same file again.
-    Check the media directory - there should still be only 1 file.
-    Both files should be in the library.
-    Delete the chat
-    Check the media directory - files should be gone.
-    """
-    user = all_apps_user()
-    client.force_login(user)
-    # Start a new chat
-    response = client.get(reverse("chat:new_chat"))
-    assert response.status_code == 302
-    # Check that the chat was created
-    chat = user.chat_set.first()
-    assert chat is not None
-
-    # Create a message in the chat
-    message = Message.objects.create(chat=chat)
-    # Upload a file
-    this_file_path = os.path.abspath(__file__)
-    # Hash of this file
-    with open(this_file_path, "rb") as f:
-        sha256_hash = generate_hash(f.read())
-    # Try uploading the file through the chat "chunk upload" mechanism
-    # We don't need to worry about the actual chunking; just upload the whole thing.
-    upload_url = reverse("chat:chunk_upload", kwargs={"message_id": message.id})
-    with open(this_file_path, "rb") as f:
-        response = client.post(
-            upload_url,
-            {
-                "file": f,
-                "hash": sha256_hash,
-                "filename": os.path.basename(this_file_path),
-                "end": 1,
-                "file_id": "null",
-                "nextSlice": "0",
-                "content_type": "text/plain",
-            },
-        )
-        assert response.status_code == 200
-
-    # Check that a SavedFile was created
-    saved_files = SavedFile.objects.all()
-    assert saved_files.count() == 1
-    # Check that a ChatFile was created
-    chat_files = ChatFile.objects.all()
-    assert chat_files.count() == 1
-
-    # To complete the upload, we need to call the "done upload" endpoint
-    done_url = reverse("chat:done_upload", kwargs={"message_id": message.id})
-    response = client.get(done_url)
-    assert response.status_code == 200
-
-    # Check media directory
-    assert os.path.exists(saved_files[0].file.path)
-
-    # Upload again, this time indicating the upload is not complete (end=0)
-    # but since the hash is included, it should be recognized as a duplicate
-    upload_url = reverse("chat:chunk_upload", kwargs={"message_id": message.id})
-    with open(this_file_path, "rb") as f:
-        response = client.post(
-            upload_url,
-            {
-                "file": f,
-                "hash": sha256_hash,
-                "filename": os.path.basename(this_file_path),
-                "end": 0,
-                "file_id": "null",
-                "nextSlice": 123,
-                "content_type": "text/plain",
-            },
-        )
-        assert response.status_code == 200
-    # Check there is still only one SavedFile
-    saved_files = SavedFile.objects.all()
-    assert saved_files.count() == 1
-    # Check that there are now two ChatFiles
-    chat_files = ChatFile.objects.all()
-    assert chat_files.count() == 2
-    # Check that both ChatFiles references the SavedFile
-    assert chat_files.first().saved_file == saved_files.first()
-    # Check media directory
-    assert os.path.exists(saved_files[0].file.path)
-    # Make sure there is still only one file
-    folder = os.path.dirname(saved_files[0].file.path)
-    assert len(os.listdir(folder)) == 1
-    # Delete the chat
-    chat.delete()
-    # Check that the SavedFile is gone
-    saved_files = SavedFile.objects.all()
-    assert saved_files.count() == 0
-    # Check media directory
-    assert len(os.listdir(folder)) == 0
 
 
 @pytest.mark.django_db

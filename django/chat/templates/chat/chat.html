@@ -9,11 +9,19 @@
   <link rel="stylesheet"
         href="{% static 'thirdparty/css/driver.1.3.4.css' %}" />
   <link rel="stylesheet" href="{% static 'chat/css/style.css' %}">
+  <script src="{% static 'file_form/file_form.min.js' %}"></script>
+
 {% endblock %}
 
 {% block page_script %}
   <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
-  <script>const chat_id = "{{ chat.id }}";</script>
+  <script>
+    const chat_id = "{{ chat.id }}";
+    const CHAT_MAX_UPLOAD_SIZE = 10000000; // 10MB
+    const CHAT_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}';
+    const LIBRARIAN_MAX_UPLOAD_SIZE = 25000000; // 25MB
+    const LIBRARIAN_UPLOAD_TOO_LARGE = '{% trans "File too large (max 25MB)" %}';
+  </script>
   {% include "chat/components/chat_tour_steps.html" %}
   {% include "components/tour_script.html" %}
 {% endblock %}
@@ -24,7 +32,7 @@
 
 {% block content_container %}
   <main id="chat-outer" class="{{ mode }}">
-    {% include 'chat/components/file_upload.html' %}
+    {% include "chat/components/file_dropzone.html" %}
     <div id="chat-flexbox" class="d-flex justify-content-between mb-3">
       {% include 'chat/components/chat_history_sidebar.html' %}
       <div id="chat-container" class="flex-grow-1">
@@ -60,6 +68,7 @@
             {% endif %}
             {% include 'chat/components/chat_messages.html' %}
           </div>
+          {% include 'chat/components/chat_upload_message.html' %}
           <button id="scroll-btn" onclick="scrollToBottom(true, true)"></button>
         </div>
         {% include 'chat/components/chat_input.html' %}
@@ -85,4 +94,6 @@
 
   <link rel="stylesheet" href="{% static 'chat/css/highlightjs.css' %}">
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
+
+  <link rel="stylesheet" href="{% static 'file_form/file_form.css' %}">
 {% endblock %}

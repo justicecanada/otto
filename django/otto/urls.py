@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views import defaults as default_views
 
 from autocomplete import HTMXAutoComplete
@@ -12,6 +11,7 @@ from . import views
 urlpatterns = [
     path("healthz/", views.health_check, name="health_check"),
     path("", views.index, name="index"),
+    re_path(r"^upload/", include("django_file_form.urls")),
     path("search/", views.topnav_search_inner, name="search_inner"),
     path("welcome/", views.welcome, name="welcome"),
     # AC-2: Entra Integration Helper App Configuration

@@ -22,7 +22,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm
+from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
 from chat.llm import OttoLLM
 from chat.models import (
     AnswerSource,
@@ -42,7 +42,6 @@ from chat.utils import (
     get_chat_history_sections,
     highlight_claims,
     label_section_index,
-    reassemble_chunks,
     title_chat,
     wrap_llm_response,
 )
@@ -255,6 +254,7 @@ def chat(request, chat_id):
         "tour_skippable": request.user.is_admin
         or request.user.ai_assistant_tour_completed,
         "start_tour": request.GET.get("start_tour") == "true",
+        "upload_form": UploadForm(prefix="chat"),
     }
     return render(request, "chat/chat.html", context=context)
 
@@ -368,62 +368,53 @@ def cost_warning(request, message_id):
     return HttpResponse(html)
 
 
-@require_GET
+@require_POST
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-@budget_required
-def init_upload(request, chat_id):
+def save_upload(request, chat_id):
     """
-    Creates a file upload progress message in the chat and initiates the file upload
+    Handles the form submission after JS upload
     """
     chat = Chat.objects.get(id=chat_id)
-    mode = chat.options.mode
-    if mode == "chat":
-        mode = "qa"
-    # Create the user's message in database
-    logger.info("File upload initiated.", chat_id=chat_id, mode=mode)
-    message = Message.objects.create(chat=chat, text="", is_bot=False, mode=mode)
-    message.save()
-    context = {
-        "chat_messages": [
-            message,
-        ],
-        "mode": mode,
-        "file_upload": True,
-    }
-    return render(request, "chat/components/chat_messages.html", context=context)
+    form = UploadForm(request.POST, request.FILES, prefix="chat")
+    if not form.is_valid():
+        logger.error("File upload error.", errors=form.errors)
+        messages.error(request, _("There was an error uploading your files."))
+        response = HttpResponse()
+        response.write(
+            render_to_string(
+                "chat/components/chat_upload_message.html",
+                context={
+                    "swap_upload_message": True,
+                    "upload_form": UploadForm(prefix="chat"),
+                    "chat": chat,
+                    "csrf_token": request.POST.get("csrfmiddlewaretoken"),
+                },
+                request=request,
+            )
+        )
+        return response
 
-
-@permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def done_upload(request, message_id):
-    """
-    Creates a "files uploaded" message, assembles file chunks for all files
-    associated with the message, and initiates the final response.
-    """
-    # Retrieve the user's message.
-    user_message = Message.objects.get(id=message_id)
-    mode = user_message.mode
-    logger.info("File upload completed.", message_id=message_id, mode=mode)
-
-    # Create the response message.
-    response_message = Message.objects.create(
-        chat=user_message.chat, text="", is_bot=True, mode=mode, parent=user_message
+    if chat.options.mode == "chat":
+        chat.options.mode = "qa"
+        chat.save()
+    logger.info("File upload initiated.", chat_id=chat_id, mode=chat.options.mode)
+    user_message = Message.objects.create(
+        chat=chat, text="", is_bot=False, mode=chat.options.mode
     )
-    chat = user_message.chat
+    saved_files = form.save()
+    for saved_file in saved_files:
+        ChatFile.objects.create(
+            message_id=user_message.id,
+            filename=saved_file["filename"],
+            saved_file=saved_file["saved_file"],
+        )
+    response_message = Message.objects.create(
+        chat=chat, text="", is_bot=True, mode=chat.options.mode, parent=user_message
+    )
     response = HttpResponse()
-
-    # Get all ChatFile objects associated with the user message.
-    file_objs = ChatFile.objects.filter(message_id=message_id)
-    if not file_objs.exists():
-        logger.error("No files associated with message %s", message_id)
-    else:
-        for file_obj in file_objs:
-            if not file_obj.saved_file.sha256_hash:
-                reassemble_chunks(file_obj)
-
-    if mode == "qa":
+    if chat.options.mode == "qa":
         logger.debug("QA upload")
         response.write(change_mode_to_chat_qa(chat))
-
     response_init_message = {
         "is_bot": True,
         "awaiting_response": True,
@@ -435,90 +426,29 @@ def done_upload(request, message_id):
             user_message,
             response_init_message,
         ],
-        "mode": mode,
+        "mode": chat.options.mode,
         # You can't really stop file translations or QA uploads, so don't show the button
-        "hide_stop_button": mode in ["translate", "qa"],
+        "hide_stop_button": chat.options.mode in ["translate", "qa"],
     }
     response.write(
-        render_to_string("chat/components/chat_messages.html", context=context)
+        render_to_string(
+            "chat/components/chat_messages.html", context=context, request=request
+        )
+    )
+    response.write(
+        render_to_string(
+            "chat/components/chat_upload_message.html",
+            context={
+                "swap_upload_message": True,
+                "upload_form": UploadForm(prefix="chat"),
+                "chat": chat,
+                "csrf_token": request.POST.get("csrfmiddlewaretoken"),
+            },
+            request=request,
+        )
     )
     response.write("<script>scrollToBottom(false, true);</script>")
     return response
-
-
-@require_POST
-@permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def chunk_upload(request, message_id):
-    """
-    Handles a single file chunk upload.
-    Saves each chunk as a separate file in a tmp directory based on the ChatFile's id.
-    Returns JsonResponse for the file upload progress
-    Loosely based on https://github.com/shubhamkshatriya25/Django-AJAX-File-Uploader
-    """
-    hash = request.POST["hash"]
-    chunk_data = request.FILES["file"].read()
-    content_type = request.POST["content_type"]
-    file_name = request.POST["filename"]
-    file_id = request.POST["file_id"]
-    end = request.POST["end"]
-    nextSlice = request.POST["nextSlice"]
-    existing_file = None
-
-    if not all([chunk_data, file_name, file_id, end, nextSlice]):
-        logger.info(
-            f"File upload failed. Missing required parameters (file, content_type, filename, file_id, end, nextSlice).",
-        )
-        return JsonResponse({"data": "Invalid request"})
-
-    end = int(end)
-
-    chat_file_arguments = dict(
-        message_id=message_id,
-        filename=file_name,
-        eof=end,
-        sha256_hash_from_client=hash,
-    )
-
-    logger.info(f"Uploading file chunk {nextSlice} for {file_name}.")
-
-    if file_id == "null":
-        # First chunk. Check for existing file with the same hash.
-        existing_file = SavedFile.objects.filter(sha256_hash=hash).first()
-        if existing_file:
-            logger.info(f"Using existing SavedFile with ID {existing_file.id}")
-            chat_file_arguments["saved_file"] = existing_file
-        else:
-            logger.info("File_id is null - Uploading new file.", message_id=message_id)
-        # Create a ChatFile instance; its pk will serve as a unique folder name for the chunks.
-        file_obj = ChatFile.objects.create(**chat_file_arguments)
-    else:
-        # If this is not the first chunk, get the existing file object
-        file_obj = ChatFile.objects.filter(id=file_id).first()
-        if not file_obj:
-            logger.error(f"File ID {file_id} not found.")
-            return JsonResponse({"data": "Invalid file ID"})
-
-    if not existing_file:
-        file_obj.saved_file.content_type = content_type
-        file_obj.saved_file.save(update_fields=["content_type"])
-        # Create a temporary folder (if it doesn't already exist)
-        base_temp_path = os.path.join(settings.MEDIA_ROOT, "uploads", "tmp")
-        temp_dir = os.path.join(base_temp_path, str(file_obj.id))
-        os.makedirs(temp_dir, exist_ok=True)
-
-        # Save the chunk using its nextSlice as the filename identifier
-        chunk_filename = os.path.join(temp_dir, f"chunk_{nextSlice}.tmp")
-        with open(chunk_filename, "wb") as f:
-            f.write(chunk_data)
-        logger.info(f"Saved chunk at {chunk_filename}")
-
-    # If this was the final chunk, update the eof marker
-    if end == 1 or existing_file:
-        file_obj.saved_file.eof = 1
-        file_obj.save()
-        return JsonResponse({"data": "Uploaded successfully", "file_id": file_obj.id})
-
-    return JsonResponse({"file_id": file_obj.id})
 
 
 @permission_required("chat.access_file", objectgetter(ChatFile, "file_id"))

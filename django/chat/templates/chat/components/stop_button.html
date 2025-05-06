@@ -1,11 +1,17 @@
 {% load i18n %}
 
 <div id="stop-button" hx-swap-oob="true">
+  <div id="stop-button-spinner"
+       class="position-absolute top-50 end-100 translate-middle-y me-2 d-none">
+    <span class="spinner-border spinner-border-sm ms-2" aria-hidden="true"></span>
+    <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+  </div>
   <button class="btn btn-outline-secondary btn-sm"
           title='{% trans "Stop" %}'
           type="button"
           hx-get="{% url 'chat:stop_response' message_id=message.id %}"
-          hx-swap="none">
+          hx-swap="none"
+          onclick="document.getElementById('stop-button-spinner').classList.remove('d-none')">
     <i class="bi bi-stop-circle"></i>
     <span class="d-none d-md-inline">{% trans "Stop" %}</span>
   </button>

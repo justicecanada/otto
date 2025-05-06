@@ -1,0 +1,103 @@
+<form id="chat-upload-form"
+      method="post"
+      enctype="multipart/form-data"
+      hx-post="{% url 'chat:upload' chat.id %}"
+      hx-swap="beforeend"
+      hx-target="#messages-container"
+      hx-encoding="multipart/form-data">
+  {% csrf_token %}
+  {{ upload_form }}
+</form>
+
+<script>
+(function(){
+  const metadata = {};
+  const upload_message = document.getElementById("chat-upload-message");
+  const file_input = document.getElementById("id_chat-input_file");
+  function submitUploadsIfComplete() {
+    const form = document.getElementById("chat-upload-form");
+    const allDone = Array.from(form.querySelectorAll(".dff-file")).every(file => {
+      return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
+    });
+    if (allDone) {
+      document.getElementById("chat-upload-form").dispatchEvent(new Event("submit"));
+      upload_message.classList.add("submitting");
+    }
+    hideIfNoFiles();
+  }
+  function hideIfNoFiles() {
+    const form = document.getElementById("chat-upload-form");
+    const numFiles = form.querySelectorAll(".dff-file").length;
+    if (numFiles === 0) {
+      upload_message.classList.add("d-none");
+    } else {
+      upload_message.classList.remove("d-none");
+    }
+  }
+  initUploadFields(document.getElementById("chat-upload-form"), {
+    prefix: "chat",
+    supportDropArea: false,
+    callbacks: {
+      onSuccess: (upload) => {
+        const filename = upload.name;
+        const contentType = upload.upload.file.type;
+        metadata[filename] = {type: contentType};
+        const metadataField = document.querySelector("#id_chat-input_file-metadata");
+        if (metadataField) {
+          metadataField.value = JSON.stringify(metadata);
+        }
+        submitUploadsIfComplete();
+      },
+      onError: (upload) => submitUploadsIfComplete(),
+      onDelete: (upload) => submitUploadsIfComplete(),
+      onProgress: (bytesUploaded, bytesTotal, upload) => {
+        if(bytesTotal > CHAT_MAX_UPLOAD_SIZE) {
+          // Find the .dff-file which contains span.dff-filename with text `upload.name`;
+          const fileElements = document.querySelectorAll('#chat-upload-form .dff-file');
+          const fileElement = Array.from(fileElements).find((fileElement) => {
+            const filenameElement = fileElement.querySelector('.dff-filename');
+            return filenameElement && filenameElement.innerHTML === upload.name;
+          });
+          if (fileElement) {
+            // Remove cancel link and progress bar
+            const cancel_link = fileElement.querySelector('a.dff-cancel');
+            const progress_bar = fileElement.querySelector('.dff-progress');
+            const error_message = fileElement.querySelector('.dff-error');
+            if (cancel_link) {
+              cancel_link.remove();
+            }
+            if (progress_bar) {
+              progress_bar.remove();
+            }
+            if (!error_message) {
+              const error_message = document.createElement('span');
+              error_message.className = 'dff-error';
+              error_message.innerText = CHAT_UPLOAD_TOO_LARGE;
+              fileElement.appendChild(error_message);
+            }
+          }
+          // Send "terminate" signal to delete the partial upload
+          upload.abort(true);
+          // Wait 2 seconds before adding class dff-upload-fail to the dff-file
+          // to allow the error message to be displayed
+          setTimeout(() => {
+            fileElement.classList.add("dff-upload-fail");
+            submitUploadsIfComplete();
+          }, 2000);
+        }
+      },
+    }
+  });
+  file_input.addEventListener("change", function() {
+    // Show the upload message
+    upload_message.classList.remove("d-none");
+    // Hide the welcome message, if visible
+    if (document.querySelector("#no-messages-placeholder") !== null) {
+      document.querySelector("#no-messages-placeholder").remove();
+    }
+    setTimeout(() => {
+      scrollToBottom(false, true);
+    }, 50);
+  });
+})();
+</script>

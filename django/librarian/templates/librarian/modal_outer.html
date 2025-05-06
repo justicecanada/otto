@@ -1,5 +1,5 @@
 {% load i18n %}
- 
+
 <div id="libraryModalPoller"></div>
 <div class="modal fade modal-xl"
      id="editLibrariesModal"
@@ -18,6 +18,8 @@
           <span class="spinner-border" aria-hidden="true"></span>
           <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
         </div>
+        {# Librarian upload form is swapped OOB when modal loaded #}
+        <div id="librarian-upload-message" class="d-none"></div>
         <button type="button"
                 class="btn-close"
                 data-bs-dismiss="modal"

@@ -1,10 +1,10 @@
 {% load i18n %}
 
 <span class="badge text-secondary fw-normal pe-0">
-  {% if preset.shared_with == "Private" %}
+  {% if preset.sharing_option == "private" %}
     <i class="bi bi-person-lock text-secondary"></i>
     <span>{% trans "Only me" %}</span>
-  {% elif preset.shared_with == "Shared with everyone" %}
+  {% elif preset.sharing_option == "everyone" %}
     <i class="bi bi-globe-americas text-secondary"></i>
     <span>{% trans 'Everyone' %}</span>
   {% else %}

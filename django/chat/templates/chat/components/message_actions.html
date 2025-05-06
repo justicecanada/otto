@@ -29,7 +29,7 @@
               title='{% trans "Dislike" %}'>
         <i class="bi bi-hand-thumbs-down"></i><i class="bi bi-hand-thumbs-down-fill"></i>
       </button>
-    {% else %}
+    {% elif not message.num_files %}
       <button type="button"
               class="btn btn-link m-0 ms-1 p-0 text-muted"
               title='{% trans "Edit in new prompt" %}'
