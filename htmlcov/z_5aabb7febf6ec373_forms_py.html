@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for django/chat/forms.py: 80%</title>
+    <title>Coverage for django/chat/forms.py: 81%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>django/chat/forms.py</b>:
-            <span class="pc_cov">80%</span>
+            <span class="pc_cov">81%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -54,9 +54,9 @@
             </div>
         </aside>
         <h2>
-            <span class="text">184 statements &nbsp;</span>
+            <span class="text">183 statements &nbsp;</span>
             <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">148<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">36<span class="text"> missing</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">35<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_5aabb7febf6ec373_llm_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.8.0">coverage.py v7.8.0</a>,
-            created at 2025-05-06 12:11 +0000
+            created at 2025-05-06 13:55 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -612,21 +612,20 @@
     <p class="mis show_mis"><span class="n"><a id="t530" href="#t530">530</a></span><span class="t">        <span class="key">for</span> <span class="nam">f</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">cleaned_data</span><span class="op">[</span><span class="str">"input_file"</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t531" href="#t531">531</a></span><span class="t">            <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t532" href="#t532">532</a></span><span class="t">                <span class="com"># Check if the file is already stored on the server</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t533" href="#t533">533</a></span><span class="t">                <span class="nam">file_hash</span> <span class="op">=</span> <span class="nam">generate_hash</span><span class="op">(</span><span class="nam">f</span><span class="op">.</span><span class="nam">read</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t533" href="#t533">533</a></span><span class="t">                <span class="nam">file_hash</span> <span class="op">=</span> <span class="nam">generate_hash</span><span class="op">(</span><span class="nam">f</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t534" href="#t534">534</a></span><span class="t">                <span class="nam">file_obj</span> <span class="op">=</span> <span class="nam">SavedFile</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">filter</span><span class="op">(</span><span class="nam">sha256_hash</span><span class="op">=</span><span class="nam">file_hash</span><span class="op">)</span><span class="op">.</span><span class="nam">first</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t535" href="#t535">535</a></span><span class="t">                <span class="nam">file_exists</span> <span class="op">=</span> <span class="nam">file_obj</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t536" href="#t536">536</a></span><span class="t">                <span class="key">if</span> <span class="key">not</span> <span class="nam">file_exists</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t537" href="#t537">537</a></span><span class="t">                    <span class="nam">file_obj</span> <span class="op">=</span> <span class="nam">SavedFile</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">create</span><span class="op">(</span><span class="nam">file</span><span class="op">=</span><span class="nam">f</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t538" href="#t538">538</a></span><span class="t">                    <span class="nam">file_obj</span><span class="op">.</span><span class="nam">generate_hash</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t539" href="#t539">539</a></span><span class="t">                <span class="key">elif</span> <span class="key">not</span> <span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">exists</span><span class="op">(</span><span class="nam">file_obj</span><span class="op">.</span><span class="nam">file</span><span class="op">.</span><span class="nam">path</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t540" href="#t540">540</a></span><span class="t">                    <span class="com"># If matching SavedFile exists but is not on disk, save it again</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t541" href="#t541">541</a></span><span class="t">                    <span class="nam">file_obj</span><span class="op">.</span><span class="nam">file</span><span class="op">.</span><span class="nam">save</span><span class="op">(</span><span class="nam">str</span><span class="op">(</span><span class="nam">f</span><span class="op">)</span><span class="op">,</span> <span class="nam">f</span><span class="op">,</span> <span class="nam">save</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t542" href="#t542">542</a></span><span class="t">                <span class="nam">saved_files</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="op">{</span><span class="str">"filename"</span><span class="op">:</span> <span class="nam">str</span><span class="op">(</span><span class="nam">f</span><span class="op">)</span><span class="op">,</span> <span class="str">"saved_file"</span><span class="op">:</span> <span class="nam">file_obj</span><span class="op">}</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t543" href="#t543">543</a></span><span class="t">            <span class="key">finally</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t544" href="#t544">544</a></span><span class="t">                <span class="nam">f</span><span class="op">.</span><span class="nam">close</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t545" href="#t545">545</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t546" href="#t546">546</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">delete_temporary_files</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t547" href="#t547">547</a></span><span class="t">        <span class="key">return</span> <span class="nam">saved_files</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t537" href="#t537">537</a></span><span class="t">                    <span class="nam">file_obj</span> <span class="op">=</span> <span class="nam">SavedFile</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">create</span><span class="op">(</span><span class="nam">file</span><span class="op">=</span><span class="nam">f</span><span class="op">,</span> <span class="nam">sha256_hash</span><span class="op">=</span><span class="nam">file_hash</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t538" href="#t538">538</a></span><span class="t">                <span class="key">elif</span> <span class="key">not</span> <span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">exists</span><span class="op">(</span><span class="nam">file_obj</span><span class="op">.</span><span class="nam">file</span><span class="op">.</span><span class="nam">path</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t539" href="#t539">539</a></span><span class="t">                    <span class="com"># If matching SavedFile exists but is not on disk, save it again</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t540" href="#t540">540</a></span><span class="t">                    <span class="nam">file_obj</span><span class="op">.</span><span class="nam">file</span><span class="op">.</span><span class="nam">save</span><span class="op">(</span><span class="nam">str</span><span class="op">(</span><span class="nam">f</span><span class="op">)</span><span class="op">,</span> <span class="nam">f</span><span class="op">,</span> <span class="nam">save</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t541" href="#t541">541</a></span><span class="t">                <span class="nam">saved_files</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="op">{</span><span class="str">"filename"</span><span class="op">:</span> <span class="nam">str</span><span class="op">(</span><span class="nam">f</span><span class="op">)</span><span class="op">,</span> <span class="str">"saved_file"</span><span class="op">:</span> <span class="nam">file_obj</span><span class="op">}</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t542" href="#t542">542</a></span><span class="t">            <span class="key">finally</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t543" href="#t543">543</a></span><span class="t">                <span class="nam">f</span><span class="op">.</span><span class="nam">close</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t544" href="#t544">544</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t545" href="#t545">545</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">delete_temporary_files</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t546" href="#t546">546</a></span><span class="t">        <span class="key">return</span> <span class="nam">saved_files</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -636,7 +635,7 @@
             <a class="nav" href="z_5aabb7febf6ec373_llm_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.8.0">coverage.py v7.8.0</a>,
-            created at 2025-05-06 12:11 +0000
+            created at 2025-05-06 13:55 +0000
         </p>
     </div>
 </footer>

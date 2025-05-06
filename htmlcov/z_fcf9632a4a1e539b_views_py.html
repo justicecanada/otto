@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_2d65b6d40d3ba790_celery_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.8.0">coverage.py v7.8.0</a>,
-            created at 2025-05-06 12:11 +0000
+            created at 2025-05-06 13:55 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -622,7 +622,7 @@
     <p class="pln"><span class="n"><a id="t540" href="#t540">540</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t541" href="#t541">541</a></span><span class="t">    <span class="key">for</span> <span class="nam">file</span> <span class="key">in</span> <span class="nam">request</span><span class="op">.</span><span class="nam">FILES</span><span class="op">.</span><span class="nam">getlist</span><span class="op">(</span><span class="str">"file"</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t542" href="#t542">542</a></span><span class="t">        <span class="com"># Check if the file is already stored on the server</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t543" href="#t543">543</a></span><span class="t">        <span class="nam">file_hash</span> <span class="op">=</span> <span class="nam">generate_hash</span><span class="op">(</span><span class="nam">file</span><span class="op">.</span><span class="nam">read</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t543" href="#t543">543</a></span><span class="t">        <span class="nam">file_hash</span> <span class="op">=</span> <span class="nam">generate_hash</span><span class="op">(</span><span class="nam">file</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t544" href="#t544">544</a></span><span class="t">        <span class="com"># Further check that the file is on disk</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t545" href="#t545">545</a></span><span class="t">        <span class="nam">file_obj</span> <span class="op">=</span> <span class="nam">SavedFile</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">filter</span><span class="op">(</span><span class="nam">sha256_hash</span><span class="op">=</span><span class="nam">file_hash</span><span class="op">)</span><span class="op">.</span><span class="nam">first</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t546" href="#t546">546</a></span><span class="t">        <span class="nam">file_exists</span> <span class="op">=</span> <span class="nam">file_obj</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
@@ -729,7 +729,7 @@
             <a class="nav" href="z_2d65b6d40d3ba790_celery_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.8.0">coverage.py v7.8.0</a>,
-            created at 2025-05-06 12:11 +0000
+            created at 2025-05-06 13:55 +0000
         </p>
     </div>
 </footer>
