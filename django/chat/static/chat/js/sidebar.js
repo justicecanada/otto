@@ -84,3 +84,33 @@ handlebar.addEventListener("keydown", handleRightSidebarResize);
     document.addEventListener('mouseup', onMouseUp);
   });
 })();
+
+function onOptionsAccordionSwap(e, preset_loaded, swap, prompt, mode, triggerLibraryChange) {
+  if (!e.target || e.target.id !== "options-accordion") return;
+  console.log("Options accordion swap event triggered");
+  if (prompt) {
+    document.querySelector('#chat-prompt').value = prompt;
+  }
+  if (preset_loaded || swap) {
+    console.log("Preset loaded or swap triggered");
+    handleModeChange(mode, null, preset_loaded);
+    const qa_mode_value = document.getElementById('id_qa_mode').value;
+    switchToDocumentScope();
+    // Update the advanced settings RAG options visibility
+    toggleRagOptions(qa_mode_value);
+    setTimeout(updateQaSourceForms, 100);
+  } else if (triggerLibraryChange) {
+    console.log("Trigger library change");
+    // This function calls updateQaSourceForms, so no need to call it twice
+    resetQaAutocompletes();
+  } else {
+    console.log("No preset loaded or swap triggered");
+    updateQaSourceForms();
+  }
+  console.log("Updating autocomplete library IDs");
+  updateLibraryModalButton();
+  updateAutocompleteLibraryid('id_qa_data_sources__textinput');
+  updateAutocompleteLibraryid('id_qa_documents__textinput');
+
+  document.body.removeEventListener('htmx:oobAfterSwap', onOptionsAccordionSwap);
+}
