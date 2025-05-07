@@ -51,7 +51,13 @@ function initLibrarianUploadForm() {
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
     if (allDone) {
-      form.dispatchEvent(new Event('submit'));
+      // Use htmx directly instead of native form submission
+      htmx.trigger(form, 'htmx:beforeRequest');
+      htmx.ajax('POST', form.getAttribute('hx-post'), {
+        source: form,
+        target: form.getAttribute('hx-target'),
+        swap: form.getAttribute('hx-swap'),
+      });
     }
     hideIfNoFiles();
   }
