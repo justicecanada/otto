@@ -122,18 +122,14 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
     )
 
 
-async def htmx_sse_error():
-    error_id = str(uuid.uuid4())[:7]
-    error_message = (
-        _("An error occurred while processing the request. ")
-        + f" _({_('Error ID:')} {error_id})_"
+async def htmx_sse_error(e="", query_uuid=None):
+    error_message = _("An error occurred while processing the request. ")
+    logger.error(
+        f"Error in generating laws response: {e}",
+        query_uuid=query_uuid,
     )
 
     yield (
         f"data: <div hx-swap-oob='true' id='answer-sse'>"
         f"<div>{error_message}</div></div>\n\n"
-    )
-    logger.exception(
-        error_message,
-        error_id=error_id,
     )

@@ -459,7 +459,6 @@ def manage_users_upload(request):
                     except ValidationError as e:
                         email = ""
                         logger.error(f"UPN must be an email address ({upn}): {e}")
-
                         continue
                     # Get or create the pilot
                     pilot_id = row.get("pilot_id", None)

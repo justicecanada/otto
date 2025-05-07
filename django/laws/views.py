@@ -103,7 +103,10 @@ def answer(request, query_uuid):
     query_info = cache.get(query_uuid)
     if not query_info:
         return StreamingHttpResponse(
-            streaming_content=htmx_sse_error(), content_type="text/event-stream"
+            streaming_content=htmx_sse_error(
+                "query uuid not found in cache", query_uuid
+            ),
+            content_type="text/event-stream",
         )
 
     additional_instructions = query_info["additional_instructions"]
@@ -447,7 +450,7 @@ def search(request):
             "error": e,
         }
         logger.exception(
-            f"Could not find sources for query {query}",
+            f"Error in laws search for query: {query}",
             query_uuid=query_uuid,
             error=e,
         )
