@@ -132,11 +132,10 @@ function updatePlaceholder(mode) {
   chat_prompt.placeholder = chat_prompt.dataset[`${mode}Placeholder`];
 }
 
-function handleModeChange(mode, element = null, preset_loaded = false) {
+function handleModeChange(mode, element = null) {
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
-  if (!preset_loaded) {triggerOptionSave();}
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
   // Dispatch change event for search mode in order to trigger advance settings options
@@ -235,6 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
   resizeTextarea();
   let mode = document.querySelector('#chat-outer').classList[0];
   updateAccordion(mode);
+  updateQaSourceForms();
   updatePlaceholder(mode);
   document.querySelector("#chat-prompt").focus();
   if (document.querySelector("#no-messages-placeholder") === null) {
@@ -306,6 +306,15 @@ document.addEventListener("keydown", function (event) {
     event.preventDefault();
     document.querySelector("#send-button").click();
   }
+});
+// Accordion swapped
+document.addEventListener("htmx:afterSwap", function (event) {
+  if (event.detail?.target?.id !== "options-accordion") return;
+  afterAccordionSwap();
+});
+document.addEventListener("htmx:oobAfterSwap", function (event) {
+  if (event.detail?.target?.id !== "options-accordion") return;
+  afterAccordionSwap();
 });
 
 // Sources modal setup
@@ -489,13 +498,17 @@ function updateQaModal() {
   // console.log('Updating QA modal');
   const qa_modal_elements = document.querySelectorAll('#advanced-qa-modal [data-inputname]');
   qa_modal_elements.forEach((modal_element) => {
-    // Dataset attributes are lowercased
     const hidden_input_name = modal_element.dataset.inputname;
     const hidden_field_element = document.querySelector(`input[name="${hidden_input_name}"]`);
-    // console.log(hidden_input_name, hidden_field_element);
     if (hidden_field_element) {
-      modal_element.value = hidden_field_element.value;
+      if (modal_element.type === "checkbox") {
+        modal_element.checked = hidden_field_element.value.toLowerCase() === "true";
+        modal_element.value = modal_element.checked ? "true" : "false";
+      } else {
+        modal_element.value = hidden_field_element.value;
+      }
     }
+    toggleGranularOptions(document.getElementById('qa_answer_mode-modal').value);
   });
 };
 function updateQaHiddenField(modal_element) {
@@ -511,8 +524,6 @@ function updateQaHiddenField(modal_element) {
 
 function toggleGranularOptions(value) {
   var gran_slider = document.getElementById('qa_granularity_slider');
-  var gran = document.getElementById('qa_granularity-modal');
-
   var pruning_toggle = document.getElementById('qa_pruning');
 
   if (value === 'per-source') {
@@ -520,11 +531,8 @@ function toggleGranularOptions(value) {
     pruning_toggle.style.display = '';
   } else {
     gran_slider.style.display = 'none';
-    gran.value = 768; // Reset slider value to 768 when "combined" is selected
     pruning_toggle.style.display = 'none';
   }
-
-  updateQaHiddenField(gran);
 }
 
 
@@ -617,5 +625,31 @@ function clearRemainingCostWarningButtons() {
   const warningButton = document.querySelector(".cost-warning-buttons");
   if (warningButton) {
     warningButton.remove();
+  }
+}
+
+function afterAccordionSwap() {
+  const accordion = document.getElementById('options-accordion');
+  const presetLoaded = accordion.dataset.presetLoaded === "true";
+  const swap = accordion.dataset.swap === "true";
+  const triggerLibraryChange = accordion.dataset.triggerLibraryChange === "true";
+  const mode = accordion.dataset.mode;
+  const prompt = accordion.dataset.prompt;
+  if (prompt) {
+    document.querySelector('#chat-prompt').value = prompt;
+  }
+
+  if (presetLoaded || swap) {
+    handleModeChange(mode, null);
+    const qa_mode_value = document.getElementById('id_qa_mode').value;
+    switchToDocumentScope();
+    // Update the advanced settings RAG options visibility
+    toggleRagOptions(qa_mode_value);
+    setTimeout(updateQaSourceForms, 100);
+  } else if (triggerLibraryChange) {
+    // This function calls updateQaSourceForms, so no need to call it twice
+    resetQaAutocompletes();
+  } else {
+    updateQaSourceForms();
   }
 }
