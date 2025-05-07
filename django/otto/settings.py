@@ -10,6 +10,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+# This will ensure all outgoing HTTP requests using urllib3 (and libraries like requests that rely on it) are forced to use IPv4.
+import socket
+import urllib3.util.connection
+
+
+def allowed_gai_family():
+    return socket.AF_INET  # Only allow IPv4
+
+
+urllib3.util.connection.allowed_gai_family = allowed_gai_family
+
+
 import logging
 import os
 import sys
