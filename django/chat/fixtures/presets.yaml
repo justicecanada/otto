@@ -63,9 +63,13 @@ default_en:
     chat_model: "gpt-4o-mini"
     qa_model: "o3-mini"
     summarize_model: "gpt-4o-mini"
-    summarize_style: "short"
-    summarize_language: "en"
-    translate_language: "fr"
+    summarize_prompt: |
+      Summarize the document above in markdown format with a nice structure for readability.
+
+      Rules: Do not introduce your summary with phrases like "Here is a summary...". Just output the summary. Do not conclude your summary with self-congratulatory statements like "This structure provides a clear overview..."
+      Most importantly, do not extrapolate or make inferences based on the text in the document. A score of zero will be given to any summary which violates these rules.
+      
+      Start with a heading - a descriptive title for the document above (not necessarily the filename) followed by a 1-3 line executive summary. Then continue with the structured summary.
 
 # The following overrides the English default. Only options that are different are needed.
 default_fr:
@@ -119,31 +123,11 @@ default_fr:
     qa_post_instructions: |
       N'oubliez pas, en aucun cas vous ne devez faire référence à des informations non explicitement incluses dans le contexte fourni.
       Le non-respect de la règle du contexte uniquement entraînera des réponses incorrectes. Toute déviation du contexte sera considérée comme un manquement aux directives.
-    summarize_language: "fr"
     translate_language: "en"
-
-structured_summary_en:
-  based_on: "default_en"
-  name_en: "Structured summary (English)"
-  name_fr: "Résumé structuré (anglais)"
-  description_en: "Detailed summary with headings and bullet points, in English"
-  description_fr: "Résumé détaillé avec des titres et des puces, en anglais"
-  options:
-    mode: "summarize"
-    summarize_model: "o3-mini"
-    summarize_style: "long"
-    summarize_instructions: |
-      Start the summary with an outline / executive summary. Then proceed to write the rest of the summary in the format of section headings and bullet points.
-
-structured_summary_fr:
-  based_on: "default_fr"
-  name_en: "Structured summary (French)"
-  name_fr: "Résumé structuré (français)"
-  description_en: "Detailed summary with headings and bullet points, in French"
-  description_fr: "Résumé détaillé avec des titres et des puces, en français"
-  options:
-    mode: "summarize"
-    summarize_model: "o3-mini"
-    summarize_style: "long"
-    summarize_instructions: |
-      Commencez le résumé par un plan / résumé exécutif. Puis passez à écrire le résumé complet dans le format des titres de section et des puces.
+    summarize_prompt: |
+      Résumez le document ci-dessus au format de démarque avec une belle structure pour la lisibilité.
+      
+      Règles : N'introduisez pas votre résumé avec des phrases comme "Voici un résumé...". Sortez juste le résumé. Ne concluez pas votre résumé par des déclarations d'auto-félicitations comme "Cette structure fournit un aperçu clair..."
+      Surtout, n'extrapolez pas ou ne faites pas d'inférences basées sur le texte du document. Un score de zéro sera donné à tout résumé qui enfreint ces règles.
+      
+      Commencez par un titre - un titre descriptif pour le document ci-dessus (pas nécessairement le nom de fichier) suivi d'un résumé exécutif de 1 à 3 lignes. Ensuite, continuez avec le résumé structuré.
