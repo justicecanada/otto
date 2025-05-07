@@ -32,6 +32,7 @@
        data-bs-dismiss="modal"
        href="#"
        hx-post="{% url 'chat:chat_options' chat_id=chat_id action='load_preset' preset_id=preset.id %}"
-       hx-target="#options-accordion">{% trans "Load settings" %}</a>
+       hx-target="#options-accordion"
+       hx-swap="outerHTML">{% trans "Load settings" %}</a>
   </div>
 </li>

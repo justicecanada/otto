@@ -132,11 +132,10 @@ function updatePlaceholder(mode) {
   chat_prompt.placeholder = chat_prompt.dataset[`${mode}Placeholder`];
 }
 
-function handleModeChange(mode, element = null, preset_loaded = false) {
+function handleModeChange(mode, element = null) {
   // Set the hidden input value to the selected mode
   let hidden_mode_input = document.querySelector('#id_mode');
   hidden_mode_input.value = mode;
-  if (!preset_loaded) {triggerOptionSave();}
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
   // Dispatch change event for search mode in order to trigger advance settings options
@@ -235,6 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
   resizeTextarea();
   let mode = document.querySelector('#chat-outer').classList[0];
   updateAccordion(mode);
+  updateQaSourceForms();
   updatePlaceholder(mode);
   document.querySelector("#chat-prompt").focus();
   if (document.querySelector("#no-messages-placeholder") === null) {
@@ -306,6 +306,17 @@ document.addEventListener("keydown", function (event) {
     event.preventDefault();
     document.querySelector("#send-button").click();
   }
+});
+// Accordion swapped
+document.addEventListener("htmx:afterSwap", function (event) {
+  if (event.detail?.target?.id !== "options-accordion") return;
+  console.log("Accordion swapped");
+  afterAccordionSwap();
+});
+document.addEventListener("htmx:oobAfterSwap", function (event) {
+  if (event.detail?.target?.id !== "options-accordion") return;
+  console.log("Accordion swapped OOB");
+  afterAccordionSwap();
 });
 
 // Sources modal setup
@@ -617,5 +628,31 @@ function clearRemainingCostWarningButtons() {
   const warningButton = document.querySelector(".cost-warning-buttons");
   if (warningButton) {
     warningButton.remove();
+  }
+}
+
+function afterAccordionSwap() {
+  const accordion = document.getElementById('options-accordion');
+  const presetLoaded = accordion.dataset.presetLoaded === "true";
+  const swap = accordion.dataset.swap === "true";
+  const triggerLibraryChange = accordion.dataset.triggerLibraryChange === "true";
+  const mode = accordion.dataset.mode;
+  const prompt = accordion.dataset.prompt;
+  if (prompt) {
+    document.querySelector('#chat-prompt').value = prompt;
+  }
+
+  if (presetLoaded || swap) {
+    handleModeChange(mode, null);
+    const qa_mode_value = document.getElementById('id_qa_mode').value;
+    switchToDocumentScope();
+    // Update the advanced settings RAG options visibility
+    toggleRagOptions(qa_mode_value);
+    setTimeout(updateQaSourceForms, 100);
+  } else if (triggerLibraryChange) {
+    // This function calls updateQaSourceForms, so no need to call it twice
+    resetQaAutocompletes();
+  } else {
+    updateQaSourceForms();
   }
 }
