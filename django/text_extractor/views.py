@@ -4,6 +4,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
+from pdf2image.exceptions import PDFPageCountError
+from pypdf.errors import PdfStreamError
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
@@ -45,7 +47,7 @@ def submit_document(request):
         return JsonResponse({"error": "Invalid request method."}, status=400)
 
     files = request.FILES.getlist("file_upload")
-    logger.debug(f"Received {len(files)} files")
+    logger.debug(_("Received {len(files)} files"))
     access_key = AccessKey(user=request.user)
     merged = request.POST.get("merge_docs_checkbox", False) == "on"
 
@@ -120,14 +122,31 @@ def submit_document(request):
 
         return render(request, "text_extractor/completed_documents.html", context)
 
-    except Exception as e:
-        # Improve error logging
-        import traceback
-
-        logger.error(f"ERROR: {str(e)}")
-        logger.error(traceback.format_exc())
+    except PdfStreamError as e:
+        logger.exception(
+            _(
+                "PDFStreamError while processing files - invalid or corrupted pdf uploaded"
+            )
+        )
         return render(
-            request, "text_extractor/error_message.html", {"error_message": str(e)}
+            request,
+            "text_extractor/error_message.html",
+            {
+                "error_message": _(
+                    "Error: One or more of your files is not a valid PDF/image or is corrupted."
+                )
+            },
+        )
+    except Exception as e:
+        logger.exception(
+            _("Sorry, we ran into an error while running OCR"),
+            user_request_id=user_request.id,
+        )
+
+        return render(
+            request,
+            "text_extractor/error_message.html",
+            {"error_message": _("Error running OCR on documents")},
         )
 
 

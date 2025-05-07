@@ -1,5 +1,5 @@
 import asyncio
-import os
+import uuid
 
 from django.conf import settings
 
@@ -77,8 +77,8 @@ async def get_entra_users_async():
             next_iteration = result.odata_next_link
             batch_number += 1
     except APIError as e:
-        logger.error(
-            f"Error trying to retrieve batch {batch_number} of entra users: {e.error.message}"
+        logger.exception(
+            f"Error trying to retrieve batch {batch_number} of entra users: {e}"
         )
 
     return entra_users_list

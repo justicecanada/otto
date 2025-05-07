@@ -618,4 +618,4 @@ def message_post_save(sender, instance, **kwargs):
             last_modification_date=timezone.now()
         )
     except Exception as e:
-        logger.error(f"Message post save error: {e}")
+        logger.exception(f"Message post save error: {e}")

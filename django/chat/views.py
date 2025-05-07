@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import uuid
 
 from django.conf import settings
 from django.contrib import messages
@@ -474,8 +475,10 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         message.feedback = message.get_toggled_feedback(feedback)
         message.save()
     except Exception as e:
-        # TODO: handle error
-        logger.error("An error occurred while providing a chat feedback.", error=e)
+        logger.exception(
+            f"An error occurred while providing thumbs up/down feedback.:{e}",
+            message_id=message_id,
+        )
 
     if feedback == -1:
         return feedback_message(request, message_id)
@@ -895,11 +898,20 @@ def set_preset_default(request, chat_id: str, preset_id: int):
 
         return HttpResponse(response_str)
 
-    except ValueError:
-        logger.error("Error setting default preset")
-        messages.error(
-            request, _("An error occurred while setting the default preset.")
+    except ValueError as e:
+        error_id = str(uuid.uuid4())[:7]
+        response_str = (
+            _("An error occurred while setting the default preset.")
+            + f" _({_('Error ID:')} {error_id})_"
         )
+        logger.error(
+            f"Error setting default preset:",
+            chat_id=chat_id,
+            preset_id=preset_id,
+            error_id=error_id,
+            error=e,
+        )
+        messages.error(request, response_str)
         return HttpResponse(status=500)
 
 
