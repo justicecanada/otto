@@ -208,7 +208,7 @@ medium_summary_fr:
       {docs}
       </document>
       <instruction>
-      Réécrivez le texte (en anglais) sous forme de résumé moyen et assurez-vous que la longueur est d'environ deux ou trois paragraphes. Si le document est plus court, affichez-le tel quel.
+      Réécrivez le texte (en français) sous forme de résumé moyen et assurez-vous que la longueur est d'environ deux ou trois paragraphes. Si le document est plus court, affichez-le tel quel.
       Utilisez le format markdown pour la sortie.
       Évitez les pronoms personnels sauf si le genre de la personne est clairement indiqué.
       </instruction>
@@ -254,7 +254,7 @@ long_summary_fr:
       {docs}
       </document>
       <instruction>
-      Réécrivez le texte (en anglais) sous forme de résumé détaillé, en utilisant plusieurs paragraphes si nécessaire. (Si la saisie est courte, affichez 1 seul paragraphe)
+      Réécrivez le texte (en français) sous forme de résumé détaillé, en utilisant plusieurs paragraphes si nécessaire. (Si la saisie est courte, affichez 1 seul paragraphe)
       Utilisez le format markdown pour la sortie.
 
       Quelques règles à suivre :
