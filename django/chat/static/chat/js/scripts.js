@@ -310,12 +310,10 @@ document.addEventListener("keydown", function (event) {
 // Accordion swapped
 document.addEventListener("htmx:afterSwap", function (event) {
   if (event.detail?.target?.id !== "options-accordion") return;
-  console.log("Accordion swapped");
   afterAccordionSwap();
 });
 document.addEventListener("htmx:oobAfterSwap", function (event) {
   if (event.detail?.target?.id !== "options-accordion") return;
-  console.log("Accordion swapped OOB");
   afterAccordionSwap();
 });
 
