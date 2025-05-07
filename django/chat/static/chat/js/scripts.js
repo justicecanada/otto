@@ -498,13 +498,17 @@ function updateQaModal() {
   // console.log('Updating QA modal');
   const qa_modal_elements = document.querySelectorAll('#advanced-qa-modal [data-inputname]');
   qa_modal_elements.forEach((modal_element) => {
-    // Dataset attributes are lowercased
     const hidden_input_name = modal_element.dataset.inputname;
     const hidden_field_element = document.querySelector(`input[name="${hidden_input_name}"]`);
-    // console.log(hidden_input_name, hidden_field_element);
     if (hidden_field_element) {
-      modal_element.value = hidden_field_element.value;
+      if (modal_element.type === "checkbox") {
+        modal_element.checked = hidden_field_element.value.toLowerCase() === "true";
+        modal_element.value = modal_element.checked ? "true" : "false";
+      } else {
+        modal_element.value = hidden_field_element.value;
+      }
     }
+    toggleGranularOptions(document.getElementById('qa_answer_mode-modal').value);
   });
 };
 function updateQaHiddenField(modal_element) {
@@ -520,8 +524,6 @@ function updateQaHiddenField(modal_element) {
 
 function toggleGranularOptions(value) {
   var gran_slider = document.getElementById('qa_granularity_slider');
-  var gran = document.getElementById('qa_granularity-modal');
-
   var pruning_toggle = document.getElementById('qa_pruning');
 
   if (value === 'per-source') {
@@ -529,11 +531,8 @@ function toggleGranularOptions(value) {
     pruning_toggle.style.display = '';
   } else {
     gran_slider.style.display = 'none';
-    gran.value = 768; // Reset slider value to 768 when "combined" is selected
     pruning_toggle.style.display = 'none';
   }
-
-  updateQaHiddenField(gran);
 }
 
 
