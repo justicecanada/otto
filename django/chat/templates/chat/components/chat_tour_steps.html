@@ -47,7 +47,7 @@ let tourSteps = [
       onNextClick: async () => {
         document.querySelector("button.driver-popover-next-btn").disabled = true;
         // Check if there are any div.message-outer elements
-        let messages_exist = document.querySelectorAll("div.message-outer").length > 0;
+        let messages_exist = document.querySelectorAll("div.message-outer").length > 1;
         if (!messages_exist) {
           // If no messages exist, send a message
           const chatInput = document.querySelector("#chat-prompt");
