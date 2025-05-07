@@ -4162,5 +4162,9 @@
     "File too large (max 25MB)": {
         "fr": "",
         "fr_auto": "Fichier trop volumineux (max 25 Mo)"
+    },
+    "Summarize prompt": {
+        "fr": "",
+        "fr_auto": "Invite de résumé"
     }
 }
