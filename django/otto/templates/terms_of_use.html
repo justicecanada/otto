@@ -43,7 +43,7 @@
     </p>
     <p>
       {% trans "For examples of appropriate use cases, please see the " %}
-      <a href="https://013gc.sharepoint.com/:w:/s/BACentre598/EYaR0HtJ_YFEpsBTt5BQ2IUBhWWGuFtuGRJpLbmfoXrjbA"
+      <a href="{% if LANGUAGE_CODE == 'fr' %}https://collaboration.justice.gc.ca/ts/lps-spj/asb-dgas/bac-caa/_layouts/15/DocIdRedir.aspx?ID=1010-1069292447-2{% else %}https://collaboration.justice.gc.ca/ts/lps-spj/asb-dgas/bac-caa/_layouts/15/DocIdRedir.aspx?ID=1010-1069292447-1{% endif %}"
          target="_blank">{% trans "Otto user guide." %}</a>
     </p>
 
