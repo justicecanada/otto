@@ -1,4 +1,5 @@
 import email
+import email.header
 import json
 import os
 import shutil
@@ -97,3 +98,76 @@ def extract_msg(content, root_document_id):
             md = ""
         shutil.rmtree(directory, ignore_errors=True)
         return md
+
+
+def extract_eml(content, root_document_id):
+    from librarian.utils.process_document import process_file
+    from librarian.utils.process_engine import guess_content_type
+
+    cwd = Path.cwd()
+
+    document = Document.objects.get(id=root_document_id)
+    root_file_path = document.file_path
+
+    directory = f"{cwd}/media/{root_document_id}/email"
+    msg = email.message_from_bytes(content)
+    if msg.is_multipart():
+        for part in msg.walk():
+            if part.get_content_type() == "text/plain":
+                body = part.get_payload(decode=True).decode(part.get_content_charset())
+                break
+    else:
+        body = msg.get_payload(decode=True).decode(msg.get_content_charset())
+    subject, encoding = email.header.decode_header(msg["Subject"])[0]
+    if isinstance(subject, bytes):
+        subject = subject.decode(encoding if encoding else "utf-8")
+    from_ = msg["From"]
+    to = msg["To"]
+    cc = msg["Cc"]
+    bcc = msg["Bcc"]
+    sent_date = msg["Date"]
+    attachments = []
+    for part in msg.walk():
+        if part.get_content_disposition() == "attachment":
+            filename = part.get_filename()
+            if filename:
+                attachments.append(filename)
+                with open(filename, "r+b") as f:
+                    f.write(part.get_payload(decode=True))
+                    f.seek(0)
+                    nested_file_path = (
+                        f"{root_file_path or document.filename}/{filename}"
+                    )
+                    content_type = guess_content_type(f)
+                    process_file(
+                        f,
+                        document.data_source.id,
+                        nested_file_path,
+                        filename,
+                        content_type,
+                    )
+
+    email_data = {
+        "from": from_,
+        "to": to,
+        "cc": cc,
+        "bcc": bcc,
+        "subject": subject,
+        "sent_date": sent_date,
+        "body": body,
+        "attachments": attachments,
+    }
+    print(f"Email data: {email_data}")
+    combined_email = f"From: {from_}\nTo: {to}\n"
+    if cc:
+        combined_email += f"Cc: {cc}\n"
+    if bcc:
+        combined_email += f"Bcc: {bcc}\n"
+    combined_email += (
+        f"Subject: {subject}\n"
+        f"Date: {sent_date}\n"
+        f"Attachments: {', '.join(attachments)}\n\n"
+        f"{body}"
+    )
+    md = combined_email
+    return md
