@@ -4302,5 +4302,13 @@
     "Clear filters": {
         "fr": "",
         "fr_auto": "Effacer les filtres"
+    },
+    "GPT-4.1 (better quality, 12x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (meilleure qualité, coût 12x)"
+    },
+    "GPT-4o (legacy model, 15x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4o (modèle existant, coût 15x)"
     }
 }

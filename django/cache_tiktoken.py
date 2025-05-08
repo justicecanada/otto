@@ -15,4 +15,5 @@ models = ["gpt-4o-mini", "gpt-4o", "o3-mini"]
 for model in models:
     tiktoken.encoding_for_model(model)
 
-tiktoken.get_encoding("cl100k_base")
+# All the models we use, including gpt-4.1 (currently not in tiktoken) use o200k_base
+tiktoken.get_encoding("o200k_base")
