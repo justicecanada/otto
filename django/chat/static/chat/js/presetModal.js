@@ -1,4 +1,6 @@
-(function () {
+document.body.addEventListener('htmx:afterSwap', function (event) {
+  if (event.detail?.target?.id != "presets-modal-body") return;
+  console.log('presetModal.js loaded');
   const hasOverflow = (element) => {
     return element.scrollHeight > element.clientHeight;
   };
@@ -30,6 +32,11 @@
   const sharingFilter = document.getElementById('filter-sharing');
   const searchInput = document.getElementById('filter-search');
   const clearBtn = document.getElementById('clear-filters');
+
+  console.log('modeFilter', modeFilter);
+  console.log('sharingFilter', sharingFilter);
+  console.log('searchInput', searchInput);
+  console.log('clearBtn', clearBtn);
 
   function normalize(str) {
     return (str || '').toLowerCase();
@@ -63,4 +70,4 @@
     searchInput.value = '';
     filterCards();
   });
-})();
+});
