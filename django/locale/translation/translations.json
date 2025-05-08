@@ -1147,33 +1147,13 @@
         "fr": "Examen humain requis :",
         "fr_auto": "Examen humain requis :"
     },
-    "AI can make mistakes. Review the text before using it in an official capacity.": {
-        "fr": "",
-        "fr_auto": "L’IA peut faire des erreurs. Passez en revue le texte avant de l’utiliser à titre officiel."
-    },
-    "Not for legal advice or research:": {
-        "fr": "",
-        "fr_auto": "Pas pour des conseils juridiques ou de la recherche :"
-    },
-    "Does not connect to legal databases like Westlaw, Lexis or CanLII.": {
-        "fr": "",
-        "fr_auto": "Ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis ou CanLII."
-    },
     "Not for decision-making:": {
         "fr": "",
         "fr_auto": "Pas pour la prise de décision :"
     },
-    "Do not use for legal decisions, administrative decisions affecting individuals, etc.": {
-        "fr": "",
-        "fr_auto": "Ne pas utiliser pour les décisions juridiques, les décisions administratives affectant les individus, etc."
-    },
     "Information management:": {
         "fr": "",
         "fr_auto": "Gestion de l’information :"
-    },
-    "\n            <strong>Summarize</strong> uploaded documents. You may also input free text or enter a URL for a web page.\n          ": {
-        "fr": "",
-        "fr_auto": "\n<strong>Résumez les</strong> documents téléchargés. Vous pouvez également entrer du texte libre ou entrer une URL pour une page Web.\n          "
     },
     "AI-generated summaries may contain inaccuracies. Review the text before using it for official purposes.": {
         "fr": "",
@@ -1195,25 +1175,13 @@
         "fr": "",
         "fr_auto": "Supprimer les sources non pertinentes"
     },
-    "(Optional) Define AI model's role, background information, rules to follow, examples.": {
-        "fr": "",
-        "fr_auto": "(Facultatif) Définissez le rôle du modèle d’IA, les informations de fond, les règles à suivre, les exemples."
-    },
     "Pre-query instructions": {
         "fr": "",
         "fr_auto": "Instructions préalables à la requête"
     },
-    "(Recommended) What model should with context and query, formatting instructions.": {
-        "fr": "",
-        "fr_auto": "(Recommandé) Quel modèle devrait avec le contexte et la requête, les instructions de formatage."
-    },
     "Post-query instructions": {
         "fr": "",
         "fr_auto": "Instructions post-requête"
-    },
-    "(Optional) Final reminders of desired behaviour. Keep this short.": {
-        "fr": "",
-        "fr_auto": "(Facultatif) Derniers rappels du comportement souhaité. Restez bref."
     },
     "Save changes": {
         "fr": "",
@@ -2443,46 +2411,6 @@
         "fr": "Vous faites partie d’un groupe sélectionné « d'utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande.",
         "fr_auto": "Vous faites partie d’un groupe sélectionné d'«utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande."
     },
-    "Security, privacy and information management": {
-        "fr": "",
-        "fr_auto": "Sécurité, protection de la vie privée et gestion de l’information"
-    },
-    "Otto is approved for up to and including Protected B information. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Additionally, when using Otto with clients’ legal information, employees must ensure the client is aware their information is being entered into an AI tool, understands the potential risks and advantages of the technology, and consents to the use of AI tools.": {
-        "fr": "",
-        "fr_auto": "Otto est approuvé pour les informations protégées B jusqu’à et y compris. Cela comprend normalement les renseignements assujettis au secret professionnel de l’avocat, mais cela devrait être déterminé au cas par cas. De plus, lorsqu’ils utilisent Otto avec les informations juridiques des clients, les employés doivent s’assurer que le client sait que leurs informations sont saisies dans un outil d’IA, comprend les risques et les avantages potentiels de la technologie et consent à l’utilisation d’outils d’IA."
-    },
-    "Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information.": {
-        "fr": "",
-        "fr_auto": "Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires relatives à certaines catégories de renseignements de nature délicate."
-    },
-    "You must not input any information classified above Protected B, either through uploads or direct text input.": {
-        "fr": "",
-        "fr_auto": "Vous ne devez pas entrer d’informations classifiées au-dessus de La Protection B, que ce soit par le biais de téléchargements ou de saisie directe de texte."
-    },
-    "Limit documents that you upload to Otto only to those you need to perform your tasks. Share document libraries and chats only with those who require access. Avoid uploading personal information except as needed for specific tasks, and actively delete classified or personal information when it is no longer needed.": {
-        "fr": "",
-        "fr_auto": "Limitez les documents que vous téléchargez sur Otto uniquement à ceux dont vous avez besoin pour effectuer vos tâches. Partagez des bibliothèques de documents et des discussions uniquement avec ceux qui en ont besoin. Évitez de télécharger des informations personnelles, sauf si nécessaire pour des tâches spécifiques, et supprimez activement les informations classifiées ou personnelles lorsqu’elles ne sont plus nécessaires."
-    },
-    "Appropriate and inappropriate uses": {
-        "fr": "",
-        "fr_auto": "Utilisations appropriées et inappropriées"
-    },
-    "Otto may not be used for automated decision-making. Do not use it for administrative decisions affecting individuals.": {
-        "fr": "",
-        "fr_auto": "Otto ne peut pas être utilisé pour la prise de décision automatisée. Ne l’utilisez pas pour des décisions administratives touchant des personnes."
-    },
-    "Otto is not a substitute for professional legal advice. Avoid using it for decisions with legal implications.": {
-        "fr": "",
-        "fr_auto": "Otto n’est pas un substitut aux conseils juridiques professionnels. Évitez de l’utiliser pour des décisions ayant des implications juridiques."
-    },
-    "Otto does not connect to legal databases like Westlaw, Lexis or CanLII. It should not be used for legal research of case law.": {
-        "fr": "",
-        "fr_auto": "Otto ne se connecte pas aux bases de données juridiques comme Westlaw, Lexis ou CanLII. Il ne devrait pas être utilisé pour la recherche juridique de la jurisprudence."
-    },
-    "Only the Legislation Search tool can be trusted for questions about Canadian federal laws.": {
-        "fr": "",
-        "fr_auto": "Seul l’outil de recherche de législation peut être fiable pour les questions sur les lois fédérales canadiennes."
-    },
     "Responsible and ethical use of AI": {
         "fr": "",
         "fr_auto": "Utilisation responsable et éthique de l’IA"
@@ -2491,37 +2419,9 @@
         "fr": "",
         "fr_auto": "Suivez les politiques et les meilleures pratiques pour une utilisation responsable de l’IA. Se reporter aux lignes directrices des documents de politique suivants et les suivre :"
     },
-    "Justice Generative AI Guidelines - Current Draft": {
-        "fr": "",
-        "fr_auto": "Lignes directrices sur l’IA générative de la justice - Ébauche actuelle"
-    },
-    "You are encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, such as those catalogued by the University of Windsor and the Law Society of Alberta in the documents": {
-        "fr": "",
-        "fr_auto": "Nous vous encourageons à consulter les directives et les avis des cours et des tribunaux concernant l’utilisation de l’intelligence artificielle, comme ceux catalogués par l’Université de Windsor et le Barreau de l’Alberta dans les documents"
-    },
-    "Artificial Intelligence Regulation": {
-        "fr": "",
-        "fr_auto": "Règlement sur l’intelligence artificielle"
-    },
-    "and": {
-        "fr": "",
-        "fr_auto": "et"
-    },
-    "Gen AI Rules of Engagement for Canadian Lawyers": {
-        "fr": "",
-        "fr_auto": "Gen AI Règles d’engagement pour les avocats canadiens"
-    },
-    "respectively.": {
-        "fr": "",
-        "fr_auto": "respectivement."
-    },
     "Always be aware that AI can make mistakes, even when you have provided it with documents.": {
         "fr": "",
         "fr_auto": "Sachez toujours que l’IA peut faire des erreurs, même lorsque vous lui avez fourni des documents."
-    },
-    "For any official use (e.g., distribution outside your immediate team and especially outside the organization) it is crucial that you carefully review AI-generated content.": {
-        "fr": "",
-        "fr_auto": "Pour toute utilisation officielle (par exemple, la distribution en dehors de votre équipe immédiate et en particulier en dehors de l’organisation), il est essentiel que vous examiniez attentivement le contenu généré par l’IA."
     },
     "I agree to the terms of use.": {
         "fr": "",
@@ -2647,133 +2547,13 @@
         "fr": "",
         "fr_auto": "Coûts d’utilisation"
     },
-    "Generated reports": {
-        "fr": "",
-        "fr_auto": "Rapports générés"
-    },
-    "Select Template": {
-        "fr": "",
-        "fr_auto": "Sélectionner un modèle"
-    },
     "Language": {
         "fr": "",
         "fr_auto": "Langue"
     },
-    "Both Languages": {
-        "fr": "",
-        "fr_auto": "Les deux langues"
-    },
-    "Loading...": {
-        "fr": "",
-        "fr_auto": "Chargement..."
-    },
-    "An error occurred while generating the report.": {
-        "fr": "",
-        "fr_auto": "Une erreur s’est produite lors de la génération du rapport."
-    },
-    "Choose a data source": {
-        "fr": "",
-        "fr_auto": "Choisir une source de données"
-    },
-    "Please select": {
-        "fr": "",
-        "fr_auto": "Veuillez sélectionner"
-    },
-    "Canlii URL": {
-        "fr": "",
-        "fr_auto": "Canlii URL"
-    },
-    "Upload File": {
-        "fr": "",
-        "fr_auto": "Télécharger le fichier"
-    },
-    "Please provide a Canlii URL": {
-        "fr": "",
-        "fr_auto": "Veuillez fournir une URL Canlii"
-    },
-    "Enter Canlii URL here": {
-        "fr": "",
-        "fr_auto": "Entrez l’URL Canlii ici"
-    },
-    "Please upload a file": {
-        "fr": "",
-        "fr_auto": "Veuillez télécharger un fichier"
-    },
-    "Submitted Data": {
-        "fr": "",
-        "fr_auto": "Données soumises"
-    },
-    "Data": {
-        "fr": "",
-        "fr_auto": "Données"
-    },
-    "Action": {
-        "fr": "",
-        "fr_auto": "Mesures à prendre"
-    },
-    "No data has been submitted yet.": {
-        "fr": "",
-        "fr_auto": "Aucune donnée n’a encore été communiquée."
-    },
-    "Select a session from the options below:": {
-        "fr": "",
-        "fr_auto": "Sélectionnez une session dans les options ci-dessous :"
-    },
-    "Created": {
-        "fr": "",
-        "fr_auto": "Créé"
-    },
-    "Select a wizard from the options below:": {
-        "fr": "",
-        "fr_auto": "Sélectionnez un Assistant dans les options ci-dessous :"
-    },
-    "Wizard": {
-        "fr": "",
-        "fr_auto": "Assistant"
-    },
-    "Description": {
-        "fr": "",
-        "fr_auto": "Désignation des marchandises"
-    },
-    "Next: Select data": {
-        "fr": "",
-        "fr_auto": "Suivant : Sélectionnez les données"
-    },
-    "Choose from the following templates to generate a report with the selected data:": {
-        "fr": "",
-        "fr_auto": "Choisissez parmi les modèles suivants pour générer un rapport avec les données sélectionnées :"
-    },
-    "Finish: Start again": {
-        "fr": "",
-        "fr_auto": "Terminer : Recommencer"
-    },
-    "Next: Generate report": {
-        "fr": "",
-        "fr_auto": "Suivant : Générer un rapport"
-    },
-    "Template Wizard - Otto": {
-        "fr": "",
-        "fr_auto": "Assistant de modèle - Otto"
-    },
-    "Step 1: Get started": {
-        "fr": "",
-        "fr_auto": "Étape 1 : Commencez"
-    },
-    "Step 2: Select data": {
-        "fr": "",
-        "fr_auto": "Étape 2 : Sélectionner des données"
-    },
-    "Step 3: Generate report": {
-        "fr": "",
-        "fr_auto": "Étape 3 : Générer un rapport"
-    },
     "Plain text": {
         "fr": "",
         "fr_auto": "Texte brut"
-    },
-    "Sorry, we ran into an error.": {
-        "fr": "",
-        "fr_auto": "Désolé, nous avons rencontré une erreur."
     },
     "Text Extractor - Otto": {
         "fr": "",
@@ -2855,14 +2635,6 @@
         "fr": "",
         "fr_auto": "Aucun fait saillant trouvé"
     },
-    "GPT-4o (best quality, 15x cost)": {
-        "fr": "",
-        "fr_auto": "GPT-4o (meilleure qualité, coût 15x)"
-    },
-    "Find relevant sections of acts and regulations using natural language similarity search.": {
-        "fr": "",
-        "fr_auto": "Trouvez les articles pertinents des lois et des règlements à l’aide de la recherche de similarité en langage naturel."
-    },
     "Not for legal advice:": {
         "fr": "Ne pas utiliser pour fournir des conseils juridiques :",
         "fr_auto": "Pas pour des conseils juridiques :"
@@ -2927,14 +2699,6 @@
         "fr": "",
         "fr_auto": "Modes"
     },
-    ".": {
-        "fr": "",
-        "fr_auto": "."
-    },
-    "You can show or hide the AI Assistant\\": {
-        "fr": "",
-        "fr_auto": "Vous pouvez afficher ou masquer l’assistant IA\\"
-    },
     "Settings are tied to the current chat in use. Saving is done automatically when a change is detected.": {
         "fr": "",
         "fr_auto": "Les paramètres sont liés au clavardage actuel utilisé. L’enregistrement se fait automatiquement lorsqu’un changement est détecté."
@@ -2947,49 +2711,9 @@
         "fr": "",
         "fr_auto": "En sélectionnant un mode dans la liste des paramètres, votre session de clavardage sera automatiquement réglée sur ce mode."
     },
-    "Preset": {
-        "fr": "",
-        "fr_auto": "Préréglage"
-    },
-    "Save your current settings in a preset to re-use them in other chats, share them with others, or set them as your default.": {
-        "fr": "",
-        "fr_auto": "Enregistrez vos paramètres actuels dans un préréglage pour les réutiliser dans d’autres chats, les partager avec d’autres personnes ou les définir par défaut."
-    },
-    "Made a mistake? Reset all your settings to their default state.": {
-        "fr": "",
-        "fr_auto": "Vous avez fait une erreur? Réinitialisez tous vos paramètres à leur état par défaut."
-    },
-    "You can also view or edit the full list of existing presets you created or that were shared with you.": {
-        "fr": "",
-        "fr_auto": "Vous pouvez également consulter ou modifier la liste complète des préréglages existants que vous avez créés ou qui ont été partagés avec vous."
-    },
     "Help": {
         "fr": "",
         "fr_auto": "Aide"
-    },
-    "AI Assistant Walkthrough (1 min)": {
-        "fr": "",
-        "fr_auto": "Procédure pas à pas de l’assistant IA (1 min)"
-    },
-    "Start a tour of Otto": {
-        "fr": "",
-        "fr_auto": "Commencez une visite d’Otto"
-    },
-    "Start using Otto": {
-        "fr": "",
-        "fr_auto": "Commencez à utiliser Otto"
-    },
-    "Start using Otto by selecting an application.": {
-        "fr": "",
-        "fr_auto": "Commencez à utiliser Otto en sélectionnant une application."
-    },
-    "Cost allocation": {
-        "fr": "",
-        "fr_auto": "Répartition des coûts"
-    },
-    "This meter gradually fills up as you use Otto. It represents the amount of money left out of your weekly allocation. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center to grant an exemption.": {
-        "fr": "",
-        "fr_auto": "Ce compteur se remplit graduellement au fur et à mesure que vous utilisez Otto. Il représente le montant d’argent laissé de côté de votre allocation hebdomadaire. Si vous atteignez votre limite, vous ne pourrez plus utiliser Otto et devrez contacter le Centre d’analyse d’affaires pour accorder une exemption."
     },
     "Click on this icon to submit feedback about Otto. Let us know what went wrong, or suggest an improvement.": {
         "fr": "",
@@ -3035,21 +2759,9 @@
         "fr": "",
         "fr_auto": "Cliquez sur le logo Otto en haut à gauche pour revenir à cette page en tout temps."
     },
-    "Switch language": {
-        "fr": "",
-        "fr_auto": "Changer de langue"
-    },
-    "Switch the user interface language between English and French.": {
-        "fr": "",
-        "fr_auto": "Changez la langue de l’interface utilisateur entre l’anglais et le français."
-    },
     "Cost meter": {
         "fr": "",
         "fr_auto": "Compteur de coûts"
-    },
-    "This meter gradually fills up as you use Otto. It represents the amount of money left out of your monthly personal budget. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center for a temporary exemption.": {
-        "fr": "",
-        "fr_auto": "Ce compteur se remplit graduellement au fur et à mesure que vous utilisez Otto. Il représente le montant d’argent laissé de côté dans votre budget personnel mensuel. Si vous atteignez votre limite, vous ne pourrez plus utiliser Otto et devrez communiquer avec le Centre d’analyse d’affaires pour obtenir une exemption temporaire."
     },
     "Get help": {
         "fr": "",
@@ -3059,25 +2771,9 @@
         "fr": "",
         "fr_auto": "Cliquez sur l’icône en forme de point d’interrogation pour revoir cette visite, ouvrir le guide de l’utilisateur ou obtenir de l’aide de l’équipe d’Otto."
     },
-    "Welcome tour:": {
-        "fr": "",
-        "fr_auto": "Visite de bienvenue :"
-    },
     "It looks like this is your first time here.": {
         "fr": "",
         "fr_auto": "On dirait que c’est la première fois que vous êtes ici."
-    },
-    "Please take a quick tour to get familiar with the platform.": {
-        "fr": "",
-        "fr_auto": "Veuillez faire une visite rapide pour vous familiariser avec la plateforme."
-    },
-    "Begin tour": {
-        "fr": "",
-        "fr_auto": "Commencer la visite"
-    },
-    "Otto homepage": {
-        "fr": "",
-        "fr_auto": "Page d’accueil d’Otto"
     },
     "Welcome to the AI Assistant!": {
         "fr": "",
@@ -3086,10 +2782,6 @@
     "It looks like this is your first time using the AI Assistant.": {
         "fr": "",
         "fr_auto": "Il semble que ce soit la première fois que vous utilisez l’assistant IA."
-    },
-    "Please take a quick tour to get familiar with the main features.": {
-        "fr": "",
-        "fr_auto": "Veuillez faire une visite rapide pour vous familiariser avec les principales caractéristiques."
     },
     "(required on first use)": {
         "fr": "",
@@ -3106,10 +2798,6 @@
     "Reset flags for demo": {
         "fr": "",
         "fr_auto": "Réinitialiser les indicateurs pour la démo"
-    },
-    "Please take a 1-minute tour to get familiar with the main features.": {
-        "fr": "",
-        "fr_auto": "Veuillez faire une visite d’une minute pour vous familiariser avec les principales caractéristiques."
     },
     "Please take a 1-minute tour to get familiar with the platform.": {
         "fr": "",
@@ -3143,10 +2831,6 @@
         "fr": "",
         "fr_auto": "Mode Q&R"
     },
-    "Presets": {
-        "fr": "",
-        "fr_auto": "Préréglages"
-    },
     "Browse settings presets and create your own to share with others.": {
         "fr": "",
         "fr_auto": "Parcourez les paramètres prédéfinis et créez les vôtres pour les partager avec d’autres."
@@ -3167,14 +2851,6 @@
         "fr": "",
         "fr_auto": "Fichier pptx corrompu."
     },
-    "Corrupt csv file.": {
-        "fr": "",
-        "fr_auto": "Fichier csv corrompu."
-    },
-    "Corrupt excel file.": {
-        "fr": "",
-        "fr_auto": "Fichier ecxel corrompu."
-    },
     "Corrupt CSV file.": {
         "fr": "",
         "fr_auto": "Fichier CSV corrompu."
@@ -3186,22 +2862,6 @@
     "Error submitting feedback.": {
         "fr": "",
         "fr_auto": "Erreur en soumettant des commentaires."
-    },
-    "Chat updated successfully.": {
-        "fr": "",
-        "fr_auto": "Le clavardage a été mis à jour avec succès."
-    },
-    "Chat created successfully.": {
-        "fr": "",
-        "fr_auto": "Chat créé avec succès."
-    },
-    "Default": {
-        "fr": "",
-        "fr_auto": "Défaut"
-    },
-    "(best, $)": {
-        "fr": "",
-        "fr_auto": "(meilleur, $)"
     },
     "Welcome to the AI Assistant": {
         "fr": "",
@@ -3331,10 +2991,6 @@
         "fr": "",
         "fr_auto": "Résumer la réponse"
     },
-    "By default, the summary will be quite short, but this is adjustable in the settings sidebar.": {
-        "fr": "",
-        "fr_auto": "Par défaut, le résumé sera assez court, mais il est réglable dans la barre latérale des paramètres."
-    },
     "Summarize settings": {
         "fr": "",
         "fr_auto": "Résumer les paramètres"
@@ -3423,18 +3079,6 @@
         "fr": "",
         "fr_auto": "Entrez un message pour discuter avec l’IA"
     },
-    "Ask a question about the selected documents, or enter a URL to add": {
-        "fr": "",
-        "fr_auto": "Posez une question sur les documents sélectionnés ou entrez une URL à ajouter"
-    },
-    "Enter a URL or paste long text to summarize": {
-        "fr": "",
-        "fr_auto": "Entrez une URL ou collez un texte long pour résumer"
-    },
-    "Enter text to translate (select language in sidebar)": {
-        "fr": "",
-        "fr_auto": "Entrez le texte à traduire (sélectionnez la langue dans la barre latérale)"
-    },
     "Ask a question about the selected documents, upload files or enter a URL to add": {
         "fr": "Posez une question sur les documents sélectionnés, téléversez des fichiers ou entrez une URL à ajouter",
         "fr_auto": "Posez une question sur les documents sélectionnés, téléchargez des fichiers ou entrez une URL à ajouter"
@@ -3458,10 +3102,6 @@
     "Request cancelled.": {
         "fr": "",
         "fr_auto": "Demande annulée."
-    },
-    "Continue with ": {
-        "fr": "",
-        "fr_auto": "Continuer avec "
     },
     "No description available": {
         "fr": "",
@@ -3551,10 +3191,6 @@
         "fr": "",
         "fr_auto": "Tout le monde"
     },
-    "Shared": {
-        "fr": "",
-        "fr_auto": "Partagé"
-    },
     "Continue at estimated cost ": {
         "fr": "",
         "fr_auto": "Continuer au coût estimatif "
@@ -3563,49 +3199,17 @@
         "fr": "",
         "fr_auto": "L’IA peut faire des erreurs. Vérifiez le résultat si vous avez l’intention de vous fier à lui."
     },
-    "We estimated that this request might be expensive.": {
-        "fr": "",
-        "fr_auto": "Nous avons estimé que cette demande pourrait être coûteuse."
-    },
     "Changes will overwrite properties of all selected users": {
         "fr": "",
         "fr_auto": "Les modifications remplaceront les propriétés de tous les utilisateurs sélectionnés"
-    },
-    "Error processing file {file_name} in task {current_task.request.id}: {full_error}": {
-        "fr": "",
-        "fr_auto": "Erreur de traitement du fichier {file_name} dans la tâche {current_task.request.id} : {full_error}"
-    },
-    "Error: Check your file for corruption of type mismatch": {
-        "fr": "",
-        "fr_auto": "Erreur : Vérifiez que votre fichier n’est pas corrompu par incompatibilité de type"
     },
     "AttributeError: input_file does not have a file extension.": {
         "fr": "",
         "fr_auto": "AttributeError : input_file n’a pas d’extension de fichier."
     },
-    "PDFPageCountError while processing {input_file.name} in {error_id}: {full_error}": {
-        "fr": "",
-        "fr_auto": "PDFPageCountError lors du traitement de {input_file.name} dans {error_id} : {full_error}"
-    },
-    "Error converting pdfs into images in {error_id}: {full_error}": {
-        "fr": "",
-        "fr_auto": "Erreur lors de la conversion de pdf en images dans {error_id} : {full_error}"
-    },
-    "Error processing image {input_file.name} in {error_id}: {full_error}": {
-        "fr": "",
-        "fr_auto": "Erreur de traitement de l’image {input_file.name} dans {error_id} : {full_error}"
-    },
-    "Error running Azure's document intelligence API on in {error_id}: {full_error}": {
-        "fr": "",
-        "fr_auto": "Erreur lors de l’exécution de l’API d’intelligence de documents d’Azure dans {error_id} : {full_error}"
-    },
     "Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages.": {
         "fr": "",
         "fr_auto": "Azure Form Recognizer a terminé le texte OCR pour les pages {len(ocr_results.pages)}."
-    },
-    "Error creating PDF overlay after OCR {error_id}: {full_error}": {
-        "fr": "",
-        "fr_auto": "Erreur lors de la superposition PDF après OCR {error_id} : {full_error}"
     },
     "Task {task_id} failed with error: {result['message']} (Error ID: {result['error_id']})": {
         "fr": "",
@@ -3638,14 +3242,6 @@
     "Error running OCR on documents": {
         "fr": "",
         "fr_auto": "Erreur lors de l’exécution de la ROC sur les documents"
-    },
-    "An error occurred while summarizing the text. ": {
-        "fr": "",
-        "fr_auto": "Une erreur s’est produite lors du résumé du texte. "
-    },
-    "Error ID: %(error_id)s: Corruption/Type mismatch": {
-        "fr": "",
-        "fr_auto": "ID d’erreur :%(error_id)s : Corruption/Incohérence de type"
     },
     "Error ID: %(error_id)s - Failed to create PDF overlay after OCR.": {
         "fr": "",
@@ -3775,10 +3371,6 @@
         "fr": "",
         "fr_auto": "Qui puis-je contacter si j’ai des questions au sujet d’Otto?"
     },
-    "Feedback and bug reporting is collected in-app through a feedback form. Please direct all other questions to the mailbox at otto@justice.gc.ca .": {
-        "fr": "",
-        "fr_auto": "Les commentaires et les rapports de bogues sont recueillis dans l’application par le biais d’un formulaire de rétroaction. Veuillez adresser toutes les autres questions à la boîte aux lettres au otto@justice.gc.ca ."
-    },
     "How do I  ensure the accuracy of information from Otto?": {
         "fr": "",
         "fr_auto": "Comment puis-je m’assurer de l’exactitude des informations d’Otto?"
@@ -3838,10 +3430,6 @@
     "This request is estimated to cost ${formatted_cost}, which exceeds your remaining monthly budget. Please contact an Otto administrator or wait until the 1st for the limit to reset.": {
         "fr": "",
         "fr_auto": "Le coût de cette demande est estimé à {formatted_cost} $, ce qui dépasse votre budget mensuel restant. Veuillez contacter un administrateur Otto ou attendre le 1er pour que la limite soit réinitialisée."
-    },
-    "Error: {e}": {
-        "fr": "",
-        "fr_auto": "Erreur : {e}"
     },
     "This request could be expensive. Are you sure?": {
         "fr": "",
@@ -4051,17 +3639,9 @@
         "fr": "",
         "fr_auto": "Error ID: %(error_id)s - Azure's document intelligence API failed to process the file."
     },
-    "An error occurred while processing the request. Error_ID: ": {
-        "fr": "",
-        "fr_auto": "Une erreur s’est produite lors du traitement de la demande. Error_ID : "
-    },
     "Error processing row. Error ID: ": {
         "fr": "",
         "fr_auto": "Rangée de traitement des erreurs. ID d’erreur : "
-    },
-    "Error ID": {
-        "fr": "",
-        "fr_auto": "ID d’erreur"
     },
     "Sorry, we ran into an error. Error ID: %%(error_id)s.": {
         "fr": "",
@@ -4071,17 +3651,9 @@
         "fr": "",
         "fr_auto": "Corruption et incompatibilité de type.\n "
     },
-    "Otto can be accessed via the URL <a href=\"%(site_url)s\">%(site_url)s</a>. You must be connected to the Justice network.": {
-        "fr": "",
-        "fr_auto": "Otto est accessible via l’URL <a href=\"%(site_url)s\">%(site_url)s</a>. Vous devez être connecté au réseau de la justice."
-    },
     "%(count)d identical document(s) already exist in the library. ": {
         "fr": "%(count)d document(s) identique(s) existent déjà dans la bibliothèque. ",
         "fr_auto": "%(count)d document(s) identique(s) existent déjà dans la bibliothèque. "
-    },
-    "There was an error uploading your file.": {
-        "fr": "",
-        "fr_auto": "%(count)d Documents(s) identiques(s) existent(s) déjà dans la bibliothèque. "
     },
     "An error occurred while summarizing the text.": {
         "fr": "",
@@ -4099,21 +3671,9 @@
         "fr": "fichiers traduits :",
         "fr_auto": "Fichiers traduits :"
     },
-    "file": {
-        "fr": "",
-        "fr_auto": "fichier"
-    },
-    "uploaded": {
-        "fr": "",
-        "fr_auto": "téléchargé"
-    },
     "for Q&A:": {
         "fr": "pour les questions et réponses :",
         "fr_auto": "Pour les questions et réponses :"
-    },
-    "file(s) uploaded": {
-        "fr": "",
-        "fr_auto": "fichier(s) téléchargé(s)"
     },
     "file uploaded": {
         "fr": "fichier téléchargé",
@@ -4154,10 +3714,6 @@
     "File too large (max 10MB)": {
         "fr": "",
         "fr_auto": "Fichier trop volumineux (max 10 Mo)"
-    },
-    "File too large (max 100MB)": {
-        "fr": "",
-        "fr_auto": "Fichier trop volumineux (max 100 Mo)"
     },
     "File too large (max 25MB)": {
         "fr": "",
