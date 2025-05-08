@@ -4,7 +4,7 @@
 # All other presets based on the English or French default
 default_en:
   name_en: "Otto default (English)"
-  name_fr: "Défaut d'Otto (anglais)"
+  name_fr: "Mode de base d'Otto (anglais)"
   description_en: "Base chat preset balancing cost and performance, with English prompts"
   description_fr: "Préréglage de base du clavardage équilibrant le coût et la performance, avec des requêtes en anglais"
   english_default: true
@@ -78,7 +78,7 @@ default_en:
 default_fr:
   based_on: "default_en"
   name_en: "Otto default (French)"
-  name_fr: "Défaut d'Otto (français)"
+  name_fr: "Mode de base d'Otto (français)"
   description_en: "Base chat preset balancing cost and performance, with French prompts"
   description_fr: "Préréglage de base du clavardage équilibrant le coût et la performance, avec des requêtes en français"
   english_default: false
@@ -245,7 +245,7 @@ long_summary_fr:
 default_en_qa:
   based_on: "default_en"
   name_en: "Otto default Q&A (English)"
-  name_fr: "Défaut d'Otto : question-réponse (anglais)"
+  name_fr: "Mode question-réponse de base d'Otto (anglais)"
   description_en: "Base Q&A preset balancing cost and performance, with English prompts"
   description_fr: "Préréglage de base des question-réponse équilibrant le coût et la performance, avec des requêtes en anglais"
   options:
@@ -254,7 +254,7 @@ default_en_qa:
 default_fr_qa:
   based_on: "default_fr"
   name_en: "Otto default Q&A (French)"
-  name_fr: "Défaut d'Otto : question-réponse (français)"
+  name_fr: "Mode question-réponse de base d'Otto (français)"
   description_en: "Base Q&A preset balancing cost and performance, with French prompts"
   description_fr: "Préréglage de base des question-réponse équilibrant le coût et la performance, avec des requêtes en français"
   options:
@@ -263,7 +263,7 @@ default_fr_qa:
 default_en_summarize:
   based_on: "default_en"
   name_en: "Otto default summary (English)"
-  name_fr: "Défaut d'Otto : mode de résumé (anglais)"
+  name_fr: "Mode de résumé de base d'Otto (anglais)"
   description_en: "Includes title, executive summary, then a structured summary with headings. English prompts."
   description_fr: "Préréglage de base de résumé comprenant un titre, un résumé exécutif, puis un résumé structuré avec des titres. Requêtes en anglais."
   options:
@@ -272,7 +272,7 @@ default_en_summarize:
 default_fr_summarize:
   based_on: "default_fr"
   name_en: "Otto default suummary (French)"
-  name_fr: "Défaut d'Otto : mode de résumé (français)"
+  name_fr: "Mode de résumé de base d'Otto (français)"
   description_en: "Includes title, executive summary, then a structured summary with headings. French prompts."
   description_fr: "Préréglage de base de résumé comprenant un titre, un résumé exécutif, puis un résumé structuré avec des titres. Requêtes en français."
   options:

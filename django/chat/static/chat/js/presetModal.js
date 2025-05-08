@@ -1,6 +1,5 @@
 document.body.addEventListener('htmx:afterSwap', function (event) {
   if (event.detail?.target?.id != "presets-modal-body") return;
-  console.log('presetModal.js loaded');
   const hasOverflow = (element) => {
     return element.scrollHeight > element.clientHeight;
   };
@@ -34,22 +33,11 @@ document.body.addEventListener('htmx:afterSwap', function (event) {
   const searchInput = document.getElementById('filter-search');
   const clearBtn = document.getElementById('clear-filters');
 
-  console.log('modeFilter', modeFilter);
-  console.log('sharingFilter', sharingFilter);
-  console.log('languageFilter', languageFilter);
-  console.log('searchInput', searchInput);
-  console.log('clearBtn', clearBtn);
-
-  function normalize(str) {
-    return (str || '').toLowerCase();
-  }
-
   function getCardText(card) {
     return card.innerText.toLowerCase();
   }
 
   function filterCards() {
-    console.log('Filtering cards');
     const mode = modeFilter.value;
     const sharing = sharingFilter.value;
     const language = languageFilter ? languageFilter.value : '';
