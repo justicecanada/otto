@@ -228,7 +228,7 @@ let tourSteps = [
     disableActiveInteraction: true,
     popover: {
       title: "{% trans 'Summarize response' %}",
-      description: "{% trans 'By default, the summary will be quite short, but this is adjustable in the settings sidebar.' %}",
+      description: "{% trans 'The default settings for summarize will output an executive summary followed by more details under headings.' %}",
       onNextClick: () => {
         document.querySelector("button.driver-popover-next-btn").disabled = true;
         openSidebar("right-sidebar");
@@ -243,7 +243,7 @@ let tourSteps = [
     disableActiveInteraction: false,
     popover: {
       title: "{% trans 'Summarize settings' %}",
-      description: "{% trans 'There are 3 preset length settings, but you can add additional instructions or override the prompt entirely. A custom summarize prompt is the easiest way to extract exactly the information you want from a document.' %}",
+      description: "{% trans 'You can modify the summarize prompt in the sidebar. By being specific, you can extract exactly the information you want from a document.' %}",
       onNextClick: async () => {
         document.querySelector("button.driver-popover-next-btn").disabled = true;
         // Check if there are any div.message-outer elements

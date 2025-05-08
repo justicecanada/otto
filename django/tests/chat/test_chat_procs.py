@@ -203,7 +203,7 @@ async def test_htmx_stream_response_generator(all_apps_user):
         ]
         for i, file in enumerate(files):
             yield f"**{file.name}**\n"
-            summary = await summarize_long_text_async(file.text, llm, "short")
+            summary = await summarize_long_text_async(file.text, llm)
             if i < len(files) - 1:
                 yield f"{summary}\n\n-----\n"
             else:

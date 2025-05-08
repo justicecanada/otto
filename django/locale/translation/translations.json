@@ -4162,5 +4162,17 @@
     "File too large (max 25MB)": {
         "fr": "",
         "fr_auto": "Fichier trop volumineux (max 25 Mo)"
+    },
+    "Summarize prompt": {
+        "fr": "",
+        "fr_auto": "Invite de résumé"
+    },
+    "The default settings for summarize will output an executive summary followed by more details under headings.": {
+        "fr": "",
+        "fr_auto": "Les paramètres par défaut pour le résumé produiront un résumé suivi de plus de détails sous les titres."
+    },
+    "You can modify the summarize prompt in the sidebar. By being specific, you can extract exactly the information you want from a document.": {
+        "fr": "Vous pouvez modifier la requête de résumé dans la barre latérale. En étant précis, vous pouvez extraire exactement l’information que vous voulez d’un document.",
+        "fr_auto": "Vous pouvez modifier l’invite de résumé dans la barre latérale. En étant précis, vous pouvez extraire exactement l’information que vous voulez d’un document."
     }
 }

@@ -159,11 +159,7 @@ class ChatOptions(models.Model):
 
     # Summarize-specific options
     summarize_model = models.CharField(max_length=255, default="gpt-4o")
-    summarize_style = models.CharField(max_length=255, default="short")
-    summarize_language = models.CharField(max_length=255, default="en")
-    summarize_instructions = models.TextField(blank=True)
     summarize_prompt = models.TextField(blank=True)
-    summarize_gender_neutral = models.BooleanField(default=True)
 
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
@@ -248,7 +244,7 @@ class PresetManager(models.Manager):
             return self.get(english_default=True)
 
     def get_accessible_presets(self, user: User, language: str = None):
-        ordering = ["-default"]
+        ordering = ["-english_default", "-french_default", "-default"]
         if language:
             ordering.append(f"name_{language}")
 
