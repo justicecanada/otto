@@ -1,5 +1,6 @@
 import asyncio
 import json
+import uuid
 
 from django.core.cache import cache
 from django.db import connections
@@ -7,9 +8,12 @@ from django.utils.translation import gettext as _
 
 import tiktoken
 from asgiref.sync import sync_to_async
+from structlog import get_logger
 
 from chat.utils import wrap_llm_response
 from otto.utils.common import display_cad_cost
+
+logger = get_logger(__name__)
 
 
 def num_tokens(string: str, model_name: str) -> int:
@@ -92,8 +96,17 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
                 yield format_llm_string(full_message)
             await asyncio.sleep(0.01)
     except Exception as e:
-        error = str(e)
-        full_message = _("An error occurred:") + f"\n```\n{error}\n```"
+        error_id = str(uuid.uuid4())[:7]
+        full_message = format_llm_string(
+            _("An error occurred while processing the request. ")
+            + f" _({_('Error ID:')} {error_id})_"
+        )
+        logger.exception(
+            f"Error in generating response",
+            query_uuid=query_uuid,
+            error_id=error_id,
+            error=e,
+        )
 
     cost = await sync_to_async(llm.create_costs)()
     display_cost = await sync_to_async(display_cad_cost)(cost)
@@ -109,8 +122,13 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
     )
 
 
-async def htmx_sse_error():
-    error_message = _("An error occurred while processing the request.")
+async def htmx_sse_error(e="", query_uuid=None):
+    error_message = _("An error occurred while processing the request. ")
+    logger.error(
+        f"Error in generating laws response: {e}",
+        query_uuid=query_uuid,
+    )
+
     yield (
         f"data: <div hx-swap-oob='true' id='answer-sse'>"
         f"<div>{error_message}</div></div>\n\n"

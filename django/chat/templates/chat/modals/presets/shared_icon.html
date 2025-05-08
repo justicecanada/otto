@@ -9,6 +9,10 @@
     <span>{% trans 'Everyone' %}</span>
   {% else %}
     <i class="bi bi-people-fill text-secondary"></i>
-    <span>{% trans 'Shared' %}</span>
+    {% if preset.sharing_option == "others" %}
+      <span>{% trans 'Shared with others' %}</span>
+    {% elif preset.sharing_option == "shared_with_me" %}
+      <span>{% trans 'Shared with me' %}</span>
+    {% endif %}
   {% endif %}
 </span>

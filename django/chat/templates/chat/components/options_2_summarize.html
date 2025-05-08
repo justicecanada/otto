@@ -7,34 +7,9 @@
 {% endblock %}
 
 {% block accordion_body %}
-  <div class="px-3">
-    <label class="col-form-label col-form-label-sm"
-           for="{{ options_form.summarize_style.auto_id }}">{% trans "Summary length" %}</label>
-  </div>
-  <div class="px-3">{{ options_form.summarize_style }}</div>
-
-  <div class="px-3 mt-2">
-    <label class="col-form-label col-form-label-sm"
-           for="{{ options_form.summarize_language.auto_id }}">{% trans "Desired language" %}</label>
-  </div>
-  <div class="px-3">{{ options_form.summarize_language }}</div>
-
-  <div class="mx-3 mt-2 form-switch form-check">
-    {{ options_form.summarize_gender_neutral }}
-    <label class="form-check-label small ms-1"
-           for="{{ options_form.summarize_gender_neutral.auto_id }}">{% trans "Avoid personal pronouns" %}</label>
-  </div>
-
-  <label for="{{ options_form.summarize_instructions.auto_id }}"
-         class="form-label px-3 mt-2 mb-1 small">{% trans "Additional instructions" %}</label>
-  <div class="px-3">{{ options_form.summarize_instructions }}</div>
 
   <label for="{{ options_form.summarize_prompt.auto_id }}"
-         class="form-label px-3 mt-2 mb-1 small">
-    {% trans "Custom summarize prompt" %}
-    <br>
-    {% trans "(overrides all previous settings)" %}
-  </label>
+         class="form-label px-3 mt-2 mb-1 small">{% trans "Summarize prompt" %}</label>
   <div class="px-3">{{ options_form.summarize_prompt }}</div>
 
   <div class="px-3 mt-2">

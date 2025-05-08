@@ -116,12 +116,13 @@ def test_add_extracted_files_single_task_id(
 ):
     # Setup
     mock_result = MagicMock()
-    mock_result.get.return_value = (
-        b"pdf_content",
-        "txt_content",
-        10.0,
-        "input_name.pdf",
-    )
+    mock_result.get.return_value = {
+        "error": False,
+        "pdf_bytes": b"pdf_content",
+        "txt_file": "txt_content",
+        "cost": 10.0,
+        "input_name": "input_name.pdf",
+    }
     mock_async_result.return_value = mock_result
 
     output_file = MagicMock()
@@ -130,14 +131,13 @@ def test_add_extracted_files_single_task_id(
 
     # Call the function
     add_extracted_files(output_file, access_key)
-    # Print actual calls for debugging
-    print(mock_content_file.mock_calls)
 
     # Assertions
     mock_async_result.assert_called_once_with("task_id_1")
     mock_result.get.assert_called_once()
 
     output_file.save.assert_called_once_with(access_key=access_key)
+
     assert output_file.usd_cost == 10.0
     assert output_file.celery_task_ids == []
 
@@ -159,19 +159,22 @@ def test_add_extracted_files_multiple_task_ids(
 ):
     # Setup
     mock_result_1 = MagicMock()
-    mock_result_1.get.return_value = (
-        b"pdf_content_1",
-        "txt_content_1",
-        5.0,
-        "input_name_1.pdf",
-    )
+    mock_result_1.get.return_value = {
+        "error": False,
+        "pdf_bytes": b"pdf_content_1",
+        "txt_file": "txt_content_1",
+        "cost": 5.0,
+        "input_name": "input_name_1.pdf",
+    }
+
     mock_result_2 = MagicMock()
-    mock_result_2.get.return_value = (
-        b"pdf_content_2",
-        "txt_content_2",
-        7.0,
-        "input_name_2.pdf",
-    )
+    mock_result_2.get.return_value = {
+        "error": False,
+        "pdf_bytes": b"pdf_content_2",
+        "txt_file": "txt_content_2",
+        "cost": 7.0,
+        "input_name": "input_name_2.pdf",
+    }
     mock_async_result.side_effect = [mock_result_1, mock_result_2]
 
     output_file = MagicMock()

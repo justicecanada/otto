@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sys
+import uuid
 from decimal import Decimal
 from itertools import groupby
 from typing import AsyncGenerator, Generator
@@ -106,6 +107,7 @@ def url_to_text(url):
         article.parse()
         return article.text
     except:
+        logger.info(f"Failed to download article from {url}")
         return ""
 
 
@@ -143,7 +145,11 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
                 )
                 sources.append(source)
             except Exception as e:
-                logger.debug("Error saving source:", node, e)
+                logger.error(
+                    "Error saving source %s (%s)",
+                    ref_doc_id=node.node.ref_doc_id,
+                    node=node,
+                )
 
     security_labels = [
         source.document.data_source.security_label.acronym for source in sources
@@ -335,9 +341,14 @@ async def htmx_stream(
     except Exception as e:
         message = await sync_to_async(Message.objects.get)(id=message_id)
         full_message = _("An error occurred.")
-        import traceback
-
-        traceback.print_exc()
+        error_id = str(uuid.uuid4())[:7]
+        full_message += f" _({_('Error ID:')} {error_id})_"
+        logger.exception(
+            "Error processing chat response",
+            error_id=error_id,
+            message_id=message.id,
+            chat_id=chat.id,
+        )
         message.text = full_message
         await sync_to_async(message.save)()
         message.text = wrap_llm_response(full_message)
@@ -402,120 +413,19 @@ def title_chat(chat_id, llm, force_title=True):
 def summarize_long_text(
     text,
     llm,
-    length="short",
-    target_language="en",
-    custom_prompt=None,
-    gender_neutral=True,
-    instructions=None,
+    summarize_prompt="TL;DR:",
 ):
-
-    gender_neutral_instructions = {
-        "en": "Avoid personal pronouns unless the person's gender is clearly indicated.",
-        "fr": "Évitez les pronoms personnels sauf si le genre de la personne est clairement indiqué.",
-    }
-
-    if len(text) == 0:
-        return _("No text provided.")
-
-    length_prompts = {
-        "short": {
-            "en": """<document>
-{docs}
-</document>
-<instruction>
-Write a TL;DR summary of document in English - 3 or 4 sentences max. If document is shorter than this, just output the document verbatim.
-</instruction>
-TL;DR:
-""",
-            "fr": """<document>
-{docs}
-</document>
-<instruction>
-Écrivez un résumé "TL;DR" en français - 3 ou 4 phrases maximum. Si le document est plus court, affichez-le tel quel.
-</instruction>
-Résumé :
-""",
-        },
-        "medium": {
-            "en": """<document>
-{docs}
-</document>
-<instruction>
-Rewrite the text (in English) in a medium sized summary format and make sure the length is around two or three paragraphs. If document is shorter than this, just output the document verbatim.
-</instruction>
-Summary:
-""",
-            "fr": """<document>
-{docs}
-</document>
-<instruction>
-Réécrivez le texte (en anglais) sous forme de résumé moyen et assurez-vous que la longueur est d'environ deux ou trois paragraphes. Si le document est plus court, affichez-le tel quel.
-</instruction>
-Résumé :
-""",
-        },
-        "long": {
-            "en": """<document>
-{docs}
-</document>
-<instruction>
-Rewrite the text (in English) as a detailed summary, using multiple paragraphs if necessary. (If the input is short, output 1 paragraph only)
-
-Some rules to follow:
-* Simply rewrite; do not say "This document is about..." etc. Include *all* important details.
-* There is no length limit - be as detailed as possible.
-* **Never extrapolate** on the text. The summary must be factual and not introduce any new ideas.
-* If document is short, just output the document verbatim.
-</instruction>
-Detailed summary:
-""",
-            "fr": """<document>
-{docs}
-</document>
-<instruction>
-Réécrivez le texte (en anglais) sous forme de résumé détaillé, en utilisant plusieurs paragraphes si nécessaire. (Si la saisie est courte, affichez 1 seul paragraphe)
-
-Quelques règles à suivre :
-* Réécrivez simplement ; ne dites pas "Ce document concerne..." etc. Incluez *tous* les détails importants.
-* Il n'y a pas de limite de longueur : soyez aussi détaillé que possible.
-* **Ne faites jamais d'extrapolation** sur le texte. Le résumé doit être factuel et ne doit pas introduire de nouvelles idées.
-* Si le document est court, affichez-le tel quel.
-</instruction>
-Résumé détaillé :
-""",
-        },
-    }
-
-    if custom_prompt and "{docs}" in custom_prompt:
-        length_prompt_template = custom_prompt
-    elif custom_prompt:
-        length_prompt_template = (
-            """
-<document>
-{docs}
-</document>
-<instruction>
-"""
-            + f"{custom_prompt}\n</instruction>"
+    if "{docs}" not in summarize_prompt:
+        summarize_prompt = (
+            "<document>\n"
+            "{docs}\n"
+            "</document>\n"
+            "<instruction>\n"
+            f"{summarize_prompt}\n"
+            "</instruction>"
         )
-    else:
-        length_prompt_template = length_prompts[length][target_language]
-        if gender_neutral:
-            length_prompt_template = length_prompt_template.replace(
-                "</instruction>",
-                gender_neutral_instructions[target_language] + "\n</instruction>",
-            )
-        if instructions:
-            length_prompt_template = length_prompt_template.replace(
-                "</instruction>", instructions + "\n</instruction>"
-            )
-
-    # Tree summarizer prompt requires certain variables
-    # Note that we aren't passing in a query here, so the query will be empty
-    length_prompt_template = length_prompt_template.replace(
-        "{docs}", "{context_str}{query_str}"
-    )
-    template = PromptTemplate(length_prompt_template, prompt_type=PromptType.SUMMARY)
+    summarize_prompt = summarize_prompt.replace("{docs}", "{context_str}{query_str}")
+    template = PromptTemplate(summarize_prompt, prompt_type=PromptType.SUMMARY)
 
     response = llm.tree_summarize(
         context=text,
@@ -528,13 +438,9 @@ Résumé détaillé :
 async def summarize_long_text_async(
     text,
     llm,
-    length="short",
-    target_language="en",
-    custom_prompt=None,
+    summarize_prompt="TL;DR:",
 ):
-    return await sync_to_async(summarize_long_text)(
-        text, llm, length, target_language, custom_prompt
-    )
+    return await sync_to_async(summarize_long_text)(text, llm, summarize_prompt)
 
 
 def get_source_titles(sources):

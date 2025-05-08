@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import uuid
 
 from django.conf import settings
 from django.contrib import messages
@@ -474,8 +475,10 @@ def thumbs_feedback(request: HttpRequest, message_id: int, feedback: str):
         message.feedback = message.get_toggled_feedback(feedback)
         message.save()
     except Exception as e:
-        # TODO: handle error
-        logger.error("An error occurred while providing a chat feedback.", error=e)
+        logger.exception(
+            f"An error occurred while providing thumbs up/down feedback.:{e}",
+            message_id=message_id,
+        )
 
     if feedback == -1:
         return feedback_message(request, message_id)
@@ -518,10 +521,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
         chat_options_form = ChatOptionsForm(instance=chat.options, user=request.user)
 
-        messages.success(
-            request,
-            _("Preset loaded successfully."),
-        )
+        messages.success(request, _("Preset loaded successfully."), extra_tags="unique")
 
         return render(
             request,
@@ -774,13 +774,24 @@ def get_presets(request, chat_id):
     if not request.user.default_preset:
         request.user.default_preset = Preset.objects.get_global_default()
         request.user.save()
+    presets = Preset.objects.get_accessible_presets(request.user, get_language())
+    # Precompute sharing and language for each preset for use in the template
+    for preset in presets:
+        if preset.sharing_option == "others" and preset.owner != request.user:
+            preset.sharing_option = "shared_with_me"
+        # Language detection (crude, based on name)
+        if preset.name_en.lower().endswith("(english)"):
+            language = "en"
+        elif preset.name_en.lower().endswith("(french)"):
+            language = "fr"
+        else:
+            language = ""
+        preset.language = language
     return render(
         request,
         "chat/modals/presets/card_list.html",
         {
-            "presets": Preset.objects.get_accessible_presets(
-                request.user, get_language()
-            ),
+            "presets": presets,
             "chat_id": chat_id,
             "chat": Chat.objects.get(id=chat_id),
             "user": request.user,
@@ -895,11 +906,20 @@ def set_preset_default(request, chat_id: str, preset_id: int):
 
         return HttpResponse(response_str)
 
-    except ValueError:
-        logger.error("Error setting default preset")
-        messages.error(
-            request, _("An error occurred while setting the default preset.")
+    except ValueError as e:
+        error_id = str(uuid.uuid4())[:7]
+        response_str = (
+            _("An error occurred while setting the default preset.")
+            + f" _({_('Error ID:')} {error_id})_"
         )
+        logger.error(
+            f"Error setting default preset:",
+            chat_id=chat_id,
+            preset_id=preset_id,
+            error_id=error_id,
+            error=e,
+        )
+        messages.error(request, response_str)
         return HttpResponse(status=500)
 
 

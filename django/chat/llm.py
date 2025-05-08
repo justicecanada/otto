@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.utils.translation import gettext as _
 
@@ -149,8 +151,11 @@ class OttoLLM:
                 response_text += chunk
                 yield response_text
         except Exception as e:
-            logger.error(f"Error in tree_summarize: {e}")
-            yield _(f"Error: {e}")
+            error_id = str(uuid.uuid4())[:7]
+            logger.exception(f"Error in tree_summarize: {e}", error_id=error_id)
+            yield _(
+                "An error occurred while summarizing the text."
+            ) + f" _({_('Error ID:')} {error_id})_"
 
     # Token counting / cost tracking
     @property
