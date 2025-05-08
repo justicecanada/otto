@@ -38,7 +38,7 @@ msgraph-sdk==1.5.3
 
 # LLM-related ------------------------------------------------------------------
 openai==1.78.0
-llama-index-core==0.12.34
+llama-index==0.12.35
 llama-index-llms-azure-openai==0.3.2
 llama-index-vector-stores-postgres==0.5.2
 llama-index-llms-openai==0.3.38
