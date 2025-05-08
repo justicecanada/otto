@@ -38,7 +38,7 @@ msgraph-sdk==1.5.3
 
 # LLM-related ------------------------------------------------------------------
 openai==1.78.0
-llama-index-core==0.12.34
+llama-index==0.12.35
 llama-index-llms-azure-openai==0.3.2
 llama-index-vector-stores-postgres==0.5.2
 llama-index-llms-openai==0.3.38
@@ -56,7 +56,7 @@ filetype==1.2.0
 docxtpl==0.19.1
 html2docx==1.6.0
 mammoth==1.9.0
-python-pptx==0.6.23
+python-pptx==0.6.23`
 python-docx==1.1.2
 tldextract==5.1.3
 
