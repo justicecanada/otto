@@ -4,7 +4,10 @@
 
 <li class="card {{ preset.options.mode }}"
     tabindex="0"
-    data-default="{{ preset.default }}">
+    data-default="{{ preset.default }}"
+    data-mode="{{ preset.options.mode }}"
+    data-sharing="{{ preset.sharing_option }}"
+    data-language="{{ preset.language }}">
   <div class="card-header align-items-center">
     <h6 class="card-title my-auto text-truncate me-2"
         title="{{ preset.name_auto }}">{{ preset.name_auto }}</h6>

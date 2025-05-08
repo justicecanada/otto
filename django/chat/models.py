@@ -244,9 +244,13 @@ class PresetManager(models.Manager):
             return self.get(english_default=True)
 
     def get_accessible_presets(self, user: User, language: str = None):
-        ordering = ["-english_default", "-french_default", "-default"]
-        if language:
-            ordering.append(f"name_{language}")
+        ordering = [
+            "-default",
+            "-english_default",
+            "-french_default",
+            "-sharing_option",
+            "-options__mode",
+        ]
 
         presets = self.filter(
             Q(owner=user) | Q(accessible_to=user) | Q(sharing_option="everyone"),
