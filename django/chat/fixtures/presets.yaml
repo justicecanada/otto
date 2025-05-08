@@ -3,9 +3,9 @@
 # French default second (based on English default)
 # All other presets based on the English or French default
 default_en:
-  name_en: "Otto default (English) - Chat Mode"
-  name_fr: "Défaut d'Otto (anglais) - Mode de Clavardage"
-  description_en: "Base Chat preset balancing cost and performance, with English prompts"
+  name_en: "Otto default (English)"
+  name_fr: "Défaut d'Otto (anglais)"
+  description_en: "Base chat preset balancing cost and performance, with English prompts"
   description_fr: "Préréglage de base du clavardage équilibrant le coût et la performance, avec des requêtes en anglais"
   english_default: true
   french_default: false
@@ -77,9 +77,9 @@ default_en:
 # The following overrides the English default. Only options that are different are needed.
 default_fr:
   based_on: "default_en"
-  name_en: "Otto default (French) - Chat Mode"
-  name_fr: "Défaut d'Otto (français) - Mode de Clavardage"
-  description_en: "Base Chat preset balancing cost and performance, with French prompts"
+  name_en: "Otto default (French)"
+  name_fr: "Défaut d'Otto (français)"
+  description_en: "Base chat preset balancing cost and performance, with French prompts"
   description_fr: "Préréglage de base du clavardage équilibrant le coût et la performance, avec des requêtes en français"
   english_default: false
   french_default: true
@@ -268,56 +268,56 @@ long_summary_fr:
 
 default_en_qa:
   based_on: "default_en"
-  name_en: "Otto default (English) - Q&A Mode"
-  name_fr: "Défaut d'Otto (anglais) - Mode de Question-Réponse"
+  name_en: "Otto default Q&A (English)"
+  name_fr: "Défaut d'Otto : question-réponse (anglais)"
   description_en: "Base Q&A preset balancing cost and performance, with English prompts"
   description_fr: "Préréglage de base des question-réponse équilibrant le coût et la performance, avec des requêtes en anglais"
   options:
     mode: "qa"
 
-default_en_summarize:
-  based_on: "default_en"
-  name_en: "Otto default (English) - Summarize Mode"
-  name_fr: "Défaut d'Otto (anglais) - Mode de Résumé"
-  description_en: "Base Summarization preset balancing cost and performance, with English prompts"
-  description_fr: "Préréglage de base de résumé équilibrant le coût et la performance, avec des requêtes en anglais"
-  options:
-    mode: "summarize"
-
-default_en_translate:
-  based_on: "default_en"
-  name_en: "Otto default (English) - Translate Mode"
-  name_fr: "Défaut d'Otto (anglais) - Mode de Traduction"
-  description_en: "Base Translation preset balancing cost and performance, with English prompts"
-  description_fr: "Préréglage de base de traduction équilibrant le coût et la performance, avec des requêtes en anglais"
-  options:
-    mode: "translate"
-  
 default_fr_qa:
   based_on: "default_fr"
-  name_en: "Otto default (French) - Q&A Mode"
-  name_fr: "Défaut d'Otto (français) - Mode de Question-Réponse"
+  name_en: "Otto default Q&A (French)"
+  name_fr: "Défaut d'Otto : question-réponse (français)"
   description_en: "Base Q&A preset balancing cost and performance, with French prompts"
   description_fr: "Préréglage de base des question-réponse équilibrant le coût et la performance, avec des requêtes en français"
   options:
     mode: "qa"
 
+default_en_summarize:
+  based_on: "default_en"
+  name_en: "Otto default Summarize (English)"
+  name_fr: "Défaut d'Otto : mode de résumé (anglais)"
+  description_en: "Base Summarization preset balancing cost and performance, with English prompts"
+  description_fr: "Préréglage de base de résumé équilibrant le coût et la performance, avec des requêtes en anglais"
+  options:
+    mode: "summarize"
+
 default_fr_summarize:
   based_on: "default_fr"
-  name_en: "Otto default (French) - Summarize Mode"
-  name_fr: "Défaut d'Otto (français) - Mode de Résumé"
+  name_en: "Otto default Summarize (French)"
+  name_fr: "Défaut d'Otto : mode de résumé (français)"
   description_en: "Base Summarization preset balancing cost and performance, with French prompts"
   description_fr: "Préréglage de base de résumé équilibrant le coût et la performance, avec des requêtes en français"
   options:
     mode: "summarize"
 
-default_fr_translate:
-  based_on: "default_fr"
-  name_en: "Otto default (French) - Translate Mode"
-  name_fr: "Défaut d'Otto (français) - Mode de Traduction"
-  description_en: "Base Translation preset balancing cost and performance, with French prompts"
-  description_fr: "Préréglage de base de traduction équilibrant le coût et la performance, avec des requêtes en français"
+default_en_translate:
+  based_on: "default_en"
+  name_en: "Translate to English"
+  name_fr: "Traduire en anglais"
+  description_en: "Translate text or files to English."
+  description_fr: "Traduire du texte ou des fichiers en anglais."
   options:
     mode: "translate"
+    translate_language: "en"
 
-    
+default_fr_translate:
+  based_on: "default_fr"
+  name_en: "Translate to French"
+  name_fr: "Traduire en français"
+  description_en: "Translate text or files to Canadian French."
+  description_fr: "Traduire du texte ou des fichiers en français canadien."
+  options:
+    mode: "translate"
+    translate_language: "fr"

@@ -30,11 +30,13 @@ document.body.addEventListener('htmx:afterSwap', function (event) {
 
   const modeFilter = document.getElementById('filter-mode');
   const sharingFilter = document.getElementById('filter-sharing');
+  const languageFilter = document.getElementById('filter-language');
   const searchInput = document.getElementById('filter-search');
   const clearBtn = document.getElementById('clear-filters');
 
   console.log('modeFilter', modeFilter);
   console.log('sharingFilter', sharingFilter);
+  console.log('languageFilter', languageFilter);
   console.log('searchInput', searchInput);
   console.log('clearBtn', clearBtn);
 
@@ -50,12 +52,16 @@ document.body.addEventListener('htmx:afterSwap', function (event) {
     console.log('Filtering cards');
     const mode = modeFilter.value;
     const sharing = sharingFilter.value;
+    const language = languageFilter ? languageFilter.value : '';
     const search = normalize(searchInput.value);
 
     cards.forEach(card => {
       let show = true;
       if (mode && card.dataset.mode !== mode) show = false;
       if (sharing && card.dataset.sharing !== sharing) show = false;
+      // Language filter logic
+      if (language === 'en' && card.dataset.language === 'fr') show = false;
+      if (language === 'fr' && card.dataset.language === 'en') show = false;
       if (search && !getCardText(card).includes(search)) show = false;
       card.style.display = show ? '' : 'none';
     });
@@ -63,11 +69,15 @@ document.body.addEventListener('htmx:afterSwap', function (event) {
 
   modeFilter.addEventListener('change', filterCards);
   sharingFilter.addEventListener('change', filterCards);
+  languageFilter.addEventListener('change', filterCards);
   searchInput.addEventListener('input', filterCards);
   clearBtn.addEventListener('click', function () {
     modeFilter.value = '';
     sharingFilter.value = '';
+    languageFilter.value = '';
     searchInput.value = '';
     filterCards();
   });
+
+  filterCards();
 });

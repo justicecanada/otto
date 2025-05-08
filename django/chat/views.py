@@ -521,10 +521,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
         chat_options_form = ChatOptionsForm(instance=chat.options, user=request.user)
 
-        messages.success(
-            request,
-            _("Preset loaded successfully."),
-        )
+        messages.success(request, _("Preset loaded successfully."), extra_tags="unique")
 
         return render(
             request,
@@ -783,10 +780,9 @@ def get_presets(request, chat_id):
         if preset.sharing_option == "others" and preset.owner != request.user:
             preset.sharing_option = "shared_with_me"
         # Language detection (crude, based on name)
-        name_auto = preset.name_fr if get_language() == "fr" else preset.name_en
-        if name_auto and name_auto.lower().endswith("(english)"):
+        if preset.name_en.lower().endswith("(english)"):
             language = "en"
-        elif name_auto and name_auto.lower().endswith("(french)"):
+        elif preset.name_en.lower().endswith("(french)"):
             language = "fr"
         else:
             language = ""
