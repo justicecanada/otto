@@ -2,6 +2,39 @@
 {% load static %}
 
 <div class="modal-body" id="preset-card-list">
+  {% if presets|length > 0 %}
+    <div class="row mb-3" id="preset-filters-row">
+      <div class="col-auto">
+        <select class="form-select form-select-sm" id="filter-mode">
+          <option value="">All modes</option>
+          <option value="chat">Chat</option>
+          <option value="qa">Q&amp;A</option>
+          <option value="summarize">Summarize</option>
+          <option value="translate">Translate</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <select class="form-select form-select-sm" id="filter-sharing">
+          <option value="">All sharing</option>
+          <option value="private">Only me</option>
+          <option value="everyone">Everyone</option>
+          <option value="others">Shared with others</option>
+          <option value="shared_with_me">Shared with me</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <input type="text"
+               class="form-control form-control-sm"
+               id="filter-search"
+               placeholder="Search...">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-outline-secondary btn-sm"
+                id="clear-filters"
+                type="button">Clear filters</button>
+      </div>
+    </div>
+  {% endif %}
   <div class="row">
     <div style="top: 0; bottom: 0; min-height: 300px">
       <div class="col-12 d-flex flex-column h-100">

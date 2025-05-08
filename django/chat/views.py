@@ -777,13 +777,25 @@ def get_presets(request, chat_id):
     if not request.user.default_preset:
         request.user.default_preset = Preset.objects.get_global_default()
         request.user.save()
+    presets = Preset.objects.get_accessible_presets(request.user, get_language())
+    # Precompute sharing and language for each preset for use in the template
+    for preset in presets:
+        if preset.sharing_option == "others" and preset.owner != request.user:
+            preset.sharing_option = "shared_with_me"
+        # Language detection (crude, based on name)
+        name_auto = preset.name_fr if get_language() == "fr" else preset.name_en
+        if name_auto and name_auto.lower().endswith("(english)"):
+            language = "en"
+        elif name_auto and name_auto.lower().endswith("(french)"):
+            language = "fr"
+        else:
+            language = ""
+        preset.language = language
     return render(
         request,
         "chat/modals/presets/card_list.html",
         {
-            "presets": Preset.objects.get_accessible_presets(
-                request.user, get_language()
-            ),
+            "presets": presets,
             "chat_id": chat_id,
             "chat": Chat.objects.get(id=chat_id),
             "user": request.user,
