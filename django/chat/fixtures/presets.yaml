@@ -4,9 +4,9 @@
 # All other presets based on the English or French default
 default_en:
   name_en: "Otto default (English)"
-  name_fr: "Défaut d'Otto (anglais)"
-  description_en: "Base preset balancing cost and performance, with English prompts"
-  description_fr: "Préréglage de base équilibrant le coût et la performance, avec des invites en anglais"
+  name_fr: "Mode de base d'Otto (anglais)"
+  description_en: "Base chat preset balancing cost and performance, with English prompts"
+  description_fr: "Préréglage de base du clavardage équilibrant le coût et la performance, avec des requêtes en anglais"
   english_default: true
   french_default: false
   options:
@@ -78,9 +78,9 @@ default_en:
 default_fr:
   based_on: "default_en"
   name_en: "Otto default (French)"
-  name_fr: "Défaut d'Otto (français)"
-  description_en: "Base preset balancing cost and performance, with French prompts"
-  description_fr: "Préréglage de base équilibrant le coût et la performance, avec des invites en français"
+  name_fr: "Mode de base d'Otto (français)"
+  description_en: "Base chat preset balancing cost and performance, with French prompts"
+  description_fr: "Préréglage de base du clavardage équilibrant le coût et la performance, avec des requêtes en français"
   english_default: false
   french_default: true
   options:
@@ -147,13 +147,9 @@ short_summary_en:
   options:
     mode: "summarize"
     summarize_prompt: |
-      <document>
-      {docs}
-      </document>
-      <instruction>
       Write a TL;DR summary of document in English - 3 or 4 sentences max. If document is shorter than this, just output the document verbatim.
       Avoid personal pronouns unless the person's gender is clearly indicated.
-      </instruction>
+      
       TL;DR:
 
 short_summary_fr:
@@ -165,13 +161,9 @@ short_summary_fr:
   options:
     mode: "summarize"
     summarize_prompt: |
-      <document>
-      {docs}
-      </document>
-      <instruction>
       Écrivez un résumé "TL;DR" en français - 3 ou 4 phrases maximum. Si le document est plus court, affichez-le tel quel.
       Évitez les pronoms personnels sauf si le genre de la personne est clairement indiqué.
-      </instruction>
+      
       Résumé :
 
 medium_summary_en:
@@ -184,14 +176,10 @@ medium_summary_en:
     mode: "summarize"
     summarize_model: "o3-mini"
     summarize_prompt: |
-      <document>
-      {docs}
-      </document>
-      <instruction>
       Rewrite the text (in English) in a medium sized summary format and make sure the length is around two or three paragraphs. If document is shorter than this, just output the document verbatim.
       Use markdown format for the output.
       Avoid personal pronouns unless the person's gender is clearly indicated.
-      </instruction>
+      
       Summary:
 
 medium_summary_fr:
@@ -204,14 +192,10 @@ medium_summary_fr:
     mode: "summarize"
     summarize_model: "o3-mini"
     summarize_prompt: |
-      <document>
-      {docs}
-      </document>
-      <instruction>
       Réécrivez le texte (en français) sous forme de résumé moyen et assurez-vous que la longueur est d'environ deux ou trois paragraphes. Si le document est plus court, affichez-le tel quel.
       Utilisez le format markdown pour la sortie.
       Évitez les pronoms personnels sauf si le genre de la personne est clairement indiqué.
-      </instruction>
+      
       Résumé :
 
 long_summary_en:
@@ -224,10 +208,6 @@ long_summary_en:
     mode: "summarize"
     summarize_model: "o3-mini"
     summarize_prompt: |
-      <document>
-      {docs}
-      </document>
-      <instruction>
       Rewrite the text (in English) as a detailed summary, using multiple paragraphs if necessary. (If the input is short, output 1 paragraph only)
       Use markdown format for the output.
 
@@ -237,7 +217,7 @@ long_summary_en:
       * **Never extrapolate** on the text. The summary must be factual and not introduce any new ideas.
       * If document is short, just output the document verbatim.
       * Avoid personal pronouns unless the person's gender is clearly indicated.
-      </instruction>
+      
       Detailed summary:
 
 long_summary_fr:
@@ -250,10 +230,6 @@ long_summary_fr:
     mode: "summarize"
     summarize_model: "o3-mini"
     summarize_prompt: |
-      <document>
-      {docs}
-      </document>
-      <instruction>
       Réécrivez le texte (en français) sous forme de résumé détaillé, en utilisant plusieurs paragraphes si nécessaire. (Si la saisie est courte, affichez 1 seul paragraphe)
       Utilisez le format markdown pour la sortie.
 
@@ -263,5 +239,61 @@ long_summary_fr:
       * **Ne faites jamais d'extrapolation** sur le texte. Le résumé doit être factuel et ne doit pas introduire de nouvelles idées.
       * Si le document est court, affichez-le tel quel.
       * Évitez les pronoms personnels sauf si le genre de la personne est clairement indiqué.
-      </instruction>
+
       Résumé détaillé :
+
+default_en_qa:
+  based_on: "default_en"
+  name_en: "Otto default Q&A (English)"
+  name_fr: "Mode question-réponse de base d'Otto (anglais)"
+  description_en: "Base Q&A preset balancing cost and performance, with English prompts"
+  description_fr: "Préréglage de base des question-réponse équilibrant le coût et la performance, avec des requêtes en anglais"
+  options:
+    mode: "qa"
+
+default_fr_qa:
+  based_on: "default_fr"
+  name_en: "Otto default Q&A (French)"
+  name_fr: "Mode question-réponse de base d'Otto (français)"
+  description_en: "Base Q&A preset balancing cost and performance, with French prompts"
+  description_fr: "Préréglage de base des question-réponse équilibrant le coût et la performance, avec des requêtes en français"
+  options:
+    mode: "qa"
+
+default_en_summarize:
+  based_on: "default_en"
+  name_en: "Otto default summary (English)"
+  name_fr: "Mode de résumé de base d'Otto (anglais)"
+  description_en: "Includes title, executive summary, then a structured summary with headings. English prompts."
+  description_fr: "Préréglage de base de résumé comprenant un titre, un résumé exécutif, puis un résumé structuré avec des titres. Requêtes en anglais."
+  options:
+    mode: "summarize"
+
+default_fr_summarize:
+  based_on: "default_fr"
+  name_en: "Otto default suummary (French)"
+  name_fr: "Mode de résumé de base d'Otto (français)"
+  description_en: "Includes title, executive summary, then a structured summary with headings. French prompts."
+  description_fr: "Préréglage de base de résumé comprenant un titre, un résumé exécutif, puis un résumé structuré avec des titres. Requêtes en français."
+  options:
+    mode: "summarize"
+
+default_en_translate:
+  based_on: "default_en"
+  name_en: "Translate to English"
+  name_fr: "Traduire en anglais"
+  description_en: "Translate text or files to English."
+  description_fr: "Traduire du texte ou des fichiers en anglais."
+  options:
+    mode: "translate"
+    translate_language: "en"
+
+default_fr_translate:
+  based_on: "default_fr"
+  name_en: "Translate to French"
+  name_fr: "Traduire en français"
+  description_en: "Translate text or files to Canadian French."
+  description_fr: "Traduire du texte ou des fichiers en français canadien."
+  options:
+    mode: "translate"
+    translate_language: "fr"

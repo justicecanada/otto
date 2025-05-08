@@ -1,7 +1,50 @@
 {% load i18n %}
 {% load static %}
+{% get_current_language as LANGUAGE_CODE %}
 
 <div class="modal-body" id="preset-card-list">
+  {% if presets|length > 0 %}
+    <div class="row mb-3" id="preset-filters-row">
+      <div class="col-auto d-flex align-items-center">
+        <fieldset class="d-flex gap-2 mb-0" aria-label="{% trans 'Filter presets' %}">
+          <legend class="visually-hidden">{% trans "Filter presets" %}</legend>
+          <label for="filter-mode" class="visually-hidden">{% trans "Mode" %}</label>
+          <select class="form-select form-select-sm" id="filter-mode">
+            <option value="">{% trans "All modes" %}</option>
+            <option value="chat">{% trans "Chat" %}</option>
+            <option value="qa">{% trans "Q&A" %}</option>
+            <option value="summarize">{% trans "Summarize" %}</option>
+            <option value="translate">{% trans "Translate" %}</option>
+          </select>
+          <label for="filter-sharing" class="visually-hidden">{% trans "Sharing" %}</label>
+          <select class="form-select form-select-sm" id="filter-sharing">
+            <option value="">{% trans "All sharing" %}</option>
+            <option value="private">{% trans "Only me" %}</option>
+            <option value="everyone">{% trans "Everyone" %}</option>
+            <option value="others">{% trans "Shared with others" %}</option>
+            <option value="shared_with_me">{% trans "Shared with me" %}</option>
+          </select>
+          <label for="filter-language" class="visually-hidden">{% trans "Language" %}</label>
+          <select class="form-select form-select-sm" id="filter-language">
+            <option value="">{% trans "All languages" %}</option>
+            <option value="en"{% if LANGUAGE_CODE == "en" %} selected{% endif %}>{% trans "English" %}</option>
+            <option value="fr"{% if LANGUAGE_CODE == "fr" %} selected{% endif %}>{% trans "French" %}</option>
+          </select>
+          <label for="filter-search" class="visually-hidden">{% trans "Search" %}</label>
+          <input type="text"
+                 class="form-control form-control-sm"
+                 id="filter-search"
+                 style="width: 200px"
+                 placeholder="{% trans 'Search...' %}">
+        </fieldset>
+      </div>
+      <div class="col-auto ms-auto">
+        <button class="btn btn-outline-secondary btn-sm"
+                id="clear-filters"
+                type="button">{% trans "Clear filters" %}</button>
+      </div>
+    </div>
+  {% endif %}
   <div class="row">
     <div style="top: 0; bottom: 0; min-height: 300px">
       <div class="col-12 d-flex flex-column h-100">
@@ -18,5 +61,3 @@
     </div>
   </div>
 </div>
-
-<script src="{% static 'chat/js/presetModal.js' %}"></script>
