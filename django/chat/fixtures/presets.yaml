@@ -262,7 +262,7 @@ default_fr_qa:
 
 default_en_summarize:
   based_on: "default_en"
-  name_en: "Otto default Summarize (English)"
+  name_en: "Otto default summary (English)"
   name_fr: "Défaut d'Otto : mode de résumé (anglais)"
   description_en: "Includes title, executive summary, then a structured summary with headings. English prompts."
   description_fr: "Préréglage de base de résumé comprenant un titre, un résumé exécutif, puis un résumé structuré avec des titres. Requêtes en anglais."
@@ -271,7 +271,7 @@ default_en_summarize:
 
 default_fr_summarize:
   based_on: "default_fr"
-  name_en: "Otto default Summarize (French)"
+  name_en: "Otto default suummary (French)"
   name_fr: "Défaut d'Otto : mode de résumé (français)"
   description_en: "Includes title, executive summary, then a structured summary with headings. French prompts."
   description_fr: "Préréglage de base de résumé comprenant un titre, un résumé exécutif, puis un résumé structuré avec des titres. Requêtes en français."
