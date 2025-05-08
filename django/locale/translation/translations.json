@@ -4180,31 +4180,23 @@
         "fr_auto": "Préréglages de filtres"
     },
     "All modes": {
-        "fr": "",
+        "fr": "Tous les modes",
         "fr_auto": "Tous les modes"
     },
     "All sharing": {
-        "fr": "",
+        "fr": "Tous les types de partage",
         "fr_auto": "Tous les partages"
     },
     "All languages": {
-        "fr": "",
+        "fr": "Toutes les langues",
         "fr_auto": "Toutes les langues"
-    },
-    "Hide French": {
-        "fr": "",
-        "fr_auto": "Cacher le français"
-    },
-    "Hide English": {
-        "fr": "",
-        "fr_auto": "Masquer l’anglais"
     },
     "Search...": {
         "fr": "",
         "fr_auto": "Rechercher..."
     },
     "Clear filters": {
-        "fr": "",
+        "fr": "Réinitialiser les filtres",
         "fr_auto": "Effacer les filtres"
     }
 }
