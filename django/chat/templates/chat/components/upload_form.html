@@ -20,7 +20,7 @@
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
     if (allDone) {
-      form.dispatchEvent(new Event('submit'));
+      htmx.trigger(form, "submit")
       upload_message.classList.add("submitting");
     }
     hideIfNoFiles();
@@ -28,8 +28,7 @@
   function hideIfNoFiles() {
     const form = document.getElementById("chat-upload-form");
     const numFiles = form.querySelectorAll(".dff-file").length;
-    if (numFiles === 0) {
-      htmx.trigger(form, "submit")
+    if (numFiles === 0) {      
       upload_message.classList.add("d-none");
     } else {
       upload_message.classList.remove("d-none");
