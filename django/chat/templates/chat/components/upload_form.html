@@ -29,6 +29,7 @@
     const form = document.getElementById("chat-upload-form");
     const numFiles = form.querySelectorAll(".dff-file").length;
     if (numFiles === 0) {
+      htmx.trigger(form, "submit")
       upload_message.classList.add("d-none");
     } else {
       upload_message.classList.remove("d-none");
