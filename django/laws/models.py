@@ -102,6 +102,10 @@ class LawManager(models.Manager):
             logger.debug(
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
             )
+            for node in nodes:
+                if not node.get("text"):
+                    node["text"] = node.get("id")
+
             for i in tqdm(range(0, len(nodes), batch_size)):
                 # Exponential backoff retry
                 for j in range(4, 12):
