@@ -376,6 +376,7 @@ def save_upload(request, chat_id):
     """
     chat = Chat.objects.get(id=chat_id)
     form = UploadForm(request.POST, request.FILES, prefix="chat")
+    logger.info("DEBUG: Uncleaned form content", form=form.data)
     if not form.is_valid():
         logger.error("File upload error.", errors=form.errors)
         messages.error(request, _("There was an error uploading your files."))
@@ -401,6 +402,7 @@ def save_upload(request, chat_id):
     user_message = Message.objects.create(
         chat=chat, text="", is_bot=False, mode=chat.options.mode
     )
+    logger.info("DEBUG: Cleaned form content", form=form.cleaned_data)
     saved_files = form.save()
     for saved_file in saved_files:
         ChatFile.objects.create(
