@@ -25,7 +25,8 @@ logger = get_logger(__name__)
 CHAT_MODELS = [
     ("gpt-4o-mini", _("GPT-4o-mini (fastest, best value)")),
     ("o3-mini", _("o3-mini (adds reasoning, 7x cost)")),
-    ("gpt-4o", _("GPT-4o (best accuracy, 15x cost)")),
+    ("gpt-4.1", _("GPT-4.1 (better quality, 12x cost)")),
+    ("gpt-4o", _("GPT-4o (legacy model, 15x cost)")),
 ]
 TEMPERATURES = [
     (0.1, _("Precise")),

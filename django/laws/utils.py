@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 
 def num_tokens(string: str, model_name: str) -> int:
     """Returns the number of tokens in a text string."""
-    encoding = tiktoken.encoding_for_model(model_name)
+    encoding = tiktoken.get_encoding("o200k_base")
     num_tokens = len(encoding.encode(string))
     return num_tokens
 

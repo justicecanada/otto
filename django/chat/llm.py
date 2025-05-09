@@ -57,16 +57,19 @@ class OttoLLM:
 
     _deployment_to_model_mapping = {
         "gpt-4o-mini": "gpt-4o-mini",
+        "gpt-4.1": "gpt-4.1",
         "gpt-4o": "gpt-4o",
         "o3-mini": "o3-mini",
     }
     _deployment_to_max_input_tokens_mapping = {
         "gpt-4o-mini": 128000,
+        "gpt-4.1": 1047576,
         "gpt-4o": 128000,
         "o3-mini": 200000,
     }
     _deployment_to_max_output_tokens_mapping = {
         "gpt-4o-mini": 16384,
+        "gpt-4.1": 32768,
         "gpt-4o": 16384,
         "o3-mini": 100000,
     }
@@ -83,7 +86,7 @@ class OttoLLM:
         self.model = self._deployment_to_model_mapping[deployment]
         self.temperature = temperature
         self._token_counter = TokenCountingHandler(
-            tokenizer=tiktoken.encoding_for_model(self.model).encode
+            tokenizer=tiktoken.get_encoding("o200k_base").encode
         )
         self._callback_manager = CallbackManager([self._token_counter])
         self.llm = self._get_llm()
