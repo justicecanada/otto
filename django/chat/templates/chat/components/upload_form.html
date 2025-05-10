@@ -20,8 +20,11 @@
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
     if (allDone) {
-      htmx.trigger(form, "submit")
-      upload_message.classList.add("submitting");
+      console.log(new FormData(form));
+      setTimeout(() => {
+        form.requestSubmit();
+        upload_message.classList.add("submitting");        
+      }, 2000);      
     }
     hideIfNoFiles();
   }
