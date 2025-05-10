@@ -28,15 +28,30 @@
     const allDone = Array.from(form.querySelectorAll(".dff-file")).every(file => {
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
-    if (allDone) {
+
+    const metadataField = document.querySelector("#id_chat-input_file-metadata");
+    const uploadsField = document.querySelector("#id_chat-input_file-uploads");
+    console.log("metadataField", metadataField);
+    console.log("uploadsField", uploadsField);
+
+    const hasMetadata = metadataField && metadataField.value.trim() !== "";
+    const hasUploads = uploadsField && uploadsField.value.trim() !== "";
+
+    if (allDone && hasMetadata && hasUploads) {
       let formData = new FormData(form);
-      for (let [key, value] of formData.entries()) {
-  console.log(`${key}:`, value);
-}
-      setTimeout(() => {
-        form.requestSubmit();
-        upload_message.classList.add("submitting");        
-      }, 2000);      
+      upload_message?.classList.add("submitting");
+    
+      htmx.ajax("POST", "{% url 'chat:upload' chat.id %}", {
+        target: form.getAttribute("hx-target"),
+        swap: form.getAttribute("hx-swap"),
+        values: formData,
+        headers: {
+          "X-CSRFToken": "{{ csrf_token|safe }}",
+        }
+      });          
+    }
+    else {
+      console.log("⏳ Waiting for all uploads + metadata to be ready...");
     }
     hideIfNoFiles();
   }
