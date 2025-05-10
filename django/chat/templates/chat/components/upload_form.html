@@ -14,13 +14,25 @@
   const metadata = {};
   const upload_message = document.getElementById("chat-upload-message");
   const file_input = document.getElementById("id_chat-input_file");
-  function submitUploadsIfComplete() {
+  function submitUploadsIfComplete(upload = null) {
+    if (upload) {
+        const filename = upload.name;
+        const contentType = upload.upload.file.type;
+        metadata[filename] = {type: contentType};
+        const metadataField = document.querySelector("#id_chat-input_file-metadata");
+        if (metadataField) {
+          metadataField.value = JSON.stringify(metadata);
+        }
+    }
     const form = document.getElementById("chat-upload-form");
     const allDone = Array.from(form.querySelectorAll(".dff-file")).every(file => {
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
     if (allDone) {
-      console.log(new FormData(form));
+      let formData = new FormData(form);
+      for (let [key, value] of formData.entries()) {
+  console.log(`${key}:`, value);
+}
       setTimeout(() => {
         form.requestSubmit();
         upload_message.classList.add("submitting");        
@@ -41,16 +53,7 @@
     prefix: "chat",
     supportDropArea: false,
     callbacks: {
-      onSuccess: (upload) => {
-        const filename = upload.name;
-        const contentType = upload.upload.file.type;
-        metadata[filename] = {type: contentType};
-        const metadataField = document.querySelector("#id_chat-input_file-metadata");
-        if (metadataField) {
-          metadataField.value = JSON.stringify(metadata);
-        }
-        submitUploadsIfComplete();
-      },
+      onSuccess: (upload) => submitUploadsIfComplete(upload),
       onError: (upload) => submitUploadsIfComplete(),
       onDelete: (upload) => submitUploadsIfComplete(),
       onProgress: (bytesUploaded, bytesTotal, upload) => {
