@@ -1,0 +1,8 @@
+Flask
+azure-cognitiveservices-speech
+python-dotenv
+openai
+langchain-text-splitters
+werkzeug
+azure-ai-translation-text
+azure-ai-textanalytics
