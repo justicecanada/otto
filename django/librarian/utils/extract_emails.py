@@ -104,12 +104,9 @@ def extract_eml(content, root_document_id):
     from librarian.utils.process_document import process_file
     from librarian.utils.process_engine import guess_content_type
 
-    cwd = Path.cwd()
-
     document = Document.objects.get(id=root_document_id)
     root_file_path = document.file_path
 
-    directory = f"{cwd}/media/{root_document_id}/email"
     msg = email.message_from_bytes(content)
     if msg.is_multipart():
         for part in msg.walk():
@@ -147,17 +144,6 @@ def extract_eml(content, root_document_id):
                         content_type,
                     )
 
-    email_data = {
-        "from": from_,
-        "to": to,
-        "cc": cc,
-        "bcc": bcc,
-        "subject": subject,
-        "sent_date": sent_date,
-        "body": body,
-        "attachments": attachments,
-    }
-    print(f"Email data: {email_data}")
     combined_email = f"From: {from_}\nTo: {to}\n"
     if cc:
         combined_email += f"Cc: {cc}\n"
