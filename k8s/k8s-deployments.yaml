@@ -1,0 +1,722 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "128"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"django-deployment","namespace":"otto"},"spec":{"replicas":2,"selector":{"matchLabels":{"app":"django-app"}},"template":{"metadata":{"labels":{"app":"django-app"}},"spec":{"containers":[{"env":[{"name":"DJANGO_SECRET_KEY","valueFrom":{"secretKeyRef":{"key":"djangosecretkey","name":"azure-keyvault-secrets"}}},{"name":"DJANGODB_HOST","valueFrom":{"secretKeyRef":{"key":"djangodbhostkey","name":"azure-keyvault-secrets"}}},{"name":"DJANGODB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"djangodbpasswordkey","name":"azure-keyvault-secrets"}}},{"name":"VECTORDB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"vectordbpasswordkey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_OPENAI_KEY","valueFrom":{"secretKeyRef":{"key":"openaiservicekey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_COGNITIVE_SERVICE_KEY","valueFrom":{"secretKeyRef":{"key":"cognitiveservicekey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_ACCOUNT_KEY","valueFrom":{"secretKeyRef":{"key":"storageaccountkey","name":"azure-keyvault-secrets"}}},{"name":"ENTRA_CLIENT_SECRET","valueFrom":{"secretKeyRef":{"key":"entraclientsecretkey","name":"azure-keyvault-secrets"}}}],"envFrom":[{"configMapRef":{"name":"otto-configmap"}}],"image":"jussandboxottoacr.azurecr.io/otto:latest","imagePullPolicy":"Always","livenessProbe":{"failureThreshold":5,"httpGet":{"httpHeaders":[{"name":"Host","value":"django-service"}],"path":"/healthz/","port":8000},"initialDelaySeconds":30,"periodSeconds":20,"successThreshold":1,"timeoutSeconds":10},"name":"django-app-container","ports":[{"containerPort":8000}],"readinessProbe":{"failureThreshold":3,"httpGet":{"httpHeaders":[{"name":"Host","value":"django-service"}],"path":"/healthz/","port":8000},"initialDelaySeconds":10,"periodSeconds":15,"successThreshold":1,"timeoutSeconds":10},"resources":{"limits":{"cpu":"2","memory":"8Gi"},"requests":{"cpu":"1","memory":"3Gi"}},"volumeMounts":[{"mountPath":"/mnt/secrets-store","name":"secrets","readOnly":true},{"mountPath":"/data/static","name":"staticfiles-pv-storage"},{"mountPath":"/data/media","name":"media-pv-storage"}]}],"initContainers":[{"command":["sh","-c","echo 'Starting collectstatic'; python manage.py collectstatic --noinput; echo 'Collectstatic completed'; echo 'Starting migrate'; python manage.py migrate --noinput; echo 'Migrate completed'"],"env":[{"name":"DJANGO_SECRET_KEY","valueFrom":{"secretKeyRef":{"key":"djangosecretkey","name":"azure-keyvault-secrets"}}},{"name":"DJANGODB_HOST","valueFrom":{"secretKeyRef":{"key":"djangodbhostkey","name":"azure-keyvault-secrets"}}},{"name":"DJANGODB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"djangodbpasswordkey","name":"azure-keyvault-secrets"}}},{"name":"VECTORDB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"vectordbpasswordkey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_OPENAI_KEY","valueFrom":{"secretKeyRef":{"key":"openaiservicekey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_COGNITIVE_SERVICE_KEY","valueFrom":{"secretKeyRef":{"key":"cognitiveservicekey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_ACCOUNT_KEY","valueFrom":{"secretKeyRef":{"key":"storageaccountkey","name":"azure-keyvault-secrets"}}},{"name":"ENTRA_CLIENT_SECRET","valueFrom":{"secretKeyRef":{"key":"entraclientsecretkey","name":"azure-keyvault-secrets"}}}],"envFrom":[{"configMapRef":{"name":"otto-configmap"}}],"image":"jussandboxottoacr.azurecr.io/otto:latest","name":"init-migrate-collectstatic","resources":{"limits":{"cpu":"1","memory":"4Gi"},"requests":{"cpu":"1","memory":"3Gi"}},"volumeMounts":[{"mountPath":"/mnt/secrets-store","name":"secrets","readOnly":true},{"mountPath":"/data/static","name":"staticfiles-pv-storage"},{"mountPath":"/data/media","name":"media-pv-storage"}]}],"volumes":[{"csi":{"driver":"secrets-store.csi.k8s.io","readOnly":true,"volumeAttributes":{"secretProviderClass":"azure-keyvault"}},"name":"secrets"},{"name":"staticfiles-pv-storage","persistentVolumeClaim":{"claimName":"staticfiles-pvc"}},{"name":"media-pv-storage","persistentVolumeClaim":{"claimName":"media-pvc"}}]}}}}
+    creationTimestamp: "2024-10-10T16:53:35Z"
+    generation: 163
+    name: django-deployment
+    namespace: otto
+    resourceVersion: "85177345"
+    uid: c4c116fd-710c-4464-b53a-7a142865b4a9
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: django-app
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-05-12T14:29:04Z"
+        creationTimestamp: null
+        labels:
+          app: django-app
+      spec:
+        containers:
+        - env:
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: djangosecretkey
+                name: azure-keyvault-secrets
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                key: djangodbhostkey
+                name: azure-keyvault-secrets
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: djangodbpasswordkey
+                name: azure-keyvault-secrets
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: vectordbpasswordkey
+                name: azure-keyvault-secrets
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                key: openaiservicekey
+                name: azure-keyvault-secrets
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                key: cognitiveservicekey
+                name: azure-keyvault-secrets
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                key: storageaccountkey
+                name: azure-keyvault-secrets
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: entraclientsecretkey
+                name: azure-keyvault-secrets
+          - name: AZURE_OPENAI_CANADA_CENTRAL_KEY
+            valueFrom:
+              secretKeyRef:
+                key: openaicanadacentralkey
+                name: azure-keyvault-secrets
+          envFrom:
+          - configMapRef:
+              name: otto-configmap
+          image: jussandboxottoacr.azurecr.io/otto:latest
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              httpHeaders:
+              - name: Host
+                value: django-service
+              path: /healthz/
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 10
+          name: django-app-container
+          ports:
+          - containerPort: 8000
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              httpHeaders:
+              - name: Host
+                value: django-service
+              path: /healthz/
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 10
+          resources:
+            limits:
+              memory: 8Gi
+            requests:
+              cpu: "1"
+              memory: 3Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /mnt/secrets-store
+            name: secrets
+            readOnly: true
+          - mountPath: /data/static
+            name: staticfiles-pv-storage
+          - mountPath: /data/media
+            name: media-pv-storage
+        dnsPolicy: ClusterFirst
+        initContainers:
+        - command:
+          - sh
+          - -c
+          - echo 'Starting collectstatic'; python manage.py collectstatic --noinput;
+            echo 'Collectstatic completed'; echo 'Starting migrate'; python manage.py
+            migrate --noinput; echo 'Migrate completed'
+          env:
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: djangosecretkey
+                name: azure-keyvault-secrets
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                key: djangodbhostkey
+                name: azure-keyvault-secrets
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: djangodbpasswordkey
+                name: azure-keyvault-secrets
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: vectordbpasswordkey
+                name: azure-keyvault-secrets
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                key: openaiservicekey
+                name: azure-keyvault-secrets
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                key: cognitiveservicekey
+                name: azure-keyvault-secrets
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                key: storageaccountkey
+                name: azure-keyvault-secrets
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: entraclientsecretkey
+                name: azure-keyvault-secrets
+          - name: AZURE_OPENAI_CANADA_CENTRAL_KEY
+            valueFrom:
+              secretKeyRef:
+                key: openaicanadacentralkey
+                name: azure-keyvault-secrets
+          envFrom:
+          - configMapRef:
+              name: otto-configmap
+          image: jussandboxottoacr.azurecr.io/otto:latest
+          imagePullPolicy: Always
+          name: init-migrate-collectstatic
+          resources:
+            limits:
+              cpu: "1"
+              memory: 4Gi
+            requests:
+              cpu: "1"
+              memory: 3Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /mnt/secrets-store
+            name: secrets
+            readOnly: true
+          - mountPath: /data/static
+            name: staticfiles-pv-storage
+          - mountPath: /data/media
+            name: media-pv-storage
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: azure-keyvault
+          name: secrets
+        - name: staticfiles-pv-storage
+          persistentVolumeClaim:
+            claimName: staticfiles-pvc
+        - name: media-pv-storage
+          persistentVolumeClaim:
+            claimName: media-pvc
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2025-05-06T17:04:43Z"
+      lastUpdateTime: "2025-05-06T17:04:43Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2025-03-05T12:57:14Z"
+      lastUpdateTime: "2025-05-12T14:31:55Z"
+      message: ReplicaSet "django-deployment-586fc98864" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 163
+    readyReplicas: 2
+    replicas: 2
+    updatedReplicas: 2
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "2"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"postgres-vector-deployment","namespace":"otto"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"postgres-vector-db"}},"template":{"metadata":{"labels":{"app":"postgres-vector-db","tier":"backend"}},"spec":{"containers":[{"env":[{"name":"POSTGRES_PASSWORD","valueFrom":{"secretKeyRef":{"key":"vectordbpasswordkey","name":"azure-keyvault-secrets"}}},{"name":"POSTGRES_DB","valueFrom":{"configMapKeyRef":{"key":"VECTORDB_NAME","name":"otto-configmap"}}},{"name":"POSTGRES_USER","valueFrom":{"configMapKeyRef":{"key":"VECTORDB_USER","name":"otto-configmap"}}},{"name":"POSTGRES_MAX_CONNECTIONS","value":"500"}],"image":"pgvector/pgvector:pg16","imagePullPolicy":"IfNotPresent","name":"postgres-vector-db","ports":[{"containerPort":5432}],"resources":{"limits":{"cpu":"1","memory":"4Gi"},"requests":{"cpu":"500m","memory":"4Gi"}},"volumeMounts":[{"mountPath":"/var/lib/postgresql/data","name":"postgres-vector-volume-mount","subPath":"vectordb"},{"mountPath":"/mnt/secrets-store","name":"secrets","readOnly":true}]}],"volumes":[{"name":"postgres-vector-volume-mount","persistentVolumeClaim":{"claimName":"postgres-vector-pvc"}},{"csi":{"driver":"secrets-store.csi.k8s.io","readOnly":true,"volumeAttributes":{"secretProviderClass":"azure-keyvault"}},"name":"secrets"}]}}}}
+    creationTimestamp: "2024-10-28T15:41:06Z"
+    generation: 2
+    name: postgres-vector-deployment
+    namespace: otto
+    resourceVersion: "20731835"
+    uid: fb2db874-4b22-4bdd-856a-fee1ed0eb068
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: postgres-vector-db
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: postgres-vector-db
+          tier: backend
+      spec:
+        containers:
+        - env:
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: vectordbpasswordkey
+                name: azure-keyvault-secrets
+          - name: POSTGRES_DB
+            valueFrom:
+              configMapKeyRef:
+                key: VECTORDB_NAME
+                name: otto-configmap
+          - name: POSTGRES_USER
+            valueFrom:
+              configMapKeyRef:
+                key: VECTORDB_USER
+                name: otto-configmap
+          - name: POSTGRES_MAX_CONNECTIONS
+            value: "500"
+          image: pgvector/pgvector:pg16
+          imagePullPolicy: IfNotPresent
+          name: postgres-vector-db
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          resources:
+            limits:
+              cpu: "1"
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 4Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: postgres-vector-volume-mount
+            subPath: vectordb
+          - mountPath: /mnt/secrets-store
+            name: secrets
+            readOnly: true
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: postgres-vector-volume-mount
+          persistentVolumeClaim:
+            claimName: postgres-vector-pvc
+        - csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: azure-keyvault
+          name: secrets
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2024-10-28T15:41:06Z"
+      lastUpdateTime: "2024-11-06T15:00:34Z"
+      message: ReplicaSet "postgres-vector-deployment-6d9fbd5694" has successfully
+        progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2024-12-05T15:11:22Z"
+      lastUpdateTime: "2024-12-05T15:11:22Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 2
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "3"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"deployment":"redis"},"name":"redis-deployment","namespace":"otto"},"spec":{"replicas":1,"selector":{"matchLabels":{"pod":"redis"}},"template":{"metadata":{"labels":{"pod":"redis"}},"spec":{"containers":[{"image":"redis:7.0.11-bullseye","name":"redis","ports":[{"containerPort":6379}]}]}}}}
+    creationTimestamp: "2024-10-09T18:17:38Z"
+    generation: 3
+    labels:
+      deployment: redis
+    name: redis-deployment
+    namespace: otto
+    resourceVersion: "20731785"
+    uid: 50063bc7-a216-4507-bda2-e95a65bd76bc
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        pod: redis
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2024-11-26T21:29:35Z"
+        creationTimestamp: null
+        labels:
+          pod: redis
+      spec:
+        containers:
+        - image: redis:7.0.11-bullseye
+          imagePullPolicy: IfNotPresent
+          name: redis
+          ports:
+          - containerPort: 6379
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2024-10-09T18:17:38Z"
+      lastUpdateTime: "2024-11-26T21:29:36Z"
+      message: ReplicaSet "redis-deployment-7cddcff64b" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2024-12-05T15:11:19Z"
+      lastUpdateTime: "2024-12-05T15:11:19Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 3
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "66"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"deployment":"celery-beat"},"name":"celery-beat","namespace":"otto"},"spec":{"replicas":1,"selector":{"matchLabels":{"pod":"celery-beat"}},"template":{"metadata":{"labels":{"pod":"celery-beat"}},"spec":{"containers":[{"command":["celery","-A","otto","beat","-l","INFO","--scheduler","django_celery_beat.schedulers:DatabaseScheduler"],"env":[{"name":"DJANGO_SECRET_KEY","valueFrom":{"secretKeyRef":{"key":"djangosecretkey","name":"azure-keyvault-secrets"}}},{"name":"VECTORDB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"vectordbpasswordkey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_OPENAI_KEY","valueFrom":{"secretKeyRef":{"key":"openaiservicekey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_COGNITIVE_SERVICE_KEY","valueFrom":{"secretKeyRef":{"key":"cognitiveservicekey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_ACCOUNT_KEY","valueFrom":{"secretKeyRef":{"key":"storageaccountkey","name":"azure-keyvault-secrets"}}},{"name":"DJANGODB_HOST","valueFrom":{"secretKeyRef":{"key":"djangodbhostkey","name":"azure-keyvault-secrets"}}},{"name":"DJANGODB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"djangodbpasswordkey","name":"azure-keyvault-secrets"}}},{"name":"ENTRA_CLIENT_SECRET","valueFrom":{"secretKeyRef":{"key":"entraclientsecretkey","name":"azure-keyvault-secrets"}}}],"envFrom":[{"configMapRef":{"name":"otto-configmap"}}],"image":"jussandboxottoacr.azurecr.io/otto:latest","name":"celery-beat","securityContext":{"allowPrivilegeEscalation":false,"readOnlyRootFilesystem":true},"volumeMounts":[{"mountPath":"/mnt/secrets-store","name":"secrets","readOnly":true},{"mountPath":"/data/media","name":"media-pv-storage"},{"mountPath":"/tmp","name":"tmp"}]}],"volumes":[{"csi":{"driver":"secrets-store.csi.k8s.io","readOnly":true,"volumeAttributes":{"secretProviderClass":"azure-keyvault"}},"name":"secrets"},{"name":"media-pv-storage","persistentVolumeClaim":{"claimName":"media-pvc"}},{"emptyDir":{},"name":"tmp"}]}}}}
+    creationTimestamp: "2024-10-10T16:53:39Z"
+    generation: 70
+    labels:
+      deployment: celery-beat
+    name: celery-beat
+    namespace: otto
+    resourceVersion: "85176512"
+    uid: ae7d4ddb-5ac0-477f-8f8a-408551aac29c
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        pod: celery-beat
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-05-12T14:29:08Z"
+        creationTimestamp: null
+        labels:
+          pod: celery-beat
+      spec:
+        containers:
+        - command:
+          - celery
+          - -A
+          - otto
+          - beat
+          - -l
+          - INFO
+          - --scheduler
+          - django_celery_beat.schedulers:DatabaseScheduler
+          env:
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: djangosecretkey
+                name: azure-keyvault-secrets
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: vectordbpasswordkey
+                name: azure-keyvault-secrets
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                key: openaiservicekey
+                name: azure-keyvault-secrets
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                key: cognitiveservicekey
+                name: azure-keyvault-secrets
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                key: storageaccountkey
+                name: azure-keyvault-secrets
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                key: djangodbhostkey
+                name: azure-keyvault-secrets
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: djangodbpasswordkey
+                name: azure-keyvault-secrets
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: entraclientsecretkey
+                name: azure-keyvault-secrets
+          - name: OPENAI_CANADA_CENTRAL_KEY
+            valueFrom:
+              secretKeyRef:
+                key: openaicanadacentralkey
+                name: azure-keyvault-secrets
+          envFrom:
+          - configMapRef:
+              name: otto-configmap
+          image: jussandboxottoacr.azurecr.io/otto:latest
+          imagePullPolicy: Always
+          name: celery-beat
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /mnt/secrets-store
+            name: secrets
+            readOnly: true
+          - mountPath: /data/media
+            name: media-pv-storage
+          - mountPath: /tmp
+            name: tmp
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: azure-keyvault
+          name: secrets
+        - name: media-pv-storage
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - emptyDir: {}
+          name: tmp
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2025-03-10T20:12:59Z"
+      lastUpdateTime: "2025-03-10T20:12:59Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2024-10-10T16:53:39Z"
+      lastUpdateTime: "2025-05-12T14:29:39Z"
+      message: ReplicaSet "celery-beat-ffb5c7dd6" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 70
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "82"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"deployment":"celery-worker"},"name":"celery-worker","namespace":"otto"},"spec":{"replicas":1,"selector":{"matchLabels":{"pod":"celery-worker"}},"template":{"metadata":{"labels":{"pod":"celery-worker"}},"spec":{"containers":[{"command":["celery","-A","otto","worker","-l","INFO","--pool=gevent","--concurrency=256"],"env":[{"name":"DJANGO_SECRET_KEY","valueFrom":{"secretKeyRef":{"key":"djangosecretkey","name":"azure-keyvault-secrets"}}},{"name":"VECTORDB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"vectordbpasswordkey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_OPENAI_KEY","valueFrom":{"secretKeyRef":{"key":"openaiservicekey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_COGNITIVE_SERVICE_KEY","valueFrom":{"secretKeyRef":{"key":"cognitiveservicekey","name":"azure-keyvault-secrets"}}},{"name":"AZURE_ACCOUNT_KEY","valueFrom":{"secretKeyRef":{"key":"storageaccountkey","name":"azure-keyvault-secrets"}}},{"name":"DJANGODB_HOST","valueFrom":{"secretKeyRef":{"key":"djangodbhostkey","name":"azure-keyvault-secrets"}}},{"name":"DJANGODB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"djangodbpasswordkey","name":"azure-keyvault-secrets"}}},{"name":"ENTRA_CLIENT_SECRET","valueFrom":{"secretKeyRef":{"key":"entraclientsecretkey","name":"azure-keyvault-secrets"}}}],"envFrom":[{"configMapRef":{"name":"otto-configmap"}}],"image":"jussandboxottoacr.azurecr.io/otto:latest","name":"celery-worker","resources":{"limits":{"cpu":"1","memory":"4Gi"},"requests":{"cpu":"500m","memory":"4Gi"}},"securityContext":{"allowPrivilegeEscalation":false,"readOnlyRootFilesystem":true},"volumeMounts":[{"mountPath":"/mnt/secrets-store","name":"secrets","readOnly":true},{"mountPath":"/data/media","name":"media-pv-storage"},{"mountPath":"/tmp","name":"tmp"}]}],"volumes":[{"csi":{"driver":"secrets-store.csi.k8s.io","readOnly":true,"volumeAttributes":{"secretProviderClass":"azure-keyvault"}},"name":"secrets"},{"name":"media-pv-storage","persistentVolumeClaim":{"claimName":"media-pvc"}},{"emptyDir":{},"name":"tmp"}]}}}}
+    creationTimestamp: "2024-10-10T16:53:39Z"
+    generation: 87
+    labels:
+      deployment: celery-worker
+    name: celery-worker
+    namespace: otto
+    resourceVersion: "85176518"
+    uid: 0d454a2f-a671-463b-8470-56ad7cf4e7bb
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        pod: celery-worker
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2025-05-12T14:29:12Z"
+        creationTimestamp: null
+        labels:
+          pod: celery-worker
+      spec:
+        containers:
+        - command:
+          - celery
+          - -A
+          - otto
+          - worker
+          - -l
+          - INFO
+          - --pool=gevent
+          - --concurrency=256
+          env:
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: djangosecretkey
+                name: azure-keyvault-secrets
+          - name: VECTORDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: vectordbpasswordkey
+                name: azure-keyvault-secrets
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                key: openaiservicekey
+                name: azure-keyvault-secrets
+          - name: AZURE_COGNITIVE_SERVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                key: cognitiveservicekey
+                name: azure-keyvault-secrets
+          - name: AZURE_ACCOUNT_KEY
+            valueFrom:
+              secretKeyRef:
+                key: storageaccountkey
+                name: azure-keyvault-secrets
+          - name: DJANGODB_HOST
+            valueFrom:
+              secretKeyRef:
+                key: djangodbhostkey
+                name: azure-keyvault-secrets
+          - name: DJANGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: djangodbpasswordkey
+                name: azure-keyvault-secrets
+          - name: ENTRA_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: entraclientsecretkey
+                name: azure-keyvault-secrets
+          - name: OPENAI_CANADA_CENTRAL_KEY
+            valueFrom:
+              secretKeyRef:
+                key: openaicanadacentralkey
+                name: azure-keyvault-secrets
+          envFrom:
+          - configMapRef:
+              name: otto-configmap
+          image: jussandboxottoacr.azurecr.io/otto:latest
+          imagePullPolicy: Always
+          name: celery-worker
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 4Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /mnt/secrets-store
+            name: secrets
+            readOnly: true
+          - mountPath: /data/media
+            name: media-pv-storage
+          - mountPath: /tmp
+            name: tmp
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: azure-keyvault
+          name: secrets
+        - name: media-pv-storage
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - emptyDir: {}
+          name: tmp
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2025-03-10T20:12:16Z"
+      lastUpdateTime: "2025-03-10T20:12:16Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2024-10-10T16:53:39Z"
+      lastUpdateTime: "2025-05-12T14:29:39Z"
+      message: ReplicaSet "celery-worker-669d7d8bfd" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 87
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+kind: List
+metadata:
+  resourceVersion: ""
