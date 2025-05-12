@@ -3,9 +3,7 @@ import time
 from django.conf import settings
 from django.db import models
 
-import tiktoken
-from llama_index.core import VectorStoreIndex
-from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
+from llama_index.core.schema import MediaResource
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
@@ -103,8 +101,8 @@ class LawManager(models.Manager):
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
             )
             for node in nodes:
-                if not node.get("text"):
-                    node["text"] = node.get("id")
+                if not node.text.strip():
+                    node.text_resource = MediaResource(text=node.doc_id)
 
             for i in tqdm(range(0, len(nodes), batch_size)):
                 # Exponential backoff retry
