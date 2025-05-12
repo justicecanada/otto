@@ -1,3 +1,4 @@
+import base64
 import email
 import email.header
 import json
@@ -7,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 
 from structlog import get_logger
@@ -102,7 +104,6 @@ def extract_msg(content, root_document_id):
 
 def extract_eml(content, root_document_id):
     from librarian.utils.process_document import process_file
-    from librarian.utils.process_engine import guess_content_type
 
     document = Document.objects.get(id=root_document_id)
     root_file_path = document.file_path
@@ -129,20 +130,22 @@ def extract_eml(content, root_document_id):
             filename = part.get_filename()
             if filename:
                 attachments.append(filename)
-                with open(filename, "r+b") as f:
-                    f.write(part.get_payload(decode=True))
-                    f.seek(0)
-                    nested_file_path = (
-                        f"{root_file_path or document.filename}/{filename}"
-                    )
-                    content_type = guess_content_type(f)
-                    process_file(
-                        f,
-                        document.data_source.id,
-                        nested_file_path,
-                        filename,
-                        content_type,
-                    )
+                payload = part.get_payload(decode=True)
+                content_type = part.get_content_type()
+                with tempfile.NamedTemporaryFile() as temp_file:
+                    temp_file.write(payload)
+                    temp_file_path = temp_file.name
+                    with open(temp_file_path, "r+b") as f:
+                        nested_file_path = (
+                            f"{root_file_path or document.filename}/{filename}"
+                        )
+                        process_file(
+                            f,
+                            document.data_source.id,
+                            nested_file_path,
+                            filename,
+                            content_type,
+                        )
 
     combined_email = f"From: {from_}\nTo: {to}\n"
     if cc:
