@@ -3,6 +3,7 @@ import uuid
 from django.conf import settings
 from django.utils.translation import gettext as _
 
+import litellm
 import sqlalchemy
 import tiktoken
 from llama_index.core import PromptTemplate, VectorStoreIndex
@@ -11,9 +12,9 @@ from llama_index.core.embeddings import MockEmbedding
 from llama_index.core.indices.prompt_helper import PromptHelper
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import QueryFusionRetriever
-from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
-from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
-from llama_index.llms.azure_openai import AzureOpenAI
+from llama_index.core.vector_stores.types import MetadataFilters
+from llama_index.embeddings.litellm import LiteLLMEmbedding
+from llama_index.llms.litellm import LiteLLM
 from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
 from structlog import get_logger
@@ -21,6 +22,8 @@ from structlog import get_logger
 from otto.models import Cost
 
 logger = get_logger(__name__)
+
+litellm.drop_params = True
 
 
 class OttoVectorStore(PGVectorStore):
@@ -293,27 +296,23 @@ class OttoLLM:
             verbose=True,
         )
 
-    def _get_llm(self) -> AzureOpenAI:
-        return AzureOpenAI(
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_VERSION,
-            api_key=settings.AZURE_OPENAI_KEY,
-            deployment_name=self.deployment,
+    def _get_llm(self) -> LiteLLM:
+        return LiteLLM(
+            api_base=settings.LITELLM_ENDPOINT,
+            api_key=settings.LITELLM_KEY,
             model=self.model,
             temperature=self.temperature,
             callback_manager=self._callback_manager,
         )
 
-    def _get_embed_model(self) -> AzureOpenAIEmbedding | MockEmbedding:
+    def _get_embed_model(self) -> LiteLLMEmbedding | MockEmbedding:
         if self.mock_embedding:
             return MockEmbedding(1536)
-        return AzureOpenAIEmbedding(
-            model="text-embedding-3-large",
-            deployment_name="text-embedding-3-large",
+        return LiteLLMEmbedding(
+            model_name="text-embedding-3-large",
             dimensions=1536,
             embed_batch_size=16,
-            api_key=settings.AZURE_OPENAI_KEY,
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_VERSION,
+            api_key=settings.LITELLM_KEY,
+            api_base=settings.LITELLM_ENDPOINT,
             callback_manager=self._callback_manager,
         )

@@ -262,6 +262,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     # because some views, e.g. document_start, return this view from a different URL
     if poll:
         if selected_document and selected_document.id:
+            print("setting poll_url for document")
             poll_url = reverse(
                 "librarian:document_status",
                 kwargs={
@@ -270,11 +271,13 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 },
             )
         elif selected_document or (selected_data_source and selected_data_source.id):
+            print("setting poll_url for data source")
             poll_url = reverse(
                 "librarian:data_source_status",
                 kwargs={"data_source_id": selected_data_source.id},
             )
     else:
+        print("not setting poll_url")
         poll_url = None
 
     # Don't show chats that don't have any Q&A documents

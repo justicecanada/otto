@@ -62,6 +62,7 @@ IS_PROD = False
 SITE_URL = urlparse(os.environ.get("SITE_URL"))
 
 AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
+LITELLM_KEY = os.environ.get("LITELLM_KEY")
 AZURE_COGNITIVE_SERVICE_KEY = os.environ.get("AZURE_COGNITIVE_SERVICE_KEY")
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-secret-key")
 AZURE_ACCOUNT_KEY = os.environ.get(
@@ -96,6 +97,7 @@ LOGIN_REDIRECT_URL = "/"  # Or any other endpoint
 # OpenAI
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
+LITELLM_ENDPOINT = os.environ.get("LITELLM_ENDPOINT")
 
 DEFAULT_CHAT_MODEL = "gpt-4o-mini"
 DEFAULT_QA_MODEL = "o3-mini"
