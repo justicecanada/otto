@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for django/chat/views.py: 77%</title>
+    <title>Coverage for django/chat/views.py: 78%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>django/chat/views.py</b>:
-            <span class="pc_cov">77%</span>
+            <span class="pc_cov">78%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">450 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">347<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">103<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">352<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">98<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_acf2da0532080a46_import_timer_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.8.0">coverage.py v7.8.0</a>,
-            created at 2025-05-12 19:42 +0000
+            created at 2025-05-12 19:43 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -805,7 +805,7 @@
     <p class="pln"><span class="n"><a id="t723" href="#t723">723</a></span><span class="t">    <span class="op">)</span><span class="op">.</span><span class="nam">filter</span><span class="op">(</span><span class="nam">message_id</span><span class="op">=</span><span class="nam">message_id</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t724" href="#t724">724</a></span><span class="t">        <span class="nam">source_text</span> <span class="op">=</span> <span class="nam">str</span><span class="op">(</span><span class="nam">source</span><span class="op">.</span><span class="nam">node_text</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t725" href="#t725">725</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t726" href="#t726">726</a></span><span class="t">        <span class="nam">already_processed</span> <span class="op">=</span> <span class="nam">source</span><span class="op">.</span><span class="nam">processed_text</span> <span class="op">!=</span> <span class="str">""</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t726" href="#t726">726</a></span><span class="t">        <span class="nam">already_processed</span> <span class="op">=</span> <span class="nam">source</span><span class="op">.</span><span class="nam">processed_text</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t727" href="#t727">727</a></span><span class="t">        <span class="nam">needs_processing</span> <span class="op">=</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t728" href="#t728">728</a></span><span class="t">            <span class="nam">highlight</span> <span class="key">and</span> <span class="key">not</span> <span class="nam">already_highlighted</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t729" href="#t729">729</a></span><span class="t">        <span class="op">)</span> <span class="key">or</span> <span class="key">not</span> <span class="nam">already_processed</span>&nbsp;</span><span class="r"></span></p>
@@ -814,21 +814,21 @@
     <p class="run"><span class="n"><a id="t732" href="#t732">732</a></span><span class="t">        <span class="nam">source_text</span> <span class="op">=</span> <span class="nam">re</span><span class="op">.</span><span class="nam">sub</span><span class="op">(</span><span class="str">r"&lt;/page_\d+>"</span><span class="op">,</span> <span class="str">""</span><span class="op">,</span> <span class="nam">source_text</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t733" href="#t733">733</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t734" href="#t734">734</a></span><span class="t">        <span class="key">if</span> <span class="nam">needs_processing</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t735" href="#t735">735</a></span><span class="t">            <span class="key">if</span> <span class="nam">highlight</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t735" href="#t735">735</a></span><span class="t">            <span class="key">if</span> <span class="nam">highlight</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t736" href="#t736">736</a></span><span class="t">                <span class="nam">claims_list</span> <span class="op">=</span> <span class="nam">source</span><span class="op">.</span><span class="nam">message</span><span class="op">.</span><span class="nam">claims_list</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t737" href="#t737">737</a></span><span class="t">                <span class="key">if</span> <span class="key">not</span> <span class="nam">claims_list</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t738" href="#t738">738</a></span><span class="t">                    <span class="nam">source</span><span class="op">.</span><span class="nam">message</span><span class="op">.</span><span class="nam">update_claims_list</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t739" href="#t739">739</a></span><span class="t">                    <span class="nam">claims_list</span> <span class="op">=</span> <span class="nam">source</span><span class="op">.</span><span class="nam">message</span><span class="op">.</span><span class="nam">claims_list</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t740" href="#t740">740</a></span><span class="t">                <span class="nam">source_text</span> <span class="op">=</span> <span class="nam">highlight_claims</span><span class="op">(</span><span class="nam">claims_list</span><span class="op">,</span> <span class="nam">source_text</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t741" href="#t741">741</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t742" href="#t742">742</a></span><span class="t">            <span class="key">if</span> <span class="nam">source</span><span class="op">.</span><span class="nam">document</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t743" href="#t743">743</a></span><span class="t">                <span class="nam">source_text</span> <span class="op">=</span> <span class="nam">fix_source_links</span><span class="op">(</span><span class="nam">source_text</span><span class="op">,</span> <span class="nam">source</span><span class="op">.</span><span class="nam">document</span><span class="op">.</span><span class="nam">url</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t742" href="#t742">742</a></span><span class="t">            <span class="key">if</span> <span class="nam">source</span><span class="op">.</span><span class="nam">document</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t743" href="#t743">743</a></span><span class="t">                <span class="nam">source_text</span> <span class="op">=</span> <span class="nam">fix_source_links</span><span class="op">(</span><span class="nam">source_text</span><span class="op">,</span> <span class="nam">source</span><span class="op">.</span><span class="nam">document</span><span class="op">.</span><span class="nam">url</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t744" href="#t744">744</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t745" href="#t745">745</a></span><span class="t">            <span class="nam">source</span><span class="op">.</span><span class="nam">processed_text</span> <span class="op">=</span> <span class="nam">source_text</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t746" href="#t746">746</a></span><span class="t">            <span class="nam">source</span><span class="op">.</span><span class="nam">save</span><span class="op">(</span><span class="nam">update_fields</span><span class="op">=</span><span class="op">[</span><span class="str">"processed_text"</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t747" href="#t747">747</a></span><span class="t">            <span class="nam">source_text</span> <span class="op">=</span> <span class="nam">wrap_llm_response</span><span class="op">(</span><span class="nam">source_text</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t745" href="#t745">745</a></span><span class="t">            <span class="nam">source</span><span class="op">.</span><span class="nam">processed_text</span> <span class="op">=</span> <span class="nam">source_text</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t746" href="#t746">746</a></span><span class="t">            <span class="nam">source</span><span class="op">.</span><span class="nam">save</span><span class="op">(</span><span class="nam">update_fields</span><span class="op">=</span><span class="op">[</span><span class="str">"processed_text"</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t747" href="#t747">747</a></span><span class="t">            <span class="nam">source_text</span> <span class="op">=</span> <span class="nam">wrap_llm_response</span><span class="op">(</span><span class="nam">source_text</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t748" href="#t748">748</a></span><span class="t">        <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t749" href="#t749">749</a></span><span class="t">            <span class="nam">source_text</span> <span class="op">=</span> <span class="nam">wrap_llm_response</span><span class="op">(</span><span class="nam">source_text</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t749" href="#t749">749</a></span><span class="t">            <span class="nam">source_text</span> <span class="op">=</span> <span class="nam">wrap_llm_response</span><span class="op">(</span><span class="nam">source_text</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t750" href="#t750">750</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t751" href="#t751">751</a></span><span class="t">        <span class="nam">source_dict</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t752" href="#t752">752</a></span><span class="t">            <span class="str">"citation"</span><span class="op">:</span> <span class="nam">source</span><span class="op">.</span><span class="nam">citation</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -1073,7 +1073,7 @@
             <a class="nav" href="z_acf2da0532080a46_import_timer_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.8.0">coverage.py v7.8.0</a>,
-            created at 2025-05-12 19:42 +0000
+            created at 2025-05-12 19:43 +0000
         </p>
     </div>
 </footer>
