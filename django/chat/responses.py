@@ -212,11 +212,7 @@ def summarize_response(chat, response_message):
     """
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
-    summary_length = chat.options.summarize_style
-    gender_neutral = chat.options.summarize_gender_neutral
-    instructions = chat.options.summarize_instructions
-    custom_summarize_prompt = chat.options.summarize_prompt
-    target_language = chat.options.summarize_language
+    summarize_prompt = chat.options.summarize_prompt
     model = chat.options.summarize_model
 
     llm = OttoLLM(model)
@@ -249,11 +245,7 @@ def summarize_response(chat, response_message):
                 summarize_long_text(
                     file.text,
                     llm,
-                    summary_length,
-                    target_language,
-                    custom_summarize_prompt,
-                    gender_neutral,
-                    instructions,
+                    summarize_prompt,
                 )
             )
         title_batches = create_batches(titles, batch_size)
@@ -307,11 +299,7 @@ def summarize_response(chat, response_message):
     response = summarize_long_text(
         text_to_summarize,
         llm,
-        summary_length,
-        target_language,
-        custom_summarize_prompt,
-        gender_neutral,
-        instructions,
+        summarize_prompt,
     )
     return StreamingHttpResponse(
         streaming_content=htmx_stream(

@@ -27,11 +27,6 @@ CHAT_MODELS = [
     ("o3-mini", _("o3-mini (adds reasoning, 7x cost)")),
     ("gpt-4o", _("GPT-4o (best accuracy, 15x cost)")),
 ]
-SUMMARIZE_STYLES = [
-    ("short", _("Short")),
-    ("medium", _("Medium")),
-    ("long", _("Long")),
-]
 TEMPERATURES = [
     (0.1, _("Precise")),
     (0.5, _("Balanced")),
@@ -267,13 +262,6 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "triggerOptionSave();",
                 },
             ),
-            "summarize_style": forms.Select(
-                choices=SUMMARIZE_STYLES,
-                attrs={
-                    "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave();",
-                },
-            ),
             "qa_mode": forms.Select(
                 choices=QA_MODE_CHOICES,
                 attrs={
@@ -336,8 +324,8 @@ class ChatOptionsForm(ModelForm):
                 },
             )
 
-        # summarize_language and translate_language have choices "en", "fr"
-        for field in ["summarize_language", "translate_language"]:
+        # translate_language has choices "en", "fr"
+        for field in ["translate_language"]:
             self.fields[field].widget = forms.Select(
                 choices=LANGUAGES,
                 attrs={
@@ -347,23 +335,25 @@ class ChatOptionsForm(ModelForm):
             )
 
         # Text areas
-        for field in [
-            "chat_system_prompt",
-            "summarize_prompt",
-            "summarize_instructions",
-        ]:
-            self.fields[field].widget = forms.Textarea(
-                attrs={
-                    "class": "form-control form-control-sm",
-                    "rows": 5,
-                    "onkeyup": "triggerOptionSave();",
-                }
-            )
+        self.fields["chat_system_prompt"].widget = forms.Textarea(
+            attrs={
+                "class": "form-control form-control-sm",
+                "rows": 5,
+                "onkeyup": "triggerOptionSave();",
+            }
+        )
+
+        self.fields["summarize_prompt"].widget = forms.Textarea(
+            attrs={
+                "class": "form-control form-control-sm",
+                "rows": 10,
+                "onkeyup": "triggerOptionSave();",
+            }
+        )
 
         # Toggles
         for field in [
             "chat_agent",
-            "summarize_gender_neutral",
         ]:
             self.fields[field].widget = forms.CheckboxInput(
                 attrs={
