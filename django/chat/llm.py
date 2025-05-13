@@ -64,6 +64,7 @@ class OttoLLM:
         "gpt-4o": "gpt-4o",
         "o3-mini": "o3-mini",
         "Phi-4": "azure_ai/Phi-4",
+        "groq-llama-4-scout": "groq/meta-llama/llama-4-scout-17b-16e-instruct",
     }
     _deployment_to_max_input_tokens_mapping = {
         "gpt-4o-mini": 128000,
@@ -71,6 +72,7 @@ class OttoLLM:
         "gpt-4o": 128000,
         "o3-mini": 200000,
         "Phi-4": 128000,
+        "groq-llama-4-scout": 128000,
     }
     _deployment_to_max_output_tokens_mapping = {
         "gpt-4o-mini": 16384,
@@ -78,6 +80,7 @@ class OttoLLM:
         "gpt-4o": 16384,
         "o3-mini": 100000,
         "Phi-4": 16384,
+        "groq-llama-4-scout": 16384,  # No actual limit; recommended setting
     }
 
     def __init__(

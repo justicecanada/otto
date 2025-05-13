@@ -194,3 +194,21 @@
     unit_name_fr: jetons
     unit_cost: 0.0005
     unit_quantity: 1000
+- model: otto.CostType
+  pk: 21
+  fields:
+    short_name: groq-llama-4-scout-in
+    name: Llama-4 Scout (Groq) (input)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.11
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 22
+  fields:
+    short_name: groq-llama-4-scout-out
+    name: Llama-4 Scout (Groq) (output)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.34
+    unit_quantity: 1000000

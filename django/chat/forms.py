@@ -28,6 +28,7 @@ CHAT_MODELS = [
     ("gpt-4.1", _("GPT-4.1 (better quality, 12x cost)")),
     ("gpt-4o", _("GPT-4o (legacy model, 15x cost)")),
     ("Phi-4", _("Phi-4 (open source, economical)")),
+    ("groq-llama-4-scout", _("Llama 4 Scout (blazing fast)")),
 ]
 TEMPERATURES = [
     (0.1, _("Precise")),

@@ -34,6 +34,20 @@ model_list:
       model: azure_ai/Phi-4
       api_base: os.environ/AZURE_AI_SERVICES_ENDPOINT
       api_key: os.environ/AZURE_AI_SERVICES_KEY
+  - model_name: Phi-4-reasoning
+    litellm_params:
+      model: azure_ai/Phi-4-reasoning
+      api_base: os.environ/AZURE_AI_SERVICES_ENDPOINT
+      api_key: os.environ/AZURE_AI_SERVICES_KEY
+  - model_name: MAI-DS-R1
+    litellm_params:
+      model: azure_ai/MAI-DS-R1
+      api_base: os.environ/AZURE_AI_SERVICES_ENDPOINT
+      api_key: os.environ/AZURE_AI_SERVICES_KEY
+  - model_name: groq-llama-4-scout
+    litellm_params:
+      model: groq/meta-llama/llama-4-scout-17b-16e-instruct
+      api_key: os.environ/GROQ_KEY
 
 general_settings:
   master_key: sk-1234
