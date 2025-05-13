@@ -79,7 +79,7 @@ spec:
           # since we are using CosmosDB in sandbox.
           # We would use POSTGRES_USER etc. in prod.
           args: [
-            "export DATABASE_URL=postgresql://${VECTORDB_USER}:${VECTORDB_PASSWORD}@postgres-service:5432/litellm && exec litellm --config /config.yaml --detailed_debug"
+            "export DATABASE_URL=postgresql://${VECTORDB_USER}:${VECTORDB_PASSWORD}@postgres-vector-service:5432/litellm && exec litellm --config /config.yaml"
           ]
           volumeMounts:
             - name: config-volume
