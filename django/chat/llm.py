@@ -64,23 +64,32 @@ class OttoLLM:
         "gpt-4o": "gpt-4o",
         "o3-mini": "o3-mini",
         "Phi-4": "azure_ai/Phi-4",
-        "groq-llama-4-scout": "groq/meta-llama/llama-4-scout-17b-16e-instruct",
+        "groq-llama-4-scout": "groq/groq-llama-4-scout",
+        "MAI-DS-R1": "azure_ai/MAI-DS-R1",
+        "groq-llama-4-maverick": "groq/groq-llama-4-maverick",
+        "groq-QwQ-32B": "groq/groq-QwQ-32B",
     }
     _deployment_to_max_input_tokens_mapping = {
         "gpt-4o-mini": 128000,
         "gpt-4.1": 1047576,
         "gpt-4o": 128000,
         "o3-mini": 200000,
-        "Phi-4": 128000,
+        "Phi-4": 16384,
         "groq-llama-4-scout": 128000,
+        "MAI-DS-R1": 163840,
+        "groq-llama-4-maverick": 128000,
+        "groq-QwQ-32B": 128000,
     }
     _deployment_to_max_output_tokens_mapping = {
         "gpt-4o-mini": 16384,
         "gpt-4.1": 32768,
         "gpt-4o": 16384,
         "o3-mini": 100000,
-        "Phi-4": 16384,
+        "Phi-4": 4096,
         "groq-llama-4-scout": 16384,  # No actual limit; recommended setting
+        "MAI-DS-R1": 163840,
+        "groq-llama-4-maverick": 16384,
+        "groq-QwQ-32B": 16384,
     }
 
     def __init__(

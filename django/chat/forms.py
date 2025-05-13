@@ -27,8 +27,11 @@ CHAT_MODELS = [
     ("o3-mini", _("o3-mini (adds reasoning, 7x cost)")),
     ("gpt-4.1", _("GPT-4.1 (better quality, 12x cost)")),
     ("gpt-4o", _("GPT-4o (legacy model, 15x cost)")),
-    ("Phi-4", _("Phi-4 (open source, economical)")),
-    ("groq-llama-4-scout", _("Llama 4 Scout (blazing fast)")),
+    ("Phi-4", _("Phi-4 (small model, economical)")),
+    ("MAI-DS-R1", _("MAI-DS-R1 (open source, quality reasoning)")),
+    ("groq-llama-4-scout", _("Llama 4 Scout (Groq, blazing fast)")),
+    ("groq-llama-4-maverick", _("Llama 4 Maverick (Groq, blazing fast)")),
+    ("groq-QwQ-32B", _("QwQ-32B (Groq, high quality reasoning)")),
 ]
 TEMPERATURES = [
     (0.1, _("Precise")),
