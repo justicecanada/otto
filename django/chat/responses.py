@@ -487,13 +487,12 @@ def qa_response(chat, response_message, switch_mode=False):
             ]
             error_string += "\n\n - " + "\n\n - ".join(doc_errors)
             completion_message += error_string + "\n\n"
-        if num_completed_documents > 0:
-            if adding_url:
-                completion_message += _("URL ready for Q&A.")
-            else:
-                completion_message += f"{num_completed_documents} " + _(
-                    "new document(s) ready for Q&A."
-                )
+        if adding_url:
+            completion_message += _("URL ready for Q&A.")
+        elif num_completed_documents > 0:
+            completion_message += f"{num_completed_documents} " + _(
+                "new document(s) ready for Q&A."
+            )
 
         yield completion_message
 
