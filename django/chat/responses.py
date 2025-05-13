@@ -485,8 +485,7 @@ def qa_response(chat, response_message, switch_mode=False):
             doc_errors = [
                 f"{doc.filename} _{doc.status_details}_" for doc in error_documents
             ]
-            error_docs_joined = "\n\n - " + "\n\n - ".join(doc_errors)
-            error_string += error_docs_joined
+            error_string += "\n\n - " + "\n\n - ".join(doc_errors)
             completion_message += error_string + "\n\n"
         if adding_url:
             completion_message += _("URL ready for Q&A.")
