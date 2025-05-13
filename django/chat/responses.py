@@ -480,7 +480,6 @@ def qa_response(chat, response_message, switch_mode=False):
                 _("The following document(s) already exist in the library:")
                 + duplicate_docs_joined
             ) + "\n\n"
-
         if error_documents:
             error_string = _("Error processing the following document(s):")
             doc_errors = [
@@ -488,13 +487,10 @@ def qa_response(chat, response_message, switch_mode=False):
             ]
             error_docs_joined = "\n\n - " + "\n\n - ".join(doc_errors)
             error_string += error_docs_joined
-            if num_completed_documents > 0:
-                error_string += f"\n\n{num_completed_documents} "
-                error_string += _("new document(s) ready for Q&A.")
             completion_message += error_string + "\n\n"
-        elif adding_url:
+        if adding_url:
             completion_message += _("URL ready for Q&A.")
-        elif num_completed_documents > 0:
+        if num_completed_documents > 0:
             completion_message += f"{num_completed_documents} " + _(
                 "new document(s) ready for Q&A."
             )
