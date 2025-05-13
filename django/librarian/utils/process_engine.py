@@ -476,7 +476,7 @@ def create_child_nodes(chunks, source_node_id, metadata=None):
 
 def token_count(string: str, model: str = "gpt-4") -> int:
     """Returns the number of tokens in a text string."""
-    encoding = tiktoken.encoding_for_model(model)
+    encoding = tiktoken.get_encoding("o200k_base")
     num_tokens = len(encoding.encode(string))
     return num_tokens
 
