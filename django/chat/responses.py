@@ -458,6 +458,20 @@ def qa_response(chat, response_message, switch_mode=False):
                 status="SUCCESS", created_at__gt=message_created_at
             ).count()
         )()
+        # Include duplicates that were already SUCCESS before this request
+        filenames = [f.filename for f in files]
+        hashes = [f.saved_file.sha256_hash for f in files]
+        duplicate_success_count = await sync_to_async(
+            lambda: Document.objects.filter(
+                data_source=ds,
+                filename__in=filenames,
+                saved_file__sha256_hash__in=hashes,
+                status="SUCCESS",
+                created_at__lte=message_created_at,
+            ).count()
+        )()
+        total_completed = num_completed_documents + duplicate_success_count
+
         if error_documents:
             error_string = _("Error processing the following document(s):")
             doc_errors = [
@@ -466,13 +480,13 @@ def qa_response(chat, response_message, switch_mode=False):
             error_docs_joined = "\n\n - " + "\n\n - ".join(doc_errors)
             error_string += error_docs_joined
             if len(error_documents) != len(files):
-                error_string += f"\n\n{num_completed_documents} "
+                error_string += f"\n\n{total_completed} "
                 error_string += _("new document(s) ready for Q&A.")
             yield error_string
         elif adding_url:
             yield _("URL ready for Q&A.")
         else:
-            yield f"{num_completed_documents} " + _("new document(s) ready for Q&A.")
+            yield f"{total_completed} " + _("new document(s) ready for Q&A.")
 
     if len(files) > 0 or adding_url:
         for file in files:
