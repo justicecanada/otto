@@ -462,8 +462,7 @@ def qa_response(chat, response_message, switch_mode=False):
         filenames = [f.filename for f in files]
         hashes = [f.saved_file.sha256_hash for f in files]
         duplicate_success_count = await sync_to_async(
-            lambda: Document.objects.filter(
-                data_source=ds,
+            lambda: ds.documents.filter(
                 filename__in=filenames,
                 saved_file__sha256_hash__in=hashes,
                 status="SUCCESS",
