@@ -170,3 +170,109 @@
     unit_name_fr: jetons
     unit_cost: 8
     unit_quantity: 1000000
+- model: otto.CostType
+  pk: 19
+  fields:
+    short_name: Phi-4-in
+    name: Phi-4 Global (input)
+    name_fr: Phi-4 Global (entrée)
+    description: API calls to Microsoft Phi-4 Global Deployment model (input)
+    description_fr: Appels API au modèle de déploiement global Microsoft Phi-4 (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.000125
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 20
+  fields:
+    short_name: Phi-4-out
+    name: Phi-4 Global (output)
+    name_fr: Phi-4 Global (sortie)
+    description: API calls to Microsoft Phi-4 Global Deployment model (output)
+    description_fr: Appels API au modèle de déploiement global Microsoft Phi-4 (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.0005
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 21
+  fields:
+    short_name: groq-llama-4-scout-in
+    name: Llama-4 Scout (Groq) (input)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.11
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 22
+  fields:
+    short_name: groq-llama-4-scout-out
+    name: Llama-4 Scout (Groq) (output)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.34
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 23
+  fields:
+    short_name: Phi-4-reasoning-in
+    name: Phi-4 Reasoning (input)
+    unit_name: tokens
+    unit_cost: 0.000125
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 24
+  fields:
+    short_name: Phi-4-reasoning-out
+    name: Phi-4 Reasoning (output)
+    unit_name: tokens
+    unit_cost: 0.0005
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 25
+  fields:
+    short_name: MAI-DS-R1-in
+    name: MAI-DS-R1 (input)
+    unit_name: tokens
+    unit_cost: 0.0003  # placeholder
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 26
+  fields:
+    short_name: MAI-DS-R1-out
+    name: MAI-DS-R1 (output)
+    unit_name: tokens
+    unit_cost: 0.0012  # placeholder
+    unit_quantity: 1000
+- model: otto.CostType
+  pk: 27
+  fields:
+    short_name: groq-llama-4-maverick-in
+    name: Llama-4 Maverick (Groq) (input)
+    unit_name: tokens
+    unit_cost: 0.20  # placeholder
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 28
+  fields:
+    short_name: groq-llama-4-maverick-out
+    name: Llama-4 Maverick (Groq) (output)
+    unit_name: tokens
+    unit_cost: 0.60  # placeholder
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 29
+  fields:
+    short_name: groq-QwQ-32B-in
+    name: QwQ-32B (Groq) (input)
+    unit_name: tokens
+    unit_cost: 0.29  # placeholder
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 30
+  fields:
+    short_name: groq-QwQ-32B-out
+    name: QwQ-32B (Groq) (output)
+    unit_name: tokens
+    unit_cost: 0.39  # placeholder
+    unit_quantity: 1000000

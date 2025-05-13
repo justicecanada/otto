@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config-file
+  namespace: otto
+  labels:
+    app: litellm
+data:
+  config.yaml: |
+    model_list:
+      - model_name: gpt-4o
+        litellm_params:
+          model: azure/gpt-4o
+          api_base: os.environ/AZURE_OPENAI_ENDPOINT
+          api_key: os.environ/AZURE_OPENAI_KEY
+          api_version: os.environ/AZURE_OPENAI_VERSION
+      - model_name: gpt-4.1
+        litellm_params:
+          model: azure/gpt-4.1
+          api_base: os.environ/AZURE_OPENAI_ENDPOINT
+          api_key: os.environ/AZURE_OPENAI_KEY
+          api_version: os.environ/AZURE_OPENAI_VERSION
+      - model_name: o3-mini
+        litellm_params:
+          model: azure/o3-mini
+          api_base: os.environ/AZURE_OPENAI_ENDPOINT
+          api_key: os.environ/AZURE_OPENAI_KEY
+          api_version: os.environ/AZURE_OPENAI_VERSION
+      - model_name: gpt-4o-mini
+        litellm_params:
+          model: azure/gpt-4o-mini
+          api_base: os.environ/AZURE_OPENAI_ENDPOINT
+          api_key: os.environ/AZURE_OPENAI_KEY
+          api_version: os.environ/AZURE_OPENAI_VERSION
+      - model_name: text-embedding-3-large
+        litellm_params:
+          model: azure/text-embedding-3-large
+          api_base: os.environ/AZURE_OPENAI_ENDPOINT
+          api_key: os.environ/AZURE_OPENAI_KEY
+          api_version: os.environ/AZURE_OPENAI_VERSION
+      - model_name: Phi-4
+        litellm_params:
+          model: azure_ai/Phi-4
+          api_base: os.environ/AZURE_AI_SERVICES_ENDPOINT
+          api_key: os.environ/AZURE_AI_SERVICES_KEY
+      - model_name: MAI-DS-R1
+        litellm_params:
+          model: azure_ai/MAI-DS-R1
+          api_base: os.environ/AZURE_AI_SERVICES_ENDPOINT
+          api_key: os.environ/AZURE_AI_SERVICES_KEY
+      - model_name: groq-llama-4-scout
+        litellm_params:
+          model: groq/meta-llama/llama-4-scout-17b-16e-instruct
+          api_key: os.environ/GROQ_KEY
+      - model_name: groq-llama-4-maverick
+        litellm_params:
+          model: groq/meta-llama/llama-4-maverick-17b-128e-instruct
+          api_key: os.environ/GROQ_KEY
+      - model_name: groq-QwQ-32B
+        litellm_params:
+          model: groq/qwen-qwq-32b
+          api_key: os.environ/GROQ_KEY
+    general_settings:
+      master_key: sk-1234
+      database_url: os.environ/DATABASE_URL
+    litellm_settings:
+      ssl_verify: false
+      drop_params: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm
+  namespace: otto
+  labels:
+    app: litellm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litellm
+  template:
+    metadata:
+      labels:
+        app: litellm
+    spec:
+      containers:
+      - name: litellm
+        image: ghcr.io/berriai/litellm:main-v1.69.0-stable
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 4000
+        envFrom:
+          - configMapRef:
+              name: otto-configmap
+        env:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                key: litellmdatabaseurl
+                name: azure-keyvault-secrets
+          - name: AZURE_OPENAI_KEY
+            valueFrom:
+              secretKeyRef:
+                key: openaiservicekey
+                name: azure-keyvault-secrets
+          - name: AZURE_AI_SERVICES_KEY
+            valueFrom:
+              secretKeyRef:
+                key: aiserviceskey
+                name: azure-keyvault-secrets
+          - name: GROQ_KEY
+            valueFrom:
+              secretKeyRef:
+                key: groqkey
+                name: azure-keyvault-secrets
+        args:
+          - "--config"
+          - "/app/proxy_config.yaml"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/proxy_config.yaml
+          subPath: config.yaml
+      volumes:
+        - name: config-volume
+          configMap:
+            name: litellm-config-file
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litellm
+  namespace: otto
+  labels:
+    app: litellm
+spec:
+  type: ClusterIP
+  selector:
+    app: litellm
+  ports:
+    - port: 4000
+      targetPort: 4000
+      protocol: TCP
+      name: http

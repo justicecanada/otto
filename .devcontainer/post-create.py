@@ -67,7 +67,9 @@ with open(os.path.join(os.path.dirname(__file__), "../django/.env"), "w") as f:
     f.write(
         f"AZURE_COGNITIVE_SERVICE_KEY='{client.get_secret('COGNITIVE-SERVICE-KEY').value}'\n"
     )
+    f.write(f"AZURE_AI_SERVICES_KEY='{client.get_secret('AI-SERVICES-KEY').value}'\n")
     f.write(f"AZURE_ACCOUNT_KEY='{client.get_secret('STORAGE-KEY').value}'\n")
     f.write(f"ENTRA_CLIENT_SECRET='{client.get_secret('ENTRA-CLIENT-SECRET').value}'\n")
     f.write(f"ENTRA_CLIENT_ID='{entra_client_id}'\n")
     f.write(f"ENTRA_AUTHORITY='https://login.microsoftonline.com/{entra_tenant_id}'\n")
+    f.write(f"GROQ_KEY='{client.get_secret('GROQ-KEY').value}'\n")

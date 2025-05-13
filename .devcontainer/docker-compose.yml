@@ -41,6 +41,16 @@ services:
   # To test scheduling tasks also run celery beat in the VScode container with command:
   # celery -A otto beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    volumes:
+      - ../litellm_config.yaml:/config.yaml
+    env_file:
+      - ../django/.env.example
+      - ../django/.env
+    command: ["--config", "/config.yaml"]
+    ports:
+      - "4000:4000"
 
 volumes:
   postgres-data:
