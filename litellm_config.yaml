@@ -29,6 +29,11 @@ model_list:
       api_base: os.environ/AZURE_OPENAI_ENDPOINT
       api_key: os.environ/AZURE_OPENAI_KEY
       api_version: os.environ/AZURE_OPENAI_VERSION
+  - model_name: Phi-4
+    litellm_params:
+      model: azure_ai/Phi-4
+      api_base: os.environ/AZURE_AI_SERVICES_ENDPOINT
+      api_key: os.environ/AZURE_AI_SERVICES_KEY
 
 general_settings:
   master_key: sk-1234

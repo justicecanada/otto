@@ -27,6 +27,7 @@ CHAT_MODELS = [
     ("o3-mini", _("o3-mini (adds reasoning, 7x cost)")),
     ("gpt-4.1", _("GPT-4.1 (better quality, 12x cost)")),
     ("gpt-4o", _("GPT-4o (legacy model, 15x cost)")),
+    ("Phi-4", _("Phi-4 (open source, economical)")),
 ]
 TEMPERATURES = [
     (0.1, _("Precise")),

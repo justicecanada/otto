@@ -63,18 +63,21 @@ class OttoLLM:
         "gpt-4.1": "gpt-4.1",
         "gpt-4o": "gpt-4o",
         "o3-mini": "o3-mini",
+        "Phi-4": "azure_ai/Phi-4",
     }
     _deployment_to_max_input_tokens_mapping = {
         "gpt-4o-mini": 128000,
         "gpt-4.1": 1047576,
         "gpt-4o": 128000,
         "o3-mini": 200000,
+        "Phi-4": 128000,
     }
     _deployment_to_max_output_tokens_mapping = {
         "gpt-4o-mini": 16384,
         "gpt-4.1": 32768,
         "gpt-4o": 16384,
         "o3-mini": 100000,
+        "Phi-4": 16384,
     }
 
     def __init__(
