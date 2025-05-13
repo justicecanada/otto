@@ -6,3 +6,4 @@ langchain-text-splitters
 werkzeug
 azure-ai-translation-text
 azure-ai-textanalytics
+beautifulsoup4==4.12.3
