@@ -102,6 +102,18 @@ llms = {
         "max_tokens_in": 1048576,
         "max_tokens_out": 65536,
     },
+    "cerebras-llama-4-scout": {
+        "description": _("Llama 4 Scout (Cerebras, instant, long context)"),
+        "model": "litellm_proxy/cerebras-llama-4-scout",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 16384,
+    },
+    "cerebras-qwen-3-32b": {
+        "description": _("Qwen3 32B (Cerebras, instant, strong reasoning)"),
+        "model": "litellm_proxy/cerebras-qwen-3-32b",
+        "max_tokens_in": 32768,
+        "max_tokens_out": 16384,
+    },
 }
 
 CHAT_MODELS = [(k, v["description"]) for k, v in llms.items()]

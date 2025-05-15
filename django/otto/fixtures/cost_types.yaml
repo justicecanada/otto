@@ -340,3 +340,35 @@
     unit_name: tokens
     unit_cost: 0.60
     unit_quantity: 1000000
+- model: otto.CostType
+  pk: 39
+  fields:
+    short_name: cerebras-qwen-3-32b-in
+    name: Qwen3 32B (Cerebras) (input)
+    unit_name: tokens
+    unit_cost: 0
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 40
+  fields:
+    short_name: cerebras-qwen-3-32b-out
+    name: Qwen3 32B (Cerebras) (output)
+    unit_name: tokens
+    unit_cost: 0
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 41
+  fields:
+    short_name: cerebras-llama-4-scout-in
+    name: Llama-4 Scout (Cerebras) (input)
+    unit_name: tokens
+    unit_cost: 0
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 42
+  fields:
+    short_name: cerebras-llama-4-scout-out
+    name: Llama-4 Scout (Cerebras) (output)
+    unit_name: tokens
+    unit_cost: 0
+    unit_quantity: 1000000

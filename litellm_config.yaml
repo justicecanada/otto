@@ -67,6 +67,14 @@ model_list:
     litellm_params:
       model: gemini/gemini-2.5-pro-preview-05-06
       api_key: os.environ/GEMINI_KEY
+  - model_name: cerebras-llama-4-scout
+    litellm_params:
+      model: cerebras/llama-4-scout-17b-16e-instruct
+      api_key: os.environ/CEREBRAS_KEY
+  - model_name: cerebras-qwen-3-32b
+    litellm_params:
+      model: cerebras/qwen-3-32b
+      api_key: os.environ/CEREBRAS_KEY
 
 general_settings:
   master_key: sk-1234
