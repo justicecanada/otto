@@ -3858,5 +3858,45 @@
     "GPT-4o (legacy model, 15x cost)": {
         "fr": "",
         "fr_auto": "GPT-4o (modèle existant, coût 15x)"
+    },
+    "Phi-4 (small model, economical)": {
+        "fr": "",
+        "fr_auto": "Phi-4 (petit modèle, économique)"
+    },
+    "MAI-DS-R1 (open source, quality reasoning)": {
+        "fr": "",
+        "fr_auto": "MAI-DS-R1 (source ouverte, raisonnement de qualité)"
+    },
+    "Llama 4 Scout (Groq, blazing fast)": {
+        "fr": "",
+        "fr_auto": "Llama 4 Scout (Groq, fulgurant)"
+    },
+    "Llama 4 Maverick (Groq, blazing fast)": {
+        "fr": "",
+        "fr_auto": "Llama 4 Maverick (Groq, très rapide)"
+    },
+    "QwQ-32B (Groq, quality reasoning)": {
+        "fr": "",
+        "fr_auto": "QwQ-32B (Groq, raisonnement qualité)"
+    },
+    "Qwen3 235B (Fireworks, 2nd best overall)": {
+        "fr": "",
+        "fr_auto": "Qwen3 235B (Feux d’artifice, 2e meilleur au total)"
+    },
+    "Qwen3 30B-A3B (Fireworks, best small model)": {
+        "fr": "",
+        "fr_auto": "Qwen3 30B-A3B (Feux d’artifice, meilleur petit modèle)"
+    },
+    "Gemini 2.5 Flash (Google, value, long context)": {
+        "fr": "",
+        "fr_auto": "Gemini 2.5 Flash (Google, valeur, contexte long)"
+    },
+    "Gemini 2.5 Pro (Google, best overall)": {
+        "fr": "",
+        "fr_auto": "Gemini 2.5 Pro (Google, le meilleur dans l’ensemble)"
+    },
+    "Sorry, we ran into an error.": {
+        "fr": "",
+        "fr_auto": "Désolé, nous avons rencontré une erreur."
     }
 }
