@@ -168,6 +168,28 @@ def close_md_code_blocks(text):
     return text
 
 
+def get_model_name(chat_options):
+    """
+    Get the model used for the chat message.
+    """
+    from chat.forms import CHAT_MODELS
+
+    model_key = ""
+    if chat_options.mode == "qa":
+        model_key = chat_options.qa_model
+    elif chat_options.mode == "chat":
+        model_key = chat_options.chat_model
+    elif chat_options.mode == "summarize":
+        model_key = chat_options.summarize_model
+    # CHAT_MODELS is a list of tuples
+    # (model_key, model_name)
+    model_name = [model[1] for model in CHAT_MODELS if model[0] == model_key]
+    if model_name:
+        return model_name[0].split("(")[0].strip()
+    else:
+        return ""
+
+
 async def htmx_stream(
     chat: Chat,
     message_id: int,

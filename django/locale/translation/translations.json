@@ -3881,11 +3881,11 @@
     },
     "Qwen3 235B (Fireworks, 2nd best overall)": {
         "fr": "",
-        "fr_auto": "Qwen3 235B (Feux d’artifice, 2e meilleur au total)"
+        "fr_auto": "Qwen3 235B (Fireworks, 2e meilleur au total)"
     },
     "Qwen3 30B-A3B (Fireworks, best small model)": {
         "fr": "",
-        "fr_auto": "Qwen3 30B-A3B (Feux d’artifice, meilleur petit modèle)"
+        "fr_auto": "Qwen3 30B-A3B (Fireworks, meilleur petit modèle)"
     },
     "Gemini 2.5 Flash (Google, value, long context)": {
         "fr": "",
@@ -3898,5 +3898,9 @@
     "Sorry, we ran into an error.": {
         "fr": "",
         "fr_auto": "Désolé, nous avons rencontré une erreur."
+    },
+    "The following document(s) already exist in the library:": {
+        "fr": "",
+        "fr_auto": "Les documents suivants existent déjà dans la bibliothèque :"
     }
 }
