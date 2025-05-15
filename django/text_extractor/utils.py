@@ -2,6 +2,7 @@ import io
 import math
 import os
 import tempfile
+import time
 import traceback
 import uuid
 from io import BytesIO
@@ -168,14 +169,23 @@ def create_searchable_pdf(input_file, add_header, merged=False):
                 temp_path, dpi=100
             )  # Adjust DPI as needed for compression
 
+            rgb_pages = [page.convert("RGB") for page in image_pages]
+
             # Save the compressed images to a new temporary file
             with tempfile.NamedTemporaryFile(
                 delete=False, suffix=".pdf"
             ) as temp_compressed:
-                for page in image_pages:
-                    page.save(
-                        temp_compressed, "PDF", resolution=50
-                    )  # Adjust resolution as needed
+                start_time = time.perf_counter()
+                rgb_pages[0].save(
+                    temp_compressed,
+                    "PDF",
+                    resolution=50,
+                    save_all=True,
+                    append_images=rgb_pages[1:],
+                )
+                elapsed_time = time.perf_counter() - start_time
+                # print(f"---------Multi-page save took {elapsed_time:.2f} seconds")
+                logger.info(f"Multi-page save took {elapsed_time:.2f} seconds")
                 temp_path = temp_compressed.name
         except PDFPageCountError as e:
             error_id = str(uuid.uuid4())[:7]
@@ -251,8 +261,11 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             poller = document_analysis_client.begin_analyze_document(
                 "prebuilt-read", document=f
             )
-
+        start_time_ocr = time.perf_counter()
         ocr_results = poller.result()
+        elapsed_time_ocr = time.perf_counter() - start_time_ocr
+        logger.info(f"OCR polling took {elapsed_time_ocr:.2f} seconds")
+
     except Exception as e:
         error_id = str(uuid.uuid4())[:7]
         logger.exception(
@@ -271,13 +284,14 @@ def create_searchable_pdf(input_file, add_header, merged=False):
     logger.debug(
         _("Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages.")
     )
-    all_text = []
-    for page in ocr_results.pages:
-        for line in page.lines:
-            all_text.append(line.content)
+    start_time_text = time.perf_counter()
+    all_text = "\n".join(
+        line.content for page in ocr_results.pages for line in page.lines
+    )
+    elapsed_time_text = time.perf_counter() - start_time_text
+    logger.info(f"Creating txt file took {elapsed_time_text:.2f} seconds")
 
-    all_text = "\n".join(all_text)
-
+    start_time_overlay = time.perf_counter()
     try:
         # Generate OCR overlay layer
         output = PdfWriter()
@@ -388,6 +402,8 @@ def create_searchable_pdf(input_file, add_header, merged=False):
             % {"error_id": error_id},
             "error_id": error_id,
         }
+    elapsed_time_overlay = time.perf_counter() - start_time_overlay
+    logger.info(f"Creating PDF overlay took {elapsed_time_overlay:.2f} seconds")
 
     cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
     # return output, all_text, cost.usd_cost
