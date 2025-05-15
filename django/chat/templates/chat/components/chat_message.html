@@ -8,6 +8,7 @@
     <span class="message-author me-1">
       {% if message.is_bot %}
         Otto
+        {% if message.bot_name %}<em>({{ message.bot_name }})</em>{% endif %}
       {% elif chat_author %}
         {{ chat_author.full_name }}
       {% else %}
