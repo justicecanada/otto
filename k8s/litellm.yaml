@@ -130,6 +130,16 @@ spec:
               secretKeyRef:
                 key: groqkey
                 name: azure-keyvault-secrets
+          - name: FIREWORKS_KEY
+            valueFrom:
+              secretKeyRef:
+                key: fireworkskey
+                name: azure-keyvault-secrets
+          - name: GEMINI_KEY
+            valueFrom:
+              secretKeyRef:
+                key: geminikey
+                name: azure-keyvault-secrets
         args:
           - "--config"
           - "/app/proxy_config.yaml"
