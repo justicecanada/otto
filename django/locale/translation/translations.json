@@ -3754,5 +3754,9 @@
     "Clear filters": {
         "fr": "Réinitialiser les filtres",
         "fr_auto": "Effacer les filtres"
+    },
+    "The following document(s) already exist in the library:": {
+        "fr": "",
+        "fr_auto": "Les documents suivants existent déjà dans la bibliothèque :"
     }
 }
