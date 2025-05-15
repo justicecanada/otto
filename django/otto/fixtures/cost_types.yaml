@@ -234,7 +234,7 @@
     short_name: MAI-DS-R1-in
     name: MAI-DS-R1 (input)
     unit_name: tokens
-    unit_cost: 0.0003  # placeholder
+    unit_cost: 0.0003 
     unit_quantity: 1000
 - model: otto.CostType
   pk: 26
@@ -242,7 +242,7 @@
     short_name: MAI-DS-R1-out
     name: MAI-DS-R1 (output)
     unit_name: tokens
-    unit_cost: 0.0012  # placeholder
+    unit_cost: 0.0012 
     unit_quantity: 1000
 - model: otto.CostType
   pk: 27
@@ -250,7 +250,7 @@
     short_name: groq-llama-4-maverick-in
     name: Llama-4 Maverick (Groq) (input)
     unit_name: tokens
-    unit_cost: 0.20  # placeholder
+    unit_cost: 0.20 
     unit_quantity: 1000000
 - model: otto.CostType
   pk: 28
@@ -258,7 +258,7 @@
     short_name: groq-llama-4-maverick-out
     name: Llama-4 Maverick (Groq) (output)
     unit_name: tokens
-    unit_cost: 0.60  # placeholder
+    unit_cost: 0.60 
     unit_quantity: 1000000
 - model: otto.CostType
   pk: 29
@@ -266,7 +266,7 @@
     short_name: groq-QwQ-32B-in
     name: QwQ-32B (Groq) (input)
     unit_name: tokens
-    unit_cost: 0.29  # placeholder
+    unit_cost: 0.29 
     unit_quantity: 1000000
 - model: otto.CostType
   pk: 30
@@ -274,5 +274,69 @@
     short_name: groq-QwQ-32B-out
     name: QwQ-32B (Groq) (output)
     unit_name: tokens
-    unit_cost: 0.39  # placeholder
+    unit_cost: 0.39 
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 31
+  fields:
+    short_name: fireworks-Qwen3-235B-in
+    name: Qwen3 235B (Fireworks) (input)
+    unit_name: tokens
+    unit_cost: 0.22 
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 32
+  fields:
+    short_name: fireworks-Qwen3-235B-out
+    name: Qwen3 235B (Fireworks) (output)
+    unit_name: tokens
+    unit_cost: 0.88
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 33
+  fields:
+    short_name: gemini-2.5-flash-in
+    name: Gemini 2.5 Flash (input)
+    unit_name: tokens
+    unit_cost: 0.15
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 34
+  fields:
+    short_name: gemini-2.5-flash-out
+    name: Gemini 2.5 Flash (output)
+    unit_name: tokens
+    unit_cost: 0.60
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 35
+  fields:
+    short_name: gemini-2.5-pro-in
+    name: Gemini 2.5 Pro (input)
+    unit_name: tokens
+    unit_cost: 1.25
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 36
+  fields:
+    short_name: gemini-2.5-pro-out
+    name: Gemini 2.5 Pro (output)
+    unit_name: tokens
+    unit_cost: 10
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 37
+  fields:
+    short_name: fireworks-Qwen3-30B-in
+    name: Qwen3 30B (Fireworks) (input)
+    unit_name: tokens
+    unit_cost: 0.15
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 38
+  fields:
+    short_name: fireworks-Qwen3-30B-out
+    name: Qwen3 30B (Fireworks) (output)
+    unit_name: tokens
+    unit_cost: 0.60
     unit_quantity: 1000000

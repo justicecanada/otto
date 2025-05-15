@@ -19,37 +19,26 @@ from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
 from structlog import get_logger
 
-from otto.models import Cost
-
 logger = get_logger(__name__)
 
 litellm.drop_params = True
 
-
-class OttoVectorStore(PGVectorStore):
-    # Override from LlamaIndex to add retrying and connection test
-    @retry(
-        wait_exponential_multiplier=1000,
-        wait_exponential_max=20000,
-    )
-    def _connect(self):
-        from sqlalchemy import create_engine
-        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-        from sqlalchemy.orm import sessionmaker
-
-        self._engine = create_engine(
-            self.connection_string, echo=self.debug, **self.create_engine_kwargs
-        )
-        self._session = sessionmaker(self._engine)
-
-        self._async_engine = create_async_engine(
-            self.async_connection_string, **self.create_engine_kwargs
-        )
-        self._async_session = sessionmaker(self._async_engine, class_=AsyncSession)  # type: ignore
-
-        # Test the connection to ensure it's established
-        with self._engine.connect() as connection:
-            connection.execute(sqlalchemy.text("SELECT 1"))
+CHAT_MODELS = [
+    # Keys correspond to to model keys in OttoLLM class and cost_types.yaml
+    ("gpt-4o-mini", _("GPT-4o-mini (fastest, best value)")),
+    ("o3-mini", _("o3-mini (adds reasoning, 7x cost)")),
+    ("gpt-4.1", _("GPT-4.1 (better quality, 12x cost)")),
+    ("gpt-4o", _("GPT-4o (legacy model, 15x cost)")),
+    ("Phi-4", _("Phi-4 (small model, economical)")),
+    ("MAI-DS-R1", _("MAI-DS-R1 (open source, quality reasoning)")),
+    ("groq-llama-4-scout", _("Llama 4 Scout (Groq, blazing fast)")),
+    ("groq-llama-4-maverick", _("Llama 4 Maverick (Groq, blazing fast)")),
+    ("groq-QwQ-32B", _("QwQ-32B (Groq, quality reasoning)")),
+    ("fireworks-Qwen3-235B", _("Qwen3 235B (Fireworks, 2nd best overall)")),
+    ("fireworks-Qwen3-30B", _("Qwen3 30B-A3B (Fireworks, best small model)")),
+    ("gemini-2.5-flash", _("Gemini 2.5 Flash (Google, value, long context)")),
+    ("gemini-2.5-pro", _("Gemini 2.5 Pro (Google, best overall)")),
+]
 
 
 class OttoLLM:
@@ -59,16 +48,22 @@ class OttoLLM:
     """
 
     _deployment_to_model_mapping = {
-        "gpt-4o-mini": "gpt-4o-mini",
-        "gpt-4.1": "gpt-4.1",
-        "gpt-4o": "gpt-4o",
-        "o3-mini": "o3-mini",
-        "Phi-4": "azure_ai/Phi-4",
-        "groq-llama-4-scout": "groq/groq-llama-4-scout",
-        "MAI-DS-R1": "azure_ai/MAI-DS-R1",
-        "groq-llama-4-maverick": "groq/groq-llama-4-maverick",
-        "groq-QwQ-32B": "groq/groq-QwQ-32B",
+        # format: `litellm_proxy/model_name`
+        "gpt-4o-mini": "litellm_proxy/gpt-4o-mini",
+        "gpt-4.1": "litellm_proxy/gpt-4.1",
+        "gpt-4o": "litellm_proxy/gpt-4o",
+        "o3-mini": "litellm_proxy/o3-mini",
+        "Phi-4": "litellm_proxy/Phi-4",
+        "groq-llama-4-scout": "litellm_proxy/groq-llama-4-scout",
+        "MAI-DS-R1": "litellm_proxy/MAI-DS-R1",
+        "groq-llama-4-maverick": "litellm_proxy/groq-llama-4-maverick",
+        "groq-QwQ-32B": "litellm_proxy/groq-QwQ-32B",
+        "fireworks-Qwen3-235B": "litellm_proxy/fireworks-Qwen3-235B",
+        "fireworks-Qwen3-30B": "litellm_proxy/fireworks-Qwen3-30B",
+        "gemini-2.5-flash": "litellm_proxy/gemini-2.5-flash",
+        "gemini-2.5-pro": "litellm_proxy/gemini-2.5-pro",
     }
+    # These are used only for checking inputs and chunking for tree summarization
     _deployment_to_max_input_tokens_mapping = {
         "gpt-4o-mini": 128000,
         "gpt-4.1": 1047576,
@@ -79,6 +74,10 @@ class OttoLLM:
         "MAI-DS-R1": 163840,
         "groq-llama-4-maverick": 128000,
         "groq-QwQ-32B": 128000,
+        "fireworks-Qwen3-235B": 125000,
+        "fireworks-Qwen3-30B": 39000,
+        "gemini-2.5-flash": 1048576,
+        "gemini-2.5-pro": 1048576,
     }
     _deployment_to_max_output_tokens_mapping = {
         "gpt-4o-mini": 16384,
@@ -90,6 +89,10 @@ class OttoLLM:
         "MAI-DS-R1": 163840,
         "groq-llama-4-maverick": 16384,
         "groq-QwQ-32B": 16384,
+        "fireworks-Qwen3-235B": 16000,
+        "fireworks-Qwen3-30B": 5000,
+        "gemini-2.5-flash": 65536,
+        "gemini-2.5-pro": 65536,
     }
 
     def __init__(
@@ -195,6 +198,8 @@ class OttoLLM:
         """
         Create Otto Cost objects for the given user and feature.
         """
+        from otto.models import Cost
+
         usd_cost = 0
         if self.input_token_count > 0:
             c1 = Cost.objects.new(
@@ -334,3 +339,29 @@ class OttoLLM:
             api_base=settings.LITELLM_ENDPOINT,
             callback_manager=self._callback_manager,
         )
+
+
+class OttoVectorStore(PGVectorStore):
+    # Override from LlamaIndex to add retrying and connection test
+    @retry(
+        wait_exponential_multiplier=1000,
+        wait_exponential_max=20000,
+    )
+    def _connect(self):
+        from sqlalchemy import create_engine
+        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+        from sqlalchemy.orm import sessionmaker
+
+        self._engine = create_engine(
+            self.connection_string, echo=self.debug, **self.create_engine_kwargs
+        )
+        self._session = sessionmaker(self._engine)
+
+        self._async_engine = create_async_engine(
+            self.async_connection_string, **self.create_engine_kwargs
+        )
+        self._async_session = sessionmaker(self._async_engine, class_=AsyncSession)  # type: ignore
+
+        # Test the connection to ensure it's established
+        with self._engine.connect() as connection:
+            connection.execute(sqlalchemy.text("SELECT 1"))
