@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify
 from structlog import get_logger
 
-from librarian.utils.extract_emails import extract_msg
+from librarian.utils.extract_emails import extract_eml, extract_msg
 from librarian.utils.extract_zip import process_zip_file
 from librarian.utils.markdown_splitter import MarkdownSplitter
 from otto.models import Cost
@@ -134,6 +134,7 @@ def guess_content_type(
         "application/pdf",
         "application/xml",
         "application/vnd.ms-outlook",
+        "application/eml",
         "application/zip",
         "application/x-zip-compressed",
         "text/html",
@@ -172,7 +173,10 @@ def guess_content_type(
 
         if path.endswith(".docx"):
             return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        # Use filetype library to guess the content type
+
+        if path.endswith(".eml"):
+            return "application/eml"
+        # Use filetype library to guess the content type.
         kind = filetype.guess(content)
         if kind and not path.endswith(".md"):
             return kind.mime
@@ -210,6 +214,8 @@ def get_process_engine_from_type(type):
         return "OUTLOOK_MSG"
     elif "application/zip" in type or "application/x-zip-compressed" in type:
         return "ZIP"
+    elif "application/eml" in type:
+        return "EML"
     elif "application/pdf" in type:
         return "PDF"
     elif "text/html" in type:
@@ -287,6 +293,9 @@ def extract_markdown(
         elif process_engine == "ZIP":
             enable_markdown = False
             md = process_zip_file(content, root_document_id)
+        elif process_engine == "EML":
+            enable_markdown = False
+            md = extract_eml(content, root_document_id)
         elif process_engine == "CSV":
             md = csv_to_markdown(content)
         elif process_engine == "EXCEL":

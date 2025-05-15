@@ -2012,7 +2012,7 @@
         "fr_auto": "Questions fréquemment posées"
     },
     "User guide": {
-        "fr": "Guide d'utilisateur",
+        "fr": "Guide de l'utilisateur",
         "fr_auto": "Guide de l'utilisateur"
     },
     "Blocked URLs": {
@@ -2396,7 +2396,7 @@
         "fr_auto": "Modifier le(s) utilisateur(s)"
     },
     "Terms of use for Otto Protected B Pilot": {
-        "fr": "",
+        "fr": "Conditions d'utilisation du projet pilot Otto Protégé B ",
         "fr_auto": "Conditions d’utilisation d’Otto Protected B Pilot"
     },
     "You agreed to these terms on": {
@@ -2404,23 +2404,23 @@
         "fr_auto": "Vous avez accepté ces conditions le"
     },
     "Participation in pilot activities": {
-        "fr": "",
+        "fr": "Participation aux activités du projet pilote ",
         "fr_auto": "Participation aux activités pilotes"
     },
     "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested.": {
-        "fr": "Vous faites partie d’un groupe sélectionné « d'utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande.",
+        "fr": "Vous faites partie d'un groupe restreint de participants qui bénéficie d'un accès anticipé à Otto pendant la phase pilote. On s’attend à ce que vous expérimentiez activement avec Otto pour des tâches professionnelles, fournissiez des commentaires/retours via Otto et répondiez à des sondages sur demande. ",
         "fr_auto": "Vous faites partie d’un groupe sélectionné d'«utilisateurs pilotes » qui ont obtenu un accès anticipé à Otto pendant la phase pilote. Vous devez expérimenter activement avec Otto pour les tâches de travail, fournir des commentaires par l’intermédiaire d’Otto et répondre à des enquêtes sur demande."
     },
     "Responsible and ethical use of AI": {
-        "fr": "",
+        "fr": "Utilisation responsable et éthique de l'IA",
         "fr_auto": "Utilisation responsable et éthique de l’IA"
     },
     "Follow policies and best practices for the responsible use of AI. Refer to and follow the guidance in the following policy documents:": {
-        "fr": "",
+        "fr": "Pour suivre les politiques et les meilleures pratiques pour une utilisation responsable de l'IA, consultez et suivez les directives des documents de politiques suivants : ",
         "fr_auto": "Suivez les politiques et les meilleures pratiques pour une utilisation responsable de l’IA. Se reporter aux lignes directrices des documents de politique suivants et les suivre :"
     },
     "Always be aware that AI can make mistakes, even when you have provided it with documents.": {
-        "fr": "",
+        "fr": "Soyez toujours conscient que l'IA peut faire des erreurs, même lorsque vous lui avez fourni des documents.",
         "fr_auto": "Sachez toujours que l’IA peut faire des erreurs, même lorsque vous lui avez fourni des documents."
     },
     "I agree to the terms of use.": {
@@ -3432,7 +3432,7 @@
         "fr_auto": "Comment puis-je m’assurer de l’exactitude des informations d’Otto?"
     },
     "Otto relies on pre-existing knowledge and trusted internal documents to provide information. Otto retrieves answers from user-uploaded documents and displays page-numbered references and relevant links for verification. Additionally, users can customize prompts and settings to refine how information is extracted and presented, ensuring clarity and reliability. For certain questions, Otto will attempt to let users know if there are limitations to its responses and may recommend consulting the appropriate resources or experts.  If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs.": {
-        "fr": "Otto s’appuie sur des connaissances préexistantes et des documents internes fiables pour fournir de l’information. Otto récupère les réponses des documents téléchargés par les utilisateurs et affiche des références numérotées et des liens pertinents pour vérification. De plus, les utilisateurs peuvent personnaliser les requêtes et les paramètres pour affiner la façon dont l’information est extraite et présentée, ce qui garantit la clarté et la fiabilité. Pour certaines questions, Otto tentera d’informer les utilisateurs s’il y a des limites à ses réponses et peut recommander de consulter les ressources ou les experts appropriés.  Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants.",
+        "fr": "Otto s’appuie sur des connaissances préexistantes et des documents internes fiables pour fournir de l’information. Otto récupère les réponses des documents téléchargés par les utilisateurs et affiche des références numérotées et des liens pertinents pour vérification. De plus, les utilisateurs peuvent personnaliser les requêtes et les paramètres pour affiner la façon dont l’information est extraite et présentée, ce qui garantit la clarté et la fiabilité. Pour certaines questions, Otto tentera d’informer les utilisateurs s’il y a des limites à ses réponses et peut recommander de consulter les ressources ou les experts appropriés.  Pour qu'ils soient fiables, tous les résultats d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne disposant de connaissances et de l’expertise appropriées pour évaluer les résultats.",
         "fr_auto": "Otto s’appuie sur des connaissances préexistantes et des documents internes fiables pour fournir de l’information. Otto récupère les réponses des documents téléchargés par les utilisateurs et affiche des références numérotées et des liens pertinents pour vérification. De plus, les utilisateurs peuvent personnaliser les requêtes et les paramètres pour affiner la façon dont l’information est extraite et présentée, ce qui garantit la clarté et la fiabilité. Pour certaines questions, Otto tentera d’informer les utilisateurs s’il y a des limites à ses réponses et peut recommander de consulter les ressources ou les experts appropriés.  Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants."
     },
     "Can Otto help me with bilingual (English/French) questions?": {
@@ -3564,91 +3564,91 @@
         "fr_auto": "Utilisations inappropriées et limites d’Otto"
     },
     "You must read and follow the notices within these Terms of Use and in the notices within Otto tools.": {
-        "fr": "",
+        "fr": "Vous devez lire et respectez les Conditions d'utilisation énumérées ici et se trouvant dans les outils Otto. ",
         "fr_auto": "Vous devez lire et suivre les avis contenus dans les présentes conditions d’utilisation et dans les avis contenus dans les outils Otto."
     },
     "AI Assistant's Chat mode should not be trusted to provide factual information, as it is more prone to hallucination and bias in the output. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.": {
-        "fr": "",
+        "fr": "Veuillez utiliser les modes Q&R et Résumé pour fonder les réponses de l'IA sur des sources fiables telles que des documents que vous téléchargez ou une bibliothèque de documents partagée.  Il ne faut pas faire confiance au mode Clavardage pour fournir des informations factuelles, car il est plus sujet aux hallucinations et aux biais dans la sortie.  ",
         "fr_auto": "Il ne faut pas faire confiance au mode Chat de l’Assistant IA pour fournir des informations factuelles, car il est plus sujet aux hallucinations et aux biais dans la sortie. Utilisez plutôt les modes Questions et réponses et Résumé pour ancrer les réponses de l’IA dans des sources fiables telles que des documents que vous téléchargez ou une bibliothèque de documents partagée."
     },
     "Otto may not be used to automate decision-making (administrative decisions affecting the rights, privileges or interests of individuals). Examples of decision-making include many human resources activities or program or funding decisions. Otto should not be used as a tool for decision-makers, nor to automate steps needed to make decisions. The use of AI for activities related to or impacting decision-making raises several legal and policy issues which are not detailed here or in other Otto documentation.": {
-        "fr": "",
+        "fr": "Otto ne doit pas servir à automatiser la prise de décision (telles les décisions administratives affectant les droits, privilèges ou intérêts des individus). De nombreuses activités de ressources humaines, de décisions à propos de programmes ou de financement en sont des exemples. Otto ne doit ni être utilisé comme un outil pour les décideurs, ni pour automatiser les étapes nécessaires à la prise de décisions. L'utilisation de l'IA pour des activités liées à la prise de décision ou ayant un impact sur celle-ci soulève plusieurs questions juridiques et politiques qui ne sont pas détaillées ici ou dans d'autres documents d'Otto. ",
         "fr_auto": "Otto ne peut pas être utilisé pour automatiser la prise de décisions (décisions administratives touchant les droits, les privilèges ou les intérêts des personnes). Parmi les exemples de prise de décisions, mentionnons de nombreuses activités de ressources humaines ou des décisions de programme ou de financement. Otto ne doit pas être utilisé comme un outil pour les décideurs, ni pour automatiser les étapes nécessaires à la prise de décisions. L’utilisation de l’IA pour des activités liées à la prise de décisions ou ayant une incidence sur la prise de décisions soulève plusieurs questions juridiques et politiques qui ne sont pas détaillées ici ou dans d’autres documents d’Otto."
     },
     "The AI Assistant does not connect to legal databases like Westlaw, Lexis, CanLII or Justipedia. It should not be used for searching for legislation, case law, opinions, etc. Only the Legislation Search tool should be used for questions about Canadian federal laws.": {
-        "fr": "",
+        "fr": "Seul l'outil de recherche législative doit être utilisé pour les questions concernant les lois fédérales canadiennes. L'assistant IA ne se connecte pas aux bases de données juridiques telles que Westlaw, Lexis, CanLII ou Justipedia. Il ne doit pas donc être utilisé pour rechercher des lois, de la jurisprudence, des opinions, etc.  ",
         "fr_auto": "L’assistant IA ne se connecte pas à des bases de données juridiques comme Westlaw, Lexis, CanLII ou Justipedia. Il ne devrait pas être utilisé pour rechercher des lois, de la jurisprudence, des opinions, etc. Seul l’outil de recherche de lois doit être utilisé pour les questions sur les lois fédérales canadiennes."
     },
     "Otto is not a substitute for professional legal advice. Legal professionals must analyze and understand the unique complexities of client matters, exercise professional judgment, and provide tailored strategic advice.": {
-        "fr": "",
+        "fr": "Otto ne remplace pas un conseil juridique professionnel. Les professionnels du droit doivent analyser et comprendre les complexités uniques des affaires des clients, exercer un jugement professionnel et fournir des conseils stratégiques personnalisés. ",
         "fr_auto": "Otto ne remplace pas les conseils juridiques professionnels. Les professionnels du droit doivent analyser et comprendre la complexité unique des affaires des clients, exercer un jugement professionnel et fournir des conseils stratégiques personnalisés."
     },
     "For examples of appropriate use cases, please see the ": {
-        "fr": "",
+        "fr": "Pour des exemples de cas d'utilisation appropriés, veuillez consulter le ",
         "fr_auto": "Pour des exemples de cas d’utilisation appropriés, veuillez consulter le "
     },
     "Otto user guide.": {
-        "fr": "",
+        "fr": "guide d'utilisation d'Otto.",
         "fr_auto": "Guide de l’utilisateur d’Otto."
     },
     "Security and privacy": {
-        "fr": "",
+        "fr": "Sécurité et confidentialité  ",
         "fr_auto": "Sécurité et confidentialité"
     },
     "Otto is approved for information up to and including Protected B. This normally includes information subject to solicitor-client privilege. Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information that are considered Protected B. In such cases, the use of Otto should be considered on a case-by-case basis.": {
-        "fr": "",
+        "fr": "Otto est approuvé pour les renseignements jusqu'à et incluant Protégés B. Cela comprend normalement les renseignements protégés par le secret professionnel de l'avocat. Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires à l'égard de certaines catégories de renseignements sensibles qui sont considérés comme Protégés B. Alors, l'utilisation d'Otto doit être décidé au cas par cas. ",
         "fr_auto": "Otto est approuvé pour l’information jusqu’à Protégé B. Cela comprend normalement les renseignements protégés par le secret professionnel de l’avocat. Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires relatives à certaines catégories de renseignements sensibles qui sont considérés comme protégés B. Dans de tels cas, l’utilisation d’Otto doit être envisagée au cas par cas."
     },
     "You must not input any information above Protected B, either through uploads or direct text input.": {
-        "fr": "",
+        "fr": "Vous ne devez pas utiliser de renseignements au-dessus de la catégorie Protégée B, que ce soit par téléchargement ou par saisie directe de texte. ",
         "fr_auto": "Vous ne devez pas saisir d’informations au-dessus de Protégé B, que ce soit par téléchargement ou saisie directe de texte."
     },
     "Apply security classification labels to chats and document libraries when they contain Protected and/or personal information.": {
-        "fr": "",
+        "fr": "Appliquez des étiquettes de classification de sécurité aux conversations et aux bibliothèques de documents lorsqu'elles contiennent des informations protégées et/ou personnelles. ",
         "fr_auto": "Appliquez des étiquettes de classification de sécurité aux clavardages et aux bibliothèques de documents lorsqu’ils contiennent des renseignements protégés ou personnels."
     },
     "Avoid uploading personal information except as needed for specific tasks. Share document libraries and chats only with those who require access (i.e. need to know if personal information is included).": {
-        "fr": "",
+        "fr": "Évitez de télécharger des informations personnelles, sauf si nécessaire pour des tâches spécifiques. Partagez les bibliothèques de documents et les discussions uniquement avec les personnes qui en ont besoin (c'est-à-dire qui ont besoin de savoir si des informations personnelles sont incluses). ",
         "fr_auto": "Évitez de télécharger des renseignements personnels, sauf si cela est nécessaire pour des tâches spécifiques. Partagez les bibliothèques de documents et les clavardages uniquement avec les personnes qui ont besoin d’y accéder (c.-à-d. qui ont besoin de savoir si des renseignements personnels sont inclus)."
     },
     "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. To report other privacy or security issues, email the Otto team at": {
-        "fr": "",
+        "fr": "Si des informations sont partagées avec vous via Otto auxquelles vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un courriel aux auteurs ou aux administrateurs de la bibliothèque. Pour signaler d'autres problèmes de confidentialité ou de sécurité, envoyez un courriel à l'équipe Otto à l'adresse ",
         "fr_auto": "Si des renseignements vous sont partagés par l’intermédiaire d’Otto auxquels vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un courriel aux auteurs ou aux administrateurs de la bibliothèque. Pour signaler d’autres problèmes de confidentialité ou de sécurité, envoyez un courriel à l’équipe d’Otto à l’adresse suivante :"
     },
     "For more information, please review the following:": {
-        "fr": "",
+        "fr": "Pour plus d'informations sur le sujet, veuillez consulter les suivants : ",
         "fr_auto": "Pour plus d’informations, veuillez consulter les documents suivants :"
     },
     "Handling and Safeguarding Sensitive Information": {
-        "fr": "",
+        "fr": "Traitement et protection des informations sensibles  ",
         "fr_auto": "Traitement et protection des renseignements sensibles"
     },
     "Privacy protocol for non-administrative purposes - JUSnet": {
-        "fr": "",
+        "fr": "Protocole de confidentialité à des fins non administratives - JUSnet  ",
         "fr_auto": "Protocole de confidentialité à des fins non administratives - JUSnet"
     },
     "Information management": {
-        "fr": "",
+        "fr": "Gestion de l'information ",
         "fr_auto": "Gestion de l’information"
     },
     "Otto is for transitory information only. It is not a repository for information of business value.": {
-        "fr": "",
+        "fr": "Otto n'est fourni que pour l’information éphémère. Il ne s'agit pas d'un dépôt d'information à valeur opérationnelle. ",
         "fr_auto": "Otto est à titre d’information transitoire seulement. Il ne s’agit pas d’un dépôt d’information à valeur opérationnelle."
     },
     "Only upload to Otto the documents you need to perform your tasks.": {
-        "fr": "",
+        "fr": "Ne téléversez sur Otto que les documents dont vous avez besoin pour effectuer vos tâches.  ",
         "fr_auto": "Téléchargez uniquement sur Otto les documents dont vous avez besoin pour effectuer vos tâches."
     },
     "When working with documents obtained from third parties, respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto.": {
-        "fr": "",
+        "fr": "Lorsque vous travaillez avec des documents de tiers, respectez toutes  les restrictions légales ou contractuelles applicables reliées au téléchargement de ces documents sur Otto. ",
         "fr_auto": "Lorsque vous travaillez avec des documents obtenus de tiers, respectez toutes les restrictions légales ou contractuelles applicables qui peuvent s’appliquer au téléchargement de ces documents sur Otto."
     },
     "Actively delete protected or personal information when it is no longer needed. Document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted.": {
-        "fr": "",
+        "fr": "Détruisez régulièrement les informations protégées ou personnelles dès qu'elles ne sont plus nécessaires. Les bibliothèques de documents et les clavadages seront supprimés après 30 jours d'inactivité. Si vous n'ouvrez pas une discussion pendant 30 jours, il sera automatiquement supprimé avec tous les fichiers téléchargés sur la discussion. Pour les bibliothèques, si aucune modification n'a été apportée et qu'aucune requête Q&R n'a été effectuée pendant 30 jours, la bibliothèque sera automatiquement supprimée. ",
         "fr_auto": "Supprimez activement les renseignements protégés ou personnels lorsqu’ils ne sont plus nécessaires. Les bibliothèques de documents et les clavardages seront supprimés après 30 jours d’inactivité. Cela signifie que si vous n’ouvrez pas un chat pendant 30 jours, il sera automatiquement supprimé avec tous les fichiers téléchargés sur le chat. Pour les bibliothèques, si aucun changement n’a été apporté et qu’aucune requête de questions n’a été effectuée pendant 30 jours, la bibliothèque sera automatiquement supprimée."
     },
     "Information of Business Value vs Transitory Information - Information Management (IM) Guidelines": {
-        "fr": "",
+        "fr": "Information à valeur opérationnelle ou information éphémère - Lignes directrices sur la gestion de l'information (GI) ",
         "fr_auto": "Information à valeur opérationnelle par rapport à l’information transitoire - Lignes directrices sur la gestion de l’information (GI)"
     },
     "Guide on the use of generative artificial intelligence - Canada.ca": {
@@ -3660,11 +3660,11 @@
         "fr_auto": "L’IA générative dans votre travail quotidien - Canada.ca"
     },
     "Legal professionals must consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, as well as guidance from law societies. You should endeavor to notify clients when AI tools are being used.": {
-        "fr": "",
+        "fr": "Les professionnels du droit doivent consulter les directives et les avis des cours et des tribunaux concernant l'utilisation de l'intelligence artificielle, ainsi que les conseils des barreaux. Vous devez vous efforcer d'informer les clients lorsque des outils d'IA sont utilisés.",
         "fr_auto": "Les professionnels du droit doivent consulter les directives et les avis des cours et des tribunaux concernant l’utilisation de l’intelligence artificielle, ainsi que les directives des ordres professionnels de juristes. Vous devez vous efforcer d’informer les clients lorsque des outils d’IA sont utilisés."
     },
     "If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs. Citations provided in outputs from Otto can assist with this verification.": {
-        "fr": "",
+        "fr": "Pour qu'ils soient fiables, tous les résultats d'Otto doivent faire l'objet d'une vérification humaine par l'utilisateur ou par une personne disposant de connaissances et de l'expertise appropriées pour évaluer les résultats.  Les citations fournies dans les illustrations d'Otto peuvent aider à cette vérification",
         "fr_auto": "Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants. Les citations fournies dans les résultats d’Otto peuvent aider à cette vérification."
     },
     "Extract text and handwriting from scanned PDF and images with AI-enabled OCR.": {

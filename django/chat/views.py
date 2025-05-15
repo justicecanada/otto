@@ -723,7 +723,7 @@ def message_sources(request, message_id, highlight=False):
     ).filter(message_id=message_id):
         source_text = str(source.node_text)
 
-        already_processed = source.processed_text != ""
+        already_processed = source.processed_text is not None
         needs_processing = (
             highlight and not already_highlighted
         ) or not already_processed
