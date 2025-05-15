@@ -23,22 +23,88 @@ logger = get_logger(__name__)
 
 litellm.drop_params = True
 
-CHAT_MODELS = [
-    # Keys correspond to to model keys in OttoLLM class and cost_types.yaml
-    ("gpt-4o-mini", _("GPT-4o-mini (fastest, best value)")),
-    ("o3-mini", _("o3-mini (adds reasoning, 7x cost)")),
-    ("gpt-4.1", _("GPT-4.1 (better quality, 12x cost)")),
-    ("gpt-4o", _("GPT-4o (legacy model, 15x cost)")),
-    ("Phi-4", _("Phi-4 (small model, economical)")),
-    ("MAI-DS-R1", _("MAI-DS-R1 (open source, quality reasoning)")),
-    ("groq-llama-4-scout", _("Llama 4 Scout (Groq, blazing fast)")),
-    ("groq-llama-4-maverick", _("Llama 4 Maverick (Groq, blazing fast)")),
-    ("groq-QwQ-32B", _("QwQ-32B (Groq, quality reasoning)")),
-    ("fireworks-Qwen3-235B", _("Qwen3 235B (Fireworks, 2nd best overall)")),
-    ("fireworks-Qwen3-30B", _("Qwen3 30B-A3B (Fireworks, best small model)")),
-    ("gemini-2.5-flash", _("Gemini 2.5 Flash (Google, value, long context)")),
-    ("gemini-2.5-pro", _("Gemini 2.5 Pro (Google, best overall)")),
-]
+llms = {
+    "gpt-4o-mini": {
+        "description": _("GPT-4o-mini (fastest, best value)"),
+        "model": "litellm_proxy/gpt-4o-mini",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 16384,
+    },
+    "o3-mini": {
+        "description": _("o3-mini (adds reasoning, 7x cost)"),
+        "model": "litellm_proxy/o3-mini",
+        "max_tokens_in": 200000,
+        "max_tokens_out": 100000,
+    },
+    "gpt-4.1": {
+        "description": _("GPT-4.1 (better quality, 12x cost)"),
+        "model": "litellm_proxy/gpt-4.1",
+        "max_tokens_in": 1047576,
+        "max_tokens_out": 32768,
+    },
+    "gpt-4o": {
+        "description": _("GPT-4o (legacy model, 15x cost)"),
+        "model": "litellm_proxy/gpt-4o",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 16384,
+    },
+    "Phi-4": {
+        "description": _("Phi-4 (small model, economical)"),
+        "model": "litellm_proxy/Phi-4",
+        "max_tokens_in": 16384,
+        "max_tokens_out": 4096,
+    },
+    "MAI-DS-R1": {
+        "description": _("MAI-DS-R1 (open source, quality reasoning)"),
+        "model": "litellm_proxy/MAI-DS-R1",
+        "max_tokens_in": 163840,
+        "max_tokens_out": 163840,
+    },
+    "groq-llama-4-scout": {
+        "description": _("Llama 4 Scout (Groq, blazing fast)"),
+        "model": "litellm_proxy/groq-llama-4-scout",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 16384,  # No actual limit; recommended setting
+    },
+    "groq-llama-4-maverick": {
+        "description": _("Llama 4 Maverick (Groq, blazing fast)"),
+        "model": "litellm_proxy/groq-llama-4-maverick",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 16384,
+    },
+    "groq-QwQ-32B": {
+        "description": _("QwQ-32B (Groq, quality reasoning)"),
+        "model": "litellm_proxy/groq-QwQ-32B",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 16384,
+    },
+    "fireworks-Qwen3-235B": {
+        "description": _("Qwen3 235B (Fireworks, 2nd best overall)"),
+        "model": "litellm_proxy/fireworks-Qwen3-235B",
+        "max_tokens_in": 125000,
+        "max_tokens_out": 16000,
+    },
+    "fireworks-Qwen3-30B": {
+        "description": _("Qwen3 30B-A3B (Fireworks, best small model)"),
+        "model": "litellm_proxy/fireworks-Qwen3-30B",
+        "max_tokens_in": 39000,
+        "max_tokens_out": 5000,
+    },
+    "gemini-2.5-flash": {
+        "description": _("Gemini 2.5 Flash (Google, value, long context)"),
+        "model": "litellm_proxy/gemini-2.5-flash",
+        "max_tokens_in": 1048576,
+        "max_tokens_out": 65536,
+    },
+    "gemini-2.5-pro": {
+        "description": _("Gemini 2.5 Pro (Google, best overall)"),
+        "model": "litellm_proxy/gemini-2.5-pro",
+        "max_tokens_in": 1048576,
+        "max_tokens_out": 65536,
+    },
+}
+
+CHAT_MODELS = [(k, v["description"]) for k, v in llms.items()]
 
 
 class OttoLLM:
@@ -47,64 +113,16 @@ class OttoLLM:
     "model" must match the name of the LLM deployment in Azure.
     """
 
-    _deployment_to_model_mapping = {
-        # format: `litellm_proxy/model_name`
-        "gpt-4o-mini": "litellm_proxy/gpt-4o-mini",
-        "gpt-4.1": "litellm_proxy/gpt-4.1",
-        "gpt-4o": "litellm_proxy/gpt-4o",
-        "o3-mini": "litellm_proxy/o3-mini",
-        "Phi-4": "litellm_proxy/Phi-4",
-        "groq-llama-4-scout": "litellm_proxy/groq-llama-4-scout",
-        "MAI-DS-R1": "litellm_proxy/MAI-DS-R1",
-        "groq-llama-4-maverick": "litellm_proxy/groq-llama-4-maverick",
-        "groq-QwQ-32B": "litellm_proxy/groq-QwQ-32B",
-        "fireworks-Qwen3-235B": "litellm_proxy/fireworks-Qwen3-235B",
-        "fireworks-Qwen3-30B": "litellm_proxy/fireworks-Qwen3-30B",
-        "gemini-2.5-flash": "litellm_proxy/gemini-2.5-flash",
-        "gemini-2.5-pro": "litellm_proxy/gemini-2.5-pro",
-    }
-    # These are used only for checking inputs and chunking for tree summarization
-    _deployment_to_max_input_tokens_mapping = {
-        "gpt-4o-mini": 128000,
-        "gpt-4.1": 1047576,
-        "gpt-4o": 128000,
-        "o3-mini": 200000,
-        "Phi-4": 16384,
-        "groq-llama-4-scout": 128000,
-        "MAI-DS-R1": 163840,
-        "groq-llama-4-maverick": 128000,
-        "groq-QwQ-32B": 128000,
-        "fireworks-Qwen3-235B": 125000,
-        "fireworks-Qwen3-30B": 39000,
-        "gemini-2.5-flash": 1048576,
-        "gemini-2.5-pro": 1048576,
-    }
-    _deployment_to_max_output_tokens_mapping = {
-        "gpt-4o-mini": 16384,
-        "gpt-4.1": 32768,
-        "gpt-4o": 16384,
-        "o3-mini": 100000,
-        "Phi-4": 4096,
-        "groq-llama-4-scout": 16384,  # No actual limit; recommended setting
-        "MAI-DS-R1": 163840,
-        "groq-llama-4-maverick": 16384,
-        "groq-QwQ-32B": 16384,
-        "fireworks-Qwen3-235B": 16000,
-        "fireworks-Qwen3-30B": 5000,
-        "gemini-2.5-flash": 65536,
-        "gemini-2.5-pro": 65536,
-    }
-
     def __init__(
         self,
         deployment: str = settings.DEFAULT_CHAT_MODEL,
         temperature: float = 0.1,
         mock_embedding: bool = False,
     ):
-        if deployment not in self._deployment_to_model_mapping:
+        if deployment not in llms:
             raise ValueError(f"Invalid deployment: {deployment}")
         self.deployment = deployment
-        self.model = self._deployment_to_model_mapping[deployment]
+        self.model = llms[deployment]["model"]
         self.temperature = temperature
         self._token_counter = TokenCountingHandler(
             tokenizer=tiktoken.get_encoding("o200k_base").encode
@@ -113,10 +131,8 @@ class OttoLLM:
         self.llm = self._get_llm()
         self.mock_embedding = mock_embedding
         self.embed_model = self._get_embed_model()
-        self.max_input_tokens = self._deployment_to_max_input_tokens_mapping[deployment]
-        self.max_output_tokens = self._deployment_to_max_output_tokens_mapping[
-            deployment
-        ]
+        self.max_input_tokens = llms[deployment]["max_tokens_in"]
+        self.max_output_tokens = llms[deployment]["max_tokens_out"]
 
     # Convenience methods to interact with LLM
     # Each will return a complete response (not single tokens)

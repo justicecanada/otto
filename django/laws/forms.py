@@ -2,10 +2,10 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import HTMXAutoComplete, widgets
+from autocomplete import HTMXAutoComplete
 from autocomplete.widgets import Autocomplete
 
-from chat.forms import CHAT_MODELS
+from chat.llm import CHAT_MODELS
 
 from .models import Law
 
