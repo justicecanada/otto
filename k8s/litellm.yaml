@@ -60,6 +60,22 @@ data:
         litellm_params:
           model: groq/qwen-qwq-32b
           api_key: os.environ/GROQ_KEY
+      - model_name: fireworks-Qwen3-235B
+        litellm_params:
+          model: fireworks_ai/accounts/fireworks/models/qwen3-235b-a22b
+          api_key: os.environ/FIREWORKS_KEY
+      - model_name: fireworks-Qwen3-30B
+        litellm_params:
+          model: fireworks_ai/accounts/fireworks/models/qwen3-30b-a3b
+          api_key: os.environ/FIREWORKS_KEY
+      - model_name: gemini-2.5-flash
+        litellm_params:
+          model: gemini/gemini-2.5-flash-preview-04-17
+          api_key: os.environ/GEMINI_KEY
+      - model_name: gemini-2.5-pro
+        litellm_params:
+          model: gemini/gemini-2.5-pro-preview-05-06
+          api_key: os.environ/GEMINI_KEY
     general_settings:
       master_key: sk-1234
       database_url: os.environ/DATABASE_URL
