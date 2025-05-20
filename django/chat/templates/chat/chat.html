@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load static %}
+{% load rules %}
 
 {% block body_classes %}chat{% endblock %}
 
@@ -14,13 +15,19 @@
 {% endblock %}
 
 {% block page_script %}
+  {% has_perm "chat.upload_large_files" request.user as can_upload_large_files %}
   <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
   <script>
     const chat_id = "{{ chat.id }}";
+    {% if can_upload_large_files %}
+    const CHAT_MAX_UPLOAD_SIZE = 100000000; // 100MB
+    const LIBRARIAN_MAX_UPLOAD_SIZE = Number.MAX_VALUE; // No limit
+    {% else %}
     const CHAT_MAX_UPLOAD_SIZE = 10000000; // 10MB
-    const CHAT_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}';
     const LIBRARIAN_MAX_UPLOAD_SIZE = 25000000; // 25MB
-    const LIBRARIAN_UPLOAD_TOO_LARGE = '{% trans "File too large (max 25MB)" %}';
+    {% endif %}
+    const CHAT_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', CHAT_MAX_UPLOAD_SIZE/1000000);
+    const LIBRARIAN_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', LIBRARIAN_MAX_UPLOAD_SIZE/1000000);
   </script>
   {% include "chat/components/chat_tour_steps.html" %}
   {% include "components/tour_script.html" %}
