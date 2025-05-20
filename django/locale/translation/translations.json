@@ -3758,5 +3758,13 @@
     "The following document(s) already exist in the library:": {
         "fr": "",
         "fr_auto": "Les documents suivants existent déjà dans la bibliothèque :"
+    },
+    "Extraction in progress.": {
+        "fr": "",
+        "fr_auto": "Extraction en cours."
+    },
+    "Please do not leave this page.": {
+        "fr": "",
+        "fr_auto": "S’il vous plaît, ne quittez pas cette page."
     }
 }
