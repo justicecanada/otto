@@ -9,6 +9,15 @@ from llama_index.core import PromptTemplate, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
 from llama_index.core.embeddings import MockEmbedding
 from llama_index.core.indices.prompt_helper import PromptHelper
+from llama_index.core.instrumentation import get_dispatcher
+from llama_index.core.instrumentation.event_handlers import BaseEventHandler
+from llama_index.core.instrumentation.events.embedding import EmbeddingEndEvent
+from llama_index.core.instrumentation.events.llm import (
+    LLMChatEndEvent,
+    LLMChatStartEvent,
+    LLMCompletionEndEvent,
+    LLMPredictStartEvent,
+)
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
@@ -21,6 +30,33 @@ from structlog import get_logger
 from otto.models import Cost
 
 logger = get_logger(__name__)
+
+
+class ModelEventHandler(BaseEventHandler):
+    @classmethod
+    def class_name(cls) -> str:
+        """Class name."""
+        return "ModelEventHandler"
+
+    def handle(self, event) -> None:
+        """Logic for handling event."""
+        if isinstance(event, LLMCompletionEndEvent):
+            print(f"LLM Prompt length: {len(event.prompt)}")
+            print(f"LLM Completion: {str(event.response.text)}")
+        elif isinstance(event, LLMChatEndEvent):
+            messages_str = "\n".join([str(x) for x in event.messages])
+            print(f"LLM Input Messages length: {len(messages_str)}")
+            print(f"LLM Response: {str(event.response.message)}")
+        elif isinstance(event, LLMPredictStartEvent):
+            print(event.dict())
+        elif isinstance(event, LLMChatStartEvent):
+            print(event.dict())
+        elif isinstance(event, EmbeddingEndEvent):
+            print(f"Embedding {len(event.chunks)} text chunks")
+
+
+root_dispatcher = get_dispatcher()
+root_dispatcher.add_event_handler(ModelEventHandler())
 
 
 class OttoVectorStore(PGVectorStore):

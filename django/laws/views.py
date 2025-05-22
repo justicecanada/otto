@@ -20,7 +20,11 @@ from otto.utils.decorators import app_access_required, budget_required
 
 from .forms import LawSearchForm
 from .models import Law
-from .prompts import qa_prompt_instruction_tmpl, system_prompt
+from .prompts import (
+    default_additional_instructions,
+    qa_prompt_instruction_tmpl,
+    system_prompt_tmpl,
+)
 from .utils import (
     get_law_url,
     get_other_lang_node,
@@ -31,7 +35,7 @@ from .utils import (
 )
 
 TEXT_QA_SYSTEM_PROMPT = ChatMessage(
-    content=system_prompt,
+    content=system_prompt_tmpl,
     role=MessageRole.SYSTEM,
 )
 TEXT_QA_PROMPT_TMPL_MSGS = [
@@ -181,14 +185,8 @@ def answer(request, query_uuid):
         response_synthesizer = llm.get_response_synthesizer(CHAT_TEXT_QA_PROMPT)
         cache.delete(f"sources_{query}")
 
-        query_suffix = (
-            "\nRespond in markdown format. "
-            "The most important words should be **bolded like this**."
-            "Answer the query directly if possible. Do not refer to sections or subsections "
-            "unnecessarily; instead, provide the answer directly."
-        )
         streaming_response = response_synthesizer.synthesize(
-            query=query + query_suffix,
+            query=query,
             nodes=sources,
         )
         generator = streaming_response.response_gen
@@ -269,11 +267,7 @@ def search(request):
             trim_redundant = True
             model = settings.DEFAULT_LAWS_MODEL
             context_tokens = 2000
-            additional_instructions = (
-                "If the context information is entirely unrelated to the provided query,"
-                "don't try to answer the question; just say "
-                "'Sorry, I cannot answer that question.'."
-            )
+            additional_instructions = default_additional_instructions
         else:
             vector_ratio = float(request.POST.get("vector_ratio", 0.8))
             top_k = int(request.POST.get("top_k", 25))
