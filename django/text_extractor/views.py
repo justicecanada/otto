@@ -205,6 +205,7 @@ def poll_tasks(request, user_request_id):
 
     # In an HTMX request, we just want the updated rows.
     if request.headers.get("HX-Request") == "true":
+        context.update({"swap": "true"})
         return render(request, "text_extractor/completed_documents.html", context)
 
     # Otherwise, render the whole page with the updated rows.

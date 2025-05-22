@@ -82,6 +82,11 @@
       hx-trigger="load delay:1s"
       hx-swap="innerHTML"
       hx-target="#completed_documents_body"></tr>
+  {% if swap %}
+    {% include 'text_extractor/warn_dont_leave.html' %}
+  {% endif %}
+{% elif swap %}
+  <div id="warn-dont-leave-page" hx-swap-oob="true" class="d-none"></div>
 {% endif %}
 {% if show_download_all_button %}
   <script>document.querySelector("#download-all-files").classList.remove("d-none");</script>

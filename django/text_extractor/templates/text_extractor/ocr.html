@@ -77,6 +77,11 @@
           <div>
             {# "Completed documents" also includes in-progress now that we're using celery #}
             <h3 class="h4 mb-3">{% trans "Output documents" %}</h3>
+            {% if poll_url %}
+              {% include 'text_extractor/warn_dont_leave.html' %}
+            {% else %}
+              <div id="warn-dont-leave-page" class="d-none"></div>
+            {% endif %}
             <table class="table">
               <thead>
                 <tr>

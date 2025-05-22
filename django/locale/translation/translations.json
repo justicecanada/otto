@@ -3319,9 +3319,9 @@
         "fr": "",
         "fr_auto": "Otto n’a pas d’accès à Internet, donc ses connaissances générales ne sont pas nécessairement à jour."
     },
-    "Otto may not be used to automate decision-making that affects the rights, privileges or interests of individuals, or to automate steps needed to make decisions.": {
+    "Otto may not be used to automate decision-making that affects the rights, privileges or interests of individuals, or to automate steps needed to make decisions. Otto should also not be used to assist decision-makers as it has not been designed for this purpose.": {
         "fr": "",
-        "fr_auto": "Otto ne peut pas être utilisé pour automatiser la prise de décisions qui touchent les droits, les privilèges ou les intérêts des personnes, ni pour automatiser les étapes nécessaires à la prise de décisions."
+        "fr_auto": "Otto ne peut pas être utilisé pour automatiser la prise de décisions qui touchent les droits, les privilèges ou les intérêts des personnes, ni pour automatiser les étapes nécessaires à la prise de décisions. Otto ne doit pas être utilisé pour aider à la prise de décision, car il n’a pas été conçu à cette fin."
     },
     "Otto cannot process documents or data classified above the Protected B level.": {
         "fr": "",
@@ -3762,5 +3762,13 @@
     "The following document(s) already exist in the library:": {
         "fr": "",
         "fr_auto": "Les documents suivants existent déjà dans la bibliothèque :"
+    },
+    "Extraction in progress.": {
+        "fr": "",
+        "fr_auto": "Extraction en cours."
+    },
+    "Please do not leave this page.": {
+        "fr": "",
+        "fr_auto": "S’il vous plaît, ne quittez pas cette page."
     }
 }
