@@ -187,7 +187,7 @@ class LawSearchForm(forms.Form):
         label=_("Max input tokens"),
         min_value=500,
         max_value=100000,
-        initial=4000,
+        initial=5000,
         widget=forms.NumberInput(attrs={"class": "form-control", "step": 500}),
     )
     additional_instructions = forms.CharField(
