@@ -98,6 +98,7 @@ class LawManager(models.Manager):
             if fr_hash_changed or force_update:
                 nodes.append(document_fr)
                 nodes.extend(nodes_fr)
+            nodes = [n for n in nodes if n.text]
             batch_size = 16
             logger.debug(
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
