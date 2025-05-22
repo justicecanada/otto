@@ -3770,5 +3770,9 @@
     "Please do not leave this page.": {
         "fr": "",
         "fr_auto": "S’il vous plaît, ne quittez pas cette page."
+    },
+    "Maximum 2000 files / 300mb total / 10MB each pdf file": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total / 10 Mo chaque fichier pdf"
     }
 }
