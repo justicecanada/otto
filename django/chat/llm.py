@@ -47,16 +47,15 @@ class ModelEventHandler(BaseEventHandler):
             messages_str = "\n".join([str(x) for x in event.messages])
             print(f"LLM Input Messages length: {len(messages_str)}")
             print(f"LLM Response: {str(event.response.message)}")
-        elif isinstance(event, LLMPredictStartEvent):
-            print(event.dict())
         elif isinstance(event, LLMChatStartEvent):
             print(event.dict())
         elif isinstance(event, EmbeddingEndEvent):
             print(f"Embedding {len(event.chunks)} text chunks")
 
 
-root_dispatcher = get_dispatcher()
-root_dispatcher.add_event_handler(ModelEventHandler())
+if settings.DEBUG:
+    root_dispatcher = get_dispatcher()
+    root_dispatcher.add_event_handler(ModelEventHandler())
 
 
 class OttoVectorStore(PGVectorStore):

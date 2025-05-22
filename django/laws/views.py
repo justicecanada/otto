@@ -114,6 +114,8 @@ def answer(request, query_uuid):
         )
 
     additional_instructions = query_info["additional_instructions"]
+    # unquote_plus the instructions so they can be passed to the LLM
+    additional_instructions = urllib.parse.unquote_plus(additional_instructions)
     CHAT_TEXT_QA_PROMPT = ChatPromptTemplate(
         message_templates=TEXT_QA_PROMPT_TMPL_MSGS
     ).partial_format(additional_instructions=additional_instructions)
@@ -266,7 +268,9 @@ def search(request):
             trim_redundant = True
             model = settings.DEFAULT_LAWS_MODEL
             context_tokens = 5000
-            additional_instructions = default_additional_instructions
+            # Cast to string evaluates the lazy translation
+            additional_instructions = str(default_additional_instructions)
+            additional_instructions = urllib.parse.quote_plus(additional_instructions)
         else:
             vector_ratio = float(request.POST.get("vector_ratio", 0.8))
             top_k = int(request.POST.get("top_k", 25))

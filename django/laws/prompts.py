@@ -22,7 +22,7 @@ qa_prompt_instruction_tmpl = (
     "{additional_instructions}\n"
     "Given the context information and not prior knowledge, "
     "answer the query below.\n"
-    "</instruction>"
+    "</instruction>\n"
     "<query>\n"
     "{query_str}\n"
     "</query>"
@@ -33,7 +33,8 @@ default_additional_instructions = _(
 
 Use markdown formatting (headings, LaTeX math, tables, etc) as necessary including the liberal use of bold.
 
-Cite sources inline, directly after a sentence that makes a claim based on the context. e.g. "Murder is a crime (*Criminal Code*, s 3(2)".
+Cite sources inline, directly after a sentence that makes a claim using the exact title of the source. Do NOT add a link.
+For example: "Murder is a crime (My Example Act, Section 3(2)".
 
 If there are multiple answers depending on contextual factors, detail each scenario."""
 )
