@@ -3755,6 +3755,10 @@
         "fr": "Réinitialiser les filtres",
         "fr_auto": "Effacer les filtres"
     },
+    "Maximum 2000 files / 300mb total / 10mB each pdf file": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total / 10 Mo chaque fichier pdf"
+    },
     "The following document(s) already exist in the library:": {
         "fr": "",
         "fr_auto": "Les documents suivants existent déjà dans la bibliothèque :"
@@ -3766,5 +3770,13 @@
     "Please do not leave this page.": {
         "fr": "",
         "fr_auto": "S’il vous plaît, ne quittez pas cette page."
+    },
+    "Maximum 2000 files / 300mb total / 10MB each pdf file": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total / 10 Mo chaque fichier pdf"
+    },
+    "Maximum 2000 files / 300MB total / 10MB each PDF file": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total / 10 Mo chaque fichier PDF"
     }
 }

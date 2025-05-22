@@ -29,7 +29,7 @@
               onsubmit="document.getElementById('submit').disabled = true;">
           {% csrf_token %}
           <h3 class="h4" id="upload-label">{% trans "Upload scanned PDFs or images" %}</h3>
-          <p class="text-secondary mb-4">{% trans "Maximum 2000 files / 300mb total" %}</p>
+          <p class="text-secondary mb-4">{% trans "Maximum 2000 files / 300MB total / 10MB each PDF file" %}</p>
           <div class="mb-4">
             <input class="form-control"
                    id="file-upload-field"
