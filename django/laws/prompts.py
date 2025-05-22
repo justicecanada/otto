@@ -33,8 +33,9 @@ default_additional_instructions = _(
 
 Use markdown formatting (headings, LaTeX math, tables, etc) as necessary including the liberal use of bold.
 
-Cite sources inline, directly after a sentence that makes a claim using the exact title of the source. Do NOT add a link.
-For example: "Murder is a crime (My Example Act, Section 3(2)".
+Cite sources inline, DIRECTLY after a sentence that makes a claim using the exact title of the section, as an anchor link to the section_id.
+
+For example: "Murder is a crime [My Example Act, Section 3(2)](#SOR-2020-123_eng_subsection_3(2)). First degree murder requires premeditation [My Example Act, Section 1](#SOR-2020-123_eng_section_1).".
 
 If there are multiple answers depending on contextual factors, detail each scenario."""
 )

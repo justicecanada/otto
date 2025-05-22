@@ -148,19 +148,32 @@ function render_markdown(element) {
   }
 }
 
+function update_anchor_links() {
+  // Within the answer, find all anchor links. HTML escape the href apart from the #
+  // and set the href to the escaped value
+  const anchors = document.querySelectorAll("#answer a[href^='#']");
+  anchors.forEach(anchor => {
+    const href = anchor.getAttribute("href").replace("(", "%28").replace(")", "%29");
+    anchor.setAttribute("href", href);
+  });
+}
+
 // When streaming response is updated
 document.addEventListener("htmx:sseMessage", function (event) {
   if (!(event.target.id === "answer-sse")) return;
   render_markdown(event.target);
+  update_anchor_links();
 });
 
 // When streaming response is finished
 document.addEventListener("htmx:oobAfterSwap", function (event) {
   if (!(event.target.id === "answer-sse")) return;
   render_markdown(event.target);
+  update_anchor_links();
 });
 // When page loaded with existing answer
 document.addEventListener("DOMContentLoaded", function () {
   const answer = document.querySelector("#answer");
   if (answer) render_markdown(answer);
+  update_anchor_links();
 });

@@ -164,23 +164,27 @@ def section_to_nodes(section, chunk_size=1024, chunk_overlap=100):
         "external_refs": section["external_refs"],
         "node_type": "chunk",
     }
-    exclude_keys = list(metadata.keys()) + ["chunk"]
+    exclude_embed_keys = list(metadata.keys()) + ["chunk"]
+    exclude_llm_keys = exclude_embed_keys.copy()
+    exclude_llm_keys.remove("section_id")
     metadata["display_metadata"] = (
         f'{metadata["file_id"]}, {metadata["section"]}\n' f'{metadata["headings"]}'
     )
     original_display_metadata = metadata["display_metadata"]
+    original_section_id = metadata["section_id"]
     for i, chunk in enumerate(chunks):
         metadata["chunk"] = f"{i+1}/{len(chunks)}"
         if len(chunks) > 1:
             metadata["display_metadata"] = (
                 f'{original_display_metadata} ({metadata["chunk"]})'
             )
+            metadata["section_id"] = f"{original_section_id}_{i+1}"
         nodes.append(
             TextNode(
                 text=chunk,
                 metadata=metadata,
-                excluded_llm_metadata_keys=exclude_keys,
-                excluded_embed_metadata_keys=exclude_keys,
+                excluded_llm_metadata_keys=exclude_llm_keys,
+                excluded_embed_metadata_keys=exclude_embed_keys,
                 metadata_template="{value}",
                 text_template="{metadata_str}\n---\n{content}",
             )
@@ -742,33 +746,33 @@ class Command(BaseCommand):
         else:
             # Subset of legislation, for testing
             law_ids = [
-                "A-0.6",  # Accessible Canada Act
-                "SOR-2021-241",  # Accessible Canada Regulations
-                "A-2",  # Aeronautics Act
-                "B-9.01",  # Broadcasting Act
-                "SOR-97-555",  # Broadcasting Distribution Regulations
-                "SOR-96-433",  # Canadian Aviation Regulations
-                "SOR-2011-318",  # Canadian Aviation Security Regulations, 2012
-                "C-15.1",  # Canadian Energy Regulator Act
-                "C-15.31",  # Canadian Environmental Protection Act, 1999
+                # "A-0.6",  # Accessible Canada Act
+                # "SOR-2021-241",  # Accessible Canada Regulations
+                # "A-2",  # Aeronautics Act
+                # "B-9.01",  # Broadcasting Act
+                # "SOR-97-555",  # Broadcasting Distribution Regulations
+                # "SOR-96-433",  # Canadian Aviation Regulations
+                # "SOR-2011-318",  # Canadian Aviation Security Regulations, 2012
+                # "C-15.1",  # Canadian Energy Regulator Act
+                # "C-15.31",  # Canadian Environmental Protection Act, 1999
                 "C-24.5",  # Cannabis Act
                 "SOR-2018-144",  # Cannabis Regulations
-                "C-46",  # Criminal Code
-                "SOR-2021-25",  # Cross-border Movement of Hazardous Waste and Hazardous Recyclable Material Regulations
-                "F-14",  # Fisheries Act
-                "SOR-93-53",  # Fishery (General) Regulations
-                "C.R.C.,_c._870",  # Food and Drug Regulations
-                "F-27",  # Food and Drugs Act
-                "I-2.5",  # Immigration and Refugee Protection Act
-                "SOR-2002-227",  # Immigration and Refugee Protection Regulations
-                "I-21",  # Interpretation Act
-                "SOR-2016-151",  # Multi-Sector Air Pollutants Regulations
-                "SOR-2010-189",  # Renewable Fuels Regulations
-                "S-22",  # Statutory Instruments Act
-                "C.R.C.,_c._1509",  # Statutory Instruments Regulations
-                "A-1",  # Access to Information Act
-                "F-11",  # Financial Administration Act
-                "N-22",  # Canadian Navigable Waters Act
+                # "C-46",  # Criminal Code
+                # "SOR-2021-25",  # Cross-border Movement of Hazardous Waste and Hazardous Recyclable Material Regulations
+                # "F-14",  # Fisheries Act
+                # "SOR-93-53",  # Fishery (General) Regulations
+                # "C.R.C.,_c._870",  # Food and Drug Regulations
+                # "F-27",  # Food and Drugs Act
+                # "I-2.5",  # Immigration and Refugee Protection Act
+                # "SOR-2002-227",  # Immigration and Refugee Protection Regulations
+                # "I-21",  # Interpretation Act
+                # "SOR-2016-151",  # Multi-Sector Air Pollutants Regulations
+                # "SOR-2010-189",  # Renewable Fuels Regulations
+                # "S-22",  # Statutory Instruments Act
+                # "C.R.C.,_c._1509",  # Statutory Instruments Regulations
+                # "A-1",  # Access to Information Act
+                # "F-11",  # Financial Administration Act
+                # "N-22",  # Canadian Navigable Waters Act
             ]
 
         file_path_tuples = _get_en_fr_law_file_paths(laws_root, law_ids)
