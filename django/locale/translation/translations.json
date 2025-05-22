@@ -3774,5 +3774,9 @@
     "Maximum 2000 files / 300mb total / 10MB each pdf file": {
         "fr": "",
         "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total / 10 Mo chaque fichier pdf"
+    },
+    "Maximum 2000 files / 300MB total / 10MB each PDF file": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total / 10 Mo chaque fichier PDF"
     }
 }
