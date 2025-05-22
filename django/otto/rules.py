@@ -124,6 +124,11 @@ def can_edit_preset_sharing(user, preset):
     return can_edit_preset(user, preset)
 
 
+@predicate
+def can_upload_large_files(user):
+    return is_admin(user) or is_data_steward(user)
+
+
 add_perm("chat.access_chat", can_access_chat)
 add_perm("chat.access_message", can_access_message)
 add_perm("chat.access_file", can_access_file)
@@ -131,6 +136,7 @@ add_perm("chat.access_preset", can_access_preset)
 add_perm("chat.edit_preset", can_edit_preset)
 add_perm("chat.delete_preset", can_delete_preset)
 add_perm("chat.edit_preset_sharing", can_edit_preset_sharing)
+add_perm("chat.upload_large_files", can_upload_large_files)
 
 
 # Librarian
