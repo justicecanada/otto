@@ -72,32 +72,32 @@ llms = {
     "groq-llama-4-scout": {
         "description": _("Llama 4 Scout (Groq, blazing fast)"),
         "model": "litellm_proxy/groq-llama-4-scout",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 16384,  # No actual limit; recommended setting
+        "max_tokens_in": 131072,
+        "max_tokens_out": 8192,
     },
     "groq-llama-4-maverick": {
         "description": _("Llama 4 Maverick (Groq, blazing fast)"),
         "model": "litellm_proxy/groq-llama-4-maverick",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 16384,
+        "max_tokens_in": 131072,
+        "max_tokens_out": 8192,
     },
     "groq-QwQ-32B": {
-        "description": _("QwQ-32B (Groq, quality reasoning)"),
+        "description": _("QwQ-32B (Groq, reasoning, long context)"),
         "model": "litellm_proxy/groq-QwQ-32B",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 16384,
+        "max_tokens_in": 131072,
+        "max_tokens_out": 131072,
     },
     "fireworks-Qwen3-235B": {
         "description": _("Qwen3 235B (Fireworks, 2nd best overall)"),
         "model": "litellm_proxy/fireworks-Qwen3-235B",
-        "max_tokens_in": 125000,
-        "max_tokens_out": 16000,
+        "max_tokens_in": 128000,
+        "max_tokens_out": 128000,
     },
     "fireworks-Qwen3-30B": {
         "description": _("Qwen3 30B-A3B (Fireworks, best small model)"),
         "model": "litellm_proxy/fireworks-Qwen3-30B",
         "max_tokens_in": 39000,
-        "max_tokens_out": 5000,
+        "max_tokens_out": 39000,
     },
     "gemini-2.5-flash": {
         "description": _("Gemini 2.5 Flash (Google, value, long context)"),
@@ -114,14 +114,14 @@ llms = {
     "cerebras-llama-4-scout": {
         "description": _("Llama 4 Scout (Cerebras, instant, long context)"),
         "model": "litellm_proxy/cerebras-llama-4-scout",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 16384,
+        "max_tokens_in": 32000,
+        "max_tokens_out": 32000,
     },
     "cerebras-qwen-3-32b": {
         "description": _("Qwen3 32B (Cerebras, instant, strong reasoning)"),
         "model": "litellm_proxy/cerebras-qwen-3-32b",
         "max_tokens_in": 32768,
-        "max_tokens_out": 16384,
+        "max_tokens_out": 32768,
     },
 }
 
