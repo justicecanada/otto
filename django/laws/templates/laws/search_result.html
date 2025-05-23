@@ -1,84 +1,97 @@
 {% load i18n %}
 
 <h3 class="h6 mb-3 mx-3">{% trans "Results for &quot;" %}{{ query }}{% trans "&quot;" %}</h3>
-{% if not disable_llm %}
-  <div class="card mb-5 blockquote border-success" id="answer-container">
-    <div class="card-body pb-1">
-      <h3 class="h6 mb-2 text-success">{% trans "AI-generated answer &mdash; may contain inaccuracies" %}</h3>
-      <div id="answer">
-        {% if answer %}
-          {{ answer|safe }}
-        {% else %}
-          <div hx-ext="sse"
-               sse-connect="{% url 'laws:answer' query_uuid %}"
-               sse-swap="message"
-               id="answer-sse">
-            <!-- djlint:off -->
-            <!-- djlint:on -->
-            {% comment %} Spans below require to make CSS "typing dots" bounce {% endcomment %}
-            <p>&nbsp;</p>
-            <div class="typing">
-              <span></span><span></span><span></span>
-            </div>
+<div class="row">
+  {% if not disable_llm %}
+    <div class="col-md-4 pe-0">
+      <div class="card mb-5 border-success" id="answer-container">
+        <div class="card-body pb-1">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="h6 text-success mb-0">{% trans "AI-generated answer &mdash; may contain inaccuracies" %}</h3>
+            <button type="button"
+                    class="btn-close"
+                    aria-label="{% trans 'Close' %}"
+                    onclick="document.getElementById('answer-container').parentElement.classList.add('d-none')">
+            </button>
           </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-{% endif %}
-{% if error %}
-  <div class="alert alert-danger">
-    <p>{% trans "Error getting search results:" %}</p>
-    <p>{{ error }}</p>
-  </div>
-{% elif not sources|length %}
-  <div class="alert alert-warning">
-    {% trans "No sources found. Please modify the search options or use basic search." %}
-  </div>
-{% else %}
-  <div id="sources-container" class="row">
-    <div class="col">
-      {% for source in sources %}
-        <!-- Bootstrap card -->
-        <div class="card source mb-2" id="{{ source.node_id }}">
-          <div class="card-body pb-1">
-            <div class="row">
-              <div class="col">
-                <h4 class="h5 card-title">
-                  {{ source.title }}
-                  {% if source.chunk %}
-                    ({% trans "Part" %} {{ source.chunk }})
-                  {% endif %}
-                </h4>
-                {% if source.headings %}
-                  <p class="h6 card-subtitle mb-2 text-muted fw-normal">
-                    <em>{{ source.headings }}</em>
-                  </p>
-                {% endif %}
+          <div id="answer">
+            {% if answer %}
+              {{ answer|safe }}
+            {% else %}
+              <div hx-ext="sse"
+                   sse-connect="{% url 'laws:answer' query_uuid %}"
+                   sse-swap="message"
+                   id="answer-sse">
+                <!-- djlint:off -->
+                <!-- djlint:on -->
+                {% comment %} Spans below require to make CSS "typing dots" bounce {% endcomment %}
+                <p>&nbsp;</p>
+                <div class="typing">
+                  <span></span><span></span><span></span>
+                </div>
               </div>
-              <div class="col-auto">
-                <button class="btn btn-link text-decoration-none text-body px-2"
-                        onclick="showSourceDetails(this);"
-                        hx-get="{% url 'laws:source' source.node_id %}"
-                        hx-target="#source-details-inner"
-                        hx-indicator="#source-details-spinner">
-                  <i class="bi bi-three-dots-vertical"></i>
-                  <span class="visually-hidden">{% trans "Details" %}</span>
-                </button>
-              </div>
-            </div>
-            <div class="card-text">{{ source.html|safe }}</div>
+            {% endif %}
           </div>
         </div>
-      {% endfor %}
-    </div>
-    <div id="source-details" class="col-sm-6 d-none">
-      <div id="source-details-spinner"
-           class="spinner container text-primary px-4 pt-3">
-        <span class="spinner-border" aria-hidden="true"></span>
-        <span class="visually-hidden" role="status">Loading...</span>
       </div>
-      <div id="source-details-inner"></div>
     </div>
+  {% endif %}
+  <div class="col">
+    {% if error %}
+      <div class="alert alert-danger">
+        <p>{% trans "Error getting search results:" %}</p>
+        <p>{{ error }}</p>
+      </div>
+    {% elif not sources|length %}
+      <div class="alert alert-warning">
+        {% trans "No sources found. Please modify the search options or use basic search." %}
+      </div>
+    {% else %}
+      <div id="sources-container" class="row">
+        <div class="col">
+          {% for source in sources %}
+            <!-- Bootstrap card -->
+            <div class="card source mb-2" id="{{ source.node_id }}">
+              <div class="card-body pb-1">
+                <div class="row">
+                  <div class="col">
+                    <h4 class="h5 card-title">
+                      {{ source.title }}
+                      {% if source.chunk %}
+                        ({% trans "Part" %} {{ source.chunk }})
+                      {% endif %}
+                    </h4>
+                    {% if source.headings %}
+                      <p class="h6 card-subtitle mb-2 text-muted fw-normal">
+                        <em>{{ source.headings }}</em>
+                      </p>
+                    {% endif %}
+                  </div>
+                  <div class="col-auto">
+                    <button class="btn btn-link text-decoration-none text-body px-2"
+                            onclick="showSourceDetails(this);"
+                            hx-get="{% url 'laws:source' source.node_id %}"
+                            hx-target="#source-details-inner"
+                            hx-indicator="#source-details-spinner">
+                      <i class="bi bi-three-dots-vertical"></i>
+                      <span class="visually-hidden">{% trans "Details" %}</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="card-text">{{ source.html|safe }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div id="source-details" class="col-sm-6 d-none ps-0">
+          <div id="source-details-spinner"
+               class="spinner container text-primary px-4 pt-3">
+            <span class="spinner-border" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status">Loading...</span>
+          </div>
+          <div id="source-details-inner"></div>
+        </div>
+      </div>
+    {% endif %}
   </div>
-{% endif %}
+</div>

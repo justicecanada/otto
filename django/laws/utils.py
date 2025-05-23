@@ -82,6 +82,9 @@ def format_llm_string(llm_string, wrap_sse=True):
             llm_string = llm_string[:-2]
         else:
             llm_string += "**"
+    # Fix broken links e.g. [Cannabis Regulations, Section 148] (#SOR-2018-144_eng_section_148)
+    # (Remove space before the link)
+    llm_string = llm_string.replace("] (", "](")
     if wrap_sse:
         return f"data: <div>{wrap_llm_response(llm_string)}</div>\n\n"
     return wrap_llm_response(llm_string)

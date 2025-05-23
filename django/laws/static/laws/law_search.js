@@ -134,6 +134,7 @@ md.use(katexPlugin);
 function render_markdown(element) {
   // Render markdown in the element
   const markdown_text = element.querySelector(".markdown-text");
+  console.log(markdown_text.innerHTML);
   if (markdown_text) {
     let to_parse = markdown_text.dataset.md;
     try {
@@ -155,6 +156,20 @@ function update_anchor_links() {
   anchors.forEach(anchor => {
     const href = anchor.getAttribute("href").replace("(", "%28").replace(")", "%29");
     anchor.setAttribute("href", href);
+    // Override the default behaviour of anchor links. Scroll to the element with the id
+    // of the href
+    anchor.addEventListener("click", function (e) {
+      e.preventDefault();
+      const targetId = href.substring(1);
+      const targetElement = document.getElementById(targetId);
+      if (targetElement) {
+        const y = targetElement.getBoundingClientRect().top + window.pageYOffset - 20;
+        window.scrollTo({top: y, behavior: "smooth"});
+      }
+      // Remove the border from all other elements
+      document.querySelectorAll("div.source").forEach(el => {el.classList.remove("border-4");});
+      targetElement.classList.add("border-4");
+    });
   });
 }
 
