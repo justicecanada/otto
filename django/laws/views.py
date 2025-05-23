@@ -469,7 +469,7 @@ def search(request):
 def sources_to_html(sources):
     return [
         {
-            "node_id": urllib.parse.quote_plus(s.node.node_id),
+            "node_id": urllib.parse.quote_plus(s.node.node_id).replace("+", "-"),
             "title": s.node.metadata["display_metadata"].split("\n")[0],
             "chunk": (
                 s.node.metadata["chunk"]

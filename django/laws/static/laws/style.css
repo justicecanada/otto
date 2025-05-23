@@ -151,6 +151,7 @@ button#basic-search-button {
 #source-details-inner .card-body {
   overflow-y: auto;
   max-height: calc(100vh - 4.5rem);
+  -ms-overflow-style: none;
 }
 
 #source-details-inner dt {
@@ -160,4 +161,19 @@ button#basic-search-button {
 
 #answer ul {
   margin-bottom: 1.25rem;
+}
+
+#answer-container {
+  position: sticky;
+  top: 1rem;
+}
+
+#answer-container .card-body {
+  overflow-y: auto;
+  max-height: calc(100vh - 2rem);
+}
+
+div.source.highlight {
+  box-shadow: 0 0 0 4px #f1dda2 inset;
+  border-color: transparent;
 }

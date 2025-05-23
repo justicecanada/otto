@@ -88,15 +88,22 @@ function showSourceDetails(button) {
   const details = document.getElementById('source-details');
   details.querySelector("#source-details-inner").innerHTML = '';
   document.querySelectorAll("#sources-container .card").forEach(card => {
-    card.classList.remove("border-4");
+    card.classList.remove("highlight");
   });
   if (button === null) {
     details.classList.add('d-none');
     return;
   }
   const card = button.closest('.card');
-  card.classList.add("border-4");
+  card.classList.add("highlight");
   details.classList.remove('d-none');
+  scrollToSource(card);
+}
+
+function scrollToSource(targetElement) {
+  // Scroll to the element with the id of the href, leaving appropriate space
+  const y = targetElement.getBoundingClientRect().top + window.pageYOffset - 16;
+  window.scrollTo({top: y, behavior: "smooth"});
 }
 
 function findSimilar(el) {
@@ -154,7 +161,7 @@ function update_anchor_links() {
   // and set the href to the escaped value
   const anchors = document.querySelectorAll("#answer a[href^='#']");
   anchors.forEach(anchor => {
-    const href = anchor.getAttribute("href").replace("(", "%28").replace(")", "%29");
+    const href = anchor.getAttribute("href").replace("(", "%28").replace(")", "%29").replace("*", "%2A");
     anchor.setAttribute("href", href);
     // Override the default behaviour of anchor links. Scroll to the element with the id
     // of the href
@@ -163,12 +170,11 @@ function update_anchor_links() {
       const targetId = href.substring(1);
       const targetElement = document.getElementById(targetId);
       if (targetElement) {
-        const y = targetElement.getBoundingClientRect().top + window.pageYOffset - 20;
-        window.scrollTo({top: y, behavior: "smooth"});
+        // Collapse details and remove the border from all other elements
+        showSourceDetails(null);
+        targetElement.classList.add("highlight");
+        scrollToSource(targetElement);
       }
-      // Remove the border from all other elements
-      document.querySelectorAll("div.source").forEach(el => {el.classList.remove("border-4");});
-      targetElement.classList.add("border-4");
     });
   });
 }
