@@ -251,6 +251,7 @@ def search(request):
         disable_llm = not (request.POST.get("ai_answer", False) == "on")
         detect_lang = not (request.POST.get("bilingual_results", None) == "on")
         selected_laws = Law.objects.all()
+        trim_redundant = False
 
         logger.info(
             "Law search query",
@@ -265,7 +266,6 @@ def search(request):
             vector_ratio = 0.8
             top_k = 25
             # Options for the AI answer
-            trim_redundant = True
             model = settings.DEFAULT_LAWS_MODEL
             context_tokens = 5000
             # Cast to string evaluates the lazy translation
@@ -274,7 +274,7 @@ def search(request):
         else:
             vector_ratio = float(request.POST.get("vector_ratio", 0.8))
             top_k = int(request.POST.get("top_k", 25))
-            trim_redundant = request.POST.get("trim_redundant", "on") == "on"
+            # trim_redundant = request.POST.get("trim_redundant", "on") == "on"
             model = request.POST.get("model", settings.DEFAULT_LAWS_MODEL)
             context_tokens = int(request.POST.get("context_tokens", 5000))
             additional_instructions = request.POST.get("additional_instructions", "")

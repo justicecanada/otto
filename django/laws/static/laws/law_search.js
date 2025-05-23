@@ -141,7 +141,6 @@ md.use(katexPlugin);
 function render_markdown(element) {
   // Render markdown in the element
   const markdown_text = element.querySelector(".markdown-text");
-  console.log(markdown_text.innerHTML);
   if (markdown_text) {
     let to_parse = markdown_text.dataset.md;
     try {
@@ -161,7 +160,7 @@ function update_anchor_links() {
   // and set the href to the escaped value
   const anchors = document.querySelectorAll("#answer a[href^='#']");
   anchors.forEach(anchor => {
-    const href = anchor.getAttribute("href").replace("(", "%28").replace(")", "%29").replace("*", "%2A");
+    const href = anchor.getAttribute("href").replace("(", "%28").replace(")", "%29").replace("*", "%2A").replace(",", "%2C").replace(" ", "%20");
     anchor.setAttribute("href", href);
     // Override the default behaviour of anchor links. Scroll to the element with the id
     // of the href

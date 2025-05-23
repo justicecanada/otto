@@ -199,3 +199,16 @@ div.source.highlight {
   box-shadow: 0 0 0 4px #f1dda2 inset;
   border-color: transparent;
 }
+
+#answer a {
+  /* Smaller text, surround in square brackets */
+  font-size: 0.875rem;
+
+  &::after {
+    content: ")";
+  }
+
+  &::before {
+    content: "(";
+  }
+}
