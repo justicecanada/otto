@@ -3774,5 +3774,17 @@
     "Maximum 2000 files / 300MB total / 10MB each PDF file": {
         "fr": "",
         "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total / 10 Mo chaque fichier PDF"
+    },
+    "If the context information is entirely unrelated to the provided query, don't try to answer the question; just say 'Sorry, I cannot answer that question.'.\n\nUse markdown formatting (headings, LaTeX math, tables, etc) as necessary including the liberal use of bold.\n\nCite sources inline, DIRECTLY after a sentence that makes a claim using the exact title of the section, as an anchor link to the section_id.\n\nFor example: \"Murder is a crime [My Example Act, Section 3(2)](#SOR-2020-123_eng_subsection_3(2)). First degree murder requires premeditation [My Example Act, Section 1](#SOR-2020-123_eng_section_1).\".\n\nIf there are multiple answers depending on contextual factors, detail each scenario.": {
+        "fr": "",
+        "fr_auto": "Si l’information contextuelle n’est pas du tout liée à la requête fournie, n’essayez pas de répondre à la question; dites simplement « Désolé, je ne peux pas répondre à cette question ».\n\nUtilisez le formatage de la démarque (titres, mathématiques LaTeX, tableaux, etc.) au besoin, y compris l’utilisation libérale du gras.\n\nCitez les sources en ligne, DIRECTEMENT après une phrase qui fait une affirmation en utilisant le titre exact de la section, comme lien d’ancrage vers le section_id.\n\nPar exemple : « Le meurtre est un crime [Loi sur mon exemple, paragraphe 3(2)](#SOR-2020-123_eng_subsection_3(2)). Le meurtre au premier degré nécessite une préméditation [Mon exemple de loi, article 1] (#SOR-2020-123_eng_section_1).\n\nS’il y a plusieurs réponses en fonction de facteurs contextuels, détaillez chaque scénario."
+    },
+    "Show AI answer": {
+        "fr": "",
+        "fr_auto": "Afficher la réponse de l’IA"
+    },
+    "Back to top": {
+        "fr": "",
+        "fr_auto": "Retour en haut de la page"
     }
 }
