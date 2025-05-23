@@ -1,9 +1,21 @@
 {% load i18n %}
 
-<h3 class="h5 mb-4 mx-3" style="font-style:italic;">{{ query }}</h3>
+<div class="row">
+  <div class="col">
+    <h3 class="h5 mb-4 mx-3" style="font-style:italic;">{{ query }}</h3>
+  </div>
+  <div class="col-auto d-none" id="show-answer-button">
+    <button class="btn btn-link text-decoration-none text-body px-2"
+            type="button"
+            onclick="showAnswer();">
+      <i class="bi bi-eye"></i>
+      {% trans "Show AI answer" %}
+    </button>
+  </div>
+</div>
 <div class="row">
   {% if not disable_llm %}
-    <div class="col-md-4 pe-0">
+    <div class="col-md-4 pe-0" id="answer-column">
       <div class="card mb-5 border-success" id="answer-container">
         <div class="card-header bg-transparent border-0">
           <div class="d-flex justify-content-between align-items-center py-1">
@@ -11,8 +23,7 @@
             <button type="button"
                     class="btn-close"
                     aria-label="{% trans 'Close' %}"
-                    onclick="document.getElementById('answer-container').parentElement.classList.add('d-none')">
-            </button>
+                    onclick="hideAnswer();"></button>
           </div>
         </div>
         <div class="card-body pb-1 pt-0">

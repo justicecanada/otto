@@ -198,3 +198,18 @@ document.addEventListener("DOMContentLoaded", function () {
   if (answer) render_markdown(answer);
   update_anchor_links();
 });
+
+function toggleAnswer(show) {
+  const answer = document.querySelector("#answer-column");
+  const showBtn = document.querySelector("#show-answer-button");
+  if (answer) answer.classList.toggle("d-none", !show);
+  if (showBtn) showBtn.classList.toggle("d-none", show);
+}
+
+function hideAnswer() {
+  toggleAnswer(false);
+}
+
+function showAnswer() {
+  toggleAnswer(true);
+}
