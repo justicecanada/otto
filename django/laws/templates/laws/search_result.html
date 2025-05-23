@@ -5,8 +5,8 @@
   {% if not disable_llm %}
     <div class="col-md-4 pe-0">
       <div class="card mb-5 border-success" id="answer-container">
-        <div class="card-body pb-1">
-          <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="card-header bg-transparent border-0">
+          <div class="d-flex justify-content-between align-items-center py-1">
             <h3 class="h6 text-success mb-0">{% trans "AI-generated answer &mdash; may contain inaccuracies" %}</h3>
             <button type="button"
                     class="btn-close"
@@ -14,6 +14,8 @@
                     onclick="document.getElementById('answer-container').parentElement.classList.add('d-none')">
             </button>
           </div>
+        </div>
+        <div class="card-body pb-1 pt-0">
           <div id="answer">
             {% if answer %}
               {{ answer|safe }}

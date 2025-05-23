@@ -142,35 +142,57 @@ button#basic-search-button {
   }
 }
 
-#source-details-inner,
-#source-details-spinner {
-  position: sticky;
-  top: 1rem;
-}
-
-#source-details-inner .card-body {
-  overflow-y: auto;
-  max-height: calc(100vh - 4.5rem);
-  -ms-overflow-style: none;
-}
 
 #source-details-inner dt {
   font-weight: normal;
   font-style: italic;
 }
 
-#answer ul {
-  margin-bottom: 1.25rem;
+#answer {
+  ul {
+    margin-bottom: 1.25rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+  }
+
+  h4 {
+    font-size: 1.2rem;
+  }
+
+  h5 {
+    font-size: 1.1rem;
+  }
+
+  h6 {
+    font-size: 1rem;
+  }
+
+  span.katex {
+    zoom: 0.9;
+  }
 }
 
+#source-details-inner,
+#source-details-spinner,
 #answer-container {
   position: sticky;
   top: 1rem;
 }
 
+#source-details-inner .card-body,
 #answer-container .card-body {
   overflow-y: auto;
-  max-height: calc(100vh - 2rem);
+  max-height: calc(100vh - 4.8rem);
 }
 
 div.source.highlight {

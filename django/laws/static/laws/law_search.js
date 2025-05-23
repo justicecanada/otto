@@ -97,13 +97,13 @@ function showSourceDetails(button) {
   const card = button.closest('.card');
   card.classList.add("highlight");
   details.classList.remove('d-none');
-  scrollToSource(card);
+  scrollToSource(card, false);
 }
 
-function scrollToSource(targetElement) {
+function scrollToSource(targetElement, smooth = true) {
   // Scroll to the element with the id of the href, leaving appropriate space
   const y = targetElement.getBoundingClientRect().top + window.pageYOffset - 16;
-  window.scrollTo({top: y, behavior: "smooth"});
+  window.scrollTo({top: y, behavior: smooth ? "smooth" : "instant"});
 }
 
 function findSimilar(el) {

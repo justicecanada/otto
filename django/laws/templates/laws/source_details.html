@@ -2,7 +2,7 @@
 
 <div class="card">
   <div class="card-header">
-    <div class="row">
+    <div class="row pt-1">
       <div class="col">
         {% trans "Details" %}{% trans ":" %}
         {{ source_node.title }}
@@ -47,7 +47,7 @@
 
     <h5 class="card-title border-bottom pb-2 h6">{% trans "Alternate language" %}</h5>
     <div class="card-text mb-3">{{ other_lang_node.html|safe }}</div>
- 
+
     <h5 class="card-title border-bottom pb-2 h6">{% trans "Source document" %}</h5>
     <div class="card-text">
       <dl class="row">
