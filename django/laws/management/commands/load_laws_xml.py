@@ -164,23 +164,27 @@ def section_to_nodes(section, chunk_size=1024, chunk_overlap=100):
         "external_refs": section["external_refs"],
         "node_type": "chunk",
     }
-    exclude_keys = list(metadata.keys()) + ["chunk"]
+    exclude_embed_keys = list(metadata.keys()) + ["chunk"]
+    exclude_llm_keys = exclude_embed_keys.copy()
+    exclude_llm_keys.remove("section_id")
     metadata["display_metadata"] = (
         f'{metadata["file_id"]}, {metadata["section"]}\n' f'{metadata["headings"]}'
     )
     original_display_metadata = metadata["display_metadata"]
+    original_section_id = metadata["section_id"]
     for i, chunk in enumerate(chunks):
         metadata["chunk"] = f"{i+1}/{len(chunks)}"
         if len(chunks) > 1:
             metadata["display_metadata"] = (
                 f'{original_display_metadata} ({metadata["chunk"]})'
             )
+            metadata["section_id"] = f"{original_section_id}_{i+1}"
         nodes.append(
             TextNode(
                 text=chunk,
                 metadata=metadata,
-                excluded_llm_metadata_keys=exclude_keys,
-                excluded_embed_metadata_keys=exclude_keys,
+                excluded_llm_metadata_keys=exclude_llm_keys,
+                excluded_embed_metadata_keys=exclude_embed_keys,
                 metadata_template="{value}",
                 text_template="{metadata_str}\n---\n{content}",
             )

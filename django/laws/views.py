@@ -20,7 +20,11 @@ from otto.utils.decorators import app_access_required, budget_required
 
 from .forms import LawSearchForm
 from .models import Law
-from .prompts import qa_prompt_instruction_tmpl, system_prompt
+from .prompts import (
+    default_additional_instructions,
+    qa_prompt_instruction_tmpl,
+    system_prompt_tmpl,
+)
 from .utils import (
     get_law_url,
     get_other_lang_node,
@@ -31,7 +35,7 @@ from .utils import (
 )
 
 TEXT_QA_SYSTEM_PROMPT = ChatMessage(
-    content=system_prompt,
+    content=system_prompt_tmpl,
     role=MessageRole.SYSTEM,
 )
 TEXT_QA_PROMPT_TMPL_MSGS = [
@@ -110,6 +114,8 @@ def answer(request, query_uuid):
         )
 
     additional_instructions = query_info["additional_instructions"]
+    # unquote_plus the instructions so they can be passed to the LLM
+    additional_instructions = urllib.parse.unquote_plus(additional_instructions)
     CHAT_TEXT_QA_PROMPT = ChatPromptTemplate(
         message_templates=TEXT_QA_PROMPT_TMPL_MSGS
     ).partial_format(additional_instructions=additional_instructions)
@@ -133,7 +139,6 @@ def answer(request, query_uuid):
             )
         added_ids = set()
 
-        # Allow up to 4000 tokens of context.
         while sources:
             source = sources.pop(0)
             if trim_redundant:
@@ -181,14 +186,8 @@ def answer(request, query_uuid):
         response_synthesizer = llm.get_response_synthesizer(CHAT_TEXT_QA_PROMPT)
         cache.delete(f"sources_{query}")
 
-        query_suffix = (
-            "\nRespond in markdown format. "
-            "The most important words should be **bolded like this**."
-            "Answer the query directly if possible. Do not refer to sections or subsections "
-            "unnecessarily; instead, provide the answer directly."
-        )
         streaming_response = response_synthesizer.synthesize(
-            query=query + query_suffix,
+            query=query,
             nodes=sources,
         )
         generator = streaming_response.response_gen
@@ -252,6 +251,7 @@ def search(request):
         disable_llm = not (request.POST.get("ai_answer", False) == "on")
         detect_lang = not (request.POST.get("bilingual_results", None) == "on")
         selected_laws = Law.objects.all()
+        trim_redundant = False
 
         logger.info(
             "Law search query",
@@ -266,20 +266,17 @@ def search(request):
             vector_ratio = 0.8
             top_k = 25
             # Options for the AI answer
-            trim_redundant = True
             model = settings.DEFAULT_LAWS_MODEL
-            context_tokens = 2000
-            additional_instructions = (
-                "If the context information is entirely unrelated to the provided query,"
-                "don't try to answer the question; just say "
-                "'Sorry, I cannot answer that question.'."
-            )
+            context_tokens = 5000
+            # Cast to string evaluates the lazy translation
+            additional_instructions = str(default_additional_instructions)
+            additional_instructions = urllib.parse.quote_plus(additional_instructions)
         else:
             vector_ratio = float(request.POST.get("vector_ratio", 0.8))
             top_k = int(request.POST.get("top_k", 25))
-            trim_redundant = request.POST.get("trim_redundant", "on") == "on"
+            # trim_redundant = request.POST.get("trim_redundant", "on") == "on"
             model = request.POST.get("model", settings.DEFAULT_LAWS_MODEL)
-            context_tokens = int(request.POST.get("context_tokens", 2000))
+            context_tokens = int(request.POST.get("context_tokens", 5000))
             additional_instructions = request.POST.get("additional_instructions", "")
             # Need to escape the instructions so they can be passed in GET parameter
             additional_instructions = urllib.parse.quote_plus(additional_instructions)
@@ -472,7 +469,7 @@ def search(request):
 def sources_to_html(sources):
     return [
         {
-            "node_id": urllib.parse.quote_plus(s.node.node_id),
+            "node_id": urllib.parse.quote_plus(s.node.node_id).replace("+", "-"),
             "title": s.node.metadata["display_metadata"].split("\n")[0],
             "chunk": (
                 s.node.metadata["chunk"]

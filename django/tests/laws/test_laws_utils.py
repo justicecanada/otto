@@ -72,7 +72,7 @@ async def test_htmx_sse_response():
         expected = [
             'data: <div><div class="markdown-text" data-md="&quot;Hello&quot;"></div></div>\n\n',
             'data: <div><div class="markdown-text" data-md="&quot;Hello world&quot;"></div></div>\n\n',
-            "data: <div hx-swap-oob='true' id='answer-sse'><div class=\"markdown-text\" data-md=\"&quot;Hello world&quot;\"></div><div class='mb-2 text-muted' style='font-size:0.875rem !important;'>$13.80</div></div>\n\n",
+            "data: <div hx-swap-oob='true' id='answer-sse'><div class=\"markdown-text\" data-md=\"&quot;Hello world&quot;\"></div></div><div id='answer-cost' hx-swap-oob='true'><div class='mb-2 text-muted' style='font-size:0.875rem !important;'>$13.80</div></div>\n\n",
         ]
 
         assert result == expected
