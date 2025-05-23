@@ -1,0 +1,9 @@
+{% load i18n %}
+
+<div id="warn-dont-leave-page"
+     {% if swap %}hx-swap-oob="true"{% endif %}
+     class="alert alert-info"
+     role="alert">
+  {% trans "Extraction in progress." %}
+  <span class="fw-semibold">{% trans "Please do not leave this page." %}</span>
+</div>
