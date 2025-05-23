@@ -212,3 +212,17 @@ function hideAnswer() {
 function showAnswer() {
   toggleAnswer(true);
 }
+
+// Show/hide back-to-top button on scroll
+document.addEventListener('scroll', function () {
+  const btn = document.getElementById('back-to-top');
+  if (window.scrollY > 200) {
+    btn.classList.remove('d-none');
+  } else {
+    btn.classList.add('d-none');
+  }
+});
+// Scroll to top on click
+document.getElementById('back-to-top').addEventListener('click', function () {
+  window.scrollTo({top: 0, behavior: 'smooth'});
+});
