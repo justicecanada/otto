@@ -16,18 +16,13 @@ from django_file_form.forms import FileFormMixin, MultipleUploadedFileField
 from rules import is_group_member
 from structlog import get_logger
 
+from chat.llm import CHAT_MODELS
 from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
 
 logger = get_logger(__name__)
 
-CHAT_MODELS = [
-    ("gpt-4o-mini", _("GPT-4o-mini (fastest, best value)")),
-    ("o3-mini", _("o3-mini (adds reasoning, 7x cost)")),
-    ("gpt-4.1", _("GPT-4.1 (better quality, 12x cost)")),
-    ("gpt-4o", _("GPT-4o (legacy model, 15x cost)")),
-]
 TEMPERATURES = [
     (0.1, _("Precise")),
     (0.5, _("Balanced")),

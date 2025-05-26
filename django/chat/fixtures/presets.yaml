@@ -60,9 +60,9 @@ default_en:
     qa_post_instructions: |
       Remember, under no circumstances should you reference information not explicitly included in the provided context.
       Failure to adhere to the context-only rule will result in incorrect answers. Any deviation from the context will be considered a failure to comply with the guidelines.
-    chat_model: "gpt-4o-mini"
-    qa_model: "o3-mini"
-    summarize_model: "gpt-4o-mini"
+    chat_model: "gpt-4.1-mini"
+    qa_model: "gpt-4.1-mini"
+    summarize_model: "gpt-4.1-mini"
     summarize_prompt: |
       Summarize the document above in markdown format with a nice structure for readability.
 
@@ -156,8 +156,8 @@ short_summary_fr:
   based_on: "default_fr"
   name_en: "Short summary (French)"
   name_fr: "Résumé court (français)"
-  description_en: "Summarizes documents in 3-4 sentences max with gpt-4o-mini"
-  description_fr: "Résume les documents en 3-4 phrases maximum avec gpt-4o-mini"
+  description_en: "Summarizes documents in 3-4 sentences max with gpt-4.1-mini"
+  description_fr: "Résume les documents en 3-4 phrases maximum avec gpt-4.1-mini"
   options:
     mode: "summarize"
     summarize_prompt: |

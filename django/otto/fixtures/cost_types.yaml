@@ -164,9 +164,33 @@
     short_name: gpt-4.1-out
     name: gpt-4.1 Global (output)
     name_fr: gpt-4.1 Global (sortie)
-    description: API calls to Azure OpenAI gpt-4.1Global Deployment model (output)
+    description: API calls to Azure OpenAI gpt-4.1 Global Deployment model (output)
     description_fr: Appels API au modèle de déploiement global Azure OpenAI gpt-4.1 (sortie)
     unit_name: tokens
     unit_name_fr: jetons
     unit_cost: 8
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 19
+  fields:
+    short_name: gpt-4.1-mini-in
+    name: gpt-4.1-mini Global (input)
+    name_fr: gpt-4.1-mini Global (entrée)
+    description: API calls to Azure OpenAI gpt-4.1-mini Global Deployment model (input)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI gpt-4.1-mini (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.40
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 20
+  fields:
+    short_name: gpt-4.1-mini-out
+    name: gpt-4.1-mini Global (output)
+    name_fr: gpt-4.1-mini Global (sortie)
+    description: API calls to Azure OpenAI gpt-4.1-mini Global Deployment model (output)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI gpt-4.1-mini (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 1.60
     unit_quantity: 1000000

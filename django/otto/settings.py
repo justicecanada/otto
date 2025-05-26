@@ -97,10 +97,10 @@ LOGIN_REDIRECT_URL = "/"  # Or any other endpoint
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
 
-DEFAULT_CHAT_MODEL = "gpt-4o-mini"
-DEFAULT_QA_MODEL = "o3-mini"
-DEFAULT_SUMMARIZE_MODEL = "gpt-4o-mini"
-DEFAULT_TRANSLATE_MODEL = "gpt-4o-mini"
+DEFAULT_CHAT_MODEL = "gpt-4.1-mini"
+DEFAULT_QA_MODEL = "gpt-4.1-mini"
+DEFAULT_SUMMARIZE_MODEL = "gpt-4.1-mini"
+DEFAULT_TRANSLATE_MODEL = "gpt-4.1-mini"
 DEFAULT_LAWS_MODEL = "gpt-4.1"
 
 DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
