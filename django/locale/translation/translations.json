@@ -2971,9 +2971,9 @@
         "fr": "",
         "fr_auto": "Sélectionnez le modèle d’IA"
     },
-    "When accuracy is paramount, select the more expensive GPT-4o model. (This setting is available in all modes.)": {
+    "When accuracy is paramount, select the more expensive GPT-4.1 model. (This setting is available in all modes.)": {
         "fr": "",
-        "fr_auto": "Lorsque la précision est primordiale, sélectionnez le modèle GPT-4o plus coûteux. (Ce paramètre est disponible dans tous les modes.)"
+        "fr_auto": "Lorsque la précision est primordiale, sélectionnez le modèle GPT-4.1 plus coûteux. (Ce paramètre est disponible dans tous les modes.)"
     },
     "To customize the behaviour further, you can edit advanced settings by clicking here. For example, you can change the number of top sources that the AI will read, or customize the response format": {
         "fr": "Pour personnaliser davantage le comportement du système, vous pouvez modifier les paramètres avancés en cliquant ici. Par exemple, vous pouvez modifier le nombre de sources principales que l’IA lira ou personnaliser le format de réponse",
