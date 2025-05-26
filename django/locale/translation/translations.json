@@ -3930,5 +3930,17 @@
     "Back to top": {
         "fr": "",
         "fr_auto": "Retour en haut de la page"
+    },
+    "GPT-4.1-mini (best value, 3x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini (meilleur rapport qualité-prix, coût 3x)"
+    },
+    "GPT-4.1 (best quality, 12x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (meilleure qualité, coût 12x)"
+    },
+    "GPT-4o-mini (legacy model, 1x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4o-mini (modèle hérité, coût 1x)"
     }
 }
