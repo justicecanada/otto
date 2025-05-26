@@ -23,7 +23,6 @@ from librarian.utils.process_engine import generate_hash
 
 logger = get_logger(__name__)
 
-
 TEMPERATURES = [
     (0.1, _("Precise")),
     (0.5, _("Balanced")),

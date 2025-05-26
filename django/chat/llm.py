@@ -32,99 +32,6 @@ logger = get_logger(__name__)
 
 litellm.drop_params = True
 
-llms = {
-    "gpt-4o-mini": {
-        "description": _("GPT-4o-mini (fastest, best value)"),
-        "model": "litellm_proxy/gpt-4o-mini",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 16384,
-    },
-    "o3-mini": {
-        "description": _("o3-mini (adds reasoning, 7x cost)"),
-        "model": "litellm_proxy/o3-mini",
-        "max_tokens_in": 200000,
-        "max_tokens_out": 100000,
-    },
-    "gpt-4.1": {
-        "description": _("GPT-4.1 (better quality, 12x cost)"),
-        "model": "litellm_proxy/gpt-4.1",
-        "max_tokens_in": 1047576,
-        "max_tokens_out": 32768,
-    },
-    "gpt-4o": {
-        "description": _("GPT-4o (legacy model, 15x cost)"),
-        "model": "litellm_proxy/gpt-4o",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 16384,
-    },
-    "Phi-4": {
-        "description": _("Phi-4 (small model, economical)"),
-        "model": "litellm_proxy/Phi-4",
-        "max_tokens_in": 16384,
-        "max_tokens_out": 4096,
-    },
-    "MAI-DS-R1": {
-        "description": _("MAI-DS-R1 (open source, quality reasoning)"),
-        "model": "litellm_proxy/MAI-DS-R1",
-        "max_tokens_in": 163840,
-        "max_tokens_out": 163840,
-    },
-    "groq-llama-4-scout": {
-        "description": _("Llama 4 Scout (Groq, blazing fast)"),
-        "model": "litellm_proxy/groq-llama-4-scout",
-        "max_tokens_in": 131072,
-        "max_tokens_out": 8192,
-    },
-    "groq-llama-4-maverick": {
-        "description": _("Llama 4 Maverick (Groq, blazing fast)"),
-        "model": "litellm_proxy/groq-llama-4-maverick",
-        "max_tokens_in": 131072,
-        "max_tokens_out": 8192,
-    },
-    "groq-QwQ-32B": {
-        "description": _("QwQ-32B (Groq, reasoning, long context)"),
-        "model": "litellm_proxy/groq-QwQ-32B",
-        "max_tokens_in": 131072,
-        "max_tokens_out": 131072,
-    },
-    "fireworks-Qwen3-235B": {
-        "description": _("Qwen3 235B (Fireworks, 2nd best overall)"),
-        "model": "litellm_proxy/fireworks-Qwen3-235B",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 128000,
-    },
-    "fireworks-Qwen3-30B": {
-        "description": _("Qwen3 30B-A3B (Fireworks, best small model)"),
-        "model": "litellm_proxy/fireworks-Qwen3-30B",
-        "max_tokens_in": 39000,
-        "max_tokens_out": 39000,
-    },
-    "gemini-2.5-flash": {
-        "description": _("Gemini 2.5 Flash (Google, value, long context)"),
-        "model": "litellm_proxy/gemini-2.5-flash",
-        "max_tokens_in": 1048576,
-        "max_tokens_out": 65536,
-    },
-    "gemini-2.5-pro": {
-        "description": _("Gemini 2.5 Pro (Google, best overall)"),
-        "model": "litellm_proxy/gemini-2.5-pro",
-        "max_tokens_in": 1048576,
-        "max_tokens_out": 65536,
-    },
-    "cerebras-llama-4-scout": {
-        "description": _("Llama 4 Scout (Cerebras, instant, long context)"),
-        "model": "litellm_proxy/cerebras-llama-4-scout",
-        "max_tokens_in": 32000,
-        "max_tokens_out": 32000,
-    },
-    "cerebras-qwen-3-32b": {
-        "description": _("Qwen3 32B (Cerebras, instant, strong reasoning)"),
-        "model": "litellm_proxy/cerebras-qwen-3-32b",
-        "max_tokens_in": 32768,
-        "max_tokens_out": 32768,
-    },
-}
-
 
 class ModelEventHandler(BaseEventHandler):
     @classmethod
@@ -152,6 +59,105 @@ if settings.DEBUG:
     root_dispatcher.add_event_handler(ModelEventHandler())
 
 
+llms = {
+    "gpt-4.1-mini": {
+        "description": _("GPT-4.1-mini (best value, 3x cost)"),
+        "model": "gpt-4.1-mini",
+        "max_tokens_in": 1047576,
+        "max_tokens_out": 32768,
+    },
+    "gpt-4.1": {
+        "description": _("GPT-4.1 (best quality, 12x cost)"),
+        "model": "gpt-4.1",
+        "max_tokens_in": 1047576,
+        "max_tokens_out": 32768,
+    },
+    "o3-mini": {
+        "description": _("o3-mini (adds reasoning, 7x cost)"),
+        "model": "o3-mini",
+        "max_tokens_in": 200000,
+        "max_tokens_out": 100000,
+    },
+    "gpt-4o-mini": {
+        "description": _("GPT-4o-mini (legacy model, 1x cost)"),
+        "model": "gpt-4o-mini",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 16384,
+    },
+    "gpt-4o": {
+        "description": _("GPT-4o (legacy model, 15x cost)"),
+        "model": "gpt-4o",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 16384,
+    },
+    "Phi-4": {
+        "description": _("Phi-4 (small model, economical)"),
+        "model": "Phi-4",
+        "max_tokens_in": 16384,
+        "max_tokens_out": 4096,
+    },
+    "MAI-DS-R1": {
+        "description": _("MAI-DS-R1 (open source, quality reasoning)"),
+        "model": "MAI-DS-R1",
+        "max_tokens_in": 163840,
+        "max_tokens_out": 163840,
+    },
+    "groq-llama-4-scout": {
+        "description": _("Llama 4 Scout (Groq, blazing fast)"),
+        "model": "groq-llama-4-scout",
+        "max_tokens_in": 131072,
+        "max_tokens_out": 8192,
+    },
+    "groq-llama-4-maverick": {
+        "description": _("Llama 4 Maverick (Groq, blazing fast)"),
+        "model": "groq-llama-4-maverick",
+        "max_tokens_in": 131072,
+        "max_tokens_out": 8192,
+    },
+    "groq-QwQ-32B": {
+        "description": _("QwQ-32B (Groq, reasoning, long context)"),
+        "model": "groq-QwQ-32B",
+        "max_tokens_in": 131072,
+        "max_tokens_out": 131072,
+    },
+    "fireworks-Qwen3-235B": {
+        "description": _("Qwen3 235B (Fireworks, 2nd best overall)"),
+        "model": "fireworks-Qwen3-235B",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 128000,
+    },
+    "fireworks-Qwen3-30B": {
+        "description": _("Qwen3 30B-A3B (Fireworks, best small model)"),
+        "model": "fireworks-Qwen3-30B",
+        "max_tokens_in": 39000,
+        "max_tokens_out": 39000,
+    },
+    "gemini-2.5-flash": {
+        "description": _("Gemini 2.5 Flash (Google, value, long context)"),
+        "model": "gemini-2.5-flash",
+        "max_tokens_in": 1048576,
+        "max_tokens_out": 65536,
+    },
+    "gemini-2.5-pro": {
+        "description": _("Gemini 2.5 Pro (Google, best overall)"),
+        "model": "gemini-2.5-pro",
+        "max_tokens_in": 1048576,
+        "max_tokens_out": 65536,
+    },
+    "cerebras-llama-4-scout": {
+        "description": _("Llama 4 Scout (Cerebras, instant, long context)"),
+        "model": "cerebras-llama-4-scout",
+        "max_tokens_in": 32000,
+        "max_tokens_out": 32000,
+    },
+    "cerebras-qwen-3-32b": {
+        "description": _("Qwen3 32B (Cerebras, instant, strong reasoning)"),
+        "model": "cerebras-qwen-3-32b",
+        "max_tokens_in": 32768,
+        "max_tokens_out": 32768,
+    },
+}
+
 CHAT_MODELS = [(k, v["description"]) for k, v in llms.items()]
 
 
@@ -170,7 +176,7 @@ class OttoLLM:
         if deployment not in llms:
             raise ValueError(f"Invalid deployment: {deployment}")
         self.deployment = deployment
-        self.model = llms[deployment]["model"]
+        self.model = "litellm_proxy/" + llms[deployment]["model"]
         self.temperature = temperature
         self._token_counter = TokenCountingHandler(
             tokenizer=tiktoken.get_encoding("o200k_base").encode
