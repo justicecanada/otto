@@ -58,30 +58,40 @@ if settings.DEBUG:
     root_dispatcher.add_event_handler(ModelEventHandler())
 
 
-class OttoVectorStore(PGVectorStore):
-    # Override from LlamaIndex to add retrying and connection test
-    @retry(
-        wait_exponential_multiplier=1000,
-        wait_exponential_max=20000,
-    )
-    def _connect(self):
-        from sqlalchemy import create_engine
-        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-        from sqlalchemy.orm import sessionmaker
+llms = {
+    "gpt-4.1-mini": {
+        "description": _("GPT-4.1-mini (best value, 3x cost)"),
+        "model": "gpt-4.1-mini",
+        "max_tokens_in": 1047576,
+        "max_tokens_out": 32768,
+    },
+    "gpt-4.1": {
+        "description": _("GPT-4.1 (best quality, 12x cost)"),
+        "model": "gpt-4.1",
+        "max_tokens_in": 1047576,
+        "max_tokens_out": 32768,
+    },
+    "o3-mini": {
+        "description": _("o3-mini (adds reasoning, 7x cost)"),
+        "model": "o3-mini",
+        "max_tokens_in": 200000,
+        "max_tokens_out": 100000,
+    },
+    "gpt-4o-mini": {
+        "description": _("GPT-4o-mini (legacy model, 1x cost)"),
+        "model": "gpt-4o-mini",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 16384,
+    },
+    "gpt-4o": {
+        "description": _("GPT-4o (legacy model, 15x cost)"),
+        "model": "gpt-4o",
+        "max_tokens_in": 128000,
+        "max_tokens_out": 16384,
+    },
+}
 
-        self._engine = create_engine(
-            self.connection_string, echo=self.debug, **self.create_engine_kwargs
-        )
-        self._session = sessionmaker(self._engine)
-
-        self._async_engine = create_async_engine(
-            self.async_connection_string, **self.create_engine_kwargs
-        )
-        self._async_session = sessionmaker(self._async_engine, class_=AsyncSession)  # type: ignore
-
-        # Test the connection to ensure it's established
-        with self._engine.connect() as connection:
-            connection.execute(sqlalchemy.text("SELECT 1"))
+CHAT_MODELS = [(k, v["description"]) for k, v in llms.items()]
 
 
 class OttoLLM:
@@ -90,44 +100,26 @@ class OttoLLM:
     "model" must match the name of the LLM deployment in Azure.
     """
 
-    _deployment_to_model_mapping = {
-        "gpt-4o-mini": "gpt-4o-mini",
-        "gpt-4o": "gpt-4o",
-        "o3-mini": "o3-mini",
-    }
-    _deployment_to_max_input_tokens_mapping = {
-        "gpt-4o-mini": 128000,
-        "gpt-4o": 128000,
-        "o3-mini": 200000,
-    }
-    _deployment_to_max_output_tokens_mapping = {
-        "gpt-4o-mini": 16384,
-        "gpt-4o": 16384,
-        "o3-mini": 100000,
-    }
-
     def __init__(
         self,
         deployment: str = settings.DEFAULT_CHAT_MODEL,
         temperature: float = 0.1,
         mock_embedding: bool = False,
     ):
-        if deployment not in self._deployment_to_model_mapping:
+        if deployment not in llms:
             raise ValueError(f"Invalid deployment: {deployment}")
         self.deployment = deployment
-        self.model = self._deployment_to_model_mapping[deployment]
+        self.model = llms[deployment]["model"]
         self.temperature = temperature
         self._token_counter = TokenCountingHandler(
-            tokenizer=tiktoken.encoding_for_model(self.model).encode
+            tokenizer=tiktoken.get_encoding("o200k_base").encode
         )
         self._callback_manager = CallbackManager([self._token_counter])
         self.llm = self._get_llm()
         self.mock_embedding = mock_embedding
         self.embed_model = self._get_embed_model()
-        self.max_input_tokens = self._deployment_to_max_input_tokens_mapping[deployment]
-        self.max_output_tokens = self._deployment_to_max_output_tokens_mapping[
-            deployment
-        ]
+        self.max_input_tokens = llms[deployment]["max_tokens_in"]
+        self.max_output_tokens = llms[deployment]["max_tokens_out"]
 
     # Convenience methods to interact with LLM
     # Each will return a complete response (not single tokens)
@@ -352,3 +344,29 @@ class OttoLLM:
             api_version=settings.AZURE_OPENAI_VERSION,
             callback_manager=self._callback_manager,
         )
+
+
+class OttoVectorStore(PGVectorStore):
+    # Override from LlamaIndex to add retrying and connection test
+    @retry(
+        wait_exponential_multiplier=1000,
+        wait_exponential_max=20000,
+    )
+    def _connect(self):
+        from sqlalchemy import create_engine
+        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+        from sqlalchemy.orm import sessionmaker
+
+        self._engine = create_engine(
+            self.connection_string, echo=self.debug, **self.create_engine_kwargs
+        )
+        self._session = sessionmaker(self._engine)
+
+        self._async_engine = create_async_engine(
+            self.async_connection_string, **self.create_engine_kwargs
+        )
+        self._async_session = sessionmaker(self._async_engine, class_=AsyncSession)  # type: ignore
+
+        # Test the connection to ensure it's established
+        with self._engine.connect() as connection:
+            connection.execute(sqlalchemy.text("SELECT 1"))

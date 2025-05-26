@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 
-from chat.forms import CHAT_MODELS
+from chat.llm import CHAT_MODELS
 
 from .models import Law
 from .prompts import default_additional_instructions

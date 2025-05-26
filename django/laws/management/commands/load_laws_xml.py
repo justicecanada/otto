@@ -1097,6 +1097,9 @@ def process_en_fr_paths(
 
         except Exception as e:
             logger.error(f"*** Error processing file pair: {file_paths}\n {e}\n")
+            import traceback
+
+            logger.error(traceback.format_exc())
             if "Law with this Node id already exists" in str(e):
                 load_results["exists"].append(file_paths)
             else:

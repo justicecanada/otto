@@ -87,7 +87,7 @@ def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
     """Returns the number of tokens in a text string."""
     string = string or ""
     try:
-        encoding = tiktoken.encoding_for_model(model)
+        encoding = tiktoken.get_encoding("o200k_base")
         num_tokens = len(encoding.encode(string))
     except:
         # Estimate the number of tokens using a simple heuristic (1 token = 4 chars)
