@@ -54,9 +54,9 @@
             </div>
         </aside>
         <h2>
-            <span class="text">455 statements &nbsp;</span>
+            <span class="text">457 statements &nbsp;</span>
             <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">334<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">121<span class="text"> missing</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">123<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_566cdf2bd0151013_models_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.8.1">coverage.py v7.8.1</a>,
-            created at 2025-05-23 19:22 +0000
+            created at 2025-05-26 19:07 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -1179,12 +1179,15 @@
     <p class="pln"><span class="n"><a id="t1097" href="#t1097">1097</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t1098" href="#t1098">1098</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t1099" href="#t1099">1099</a></span><span class="t">            <span class="nam">logger</span><span class="op">.</span><span class="nam">error</span><span class="op">(</span><span class="fst">f"</span><span class="fst">*** Error processing file pair: </span><span class="op">{</span><span class="nam">file_paths</span><span class="op">}</span><span class="fst">\n </span><span class="op">{</span><span class="nam">e</span><span class="op">}</span><span class="fst">\n</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1100" href="#t1100">1100</a></span><span class="t">            <span class="key">if</span> <span class="str">"Law with this Node id already exists"</span> <span class="key">in</span> <span class="nam">str</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1101" href="#t1101">1101</a></span><span class="t">                <span class="nam">load_results</span><span class="op">[</span><span class="str">"exists"</span><span class="op">]</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">file_paths</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t1102" href="#t1102">1102</a></span><span class="t">            <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1103" href="#t1103">1103</a></span><span class="t">                <span class="nam">load_results</span><span class="op">[</span><span class="str">"error"</span><span class="op">]</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">file_paths</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1104" href="#t1104">1104</a></span><span class="t">            <span class="nam">cost</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1105" href="#t1105">1105</a></span><span class="t">    <span class="key">return</span> <span class="nam">load_results</span><span class="op">,</span> <span class="nam">cost</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1100" href="#t1100">1100</a></span><span class="t">            <span class="key">import</span> <span class="nam">traceback</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1101" href="#t1101">1101</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1102" href="#t1102">1102</a></span><span class="t">            <span class="nam">logger</span><span class="op">.</span><span class="nam">error</span><span class="op">(</span><span class="nam">traceback</span><span class="op">.</span><span class="nam">format_exc</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1103" href="#t1103">1103</a></span><span class="t">            <span class="key">if</span> <span class="str">"Law with this Node id already exists"</span> <span class="key">in</span> <span class="nam">str</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1104" href="#t1104">1104</a></span><span class="t">                <span class="nam">load_results</span><span class="op">[</span><span class="str">"exists"</span><span class="op">]</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">file_paths</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1105" href="#t1105">1105</a></span><span class="t">            <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1106" href="#t1106">1106</a></span><span class="t">                <span class="nam">load_results</span><span class="op">[</span><span class="str">"error"</span><span class="op">]</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">file_paths</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1107" href="#t1107">1107</a></span><span class="t">            <span class="nam">cost</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1108" href="#t1108">1108</a></span><span class="t">    <span class="key">return</span> <span class="nam">load_results</span><span class="op">,</span> <span class="nam">cost</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -1194,7 +1197,7 @@
             <a class="nav" href="z_566cdf2bd0151013_models_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.8.1">coverage.py v7.8.1</a>,
-            created at 2025-05-23 19:22 +0000
+            created at 2025-05-26 19:07 +0000
         </p>
     </div>
 </footer>

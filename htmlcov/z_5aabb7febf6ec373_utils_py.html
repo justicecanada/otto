@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_5aabb7febf6ec373_views_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.8.1">coverage.py v7.8.1</a>,
-            created at 2025-05-23 19:22 +0000
+            created at 2025-05-26 19:07 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -169,7 +169,7 @@
     <p class="pln"><span class="n"><a id="t87" href="#t87">87</a></span><span class="t">    <span class="str">"""Returns the number of tokens in a text string."""</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t88" href="#t88">88</a></span><span class="t">    <span class="nam">string</span> <span class="op">=</span> <span class="nam">string</span> <span class="key">or</span> <span class="str">""</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t89" href="#t89">89</a></span><span class="t">    <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t90" href="#t90">90</a></span><span class="t">        <span class="nam">encoding</span> <span class="op">=</span> <span class="nam">tiktoken</span><span class="op">.</span><span class="nam">encoding_for_model</span><span class="op">(</span><span class="nam">model</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t90" href="#t90">90</a></span><span class="t">        <span class="nam">encoding</span> <span class="op">=</span> <span class="nam">tiktoken</span><span class="op">.</span><span class="nam">get_encoding</span><span class="op">(</span><span class="str">"o200k_base"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t91" href="#t91">91</a></span><span class="t">        <span class="nam">num_tokens</span> <span class="op">=</span> <span class="nam">len</span><span class="op">(</span><span class="nam">encoding</span><span class="op">.</span><span class="nam">encode</span><span class="op">(</span><span class="nam">string</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t92" href="#t92">92</a></span><span class="t">    <span class="key">except</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t93" href="#t93">93</a></span><span class="t">        <span class="com"># Estimate the number of tokens using a simple heuristic (1 token = 4 chars)</span>&nbsp;</span><span class="r"></span></p>
@@ -1101,7 +1101,7 @@
             <a class="nav" href="z_5aabb7febf6ec373_views_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.8.1">coverage.py v7.8.1</a>,
-            created at 2025-05-23 19:22 +0000
+            created at 2025-05-26 19:07 +0000
         </p>
     </div>
 </footer>
