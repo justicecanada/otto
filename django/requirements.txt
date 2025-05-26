@@ -43,6 +43,8 @@ llama-index-llms-azure-openai==0.3.2
 llama-index-vector-stores-postgres==0.4.2
 llama-index-llms-openai==0.3.30
 llama-index-embeddings-azure-openai==0.3.0
+llama-index-llms-litellm==0.4.2
+llama-index-embeddings-litellm==0.3.0
 tiktoken==0.9.0
 
 # Document extraction ----------------------------------------------------------
