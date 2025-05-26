@@ -24,6 +24,7 @@ version.yaml
 tmp_text
 liccheck.ini
 licenses_results.txt
+poc/*
 
 # Local Terraform directories
 **/.terraform/*

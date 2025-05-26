@@ -82,6 +82,9 @@ def format_llm_string(llm_string, wrap_sse=True):
             llm_string = llm_string[:-2]
         else:
             llm_string += "**"
+    # Fix broken links e.g. [Cannabis Regulations, Section 148] (#SOR-2018-144_eng_section_148)
+    # (Remove space before the link)
+    llm_string = llm_string.replace("] (", "](")
     if wrap_sse:
         return f"data: <div>{wrap_llm_response(llm_string)}</div>\n\n"
     return wrap_llm_response(llm_string)
@@ -114,11 +117,11 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
     markdown_div = format_llm_string(full_message, wrap_sse=False)
     if query_uuid:
         query_info = cache.get(query_uuid)
-        query_info["answer"] = f"{markdown_div}{cost_div}"
+        query_info["answer"] = f"<div>{markdown_div}</div>{cost_div}"
         cache.set(query_uuid, query_info, timeout=300)
 
     yield (
-        f"data: <div hx-swap-oob='true' id='answer-sse'>{markdown_div}{cost_div}</div>\n\n"
+        f"data: <div hx-swap-oob='true' id='answer-sse'>{markdown_div}</div><div id='answer-cost' hx-swap-oob='true'>{cost_div}</div>\n\n"
     )
 
 

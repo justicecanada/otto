@@ -160,13 +160,25 @@ def poll_tasks(request, user_request_id):
             result = process_ocr_document.AsyncResult(task_id)
             output_file_statuses.append(result.status)
         if all(status == "SUCCESS" for status in output_file_statuses):
-            output_file.status = "SUCCESS"
             if not output_file.pdf_file:
-                output_file = add_extracted_files(output_file, access_key)
+                output_file.status = "PROCESSING"
+                add_extracted_files(output_file, access_key)
+                output_file.refresh_from_db()
+            # Only set to SUCCESS if pdf_file is now present
+            if output_file.pdf_file:
+                output_file.status = "SUCCESS"
+            else:
+                output_file.status = "PROCESSING"
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
         else:
-            output_file.status = result.status
+            # Some tasks are still pending or processing
+            if any(
+                status in ["STARTED", "PROCESSING"] for status in output_file_statuses
+            ):
+                output_file.status = "PROCESSING"
+            else:
+                output_file.status = "PENDING"
 
     for output_file in output_files:
         if output_file.pdf_file:
@@ -193,6 +205,7 @@ def poll_tasks(request, user_request_id):
 
     # In an HTMX request, we just want the updated rows.
     if request.headers.get("HX-Request") == "true":
+        context.update({"swap": "true"})
         return render(request, "text_extractor/completed_documents.html", context)
 
     # Otherwise, render the whole page with the updated rows.

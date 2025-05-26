@@ -40,6 +40,7 @@ from chat.utils import (
     fix_source_links,
     generate_prompt,
     get_chat_history_sections,
+    get_model_name,
     highlight_claims,
     label_section_index,
     title_chat,
@@ -307,8 +308,14 @@ def chat_message(request, chat_id):
         )
         response_message.json = json.dumps(response_message.text)
     else:
+        bot_name = get_model_name(chat.options)
         response_message = Message.objects.create(
-            chat=chat, is_bot=True, mode=mode, parent=user_message, text=""
+            chat=chat,
+            is_bot=True,
+            mode=mode,
+            parent=user_message,
+            text="",
+            bot_name=bot_name,
         )
         # This tells the frontend to display the 3 dots and initiate the streaming response
         response_message = {
@@ -317,6 +324,7 @@ def chat_message(request, chat_id):
             "id": response_message.id,
             "date_created": response_message.date_created
             + timezone.timedelta(seconds=1),
+            "bot_name": bot_name,
         }
 
     context = {
@@ -408,8 +416,14 @@ def save_upload(request, chat_id):
             filename=saved_file["filename"],
             saved_file=saved_file["saved_file"],
         )
+    bot_name = get_model_name(chat.options) if not chat.options.mode == "qa" else ""
     response_message = Message.objects.create(
-        chat=chat, text="", is_bot=True, mode=chat.options.mode, parent=user_message
+        chat=chat,
+        text="",
+        is_bot=True,
+        mode=chat.options.mode,
+        parent=user_message,
+        bot_name=bot_name,
     )
     response = HttpResponse()
     if chat.options.mode == "qa":
@@ -420,6 +434,7 @@ def save_upload(request, chat_id):
         "awaiting_response": True,
         "id": response_message.id,
         "date_created": user_message.date_created + timezone.timedelta(seconds=1),
+        "bot_name": bot_name,
     }
     context = {
         "chat_messages": [
@@ -723,7 +738,7 @@ def message_sources(request, message_id, highlight=False):
     ).filter(message_id=message_id):
         source_text = str(source.node_text)
 
-        already_processed = source.processed_text != ""
+        already_processed = source.processed_text is not None
         needs_processing = (
             highlight and not already_highlighted
         ) or not already_processed

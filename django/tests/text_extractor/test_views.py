@@ -197,6 +197,9 @@ def test_poll_tasks_view(
             elif output_file_res.celery_task_ids == output_file2.celery_task_ids:
                 assert output_file_res.status == "FAILURE"
                 assert output_file_res.cost == 0.0
+        # Verify that celery has finished processing all tasks
+        for output_file_res in output_files_res:
+            assert output_file_res.status not in ["PENDING", "PROCESSING"]
 
 
 def test_download_document(client, all_apps_user, output_file):

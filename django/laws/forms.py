@@ -8,6 +8,7 @@ from autocomplete.widgets import Autocomplete
 from chat.forms import CHAT_MODELS
 
 from .models import Law
+from .prompts import default_additional_instructions
 
 
 class ActsAutocomplete(HTMXAutoComplete):
@@ -186,17 +187,13 @@ class LawSearchForm(forms.Form):
         label=_("Max input tokens"),
         min_value=500,
         max_value=100000,
-        initial=4000,
+        initial=5000,
         widget=forms.NumberInput(attrs={"class": "form-control", "step": 500}),
     )
     additional_instructions = forms.CharField(
         label=_("Additional instructions for AI answer"),
         required=False,
-        initial=(
-            "If the context information is entirely unrelated to the provided query,"
-            "don't try to answer the question; just say "
-            "'Sorry, I cannot answer that question.'."
-        ),
+        initial=default_additional_instructions,
         widget=forms.Textarea(
             attrs={
                 "class": "form-control",

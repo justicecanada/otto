@@ -175,6 +175,35 @@ def test_extract_outlook_msg(client, all_apps_user):
 
 
 @pytest.mark.django_db
+def test_extract_eml(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    chat = Chat.objects.create(user=user)
+    # Ensure that a data source was created
+    data_source = DataSource.objects.filter(chat=chat).first()
+    assert data_source is not None
+    # Upload a file to the data source
+    url = reverse("librarian:direct_upload", kwargs={"data_source_id": data_source.id})
+    with open(os.path.join(this_dir, "test_files/attachment_message.eml"), "rb") as f:
+        response = client.post(url, {"file": f})
+        assert response.status_code == 200
+    # Ensure that a document was created
+    document = Document.objects.filter(data_source=data_source).first()
+    document_id = document.id
+    assert document is not None
+    # Load an EML file
+    with open(os.path.join(this_dir, "test_files/attachment_message.eml"), "rb") as f:
+        content = f.read()
+        md, md_chunks = extract_markdown(content, "EML", root_document_id=document_id)
+        assert not "<page_1>" in md
+        assert len(md) > 0
+        assert len(md_chunks) > 0
+        assert "Plaintext" in md
+        assert "example@example.com" in md.lower()
+
+
+@pytest.mark.django_db
 def test_extract_png():
     # Load a PNG file
     with open(os.path.join(this_dir, "test_files/ocr-test.png"), "rb") as f:

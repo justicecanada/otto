@@ -458,21 +458,43 @@ def qa_response(chat, response_message, switch_mode=False):
                 status="SUCCESS", created_at__gt=message_created_at
             ).count()
         )()
+        # Include duplicates that were already SUCCESS before this request
+        filenames = [f.filename for f in files]
+        hashes = [f.saved_file.sha256_hash for f in files]
+        duplicate_success = await sync_to_async(
+            lambda: list(
+                ds.documents.filter(
+                    filename__in=filenames,
+                    saved_file__sha256_hash__in=hashes,
+                    status="SUCCESS",
+                    created_at__lte=message_created_at,
+                )
+            )
+        )()
+
+        completion_message = ""
+        if duplicate_success:
+            duplicate_doc_names = [f"{doc.filename}" for doc in duplicate_success]
+            duplicate_docs_joined = "\n\n - " + "\n\n - ".join(duplicate_doc_names)
+            completion_message += (
+                _("The following document(s) already exist in the library:")
+                + duplicate_docs_joined
+            ) + "\n\n"
         if error_documents:
             error_string = _("Error processing the following document(s):")
             doc_errors = [
                 f"{doc.filename} _{doc.status_details}_" for doc in error_documents
             ]
-            error_docs_joined = "\n\n - " + "\n\n - ".join(doc_errors)
-            error_string += error_docs_joined
-            if len(error_documents) != len(files):
-                error_string += f"\n\n{num_completed_documents} "
-                error_string += _("new document(s) ready for Q&A.")
-            yield error_string
-        elif adding_url:
-            yield _("URL ready for Q&A.")
-        else:
-            yield f"{num_completed_documents} " + _("new document(s) ready for Q&A.")
+            error_string += "\n\n - " + "\n\n - ".join(doc_errors)
+            completion_message += error_string + "\n\n"
+        if adding_url:
+            completion_message += _("URL ready for Q&A.")
+        elif num_completed_documents > 0:
+            completion_message += f"{num_completed_documents} " + _(
+                "new document(s) ready for Q&A."
+            )
+
+        yield completion_message
 
     if len(files) > 0 or adding_url:
         for file in files:

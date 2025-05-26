@@ -1,4 +1,6 @@
+import base64
 import email
+import email.header
 import json
 import os
 import shutil
@@ -6,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 
 from structlog import get_logger
@@ -97,3 +100,63 @@ def extract_msg(content, root_document_id):
             md = ""
         shutil.rmtree(directory, ignore_errors=True)
         return md
+
+
+def extract_eml(content, root_document_id):
+    from librarian.utils.process_document import process_file
+
+    document = Document.objects.get(id=root_document_id)
+    root_file_path = document.file_path
+
+    msg = email.message_from_bytes(content)
+    if msg.is_multipart():
+        for part in msg.walk():
+            if part.get_content_type() == "text/plain":
+                body = part.get_payload(decode=True).decode(part.get_content_charset())
+                break
+    else:
+        body = msg.get_payload(decode=True).decode(msg.get_content_charset())
+    subject, encoding = email.header.decode_header(msg["Subject"])[0]
+    if isinstance(subject, bytes):
+        subject = subject.decode(encoding if encoding else "utf-8")
+    from_ = msg["From"]
+    to = msg["To"]
+    cc = msg["Cc"]
+    bcc = msg["Bcc"]
+    sent_date = msg["Date"]
+    attachments = []
+    for part in msg.walk():
+        if part.get_content_disposition() == "attachment":
+            filename = part.get_filename()
+            if filename:
+                attachments.append(filename)
+                payload = part.get_payload(decode=True)
+                content_type = part.get_content_type()
+                with tempfile.NamedTemporaryFile() as temp_file:
+                    temp_file.write(payload)
+                    temp_file_path = temp_file.name
+                    with open(temp_file_path, "r+b") as f:
+                        nested_file_path = (
+                            f"{root_file_path or document.filename}/{filename}"
+                        )
+                        process_file(
+                            f,
+                            document.data_source.id,
+                            nested_file_path,
+                            filename,
+                            content_type,
+                        )
+
+    combined_email = f"From: {from_}\nTo: {to}\n"
+    if cc:
+        combined_email += f"Cc: {cc}\n"
+    if bcc:
+        combined_email += f"Bcc: {bcc}\n"
+    combined_email += (
+        f"Subject: {subject}\n"
+        f"Date: {sent_date}\n"
+        f"Attachments: {', '.join(attachments)}\n\n"
+        f"{body}"
+    )
+    md = combined_email
+    return md
