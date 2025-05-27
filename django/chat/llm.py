@@ -90,8 +90,32 @@ llms = {
         "max_tokens_in": 128000,
         "max_tokens_out": 16384,
     },
+    "gemini-2.5-flash": {
+        "description": _("Gemini 2.5 Flash (Google, best value, long context)"),
+        "model": "gemini-2.5-flash",
+        "max_tokens_in": 1048576,
+        "max_tokens_out": 65536,
+    },
+    "gemini-2.5-pro": {
+        "description": _("Gemini 2.5 Pro (Google, best overall)"),
+        "model": "gemini-2.5-pro",
+        "max_tokens_in": 1048576,
+        "max_tokens_out": 65536,
+    },
+    "claude-sonnet-4": {
+        "description": _("Claude Sonnet 4 (Anthropic, kind of expensive)"),
+        "model": "claude-sonnet-4",
+        "max_tokens_in": 200000,
+        "max_tokens_out": 64000,
+    },
+    "claude-opus-4": {
+        "description": _("Claude Opus 4 (Anthropic, insanely expensive)"),
+        "model": "claude-opus-4",
+        "max_tokens_in": 200000,
+        "max_tokens_out": 32000,
+    },
     "Phi-4": {
-        "description": _("Phi-4 (small model, economical)"),
+        "description": _("Phi-4 (very small open-source model)"),
         "model": "Phi-4",
         "max_tokens_in": 16384,
         "max_tokens_out": 4096,
@@ -103,13 +127,13 @@ llms = {
         "max_tokens_out": 163840,
     },
     "groq-llama-4-scout": {
-        "description": _("Llama 4 Scout (Groq, blazing fast)"),
+        "description": _("Llama 4 Scout (Groq, fast open-source RAG)"),
         "model": "groq-llama-4-scout",
         "max_tokens_in": 131072,
         "max_tokens_out": 8192,
     },
     "groq-llama-4-maverick": {
-        "description": _("Llama 4 Maverick (Groq, blazing fast)"),
+        "description": _("Llama 4 Maverick (Groq, fast open-source chat)"),
         "model": "groq-llama-4-maverick",
         "max_tokens_in": 131072,
         "max_tokens_out": 8192,
@@ -121,7 +145,7 @@ llms = {
         "max_tokens_out": 131072,
     },
     "fireworks-Qwen3-235B": {
-        "description": _("Qwen3 235B (Fireworks, 2nd best overall)"),
+        "description": _("Qwen3 235B (Fireworks, best open source)"),
         "model": "fireworks-Qwen3-235B",
         "max_tokens_in": 128000,
         "max_tokens_out": 128000,
@@ -132,20 +156,8 @@ llms = {
         "max_tokens_in": 39000,
         "max_tokens_out": 39000,
     },
-    "gemini-2.5-flash": {
-        "description": _("Gemini 2.5 Flash (Google, value, long context)"),
-        "model": "gemini-2.5-flash",
-        "max_tokens_in": 1048576,
-        "max_tokens_out": 65536,
-    },
-    "gemini-2.5-pro": {
-        "description": _("Gemini 2.5 Pro (Google, best overall)"),
-        "model": "gemini-2.5-pro",
-        "max_tokens_in": 1048576,
-        "max_tokens_out": 65536,
-    },
     "cerebras-llama-4-scout": {
-        "description": _("Llama 4 Scout (Cerebras, instant, long context)"),
+        "description": _("Llama 4 Scout (Cerebras, instant, short context)"),
         "model": "cerebras-llama-4-scout",
         "max_tokens_in": 32000,
         "max_tokens_out": 32000,
@@ -155,18 +167,6 @@ llms = {
         "model": "cerebras-qwen-3-32b",
         "max_tokens_in": 32768,
         "max_tokens_out": 32768,
-    },
-    "claude-opus-4": {
-        "description": _("Claude Opus 4 (Anthropic, best, very expensive)"),
-        "model": "claude-opus-4",
-        "max_tokens_in": 200000,
-        "max_tokens_out": 32000,
-    },
-    "claude-sonnet-4": {
-        "description": _("Claude Sonnet 4 (Anthropic, kind of expensive)"),
-        "model": "claude-sonnet-4",
-        "max_tokens_in": 200000,
-        "max_tokens_out": 64000,
     },
 }
 
