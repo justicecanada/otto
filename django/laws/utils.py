@@ -54,14 +54,14 @@ def get_other_lang_node(node_id):
 
 def get_law_url(law, lang):
     ref = law.ref_number_en if lang == "eng" else law.ref_number_fr
-    ref = ref.replace(" ", "-").replace("/", "-")
-    if "C.R.C.," in ref:
-        ref = ref.replace("-", "_")
     # Constitution has special case
     if ref == "Const" and lang == "eng":
         return "https://laws-lois.justice.gc.ca/eng/Const/Const_index.html"
     if ref == "Const" and lang == "fra":
         return "https://laws-lois.justice.gc.ca/fra/ConstRpt/Const_index.html"
+    ref = ref.replace(" ", "-").replace("/", "-")
+    if "C.R.C.," in ref:
+        ref = ref.replace("-", "_")
     if law.type == "act" and lang == "eng":
         return f"https://laws-lois.justice.gc.ca/eng/acts/{ref}/"
     if law.type == "act" and lang == "fra":
