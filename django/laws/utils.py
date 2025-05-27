@@ -52,10 +52,11 @@ def get_other_lang_node(node_id):
     return get_source_node(other_lang_node_id)
 
 
-def get_law_url(law, request_lang):
-    ref = law.ref_number.replace(" ", "-").replace("/", "-")
-    # Get user's language setting in Django
-    lang = "fra" if request_lang == "fr" else "eng"
+def get_law_url(law, lang):
+    ref = law.ref_number_en if lang == "eng" else law.ref_number_fr
+    ref = ref.replace(" ", "-").replace("/", "-")
+    if "C.R.C.," in ref:
+        ref = ref.replace("-", "_")
     # Constitution has special case
     if ref == "Const" and lang == "eng":
         return "https://laws-lois.justice.gc.ca/eng/Const/Const_index.html"
