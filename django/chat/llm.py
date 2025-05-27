@@ -156,6 +156,18 @@ llms = {
         "max_tokens_in": 32768,
         "max_tokens_out": 32768,
     },
+    "claude-opus-4": {
+        "description": _("Claude Opus 4 (Anthropic, best, very expensive)"),
+        "model": "claude-opus-4",
+        "max_tokens_in": 200000,
+        "max_tokens_out": 32000,
+    },
+    "claude-sonnet-4": {
+        "description": _("Claude Sonnet 4 (Anthropic, kind of expensive)"),
+        "model": "claude-sonnet-4",
+        "max_tokens_in": 200000,
+        "max_tokens_out": 64000,
+    },
 }
 
 CHAT_MODELS = [(k, v["description"]) for k, v in llms.items()]
