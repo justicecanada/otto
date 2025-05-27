@@ -3,6 +3,7 @@ from unittest import mock
 from django.core.cache import cache
 
 import pytest
+import requests
 
 from laws.utils import format_llm_string, get_law_url, htmx_sse_error, htmx_sse_response
 
@@ -18,17 +19,86 @@ from laws.utils import format_llm_string, get_law_url, htmx_sse_error, htmx_sse_
 
 
 def test_get_law_url():
+    """
+    def get_other_lang_node(node_id):
+        # Replace "eng" with "fra" and vice versa
+        lang = "eng" if "eng" in node_id else "fra"
+        other_lang_node_id = (
+            node_id.replace("eng", "fra")
+            if lang == "eng"
+            else node_id.replace("fra", "eng")
+        )
+        return get_source_node(other_lang_node_id)
+    """
     law = mock.MagicMock()
-    law.ref_number = "Const"
+    # Constitution
+    law.ref_number_en = "Const"
+    law.ref_number_fr = "Const"
     law.type = "act"
-    assert (
-        get_law_url(law, "en")
-        == "https://laws-lois.justice.gc.ca/eng/Const/Const_index.html"
-    )
-    assert (
-        get_law_url(law, "fr")
-        == "https://laws-lois.justice.gc.ca/fra/ConstRpt/Const_index.html"
-    )
+    url = get_law_url(law, "eng")
+    assert url == "https://laws-lois.justice.gc.ca/eng/Const/Const_index.html"
+    response = requests.get(url)
+    assert response.status_code == 200
+    url_fra = get_law_url(law, "fra")
+    assert url_fra == "https://laws-lois.justice.gc.ca/fra/ConstRpt/Const_index.html"
+    response = requests.get(url_fra)
+    assert response.status_code == 200
+
+    # Regulation with C.R.C.
+    law = mock.MagicMock()
+    law.ref_number_en = "C.R.C., c. 1314"
+    law.ref_number_fr = "C.R.C., ch. 1314"
+    law.type = "regulation"
+    url = get_law_url(law, "eng")
+    assert url == "https://laws-lois.justice.gc.ca/eng/regulations/C.R.C.,_c._1314/"
+    response = requests.get(url)
+    assert response.status_code == 200
+    url_fra = get_law_url(law, "fra")
+    assert url_fra == "https://laws-lois.justice.gc.ca/fra/reglements/C.R.C.,_ch._1314/"
+    response = requests.get(url_fra)
+    assert response.status_code == 200
+
+    # Regulation SOR/2010-203
+    law = mock.MagicMock()
+    law.ref_number_en = "SOR/2010-203"
+    law.ref_number_fr = "DORS/2010-203"
+    law.type = "regulation"
+    url = get_law_url(law, "eng")
+    assert url == "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2010-203/"
+    response = requests.get(url)
+    assert response.status_code == 200
+    url_fra = get_law_url(law, "fra")
+    assert url_fra == "https://laws-lois.justice.gc.ca/fra/reglements/DORS-2010-203/"
+    response = requests.get(url_fra)
+    assert response.status_code == 200
+
+    # Regulation SI/2006-79
+    law = mock.MagicMock()
+    law.ref_number_en = "SI/2006-79"
+    law.ref_number_fr = "TR/2006-79"
+    law.type = "regulation"
+    url = get_law_url(law, "eng")
+    assert url == "https://laws-lois.justice.gc.ca/eng/regulations/SI-2006-79/"
+    response = requests.get(url)
+    assert response.status_code == 200
+    url_fra = get_law_url(law, "fra")
+    assert url_fra == "https://laws-lois.justice.gc.ca/fra/reglements/TR-2006-79/"
+    response = requests.get(url_fra)
+    assert response.status_code == 200
+
+    # Act
+    law = mock.MagicMock()
+    law.ref_number_en = "A-11.31"
+    law.ref_number_fr = "A-11.31"
+    law.type = "act"
+    url = get_law_url(law, "eng")
+    assert url == "https://laws-lois.justice.gc.ca/eng/acts/A-11.31/"
+    response = requests.get(url)
+    assert response.status_code == 200
+    url_fra = get_law_url(law, "fra")
+    assert url_fra == "https://laws-lois.justice.gc.ca/fra/lois/A-11.31/"
+    response = requests.get(url_fra)
+    assert response.status_code == 200
 
 
 wrap_llm_response = mock.MagicMock(return_value="wrapped_response")
