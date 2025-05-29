@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{% static 'template_wizard/style.css' %}">
+{% endblock %}
+
+{% block page_script %}
+  <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "Template Wizard - Otto" %}
+{% endblock %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'template_wizard:index' %}">{% trans "Template Wizard" %}</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'template_wizard:new_template' %}">{% trans "Create new template" %}</a>
+  </li>
+{% endblock %}
+
+{% block content_container %}
+  <div id="template-wizard-outer">
+    <div class="container py-3 px-0">
+      <div id="spinner"
+           class="spinner container text-primary position-absolute top-0 end-0">
+        <span class="spinner-border" aria-hidden="true"></span>
+        <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+      </div>
+      <h2 class="mb-3 px-4 mt-2">
+        <a href="{% url 'template_wizard:new_template' %}"
+           class="text-decoration-none text-body">{% trans "Create new template" %}</a>
+      </h2>
+      {# <p class="mx-4 mb-4"></p> #}
+      <ul class="nav nav-tabs px-3 border-bottom-0">
+        <li class="nav-item">
+          <button id="metadata-tab"
+                  class="nav-link active fw-semibold text-body"
+                  onclick="setActiveTab(this);">{% trans "1. Metadata" %}</button>
+        </li>
+        <li class="nav-item">
+          <button id="source-tab"
+                  class="nav-link text-body"
+                  onclick="setActiveTab(this);">{% trans "2. Example source" %}</button>
+        </li>
+        <li class="nav-item">
+          <button id="fields-tab"
+                  class="nav-link text-body"
+                  onclick="setActiveTab(this);">{% trans "3. Define fields" %}</button>
+        </li>
+        <li class="nav-item">
+          <button id="layout-tab"
+                  class="nav-link text-body"
+                  onclick="setActiveTab(this);">{% trans "4. Template layout" %}</button>
+        </li>
+      </ul>
+
+      <div id="step-content" class="rounded">
+        <div class="tab-pane fade show active p-3 border rounded">{% include "template_wizard/metadata.html" %}</div>
+      </div>
+      <button id="back-to-top"
+              type="button"
+              class="btn btn-primary rounded-circle position-fixed p-1 d-none"
+              style="bottom: 1rem;
+                     right: 1rem;
+                     width: 2.5rem;
+                     height: 2.5rem;
+                     z-index: 1050">
+        <i class="bi bi-arrow-up"></i>
+        <span class="visually-hidden">{% trans "Back to top" %}</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="{% static 'template_wizard/scripts.js' %}"></script>
+{% endblock %}

@@ -17,3 +17,8 @@ def index(request):
     return render(
         request, "template_wizard/index.html", context={"hide_breadcrumbs": True}
     )
+
+
+@app_access_required(app_name)
+def new_template(request):
+    return render(request, "template_wizard/new_template.html", context={})
