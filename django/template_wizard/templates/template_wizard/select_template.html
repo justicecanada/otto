@@ -1,0 +1,16 @@
+{% load i18n %}
+
+<div class="row">
+  <div class="col-md-3 border-end">
+    <button class="btn mb-3 btn-primary w-100"
+            hx-get="{% url 'template_wizard:new_template' %}"
+            hx-target="#step-content"
+            hx-swap="innerHTML">
+      <i class="bi-plus"></i>
+      {% trans "Create new template" %}
+    </button>
+  </div>
+  <div class="col-md-9">
+    <p>[[Templates go here]]</p>
+  </div>
+</div>

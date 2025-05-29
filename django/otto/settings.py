@@ -159,10 +159,11 @@ INSTALLED_APPS = [
     "librarian",
     "chat",
     "laws",
+    "text_extractor",
+    "template_wizard",
     # Third-party apps
     "channels",
     "django_cleanup.apps.CleanupConfig",
-    "text_extractor",
     "django_celery_beat",
     "django_file_form",
 ]

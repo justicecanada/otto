@@ -1,0 +1,11 @@
+body {
+  min-height: 100vh;
+  background: var(--app-primary-bg);
+}
+
+/* max width 1200 */
+@media screen and (max-width: 1200px) {
+  #template-wizard-outer div.container {
+    max-width: calc(100% - 3rem) !important;
+  }
+}
