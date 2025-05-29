@@ -420,3 +420,19 @@
     unit_name: tokens
     unit_cost: 15
     unit_quantity: 1000000
+- model: otto.CostType
+  pk: 49
+  fields:
+    short_name: command-a-in
+    name: Command A (input)
+    unit_name: tokens
+    unit_cost: 2.50
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 50
+  fields:
+    short_name: command-a-out
+    name: Command A (output)
+    unit_name: tokens
+    unit_cost: 10.00
+    unit_quantity: 1000000

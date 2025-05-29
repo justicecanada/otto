@@ -89,6 +89,10 @@ model_list:
     litellm_params:
       model: anthropic/claude-sonnet-4-20250514
       api_key: os.environ/ANTHROPIC_KEY
+  - model_name: command-a 
+    litellm_params:
+      model: command-a-03-2025
+      api_key: "os.environ/COHERE_KEY"
 
 general_settings:
   master_key: sk-1234

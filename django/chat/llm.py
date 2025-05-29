@@ -114,6 +114,12 @@ llms = {
         "max_tokens_in": 200000,
         "max_tokens_out": 32000,
     },
+    "command-a": {
+        "description": _("Cohere Command A (Canadian, good quality)"),
+        "model": "command-a",
+        "max_tokens_in": 256000,
+        "max_tokens_out": 32000,  # Not documented
+    },
     "Phi-4": {
         "description": _("Phi-4 (very small open-source model)"),
         "model": "Phi-4",
