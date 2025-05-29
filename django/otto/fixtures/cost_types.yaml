@@ -388,3 +388,51 @@
     unit_name: tokens
     unit_cost: 0.0005
     unit_quantity: 1000
+- model: otto.CostType
+  pk: 45
+  fields:
+    short_name: claude-opus-4-in
+    name: Claude Opus 4 (input)
+    unit_name: tokens
+    unit_cost: 15
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 46
+  fields:
+    short_name: claude-opus-4-out
+    name: Claude Opus 4 (output)
+    unit_name: tokens
+    unit_cost: 75
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 47
+  fields:
+    short_name: claude-sonnet-4-in
+    name: Claude Sonnet 4 (input)
+    unit_name: tokens
+    unit_cost: 3
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 48
+  fields:
+    short_name: claude-sonnet-4-out
+    name: Claude Sonnet 4 (output)
+    unit_name: tokens
+    unit_cost: 15
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 49
+  fields:
+    short_name: command-a-in
+    name: Command A (input)
+    unit_name: tokens
+    unit_cost: 2.50
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 50
+  fields:
+    short_name: command-a-out
+    name: Command A (output)
+    unit_name: tokens
+    unit_cost: 10.00
+    unit_quantity: 1000000

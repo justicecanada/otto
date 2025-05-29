@@ -67,7 +67,7 @@ model_list:
       api_key: os.environ/FIREWORKS_KEY
   - model_name: gemini-2.5-flash
     litellm_params:
-      model: gemini/gemini-2.5-flash-preview-04-17
+      model: gemini/gemini-2.5-flash-preview-05-20
       api_key: os.environ/GEMINI_KEY
   - model_name: gemini-2.5-pro
     litellm_params:
@@ -81,6 +81,18 @@ model_list:
     litellm_params:
       model: cerebras/qwen-3-32b
       api_key: os.environ/CEREBRAS_KEY
+  - model_name: claude-opus-4
+    litellm_params:
+      model: anthropic/claude-opus-4-20250514
+      api_key: os.environ/ANTHROPIC_KEY
+  - model_name: claude-sonnet-4
+    litellm_params:
+      model: anthropic/claude-sonnet-4-20250514
+      api_key: os.environ/ANTHROPIC_KEY
+  - model_name: command-a 
+    litellm_params:
+      model: command-a-03-2025
+      api_key: "os.environ/COHERE_KEY"
 
 general_settings:
   master_key: sk-1234

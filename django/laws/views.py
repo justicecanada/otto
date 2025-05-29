@@ -86,7 +86,7 @@ def source(request, source_id):
             if not node["metadata"]["chunk"].endswith("/1")
             else None
         )
-    law.url = get_law_url(law, request.LANGUAGE_CODE)
+    law.url = get_law_url(law, lang)
     context = {
         "source_node": source_node,
         "other_lang_node": other_lang_node,

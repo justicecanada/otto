@@ -76,3 +76,5 @@ with open(os.path.join(os.path.dirname(__file__), "../django/.env"), "w") as f:
     f.write(f"FIREWORKS_KEY='{client.get_secret('FIREWORKS-KEY').value}'\n")
     f.write(f"GEMINI_KEY='{client.get_secret('GEMINI-KEY').value}'\n")
     f.write(f"CEREBRAS_KEY='{client.get_secret('CEREBRAS-KEY').value}'\n")
+    f.write(f"ANTHROPIC_KEY='{client.get_secret('ANTHROPIC-KEY').value}'\n")
+    f.write(f"COHERE_KEY='{client.get_secret('COHERE-KEY').value}'\n")
