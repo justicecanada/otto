@@ -4,7 +4,7 @@ from structlog import get_logger
 
 from otto.utils.decorators import app_access_required, budget_required
 
-# Create your views here.
+from .forms import MetadataForm
 
 logger = get_logger(__name__)
 
@@ -21,4 +21,5 @@ def index(request):
 
 @app_access_required(app_name)
 def new_template(request):
-    return render(request, "template_wizard/new_template.html", context={})
+    form = MetadataForm(user=request.user)
+    return render(request, "template_wizard/new_template.html", context={"form": form})

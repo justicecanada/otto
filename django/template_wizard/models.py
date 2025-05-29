@@ -20,7 +20,7 @@ class Template(models.Model):
     description_en = models.TextField(blank=True)
     description_fr = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(
+    owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
     )
 

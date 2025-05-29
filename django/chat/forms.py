@@ -20,6 +20,7 @@ from chat.llm import CHAT_MODELS
 from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
+from otto.models import User
 
 logger = get_logger(__name__)
 
@@ -437,6 +438,18 @@ class ChatRenameForm(ModelForm):
         }
 
 
+accessible_to_autocomplete = widgets.Autocomplete(
+    name="accessible_to",
+    options={
+        "item_value": User.id,
+        "item_label": User.email,
+        "multiselect": True,
+        "minimum_search_length": 2,
+        "model": User,
+    },
+)
+
+
 class PresetForm(forms.ModelForm):
     User = get_user_model()
 
@@ -473,16 +486,7 @@ class PresetForm(forms.ModelForm):
         queryset=User.objects.all(),
         label="Email",
         required=False,
-        widget=widgets.Autocomplete(
-            name="accessible_to",
-            options={
-                "item_value": User.id,
-                "item_label": User.email,
-                "multiselect": True,
-                "minimum_search_length": 2,
-                "model": User,
-            },
-        ),
+        widget=accessible_to_autocomplete,
     )
 
     def __init__(self, *args, **kwargs):

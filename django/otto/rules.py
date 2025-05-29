@@ -273,3 +273,10 @@ add_perm("librarian.edit_document", can_edit_document)
 add_perm("librarian.delete_document", can_delete_document)
 add_perm("librarian.manage_library_users", can_manage_library_users)
 add_perm("librarian.download_document", can_download_document)
+
+
+# Template Wizard. Same as chat Presets
+add_perm("template_wizard.access_preset", can_access_preset)
+add_perm("template_wizard.edit_preset", can_edit_preset)
+add_perm("template_wizard.delete_preset", can_delete_preset)
+add_perm("template_wizard.edit_preset_sharing", can_edit_preset_sharing)
