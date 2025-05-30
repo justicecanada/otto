@@ -1,11 +1,10 @@
 {% load i18n %}
 
-{% load i18n %}
-
 <form class="g-3"
       id="edit_preset_form"
       method="post"
-      url="{% if metadata_form.instance.id %}{% url 'template_wizard:edit_template' template_id=metadata_form.instance.id active_tab='metadata' %}{% else %}{% url 'template_wizard:new_template' %}{% endif %}">
+      url="{% url 'template_wizard:edit_fields' template_id=template.id %}">
+  {% csrf_token %}
   <div class="row">
     <div class="col">TODO: Fields</div>
   </div>

@@ -21,11 +21,11 @@
   </li>
   <li class="breadcrumb-item">
     <a href="{{ request.path }}">
-      {% if not metadata_form.instance.id %}
+      {% if not template %}
         {% trans "Create new template" %}
       {% else %}
         {% trans "Edit template:" %}
-        {{ metadata_form.instance.name_auto }}
+        {{ template.name_auto }}
       {% endif %}
     </a>
   </li>
@@ -42,19 +42,19 @@
       <div class="row">
         <div class="col">
           <h2 class="mb-3 px-4 mt-2">
-            {% if not metadata_form.instance.id %}
+            {% if not template %}
               {% trans "Create new template" %}
             {% else %}
               {% trans "Edit template:" %}
-              {{ metadata_form.instance.name_auto }}
+              {{ template.name_auto }}
             {% endif %}
           </h2>
         </div>
-        {% if metadata_form.instance.id %}
+        {% if template.id %}
           <div class="col-auto d-flex align-items-center">
             <a class="btn btn-outline-danger"
-               href="{% url 'template_wizard:delete_template' template_id=metadata_form.instance.id %}"
-               onclick="if(!confirm('{% trans 'Are you sure you want to delete the template' %} {{ metadata_form.instance.name_auto }}?')){event.preventDefault();}">
+               href="{% url 'template_wizard:delete_template' template_id=template.id %}"
+               onclick="if(!confirm('{% trans 'Are you sure you want to delete the template' %} {{ template.name_auto }}?')){event.preventDefault();}">
               <i class="bi bi-trash"></i>
               {% trans "Delete template" %}
             </a>
@@ -65,29 +65,29 @@
       <ul class="nav nav-tabs px-3 border-bottom-0" id="top-tabs">
         <li class="nav-item">
           <a id="metadata-tab"
-             class="nav-link text-body"
-             href="{% if not metadata_form.instance.id %}#{% else %}{% url 'template_wizard:edit_template' template_id=metadata_form.instance.id active_tab='metadata' %}{% endif %}">
+             class="nav-link text-body {% if not template.id %}disabled{% endif %}"
+             href="{% if not template.id %}#{% else %}{% url 'template_wizard:edit_metadata' template_id=template.id %}{% endif %}">
             {% trans "1. Metadata" %}
           </a>
         </li>
         <li class="nav-item">
           <a id="source-tab"
-             class="nav-link text-body {% if not metadata_form.instance.id %}disabled{% endif %}"
-             href="{% if not metadata_form.instance.id %}#{% else %}{% url 'template_wizard:edit_template' template_id=metadata_form.instance.id active_tab='source' %}{% endif %}">
+             class="nav-link text-body {% if not template.id %}disabled{% endif %}"
+             href="{% if not template.id %}#{% else %}{% url 'template_wizard:edit_example_source' template_id=template.id %}{% endif %}">
             {% trans "2. Example source" %}
           </a>
         </li>
         <li class="nav-item">
           <a id="fields-tab"
-             class="nav-link text-body {% if not metadata_form.instance.id %}disabled{% endif %}"
-             href="{% if not metadata_form.instance.id %}#{% else %}{% url 'template_wizard:edit_template' template_id=metadata_form.instance.id active_tab='fields' %}{% endif %}">
+             class="nav-link text-body {% if not template.id %}disabled{% endif %}"
+             href="{% if not template.id %}#{% else %}{% url 'template_wizard:edit_fields' template_id=template.id %}{% endif %}">
             {% trans "3. Define fields" %}
           </a>
         </li>
         <li class="nav-item">
           <a id="layout-tab"
-             class="nav-link text-body {% if not metadata_form.instance.id %}disabled{% endif %}"
-             href="{% if not metadata_form.instance.id %}#{% else %}{% url 'template_wizard:edit_template' template_id=metadata_form.instance.id active_tab='layout' %}{% endif %}">
+             class="nav-link text-body {% if not template.id %}disabled{% endif %}"
+             href="{% if not template.id %}#{% else %}{% url 'template_wizard:edit_layout' template_id=template.id %}{% endif %}">
             {% trans "4. Template layout" %}
           </a>
         </li>

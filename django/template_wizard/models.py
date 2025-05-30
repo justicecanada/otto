@@ -67,9 +67,9 @@ class Template(models.Model):
             return self.name_en or self.name_fr
 
 
-class ExampleSource(models.Model):
+class Source(models.Model):
     template = models.OneToOneField(
-        Template, on_delete=models.CASCADE, related_name="example_source"
+        Template, on_delete=models.CASCADE, related_name="example_source", null=True
     )
     text = models.TextField()
 
@@ -77,7 +77,7 @@ class ExampleSource(models.Model):
 @receiver(post_save, sender=Template)
 def create_example_source(sender, instance, created, **kwargs):
     if created:
-        ExampleSource.objects.create(template=instance, text="")
+        Source.objects.create(template=instance, text="")
 
 
 class TemplateField(models.Model):

@@ -6,7 +6,7 @@ from rules import is_group_member
 
 from chat.forms import accessible_to_autocomplete
 
-from .models import ExampleSource, Template
+from .models import Source, Template
 
 
 class MetadataForm(forms.ModelForm):
@@ -52,7 +52,7 @@ class MetadataForm(forms.ModelForm):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if self.instance.pk and not user.has_perm(
-            "template_wizard.edit_preset_sharing", self.instance
+            "template_wizard.edit_template_sharing", self.instance
         ):
             self.fields.pop("sharing_option")
             # Add a hidden field to store the existing sharing_option
@@ -74,9 +74,28 @@ class MetadataForm(forms.ModelForm):
 
 class SourceForm(forms.ModelForm):
     class Meta:
-        model = ExampleSource
+        model = Source
         fields = ["text"]
 
         widgets = {
             "text": forms.Textarea(attrs={"class": "form-control", "rows": 5}),
         }
+
+
+class LayoutForm(forms.ModelForm):
+    class Meta:
+        model = Template
+        fields = ["template_html"]
+
+        widgets = {
+            "template_html": forms.Textarea(
+                attrs={"class": "form-control", "rows": 10}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["template_html"].label = _("Template HTML")
+        self.fields["template_html"].help_text = _(
+            "Enter the HTML content for the template."
+        )

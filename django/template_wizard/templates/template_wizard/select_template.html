@@ -7,12 +7,13 @@
       <i class="bi-plus"></i>
       {% trans "Create new template" %}
     </a>
+    <p>TODO: Filters</p>
   </div>
   <div class="col-md-9" id="preset-card-list">
     <div style="top: 0; bottom: 0; min-height: 300px">
       <div class="d-flex flex-column h-100">
         {% if templates|length == 0 %}
-          No templates available.
+          {% trans "No templates available." %}
           {# {% include "template_wizard/template_list/empty_card_list.html" %} #}
         {% else %}
           <ul class="card-list list-unstyled">
