@@ -6,7 +6,7 @@ from rules import is_group_member
 
 from chat.forms import accessible_to_autocomplete
 
-from .models import Source, Template
+from .models import Source, Template, TemplateField
 
 
 class MetadataForm(forms.ModelForm):
@@ -99,3 +99,29 @@ class LayoutForm(forms.ModelForm):
         self.fields["template_html"].help_text = _(
             "Enter the HTML content for the template."
         )
+
+
+class FieldForm(forms.ModelForm):
+    class Meta:
+        model = TemplateField
+        fields = [
+            "field_name",
+            "field_type",
+            "required",
+            "description",
+            "prompt",
+        ]
+        widgets = {
+            "field_name": forms.TextInput(attrs={"class": "form-control"}),
+            "field_type": forms.TextInput(attrs={"class": "form-control"}),
+            "required": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "prompt": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+        }
+        labels = {
+            "field_name": _("Field Name"),
+            "field_type": _("Field Type"),
+            "required": _("Required"),
+            "description": _("Description"),
+            "prompt": _("Prompt"),
+        }

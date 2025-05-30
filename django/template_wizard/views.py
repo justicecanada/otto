@@ -1,6 +1,10 @@
 from django.contrib import messages
+from django.forms import inlineformset_factory
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_http_methods
 
 from rules.contrib.views import objectgetter
 from structlog import get_logger
@@ -11,8 +15,8 @@ from otto.utils.decorators import (
     permission_required,
 )
 
-from .forms import MetadataForm, SourceForm
-from .models import Template
+from .forms import FieldForm, MetadataForm, SourceForm
+from .models import Source, Template, TemplateField
 
 logger = get_logger(__name__)
 
@@ -129,19 +133,10 @@ def edit_example_source(request, template_id):
 )
 def edit_fields(request, template_id):
     template = Template.objects.filter(id=template_id).first()
-    if request.method == "POST":
-        fields_form = None  # TODO
-        if fields_form is not None and fields_form.is_valid():
-            fields_form.save()
-            messages.success(request, _("Template fields updated successfully."))
-            return redirect("template_wizard:edit_layout", template_id=template.id)
-    else:
-        fields_form = None
     return render(
         request,
         "template_wizard/edit_template.html",
         context={
-            "fields_form": fields_form,
             "active_tab": "fields",
             "template": template,
         },
@@ -170,3 +165,49 @@ def edit_layout(request, template_id):
             "template": template,
         },
     )
+
+
+@require_http_methods(["GET", "POST"])
+@permission_required(
+    "template_wizard.edit_template", objectgetter(Template, "template_id")
+)
+def field_modal(request, template_id, field_id=None):
+    template = Template.objects.filter(id=template_id).first()
+    if not template:
+        raise Http404()
+    if field_id:
+        field = TemplateField.objects.filter(id=field_id, template=template).first()
+        if not field:
+            raise Http404()
+    else:
+        field = None
+    if request.method == "POST":
+        form = FieldForm(request.POST, instance=field)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.template = template
+            instance.save()
+            messages.success(request, _("Field saved successfully."))
+            return redirect("template_wizard:edit_fields", template_id=template.id)
+    else:
+        form = FieldForm(instance=field)
+    return render(
+        request,
+        "template_wizard/edit_template/field_modal.html",
+        {"form": form, "template": template, "field": field},
+    )
+
+
+@permission_required(
+    "template_wizard.edit_template", objectgetter(Template, "template_id")
+)
+def delete_field(request, template_id, field_id):
+    template = Template.objects.filter(id=template_id).first()
+    if not template:
+        raise Http404()
+    field = TemplateField.objects.filter(id=field_id, template=template).first()
+    if not field:
+        raise Http404()
+    field.delete()
+    messages.success(request, _("Field deleted successfully."))
+    return redirect("template_wizard:edit_fields", template_id=template.id)

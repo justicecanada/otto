@@ -1,0 +1,34 @@
+{% load i18n %}
+<div class="modal-header">
+  <h5 class="modal-title">
+    {% if form.instance.pk %}
+      {% trans "Edit Field" %}
+    {% else %}
+      {% trans "Add Field" %}
+    {% endif %}
+  </h5>
+  <button type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"></button>
+</div>
+<form method="post"
+      id="field-form-modal-form"
+      action="{% if form.instance.pk %}{% url 'template_wizard:field_modal' template_id=template.id field_id=form.instance.pk %}{% else %}{% url 'template_wizard:field_modal' template_id=template.id %}{% endif %}">
+  <div class="modal-body">
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    {% for field in form.visible_fields %}
+      <div class="mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+    <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+  </div>
+</form>

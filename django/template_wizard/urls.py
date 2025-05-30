@@ -37,4 +37,19 @@ urlpatterns = [
         views.delete_template,
         name="delete_template",
     ),
+    path(
+        "edit_template/<int:template_id>/field_modal/",
+        views.field_modal,
+        name="field_modal",
+    ),
+    path(
+        "edit_template/<int:template_id>/field_modal/<int:field_id>/",
+        views.field_modal,
+        name="field_modal",
+    ),
+    path(
+        "edit_template/<int:template_id>/delete_field/<int:field_id>/",
+        views.delete_field,
+        name="delete_field",
+    ),
 ]
