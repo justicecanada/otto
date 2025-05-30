@@ -1,0 +1,15 @@
+{# Template fragment for displaying test field extraction results #}
+<div class="alert alert-info">
+  <strong>Test Field Extraction</strong>
+  <div id="test-fields-result">
+    {# Loop over the dict and display in a nice DL #}
+    <dl class="row">
+      {% for key, value in test_results.items %}
+        <dt class="col-sm-3">{{ key }}</dt>
+        <dd class="col-sm-9">
+          {{ value }}
+        </dd>
+      {% endfor %}
+    </dl>
+  </div>
+</div>

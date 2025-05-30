@@ -52,4 +52,9 @@ urlpatterns = [
         views.delete_field,
         name="delete_field",
     ),
+    path(
+        "edit_template/<int:template_id>/test_fields/",
+        views.test_fields,
+        name="test_fields",
+    ),
 ]

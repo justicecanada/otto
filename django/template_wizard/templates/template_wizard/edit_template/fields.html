@@ -29,7 +29,7 @@
 </div>
 <div class="mb-3">
   <button type="button"
-          class="btn btn-success"
+          class="btn btn-primary"
           data-bs-toggle="modal"
           data-bs-target="#fieldModal"
           hx-get="{% url 'template_wizard:field_modal' template_id=template.id %}"
@@ -38,7 +38,22 @@
           onclick="document.querySelector('#fieldModal .modal-content').innerHTML = ''">
     {% trans "Add Field" %}
   </button>
+  {% if template.fields.all %}
+    <button type="button"
+            class="btn btn-outline-success"
+            hx-get="{% url 'template_wizard:test_fields' template_id=template.id %}"
+            hx-target="#test-fields"
+            hx-swap="innerHTML"
+            hx-indicator="#test-fields-spinner">{% trans "Test field extraction on example source" %}</button>
+    <div class="d-inline-block ms-2">
+      <div id="test-fields-spinner" class="spinner container text-primary">
+        <span class="spinner-border" aria-hidden="true"></span>
+        <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+      </div>
+    </div>
+  {% endif %}
 </div>
+<div id="test-fields"></div>
 
 <!-- Modal -->
 <div class="modal fade"

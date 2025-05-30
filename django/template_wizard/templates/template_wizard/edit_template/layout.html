@@ -6,11 +6,13 @@
       url="{% url 'template_wizard:edit_layout' template_id=template.id %}">
   {% csrf_token %}
   <div class="row">
-    <div class="col">TODO: Layout</div>
+    <div class="col">{{ layout_form }}</div>
   </div>
   <div class="row mt-3">
     <div class="col text-end">
-      <button class="btn btn-primary" type="submit" onclick="">{% trans "Save & finish" %}</button>
+      <button class="btn btn-primary" type="submit">
+        {% trans "Save & next" %}<i class="bi bi-chevron-right ms-2"></i>
+      </button>
     </div>
   </div>
 </form>

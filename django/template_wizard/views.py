@@ -1,21 +1,25 @@
+import os
+
 from django.contrib import messages
-from django.forms import inlineformset_factory
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
-from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
+from llama_index.core.llms import ChatMessage
+from pydantic import Field as PydanticField
+from pydantic import create_model
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 
+from chat.llm import OttoLLM
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
     permission_required,
 )
 
-from .forms import FieldForm, MetadataForm, SourceForm
+from .forms import FieldForm, LayoutForm, MetadataForm, SourceForm
 from .models import Source, Template, TemplateField
 
 logger = get_logger(__name__)
@@ -149,13 +153,13 @@ def edit_fields(request, template_id):
 def edit_layout(request, template_id):
     template = Template.objects.filter(id=template_id).first()
     if request.method == "POST":
-        layout_form = None  # TODO
+        layout_form = LayoutForm(request.POST, instance=template)
         if layout_form is not None and layout_form.is_valid():
             layout_form.save()
             messages.success(request, _("Template layout updated successfully."))
             return redirect("template_wizard:index")
     else:
-        layout_form = None
+        layout_form = LayoutForm(instance=template)
     return render(
         request,
         "template_wizard/edit_template.html",
@@ -211,3 +215,48 @@ def delete_field(request, template_id, field_id):
     field.delete()
     messages.success(request, _("Field deleted successfully."))
     return redirect("template_wizard:edit_fields", template_id=template.id)
+
+
+@permission_required(
+    "template_wizard.edit_template", objectgetter(Template, "template_id")
+)
+def test_fields(request, template_id):
+    template = Template.objects.filter(id=template_id).first()
+    if not template:
+        raise Http404()
+    test_results = {}
+    # --- LlamaIndex + Pydantic dynamic model construction ---
+    if template.example_source and template.fields.exists():
+        # Map TemplateField.field_type to Python types
+        type_map = {
+            "text": (str, ...),
+            "string": (str, ...),
+            "number": (float, ...),
+            "integer": (int, ...),
+            "bool": (bool, ...),
+            "boolean": (bool, ...),
+        }
+        fields = {}
+        for field in template.fields.all():
+            py_type = type_map.get(field.field_type.lower(), (str, ...))
+            fields[field.field_name] = (
+                py_type[0],
+                PydanticField(..., description=field.description or None),
+            )
+        TemplateModel = create_model("Template", **fields)
+        llm = OttoLLM().llm
+        sllm = llm.as_structured_llm(output_cls=TemplateModel)
+        input_msg = ChatMessage.from_str(
+            f"Extract the requested fields from this text: {template.example_source.text}"
+        )
+        try:
+            output = sllm.chat([input_msg])
+            output_obj = output.raw
+            test_results = dict(output_obj)
+        except Exception as e:
+            test_results = {"error": str(e)}
+    return render(
+        request,
+        "template_wizard/edit_template/test_fields_fragment.html",
+        {"test_results": test_results},
+    )
