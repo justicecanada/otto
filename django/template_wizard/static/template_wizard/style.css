@@ -71,3 +71,200 @@ ul#preset-edit-tabs {
     }
   }
 }
+
+
+#preset-card-list .card-footer {
+  display: flex !important;
+  gap: 1rem;
+  background-color: transparent;
+  border-top: none;
+  padding-top: 0;
+
+  button {
+    &:only-child {
+      flex-basis: 100%;
+    }
+  }
+}
+
+#preset-card-list .info-section {
+  margin-bottom: 0.5rem;
+  position: relative;
+  top: -0.5rem;
+}
+
+#preset-card-list .preset-mode-badge {
+  font-weight: normal;
+  color: var(--bs-text-body);
+
+  &.chat {
+    background: var(--app-color-red-2-hover);
+  }
+
+  &.qa {
+    background: var(--app-color-purple-1-hover);
+  }
+
+  &.summarize {
+    background: var(--app-color-green-2-hover);
+  }
+
+  &.translate {
+    background: var(--app-color-yellow-1-hover);
+  }
+}
+
+#preset-card-list .card {
+  border-left: solid 5px;
+  cursor: pointer;
+
+  &.chat {
+    border-left-color: var(--app-color-red-2-hover);
+
+    &:hover {
+      border-left-color: var(--app-color-red-2);
+      box-shadow: 0 0 0 0.25rem var(--app-color-red-2-hover);
+    }
+  }
+
+  &.qa {
+    border-left-color: var(--app-color-purple-1-hover);
+
+    &:hover {
+      border-left-color: var(--app-color-purple-1);
+      box-shadow: 0 0 0 0.25rem var(--app-color-purple-1-hover);
+    }
+  }
+
+  &.summarize {
+    border-left-color: var(--app-color-green-2-hover);
+
+    &:hover {
+      border-left-color: var(--app-color-green-2);
+      box-shadow: 0 0 0 0.25rem var(--app-color-green-2-hover);
+    }
+  }
+
+  &.translate {
+    border-left-color: var(--app-color-yellow-1-hover);
+
+    &:hover {
+      border-left-color: var(--app-color-yellow-1);
+      box-shadow: 0 0 0 0.25rem var(--app-color-yellow-1-hover);
+    }
+  }
+}
+
+.preset-form-container .language-content {
+  display: none;
+}
+
+.preset-form-container .language-content.active {
+  display: block;
+}
+
+.preset-form-container form-check-input.form-check-input:checked {
+  background-color: var(--bg-black);
+  border-color: var(--bg-black);
+}
+
+.preset-form-container .form-check-input:focus {
+  border-color: var(--chat-preset-form-container);
+  box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
+}
+
+.preset-form-container .modal-body {
+  max-height: 85vh !important;
+  overflow-y: auto;
+}
+
+#preset-card-list .card-title {
+  font-size: 1.15rem;
+  line-height: 1.5rem;
+}
+
+#preset-card-list .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: transparent;
+  border-bottom: none;
+  padding-bottom: 0;
+  padding-top: 0.66rem;
+  min-height: 3rem;
+
+  button {
+    background-color: transparent;
+    border: none;
+    text-wrap: nowrap;
+
+    &:hover {
+      i.bi.bi-star {
+        border-color: var(--app-color-yellow-1);
+        color: var(--app-color-yellow-1);
+      }
+
+      i.bi.bi-star,
+      i.bi.bi-star-fill {
+        text-shadow: 0px 0px 7px var(--app-color-yellow-2);
+      }
+
+      background-color: transparent !important;
+    }
+
+    &:focus-visible {
+      outline: solid 2px;
+    }
+  }
+}
+
+#preset-card-list .preset-description {
+  min-height: 2.5rem !important;
+  -webkit-box-orient: vertical !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: normal !important;
+}
+
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 0;
+}
+
+.btn-ghost {
+  background-color: transparent !important;
+  border: none !important;
+
+  &:focus-visible {
+    outline-style: solid !important;
+    outline-color: var(--bg-black) !important;
+    outline-width: 2px !important;
+  }
+}
+
+.preset-form-user-choice .card-button {
+  padding: 0;
+}
+
+.preset-form-user-choice .card-button:hover {
+  border: 1px solid var(--chat-user-choice-button-hover);
+}
+
+.preset-form-user-choice .card-button:hover,
+.preset-form-user-choice .card-button:focus-visible {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.preset-form-user-choice .submit-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 1;
+}

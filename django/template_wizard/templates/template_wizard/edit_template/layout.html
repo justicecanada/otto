@@ -1,0 +1,17 @@
+{% load i18n %}
+
+{% load i18n %}
+
+<form class="g-3"
+      id="edit_preset_form"
+      method="post"
+      url="{% if metadata_form.instance.id %}{% url 'template_wizard:edit_template' template_id=metadata_form.instance.id active_tab='metadata' %}{% else %}{% url 'template_wizard:new_template' %}{% endif %}">
+  <div class="row">
+    <div class="col">TODO: Layout</div>
+  </div>
+  <div class="row mt-3">
+    <div class="col text-end">
+      <button class="btn btn-primary" type="submit" onclick="">{% trans "Save & finish" %}</button>
+    </div>
+  </div>
+</form>

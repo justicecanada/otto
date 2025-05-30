@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
 from data_fetcher.util import get_request
@@ -63,3 +65,30 @@ class Template(models.Model):
             return self.name_fr or self.name_en
         else:
             return self.name_en or self.name_fr
+
+
+class ExampleSource(models.Model):
+    template = models.OneToOneField(
+        Template, on_delete=models.CASCADE, related_name="example_source"
+    )
+    text = models.TextField()
+
+
+@receiver(post_save, sender=Template)
+def create_example_source(sender, instance, created, **kwargs):
+    if created:
+        ExampleSource.objects.create(template=instance, text="")
+
+
+class TemplateField(models.Model):
+    template = models.ForeignKey(
+        Template, on_delete=models.CASCADE, related_name="fields"
+    )
+    field_name = models.CharField(max_length=255)
+    field_type = models.CharField(max_length=50)  # e.g., 'text', 'number', etc.
+    required = models.BooleanField(default=False)
+    description = models.TextField(blank=True)
+    prompt = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.field_name} ({self.field_type})"

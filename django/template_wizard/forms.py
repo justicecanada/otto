@@ -6,7 +6,7 @@ from rules import is_group_member
 
 from chat.forms import accessible_to_autocomplete
 
-from .models import Template
+from .models import ExampleSource, Template
 
 
 class MetadataForm(forms.ModelForm):
@@ -70,3 +70,13 @@ class MetadataForm(forms.ModelForm):
                 ("private", _("Make private")),
                 ("others", _("Share with others")),
             ]
+
+
+class SourceForm(forms.ModelForm):
+    class Meta:
+        model = ExampleSource
+        fields = ["text"]
+
+        widgets = {
+            "text": forms.Textarea(attrs={"class": "form-control", "rows": 5}),
+        }

@@ -112,14 +112,14 @@ def can_edit_preset(user, preset):
 
 @predicate
 def can_delete_preset(user, preset):
-    if preset.global_default:
+    if getattr(preset, "global_default", False):
         return False
     return can_edit_preset(user, preset)
 
 
 @predicate
 def can_edit_preset_sharing(user, preset):
-    if preset.global_default:
+    if getattr(preset, "global_default", False):
         return False
     return can_edit_preset(user, preset)
 
@@ -276,7 +276,7 @@ add_perm("librarian.download_document", can_download_document)
 
 
 # Template Wizard. Same as chat Presets
-add_perm("template_wizard.access_preset", can_access_preset)
-add_perm("template_wizard.edit_preset", can_edit_preset)
-add_perm("template_wizard.delete_preset", can_delete_preset)
-add_perm("template_wizard.edit_preset_sharing", can_edit_preset_sharing)
+add_perm("template_wizard.access_template", can_access_preset)
+add_perm("template_wizard.edit_template", can_edit_preset)
+add_perm("template_wizard.delete_template", can_delete_preset)
+add_perm("template_wizard.edit_template_sharing", can_edit_preset_sharing)

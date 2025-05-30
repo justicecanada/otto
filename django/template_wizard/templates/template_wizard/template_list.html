@@ -19,49 +19,43 @@
   <li class="breadcrumb-item">
     <a href="{% url 'template_wizard:index' %}">{% trans "Template Wizard" %}</a>
   </li>
-  <li class="breadcrumb-item">
-    <a href="{% url 'template_wizard:new_template' %}">{% trans "Create new template" %}</a>
-  </li>
 {% endblock %}
 
 {% block content_container %}
   <div id="template-wizard-outer">
-    <div class="container py-3 px-0">
+    <div class="container py-3 px-0" id="search-container">
       <div id="spinner"
            class="spinner container text-primary position-absolute top-0 end-0">
         <span class="spinner-border" aria-hidden="true"></span>
         <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
       </div>
-      <h2 class="mb-3 px-4 mt-2">
-        <a href="{% url 'template_wizard:new_template' %}"
-           class="text-decoration-none text-body">{% trans "Create new template" %}</a>
+      <h2 class="mb-2 px-4 mt-2">
+        <a href="{% url 'template_wizard:index' %}"
+           class="text-decoration-none text-body">{% trans "Template Wizard" %}</a>
       </h2>
-      {# <p class="mx-4 mb-4"></p> #}
-      <ul class="nav nav-tabs px-3 border-bottom-0">
+      <p class="mx-4 mb-4">
+        {% trans "Create or select a template to fill in with information from uploaded documents or URLs." %}
+      </p>
+      <ul class="nav nav-tabs px-3 border-bottom-0" id="top-tabs">
         <li class="nav-item">
-          <button id="metadata-tab"
+          <button id="select-template-tab"
                   class="nav-link active fw-semibold text-body"
-                  onclick="setActiveTab(this);">{% trans "1. Metadata" %}</button>
+                  onclick="setActiveTab(this);">{% trans "1. Select template" %}</button>
         </li>
         <li class="nav-item">
-          <button id="source-tab"
+          <button id="select-sources-tab"
                   class="nav-link text-body"
-                  onclick="setActiveTab(this);">{% trans "2. Example source" %}</button>
+                  onclick="setActiveTab(this);">{% trans "2. Select sources" %}</button>
         </li>
         <li class="nav-item">
-          <button id="fields-tab"
+          <button id="fill-template-tab"
                   class="nav-link text-body"
-                  onclick="setActiveTab(this);">{% trans "3. Define fields" %}</button>
-        </li>
-        <li class="nav-item">
-          <button id="layout-tab"
-                  class="nav-link text-body"
-                  onclick="setActiveTab(this);">{% trans "4. Template layout" %}</button>
+                  onclick="setActiveTab(this);">{% trans "3. Fill template" %}</button>
         </li>
       </ul>
 
       <div id="step-content" class="rounded">
-        <div class="tab-pane fade show active p-3 border rounded">{% include "template_wizard/metadata.html" %}</div>
+        <div class="tab-pane fade show active p-3 border rounded">{% include "template_wizard/select_template.html" %}</div>
       </div>
       <button id="back-to-top"
               type="button"
