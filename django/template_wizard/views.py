@@ -6,7 +6,7 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
-from llama_index.core.llms import ChatMessage
+from llama_index.core.llms import ChatMessage, MessageRole
 from pydantic import Field as PydanticField
 from pydantic import create_model
 from rules.contrib.views import objectgetter
@@ -243,14 +243,28 @@ def test_fields(request, template_id):
                 py_type[0],
                 PydanticField(..., description=field.description or None),
             )
-        TemplateModel = create_model("Template", **fields)
-        llm = OttoLLM().llm
+        print(fields)
+        TemplateModel = create_model("ExtractionTemplate", **fields)
+        # Set the docstring of the templatemodel to the description of the template
+        if template.description_auto:
+            TemplateModel.__doc__ = (
+                f"{template.name_auto}\n\n{template.description_auto}"
+            )
+        print(TemplateModel)
+        llm = OttoLLM(deployment="o3-mini").llm
         sllm = llm.as_structured_llm(output_cls=TemplateModel)
-        input_msg = ChatMessage.from_str(
-            f"Extract the requested fields from this text: {template.example_source.text}"
+        # Add a system prompt before the user message
+        system_prompt = (
+            "Always fill the fields in bold all-caps, e.g. '**EXTRACTED VALUE**'."
         )
+        messages = [
+            ChatMessage.from_str(system_prompt, role=MessageRole.SYSTEM),
+            ChatMessage.from_str(
+                f"Extract the requested fields from this document:\n\n<document>\n{template.example_source.text}\n</document>"
+            ),
+        ]
         try:
-            output = sllm.chat([input_msg])
+            output = sllm.chat(messages)
             output_obj = output.raw
             test_results = dict(output_obj)
         except Exception as e:
