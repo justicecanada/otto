@@ -76,7 +76,7 @@ pyreadstat==1.2.8
 openpyxl==3.1.5
 RapidFuzz==3.12.1
 # Redis/Celery -----------------------------------------------------------------
-celery==5.5.0rc1
+celery==5.5.3
 redis==5.0.8
 django-redis==5.4.0
 django-celery-beat==2.7.0
