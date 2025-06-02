@@ -43,6 +43,11 @@ urlpatterns = [
         name="field_modal",
     ),
     path(
+        "edit_template/<int:template_id>/field_modal/parent/<int:parent_field_id>/",
+        views.field_modal,
+        name="field_modal",
+    ),
+    path(
         "edit_template/<int:template_id>/field_modal/<int:field_id>/",
         views.field_modal,
         name="field_modal",

@@ -1,4 +1,5 @@
 import os
+from typing import List, Optional
 
 from django.contrib import messages
 from django.http import Http404, HttpResponse
@@ -7,6 +8,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from llama_index.core.llms import ChatMessage, MessageRole
+from llama_index.core.program import FunctionCallingProgram, LLMTextCompletionProgram
 from pydantic import Field as PydanticField
 from pydantic import create_model
 from rules.contrib.views import objectgetter
@@ -175,7 +177,7 @@ def edit_layout(request, template_id):
 @permission_required(
     "template_wizard.edit_template", objectgetter(Template, "template_id")
 )
-def field_modal(request, template_id, field_id=None):
+def field_modal(request, template_id, field_id=None, parent_field_id=None):
     template = Template.objects.filter(id=template_id).first()
     if not template:
         raise Http404()
@@ -193,8 +195,14 @@ def field_modal(request, template_id, field_id=None):
             instance.save()
             messages.success(request, _("Field saved successfully."))
             return redirect("template_wizard:edit_fields", template_id=template.id)
+        else:
+            print(
+                _("Please correct the errors below: ") + str(form.errors),
+            )
     else:
         form = FieldForm(instance=field)
+        # Set the parent field if provided
+        form.fields["parent_field"].initial = parent_field_id
     return render(
         request,
         "template_wizard/edit_template/field_modal.html",
@@ -227,22 +235,30 @@ def test_fields(request, template_id):
     test_results = {}
     # --- LlamaIndex + Pydantic dynamic model construction ---
     if template.example_source and template.fields.exists():
-        # Map TemplateField.field_type to Python types
         type_map = {
-            "text": (str, ...),
-            "string": (str, ...),
-            "number": (float, ...),
-            "integer": (int, ...),
-            "bool": (bool, ...),
-            "boolean": (bool, ...),
+            "str": str,
+            "float": float,
+            "int": int,
+            "bool": bool,
         }
         fields = {}
         for field in template.fields.all():
-            py_type = type_map.get(field.field_type.lower(), (str, ...))
-            fields[field.field_name] = (
-                py_type[0],
-                PydanticField(..., description=field.description or None),
-            )
+            base_type = type_map.get(field.field_type, str)
+            # Wrap base_type with List if list=True
+            if field.list:
+                base_type = List[base_type]
+            if field.required:
+                # Required field: must be present and non-null
+                fields[field.field_name] = (
+                    base_type,
+                    PydanticField(..., description=field.description or None),
+                )
+            else:
+                # Optional field: must be present but can be null
+                fields[field.field_name] = (
+                    Optional[base_type],
+                    PydanticField(default=None, description=field.description or None),
+                )
         print(fields)
         TemplateModel = create_model("ExtractionTemplate", **fields)
         # Set the docstring of the templatemodel to the description of the template
@@ -251,24 +267,31 @@ def test_fields(request, template_id):
                 f"{template.name_auto}\n\n{template.description_auto}"
             )
         print(TemplateModel)
-        llm = OttoLLM(deployment="o3-mini").llm
-        sllm = llm.as_structured_llm(output_cls=TemplateModel)
-        # Add a system prompt before the user message
-        system_prompt = (
-            "Always fill the fields in bold all-caps, e.g. '**EXTRACTED VALUE**'."
+        llm = OttoLLM(deployment="gpt-4.1-mini").llm
+        # Note: System prompts are not effective with structured LLM.
+        prompt = (
+            "Extract the requested fields from this document, if they exist "
+            "(otherwise, the field value should be None):\n\n"
+            "<document>\n{document_text}\n</document>"
         )
-        messages = [
-            ChatMessage.from_str(system_prompt, role=MessageRole.SYSTEM),
-            ChatMessage.from_str(
-                f"Extract the requested fields from this document:\n\n<document>\n{template.example_source.text}\n</document>"
-            ),
-        ]
+        # template.example_source.text
+
+        program = LLMTextCompletionProgram.from_defaults(
+            llm=llm,
+            output_cls=TemplateModel,
+            prompt_template_str=prompt,
+            verbose=True,
+        )
         try:
-            output = sllm.chat(messages)
-            output_obj = output.raw
-            test_results = dict(output_obj)
+            output = program(document_text=template.example_source.text)
+            if isinstance(output, str):
+                raise ValueError(
+                    "The output is a string; expected a structured output."
+                )
+            else:
+                test_results = dict(output)
         except Exception as e:
-            test_results = {"error": str(e)}
+            test_results = {"error": str(e), "output": output}
     return render(
         request,
         "template_wizard/edit_template/test_fields_fragment.html",

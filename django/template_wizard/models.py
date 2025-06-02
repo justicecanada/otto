@@ -80,15 +80,45 @@ def create_example_source(sender, instance, created, **kwargs):
         Source.objects.create(template=instance, text="")
 
 
+class FieldType(models.TextChoices):
+    # Types supported by OpenAI structured outputs
+    STR = "str", _("Text")
+    FLOAT = "float", _("Decimal")
+    INT = "int", _("Integer")
+    BOOL = "bool", _("Yes/No")
+    OBJECT = "object", _("Group of fields")
+
+
+class StringFormat(models.TextChoices):
+    # String formats that can be enforced by OpenAI structured outputs
+    NONE = "none", _("Free text")
+    EMAIL = "email", _("Email")
+    DATE = "date", _("Date")
+    TIME = "time", _("Time")
+    DATE_TIME = "date-time", _("Date and Time")
+    DURATION = "duration", _("Duration")
+
+
 class TemplateField(models.Model):
     template = models.ForeignKey(
-        Template, on_delete=models.CASCADE, related_name="fields"
+        Template, on_delete=models.CASCADE, related_name="fields", null=True
     )
     field_name = models.CharField(max_length=255)
-    field_type = models.CharField(max_length=50)  # e.g., 'text', 'number', etc.
+    field_type = models.CharField(
+        max_length=50, choices=FieldType.choices, default=FieldType.STR
+    )
+    string_format = models.CharField(
+        max_length=50, choices=StringFormat.choices, default=StringFormat.NONE
+    )
     required = models.BooleanField(default=False)
     description = models.TextField(blank=True)
-    prompt = models.TextField(blank=True)
+    list = models.BooleanField(default=False)
+    parent_field = models.ForeignKey(
+        "self", on_delete=models.CASCADE, related_name="child_fields", null=True
+    )
+
+    class Meta:
+        ordering = ["id"]
 
     def __str__(self):
-        return f"{self.field_name} ({self.field_type})"
+        return f"{self.field_name} ({self.get_field_type_display()}{' list' if self.list else ''})"

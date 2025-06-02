@@ -102,26 +102,37 @@ class LayoutForm(forms.ModelForm):
 
 
 class FieldForm(forms.ModelForm):
+    parent_field = forms.ModelChoiceField(
+        queryset=TemplateField.objects.all(),
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+
     class Meta:
         model = TemplateField
         fields = [
             "field_name",
-            "field_type",
-            "required",
             "description",
-            "prompt",
+            "field_type",
+            "string_format",
+            "list",
+            "required",
+            "parent_field",
         ]
         widgets = {
             "field_name": forms.TextInput(attrs={"class": "form-control"}),
-            "field_type": forms.TextInput(attrs={"class": "form-control"}),
+            "list": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "required": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "field_type": forms.Select(attrs={"class": "form-select"}),
+            "string_format": forms.Select(attrs={"class": "form-select"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
-            "prompt": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "parent_field": forms.HiddenInput(),
         }
         labels = {
-            "field_name": _("Field Name"),
-            "field_type": _("Field Type"),
+            "field_name": _("Field name"),
+            "list": _("List"),
             "required": _("Required"),
+            "field_type": _("Field type"),
+            "string_format": _("Text format"),
             "description": _("Description"),
-            "prompt": _("Prompt"),
         }

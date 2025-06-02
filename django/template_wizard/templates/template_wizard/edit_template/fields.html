@@ -1,59 +1,54 @@
 {% load i18n %}
 
-<div class="mb-3">
-  <label for="fields-listbox" class="form-label">{% trans "Fields" %}</label>
-  <ul class="list-group" id="fields-listbox">
-    {% for field in template.fields.all %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        <span>{{ field.field_name }} ({{ field.field_type }})</span>
-        <span>
-          <button type="button"
-                  class="btn btn-sm btn-outline-primary me-2"
-                  data-bs-toggle="modal"
-                  data-bs-target="#fieldModal"
-                  hx-get="{% url 'template_wizard:field_modal' template_id=template.id field_id=field.id %}"
-                  hx-target="#fieldModal .modal-content"
-                  hx-swap="innerHTML"
-                  onclick="document.querySelector('#fieldModal .modal-content').innerHTML = ''">
-            {% trans "Edit" %}
-          </button>
-          <a class="btn btn-sm btn-outline-danger"
-             href="{% url 'template_wizard:delete_field' template_id=template.id field_id=field.id %}"
-             onclick="return confirm('{% trans 'Are you sure you want to delete this field?' %}');">{% trans "Delete" %}</a>
-        </span>
-      </li>
-    {% empty %}
-      <li class="list-group-item text-muted">{% trans "No fields defined yet." %}</li>
-    {% endfor %}
-  </ul>
-</div>
-<div class="mb-3">
-  <button type="button"
-          class="btn btn-primary"
-          data-bs-toggle="modal"
-          data-bs-target="#fieldModal"
-          hx-get="{% url 'template_wizard:field_modal' template_id=template.id %}"
-          hx-target="#fieldModal .modal-content"
-          hx-swap="innerHTML"
-          onclick="document.querySelector('#fieldModal .modal-content').innerHTML = ''">
-    {% trans "Add Field" %}
-  </button>
-  {% if template.fields.all %}
-    <button type="button"
-            class="btn btn-outline-success"
-            hx-get="{% url 'template_wizard:test_fields' template_id=template.id %}"
-            hx-target="#test-fields"
-            hx-swap="innerHTML"
-            hx-indicator="#test-fields-spinner">{% trans "Test field extraction on example source" %}</button>
-    <div class="d-inline-block ms-2">
-      <div id="test-fields-spinner" class="spinner container text-primary">
-        <span class="spinner-border" aria-hidden="true"></span>
-        <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+<div class="row">
+  <div class="col border-end">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>{% trans "Fields to extract" %}</h4>
+      <button type="button"
+              class="btn btn-success"
+              data-bs-toggle="modal"
+              data-bs-target="#fieldModal"
+              hx-get="{% url 'template_wizard:field_modal' template_id=template.id %}"
+              hx-target="#fieldModal .modal-content"
+              hx-swap="innerHTML"
+              onclick="document.querySelector('#fieldModal .modal-content').innerHTML = ''">
+        {% trans "Add field" %}
+      </button>
+    </div>
+    <div class="mb-3">
+      {% with template.fields.all as fields %}
+        {% include "template_wizard/edit_template/field_list.html" %}
+      {% endwith %}
+    </div>
+    <div class="text-muted small">
+      {% trans "Note: Template name and description also influence the extraction results." %}
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>{% trans "Results on example source" %}</h4>
+      <div>
+        <div class="d-inline-block me-2"
+             style="position: relative;
+                    top: 10px;
+                    margin-top: -10px">
+          <div id="test-fields-spinner" class="spinner text-primary">
+            <span class="spinner-border" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+          </div>
+        </div>
+        <button type="button"
+                class="btn btn-outline-success"
+                hx-get="{% url 'template_wizard:test_fields' template_id=template.id %}"
+                hx-target="#test-fields"
+                hx-swap="innerHTML"
+                hx-indicator="#test-fields-spinner">{% trans "Test extraction" %}</button>
       </div>
     </div>
-  {% endif %}
+    <div id="test-fields"></div>
+  </div>
 </div>
-<div id="test-fields"></div>
 
 <!-- Modal -->
 <div class="modal fade"
