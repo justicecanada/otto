@@ -225,6 +225,75 @@ def delete_field(request, template_id, field_id):
     return redirect("template_wizard:edit_fields", template_id=template.id)
 
 
+def build_pydantic_model_for_fields(
+    fields_qs, parent_field=None, model_name="ExtractionTemplate"
+):
+    """
+    Recursively build a Pydantic model for the given fields.
+    """
+    from typing import List, Optional
+
+    from pydantic import Field as PydanticField
+    from pydantic import create_model
+
+    type_map = {
+        "str": str,
+        "float": float,
+        "int": int,
+        "bool": bool,
+        "object": None,  # will be replaced by nested model
+    }
+    fields = {}
+    # Only direct children of parent_field
+    child_fields = fields_qs.filter(parent_field=parent_field)
+    for field in child_fields:
+        if field.field_type == "object":
+            # Recursively build nested model
+            nested_model = build_pydantic_model_for_fields(
+                fields_qs,
+                parent_field=field,
+                model_name=f"{model_name}_{field.field_name.title().replace('_', '')}Object",
+            )
+            base_type = nested_model
+        else:
+            base_type = type_map.get(field.field_type, str)
+        if field.list:
+            base_type = List[base_type]
+        # Prepare extra kwargs for PydanticField
+        field_kwargs = {"description": field.description or None}
+        if (
+            field.field_type == "str"
+            and getattr(field, "string_format", "none") != "none"
+        ):
+            field_kwargs["format"] = field.string_format
+        if field.required:
+            fields[field.field_name] = (
+                base_type,
+                PydanticField(..., **field_kwargs),
+            )
+        else:
+            fields[field.field_name] = (
+                Optional[base_type],
+                PydanticField(default=None, **field_kwargs),
+            )
+    return create_model(model_name, **fields)
+
+
+def unpack_model_to_dict(model_instance):
+    """
+    Recursively unpack a Pydantic model instance to a dict, ensuring all nested models and lists are handled.
+    """
+    if hasattr(model_instance, "dict"):
+        # Unpack pydantic model to dict, then recurse
+        return unpack_model_to_dict(model_instance.dict())
+    elif isinstance(model_instance, dict):
+        return {k: unpack_model_to_dict(v) for k, v in model_instance.items()}
+    elif isinstance(model_instance, list):
+        return [unpack_model_to_dict(item) for item in model_instance]
+    else:
+        return model_instance
+
+
 @permission_required(
     "template_wizard.edit_template", objectgetter(Template, "template_id")
 )
@@ -235,47 +304,19 @@ def test_fields(request, template_id):
     test_results = {}
     # --- LlamaIndex + Pydantic dynamic model construction ---
     if template.example_source and template.fields.exists():
-        type_map = {
-            "str": str,
-            "float": float,
-            "int": int,
-            "bool": bool,
-        }
-        fields = {}
-        for field in template.fields.all():
-            base_type = type_map.get(field.field_type, str)
-            # Wrap base_type with List if list=True
-            if field.list:
-                base_type = List[base_type]
-            if field.required:
-                # Required field: must be present and non-null
-                fields[field.field_name] = (
-                    base_type,
-                    PydanticField(..., description=field.description or None),
-                )
-            else:
-                # Optional field: must be present but can be null
-                fields[field.field_name] = (
-                    Optional[base_type],
-                    PydanticField(default=None, description=field.description or None),
-                )
-        print(fields)
-        TemplateModel = create_model("ExtractionTemplate", **fields)
+        # Build the root model recursively
+        TemplateModel = build_pydantic_model_for_fields(template.fields.all())
         # Set the docstring of the templatemodel to the description of the template
         if template.description_auto:
             TemplateModel.__doc__ = (
                 f"{template.name_auto}\n\n{template.description_auto}"
             )
-        print(TemplateModel)
         llm = OttoLLM(deployment="gpt-4.1-mini").llm
-        # Note: System prompts are not effective with structured LLM.
         prompt = (
             "Extract the requested fields from this document, if they exist "
             "(otherwise, the field value should be None):\n\n"
             "<document>\n{document_text}\n</document>"
         )
-        # template.example_source.text
-
         program = LLMTextCompletionProgram.from_defaults(
             llm=llm,
             output_cls=TemplateModel,
@@ -289,7 +330,9 @@ def test_fields(request, template_id):
                     "The output is a string; expected a structured output."
                 )
             else:
-                test_results = dict(output)
+                # Recursively unpack to dict
+                test_results = unpack_model_to_dict(output)
+
         except Exception as e:
             test_results = {"error": str(e), "output": output}
     return render(

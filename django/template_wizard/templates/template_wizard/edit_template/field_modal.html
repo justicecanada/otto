@@ -19,7 +19,8 @@
     {% csrf_token %}
     {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
     {% for field in form.visible_fields %}
-      <div class="mb-3">
+      <div class="mb-3"
+           {% if field.name == "string_format" %}id="string_format_wrapper"{% endif %}>
         <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
         {{ field }}
         {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
@@ -32,3 +33,24 @@
     <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
   </div>
 </form>
+<script>
+  function toggleStringFormat() {
+    var fieldType = document.getElementById('id_field_type');
+    var stringFormat = document.getElementById('id_string_format');
+    if (fieldType && stringFormat) {
+      var wrapper = stringFormat.closest('.mb-3');
+      if (fieldType.value === 'str') {
+        wrapper.style.display = '';
+      } else {
+        wrapper.style.display = 'none';
+      }
+    }
+  }
+  (function() {
+    var fieldType = document.getElementById('id_field_type');
+    if (fieldType) {
+      fieldType.addEventListener('change', toggleStringFormat);
+      toggleStringFormat();
+    }
+  })();
+</script>

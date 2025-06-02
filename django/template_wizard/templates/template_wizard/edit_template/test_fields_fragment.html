@@ -1,14 +1,7 @@
 {# Template fragment for displaying test field extraction results #}
 <div class="alert alert-info">
   <div id="test-fields-result">
-    {# Loop over the dict and display in a nice DL #}
-    <dl class="row">
-      {% for key, value in test_results.items %}
-        <dt class="col-sm-3">{{ key }}</dt>
-        <dd class="col-sm-9">
-          {{ value }}
-        </dd>
-      {% endfor %}
-    </dl>
+    {# Use the recursive fragment to display the dictionary #}
+    {% include "template_wizard/edit_template/test_fields_dict_fragment.html" with dict_data=test_results %}
   </div>
 </div>
