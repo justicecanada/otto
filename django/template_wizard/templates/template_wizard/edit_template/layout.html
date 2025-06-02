@@ -5,6 +5,14 @@
       method="post"
       url="{% url 'template_wizard:edit_layout' template_id=template.id %}">
   {% csrf_token %}
+  <div class="row mb-2">
+    <div class="col">
+      <button type="button"
+              class="btn btn-outline-secondary"
+              id="insert-top-fields"
+              onclick="insertFields(topLevelFields)">{% trans "Insert fields" %}</button>
+    </div>
+  </div>
   <div class="row">
     <div class="col">{{ layout_form }}</div>
   </div>
@@ -16,3 +24,7 @@
     </div>
   </div>
 </form>
+
+<script>
+const topLevelFields = [{% for f in top_level_fields %}'{{ f.field_name|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+</script>

@@ -1,0 +1,20 @@
+{# Recursive fragment for displaying a list as an unordered list #}
+{% load recursion_filters %}
+
+<ul class="list-unstyled">
+  {% for item in list_data %}
+    <li>
+      {% if item|is_dict %}
+        {% if forloop.last %}
+          {% include "template_wizard/edit_template/test_fields_dict_fragment.html" with dict_data=item show_rule=False %}
+        {% else %}
+          {% include "template_wizard/edit_template/test_fields_dict_fragment.html" with dict_data=item show_rule=True %}
+        {% endif %}
+      {% elif item|is_list %}
+        {% include "template_wizard/edit_template/test_fields_list_fragment.html" with list_data=item %}
+      {% else %}
+        {{ item }}
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>

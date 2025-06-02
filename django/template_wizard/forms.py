@@ -96,9 +96,6 @@ class LayoutForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["template_html"].label = _("Template HTML")
-        self.fields["template_html"].help_text = _(
-            "Enter the HTML content for the template."
-        )
 
 
 class FieldForm(forms.ModelForm):
