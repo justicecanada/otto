@@ -46,7 +46,7 @@ llama-index-embeddings-azure-openai==0.3.2
 tiktoken==0.9.0
 
 # Document extraction ----------------------------------------------------------
-beautifulsoup4==4.12.3
+beautifulsoup4==4.13.4
 markdownify==0.13.1
 Markdown==3.7
 bleach==6.1.0
@@ -82,4 +82,4 @@ django-redis==5.4.0
 django-celery-beat==2.7.0
 
 # GPL-licensed: Use only through CLI to maintain Otto's MIT license ------------
-extract_msg==0.52.0
+extract_msg==0.54.1
