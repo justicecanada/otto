@@ -1,5 +1,6 @@
 {# Recursive fragment for displaying a dictionary as a definition list #}
 {% load recursion_filters %}
+
 <dl class="row">
   {% for key, value in dict_data.items %}
     <dt class="col-sm-3">{{ key }}</dt>
@@ -7,24 +8,11 @@
       {% if value|is_dict %}
         {% include "template_wizard/edit_template/test_fields_dict_fragment.html" with dict_data=value %}
       {% elif value|is_list %}
-        <ul class="list-unstyled">
-          {% for item in value %}
-            <li>
-              {% if item|is_dict %}
-                {% include "template_wizard/edit_template/test_fields_dict_fragment.html" with dict_data=item %}
-              {% elif item|is_list %}
-                <ul>
-                  {% for subitem in item %}<li>{{ subitem }}</li>{% endfor %}
-                </ul>
-              {% else %}
-                {{ item }}
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
+        {% include "template_wizard/edit_template/test_fields_list_fragment.html" with list_data=value %}
       {% else %}
         {{ value }}
       {% endif %}
     </dd>
   {% endfor %}
 </dl>
+{% if show_rule %}<hr class="mt-0 mb-3">{% endif %}
