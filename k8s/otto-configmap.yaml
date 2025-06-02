@@ -21,6 +21,8 @@ data:
   ENTRA_CLIENT_ID: 5612714c-5733-4e14-b145-70e17dc277e1
   ENTRA_REDIRECT_URI: /accounts/login/callback
   ENV: DEV
+  LITELLM_ENDPOINT: http://litellm:4000/
+  LITELLM_KEY: sk-1234
   LOG_LEVEL: INFO
   MEDIA_ROOT: /data/media
   REDIS_HOST: redis-service
@@ -30,15 +32,13 @@ data:
   VECTORDB_HOST: postgres-vector-service
   VECTORDB_NAME: llama_index
   VECTORDB_USER: postgres
-  LITELLM_ENDPOINT: "http://litellm:4000/"
-  LITELLM_KEY: "sk-1234"
 kind: ConfigMap
 metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"v1","data":{"AZURE_AI_SERVICES_ENDPOINT":"https://jus-sandbox-otto-azureai.services.ai.azure.com/models/chat/completions?api-version=2024-05-01-preview","AZURE_COGNITIVE_SERVICE_ENDPOINT":"https://canadacentral.api.cognitive.microsoft.com","AZURE_COGNITIVE_SERVICE_REGION":"canadacentral","AZURE_KEYVAULT_URL":"https://jus-sandbox-otto-kv.vault.azure.net/","AZURE_OPENAI_CANADA_CENTRAL_ENDPOINT":"https://jus-sandbox-otto-azureai.cognitiveservices.azure.com/","AZURE_OPENAI_ENDPOINT":"https://jus-sandbox-otto-openai-canadaeast.openai.azure.com/","AZURE_OPENAI_VERSION":"2025-03-01-preview","AZURE_STORAGE_ACCOUNT_NAME":"jussandboxottostorage","AZURE_STORAGE_CONTAINER":"otto","CELERY_LOG_LEVEL":"INFO","CREDENTIAL_TYPE":"default","DEBUG":"False","DEBUG_TOOLBAR":"False","DJANGODB_ENGINE":"django.db.backends.postgresql_psycopg2","DJANGODB_NAME":"citus","DJANGODB_USER":"citus","DJANGO_SECRET_KEY":"django-secret-key","ENTRA_AUTHORITY":"https://login.microsoftonline.com/44c0b27b-bb8b-4284-829c-8ad96d3b40e5","ENTRA_CLIENT_ID":"5612714c-5733-4e14-b145-70e17dc277e1","ENTRA_REDIRECT_URI":"/accounts/login/callback","ENV":"DEV","LOG_LEVEL":"INFO","MEDIA_ROOT":"/data/media","REDIS_HOST":"redis-service","SITE_URL":"https://otto-sandbox.canadacentral.cloudapp.azure.com","STATIC_ROOT":"/data/static","VECTORDB_ENGINE":"django.db.backends.postgresql_psycopg2","VECTORDB_HOST":"postgres-vector-service","VECTORDB_NAME":"llama_index","VECTORDB_USER":"postgres"},"kind":"ConfigMap","metadata":{"annotations":{},"creationTimestamp":"2024-10-09T18:17:03Z","name":"otto-configmap","namespace":"otto","resourceVersion":"85639790","uid":"03de0db4-7250-4dee-af1f-01511eeb91b6"}}
+      {"apiVersion":"v1","data":{"AZURE_AI_SERVICES_ENDPOINT":"https://jus-sandbox-otto-azureai.services.ai.azure.com/models/chat/completions?api-version=2024-05-01-preview","AZURE_COGNITIVE_SERVICE_ENDPOINT":"https://canadacentral.api.cognitive.microsoft.com","AZURE_COGNITIVE_SERVICE_REGION":"canadacentral","AZURE_KEYVAULT_URL":"https://jus-sandbox-otto-kv.vault.azure.net/","AZURE_OPENAI_CANADA_CENTRAL_ENDPOINT":"https://jus-sandbox-otto-azureai.cognitiveservices.azure.com/","AZURE_OPENAI_ENDPOINT":"https://jus-sandbox-otto-openai-canadaeast.openai.azure.com/","AZURE_OPENAI_VERSION":"2025-03-01-preview","AZURE_STORAGE_ACCOUNT_NAME":"jussandboxottostorage","AZURE_STORAGE_CONTAINER":"otto","CELERY_LOG_LEVEL":"INFO","CREDENTIAL_TYPE":"default","DEBUG":"False","DEBUG_TOOLBAR":"False","DJANGODB_ENGINE":"django.db.backends.postgresql_psycopg2","DJANGODB_NAME":"citus","DJANGODB_USER":"citus","DJANGO_SECRET_KEY":"django-secret-key","ENTRA_AUTHORITY":"https://login.microsoftonline.com/44c0b27b-bb8b-4284-829c-8ad96d3b40e5","ENTRA_CLIENT_ID":"5612714c-5733-4e14-b145-70e17dc277e1","ENTRA_REDIRECT_URI":"/accounts/login/callback","ENV":"DEV","LITELLM_ENDPOINT":"http://litellm:4000/","LITELLM_KEY":"sk-1234","LOG_LEVEL":"INFO","MEDIA_ROOT":"/data/media","REDIS_HOST":"redis-service","SITE_URL":"https://otto-sandbox.canadacentral.cloudapp.azure.com","STATIC_ROOT":"/data/static","VECTORDB_ENGINE":"django.db.backends.postgresql_psycopg2","VECTORDB_HOST":"postgres-vector-service","VECTORDB_NAME":"llama_index","VECTORDB_USER":"postgres"},"kind":"ConfigMap","metadata":{"annotations":{},"creationTimestamp":"2024-10-09T18:17:03Z","name":"otto-configmap","namespace":"otto","resourceVersion":"85640073","uid":"03de0db4-7250-4dee-af1f-01511eeb91b6"}}
   creationTimestamp: "2024-10-09T18:17:03Z"
   name: otto-configmap
   namespace: otto
-  resourceVersion: "85640073"
+  resourceVersion: "85734022"
   uid: 03de0db4-7250-4dee-af1f-01511eeb91b6
