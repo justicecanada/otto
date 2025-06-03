@@ -371,3 +371,91 @@ def modify_layout_code(request, template_id):
         "template_wizard/edit_template/layout_form.html",
         {"layout_form": layout_form, "template": template},
     )
+
+
+@permission_required(
+    "template_wizard.edit_template", objectgetter(Template, "template_id")
+)
+def generate_fields(request, template_id):
+    """
+    Use LLM to extract a schema from the example source, create TemplateField objects, and return the rendered field list fragment for HTMX.
+    """
+    import json
+
+    template = Template.objects.filter(id=template_id).first()
+    if not template or not template.example_source or not template.example_source.text:
+        return HttpResponse(status=400, content="No example source available.")
+
+    # Prompt LLM for a schema based on the TemplateField model
+    llm = OttoLLM(deployment="gpt-4.1-mini")
+    prompt = _(
+        """
+        You are an expert in information extraction. Given the following document, infer a JSON schema for extracting structured data fields, including nested objects and lists, suitable for the following Django model:
+
+        class TemplateField(models.Model):
+            field_name: str  # Human-readable name
+            slug: str        # Unique identifier (letters, numbers, underscores only)
+            field_type: str  # One of: str, float, int, bool, object
+            string_format: str  # One of: none, email, date, time, date-time, duration
+            required: bool
+            description: str
+            list: bool
+            parent_field: str or null  # Slug of parent field if nested, else null
+
+        Please output a JSON array of fields, where each field is an object with keys: field_name, slug, field_type, string_format, required, description, list, parent_field.
+        Use nested objects for nested fields, and set parent_field to the slug of the parent. Use 'object' for field_type of nested objects. Use 'list' true for lists. Slugs must be unique among siblings and only contain letters, numbers, and underscores.
+        
+        DOCUMENT:
+        {document}
+        """
+    ).format(document=template.example_source.text)
+
+    try:
+        llm_response = llm.complete(prompt)
+        # Try to parse the response as JSON
+        fields_data = json.loads(llm_response)
+    except Exception as e:
+        return HttpResponse(
+            f"LLM or JSON error: {e}\nResponse: {llm_response}", status=500
+        )
+
+    # Remove all existing fields for this template
+    TemplateField.objects.filter(template=template).delete()
+
+    # Helper to recursively create fields
+    def create_fields(fields, parent_field=None):
+        for field in fields:
+            # Remove keys not in model
+            field_kwargs = {
+                "template": template,
+                "field_name": field.get("field_name", ""),
+                "slug": field.get("slug", ""),
+                "field_type": field.get("field_type", "str"),
+                "string_format": field.get("string_format", "none"),
+                "required": field.get("required", False),
+                "description": field.get("description", ""),
+                "list": field.get("list", False),
+                "parent_field": parent_field,
+            }
+            # Remove parent_field if None
+            if not parent_field:
+                field_kwargs.pop("parent_field")
+            tf = TemplateField.objects.create(**field_kwargs)
+            # Recursively create children if present
+            if "fields" in field and isinstance(field["fields"], list):
+                create_fields(field["fields"], parent_field=tf)
+
+    # If the LLM output is a dict with a 'fields' key, use it; else assume it's a list
+    if isinstance(fields_data, dict) and "fields" in fields_data:
+        fields_list = fields_data["fields"]
+    else:
+        fields_list = fields_data
+    create_fields(fields_list)
+
+    # Return the rendered field list fragment for HTMX
+    fields = template.fields.all()
+    return render(
+        request,
+        "template_wizard/edit_template/field_list.html",
+        {"fields": fields, "template": template},
+    )

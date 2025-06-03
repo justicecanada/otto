@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <div class="row">
-  <div class="col-xl-5">
+  <div class="col-xl-5 border-end">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4>{% trans "Fields to extract" %}</h4>
       <button type="button"
@@ -15,10 +15,27 @@
         {% trans "Add field" %}
       </button>
     </div>
-    <div class="mb-3">
+    <div class="mb-3" id="field-list">
       {% with template.fields.all as fields %}
         {% include "template_wizard/edit_template/field_list.html" %}
       {% endwith %}
+    </div>
+    <div class="mb-3">
+      <button type="button"
+              class="btn btn-outline-success"
+              hx-get="{% url 'template_wizard:generate_fields' template_id=template.id %}"
+              hx-target="#field-list"
+              hx-swap="innerHTML"
+              hx-indicator="#generate-fields-spinner">{% trans "Generate fields from example" %}</button>
+      <div class="d-inline-block me-2"
+           style="position: relative;
+                  top: 10px;
+                  margin-top: -10px">
+        <div id="generate-fields-spinner" class="spinner text-primary">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+        </div>
+      </div>
     </div>
     <div class="text-muted small">
       {% trans "Note: Template name and description also influence the extraction results." %}

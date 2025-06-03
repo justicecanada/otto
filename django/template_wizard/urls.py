@@ -82,4 +82,9 @@ urlpatterns = [
         llm_views.modify_layout_code,
         name="modify_layout_code",
     ),
+    path(
+        "edit_template/<int:template_id>/generate_fields/",
+        llm_views.generate_fields,
+        name="generate_fields",
+    ),
 ]
