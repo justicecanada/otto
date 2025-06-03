@@ -9,8 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.program import FunctionCallingProgram, LLMTextCompletionProgram
-from pydantic import Field as PydanticField
-from pydantic import create_model
+from pydantic import Field, create_model
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 
@@ -245,10 +244,6 @@ def build_pydantic_model_for_fields(
     """
     Recursively build a Pydantic model for the given fields.
     """
-    from typing import List, Optional
-
-    from pydantic import Field as PydanticField
-    from pydantic import create_model
 
     type_map = {
         "str": str,
@@ -266,14 +261,14 @@ def build_pydantic_model_for_fields(
             nested_model = build_pydantic_model_for_fields(
                 fields_qs,
                 parent_field=field,
-                model_name=f"{model_name}_{field.field_name.title().replace('_', '')}Object",
+                model_name=f"{model_name}__{field.slug}",
             )
             base_type = nested_model
         else:
             base_type = type_map.get(field.field_type, str)
         if field.list:
             base_type = List[base_type]
-        # Prepare extra kwargs for PydanticField
+        # Prepare extra kwargs for Field
         field_kwargs = {"description": field.description or None}
         if (
             field.field_type == "str"
@@ -281,14 +276,14 @@ def build_pydantic_model_for_fields(
         ):
             field_kwargs["format"] = field.string_format
         if field.required:
-            fields[field.field_name] = (
+            fields[field.slug] = (
                 base_type,
-                PydanticField(..., **field_kwargs),
+                Field(..., **field_kwargs),
             )
         else:
-            fields[field.field_name] = (
+            fields[field.slug] = (
                 Optional[base_type],
-                PydanticField(default=None, **field_kwargs),
+                Field(default=None, **field_kwargs),
             )
     return create_model(model_name, **fields)
 
