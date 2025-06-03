@@ -1,19 +1,12 @@
-import os
-from typing import List, Optional
-
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
-from llama_index.core.llms import ChatMessage, MessageRole
-from llama_index.core.program import FunctionCallingProgram, LLMTextCompletionProgram
-from pydantic import Field, create_model
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 
-from chat.llm import OttoLLM
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -157,7 +150,13 @@ def edit_layout(request, template_id):
         layout_form = LayoutForm(request.POST, instance=template)
         if layout_form is not None and layout_form.is_valid():
             layout_form.save()
-            messages.success(request, _("Template layout updated successfully."))
+            if request.headers.get("Hx-Request"):
+                messages.success(
+                    request,
+                    _("Template layout updated successfully."),
+                    extra_tags="unique",
+                )
+                return HttpResponse()
             return redirect("template_wizard:index")
     else:
         layout_form = LayoutForm(instance=template)
@@ -238,119 +237,23 @@ def delete_field(request, template_id, field_id):
     return redirect("template_wizard:edit_fields", template_id=template.id)
 
 
-def build_pydantic_model_for_fields(
-    fields_qs, parent_field=None, model_name="ExtractionTemplate"
-):
-    """
-    Recursively build a Pydantic model for the given fields.
-    """
-
-    type_map = {
-        "str": str,
-        "float": float,
-        "int": int,
-        "bool": bool,
-        "object": None,  # will be replaced by nested model
-    }
-    fields = {}
-    # Only direct children of parent_field
-    child_fields = fields_qs.filter(parent_field=parent_field)
-    for field in child_fields:
-        if field.field_type == "object":
-            # Recursively build nested model
-            nested_model = build_pydantic_model_for_fields(
-                fields_qs,
-                parent_field=field,
-                model_name=f"{model_name}__{field.slug}",
-            )
-            base_type = nested_model
-        else:
-            base_type = type_map.get(field.field_type, str)
-        if field.list:
-            base_type = List[base_type]
-        # Prepare extra kwargs for Field
-        field_kwargs = {"description": field.description or None}
-        if (
-            field.field_type == "str"
-            and getattr(field, "string_format", "none") != "none"
-        ):
-            field_kwargs["format"] = field.string_format
-        if field.required:
-            fields[field.slug] = (
-                base_type,
-                Field(..., **field_kwargs),
-            )
-        else:
-            fields[field.slug] = (
-                Optional[base_type],
-                Field(default=None, **field_kwargs),
-            )
-    return create_model(model_name, **fields)
-
-
-def unpack_model_to_dict(model_instance):
-    """
-    Recursively unpack a Pydantic model instance to a dict, ensuring all nested models and lists are handled.
-    """
-    if hasattr(model_instance, "dict"):
-        # Unpack pydantic model to dict, then recurse
-        return unpack_model_to_dict(model_instance.dict())
-    elif isinstance(model_instance, dict):
-        return {k: unpack_model_to_dict(v) for k, v in model_instance.items()}
-    elif isinstance(model_instance, list):
-        return [unpack_model_to_dict(item) for item in model_instance]
-    else:
-        return model_instance
-
-
 @permission_required(
     "template_wizard.edit_template", objectgetter(Template, "template_id")
 )
-def test_fields(request, template_id):
+def generate_markdown(request, template_id):
+    """Generate a markdown template for the given template and save it to layout_markdown."""
     template = Template.objects.filter(id=template_id).first()
     if not template:
-        raise Http404()
-    test_results = {}
-    # --- LlamaIndex + Pydantic dynamic model construction ---
-    if template.example_source and template.fields.exists():
-        # Build the root model recursively
-        TemplateModel = build_pydantic_model_for_fields(template.fields.all())
-        # Set the docstring of the templatemodel to the description of the template
-        if template.description_auto:
-            TemplateModel.__doc__ = (
-                f"{template.name_auto}\n\n{template.description_auto}"
-            )
-        schema = TemplateModel.model_json_schema()
-        llm = OttoLLM(deployment="gpt-4.1-mini").llm
-        prompt = (
-            "Extract the requested fields from this document, if they exist "
-            "(otherwise, the field value should be None):\n\n"
-            "<document>\n{document_text}\n</document>"
-        )
-        program = LLMTextCompletionProgram.from_defaults(
-            llm=llm,
-            output_cls=TemplateModel,
-            prompt_template_str=prompt,
-            verbose=True,
-        )
-        try:
-            output = program(document_text=template.example_source.text)
-            if isinstance(output, str):
-                raise ValueError(
-                    "The output is a string; expected a structured output."
-                )
-            else:
-                # Recursively unpack to dict
-                dict_output = unpack_model_to_dict(output)
-                template.generated_schema = schema
-                template.example_json_output = dict_output
-                template.save()
-                test_results = dict_output
-
-        except Exception as e:
-            test_results = {"error": str(e), "output": output}
+        return HttpResponse(status=404)
+    # Example deterministic markdown generation logic (replace with your own)
+    fields = template.fields.filter(parent_field__isnull=True)
+    markdown = "\n".join([f"## {f.field_name}\n\n{{{{ {f.slug} }}}}\n" for f in fields])
+    template.layout_markdown = markdown
+    template.save(update_fields=["layout_markdown"])
+    messages.success(request, _("Markdown template generated and saved."))
+    layout_form = LayoutForm(instance=template)
     return render(
         request,
-        "template_wizard/edit_template/test_fields_fragment.html",
-        {"test_results": test_results},
+        "template_wizard/edit_template/layout_form.html",
+        {"layout_form": layout_form, "template": template},
     )

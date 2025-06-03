@@ -268,3 +268,37 @@ ul#preset-edit-tabs {
   opacity: 0;
   z-index: 1;
 }
+
+#rendered-markdown {
+  font-family: Arial, Helvetica, sans-serif;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+  }
+
+  h4 {
+    font-size: 1.1rem;
+  }
+
+  h5,
+  h6 {
+    font-size: 1rem;
+  }
+}

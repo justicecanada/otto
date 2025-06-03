@@ -13,6 +13,23 @@ from data_fetcher.util import get_request
 from chat.models import SHARING_OPTIONS
 
 
+class LayoutType(models.TextChoices):
+    # LLM: Use a language model to output a complete document.
+    # Template can be semi-structured with placeholders for fields, instructions, etc.
+    # but they do not need to perfectly conform to the field slugs etc.
+    LLM_GENERATION = "llm_generation", _("LLM Generation")
+    # Markdown: Just substitute the template fields verbatim into the markdown text.
+    # Requires the field slugs to be included in the markdown text like {{ field_slug }}.
+    MARKDOWN_SUBSTITUTION = "markdown_substitution", _("Markdown with Substitution")
+    # Jinja: Use Django's Jinja2 template engine to render the template.
+    # Template must include the field slugs exactly like {{ field_slug }}.
+    # Natively HTML; can optionally use Jinja syntax for conditional display, loops, etc.
+    JINJA_RENDERING = "jinja_rendering", _("Jinja Rendering")
+    # Word: Use a Word document template with placeholders for fields.
+    # Requires the field slugs to be included in the Word document like {{ field_slug }}.
+    WORD_TEMPLATE = "word_template", _("Word Template")
+
+
 class TemplateManager(models.Manager):
     pass
 
@@ -39,13 +56,19 @@ class Template(models.Model):
         settings.AUTH_USER_MODEL, related_name="accessible_templates"
     )
 
-    # Generated from TemplateFields.
+    # Schema and example output generated from TemplateFields.
     # Use TextField instead of JSONField since we don't query the schema in the database.
     generated_schema = models.TextField(null=True)
     example_json_output = models.TextField(null=True)
 
     # Template rendering
-    template_html = models.TextField(null=True)
+    layout_type = models.CharField(
+        max_length=50,
+        choices=LayoutType.choices,
+        default=LayoutType.LLM_GENERATION,
+    )
+    layout_jinja = models.TextField(null=True, blank=True)
+    layout_markdown = models.TextField(null=True, blank=True)
 
     @property
     def shared_with(self):

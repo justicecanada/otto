@@ -1,29 +1,63 @@
 {% load i18n %}
 
-<form class="g-3"
-      id="edit_preset_form"
-      method="post"
-      url="{% url 'template_wizard:edit_layout' template_id=template.id %}">
-  {% csrf_token %}
-  <div class="row mb-2">
-    <div class="col">
-      <button type="button"
-              class="btn btn-outline-secondary"
-              id="insert-top-fields"
-              onclick="insertFields(fields)">{% trans "Insert fields" %}</button>
+<div class="row">
+  <div class="col-lg-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>{% trans "Define template" %}</h4>
+      <div>
+        <div class="d-inline-block me-2"
+             style="position: relative;
+                    top: 10px;
+                    margin-top: -10px">
+          <div id="generate-template-spinner" class="spinner text-primary">
+            <span class="spinner-border" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+          </div>
+        </div>
+        <button type="button"
+                class="btn btn-outline-success"
+                id="generate-jinja-btn"
+                style="display:none"
+                hx-post="{% url 'template_wizard:generate_jinja' template_id=template.id %}"
+                hx-target="#layout-form-container"
+                hx-swap="innerHTML"
+                hx-indicator="#generate-template-spinner">{% trans "Generate layout code" %}</button>
+        <button type="button"
+                class="btn btn-outline-success"
+                id="generate-markdown-btn"
+                style="display:none"
+                hx-post="{% url 'template_wizard:generate_markdown' template_id=template.id %}"
+                hx-target="#layout-form-container"
+                hx-swap="innerHTML"
+                hx-indicator="#generate-template-spinner">{% trans "Generate layout code" %}</button>
+      </div>
     </div>
+    <div id="layout-form-container">{% include "template_wizard/edit_template/layout_form.html" %}</div>
   </div>
-  <div class="row">
-    <div class="col">{{ layout_form }}</div>
-  </div>
-  <div class="row mt-3">
-    <div class="col text-end">
-      <button class="btn btn-primary" type="submit">
-        {% trans "Save & next" %}<i class="bi bi-chevron-right ms-2"></i>
-      </button>
+  <div class="col-lg-7">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>{% trans "Results on example source" %}</h4>
+      <div>
+        <div class="d-inline-block me-2"
+             style="position: relative;
+                    top: 10px;
+                    margin-top: -10px">
+          <div id="test-layout-spinner" class="spinner text-primary">
+            <span class="spinner-border" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+          </div>
+        </div>
+        <button type="button"
+                class="btn btn-outline-success"
+                hx-get="{% url 'template_wizard:test_layout' template_id=template.id %}"
+                hx-target="#test-layout"
+                hx-swap="innerHTML"
+                hx-indicator="#test-layout-spinner">{% trans "Test layout" %}</button>
+      </div>
     </div>
+    <div id="test-layout"></div>
   </div>
-</form>
+</div>
 
 <script>
 const fieldSlugs = [{% for f in top_level_fields %}'{{ f.slug|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];

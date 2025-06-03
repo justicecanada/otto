@@ -1,0 +1,30 @@
+{% if test_results.error %}
+  <div class="alert alert-danger">{{ test_results.error }}</div>
+{% else %}
+  <iframe id="rendered-html-iframe"
+          style="width:100%;
+                 min-height:500px;
+                 border:1px solid #ccc"></iframe>
+  <script id="render-html-script">
+    function writeToIframe() {
+      const iframe = document.getElementById('rendered-html-iframe');
+      if (!iframe) return;
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(`{{ test_results.output_html|safe|escapejs }}`);
+      doc.close();
+    }
+    // Run on DOMContentLoaded (first load)
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", writeToIframe);
+    } else {
+      writeToIframe();
+    }
+    // Also run after HTMX swaps in this fragment
+    document.addEventListener("htmx:afterSwap", function(evt) {
+      if (evt.target && evt.target.querySelector && evt.target.querySelector("#rendered-html-iframe")) {
+        writeToIframe();
+      }
+    });
+  </script>
+{% endif %}

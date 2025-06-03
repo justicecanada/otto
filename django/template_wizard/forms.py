@@ -88,17 +88,50 @@ class SourceForm(forms.ModelForm):
 class LayoutForm(forms.ModelForm):
     class Meta:
         model = Template
-        fields = ["template_html"]
-
+        fields = ["layout_type", "layout_jinja", "layout_markdown"]
         widgets = {
-            "template_html": forms.Textarea(
-                attrs={"class": "form-control", "rows": 10}
+            "layout_type": forms.Select(attrs={"class": "form-select"}),
+            "layout_jinja": forms.Textarea(
+                attrs={
+                    "class": "form-control form-control-sm",
+                    "rows": 10,
+                    "style": "font-family: monospace;",
+                    "spellcheck": "false",
+                    "autocorrect": "off",
+                    "autocomplete": "off",
+                    "autocapitalize": "off",
+                }
+            ),
+            "layout_markdown": forms.Textarea(
+                attrs={
+                    "class": "form-control form-control-sm",
+                    "rows": 10,
+                    "style": "font-family: monospace;",
+                    "spellcheck": "false",
+                    "autocorrect": "off",
+                    "autocomplete": "off",
+                    "autocapitalize": "off",
+                }
+            ),
+        }
+        labels = {
+            "layout_type": _("Layout type"),
+            "layout_jinja": _("Jinja layout code"),
+            "layout_markdown": _("Markdown layout code"),
+        }
+        help_texts = {
+            "layout_type": _("Choose how the template will be rendered"),
+            "layout_jinja": _("Jinja template for advanced rendering."),
+            "layout_markdown": _(
+                "Markdown template for LLM and Markdown substitution modes."
             ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["template_html"].label = _("Template HTML")
+        self.fields["layout_type"].choices = Template._meta.get_field(
+            "layout_type"
+        ).choices
 
 
 class FieldForm(forms.ModelForm):
