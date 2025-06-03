@@ -14,10 +14,20 @@
 </div>
 <form method="post"
       id="field-form-modal-form"
-      action="{% if form.instance.pk %}{% url 'template_wizard:field_modal' template_id=template.id field_id=form.instance.pk %}{% else %}{% url 'template_wizard:field_modal' template_id=template.id %}{% endif %}">
+      hx-post="{% if form.instance.pk %}{% url 'template_wizard:field_modal' template_id=template.id field_id=form.instance.pk %}{% else %}{% url 'template_wizard:field_modal' template_id=template.id %}{% endif %}"
+      hx-target="#fieldModal .modal-content"
+      hx-swap="innerHTML">
   <div class="modal-body">
     {% csrf_token %}
     {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}
+          {{ error }}
+          <br>
+        {% endfor %}
+      </div>
+    {% endif %}
     {% for field in form.visible_fields %}
       <div class="mb-3"
            {% if field.name == "string_format" %}id="string_format_wrapper"{% endif %}>
@@ -46,11 +56,31 @@
       }
     }
   }
+  function slugify(text) {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9_]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .replace(/_+/g, '_');
+  }
   (function() {
     var fieldType = document.getElementById('id_field_type');
     if (fieldType) {
       fieldType.addEventListener('change', toggleStringFormat);
       toggleStringFormat();
+    }
+    var nameInput = document.getElementById('id_field_name');
+    var slugInput = document.getElementById('id_slug');
+    if (nameInput && slugInput) {
+      let userEditedSlug = false;
+      slugInput.addEventListener('input', function() {
+        userEditedSlug = true;
+      });
+      nameInput.addEventListener('input', function() {
+        if (!userEditedSlug || !slugInput.value) {
+          slugInput.value = slugify(nameInput.value);
+        }
+      });
     }
   })();
 </script>

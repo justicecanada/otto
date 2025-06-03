@@ -196,15 +196,27 @@ def field_modal(request, template_id, field_id=None, parent_field_id=None):
             instance.template = template
             instance.save()
             messages.success(request, _("Field saved successfully."))
+            # HTMX: return hx-redirect header for success
+            if request.headers.get("Hx-Request"):
+                response = HttpResponse()
+                response["HX-Redirect"] = redirect(
+                    "template_wizard:edit_fields", template_id=template.id
+                ).url
+                return response
             return redirect("template_wizard:edit_fields", template_id=template.id)
         else:
-            print(
-                _("Please correct the errors below: ") + str(form.errors),
-            )
+            # If HTMX, return just the modal content with errors
+            if request.headers.get("Hx-Request"):
+                return render(
+                    request,
+                    "template_wizard/edit_template/field_modal.html",
+                    {"form": form, "template": template, "field": field},
+                )
     else:
         form = FieldForm(instance=field)
-        # Set the parent field if provided
-        form.fields["parent_field"].initial = parent_field_id
+        # Only set initial parent_field if creating a new field
+        if field is None and parent_field_id:
+            form.initial["parent_field"] = parent_field_id
     return render(
         request,
         "template_wizard/edit_template/field_modal.html",
@@ -313,6 +325,7 @@ def test_fields(request, template_id):
             TemplateModel.__doc__ = (
                 f"{template.name_auto}\n\n{template.description_auto}"
             )
+        schema = TemplateModel.model_json_schema()
         llm = OttoLLM(deployment="gpt-4.1-mini").llm
         prompt = (
             "Extract the requested fields from this document, if they exist "
@@ -333,7 +346,11 @@ def test_fields(request, template_id):
                 )
             else:
                 # Recursively unpack to dict
-                test_results = unpack_model_to_dict(output)
+                dict_output = unpack_model_to_dict(output)
+                template.generated_schema = schema
+                template.example_json_output = dict_output
+                template.save()
+                test_results = dict_output
 
         except Exception as e:
             test_results = {"error": str(e), "output": output}

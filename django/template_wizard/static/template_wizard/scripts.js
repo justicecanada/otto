@@ -18,7 +18,7 @@ function insertFields(fields) {
   // Format each field as a markdown heading followed by {{ field_name }}
   const open = '{' + '{';
   const close = '}' + '}';
-  const insertText = fields.map(f => `## ${f}\n\n` + open + ' ' + f + ' ' + close + `\n\n`).join('');
+  const insertText = fields.map(f => `## ${f.name}\n\n` + open + ' ' + f.slug + ' ' + close + `\n\n`).join('');
   // Insert at cursor position if focused, else append on a new line
   if (document.activeElement === textarea && (textarea.selectionStart || textarea.selectionStart === 0)) {
     const startPos = textarea.selectionStart;

@@ -1,7 +1,11 @@
+import re
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from data_fetcher.util import get_request
@@ -35,8 +39,13 @@ class Template(models.Model):
         settings.AUTH_USER_MODEL, related_name="accessible_templates"
     )
 
-    # Template content
-    template_html = models.TextField()
+    # Generated from TemplateFields.
+    # Use TextField instead of JSONField since we don't query the schema in the database.
+    generated_schema = models.TextField(null=True)
+    example_json_output = models.TextField(null=True)
+
+    # Template rendering
+    template_html = models.TextField(null=True)
 
     @property
     def shared_with(self):
@@ -114,7 +123,19 @@ class TemplateField(models.Model):
     description = models.TextField(blank=True)
     list = models.BooleanField(default=False)
     parent_field = models.ForeignKey(
-        "self", on_delete=models.CASCADE, related_name="child_fields", null=True
+        "self",
+        on_delete=models.CASCADE,
+        related_name="child_fields",
+        null=True,
+        blank=True,
+    )
+    slug = models.CharField(
+        max_length=64,
+        help_text=_(
+            "Unique identifier for use in templates (letters, numbers, underscores only)."
+        ),
+        null=False,
+        blank=False,
     )
 
     class Meta:
@@ -122,3 +143,42 @@ class TemplateField(models.Model):
 
     def __str__(self):
         return f"{self.field_name} ({self.get_field_type_display()}{' list' if self.list else ''})"
+
+    def clean(self):
+        # Only allow letters, numbers, underscores
+        if not re.match(r"^\w+$", self.slug or ""):
+            raise ValidationError(
+                {"slug": _("Slug must contain only letters, numbers, and underscores.")}
+            )
+        # Uniqueness logic
+        if self.parent_field:
+            siblings = TemplateField.objects.filter(
+                template=self.template, parent_field=self.parent_field
+            ).exclude(pk=self.pk)
+            if siblings.filter(slug=self.slug).exists():
+                raise ValidationError(
+                    {"slug": _("Slug must be unique among sibling fields.")}
+                )
+        else:
+            top_level = TemplateField.objects.filter(
+                template=self.template, parent_field__isnull=True
+            ).exclude(pk=self.pk)
+            if top_level.filter(slug=self.slug).exists():
+                raise ValidationError(
+                    {"slug": _("Slug must be unique among top-level fields.")}
+                )
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            # Auto-generate slug from field_name
+            base_slug = slugify(self.field_name).replace("-", "_")
+            # Ensure only valid chars
+            base_slug = re.sub(r"[^\w]", "", base_slug)
+            self.slug = base_slug or "field"
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def get_full_slug(self):
+        if self.parent_field:
+            return f"{self.parent_field.get_full_slug()}__{self.slug}"
+        return self.slug

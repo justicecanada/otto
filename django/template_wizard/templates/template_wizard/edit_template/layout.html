@@ -10,7 +10,7 @@
       <button type="button"
               class="btn btn-outline-secondary"
               id="insert-top-fields"
-              onclick="insertFields(topLevelFields)">{% trans "Insert fields" %}</button>
+              onclick="insertFields(fields)">{% trans "Insert fields" %}</button>
     </div>
   </div>
   <div class="row">
@@ -26,5 +26,12 @@
 </form>
 
 <script>
-const topLevelFields = [{% for f in top_level_fields %}'{{ f.field_name|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+const fieldSlugs = [{% for f in top_level_fields %}'{{ f.slug|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+const fieldNames = [{% for f in top_level_fields %}'{{ f.field_name|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+const fields = fieldSlugs.map((slug, index) => {
+  return {
+    slug: slug,
+    name: fieldNames[index],
+  };
+});
 </script>
