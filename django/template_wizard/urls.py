@@ -1,8 +1,8 @@
+app_name = "template_wizard"
+
 from django.urls import path
 
-from . import llm_views, views
-
-app_name = "template_wizard"
+from template_wizard import views
 
 urlpatterns = [
     path("", views.template_list, name="index"),
@@ -59,17 +59,17 @@ urlpatterns = [
     ),
     path(
         "edit_template/<int:template_id>/test_fields/",
-        llm_views.test_fields,
+        views.test_fields,
         name="test_fields",
     ),
     path(
         "edit_template/<int:template_id>/test_layout/",
-        llm_views.test_layout,
+        views.test_layout,
         name="test_layout",
     ),
     path(
         "edit_template/<int:template_id>/generate_jinja/",
-        llm_views.generate_jinja,
+        views.generate_jinja,
         name="generate_jinja",
     ),
     path(
@@ -79,12 +79,12 @@ urlpatterns = [
     ),
     path(
         "edit_template/<int:template_id>/modify_layout_code/",
-        llm_views.modify_layout_code,
+        views.modify_layout_code,
         name="modify_layout_code",
     ),
     path(
         "edit_template/<int:template_id>/generate_fields/",
-        llm_views.generate_fields,
+        views.generate_fields,
         name="generate_fields",
     ),
 ]
