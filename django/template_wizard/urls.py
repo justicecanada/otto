@@ -87,4 +87,9 @@ urlpatterns = [
         views.generate_fields,
         name="generate_fields",
     ),
+    path(
+        "edit_template/<int:template_id>/modify_fields/",
+        views.modify_fields,
+        name="modify_fields",
+    ),
 ]

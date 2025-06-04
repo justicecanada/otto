@@ -38,6 +38,34 @@
         </div>
       </div>
     </div>
+    <form id="modify-fields-form"
+          hx-post="{% url 'template_wizard:modify_fields' template_id=template.id %}"
+          hx-target="#field-list"
+          hx-swap="innerHTML"
+          hx-indicator="#modify-fields-spinner"
+          method="post">
+      {% csrf_token %}
+      <label for="modification_instruction" class="form-label visually-hidden">{% trans "Modify fields using Otto" %}</label>
+      <div class="input-group mb-3">
+        <input type="text"
+               name="modification_instruction"
+               id="modification_instruction"
+               class="form-control"
+               placeholder="{% trans 'Instruct Otto to modify the fields...' %}"
+               aria-label="Modification instruction"
+               required>
+        <button class="btn btn-outline-primary" type="submit">{% trans "Modify fields" %}</button>
+      </div>
+      <div class="d-inline-block me-2"
+           style="position: relative;
+                  top: 10px;
+                  margin-top: -10px">
+        <div id="modify-fields-spinner" class="spinner text-primary">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+        </div>
+      </div>
+    </form>
     <div class="text-muted small">
       {% trans "Note: Template name and description also influence the extraction results." %}
     </div>
