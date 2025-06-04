@@ -304,7 +304,8 @@ ul#preset-edit-tabs {
 }
 
 #test-fields-result,
-#field-list {
-  max-height: 600px;
+#field-list,
+#rendered-markdown {
+  max-height: 550px;
   overflow-y: auto;
 }

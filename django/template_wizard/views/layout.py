@@ -66,5 +66,5 @@ def generate_markdown(request, template_id):
     return render(
         request,
         "template_wizard/edit_template/layout_form.html",
-        {"layout_form": layout_form, "template": template},
+        {"layout_form": layout_form, "template": template, "run_test_layout": "true"},
     )

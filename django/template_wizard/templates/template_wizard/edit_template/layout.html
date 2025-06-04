@@ -48,6 +48,7 @@
           </div>
         </div>
         <button type="button"
+                id="test-layout-btn"
                 class="btn btn-outline-success"
                 hx-get="{% url 'template_wizard:test_layout' template_id=template.id %}"
                 hx-target="#test-layout"
@@ -58,3 +59,30 @@
     <div id="test-layout">{% include "template_wizard/edit_template/test_layout_fragment.html" %}</div>
   </div>
 </div>
+<div class="mt-4 d-flex justify-content-end">
+  <a href="{% url 'template_wizard:index' %}" class="btn btn-primary">{% trans "Finish" %}</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function hasFields() {
+    return {{ template.fields.all|length }} > 0 && {{ template.last_test_fields_result|length }} > 0;
+  }
+  function blockIfNoFields(event) {
+    if (!hasFields()) {
+      alert("{% trans 'You must add fields and test extraction before generating a layout' %}");
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return false;
+    }
+  }
+  var jinjaBtn = document.getElementById('generate-jinja-btn');
+  var markdownBtn = document.getElementById('generate-markdown-btn');
+  if (jinjaBtn) {
+    jinjaBtn.addEventListener('click', blockIfNoFields, true);
+  }
+  if (markdownBtn) {
+    markdownBtn.addEventListener('click', blockIfNoFields, true);
+  }
+});
+</script>

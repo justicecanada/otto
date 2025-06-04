@@ -99,5 +99,12 @@
   }
   updateLayoutFields();
   updateModifyLayoutFormVisibility();
+
+  {% if run_test_layout %}
+  const testLayoutButton = document.querySelector('#test-layout-btn');
+  if (testLayoutButton) {
+    testLayoutButton.click();
+  }
+  {% endif %}
 })();
 </script>
