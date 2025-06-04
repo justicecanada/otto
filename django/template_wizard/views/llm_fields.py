@@ -54,11 +54,17 @@ def test_fields(request, template_id):
                 )
             else:
                 dict_output = unpack_model_to_dict(output)
-
                 template.generated_schema = schema
                 template.example_json_output = json.dumps(
                     dict_output, ensure_ascii=False
                 )
+                # Save test extraction result and timestamp
+                template.last_test_fields_result = json.dumps(
+                    dict_output, ensure_ascii=False
+                )
+                from django.utils import timezone
+
+                template.last_test_fields_timestamp = timezone.now()
                 template.save()
                 test_results = dict_output
         except Exception as e:

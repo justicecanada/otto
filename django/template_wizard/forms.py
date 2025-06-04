@@ -81,7 +81,7 @@ class SourceForm(forms.ModelForm):
         fields = ["text"]
 
         widgets = {
-            "text": forms.Textarea(attrs={"class": "form-control", "rows": 5}),
+            "text": forms.Textarea(attrs={"class": "form-control", "rows": 15}),
         }
 
 

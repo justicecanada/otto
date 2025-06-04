@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
@@ -21,6 +23,7 @@ def edit_fields(request, template_id):
         context={
             "active_tab": "fields",
             "template": template,
+            "test_results": json.loads(template.last_test_fields_result),
         },
     )
 

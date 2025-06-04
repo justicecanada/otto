@@ -61,6 +61,14 @@ class Template(models.Model):
     generated_schema = models.TextField(null=True)
     example_json_output = models.TextField(null=True)
 
+    # Store the last test extraction result and timestamp
+    last_test_fields_result = models.TextField(null=True, blank=True)
+    last_test_fields_timestamp = models.DateTimeField(null=True, blank=True)
+    # Store the last layout rendering result, type, and timestamp
+    last_test_layout_result = models.TextField(null=True, blank=True)
+    last_test_layout_type = models.CharField(max_length=100, null=True, blank=True)
+    last_test_layout_timestamp = models.DateTimeField(null=True, blank=True)
+
     # Template rendering
     layout_type = models.CharField(
         max_length=50,

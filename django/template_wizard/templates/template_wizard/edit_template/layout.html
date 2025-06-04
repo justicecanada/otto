@@ -55,7 +55,22 @@
                 hx-indicator="#test-layout-spinner">{% trans "Test layout" %}</button>
       </div>
     </div>
-    <div id="test-layout"></div>
+    <div id="test-layout">
+      {% if template.last_test_layout_result %}
+        <div class="alert alert-secondary small mb-2">
+          <span class="fw-semibold">{% trans "Results from layout type:" %}</span>
+          <span class="text-secondary">{{ template.last_test_layout_type }}</span>
+          {% if template.last_test_layout_timestamp %}({{ template.last_test_layout_timestamp|date:'Y-m-d H:i' }}){% endif %}
+        </div>
+        <div class="card p-2 mb-2">
+          {% if template.layout_type == 'jinja_rendering' %}
+            <iframe style="width:100%; min-height:200px; border:1px solid #ccc">{{ template.last_test_layout_result|safe }}</iframe>
+          {% else %}
+            <pre class="small">{{ template.last_test_layout_result|safe }}</pre>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
   </div>
 </div>
 
