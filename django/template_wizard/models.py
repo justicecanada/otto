@@ -14,20 +14,20 @@ from chat.models import SHARING_OPTIONS
 
 
 class LayoutType(models.TextChoices):
-    # LLM: Use a language model to output a complete document.
-    # Template can be semi-structured with placeholders for fields, instructions, etc.
-    # but they do not need to perfectly conform to the field slugs etc.
-    LLM_GENERATION = "llm_generation", _("LLM Generation")
-    # Markdown: Just substitute the template fields verbatim into the markdown text.
-    # Requires the field slugs to be included in the markdown text like {{ field_slug }}.
-    MARKDOWN_SUBSTITUTION = "markdown_substitution", _("Markdown with Substitution")
     # Jinja: Use Django's Jinja2 template engine to render the template.
     # Template must include the field slugs exactly like {{ field_slug }}.
     # Natively HTML; can optionally use Jinja syntax for conditional display, loops, etc.
-    JINJA_RENDERING = "jinja_rendering", _("Jinja Rendering")
+    JINJA_RENDERING = "jinja_rendering", _("Jinja HTML Rendering")
+    # LLM: Use a language model to output a complete document.
+    # Template can be semi-structured with placeholders for fields, instructions, etc.
+    # but they do not need to perfectly conform to the field slugs etc.
+    LLM_GENERATION = "llm_generation", _("Markdown with LLM generation")
+    # Markdown: Just substitute the template fields verbatim into the markdown text.
+    # Requires the field slugs to be included in the markdown text like {{ field_slug }}.
+    MARKDOWN_SUBSTITUTION = "markdown_substitution", _("Markdown substitution")
     # Word: Use a Word document template with placeholders for fields.
     # Requires the field slugs to be included in the Word document like {{ field_slug }}.
-    WORD_TEMPLATE = "word_template", _("Word Template")
+    WORD_TEMPLATE = "word_template", _("Word template substitution")
 
 
 class TemplateManager(models.Manager):
@@ -65,7 +65,7 @@ class Template(models.Model):
     layout_type = models.CharField(
         max_length=50,
         choices=LayoutType.choices,
-        default=LayoutType.LLM_GENERATION,
+        default=LayoutType.JINJA_RENDERING,
     )
     layout_jinja = models.TextField(null=True, blank=True)
     layout_markdown = models.TextField(null=True, blank=True)
