@@ -4,45 +4,48 @@
   <div class="col-xl-5 border-end">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4>{% trans "Fields to extract" %}</h4>
-      <button type="button"
-              class="btn btn-success"
-              data-bs-toggle="modal"
-              data-bs-target="#fieldModal"
-              hx-get="{% url 'template_wizard:field_modal' template_id=template.id %}"
-              hx-target="#fieldModal .modal-content"
-              hx-swap="innerHTML"
-              onclick="document.querySelector('#fieldModal .modal-content').innerHTML = ''">
-        {% trans "Add field" %}
-      </button>
+      <div>
+        <div class="d-inline-block me-2"
+             style="position: relative;
+                    top: 10px;
+                    margin-top: -10px">
+          <div id="generate-fields-spinner" class="spinner text-primary">
+            <span class="spinner-border" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+          </div>
+        </div>
+        <button type="button"
+                class="btn btn-outline-success"
+                hx-get="{% url 'template_wizard:generate_fields' template_id=template.id %}"
+                hx-target="#field-list"
+                hx-swap="innerHTML"
+                hx-confirm="{% trans 'This will delete all existing fields. Continue?' %}"
+                hx-indicator="#generate-fields-spinner">{% trans "Generate fields" %}</button>
+        <button type="button"
+                class="btn btn-success"
+                data-bs-toggle="modal"
+                data-bs-target="#fieldModal"
+                hx-get="{% url 'template_wizard:field_modal' template_id=template.id %}"
+                hx-target="#fieldModal .modal-content"
+                hx-swap="innerHTML"
+                onclick="document.querySelector('#fieldModal .modal-content').innerHTML = ''">
+          {% trans "Add field" %}
+        </button>
+      </div>
     </div>
     <div class="mb-3" id="field-list">
       {% with template.fields.all as fields %}
         {% include "template_wizard/edit_template/field_list.html" %}
       {% endwith %}
     </div>
-    <div class="mb-3">
-      <button type="button"
-              class="btn btn-outline-success"
-              hx-get="{% url 'template_wizard:generate_fields' template_id=template.id %}"
-              hx-target="#field-list"
-              hx-swap="innerHTML"
-              hx-confirm="{% trans 'This will delete all existing fields. Continue?' %}"
-              hx-indicator="#generate-fields-spinner">{% trans "Generate fields from example" %}</button>
-      <div class="d-inline-block me-2"
-           style="position: relative;
-                  top: 10px;
-                  margin-top: -10px">
-        <div id="generate-fields-spinner" class="spinner text-primary">
-          <span class="spinner-border" aria-hidden="true"></span>
-          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
-        </div>
-      </div>
+    <div class="text-muted small mb-3">
+      {% trans "Note: Template name and description also influence the extraction results." %}
     </div>
     <form id="modify-fields-form"
           hx-post="{% url 'template_wizard:modify_fields' template_id=template.id %}"
           hx-target="#field-list"
           hx-swap="innerHTML"
-          hx-indicator="#modify-fields-spinner"
+          hx-indicator="#generate-fields-spinner"
           method="post">
       {% csrf_token %}
       <label for="modification_instruction" class="form-label visually-hidden">{% trans "Modify fields using Otto" %}</label>
@@ -56,19 +59,7 @@
                required>
         <button class="btn btn-outline-primary" type="submit">{% trans "Modify fields" %}</button>
       </div>
-      <div class="d-inline-block me-2"
-           style="position: relative;
-                  top: 10px;
-                  margin-top: -10px">
-        <div id="modify-fields-spinner" class="spinner text-primary">
-          <span class="spinner-border" aria-hidden="true"></span>
-          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
-        </div>
-      </div>
     </form>
-    <div class="text-muted small">
-      {% trans "Note: Template name and description also influence the extraction results." %}
-    </div>
   </div>
 
   <div class="col-xl-7">
@@ -94,10 +85,6 @@
     </div>
     <div id="test-fields">
       {% if test_results %}
-        <div class="alert alert-secondary small mb-2">
-          <span class="fw-semibold">{% trans "Last extraction result" %}</span>
-          {% if template.last_test_fields_timestamp %}({{ template.last_test_fields_timestamp|date:'Y-m-d H:i' }}){% endif %}
-        </div>
         {% include "template_wizard/edit_template/test_fields_fragment.html" %}
       {% endif %}
     </div>
@@ -125,3 +112,19 @@
     </a>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var testBtn = document.querySelector('button[hx-get][hx-target="#test-fields"]');
+  if (testBtn) {
+    testBtn.addEventListener('click', function(event) {
+      if (!document.querySelectorAll('#field-list li button').length) {
+        alert("{% trans 'You must add fields before testing extraction.' %}");
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return false;
+      }
+    }, true); // useCapture=true
+  }
+});
+</script>

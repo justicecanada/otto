@@ -302,3 +302,9 @@ ul#preset-edit-tabs {
     font-size: 1rem;
   }
 }
+
+#test-fields-result,
+#field-list {
+  max-height: 600px;
+  overflow-y: auto;
+}

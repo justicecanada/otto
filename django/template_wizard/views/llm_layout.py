@@ -24,7 +24,6 @@ def test_layout(request, template_id):
     if not template:
         raise Http404()
     test_results = {}
-    output_html = ""
     fragment_template = ""
     if template.layout_type == LayoutType.LLM_GENERATION:
         if template.layout_markdown and template.example_json_output:
@@ -51,15 +50,12 @@ def test_layout(request, template_id):
                     output = "\n".join(output.split("\n")[1:-1])
                 test_results = {"output_markdown": output}
                 # Save layout rendering result, type, and timestamp
-                template.last_test_layout_result = output
-                template.last_test_layout_type = LayoutType.LLM_GENERATION.label
+                template.last_test_layout_result = json.dumps(test_results)
+                template.last_test_layout_type = LayoutType.LLM_GENERATION
                 template.last_test_layout_timestamp = timezone.now()
                 template.save()
             except Exception as e:
                 test_results = {"error": str(e)}
-            fragment_template = (
-                "template_wizard/edit_template/test_layout_fragment_markdown.html"
-            )
     elif template.layout_type == LayoutType.MARKDOWN_SUBSTITUTION:
         if template.layout_markdown and template.example_json_output:
             if isinstance(template.example_json_output, dict):
@@ -78,13 +74,10 @@ def test_layout(request, template_id):
             substituted = pattern.sub(substitute, template.layout_markdown)
             test_results = {"output_markdown": substituted}
             # Save layout rendering result, type, and timestamp
-            template.last_test_layout_result = substituted
-            template.last_test_layout_type = LayoutType.MARKDOWN_SUBSTITUTION.label
+            template.last_test_layout_result = json.dumps(test_results)
+            template.last_test_layout_type = LayoutType.MARKDOWN_SUBSTITUTION
             template.last_test_layout_timestamp = timezone.now()
             template.save()
-            fragment_template = (
-                "template_wizard/edit_template/test_layout_fragment_markdown.html"
-            )
     elif template.layout_type == LayoutType.JINJA_RENDERING:
         if template.layout_jinja and template.example_json_output:
             if isinstance(template.example_json_output, dict):
@@ -100,29 +93,20 @@ def test_layout(request, template_id):
                 rendered_html = jinja_template.render(**data)
                 test_results = {"output_html": rendered_html}
                 # Save layout rendering result, type, and timestamp
-                template.last_test_layout_result = rendered_html
-                template.last_test_layout_type = LayoutType.JINJA_RENDERING.label
+                template.last_test_layout_result = json.dumps(test_results)
+                template.last_test_layout_type = LayoutType.JINJA_RENDERING
                 template.last_test_layout_timestamp = timezone.now()
                 template.save()
             except Exception as e:
                 test_results = {"error": str(e)}
-            fragment_template = (
-                "template_wizard/edit_template/test_layout_fragment_jinja.html"
-            )
     elif template.layout_type == "word_template":
         test_results = {"output_html": "todo"}
-        fragment_template = (
-            "template_wizard/edit_template/test_layout_fragment_word.html"
-        )
     else:
         test_results = {"output_html": "Unknown layout type."}
-        fragment_template = (
-            "template_wizard/edit_template/test_layout_fragment_unknown.html"
-        )
     return render(
         request,
-        fragment_template,
-        {"test_results": test_results},
+        "template_wizard/edit_template/test_layout_fragment.html",
+        {"test_results": test_results, "template": template},
     )
 
 

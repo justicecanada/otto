@@ -72,7 +72,7 @@ def test_fields(request, template_id):
     return render(
         request,
         "template_wizard/edit_template/test_fields_fragment.html",
-        {"test_results": test_results},
+        {"test_results": test_results, "template": template},
     )
 
 

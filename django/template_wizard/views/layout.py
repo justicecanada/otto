@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
@@ -31,7 +33,6 @@ def edit_layout(request, template_id):
             return redirect("template_wizard:index")
     else:
         layout_form = LayoutForm(instance=template)
-        top_level_fields = template.fields.filter(parent_field__isnull=True)
     return render(
         request,
         "template_wizard/edit_template.html",
@@ -39,7 +40,11 @@ def edit_layout(request, template_id):
             "layout_form": layout_form,
             "active_tab": "layout",
             "template": template,
-            "top_level_fields": top_level_fields,
+            "test_results": (
+                json.loads(template.last_test_layout_result)
+                if template.last_test_layout_result
+                else None
+            ),
         },
     )
 

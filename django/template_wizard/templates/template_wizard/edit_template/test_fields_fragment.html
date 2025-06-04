@@ -1,11 +1,14 @@
 {% load i18n %}
 
 {# Template fragment for displaying test field extraction results #}
-<div class="alert alert-info">
-  <div id="test-fields-result">
-    {# Use the recursive fragment to display the dictionary #}
-    {% include "template_wizard/edit_template/test_fields_dict_fragment.html" with dict_data=test_results %}
-  </div>
+<div class="alert alert-secondary small mb-2">
+  <span class="fw-semibold">{% trans "Last extraction result" %}</span>
+  {% if template.last_test_fields_timestamp %}({{ template.last_test_fields_timestamp|date:'Y-m-d H:i' }}){% endif %}
+</div>
+
+<div class="alert alert-info" id="test-fields-result">
+  {# Use the recursive fragment to display the dictionary #}
+  {% include "template_wizard/edit_template/test_fields_dict_fragment.html" with dict_data=test_results %}
 </div>
 
 <button class="btn btn-sm btn-outline-secondary mb-2"

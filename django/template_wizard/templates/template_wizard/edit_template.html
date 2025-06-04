@@ -4,6 +4,7 @@
 
 {% block page_css %}
   <link rel="stylesheet" href="{% static 'template_wizard/style.css' %}">
+  <script src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
 {% endblock %}
 
 {% block page_script %}
@@ -120,7 +121,6 @@
     </div>
   </div>
 
-  <script src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
   <script src="{% static 'template_wizard/scripts.js' %}"></script>
   <script>setActiveTab(document.getElementById('{{active_tab}}-tab'));</script>
 {% endblock %}

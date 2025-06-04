@@ -106,6 +106,16 @@ class Template(models.Model):
         else:
             return self.name_en or self.name_fr
 
+    def get_last_test_layout_type_display(self):
+        """
+        Return the human-readable label for the last_test_layout_type field using LayoutType choices.
+        """
+        if not self.last_test_layout_type:
+            return ""
+        return dict(LayoutType.choices).get(
+            self.last_test_layout_type, self.last_test_layout_type
+        )
+
 
 class Source(models.Model):
     template = models.OneToOneField(
