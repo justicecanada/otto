@@ -36,12 +36,7 @@ function initTemplateWizardUploadForm() {
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
     if (allDone) {
-      htmx.trigger(form, 'htmx:beforeRequest');
-      htmx.ajax('POST', form.getAttribute('hx-post'), {
-        source: form,
-        target: form.getAttribute('hx-target'),
-        swap: form.getAttribute('hx-swap'),
-      });
+      form.submit();
     }
     hideIfNoFiles();
   }

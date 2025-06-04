@@ -48,19 +48,11 @@
       </ul>
       <div id="step-content" class="rounded">
         <div class="tab-pane fade show active p-3 border rounded preset-form-container">
-          <div id="template-wizard-upload-message"
-               class="position-relative ms-2">
-            {% trans "Uploading..." %}
+          <div id="template-wizard-upload-message" class="position-relative ms-2">
             <form id="template-wizard-upload-form"
                   class="border rounded small"
                   enctype="multipart/form-data"
-                  hx-encoding="multipart/form-data"
-                  method="post"
-                  hx-post=""
-                  hx-target="#step-content"
-                  hx-ext="morph"
-                  hx-swap="morph:innerHTML"
-                  hx-indicator="#spinner">
+                  method="post">
               {% csrf_token %}
               {{ upload_form }}
             </form>
