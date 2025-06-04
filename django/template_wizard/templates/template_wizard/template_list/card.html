@@ -3,12 +3,7 @@
 {% has_perm "template_wizard.edit_template" user template as can_edit_template %}
 {% has_perm "template_wizard.delete_template" user template as can_delete_template %}
 
-<li class="card {{ preset.options.mode }}"
-    tabindex="0"
-    data-default="{{ preset.default }}"
-    data-mode="{{ preset.options.mode }}"
-    data-sharing="{{ preset.sharing_option }}"
-    data-language="{{ preset.language }}">
+<li class="card" tabindex="0">
   <div class="card-header align-items-center">
     <h6 class="card-title my-auto text-truncate me-2"
         title="{{ template.name_auto }}">{{ template.name_auto }}</h6>
@@ -35,19 +30,11 @@
   </div>
 
   <div class="card-body pt-2">
-    {% comment %}
-    <div class="info-section">
-      {% include "chat/modals/presets/mode_badge.html" %}
-      {% include "chat/modals/presets/shared_icon.html" %}
-      {% include "chat/modals/presets/current_icon.html" %}
-    </div>
-    {% endcomment %}
-
     <p class="preset-description card-text">{{ template.description_auto }}</p>
-
   </div>
 
   <div class="visually-hidden">
-    <a class="preset-load-link" href="#">{% trans "Select template" %}</a>
+    <a class="preset-load-link"
+       href="{% url 'template_wizard:select_sources' template_id=template.id %}">{% trans "Select template" %}</a>
   </div>
 </li>

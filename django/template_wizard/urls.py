@@ -92,4 +92,14 @@ urlpatterns = [
         views.modify_fields,
         name="modify_fields",
     ),
+    path(
+        "<int:template_id>/select_sources/",
+        views.select_sources,
+        name="select_sources",
+    ),
+    path(
+        "<int:template_id>/fill_template/",
+        views.fill_template,
+        name="fill_template",
+    ),
 ]

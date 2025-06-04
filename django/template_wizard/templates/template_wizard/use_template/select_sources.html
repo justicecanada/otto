@@ -4,6 +4,7 @@
 
 {% block page_css %}
   <link rel="stylesheet" href="{% static 'template_wizard/style.css' %}">
+  <script src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
 {% endblock %}
 
 {% block page_script %}
@@ -19,41 +20,36 @@
   <li class="breadcrumb-item">
     <a href="{% url 'template_wizard:index' %}">{% trans "Template Wizard" %}</a>
   </li>
+  <li class="breadcrumb-item">
+    <a href="{{ request.path }}">{{ template.name_auto }}</a>
+  </li>
 {% endblock %}
 
 {% block content_container %}
   <div id="template-wizard-outer">
-    <div class="container py-3 px-0" id="search-container">
+    <div class="container py-3 px-0">
       <div id="spinner"
            class="spinner container text-primary position-absolute top-0 end-0">
         <span class="spinner-border" aria-hidden="true"></span>
         <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
       </div>
-      <h2 class="mb-2 px-4 mt-2">
-        <a href="{% url 'template_wizard:index' %}"
-           class="text-decoration-none text-body">{% trans "Template Wizard" %}</a>
-      </h2>
-      <p class="mx-4 mb-4">
-        {% trans "Create or select a template to fill in with information from uploaded documents or URLs." %}
-      </p>
+      <h2 class="mb-2 px-4 mt-2">{% trans "Template Wizard" %}{% trans ":" %} {{ template.name_auto }}</h2>
+      <p class="mx-4 mb-4">{% trans "Upload documents or enter URLs to transform into the selected template." %}</p>
       <ul class="nav nav-tabs px-3 border-bottom-0" id="top-tabs">
         <li class="nav-item">
-          <button id="select-template-tab"
-                  class="nav-link fw-semibold text-body active"
-                  onclick="setActiveTab(this);">{% trans "1. Select template" %}</button>
+          <a id="select-template-tab"
+             class="nav-link text-body"
+             href="{% url 'template_wizard:index' %}">{% trans "1. Select template" %}</a>
         </li>
         <li class="nav-item">
-          <button id="select-sources-tab" class="nav-link text-body" disabled>{% trans "2. Select sources" %}</button>
+          <button id="select-sources-tab" class="nav-link text-body fw-semibold active">{% trans "2. Select sources" %}</button>
         </li>
         <li class="nav-item">
           <button id="fill-template-tab" class="nav-link text-body" disabled>{% trans "3. Fill template" %}</button>
         </li>
       </ul>
-
       <div id="step-content" class="rounded">
-        <div class="tab-pane fade show active p-3 border rounded">
-          {% include "template_wizard/template_list/select_template.html" %}
-        </div>
+        <div class="tab-pane fade show active p-3 border rounded preset-form-container">TODO</div>
       </div>
       <button id="back-to-top"
               type="button"
