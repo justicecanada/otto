@@ -1,7 +1,17 @@
+{% load i18n %}
+
 {# Template fragment for displaying test field extraction results #}
 <div class="alert alert-info">
   <div id="test-fields-result">
     {# Use the recursive fragment to display the dictionary #}
     {% include "template_wizard/edit_template/test_fields_dict_fragment.html" with dict_data=test_results %}
   </div>
+</div>
+
+<button class="btn btn-sm btn-outline-secondary mb-2"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#raw-json">{% trans "View Raw JSON" %}</button>
+<div class="collapse" id="raw-json">
+  <pre class="bg-light border p-2 small">{{ test_results|pprint }}</pre>
 </div>

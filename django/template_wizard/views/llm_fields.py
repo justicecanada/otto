@@ -84,12 +84,12 @@ def generate_fields(request, template_id):
 
         class TemplateField(models.Model):
             field_name: str  # Human-readable name
-            slug: str        # Unique identifier (letters, numbers, underscores only). Must be unique among siblings.
+            slug: str  # Unique identifier (letters, numbers, underscores only). Must be unique among siblings.
             field_type: str  # One of: str, float, int, bool, object
             string_format: str  # One of: none, email, date, time, date-time, duration
-            required: bool
-            description: str
-            list: bool
+            required: bool  # Always fill this field, even if no information is found (can cause hallucinations - use sparingly!)
+            description: str  # Helps the extractor know what to look for.
+            list: bool  # Extract multiple instances of this field as a list
             child_fields: List[TemplateField]  # Nested fields
 
         Please output a JSON object containing all fields, where each field is an object with keys: field_name, slug, field_type, string_format, required, description, list, child_fields.
