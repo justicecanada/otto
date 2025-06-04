@@ -85,9 +85,8 @@ def generate_fields(request, template_id):
         return HttpResponse(status=400, content="No example source available.")
     llm = OttoLLM(deployment="gpt-4.1")
     bind_contextvars(feature="template_wizard", template_id=template.id)
-    prompt = _(
-        """
-        You are an expert in information extraction. Given the following example document, infer a JSON schema for extracting structured data fields, including nested objects and lists, suitable for the following Django model:
+    prompt = (
+        """You are an expert in information extraction. Given the following example document, infer a JSON schema for extracting structured data fields, including nested objects and lists, suitable for the following Django model:
 
         class TemplateField(models.Model):
             field_name: str  # Human-readable name
@@ -209,9 +208,8 @@ def modify_fields(request, template_id):
     fields_json = [serialize_field(f) for f in top_fields]
     llm = OttoLLM(deployment="gpt-4.1")
     bind_contextvars(feature="template_wizard", template_id=template.id)
-    prompt = _(
-        """
-        You are an expert in information extraction. Here is the current JSON schema for extracting structured data fields (see the TemplateField model below). Modify the schema according to the user's instruction. Output the new schema as a JSON object with the top-level key 'template_fields' and the value as a list of field definitions. Do not include any comments or explanations.
+    prompt = (
+        """You are an expert in information extraction. Here is the current JSON schema for extracting structured data fields (see the TemplateField model below). Modify the schema according to the user's instruction. Output the new schema as a JSON object with the top-level key 'template_fields' and the value as a list of field definitions. Do not include any comments or explanations.
 
         class TemplateField(models.Model):
             field_name: str  # Human-readable name

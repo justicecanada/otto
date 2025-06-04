@@ -29,7 +29,7 @@ def test_layout(request, template_id):
         if template.layout_markdown and template.example_json_output:
             llm = OttoLLM(deployment="gpt-4.1-mini")
             bind_contextvars(feature="template_wizard", template_id=template.id)
-            prompt = _(
+            prompt = (
                 "Fill in the following template string using the provided JSON data.\n"
                 "Template string:\n{layout_markdown}\n\n"
                 "JSON schema:\n{json_schema}\n\n"
@@ -119,9 +119,8 @@ def generate_jinja(request, template_id):
         raise Http404()
     llm = OttoLLM(deployment="o3-mini")
     bind_contextvars(feature="template_wizard", template_id=template.id)
-    prompt = _(
-        """
-        Given the following schema and example JSON output, generate a Jinja2 HTML template that will present the extracted information in a user-friendly way. 
+    prompt = (
+        """Given the following schema and example JSON output, generate a Jinja2 HTML template that will present the extracted information in a user-friendly way. 
         The template should use Jinja2 syntax (e.g., {{ field }}) and render all fields from the example JSON.
         Use HTML markup and include labels for each field.
         You may reorder the fields for better presentation, use HTML constructs like lists, tables, etc. as needed for best presentation.
@@ -197,8 +196,7 @@ def modify_layout_code(request, template_id):
     llm = OttoLLM(deployment="gpt-4.1")
     bind_contextvars(feature="template_wizard", template_id=template.id)
     prompt = (
-        """
-        You are an expert {code_type} template developer.
+        """You are an expert {code_type} template developer.
         The schema used to populate the template is as follows:
         ```
         {schema}
