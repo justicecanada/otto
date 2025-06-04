@@ -26,6 +26,7 @@
               hx-get="{% url 'template_wizard:generate_fields' template_id=template.id %}"
               hx-target="#field-list"
               hx-swap="innerHTML"
+              hx-confirm="{% trans 'This will delete all existing fields. Continue?' %}"
               hx-indicator="#generate-fields-spinner">{% trans "Generate fields from example" %}</button>
       <div class="d-inline-block me-2"
            style="position: relative;

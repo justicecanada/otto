@@ -379,6 +379,8 @@ def modify_layout_code(request, template_id):
 def generate_fields(request, template_id):
     """
     Use LLM to extract a schema from the example source, create TemplateField objects, and return the rendered field list fragment for HTMX.
+    Note: This would be slightly better using Structured Outputs with recursive schema but I don't know how in LlamaIndex.
+    See https://platform.openai.com/docs/guides/structured-outputs#recursive-schemas-are-supported
     """
     import json
 
@@ -390,7 +392,7 @@ def generate_fields(request, template_id):
     llm = OttoLLM(deployment="gpt-4.1-mini")
     prompt = _(
         """
-        You are an expert in information extraction. Given the following document, infer a JSON schema for extracting structured data fields, including nested objects and lists, suitable for the following Django model:
+        You are an expert in information extraction. Given the following example document, infer a JSON schema for extracting structured data fields, including nested objects and lists, suitable for the following Django model:
 
         class TemplateField(models.Model):
             field_name: str  # Human-readable name
@@ -400,18 +402,32 @@ def generate_fields(request, template_id):
             required: bool
             description: str
             list: bool
-            parent_field: str or null  # Slug of parent field if nested, else null
+            child_fields: List[TemplateField]  # Nested fields
 
-        Please output a JSON array of fields, where each field is an object with keys: field_name, slug, field_type, string_format, required, description, list, parent_field.
-        Use nested objects for nested fields, and set parent_field to the slug of the parent. Use 'object' for field_type of nested objects. Use 'list' true for lists. Slugs must be unique among siblings and only contain letters, numbers, and underscores.
+        Please output a JSON object containing all fields, where each field is an object with keys: field_name, slug, field_type, string_format, required, description, list, child_fields.
+        Use 'object' for field_type of parent objects and nest child objects as their children. Slugs must be unique among siblings.
+        The top level key must be "template_fields" and the value must be a list of field definitions.
+
+        The user has indicated that the type of document is:
+        {template_name}
+        {template_description}
+
+        Extract around 5-10 fields, including nested objects, based on the example document content.
+        This template will be used to extract structured data from similar documents so fields should not be too specific to this document.
         
-        DOCUMENT:
+        EXAMPLE DOCUMENT:
         {document}
         """
-    ).format(document=template.example_source.text)
+    ).format(
+        template_name=template.name_auto,
+        template_description=(
+            f"({template.description_auto})" if template.description_auto else ""
+        ),
+        document=template.example_source.text,
+    )
 
     try:
-        llm_response = llm.complete(prompt)
+        llm_response = llm.complete(prompt, response_format={"type": "json_object"})
         # Try to parse the response as JSON
         fields_data = json.loads(llm_response)
     except Exception as e:
@@ -425,7 +441,6 @@ def generate_fields(request, template_id):
     # Helper to recursively create fields
     def create_fields(fields, parent_field=None):
         for field in fields:
-            # Remove keys not in model
             field_kwargs = {
                 "template": template,
                 "field_name": field.get("field_name", ""),
@@ -437,20 +452,28 @@ def generate_fields(request, template_id):
                 "list": field.get("list", False),
                 "parent_field": parent_field,
             }
+            # The LLM is prone to setting field_type to "list" instead of "object" for nested fields,
+            # so we need to ensure that "object" is used for parent fields.
+            if field.get("child_fields"):
+                field_kwargs["field_type"] = "object"
             # Remove parent_field if None
             if not parent_field:
                 field_kwargs.pop("parent_field")
             tf = TemplateField.objects.create(**field_kwargs)
-            # Recursively create children if present
-            if "fields" in field and isinstance(field["fields"], list):
-                create_fields(field["fields"], parent_field=tf)
+            # Recursively create children if present (support both 'child_fields' and 'fields' for robustness)
+            child_fields = field.get("child_fields") or field.get("fields")
+            if child_fields and isinstance(child_fields, list):
+                create_fields(child_fields, parent_field=tf)
 
-    # If the LLM output is a dict with a 'fields' key, use it; else assume it's a list
-    if isinstance(fields_data, dict) and "fields" in fields_data:
-        fields_list = fields_data["fields"]
+    # If the LLM output is a dict with a 'template_fields' or 'fields' key, use it
+    if isinstance(fields_data, dict):
+        fields_list = (
+            fields_data.get("template_fields") or fields_data.get("fields") or []
+        )
+        create_fields(fields_list)
     else:
-        fields_list = fields_data
-    create_fields(fields_list)
+        # If it's a list directly, use it
+        create_fields(fields_data)
 
     # Return the rendered field list fragment for HTMX
     fields = template.fields.all()
