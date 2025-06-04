@@ -7,9 +7,7 @@ from rules.contrib.views import objectgetter
 
 from otto.utils.decorators import app_access_required, permission_required
 from template_wizard.forms import FieldForm, LayoutForm, MetadataForm, SourceForm
-from template_wizard.models import Template
-
-from ..models import Template, TemplateField
+from template_wizard.models import Template, TemplateField
 
 app_name = "template_wizard"
 

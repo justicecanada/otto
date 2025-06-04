@@ -1,8 +1,12 @@
+import json
+
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 
+from llama_index.core.program import LLMTextCompletionProgram
 from rules.contrib.views import objectgetter
+from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from otto.utils.decorators import permission_required
@@ -26,29 +30,29 @@ def test_fields(request, template_id):
                 f"{template.name_auto}\n\n{template.description_auto}"
             )
         schema = TemplateModel.model_json_schema()
-        from llama_index.core.program import LLMTextCompletionProgram
 
-        llm = OttoLLM(deployment="gpt-4.1-mini").llm
+        llm = OttoLLM(deployment="gpt-4.1-mini")
+        bind_contextvars(feature="template_wizard", template_id=template.id)
         prompt = (
             "Extract the requested fields from this document, if they exist "
             "(otherwise, the field value should be None):\n\n"
             "<document>\n{document_text}\n</document>"
         )
         program = LLMTextCompletionProgram.from_defaults(
-            llm=llm,
+            llm=llm.llm,
             output_cls=TemplateModel,
             prompt_template_str=prompt,
             verbose=True,
         )
         try:
             output = program(document_text=template.example_source.text)
+            llm.create_costs()
             if isinstance(output, str):
                 raise ValueError(
                     "The output is a string; expected a structured output."
                 )
             else:
                 dict_output = unpack_model_to_dict(output)
-                import json
 
                 template.generated_schema = schema
                 template.example_json_output = json.dumps(
@@ -69,19 +73,18 @@ def test_fields(request, template_id):
     "template_wizard.edit_template", objectgetter(Template, "template_id")
 )
 def generate_fields(request, template_id):
-    import json
-
     template = Template.objects.filter(id=template_id).first()
     if not template or not template.example_source or not template.example_source.text:
         return HttpResponse(status=400, content="No example source available.")
-    llm = OttoLLM(deployment="gpt-4.1-mini")
+    llm = OttoLLM(deployment="gpt-4.1")
+    bind_contextvars(feature="template_wizard", template_id=template.id)
     prompt = _(
         """
         You are an expert in information extraction. Given the following example document, infer a JSON schema for extracting structured data fields, including nested objects and lists, suitable for the following Django model:
 
         class TemplateField(models.Model):
             field_name: str  # Human-readable name
-            slug: str        # Unique identifier (letters, numbers, underscores only)
+            slug: str        # Unique identifier (letters, numbers, underscores only). Must be unique among siblings.
             field_type: str  # One of: str, float, int, bool, object
             string_format: str  # One of: none, email, date, time, date-time, duration
             required: bool
@@ -90,7 +93,7 @@ def generate_fields(request, template_id):
             child_fields: List[TemplateField]  # Nested fields
 
         Please output a JSON object containing all fields, where each field is an object with keys: field_name, slug, field_type, string_format, required, description, list, child_fields.
-        Use 'object' for field_type of parent objects and nest child objects as their children. Slugs must be unique among siblings.
+        Use 'object' for field_type of parent objects and nest child objects as their children. Only do this when there is more than 1 child field. You can use a primitive type with list=True for simple lists.
         The top level key must be "template_fields" and the value must be a list of field definitions.
 
         The user has indicated that the type of document is:
@@ -112,6 +115,7 @@ def generate_fields(request, template_id):
     )
     try:
         llm_response = llm.complete(prompt, response_format={"type": "json_object"})
+        llm.create_costs()
         fields_data = json.loads(llm_response)
     except Exception as e:
         return HttpResponse(

@@ -1,14 +1,18 @@
+import json
+import re
+
 from django.http import Http404
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 
+from jinja2 import Template as JinjaTemplate
 from rules.contrib.views import objectgetter
+from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from otto.utils.decorators import permission_required
-
-from ..forms import LayoutForm
-from ..models import Template
+from template_wizard.forms import LayoutForm
+from template_wizard.models import Template
 
 
 @permission_required(
@@ -24,6 +28,7 @@ def test_layout(request, template_id):
     if template.layout_type == "llm_generation":
         if template.layout_markdown and template.example_json_output:
             llm = OttoLLM(deployment="gpt-4.1-mini")
+            bind_contextvars(feature="template_wizard", template_id=template.id)
             prompt = _(
                 "Fill in the following template string using the provided JSON data.\n"
                 "Template string:\n{layout_markdown}\n\n"
@@ -40,6 +45,7 @@ def test_layout(request, template_id):
             )
             try:
                 output = llm.complete(prompt)
+                llm.create_costs()
                 if output.startswith("```") and output.endswith("```"):
                     output = "\n".join(output.split("\n")[1:-1])
                 test_results = {"output_markdown": output}
@@ -50,9 +56,6 @@ def test_layout(request, template_id):
             )
     elif template.layout_type == "markdown_substitution":
         if template.layout_markdown and template.example_json_output:
-            import json
-            import re
-
             if isinstance(template.example_json_output, dict):
                 data = template.example_json_output
             else:
@@ -73,10 +76,6 @@ def test_layout(request, template_id):
             )
     elif template.layout_type == "jinja_rendering":
         if template.layout_jinja and template.example_json_output:
-            import json
-
-            from jinja2 import Template as JinjaTemplate
-
             if isinstance(template.example_json_output, dict):
                 data = template.example_json_output
             else:
@@ -119,6 +118,7 @@ def generate_jinja(request, template_id):
     if not template:
         raise Http404()
     llm = OttoLLM(deployment="o3-mini")
+    bind_contextvars(feature="template_wizard", template_id=template.id)
     prompt = _(
         """
         Given the following schema and example JSON output, generate a Jinja2 HTML template that will present the extracted information in a user-friendly way. 
@@ -140,10 +140,9 @@ def generate_jinja(request, template_id):
     jinja_code = ""
     from django.contrib import messages
 
-    from ..forms import LayoutForm
-
     try:
         jinja_code = llm.complete(prompt)
+        llm.create_costs()
         template.layout_type = "jinja_rendering"
         template.layout_jinja = jinja_code
         template.save()
@@ -169,8 +168,6 @@ def modify_layout_code(request, template_id):
     if not instruction:
         from django.contrib import messages
 
-        from ..forms import LayoutForm
-
         messages.error(request, _("No instruction provided."))
         layout_form = LayoutForm(instance=template)
         return render(
@@ -188,8 +185,6 @@ def modify_layout_code(request, template_id):
     else:
         from django.contrib import messages
 
-        from ..forms import LayoutForm
-
         messages.error(
             request, _(f"Layout type '{layout_type}' not supported for modification.")
         )
@@ -200,6 +195,7 @@ def modify_layout_code(request, template_id):
             {"layout_form": layout_form, "template": template},
         )
     llm = OttoLLM(deployment="gpt-4.1")
+    bind_contextvars(feature="template_wizard", template_id=template.id)
     prompt = (
         """
         You are an expert {code_type} template developer.
@@ -218,7 +214,6 @@ def modify_layout_code(request, template_id):
         ```
         {code}
         ```
-        
         The user wants to modify the template with the following instruction:
         "{instruction}"
 
@@ -233,10 +228,9 @@ def modify_layout_code(request, template_id):
     )
     from django.contrib import messages
 
-    from ..forms import LayoutForm
-
     try:
         new_code = llm.complete(prompt)
+        llm.create_costs()
         if layout_type == "jinja_rendering":
             template.layout_jinja = new_code
         else:
