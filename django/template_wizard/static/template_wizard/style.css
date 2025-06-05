@@ -309,3 +309,77 @@ ul#preset-edit-tabs {
   max-height: 550px;
   overflow-y: auto;
 }
+
+
+/* JS file uploads - overriding Django-File-Form styles */
+#id_template-wizard-input_file,
+label[for="id_template-wizard-input_file"] {
+  display: none;
+}
+
+
+#template-wizard-upload-form {
+  .dff-file {
+    white-space: nowrap !important;
+  }
+
+  .dff-filesize {
+    color: var(--bs-secondary-color);
+    position: relative;
+    top: -1.5px;
+  }
+
+  span.dff-filename {
+    margin-left: 0;
+    width: 250px;
+    display: inline-block;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    /* no wrap either */
+    white-space: nowrap !important;
+    position: relative;
+    top: 4px;
+  }
+
+  .dff-progress {
+    width: 200px !important;
+  }
+
+  .dff-files {
+    margin: 0 !important;
+    outline: none !important;
+    padding-bottom: 0 !important;
+  }
+
+  .diff-invalid-files ul {
+    margin: 0;
+  }
+
+  /* Hide the Cancel/Delete text */
+  a.dff-delete {
+    display: none;
+  }
+
+  .dff-cancel,
+  .dff-delete {
+    /* Hide the text by moving it off-screen */
+    text-indent: -9999px;
+    display: inline-block;
+    position: relative;
+    top: -2px;
+    margin-right: 10px;
+  }
+
+  /* Add a red "X" icon using a pseudo-element */
+  .dff-cancel::before,
+  .dff-delete::before {
+    content: "\00D7";
+    position: absolute;
+    top: 0;
+    font-size: 1rem;
+    left: 0;
+    color: red;
+    text-indent: 0;
+  }
+
+}

@@ -9,7 +9,7 @@ from chat.forms import UploadForm
 from librarian.models import SavedFile
 from otto.utils.decorators import app_access_required, permission_required
 from template_wizard.forms import FieldForm, LayoutForm, MetadataForm, SourceForm
-from template_wizard.models import Template, TemplateField
+from template_wizard.models import Source, Template, TemplateField, TemplateSession
 
 app_name = "template_wizard"
 
@@ -44,30 +44,40 @@ def fill_template(request, template_id):
 @permission_required(
     "template_wizard.access_template", objectgetter(Template, "template_id")
 )
-def select_sources(request, template_id):
-    template = get_object_or_404(Template, id=template_id)
+def new_session(request, template_id):
+    session = TemplateSession.objects.create(
+        template_id=template_id,
+        user=request.user,
+    )
+    return redirect("template_wizard:select_sources", session_id=session.id)
+
+
+@permission_required(
+    "template_wizard.access_session", objectgetter(TemplateSession, "session_id")
+)
+def select_sources(request, session_id):
+    session = get_object_or_404(TemplateSession, id=session_id)
     upload_form = UploadForm(prefix="template-wizard")
-    upload_success = False
-    saved_files = []
     if request.method == "POST":
         upload_form = UploadForm(request.POST, request.FILES, prefix="template-wizard")
         if upload_form.is_valid():
             saved_files = upload_form.save()
-            upload_success = True
+            for file in saved_files:
+                Source.objects.create(
+                    session=session,
+                    saved_file=file["saved_file"],
+                    filename=file["filename"],
+                )
             messages.success(
                 request, _(f"{len(saved_files)} file(s) uploaded successfully.")
             )
-            upload_form = UploadForm(
-                prefix="template_wizard"
-            )  # Reset form after upload
+            upload_form = UploadForm(prefix="template_wizard")
     return render(
         request,
         "template_wizard/use_template/select_sources.html",
         context={
             "hide_breadcrumbs": True,
-            "template": template,
+            "session": session,
             "upload_form": upload_form,
-            "upload_success": upload_success,
-            "saved_files": saved_files,
         },
     )

@@ -3,14 +3,18 @@ import re
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from data_fetcher.util import get_request
+from structlog import get_logger
 
 from chat.models import SHARING_OPTIONS
+from librarian.models import SavedFile
+
+logger = get_logger(__name__)
 
 
 class LayoutType(models.TextChoices):
@@ -122,6 +126,65 @@ class Source(models.Model):
         Template, on_delete=models.CASCADE, related_name="example_source", null=True
     )
     text = models.TextField()
+    session = models.ForeignKey(
+        "TemplateSession",
+        on_delete=models.CASCADE,
+        related_name="sources",
+        null=True,
+        blank=True,
+    )
+    url = models.URLField(
+        max_length=2000,
+        null=True,
+        blank=True,
+    )
+    filename = models.CharField(
+        max_length=2000,
+        null=True,
+        blank=True,
+    )
+    saved_file = models.ForeignKey(
+        SavedFile,
+        on_delete=models.SET_NULL,
+        related_name="template_sources",
+        null=True,
+        blank=True,
+    )
+
+
+@receiver(post_delete, sender=Source)
+def delete_saved_file(sender, instance, **kwargs):
+    try:
+        instance.saved_file.safe_delete()
+    except Exception as e:
+        logger.error(f"Failed to delete saved file: {e}")
+
+
+class TemplateSessionStatus(models.TextChoices):
+    SELECT_SOURCES = "select_sources", _("Select sources")
+    FILL_TEMPLATE = "fill_template", _("Fill template")
+    COMPLETED = "completed", _("Completed")
+
+
+class TemplateSession(models.Model):
+    template = models.ForeignKey(
+        Template, on_delete=models.CASCADE, related_name="sessions"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="template_sessions",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_accessed = models.DateTimeField(auto_now=True)
+    status = models.CharField(
+        max_length=50,
+        choices=TemplateSessionStatus.choices,
+        default=TemplateSessionStatus.SELECT_SOURCES,
+    )
+
+    def __str__(self):
+        return f"Session for {self.template.name_auto} by {self.user.username} at {self.created_at}"
 
 
 @receiver(post_save, sender=Template)

@@ -19,7 +19,7 @@
     <a href="{% url 'template_wizard:index' %}">{% trans "Template Wizard" %}</a>
   </li>
   <li class="breadcrumb-item">
-    <a href="{{ request.path }}">{{ template.name_auto }}</a>
+    <a href="{{ request.path }}">{{ session.template.name_auto }}</a>
   </li>
 {% endblock %}
 
@@ -31,7 +31,7 @@
         <span class="spinner-border" aria-hidden="true"></span>
         <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
       </div>
-      <h2 class="mb-2 px-4 mt-2">{% trans "Template Wizard" %}{% trans ":" %} {{ template.name_auto }}</h2>
+      <h2 class="mb-2 px-4 mt-2">{% trans "Template Wizard" %}{% trans ":" %} {{ session.template.name_auto }}</h2>
       <p class="mx-4 mb-4">{% trans "Upload documents or enter URLs to transform into the selected template." %}</p>
       <ul class="nav nav-tabs px-3 border-bottom-0" id="top-tabs">
         <li class="nav-item">
@@ -48,27 +48,77 @@
       </ul>
       <div id="step-content" class="rounded">
         <div class="tab-pane fade show active p-3 border rounded preset-form-container">
-          <div id="template-wizard-upload-message" class="position-relative ms-2">
-            <form id="template-wizard-upload-form"
-                  class="border rounded small"
-                  enctype="multipart/form-data"
-                  method="post">
-              {% csrf_token %}
-              {{ upload_form }}
-            </form>
+          <div class="row">
+            <div class="col-lg-5 border-end mb-3">
+              <h5>{% trans "Add a URL" %}</h5>
+              <div class="text-secondary small my-2">{% trans "CanLii, Wikipedia, canada.ca and *.gc.ca only" %}</div>
+              <form method="post"
+                    action="{% url 'template_wizard:add_url_source' session_id=session.pk %}"
+                    class="row g-2 align-items-center">
+                {% csrf_token %}
+                <div class="col">
+                  <input type="url"
+                         name="url"
+                         class="form-control"
+                         placeholder="e.g. https://www.canlii.org/en/ca/scc/..."
+                         required>
+                </div>
+                <div class="col-auto">
+                  <button type="submit" class="btn btn-primary">{% trans "Add URL" %}</button>
+                </div>
+              </form>
+              <h5 class="mt-4">{% trans "Upload files" %}</h5>
+              <button type="button"
+                      class="btn btn-primary mt-1"
+                      onclick="document.querySelector('#id_template-wizard-input_file').click();">
+                <i class="bi bi-upload"></i> {% trans "Upload" %}
+              </button>
+              <div id="template-wizard-upload-message"
+                   class="position-relative ms-2 d-none">
+                <form id="template-wizard-upload-form"
+                      class="border rounded small"
+                      enctype="multipart/form-data"
+                      method="post">
+                  {% csrf_token %}
+                  {{ upload_form }}
+                </form>
+              </div>
+            </div>
+
+            <div class="col-lg-7">
+              {% if session.sources.all %}
+                <ul class="list-group mb-3">
+                  {% for source in session.sources.all %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      {% if source.url %}
+                        <a href="{{ source.url }}" target="_blank" rel="noopener">{{ source.url }}</a>
+                      {% else %}
+                        <a href="{% url 'template_wizard:download_source_file' source.pk %}">{{ source.filename }}</a>
+                      {% endif %}
+                      <form method="post"
+                            action="{% url 'template_wizard:delete_source' source.pk %}"
+                            class="ms-2 d-inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn btn-sm btn-outline-danger"
+                                title="{% trans 'Delete' %}">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="mb-0 text-secondary">{% trans "No sources added yet." %}</p>
+              {% endif %}
+            </div>
           </div>
-          <div id="template-wizard-details">
-            <!-- Additional details or instructions can go here -->
-          </div>
-          {% if upload_success %}
-            <div class="alert alert-success mt-3">{% trans "Upload successful!" %}</div>
-          {% endif %}
-          {% if saved_files %}
-            <div class="mt-3">
-              <h5>{% trans "Uploaded files:" %}</h5>
-              <ul>
-                {% for file in saved_files %}<li>{{ file.saved_file.file.name }}</li>{% endfor %}
-              </ul>
+          {% if session.sources %}
+            <div class="d-flex justify-content-end mt-3">
+              <a id="next-step-button"
+                 class="btn btn-primary"
+                 href="{% url 'template_wizard:fill_template' session_id=session.pk %}">
+              {% trans "Fill template with sources" %}</a>
             </div>
           {% endif %}
         </div>
@@ -86,6 +136,7 @@
       </button>
     </div>
   </div>
+
 {% endblock %}
 
 {% block page_script %}

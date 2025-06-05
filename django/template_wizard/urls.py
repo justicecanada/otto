@@ -1,105 +1,149 @@
+from template_wizard.views.fields import delete_field, edit_fields, field_modal
+from template_wizard.views.layout import edit_layout, generate_markdown
+from template_wizard.views.llm_fields import generate_fields, modify_fields, test_fields
+from template_wizard.views.llm_layout import (
+    generate_jinja,
+    modify_layout_code,
+    test_layout,
+)
+from template_wizard.views.main import (
+    fill_template,
+    new_session,
+    select_sources,
+    template_list,
+)
+from template_wizard.views.source_management import (
+    add_url_source,
+    delete_source,
+    download_source_file,
+)
+from template_wizard.views.template import (
+    delete_template,
+    edit_example_source,
+    edit_metadata,
+    new_template,
+)
+
 app_name = "template_wizard"
 
 from django.urls import path
 
-from template_wizard import views
-
 urlpatterns = [
-    path("", views.template_list, name="index"),
-    path("new_template/", views.new_template, name="new_template"),
+    path("", template_list, name="index"),
+    path("new_template/", new_template, name="new_template"),
     path(
         "edit_template/<int:template_id>/metadata/",
-        views.edit_metadata,
+        edit_metadata,
         name="edit_template",
     ),
     path(
         "edit_template/<int:template_id>/metadata/",
-        views.edit_metadata,
+        edit_metadata,
         name="edit_metadata",
     ),
     path(
         "edit_template/<int:template_id>/source/",
-        views.edit_example_source,
+        edit_example_source,
         name="edit_example_source",
     ),
     path(
         "edit_template/<int:template_id>/fields/",
-        views.edit_fields,
+        edit_fields,
         name="edit_fields",
     ),
     path(
         "edit_template/<int:template_id>/layout/",
-        views.edit_layout,
+        edit_layout,
         name="edit_layout",
     ),
     path(
         "delete_template/<int:template_id>/",
-        views.delete_template,
+        delete_template,
         name="delete_template",
     ),
     path(
         "edit_template/<int:template_id>/field_modal/",
-        views.field_modal,
+        field_modal,
         name="field_modal",
     ),
     path(
         "edit_template/<int:template_id>/field_modal/parent/<int:parent_field_id>/",
-        views.field_modal,
+        field_modal,
         name="field_modal",
     ),
     path(
         "edit_template/<int:template_id>/field_modal/<int:field_id>/",
-        views.field_modal,
+        field_modal,
         name="field_modal",
     ),
     path(
         "edit_template/<int:template_id>/delete_field/<int:field_id>/",
-        views.delete_field,
+        delete_field,
         name="delete_field",
     ),
     path(
         "edit_template/<int:template_id>/test_fields/",
-        views.test_fields,
+        test_fields,
         name="test_fields",
     ),
     path(
         "edit_template/<int:template_id>/test_layout/",
-        views.test_layout,
+        test_layout,
         name="test_layout",
     ),
     path(
         "edit_template/<int:template_id>/generate_jinja/",
-        views.generate_jinja,
+        generate_jinja,
         name="generate_jinja",
     ),
     path(
         "edit_template/<int:template_id>/generate_markdown/",
-        views.generate_markdown,
+        generate_markdown,
         name="generate_markdown",
     ),
     path(
         "edit_template/<int:template_id>/modify_layout_code/",
-        views.modify_layout_code,
+        modify_layout_code,
         name="modify_layout_code",
     ),
     path(
         "edit_template/<int:template_id>/generate_fields/",
-        views.generate_fields,
+        generate_fields,
         name="generate_fields",
     ),
     path(
         "edit_template/<int:template_id>/modify_fields/",
-        views.modify_fields,
+        modify_fields,
         name="modify_fields",
     ),
     path(
-        "<int:template_id>/select_sources/",
-        views.select_sources,
+        "new_session/<int:template_id>/",
+        new_session,
+        name="new_session",
+    ),
+    path(
+        "session/<int:session_id>/select_sources/",
+        select_sources,
         name="select_sources",
     ),
     path(
-        "<int:template_id>/fill_template/",
-        views.fill_template,
+        "session/<int:session_id>/fill_template/",
+        fill_template,
         name="fill_template",
+    ),
+    path(
+        "session/<int:session_id>/add_url_source/",
+        add_url_source,
+        name="add_url_source",
+    ),
+    path(
+        "source/<int:source_id>/download/",
+        download_source_file,
+        name="download_source_file",
+    ),
+    path(
+        "source/<int:source_id>/delete/",
+        delete_source,
+        name="delete_source",
     ),
 ]
