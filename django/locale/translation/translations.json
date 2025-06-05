@@ -4226,5 +4226,65 @@
     "{len(saved_files)} file(s) uploaded successfully.": {
         "fr": "",
         "fr_auto": "{len(saved_files)} fichier(s) téléchargé(s) avec succès."
+    },
+    "Select sources": {
+        "fr": "",
+        "fr_auto": "Sélectionnez les sources"
+    },
+    "Fill template": {
+        "fr": "",
+        "fr_auto": "Gabarit de remplissage"
+    },
+    "Completed": {
+        "fr": "",
+        "fr_auto": "Terminé"
+    },
+    "Add a URL": {
+        "fr": "",
+        "fr_auto": "Ajouter une URL"
+    },
+    "CanLii, Wikipedia, canada.ca and *.gc.ca only": {
+        "fr": "",
+        "fr_auto": "CanLii, Wikipédia, canada.ca et *.gc.ca seulement"
+    },
+    "Upload files": {
+        "fr": "",
+        "fr_auto": "Télécharger des fichiers"
+    },
+    "or drop files anywhere": {
+        "fr": "",
+        "fr_auto": "ou déposez des fichiers n’importe où"
+    },
+    "Selected sources": {
+        "fr": "",
+        "fr_auto": "Sources sélectionnées"
+    },
+    "Are you sure you want to delete all sources?": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir supprimer toutes les sources?"
+    },
+    "Delete all": {
+        "fr": "",
+        "fr_auto": "Supprimer tout"
+    },
+    "No sources added yet.": {
+        "fr": "",
+        "fr_auto": "Aucune source n’a encore été ajoutée."
+    },
+    "Fill template with sources": {
+        "fr": "",
+        "fr_auto": "Remplir le modèle avec les sources"
+    },
+    "The URL is not allowed (only CanLii, Wikipedia, canada.ca and *.gc.ca are allowed).": {
+        "fr": "",
+        "fr_auto": "L’URL n’est pas autorisée (seuls CanLii, Wikipédia, canada.ca et *.gc.ca sont autorisés)."
+    },
+    "Source deleted.": {
+        "fr": "",
+        "fr_auto": "Source supprimée."
+    },
+    "source(s) deleted.": {
+        "fr": "",
+        "fr_auto": "Source(s) supprimée(s)."
     }
 }
