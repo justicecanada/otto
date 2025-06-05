@@ -6,16 +6,12 @@ from template_wizard.views.llm_layout import (
     modify_layout_code,
     test_layout,
 )
-from template_wizard.views.main import (
-    fill_template,
-    new_session,
-    select_sources,
-    template_list,
-)
-from template_wizard.views.source_management import (
+from template_wizard.views.main import fill_template, new_session, template_list
+from template_wizard.views.sources import (
     add_url_source,
     delete_source,
     download_source_file,
+    select_sources,
 )
 from template_wizard.views.template import (
     delete_template,

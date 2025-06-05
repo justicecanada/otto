@@ -112,4 +112,13 @@ document.addEventListener('htmx:afterSwap', function (event) {
     initTemplateWizardUploadForm();
   }
 });
-initTemplateWizardUploadForm();
+document.addEventListener('DOMContentLoaded', function () {
+  initTemplateWizardUploadForm();
+
+  const upload_button = document.getElementById("upload-button");
+  if (upload_button) {
+    upload_button.addEventListener("click", function () {
+      document.querySelector('#id_template-wizard-input_file').click();
+    });
+  }
+});

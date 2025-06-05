@@ -40,10 +40,19 @@
              href="{% url 'template_wizard:index' %}">{% trans "1. Select template" %}</a>
         </li>
         <li class="nav-item">
-          <button id="select-sources-tab" class="nav-link text-body fw-semibold active">{% trans "2. Select sources" %}</button>
+          <a id="select-sources-tab"
+             class="nav-link text-body fw-semibold active"
+             href="{{ request.path }}">{% trans "2. Select sources" %}</a>
         </li>
         <li class="nav-item">
-          <button id="fill-template-tab" class="nav-link text-body" disabled>{% trans "3. Fill template" %}</button>
+          {% if not session.sources.all %}
+            <button id="fill-template-tab" class="nav-link text-body" disabled>{% trans "3. Fill template" %}</button>
+          {% else %}
+            <a id="fill-template-tab"
+               class="nav-link text-body"
+               href="{% url 'template_wizard:fill_template' session_id=session.pk %}">{% trans "3. Fill template" %}
+            </a>
+          {% endif %}
         </li>
       </ul>
       <div id="step-content" class="rounded">
@@ -67,16 +76,17 @@
                   <button type="submit" class="btn btn-primary">{% trans "Add URL" %}</button>
                 </div>
               </form>
-              <h5 class="mt-4">{% trans "Upload files" %}</h5>
-              <button type="button"
-                      class="btn btn-primary mt-1"
-                      onclick="document.querySelector('#id_template-wizard-input_file').click();">
-                <i class="bi bi-upload"></i> {% trans "Upload" %}
-              </button>
+              <h5 class="mt-5">{% trans "Upload files" %}</h5>
+              <div class="d-flex align-items-center gap-2 mt-3">
+                <button type="button" class="btn btn-primary" id="upload-button">
+                  <i class="bi bi-upload"></i> {% trans "Browse" %}
+                </button>
+                <span class="mb-0">{% trans "or drop files anywhere" %}</span>
+              </div>
               <div id="template-wizard-upload-message"
                    class="position-relative ms-2 d-none">
                 <form id="template-wizard-upload-form"
-                      class="border rounded small"
+                      class="border rounded small mt-2"
                       enctype="multipart/form-data"
                       method="post">
                   {% csrf_token %}
@@ -87,7 +97,8 @@
 
             <div class="col-lg-7">
               {% if session.sources.all %}
-                <ul class="list-group mb-3">
+                <h5 class="mb-3">{% trans "Selected sources" %}</h5>
+                <ul class="list-group mb-3" id="sources-list">
                   {% for source in session.sources.all %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                       {% if source.url %}
@@ -113,14 +124,22 @@
               {% endif %}
             </div>
           </div>
-          {% if session.sources %}
-            <div class="d-flex justify-content-end mt-3">
+
+          <div class="d-flex justify-content-end mt-3">
+            {% if not session.sources.all %}
+              <button id="next-step-button" class="btn btn-primary" disabled>
+                {% trans "Fill template with sources" %}
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            {% else %}
               <a id="next-step-button"
                  class="btn btn-primary"
                  href="{% url 'template_wizard:fill_template' session_id=session.pk %}">
-              {% trans "Fill template with sources" %}</a>
-            </div>
-          {% endif %}
+                {% trans "Fill template with sources" %}
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            {% endif %}
+          </div>
         </div>
       </div>
       <button id="back-to-top"
@@ -137,6 +156,7 @@
     </div>
   </div>
 
+  {% include "template_wizard/file_dropzone.html" %}
 {% endblock %}
 
 {% block page_script %}

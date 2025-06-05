@@ -305,7 +305,8 @@ ul#preset-edit-tabs {
 
 #test-fields-result,
 #field-list,
-#rendered-markdown {
+#rendered-markdown,
+#sources-list {
   max-height: 550px;
   overflow-y: auto;
 }
@@ -381,5 +382,36 @@ label[for="id_template-wizard-input_file"] {
     color: red;
     text-indent: 0;
   }
+}
 
+form#dropzone-basic {
+  border-style: dashed;
+  border-radius: 0.75rem;
+  min-height: 0;
+  background: none;
+}
+
+#file-dropzone {
+  height: 100%;
+  width: 100%;
+  background: var(--chat-file-drop);
+  z-index: 100;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+#file-dropzone:not(.show) {
+  display: none !important;
+}
+
+#template-wizard-file-area {
+  background: none;
+  border: var(--bs-border-color) 3px dashed;
+  padding: 5rem;
+}
+
+#template-wizard-file-area input {
+  display: none;
 }
