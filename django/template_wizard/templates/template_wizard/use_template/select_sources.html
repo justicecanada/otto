@@ -97,7 +97,13 @@
 
             <div class="col-lg-7">
               {% if session.sources.all %}
-                <h5 class="mb-3">{% trans "Selected sources" %}</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="mb-0">{% trans "Selected sources" %}</h5>
+                  <form method="post" action="{% url 'template_wizard:delete_all_sources' session_id=session.pk %}" onsubmit="return confirm('{% trans "Are you sure you want to delete all sources?" %}');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Delete all" %}</button>
+                  </form>
+                </div>
                 <ul class="list-group mb-3" id="sources-list">
                   {% for source in session.sources.all %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">

@@ -9,6 +9,7 @@ from template_wizard.views.llm_layout import (
 from template_wizard.views.main import fill_template, new_session, template_list
 from template_wizard.views.sources import (
     add_url_source,
+    delete_all_sources,
     delete_source,
     download_source_file,
     select_sources,
@@ -141,5 +142,10 @@ urlpatterns = [
         "source/<int:source_id>/delete/",
         delete_source,
         name="delete_source",
+    ),
+    path(
+        "session/<int:session_id>/delete_all_sources/",
+        delete_all_sources,
+        name="delete_all_sources",
     ),
 ]

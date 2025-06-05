@@ -87,3 +87,18 @@ def select_sources(request, session_id):
             "upload_form": upload_form,
         },
     )
+
+
+@require_POST
+@permission_required(
+    "template_wizard.access_session", objectgetter(TemplateSession, "session_id")
+)
+def delete_all_sources(request, session_id):
+    session = get_object_or_404(TemplateSession, id=session_id)
+    count = session.sources.count()
+    session.sources.all().delete()
+    messages.success(
+        request,
+        f"{count} " + _("source deleted.") if count == 1 else _("sources deleted."),
+    )
+    return redirect("template_wizard:select_sources", session_id=session.id)
