@@ -99,6 +99,6 @@ def delete_all_sources(request, session_id):
     session.sources.all().delete()
     messages.success(
         request,
-        f"{count} " + _("source deleted.") if count == 1 else _("sources deleted."),
+        f"{count} " + _("source(s) deleted."),
     )
     return redirect("template_wizard:select_sources", session_id=session.id)

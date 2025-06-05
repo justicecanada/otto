@@ -28,7 +28,6 @@ cards.forEach((card) => {
 function initTemplateWizardUploadForm() {
   const metadata = {};
   const upload_message = document.getElementById("template-wizard-upload-message");
-  const details_container = document.getElementById("template-wizard-details");
   const file_input = document.getElementById("id_template-wizard-input_file");
   function submitUploadsIfComplete() {
     const form = document.getElementById("template-wizard-upload-form");
@@ -36,6 +35,7 @@ function initTemplateWizardUploadForm() {
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
     if (allDone) {
+      document.querySelector("#upload-spinner").classList.remove("d-none");
       form.submit();
     }
     hideIfNoFiles();
@@ -45,10 +45,8 @@ function initTemplateWizardUploadForm() {
     const numFiles = form.querySelectorAll(".dff-file").length;
     if (numFiles === 0) {
       upload_message.classList.add("d-none");
-      details_container.classList.remove("d-none");
     } else {
       upload_message.classList.remove("d-none");
-      details_container.classList.add("d-none");
     }
   }
   if (file_input) {
@@ -103,16 +101,11 @@ function initTemplateWizardUploadForm() {
     });
     file_input.addEventListener("change", function () {
       upload_message.classList.remove("d-none");
-      details_container.classList.add("d-none");
     });
   }
 }
-document.addEventListener('htmx:afterSwap', function (event) {
-  if (event.target.id === "template-wizard-upload-message") {
-    initTemplateWizardUploadForm();
-  }
-});
-document.addEventListener('DOMContentLoaded', function () {
+
+(function () {
   initTemplateWizardUploadForm();
 
   const upload_button = document.getElementById("upload-button");
@@ -121,4 +114,4 @@ document.addEventListener('DOMContentLoaded', function () {
       document.querySelector('#id_template-wizard-input_file').click();
     });
   }
-});
+})();

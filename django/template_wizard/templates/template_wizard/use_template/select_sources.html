@@ -26,11 +26,6 @@
 {% block content_container %}
   <div id="template-wizard-outer">
     <div class="container py-3 px-0">
-      <div id="spinner"
-           class="spinner container text-primary position-absolute top-0 end-0">
-        <span class="spinner-border" aria-hidden="true"></span>
-        <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
-      </div>
       <h2 class="mb-2 px-4 mt-2">{% trans "Template Wizard" %}{% trans ":" %} {{ session.template.name_auto }}</h2>
       <p class="mx-4 mb-4">{% trans "Upload documents or enter URLs to transform into the selected template." %}</p>
       <ul class="nav nav-tabs px-3 border-bottom-0" id="top-tabs">
@@ -77,11 +72,19 @@
                 </div>
               </form>
               <h5 class="mt-5">{% trans "Upload files" %}</h5>
-              <div class="d-flex align-items-center gap-2 mt-3">
-                <button type="button" class="btn btn-primary" id="upload-button">
-                  <i class="bi bi-upload"></i> {% trans "Browse" %}
-                </button>
-                <span class="mb-0">{% trans "or drop files anywhere" %}</span>
+              <div class="d-flex align-items-center gap-2 mt-3 justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" class="btn btn-primary" id="upload-button">
+                    <i class="bi bi-upload"></i> {% trans "Browse" %}
+                  </button>
+                  <span class="mb-0">{% trans "or drop files anywhere" %}</span>
+                </div>
+                <div class="d-inline-block me-1" style="position: relative; top: 2px;">
+                  <div id="upload-spinner" class="text-primary d-none">
+                    <span class="spinner-border" aria-hidden="true"></span>
+                    <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+                  </div>
+                </div>
               </div>
               <div id="template-wizard-upload-message"
                    class="position-relative ms-2 d-none">
@@ -99,7 +102,9 @@
               {% if session.sources.all %}
                 <div class="d-flex justify-content-between align-items-center mb-3">
                   <h5 class="mb-0">{% trans "Selected sources" %}</h5>
-                  <form method="post" action="{% url 'template_wizard:delete_all_sources' session_id=session.pk %}" onsubmit="return confirm('{% trans "Are you sure you want to delete all sources?" %}');">
+                  <form method="post"
+                        action="{% url 'template_wizard:delete_all_sources' session_id=session.pk %}"
+                        onsubmit="return confirm('{% trans "Are you sure you want to delete all sources?" %}');">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Delete all" %}</button>
                   </form>
