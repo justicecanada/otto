@@ -125,7 +125,9 @@ class Source(models.Model):
     template = models.OneToOneField(
         Template, on_delete=models.CASCADE, related_name="example_source", null=True
     )
-    text = models.TextField()
+    text = models.TextField(null=True)
+    extracted_json = models.TextField(null=True)  # JSON from LLM
+    template_result = models.TextField(null=True)  # Result from template rendering
     session = models.ForeignKey(
         "TemplateSession",
         on_delete=models.CASCADE,
