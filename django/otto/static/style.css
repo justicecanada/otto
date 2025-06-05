@@ -639,3 +639,22 @@ svg.driver-overlay {
 [data-bs-theme="dark"] .driver-popover-close-btn:focus {
   color: #fff;
 }
+
+
+.hover-change-content {
+  .only-hover {
+    display: none;
+  }
+
+  &:hover .only-hover {
+    display: inline;
+  }
+
+  .non-hover {
+    display: inline;
+  }
+
+  &:hover .non-hover {
+    display: none;
+  }
+}
