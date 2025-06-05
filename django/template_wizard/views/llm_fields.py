@@ -32,7 +32,7 @@ def test_fields(request, template_id):
             )
         schema = TemplateModel.model_json_schema()
 
-        llm = OttoLLM(deployment="gpt-4.1-mini")
+        llm = OttoLLM(deployment="gpt-4.1")
         bind_contextvars(feature="template_wizard", template_id=template.id)
         prompt = (
             "Extract the requested fields from this document, if they exist "
