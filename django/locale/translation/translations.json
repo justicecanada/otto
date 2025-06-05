@@ -4214,5 +4214,17 @@
     "Example source updated successfully.": {
         "fr": "",
         "fr_auto": "Exemple de source mis à jour avec succès."
+    },
+    "Upload successful!": {
+        "fr": "",
+        "fr_auto": "Téléchargement réussi!"
+    },
+    "Uploaded files:": {
+        "fr": "",
+        "fr_auto": "Fichiers téléchargés :"
+    },
+    "{len(saved_files)} file(s) uploaded successfully.": {
+        "fr": "",
+        "fr_auto": "{len(saved_files)} fichier(s) téléchargé(s) avec succès."
     }
 }
