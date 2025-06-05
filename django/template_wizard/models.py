@@ -121,11 +121,25 @@ class Template(models.Model):
         )
 
 
+class SourceStatus(models.TextChoices):
+    PENDING = "pending", _("Pending")
+    EXTRACTING_TEXT = "extracting_text", _("Extracting text")
+    EXTRACTING_FIELDS = "extracting_fields", _("Extracting fields")
+    FILLING_TEMPLATE = "filling_template", _("Filling template")
+    COMPLETED = "completed", _("Completed")
+    ERROR = "error", _("Error")
+
+
 class Source(models.Model):
     template = models.OneToOneField(
         Template, on_delete=models.CASCADE, related_name="example_source", null=True
     )
     text = models.TextField(null=True)
+    status = models.CharField(
+        max_length=50,
+        choices=SourceStatus.choices,
+        default=SourceStatus.PENDING,
+    )
     extracted_json = models.TextField(null=True)  # JSON from LLM
     template_result = models.TextField(null=True)  # Result from template rendering
     session = models.ForeignKey(

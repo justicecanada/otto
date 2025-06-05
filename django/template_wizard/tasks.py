@@ -26,8 +26,22 @@ def fill_template_with_source(source_id):
     if not source:
         logger.error("Source not found", source_id=source_id)
         return
-    extract_source_text(source)
-    extract_fields(source)
-    fill_template_from_fields(source)
-
-    return
+    try:
+        source.status = "extracting_text"
+        source.save()
+        extract_source_text(source)
+        source.status = "extracting_fields"
+        source.save()
+        extract_fields(source)
+        source.status = "filling_template"
+        source.save()
+        fill_template_from_fields(source)
+        source.status = "completed"
+        source.save()
+    except Exception as e:
+        logger.error(
+            "Error filling template with source", source_id=source_id, error=str(e)
+        )
+        source.status = "error"
+        source.save()
+        raise e

@@ -1,19 +1,18 @@
 import json
 
+from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from llama_index.core.program import LLMTextCompletionProgram
 from rules.contrib.views import objectgetter
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from otto.utils.decorators import permission_required
-from template_wizard.forms import FieldForm
 from template_wizard.models import Template, TemplateField
-from template_wizard.utils import build_pydantic_model_for_fields, unpack_model_to_dict
+from template_wizard.utils import extract_fields
 
 
 @permission_required(
@@ -24,51 +23,20 @@ def test_fields(request, template_id):
     if not template:
         raise Http404()
     test_results = {}
-    if template.example_source and template.fields.exists():
-        TemplateModel = build_pydantic_model_for_fields(template.fields.all())
-        if template.description_auto:
-            TemplateModel.__doc__ = (
-                f"{template.name_auto}\n\n{template.description_auto}"
-            )
-        schema = TemplateModel.model_json_schema()
+    source = getattr(template, "example_source", None)
+    if source and template.fields.exists():
+        extract_fields(source)
+        import json
 
-        llm = OttoLLM(deployment="gpt-4.1")
-        bind_contextvars(feature="template_wizard", template_id=template.id)
-        prompt = (
-            "Extract the requested fields from this document, if they exist "
-            "(otherwise, the field value should be None):\n\n"
-            "<document>\n{document_text}\n</document>"
-        )
-        program = LLMTextCompletionProgram.from_defaults(
-            llm=llm.llm,
-            output_cls=TemplateModel,
-            prompt_template_str=prompt,
-            verbose=True,
-        )
         try:
-            output = program(document_text=template.example_source.text)
-            llm.create_costs()
-            if isinstance(output, str):
-                raise ValueError(
-                    "The output is a string; expected a structured output."
-                )
+            if source.extracted_json:
+                test_results = json.loads(source.extracted_json)
             else:
-                dict_output = unpack_model_to_dict(output)
-                template.generated_schema = schema
-                template.example_json_output = json.dumps(
-                    dict_output, ensure_ascii=False
-                )
-                # Save test extraction result and timestamp
-                template.last_test_fields_result = json.dumps(
-                    dict_output, ensure_ascii=False
-                )
-                from django.utils import timezone
-
-                template.last_test_fields_timestamp = timezone.now()
-                template.save()
-                test_results = dict_output
-        except Exception as e:
-            test_results = {"error": str(e), "output": output}
+                test_results = {"error": "No extracted fields available."}
+        except Exception:
+            test_results = {"output": source.extracted_json}
+    else:
+        test_results = {"error": "No example source or fields available."}
     return render(
         request,
         "template_wizard/edit_template/test_fields_fragment.html",
@@ -176,7 +144,6 @@ def modify_fields(request, template_id):
         raise Http404()
     instruction = request.POST.get("modification_instruction", "").strip()
     if not instruction:
-        from django.contrib import messages
 
         messages.error(request, _("No instruction provided."))
         fields = template.fields.all()
@@ -230,7 +197,6 @@ def modify_fields(request, template_id):
     ).format(
         fields_json=json.dumps(fields_json, ensure_ascii=False), instruction=instruction
     )
-    from django.contrib import messages
 
     try:
         llm_response = llm.complete(prompt, response_format={"type": "json_object"})

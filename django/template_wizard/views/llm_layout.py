@@ -1,108 +1,44 @@
 import json
-import re
 
+from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import render
-from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from jinja2 import Template as JinjaTemplate
 from rules.contrib.views import objectgetter
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from otto.utils.decorators import permission_required
 from template_wizard.forms import LayoutForm
-from template_wizard.models import LayoutType, Template
+from template_wizard.models import Template
+from template_wizard.utils import fill_template_from_fields
 
 
 @permission_required(
     "template_wizard.edit_template", objectgetter(Template, "template_id")
 )
 def test_layout(request, template_id):
+
     template = Template.objects.filter(id=template_id).first()
     if not template:
         raise Http404()
     test_results = {}
-    fragment_template = ""
-    if template.layout_type == LayoutType.LLM_GENERATION:
-        if template.layout_markdown and template.example_json_output:
-            llm = OttoLLM(deployment="gpt-4.1-mini")
-            bind_contextvars(feature="template_wizard", template_id=template.id)
-            prompt = (
-                "Fill in the following template string using the provided JSON data.\n"
-                "Template string:\n{layout_markdown}\n\n"
-                "JSON schema:\n{json_schema}\n\n"
-                "JSON data:\n{json_data}\n\n"
-                "Render the template as markdown, replacing all fields with the "
-                "corresponding values from the JSON data, "
-                "formatted according to the template instructions.\n"
-                "Do not wrap in backticks or include any additional comments."
-            ).format(
-                layout_markdown=template.layout_markdown,
-                json_schema=template.generated_schema,
-                json_data=template.example_json_output,
-            )
-            try:
-                output = llm.complete(prompt)
-                llm.create_costs()
-                if output.startswith("```") and output.endswith("```"):
-                    output = "\n".join(output.split("\n")[1:-1])
-                test_results = {"output_markdown": output}
-                # Save layout rendering result, type, and timestamp
-                template.last_test_layout_result = json.dumps(test_results)
-                template.last_test_layout_type = LayoutType.LLM_GENERATION
-                template.last_test_layout_timestamp = timezone.now()
-                template.save()
-            except Exception as e:
-                test_results = {"error": str(e)}
-    elif template.layout_type == LayoutType.MARKDOWN_SUBSTITUTION:
-        if template.layout_markdown and template.example_json_output:
-            if isinstance(template.example_json_output, dict):
-                data = template.example_json_output
+    # Use the example_source for this template
+    source = getattr(template, "example_source", None)
+    if source:
+        fill_template_from_fields(source)
+        # Try to load the result from the source model
+        try:
+            if source.template_result:
+                # Try to parse as JSON, fallback to string
+                test_results = json.loads(source.template_result)
             else:
-                try:
-                    data = json.loads(template.example_json_output)
-                except Exception:
-                    data = {}
-
-            def substitute(match):
-                key = match.group(1).strip()
-                return str(data.get(key, ""))
-
-            pattern = re.compile(r"{{\s*(\w+)\s*}}")
-            substituted = pattern.sub(substitute, template.layout_markdown)
-            test_results = {"output_markdown": substituted}
-            # Save layout rendering result, type, and timestamp
-            template.last_test_layout_result = json.dumps(test_results)
-            template.last_test_layout_type = LayoutType.MARKDOWN_SUBSTITUTION
-            template.last_test_layout_timestamp = timezone.now()
-            template.save()
-    elif template.layout_type == LayoutType.JINJA_RENDERING:
-        if template.layout_jinja and template.example_json_output:
-            if isinstance(template.example_json_output, dict):
-                data = template.example_json_output
-            else:
-                try:
-                    data = json.loads(template.example_json_output)
-                except Exception as e:
-                    print(f"Error parsing JSON: {e}")
-                    data = {}
-            try:
-                jinja_template = JinjaTemplate(template.layout_jinja)
-                rendered_html = jinja_template.render(**data)
-                test_results = {"output_html": rendered_html}
-                # Save layout rendering result, type, and timestamp
-                template.last_test_layout_result = json.dumps(test_results)
-                template.last_test_layout_type = LayoutType.JINJA_RENDERING
-                template.last_test_layout_timestamp = timezone.now()
-                template.save()
-            except Exception as e:
-                test_results = {"error": str(e)}
-    elif template.layout_type == "word_template":
-        test_results = {"output_html": "todo"}
+                test_results = {"error": "No template result available."}
+        except Exception:
+            test_results = {"output": source.template_result}
     else:
-        test_results = {"output_html": "Unknown layout type."}
+        test_results = {"error": "No example source available."}
     return render(
         request,
         "template_wizard/edit_template/test_layout_fragment.html",
@@ -137,7 +73,6 @@ def generate_jinja(request, template_id):
         json_output=template.example_json_output or "",
     )
     jinja_code = ""
-    from django.contrib import messages
 
     try:
         jinja_code = llm.complete(prompt)
@@ -224,7 +159,6 @@ def modify_layout_code(request, template_id):
         code=code,
         instruction=instruction,
     )
-    from django.contrib import messages
 
     try:
         new_code = llm.complete(prompt)

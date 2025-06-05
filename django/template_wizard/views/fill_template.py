@@ -24,6 +24,10 @@ def fill_template(request, session_id):
     session = get_object_or_404(TemplateSession, id=session_id)
     session.status = "fill_template"
     session.save()
+    # Enqueue the task to fill the template with sources, for each source
+    for source in session.sources.all():
+        if source.status == "pending":
+            fill_template_with_source.delay(source.id)
     return render(
         request,
         "template_wizard/use_template/fill_template.html",

@@ -47,7 +47,17 @@
       <div id="step-content" class="rounded">
         <div class="tab-pane fade show active p-3 border rounded preset-form-container">
           <div class="row">
-            <div class="col">TODO</div>
+            <div class="col">
+              <ul>
+                {% for source in session.sources.all %}
+                  <li>
+                    <p>filename: {{ source.filename }}</p>
+                    <p>url: {{ source.url }}</p>
+                    <p>status: {{ source.status }}</p>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
           </div>
           <div class="d-flex justify-content-end mt-3">
             <a id="next-step-button"
