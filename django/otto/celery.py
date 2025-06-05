@@ -80,6 +80,11 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.update_exchange_rate",
         "schedule": crontab(hour=2, minute=0, day_of_week=6),
     },
+    # Delete empty template sessions every day at 2:05 am UTC
+    "delete-empty-template-sessions-every-morning": {
+        "task": "otto.tasks.delete_empty_template_sessions",
+        "schedule": crontab(hour=2, minute=5),
+    },
 }
 
 
