@@ -4,8 +4,16 @@
     <li class="dropdown-item d-flex align-items-center justify-content-between gap-2 session-history-item">
       <a href="{% url 'template_wizard:open_session' session.id %}"
          class="session-history-link flex-grow-1">
-        <div class="fw-semibold">{{ session.template.name_auto }}</div>
-        <div class="small text-muted">{{ session.created_at }}</div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="fw-semibold">{{ session.template.name_auto }}</span>
+        </div>
+        <div class="small text-muted">
+          {{ session.created_at }} |
+          <span class="{% if session.status == 'completed' %}text-success{% elif session.status == 'fill_template' %}text-primary{% endif %}">
+            {{ session.get_status_display }}{% trans ":" %} {{ session.sources.count }} {% trans "source(s)" %}
+          </span>
+        </div>
+
       </a>
       <a class="btn px-0 ms-2 hover-change-content delete-session-btn"
          hx-delete="{% url 'template_wizard:delete_session' session.id %}"

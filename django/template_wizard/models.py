@@ -161,8 +161,8 @@ def delete_saved_file(sender, instance, **kwargs):
 
 
 class TemplateSessionStatus(models.TextChoices):
-    SELECT_SOURCES = "select_sources", _("Select sources")
-    FILL_TEMPLATE = "fill_template", _("Fill template")
+    SELECT_SOURCES = "select_sources", _("Selecting")
+    FILL_TEMPLATE = "fill_template", _("Processing")
     COMPLETED = "completed", _("Completed")
 
 
@@ -185,6 +185,14 @@ class TemplateSession(models.Model):
 
     def __str__(self):
         return f"Session for {self.template.name_auto} by {self.user.username} at {self.created_at}"
+
+    def get_status_display(self):
+        """
+        Return the human-readable label for the status field using TemplateSessionStatus choices.
+        """
+        return dict(TemplateSessionStatus.choices).get(self.status, self.status) or _(
+            "Unknown status"
+        )
 
 
 @receiver(post_save, sender=Template)

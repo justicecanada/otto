@@ -63,6 +63,8 @@ def delete_source(request, source_id):
 )
 def select_sources(request, session_id):
     session = get_object_or_404(TemplateSession, id=session_id)
+    session.status = "select_sources"
+    session.save()
     upload_form = UploadForm(prefix="template-wizard")
     if request.method == "POST":
         upload_form = UploadForm(request.POST, request.FILES, prefix="template-wizard")

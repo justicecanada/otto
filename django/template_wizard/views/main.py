@@ -43,21 +43,6 @@ def session_history(request):
 @permission_required(
     "template_wizard.access_template", objectgetter(Template, "template_id")
 )
-def fill_template(request, template_id):
-    template = get_object_or_404(Template, id=template_id)
-    return render(
-        request,
-        "template_wizard/use_template/fill_template.html",
-        context={
-            "hide_breadcrumbs": True,
-            "template": template,
-        },
-    )
-
-
-@permission_required(
-    "template_wizard.access_template", objectgetter(Template, "template_id")
-)
 def new_session(request, template_id):
     session = TemplateSession.objects.create(
         template_id=template_id,
@@ -79,4 +64,9 @@ def delete_session(request, session_id):
 )
 def open_session(request, session_id):
     session = get_object_or_404(TemplateSession, id=session_id, user=request.user)
-    return redirect(reverse("template_wizard:select_sources", args=[session_id]))
+
+    if session.status == "select_sources":
+        url = reverse("template_wizard:select_sources", args=[session.id])
+    else:
+        url = reverse("template_wizard:fill_template", args=[session.id])
+    return redirect(url)

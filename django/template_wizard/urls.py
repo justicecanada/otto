@@ -1,4 +1,5 @@
 from template_wizard.views.fields import delete_field, edit_fields, field_modal
+from template_wizard.views.fill_template import fill_template
 from template_wizard.views.layout import edit_layout, generate_markdown
 from template_wizard.views.llm_fields import generate_fields, modify_fields, test_fields
 from template_wizard.views.llm_layout import (
@@ -8,7 +9,6 @@ from template_wizard.views.llm_layout import (
 )
 from template_wizard.views.main import (
     delete_session,
-    fill_template,
     new_session,
     open_session,
     session_history,
