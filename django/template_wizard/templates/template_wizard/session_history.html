@@ -1,0 +1,24 @@
+{% load i18n %}
+{% if sessions %}
+  {% for session in sessions %}
+    <li class="dropdown-item d-flex align-items-center justify-content-between gap-2 session-history-item">
+      <a href="{% url 'template_wizard:open_session' session.id %}"
+         class="session-history-link flex-grow-1">
+        <div class="fw-semibold">{{ session.template.name_auto }}</div>
+        <div class="small text-muted">{{ session.created_at }}</div>
+      </a>
+      <a class="btn px-0 ms-2 hover-change-content delete-session-btn"
+         hx-delete="{% url 'template_wizard:delete_session' session.id %}"
+         hx-target="closest li"
+         title="{% trans 'Delete session' %}"
+         aria-label="{% trans 'Delete session' %}"
+         onclick="handleDeleteSession(event, this);">
+        <span class="non-hover"><i class="bi bi-trash text-secondary"></i></span>
+        <span class="only-hover"><i class="bi bi-trash-fill text-danger"></i></span>
+        <span class="visually-hidden">{% trans "Delete session" %}</span>
+      </a>
+    </li>
+  {% endfor %}
+{% else %}
+  <li class="dropdown-item text-muted small">{% trans "No history found." %}</li>
+{% endif %}

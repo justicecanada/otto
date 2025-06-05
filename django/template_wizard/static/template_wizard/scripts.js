@@ -115,3 +115,27 @@ function initTemplateWizardUploadForm() {
     });
   }
 })();
+
+function handleDeleteSession(event, el) {
+  // Only prevent dropdown closing if there is more than 1 session item
+  const li = el.closest('li');
+  const ul = li && li.parentElement;
+  if (ul) {
+    // Count only visible session items (not the 'No history found' message)
+    const sessionItems = ul.querySelectorAll('li:not(.text-muted)');
+    if (sessionItems.length > 1) {
+      event.stopPropagation();
+      event.preventDefault();
+      const parent_li = el.closest('li');
+      htmx.trigger(el, 'hx:delete');
+      // Once the HTMX request is sent, we can remove the parent li
+      setTimeout(() => {
+        if (parent_li && parent_li.parentElement) {
+          parent_li.parentElement.removeChild(parent_li);
+        }
+      }, 100); // Adjust timeout as needed for HTMX request to complete
+      return false;
+    }
+  }
+  // Otherwise, let the event bubble (dropdown will close)
+}

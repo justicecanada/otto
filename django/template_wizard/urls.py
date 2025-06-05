@@ -6,7 +6,14 @@ from template_wizard.views.llm_layout import (
     modify_layout_code,
     test_layout,
 )
-from template_wizard.views.main import fill_template, new_session, template_list
+from template_wizard.views.main import (
+    delete_session,
+    fill_template,
+    new_session,
+    open_session,
+    session_history,
+    template_list,
+)
 from template_wizard.views.sources import (
     add_url_source,
     delete_all_sources,
@@ -148,4 +155,7 @@ urlpatterns = [
         delete_all_sources,
         name="delete_all_sources",
     ),
+    path("session_history/", session_history, name="session_history"),
+    path("delete_session/<int:session_id>/", delete_session, name="delete_session"),
+    path("open_session/<int:session_id>/", open_session, name="open_session"),
 ]

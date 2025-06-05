@@ -311,6 +311,34 @@ ul#preset-edit-tabs {
   overflow-y: auto;
 }
 
+#session-history-dropdown {
+  margin-top: -3px !important;
+}
+
+.session-history-link {
+  color: inherit;
+  text-decoration: none;
+  background: none;
+  box-shadow: none;
+}
+
+.session-history-link:active,
+.session-history-link:focus,
+.session-history-link:hover {
+  color: inherit;
+  text-decoration: none;
+  background: none;
+  box-shadow: none;
+}
+
+.session-history-item.active,
+.session-history-item:active,
+.session-history-item:focus,
+.session-history-item:hover {
+  background-color: transparent !important;
+  color: inherit;
+}
+
 
 /* JS file uploads - overriding Django-File-Form styles */
 #id_template-wizard-input_file,
