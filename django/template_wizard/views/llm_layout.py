@@ -3,6 +3,7 @@ import json
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from rules.contrib.views import objectgetter
@@ -28,15 +29,14 @@ def test_layout(request, template_id):
     source = getattr(template, "example_source", None)
     if source:
         fill_template_from_fields(source)
-        # Try to load the result from the source model
-        try:
-            if source.template_result:
-                # Try to parse as JSON, fallback to string
-                test_results = json.loads(source.template_result)
-            else:
-                test_results = {"error": "No template result available."}
-        except Exception:
-            test_results = {"output": source.template_result}
+        if source.template_result:
+            test_results = {"output_html": source.template_result}
+            template.last_test_layout_result = json.dumps(test_results)
+            template.last_test_layout_type = template.layout_type
+            template.last_test_layout_timestamp = timezone.now()
+            template.save()
+        else:
+            test_results = {"error": "No template result available."}
     else:
         test_results = {"error": "No example source available."}
     return render(

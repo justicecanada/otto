@@ -137,7 +137,7 @@ def extract_fields(source):
         verbose=True,
     )
     try:
-        result = program(source.text)
+        result = program(document_text=source.text)
         result_dict = unpack_model_to_dict(result)
         source.extracted_json = json.dumps(result_dict, ensure_ascii=False)
         source.save()
