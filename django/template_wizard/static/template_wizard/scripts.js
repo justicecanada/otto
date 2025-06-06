@@ -139,3 +139,19 @@ function handleDeleteSession(event, el) {
   }
   // Otherwise, let the event bubble (dropdown will close)
 }
+
+function showResultIfAvailable() {
+  const previewResult = document.getElementById('preview-result');
+  if (previewResult && previewResult.innerHTML.trim() === '') {
+    const btn = document.querySelector('.template-result-btn');
+    if (btn) {
+      btn.click();
+    }
+  }
+}
+document.addEventListener('DOMContentLoaded', function () {
+  showResultIfAvailable();
+});
+document.body.addEventListener('htmx:afterSwap', function (evt) {
+  setTimeout(showResultIfAvailable, 100);
+});

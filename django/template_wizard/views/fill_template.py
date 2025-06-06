@@ -30,18 +30,18 @@ def fill_template(request, session_id):
     Starts the celery tasks for session.sources (if not started) and returns status/output.
     """
     session = get_object_or_404(TemplateSession, id=session_id)
-    session.status = "fill_template"
-    session.save()
+    update_session_status = False
     # Enqueue the task to fill the template with sources, for each source
     for source in session.sources.all():
         if source.status == "pending":
+            update_session_status = True
             fill_template_with_source.delay(source.id)
-
+    if update_session_status:
+        session.status = "fill_template"
+        session.save()
     all_sources_processed = all(
         source.status in ["completed", "error"] for source in session.sources.all()
     )
-    if not all_sources_processed:
-        messages.info(request, _("Template filling started."))
 
     return render(
         request,

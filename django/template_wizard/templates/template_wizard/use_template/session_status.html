@@ -30,7 +30,7 @@
                hx-swap="innerHTML">
               <i class="bi bi-code-square me-1"></i> <span class="small">{% trans 'Extracted data' %}</span>
             </a>
-            <a class="btn btn-sm btn-outline-primary d-flex align-items-center"
+            <a class="btn btn-sm btn-outline-primary d-flex align-items-center template-result-btn"
                title="{% trans 'Template result' %}"
                hx-get="{% url 'template_wizard:source_template_result' session_id=session.id source_id=source.id %}"
                hx-target="#preview-result"
@@ -59,16 +59,10 @@
   <div id="session_status_poller"
        hx-get="{% url 'template_wizard:poll_status' session_id=session.id %}"
        hx-trigger="every 2s"
-       hx-ext="morph"
-       hx-swap="morph:innerHTML"
        hx-target="#session-status"
+       hx-swap="innerHTML"
        hx-swap-oob="true"></div>
 {% else %}
   {# Stop polling #}
   <div id="session_status_poller" hx-swap-oob="true"></div>
 {% endif %}
-
-<style>
-.min-h-row { min-height: 2.5rem; }
-.min-h-btns { min-height: 2.5rem; }
-</style>

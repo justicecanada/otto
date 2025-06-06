@@ -454,5 +454,12 @@ form#dropzone-basic {
   white-space: nowrap;
   direction: rtl;
   text-align: left;
-  vertical-align: bottom;
+}
+
+.min-h-row {
+  min-height: 2.5rem;
+}
+
+.min-h-btns {
+  min-height: 2.5rem;
 }
