@@ -139,7 +139,7 @@ def extract_fields(source):
     try:
         result = program(document_text=source.text)
         result_dict = unpack_model_to_dict(result)
-        source.extracted_json = json.dumps(result_dict, ensure_ascii=False)
+        source.extracted_json = result_dict
         source.save()
     except Exception as e:
         logger.error("Error extracting fields", source_id=source.id, error=str(e))
@@ -161,7 +161,7 @@ def fill_template_from_fields(source):
         )
         return
     try:
-        fields_data = json.loads(source.extracted_json)
+        fields_data = source.extracted_json
     except Exception as e:
         logger.error(
             "Error loading extracted_json for template filling",
@@ -188,7 +188,7 @@ def fill_template_from_fields(source):
             ).format(
                 layout_markdown=template.layout_markdown,
                 json_schema=template.generated_schema,
-                json_data=json.dumps(fields_data, ensure_ascii=False),
+                json_data=fields_data,
             )
             try:
                 output = llm.complete(prompt)

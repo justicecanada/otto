@@ -30,19 +30,12 @@ def test_layout(request, template_id):
     if source:
         fill_template_from_fields(source)
         if source.template_result:
-            test_results = {"output_html": source.template_result}
-            template.last_test_layout_result = json.dumps(test_results)
-            template.last_test_layout_type = template.layout_type
             template.last_test_layout_timestamp = timezone.now()
             template.save()
-        else:
-            test_results = {"error": "No template result available."}
-    else:
-        test_results = {"error": "No example source available."}
     return render(
         request,
         "template_wizard/edit_template/test_layout_fragment.html",
-        {"test_results": test_results, "template": template},
+        {"template": template},
     )
 
 
@@ -70,7 +63,7 @@ def generate_jinja(request, template_id):
         """
     ).format(
         schema=template.generated_schema or "",
-        json_output=template.example_json_output or "",
+        json_output=template.example_source.extracted_json or "",
     )
     jinja_code = ""
 
@@ -154,7 +147,7 @@ def modify_layout_code(request, template_id):
         """
     ).format(
         schema=template.generated_schema,
-        example_json=template.example_json_output,
+        example_json=template.example_source.extracted_json,
         code_type=code_type,
         code=code,
         instruction=instruction,

@@ -40,11 +40,6 @@ def edit_layout(request, template_id):
             "layout_form": layout_form,
             "active_tab": "layout",
             "template": template,
-            "test_results": (
-                json.loads(template.last_test_layout_result)
-                if template.last_test_layout_result
-                else None
-            ),
         },
     )
 

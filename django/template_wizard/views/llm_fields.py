@@ -3,6 +3,7 @@ import json
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -22,25 +23,14 @@ def test_fields(request, template_id):
     template = Template.objects.filter(id=template_id).first()
     if not template:
         raise Http404()
-    test_results = {}
     source = getattr(template, "example_source", None)
     if source and template.fields.exists():
         extract_fields(source)
-        import json
-
-        try:
-            if source.extracted_json:
-                test_results = json.loads(source.extracted_json)
-            else:
-                test_results = {"error": "No extracted fields available."}
-        except Exception:
-            test_results = {"output": source.extracted_json}
-    else:
-        test_results = {"error": "No example source or fields available."}
+        template.last_test_fields_timestamp = timezone.now()
     return render(
         request,
         "template_wizard/edit_template/test_fields_fragment.html",
-        {"test_results": test_results, "template": template},
+        {"template": template},
     )
 
 
@@ -194,9 +184,7 @@ def modify_fields(request, template_id):
         USER INSTRUCTION:
         {instruction}
         """
-    ).format(
-        fields_json=json.dumps(fields_json, ensure_ascii=False), instruction=instruction
-    )
+    ).format(fields_json=fields_json, instruction=instruction)
 
     try:
         llm_response = llm.complete(prompt, response_format={"type": "json_object"})

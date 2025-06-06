@@ -1,9 +1,7 @@
-{% if test_results.error %}
-  <div class="alert alert-danger">{{ test_results.error }}</div>
-{% else %}
-  <div class="rendered-markdown card p-3" id="rendered-markdown"></div>
-  <script type="application/json" id="raw-markdown">{{ test_results.output_markdown|escapejs }}</script>
-  <script>
+
+<div class="rendered-markdown card p-3" id="rendered-markdown"></div>
+<script type="application/json" id="raw-markdown">{{ template.example_source.template_result|escapejs }}</script>
+<script>
     (function() {
       // Get the raw markdown from the script tag
       var rawMarkdown = document.getElementById('raw-markdown').textContent;
@@ -19,5 +17,4 @@
         document.querySelector('.rendered-markdown').innerHTML = '<pre>' + rawMarkdown + '</pre>';
       }
     })();
-  </script>
-{% endif %}
+</script>

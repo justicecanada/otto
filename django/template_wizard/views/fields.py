@@ -23,11 +23,6 @@ def edit_fields(request, template_id):
         context={
             "active_tab": "fields",
             "template": template,
-            "test_results": (
-                json.loads(template.last_test_fields_result)
-                if template.last_test_fields_result
-                else None
-            ),
         },
     )
 

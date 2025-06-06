@@ -66,7 +66,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   function hasFields() {
-    return {{ template.fields.all|length }} > 0 && {{ template.last_test_fields_result|length }} > 0;
+    return {{ template.fields.all|length }} > 0 && {{ template.example_source.extracted_json|length }} > 0;
   }
   function blockIfNoFields(event) {
     if (!hasFields()) {

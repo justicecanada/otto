@@ -83,11 +83,7 @@
                 hx-indicator="#test-fields-spinner">{% trans "Test extraction" %}</button>
       </div>
     </div>
-    <div id="test-fields">
-      {% if test_results %}
-        {% include "template_wizard/edit_template/test_fields_fragment.html" %}
-      {% endif %}
-    </div>
+    <div id="test-fields">{% include "template_wizard/edit_template/test_fields_fragment.html" %}</div>
   </div>
 </div>
 

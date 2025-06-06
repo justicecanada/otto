@@ -1,3 +1,4 @@
+import json
 import re
 
 from django.conf import settings
@@ -63,13 +64,10 @@ class Template(models.Model):
     # Schema and example output generated from TemplateFields.
     # Use TextField instead of JSONField since we don't query the schema in the database.
     generated_schema = models.TextField(null=True)
-    example_json_output = models.TextField(null=True)
 
     # Store the last test extraction result and timestamp
-    last_test_fields_result = models.TextField(null=True, blank=True)
     last_test_fields_timestamp = models.DateTimeField(null=True, blank=True)
     # Store the last layout rendering result, type, and timestamp
-    last_test_layout_result = models.TextField(null=True, blank=True)
     last_test_layout_type = models.CharField(max_length=100, null=True, blank=True)
     last_test_layout_timestamp = models.DateTimeField(null=True, blank=True)
 
@@ -140,7 +138,7 @@ class Source(models.Model):
         choices=SourceStatus.choices,
         default=SourceStatus.PENDING,
     )
-    extracted_json = models.TextField(null=True)  # JSON from LLM
+    extracted_json = models.JSONField(null=True)  # JSON from LLM
     template_result = models.TextField(null=True)  # Result from template rendering
     session = models.ForeignKey(
         "TemplateSession",

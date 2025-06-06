@@ -1,6 +1,6 @@
 {% load i18n %}
 
-{% if template.last_test_layout_result %}
+{% if template.example_source.template_result %}
   <div class="alert alert-secondary small mb-2">
     <span class="fw-semibold">{% trans "Results from layout type:" %}</span>
     <span class="text-secondary">{{ template.get_last_test_layout_type_display }}</span>
