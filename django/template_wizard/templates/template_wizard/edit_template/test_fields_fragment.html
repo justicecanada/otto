@@ -8,7 +8,7 @@
 
   <div class="alert alert-info" id="test-fields-result">
     {# Use the recursive fragment to display the dictionary #}
-    {% include "template_wizard/edit_template/test_fields_dict_fragment.html" with dict_data=template.example_source.extracted_json %}
+    {% include "template_wizard/use_template/fields_dict_fragment.html" with dict_data=template.example_source.extracted_json %}
   </div>
 
   <button class="btn btn-sm btn-outline-secondary mb-2"
@@ -16,6 +16,6 @@
           data-bs-toggle="collapse"
           data-bs-target="#raw-json">{% trans "View Raw JSON" %}</button>
   <div class="collapse" id="raw-json">
-    <pre class="bg-light border p-2 small">{{ template.example_source.extracted_json|pprint }}</pre>
+    <pre class="bg-light border p-2 small">{{ source.extracted_json|pprint }}</pre>
   </div>
 {% endif %}

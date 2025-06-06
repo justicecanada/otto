@@ -81,7 +81,7 @@ def unpack_model_to_dict(model_instance):
 
 
 def extract_source_text(source):
-    if source.url and not source.text:
+    if source.url:
         try:
             source.text = url_to_text(source.url)
             source.save()
@@ -92,8 +92,8 @@ def extract_source_text(source):
                 source_id=source.id,
                 error=str(e),
             )
-            return
-    elif source.saved_file and not source.text:
+            raise e
+    elif source.saved_file:
         try:
             with source.saved_file.file.open("rb") as file:
                 content = file.read()
@@ -108,6 +108,7 @@ def extract_source_text(source):
                 source_id=source.id,
                 error=str(e),
             )
+            raise e
     assert source.text, "Source text extraction failed"
 
 
@@ -116,13 +117,25 @@ def extract_fields(source):
     Uses LLM to extract fields from the source text and saves to source.extracted_json (TextField)
     """
 
-    template = source.template
-    if not template or not source.text or not template.fields.exists():
+    template = source.template or source.session.template
+    if not template:
         logger.error(
-            "Missing template, source text, or fields for extraction",
+            "Missing template for extraction",
             source_id=source.id,
         )
-        return
+        raise Exception("Missing template for extraction")
+    if not source.text:
+        logger.error(
+            "Missing source text for extraction",
+            source_id=source.id,
+        )
+        raise Exception("Missing source text for extraction")
+    if not template.fields.exists():
+        logger.error(
+            "Missing fields for extraction",
+            source_id=source.id,
+        )
+        raise Exception("Missing fields for extraction")
     TemplateModel = build_pydantic_model_for_fields(template.fields.all())
     llm = OttoLLM(deployment="gpt-4.1")
     prompt = (
@@ -153,7 +166,7 @@ def fill_template_from_fields(source):
     Fills the template with the extracted fields, saves to source.template_result (TextField)
     """
 
-    template = source.template
+    template = source.template or source.session.template
     if not template or not source.extracted_json:
         logger.error(
             "Missing template or extracted fields for template filling",

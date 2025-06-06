@@ -56,7 +56,7 @@
                 hx-indicator="#test-layout-spinner">{% trans "Test layout" %}</button>
       </div>
     </div>
-    <div id="test-layout">{% include "template_wizard/edit_template/test_layout_fragment.html" %}</div>
+    <div id="test-layout">{% include "template_wizard/edit_template/template_result_fragment.html" %}</div>
   </div>
 </div>
 <div class="mt-4 d-flex justify-content-end">
@@ -66,7 +66,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   function hasFields() {
-    return {{ template.fields.all|length }} > 0 && {{ template.example_source.extracted_json|length }} > 0;
+    return {{ template.fields.all|length }} > 0 && {{ source.extracted_json|length }} > 0;
   }
   function blockIfNoFields(event) {
     if (!hasFields()) {
