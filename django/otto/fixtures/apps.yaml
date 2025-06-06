@@ -56,7 +56,6 @@
           url: laws:index
           category: other
 
-
 - model: otto.App
   fields:
     handle: text_extractor
@@ -89,4 +88,20 @@
           description_en: A hybrid solution combining Text Extraction and Q&A functionalities, designed to assist LEX users in efficiently retrieving critical information from Notices of Appeal.
           description_fr: Une solution hybride combinant les fonctionnalités d'extraction de texte et de questions-réponses, conçue pour aider les utilisateurs de LEX à récupérer efficacement des informations cruciales à partir des avis d'appel.
           url: lex_experiment:index
+
+- model: otto.App
+  fields:
+    handle: template_wizard
+    name_en: Template Wizard
+    name_fr: Assistant de modèle
+    prod_ready: false
+    user_group: Template Wizard user
+    features:
+      - fields:
+          short_name: "template_wizard"
+          name_en: Template Wizard
+          name_fr: Assistant de modèle
+          description_en: Extract information into user-defined templates.
+          description_fr: Extrait des informations dans des modèles définis par l'utilisateur.
+          url: template_wizard:index
           category: other

@@ -81,6 +81,11 @@ def delete_dangling_savedfiles():
         saved_file.safe_delete()
 
 
+@shared_task
+def cleanup_template_sessions():
+    call_command("cleanup_template_sessions")
+
+
 # LOAD TESTING TASKS
 
 

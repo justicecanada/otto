@@ -1,0 +1,16 @@
+{% load i18n %}
+{% if source.template_result %}
+  <h5>{% trans "Template result" %}</h5>
+  <p class="text-muted small truncate">{{ source.name }}</p>
+  {% if template.layout_type == "jinja_rendering" %}
+    {% include "template_wizard/use_template/template_result_fragment_jinja.html" with source=source %}
+  {% elif template.layout_type == "markdown_substitution" or template.layout_type == "llm_generation" %}
+    {% include "template_wizard/use_template/template_result_fragment_markdown.html" with source=source %}
+  {% elif template.layout_type == "word_template" %}
+    {% include "template_wizard/use_template/template_result_fragment_word.html" with source=source %}
+  {% else %}
+    <div class="alert alert-info">Unknown template type.</div>
+  {% endif %}
+{% else %}
+  <div class="alert alert-warning">{% trans "No template result available." %}</div>
+{% endif %}

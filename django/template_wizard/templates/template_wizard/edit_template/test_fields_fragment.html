@@ -1,0 +1,21 @@
+{% load i18n %}
+{% if template.example_source.extracted_json %}
+  {# Template fragment for displaying test field extraction results #}
+  <div class="alert alert-secondary small mb-2">
+    <span class="fw-semibold">{% trans "Last extraction result" %}</span>
+    {% if template.last_test_fields_timestamp %}({{ template.last_test_fields_timestamp|date:'Y-m-d H:i' }}){% endif %}
+  </div>
+
+  <div class="alert alert-info" id="test-fields-result">
+    {# Use the recursive fragment to display the dictionary #}
+    {% include "template_wizard/use_template/fields_dict_fragment.html" with dict_data=template.example_source.extracted_json %}
+  </div>
+
+  <button class="btn btn-sm btn-outline-secondary mb-2"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#raw-json">{% trans "View Raw JSON" %}</button>
+  <div class="collapse" id="raw-json">
+    <pre class="bg-light border p-2 small">{{ source.extracted_json|pprint }}</pre>
+  </div>
+{% endif %}

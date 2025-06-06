@@ -1,0 +1,40 @@
+{% load i18n %}
+{% load rules %}
+{% has_perm "template_wizard.edit_template" user template as can_edit_template %}
+{% has_perm "template_wizard.delete_template" user template as can_delete_template %}
+
+<li class="card" tabindex="0">
+  <div class="card-header align-items-center">
+    <h6 class="card-title my-auto text-truncate me-2"
+        title="{{ template.name_auto }}">{{ template.name_auto }}</h6>
+    <div class="d-flex align-items-center">
+      {% if can_edit_template %}
+        <a class="btn px-0 me-2 text-secondary hover-change-content"
+           href="{% url 'template_wizard:edit_template' template_id=template.id %}"
+           title="{% trans 'Edit / share' %}">
+          <span class="non-hover"><i class="bi bi-pencil"></i></span>
+          <span class="only-hover"><i class="bi bi-pencil-fill"></i></span>
+          <small class="visually-hidden">{% trans "Edit / share" %}</small>
+        </a>
+      {% endif %}
+      {% if can_delete_template %}
+        <a class="btn px-0 me-2 hover-change-content"
+           href="{% url 'template_wizard:delete_template' template_id=template.id %}"
+           onclick="if(!confirm('{% trans 'Are you sure you want to delete the template' %} {{ template.name_auto }}?')){event.preventDefault();}">
+          <span class="non-hover"><i class="bi bi-trash text-secondary"></i></span>
+          <span class="only-hover"><i class="bi bi-trash-fill text-danger"></i></span>
+          <span class="visually-hidden">{% trans "Delete template" %}</span>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card-body pt-2">
+    <p class="preset-description card-text">{{ template.description_auto }}</p>
+  </div>
+
+  <div class="visually-hidden">
+    <a class="preset-load-link"
+       href="{% url 'template_wizard:new_session' template_id=template.id %}">{% trans "Select template" %}</a>
+  </div>
+</li>

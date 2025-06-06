@@ -1377,25 +1377,6 @@ ul#preset-edit-tabs {
   }
 }
 
-.hover-change-content {
-  .only-hover {
-    display: none;
-  }
-
-  &:hover .only-hover {
-    display: inline;
-  }
-
-  .non-hover {
-    display: inline;
-  }
-
-  &:hover .non-hover {
-    display: none;
-  }
-}
-
-
 .preset-form-container .language-content {
   display: none;
 }
