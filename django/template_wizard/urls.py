@@ -1,5 +1,10 @@
 from template_wizard.views.fields import delete_field, edit_fields, field_modal
-from template_wizard.views.fill_template import fill_template
+from template_wizard.views.fill_template import (
+    fill_template,
+    poll_status,
+    source_raw_data,
+    source_template_result,
+)
 from template_wizard.views.layout import edit_layout, generate_markdown
 from template_wizard.views.llm_fields import generate_fields, modify_fields, test_fields
 from template_wizard.views.llm_layout import (
@@ -158,4 +163,19 @@ urlpatterns = [
     path("session_history/", session_history, name="session_history"),
     path("delete_session/<int:session_id>/", delete_session, name="delete_session"),
     path("open_session/<int:session_id>/", open_session, name="open_session"),
+    path(
+        "session/<int:session_id>/source/<int:source_id>/raw_data/",
+        source_raw_data,
+        name="source_raw_data",
+    ),
+    path(
+        "session/<int:session_id>/source/<int:source_id>/template_result/",
+        source_template_result,
+        name="source_template_result",
+    ),
+    path(
+        "session/<int:session_id>/poll_status/",
+        poll_status,
+        name="poll_status",
+    ),
 ]

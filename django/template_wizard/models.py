@@ -165,6 +165,17 @@ class Source(models.Model):
         blank=True,
     )
 
+    class Meta:
+        ordering = ["id"]
+
+    def get_status_display(self):
+        """
+        Return the human-readable label for the status field using SourceStatus choices.
+        """
+        return dict(SourceStatus.choices).get(self.status, self.status) or _(
+            "Unknown status"
+        )
+
 
 @receiver(post_delete, sender=Source)
 def delete_saved_file(sender, instance, **kwargs):
@@ -207,6 +218,9 @@ class TemplateSession(models.Model):
         return dict(TemplateSessionStatus.choices).get(self.status, self.status) or _(
             "Unknown status"
         )
+
+    class Meta:
+        ordering = ["id"]
 
 
 @receiver(post_save, sender=Template)

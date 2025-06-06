@@ -307,7 +307,7 @@ ul#preset-edit-tabs {
 #field-list,
 #rendered-markdown,
 #sources-list {
-  max-height: 550px;
+  max-height: 480px;
   overflow-y: auto;
 }
 

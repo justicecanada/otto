@@ -3,7 +3,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods
 
 from rules.contrib.views import objectgetter
 from structlog import get_logger
@@ -37,11 +37,76 @@ def fill_template(request, session_id):
         if source.status == "pending":
             fill_template_with_source.delay(source.id)
 
+    all_sources_processed = all(
+        source.status in ["completed", "error"] for source in session.sources.all()
+    )
+    if not all_sources_processed:
+        messages.info(request, _("Template filling started."))
+
     return render(
         request,
         "template_wizard/use_template/fill_template.html",
         context={
             "hide_breadcrumbs": True,
             "session": session,
+            "poll": not all_sources_processed,
         },
+    )
+
+
+@require_GET
+@permission_required(
+    "template_wizard.access_session", objectgetter(TemplateSession, "session_id")
+)
+def source_raw_data(request, session_id, source_id):
+    session = get_object_or_404(TemplateSession, id=session_id)
+    source = get_object_or_404(Source, id=source_id, session=session)
+    return render(
+        request,
+        "template_wizard/use_template/source_raw_data_fragment.html",
+        {"source": source},
+    )
+
+
+@require_GET
+@permission_required(
+    "template_wizard.access_session", objectgetter(TemplateSession, "session_id")
+)
+def source_template_result(request, session_id, source_id):
+    session = get_object_or_404(TemplateSession, id=session_id)
+    source = get_object_or_404(Source, id=source_id, session=session)
+    return render(
+        request,
+        "template_wizard/use_template/source_template_result_fragment.html",
+        {"source": source, "template": session.template},
+    )
+
+
+@require_GET
+@permission_required(
+    "template_wizard.access_session", objectgetter(TemplateSession, "session_id")
+)
+def poll_status(request, session_id):
+    """
+    Polls the status of the template session.
+    """
+    session = get_object_or_404(TemplateSession, id=session_id)
+    all_sources_processed = all(
+        source.status in ["completed", "error"] for source in session.sources.all()
+    )
+    any_sources_error = any(
+        source.status == "error" for source in session.sources.all()
+    )
+    if any_sources_error:
+        session.status = "error"
+        session.save()
+        messages.error(request, _("There was an error processing one or more sources."))
+    elif all_sources_processed:
+        session.status = "completed"
+        session.save()
+        messages.success(request, _("Template filling complete."))
+    return render(
+        request,
+        "template_wizard/use_template/session_status.html",
+        context={"session": session, "poll": not all_sources_processed},
     )

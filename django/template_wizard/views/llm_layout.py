@@ -31,10 +31,11 @@ def test_layout(request, template_id):
         fill_template_from_fields(source)
         if source.template_result:
             template.last_test_layout_timestamp = timezone.now()
+            template.last_test_layout_type = template.layout_type
             template.save()
     return render(
         request,
-        "template_wizard/edit_template/test_layout_fragment.html",
+        "template_wizard/edit_template/template_result_fragment.html",
         {"template": template},
     )
 

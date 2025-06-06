@@ -1,0 +1,58 @@
+{% load i18n %}
+<h5 class="mb-3">{% trans "Results" %}</h5>
+<ul class="list-group">
+  {% for source in session.sources.all %}
+    <li class="list-group-item">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          {% if source.filename %}
+            <span class="fw-semibold">{{ source.filename }}</span>
+          {% elif source.url %}
+            <span class="fw-semibold">{{ source.url }}</span>
+          {% endif %}
+        </div>
+        <div>
+          {% if source.status == 'completed' %}
+            <a class="btn btn-sm btn-outline-secondary me-1"
+               title="{% trans 'Extracted data' %}"
+               hx-get="{% url 'template_wizard:source_raw_data' session_id=session.id source_id=source.id %}"
+               hx-target="#preview-result"
+               hx-swap="innerHTML">
+              <i class="bi bi-code-square"></i>
+            </a>
+            <a class="btn btn-sm btn-outline-primary"
+               title="{% trans 'Template result' %}"
+               hx-get="{% url 'template_wizard:source_template_result' session_id=session.id source_id=source.id %}"
+               hx-target="#preview-result"
+               hx-swap="innerHTML">
+              <i class="bi bi-file-earmark-text"></i>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="mt-2">
+        <span class="badge {% if source.status == 'pending' %}bg-secondary {% elif source.status == 'error' %}bg-danger {% elif source.status == 'completed' %}bg-success {% else %}bg-light text-dark {% endif %} rounded-pill">
+          {{ source.get_status_display }}
+        </span>
+        {% if source.status != 'pending' and source.status != 'completed' and source.status != 'error' %}
+          <span class="align-middle"><i class="bi bi-arrow-repeat text-primary small icn-spinner"
+   aria-hidden="true"></i></span>
+        {% endif %}
+      </div>
+    </li>
+  {% endfor %}
+</ul>
+
+{% if poll %}
+  {# Start/continue polling #}
+  <div id="session_status_poller"
+       hx-get="{% url 'template_wizard:poll_status' session_id=session.id %}"
+       hx-trigger="every 2s"
+       hx-ext="morph"
+       hx-swap="morph:innerHTML"
+       hx-target="#session-status"
+       hx-swap-oob="true"></div>
+{% else %}
+  {# Stop polling #}
+  <div id="session_status_poller" hx-swap-oob="true"></div>
+{% endif %}
