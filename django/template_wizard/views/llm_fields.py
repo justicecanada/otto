@@ -60,10 +60,10 @@ def generate_fields(request, template_id):
         Use 'object' for field_type of parent objects and nest child objects as their children. Only do this when there is more than 1 child field. You can use a primitive type with list=True for simple lists.
         The top level key must be "template_fields" and the value must be a list of field definitions.
 
-        The user has indicated that the type of document is:
-        {template_name}
-        {template_description}
-
+        Additional information about the template to consider:
+        TEMPLATE NAME: {template_name}
+        TEMPLATE_DESCRIPTION: {template_description}
+        
         Extract around 5-10 fields, including nested objects, based on the example document content.
         This template will be used to extract structured data from similar documents so fields should not be too specific to this document.
         
