@@ -4286,5 +4286,89 @@
     "source(s) deleted.": {
         "fr": "",
         "fr_auto": "Source(s) supprimée(s)."
+    },
+    "Pending": {
+        "fr": "",
+        "fr_auto": "En attente"
+    },
+    "Extracting text": {
+        "fr": "",
+        "fr_auto": "Extraction de texte"
+    },
+    "Extracting fields": {
+        "fr": "",
+        "fr_auto": "Extraction de champs"
+    },
+    "Filling template": {
+        "fr": "",
+        "fr_auto": "Gabarit de remplissage"
+    },
+    "Unknown status": {
+        "fr": "",
+        "fr_auto": "Statut inconnu"
+    },
+    "Unnamed source": {
+        "fr": "",
+        "fr_auto": "Source anonyme"
+    },
+    "Selecting": {
+        "fr": "",
+        "fr_auto": "Sélection"
+    },
+    "source(s)": {
+        "fr": "",
+        "fr_auto": "Source(s)"
+    },
+    "Delete session": {
+        "fr": "",
+        "fr_auto": "Supprimer la session"
+    },
+    "No history found.": {
+        "fr": "",
+        "fr_auto": "Aucune histoire trouvée."
+    },
+    "History": {
+        "fr": "",
+        "fr_auto": "Histoire"
+    },
+    "Loading...": {
+        "fr": "",
+        "fr_auto": "Chargement..."
+    },
+    "Start over": {
+        "fr": "",
+        "fr_auto": "Recommencer"
+    },
+    "Extracted data": {
+        "fr": "",
+        "fr_auto": "Données extraites"
+    },
+    "Template result": {
+        "fr": "",
+        "fr_auto": "Résultat du modèle"
+    },
+    "Restart processing": {
+        "fr": "",
+        "fr_auto": "Reprendre le traitement"
+    },
+    "Download all results (.zip)": {
+        "fr": "",
+        "fr_auto": "Télécharger tous les résultats (.zip)"
+    },
+    "No extracted data available.": {
+        "fr": "",
+        "fr_auto": "Aucune donnée extraite n’est disponible."
+    },
+    "No template result available.": {
+        "fr": "",
+        "fr_auto": "Aucun résultat de modèle disponible."
+    },
+    "No completed sources to download.": {
+        "fr": "",
+        "fr_auto": "Aucune source complète à télécharger."
+    },
+    "Template filling complete.": {
+        "fr": "",
+        "fr_auto": "Remplissage du gabarit terminé."
     }
 }

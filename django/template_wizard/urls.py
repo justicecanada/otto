@@ -1,3 +1,4 @@
+from template_wizard.views.download_all import download_all_results
 from template_wizard.views.fields import delete_field, edit_fields, field_modal
 from template_wizard.views.fill_template import (
     fill_template,
@@ -183,5 +184,10 @@ urlpatterns = [
         "session/<int:session_id>/source/<int:source_id>/restart_processing/",
         restart_source_processing,
         name="restart_source_processing",
+    ),
+    path(
+        "session/<int:session_id>/download_all/",
+        download_all_results,
+        name="download_all_results",
     ),
 ]

@@ -51,7 +51,7 @@ def generate_fields(request, template_id):
             slug: str  # Unique identifier (letters, numbers, underscores only). Must be unique among siblings.
             field_type: str  # One of: str, float, int, bool, object
             string_format: str  # One of: none, email, date, time, date-time, duration
-            required: bool  # Always fill this field, even if no information is found (can cause hallucinations - use sparingly!)
+            required: bool  # Set to FALSE unless specified otherwise in the instruction.
             description: str  # Helps the extractor know what to look for.
             list: bool  # Extract multiple instances of this field as a list
             child_fields: List[TemplateField]  # Nested fields
@@ -173,7 +173,7 @@ def modify_fields(request, template_id):
             slug: str  # Unique identifier (letters, numbers, underscores only). Must be unique among siblings.
             field_type: str  # One of: str, float, int, bool, object
             string_format: str  # One of: none, email, date, time, date-time, duration
-            required: bool  # Always fill this field, even if no information is found (can cause hallucinations - use sparingly!)
+            required: bool  # Set to FALSE unless specified otherwise in the instruction.
             description: str  # Helps the extractor know what to look for.
             list: bool  # Extract multiple instances of this field as a list
             child_fields: List[TemplateField]  # Nested fields
