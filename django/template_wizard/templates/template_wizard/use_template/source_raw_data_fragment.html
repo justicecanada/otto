@@ -1,8 +1,7 @@
 {% load i18n %}
 {% if source.extracted_json %}
-  <div class="alert alert-secondary small mb-2">
-    <span class="fw-semibold">{% trans "Raw extracted data" %}</span>
-  </div>
+  <h5>{% trans "Extracted data" %}</h5>
+  <p class="text-muted small truncate">{{ source.name }}</p>
   <div class="alert alert-info" id="test-fields-result">
     {% include "template_wizard/use_template/fields_dict_fragment.html" with dict_data=source.extracted_json %}
   </div>

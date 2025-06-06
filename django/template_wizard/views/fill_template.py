@@ -100,7 +100,6 @@ def poll_status(request, session_id):
     if any_sources_error:
         session.status = "error"
         session.save()
-        messages.error(request, _("There was an error processing one or more sources."))
     elif all_sources_processed:
         session.status = "completed"
         session.save()
@@ -109,4 +108,27 @@ def poll_status(request, session_id):
         request,
         "template_wizard/use_template/session_status.html",
         context={"session": session, "poll": not all_sources_processed},
+    )
+
+
+@require_GET
+@permission_required(
+    "template_wizard.access_session", objectgetter(TemplateSession, "session_id")
+)
+def restart_source_processing(request, session_id, source_id):
+    """
+    Restarts celery processing for a single source and returns updated status list.
+    """
+    session = get_object_or_404(TemplateSession, id=session_id)
+    source = get_object_or_404(Source, id=source_id, session=session)
+    # Only restart if in error state
+    if source.status == "error":
+        source.status = "pending"
+        source.save()
+        fill_template_with_source.delay(source.id)
+    # Return the updated status list (HTMX fragment)
+    return render(
+        request,
+        "template_wizard/use_template/session_status.html",
+        context={"session": session, "poll": True},
     )

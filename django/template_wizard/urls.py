@@ -2,6 +2,7 @@ from template_wizard.views.fields import delete_field, edit_fields, field_modal
 from template_wizard.views.fill_template import (
     fill_template,
     poll_status,
+    restart_source_processing,
     source_raw_data,
     source_template_result,
 )
@@ -177,5 +178,10 @@ urlpatterns = [
         "session/<int:session_id>/poll_status/",
         poll_status,
         name="poll_status",
+    ),
+    path(
+        "session/<int:session_id>/source/<int:source_id>/restart_processing/",
+        restart_source_processing,
+        name="restart_source_processing",
     ),
 ]

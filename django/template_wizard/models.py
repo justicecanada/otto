@@ -176,6 +176,10 @@ class Source(models.Model):
             "Unknown status"
         )
 
+    @property
+    def name(self):
+        return self.filename or self.url or _("Unnamed source")
+
 
 @receiver(post_delete, sender=Source)
 def delete_saved_file(sender, instance, **kwargs):

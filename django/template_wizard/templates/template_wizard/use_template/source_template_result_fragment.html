@@ -1,8 +1,7 @@
 {% load i18n %}
 {% if source.template_result %}
-  <div class="alert alert-secondary small mb-2">
-    <span class="fw-semibold">{% trans "Template result" %}</span>
-  </div>
+  <h5>{% trans "Template result" %}</h5>
+  <p class="text-muted small truncate">{{ source.name }}</p>
   {% if template.layout_type == "jinja_rendering" %}
     {% include "template_wizard/use_template/template_result_fragment_jinja.html" with source=source %}
   {% elif template.layout_type == "markdown_substitution" or template.layout_type == "llm_generation" %}

@@ -306,7 +306,9 @@ ul#preset-edit-tabs {
 #test-fields-result,
 #field-list,
 #rendered-markdown,
-#sources-list {
+#sources-list,
+#session-status-list,
+#session-history-list {
   max-height: 480px;
   overflow-y: auto;
 }
@@ -442,4 +444,15 @@ form#dropzone-basic {
 
 #template-wizard-file-area input {
   display: none;
+}
+
+.truncate-start {
+  max-width: 100%;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+  vertical-align: bottom;
 }
