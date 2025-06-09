@@ -26,7 +26,10 @@
 {% block content_container %}
   <div id="template-wizard-outer">
     <div class="container py-3 px-0">
-      <h2 class="mb-2 px-4 mt-2">{% trans "Template Wizard" %}{% trans ":" %} {{ session.template.name_auto }}</h2>
+      <h2 class="mb-2 px-4 mt-2">
+        <a href="{% url 'template_wizard:index' %}"
+           class="text-body text-decoration-none">{% trans "Template Wizard" %}</a>{% trans ":" %} {{ session.template.name_auto }}
+      </h2>
       <p class="mx-4 mb-4">{% trans "Upload documents or enter URLs to transform into the selected template." %}</p>
       <ul class="nav nav-tabs px-3 border-bottom-0" id="top-tabs">
         <li class="nav-item">
@@ -55,6 +58,24 @@
         <div class="tab-pane fade show active p-3 border rounded preset-form-container">
           <div class="row">
             <div class="col-lg-5 border-end mb-3">
+
+              <h5>{% trans "Upload files" %}</h5>
+              <div class="d-flex align-items-center gap-2 mt-3 justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" class="btn btn-primary" id="upload-button">
+                    <i class="bi bi-upload"></i> {% trans "Browse" %}
+                  </button>
+                  <span class="mb-0">{% trans "or drop files anywhere" %}</span>
+                </div>
+                <div class="d-inline-block me-1" style="position: relative; top: 2px;">
+                  <div id="upload-spinner" class="text-primary d-none">
+                    <span class="spinner-border" aria-hidden="true"></span>
+                    <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+                  </div>
+                </div>
+              </div>
+              <hr class="my-4">
+
               <h5>{% trans "Add a URL" %}</h5>
               <div class="text-secondary small my-2">{% trans "CanLii, Wikipedia, canada.ca and *.gc.ca only" %}</div>
               <form method="post"
@@ -72,21 +93,6 @@
                   <button type="submit" class="btn btn-primary">{% trans "Add URL" %}</button>
                 </div>
               </form>
-              <h5 class="mt-5">{% trans "Upload files" %}</h5>
-              <div class="d-flex align-items-center gap-2 mt-3 justify-content-between">
-                <div class="d-flex align-items-center gap-2">
-                  <button type="button" class="btn btn-primary" id="upload-button">
-                    <i class="bi bi-upload"></i> {% trans "Browse" %}
-                  </button>
-                  <span class="mb-0">{% trans "or drop files anywhere" %}</span>
-                </div>
-                <div class="d-inline-block me-1" style="position: relative; top: 2px;">
-                  <div id="upload-spinner" class="text-primary d-none">
-                    <span class="spinner-border" aria-hidden="true"></span>
-                    <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
-                  </div>
-                </div>
-              </div>
               <div id="template-wizard-upload-message"
                    class="position-relative ms-2 d-none">
                 <form id="template-wizard-upload-form"
@@ -97,6 +103,31 @@
                   {{ upload_form }}
                 </form>
               </div>
+              <hr class="my-4">
+
+              <h5>{% trans "Paste text" %}</h5>
+              <form method="post"
+                    action="{% url 'template_wizard:add_text_source' session_id=session.pk %}"
+                    class="row g-2">
+                {% csrf_token %}
+                <div class="col">
+                  <textarea name="text" class="form-control" rows="7"></textarea>
+                </div>
+                <div class="col-auto">
+                  <button type="submit" class="btn btn-primary">{% trans "Add text" %}</button>
+                </div>
+              </form>
+              <div id="template-wizard-upload-message"
+                   class="position-relative ms-2 d-none">
+                <form id="template-wizard-upload-form"
+                      class="border rounded small mt-2"
+                      enctype="multipart/form-data"
+                      method="post">
+                  {% csrf_token %}
+                  {{ upload_form }}
+                </form>
+              </div>
+
             </div>
 
             <div class="col-lg-7">
@@ -115,8 +146,10 @@
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                       {% if source.url %}
                         <a href="{{ source.url }}" target="_blank" rel="noopener">{{ source.url }}</a>
-                      {% else %}
+                      {% elif source.saved_file %}
                         <a href="{% url 'template_wizard:download_source_file' source.pk %}">{{ source.filename }}</a>
+                      {% else %}
+                        <span class="text-secondary">{{ source.text|truncatechars:50 }}</span>
                       {% endif %}
                       <form method="post"
                             action="{% url 'template_wizard:delete_source' source.pk %}"

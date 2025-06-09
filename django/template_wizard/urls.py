@@ -22,6 +22,7 @@ from template_wizard.views.main import (
     template_list,
 )
 from template_wizard.views.sources import (
+    add_text_source,
     add_url_source,
     delete_all_sources,
     delete_source,
@@ -189,5 +190,10 @@ urlpatterns = [
         "session/<int:session_id>/download_all/",
         download_all_results,
         name="download_all_results",
+    ),
+    path(
+        "session/<int:session_id>/add_text_source/",
+        add_text_source,
+        name="add_text_source",
     ),
 ]

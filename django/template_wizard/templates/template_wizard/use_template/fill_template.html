@@ -24,7 +24,10 @@
 {% block content_container %}
   <div id="template-wizard-outer">
     <div class="container py-3 px-0">
-      <h2 class="mb-2 px-4 mt-2">{% trans "Template Wizard" %}{% trans ":" %} {{ session.template.name_auto }}</h2>
+      <h2 class="mb-2 px-4 mt-2">
+        <a href="{% url 'template_wizard:index' %}"
+           class="text-body text-decoration-none">{% trans "Template Wizard" %}</a>{% trans ":" %} {{ session.template.name_auto }}
+      </h2>
       <p class="mx-4 mb-4">{% trans "Upload documents or enter URLs to transform into the selected template." %}</p>
       <ul class="nav nav-tabs px-3 border-bottom-0" id="top-tabs">
         <li class="nav-item">

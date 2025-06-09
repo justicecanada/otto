@@ -34,6 +34,18 @@ def add_url_source(request, session_id):
     return redirect("template_wizard:select_sources", session_id=session.id)
 
 
+@require_POST
+@permission_required(
+    "template_wizard.access_session", objectgetter(TemplateSession, "session_id")
+)
+def add_text_source(request, session_id):
+    session = get_object_or_404(TemplateSession, id=session_id)
+    text = request.POST.get("text")
+    if text:
+        Source.objects.create(session=session, text=text)
+    return redirect("template_wizard:select_sources", session_id=session.id)
+
+
 @permission_required("template_wizard.access_source", objectgetter(Source, "source_id"))
 def download_source_file(request, source_id):
     source = get_object_or_404(Source, id=source_id)
