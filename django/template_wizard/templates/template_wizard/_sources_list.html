@@ -1,6 +1,13 @@
 {% load i18n %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h5 class="mb-0">{% trans "Selected sources" %}</h5>
+  <h5 class="mb-0">
+    {% if session.is_example_session %}
+      {% trans "Example sources / templates" %}
+    {% else %}
+      {% trans "Selected sources" %}
+    {% endif %}
+  </h5>
+
   <form method="post"
         action="{% url 'template_wizard:delete_all_sources' session_id=session.pk %}"
         onsubmit="return confirm('{% trans "Are you sure you want to delete all sources?" %}');">
@@ -18,16 +25,21 @@
       {% else %}
         <span class="text-secondary">{{ source.text|truncatechars:50 }}</span>
       {% endif %}
-      <form method="post"
-            action="{% url 'template_wizard:delete_source' source.pk %}"
-            class="ms-2 d-inline">
-        {% csrf_token %}
-        <button type="submit"
-                class="btn btn-sm btn-outline-danger"
-                title="{% trans 'Delete' %}">
-          <i class="bi bi-trash"></i>
-        </button>
-      </form>
+      <div>
+        {% if session.is_example_session %}
+          {% include "template_wizard/_source_example_type_dropdown.html" %}
+        {% endif %}
+        <form method="post"
+              action="{% url 'template_wizard:delete_source' source.pk %}"
+              class="ms-2 me-0 d-inline">
+          {% csrf_token %}
+          <button type="submit"
+                  class="btn btn-sm btn-outline-danger"
+                  title="{% trans 'Delete' %}">
+            <i class="bi bi-trash"></i>
+          </button>
+        </form>
+      </div>
     </li>
   {% endfor %}
 </ul>

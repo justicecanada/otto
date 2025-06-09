@@ -1,23 +1,14 @@
 from django.contrib import messages
-from django.http import Http404, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import require_GET
 
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 
-from librarian.models import SavedFile
-from otto.utils.decorators import app_access_required, permission_required
-from template_wizard.forms import FieldForm, LayoutForm, MetadataForm, SourceForm
-from template_wizard.models import Source, Template, TemplateField, TemplateSession
+from otto.utils.decorators import permission_required
+from template_wizard.models import Source, TemplateSession
 from template_wizard.tasks import fill_template_with_source
-from template_wizard.utils import (
-    extract_fields,
-    extract_source_text,
-    fill_template_from_fields,
-)
 
 logger = get_logger(__name__)
 

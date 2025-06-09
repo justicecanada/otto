@@ -19,6 +19,7 @@
   <form id="template-wizard-upload-form"
         class="border rounded small mt-2"
         enctype="multipart/form-data"
+        action="{% url 'template_wizard:add_file_source' session_id=session.pk %}"
         method="post">
     {% csrf_token %}
     {{ upload_form }}

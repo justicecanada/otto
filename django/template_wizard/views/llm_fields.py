@@ -13,7 +13,7 @@ from structlog.contextvars import bind_contextvars
 from chat.llm import OttoLLM
 from otto.utils.decorators import permission_required
 from template_wizard.models import Template, TemplateField
-from template_wizard.utils import extract_fields
+from template_wizard.utils import extract_fields, extract_source_text
 
 
 @permission_required(
@@ -39,10 +39,13 @@ def test_fields(request, template_id):
 )
 def generate_fields(request, template_id):
     template = Template.objects.filter(id=template_id).first()
-    if not template or not template.example_source or not template.example_source.text:
+    if not template or not template.example_source:
         return HttpResponse(status=400, content="No example source available.")
     llm = OttoLLM(deployment="gpt-4.1")
     bind_contextvars(feature="template_wizard", template_id=template.id)
+    example_source_text = template.example_source.text
+    if not example_source_text:
+        extract_source_text(template.example_source)
     prompt = (
         """You are an expert in information extraction. Given the following example document, infer a JSON schema for extracting structured data fields, including nested objects and lists, suitable for the following Django model:
 
@@ -75,7 +78,7 @@ def generate_fields(request, template_id):
         template_description=(
             f"({template.description_auto})" if template.description_auto else ""
         ),
-        document=template.example_source.text,
+        document=example_source_text,
     )
     try:
         llm_response = llm.complete(prompt, response_format={"type": "json_object"})

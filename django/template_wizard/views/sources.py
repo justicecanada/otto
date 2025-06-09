@@ -20,9 +20,7 @@ from template_wizard.models import Source, TemplateSession
 )
 def add_file_source(request, session_id):
     session = get_object_or_404(TemplateSession, id=session_id)
-    upload_form = UploadForm(
-        request.POST, request.FILES, prefix="template-wizard"
-    )  # Make sure prefix matches the form in the template
+    upload_form = UploadForm(request.POST, request.FILES, prefix="template-wizard")
     if upload_form.is_valid():
         saved_files = upload_form.save()
         for file_info in saved_files:
@@ -38,6 +36,10 @@ def add_file_source(request, session_id):
         for field, errors in upload_form.errors.items():
             for error in errors:
                 messages.error(request, f"{_(str(field).capitalize())}: {_(error)}")
+    if session.is_example_session:
+        return redirect(
+            "template_wizard:edit_example_source", template_id=session.template.id
+        )
     return redirect("template_wizard:select_sources", session_id=session.id)
 
 
@@ -56,8 +58,17 @@ def add_url_source(request, session_id):
                     "The URL is not allowed (only CanLii, Wikipedia, canada.ca and *.gc.ca are allowed)."
                 ),
             )
+            if session.is_example_session:
+                return redirect(
+                    "template_wizard:edit_example_source",
+                    template_id=session.template.id,
+                )
             return redirect("template_wizard:select_sources", session_id=session.id)
         Source.objects.create(session=session, url=url)
+    if session.is_example_session:
+        return redirect(
+            "template_wizard:edit_example_source", template_id=session.template.id
+        )
     return redirect("template_wizard:select_sources", session_id=session.id)
 
 
@@ -70,6 +81,10 @@ def add_text_source(request, session_id):
     text = request.POST.get("text")
     if text:
         Source.objects.create(session=session, text=text)
+    if session.is_example_session:
+        return redirect(
+            "template_wizard:edit_example_source", template_id=session.template.id
+        )
     return redirect("template_wizard:select_sources", session_id=session.id)
 
 
@@ -89,12 +104,14 @@ def download_source_file(request, source_id):
 @permission_required("template_wizard.access_source", objectgetter(Source, "source_id"))
 def delete_source(request, source_id):
     source = get_object_or_404(Source, id=source_id)
-    session_id = source.session.id if source.session else None
     source.delete()
     messages.success(request, _(f"Source deleted."))
-    if session_id:
-        return redirect("template_wizard:select_sources", session_id=session_id)
-    return redirect("template_wizard:index")
+    if source.session.is_example_session:
+        return redirect(
+            "template_wizard:edit_example_source",
+            template_id=source.session.template.id,
+        )
+    return redirect("template_wizard:select_sources", session_id=source.session.id)
 
 
 @permission_required(
@@ -126,4 +143,8 @@ def delete_all_sources(request, session_id):
         request,
         f"{count} " + _("source(s) deleted."),
     )
+    if session.is_example_session:
+        return redirect(
+            "template_wizard:edit_example_source", template_id=session.template.id
+        )
     return redirect("template_wizard:select_sources", session_id=session.id)

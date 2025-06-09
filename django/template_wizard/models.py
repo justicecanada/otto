@@ -80,6 +80,8 @@ class Template(models.Model):
     layout_jinja = models.TextField(null=True, blank=True)
     layout_markdown = models.TextField(null=True, blank=True)
 
+    word_template = models.ForeignKey(SavedFile, on_delete=models.SET_NULL, null=True)
+
     @property
     def shared_with(self):
         if self.sharing_option == "everyone":
@@ -118,6 +120,34 @@ class Template(models.Model):
             self.last_test_layout_type, self.last_test_layout_type
         )
 
+    @property
+    def example_session(self):
+        return self.sessions.filter(is_example_session=True).first()
+
+    @property
+    def example_sources(self):
+        session = self.example_session
+        if session:
+            return session.sources.all()
+        return Source.objects.none()
+
+    @property
+    def example_source(self):
+        """
+        Returns the first example source for the template, if it exists.
+        """
+        session = self.example_session
+        if session:
+            return session.sources.filter(is_example_template=False).first()
+        return None
+
+    @property
+    def example_template(self):
+        session = self.example_session
+        if session:
+            return session.sources.filter(is_example_template=True).first()
+        return None
+
 
 class SourceStatus(models.TextChoices):
     PENDING = "pending", _("Pending")
@@ -129,9 +159,6 @@ class SourceStatus(models.TextChoices):
 
 
 class Source(models.Model):
-    template = models.OneToOneField(
-        Template, on_delete=models.CASCADE, related_name="example_source", null=True
-    )
     text = models.TextField(null=True)
     status = models.CharField(
         max_length=50,
@@ -164,6 +191,7 @@ class Source(models.Model):
         null=True,
         blank=True,
     )
+    is_example_template = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["id"]
@@ -200,6 +228,10 @@ class TemplateSession(models.Model):
     template = models.ForeignKey(
         Template, on_delete=models.CASCADE, related_name="sessions"
     )
+    is_example_session = models.BooleanField(
+        default=False,
+        help_text=_("Contains examples for use during template creation"),
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -229,9 +261,16 @@ class TemplateSession(models.Model):
 
 
 @receiver(post_save, sender=Template)
-def create_example_source(sender, instance, created, **kwargs):
+def create_example_session(sender, instance, created, **kwargs):
     if created:
-        Source.objects.create(template=instance, text="")
+        # Create an example session if it doesn't exist
+        session = instance.sessions.filter(is_example_session=True).first()
+        if not session:
+            session = TemplateSession.objects.create(
+                template=instance,
+                is_example_session=True,
+                user=instance.owner if instance.owner else None,
+            )
 
 
 class FieldType(models.TextChoices):

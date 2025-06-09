@@ -117,7 +117,7 @@ def extract_fields(source):
     Uses LLM to extract fields from the source text and saves to source.extracted_json (TextField)
     """
 
-    template = source.template or source.session.template
+    template = source.session.template
     if not template:
         logger.error(
             "Missing template for extraction",
@@ -166,7 +166,7 @@ def fill_template_from_fields(source):
     Fills the template with the extracted fields, saves to source.template_result (TextField)
     """
 
-    template = source.template or source.session.template
+    template = source.session.template
     if not template or not source.extracted_json:
         logger.error(
             "Missing template or extracted fields for template filling",

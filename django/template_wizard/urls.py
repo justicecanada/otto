@@ -35,6 +35,7 @@ from template_wizard.views.template import (
     edit_example_source,
     edit_metadata,
     new_template,
+    update_example_type,
 )
 
 app_name = "template_wizard"
@@ -201,5 +202,10 @@ urlpatterns = [
         "session/<int:session_id>/add_file_source/",
         add_file_source,
         name="add_file_source",
+    ),
+    path(
+        "update_example_type/<int:source_id>/",
+        update_example_type,
+        name="update_example_type",
     ),
 ]

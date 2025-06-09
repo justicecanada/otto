@@ -75,16 +75,6 @@ class MetadataForm(forms.ModelForm):
             ]
 
 
-class SourceForm(forms.ModelForm):
-    class Meta:
-        model = Source
-        fields = ["text"]
-
-        widgets = {
-            "text": forms.Textarea(attrs={"class": "form-control", "rows": 15}),
-        }
-
-
 class LayoutForm(forms.ModelForm):
     class Meta:
         model = Template

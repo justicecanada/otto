@@ -1,15 +1,13 @@
-import json
-
 from django.contrib import messages
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 
 from rules.contrib.views import objectgetter
 
-from otto.utils.decorators import app_access_required, permission_required
-from template_wizard.forms import FieldForm, LayoutForm, MetadataForm, SourceForm
-from template_wizard.models import Template, TemplateField
+from otto.utils.decorators import permission_required
+from template_wizard.forms import LayoutForm
+from template_wizard.models import Template
 
 app_name = "template_wizard"
 

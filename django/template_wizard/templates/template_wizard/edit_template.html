@@ -1,10 +1,14 @@
 {% extends 'template_wizard/_wizard_main_layout.html' %}
 {% load i18n %}
 {% load static %}
+{% load rules %}
 
 {% block wizard_page_css %}
   <link rel="stylesheet" href="{% static 'template_wizard/style.css' %}">
   <script src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
+  {% if active_tab == "source" %}
+    <script src="{% static 'file_form/file_form.min.js' %}"></script>
+  {% endif %}
 {% endblock %}
 
 {% block wizard_breadcrumb_extra %}
@@ -64,7 +68,7 @@
       <a id="source-tab"
          class="nav-link text-body {% if not template.id %}disabled{% endif %}"
          href="{% if not template.id %}#{% else %}{% url 'template_wizard:edit_example_source' template_id=template.id %}{% endif %}">
-        {% trans "2. Example source" %}
+        {% trans "2. Example source(s)" %}
       </a>
     </li>
     <li class="nav-item">
@@ -99,5 +103,24 @@
 {% endblock %}
 
 {% block wizard_page_script %}
+  {% if active_tab == "source" %}
+    {% has_perm "template_wizard.upload_large_files" request.user as can_upload_large_files %}
+    <script>
+    {% if can_upload_large_files %}
+    const TEMPLATE_WIZARD_MAX_UPLOAD_SIZE = Number.MAX_VALUE; // No limit
+    {% else %}
+    const TEMPLATE_WIZARD_MAX_UPLOAD_SIZE = 25000000; // 25MB
+    {% endif %}
+    const TEMPLATE_WIZARD_MAX_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', TEMPLATE_WIZARD_MAX_UPLOAD_SIZE/1000000);
+    </script>
+    <link rel="stylesheet" href="{% static 'file_form/file_form.css' %}">
+  {% endif %}
   <script>setActiveTab(document.getElementById('{{active_tab}}-tab'));</script>
 {% endblock %}
+
+{% if active_tab == "source" %}
+  {% block content_container %}
+    {{ block.super }}
+    {% include "template_wizard/file_dropzone.html" %}
+  {% endblock %}
+{% endif %}
