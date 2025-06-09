@@ -18,6 +18,33 @@ from template_wizard.models import Source, TemplateSession
 @permission_required(
     "template_wizard.access_session", objectgetter(TemplateSession, "session_id")
 )
+def add_file_source(request, session_id):
+    session = get_object_or_404(TemplateSession, id=session_id)
+    upload_form = UploadForm(
+        request.POST, request.FILES, prefix="template-wizard"
+    )  # Make sure prefix matches the form in the template
+    if upload_form.is_valid():
+        saved_files = upload_form.save()
+        for file_info in saved_files:
+            Source.objects.create(
+                session=session,
+                saved_file=file_info["saved_file"],
+                filename=file_info["filename"],
+            )
+        messages.success(
+            request, _(f"{len(saved_files)} file(s) uploaded successfully.")
+        )
+    else:
+        for field, errors in upload_form.errors.items():
+            for error in errors:
+                messages.error(request, f"{_(str(field).capitalize())}: {_(error)}")
+    return redirect("template_wizard:select_sources", session_id=session.id)
+
+
+@require_POST
+@permission_required(
+    "template_wizard.access_session", objectgetter(TemplateSession, "session_id")
+)
 def add_url_source(request, session_id):
     session = get_object_or_404(TemplateSession, id=session_id)
     url = request.POST.get("url")
@@ -75,23 +102,7 @@ def delete_source(request, source_id):
 )
 def select_sources(request, session_id):
     session = get_object_or_404(TemplateSession, id=session_id)
-    session.status = "select_sources"
-    session.save()
     upload_form = UploadForm(prefix="template-wizard")
-    if request.method == "POST":
-        upload_form = UploadForm(request.POST, request.FILES, prefix="template-wizard")
-        if upload_form.is_valid():
-            saved_files = upload_form.save()
-            for file in saved_files:
-                Source.objects.create(
-                    session=session,
-                    saved_file=file["saved_file"],
-                    filename=file["filename"],
-                )
-            messages.success(
-                request, _(f"{len(saved_files)} file(s) uploaded successfully.")
-            )
-            upload_form = UploadForm(prefix="template-wizard")
     return render(
         request,
         "template_wizard/use_template/select_sources.html",

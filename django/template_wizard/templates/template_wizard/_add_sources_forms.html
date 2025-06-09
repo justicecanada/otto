@@ -1,0 +1,64 @@
+{% load i18n %}
+<h5>{% trans "Upload files" %}</h5>
+<div class="d-flex align-items-center gap-2 mt-3 justify-content-between">
+  <div class="d-flex align-items-center gap-2">
+    <button type="button" class="btn btn-primary" id="upload-button">
+      <i class="bi bi-upload"></i> {% trans "Browse" %}
+    </button>
+    <span class="mb-0">{% trans "or drop files anywhere" %}</span>
+  </div>
+  <div class="d-inline-block me-1" style="position: relative; top: 2px;">
+    <div id="upload-spinner" class="text-primary d-none">
+      <span class="spinner-border" aria-hidden="true"></span>
+      <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+    </div>
+  </div>
+</div>
+<div id="template-wizard-upload-message"
+     class="position-relative ms-2 d-none">
+  <form id="template-wizard-upload-form"
+        class="border rounded small mt-2"
+        enctype="multipart/form-data"
+        method="post">
+    {% csrf_token %}
+    {{ upload_form }}
+  </form>
+</div>
+<hr class="my-4">
+
+<h5>{% trans "Add a URL" %}</h5>
+<div class="text-secondary small my-2">{% trans "CanLii, Wikipedia, canada.ca and *.gc.ca only" %}</div>
+<form method="post"
+      action="{% url 'template_wizard:add_url_source' session_id=session.pk %}"
+      class="row g-2 align-items-center">
+  {% csrf_token %}
+  <div class="col">
+    <input type="url"
+           name="url"
+           class="form-control"
+           placeholder="e.g. https://www.canlii.org/en/ca/scc/..."
+           required>
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
+  </div>
+</form>
+<hr class="my-4">
+
+<h5>{% trans "Paste text" %}</h5>
+<form method="post"
+      action="{% url 'template_wizard:add_text_source' session_id=session.pk %}"
+      class="row g-2">
+  {% csrf_token %}
+  <div class="col">
+    <textarea name="text"
+              class="form-control"
+              rows="3"
+              placeholder="{% trans 'Paste text here' %}"
+              required></textarea>
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
+  </div>
+</form>
+<div id="template-wizard-upload-message"></div>

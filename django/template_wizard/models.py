@@ -192,6 +192,7 @@ def delete_saved_file(sender, instance, **kwargs):
 class TemplateSessionStatus(models.TextChoices):
     SELECT_SOURCES = "select_sources", _("Selecting")
     FILL_TEMPLATE = "fill_template", _("Processing")
+    ERROR = "error", _("Error")
     COMPLETED = "completed", _("Completed")
 
 
