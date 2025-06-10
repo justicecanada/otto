@@ -97,11 +97,18 @@ LOGIN_REDIRECT_URL = "/"  # Or any other endpoint
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
 
+# Azure Translation Services
+LANGUAGE_KEY = os.environ.get("LANGUAGE_KEY")
+
+# Speech
+SPEECH_KEY = os.environ.get("SPEECH_KEY")
+
 DEFAULT_CHAT_MODEL = "gpt-4.1-mini"
 DEFAULT_QA_MODEL = "gpt-4.1-mini"
 DEFAULT_SUMMARIZE_MODEL = "gpt-4.1-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4.1-mini"
 DEFAULT_LAWS_MODEL = "gpt-4.1"
+DEFAULT_TRANSCRIBER_MODEL = "gpt-4o-mini"
 
 DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
 LIBRARY_RETENTION_DAYS = 30
@@ -159,6 +166,7 @@ INSTALLED_APPS = [
     "librarian",
     "chat",
     "laws",
+    "transcriber",
     # Third-party apps
     "channels",
     "django_cleanup.apps.CleanupConfig",
