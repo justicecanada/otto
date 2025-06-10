@@ -40,11 +40,9 @@ def detect_language(text: str) -> str:
     """
     Detect dominant language using Azure AI Language service.
     """
-    print("Detecting language...")
-    print(f"Text length: {len(text)} characters")
 
     credentials = AzureKeyCredential(language_key)
-    endpoint = os.getenv(language_endpoint)
+    endpoint = language_endpoint
     client = TextAnalyticsClient(endpoint=endpoint, credential=credentials)
 
     MAX_LANG_DETECT_CHARS = 5120
@@ -64,47 +62,47 @@ def get_localized_prompt(language_code: str) -> str:
     """Return localized prompt template based on detected language"""
     prompts = {
         "en": """Create comprehensive meeting notes from this cleaned transcript. Include:
-- Key discussion points
-- Action items and deadlines
-- Decisions made with rationale
-- Follow-up tasks
-- Important quotes
-- Include speaker attribution and action owner names where possible
-Maintain chronological order and use markdown formatting with sections:
-# Meeting Notes
-## Key Points
-## Action Items
-## Decisions
-## Follow-ups
-## Notable Quotes""",
+            - Key discussion points
+            - Action items and deadlines
+            - Decisions made with rationale
+            - Follow-up tasks
+            - Important quotes
+            - Include speaker attribution and action owner names where possible
+            Maintain chronological order and use markdown formatting with sections:
+            # Meeting Notes
+            ## Key Points
+            ## Action Items
+            ## Decisions
+            ## Follow-ups
+            ## Notable Quotes""",
         "fr": """Créez un compte rendu détaillé à partir de cette transcription nettoyée. Inclure :
-- Points clés de discussion
-- Éléments actionnables avec échéances
-- Décisions prises avec leur justification
-- Tâches de suivi
-- Citations importantes
-- Inclure l'attribution des intervenants et les responsables des actions lorsque possible
-Maintenez l'ordre chronologique et utilisez le formatage Markdown avec les sections :
-# Compte Rendu
-## Points Clés
-## Actions
-## Décisions
-## Suivis
-## Citations Remarquables""",
+            - Points clés de discussion
+            - Éléments actionnables avec échéances
+            - Décisions prises avec leur justification
+            - Tâches de suivi
+            - Citations importantes
+            - Inclure l'attribution des intervenants et les responsables des actions lorsque possible
+            Maintenez l'ordre chronologique et utilisez le formatage Markdown avec les sections :
+            # Compte Rendu
+            ## Points Clés
+            ## Actions
+            ## Décisions
+            ## Suivis
+            ## Citations Remarquables""",
         "iu": """ᑲᑎᑭᓐᓂᖅᓴᐅᑎᐅᓂᖓ ᐃᓄᒃᑎᑐᑦ ᑎᑎᕋᖅᓯᒪᔪᖅ:
-- ᐱᕙᓪᓕᐊᔪᑦ ᐅᖃᐅᓯᖏᑦ
-- ᐊᑐᖅᑕᐅᔪᑦ ᐱᓕᕆᐊᖑᔪᑦ ᐅᓪᓗᒥᒃ
-- ᑲᑎᑎᑦᓯᓂᖏᑦ ᐊᒻᒪᓗ ᑕᒪᒃᑯᐊ ᓇᓗᓇᐃᖅᐸᑦᑐᑦ
-- ᐊᑐᖅᑕᐅᓂᐊᖅᑐᑦ ᐱᓕᕆᐊᖑᔪᑦ
-- ᐅᖃᓕᒫᒐᓕᐅᖅᑎᑦᓯᓂᖏᑦ
-- ᐅᖃᖅᑐᖅᑕᐅᔪᓄᑦ ᐊᒻᒪᓗ ᐱᓕᕆᖃᑎᒌᒃᑐᓄᑦ ᐊᑐᖅᑕᐅᓂᖏᓐᓂᑦ
-ᐊᑐᓕᖅᑎᑦᓯᔨᒻᒪᕆᒃᑐᖅ ᐊᒻᒪᓗ markdown-ᒥᒃ ᐊᑐᓕᖅᑎᑦᓯᔨᒻᒪᕆᒃᑐᖅ:
-# ᑲᑎᑭᓐᓂᖅᓴᐅᑎᑦ
-## ᐱᕙᓪᓕᐊᔪᑦ ᐅᖃᐅᓯᖏᑦ
-## ᐊᑐᖅᑕᐅᔪᑦ ᐱᓕᕆᐊᖑᔪᑦ
-## ᑲᑎᑎᑦᓯᓂᖏᑦ
-## ᐊᑐᖅᑕᐅᓂᐊᖅᑐᑦ ᐱᓕᕆᐊᖑᔪᑦ
-## ᐅᖃᓕᒫᒐᓕᐅᖅᑎᑦᓯᓂᖏᑦ""",
+            - ᐱᕙᓪᓕᐊᔪᑦ ᐅᖃᐅᓯᖏᑦ
+            - ᐊᑐᖅᑕᐅᔪᑦ ᐱᓕᕆᐊᖑᔪᑦ ᐅᓪᓗᒥᒃ
+            - ᑲᑎᑎᑦᓯᓂᖏᑦ ᐊᒻᒪᓗ ᑕᒪᒃᑯᐊ ᓇᓗᓇᐃᖅᐸᑦᑐᑦ
+            - ᐊᑐᖅᑕᐅᓂᐊᖅᑐᑦ ᐱᓕᕆᐊᖑᔪᑦ
+            - ᐅᖃᓕᒫᒐᓕᐅᖅᑎᑦᓯᓂᖏᑦ
+            - ᐅᖃᖅᑐᖅᑕᐅᔪᓄᑦ ᐊᒻᒪᓗ ᐱᓕᕆᖃᑎᒌᒃᑐᓄᑦ ᐊᑐᖅᑕᐅᓂᖏᓐᓂᑦ
+            ᐊᑐᓕᖅᑎᑦᓯᔨᒻᒪᕆᒃᑐᖅ ᐊᒻᒪᓗ markdown-ᒥᒃ ᐊᑐᓕᖅᑎᑦᓯᔨᒻᒪᕆᒃᑐᖅ:
+            # ᑲᑎᑭᓐᓂᖅᓴᐅᑎᑦ
+            ## ᐱᕙᓪᓕᐊᔪᑦ ᐅᖃᐅᓯᖏᑦ
+            ## ᐊᑐᖅᑕᐅᔪᑦ ᐱᓕᕆᐊᖑᔪᑦ
+            ## ᑲᑎᑎᑦᓯᓂᖏᑦ
+            ## ᐊᑐᖅᑕᐅᓂᐊᖅᑐᑦ ᐱᓕᕆᐊᖑᔪᑦ
+            ## ᐅᖃᓕᒫᒐᓕᐅᖅᑎᑦᓯᓂᖏᑦ""",
     }
     return prompts.get(language_code, prompts["en"])
 
@@ -178,14 +176,14 @@ def clean_transcript_chunk(
 
     system_prompt = f"""Professional Legal Transcript Editor with Hierarchical Context:
 
-1. CONTEXT MANAGEMENT:
-{' '.join(context_instructions) if context_instructions else 'No additional context'}
+    1. CONTEXT MANAGEMENT:
+    {' '.join(context_instructions) if context_instructions else 'No additional context'}
 
-2. PROCESSING RULES:
-- Maintain exact timestamp format [HH:MM:SS]
-- Preserve legal terminology and exhibit references
-- Never invent speaker names
-- Mark uncertain names with (?) suffix"""
+    2. PROCESSING RULES:
+    - Maintain exact timestamp format [HH:MM:SS]
+    - Preserve legal terminology and exhibit references
+    - Never invent speaker names
+    - Mark uncertain names with (?) suffix"""
 
     try:
         # Get base cleaned text
@@ -196,14 +194,14 @@ def clean_transcript_chunk(
                 {
                     "role": "user",
                     "content": f"""
-Clean and enhance this transcript chunk:
-{chunk}
+                        Clean and enhance this transcript chunk:
+                        {chunk}
 
-Apply these transformations:
-1. Fix punctuation/capitalization
-2. Remove filler words (um, uh)
-3. Expand legal abbreviations
-4. Maintain speaker label consistency""",
+                        Apply these transformations:
+                        1. Fix punctuation/capitalization
+                        2. Remove filler words (um, uh)
+                        3. Expand legal abbreviations
+                        4. Maintain speaker label consistency""",
                 },
             ],
             temperature=0.1,
