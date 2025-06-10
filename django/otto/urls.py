@@ -23,6 +23,7 @@ urlpatterns = [
     path("librarian/", include("librarian.urls")),
     path("laws/", include("laws.urls")),
     path("text_extractor/", include("text_extractor.urls")),
+    path("transcriber/", include("transcriber.urls")),
     path("user_management/", views.manage_users, name="manage_users"),
     path("user_management/form/", views.manage_users_form, name="manage_users_form"),
     path(

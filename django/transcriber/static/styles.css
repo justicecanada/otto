@@ -1,0 +1,134 @@
+body {
+  font-family: Arial, sans-serif;
+  max-width: 960px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+h1 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.action-button {
+  background: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s;
+}
+
+.action-button:hover {
+  background-color: #2980b9;
+}
+
+.action-button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+#fileInput {
+  display: none;
+}
+
+.media-container {
+  margin: 20px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+audio,
+video {
+  width: 100%;
+  display: block;
+}
+
+.status {
+  color: #3498db;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.error-message {
+  color: #e74c3c;
+  padding: 10px;
+  background-color: #fadbd8;
+  border-radius: 4px;
+  margin: 10px 0;
+  display: none;
+}
+
+.transcript {
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 5px;
+  margin-top: 20px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.transcript-line {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.timestamp {
+  color: #666;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 5px;
+  min-width: 90px;
+}
+
+.timestamp:hover {
+  color: #3366cc;
+  background-color: #f0f0f0;
+  border-radius: 3px;
+}
+
+.speaker {
+  font-weight: bold;
+  color: #2c3e50;
+  border: 1px solid transparent;
+  padding: 2px 5px;
+  min-width: 120px;
+}
+
+.speaker:focus {
+  border-color: #3498db;
+  outline: none;
+  background-color: #f8f9fa;
+}
+
+.text {
+  display: inline-block;
+  margin-left: 5px;
+  border: 1px solid transparent;
+  padding: 2px 5px;
+  width: calc(100% - 230px);
+}
+
+.text:focus {
+  border-color: #3498db;
+  outline: none;
+  background-color: #f8f9fa;
+}
+
+.hidden {
+  display: none;
+}
