@@ -35,7 +35,7 @@ from .utils import (
     translator_key,
 )
 
-app_name = "text_extractor"
+app_name = "transcriber"
 logger = get_logger(__name__)
 
 os.makedirs("uploads", exist_ok=True)
@@ -55,7 +55,6 @@ def index(request):
 @csrf_exempt
 def handle_cleanup(request):
     bind_contextvars(feature="transcriber")
-    print("Performing cleanup...")
     try:
         data = json.loads(request.body.decode("utf-8"))
         transcript_text = data.get("transcript_text")
@@ -146,15 +145,8 @@ def generate_meeting_notes(request):
 @csrf_exempt
 def handle_translation(request):
     bind_contextvars(feature="transcriber")
-    print("Handling translation...")
     try:
-        # transcript_text = request.POST.get("transcript_text")
-        # target_language = request.POST.get("target_language")
-        # print("Transcript text:", transcript_text)
-        # print("Target language:", target_language)
-        print("Request body:", request.body)
         data = json.loads(request.body.decode("utf-8"))
-        print("Request data:", data)
         transcript_text = data.get("transcript_text")
         target_language = data.get("target_language")
 
@@ -197,16 +189,13 @@ def handle_translation(request):
 @csrf_exempt
 def handle_upload(request):
     bind_contextvars(feature="transcriber")
-    print("Handling upload...")
     try:
         if "file" not in request.FILES:
             return JsonResponse({"error": "No file uploaded"}, status=400)
 
         file = request.FILES.get("file")
-        print("File:", file.name)
         if file.name == "":
             return JsonResponse({"error": "Empty filename"}, status=400)
-        print("File type:", file.content_type)
 
         # Save uploaded file
         filename = file.name
