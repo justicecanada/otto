@@ -1,23 +1,11 @@
 import json
 import os
-import re
-import subprocess
-import threading
-import time
 from collections import deque
 
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
 
-import azure.cognitiveservices.speech as speechsdk
-from azure.ai.textanalytics import TextAnalyticsClient
-from azure.ai.translation.text import TextTranslationClient
-from azure.core.credentials import AzureKeyCredential
-from bs4 import BeautifulSoup
-from dotenv import load_dotenv
-from langchain_text_splitters import RecursiveCharacterTextSplitter, TokenTextSplitter
-from openai import AzureOpenAI
+from langchain_text_splitters import TokenTextSplitter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
@@ -52,7 +40,6 @@ def index(request):
 
 @app_access_required(app_name)
 @budget_required
-@csrf_exempt
 def handle_cleanup(request):
     bind_contextvars(feature="transcriber")
     try:
@@ -111,7 +98,6 @@ def handle_cleanup(request):
 
 @app_access_required(app_name)
 @budget_required
-@csrf_exempt
 def generate_meeting_notes(request):
     bind_contextvars(feature="transcriber")
     try:
@@ -142,7 +128,6 @@ def generate_meeting_notes(request):
 
 @app_access_required(app_name)
 @budget_required
-@csrf_exempt
 def handle_translation(request):
     bind_contextvars(feature="transcriber")
     try:
@@ -186,7 +171,6 @@ def handle_translation(request):
 
 @app_access_required(app_name)
 @budget_required
-@csrf_exempt
 def handle_upload(request):
     bind_contextvars(feature="transcriber")
     try:
