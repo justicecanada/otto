@@ -20,7 +20,7 @@ translator_key = settings.AZURE_COGNITIVE_SERVICE_KEY
 translator_region = settings.AZURE_COGNITIVE_SERVICE_REGION
 translator_endpoint = settings.AZURE_COGNITIVE_SERVICE_ENDPOINT
 
-language_key = settings.LANGUAGE_KEY
+language_key = settings.AZURE_COGNITIVE_SERVICE_KEY
 language_endpoint = settings.AZURE_COGNITIVE_SERVICE_ENDPOINT
 
 # Azure configuration
