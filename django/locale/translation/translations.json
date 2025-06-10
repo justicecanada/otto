@@ -3838,5 +3838,13 @@
     "Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\\'ll be more likely to get the results you want.": {
         "fr": "",
         "fr_auto": "N’oubliez pas que l’assistant d’IA n’est qu’un outil pour vous aider à atteindre vos objectifs. Soyez précis et vous aurez plus de chances d’obtenir les résultats que vous souhaitez."
+    },
+    "Transcriber - Otto": {
+        "fr": "",
+        "fr_auto": "Transcripteur - Otto"
+    },
+    "Interactive Media Transcription": {
+        "fr": "",
+        "fr_auto": "Transcription des médias interactifs"
     }
 }
