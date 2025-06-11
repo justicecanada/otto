@@ -81,6 +81,13 @@ def delete_dangling_savedfiles():
         saved_file.safe_delete()
 
 
+@shared_task
+def reset_accepted_terms_date():
+    from otto.models import User
+
+    User.objects.update(accepted_terms_date=None)
+
+
 # LOAD TESTING TASKS
 
 
