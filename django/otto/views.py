@@ -45,6 +45,7 @@ from otto.models import (
     CostType,
     Feature,
     Feedback,
+    OttoStatus,
     Pilot,
 )
 from otto.utils.common import cad_cost, display_cad_cost, get_tld_extractor
@@ -158,6 +159,7 @@ def terms_of_use(request):
         "terms_of_use.html",
         {
             "hide_breadcrumbs": True,
+            "last_updated": OttoStatus.objects.singleton().terms_last_updated,
             "redirect_url": redirect_url,
         },
     )
