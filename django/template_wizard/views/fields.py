@@ -23,6 +23,7 @@ def edit_fields(request, template_id):
         context={
             "active_tab": "fields",
             "template": template,
+            "source": template.last_example_source,
         },
     )
 

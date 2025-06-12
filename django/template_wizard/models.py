@@ -20,23 +20,6 @@ from otto.models import User
 logger = get_logger(__name__)
 
 
-class LayoutType(models.TextChoices):
-    # Jinja: Use Django's Jinja2 template engine to render the template.
-    # Template must include the field slugs exactly like {{ field_slug }}.
-    # Natively HTML; can optionally use Jinja syntax for conditional display, loops, etc.
-    JINJA_RENDERING = "jinja_rendering", _("Jinja HTML Rendering")
-    # LLM: Use a language model to output a complete document.
-    # Template can be semi-structured with placeholders for fields, instructions, etc.
-    # but they do not need to perfectly conform to the field slugs etc.
-    LLM_GENERATION = "llm_generation", _("Markdown with LLM generation")
-    # Markdown: Just substitute the template fields verbatim into the markdown text.
-    # Requires the field slugs to be included in the markdown text like {{ field_slug }}.
-    MARKDOWN_SUBSTITUTION = "markdown_substitution", _("Markdown substitution")
-    # Word: Use a Word document template with placeholders for fields.
-    # Requires the field slugs to be included in the Word document like {{ field_slug }}.
-    WORD_TEMPLATE = "word_template", _("Word template substitution")
-
-
 class TemplateManager(models.Manager):
     def get_accessible_templates(self, user: User, language: str = None):
         ordering = [
@@ -76,20 +59,14 @@ class Template(models.Model):
     generated_schema = models.TextField(null=True)
 
     # Store the last test extraction result and timestamp
+    last_example_source = models.ForeignKey(
+        "Source", null=True, blank=True, on_delete=models.SET_NULL
+    )
     last_test_fields_timestamp = models.DateTimeField(null=True, blank=True)
-    # Store the last layout rendering result, type, and timestamp
-    last_test_layout_type = models.CharField(max_length=100, null=True, blank=True)
     last_test_layout_timestamp = models.DateTimeField(null=True, blank=True)
 
     # Template rendering
-    layout_type = models.CharField(
-        max_length=50,
-        choices=LayoutType.choices,
-        default=LayoutType.JINJA_RENDERING,
-    )
     layout_jinja = models.TextField(null=True, blank=True)
-    layout_markdown = models.TextField(null=True, blank=True)
-
     word_template = models.ForeignKey(SavedFile, on_delete=models.SET_NULL, null=True)
 
     @property
@@ -119,16 +96,6 @@ class Template(models.Model):
             return self.name_fr or self.name_en
         else:
             return self.name_en or self.name_fr
-
-    def get_last_test_layout_type_display(self):
-        """
-        Return the human-readable label for the last_test_layout_type field using LayoutType choices.
-        """
-        if not self.last_test_layout_type:
-            return ""
-        return dict(LayoutType.choices).get(
-            self.last_test_layout_type, self.last_test_layout_type
-        )
 
     @property
     def example_session(self):

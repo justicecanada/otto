@@ -1,18 +1,14 @@
 {% load i18n %}
 
-{% with template.example_source as source %}
+{% with template.last_example_source as source %}
   {% if source.template_result %}
     <div class="alert alert-secondary small mb-2">
-      <span class="fw-semibold">{% trans "Results from layout type:" %}</span>
-      <span class="text-secondary">{{ template.get_last_test_layout_type_display }}</span>
-      {% if template.last_test_layout_timestamp %}({{ template.last_test_layout_timestamp|date:'Y-m-d H:i' }}){% endif %}
+      <span class="fw-semibold">{% trans "Last layout result" %}{% trans ":" %}</span>
+      {% if template.last_test_layout_timestamp %}
+        {{ source.name }}
+        ({{ template.last_test_layout_timestamp|date:'Y-m-d H:i' }})
+      {% endif %}
     </div>
-    {% if template.last_test_layout_type == "jinja_rendering" %}
-      {% include "template_wizard/use_template/template_result_fragment_jinja.html" %}
-    {% elif template.last_test_layout_type == "markdown_substitution" or template.last_test_layout_type == "llm_generation" %}
-      {% include "template_wizard/use_template/template_result_fragment_markdown.html" %}
-    {% else %}
-      {% include "template_wizard/use_template/template_result_fragment_word.html" %}
-    {% endif %}
+    {% include "template_wizard/use_template/template_result_fragment_jinja.html" %}
   {% endif %}
 {% endwith %}

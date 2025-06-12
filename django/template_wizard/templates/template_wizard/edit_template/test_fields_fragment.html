@@ -2,8 +2,11 @@
 {% if source.extracted_json %}
   {# Template fragment for displaying test field extraction results #}
   <div class="alert alert-secondary small mb-2">
-    <span class="fw-semibold">{% trans "Last extraction result" %}</span>
-    {% if template.last_test_fields_timestamp %}({{ template.last_test_fields_timestamp|date:'Y-m-d H:i' }}){% endif %}
+    <span class="fw-semibold">{% trans "Last extraction result" %}{% trans ":" %}</span>
+    {% if template.last_test_fields_timestamp %}
+      {{ source.name }}
+      ({{ template.last_test_fields_timestamp|date:'Y-m-d H:i' }})
+    {% endif %}
   </div>
 
   <div class="alert alert-info" id="test-fields-result">

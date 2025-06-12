@@ -8,30 +8,11 @@
       method="post">
   {% csrf_token %}
   <div class="mb-3">
-    {{ layout_form.layout_type.label_tag }}
-    {{ layout_form.layout_type }}
-    {% if layout_form.layout_type.help_text %}
-      <div class="form-text">{{ layout_form.layout_type.help_text }}</div>
+    {{ layout_form.layout_jinja.label_tag }}
+    {{ layout_form.layout_jinja }}
+    {% if layout_form.layout_jinja.help_text %}
+      <div class="form-text">{{ layout_form.layout_jinja.help_text }}</div>
     {% endif %}
-  </div>
-  {# Show only the relevant layout field based on layout_type #}
-  <div id="layout-type-fields" class="mt-3">
-    <div id="layout-jinja-field"
-         {% if layout_form.layout_type.value != 'jinja_rendering' %}style="display: none;"{% endif %}>
-      {{ layout_form.layout_jinja.label_tag }}
-      {{ layout_form.layout_jinja }}
-      {% if layout_form.layout_jinja.help_text %}
-        <div class="form-text">{{ layout_form.layout_jinja.help_text }}</div>
-      {% endif %}
-    </div>
-    <div id="layout-markdown-field"
-         {% if layout_form.layout_type.value == 'jinja_rendering' or layout_form.layout_type.value == 'word_template' %}style="display: none;"{% endif %}>
-      {{ layout_form.layout_markdown.label_tag }}
-      {{ layout_form.layout_markdown }}
-      {% if layout_form.layout_markdown.help_text %}
-        <div class="form-text">{{ layout_form.layout_markdown.help_text }}</div>
-      {% endif %}
-    </div>
   </div>
 </form>
 
@@ -42,8 +23,7 @@
         hx-target="#layout-form-container"
         hx-swap="innerHTML"
         hx-indicator="#generate-template-spinner"
-        method="post"
-        {% if layout_form.layout_type.value == "word_template" %}style="display:none"{% endif %}>
+        method="post">
     {% csrf_token %}
     <label for="modification_instruction" class="form-label visually-hidden">
       {% trans "Modify layout code using Otto" %}
@@ -60,51 +40,3 @@
     </div>
   </form>
 </div>
-<script>
-(function() {
-  function updateLayoutFields() {
-    const typeInput = document.getElementById('id_layout_type');
-    const jinjaField = document.getElementById('layout-jinja-field');
-    const markdownField = document.getElementById('layout-markdown-field');
-    if (!typeInput || !jinjaField || !markdownField) return;
-    const type = typeInput.value;
-    const showJinja = (type === 'jinja_rendering');
-    const showMarkdown = (type === 'markdown_substitution' || type === 'llm_generation');
-    jinjaField.style.display = showJinja ? '' : 'none';
-    markdownField.style.display = showMarkdown ? '' : 'none';
-    // Show/hide generate buttons if present
-    const genJinjaBtn = document.getElementById('generate-jinja-btn');
-    if (genJinjaBtn) {
-      genJinjaBtn.style.display = showJinja ? '' : 'none';
-    }
-    const genMarkdownBtn = document.getElementById('generate-markdown-btn');
-    if (genMarkdownBtn) {
-      genMarkdownBtn.style.display = showMarkdown ? '' : 'none';
-    }
-  }
-
-  function updateModifyLayoutFormVisibility() {
-    const typeInput = document.getElementById('id_layout_type');
-    const modifyForm = document.getElementById('modify-layout-form');
-    if (!typeInput || !modifyForm) return;
-    const type = typeInput.value;
-    const show = (type === 'jinja_rendering' || type === 'markdown_substitution' || type === 'llm_generation');
-    modifyForm.style.display = show ? '' : 'none';
-  }
-
-  const typeInput = document.getElementById('id_layout_type');
-  if (typeInput) {
-    typeInput.addEventListener('change', updateLayoutFields);
-    typeInput.addEventListener('change', updateModifyLayoutFormVisibility);
-  }
-  updateLayoutFields();
-  updateModifyLayoutFormVisibility();
-
-  {% if run_test_layout %}
-  const testLayoutButton = document.querySelector('#test-layout-btn');
-  if (testLayoutButton) {
-    testLayoutButton.click();
-  }
-  {% endif %}
-})();
-</script>

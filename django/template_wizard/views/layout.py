@@ -1,6 +1,7 @@
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from rules.contrib.views import objectgetter
@@ -8,6 +9,7 @@ from rules.contrib.views import objectgetter
 from otto.utils.decorators import permission_required
 from template_wizard.forms import LayoutForm
 from template_wizard.models import Template
+from template_wizard.utils import extract_fields, fill_template_from_fields
 
 app_name = "template_wizard"
 
@@ -45,19 +47,27 @@ def edit_layout(request, template_id):
 @permission_required(
     "template_wizard.edit_template", objectgetter(Template, "template_id")
 )
-def generate_markdown(request, template_id):
-    """Generate a markdown template for the given template and save it to layout_markdown."""
-    template = Template.objects.filter(id=template_id).first()
-    if not template:
-        return HttpResponse(status=404)
-    fields = template.fields.filter(parent_field__isnull=True)
-    markdown = "\n".join([f"## {f.field_name}\n\n{{{{ {f.slug} }}}}\n" for f in fields])
-    template.layout_markdown = markdown
-    template.save(update_fields=["layout_markdown"])
-    messages.success(request, _("Markdown template generated and saved."))
-    layout_form = LayoutForm(instance=template)
+def test_layout(request, template_id):
+    try:
+        template = Template.objects.filter(id=template_id).first()
+        if not template:
+            raise Http404()
+        # Use the example_source for this template
+        source = template.last_example_source
+        if source:
+            if not source.extracted_json:
+                extract_fields(source)
+            fill_template_from_fields(source)
+            if source.template_result:
+                template.last_test_layout_timestamp = timezone.now()
+                template.save()
+    except Exception as e:
+        messages.error(
+            request, _("An error occurred while testing the template layout: ") + str(e)
+        )
+        return redirect("template_wizard:index")
     return render(
         request,
-        "template_wizard/edit_template/layout_form.html",
-        {"layout_form": layout_form, "template": template, "run_test_layout": "true"},
+        "template_wizard/edit_template/template_result_fragment.html",
+        {"template": template},
     )

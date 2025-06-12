@@ -7,13 +7,9 @@ from template_wizard.views.fill_template import (
     source_raw_data,
     source_template_result,
 )
-from template_wizard.views.layout import edit_layout, generate_markdown
+from template_wizard.views.layout import edit_layout, test_layout
 from template_wizard.views.llm_fields import generate_fields, modify_fields, test_fields
-from template_wizard.views.llm_layout import (
-    generate_jinja,
-    modify_layout_code,
-    test_layout,
-)
+from template_wizard.views.llm_layout import generate_jinja, modify_layout_code
 from template_wizard.views.main import (
     delete_session,
     new_session,
@@ -114,11 +110,6 @@ urlpatterns = [
         "edit_template/<int:template_id>/generate_jinja/",
         generate_jinja,
         name="generate_jinja",
-    ),
-    path(
-        "edit_template/<int:template_id>/generate_markdown/",
-        generate_markdown,
-        name="generate_markdown",
     ),
     path(
         "edit_template/<int:template_id>/modify_layout_code/",

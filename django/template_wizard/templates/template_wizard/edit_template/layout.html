@@ -17,16 +17,7 @@
         <button type="button"
                 class="btn btn-outline-success"
                 id="generate-jinja-btn"
-                style="display:none"
                 hx-post="{% url 'template_wizard:generate_jinja' template_id=template.id %}"
-                hx-target="#layout-form-container"
-                hx-swap="innerHTML"
-                hx-indicator="#generate-template-spinner">{% trans "Generate layout code" %}</button>
-        <button type="button"
-                class="btn btn-outline-success"
-                id="generate-markdown-btn"
-                style="display:none"
-                hx-post="{% url 'template_wizard:generate_markdown' template_id=template.id %}"
                 hx-target="#layout-form-container"
                 hx-swap="innerHTML"
                 hx-indicator="#generate-template-spinner">{% trans "Generate layout code" %}</button>
@@ -77,12 +68,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   var jinjaBtn = document.getElementById('generate-jinja-btn');
-  var markdownBtn = document.getElementById('generate-markdown-btn');
   if (jinjaBtn) {
     jinjaBtn.addEventListener('click', blockIfNoFields, true);
-  }
-  if (markdownBtn) {
-    markdownBtn.addEventListener('click', blockIfNoFields, true);
   }
 });
 </script>

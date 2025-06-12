@@ -3,7 +3,6 @@ import json
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import render
-from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from rules.contrib.views import objectgetter
@@ -13,31 +12,6 @@ from chat.llm import OttoLLM
 from otto.utils.decorators import permission_required
 from template_wizard.forms import LayoutForm
 from template_wizard.models import Template
-from template_wizard.utils import fill_template_from_fields
-
-
-@permission_required(
-    "template_wizard.edit_template", objectgetter(Template, "template_id")
-)
-def test_layout(request, template_id):
-
-    template = Template.objects.filter(id=template_id).first()
-    if not template:
-        raise Http404()
-    test_results = {}
-    # Use the example_source for this template
-    source = getattr(template, "example_source", None)
-    if source:
-        fill_template_from_fields(source)
-        if source.template_result:
-            template.last_test_layout_timestamp = timezone.now()
-            template.last_test_layout_type = template.layout_type
-            template.save()
-    return render(
-        request,
-        "template_wizard/edit_template/template_result_fragment.html",
-        {"template": template},
-    )
 
 
 @permission_required(
@@ -71,7 +45,6 @@ def generate_jinja(request, template_id):
     try:
         jinja_code = llm.complete(prompt)
         llm.create_costs()
-        template.layout_type = "jinja_rendering"
         template.layout_jinja = jinja_code
         template.save()
         messages.success(request, _("Jinja template generated and saved."))
@@ -103,25 +76,8 @@ def modify_layout_code(request, template_id):
             "template_wizard/edit_template/layout_form.html",
             {"layout_form": layout_form, "template": template},
         )
-    layout_type = template.layout_type
-    if layout_type == "jinja_rendering":
-        code = template.layout_jinja or ""
-        code_type = "Jinja2 HTML"
-    elif layout_type in ["markdown_substitution", "llm_generation"]:
-        code = template.layout_markdown or ""
-        code_type = "Markdown"
-    else:
-        from django.contrib import messages
-
-        messages.error(
-            request, _(f"Layout type '{layout_type}' not supported for modification.")
-        )
-        layout_form = LayoutForm(instance=template)
-        return render(
-            request,
-            "template_wizard/edit_template/layout_form.html",
-            {"layout_form": layout_form, "template": template},
-        )
+    code = template.layout_jinja or ""
+    code_type = "Jinja2 HTML"
     llm = OttoLLM(deployment="gpt-4.1")
     bind_contextvars(feature="template_wizard", template_id=template.id)
     prompt = (
@@ -157,10 +113,7 @@ def modify_layout_code(request, template_id):
     try:
         new_code = llm.complete(prompt)
         llm.create_costs()
-        if layout_type == "jinja_rendering":
-            template.layout_jinja = new_code
-        else:
-            template.layout_markdown = new_code
+        template.layout_jinja = new_code
         template.save()
         messages.success(request, _(f"Layout code modified."))
     except Exception as e:

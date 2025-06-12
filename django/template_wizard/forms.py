@@ -78,21 +78,9 @@ class MetadataForm(forms.ModelForm):
 class LayoutForm(forms.ModelForm):
     class Meta:
         model = Template
-        fields = ["layout_type", "layout_jinja", "layout_markdown"]
+        fields = ["layout_jinja"]
         widgets = {
-            "layout_type": forms.Select(attrs={"class": "form-select"}),
             "layout_jinja": forms.Textarea(
-                attrs={
-                    "class": "form-control form-control-sm",
-                    "rows": 10,
-                    "style": "font-family: monospace;",
-                    "spellcheck": "false",
-                    "autocorrect": "off",
-                    "autocomplete": "off",
-                    "autocapitalize": "off",
-                }
-            ),
-            "layout_markdown": forms.Textarea(
                 attrs={
                     "class": "form-control form-control-sm",
                     "rows": 10,
@@ -105,23 +93,11 @@ class LayoutForm(forms.ModelForm):
             ),
         }
         labels = {
-            "layout_type": _("Layout type"),
             "layout_jinja": _("Jinja layout code"),
-            "layout_markdown": _("Markdown layout code"),
         }
         help_texts = {
-            "layout_type": _("Choose how the template will be rendered"),
             "layout_jinja": _("Jinja template for advanced rendering."),
-            "layout_markdown": _(
-                "Markdown template for LLM and Markdown substitution modes."
-            ),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["layout_type"].choices = Template._meta.get_field(
-            "layout_type"
-        ).choices
 
 
 class FieldForm(forms.ModelForm):

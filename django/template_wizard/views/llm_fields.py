@@ -31,6 +31,7 @@ def test_fields(request, template_id, source_id=None):
     if source and template.fields.exists():
         extract_fields(source)
         template.last_test_fields_timestamp = timezone.now()
+        template.last_example_source = source
         template.save()
     return render(
         request,
