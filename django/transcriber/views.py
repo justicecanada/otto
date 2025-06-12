@@ -15,6 +15,7 @@ from otto.utils.decorators import app_access_required, budget_required
 from .utils import (
     clean_transcript_chunk,
     convert_to_wav,
+    convert_transcript_to_html,
     detect_language,
     generate_structured_notes,
     generate_summary,
@@ -83,7 +84,9 @@ def handle_cleanup(request):
 
         return JsonResponse(
             {
-                "cleaned_transcript": full_cleaned,
+                "cleaned_transcript": convert_transcript_to_html(
+                    full_cleaned, consolidate_sentences=True
+                ),
                 "summary": global_summary,
             }
         )
