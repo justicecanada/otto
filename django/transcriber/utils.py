@@ -3,6 +3,7 @@ import re
 import subprocess
 import threading
 import time
+from itertools import groupby
 
 from django.conf import settings
 
@@ -61,7 +62,7 @@ def detect_language(text: str) -> str:
 def get_localized_prompt(language_code: str) -> str:
     """Return localized prompt template based on detected language"""
     prompts = {
-        "en": """Create comprehensive meeting notes from this cleaned transcript. Include:
+        "en": """Create comprehensive meeting notes from this cleaned transcript, without using prior knowledge. Include:
             - Key discussion points
             - Action items and deadlines
             - Decisions made with rationale
@@ -74,7 +75,10 @@ def get_localized_prompt(language_code: str) -> str:
             ## Action Items
             ## Decisions
             ## Follow-ups
-            ## Notable Quotes""",
+            ## Notable Quotes
+
+            Include timestamps (e.g. [00:00:45]) for all relevant information and quotations.
+            Use only information, events, and names from the provided transcript. Under no circumstances should you reference any information or knowledge outside of the provided transcript.""",
         "fr": """Créez un compte rendu détaillé à partir de cette transcription nettoyée. Inclure :
             - Points clés de discussion
             - Éléments actionnables avec échéances
@@ -109,6 +113,8 @@ def get_localized_prompt(language_code: str) -> str:
 
 def generate_structured_notes(transcript: str, prompt: str) -> str:
     """Generate notes using dynamic prompt"""
+    if not transcript:
+        return Exception
     try:
         response = azure_openai_client.chat.completions.create(
             model=deployment,
@@ -116,9 +122,8 @@ def generate_structured_notes(transcript: str, prompt: str) -> str:
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": transcript},
             ],
-            temperature=0.3,
-            max_tokens=4000,
-            top_p=0.9,
+            temperature=0.1,
+            max_completion_tokens=4000,
         )
         return response.choices[0].message.content.strip()
 
@@ -350,7 +355,7 @@ def parse_html_to_transcript(translated_html):
 
     # Use BeautifulSoup for HTML parsing
     soup = BeautifulSoup(translated_html, "html.parser")
-    for entry in soup.find_all(class_="transcript-entry"):
+    for entry in soup.find_all(class_="transcript-line"):
         timestamp = entry.find(class_="timestamp").text.strip()
         speaker = entry.find(class_="speaker").text.strip()
         content = entry.find(class_="translatable-content").text.strip()
@@ -398,10 +403,10 @@ def translate_transcript(text, target_language):
     return parse_html_to_transcript(full_translated)
 
 
-def convert_transcript_to_html(transcript_text):
+def convert_transcript_to_html(transcript_text, consolidate_sentences=False):
     """Wrap transcript elements in protective HTML tags"""
     entries = transcript_text.split("\n\n")
-    html_lines = []
+    line_dicts = []
 
     for entry in entries:
         lines = entry.strip().split("\n")
@@ -409,17 +414,57 @@ def convert_transcript_to_html(transcript_text):
             # Extract timestamp and speaker
             header_match = re.match(r"(\[[0-9:]+\]:\s*)(.*)", lines[0])
             if header_match:
-                timestamp = header_match.group(1)
+                timestamp = header_match.group(1).strip(" :")
                 speaker = header_match.group(2)
                 content = "\n".join(lines[1:])
 
-                # Wrap protected elements
-                html_entry = f"""
-                <div class="transcript-entry">
-                    <span class="notranslate timestamp">{timestamp}</span>
-                    <span class="notranslate speaker">{speaker}</span>
-                    <div class="translatable-content">{content}</div>
+                line_dicts.append(
+                    {"timestamp": timestamp, "speaker": speaker, "content": content}
+                )
+    if consolidate_sentences:
+        line_dicts = combine_sentences(line_dicts)
+
+    for line_dict in line_dicts:
+        # Wrap protected elements
+        line_dict[
+            "html_entry"
+        ] = f"""
+                <div class="transcript-line">
+                    <span class="notranslate timestamp" data-time={line_dict["timestamp"].strip("[]")}>{line_dict["timestamp"]}</span>
+                    <span class="notranslate speaker">{line_dict["speaker"]}</span>
+                    <div class="translatable-content">{line_dict["content"]}</div>
                 </div>
                 """
-                html_lines.append(html_entry)
-    return "\n".join(html_lines)
+    return "\n\n".join(x["html_entry"] for x in line_dicts)
+
+
+def combine_sentences(line_dicts):
+    speaker_groups = groupby(line_dicts, key=lambda x: x["speaker"])
+    combined_entries = []
+    for speaker, group in speaker_groups:
+        group_list = list(group)
+        # Group together elements where "content" is part of the same sentence (ends with ellipses)
+        combined = []
+        i = 0
+        while i < len(group_list):
+            entry = group_list[i]
+            content = entry["content"]
+            timestamp = entry["timestamp"]
+            # Start concatenation if content ends with ellipses
+            while content.rstrip().endswith("...") and i + 1 < len(group_list):
+                next_entry = group_list[i + 1]
+                next_entry["content"] = next_entry["content"].lstrip()
+                # Concatenate with a space (or newline if you prefer)
+                content = (
+                    content.rstrip("... ")
+                    + " "
+                    + next_entry["content"][0].lower()
+                    + next_entry["content"][1:]
+                )
+                i += 1
+            combined.append(
+                {"speaker": speaker, "timestamp": timestamp, "content": content}
+            )
+            i += 1
+        combined_entries.extend(combined)
+    return combined_entries

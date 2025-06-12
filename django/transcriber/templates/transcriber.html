@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block page_css %}
-  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <link rel="stylesheet" href="{% static 'transcriber/style.css' %}">
 {% endblock %}
 
 {% block content_container %}
@@ -158,8 +158,12 @@
         function displayNotes(notesMarkdown) {
             const notesContainer = document.getElementById('notesContainer');
             // Convert markdown to HTML and sanitize
-            const html = DOMPurify.sanitize(marked.parse(notesMarkdown));
+            var html_raw = DOMPurify.sanitize(marked.parse(notesMarkdown));
+            const html = html_raw.replace(/\[([0-9:]+)\]/g, "<span class='timestamp' data-time=$1>[$1]</span>");
             notesContainer.innerHTML = html;
+            notesContainer.querySelectorAll('.timestamp').forEach(el => {
+                el.addEventListener('click', handleTimestampClick)
+            })
             notesContainer.style.display = 'block';
         }
 
@@ -333,7 +337,10 @@
                 try {
                     
                     if (response.cleaned_transcript) {
-                        parseTranscript(response.cleaned_transcript); // Replace transcript in browser
+                        transcriptContainer.innerHTML = response.cleaned_transcript; // Replace transcript in browserAdd commentMore actions
+                        transcriptContainer.querySelectorAll('.timestamp').forEach(el => {
+                          el.addEventListener('click', handleTimestampClick)
+                        })
                         statusDiv.textContent = 'Transcript cleaned successfully';
                     } else {
                         showError('Cleaning failed');
@@ -422,10 +429,11 @@
             transcriptContainer.innerHTML = '';
 
             // Split by double newlines which typically separate entries
-            const entries = text.split(/\n\s*\n/);
+            const entries = text.split(/\n\n(?!\n)/);
 
             entries.forEach(entry => {
-                const lines = entry.trim().split('\n');
+                const lines = entry.split('\n');
+                lines.forEach(function(entry, index){lines[index] = entry.trim()})
                 if (lines.length >= 2) {
                     // Extract timestamp and speaker from first line
                     const headerMatch = lines[0].match(/\[([0-9:]+)\]:\s*(.*)/);
@@ -510,7 +518,9 @@
                 const timestamp = lineDiv.querySelector('.timestamp').dataset.time;
                 const speaker = lineDiv.querySelector('.speaker').textContent.trim();
                 const text = lineDiv.querySelector('.text').textContent.trim();
-                lines.push(`[${timestamp}]: ${speaker}\n${text}`);
+                if (text){
+                  lines.push(`[${timestamp}]: ${speaker}\n${text}`);
+                }
             });
             return lines.join('\n\n');
         }
@@ -527,8 +537,6 @@
             errorDiv.style.display = 'none';
         }
   </script>
-
-
 
   <script>
     // Translation Modal Functionality
