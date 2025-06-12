@@ -3838,5 +3838,17 @@
     "Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\\'ll be more likely to get the results you want.": {
         "fr": "",
         "fr_auto": "N’oubliez pas que l’assistant d’IA n’est qu’un outil pour vous aider à atteindre vos objectifs. Soyez précis et vous aurez plus de chances d’obtenir les résultats que vous souhaitez."
+    },
+    "Last updated on": {
+        "fr": "",
+        "fr_auto": "Dernière mise à jour le"
+    },
+    "The Government of Canada aims to be a model user of copyright. Uploading copyrighted material to Otto in limited quantities for purposes such as research, study, education, criticism or review may qualify as fair dealing and thus not infringe copyright. Users should respect any contractual restrictions on sharing documents with AI-based tools. Material obtained from the Justice Library may be subject to such use restrictions.": {
+        "fr": "",
+        "fr_auto": "Le gouvernement du Canada vise à être un utilisateur modèle du droit d’auteur. Le téléchargement de matériel protégé par le droit d’auteur sur Otto en quantités limitées à des fins telles que la recherche, l’étude, l’éducation, la critique ou la critique peut être considéré comme une utilisation équitable et donc ne pas enfreindre le droit d’auteur. Les utilisateurs doivent respecter toutes les restrictions contractuelles sur le partage de documents avec des outils basés sur l’IA. Les documents obtenus de la Bibliothèque de justice peuvent être assujettis à de telles restrictions d’utilisation."
+    },
+    "Outputs from Otto may contain the intellectual property of others, including excerpts of copyrighted material and third-party trademarks. Users intending to include outputs from Otto in external publications or communications should review the output carefully. The Treasury Board guidance referred to below provides helpful recommendations in this respect. Avoid using Otto-generated content in government publications when it is particularly critical that the Crown own the copyright.": {
+        "fr": "",
+        "fr_auto": "Les résultats d’Otto peuvent contenir la propriété intellectuelle d’autrui, y compris des extraits de matériel protégé par le droit d’auteur et des marques de commerce de tiers. Les utilisateurs qui ont l’intention d’inclure des extrants d’Otto dans des publications ou des communications externes doivent examiner attentivement les extrants. Les directives du Conseil du Trésor mentionnées ci-dessous contiennent des recommandations utiles à cet égard. Évitez d’utiliser du contenu généré par Otto dans des publications gouvernementales lorsqu’il est particulièrement important que la Couronne détienne les droits d’auteur."
     }
 }
