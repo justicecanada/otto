@@ -80,6 +80,11 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.update_exchange_rate",
         "schedule": crontab(hour=2, minute=0, day_of_week=6),
     },
+    # Delete transcriber uploads every day at 2 am UTC
+    "cleanup-transcriber-uploads-every-morning": {
+        "task": "otto.tasks.cleanup_transcriber_uploads",
+        "schedule": crontab(hour=2, minute=0),
+    },
 }
 
 

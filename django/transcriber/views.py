@@ -2,6 +2,7 @@ import json
 import os
 from collections import deque
 
+from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render
 
@@ -25,8 +26,6 @@ from .utils import (
 
 app_name = "transcriber"
 logger = get_logger(__name__)
-
-os.makedirs("uploads", exist_ok=True)
 
 
 @app_access_required(app_name)
@@ -182,8 +181,10 @@ def handle_upload(request):
             return JsonResponse({"error": "Empty filename"}, status=400)
 
         # Save uploaded file
+        upload_subdir = "transcriber_uploads"
+        os.makedirs(os.path.join(settings.MEDIA_ROOT, upload_subdir), exist_ok=True)
         filename = file.name
-        temp_path = os.path.join("uploads", filename)
+        temp_path = os.path.join(settings.MEDIA_ROOT, upload_subdir, filename)
         with open(temp_path, "wb+") as destination:
             for chunk in file.chunks():
                 destination.write(chunk)
@@ -214,7 +215,7 @@ def handle_upload(request):
                 "transcript_file": transcript_path,
                 "original_file": filename,
                 "file_type": file_type,
-                "file_url": f"/uploads/{filename}",  # URL for media playback
+                "file_url": f"{settings.MEDIA_URL}{upload_subdir}/{filename}",  # URL for media playback
             }
         )
 
