@@ -111,5 +111,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, true); // useCapture=true
   }
+
+  // Clear the modify fields form after HTMX request
+  var modifyForm = document.getElementById('modify-fields-form');
+  if (modifyForm) {
+    modifyForm.addEventListener('htmx:afterRequest', function(event) {
+      modifyForm.reset();
+    });
+  }
 });
 </script>

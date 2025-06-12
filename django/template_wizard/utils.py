@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from django.utils.translation import gettext as _
 
+import markdown
 from jinja2 import Template as JinjaTemplate
 from llama_index.core.program import LLMTextCompletionProgram
 from pydantic import Field, create_model
@@ -16,6 +17,8 @@ from librarian.utils.process_engine import (
 )
 
 logger = get_logger(__name__)
+
+md = markdown.Markdown(extensions=["tables", "extra", "nl2br"], tab_length=2)
 
 
 def build_pydantic_model_for_fields(
@@ -155,6 +158,21 @@ def extract_fields(source):
         raise
 
 
+def _convert_markdown_fields(data):
+    """
+    Recursively convert all string fields in data from markdown to HTML.
+    """
+    if isinstance(data, dict):
+        return {k: _convert_markdown_fields(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [_convert_markdown_fields(item) for item in data]
+    elif isinstance(data, str):
+        # Convert markdown to HTML only if the string is not empty
+        return md.convert(data) if data.strip() else data
+    else:
+        return data
+
+
 def fill_template_from_fields(source):
     """
     Fills the template with the extracted fields, saves to source.template_result (TextField)
@@ -169,6 +187,8 @@ def fill_template_from_fields(source):
         return
     try:
         fields_data = source.extracted_json
+        # Convert all string fields from markdown to HTML
+        fields_data = _convert_markdown_fields(fields_data)
     except Exception as e:
         logger.error(
             "Error loading extracted_json for template filling",

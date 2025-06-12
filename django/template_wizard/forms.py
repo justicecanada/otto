@@ -83,7 +83,7 @@ class LayoutForm(forms.ModelForm):
             "layout_jinja": forms.Textarea(
                 attrs={
                     "class": "form-control form-control-sm",
-                    "rows": 10,
+                    "rows": 18,
                     "style": "font-family: monospace;",
                     "spellcheck": "false",
                     "autocorrect": "off",

@@ -40,3 +40,13 @@
     </div>
   </form>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var modifyLayoutForm = document.getElementById('modify-layout-form');
+  if (modifyLayoutForm) {
+    modifyLayoutForm.addEventListener('htmx:afterRequest', function(event) {
+      modifyLayoutForm.reset();
+    });
+  }
+});
+</script>

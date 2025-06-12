@@ -1,5 +1,3 @@
-import json
-
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import render
@@ -12,6 +10,7 @@ from chat.llm import OttoLLM
 from otto.utils.decorators import permission_required
 from template_wizard.forms import LayoutForm
 from template_wizard.models import Template
+from template_wizard.utils import _convert_markdown_fields
 
 
 @permission_required(
@@ -38,7 +37,8 @@ def generate_jinja(request, template_id):
         """
     ).format(
         schema=template.generated_schema or "",
-        json_output=template.example_source.extracted_json or "",
+        json_output=_convert_markdown_fields(template.example_source.extracted_json)
+        or "",
     )
     jinja_code = ""
 
@@ -67,7 +67,6 @@ def modify_layout_code(request, template_id):
         raise Http404()
     instruction = request.POST.get("modification_instruction", "").strip()
     if not instruction:
-        from django.contrib import messages
 
         messages.error(request, _("No instruction provided."))
         layout_form = LayoutForm(instance=template)
@@ -104,7 +103,7 @@ def modify_layout_code(request, template_id):
         """
     ).format(
         schema=template.generated_schema,
-        example_json=template.example_source.extracted_json,
+        example_json=_convert_markdown_fields(template.example_source.extracted_json),
         code_type=code_type,
         code=code,
         instruction=instruction,
