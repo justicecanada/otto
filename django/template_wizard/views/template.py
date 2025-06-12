@@ -128,6 +128,6 @@ def update_example_type(request, source_id):
     messages.success(
         request,
         _("Example sources updated successfully."),
-        extra_tags=["unique"],
+        extra_tags="unique",
     )
     return HttpResponse()

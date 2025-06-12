@@ -19,7 +19,7 @@ def template_list(request):
         "template_wizard/template_list.html",
         context={
             "hide_breadcrumbs": True,
-            "templates": Template.objects.all(),
+            "templates": Template.objects.get_accessible_templates(request.user),
         },
     )
 

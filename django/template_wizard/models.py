@@ -1,9 +1,10 @@
-import json
 import re
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import BooleanField, Q, Value
+from django.db.models.functions import Coalesce
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils.text import slugify
@@ -14,6 +15,7 @@ from structlog import get_logger
 
 from chat.models import SHARING_OPTIONS
 from librarian.models import SavedFile
+from otto.models import User
 
 logger = get_logger(__name__)
 
@@ -36,7 +38,15 @@ class LayoutType(models.TextChoices):
 
 
 class TemplateManager(models.Manager):
-    pass
+    def get_accessible_templates(self, user: User, language: str = None):
+        ordering = [
+            "-sharing_option",
+        ]
+
+        templates = self.filter(
+            Q(owner=user) | Q(accessible_to=user) | Q(sharing_option="everyone"),
+        )
+        return templates.distinct().order_by(*ordering)
 
 
 class Template(models.Model):
@@ -128,7 +138,7 @@ class Template(models.Model):
     def example_sources(self):
         session = self.example_session
         if session:
-            return session.sources.all()
+            return session.sources.filter(is_example_template=False)
         return Source.objects.none()
 
     @property

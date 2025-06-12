@@ -1,5 +1,5 @@
 {% load i18n %}
-{% if template.example_source.extracted_json %}
+{% if source.extracted_json %}
   {# Template fragment for displaying test field extraction results #}
   <div class="alert alert-secondary small mb-2">
     <span class="fw-semibold">{% trans "Last extraction result" %}</span>
@@ -8,7 +8,7 @@
 
   <div class="alert alert-info" id="test-fields-result">
     {# Use the recursive fragment to display the dictionary #}
-    {% include "template_wizard/use_template/fields_dict_fragment.html" with dict_data=template.example_source.extracted_json %}
+    {% include "template_wizard/use_template/fields_dict_fragment.html" with dict_data=source.extracted_json %}
   </div>
 
   <button class="btn btn-sm btn-outline-secondary mb-2"

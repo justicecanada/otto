@@ -14,13 +14,7 @@
             <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
           </div>
         </div>
-        <button type="button"
-                class="btn btn-outline-success"
-                hx-get="{% url 'template_wizard:generate_fields' template_id=template.id %}"
-                hx-target="#field-list"
-                hx-swap="innerHTML"
-                hx-confirm="{% trans 'This will delete all existing fields. Continue?' %}"
-                hx-indicator="#generate-fields-spinner">{% trans "Generate fields" %}</button>
+        {% include "template_wizard/edit_template/field_generate_dropdown.html" with example_template=template.example_template example_sources=template.example_sources %}
         <button type="button"
                 class="btn btn-success"
                 data-bs-toggle="modal"
@@ -75,12 +69,7 @@
             <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
           </div>
         </div>
-        <button type="button"
-                class="btn btn-outline-success"
-                hx-get="{% url 'template_wizard:test_fields' template_id=template.id %}"
-                hx-target="#test-fields"
-                hx-swap="innerHTML"
-                hx-indicator="#test-fields-spinner">{% trans "Test extraction" %}</button>
+        {% include "template_wizard/edit_template/test_fields_dropdown.html" %}
       </div>
     </div>
     <div id="test-fields">{% include "template_wizard/edit_template/test_fields_fragment.html" %}</div>

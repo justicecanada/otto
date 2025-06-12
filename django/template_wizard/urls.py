@@ -101,6 +101,11 @@ urlpatterns = [
         name="test_fields",
     ),
     path(
+        "edit_template/<int:template_id>/test_fields/<int:source_id>/",
+        test_fields,
+        name="test_fields",
+    ),
+    path(
         "edit_template/<int:template_id>/test_layout/",
         test_layout,
         name="test_layout",
@@ -121,7 +126,7 @@ urlpatterns = [
         name="modify_layout_code",
     ),
     path(
-        "edit_template/<int:template_id>/generate_fields/",
+        "edit_template/<int:template_id>/generate_fields/<str:from_mode>/",
         generate_fields,
         name="generate_fields",
     ),

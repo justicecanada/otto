@@ -125,11 +125,7 @@ def extract_fields(source):
         )
         raise Exception("Missing template for extraction")
     if not source.text:
-        logger.error(
-            "Missing source text for extraction",
-            source_id=source.id,
-        )
-        raise Exception("Missing source text for extraction")
+        extract_source_text(source)
     if not template.fields.exists():
         logger.error(
             "Missing fields for extraction",
