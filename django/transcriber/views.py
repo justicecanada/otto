@@ -3,13 +3,18 @@ import os
 from collections import deque
 
 from django.conf import settings
-from django.http import JsonResponse
+from django.core.files.base import ContentFile
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from langchain_text_splitters import TokenTextSplitter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
+from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
+from otto.models import SecurityLabel
 from otto.utils.decorators import app_access_required, budget_required
 
 from .utils import (
@@ -195,8 +200,8 @@ def handle_upload(request):
         # Get file type (audio or video)
         file_type = "video" if file.content_type.startswith("video/") else "audio"
 
-        # Create transcript file path with original filename + .txt
-        transcript_path = f"{temp_path}.txt"
+        # Create transcript file path with original filename (minus extensions) + .txt
+        transcript_path = f"{temp_path.split('.')[0]}.txt"
 
         # Convert to WAV if needed
         wav_path = convert_to_wav(temp_path)
@@ -228,5 +233,46 @@ def handle_upload(request):
             {
                 "error": str(e),
             },
+            status=500,
+        )
+
+
+def add_to_library(request):
+    bind_contextvars(feature="transcriber")
+    try:
+        file_name = request.POST.get("file_name")
+        saved_transcription_file = SavedFile.objects.create(
+            file=ContentFile(
+                request.POST.get("transcript_file").encode(),
+                name=file_name,
+            ),
+            content_type="txt",
+        )
+
+        transcript_library, created = Library.objects.get_or_create(
+            name="Transcriptions", created_by=request.user
+        )
+        LibraryUserRole.objects.get_or_create(
+            library=transcript_library, user=request.user, role="admin"
+        )
+        transcript_folder, created = DataSource.objects.get_or_create(
+            name=str(timezone.now().date()),
+            library=transcript_library,
+            security_label=SecurityLabel.default_security_label(),
+        )
+        transcript_folder.save()
+
+        transcript_doc = Document.objects.create(
+            data_source=transcript_folder,
+            saved_file=saved_transcription_file,
+            filename=file_name,
+        )
+        transcript_doc.process()
+
+        return HttpResponse(_("Transcription added to library successfully."))
+
+    except Exception as e:
+        return HttpResponse(
+            _("Error adding transcription to library: ") + str(e),
             status=500,
         )
