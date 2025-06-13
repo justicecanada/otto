@@ -19,13 +19,17 @@
   {% for source in session.sources.all %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
       {% if source.url %}
-        <a href="{{ source.url }}" target="_blank" rel="noopener">{{ source.url }}</a>
+        <a href="{{ source.url }}"
+           target="_blank"
+           rel="noopener"
+           class="truncate-start">{{ source.url }}</a>
       {% elif source.filename %}
-        <a href="{% url 'template_wizard:download_source_file' source.pk %}">{{ source.filename }}</a>
+        <a href="{% url 'template_wizard:download_source_file' source.pk %}"
+           class="truncate-start">{{ source.filename }}</a>
       {% else %}
         <span class="text-secondary">{{ source.text|truncatechars:50 }}</span>
       {% endif %}
-      <div>
+      <div class="d-flex align-items-center flex-nowrap ms-1">
         {% if session.is_example_session %}
           {% include "template_wizard/_source_example_type_dropdown.html" %}
         {% endif %}

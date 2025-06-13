@@ -62,12 +62,14 @@ class Template(models.Model):
     last_example_source = models.ForeignKey(
         "Source", null=True, blank=True, on_delete=models.SET_NULL
     )
+    fields_modified_timestamp = models.DateTimeField(null=True, blank=True)
+    layout_modified_timestamp = models.DateTimeField(null=True, blank=True)
     last_test_fields_timestamp = models.DateTimeField(null=True, blank=True)
     last_test_layout_timestamp = models.DateTimeField(null=True, blank=True)
 
     # Template rendering
     layout_jinja = models.TextField(null=True, blank=True)
-    word_template = models.ForeignKey(SavedFile, on_delete=models.SET_NULL, null=True)
+    docx_template = models.ForeignKey(SavedFile, on_delete=models.SET_NULL, null=True)
 
     @property
     def shared_with(self):

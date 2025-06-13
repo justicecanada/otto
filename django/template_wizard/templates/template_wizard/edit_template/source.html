@@ -17,3 +17,11 @@
     {% endif %}
   </div>
 </div>
+<div class="row mt-3">
+  <div class="col text-end">
+    <a class="btn btn-primary"
+       href="{% url 'template_wizard:edit_fields' template.id %}">
+      {% trans "Next" %}<i class="bi bi-chevron-right ms-2"></i>
+    </a>
+  </div>
+</div>
