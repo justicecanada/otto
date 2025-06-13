@@ -37,7 +37,9 @@ def generate_jinja(request, template_id):
         """
     ).format(
         schema=template.generated_schema or "",
-        json_output=_convert_markdown_fields(template.example_source.extracted_json)
+        json_output=_convert_markdown_fields(
+            template.last_example_source.extracted_json
+        )
         or "",
     )
     jinja_code = ""
@@ -103,7 +105,9 @@ def modify_layout_code(request, template_id):
         """
     ).format(
         schema=template.generated_schema,
-        example_json=_convert_markdown_fields(template.example_source.extracted_json),
+        example_json=_convert_markdown_fields(
+            template.last_example_source.extracted_json
+        ),
         code_type=code_type,
         code=code,
         instruction=instruction,

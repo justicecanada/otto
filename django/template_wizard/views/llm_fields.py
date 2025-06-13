@@ -45,7 +45,7 @@ def test_fields(request, template_id, source_id=None):
 )
 def generate_fields(request, template_id, from_mode=None):
     template = Template.objects.filter(id=template_id).first()
-    if not template or not template.example_source:
+    if not template or not template.last_example_source:
         return HttpResponse(status=400, content="No example source available.")
     llm = OttoLLM(deployment="gpt-4.1")
     bind_contextvars(feature="template_wizard", template_id=template.id)
