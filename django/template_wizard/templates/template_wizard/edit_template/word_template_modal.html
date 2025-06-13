@@ -23,6 +23,12 @@
                 aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <p>
+          {% trans "The Word template must include field slugs between curly braces and spaces for top-level extracted fields." %}
+          <br>
+          {% trans "e.g. <b>{{ field_slug }}</b>" %}
+        </p>
+        <p>{% trans "Nested fields and lists will be rendered according to the Jinja HTML template." %}</p>
         <form id="word-template-upload-form"
               hx-post="{% url 'template_wizard:upload_docx_template' template.id %}"
               hx-target="#docx_upload_result"
@@ -43,9 +49,7 @@
           <button type="submit" class="btn btn-primary" style="display: none;">{% trans "Upload" %}</button>
         </form>
         <div id="docx_upload_result" class="mt-3">
-          {% if template.docx_template %}
-            {% include "template_wizard/edit_template/docx_upload_result_fragment.html" %}
-          {% endif %}
+          {% include "template_wizard/edit_template/docx_upload_result_fragment.html" %}
         </div>
       </div>
       <div class="modal-footer">

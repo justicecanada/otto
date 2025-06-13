@@ -6,6 +6,15 @@
     <p class="text-muted">
       {% if template.docx_template_filename %}
         {{ template.docx_template_filename|truncatechars:50 }}
+        {% if docx_validation %}
+          {% if docx_validation.is_valid %}
+            <span class="text-success ms-2"
+                  title="{% trans 'Word template is valid' %}"><i class="bi bi-check-circle-fill"></i></span>
+          {% else %}
+            <span class="text-danger ms-2"
+                  title="{% trans 'Word template is missing or has invalid fields' %}"><i class="bi bi-x-circle-fill"></i></span>
+          {% endif %}
+        {% endif %}
       {% else %}
         <em>{% trans "Optional" %}</em>
       {% endif %}

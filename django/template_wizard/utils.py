@@ -1,9 +1,11 @@
 # Shared helpers for template wizard
+import re
 from typing import List, Optional
 
 from django.utils.translation import gettext as _
 
 import markdown
+from docx import Document
 from jinja2 import Template as JinjaTemplate
 from llama_index.core.program import LLMTextCompletionProgram
 from pydantic import Field, create_model
@@ -214,3 +216,53 @@ def fill_template_from_fields(source):
         )
     source.template_result = output
     source.save()
+
+
+def validate_docx_template_fields(docx_file, template) -> dict:
+    """
+    Validates that the docx file contains all top-level TemplateField slugs for the template.
+    Returns a dict with keys: is_valid, missing_fields, invalid_fields, found_fields, required_fields.
+    """
+    # Get all top-level field slugs
+    required_slugs = set(
+        template.fields.filter(parent_field__isnull=True).values_list("slug", flat=True)
+    )
+    found_slugs = set()
+    invalid_slugs = set()
+    # Extract all text from the docx file
+    try:
+        if hasattr(docx_file, "open"):
+            # Django FileField
+            file_obj = docx_file.open("rb")
+        else:
+            file_obj = docx_file
+        doc = Document(file_obj)
+        text = " ".join([p.text for p in doc.paragraphs])
+        # Also check tables
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    text += " " + cell.text
+        # Find all {{ slug }} patterns
+        matches = re.findall(r"{{\s*(\w+)\s*}}", text)
+        found_slugs = set(matches)
+        # Invalid = found but not required
+        invalid_slugs = found_slugs - required_slugs
+        missing_slugs = required_slugs - found_slugs
+        is_valid = not missing_slugs and not invalid_slugs
+        return {
+            "is_valid": is_valid,
+            "missing_fields": sorted(missing_slugs),
+            "invalid_fields": sorted(invalid_slugs),
+            "found_fields": sorted(found_slugs),
+            "required_fields": sorted(required_slugs),
+        }
+    except Exception as e:
+        return {
+            "is_valid": False,
+            "missing_fields": list(required_slugs),
+            "invalid_fields": [],
+            "found_fields": [],
+            "required_fields": list(required_slugs),
+            "error": str(e),
+        }

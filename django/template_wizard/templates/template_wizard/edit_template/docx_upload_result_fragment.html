@@ -15,6 +15,31 @@
       </form>
     </div>
   </div>
+  {% if docx_validation %}
+    <div class="mt-2">
+      {% if docx_validation.is_valid %}
+        <div class="alert alert-success p-2 mb-1">{% trans "Word template is valid (contains all top-level fields)" %}</div>
+      {% else %}
+        <div class="alert alert-warning p-2 mb-1">
+          {% if docx_validation.error %}
+            <div>
+              <b>{% trans "Error validating template:" %}</b> {{ docx_validation.error }}
+            </div>
+          {% endif %}
+          {% if docx_validation.missing_fields %}
+            <div>
+              <b>{% trans "Missing top-level fields:" %}</b> {{ docx_validation.missing_fields|join:", " }}
+            </div>
+          {% endif %}
+          {% if docx_validation.invalid_fields %}
+            <div>
+              <b>{% trans "Invalid fields found in template:" %}</b> {{ docx_validation.invalid_fields|join:", " }}
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
 {% else %}
-  <div class="alert">{% trans "No Word template selected." %}</div>
+  <em>{% trans "No Word template selected." %}</em>
 {% endif %}

@@ -8,6 +8,7 @@ from rules.contrib.views import objectgetter
 from librarian.models import SavedFile
 from otto.utils.decorators import permission_required
 from template_wizard.models import Template
+from template_wizard.utils import validate_docx_template_fields
 
 
 @require_POST
@@ -21,7 +22,7 @@ def upload_docx_template(request, template_id):
         return render(
             request,
             "template_wizard/edit_template/docx_upload_result_fragment.html",
-            {"saved_file": None, "template": template},
+            {"saved_file": None, "template": template, "docx_validation": None},
         )
     saved_file = SavedFile.objects.create(
         file=uploaded_file,
@@ -31,11 +32,21 @@ def upload_docx_template(request, template_id):
     template.docx_template = saved_file
     template.docx_template_filename = uploaded_file.name
     template.save(update_fields=["docx_template", "docx_template_filename"])
+    docx_validation = get_docx_validation(template)
     return render(
         request,
         "template_wizard/edit_template/docx_upload_result_fragment.html",
-        {"template": template},
+        {"template": template, "docx_validation": docx_validation},
     )
+
+
+def get_docx_validation(template):
+    if template.docx_template:
+        try:
+            return validate_docx_template_fields(template.docx_template.file, template)
+        except Exception as e:
+            return {"is_valid": False, "error": str(e)}
+    return None
 
 
 @require_POST
@@ -45,15 +56,15 @@ def upload_docx_template(request, template_id):
 def remove_docx_template(request, template_id):
     template = get_object_or_404(Template, id=template_id)
     if template.docx_template:
-        # Optionally delete the file object
         template.docx_template.delete()
         template.docx_template = None
         template.docx_template_filename = ""
         template.save(update_fields=["docx_template", "docx_template_filename"])
+    docx_validation = get_docx_validation(template)
     return render(
         request,
         "template_wizard/edit_template/docx_upload_result_fragment.html",
-        {"template": template},
+        {"template": template, "docx_validation": docx_validation},
     )
 
 
@@ -63,8 +74,9 @@ def remove_docx_template(request, template_id):
 )
 def docx_template_status(request, template_id):
     template = get_object_or_404(Template, id=template_id)
+    docx_validation = get_docx_validation(template)
     return render(
         request,
         "template_wizard/edit_template/docx_template_status.html",
-        {"template": template},
+        {"template": template, "docx_validation": docx_validation},
     )

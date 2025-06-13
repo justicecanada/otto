@@ -9,9 +9,22 @@ from rules.contrib.views import objectgetter
 from otto.utils.decorators import permission_required
 from template_wizard.forms import LayoutForm
 from template_wizard.models import Template
-from template_wizard.utils import extract_fields, fill_template_from_fields
+from template_wizard.utils import (
+    extract_fields,
+    fill_template_from_fields,
+    validate_docx_template_fields,
+)
 
 app_name = "template_wizard"
+
+
+def get_docx_validation(template):
+    if template and template.docx_template:
+        try:
+            return validate_docx_template_fields(template.docx_template.file, template)
+        except Exception as e:
+            return {"is_valid": False, "error": str(e)}
+    return None
 
 
 @permission_required(
@@ -33,6 +46,7 @@ def edit_layout(request, template_id):
             return redirect("template_wizard:index")
     else:
         layout_form = LayoutForm(instance=template)
+    docx_validation = get_docx_validation(template)
     return render(
         request,
         "template_wizard/edit_template.html",
@@ -40,6 +54,7 @@ def edit_layout(request, template_id):
             "layout_form": layout_form,
             "active_tab": "layout",
             "template": template,
+            "docx_validation": docx_validation,
         },
     )
 
