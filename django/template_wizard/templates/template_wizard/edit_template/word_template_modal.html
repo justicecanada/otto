@@ -1,0 +1,72 @@
+{% load i18n %}
+
+<!-- Bootstrap Modal for uploading a Word template file -->
+<div class="modal modal-lg fade"
+     id="wordTemplateModal"
+     tabindex="-1"
+     aria-labelledby="wordTemplateModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title w-100 me-1" id="wordTemplateModalLabel">{% trans "Upload Word template" %}</h5>
+        <div id="modal-spinner"
+             class="spinner text-primary"
+             style="margin-bottom: -7px;
+                    margin-top: -4px">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+        </div>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="word-template-upload-form"
+              hx-post="{% url 'template_wizard:upload_docx_template' template.id %}"
+              hx-target="#docx_upload_result"
+              hx-swap="innerHTML"
+              hx-indicator="#modal-spinner"
+              enctype="multipart/form-data"
+              method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="docx_file" class="form-label visually-hidden">{% trans "Select Word (.docx) file" %}</label>
+            <input class="form-control"
+                   type="file"
+                   id="docx_file"
+                   name="docx_file"
+                   accept=".docx"
+                   required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="display: none;">{% trans "Upload" %}</button>
+        </form>
+        <div id="docx_upload_result" class="mt-3">
+          {% if template.docx_template %}
+            {% include "template_wizard/edit_template/docx_upload_result_fragment.html" %}
+          {% endif %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('docx_upload_result').addEventListener('htmx:afterSwap', function (evt) {
+  htmx.ajax('GET', '{% url "template_wizard:docx_template_status" template.id %}', {
+    target: '#docx_template_status',
+    swap: 'innerHTML'
+  });
+});
+document.getElementById('docx_file').addEventListener('change', function() {
+  const form = document.getElementById('word-template-upload-form');
+  if (this.files.length > 0) {
+    form.requestSubmit();
+    // Clear the file input after submission
+    this.value = '';
+  }
+});
+</script>

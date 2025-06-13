@@ -1,5 +1,7 @@
 {% load i18n %}
 
+{% include "template_wizard/edit_template/word_template_modal.html" %}
+
 <div class="row">
   <div class="col-lg-5 border-end">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -23,6 +25,7 @@
                 hx-indicator="#generate-template-spinner">{% trans "Generate layout code" %}</button>
       </div>
     </div>
+    <div id="docx_template_status">{% include "template_wizard/edit_template/docx_template_status.html" %}</div>
     <div id="layout-form-container">{% include "template_wizard/edit_template/layout_form.html" %}</div>
   </div>
   <div class="col-lg-7">

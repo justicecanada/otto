@@ -1,0 +1,20 @@
+{% load i18n %}
+{# HTMX fragment to show the result of the docx template upload #}
+{% if template.docx_template %}
+  <div class="d-flex justify-content-between align-items-center">
+    <div>{% trans "Current template:" %} {{ template.docx_template_filename }}</div>
+    <div>
+      <form id="remove-docx-template-form"
+            hx-post="{% url 'template_wizard:remove_docx_template' template.id %}"
+            hx-target="#docx_upload_result"
+            hx-swap="innerHTML"
+            hx-indicator="#docx-modal-spinner"
+            method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger">{% trans "Remove" %}</button>
+      </form>
+    </div>
+  </div>
+{% else %}
+  <div class="alert">{% trans "No Word template selected." %}</div>
+{% endif %}

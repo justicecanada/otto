@@ -1,0 +1,27 @@
+{% load i18n %}
+
+<div class="row">
+  <div class="col">
+    <p class="mb-0">{% trans "Word (.docx) template:" %}</p>
+    <p class="text-muted">
+      {% if template.docx_template_filename %}
+        {{ template.docx_template_filename|truncatechars:50 }}
+      {% else %}
+        <em>{% trans "Optional" %}</em>
+      {% endif %}
+    </p>
+  </div>
+  <div class="col-auto">
+    {# Button to open the Word template modal #}
+    <button type="button"
+            class="btn btn-outline-secondary"
+            data-bs-toggle="modal"
+            data-bs-target="#wordTemplateModal">
+      {% if template.docx_template %}
+        {% trans "Edit/remove" %}
+      {% else %}
+        {% trans "Upload" %}
+      {% endif %}
+    </button>
+  </div>
+</div>

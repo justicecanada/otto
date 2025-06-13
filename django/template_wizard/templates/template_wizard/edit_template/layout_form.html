@@ -1,25 +1,5 @@
 {% load i18n %}
 
-<div class="row">
-  <div class="col">
-    <p class="mb-0">{% trans "Word (docx) template:" %}</p>
-    <p class="text-muted">{{ template.docx_template }}</p>
-  </div>
-  <div class="col-auto">
-    {# Button to open the Word template modal #}
-    <button type="button"
-            class="btn btn-outline-secondary"
-            data-bs-toggle="modal"
-            data-bs-target="#wordTemplateModal">
-      {% if template.docx_template %}
-        {% trans "Edit/remove" %}
-      {% else %}
-        {% trans "Upload" %}
-      {% endif %}
-    </button>
-  </div>
-</div>
-
 <form class="g-3"
       id="edit_preset_form"
       hx-post="{% url 'template_wizard:edit_layout' template_id=template.id %}"

@@ -70,6 +70,7 @@ class Template(models.Model):
     # Template rendering
     layout_jinja = models.TextField(null=True, blank=True)
     docx_template = models.ForeignKey(SavedFile, on_delete=models.SET_NULL, null=True)
+    docx_template_filename = models.CharField(max_length=255, null=True, blank=True)
 
     @property
     def shared_with(self):

@@ -1,3 +1,8 @@
+from template_wizard.views.docx_template import (
+    docx_template_status,
+    remove_docx_template,
+    upload_docx_template,
+)
 from template_wizard.views.download_all import download_all_results
 from template_wizard.views.fields import delete_field, edit_fields, field_modal
 from template_wizard.views.fill_template import (
@@ -203,5 +208,20 @@ urlpatterns = [
         "update_example_type/<int:source_id>/",
         update_example_type,
         name="update_example_type",
+    ),
+    path(
+        "edit_template/<int:template_id>/upload_docx_template/",
+        upload_docx_template,
+        name="upload_docx_template",
+    ),
+    path(
+        "edit_template/<int:template_id>/remove_docx_template/",
+        remove_docx_template,
+        name="remove_docx_template",
+    ),
+    path(
+        "edit_template/<int:template_id>/docx_template_status/",
+        docx_template_status,
+        name="docx_template_status",
     ),
 ]
