@@ -212,8 +212,8 @@
                     
                     if (response.transcript && response.transcript.length > 0) {
                         displayTranscript(response.transcript);
-                        currentTranscriptName.value = response.transcript_file.split(".txt")[0];
-                        statusDiv.textContent = `Transcription complete. File saved to: ${response.transcript_file}`;
+                        currentTranscriptName.value = response.transcript_path.split(".txt")[0];
+                        statusDiv.textContent = `Transcription complete. File saved to: ${response.transcript_path}`;
                         cleanupButton.disabled = false;
                         saveTranscriptButton.disabled = false;
                         copyButton.disabled = false;

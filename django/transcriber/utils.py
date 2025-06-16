@@ -358,7 +358,7 @@ def parse_html_to_transcript(translated_html):
     for entry in soup.find_all(class_="transcript-line"):
         timestamp = entry.find(class_="timestamp").text.strip()
         speaker = entry.find(class_="speaker").text.strip()
-        content = entry.find(class_="translatable-content").text.strip()
+        content = entry.find(class_="text").text.strip()
 
         transcript_entries.append(f"{timestamp} {speaker}\n{content}")
 
@@ -432,7 +432,7 @@ def convert_transcript_to_html(transcript_text, consolidate_sentences=False):
                 <div class="transcript-line">
                     <span class="notranslate timestamp" data-time={line_dict["timestamp"].strip("[]")}>{line_dict["timestamp"]}:</span>
                     <span class="notranslate speaker">{line_dict["speaker"]}</span>
-                    <div class="translatable-content">{line_dict["content"]}</div>
+                    <div class="text">{line_dict["content"]}</div>
                 </div>
                 """
     return "\n\n".join(x["html_entry"] for x in line_dicts)
