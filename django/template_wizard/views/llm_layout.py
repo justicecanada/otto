@@ -35,17 +35,6 @@ You may reorder the fields for better presentation, use HTML constructs like lis
 {json_output}
 </example_json_output>
 
-Ensure that the *values* of all top-level fields from the schema are wrapped in a <div> or <span> with the ID of the field slug.
-Do NOT include labels for the top-level fields inside the element with the field slug ID.
-e.g. For a top-level field with slug "customers" which includes a list of objects, the template may look like this:
-```
-{example_html}
-```
-As a reminder, here are the top-level fields from the schema:
-<top_level_fields>
-{top_level_fields}
-</top_level_fields>
-
 Output the Jinja HTML code only (do not wrap in backticks or include any other comments).
 """
     ).format(
@@ -111,17 +100,6 @@ Here is the current template code for you to modify:
 {code}
 </current_template_code>
 
-Ensure that the *values* of all top-level fields from the schema are wrapped in a <div> or <span> with the ID of the field slug.
-Do NOT include labels for the top-level fields inside the element with the field slug ID.
-e.g. For a top-level field with slug "customers" which includes a list of objects, the template may look like this:
-```
-{example_html}
-```
-As a reminder, here are the top-level fields from the schema:
-<top_level_fields>
-{top_level_fields}
-</top_level_fields>
-
 The user wants to modify the template with the following instruction:
 <instruction>
 {instruction}
@@ -155,3 +133,17 @@ Please return the modified template code only (no comments, no backticks, no exp
         "template_wizard/edit_template/layout_form.html",
         {"layout_form": layout_form, "template": template, "run_test_layout": "true"},
     )
+
+
+deleted_prompt = """
+Ensure that the *values* of all top-level fields from the schema are wrapped in a <div> or <span> with the ID of the field slug.
+Do NOT include labels for the top-level fields inside the element with the field slug ID.
+e.g. For a top-level field with slug "customers" which includes a list of objects, the template may look like this:
+```
+{example_html}
+```
+As a reminder, here are the top-level fields from the schema:
+<top_level_fields>
+{top_level_fields}
+</top_level_fields>
+"""

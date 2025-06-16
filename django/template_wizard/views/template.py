@@ -7,6 +7,7 @@ from django.views.decorators.http import require_POST
 from rules.contrib.views import objectgetter
 
 from chat.forms import UploadForm
+from librarian.models import PDF_EXTRACTION_CHOICES
 from otto.utils.decorators import app_access_required, permission_required
 from template_wizard.forms import MetadataForm
 from template_wizard.models import Source, Template, TemplateSession
@@ -107,6 +108,7 @@ def edit_example_source(request, template_id):
             "upload_form": upload_form,
             "active_tab": "source",
             "template": template,
+            "pdf_method_choices": PDF_EXTRACTION_CHOICES,
         },
     )
 
