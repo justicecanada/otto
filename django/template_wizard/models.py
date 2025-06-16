@@ -69,7 +69,9 @@ class Template(models.Model):
 
     # Template rendering
     layout_jinja = models.TextField(null=True, blank=True)
-    docx_template = models.ForeignKey(SavedFile, on_delete=models.SET_NULL, null=True)
+    docx_template = models.ForeignKey(
+        SavedFile, on_delete=models.SET_NULL, null=True, related_name="docx_templates"
+    )
     docx_template_filename = models.CharField(max_length=255, null=True, blank=True)
 
     @property
@@ -206,6 +208,14 @@ class Source(models.Model):
 def delete_saved_file(sender, instance, **kwargs):
     try:
         instance.saved_file.safe_delete()
+    except Exception as e:
+        logger.error(f"Failed to delete saved file: {e}")
+
+
+@receiver(post_delete, sender=Template)
+def delete_saved_file_from_template(sender, instance, **kwargs):
+    try:
+        instance.docx_template.safe_delete()
     except Exception as e:
         logger.error(f"Failed to delete saved file: {e}")
 
