@@ -1,8 +1,8 @@
-from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
+from bs4 import BeautifulSoup
 from rules.contrib.views import objectgetter
 
 from librarian.models import SavedFile
@@ -80,3 +80,23 @@ def docx_template_status(request, template_id):
         "template_wizard/edit_template/docx_template_status.html",
         {"template": template, "docx_validation": docx_validation},
     )
+
+
+@require_GET
+@permission_required(
+    "template_wizard.edit_template", objectgetter(Template, "template_id")
+)
+def fill_docx_template(request, template_id):
+    """
+    Fills a DOCX template with content from an HTML source.
+    The DOCX template contains placeholders {{ field_slug }} that will be replaced
+    The HTML string has container elements with id `field_slug` that will be used to fill the placeholders.
+    Returns a rendered DOCX file as content disposition attachment.
+    """
+    template = get_object_or_404(Template, id=template_id)
+    source_html_string = template.last_example_source.template_result
+    docx_template_file = template.docx_template.file
+    field_slugs = template.top_level_slugs
+    # parse HTML source
+    soup = BeautifulSoup(source_html_string, "html.parser")
+    return

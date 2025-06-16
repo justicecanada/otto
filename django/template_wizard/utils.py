@@ -223,10 +223,7 @@ def validate_docx_template_fields(docx_file, template) -> dict:
     Validates that the docx file contains all top-level TemplateField slugs for the template.
     Returns a dict with keys: is_valid, missing_fields, invalid_fields, found_fields, required_fields.
     """
-    # Get all top-level field slugs
-    required_slugs = set(
-        template.fields.filter(parent_field__isnull=True).values_list("slug", flat=True)
-    )
+    required_slugs = template.top_level_slugs
     found_slugs = set()
     invalid_slugs = set()
     # Extract all text from the docx file

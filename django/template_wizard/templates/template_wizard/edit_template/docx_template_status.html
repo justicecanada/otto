@@ -24,12 +24,14 @@
     {# Button to open the Word template modal #}
     <button type="button"
             class="btn btn-outline-secondary"
+            disabled
             data-bs-toggle="modal"
             data-bs-target="#wordTemplateModal">
       {% if template.docx_template %}
         {% trans "Edit/remove" %}
       {% else %}
-        {% trans "Upload" %}
+        {# {% trans "Upload" %} #}
+        {% trans "Coming soon" %}
       {% endif %}
     </button>
   </div>

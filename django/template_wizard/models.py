@@ -128,6 +128,19 @@ class Template(models.Model):
             return session.sources.filter(is_example_template=True).first()
         return None
 
+    @property
+    def top_level_slugs(self):
+        return set(
+            self.fields.filter(parent_field__isnull=True).values_list("slug", flat=True)
+        )
+
+    @property
+    def slug(self):
+        """
+        Returns a slugified version of the template name for use in URLs.
+        """
+        return slugify(self.name_auto).replace("-", "_") or f"template-{self.id}"
+
 
 class SourceStatus(models.TextChoices):
     PENDING = "pending", _("Pending")
@@ -294,7 +307,7 @@ class TemplateField(models.Model):
         blank=True,
     )
     slug = models.CharField(
-        max_length=64,
+        max_length=256,
         help_text=_(
             "Unique identifier for use in templates (letters, numbers, underscores only)."
         ),

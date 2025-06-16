@@ -24,23 +24,42 @@ def generate_jinja(request, template_id):
     bind_contextvars(feature="template_wizard", template_id=template.id)
     prompt = (
         """Given the following schema and example JSON output, generate a Jinja2 HTML template that will present the extracted information in a user-friendly way. 
-        The template should use Jinja2 syntax (e.g., {{ field }}) and render all fields from the example JSON.
-        Use HTML markup and include labels for each field.
-        You may reorder the fields for better presentation, use HTML constructs like lists, tables, etc. as needed for best presentation.
-        Output the HTML code only (do not wrap in backticks or include any other comments).
-        
-        SCHEMA:
-        {schema}
-        
-        EXAMPLE JSON OUTPUT:
-        {json_output}
-        """
+The template should use Jinja2 syntax (e.g., {{ field }}) and render all fields from the example JSON.
+Use HTML markup and include labels for each field.
+You may reorder the fields for better presentation, use HTML constructs like lists, tables, etc. as needed for best presentation.
+<schema>
+{schema}
+</schema>
+
+<example_json_output>
+{json_output}
+</example_json_output>
+
+Ensure that the *values* of all top-level fields from the schema are wrapped in a <div> or <span> with the ID of the field slug.
+Do NOT include labels for the top-level fields inside the element with the field slug ID.
+e.g. For a top-level field with slug "customers" which includes a list of objects, the template may look like this:
+```
+{example_html}
+```
+As a reminder, here are the top-level fields from the schema:
+<top_level_fields>
+{top_level_fields}
+</top_level_fields>
+
+Output the Jinja HTML code only (do not wrap in backticks or include any other comments).
+"""
     ).format(
         schema=template.generated_schema or "",
         json_output=_convert_markdown_fields(
             template.last_example_source.extracted_json
         )
         or "",
+        example_html="""<h4>Customers</h4>
+<div id="customers">
+    {% for customer in customers %}
+    ...
+</div>""",
+        top_level_fields=", ".join(template.top_level_slugs) or "",
     )
     jinja_code = ""
 
@@ -78,38 +97,47 @@ def modify_layout_code(request, template_id):
             {"layout_form": layout_form, "template": template},
         )
     code = template.layout_jinja or ""
-    code_type = "Jinja2 HTML"
     llm = OttoLLM(deployment="gpt-4.1")
     bind_contextvars(feature="template_wizard", template_id=template.id)
     prompt = (
-        """You are an expert {code_type} template developer.
-        The schema used to populate the template is as follows:
-        ```
-        {schema}
-        ```
-        
-        The example JSON output is as follows:
-        ```
-        {example_json}
-        ```
-        ---
+        """You are an expert Jinja2 HTML template developer.
+The schema used to populate the template is as follows:
+<schema>
+{schema}
+</schema>
 
-        Here is the current template code for you to modify:
-        ```
-        {code}
-        ```
-        The user wants to modify the template with the following instruction:
-        "{instruction}"
+Here is the current template code for you to modify:
+<current_template_code>
+{code}
+</current_template_code>
 
-        Please return the modified template code only (no comments, no backticks, no explanations).
-        """
+Ensure that the *values* of all top-level fields from the schema are wrapped in a <div> or <span> with the ID of the field slug.
+Do NOT include labels for the top-level fields inside the element with the field slug ID.
+e.g. For a top-level field with slug "customers" which includes a list of objects, the template may look like this:
+```
+{example_html}
+```
+As a reminder, here are the top-level fields from the schema:
+<top_level_fields>
+{top_level_fields}
+</top_level_fields>
+
+The user wants to modify the template with the following instruction:
+<instruction>
+{instruction}
+</instruction>
+
+Please return the modified template code only (no comments, no backticks, no explanations).
+"""
     ).format(
         schema=template.generated_schema,
-        example_json=_convert_markdown_fields(
-            template.last_example_source.extracted_json
-        ),
-        code_type=code_type,
         code=code,
+        example_html="""<h4>Customers</h4>
+<div id="customers">
+    {% for customer in customers %}
+    ...
+</div>""",
+        top_level_fields=", ".join(template.top_level_slugs) or "",
         instruction=instruction,
     )
 

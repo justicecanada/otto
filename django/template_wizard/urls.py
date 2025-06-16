@@ -1,5 +1,6 @@
 from template_wizard.views.docx_template import (
     docx_template_status,
+    fill_docx_template,
     remove_docx_template,
     upload_docx_template,
 )
@@ -223,5 +224,10 @@ urlpatterns = [
         "edit_template/<int:template_id>/docx_template_status/",
         docx_template_status,
         name="docx_template_status",
+    ),
+    path(
+        "edit_template/<int:template_id>/fill_docx_template/",
+        fill_docx_template,
+        name="fill_docx_template",
     ),
 ]
