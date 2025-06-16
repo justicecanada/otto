@@ -138,7 +138,6 @@
         // DOM Elements
         const mediaContainer = document.getElementById('mediaContainer');
         const transcriptContainer = document.getElementById('transcript');
-        const errorDiv = document.getElementById('errorMessage');
         const statusDiv = document.getElementById('status');
         const fileInput = document.getElementById('fileInput');
 
@@ -534,15 +533,15 @@
         }
 
         function showError(message) {
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
             setTimeout(() => {
-                errorDiv.style.display = 'none';
+                statusDiv.style.display = 'none';
             }, 5000);
         }
 
         function hideError() {
-            errorDiv.style.display = 'none';
+            statusDiv.style.display = 'none';
         }
   </script>
 
