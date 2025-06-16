@@ -430,7 +430,11 @@ def convert_transcript_to_html(transcript_text, consolidate_sentences=False):
             "html_entry"
         ] = f"""
                 <div class="transcript-line">
+<<<<<<< app-transcriber-library-connection
+                    <span class="notranslate timestamp" data-time={line_dict["timestamp"].strip("[]")}>{line_dict["timestamp"]}:</span>
+=======
                     <span class="notranslate timestamp" data-time={line_dict["timestamp"].strip("[]")}>{line_dict["timestamp"]}</span>
+>>>>>>> app-transcriber
                     <span class="notranslate speaker">{line_dict["speaker"]}</span>
                     <div class="translatable-content">{line_dict["content"]}</div>
                 </div>

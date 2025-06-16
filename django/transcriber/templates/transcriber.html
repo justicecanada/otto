@@ -91,6 +91,13 @@
       <button id="translateButton" class="action-button" disabled>Translate</button>
       <button id="notesButton" class="action-button" disabled>Generate Notes</button>
       <button id="qaButton" class="action-button" disabled>Q&A</button>
+      <button id="libraryButton"
+              class="action-button"
+              disabled
+              hx-post="{% url 'transcriber:add_to_library' %}"
+              hx-vals="js:{'transcript_file': generateTranscriptText(), 'file_name': currentTranscriptName}"
+              hx-target="#status"
+              hx-swap="innerHTML">Add to Library</button>
     </div>
 
     <input type="file" id="fileInput">
@@ -131,7 +138,6 @@
         // DOM Elements
         const mediaContainer = document.getElementById('mediaContainer');
         const transcriptContainer = document.getElementById('transcript');
-        const errorDiv = document.getElementById('errorMessage');
         const statusDiv = document.getElementById('status');
         const fileInput = document.getElementById('fileInput');
 
@@ -146,6 +152,7 @@
         const notesButton = document.getElementById('notesButton');
         const translateButton = document.getElementById('translateButton');
         const qaButton = document.getElementById('qaButton');
+        const libraryButton = document.getElementById('libraryButton');
 
         let currentMediaFile = null;
         let currentMediaType = null;
@@ -174,8 +181,6 @@
             fileInput.accept = "audio/*,video/*";
             fileInput.click();
         });
-
-        
 
         transcribeButton.addEventListener('click', function () {
             if (!currentMediaFile) {
@@ -210,6 +215,7 @@
                         notesButton.disabled = false;
                         translateButton.disabled = false;
                         qaButton.disabled = false;
+                        libraryButton.disabled = false;
                     } else {
                         statusDiv.textContent = 'No transcription results were returned.';
                     }
@@ -292,6 +298,7 @@
                         notesButton.disabled = false;
                         translateButton.disabled = false;
                         qaButton.disabled = false;
+                        libraryButton.disabled = false;
 
                         // Try to find matching media file
                         const baseName = file.name.replace(/\.txt$/, "");
@@ -337,7 +344,7 @@
                 try {
                     
                     if (response.cleaned_transcript) {
-                        transcriptContainer.innerHTML = response.cleaned_transcript; // Replace transcript in browserAdd commentMore actions
+                        transcriptContainer.innerHTML = response.cleaned_transcript; // Replace transcript in browser
                         transcriptContainer.querySelectorAll('.timestamp').forEach(el => {
                           el.addEventListener('click', handleTimestampClick)
                         })
@@ -526,15 +533,15 @@
         }
 
         function showError(message) {
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
             setTimeout(() => {
-                errorDiv.style.display = 'none';
+                statusDiv.style.display = 'none';
             }, 5000);
         }
 
         function hideError() {
-            errorDiv.style.display = 'none';
+            statusDiv.style.display = 'none';
         }
   </script>
 
@@ -606,7 +613,6 @@
 
             // Update status message
             statusDiv.textContent = `Transcript translated to ${getLanguageName(targetLanguage)}`;
-
             // Close the modal
             setTimeout(() => {
                 translationModal.style.display = 'none';
