@@ -14,6 +14,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
+from librarian.utils.process_engine import generate_hash
 from otto.models import SecurityLabel
 from otto.utils.decorators import app_access_required, budget_required
 
@@ -240,34 +241,49 @@ def handle_upload(request):
 def add_to_library(request):
     bind_contextvars(feature="transcriber")
     try:
-        file_name = request.POST.get("file_name")
-        saved_transcription_file = SavedFile.objects.create(
-            file=ContentFile(
-                request.POST.get("transcript_file").encode(),
-                name=file_name,
-            ),
-            content_type="txt",
-        )
 
-        transcript_library, created = Library.objects.get_or_create(
+        transcript_library, lib_created = Library.objects.get_or_create(
             name="Transcriptions", created_by=request.user
         )
-        LibraryUserRole.objects.get_or_create(
-            library=transcript_library, user=request.user, role="admin"
-        )
+        if lib_created:
+            LibraryUserRole.objects.create(
+                library=transcript_library, user=request.user, role="admin"
+            )
+
         transcript_folder, created = DataSource.objects.get_or_create(
             name=str(timezone.now().date()),
             library=transcript_library,
             security_label=SecurityLabel.default_security_label(),
         )
-        transcript_folder.save()
 
-        transcript_doc = Document.objects.create(
-            data_source=transcript_folder,
-            saved_file=saved_transcription_file,
-            filename=file_name,
-        )
-        transcript_doc.process()
+        file_name = f"{request.POST.get('file_name')}.txt"
+        file = ContentFile(request.POST.get("transcript_file").encode(), name=file_name)
+        hash = generate_hash(file)
+        saved_transcription_file = SavedFile.objects.filter(
+            sha256_hash=hash,
+        ).first()
+
+        if not saved_transcription_file:
+            saved_transcription_file = SavedFile.objects.create(
+                file=file, content_type="txt", sha256_hash=hash
+            )
+
+        transcript_doc = Document.objects.filter(
+            data_source__library=transcript_library,
+            saved_file__sha256_hash=hash,
+            status="SUCCESS",
+        ).first()
+        if transcript_doc:
+            return HttpResponse(
+                _("Transcription already exists in library."),
+            )
+        else:
+            transcript_doc = Document.objects.create(
+                data_source=transcript_folder,
+                saved_file=saved_transcription_file,
+                filename=file_name,
+            )
+            transcript_doc.process()
 
         return HttpResponse(_("Transcription added to library successfully."))
 

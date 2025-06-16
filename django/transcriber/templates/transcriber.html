@@ -95,10 +95,16 @@
               class="action-button"
               disabled
               hx-post="{% url 'transcriber:add_to_library' %}"
-              hx-vals="js:{'transcript_file': generateTranscriptText(), 'file_name': currentTranscriptName}"
+              hx-vals="js:{'transcript_file': generateTranscriptText(), 'file_name': currentTranscriptName.value}"
               hx-target="#status"
               hx-swap="innerHTML">Add to Library</button>
     </div>
+
+    <input type="text"
+           id="currentTranscriptName"
+           placeholder="Enter transcript name"
+           style="width: 100%;
+                  margin-top: 10px">
 
     <input type="file" id="fileInput">
     {% csrf_token %}
@@ -157,7 +163,6 @@
         let currentMediaFile = null;
         let currentMediaType = null;
         let currentMediaPlayer = null;
-        let currentTranscriptName = null;
         let currentInputType = '';
 
         const csrfToken = getCookie('csrftoken');
@@ -207,7 +212,7 @@
                     
                     if (response.transcript && response.transcript.length > 0) {
                         displayTranscript(response.transcript);
-                        currentTranscriptName = response.transcript_file;
+                        currentTranscriptName.value = response.transcript_file.split(".txt")[0];
                         statusDiv.textContent = `Transcription complete. File saved to: ${response.transcript_file}`;
                         cleanupButton.disabled = false;
                         saveTranscriptButton.disabled = false;
@@ -241,7 +246,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = currentTranscriptName || 'transcript.txt';
+            a.download = currentTranscriptName.value || 'transcript.txt';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -285,7 +290,7 @@
             } else if (currentInputType === 'transcript') {
                 // Handle transcript file
                 statusDiv.textContent = 'Loading transcript...';
-                currentTranscriptName = file.name;
+                currentTranscriptName.value = file.name.split(".txt")[0];
 
                 const reader = new FileReader();
                 reader.onload = function (e) {
@@ -349,6 +354,7 @@
                           el.addEventListener('click', handleTimestampClick)
                         })
                         statusDiv.textContent = 'Transcript cleaned successfully';
+                        currentTranscriptName.value = `${currentTranscriptName.value}_cleaned`;
                     } else {
                         showError('Cleaning failed');
                     }
