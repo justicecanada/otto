@@ -1,13 +1,16 @@
 from django.contrib import messages
-from django.http import Http404, HttpResponse
-from django.shortcuts import redirect, render
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
 from rules.contrib.views import objectgetter
 
+from chat.forms import UploadForm
+from librarian.models import PDF_EXTRACTION_CHOICES
 from otto.utils.decorators import app_access_required, permission_required
-from template_wizard.forms import FieldForm, LayoutForm, MetadataForm, SourceForm
-from template_wizard.models import Template, TemplateField
+from template_wizard.forms import MetadataForm
+from template_wizard.models import Source, Template, TemplateSession
 
 app_name = "template_wizard"
 
@@ -88,20 +91,45 @@ def edit_metadata(request, template_id):
 )
 def edit_example_source(request, template_id):
     template = Template.objects.filter(id=template_id).first()
-    if request.method == "POST":
-        source_form = SourceForm(request.POST, instance=template.example_source)
-        if source_form.is_valid():
-            source_form.save()
-            messages.success(request, _("Example source updated successfully."))
-            return redirect("template_wizard:edit_fields", template_id=template.id)
-    else:
-        source_form = SourceForm(instance=template.example_source)
+    session = template.example_session
+    if not session:
+        # Create example session if missing
+        session = TemplateSession.objects.create(
+            template=template,
+            is_example_session=True,
+            user=template.owner if template.owner else request.user,
+        )
+    upload_form = UploadForm(prefix="template-wizard")
     return render(
         request,
         "template_wizard/edit_template.html",
         context={
-            "source_form": source_form,
+            "session": session,
+            "upload_form": upload_form,
             "active_tab": "source",
             "template": template,
+            "pdf_method_choices": PDF_EXTRACTION_CHOICES,
         },
     )
+
+
+@require_POST
+def update_example_type(request, source_id):
+    source = get_object_or_404(Source, id=source_id)
+    value = request.POST.get("is_example_template")
+    if value not in ["True", "False"]:
+        return HttpResponseBadRequest("Invalid value")
+    if value == "True":
+        # Change any other example source to not be an example template
+        other_sources = Source.objects.filter(
+            session=source.session, is_example_template=True
+        ).exclude(id=source.id)
+        other_sources.update(is_example_template=False)
+    source.is_example_template = value == "True"
+    source.save(update_fields=["is_example_template"])
+    messages.success(
+        request,
+        _("Example sources updated successfully."),
+        extra_tags="unique",
+    )
+    return HttpResponse()

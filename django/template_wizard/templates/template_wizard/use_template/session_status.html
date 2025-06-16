@@ -1,17 +1,21 @@
 {% load i18n %}
 
-<h5 class="mb-3">{% trans "Processing status" %}</h5>
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h5 class="mb-0">{% trans "Processing status" %}</h5>
+  {% if session.status == "completed" or session.status == "error" %}
+    <a class="btn btn-sm btn-outline-secondary d-flex align-items-center"
+       title="{% trans 'Restart processing for all sources' %}"
+       href="{% url 'template_wizard:fill_template' session_id=session.id %}?restart=true">
+      <i class="bi bi-arrow-clockwise me-1"></i>
+      <span>{% trans "Restart" %}</span>
+    </a>
+  {% endif %}
+</div>
 <ul class="list-group" id="session-status-list">
   {% for source in session.sources.all %}
     <li class="list-group-item">
       <div class="d-flex justify-content-between align-items-center">
-        <div class="fw-semibold truncate-start">
-          {% if source.filename %}
-            {{ source.filename }}
-          {% elif source.url %}
-            {{ source.url }}
-          {% endif %}
-        </div>
+        <div class="fw-semibold truncate-start">{{ source.name }}</div>
       </div>
       <div class="d-flex align-items-center justify-content-between mt-2 min-h-row">
         <span class="badge {% if source.status == 'pending' %}bg-secondary {% elif source.status == 'error' %}bg-danger {% elif source.status == 'completed' %}bg-success {% else %}bg-light text-dark {% endif %} rounded-pill">

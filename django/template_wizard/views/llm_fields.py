@@ -13,38 +13,44 @@ from structlog.contextvars import bind_contextvars
 from chat.llm import OttoLLM
 from otto.utils.decorators import permission_required
 from template_wizard.models import Template, TemplateField
-from template_wizard.utils import extract_fields
+from template_wizard.utils import extract_fields, extract_source_text
 
 
 @permission_required(
     "template_wizard.edit_template", objectgetter(Template, "template_id")
 )
-def test_fields(request, template_id):
+def test_fields(request, template_id, source_id=None):
     template = Template.objects.filter(id=template_id).first()
     if not template:
         raise Http404()
-    source = getattr(template, "example_source", None)
+    # Use the provided source_id, or fallback to the first example_source
+    if source_id:
+        source = template.example_sources.filter(id=source_id).first()
+    else:
+        source = getattr(template, "example_source", None)
     if source and template.fields.exists():
         extract_fields(source)
         template.last_test_fields_timestamp = timezone.now()
+        template.last_example_source = source
+        template.save()
     return render(
         request,
         "template_wizard/edit_template/test_fields_fragment.html",
-        {"template": template},
+        {"template": template, "source": source},
     )
 
 
 @permission_required(
     "template_wizard.edit_template", objectgetter(Template, "template_id")
 )
-def generate_fields(request, template_id):
+def generate_fields(request, template_id, from_mode=None):
     template = Template.objects.filter(id=template_id).first()
-    if not template or not template.example_source or not template.example_source.text:
+    if not template or not template.last_example_source:
         return HttpResponse(status=400, content="No example source available.")
     llm = OttoLLM(deployment="gpt-4.1")
     bind_contextvars(feature="template_wizard", template_id=template.id)
     prompt = (
-        """You are an expert in information extraction. Given the following example document, infer a JSON schema for extracting structured data fields, including nested objects and lists, suitable for the following Django model:
+        """You are an expert in information extraction. Given the following document(s), infer a JSON schema for extracting structured data fields, including nested objects and lists, suitable for the following Django model:
 
         class TemplateField(models.Model):
             field_name: str  # Human-readable name
@@ -63,20 +69,43 @@ def generate_fields(request, template_id):
         Additional information about the template to consider:
         TEMPLATE NAME: {template_name}
         TEMPLATE_DESCRIPTION: {template_description}
-        
-        Extract around 5-10 fields, including nested objects, based on the example document content.
-        This template will be used to extract structured data from similar documents so fields should not be too specific to this document.
-        
-        EXAMPLE DOCUMENT:
-        {document}
-        """
+
+        Extract all relevant fields, including nested objects, based on the document(s) below.
+    """
     ).format(
         template_name=template.name_auto,
         template_description=(
             f"({template.description_auto})" if template.description_auto else ""
         ),
-        document=template.example_source.text,
     )
+    if from_mode == "template" or from_mode == "template_and_sources":
+        if not template.example_template:
+            return HttpResponse(
+                status=400,
+                content="No example template available for field generation.",
+            )
+        if not template.example_template.text:
+            extract_source_text(template.example_template)
+        prompt += (
+            """
+            PLAIN TEXT TEMPLATE (contains fields to extract):
+
+            {document}
+        """
+        ).format(document=template.example_template.text)
+
+    if from_mode == "sources" or from_mode == "template_and_sources":
+        example_sources = template.example_sources.all()
+        if not example_sources:
+            return HttpResponse(
+                status=400, content="No example sources available for field generation."
+            )
+        prompt += "\nEXAMPLE DOCUMENTS (that would be put through the template):\n"
+        for source in example_sources:
+            if not source.text:
+                extract_source_text(source)
+            prompt += f"\n{source.text}\n"
+
     try:
         llm_response = llm.complete(prompt, response_format={"type": "json_object"})
         llm.create_costs()

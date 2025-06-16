@@ -1,13 +1,15 @@
 # Shared helpers for template wizard
-import json
 import re
 from typing import List, Optional
 
+from django.utils.translation import gettext as _
+
+import markdown
+from docx import Document
 from jinja2 import Template as JinjaTemplate
 from llama_index.core.program import LLMTextCompletionProgram
 from pydantic import Field, create_model
 from structlog import get_logger
-from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from chat.utils import url_to_text
@@ -15,9 +17,10 @@ from librarian.utils.process_engine import (
     extract_markdown,
     get_process_engine_from_type,
 )
-from template_wizard.models import LayoutType
 
 logger = get_logger(__name__)
+
+md = markdown.Markdown(extensions=["tables", "extra", "nl2br"], tab_length=2)
 
 
 def build_pydantic_model_for_fields(
@@ -99,7 +102,9 @@ def extract_source_text(source):
                 content = file.read()
                 content_type = source.saved_file.content_type
                 process_engine = get_process_engine_from_type(content_type)
-                source.text, _ = extract_markdown(content, process_engine)
+                source.text, _ = extract_markdown(
+                    content, process_engine, pdf_method=source.session.pdf_method
+                )
                 source.save()
         except Exception as e:
             logger.error(
@@ -117,7 +122,7 @@ def extract_fields(source):
     Uses LLM to extract fields from the source text and saves to source.extracted_json (TextField)
     """
 
-    template = source.template or source.session.template
+    template = source.session.template
     if not template:
         logger.error(
             "Missing template for extraction",
@@ -125,11 +130,7 @@ def extract_fields(source):
         )
         raise Exception("Missing template for extraction")
     if not source.text:
-        logger.error(
-            "Missing source text for extraction",
-            source_id=source.id,
-        )
-        raise Exception("Missing source text for extraction")
+        extract_source_text(source)
     if not template.fields.exists():
         logger.error(
             "Missing fields for extraction",
@@ -161,12 +162,27 @@ def extract_fields(source):
         raise
 
 
+def _convert_markdown_fields(data):
+    """
+    Recursively convert all string fields in data from markdown to HTML.
+    """
+    if isinstance(data, dict):
+        return {k: _convert_markdown_fields(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [_convert_markdown_fields(item) for item in data]
+    elif isinstance(data, str):
+        # Convert markdown to HTML only if the string is not empty
+        return md.convert(data) if data.strip() else data
+    else:
+        return data
+
+
 def fill_template_from_fields(source):
     """
     Fills the template with the extracted fields, saves to source.template_result (TextField)
     """
 
-    template = source.template or source.session.template
+    template = source.session.template
     if not template or not source.extracted_json:
         logger.error(
             "Missing template or extracted fields for template filling",
@@ -175,6 +191,8 @@ def fill_template_from_fields(source):
         return
     try:
         fields_data = source.extracted_json
+        # Convert all string fields from markdown to HTML
+        fields_data = _convert_markdown_fields(fields_data)
     except Exception as e:
         logger.error(
             "Error loading extracted_json for template filling",
@@ -185,56 +203,65 @@ def fill_template_from_fields(source):
         source.save()
         return
     output = None
-    if template.layout_type == LayoutType.LLM_GENERATION:
-        if template.layout_markdown:
-            llm = OttoLLM(deployment="gpt-4.1-mini")
-            bind_contextvars(feature="template_wizard", template_id=template.id)
-            prompt = (
-                "Fill in the following template string using the provided JSON data.\n"
-                "Template string:\n{layout_markdown}\n\n"
-                "JSON schema:\n{json_schema}\n\n"
-                "JSON data:\n{json_data}\n\n"
-                "Render the template as markdown, replacing all fields with the "
-                "corresponding values from the JSON data, "
-                "formatted according to the template instructions.\n"
-                "Do not wrap in backticks or include any additional comments."
-            ).format(
-                layout_markdown=template.layout_markdown,
-                json_schema=template.generated_schema,
-                json_data=fields_data,
+    if template.layout_jinja:
+        try:
+            jinja_template = JinjaTemplate(template.layout_jinja)
+            output = jinja_template.render(**fields_data)
+        except Exception as e:
+            logger.error(
+                "Error rendering Jinja template", source_id=source.id, error=str(e)
             )
-            try:
-                output = llm.complete(prompt)
-                llm.create_costs()
-                if output.startswith("```") and output.endswith("```"):
-                    output = output.strip("`\n")
-            except Exception as e:
-                logger.error(
-                    "Error rendering LLM template", source_id=source.id, error=str(e)
-                )
-                output = None
-    elif template.layout_type == LayoutType.MARKDOWN_SUBSTITUTION:
-        if template.layout_markdown:
-
-            def substitute(match):
-                key = match.group(1)
-                return str(fields_data.get(key, ""))
-
-            pattern = re.compile(r"{{\\s*(\\w+)\\s*}}")
-            output = pattern.sub(substitute, template.layout_markdown)
-    elif template.layout_type == LayoutType.JINJA_RENDERING:
-        if template.layout_jinja:
-            try:
-                jinja_template = JinjaTemplate(template.layout_jinja)
-                output = jinja_template.render(**fields_data)
-            except Exception as e:
-                logger.error(
-                    "Error rendering Jinja template", source_id=source.id, error=str(e)
-                )
-                output = None
-    elif template.layout_type == LayoutType.WORD_TEMPLATE:
-        output = "todo"
+            output = None
     else:
-        output = "Unknown layout type."
+        output = _(
+            "Template layout not defined. Please set a Jinja layout for this template."
+        )
     source.template_result = output
     source.save()
+
+
+def validate_docx_template_fields(docx_file, template) -> dict:
+    """
+    Validates that the docx file contains all top-level TemplateField slugs for the template.
+    Returns a dict with keys: is_valid, missing_fields, invalid_fields, found_fields, required_fields.
+    """
+    required_slugs = template.top_level_slugs
+    found_slugs = set()
+    invalid_slugs = set()
+    # Extract all text from the docx file
+    try:
+        if hasattr(docx_file, "open"):
+            # Django FileField
+            file_obj = docx_file.open("rb")
+        else:
+            file_obj = docx_file
+        doc = Document(file_obj)
+        text = " ".join([p.text for p in doc.paragraphs])
+        # Also check tables
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    text += " " + cell.text
+        # Find all {{ slug }} patterns
+        matches = re.findall(r"{{\s*(\w+)\s*}}", text)
+        found_slugs = set(matches)
+        # Invalid = found but not required
+        invalid_slugs = found_slugs - required_slugs
+        missing_slugs = required_slugs - found_slugs
+        is_valid = not missing_slugs and not invalid_slugs
+        return {
+            "is_valid": is_valid,
+            "missing_fields": sorted(missing_slugs),
+            "invalid_fields": sorted(invalid_slugs),
+            "found_fields": sorted(found_slugs),
+            "required_fields": sorted(required_slugs),
+        }
+    except Exception as e:
+        return {
+            "is_valid": False,
+            "missing_fields": list(required_slugs),
+            "invalid_fields": [],
+            "found_fields": [],
+            "required_fields": list(required_slugs),
+            "error": str(e),
+        }

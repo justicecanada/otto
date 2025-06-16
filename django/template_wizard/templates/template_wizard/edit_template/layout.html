@@ -1,5 +1,7 @@
 {% load i18n %}
 
+{% include "template_wizard/edit_template/word_template_modal.html" %}
+
 <div class="row">
   <div class="col-lg-5 border-end">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -15,23 +17,15 @@
           </div>
         </div>
         <button type="button"
-                class="btn btn-outline-success"
+                class="btn btn-success"
                 id="generate-jinja-btn"
-                style="display:none"
                 hx-post="{% url 'template_wizard:generate_jinja' template_id=template.id %}"
-                hx-target="#layout-form-container"
-                hx-swap="innerHTML"
-                hx-indicator="#generate-template-spinner">{% trans "Generate layout code" %}</button>
-        <button type="button"
-                class="btn btn-outline-success"
-                id="generate-markdown-btn"
-                style="display:none"
-                hx-post="{% url 'template_wizard:generate_markdown' template_id=template.id %}"
                 hx-target="#layout-form-container"
                 hx-swap="innerHTML"
                 hx-indicator="#generate-template-spinner">{% trans "Generate layout code" %}</button>
       </div>
     </div>
+    <div id="docx_template_status">{% include "template_wizard/edit_template/docx_template_status.html" %}</div>
     <div id="layout-form-container">{% include "template_wizard/edit_template/layout_form.html" %}</div>
   </div>
   <div class="col-lg-7">
@@ -66,7 +60,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   function hasFields() {
-    return {{ template.fields.all|length }} > 0 && {{ template.example_source.extracted_json|length }} > 0;
+    return {{ template.fields.all|length }} > 0 && {{ template.last_example_source.extracted_json|length }} > 0;
   }
   function blockIfNoFields(event) {
     if (!hasFields()) {
@@ -77,12 +71,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   var jinjaBtn = document.getElementById('generate-jinja-btn');
-  var markdownBtn = document.getElementById('generate-markdown-btn');
   if (jinjaBtn) {
     jinjaBtn.addEventListener('click', blockIfNoFields, true);
-  }
-  if (markdownBtn) {
-    markdownBtn.addEventListener('click', blockIfNoFields, true);
   }
 });
 </script>

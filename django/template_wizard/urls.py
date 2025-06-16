@@ -1,3 +1,9 @@
+from template_wizard.views.docx_template import (
+    docx_template_status,
+    fill_docx_template,
+    remove_docx_template,
+    upload_docx_template,
+)
 from template_wizard.views.download_all import download_all_results
 from template_wizard.views.fields import delete_field, edit_fields, field_modal
 from template_wizard.views.fill_template import (
@@ -7,21 +13,20 @@ from template_wizard.views.fill_template import (
     source_raw_data,
     source_template_result,
 )
-from template_wizard.views.layout import edit_layout, generate_markdown
+from template_wizard.views.layout import edit_layout, test_layout
 from template_wizard.views.llm_fields import generate_fields, modify_fields, test_fields
-from template_wizard.views.llm_layout import (
-    generate_jinja,
-    modify_layout_code,
-    test_layout,
-)
+from template_wizard.views.llm_layout import generate_jinja, modify_layout_code
 from template_wizard.views.main import (
     delete_session,
     new_session,
     open_session,
     session_history,
     template_list,
+    update_pdf_method,
 )
 from template_wizard.views.sources import (
+    add_file_source,
+    add_text_source,
     add_url_source,
     delete_all_sources,
     delete_source,
@@ -33,6 +38,7 @@ from template_wizard.views.template import (
     edit_example_source,
     edit_metadata,
     new_template,
+    update_example_type,
 )
 
 app_name = "template_wizard"
@@ -98,6 +104,11 @@ urlpatterns = [
         name="test_fields",
     ),
     path(
+        "edit_template/<int:template_id>/test_fields/<int:source_id>/",
+        test_fields,
+        name="test_fields",
+    ),
+    path(
         "edit_template/<int:template_id>/test_layout/",
         test_layout,
         name="test_layout",
@@ -108,17 +119,12 @@ urlpatterns = [
         name="generate_jinja",
     ),
     path(
-        "edit_template/<int:template_id>/generate_markdown/",
-        generate_markdown,
-        name="generate_markdown",
-    ),
-    path(
         "edit_template/<int:template_id>/modify_layout_code/",
         modify_layout_code,
         name="modify_layout_code",
     ),
     path(
-        "edit_template/<int:template_id>/generate_fields/",
+        "edit_template/<int:template_id>/generate_fields/<str:from_mode>/",
         generate_fields,
         name="generate_fields",
     ),
@@ -189,5 +195,45 @@ urlpatterns = [
         "session/<int:session_id>/download_all/",
         download_all_results,
         name="download_all_results",
+    ),
+    path(
+        "session/<int:session_id>/add_text_source/",
+        add_text_source,
+        name="add_text_source",
+    ),
+    path(
+        "session/<int:session_id>/add_file_source/",
+        add_file_source,
+        name="add_file_source",
+    ),
+    path(
+        "update_example_type/<int:source_id>/",
+        update_example_type,
+        name="update_example_type",
+    ),
+    path(
+        "edit_template/<int:template_id>/upload_docx_template/",
+        upload_docx_template,
+        name="upload_docx_template",
+    ),
+    path(
+        "edit_template/<int:template_id>/remove_docx_template/",
+        remove_docx_template,
+        name="remove_docx_template",
+    ),
+    path(
+        "edit_template/<int:template_id>/docx_template_status/",
+        docx_template_status,
+        name="docx_template_status",
+    ),
+    path(
+        "edit_template/<int:template_id>/fill_docx_template/",
+        fill_docx_template,
+        name="fill_docx_template",
+    ),
+    path(
+        "update_pdf_method/<int:session_id>/",
+        update_pdf_method,
+        name="update_pdf_method",
     ),
 ]

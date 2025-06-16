@@ -30,6 +30,9 @@
   </div>
 
   <div class="card-body pt-2">
+    {% with template as preset %}
+      <div class="info-section pb-0">{% include "template_wizard/template_list/shared_icon.html" %}</div>
+    {% endwith %}
     <p class="preset-description card-text">{{ template.description_auto }}</p>
   </div>
 

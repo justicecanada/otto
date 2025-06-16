@@ -1,9 +1,10 @@
-import json
 import re
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import BooleanField, Q, Value
+from django.db.models.functions import Coalesce
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils.text import slugify
@@ -13,30 +14,22 @@ from data_fetcher.util import get_request
 from structlog import get_logger
 
 from chat.models import SHARING_OPTIONS
-from librarian.models import SavedFile
+from librarian.models import PDF_EXTRACTION_CHOICES, SavedFile
+from otto.models import User
 
 logger = get_logger(__name__)
 
 
-class LayoutType(models.TextChoices):
-    # Jinja: Use Django's Jinja2 template engine to render the template.
-    # Template must include the field slugs exactly like {{ field_slug }}.
-    # Natively HTML; can optionally use Jinja syntax for conditional display, loops, etc.
-    JINJA_RENDERING = "jinja_rendering", _("Jinja HTML Rendering")
-    # LLM: Use a language model to output a complete document.
-    # Template can be semi-structured with placeholders for fields, instructions, etc.
-    # but they do not need to perfectly conform to the field slugs etc.
-    LLM_GENERATION = "llm_generation", _("Markdown with LLM generation")
-    # Markdown: Just substitute the template fields verbatim into the markdown text.
-    # Requires the field slugs to be included in the markdown text like {{ field_slug }}.
-    MARKDOWN_SUBSTITUTION = "markdown_substitution", _("Markdown substitution")
-    # Word: Use a Word document template with placeholders for fields.
-    # Requires the field slugs to be included in the Word document like {{ field_slug }}.
-    WORD_TEMPLATE = "word_template", _("Word template substitution")
-
-
 class TemplateManager(models.Manager):
-    pass
+    def get_accessible_templates(self, user: User, language: str = None):
+        ordering = [
+            "-sharing_option",
+        ]
+
+        templates = self.filter(
+            Q(owner=user) | Q(accessible_to=user) | Q(sharing_option="everyone"),
+        )
+        return templates.distinct().order_by(*ordering)
 
 
 class Template(models.Model):
@@ -66,19 +59,20 @@ class Template(models.Model):
     generated_schema = models.TextField(null=True)
 
     # Store the last test extraction result and timestamp
+    last_example_source = models.ForeignKey(
+        "Source", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    fields_modified_timestamp = models.DateTimeField(null=True, blank=True)
+    layout_modified_timestamp = models.DateTimeField(null=True, blank=True)
     last_test_fields_timestamp = models.DateTimeField(null=True, blank=True)
-    # Store the last layout rendering result, type, and timestamp
-    last_test_layout_type = models.CharField(max_length=100, null=True, blank=True)
     last_test_layout_timestamp = models.DateTimeField(null=True, blank=True)
 
     # Template rendering
-    layout_type = models.CharField(
-        max_length=50,
-        choices=LayoutType.choices,
-        default=LayoutType.JINJA_RENDERING,
-    )
     layout_jinja = models.TextField(null=True, blank=True)
-    layout_markdown = models.TextField(null=True, blank=True)
+    docx_template = models.ForeignKey(
+        SavedFile, on_delete=models.SET_NULL, null=True, related_name="docx_templates"
+    )
+    docx_template_filename = models.CharField(max_length=255, null=True, blank=True)
 
     @property
     def shared_with(self):
@@ -108,15 +102,46 @@ class Template(models.Model):
         else:
             return self.name_en or self.name_fr
 
-    def get_last_test_layout_type_display(self):
+    @property
+    def example_session(self):
+        return self.sessions.filter(is_example_session=True).first()
+
+    @property
+    def example_sources(self):
+        session = self.example_session
+        if session:
+            return session.sources.filter(is_example_template=False)
+        return Source.objects.none()
+
+    @property
+    def example_source(self):
         """
-        Return the human-readable label for the last_test_layout_type field using LayoutType choices.
+        Returns the first example source for the template, if it exists.
         """
-        if not self.last_test_layout_type:
-            return ""
-        return dict(LayoutType.choices).get(
-            self.last_test_layout_type, self.last_test_layout_type
+        session = self.example_session
+        if session:
+            return session.sources.filter(is_example_template=False).first()
+        return None
+
+    @property
+    def example_template(self):
+        session = self.example_session
+        if session:
+            return session.sources.filter(is_example_template=True).first()
+        return None
+
+    @property
+    def top_level_slugs(self):
+        return set(
+            self.fields.filter(parent_field__isnull=True).values_list("slug", flat=True)
         )
+
+    @property
+    def slug(self):
+        """
+        Returns a slugified version of the template name for use in URLs.
+        """
+        return slugify(self.name_auto).replace("-", "_") or f"template-{self.id}"
 
 
 class SourceStatus(models.TextChoices):
@@ -129,9 +154,6 @@ class SourceStatus(models.TextChoices):
 
 
 class Source(models.Model):
-    template = models.OneToOneField(
-        Template, on_delete=models.CASCADE, related_name="example_source", null=True
-    )
     text = models.TextField(null=True)
     status = models.CharField(
         max_length=50,
@@ -164,6 +186,7 @@ class Source(models.Model):
         null=True,
         blank=True,
     )
+    is_example_template = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["id"]
@@ -189,15 +212,28 @@ def delete_saved_file(sender, instance, **kwargs):
         logger.error(f"Failed to delete saved file: {e}")
 
 
+@receiver(post_delete, sender=Template)
+def delete_saved_file_from_template(sender, instance, **kwargs):
+    try:
+        instance.docx_template.safe_delete()
+    except Exception as e:
+        logger.error(f"Failed to delete saved file: {e}")
+
+
 class TemplateSessionStatus(models.TextChoices):
     SELECT_SOURCES = "select_sources", _("Selecting")
     FILL_TEMPLATE = "fill_template", _("Processing")
+    ERROR = "error", _("Error")
     COMPLETED = "completed", _("Completed")
 
 
 class TemplateSession(models.Model):
     template = models.ForeignKey(
         Template, on_delete=models.CASCADE, related_name="sessions"
+    )
+    is_example_session = models.BooleanField(
+        default=False,
+        help_text=_("Contains examples for use during template creation"),
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -210,6 +246,9 @@ class TemplateSession(models.Model):
         max_length=50,
         choices=TemplateSessionStatus.choices,
         default=TemplateSessionStatus.SELECT_SOURCES,
+    )
+    pdf_method = models.CharField(
+        max_length=50, choices=PDF_EXTRACTION_CHOICES, default="default"
     )
 
     def __str__(self):
@@ -228,9 +267,16 @@ class TemplateSession(models.Model):
 
 
 @receiver(post_save, sender=Template)
-def create_example_source(sender, instance, created, **kwargs):
+def create_example_session(sender, instance, created, **kwargs):
     if created:
-        Source.objects.create(template=instance, text="")
+        # Create an example session if it doesn't exist
+        session = instance.sessions.filter(is_example_session=True).first()
+        if not session:
+            session = TemplateSession.objects.create(
+                template=instance,
+                is_example_session=True,
+                user=instance.owner if instance.owner else None,
+            )
 
 
 class FieldType(models.TextChoices):
@@ -274,7 +320,7 @@ class TemplateField(models.Model):
         blank=True,
     )
     slug = models.CharField(
-        max_length=64,
+        max_length=256,
         help_text=_(
             "Unique identifier for use in templates (letters, numbers, underscores only)."
         ),

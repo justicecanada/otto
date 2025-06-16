@@ -9,7 +9,7 @@
         </div>
         <div class="small text-muted">
           {{ session.created_at }} |
-          <span class="{% if session.status == 'completed' %}text-success{% elif session.status == 'fill_template' %}text-primary{% endif %}">
+          <span class="{% if session.status == 'completed' %}text-success{% elif session.status == 'fill_template' %}text-primary{% elif session.status == 'error' %}text-danger{% endif %}">
             {{ session.get_status_display }}{% trans ":" %} {{ session.sources.count }} {% trans "source(s)" %}
           </span>
         </div>

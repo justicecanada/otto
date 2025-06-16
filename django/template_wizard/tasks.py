@@ -1,13 +1,7 @@
-from celery import current_task, shared_task
-from celery.exceptions import SoftTimeLimitExceeded
+from celery import shared_task
 from structlog import get_logger
 
-from chat.utils import url_to_text
-from librarian.utils.process_engine import (
-    extract_markdown,
-    get_process_engine_from_type,
-)
-from template_wizard.models import Source, Template, TemplateSession
+from template_wizard.models import Source
 from template_wizard.utils import (
     extract_fields,
     extract_source_text,

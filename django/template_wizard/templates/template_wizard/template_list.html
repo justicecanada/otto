@@ -1,74 +1,34 @@
-{% extends 'base.html' %}
+{% extends 'template_wizard/_wizard_main_layout.html' %}
 {% load i18n %}
 {% load static %}
 
-{% block page_css %}
+{% block wizard_page_css %}
   <link rel="stylesheet" href="{% static 'template_wizard/style.css' %}">
 {% endblock %}
 
-{% block page_script %}
-  <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
-{% endblock %}
-
-{% block page_title %}
-  {% trans "Template Wizard - Otto" %}
-{% endblock %}
-
-{% block breadcrumb %}
-  {{ block.super }}
-  <li class="breadcrumb-item">
-    <a href="{% url 'template_wizard:index' %}">{% trans "Template Wizard" %}</a>
-  </li>
-{% endblock %}
-
-{% block content_container %}
-  <div id="template-wizard-outer">
-    <div class="container py-3 px-0" id="search-container">
-      <div id="spinner"
-           class="spinner container text-primary position-absolute top-0 end-0">
-        <span class="spinner-border" aria-hidden="true"></span>
-        <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
-      </div>
-      <h2 class="mb-2 px-4 mt-2">
-        <a href="{% url 'template_wizard:index' %}"
-           class="text-decoration-none text-body">{% trans "Template Wizard" %}</a>
-      </h2>
-      <p class="mx-4 mb-4">
-        {% trans "Create or select a template to fill in with information from uploaded documents or URLs." %}
-      </p>
-      <ul class="nav nav-tabs px-3 border-bottom-0" id="top-tabs">
-        <li class="nav-item">
-          <button id="select-template-tab"
-                  class="nav-link fw-semibold text-body active"
-                  onclick="setActiveTab(this);">{% trans "1. Select template" %}</button>
-        </li>
-        <li class="nav-item">
-          <button id="select-sources-tab" class="nav-link text-body" disabled>{% trans "2. Select sources" %}</button>
-        </li>
-        <li class="nav-item">
-          <button id="fill-template-tab" class="nav-link text-body" disabled>{% trans "3. Fill template" %}</button>
-        </li>
-        {% include "template_wizard/session_history_button.html" %}
-      </ul>
-
-      <div id="step-content" class="rounded">
-        <div class="tab-pane fade show active p-3 border rounded">
-          {% include "template_wizard/template_list/select_template.html" %}
-        </div>
-      </div>
-      <button id="back-to-top"
-              type="button"
-              class="btn btn-primary rounded-circle position-fixed p-1 d-none"
-              style="bottom: 1rem;
-                     right: 1rem;
-                     width: 2.5rem;
-                     height: 2.5rem;
-                     z-index: 1050">
-        <i class="bi bi-arrow-up"></i>
-        <span class="visually-hidden">{% trans "Back to top" %}</span>
-      </button>
-    </div>
+{% block wizard_content_header %}
+  <div id="spinner"
+       class="spinner container text-primary position-absolute top-0 end-0">
+    <span class="spinner-border" aria-hidden="true"></span>
+    <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
   </div>
-
-  <script src="{% static 'template_wizard/scripts.js' %}"></script>
+  <h2 class="mb-2 px-4 mt-2">
+    <a href="{% url 'template_wizard:index' %}"
+       class="text-decoration-none text-body">{% trans "Template Wizard" %}</a>
+  </h2>
+  <p class="mx-4 mb-4">
+    {% trans "Create or select a template to fill in with information from uploaded documents or URLs." %}
+  </p>
 {% endblock %}
+
+{% block wizard_tabs %}
+  {% include "template_wizard/_use_template_tabs.html" with wizard_step="select_template" %}
+{% endblock %}
+
+{% block wizard_step_content %}
+  <div class="tab-pane fade show active p-3 border rounded">
+    {% include "template_wizard/template_list/select_template.html" %}
+  </div>
+{% endblock %}
+
+{% block wizard_page_script %}{% endblock %}
