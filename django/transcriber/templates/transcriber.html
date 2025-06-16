@@ -344,7 +344,7 @@
                 try {
                     
                     if (response.cleaned_transcript) {
-                        transcriptContainer.innerHTML = response.cleaned_transcript; // Replace transcript in browserAdd commentMore actions
+                        transcriptContainer.innerHTML = response.cleaned_transcript; // Replace transcript in browser
                         transcriptContainer.querySelectorAll('.timestamp').forEach(el => {
                           el.addEventListener('click', handleTimestampClick)
                         })
@@ -613,7 +613,6 @@
 
             // Update status message
             statusDiv.textContent = `Transcript translated to ${getLanguageName(targetLanguage)}`;
-
             // Close the modal
             setTimeout(() => {
                 translationModal.style.display = 'none';
