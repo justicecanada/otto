@@ -619,6 +619,7 @@
 
             // Update status message
             statusDiv.textContent = `Transcript translated to ${getLanguageName(targetLanguage)}`;
+            currentTranscriptName.value = `${currentTranscriptName.value}_${targetLanguage}`;
             // Close the modal
             setTimeout(() => {
                 translationModal.style.display = 'none';
