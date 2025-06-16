@@ -102,7 +102,9 @@ def extract_source_text(source):
                 content = file.read()
                 content_type = source.saved_file.content_type
                 process_engine = get_process_engine_from_type(content_type)
-                source.text, _ = extract_markdown(content, process_engine)
+                source.text, _ = extract_markdown(
+                    content, process_engine, pdf_method=source.session.pdf_method
+                )
                 source.save()
         except Exception as e:
             logger.error(

@@ -22,6 +22,7 @@ from template_wizard.views.main import (
     open_session,
     session_history,
     template_list,
+    update_pdf_method,
 )
 from template_wizard.views.sources import (
     add_file_source,
@@ -229,5 +230,10 @@ urlpatterns = [
         "edit_template/<int:template_id>/fill_docx_template/",
         fill_docx_template,
         name="fill_docx_template",
+    ),
+    path(
+        "update_pdf_method/<int:session_id>/",
+        update_pdf_method,
+        name="update_pdf_method",
     ),
 ]

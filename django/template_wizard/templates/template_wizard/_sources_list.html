@@ -7,7 +7,6 @@
       {% trans "Selected sources" %}
     {% endif %}
   </h5>
-
   <form method="post"
         action="{% url 'template_wizard:delete_all_sources' session_id=session.pk %}"
         onsubmit="return confirm('{% trans "Are you sure you want to delete all sources?" %}');">
@@ -33,6 +32,7 @@
         {% if session.is_example_session %}
           {% include "template_wizard/_source_example_type_dropdown.html" %}
         {% endif %}
+
         <form method="post"
               action="{% url 'template_wizard:delete_source' source.pk %}"
               class="ms-2 me-0 d-inline">
@@ -47,3 +47,21 @@
     </li>
   {% endfor %}
 </ul>
+<h5 class="mt-4">{% trans "PDF extraction method" %}</h5>
+<form method="post"
+      hx-post="{% url 'template_wizard:update_pdf_method' session.pk %}"
+      hx-trigger="change"
+      hx-swap="none"
+      class="d-inline">
+  {% csrf_token %}
+  <select name="pdf_method"
+          class="form-select form-select-sm d-inline w-auto"
+          style="min-width: 12em;
+                 display: inline-block;
+                 vertical-align: middle">
+    {% for value, label in pdf_method_choices %}
+      <option value="{{ value }}"
+              {% if session.pdf_method == value %}selected{% endif %}>{{ label|capfirst }}</option>
+    {% endfor %}
+  </select>
+</form>

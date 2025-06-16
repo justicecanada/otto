@@ -1,6 +1,16 @@
 {% load i18n %}
 
-<h5 class="mb-3">{% trans "Processing status" %}</h5>
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h5 class="mb-0">{% trans "Processing status" %}</h5>
+  {% if session.status == "completed" or session.status == "error" %}
+    <a class="btn btn-sm btn-outline-secondary d-flex align-items-center"
+       title="{% trans 'Restart processing for all sources' %}"
+       href="{% url 'template_wizard:fill_template' session_id=session.id %}?restart=true">
+      <i class="bi bi-arrow-clockwise me-1"></i>
+      <span>{% trans "Restart" %}</span>
+    </a>
+  {% endif %}
+</div>
 <ul class="list-group" id="session-status-list">
   {% for source in session.sources.all %}
     <li class="list-group-item">

@@ -14,7 +14,7 @@ from data_fetcher.util import get_request
 from structlog import get_logger
 
 from chat.models import SHARING_OPTIONS
-from librarian.models import SavedFile
+from librarian.models import PDF_EXTRACTION_CHOICES, SavedFile
 from otto.models import User
 
 logger = get_logger(__name__)
@@ -236,6 +236,9 @@ class TemplateSession(models.Model):
         max_length=50,
         choices=TemplateSessionStatus.choices,
         default=TemplateSessionStatus.SELECT_SOURCES,
+    )
+    pdf_method = models.CharField(
+        max_length=50, choices=PDF_EXTRACTION_CHOICES, default="default"
     )
 
     def __str__(self):

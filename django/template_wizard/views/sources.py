@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from rules.contrib.views import objectgetter
 
 from chat.forms import UploadForm
-from librarian.models import SavedFile
+from librarian.models import PDF_EXTRACTION_CHOICES, SavedFile
 from otto.utils.common import check_url_allowed
 from otto.utils.decorators import app_access_required, permission_required
 from template_wizard.models import Source, TemplateSession
@@ -127,6 +127,7 @@ def select_sources(request, session_id):
             "hide_breadcrumbs": True,
             "session": session,
             "upload_form": upload_form,
+            "pdf_method_choices": PDF_EXTRACTION_CHOICES,
         },
     )
 

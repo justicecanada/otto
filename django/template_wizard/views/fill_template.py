@@ -21,10 +21,11 @@ def fill_template(request, session_id):
     Starts the celery tasks for session.sources (if not started) and returns status/output.
     """
     session = get_object_or_404(TemplateSession, id=session_id)
+    restart = request.GET.get("restart", "false").lower() == "true"
     update_session_status = False
     # Enqueue the task to fill the template with sources, for each source
     for source in session.sources.all():
-        if source.status == "pending":
+        if source.status == "pending" or restart:
             update_session_status = True
             fill_template_with_source.delay(source.id)
     if update_session_status:
@@ -40,7 +41,7 @@ def fill_template(request, session_id):
         context={
             "hide_breadcrumbs": True,
             "session": session,
-            "poll": not all_sources_processed,
+            "poll": restart or not all_sources_processed,
         },
     )
 

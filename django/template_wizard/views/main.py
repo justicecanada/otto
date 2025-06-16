@@ -1,8 +1,9 @@
+from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 from rules.contrib.views import objectgetter
 
@@ -67,3 +68,20 @@ def open_session(request, session_id):
     else:
         url = reverse("template_wizard:fill_template", args=[session.id])
     return redirect(url)
+
+
+@require_POST
+@permission_required(
+    "template_wizard.access_session", objectgetter(TemplateSession, "session_id")
+)
+def update_pdf_method(request, session_id):
+    session = get_object_or_404(TemplateSession, id=session_id, user=request.user)
+    pdf_method = request.POST.get("pdf_method")
+    if pdf_method:
+        session.pdf_method = pdf_method
+        session.save(update_fields=["pdf_method"])
+        messages.success(
+            request, _("PDF method updated successfully."), extra_tags="unique"
+        )
+        return HttpResponse()
+    return HttpResponse("", status=400)
