@@ -3881,11 +3881,11 @@
     },
     "Qwen3 235B (Fireworks, 2nd best overall)": {
         "fr": "",
-        "fr_auto": "Qwen3 235B (Fireworks, 2e meilleur au total)"
+        "fr_auto": "Qwen3 235B (Feux d’artifice, 2e meilleur au total)"
     },
     "Qwen3 30B-A3B (Fireworks, best small model)": {
         "fr": "",
-        "fr_auto": "Qwen3 30B-A3B (Fireworks, meilleur petit modèle)"
+        "fr_auto": "Qwen3 30B-A3B (Feux d’artifice, meilleur petit modèle)"
     },
     "Gemini 2.5 Flash (Google, value, long context)": {
         "fr": "",
@@ -3942,6 +3942,50 @@
     "GPT-4o-mini (legacy model, 1x cost)": {
         "fr": "",
         "fr_auto": "GPT-4o-mini (modèle hérité, coût 1x)"
+    },
+    "Gemini 2.5 Flash (Google, best value, long context)": {
+        "fr": "",
+        "fr_auto": "Gemini 2.5 Flash (Google, meilleur rapport qualité-prix, contexte long)"
+    },
+    "Claude Sonnet 4 (Anthropic, kind of expensive)": {
+        "fr": "",
+        "fr_auto": "Claude Sonnet 4 (Anthropique, un peu cher)"
+    },
+    "Claude Opus 4 (Anthropic, insanely expensive)": {
+        "fr": "",
+        "fr_auto": "Claude Opus 4 (Anthropique, incroyablement cher)"
+    },
+    "QwQ-32B (Groq, reasoning, long context)": {
+        "fr": "",
+        "fr_auto": "QwQ-32B (Groq, raisonnement, contexte long)"
+    },
+    "Llama 4 Scout (Cerebras, instant, long context)": {
+        "fr": "",
+        "fr_auto": "Llama 4 Scout (Cerebras, instantané, contexte long)"
+    },
+    "Qwen3 32B (Cerebras, instant, strong reasoning)": {
+        "fr": "",
+        "fr_auto": "Qwen3 32B (Cerebras, raisonnement instantané et fort)"
+    },
+    "Phi-4 (very small open-source model)": {
+        "fr": "",
+        "fr_auto": "Phi-4 (très petit modèle open-source)"
+    },
+    "Llama 4 Scout (Groq, fast open-source RAG)": {
+        "fr": "",
+        "fr_auto": "Llama 4 Scout (Groq, rag open source rapide)"
+    },
+    "Llama 4 Maverick (Groq, fast open-source chat)": {
+        "fr": "",
+        "fr_auto": "Llama 4 Maverick (Groq, chat open source rapide)"
+    },
+    "Qwen3 235B (Fireworks, best open source)": {
+        "fr": "",
+        "fr_auto": "Qwen3 235B (Feux d’artifice, meilleur open source)"
+    },
+    "Llama 4 Scout (Cerebras, instant, short context)": {
+        "fr": "",
+        "fr_auto": "Llama 4 Scout (Cerebras, instantané, contexte court)"
     },
     "Layout type": {
         "fr": "",
