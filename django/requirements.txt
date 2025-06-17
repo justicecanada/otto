@@ -83,4 +83,4 @@ django-celery-beat==2.7.0
 
 # GPL-licensed: Use only through CLI to maintain Otto's MIT license ------------
 extract_msg==0.54.1
-weasyprint
+xhtml2pdf==0.2.17
