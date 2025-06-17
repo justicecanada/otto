@@ -1,0 +1,18 @@
+{% load i18n %}
+<li class="nav-item dropdown ms-auto">
+  <button id="history-tab"
+          class="nav-link text-body dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          hx-get="{% url 'template_wizard:session_history' %}"
+          hx-target="#session-history-dropdown"
+          hx-swap="innerHTML">
+    <i class="bi bi-clock-history"></i> {% trans "History" %}
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end p-0"
+      id="session-history-dropdown">
+    <!-- HTMX will load session history here -->
+    <li class="dropdown-item text-muted small">{% trans "Loading..." %}</li>
+  </ul>
+</li>

@@ -1,12 +1,12 @@
 import os
 from logging.config import dictConfig
 
-from django.conf import settings
-
 from celery import Celery
 from celery.schedules import crontab
 from celery.signals import setup_logging
 from django_structlog.celery.steps import DjangoStructLogInitStep
+
+from django.conf import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "otto.settings")
 
@@ -79,6 +79,16 @@ app.conf.beat_schedule = {
     "update-exchange-rate-every-week": {
         "task": "otto.tasks.update_exchange_rate",
         "schedule": crontab(hour=2, minute=0, day_of_week=6),
+    },
+    # Delete empty template sessions every day at 2:05 am UTC
+    "delete-empty-template-sessions-every-morning": {
+        "task": "otto.tasks.delete_empty_template_sessions",
+        "schedule": crontab(hour=2, minute=5),
+    },
+    # Reset User.accepted_terms_date daily for users who have accepted terms >= 30 days ago
+    "reset-accepted-terms-date-every-month": {
+        "task": "otto.tasks.reset_accepted_terms_date",
+        "schedule": crontab(hour=0, minute=40),
     },
 }
 

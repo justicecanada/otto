@@ -17,3 +17,5 @@ for model in models:
 
 # All the models we use, including gpt-4.1 (currently not in tiktoken) use o200k_base
 tiktoken.get_encoding("o200k_base")
+# Embedding models use cl100k_base
+tiktoken.get_encoding("cl100k_base")

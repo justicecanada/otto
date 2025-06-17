@@ -28,8 +28,10 @@ known_first_party = [
     "librarian",
     "otto",
     "laws",
-    "text_extractor",
     "lex_experiment"
+    "case_prep",
+    "text_extractor",
+    "template_wizard"
   ]
 sections = [
     "FUTURE",

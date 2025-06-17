@@ -1,0 +1,8 @@
+{% load i18n %}
+{% if source.template_result %}
+  <h5>{% trans "Template result" %}</h5>
+  <p class="text-muted small truncate">{{ source.name }}</p>
+  {% include "template_wizard/use_template/template_result_fragment_jinja.html" with source=source %}
+{% else %}
+  <div class="alert alert-warning">{% trans "No template result available." %}</div>
+{% endif %}

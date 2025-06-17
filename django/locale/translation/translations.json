@@ -3986,5 +3986,613 @@
     "Llama 4 Scout (Cerebras, instant, short context)": {
         "fr": "",
         "fr_auto": "Llama 4 Scout (Cerebras, instantané, contexte court)"
+    },
+    "Layout type": {
+        "fr": "",
+        "fr_auto": "Type d’aménagement"
+    },
+    "Jinja layout code": {
+        "fr": "",
+        "fr_auto": "Code de mise en page Jinja"
+    },
+    "Markdown layout code": {
+        "fr": "",
+        "fr_auto": "Code de mise en page Markdown"
+    },
+    "Choose how the template will be rendered": {
+        "fr": "",
+        "fr_auto": "Choisissez comment le modèle sera rendu"
+    },
+    "Jinja template for advanced rendering.": {
+        "fr": "",
+        "fr_auto": "Modèle Jinja pour un rendu avancé."
+    },
+    "Markdown template for LLM and Markdown substitution modes.": {
+        "fr": "",
+        "fr_auto": "Modèle Markdown pour les modes de substitution LLM et Markdown."
+    },
+    "Field name": {
+        "fr": "",
+        "fr_auto": "Nom du champ"
+    },
+    "List": {
+        "fr": "",
+        "fr_auto": "Liste"
+    },
+    "Required": {
+        "fr": "",
+        "fr_auto": "Obligatoire"
+    },
+    "Field type": {
+        "fr": "",
+        "fr_auto": "Type de champ"
+    },
+    "Text format": {
+        "fr": "",
+        "fr_auto": "Format du texte"
+    },
+    "Description": {
+        "fr": "",
+        "fr_auto": "Désignation des marchandises"
+    },
+    "Slug": {
+        "fr": "",
+        "fr_auto": "Limace"
+    },
+    "Helps the extractor know what to look for. Try including examples.": {
+        "fr": "",
+        "fr_auto": "Aide l’extracteur à savoir ce qu’il doit rechercher. Essayez d’inclure des exemples."
+    },
+    "Extract multiple instances of this field as a list": {
+        "fr": "",
+        "fr_auto": "Extraire plusieurs instances de ce champ sous forme de liste"
+    },
+    "Always fill this field, even if no information is found (can cause hallucinations)": {
+        "fr": "",
+        "fr_auto": "Remplissez toujours ce champ, même si aucune information n’est trouvée (peut causer des hallucinations)"
+    },
+    "Unique identifier for use in templates (letters, numbers, underscores only)": {
+        "fr": "",
+        "fr_auto": "Identificateur unique à utiliser dans les modèles (lettres, chiffres, traits de soulignement seulement)"
+    },
+    "Slug must contain only letters, numbers, and underscores.": {
+        "fr": "",
+        "fr_auto": "Slug ne doit contenir que des lettres, des chiffres et des traits de soulignement."
+    },
+    "Slug must be unique among sibling fields.": {
+        "fr": "",
+        "fr_auto": "La limace doit être unique parmi les champs frères."
+    },
+    "Slug must be unique among top-level fields.": {
+        "fr": "",
+        "fr_auto": "Slug doit être unique parmi les champs de premier niveau."
+    },
+    "Jinja HTML Rendering": {
+        "fr": "",
+        "fr_auto": "Rendu HTML Jinja"
+    },
+    "Markdown with LLM generation": {
+        "fr": "",
+        "fr_auto": "Démarque avec génération LLM"
+    },
+    "Markdown substitution": {
+        "fr": "",
+        "fr_auto": "Remplacement de Markdown"
+    },
+    "Word template substitution": {
+        "fr": "",
+        "fr_auto": "Substitution de modèle Word"
+    },
+    "Text": {
+        "fr": "",
+        "fr_auto": "Texte"
+    },
+    "Decimal": {
+        "fr": "",
+        "fr_auto": "Décimal"
+    },
+    "Integer": {
+        "fr": "",
+        "fr_auto": "Entier"
+    },
+    "Yes/No": {
+        "fr": "",
+        "fr_auto": "Oui/Non"
+    },
+    "Group of fields": {
+        "fr": "",
+        "fr_auto": "Groupe de champs"
+    },
+    "Free text": {
+        "fr": "",
+        "fr_auto": "Texte libre"
+    },
+    "Email": {
+        "fr": "",
+        "fr_auto": "Courriel"
+    },
+    "Date": {
+        "fr": "",
+        "fr_auto": "Date :"
+    },
+    "Time": {
+        "fr": "",
+        "fr_auto": "Heure"
+    },
+    "Date and Time": {
+        "fr": "",
+        "fr_auto": "Date et heure"
+    },
+    "Duration": {
+        "fr": "",
+        "fr_auto": "Durée"
+    },
+    "Unique identifier for use in templates (letters, numbers, underscores only).": {
+        "fr": "",
+        "fr_auto": "Identificateur unique à utiliser dans les modèles (lettres, chiffres, traits de soulignement seulement)."
+    },
+    "Template Wizard - Otto": {
+        "fr": "",
+        "fr_auto": "Assistant de modèle - Otto"
+    },
+    "Create new template": {
+        "fr": "",
+        "fr_auto": "Créer un nouveau modèle"
+    },
+    "Edit template:": {
+        "fr": "",
+        "fr_auto": "Modifier le modèle :"
+    },
+    "Are you sure you want to delete the template": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir supprimer le modèle"
+    },
+    "Delete template": {
+        "fr": "",
+        "fr_auto": "Supprimer le modèle"
+    },
+    "1. Metadata": {
+        "fr": "",
+        "fr_auto": "1. Métadonnées"
+    },
+    "2. Example source": {
+        "fr": "",
+        "fr_auto": "2. Exemple de source"
+    },
+    "3. Define fields": {
+        "fr": "",
+        "fr_auto": "3. Définissez les champs"
+    },
+    "4. Template layout": {
+        "fr": "",
+        "fr_auto": "4. Mise en page du modèle"
+    },
+    "Fields": {
+        "fr": "",
+        "fr_auto": "Champs"
+    },
+    "Add child field": {
+        "fr": "",
+        "fr_auto": "Ajouter un champ enfant"
+    },
+    "Are you sure you want to delete this field?": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir supprimer ce champ?"
+    },
+    "No fields defined yet.": {
+        "fr": "",
+        "fr_auto": "Aucun champ n’a encore été défini."
+    },
+    "Edit Field": {
+        "fr": "",
+        "fr_auto": "Modifier le champ"
+    },
+    "Add Field": {
+        "fr": "",
+        "fr_auto": "Ajouter un champ"
+    },
+    "Fields to extract": {
+        "fr": "",
+        "fr_auto": "Champs à extraire"
+    },
+    "This will delete all existing fields. Continue?": {
+        "fr": "",
+        "fr_auto": "Cela supprimera tous les champs existants. Continuer?"
+    },
+    "Generate fields": {
+        "fr": "",
+        "fr_auto": "Générer des champs"
+    },
+    "Add field": {
+        "fr": "",
+        "fr_auto": "Ajouter un champ"
+    },
+    "Note: Template name and description also influence the extraction results.": {
+        "fr": "",
+        "fr_auto": "Remarque : Le nom et la description du modèle influencent également les résultats de l’extraction."
+    },
+    "Modify fields using Otto": {
+        "fr": "",
+        "fr_auto": "Modifier les champs à l’aide d’Otto"
+    },
+    "Instruct Otto to modify the fields...": {
+        "fr": "",
+        "fr_auto": "Demandez à Otto de modifier les champs..."
+    },
+    "Modify fields": {
+        "fr": "",
+        "fr_auto": "Modifier les champs"
+    },
+    "Results on example source": {
+        "fr": "",
+        "fr_auto": "Résultats sur la source de l’exemple"
+    },
+    "Test extraction": {
+        "fr": "",
+        "fr_auto": "Essai d’extraction"
+    },
+    "You must add fields before testing extraction.": {
+        "fr": "",
+        "fr_auto": "Vous devez ajouter des champs avant de tester l’extraction."
+    },
+    "Define template": {
+        "fr": "",
+        "fr_auto": "Définir le modèle"
+    },
+    "Generate layout code": {
+        "fr": "",
+        "fr_auto": "Générer un code de mise en page"
+    },
+    "Test layout": {
+        "fr": "",
+        "fr_auto": "Mise en page de l’essai"
+    },
+    "Finish": {
+        "fr": "",
+        "fr_auto": "Finition"
+    },
+    "You must add fields and test extraction before generating a layout": {
+        "fr": "",
+        "fr_auto": "Vous devez ajouter des champs et tester l’extraction avant de générer une mise en page"
+    },
+    "Modify layout code using Otto": {
+        "fr": "",
+        "fr_auto": "Modifier le code de mise en page à l’aide d’Otto"
+    },
+    "Instruct Otto to modify the code...": {
+        "fr": "",
+        "fr_auto": "Demandez à Otto de modifier le code..."
+    },
+    "Modify code": {
+        "fr": "",
+        "fr_auto": "Modifier le code"
+    },
+    "Save & next": {
+        "fr": "",
+        "fr_auto": "Sauvegarder et suivre"
+    },
+    "Last extraction result": {
+        "fr": "",
+        "fr_auto": "Dernier résultat d’extraction"
+    },
+    "View Raw JSON": {
+        "fr": "",
+        "fr_auto": "Voir JSON brut"
+    },
+    "Results from layout type:": {
+        "fr": "",
+        "fr_auto": "Résultats du type de mise en page :"
+    },
+    "Create or select a template to fill in with information from uploaded documents or URLs.": {
+        "fr": "",
+        "fr_auto": "Créez ou sélectionnez un modèle à remplir avec des informations provenant de documents ou d’URL téléchargés."
+    },
+    "1. Select template": {
+        "fr": "",
+        "fr_auto": "1. Sélectionnez le modèle"
+    },
+    "2. Select sources": {
+        "fr": "",
+        "fr_auto": "2. Sélectionnez les sources"
+    },
+    "3. Fill template": {
+        "fr": "",
+        "fr_auto": "3. Gabarit de remplissage"
+    },
+    "Select template": {
+        "fr": "",
+        "fr_auto": "Sélectionner le modèle"
+    },
+    "No templates available.": {
+        "fr": "",
+        "fr_auto": "Aucun modèle disponible."
+    },
+    "Upload documents or enter URLs to transform into the selected template.": {
+        "fr": "",
+        "fr_auto": "Téléchargez des documents ou entrez des URL pour les transformer dans le modèle sélectionné."
+    },
+    "Field saved successfully.": {
+        "fr": "",
+        "fr_auto": "Champ sauvegardé avec succès."
+    },
+    "Field deleted successfully.": {
+        "fr": "",
+        "fr_auto": "Champ supprimé avec succès."
+    },
+    "Template layout updated successfully.": {
+        "fr": "",
+        "fr_auto": "La mise en page du modèle a été mise à jour avec succès."
+    },
+    "Markdown template generated and saved.": {
+        "fr": "",
+        "fr_auto": "Modèle de démarcation généré et enregistré."
+    },
+    "\n        You are an expert in information extraction. Given the following example document, infer a JSON schema for extracting structured data fields, including nested objects and lists, suitable for the following Django model:\n\n        class TemplateField(models.Model):\n            field_name: str  # Human-readable name\n            slug: str  # Unique identifier (letters, numbers, underscores only). Must be unique among siblings.\n            field_type: str  # One of: str, float, int, bool, object\n            string_format: str  # One of: none, email, date, time, date-time, duration\n            required: bool  # Always fill this field, even if no information is found (can cause hallucinations - use sparingly!)\n            description: str  # Helps the extractor know what to look for.\n            list: bool  # Extract multiple instances of this field as a list\n            child_fields: List[TemplateField]  # Nested fields\n\n        Please output a JSON object containing all fields, where each field is an object with keys: field_name, slug, field_type, string_format, required, description, list, child_fields.\n        Use 'object' for field_type of parent objects and nest child objects as their children. Only do this when there is more than 1 child field. You can use a primitive type with list=True for simple lists.\n        The top level key must be \"template_fields\" and the value must be a list of field definitions.\n\n        The user has indicated that the type of document is:\n        {template_name}\n        {template_description}\n\n        Extract around 5-10 fields, including nested objects, based on the example document content.\n        This template will be used to extract structured data from similar documents so fields should not be too specific to this document.\n        \n        EXAMPLE DOCUMENT:\n        {document}\n        ": {
+        "fr": "",
+        "fr_auto": "\nVous êtes un expert en extraction d’information. À l’aide de l’exemple de document suivant, déduisez un schéma JSON pour extraire des champs de données structurés, y compris des objets imbriqués et des listes, adapté au modèle Django suivant :\n\nclass TemplateField(models. Modèle) :\n            field_name : str # Nom lisible par l’homme\n            slug : str # Identificateur unique (lettres, chiffres, traits de soulignement seulement). Doit être unique parmi les frères et sœurs.\n            field_type : str # Un des : str, float, int, bool, object\n            string_format : str # Un de : aucun, courriel, date, heure, date-heure, durée\n            required : bool # Remplissez toujours ce champ, même si aucune information n’est trouvée (peut causer des hallucinations - utilisez avec parcimonie!)\n            description : str # Aide l’extracteur à savoir ce qu’il faut rechercher.\n            list : bool # Extraire plusieurs instances de ce champ sous forme de liste\n            child_fields : List[TemplateField] # Champs imbriqués\n\nVeuillez générer un objet JSON contenant tous les champs, où chaque champ est un objet avec des clés : field_name, slug, field_type, string_format, required, description, liste, child_fields.\n        Utilisez « object » pour field_type d’objets parents et imbriquez des objets enfants comme leurs enfants. Ne le faites que lorsqu’il y a plus d’un champ enfant. Vous pouvez utiliser un type primitif avec list=True pour les listes simples.\n        La clé de niveau supérieur doit être « template_fields » et la valeur doit être une liste de définitions de champs.\n\nL’utilisateur a indiqué que le type de document est :\n        {template_name}\n        {template_description}\n\nExtrayez environ 5 à 10 champs, y compris les objets imbriqués, en fonction du contenu du document d’exemple.\n        Ce modèle sera utilisé pour extraire des données structurées de documents similaires, de sorte que les champs ne doivent pas être trop spécifiques à ce document.\n        \nEXEMPLE DE DOCUMENT :\n        {document}\n        "
+    },
+    "No instruction provided.": {
+        "fr": "",
+        "fr_auto": "Aucune instruction n’est fournie."
+    },
+    "\n        You are an expert in information extraction. Here is the current JSON schema for extracting structured data fields (see the TemplateField model below). Modify the schema according to the user's instruction. Output the new schema as a JSON object with the top-level key 'template_fields' and the value as a list of field definitions. Do not include any comments or explanations.\n\n        class TemplateField(models.Model):\n            field_name: str  # Human-readable name\n            slug: str  # Unique identifier (letters, numbers, underscores only). Must be unique among siblings.\n            field_type: str  # One of: str, float, int, bool, object\n            string_format: str  # One of: none, email, date, time, date-time, duration\n            required: bool  # Always fill this field, even if no information is found (can cause hallucinations - use sparingly!)\n            description: str  # Helps the extractor know what to look for.\n            list: bool  # Extract multiple instances of this field as a list\n            child_fields: List[TemplateField]  # Nested fields\n\n        CURRENT FIELDS:\n        {{\"template_fields\": {fields_json}}}\n\n        USER INSTRUCTION:\n        {instruction}\n        ": {
+        "fr": "",
+        "fr_auto": "\nVous êtes un expert en extraction d’information. Voici le schéma JSON actuel pour extraire des champs de données structurées (voir le modèle TemplateField ci-dessous). Modifiez le schéma selon les instructions de l’utilisateur. Sortez le nouveau schéma sous forme d’objet JSON avec la clé de niveau supérieur « template_fields » et la valeur sous forme de liste de définitions de champ. N’incluez aucun commentaire ou explication.\n\nclass TemplateField(models. Modèle) :\n            field_name : str # Nom lisible par l’homme\n            slug : str # Identificateur unique (lettres, chiffres, traits de soulignement seulement). Doit être unique parmi les frères et sœurs.\n            field_type : str # Un des : str, float, int, bool, object\n            string_format : str # Un de : aucun, courriel, date, heure, date-heure, durée\n            required : bool # Remplissez toujours ce champ, même si aucune information n’est trouvée (peut causer des hallucinations - utilisez avec parcimonie!)\n            description : str # Aide l’extracteur à savoir ce qu’il faut rechercher.\n            list : bool # Extraire plusieurs instances de ce champ sous forme de liste\n            child_fields : List[TemplateField] # Champs imbriqués\n\nCHAMPS ACTUELS :\n        {{\"template_fields » : {fields_json}}}\n\nINSTRUCTIONS À L’UTILISATEUR :\n        {instruction}\n        "
+    },
+    "LLM or JSON error: {e}\nResponse: {llm_response}": {
+        "fr": "",
+        "fr_auto": "Erreur LLM ou JSON : {e}\nRéponse : {llm_response}"
+    },
+    "Fields modified.": {
+        "fr": "",
+        "fr_auto": "Champs modifiés."
+    },
+    "Fill in the following template string using the provided JSON data.\nTemplate string:\n{layout_markdown}\n\nJSON schema:\n{json_schema}\n\nJSON data:\n{json_data}\n\nRender the template as markdown, replacing all fields with the corresponding values from the JSON data, formatted according to the template instructions.\nDo not wrap in backticks or include any additional comments.": {
+        "fr": "",
+        "fr_auto": "Remplissez la chaîne de modèle suivante à l’aide des données JSON fournies.\nChaîne de gabarit :\n{layout_markdown}\n\nSchéma JSON :\n{json_schema}\n\nDonnées JSON :\n{json_data}\n\nAffichez le modèle sous forme de markdown, en remplaçant tous les champs par les valeurs correspondantes des données JSON, formatées selon les instructions du modèle.\nNe faites pas de rétrocoches et n’incluez pas de commentaires supplémentaires."
+    },
+    "\n        Given the following schema and example JSON output, generate a Jinja2 HTML template that will present the extracted information in a user-friendly way. \n        The template should use Jinja2 syntax (e.g., {{ field }}) and render all fields from the example JSON.\n        Use HTML markup and include labels for each field.\n        You may reorder the fields for better presentation, use HTML constructs like lists, tables, etc. as needed for best presentation.\n        Output the HTML code only (do not wrap in backticks or include any other comments).\n        \n        SCHEMA:\n        {schema}\n        \n        EXAMPLE JSON OUTPUT:\n        {json_output}\n        ": {
+        "fr": "",
+        "fr_auto": "\nCompte tenu du schéma suivant et de l’exemple de sortie JSON, générez un modèle HTML Jinja2 qui présentera les informations extraites de manière conviviale. \n        Le modèle doit utiliser la syntaxe Jinja2 (par exemple, {{ field }}) et afficher tous les champs de l’exemple JSON.\n        Utilisez le balisage HTML et incluez des étiquettes pour chaque champ.\n        Vous pouvez réorganiser les champs pour une meilleure présentation, utiliser des constructions HTML comme des listes, des tableaux, etc. au besoin pour une meilleure présentation.\n        Sortez le code HTML seulement (ne pas envelopper les rétrogrades et n’incluez pas d’autres commentaires).\n        \nSCHÉMA :\n        {schéma}\n        \nEXEMPLE DE SORTIE JSON :\n        {json_output}\n        "
+    },
+    "Jinja template generated and saved.": {
+        "fr": "",
+        "fr_auto": "Modèle Jinja généré et sauvegardé."
+    },
+    "Error generating Jinja template: {e}": {
+        "fr": "",
+        "fr_auto": "Erreur de génération du modèle Jinja : {e}"
+    },
+    "Layout type '{layout_type}' not supported for modification.": {
+        "fr": "",
+        "fr_auto": "Le type de mise en page '{layout_type}' n’est pas pris en charge pour modification."
+    },
+    "Layout code modified.": {
+        "fr": "",
+        "fr_auto": "Code de mise en page modifié."
+    },
+    "Error modifying layout code: {e}": {
+        "fr": "",
+        "fr_auto": "Erreur de modification du code de mise en page : {e}"
+    },
+    "Please correct the errors below: ": {
+        "fr": "",
+        "fr_auto": "Veuillez corriger les erreurs ci-dessous : "
+    },
+    "Template deleted successfully.": {
+        "fr": "",
+        "fr_auto": "Modèle supprimé avec succès."
+    },
+    "Template metadata updated successfully.": {
+        "fr": "",
+        "fr_auto": "Les métadonnées du modèle ont été mises à jour avec succès."
+    },
+    "Please correct the errors below:": {
+        "fr": "",
+        "fr_auto": "Veuillez corriger les erreurs ci-dessous :"
+    },
+    "Example source updated successfully.": {
+        "fr": "",
+        "fr_auto": "Exemple de source mis à jour avec succès."
+    },
+    "Upload successful!": {
+        "fr": "",
+        "fr_auto": "Téléchargement réussi!"
+    },
+    "Uploaded files:": {
+        "fr": "",
+        "fr_auto": "Fichiers téléchargés :"
+    },
+    "{len(saved_files)} file(s) uploaded successfully.": {
+        "fr": "",
+        "fr_auto": "{len(saved_files)} fichier(s) téléchargé(s) avec succès."
+    },
+    "Select sources": {
+        "fr": "",
+        "fr_auto": "Sélectionnez les sources"
+    },
+    "Fill template": {
+        "fr": "",
+        "fr_auto": "Gabarit de remplissage"
+    },
+    "Completed": {
+        "fr": "",
+        "fr_auto": "Terminé"
+    },
+    "Add a URL": {
+        "fr": "",
+        "fr_auto": "Ajouter une URL"
+    },
+    "CanLii, Wikipedia, canada.ca and *.gc.ca only": {
+        "fr": "",
+        "fr_auto": "CanLii, Wikipédia, canada.ca et *.gc.ca seulement"
+    },
+    "Upload files": {
+        "fr": "",
+        "fr_auto": "Télécharger des fichiers"
+    },
+    "or drop files anywhere": {
+        "fr": "",
+        "fr_auto": "ou déposez des fichiers n’importe où"
+    },
+    "Selected sources": {
+        "fr": "",
+        "fr_auto": "Sources sélectionnées"
+    },
+    "Are you sure you want to delete all sources?": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir supprimer toutes les sources?"
+    },
+    "Delete all": {
+        "fr": "",
+        "fr_auto": "Supprimer tout"
+    },
+    "No sources added yet.": {
+        "fr": "",
+        "fr_auto": "Aucune source n’a encore été ajoutée."
+    },
+    "Fill template with sources": {
+        "fr": "",
+        "fr_auto": "Remplir le modèle avec les sources"
+    },
+    "The URL is not allowed (only CanLii, Wikipedia, canada.ca and *.gc.ca are allowed).": {
+        "fr": "",
+        "fr_auto": "L’URL n’est pas autorisée (seuls CanLii, Wikipédia, canada.ca et *.gc.ca sont autorisés)."
+    },
+    "Source deleted.": {
+        "fr": "",
+        "fr_auto": "Source supprimée."
+    },
+    "source(s) deleted.": {
+        "fr": "",
+        "fr_auto": "Source(s) supprimée(s)."
+    },
+    "Pending": {
+        "fr": "",
+        "fr_auto": "En attente"
+    },
+    "Extracting text": {
+        "fr": "",
+        "fr_auto": "Extraction de texte"
+    },
+    "Extracting fields": {
+        "fr": "",
+        "fr_auto": "Extraction de champs"
+    },
+    "Filling template": {
+        "fr": "",
+        "fr_auto": "Gabarit de remplissage"
+    },
+    "Unknown status": {
+        "fr": "",
+        "fr_auto": "Statut inconnu"
+    },
+    "Unnamed source": {
+        "fr": "",
+        "fr_auto": "Source anonyme"
+    },
+    "Selecting": {
+        "fr": "",
+        "fr_auto": "Sélection"
+    },
+    "source(s)": {
+        "fr": "",
+        "fr_auto": "Source(s)"
+    },
+    "Delete session": {
+        "fr": "",
+        "fr_auto": "Supprimer la session"
+    },
+    "No history found.": {
+        "fr": "",
+        "fr_auto": "Aucune histoire trouvée."
+    },
+    "History": {
+        "fr": "",
+        "fr_auto": "Histoire"
+    },
+    "Loading...": {
+        "fr": "",
+        "fr_auto": "Chargement..."
+    },
+    "Start over": {
+        "fr": "",
+        "fr_auto": "Recommencer"
+    },
+    "Extracted data": {
+        "fr": "",
+        "fr_auto": "Données extraites"
+    },
+    "Template result": {
+        "fr": "",
+        "fr_auto": "Résultat du modèle"
+    },
+    "Restart processing": {
+        "fr": "",
+        "fr_auto": "Reprendre le traitement"
+    },
+    "Download all results (.zip)": {
+        "fr": "",
+        "fr_auto": "Télécharger tous les résultats (.zip)"
+    },
+    "No extracted data available.": {
+        "fr": "",
+        "fr_auto": "Aucune donnée extraite n’est disponible."
+    },
+    "No template result available.": {
+        "fr": "",
+        "fr_auto": "Aucun résultat de modèle disponible."
+    },
+    "No completed sources to download.": {
+        "fr": "",
+        "fr_auto": "Aucune source complète à télécharger."
+    },
+    "Template filling complete.": {
+        "fr": "",
+        "fr_auto": "Remplissage du gabarit terminé."
+    },
+    "'Your sent messages and the AI\\'s responses appear here.'": {
+        "fr": "",
+        "fr_auto": "« Vos messages envoyés et les réponses de l’IA apparaissent ici. »"
+    },
+    "'In summarize mode, you can upload documents, paste long text or enter a URL (canada.ca, *.gc.ca, CanLii and Wikipedia only). Like in Q&A \\\"full documents\\\" mode, the AI will read the entire document before responding. Let\\'s try summarizing a long page on Canada.ca.'": {
+        "fr": "",
+        "fr_auto": "« En mode résumé, vous pouvez télécharger des documents, coller du texte long ou entrer une URL (canada.ca, *.gc.ca, CanLii et Wikipédia seulement). Comme dans le mode Q&R \\« documents complets \\ », l’IA lira l’intégralité du document avant de répondre. Essayons de résumer une longue page sur Canada.ca."
+    },
+    "'We\\'ve seen in Q&A and Summarize mode that the AI reads documents, or chunks of documents, to provide an informed response. In Chat mode, the AI reads the previous messages to understand the context. When you want to iterate on some text, switch to Chat mode and describe the changes you want made. (If you\\'re having trouble expressing what you want, try the \\\"Improve prompt\\\" tool!)'": {
+        "fr": "",
+        "fr_auto": "« Nous avons vu en mode Q&R et Summary que l’IA lit des documents, ou des morceaux de documents, pour fournir une réponse éclairée. En mode Chat, l’IA lit les messages précédents pour comprendre le contexte. Lorsque vous voulez itérer sur un texte, passez en mode Clavardage et décrivez les modifications que vous souhaitez apporter. (Si vous avez de la difficulté à exprimer ce que vous voulez, essayez l’outil « Améliorer l’invite »!)"
+    },
+    "'Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\\'ll be more likely to get the results you want.'": {
+        "fr": "",
+        "fr_auto": "« N’oubliez pas que l’assistant d’IA n’est qu’un outil pour vous aider à atteindre vos objectifs. Soyez précis et vous aurez plus de chances d’obtenir les résultats que vous souhaitez."
+    },
+    "Your sent messages and the AI\\'s responses appear here.": {
+        "fr": "",
+        "fr_auto": "Vos messages envoyés et les réponses de l’IA apparaissent ici."
+    },
+    "In summarize mode, you can upload documents, paste long text or enter a URL (canada.ca, *.gc.ca, CanLii and Wikipedia only). Like in Q&A \\\"full documents\\\" mode, the AI will read the entire document before responding. Let\\'s try summarizing a long page on Canada.ca.": {
+        "fr": "",
+        "fr_auto": "En mode résumé, vous pouvez télécharger des documents, coller du texte long ou entrer une URL (canada.ca, *.gc.ca, CanLii et Wikipédia seulement). Comme dans le mode Q&R \\« documents complets \\ », l’IA lira l’intégralité du document avant de répondre. Essayons de résumer une longue page sur Canada.ca."
+    },
+    "We\\'ve seen in Q&A and Summarize mode that the AI reads documents, or chunks of documents, to provide an informed response. In Chat mode, the AI reads the previous messages to understand the context. When you want to iterate on some text, switch to Chat mode and describe the changes you want made. (If you\\'re having trouble expressing what you want, try the \\\"Improve prompt\\\" tool!)": {
+        "fr": "",
+        "fr_auto": "Nous avons vu en mode Q&R et Summarize que l’IA lit des documents, ou des morceaux de documents, pour fournir une réponse éclairée. En mode Chat, l’IA lit les messages précédents pour comprendre le contexte. Lorsque vous voulez itérer sur un texte, passez en mode Clavardage et décrivez les modifications que vous souhaitez apporter. (Si vous avez de la difficulté à exprimer ce que vous voulez, essayez l’outil « Améliorer l’invite »!)"
+    },
+    "Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\\'ll be more likely to get the results you want.": {
+        "fr": "",
+        "fr_auto": "N’oubliez pas que l’assistant d’IA n’est qu’un outil pour vous aider à atteindre vos objectifs. Soyez précis et vous aurez plus de chances d’obtenir les résultats que vous souhaitez."
+    },
+    "Last updated on": {
+        "fr": "",
+        "fr_auto": "Dernière mise à jour le"
+    },
+    "The Government of Canada aims to be a model user of copyright. Uploading copyrighted material to Otto in limited quantities for purposes such as research, study, education, criticism or review may qualify as fair dealing and thus not infringe copyright. Users should respect any contractual restrictions on sharing documents with AI-based tools. Material obtained from the Justice Library may be subject to such use restrictions.": {
+        "fr": "",
+        "fr_auto": "Le gouvernement du Canada vise à être un utilisateur modèle du droit d’auteur. Le téléchargement de matériel protégé par le droit d’auteur sur Otto en quantités limitées à des fins telles que la recherche, l’étude, l’éducation, la critique ou la critique peut être considéré comme une utilisation équitable et donc ne pas enfreindre le droit d’auteur. Les utilisateurs doivent respecter toutes les restrictions contractuelles sur le partage de documents avec des outils basés sur l’IA. Les documents obtenus de la Bibliothèque de justice peuvent être assujettis à de telles restrictions d’utilisation."
+    },
+    "Outputs from Otto may contain the intellectual property of others, including excerpts of copyrighted material and third-party trademarks. Users intending to include outputs from Otto in external publications or communications should review the output carefully. The Treasury Board guidance referred to below provides helpful recommendations in this respect. Avoid using Otto-generated content in government publications when it is particularly critical that the Crown own the copyright.": {
+        "fr": "",
+        "fr_auto": "Les résultats d’Otto peuvent contenir la propriété intellectuelle d’autrui, y compris des extraits de matériel protégé par le droit d’auteur et des marques de commerce de tiers. Les utilisateurs qui ont l’intention d’inclure des extrants d’Otto dans des publications ou des communications externes doivent examiner attentivement les extrants. Les directives du Conseil du Trésor mentionnées ci-dessous contiennent des recommandations utiles à cet égard. Évitez d’utiliser du contenu généré par Otto dans des publications gouvernementales lorsqu’il est particulièrement important que la Couronne détienne les droits d’auteur."
     }
 }
