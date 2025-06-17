@@ -581,6 +581,7 @@ class OttoStatus(models.Model):
     objects = OttoStatusManager()
     laws_last_refreshed = models.DateTimeField(null=True, blank=True)
     exchange_rate = models.FloatField(null=False, blank=False, default=1.38)
+    terms_last_updated = models.DateTimeField(default=datetime.datetime.now)
 
 
 class BlockedURL(models.Model):
