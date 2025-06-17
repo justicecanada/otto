@@ -85,6 +85,11 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.delete_empty_template_sessions",
         "schedule": crontab(hour=2, minute=5),
     },
+    # Reset User.accepted_terms_date daily for users who have accepted terms >= 30 days ago
+    "reset-accepted-terms-date-every-month": {
+        "task": "otto.tasks.reset_accepted_terms_date",
+        "schedule": crontab(hour=0, minute=40),
+    },
 }
 
 

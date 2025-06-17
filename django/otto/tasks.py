@@ -86,6 +86,20 @@ def cleanup_template_sessions():
     call_command("cleanup_template_sessions")
 
 
+@shared_task
+def reset_accepted_terms_date():
+    from otto.models import User
+
+    # Filter for users who have accepted terms at least 30 days ago
+    users = User.objects.filter(
+        accepted_terms_date__lte=time.time() - 30 * 24 * 60 * 60
+    )
+    for user in users:
+        user.accepted_terms_date = None
+        user.save(update_fields=["accepted_terms_date"])
+        print(f"Reset accepted_terms_date for user {user.id}")
+
+
 # LOAD TESTING TASKS
 
 

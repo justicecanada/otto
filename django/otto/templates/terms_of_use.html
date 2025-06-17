@@ -9,7 +9,7 @@
   <!-- Title -->
   <div class="mb-5 mx-5">
     <h2 class="mb-3">{% trans "Terms of use for Otto Protected B Pilot" %}</h2>
-
+    <p class="text-secondary">{% trans "Last updated on" %} {{ last_updated|date:"F j, Y" }}.</p>
     {% if request.user.accepted_terms_date %}
       <p class="text-success fw-semibold">
         {% trans "You agreed to these terms on" %} {{ request.user.accepted_terms_date }}.
@@ -90,9 +90,6 @@
     <p>{% trans "Otto is for transitory information only. It is not a repository for information of business value." %}</p>
     <p>{% trans "Only upload to Otto the documents you need to perform your tasks." %}</p>
     <p>
-      {% trans "When working with documents obtained from third parties, respect any applicable statutory or contractual restrictions that may apply to uploading those documents to Otto." %}
-    </p>
-    <p>
       {% trans "Actively delete protected or personal information when it is no longer needed. Document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted." %}
     </p>
     <p>{% trans "For more information, please review the following:" %}</p>
@@ -114,6 +111,12 @@
 
     <!-- Responsible and ethical use of AI -->
     <h3 class="h4 mt-4">{% trans "Responsible and ethical use of AI" %}</h3>
+    <p>
+      {% trans "The Government of Canada aims to be a model user of copyright. Uploading copyrighted material to Otto in limited quantities for purposes such as research, study, education, criticism or review may qualify as fair dealing and thus not infringe copyright. Users should respect any contractual restrictions on sharing documents with AI-based tools. Material obtained from the Justice Library may be subject to such use restrictions." %}
+    </p>
+    <p>
+      {% trans "Outputs from Otto may contain the intellectual property of others, including excerpts of copyrighted material and third-party trademarks. Users intending to include outputs from Otto in external publications or communications should review the output carefully. The Treasury Board guidance referred to below provides helpful recommendations in this respect. Avoid using Otto-generated content in government publications when it is particularly critical that the Crown own the copyright." %}
+    </p>
     <p>
       {% trans "Follow policies and best practices for the responsible use of AI. Refer to and follow the guidance in the following policy documents:" %}
     </p>

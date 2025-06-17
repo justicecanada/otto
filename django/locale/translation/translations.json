@@ -4370,5 +4370,49 @@
     "Template filling complete.": {
         "fr": "",
         "fr_auto": "Remplissage du gabarit terminé."
+    },
+    "'Your sent messages and the AI\\'s responses appear here.'": {
+        "fr": "",
+        "fr_auto": "« Vos messages envoyés et les réponses de l’IA apparaissent ici. »"
+    },
+    "'In summarize mode, you can upload documents, paste long text or enter a URL (canada.ca, *.gc.ca, CanLii and Wikipedia only). Like in Q&A \\\"full documents\\\" mode, the AI will read the entire document before responding. Let\\'s try summarizing a long page on Canada.ca.'": {
+        "fr": "",
+        "fr_auto": "« En mode résumé, vous pouvez télécharger des documents, coller du texte long ou entrer une URL (canada.ca, *.gc.ca, CanLii et Wikipédia seulement). Comme dans le mode Q&R \\« documents complets \\ », l’IA lira l’intégralité du document avant de répondre. Essayons de résumer une longue page sur Canada.ca."
+    },
+    "'We\\'ve seen in Q&A and Summarize mode that the AI reads documents, or chunks of documents, to provide an informed response. In Chat mode, the AI reads the previous messages to understand the context. When you want to iterate on some text, switch to Chat mode and describe the changes you want made. (If you\\'re having trouble expressing what you want, try the \\\"Improve prompt\\\" tool!)'": {
+        "fr": "",
+        "fr_auto": "« Nous avons vu en mode Q&R et Summary que l’IA lit des documents, ou des morceaux de documents, pour fournir une réponse éclairée. En mode Chat, l’IA lit les messages précédents pour comprendre le contexte. Lorsque vous voulez itérer sur un texte, passez en mode Clavardage et décrivez les modifications que vous souhaitez apporter. (Si vous avez de la difficulté à exprimer ce que vous voulez, essayez l’outil « Améliorer l’invite »!)"
+    },
+    "'Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\\'ll be more likely to get the results you want.'": {
+        "fr": "",
+        "fr_auto": "« N’oubliez pas que l’assistant d’IA n’est qu’un outil pour vous aider à atteindre vos objectifs. Soyez précis et vous aurez plus de chances d’obtenir les résultats que vous souhaitez."
+    },
+    "Your sent messages and the AI\\'s responses appear here.": {
+        "fr": "",
+        "fr_auto": "Vos messages envoyés et les réponses de l’IA apparaissent ici."
+    },
+    "In summarize mode, you can upload documents, paste long text or enter a URL (canada.ca, *.gc.ca, CanLii and Wikipedia only). Like in Q&A \\\"full documents\\\" mode, the AI will read the entire document before responding. Let\\'s try summarizing a long page on Canada.ca.": {
+        "fr": "",
+        "fr_auto": "En mode résumé, vous pouvez télécharger des documents, coller du texte long ou entrer une URL (canada.ca, *.gc.ca, CanLii et Wikipédia seulement). Comme dans le mode Q&R \\« documents complets \\ », l’IA lira l’intégralité du document avant de répondre. Essayons de résumer une longue page sur Canada.ca."
+    },
+    "We\\'ve seen in Q&A and Summarize mode that the AI reads documents, or chunks of documents, to provide an informed response. In Chat mode, the AI reads the previous messages to understand the context. When you want to iterate on some text, switch to Chat mode and describe the changes you want made. (If you\\'re having trouble expressing what you want, try the \\\"Improve prompt\\\" tool!)": {
+        "fr": "",
+        "fr_auto": "Nous avons vu en mode Q&R et Summarize que l’IA lit des documents, ou des morceaux de documents, pour fournir une réponse éclairée. En mode Chat, l’IA lit les messages précédents pour comprendre le contexte. Lorsque vous voulez itérer sur un texte, passez en mode Clavardage et décrivez les modifications que vous souhaitez apporter. (Si vous avez de la difficulté à exprimer ce que vous voulez, essayez l’outil « Améliorer l’invite »!)"
+    },
+    "Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\\'ll be more likely to get the results you want.": {
+        "fr": "",
+        "fr_auto": "N’oubliez pas que l’assistant d’IA n’est qu’un outil pour vous aider à atteindre vos objectifs. Soyez précis et vous aurez plus de chances d’obtenir les résultats que vous souhaitez."
+    },
+    "Last updated on": {
+        "fr": "",
+        "fr_auto": "Dernière mise à jour le"
+    },
+    "The Government of Canada aims to be a model user of copyright. Uploading copyrighted material to Otto in limited quantities for purposes such as research, study, education, criticism or review may qualify as fair dealing and thus not infringe copyright. Users should respect any contractual restrictions on sharing documents with AI-based tools. Material obtained from the Justice Library may be subject to such use restrictions.": {
+        "fr": "",
+        "fr_auto": "Le gouvernement du Canada vise à être un utilisateur modèle du droit d’auteur. Le téléchargement de matériel protégé par le droit d’auteur sur Otto en quantités limitées à des fins telles que la recherche, l’étude, l’éducation, la critique ou la critique peut être considéré comme une utilisation équitable et donc ne pas enfreindre le droit d’auteur. Les utilisateurs doivent respecter toutes les restrictions contractuelles sur le partage de documents avec des outils basés sur l’IA. Les documents obtenus de la Bibliothèque de justice peuvent être assujettis à de telles restrictions d’utilisation."
+    },
+    "Outputs from Otto may contain the intellectual property of others, including excerpts of copyrighted material and third-party trademarks. Users intending to include outputs from Otto in external publications or communications should review the output carefully. The Treasury Board guidance referred to below provides helpful recommendations in this respect. Avoid using Otto-generated content in government publications when it is particularly critical that the Crown own the copyright.": {
+        "fr": "",
+        "fr_auto": "Les résultats d’Otto peuvent contenir la propriété intellectuelle d’autrui, y compris des extraits de matériel protégé par le droit d’auteur et des marques de commerce de tiers. Les utilisateurs qui ont l’intention d’inclure des extrants d’Otto dans des publications ou des communications externes doivent examiner attentivement les extrants. Les directives du Conseil du Trésor mentionnées ci-dessous contiennent des recommandations utiles à cet égard. Évitez d’utiliser du contenu généré par Otto dans des publications gouvernementales lorsqu’il est particulièrement important que la Couronne détienne les droits d’auteur."
     }
 }
