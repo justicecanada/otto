@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -241,7 +242,6 @@ def handle_upload(request):
 def add_to_library(request):
     bind_contextvars(feature="transcriber")
     try:
-
         transcript_library, lib_created = Library.objects.get_or_create(
             name="Transcriptions", created_by=request.user
         )
@@ -274,8 +274,13 @@ def add_to_library(request):
             status="SUCCESS",
         ).first()
         if transcript_doc:
-            return HttpResponse(
-                _("Transcription already exists in library."),
+            return render(
+                request,
+                "components/add_to_library_modal.html",
+                context={
+                    "result_message": _("Transcription already exists in library."),
+                    "transcript_doc": transcript_doc,
+                },
             )
         else:
             transcript_doc = Document.objects.create(
@@ -285,10 +290,30 @@ def add_to_library(request):
             )
             transcript_doc.process()
 
-        return HttpResponse(_("Transcription added to library successfully."))
+        return render(
+            request,
+            "components/add_to_library_modal.html",
+            context={
+                "result_message": _("Transcription added to library successfully."),
+                "transcript_doc": transcript_doc,
+            },
+        )
 
     except Exception as e:
         return HttpResponse(
             _("Error adding transcription to library: ") + str(e),
             status=500,
         )
+
+
+def open_transcript_chat(request):
+    bind_contextvars(feature="transcriber")
+    transcript_id = request.GET.get("transcript_id")
+    if not transcript_id:
+        return HttpResponse(_("Transcript ID is required."), status=400)
+
+    transcript_doc = Document.objects.filter(id=transcript_id).first()
+    if not transcript_doc:
+        return HttpResponse(_("Transcript not found."), status=404)
+
+    return render(request, "transcriber_chat.html")
