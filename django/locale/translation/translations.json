@@ -4414,5 +4414,165 @@
     "Outputs from Otto may contain the intellectual property of others, including excerpts of copyrighted material and third-party trademarks. Users intending to include outputs from Otto in external publications or communications should review the output carefully. The Treasury Board guidance referred to below provides helpful recommendations in this respect. Avoid using Otto-generated content in government publications when it is particularly critical that the Crown own the copyright.": {
         "fr": "",
         "fr_auto": "Les résultats d’Otto peuvent contenir la propriété intellectuelle d’autrui, y compris des extraits de matériel protégé par le droit d’auteur et des marques de commerce de tiers. Les utilisateurs qui ont l’intention d’inclure des extrants d’Otto dans des publications ou des communications externes doivent examiner attentivement les extrants. Les directives du Conseil du Trésor mentionnées ci-dessous contiennent des recommandations utiles à cet égard. Évitez d’utiliser du contenu généré par Otto dans des publications gouvernementales lorsqu’il est particulièrement important que la Couronne détienne les droits d’auteur."
+    },
+    "Contains examples for use during template creation": {
+        "fr": "",
+        "fr_auto": "Contient des exemples à utiliser lors de la création du modèle"
+    },
+    "Add": {
+        "fr": "",
+        "fr_auto": "Ajouter"
+    },
+    "Paste text": {
+        "fr": "",
+        "fr_auto": "Coller du texte"
+    },
+    "Paste text here": {
+        "fr": "",
+        "fr_auto": "Collez le texte ici"
+    },
+    "Example source": {
+        "fr": "",
+        "fr_auto": "Exemple de source"
+    },
+    "Example template": {
+        "fr": "",
+        "fr_auto": "Exemple de modèle"
+    },
+    "Example sources / templates": {
+        "fr": "",
+        "fr_auto": "Exemples de sources / modèles"
+    },
+    "PDF extraction method": {
+        "fr": "",
+        "fr_auto": "Méthode d’extraction PDF"
+    },
+    "2. Example source(s)": {
+        "fr": "",
+        "fr_auto": "2. Exemple(s) de source(s)"
+    },
+    "Word (.docx) template:": {
+        "fr": "",
+        "fr_auto": "Modèle Word (.docx) :"
+    },
+    "Word template is valid": {
+        "fr": "",
+        "fr_auto": "Le modèle Word est valide"
+    },
+    "Word template is missing or has invalid fields": {
+        "fr": "",
+        "fr_auto": "Le modèle Word est manquant ou comporte des champs non valides"
+    },
+    "Optional": {
+        "fr": "",
+        "fr_auto": "Facultatif"
+    },
+    "Edit/remove": {
+        "fr": "",
+        "fr_auto": "Modifier/supprimer"
+    },
+    "Current template:": {
+        "fr": "",
+        "fr_auto": "Modèle actuel :"
+    },
+    "Remove": {
+        "fr": "",
+        "fr_auto": "Supprimer"
+    },
+    "Word template is valid (contains all top-level fields)": {
+        "fr": "",
+        "fr_auto": "Le modèle Word est valide (contient tous les champs de niveau supérieur)"
+    },
+    "Error validating template:": {
+        "fr": "",
+        "fr_auto": "Erreur de validation du modèle :"
+    },
+    "Missing top-level fields:": {
+        "fr": "",
+        "fr_auto": "Champs de niveau supérieur manquants :"
+    },
+    "Invalid fields found in template:": {
+        "fr": "",
+        "fr_auto": "Champs non valides trouvés dans le modèle :"
+    },
+    "No Word template selected.": {
+        "fr": "",
+        "fr_auto": "Aucun modèle Word n’est sélectionné."
+    },
+    "Generate from...": {
+        "fr": "",
+        "fr_auto": "Générer à partir de..."
+    },
+    "Example source(s)": {
+        "fr": "",
+        "fr_auto": "Exemple(s) de source(s)"
+    },
+    "Example template & source(s)": {
+        "fr": "",
+        "fr_auto": "Exemple de modèle et de source(s)"
+    },
+    "Add at least one <span class='fw-semibold'>example</span> of the type of document you want to extract information from.": {
+        "fr": "",
+        "fr_auto": "Ajoutez au moins un exemple <span class='fw-semibold'></span> du type de document dont vous voulez extraire l’information."
+    },
+    "Optionally, if you have an <span class='fw-semibold'>existing template</span> (e.g. Word, PDF), add it and select 'Example template'.": {
+        "fr": "",
+        "fr_auto": "Optionnellement, si vous avez un modèle existant <span class='fw-semibold'></span> (par exemple, Word, PDF), ajoutez-le et sélectionnez 'Exemple de modèle'."
+    },
+    "Last layout result": {
+        "fr": "",
+        "fr_auto": "Dernier résultat de mise en page"
+    },
+    "Test extraction on...": {
+        "fr": "",
+        "fr_auto": "Essai d’extraction sur..."
+    },
+    "Upload Word template": {
+        "fr": "",
+        "fr_auto": "Télécharger le modèle Word"
+    },
+    "The Word template must include field slugs between curly braces and spaces for top-level extracted fields.": {
+        "fr": "",
+        "fr_auto": "Le modèle Word doit inclure des limaces de champ entre accolades et des espaces pour les champs extraits de niveau supérieur."
+    },
+    "e.g. <b>{{ field_slug }}</b>": {
+        "fr": "",
+        "fr_auto": "par exemple <b>{{ field_slug }}</b>"
+    },
+    "Nested fields and lists will be rendered according to the Jinja HTML template.": {
+        "fr": "",
+        "fr_auto": "Les champs et les listes imbriqués seront rendus selon le modèle HTML de Jinja."
+    },
+    "Select Word (.docx) file": {
+        "fr": "",
+        "fr_auto": "Sélectionnez le fichier Word (.docx)"
+    },
+    "Next step": {
+        "fr": "",
+        "fr_auto": "Prochaine étape"
+    },
+    "Restart processing for all sources": {
+        "fr": "",
+        "fr_auto": "Redémarrer le traitement pour toutes les sources"
+    },
+    "Restart": {
+        "fr": "",
+        "fr_auto": "Redémarrer"
+    },
+    "Template layout not defined. Please set a Jinja layout for this template.": {
+        "fr": "",
+        "fr_auto": "Mise en page du modèle non définie. Veuillez définir une mise en page Jinja pour ce modèle."
+    },
+    "An error occurred while testing the template layout: ": {
+        "fr": "",
+        "fr_auto": "Une erreur s’est produite lors du test de la mise en page du modèle : "
+    },
+    "PDF method updated successfully.": {
+        "fr": "",
+        "fr_auto": "Méthode PDF mise à jour avec succès."
+    },
+    "Example sources updated successfully.": {
+        "fr": "",
+        "fr_auto": "Exemples de sources mises à jour avec succès."
     }
 }
