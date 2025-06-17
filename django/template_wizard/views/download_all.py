@@ -4,19 +4,18 @@ import json
 import re
 import zipfile
 
+from docx import Document
+from html4docx import HtmlToDocx
+from otto.utils.decorators import permission_required
+from rules.contrib.views import objectgetter
+from template_wizard.models import Source, TemplateSession
+from xhtml2pdf import pisa
+
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET
-
-from docx import Document
-from html4docx import HtmlToDocx
-from rules.contrib.views import objectgetter
-from weasyprint import HTML
-
-from otto.utils.decorators import permission_required
-from template_wizard.models import Source, TemplateSession
 
 
 def _unique_filename(base, ext, existing):
@@ -64,10 +63,13 @@ def download_all_results(request, session_id):
             json_filename = _unique_filename(base, ".json", filenames)
             zf.writestr(json_filename, json_content)
             try:
-                # PDF file
+                # PDF file (now using xhtml2pdf)
                 pdf_filename = _unique_filename(base, ".pdf", filenames)
-                pdf_bytes = HTML(string=html_content).write_pdf()
-                zf.writestr(pdf_filename, pdf_bytes)
+                pdf_bytesio = io.BytesIO()
+                pisa_status = pisa.CreatePDF(html_content, dest=pdf_bytesio)
+                if pisa_status.err:
+                    raise Exception(f"xhtml2pdf error: {pisa_status.err}")
+                zf.writestr(pdf_filename, pdf_bytesio.getvalue())
             except Exception as e:
                 # If PDF generation fails, log the error but continue
                 print(f"Error generating PDF for {source.id}: {e}")
