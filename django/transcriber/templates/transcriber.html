@@ -90,7 +90,7 @@
       <button id="cleanupButton" class="action-button" disabled>Clean Up</button>
       <button id="translateButton" class="action-button" disabled>Translate</button>
       <button id="notesButton" class="action-button" disabled>Generate Notes</button>
-      <button id="qaButton" class="action-button" disabled>Q&A</button>
+      {% comment %}<button id="qaButton" class="action-button" disabled>Q&A</button>{% endcomment %}
       <button id="libraryButton"
               class="action-button"
               disabled
@@ -100,11 +100,14 @@
               hx-swap="innerHTML">Add to Library</button>
     </div>
 
+    <label for="currentTranscriptName"
+           style="display: block;
+                  margin-top: 20px;
+                  font-weight: bold">{% trans "File name for current transcript:" %}</label>
     <input type="text"
            id="currentTranscriptName"
            placeholder="Enter transcript name"
-           style="width: 100%;
-                  margin-top: 10px">
+           style="width: 50%">
 
     <input type="file" id="fileInput">
     {% csrf_token %}
@@ -157,7 +160,7 @@
         const cleanupButton = document.getElementById('cleanupButton');
         const notesButton = document.getElementById('notesButton');
         const translateButton = document.getElementById('translateButton');
-        const qaButton = document.getElementById('qaButton');
+        // const qaButton = document.getElementById('qaButton');
         const libraryButton = document.getElementById('libraryButton');
 
         let currentMediaFile = null;
@@ -220,7 +223,6 @@
                         copyButton.disabled = false;
                         notesButton.disabled = false;
                         translateButton.disabled = false;
-                        qaButton.disabled = false;
                         libraryButton.disabled = false;
                     } else {
                         statusDiv.textContent = 'No transcription results were returned.';
@@ -303,7 +305,6 @@
                         copyButton.disabled = false;
                         notesButton.disabled = false;
                         translateButton.disabled = false;
-                        qaButton.disabled = false;
                         libraryButton.disabled = false;
 
                         // Try to find matching media file
@@ -543,12 +544,12 @@
             statusDiv.textContent = message;
             statusDiv.style.display = 'block';
             setTimeout(() => {
-                statusDiv.style.display = 'none';
+                statusDiv.innerHTML = '';
             }, 5000);
         }
 
         function hideError() {
-            statusDiv.style.display = 'none';
+            statusDiv.innerHTML = '';
         }
   </script>
 
