@@ -170,7 +170,8 @@
         function displayNotes(notesMarkdown) {
             const notesContainer = document.getElementById('notesContainer');
             // Convert markdown to HTML and sanitize
-            var html_raw = DOMPurify.sanitize(marked.parse(notesMarkdown));
+            const safeMarkdown = notesMarkdown.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
+            var html_raw = DOMPurify.sanitize(marked.parse(safeMarkdown));
             const html = html_raw.replace(/\[([0-9:]+)\]/g, "<span class='timestamp' data-time=$1>[$1]</span>");
             notesContainer.innerHTML = html;
             notesContainer.querySelectorAll('.timestamp').forEach(el => {
