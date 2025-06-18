@@ -245,6 +245,7 @@
             currentInputType = 'transcript';
             fileInput.accept = ".txt";
             fileInput.click();
+            document.getElementById('transcript_uuid').value = '';
         });
 
         saveTranscriptButton.addEventListener('click', function () {
