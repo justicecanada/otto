@@ -5,8 +5,7 @@ from collections import deque
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
-from django.template.loader import render_to_string
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -14,6 +13,7 @@ from langchain_text_splitters import TokenTextSplitter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
+from chat.models import Chat
 from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
 from librarian.utils.process_engine import generate_hash
 from otto.models import SecurityLabel
@@ -279,7 +279,7 @@ def add_to_library(request):
                 "components/add_to_library_modal.html",
                 context={
                     "result_message": _("Transcription already exists in library."),
-                    "transcript_doc": transcript_doc,
+                    "transcript_uuid": transcript_doc.uuid_hex,
                 },
             )
         else:
@@ -295,7 +295,7 @@ def add_to_library(request):
             "components/add_to_library_modal.html",
             context={
                 "result_message": _("Transcription added to library successfully."),
-                "transcript_doc": transcript_doc,
+                "transcript_uuid": transcript_doc.uuid_hex,
             },
         )
 
@@ -308,12 +308,24 @@ def add_to_library(request):
 
 def open_transcript_chat(request):
     bind_contextvars(feature="transcriber")
-    transcript_id = request.GET.get("transcript_id")
-    if not transcript_id:
+    transcript_uuid = request.GET.get("uuid")
+    if not transcript_uuid:
         return HttpResponse(_("Transcript ID is required."), status=400)
 
-    transcript_doc = Document.objects.filter(id=transcript_id).first()
+    transcript_doc = Document.objects.filter(uuid_hex=transcript_uuid).first()
     if not transcript_doc:
         return HttpResponse(_("Transcript not found."), status=404)
 
-    return render(request, "transcriber_chat.html")
+    transcript_library = Library.objects.get(
+        name="Transcriptions", created_by=request.user
+    )
+
+    # chat_options.save()
+
+    transcript_chat = Chat.objects.create(user=request.user, mode="qa")
+    chat_options = transcript_chat.options
+    chat_options.qa_library = transcript_library
+    chat_options.qa_documents.add(transcript_doc)
+    chat_options.qa_scope = "documents"
+    chat_options.save()
+    return redirect("chat:chat", chat_id=transcript_chat.id)

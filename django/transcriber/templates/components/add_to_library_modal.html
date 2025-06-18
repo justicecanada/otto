@@ -2,3 +2,10 @@
 {% load i18n %}
 
 {{ result_message }}
+
+<script>
+var qaButton = document.getElementById('qaButton');
+qaButton.onclick = function() {
+        window.location.href = "{% url 'transcriber:open_transcript_chat' %}?uuid={{ transcript_uuid }}";
+    };
+</script>

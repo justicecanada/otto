@@ -15,4 +15,9 @@ urlpatterns = [
     path("upload/", views.handle_upload, name="upload"),
     path("handle_cleanup/", views.handle_cleanup, name="handle_cleanup"),
     path("add_to_library", views.add_to_library, name="add_to_library"),
+    path(
+        "open_transcript_chat/",
+        views.open_transcript_chat,
+        name="open_transcript_chat",
+    ),
 ]
