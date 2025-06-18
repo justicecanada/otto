@@ -320,8 +320,6 @@ def open_transcript_chat(request):
         name="Transcriptions", created_by=request.user
     )
 
-    # chat_options.save()
-
     transcript_chat = Chat.objects.create(user=request.user, mode="qa")
     chat_options = transcript_chat.options
     chat_options.qa_library = transcript_library
