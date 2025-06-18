@@ -4,8 +4,10 @@
 {{ result_message }}
 
 <script>
-var qaButton = document.getElementById('qaButton');
-qaButton.onclick = function() {
-        window.location.href = "{% url 'transcriber:open_transcript_chat' %}?uuid={{ transcript_uuid }}";
-    };
+  var qaButton = document.getElementById('qaButton');
+  qaButton.onclick = function() {
+    document.getElementById('libraryButton').click();
+    window.location.href = "{% url 'transcriber:open_transcript_chat' %}?uuid={{ transcript_uuid }}";
+  };
+  document.getElementById('transcript_uuid').value = "{{ transcript_uuid }}";
 </script>

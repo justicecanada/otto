@@ -270,18 +270,15 @@ def add_to_library(request):
 
         transcript_doc = Document.objects.filter(
             data_source__library=transcript_library,
-            saved_file__sha256_hash=hash,
-            status="SUCCESS",
+            status__in=["SUCCESS", "PROCESSING"],
+            uuid_hex=request.POST.get("transcript_uuid", ""),
         ).first()
         if transcript_doc:
-            return render(
-                request,
-                "components/add_to_library_modal.html",
-                context={
-                    "result_message": _("Transcription already exists in library."),
-                    "transcript_uuid": transcript_doc.uuid_hex,
-                },
-            )
+            transcript_doc.filename = file_name
+            transcript_doc.saved_file = saved_transcription_file
+            transcript_doc.data_source = transcript_folder
+            transcript_doc.process()
+            result_message = f"{_('Transcription saved to library (Folder')} {transcript_folder.name})"
         else:
             transcript_doc = Document.objects.create(
                 data_source=transcript_folder,
@@ -289,12 +286,13 @@ def add_to_library(request):
                 filename=file_name,
             )
             transcript_doc.process()
+            result_message = _("Transcription added to library successfully.")
 
         return render(
             request,
             "components/add_to_library_modal.html",
             context={
-                "result_message": _("Transcription added to library successfully."),
+                "result_message": result_message,
                 "transcript_uuid": transcript_doc.uuid_hex,
             },
         )
