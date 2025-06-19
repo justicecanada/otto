@@ -3850,5 +3850,17 @@
     "Outputs from Otto may contain the intellectual property of others, including excerpts of copyrighted material and third-party trademarks. Users intending to include outputs from Otto in external publications or communications should review the output carefully. The Treasury Board guidance referred to below provides helpful recommendations in this respect. Avoid using Otto-generated content in government publications when it is particularly critical that the Crown own the copyright.": {
         "fr": "",
         "fr_auto": "Les résultats d’Otto peuvent contenir la propriété intellectuelle d’autrui, y compris des extraits de matériel protégé par le droit d’auteur et des marques de commerce de tiers. Les utilisateurs qui ont l’intention d’inclure des extrants d’Otto dans des publications ou des communications externes doivent examiner attentivement les extrants. Les directives du Conseil du Trésor mentionnées ci-dessous contiennent des recommandations utiles à cet égard. Évitez d’utiliser du contenu généré par Otto dans des publications gouvernementales lorsqu’il est particulièrement important que la Couronne détienne les droits d’auteur."
+    },
+    "Select a library to view folders.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez une bibliothèque pour afficher les dossiers."
+    },
+    "Select a folder to view documents.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez un dossier pour afficher les documents."
+    },
+    "Available libraries will appear here.": {
+        "fr": "",
+        "fr_auto": "Les bibliothèques disponibles apparaîtront ici."
     }
 }
