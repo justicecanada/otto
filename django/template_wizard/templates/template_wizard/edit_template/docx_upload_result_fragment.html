@@ -1,0 +1,45 @@
+{% load i18n %}
+{# HTMX fragment to show the result of the docx template upload #}
+{% if template.docx_template %}
+  <div class="d-flex justify-content-between align-items-center">
+    <div>{% trans "Current template:" %} {{ template.docx_template_filename }}</div>
+    <div>
+      <form id="remove-docx-template-form"
+            hx-post="{% url 'template_wizard:remove_docx_template' template.id %}"
+            hx-target="#docx_upload_result"
+            hx-swap="innerHTML"
+            hx-indicator="#docx-modal-spinner"
+            method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger">{% trans "Remove" %}</button>
+      </form>
+    </div>
+  </div>
+  {% if docx_validation %}
+    <div class="mt-2">
+      {% if docx_validation.is_valid %}
+        <div class="alert alert-success p-2 mb-1">{% trans "Word template is valid (contains all top-level fields)" %}</div>
+      {% else %}
+        <div class="alert alert-warning p-2 mb-1">
+          {% if docx_validation.error %}
+            <div>
+              <b>{% trans "Error validating template:" %}</b> {{ docx_validation.error }}
+            </div>
+          {% endif %}
+          {% if docx_validation.missing_fields %}
+            <div>
+              <b>{% trans "Missing top-level fields:" %}</b> {{ docx_validation.missing_fields|join:", " }}
+            </div>
+          {% endif %}
+          {% if docx_validation.invalid_fields %}
+            <div>
+              <b>{% trans "Invalid fields found in template:" %}</b> {{ docx_validation.invalid_fields|join:", " }}
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+{% else %}
+  <em>{% trans "No Word template selected." %}</em>
+{% endif %}

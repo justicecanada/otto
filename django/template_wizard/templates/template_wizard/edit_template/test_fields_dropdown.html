@@ -1,0 +1,20 @@
+{% load i18n %}
+{# Dropdown for testing extraction on each example source #}
+<div class="btn-group">
+  <button type="button"
+          class="btn btn-outline-success dropdown-toggle"
+          data-bs-toggle="dropdown"
+          aria-expanded="false">{% trans "Test extraction on..." %}</button>
+  <ul class="dropdown-menu">
+    {% for source in template.example_sources %}
+      <li>
+        <a class="dropdown-item"
+           href="#"
+           hx-get="{% url 'template_wizard:test_fields' template_id=template.id source_id=source.id %}"
+           hx-target="#test-fields"
+           hx-swap="innerHTML"
+           hx-indicator="#test-fields-spinner">{{ source.name|default:source.filename|default:source.id }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+</div>

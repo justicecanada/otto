@@ -1,0 +1,41 @@
+{% load i18n %}
+
+<div class="btn-group">
+  <button type="button"
+          class="btn btn-outline-success dropdown-toggle"
+          data-bs-toggle="dropdown"
+          aria-expanded="false">{% trans "Generate from..." %}</button>
+  <ul class="dropdown-menu"
+      hx-target="#field-list"
+      hx-swap="innerHTML"
+      hx-indicator="#generate-fields-spinner"
+      {% if template.fields.all %} hx-confirm="{% trans 'This will delete all existing fields. Continue?' %}" {% endif %}>
+    {% if example_template %}
+      <li>
+        <a class="dropdown-item"
+           href="#"
+           hx-get="{% url 'template_wizard:generate_fields' template_id=template.id from_mode='template' %}">
+          {% trans "Example template" %}
+        </a>
+      </li>
+    {% endif %}
+    {% if example_sources %}
+      <li>
+        <a class="dropdown-item"
+           href="#"
+           hx-get="{% url 'template_wizard:generate_fields' template_id=template.id from_mode='sources' %}">
+          {% trans "Example source(s)" %}
+        </a>
+      </li>
+    {% endif %}
+    {% if example_template and example_sources %}
+      <li>
+        <a class="dropdown-item"
+           href="#"
+           hx-get="{% url 'template_wizard:generate_fields' template_id=template.id from_mode='template_and_sources' %}">
+          {% trans "Example template & source(s)" %}
+        </a>
+      </li>
+    {% endif %}
+  </ul>
+</div>

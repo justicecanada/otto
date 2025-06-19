@@ -1,0 +1,52 @@
+{% load i18n %}
+
+<form class="g-3"
+      id="edit_preset_form"
+      hx-post="{% url 'template_wizard:edit_layout' template_id=template.id %}"
+      hx-trigger="change delay:300ms"
+      hx-swap="none"
+      method="post">
+  {% csrf_token %}
+  <div class="mb-3">
+    {{ layout_form.layout_jinja.label_tag }}
+    {{ layout_form.layout_jinja }}
+    {% if layout_form.layout_jinja.help_text %}
+      <div class="form-text">{{ layout_form.layout_jinja.help_text }}</div>
+    {% endif %}
+  </div>
+</form>
+
+{# LLM modify code form #}
+<div id="modify-layout-form-container" class="mt-3">
+  <form id="modify-layout-form"
+        hx-post="{% url 'template_wizard:modify_layout_code' template_id=template.id %}"
+        hx-target="#layout-form-container"
+        hx-swap="innerHTML"
+        hx-indicator="#generate-template-spinner"
+        method="post">
+    {% csrf_token %}
+    <label for="modification_instruction" class="form-label visually-hidden">
+      {% trans "Modify layout code using Otto" %}
+    </label>
+    <div class="input-group mb-3">
+      <input type="text"
+             name="modification_instruction"
+             id="modification_instruction"
+             class="form-control"
+             placeholder="{% trans 'Instruct Otto to modify the code...' %}"
+             aria-label="Modification instruction"
+             required>
+      <button class="btn btn-outline-primary" type="submit">{% trans "Modify code" %}</button>
+    </div>
+  </form>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var modifyLayoutForm = document.getElementById('modify-layout-form');
+  if (modifyLayoutForm) {
+    modifyLayoutForm.addEventListener('htmx:afterRequest', function(event) {
+      modifyLayoutForm.reset();
+    });
+  }
+});
+</script>

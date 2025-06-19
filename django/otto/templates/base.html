@@ -11,7 +11,7 @@
           content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <script src="{% static 'thirdparty/htmx.min.js' %}"></script>
     <script src="{% static 'thirdparty/idiomorph-ext.min.js' %}"></script>
- 
+
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet"
@@ -98,6 +98,8 @@
       </nav>
     {% endif %}
 
+    <div aria-live="polite" aria-atomic="true" class="sticky-top toast-sticky">{% include "components/toasts.html" %}</div>
+
     {% if not hide_breadcrumbs %}
       <nav aria-label="{% trans 'Breadcrumb' %}"
            class="py-2 px-4 {% if hide_breadcrumbs %}d-none{% endif %}"
@@ -113,8 +115,6 @@
         </div>
       </nav>
     {% endif %}
-
-    <div aria-live="polite" aria-atomic="true" class="sticky-top toast-sticky">{% include "components/toasts.html" %}</div>
 
     <div id="main-content-wrapper">
       {% block content_container %}

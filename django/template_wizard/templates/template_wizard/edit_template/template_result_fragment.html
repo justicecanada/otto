@@ -1,0 +1,19 @@
+{% load i18n %}
+
+{% with template.last_example_source as source %}
+  {% if source.template_result %}
+    <div class="alert alert-secondary small mb-2">
+      <span class="fw-semibold">{% trans "Last layout result" %}{% trans ":" %}</span>
+      {% if template.last_test_layout_timestamp %}
+        {{ source.name }}
+        ({{ template.last_test_layout_timestamp|date:'Y-m-d H:i' }})
+      {% endif %}
+      {% comment %}
+      {% if template.docx_template %}
+        <a class="btn btn-sm btn-outline-primary ms-2" href="{% url 'template_wizard:fill_docx_template' template.id %}">{% trans "Download DOCX result" %}</a>
+      {% endif %}
+      {% endcomment %}
+    </div>
+    {% include "template_wizard/use_template/template_result_fragment_jinja.html" %}
+  {% endif %}
+{% endwith %}

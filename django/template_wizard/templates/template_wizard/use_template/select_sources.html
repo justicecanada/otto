@@ -1,0 +1,71 @@
+{% extends 'template_wizard/_wizard_main_layout.html' %}
+{% load i18n %}
+{% load static %}
+{% load rules %}
+
+{% block wizard_page_css %}
+  <link rel="stylesheet" href="{% static 'template_wizard/style.css' %}">
+  <script src="{% static 'file_form/file_form.min.js' %}"></script>
+{% endblock %}
+
+{% block wizard_breadcrumb_extra %}
+  <li class="breadcrumb-item">
+    <a href="{{ request.path }}">{{ session.template.name_auto }}</a>
+  </li>
+{% endblock %}
+
+{% block wizard_content_header %}
+  <h2 class="mb-2 px-4 mt-2">
+    <a href="{% url 'template_wizard:index' %}"
+       class="text-body text-decoration-none">{% trans "Template Wizard" %}</a>{% trans ":" %} {{ session.template.name_auto }}
+  </h2>
+  <p class="mx-4 mb-4">{% trans "Upload documents or enter URLs to transform into the selected template." %}</p>
+{% endblock %}
+
+{% block wizard_tabs %}
+  {% include "template_wizard/_use_template_tabs.html" with wizard_step="select_sources" has_sources=session.sources.all %}
+{% endblock %}
+
+{% block wizard_step_content %}
+  <div class="tab-pane fade show active p-3 border rounded preset-form-container">
+    <div class="row">
+      <div class="col-lg-5 border-end mb-3">{% include "template_wizard/_add_sources_forms.html" %}</div>
+
+      <div class="col-lg-7">
+        {% if session.sources.all %}
+          {% include "template_wizard/_sources_list.html" %}
+        {% else %}
+          <p class="mb-0 text-secondary">{% trans "No sources added yet." %}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-3">
+      {% if not session.sources.all %}
+        <button id="next-step-button" class="btn btn-primary" disabled>{% trans "Next step" %}</button>
+      {% else %}
+        <a id="next-step-button"
+           class="btn btn-primary"
+           href="{% url 'template_wizard:fill_template' session_id=session.pk %}">{% trans "Next step" %}</a>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block wizard_page_script %}
+  {% has_perm "template_wizard.upload_large_files" request.user as can_upload_large_files %}
+  <script>
+    {% if can_upload_large_files %}
+    const TEMPLATE_WIZARD_MAX_UPLOAD_SIZE = Number.MAX_VALUE; // No limit
+    {% else %}
+    const TEMPLATE_WIZARD_MAX_UPLOAD_SIZE = 25000000; // 25MB
+    {% endif %}
+    const TEMPLATE_WIZARD_MAX_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', TEMPLATE_WIZARD_MAX_UPLOAD_SIZE/1000000);
+  </script>
+  <link rel="stylesheet" href="{% static 'file_form/file_form.css' %}">
+{% endblock %}
+
+{% block content_container %}
+  {{ block.super }}
+  {% include "template_wizard/file_dropzone.html" %}
+{% endblock %}

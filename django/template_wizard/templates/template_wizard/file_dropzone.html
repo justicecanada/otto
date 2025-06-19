@@ -1,0 +1,68 @@
+{% load i18n %}
+
+<div class="d-flex align-items-center justify-content-center"
+     id="file-dropzone">
+  <form id="template-wizard-file-form">
+    <button id="template-wizard-file-area"
+            class="rounded d-block text-center text-light"
+            type="button">
+      <p class="mb-3 h3">
+        <i class="bi bi-upload"></i>
+      </p>
+      <p class="mb-1 h5 fw-normal">{% trans "Drop files anywhere" %}</p>
+    </button>
+  </form>
+</div>
+<script>
+  // Drag and drop file upload
+  function ePrevent(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  function onDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    document.querySelector('#id_template-wizard-input_file').value = null;
+    document.querySelector('#id_template-wizard-input_file').files = e.dataTransfer.files;
+    document.querySelector('#id_template-wizard-input_file').dispatchEvent(new Event('change'));
+    hideOverlay();
+  }
+  function handleDragEnter(e) {
+    // make sure we're dragging a file
+    var dt = (e && e.dataTransfer);
+    if (!dt) {
+      return;
+    }
+    // required to create an array for Firefox 
+    Array.from(dt.types)?.forEach((type) => {
+      if (type === "Files") {
+        showOverlay();
+      }
+    });    
+  }
+
+  function handleDragLeave(e) {
+    // Check if the related target is not a child of the drop zone
+    const dropZoneElement = document.querySelector('#file-dropzone');
+    if (!e.relatedTarget || !dropZoneElement.contains(e.relatedTarget)) {
+      hideOverlay();
+    }
+  }
+
+  function showOverlay() {
+    document.querySelector('#file-dropzone').classList.add('show');
+  }
+
+  function hideOverlay() {
+    document.querySelector('#file-dropzone').classList.remove('show');
+  }
+
+  let dropZone = document.querySelector('#file-dropzone');
+  window.addEventListener('dragenter', handleDragEnter);
+  dropZone.addEventListener('dragover', ePrevent);
+  window.addEventListener('dragleave', handleDragLeave);
+  window.addEventListener('dragexit', handleDragLeave);
+  dropZone.addEventListener('drop', onDrop);
+
+</script>

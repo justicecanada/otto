@@ -82,6 +82,11 @@ def delete_dangling_savedfiles():
 
 
 @shared_task
+def cleanup_template_sessions():
+    call_command("cleanup_template_sessions")
+
+
+@shared_task
 def reset_accepted_terms_date():
     from otto.models import User
 

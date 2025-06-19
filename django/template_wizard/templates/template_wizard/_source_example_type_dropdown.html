@@ -1,0 +1,31 @@
+{% load i18n %}
+<form method="post"
+      hx-post="{% url 'template_wizard:update_example_type' source.id %}"
+      hx-trigger="change"
+      hx-swap="none"
+      class="d-inline me-2">
+  {% csrf_token %}
+  <select name="is_example_template"
+          class="form-select form-select-sm d-inline w-auto"
+          style="min-width: 8em;
+                 display: inline-block;
+                 vertical-align: middle">
+    <option value="False"
+            {% if not source.is_example_template %}selected{% endif %}>{% trans "Example source" %}</option>
+    <option value="True" {% if source.is_example_template %}selected{% endif %}>{% trans "Example template" %}</option>
+  </select>
+</form>
+<script>
+// Changing the value to True should reset all other select[name="is_example_template"] to "False"
+document.querySelectorAll('select[name="is_example_template"]').forEach(function(select) {
+  select.addEventListener('change', function(event) {
+    if (event.target.value === 'True') {
+      document.querySelectorAll('select[name="is_example_template"]').forEach(function(otherSelect) {
+        if (otherSelect !== event.target) {
+          otherSelect.value = 'False';
+        }
+      });
+    }
+  });
+});
+</script>

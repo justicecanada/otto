@@ -1,0 +1,17 @@
+{% load i18n %}
+{% if source.extracted_json %}
+  <h5>{% trans "Extracted data" %}</h5>
+  <p class="text-muted small truncate">{{ source.name }}</p>
+  <div class="alert alert-info" id="test-fields-result">
+    {% include "template_wizard/use_template/fields_dict_fragment.html" with dict_data=source.extracted_json %}
+  </div>
+  <button class="btn btn-sm btn-outline-secondary mb-2"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#raw-json">{% trans "View Raw JSON" %}</button>
+  <div class="collapse" id="raw-json">
+    <pre class="bg-light border p-2 small">{{ source.extracted_json|pprint }}</pre>
+  </div>
+{% else %}
+  <div class="alert alert-warning">{% trans "No extracted data available." %}</div>
+{% endif %}

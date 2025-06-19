@@ -1,0 +1,78 @@
+{% load i18n %}
+
+{% include "template_wizard/edit_template/word_template_modal.html" %}
+
+<div class="row">
+  <div class="col-lg-5 border-end">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>{% trans "Define template" %}</h4>
+      <div>
+        <div class="d-inline-block me-2"
+             style="position: relative;
+                    top: 10px;
+                    margin-top: -10px">
+          <div id="generate-template-spinner" class="spinner text-primary">
+            <span class="spinner-border" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+          </div>
+        </div>
+        <button type="button"
+                class="btn btn-success"
+                id="generate-jinja-btn"
+                hx-post="{% url 'template_wizard:generate_jinja' template_id=template.id %}"
+                hx-target="#layout-form-container"
+                hx-swap="innerHTML"
+                hx-indicator="#generate-template-spinner">{% trans "Generate layout code" %}</button>
+      </div>
+    </div>
+    <div id="docx_template_status">{% include "template_wizard/edit_template/docx_template_status.html" %}</div>
+    <div id="layout-form-container">{% include "template_wizard/edit_template/layout_form.html" %}</div>
+  </div>
+  <div class="col-lg-7">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>{% trans "Results on example source" %}</h4>
+      <div>
+        <div class="d-inline-block me-2"
+             style="position: relative;
+                    top: 10px;
+                    margin-top: -10px">
+          <div id="test-layout-spinner" class="spinner text-primary">
+            <span class="spinner-border" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+          </div>
+        </div>
+        <button type="button"
+                id="test-layout-btn"
+                class="btn btn-outline-success"
+                hx-get="{% url 'template_wizard:test_layout' template_id=template.id %}"
+                hx-target="#test-layout"
+                hx-swap="innerHTML"
+                hx-indicator="#test-layout-spinner">{% trans "Test layout" %}</button>
+      </div>
+    </div>
+    <div id="test-layout">{% include "template_wizard/edit_template/template_result_fragment.html" %}</div>
+  </div>
+</div>
+<div class="mt-4 d-flex justify-content-end">
+  <a href="{% url 'template_wizard:index' %}" class="btn btn-primary">{% trans "Finish" %}</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function hasFields() {
+    return {{ template.fields.all|length }} > 0 && {{ template.last_example_source.extracted_json|length }} > 0;
+  }
+  function blockIfNoFields(event) {
+    if (!hasFields()) {
+      alert("{% trans 'You must add fields and test extraction before generating a layout' %}");
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return false;
+    }
+  }
+  var jinjaBtn = document.getElementById('generate-jinja-btn');
+  if (jinjaBtn) {
+    jinjaBtn.addEventListener('click', blockIfNoFields, true);
+  }
+});
+</script>

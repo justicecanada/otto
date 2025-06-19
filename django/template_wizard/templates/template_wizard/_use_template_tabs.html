@@ -1,0 +1,48 @@
+{% load i18n %}
+
+<ul class="nav nav-tabs px-3 border-bottom-0" id="top-tabs">
+  {# 1. Select template #}
+  <li class="nav-item">
+    {% if wizard_step == "select_template" %}
+      <button id="select-template-tab"
+              class="nav-link text-body fw-semibold active">{% trans "1. Select template" %}</button>
+    {% else %}
+      <a id="select-template-tab"
+         class="nav-link text-body"
+         href="{% url 'template_wizard:index' %}">{% trans "1. Select template" %}</a>
+    {% endif %}
+  </li>
+
+  {# 2. Select sources #}
+  <li class="nav-item">
+    {% if wizard_step == "select_template" %}
+      <button id="select-sources-tab" class="nav-link text-body" disabled>{% trans "2. Select sources" %}</button>
+    {% elif wizard_step == "select_sources" %}
+      <a id="select-sources-tab"
+         class="nav-link text-body fw-semibold active"
+         href="{{ request.path }}">{% trans "2. Select sources" %}</a>
+    {% else %}
+      {# fill_template step #}
+      <a id="select-sources-tab"
+         class="nav-link text-body"
+         href="{% url 'template_wizard:select_sources' session_id=session.id %}">{% trans "2. Select sources" %}</a>
+    {% endif %}
+  </li>
+
+  {# 3. Fill template #}
+  <li class="nav-item">
+    {% if wizard_step == "select_template" or wizard_step == "select_sources" and not has_sources %}
+      <button id="fill-template-tab" class="nav-link text-body" disabled>{% trans "3. Fill template" %}</button>
+    {% elif wizard_step == "fill_template" %}
+      <a id="fill-template-tab"
+         class="nav-link text-body fw-semibold active"
+         href="{{ request.path }}">{% trans "3. Fill template" %}</a>
+    {% else %}
+      {# wizard_step == "select_sources" and has_sources #}
+      <a id="fill-template-tab"
+         class="nav-link text-body"
+         href="{% url 'template_wizard:fill_template' session_id=session.id %}">{% trans "3. Fill template" %}</a>
+    {% endif %}
+  </li>
+  {% include "template_wizard/session_history_button.html" %}
+</ul>

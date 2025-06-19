@@ -1,0 +1,86 @@
+{% load i18n %}
+<div class="modal-header">
+  <h5 class="modal-title">
+    {% if form.instance.pk %}
+      {% trans "Edit Field" %}
+    {% else %}
+      {% trans "Add Field" %}
+    {% endif %}
+  </h5>
+  <button type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"></button>
+</div>
+<form method="post"
+      id="field-form-modal-form"
+      hx-post="{% if form.instance.pk %}{% url 'template_wizard:field_modal' template_id=template.id field_id=form.instance.pk %}{% else %}{% url 'template_wizard:field_modal' template_id=template.id %}{% endif %}"
+      hx-target="#fieldModal .modal-content"
+      hx-swap="innerHTML">
+  <div class="modal-body">
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}
+          {{ error }}
+          <br>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% for field in form.visible_fields %}
+      <div class="mb-3"
+           {% if field.name == "string_format" %}id="string_format_wrapper"{% endif %}>
+        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+    <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+  </div>
+</form>
+<script>
+  function toggleStringFormat() {
+    var fieldType = document.getElementById('id_field_type');
+    var stringFormat = document.getElementById('id_string_format');
+    if (fieldType && stringFormat) {
+      var wrapper = stringFormat.closest('.mb-3');
+      if (fieldType.value === 'str') {
+        wrapper.style.display = '';
+      } else {
+        wrapper.style.display = 'none';
+      }
+    }
+  }
+  function slugify(text) {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9_]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .replace(/_+/g, '_');
+  }
+  (function() {
+    var fieldType = document.getElementById('id_field_type');
+    if (fieldType) {
+      fieldType.addEventListener('change', toggleStringFormat);
+      toggleStringFormat();
+    }
+    var nameInput = document.getElementById('id_field_name');
+    var slugInput = document.getElementById('id_slug');
+    if (nameInput && slugInput) {
+      let userEditedSlug = false;
+      slugInput.addEventListener('input', function() {
+        userEditedSlug = true;
+      });
+      nameInput.addEventListener('input', function() {
+        if (!userEditedSlug || !slugInput.value) {
+          slugInput.value = slugify(nameInput.value);
+        }
+      });
+    }
+  })();
+</script>
