@@ -97,7 +97,9 @@ model_list:
 general_settings:
   master_key: sk-1234
   database_url: "postgresql://postgres:password@postgres-service:5432/litellm"
+  disable_spend_logs: True   # Disable writing spend logs to DB
+  disable_error_logs: True   # Only disable writing error logs to DB, regular spend logs will still be written unless `disable_spend_logs: True`
 
 litellm_settings:
   ssl_verify: false
-  drop_params: true
+  drop_params: true  # Drop parameters that are not in the model's schema

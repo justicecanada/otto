@@ -1,9 +1,5 @@
 import uuid
 
-from django.conf import settings
-from django.utils.translation import gettext as _
-
-import litellm
 import sqlalchemy
 import tiktoken
 from llama_index.core import PromptTemplate, VectorStoreIndex
@@ -13,13 +9,11 @@ from llama_index.core.indices.prompt_helper import PromptHelper
 from llama_index.core.instrumentation import get_dispatcher
 from llama_index.core.instrumentation.event_handlers import BaseEventHandler
 from llama_index.core.instrumentation.events.embedding import EmbeddingEndEvent
-from llama_index.core.instrumentation.events.llm import (
-    LLMChatEndEvent,
-    LLMChatStartEvent,
-    LLMCompletionEndEvent,
-    LLMPredictStartEvent,
-)
-from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
+from llama_index.core.instrumentation.events.llm import (LLMChatEndEvent,
+                                                         LLMChatStartEvent,
+                                                         LLMCompletionEndEvent)
+from llama_index.core.response_synthesizers import (CompactAndRefine,
+                                                    TreeSummarize)
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilters
 from llama_index.embeddings.litellm import LiteLLMEmbedding
@@ -28,9 +22,11 @@ from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
 from structlog import get_logger
 
+from django.conf import settings
+from django.utils.translation import gettext as _
+
 logger = get_logger(__name__)
 
-litellm.drop_params = True
 
 
 class ModelEventHandler(BaseEventHandler):

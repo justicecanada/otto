@@ -48,7 +48,7 @@ services:
     env_file:
       - ../django/.env.example
       - ../django/.env
-    command: ["--config", "/config.yaml"]
+    command: ["--config", "/config.yaml", "--detailed_debug"]
     ports:
       - "4000:4000"
 
