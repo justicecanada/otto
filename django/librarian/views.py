@@ -78,6 +78,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     bind_contextvars(feature="librarian")
 
     libraries = get_viewable_libraries(request.user)
+    editable_libraries = get_editable_libraries(request.user)
     selected_library = None
     data_sources = None
     selected_data_source = None
@@ -212,6 +213,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 )
                 clear_request_caches()
                 libraries = get_viewable_libraries(request.user)
+                editable_libraries = get_editable_libraries(request.user)
                 selected_library = form.instance
                 # Refresh the form so "public" checkbox behaves properly
                 form = LibraryDetailForm(instance=selected_library, user=request.user)
@@ -231,6 +233,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             library.delete()
             messages.success(request, _("Library deleted successfully."))
             libraries = get_viewable_libraries(request.user)
+            editable_libraries = get_editable_libraries(request.user)
         if not request.method == "DELETE":
             if item_id:
                 selected_library = get_object_or_404(Library, id=item_id)
@@ -302,8 +305,12 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     if data_sources and selected_library.is_personal_library:
         data_sources = [ds for ds in data_sources if ds.documents.count() > 0]
 
+    # Create view-only libraries list (viewable but not editable)
+    view_only_libraries = [lib for lib in libraries if lib not in editable_libraries]
+
     context = {
-        "libraries": libraries,
+        "editable_libraries": editable_libraries,
+        "view_only_libraries": view_only_libraries,
         "selected_library": selected_library,
         "data_sources": data_sources,
         "selected_data_source": selected_data_source,

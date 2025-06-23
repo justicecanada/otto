@@ -26,6 +26,11 @@
         <em class="small">{% trans "Select a library, folder or document to edit." %}</em>
       </div>
     {% endif %}
+
+  {% else %}
+    {% if document_status %}
+      {% include "librarian/components/document_status.html" with document=selected_document %}
+    {% endif %}
   {% endif %}
   {% if focus_el %}<script>document.querySelector('{{ focus_el }}').focus();</script>{% endif %}
 </div>
