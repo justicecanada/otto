@@ -71,11 +71,12 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
                     "QA library for settings preset not accessible. It has been reset to your personal library."
                 ),
             )
-        target_options.qa_library = user.personal_library
-        target_options.qa_data_sources.clear()
-        target_options.qa_documents.clear()
-        target_options.qa_scope = "all"
-        target_options.qa_mode = "rag"
+        if user and user.personal_library:
+            target_options.qa_library = user.personal_library
+            target_options.qa_data_sources.clear()
+            target_options.qa_documents.clear()
+            target_options.qa_scope = "all"
+            target_options.qa_mode = "rag"
     if chat:
         target_options.chat = chat
     if mode:
