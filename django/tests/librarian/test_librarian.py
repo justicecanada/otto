@@ -337,12 +337,12 @@ def test_modal_views(client, all_apps_user):
     """
     path(
         "modal/data_source/<int:data_source_id>/edit/",
-        modal_edit_data_source,
-        name="modal_edit_data_source",
+        modal_view_data_source,
+        name="modal_view_data_source",
     ),
     """
     url = reverse(
-        "librarian:modal_edit_data_source", kwargs={"data_source_id": data_source.id}
+        "librarian:modal_view_data_source", kwargs={"data_source_id": data_source.id}
     )
     response = client.get(url)
     assert response.status_code == 200
@@ -361,11 +361,11 @@ def test_modal_views(client, all_apps_user):
     """
     path(
         "modal/document/<int:document_id>/edit/",
-        modal_edit_document,
-        name="modal_edit_document",
+        modal_view_document,
+        name="modal_view_document",
     ),
     """
-    url = reverse("librarian:modal_edit_document", kwargs={"document_id": document.id})
+    url = reverse("librarian:modal_view_document", kwargs={"document_id": document.id})
     response = client.get(url)
     assert response.status_code == 200
     """

@@ -396,7 +396,7 @@ def modal_create_data_source(request, library_id):
 @permission_required(
     "librarian.view_data_source", objectgetter(DataSource, "data_source_id")
 )
-def modal_edit_data_source(request, data_source_id):
+def modal_view_data_source(request, data_source_id):
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
 
@@ -417,7 +417,7 @@ def modal_create_document(request, data_source_id):
 
 @permission_required("librarian.view_document", objectgetter(Document, "document_id"))
 # AC-20: Only authenticated and authorized users can interact with information sources
-def modal_edit_document(request, document_id):
+def modal_view_document(request, document_id):
     return modal_view(request, item_type="document", item_id=document_id)
 
 
