@@ -9,6 +9,23 @@ from decimal import Decimal
 from itertools import groupby
 from typing import AsyncGenerator, Generator
 
+import markdown
+import tiktoken
+from asgiref.sync import sync_to_async
+from chat.forms import ChatOptionsForm
+from chat.llm import OttoLLM
+from chat.models import AnswerSource, Chat, Message
+from chat.prompts import QA_PRUNING_INSTRUCTIONS, current_time_prompt
+from data_fetcher.util import get_request
+from llama_index.core import PromptTemplate
+from llama_index.core.llms import ChatMessage
+from llama_index.core.prompts import PromptType
+from newspaper import Article
+from otto.models import CostType, SecurityLabel
+from otto.utils.common import cad_cost, display_cad_cost
+from structlog import get_logger
+from structlog.contextvars import bind_contextvars
+
 from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
@@ -16,24 +33,6 @@ from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
-import markdown
-import tiktoken
-from asgiref.sync import sync_to_async
-from data_fetcher.util import get_request
-from llama_index.core import PromptTemplate
-from llama_index.core.llms import ChatMessage
-from llama_index.core.prompts import PromptType
-from newspaper import Article
-from structlog import get_logger
-from structlog.contextvars import bind_contextvars
-
-from chat.forms import ChatOptionsForm
-from chat.llm import OttoLLM
-from chat.models import AnswerSource, Chat, Message
-from chat.prompts import QA_PRUNING_INSTRUCTIONS, current_time_prompt
-from otto.models import CostType, SecurityLabel
-from otto.utils.common import cad_cost, display_cad_cost
 
 logger = get_logger(__name__)
 # Markdown instance
@@ -65,12 +64,13 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
     if not target_options.qa_library or (
         user and not user.has_perm("librarian.view_library", target_options.qa_library)
     ):
-        messages.warning(
-            request,
-            _(
-                "QA library for settings preset not accessible. It has been reset to your personal library."
-            ),
-        )
+        if request:
+            messages.warning(
+                request,
+                _(
+                    "QA library for settings preset not accessible. It has been reset to your personal library."
+                ),
+            )
         target_options.qa_library = user.personal_library
         target_options.qa_data_sources.clear()
         target_options.qa_documents.clear()
