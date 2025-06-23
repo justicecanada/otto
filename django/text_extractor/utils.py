@@ -109,7 +109,8 @@ def calculate_start_pages(files):
     return start_pages
 
 
-def resize_image_to_a4(img, dpi=300):  # used only when merge is on
+def resize_image_to_a4(img, dpi=300, output_size="small"):  # used only when merge is on
+
     a4_width = int(8.27 * dpi)  # 8.27 inches is 210mm
     a4_height = int(11.69 * dpi)  # 11.69 inches is 297mm
 
@@ -130,7 +131,12 @@ def resize_image_to_a4(img, dpi=300):  # used only when merge is on
 
     # Create an A4 background
     background = Image.new("RGB", (a4_width, a4_height), "white")
-    offset = ((a4_width - new_width) // 2, (a4_height - new_height) // 2)
+    if output_size == "small":
+        offset = ((a4_width - new_width) // 2, (a4_height - new_height) // 2)
+    if output_size == "medium":
+        offset = ((a4_width - new_width) // 1.5, (a4_height - new_height) // 1.5)
+    if output_size == "large":
+        offset = ((a4_width - new_width), (a4_height - new_height))
     background.paste(resized_img, offset)
     return background
 
@@ -139,7 +145,7 @@ def dist(p1, p2):
     return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
 
-def create_searchable_pdf(input_file, add_header, merged=False):
+def create_searchable_pdf(input_file, add_header, merged=False, output_size="small"):
     # Reset the file pointer to the beginning
     input_file.seek(0)
     file_content = input_file.read()
@@ -221,7 +227,8 @@ def create_searchable_pdf(input_file, add_header, merged=False):
                 with Image.open(temp_path) as img:
                     image_pages_original = ImageSequence.Iterator(img)
                     image_pages = [
-                        resize_image_to_a4(image) for image in image_pages_original
+                        resize_image_to_a4(image, output_size)
+                        for image in image_pages_original
                     ]
             else:
                 with Image.open(temp_path) as img:
