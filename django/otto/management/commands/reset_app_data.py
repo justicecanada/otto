@@ -70,7 +70,7 @@ class Command(BaseCommand):
             self.reset_groups()
             self.reset_apps()
             self.reset_security_labels()
-            self.reset_libraries()
+            self.reset_libraries("library_mini.yaml")
             self.reset_cost_types()
             self.reset_presets()
         else:
