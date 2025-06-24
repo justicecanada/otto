@@ -62,7 +62,7 @@ jobs:
       AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
       DJANGODB_HOST: postgres-service
       VECTORDB_HOST: postgres-service
-      LOG_LEVEL: ERROR      
+      LOG_LEVEL: ERROR
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
