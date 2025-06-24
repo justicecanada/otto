@@ -1220,3 +1220,8 @@ def mark_tour_completed(request, tour_name):
     setattr(request.user, tour_property, True)
     request.user.save()
     return HttpResponse(status=200)
+
+
+@permission_required("otto.manage_users")
+def commands(request):
+    return render(request, "commands_portal.html")

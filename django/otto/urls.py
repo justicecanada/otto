@@ -72,6 +72,7 @@ urlpatterns = [
         views.reset_completion_flags,
         name="reset_completion_flags",
     ),
+    path("commands/", views.commands, name="commands"),
     path("feedback/", views.feedback_message, name="user_feedback"),
     path("feedback/<int:message_id>/", views.feedback_message, name="user_feedback"),
     path(

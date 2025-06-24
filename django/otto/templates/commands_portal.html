@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block page_title %}
+  {% trans "Commands Portal" %}
+{% endblock %}
+
+{% block content_container %}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="mt-4 mb-3">Commands Portal</h1>
+      </div>
+    </div>
+    // List of all the commands that were run recently with their status
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Command</th>
+              <th scope="col">Status</th>
+              <th scope="col">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for command in commands %}
+              <tr>
+                <td>{{ command.name }}</td>
+                <td>{{ command.status }}</td>
+                <td>{{ command.timestamp|date:"Y-m-d H:i:s" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="3" class="text-center">{% trans "No commands found." %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}
