@@ -16,7 +16,6 @@ from llama_index.core.instrumentation.events.llm import (
     LLMChatEndEvent,
     LLMChatStartEvent,
     LLMCompletionEndEvent,
-    LLMPredictStartEvent,
 )
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import QueryFusionRetriever
@@ -93,6 +92,29 @@ llms = {
 
 CHAT_MODELS = [(k, v["description"]) for k, v in llms.items()]
 
+NO_CHAT_MODELS = ["command-a"]
+
+
+def chat_history_to_prompt(chat_history: list) -> str:
+    """
+    Convert a list of ChatMessage objects to a single prompt string.
+    Each message will be formatted as: "<role>: <content>"
+    """
+    from llama_index.core.base.llms.types import ChatMessage
+
+    lines = []
+    for msg in chat_history:
+        # If msg is a dict, convert to ChatMessage
+        if not isinstance(msg, ChatMessage) and hasattr(ChatMessage, "model_validate"):
+            msg = ChatMessage.model_validate(msg)
+        role = getattr(msg, "role", None)
+        content = getattr(msg, "content", None)
+        if role and content:
+            lines.append(f"{role.value}: {content}")
+        elif content:
+            lines.append(str(content))
+    return "\n".join(lines)
+
 
 class OttoLLM:
     """
@@ -127,14 +149,16 @@ class OttoLLM:
         """
         Stream complete response (not single tokens) from list of chat history objects
         """
+        if self.deployment in NO_CHAT_MODELS:
+            prompt = chat_history_to_prompt(chat_history)
+            async for chunk in self.stream(prompt):
+                yield chunk
+            return
         response_stream = await self.llm.astream_chat(chat_history)
         async for chunk in response_stream:
             yield chunk.message.content
 
     async def stream(self, prompt: str):
-        """
-        Stream complete response (not single tokens) from single prompt string
-        """
         response_stream = await self.llm.astream_complete(prompt)
         async for chunk in response_stream:
             yield chunk.text
@@ -149,6 +173,9 @@ class OttoLLM:
         """
         Return complete response string from list of chat history objects (no streaming)
         """
+        if self.deployment in NO_CHAT_MODELS:
+            prompt = chat_history_to_prompt(chat_history)
+            return self.complete(prompt)
         return self.llm.chat(chat_history).message.content
 
     async def tree_summarize(
