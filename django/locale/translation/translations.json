@@ -3878,5 +3878,17 @@
     "<text to summarize...>": {
         "fr": "",
         "fr_auto": "<texte pour résumer...>"
+    },
+    "View libraries": {
+        "fr": "",
+        "fr_auto": "Voir les bibliothèques"
+    },
+    "Editable Libraries": {
+        "fr": "",
+        "fr_auto": "Bibliothèques modifiables"
+    },
+    "Viewable Libraries": {
+        "fr": "",
+        "fr_auto": "Bibliothèques visibles"
     }
 }
