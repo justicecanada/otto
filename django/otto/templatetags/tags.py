@@ -7,7 +7,7 @@ register = template.Library()
 @register.simple_tag
 def get_librarian_modal_url(item_type, item_id):
     url_mapping = {
-        "library": "librarian:modal_edit_library",
+        "library": "librarian:modal_view_library",
         "data_source": "librarian:modal_view_data_source",
         "document": "librarian:modal_view_document",
     }

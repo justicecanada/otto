@@ -24,7 +24,7 @@
         <button type="button"
                 id="editLibrariesButton"
                 class="btn btn-outline-dark btn-sm"
-                hx-get="{% url 'librarian:modal_edit_library' options_form.qa_library.value %}"
+                hx-get="{% url 'librarian:modal_view_library' options_form.qa_library.value %}"
                 hx-target="#editLibrariesInner"
                 hx-indicator="#librarian-modal-spinner"
                 hx-swap="innerHTML"

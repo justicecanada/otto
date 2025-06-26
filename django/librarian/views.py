@@ -39,24 +39,11 @@ def get_editable_libraries(user):
 
 
 def get_viewable_libraries(user):
-    """
-    Returns libraries that the user can view in the librarian interface.
-    This includes all editable libraries plus the Corporate library for non-admin users
-    (who can view it but not edit it).
-    """
-    viewable_libraries = []
-
-    for library in Library.objects.all():
-        # Include if user can edit the library
-        if user.has_perm("librarian.view_library", library):
-            viewable_libraries.append(library)
-        # Also include Corporate library for viewing even if user can't edit it
-        elif library.name == "Corporate" and user.has_perm(
-            "librarian.view_library", library
-        ):
-            viewable_libraries.append(library)
-
-    return viewable_libraries
+    return [
+        library
+        for library in Library.objects.all()
+        if user.has_perm("librarian.view_library", library)
+    ]
 
 
 # AC-20: Implements role-based access control for interacting with data sources
@@ -373,7 +360,7 @@ def modal_create_library(request):
 
 
 @permission_required("librarian.view_library", objectgetter(Library, "library_id"))
-def modal_edit_library(request, library_id):
+def modal_view_library(request, library_id):
     if request.method == "POST":
         is_public = "is_public" in request.POST
         if is_public and not request.user.has_perm("librarian.manage_public_libraries"):
