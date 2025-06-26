@@ -682,13 +682,22 @@ def drop_hnsw_index():
     session.close()
 
 
-def recreate_indexes(node_id=True, jsonb=True, hnsw=False):
+def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
+    """
+    Recreate vector-specific indexes on the vector database table.
+
+    Note: The node_id index is now managed by Django model Meta.indexes,
+    so this function only handles vector-specific indexes like JSONB and HNSW.
+
+    Args:
+        node_id: Ignored - kept for backward compatibility. Django manages this index.
+        jsonb: Whether to recreate the JSONB (GIN) index for metadata queries
+        hnsw: Whether to recreate the HNSW index for vector similarity search
+    """
     post_load_sql = ""
-    if node_id:
-        post_load_sql += (
-            "DROP INDEX IF EXISTS data_laws_lois__node_id__idx;"
-            "CREATE INDEX data_laws_lois__node_id__idx ON data_laws_lois__ (node_id);"
-        )
+
+    # node_id index is managed by Django model Meta.indexes - no manual creation needed
+
     if jsonb:
         post_load_sql += (
             "DROP INDEX IF EXISTS data_laws_lois__metadata__idx;"
@@ -699,6 +708,10 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=False):
             "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
             "CREATE INDEX data_laws_lois___embedding_idx ON data_laws_lois__ USING HNSW (embedding);"
         )
+
+    if not post_load_sql:
+        return  # Nothing to do
+
     db = settings.DATABASES["vector_db"]
     connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
     engine = create_engine(connection_string)

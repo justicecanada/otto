@@ -27,6 +27,7 @@ class LawManager(models.Manager):
         add_to_vector_store=True,
         force_update=False,
         llm=None,
+        progress_callback=None,
     ):
         # Does this law already exist?
         existing_law = self.filter(node_id_en=document_en.doc_id)
@@ -105,6 +106,12 @@ class LawManager(models.Manager):
                     node.text_resource = MediaResource(text=node.doc_id)
 
             for i in tqdm(range(0, len(nodes), batch_size)):
+                # Call progress callback if provided
+                if progress_callback:
+                    batch_num = (i // batch_size) + 1
+                    total_batches = (len(nodes) + batch_size - 1) // batch_size
+                    progress_callback(batch_num, total_batches)
+
                 # Exponential backoff retry
                 for j in range(4, 12):
                     try:
@@ -115,6 +122,31 @@ class LawManager(models.Manager):
                         logger.error(f"Retrying in {2**j} seconds...")
                         time.sleep(2**j)
         return obj
+
+    # Law.objects.purge(keep_ids=set(law_ids))
+    def purge(self, keep_ids):
+        """
+        Purge all laws except those with node_id_en = keep_id_eng
+        If keep_ids is None, purge all laws.
+        """
+        if keep_ids is None:
+            logger.info("Purging all laws")
+            self.all().delete()
+            return []
+        else:
+            keep_ids = set([f"{keep_id}_eng" for keep_id in keep_ids])
+            logger.info(f"Purging laws except those with IDs: {keep_ids}")
+            laws_to_delete = self.filter(node_id_en__in=keep_ids)
+            laws_id_list = [
+                law.node_id_en.replace("_eng", "") for law in laws_to_delete
+            ]
+            if laws_id_list:
+                logger.info(f"Deleting laws: {laws_id_list}")
+                laws_to_delete.delete()
+            else:
+                logger.info("No laws to delete.")
+
+            return laws_id_list
 
 
 class Law(models.Model):
@@ -173,4 +205,5 @@ class Law(models.Model):
         indexes = [
             models.Index(fields=["title"]),
             models.Index(fields=["type"]),
+            models.Index(fields=["node_id"]),
         ]
