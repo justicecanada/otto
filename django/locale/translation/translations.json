@@ -3890,5 +3890,9 @@
     "Viewable Libraries": {
         "fr": "",
         "fr_auto": "Bibliothèques visibles"
+    },
+    "Select a library, folder or document to view.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à consulter."
     }
 }
