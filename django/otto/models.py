@@ -580,6 +580,7 @@ class OttoStatus(models.Model):
 
     objects = OttoStatusManager()
     laws_last_refreshed = models.DateTimeField(null=True, blank=True)
+    laws_status = models.JSONField(blank=True, null=True)
     exchange_rate = models.FloatField(null=False, blank=False, default=1.38)
     terms_last_updated = models.DateTimeField(default=datetime.datetime.now)
 

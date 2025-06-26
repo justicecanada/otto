@@ -144,6 +144,9 @@ class Law(models.Model):
     current_date = models.DateField(null=True, blank=True)
     in_force_start_date = models.DateField(null=True, blank=True)
 
+    # When was this law last checked for updates?
+    checked_date = models.DateTimeField(auto_now_add=True)
+
     objects = LawManager()
 
     def __str__(self):

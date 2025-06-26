@@ -12,9 +12,7 @@ def sync_users():
 
 @shared_task
 def update_laws():
-    call_command(
-        "load_laws_xml", "--force_download", "--full", "--reset", "--accept_reset"
-    )
+    call_command("load_laws_xml", "--force_download", "--full")
 
 
 @shared_task
