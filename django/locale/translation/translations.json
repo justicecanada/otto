@@ -3862,5 +3862,21 @@
     "Available libraries will appear here.": {
         "fr": "",
         "fr_auto": "Les bibliothèques disponibles apparaîtront ici."
+    },
+    "Bot responded with these files: ": {
+        "fr": "",
+        "fr_auto": "Bot a répondu avec ces fichiers : "
+    },
+    "User uploaded these files: ": {
+        "fr": "",
+        "fr_auto": "L’utilisateur a téléchargé ces fichiers : "
+    },
+    "(empty message)": {
+        "fr": "",
+        "fr_auto": "(message vide)"
+    },
+    "<text to summarize...>": {
+        "fr": "",
+        "fr_auto": "<texte pour résumer...>"
     }
 }
