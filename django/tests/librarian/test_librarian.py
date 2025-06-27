@@ -95,10 +95,10 @@ def test_modal_create_library_post(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_modal_edit_library_get(client, all_apps_user, basic_user):
+def test_modal_view_library_get(client, all_apps_user, basic_user):
     client.force_login(all_apps_user())
     library = Library.objects.get_default_library()
-    url = reverse("librarian:modal_edit_library", kwargs={"library_id": library.id})
+    url = reverse("librarian:modal_view_library", kwargs={"library_id": library.id})
     response = client.get(url)
     assert response.status_code == 200
     # Basic user should not be able to edit
@@ -112,7 +112,9 @@ def test_modal_edit_library_get(client, all_apps_user, basic_user):
 def test_modal_edit_library_get_redirect(client, all_apps_user, basic_user):
     client.force_login(all_apps_user())
     library = Library.objects.get_default_library()
-    url = reverse("librarian:modal_edit_library", kwargs={"library_id": library.id})
+    url = reverse(
+        "librarian:modal_create_data_source", kwargs={"library_id": library.id}
+    )
     response = client.get(url)
     assert response.status_code == 200
     user = basic_user()
@@ -127,7 +129,7 @@ def test_modal_edit_library_get_redirect(client, all_apps_user, basic_user):
     assert response.status_code == 302
 
     url = reverse(
-        "librarian:modal_edit_library", kwargs={"library_id": user.personal_library.id}
+        "librarian:modal_view_library", kwargs={"library_id": user.personal_library.id}
     )
     assert response.url == url
     # Try going directly to user's personal library this should work
@@ -337,12 +339,12 @@ def test_modal_views(client, all_apps_user):
     """
     path(
         "modal/data_source/<int:data_source_id>/edit/",
-        modal_edit_data_source,
-        name="modal_edit_data_source",
+        modal_view_data_source,
+        name="modal_view_data_source",
     ),
     """
     url = reverse(
-        "librarian:modal_edit_data_source", kwargs={"data_source_id": data_source.id}
+        "librarian:modal_view_data_source", kwargs={"data_source_id": data_source.id}
     )
     response = client.get(url)
     assert response.status_code == 200
@@ -361,11 +363,11 @@ def test_modal_views(client, all_apps_user):
     """
     path(
         "modal/document/<int:document_id>/edit/",
-        modal_edit_document,
-        name="modal_edit_document",
+        modal_view_document,
+        name="modal_view_document",
     ),
     """
-    url = reverse("librarian:modal_edit_document", kwargs={"document_id": document.id})
+    url = reverse("librarian:modal_view_document", kwargs={"document_id": document.id})
     response = client.get(url)
     assert response.status_code == 200
     """

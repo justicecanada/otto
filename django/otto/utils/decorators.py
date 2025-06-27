@@ -90,7 +90,7 @@ def permission_required(
                 elif perms.__contains__("librarian.edit_library"):
                     return redirect(
                         reverse(
-                            "librarian:modal_edit_library",
+                            "librarian:modal_view_library",
                             kwargs={"library_id": user.personal_library.id},
                         )
                     )
