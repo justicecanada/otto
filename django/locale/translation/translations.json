@@ -3851,6 +3851,18 @@
         "fr": "",
         "fr_auto": "Les résultats d’Otto peuvent contenir la propriété intellectuelle d’autrui, y compris des extraits de matériel protégé par le droit d’auteur et des marques de commerce de tiers. Les utilisateurs qui ont l’intention d’inclure des extrants d’Otto dans des publications ou des communications externes doivent examiner attentivement les extrants. Les directives du Conseil du Trésor mentionnées ci-dessous contiennent des recommandations utiles à cet égard. Évitez d’utiliser du contenu généré par Otto dans des publications gouvernementales lorsqu’il est particulièrement important que la Couronne détienne les droits d’auteur."
     },
+    "Select a library to view folders.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez une bibliothèque pour afficher les dossiers."
+    },
+    "Select a folder to view documents.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez un dossier pour afficher les documents."
+    },
+    "Available libraries will appear here.": {
+        "fr": "",
+        "fr_auto": "Les bibliothèques disponibles apparaîtront ici."
+    },
     "Bot responded with these files: ": {
         "fr": "",
         "fr_auto": "Bot a répondu avec ces fichiers : "
@@ -3866,5 +3878,21 @@
     "<text to summarize...>": {
         "fr": "",
         "fr_auto": "<texte pour résumer...>"
+    },
+    "Manage libraries": {
+        "fr": "",
+        "fr_auto": "Gérer les bibliothèques"
+    },
+    "Editable Libraries": {
+        "fr": "",
+        "fr_auto": "Bibliothèques modifiables"
+    },
+    "Viewable Libraries": {
+        "fr": "",
+        "fr_auto": "Bibliothèques visibles"
+    },
+    "Select a library, folder or document to view.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à consulter."
     }
 }

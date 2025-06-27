@@ -228,6 +228,12 @@ def can_edit_data_source(user, data_source):
 
 
 @predicate
+def can_view_data_source(user, data_source):
+    # If they can view the library, they can view a data_source
+    return can_view_library(user, data_source.library)
+
+
+@predicate
 def can_delete_data_source(user, data_source):
     if Chat.objects.filter(data_source=data_source).exists():
         return False
@@ -239,6 +245,11 @@ def can_delete_data_source(user, data_source):
 @predicate
 def can_edit_document(user, document):
     return can_edit_library(user, document.data_source.library)
+
+
+@predicate
+def can_view_document(user, document):
+    return can_view_library(user, document.data_source.library)
 
 
 @predicate
@@ -268,8 +279,10 @@ add_perm("librarian.view_library", can_view_library)
 add_perm("librarian.edit_library", can_edit_library)
 add_perm("librarian.delete_library", can_delete_library)
 add_perm("librarian.edit_data_source", can_edit_data_source)
+add_perm("librarian.view_data_source", can_view_data_source)
 add_perm("librarian.delete_data_source", can_delete_data_source)
 add_perm("librarian.edit_document", can_edit_document)
+add_perm("librarian.view_document", can_view_document)
 add_perm("librarian.delete_document", can_delete_document)
 add_perm("librarian.manage_library_users", can_manage_library_users)
 add_perm("librarian.download_document", can_download_document)
