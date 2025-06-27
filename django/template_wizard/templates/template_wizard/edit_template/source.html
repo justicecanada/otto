@@ -1,0 +1,28 @@
+{% load i18n %}
+
+<div class="row">
+  <div class="col-lg-5 border-end mb-3">{% include "template_wizard/_add_sources_forms.html" %}</div>
+  <div class="col-lg-7">
+    {% if session.sources.all %}
+      {% include "template_wizard/_sources_list.html" %}
+    {% elif session.is_example_session %}
+      <p class="mb-3">
+        {% trans "Add at least one <span class='fw-semibold'>example</span> of the type of document you want to extract information from." %}
+      </p>
+      <p class="mb-0">
+        {% trans "Optionally, if you have an <span class='fw-semibold'>existing template</span> (e.g. Word, PDF), add it and select 'Example template'." %}
+      </p>
+    {% else %}
+      <p class="mb-0 text-secondary">{% trans "No sources added yet." %}</p>
+    {% endif %}
+    {# Selection for PDF method (use on all sources in the session) #}
+  </div>
+</div>
+<div class="row mt-3">
+  <div class="col text-end">
+    <a class="btn btn-primary"
+       href="{% url 'template_wizard:edit_fields' template.id %}">
+      {% trans "Next" %}<i class="bi bi-chevron-right ms-2"></i>
+    </a>
+  </div>
+</div>

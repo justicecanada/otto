@@ -163,11 +163,11 @@ class OttoLLM:
         async for chunk in response_stream:
             yield chunk.text
 
-    def complete(self, prompt: str):
+    def complete(self, prompt: str, **kwargs):
         """
         Return complete response string from single prompt string (no streaming)
         """
-        return self.llm.complete(prompt).text
+        return self.llm.complete(prompt, **kwargs).text
 
     def chat_complete(self, chat_history: list):
         """

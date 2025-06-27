@@ -112,14 +112,14 @@ def can_edit_preset(user, preset):
 
 @predicate
 def can_delete_preset(user, preset):
-    if preset.global_default:
+    if getattr(preset, "global_default", False):
         return False
     return can_edit_preset(user, preset)
 
 
 @predicate
 def can_edit_preset_sharing(user, preset):
-    if preset.global_default:
+    if getattr(preset, "global_default", False):
         return False
     return can_edit_preset(user, preset)
 
@@ -273,3 +273,28 @@ add_perm("librarian.edit_document", can_edit_document)
 add_perm("librarian.delete_document", can_delete_document)
 add_perm("librarian.manage_library_users", can_manage_library_users)
 add_perm("librarian.download_document", can_download_document)
+
+
+# Template Wizard. Same as chat Presets
+add_perm("template_wizard.access_template", can_access_preset)
+add_perm("template_wizard.edit_template", can_edit_preset)
+add_perm("template_wizard.delete_template", can_delete_preset)
+add_perm("template_wizard.edit_template_sharing", can_edit_preset_sharing)
+add_perm("template_wizard.upload_large_files", can_upload_large_files)
+
+
+# Template Wizard - template sessions & sources
+@predicate
+def can_access_template_session(user, session):
+    return session.user == user
+
+
+@predicate
+def can_access_template_source(user, source):
+    if source.session:
+        return source.session.user == user
+    return can_edit_preset(user, source.template)
+
+
+add_perm("template_wizard.access_session", can_access_template_session)
+add_perm("template_wizard.access_source", can_access_template_source)

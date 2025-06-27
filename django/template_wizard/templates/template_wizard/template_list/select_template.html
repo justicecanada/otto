@@ -1,0 +1,26 @@
+{% load i18n %}
+
+<a class="btn mb-3 btn-primary"
+   href="{% url 'template_wizard:new_template' %}">
+  <i class="bi-plus"></i>
+  {% trans "Create new template" %}
+</a>
+<div class="row">
+  {# <div class="col-md-3 border-end"></div> #}
+  <div class="col" id="preset-card-list">
+    <div style="top: 0; bottom: 0; min-height: 300px">
+      <div class="d-flex flex-column h-100">
+        {% if templates|length == 0 %}
+          {% trans "No templates available." %}
+          {# {% include "template_wizard/template_list/empty_card_list.html" %} #}
+        {% else %}
+          <ul class="card-list list-unstyled">
+            {% for template in templates %}
+              {% include "template_wizard/template_list/card.html" %}
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

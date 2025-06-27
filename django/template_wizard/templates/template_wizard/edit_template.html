@@ -1,0 +1,125 @@
+{% extends 'template_wizard/_wizard_main_layout.html' %}
+{% load i18n %}
+{% load static %}
+{% load rules %}
+
+{% block wizard_page_css %}
+  <link rel="stylesheet" href="{% static 'template_wizard/style.css' %}">
+  {% if active_tab == "source" %}
+    <script src="{% static 'file_form/file_form.min.js' %}"></script>
+  {% endif %}
+{% endblock %}
+
+{% block wizard_breadcrumb_extra %}
+  <li class="breadcrumb-item">
+    <a href="{{ request.path }}">
+      {% if not template %}
+        {% trans "Create new template" %}
+      {% else %}
+        {% trans "Edit template:" %}
+        {{ template.name_auto }}
+      {% endif %}
+    </a>
+  </li>
+{% endblock %}
+
+{% block wizard_content_header %}
+  <div id="spinner"
+       class="spinner container text-primary position-absolute top-0 end-0">
+    <span class="spinner-border" aria-hidden="true"></span>
+    <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+  </div>
+  <div class="row">
+    <div class="col">
+      <h2 class="mb-3 px-4 mt-2">
+        {% if not template %}
+          {% trans "Create new template" %}
+        {% else %}
+          {% trans "Edit template:" %}
+          {{ template.name_auto }}
+        {% endif %}
+      </h2>
+    </div>
+    {% if template.id %}
+      <div class="col-auto d-flex align-items-center">
+        <a class="btn btn-outline-danger"
+           href="{% url 'template_wizard:delete_template' template_id=template.id %}"
+           onclick="if(!confirm('{% trans 'Are you sure you want to delete the template' %} {{ template.name_auto }}?')){event.preventDefault();}">
+          <i class="bi bi-trash"></i>
+          {% trans "Delete template" %}
+        </a>
+      </div>
+    {% endif %}
+  </div>
+  {# <p class="mx-4 mb-4"></p> #}
+{% endblock %}
+
+{% block wizard_tabs %}
+  <ul class="nav nav-tabs px-3 border-bottom-0" id="top-tabs">
+    <li class="nav-item">
+      <a id="metadata-tab"
+         class="nav-link text-body {% if not template.id %}disabled{% endif %}"
+         href="{% if not template.id %}#{% else %}{% url 'template_wizard:edit_metadata' template_id=template.id %}{% endif %}">
+        {% trans "1. Metadata" %}
+      </a>
+    </li>
+    <li class="nav-item">
+      <a id="source-tab"
+         class="nav-link text-body {% if not template.id %}disabled{% endif %}"
+         href="{% if not template.id %}#{% else %}{% url 'template_wizard:edit_example_source' template_id=template.id %}{% endif %}">
+        {% trans "2. Example source(s)" %}
+      </a>
+    </li>
+    <li class="nav-item">
+      <a id="fields-tab"
+         class="nav-link text-body {% if not template.id %}disabled{% endif %}"
+         href="{% if not template.id %}#{% else %}{% url 'template_wizard:edit_fields' template_id=template.id %}{% endif %}">
+        {% trans "3. Define fields" %}
+      </a>
+    </li>
+    <li class="nav-item">
+      <a id="layout-tab"
+         class="nav-link text-body {% if not template.id %}disabled{% endif %}"
+         href="{% if not template.id %}#{% else %}{% url 'template_wizard:edit_layout' template_id=template.id %}{% endif %}">
+        {% trans "4. Template layout" %}
+      </a>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block wizard_step_content %}
+  <div class="tab-pane fade show active p-3 border rounded preset-form-container">
+    {% if active_tab == "metadata" %}
+      {% include "template_wizard/edit_template/metadata.html" %}
+    {% elif active_tab == "source" %}
+      {% include "template_wizard/edit_template/source.html" %}
+    {% elif active_tab == "fields" %}
+      {% include "template_wizard/edit_template/fields.html" %}
+    {% elif active_tab == "layout" %}
+      {% include "template_wizard/edit_template/layout.html" %}
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block wizard_page_script %}
+  {% if active_tab == "source" %}
+    {% has_perm "template_wizard.upload_large_files" request.user as can_upload_large_files %}
+    <script>
+    {% if can_upload_large_files %}
+    const TEMPLATE_WIZARD_MAX_UPLOAD_SIZE = Number.MAX_VALUE; // No limit
+    {% else %}
+    const TEMPLATE_WIZARD_MAX_UPLOAD_SIZE = 25000000; // 25MB
+    {% endif %}
+    const TEMPLATE_WIZARD_MAX_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', TEMPLATE_WIZARD_MAX_UPLOAD_SIZE/1000000);
+    </script>
+    <link rel="stylesheet" href="{% static 'file_form/file_form.css' %}">
+  {% endif %}
+  <script>setActiveTab(document.getElementById('{{active_tab}}-tab'));</script>
+{% endblock %}
+
+{% if active_tab == "source" %}
+  {% block content_container %}
+    {{ block.super }}
+    {% include "template_wizard/file_dropzone.html" %}
+  {% endblock %}
+{% endif %}
