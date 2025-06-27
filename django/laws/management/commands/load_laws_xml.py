@@ -103,11 +103,6 @@ class Command(BaseCommand):
             help="Retry only laws that failed in the previous run",
         )
         parser.add_argument(
-            "--use_celery",
-            action="store_true",
-            help="Use Celery tasks for asynchronous processing (recommended)",
-        )
-        parser.add_argument(
             "--status",
             action="store_true",
             help="Monitor law loading progress in real-time (refreshes every second, press Ctrl+C to exit)",
@@ -162,48 +157,28 @@ class Command(BaseCommand):
         reset_hnsw = options.get("reset_hnsw", False)
         skip_cleanup = options.get("skip_cleanup", False)
         retry_failed = options.get("retry_failed", False)
-        use_celery = options.get("use_celery", False)
 
-        if use_celery:
-            # Use new Celery-based processing
-            print("Starting law loading with Celery tasks...")
-            result = initiate_law_loading_task.apply_async(
-                kwargs={
-                    "small": small,
-                    "full": full,
-                    "const_only": const_only,
-                    "reset": reset,
-                    "force_download": force_download,
-                    "mock_embedding": mock_embedding,
-                    "debug": debug,
-                    "force_update": force_update,
-                    "retry_failed": retry_failed,
-                }
-            )
-            print(f"Law loading task queued with ID: {result.id}")
-            print("You can monitor progress via the OttoStatus.laws_status field")
-            print("or use --status to check current progress.")
-            print("Use --retry_failed --use_celery to retry failed laws.")
-            # Automatically enter status loop
-            self._display_status_loop()
-        else:
-            # Use legacy synchronous processing
-            print("Using legacy synchronous processing...")
-            print(
-                "Note: Consider using --use_celery for better error handling and progress tracking"
-            )
-            load_laws(
-                small=small,
-                full=full,
-                const_only=const_only,
-                reset=reset,
-                force_download=force_download,
-                mock_embedding=mock_embedding,
-                debug=debug,
-                force_update=force_update,
-                skip_cleanup=skip_cleanup,
-                reset_hnsw=reset_hnsw,
-            )
+        # Always use Celery-based processing
+        print("Starting law loading with Celery tasks...")
+        result = initiate_law_loading_task.apply_async(
+            kwargs={
+                "small": small,
+                "full": full,
+                "const_only": const_only,
+                "reset": reset,
+                "force_download": force_download,
+                "mock_embedding": mock_embedding,
+                "debug": debug,
+                "force_update": force_update,
+                "retry_failed": retry_failed,
+            }
+        )
+        print(f"Law loading task queued with ID: {result.id}")
+        print("You can monitor progress via the OttoStatus.laws_status field")
+        print("or use --status to check current progress.")
+        print("Use --retry_failed to retry failed laws.")
+        # Automatically enter status loop
+        self._display_status_loop()
 
     def _display_status_loop(self):
         """
@@ -267,6 +242,16 @@ class Command(BaseCommand):
                     print(f"📊 [{bar}] {progress:.1f}%")
 
                 print(f"✅ Completed: {processed}")
+                # Show detailed counts if available
+                updated = status.get("updated", 0)
+                created = status.get("created", 0)
+                deleted = status.get("deleted", 0)
+                no_changes = status.get("no_changes", 0)
+                if any([updated, created, deleted, no_changes]):
+                    print(f"   • 🆕 Created: {created}")
+                    print(f"   • 🔄 Updated: {updated}")
+                    print(f"   • 🗑️ Deleted: {deleted}")
+                    print(f"   • ⏸️ No changes: {no_changes}")
                 if unchanged > 0:
                     print(f"🟡 Unchanged: {unchanged}")
                 if processing > 0:

@@ -2,6 +2,7 @@ import time
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 from llama_index.core.schema import MediaResource
 from sqlalchemy import create_engine, text
@@ -77,6 +78,7 @@ class LawManager(models.Manager):
         obj.sha_256_hash_en = sha_256_hash_en
         obj.sha_256_hash_fr = sha_256_hash_fr
 
+        obj.checked_date = timezone.now()
         obj.full_clean()
         obj.save()
 
@@ -123,30 +125,20 @@ class LawManager(models.Manager):
                         time.sleep(2**j)
         return obj
 
-    # Law.objects.purge(keep_ids=set(law_ids))
-    def purge(self, keep_ids):
+    def purge(self, last_checked_before):
         """
-        Purge all laws except those with node_id_en = keep_id_eng
-        If keep_ids is None, purge all laws.
+        Purge all laws with checked_date before `last_checked_before`.
         """
-        if keep_ids is None:
-            logger.info("Purging all laws")
-            self.all().delete()
-            return []
-        else:
-            keep_ids = set([f"{keep_id}_eng" for keep_id in keep_ids])
-            logger.info(f"Purging laws except those with IDs: {keep_ids}")
-            laws_to_delete = self.filter(node_id_en__in=keep_ids)
-            laws_id_list = [
-                law.node_id_en.replace("_eng", "") for law in laws_to_delete
-            ]
-            if laws_id_list:
-                logger.info(f"Deleting laws: {laws_id_list}")
-                laws_to_delete.delete()
-            else:
-                logger.info("No laws to delete.")
 
-            return laws_id_list
+        logger.debug(f"Purging laws checked before {last_checked_before}...")
+        count = self.filter(checked_date__lt=last_checked_before).count()
+        if count == 0:
+            logger.debug("No laws to purge.")
+            return 0
+
+        self.filter(checked_date__lt=last_checked_before).delete()
+        logger.debug(f"Purged {count} laws.")
+        return count
 
 
 class Law(models.Model):

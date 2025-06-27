@@ -70,7 +70,7 @@ def initiate_law_loading_task(
     """
     try:
         bind_contextvars(feature="laws_load_init")
-
+        start_time = now()
         # Initialize OttoStatus
         otto_status = OttoStatus.objects.singleton()
         laws_status = {
@@ -82,6 +82,10 @@ def initiate_law_loading_task(
             "completed_law_ids": [],
             "failed_law_ids": [],
             "laws": {},
+            # Add counters for created, updated, and no_changes
+            "created": 0,
+            "updated": 0,
+            "no_changes": 0,
         }
         otto_status.laws_status = laws_status
         otto_status.save()
@@ -169,13 +173,9 @@ def initiate_law_loading_task(
             # Recreate the table
             OttoLLM().get_retriever("laws_lois__", hnsw=True).retrieve("?")
 
-        # Detect and delete laws that no longer exist in repo
-        deleted_laws = Law.objects.purge(keep_ids=law_ids)
-
         # Update status with discovered laws
         laws_status["status"] = "queuing"
         laws_status["total_laws"] = len(file_path_tuples)
-        laws_status["deleted_laws"] = deleted_laws
 
         # Initialize individual law statuses
         for file_paths in file_path_tuples:
@@ -317,6 +317,14 @@ def process_law_pair_task(
                     if law_id not in laws_status["completed_law_ids"]:
                         laws_status["completed_law_ids"].append(law_id)
                     laws_status["processed"] = len(laws_status["completed_law_ids"])
+
+                    # Update created/updated/no_changes counters from result
+                    if result.get("added"):
+                        laws_status["created"] = laws_status.get("created", 0) + 1
+                    elif result.get("updated"):
+                        laws_status["updated"] = laws_status.get("updated", 0) + 1
+                    elif result.get("exists"):
+                        laws_status["no_changes"] = laws_status.get("no_changes", 0) + 1
                 else:
                     laws_status["failed_law_ids"] = laws_status.get(
                         "failed_law_ids", []
@@ -408,10 +416,16 @@ def finalize_law_loading_task():
         # Rebuild vector-specific indexes (node_id index is managed by Django model)
         recreate_indexes(node_id=False, jsonb=True, hnsw=False)
 
+        # Detect and delete laws that no longer exist in repo
+
         # Update final status
         otto_status = OttoStatus.objects.singleton()
         laws_status = otto_status.laws_status or {}
+        deleted_laws = Law.objects.purge(
+            last_checked_before=laws_status.get("started_at")
+        )
         laws_status["status"] = "complete"
+        laws_status["deleted"] = len(deleted_laws)
         laws_status["finalized_at"] = now().isoformat()
 
         otto_status.laws_status = laws_status
@@ -489,12 +503,16 @@ def process_en_fr_paths(
 
         # If *BOTH* exist in the database, skip
         if (
-            Law.objects.filter(sha_256_hash_en=en_hash).exists()
-            and Law.objects.filter(sha_256_hash_fr=fr_hash).exists()
+            Law.objects.filter(
+                sha_256_hash_en=en_hash, sha_256_hash_fr=fr_hash
+            ).exists()
             and not force_update
         ):
             logger.debug(f"Duplicate EN/FR hashes found in database: {file_paths}")
             load_results["exists"].append(file_paths)
+            Law.objects.filter(sha_256_hash_en=en_hash, sha_256_hash_fr=fr_hash).update(
+                checked_date=now()
+            )
             return load_results, 0
 
         # Create nodes for the English and French XML files
