@@ -15,11 +15,11 @@ from librarian.views import (
     modal_delete_data_source,
     modal_delete_document,
     modal_delete_library,
-    modal_edit_data_source,
-    modal_edit_document,
-    modal_edit_library,
     modal_library_list,
     modal_manage_library_users,
+    modal_view_data_source,
+    modal_view_document,
+    modal_view_library,
     poll_status,
     upload,
 )
@@ -30,8 +30,8 @@ urlpatterns = [
     path("modal/library/create/", modal_create_library, name="modal_create_library"),
     path(
         "modal/library/<int:library_id>/edit/",
-        modal_edit_library,
-        name="modal_edit_library",
+        modal_view_library,
+        name="modal_view_library",
     ),
     path(
         "modal/library/<int:library_id>/delete/",
@@ -50,8 +50,8 @@ urlpatterns = [
     ),
     path(
         "modal/data_source/<int:data_source_id>/edit/",
-        modal_edit_data_source,
-        name="modal_edit_data_source",
+        modal_view_data_source,
+        name="modal_view_data_source",
     ),
     path(
         "modal/data_source/<int:data_source_id>/delete/",
@@ -65,8 +65,8 @@ urlpatterns = [
     ),
     path(
         "modal/document/<int:document_id>/edit/",
-        modal_edit_document,
-        name="modal_edit_document",
+        modal_view_document,
+        name="modal_view_document",
     ),
     path(
         "modal/document/<int:document_id>/delete/",

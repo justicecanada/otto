@@ -38,6 +38,14 @@ def get_editable_libraries(user):
     ]
 
 
+def get_viewable_libraries(user):
+    return [
+        library
+        for library in Library.objects.all()
+        if user.has_perm("librarian.view_library", library)
+    ]
+
+
 # AC-20: Implements role-based access control for interacting with data sources
 def modal_view(request, item_type=None, item_id=None, parent_id=None):
     """
@@ -56,7 +64,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     """
     bind_contextvars(feature="librarian")
 
-    libraries = get_editable_libraries(request.user)
+    libraries = get_viewable_libraries(request.user)
+    editable_libraries = get_editable_libraries(request.user)
     selected_library = None
     data_sources = None
     selected_data_source = None
@@ -190,7 +199,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                     ),
                 )
                 clear_request_caches()
-                libraries = get_editable_libraries(request.user)
+                libraries = get_viewable_libraries(request.user)
+                editable_libraries = get_editable_libraries(request.user)
                 selected_library = form.instance
                 # Refresh the form so "public" checkbox behaves properly
                 form = LibraryDetailForm(instance=selected_library, user=request.user)
@@ -209,7 +219,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             library = get_object_or_404(Library, id=item_id)
             library.delete()
             messages.success(request, _("Library deleted successfully."))
-            libraries = get_editable_libraries(request.user)
+            libraries = get_viewable_libraries(request.user)
+            editable_libraries = get_editable_libraries(request.user)
         if not request.method == "DELETE":
             if item_id:
                 selected_library = get_object_or_404(Library, id=item_id)
@@ -281,8 +292,12 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     if data_sources and selected_library.is_personal_library:
         data_sources = [ds for ds in data_sources if ds.documents.count() > 0]
 
+    # Create view-only libraries list (viewable but not editable)
+    view_only_libraries = [lib for lib in libraries if lib not in editable_libraries]
+
     context = {
-        "libraries": libraries,
+        "editable_libraries": editable_libraries,
+        "view_only_libraries": view_only_libraries,
         "selected_library": selected_library,
         "data_sources": data_sources,
         "selected_data_source": selected_data_source,
@@ -344,8 +359,8 @@ def modal_create_library(request):
     return modal_view(request, item_type="library")
 
 
-@permission_required("librarian.edit_library", objectgetter(Library, "library_id"))
-def modal_edit_library(request, library_id):
+@permission_required("librarian.view_library", objectgetter(Library, "library_id"))
+def modal_view_library(request, library_id):
     if request.method == "POST":
         is_public = "is_public" in request.POST
         if is_public and not request.user.has_perm("librarian.manage_public_libraries"):
@@ -366,9 +381,9 @@ def modal_create_data_source(request, library_id):
 
 # AC-20: Only authenticated and authorized users can interact with information sources
 @permission_required(
-    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
+    "librarian.view_data_source", objectgetter(DataSource, "data_source_id")
 )
-def modal_edit_data_source(request, data_source_id):
+def modal_view_data_source(request, data_source_id):
     return modal_view(request, item_type="data_source", item_id=data_source_id)
 
 
@@ -387,9 +402,9 @@ def modal_create_document(request, data_source_id):
     return modal_view(request, item_type="document", parent_id=data_source_id)
 
 
+@permission_required("librarian.view_document", objectgetter(Document, "document_id"))
 # AC-20: Only authenticated and authorized users can interact with information sources
-@permission_required("librarian.edit_document", objectgetter(Document, "document_id"))
-def modal_edit_document(request, document_id):
+def modal_view_document(request, document_id):
     return modal_view(request, item_type="document", item_id=document_id)
 
 
