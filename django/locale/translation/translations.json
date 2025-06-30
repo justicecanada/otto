@@ -3851,16 +3851,136 @@
         "fr": "",
         "fr_auto": "Les résultats d’Otto peuvent contenir la propriété intellectuelle d’autrui, y compris des extraits de matériel protégé par le droit d’auteur et des marques de commerce de tiers. Les utilisateurs qui ont l’intention d’inclure des extrants d’Otto dans des publications ou des communications externes doivent examiner attentivement les extrants. Les directives du Conseil du Trésor mentionnées ci-dessous contiennent des recommandations utiles à cet égard. Évitez d’utiliser du contenu généré par Otto dans des publications gouvernementales lorsqu’il est particulièrement important que la Couronne détienne les droits d’auteur."
     },
-    "Commands Portal": {
+    "Bot responded with these files: ": {
         "fr": "",
-        "fr_auto": "Portail des commandes"
+        "fr_auto": "Bot a répondu avec ces fichiers : "
     },
-    "No commands found.": {
+    "User uploaded these files: ": {
         "fr": "",
-        "fr_auto": "Aucune commande trouvée."
+        "fr_auto": "L’utilisateur a téléchargé ces fichiers : "
     },
-    "Commands": {
+    "(empty message)": {
         "fr": "",
-        "fr_auto": "Commandes"
+        "fr_auto": "(message vide)"
+    },
+    "<text to summarize...>": {
+        "fr": "",
+        "fr_auto": "<texte pour résumer...>"
+    },
+    "Celery Task History": {
+        "fr": "",
+        "fr_auto": "Historique des tâches de Celery"
+    },
+    "Celery Task Management": {
+        "fr": "",
+        "fr_auto": "Gestion des tâches de Celery"
+    },
+    "Task History": {
+        "fr": "",
+        "fr_auto": "Historique des tâches"
+    },
+    "Registered Tasks": {
+        "fr": "",
+        "fr_auto": "Tâches enregistrées"
+    },
+    "Task Results": {
+        "fr": "",
+        "fr_auto": "Résultats de la tâche"
+    },
+    "Registered Celery Tasks": {
+        "fr": "",
+        "fr_auto": "Tâches enregistrées sur le céleri"
+    },
+    "Run Task:": {
+        "fr": "",
+        "fr_auto": "Tâche d’exécution :"
+    },
+    "Arguments (JSON array)": {
+        "fr": "",
+        "fr_auto": "Arguments (tableau JSON)"
+    },
+    "Example: [\\": {
+        "fr": "",
+        "fr_auto": "Exemple : [\\"
+    },
+    "Keyword Arguments (JSON object)": {
+        "fr": "",
+        "fr_auto": "Arguments de mots-clés (objet JSON)"
+    },
+    "Example: {\\": {
+        "fr": "",
+        "fr_auto": "Exemple : {\\"
+    },
+    "Starting task...": {
+        "fr": "",
+        "fr_auto": "Tâche de départ..."
+    },
+    "Run Task": {
+        "fr": "",
+        "fr_auto": "Tâche d’exécution"
+    },
+    "All statuses": {
+        "fr": "",
+        "fr_auto": "Tous les statuts"
+    },
+    "Task Name": {
+        "fr": "",
+        "fr_auto": "Nom de la tâche"
+    },
+    "All tasks": {
+        "fr": "",
+        "fr_auto": "Toutes les tâches"
+    },
+    "Node": {
+        "fr": "",
+        "fr_auto": "Nœud"
+    },
+    "Actions": {
+        "fr": "",
+        "fr_auto": "Mesures"
+    },
+    "No registered tasks found. Make sure Celery workers are running.": {
+        "fr": "",
+        "fr_auto": "Aucune tâche enregistrée trouvée. Assurez-vous que les travailleurs de Celery fonctionnent."
+    },
+    "Date": {
+        "fr": "",
+        "fr_auto": "Rendez-vous"
+    },
+    "ID": {
+        "fr": "",
+        "fr_auto": "Pièce d’identité"
+    },
+    "Task Details": {
+        "fr": "",
+        "fr_auto": "Détails de la tâche"
+    },
+    "Task ID": {
+        "fr": "",
+        "fr_auto": "ID de la tâche"
+    },
+    "Arguments": {
+        "fr": "",
+        "fr_auto": "Arguments"
+    },
+    "Keyword Arguments": {
+        "fr": "",
+        "fr_auto": "Arguments de mots-clés"
+    },
+    "Result": {
+        "fr": "",
+        "fr_auto": "Résultat"
+    },
+    "Traceback": {
+        "fr": "",
+        "fr_auto": "Retraçage"
+    },
+    "No tasks found matching the current filters.": {
+        "fr": "",
+        "fr_auto": "Aucune tâche n’a été trouvée correspondant aux filtres actuels."
+    },
+    "Celery Tasks Management": {
+        "fr": "",
+        "fr_auto": "Gestion des tâches de Celery"
     }
 }

@@ -31,7 +31,7 @@
     {% if request.user.is_operations_admin %}
       <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
       <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
-      <a class="a dropdown-item" href="{% url 'commands' %}">{% trans "Commands" %}</a>
+      <a class="a dropdown-item" href="{% url 'celery_task_history' %}">{% trans "Celery Tasks Management" %}</a>
     {% endif %}
     {% if request.user.is_admin %}
       <li>

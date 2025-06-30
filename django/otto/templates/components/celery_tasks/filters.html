@@ -1,0 +1,36 @@
+{% load i18n %}
+
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="card-title">{% trans "Filters" %}</h5>
+  </div>
+  <div class="card-body">
+    <form method="get" class="row g-3">
+      <div class="col-md-6">
+        <label for="status" class="form-label">{% trans "Status" %}</label>
+        <select name="status" id="status" class="form-select">
+          <option value="">{% trans "All statuses" %}</option>
+          {% for status in statuses %}
+            <option value="{{ status }}"
+                    {% if status_filter == status %}selected{% endif %}>{{ status }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="task_name" class="form-label">{% trans "Task Name" %}</label>
+        <select name="task_name" id="task_name" class="form-select">
+          <option value="">{% trans "All tasks" %}</option>
+          {% for task_name in task_names %}
+            <option value="{{ task_name }}"
+                    {% if task_name_filter == task_name %}selected{% endif %}>{{ task_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">{% trans "Apply Filters" %}</button>
+        <a href="{% url 'celery_task_history' %}"
+           class="btn btn-outline-secondary">{% trans "Reset" %}</a>
+      </div>
+    </form>
+  </div>
+</div>

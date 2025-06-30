@@ -72,7 +72,6 @@ urlpatterns = [
         views.reset_completion_flags,
         name="reset_completion_flags",
     ),
-    path("commands/", views.commands, name="commands"),
     path("feedback/", views.feedback_message, name="user_feedback"),
     path("feedback/<int:message_id>/", views.feedback_message, name="user_feedback"),
     path(
@@ -109,6 +108,8 @@ urlpatterns = [
     path("chat/", include("chat.urls")),
     # exposes /metrics endpoint, accessible by anonymous users, restricted by ip addresses. See metrics/web.config and IIS's IP Address and Domain Restrictions
     path("", include("django_prometheus.urls")),
+    path("celery-tasks/", views.celery_task_history, name="celery_task_history"),
+    path("celery-tasks/run/", views.run_celery_task, name="run_celery_task"),
     *HTMXAutoComplete.url_dispatcher("ac"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

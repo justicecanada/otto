@@ -1223,5 +1223,119 @@ def mark_tour_completed(request, tour_name):
 
 
 @permission_required("otto.manage_users")
-def commands(request):
-    return render(request, "commands_portal.html")
+def celery_task_history(request):
+    """
+    View to display Celery task history from Redis backend and registered tasks
+    """
+    import redis
+
+    from otto.celery import app
+    from otto.utils.celery_management import CeleryRedis, CeleryTaskRegistry
+
+    # Get filter parameters
+    days = int(request.GET.get("days", 7))
+    status_filter = request.GET.get("status", None)
+    task_name_filter = request.GET.get("task_name", None)
+    limit = int(request.GET.get("limit", 50))
+
+    # Connect to Redis
+    redis_client = redis.from_url(settings.REDIS_URL)
+    celery_redis = CeleryRedis(redis_client)
+
+    tasks = celery_redis.get_tasks()
+    formatted_tasks = [
+        celery_redis.format_task_info(task) for task in tasks if task is not None
+    ]
+
+    # Sort tasks by date (newest first)
+    formatted_tasks.sort(key=lambda x: x.date_done, reverse=True)
+
+    # Get unique task names and statuses for filters
+    task_names = sorted(
+        set(task.name for task in formatted_tasks if task.name != "Unknown")
+    )
+    statuses = sorted(set(task["status"] for task in tasks))
+
+    task_registry = CeleryTaskRegistry(app)
+
+    registered_task_list = task_registry.get_registered_tasks()
+
+    context = {
+        "tasks": formatted_tasks,
+        "registered_tasks": registered_task_list,
+        "days": days,
+        "status_filter": status_filter,
+        "task_name_filter": task_name_filter,
+        "limit": limit,
+        "task_names": task_names,
+        "statuses": statuses,
+    }
+
+    return render(request, "celery_task_history.html", context)
+
+
+@permission_required("otto.manage_users")
+def run_celery_task(request):
+    """
+    HTMX endpoint to execute a Celery task
+    """
+    if request.method != "POST":
+        return HttpResponse(
+            '<div class="alert alert-danger">Method not allowed</div>', status=405
+        )
+
+    try:
+        import json
+
+        task_name = request.POST.get("task_name")
+        task_args = request.POST.get("task_args", "[]")
+        task_kwargs = request.POST.get("task_kwargs", "{}")
+
+        if not task_name:
+            return HttpResponse(
+                '<div class="alert alert-danger">Task name is required</div>',
+                status=400,
+            )
+
+        # Parse arguments
+        try:
+            args = json.loads(task_args) if task_args else []
+            kwargs = json.loads(task_kwargs) if task_kwargs else {}
+        except json.JSONDecodeError:
+            return HttpResponse(
+                '<div class="alert alert-danger">Invalid JSON in args or kwargs</div>',
+                status=400,
+            )
+
+        # Execute the task
+        from otto.celery import app
+
+        result = app.send_task(task_name, args=args, kwargs=kwargs)
+
+        logger.info(
+            "Celery task executed via admin interface",
+            task_name=task_name,
+            task_id=result.id,
+            user=request.user.upn,
+            args=args,
+            kwargs=kwargs,
+        )
+
+        # Return HTML response for HTMX
+        success_html = f"""
+        <div class="alert alert-success">
+            <strong>{_("Task started successfully!")}</strong><br>
+            {_("Task ID:")}<code>{result.id}</code><br>
+            {_("Task")} {task_name} {_("started successfully")}
+        </div>
+        """
+        return HttpResponse(success_html)
+
+    except Exception as e:
+        logger.error(f"Error executing Celery task: {e}")
+        error_html = f"""
+        <div class="alert alert-danger">
+            <strong>{_("Error:")}</strong> {str(e)}
+        </div>
+        """
+        return HttpResponse(error_html, status=500)

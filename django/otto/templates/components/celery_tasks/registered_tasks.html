@@ -1,0 +1,41 @@
+{% load i18n %}
+
+{% if registered_tasks %}
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>{% trans "Task Name" %}</th>
+          <th>{% trans "Node" %}</th>
+          <th>{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in registered_tasks %}
+          <tr>
+            <td>{{ task.name }}</td>
+            <td>
+              <small class="text-muted">{{ task.node }}</small>
+            </td>
+            <td>
+              {% if task.executable %}
+                <button type="button"
+                        class="btn btn-sm btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#runTaskModal{{ forloop.counter }}">{% trans "Run Task" %}</button>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Run Task Modals -->
+  {% for task in registered_tasks %}
+    {% include 'components/celery_tasks/celery_tasks_modal.html' with task=task forloop_counter=forloop.counter %}
+  {% endfor %}
+
+{% else %}
+  <div class="alert alert-warning">{% trans "No registered tasks found. Make sure Celery workers are running." %}</div>
+{% endif %}

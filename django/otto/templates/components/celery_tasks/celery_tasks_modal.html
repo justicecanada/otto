@@ -1,0 +1,65 @@
+{% load i18n %}
+
+<div class="modal fade"
+     id="runTaskModal{{ forloop.counter }}"
+     tabindex="-1"
+     aria-labelledby="runTaskModalLabel{{ forloop.counter }}"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="runTaskModalLabel{{ forloop.counter }}">{% trans "Run Task:" %} {{ task.name }}</h5>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"></button>
+      </div>
+      <form id="runTaskForm{{ forloop.counter }}"
+            hx-post="{% url 'run_celery_task' %}"
+            hx-target="#taskResult{{ forloop.counter }}"
+            hx-swap="innerHTML"
+            hx-indicator="#loadingIndicator{{ forloop.counter }}">
+        <div class="modal-body">
+          {% csrf_token %}
+          <input type="hidden" name="task_name" value="{{ task.name }}">
+          <div class="mb-3">
+            <label for="taskArgs{{ forloop.counter }}" class="form-label">{% trans "Arguments (JSON array)" %}</label>
+            <textarea class="form-control"
+                      id="taskArgs{{ forloop.counter }}"
+                      name="task_args"
+                      rows="3"
+                      placeholder='[]'>[]</textarea>
+            <div class="form-text">{% trans "Example: [\"arg1\", \"arg2\", 123]" %}</div>
+          </div>
+          <div class="mb-3">
+            <label for="taskKwargs{{ forloop.counter }}" class="form-label">{% trans "Keyword Arguments (JSON object)" %}</label>
+            <textarea class="form-control"
+                      id="taskKwargs{{ forloop.counter }}"
+                      name="task_kwargs"
+                      rows="3"
+                      placeholder='{}'>{}</textarea>
+            <div class="form-text">{% trans "Example: {\"key1\": \"value1\", \"key2\": 42}" %}</div>
+          </div>
+          <div id="taskResult{{ forloop.counter }}" class="mt-3"></div>
+          <div id="loadingIndicator{{ forloop.counter }}" class="htmx-indicator">
+            <div class="d-flex align-items-center">
+              <div class="spinner-border spinner-border-sm me-2"
+                   role="status"
+                   aria-hidden="true"></div>
+              <span>{% trans "Starting task..." %}</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+          <button type="submit" class="btn btn-primary">
+            <span class="htmx-indicator spinner-border spinner-border-sm me-1"
+                  role="status"
+                  aria-hidden="true"></span>
+            {% trans "Run Task" %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

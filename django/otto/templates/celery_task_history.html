@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% trans "Celery Task History" %}
+{% endblock %}
+
+{% block content_container %}
+  <div class="container-fluid py-4">
+    <h1 class="mb-4">{% trans "Celery Task Management" %}</h1>
+
+    <!-- Navigation tabs -->
+    <ul class="nav nav-tabs mb-4" id="celeryTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active"
+                id="history-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#history"
+                type="button"
+                role="tab">{% trans "Task History" %}</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link"
+                id="registered-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#registered"
+                type="button"
+                role="tab">{% trans "Registered Tasks" %}</button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="celeryTabContent">
+      <!-- Task History Tab -->
+      <div class="tab-pane fade show active" id="history" role="tabpanel">
+        {% include "components/celery_tasks/filters.html" %}
+
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">{% trans "Task Results" %}</h5>
+          </div>
+          <div class="card-body">{% include "components/celery_tasks/task_results.html" %}</div>
+        </div>
+      </div>
+
+      <!-- Registered Tasks Tab -->
+      <div class="tab-pane fade" id="registered" role="tabpanel">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">{% trans "Registered Celery Tasks" %}</h5>
+          </div>
+          <div class="card-body">{% include "components/celery_tasks/registered_tasks.html" %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .htmx-indicator {
+      display: none;
+    }
+    .htmx-request .htmx-indicator {
+      display: inline-block;
+    }
+    .htmx-request.htmx-indicator {
+      display: inline-block;
+    }
+  </style>
+{% endblock %}
