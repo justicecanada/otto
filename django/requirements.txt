@@ -66,7 +66,7 @@ lxml==4.9.2
 sentence-splitter==1.4
 
 # Data science -----------------------------------------------------------------
-pandas==2.2.3
+pandas==2.3.0
 shapely==2.0.7
 pdf2image==1.17.0
 pillow==11.1.0
