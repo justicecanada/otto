@@ -78,7 +78,7 @@ RapidFuzz==3.12.1
 # Redis/Celery -----------------------------------------------------------------
 celery==5.5.3
 redis==5.0.8
-django-redis==5.4.0
+django-redis==6.0.0
 django-celery-beat==2.7.0
 
 # GPL-licensed: Use only through CLI to maintain Otto's MIT license ------------
