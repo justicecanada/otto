@@ -2,7 +2,7 @@
 {% load rules %}
 
 {% url 'librarian:modal_manage_library_users' library_id=form.library.id as form_action_url %}
-{% url 'librarian:modal_edit_library' library_id=form.library.id as cancel_url %}
+{% url 'librarian:modal_view_library' library_id=form.library.id as cancel_url %}
 
 <form hx-post="{{ form_action_url }}" id="library-users-form">
   {{ form.non_field_errors }}

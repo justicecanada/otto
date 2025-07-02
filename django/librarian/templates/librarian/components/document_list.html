@@ -1,13 +1,15 @@
 {% load i18n %}
+{% load rules %}
 
 <div id="librarian-documents" {% if swap %}hx-swap-oob="true"{% endif %}>
   <h6 id="documents-label">{% trans "Documents" %}</h6>
   {% if not selected_data_source or not selected_data_source.id %}
     <div class="text-center">
-      <em class="small">{% trans "Select a folder to edit documents." %}</em>
+      <em class="small">{% trans "Select a folder to view documents." %}</em>
     </div>
   {% else %}
-    {% if not selected_library.is_personal_library %}
+    {% has_perm 'librarian.edit_data_source' user selected_data_source as can_edit_data_source %}
+    {% if not selected_library.is_personal_library and can_edit_data_source %}
       <div class="row mb-2">
         <div class="col pe-0">
           <button type="button"
@@ -25,85 +27,87 @@
         </div>
       </div>
     {% endif %}
-    <div class="row mb-2">
-      <div class="col">
-        <div class="btn-group w-100">
-          <button type="button"
-                  class="btn btn-sm btn-outline-success dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false">{% trans "Bulk actions" %}</button>
-          <ul class="dropdown-menu">
-            <li>
-              <h6 class="dropdown-header">{% trans "Process all, including completed" %}</h6>
-            </li>
-            <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'all' %}">
-                <span>{% trans "Text only" %}</span>
-                <span class="text-muted">{% trans "(default, $)" %}</span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'all' %}">
-                <span>{% trans "PDF OCR" %}</span>
-                <span class="text-muted">{% trans "(more robust, $$)" %}</span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'all' %}">
-                <span>{% trans "PDF layout & OCR" %}</span>
-                <span class="text-muted">{% trans "(best, $$$)" %}</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li>
-              <h6 class="dropdown-header">{% trans "Process incomplete only" %}</h6>
-            </li>
-            <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'incomplete' %}">
-                <span>{% trans "Text only" %}</span>
-                <span class="text-muted">{% trans "(default, $)" %}</span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'incomplete' %}">
-                <span>{% trans "PDF OCR" %}</span>
-                <span class="text-muted">{% trans "(more robust, $$)" %}</span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'incomplete' %}">
-                <span>{% trans "PDF layout & OCR" %}</span>
-                <span class="text-muted">{% trans "(best, $$$)" %}</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:data_source_stop' selected_data_source.id %}">
-                <span>{% trans "Stop all processing" %}</span>
-              </a>
-            </li>
-          </ul>
+    {% if can_edit_data_source %}
+      <div class="row mb-2">
+        <div class="col">
+          <div class="btn-group w-100">
+            <button type="button"
+                    class="btn btn-sm btn-outline-success dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">{% trans "Bulk actions" %}</button>
+            <ul class="dropdown-menu">
+              <li>
+                <h6 class="dropdown-header">{% trans "Process all, including completed" %}</h6>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'all' %}">
+                  <span>{% trans "Text only" %}</span>
+                  <span class="text-muted">{% trans "(default, $)" %}</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'all' %}">
+                  <span>{% trans "PDF OCR" %}</span>
+                  <span class="text-muted">{% trans "(more robust, $$)" %}</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'all' %}">
+                  <span>{% trans "PDF layout & OCR" %}</span>
+                  <span class="text-muted">{% trans "(best, $$$)" %}</span>
+                </a>
+              </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li>
+                <h6 class="dropdown-header">{% trans "Process incomplete only" %}</h6>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'incomplete' %}">
+                  <span>{% trans "Text only" %}</span>
+                  <span class="text-muted">{% trans "(default, $)" %}</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'incomplete' %}">
+                  <span>{% trans "PDF OCR" %}</span>
+                  <span class="text-muted">{% trans "(more robust, $$)" %}</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'incomplete' %}">
+                  <span>{% trans "PDF layout & OCR" %}</span>
+                  <span class="text-muted">{% trans "(best, $$$)" %}</span>
+                </a>
+              </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:data_source_stop' selected_data_source.id %}">
+                  <span>{% trans "Stop all processing" %}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
-    </div>
+    {% endif %}
     {% include "librarian/components/document_list_inner.html" %}
   {% endif %}
 </div>

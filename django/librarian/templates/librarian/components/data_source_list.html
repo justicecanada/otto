@@ -11,10 +11,12 @@
   </h6>
   {% if not selected_library or not selected_library.id %}
     <div class="text-center">
-      <em class="small">{% trans "Select a library to edit folders." %}</em>
+      <em class="small">{% trans "Select a library to view folders." %}</em>
     </div>
   {% else %}
-    {% if not selected_library.is_personal_library %}
+    {% load rules %}
+    {% has_perm 'librarian.edit_library' user selected_library as can_edit_library %}
+    {% if not selected_library.is_personal_library and can_edit_library %}
       <button type="button"
               class="btn btn-sm btn-outline-dark ps-1 mb-3"
               hx-get="{% url 'librarian:modal_create_data_source' library_id=selected_library.id %}">

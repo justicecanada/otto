@@ -80,4 +80,5 @@
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
+  "dev.containers.mountWaylandSocket": false,
 }
