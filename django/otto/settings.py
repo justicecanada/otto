@@ -108,7 +108,7 @@ DEFAULT_QA_MODEL = "gpt-4.1-mini"
 DEFAULT_SUMMARIZE_MODEL = "gpt-4.1-mini"
 DEFAULT_TRANSLATE_MODEL = "gpt-4.1-mini"
 DEFAULT_LAWS_MODEL = "gpt-4.1"
-DEFAULT_TRANSCRIBER_MODEL = "gpt-4o-mini"
+DEFAULT_TRANSCRIBER_MODEL = "gpt-4.1-mini"
 
 DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
 LIBRARY_RETENTION_DAYS = 30

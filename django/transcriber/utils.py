@@ -185,9 +185,9 @@ def clean_transcript_chunk(
     {' '.join(context_instructions) if context_instructions else 'No additional context'}
 
     2. PROCESSING RULES:
-    - Maintain exact timestamp format [HH:MM:SS]
+    - Maintain exact timestamp format and values [HH:MM:SS]. Never change timestamps.
     - Preserve legal terminology and exhibit references
-    - Never invent speaker names
+    - Never invent or change speaker names
     - Mark uncertain names with (?) suffix"""
 
     try:
