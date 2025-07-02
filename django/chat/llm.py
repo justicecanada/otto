@@ -1,5 +1,8 @@
 import uuid
 
+from django.conf import settings
+from django.utils.translation import gettext as _
+
 import sqlalchemy
 import tiktoken
 from llama_index.core import PromptTemplate, VectorStoreIndex
@@ -22,9 +25,6 @@ from llama_index.llms.litellm import LiteLLM
 from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
 from structlog import get_logger
-
-from django.conf import settings
-from django.utils.translation import gettext as _
 
 logger = get_logger(__name__)
 

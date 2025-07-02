@@ -1,7 +1,6 @@
 import asyncio
 import html
 import json
-import os
 import re
 import sys
 import uuid
@@ -1011,3 +1010,47 @@ def estimate_cost_of_request(chat, response_message, response_estimation_count=5
         # testing has shown that for modes that are not translations, the estimation is 20% below
         cost = cost + (cost * Decimal("0.2"))
     return cad_cost(cost)
+
+
+def chat_to_history(chat):
+    """
+    Convert a Chat object to a history list of LlamaIndex ChatMessage objects.
+    Fills blank messages with file info if available otherwise with "(empty message)".
+    """
+    system_prompt = current_time_prompt() + chat.options.chat_system_prompt
+    history = []
+    history.append(ChatMessage(role=MessageRole.SYSTEM, content=system_prompt))
+
+    for message in chat.messages.all().order_by("date_created"):
+        # Determine message content
+        if not message.text or message.text.strip() == "":
+            # Try to get filenames from files
+            filenames = []
+            if hasattr(message, "files") and message.files.exists():
+                filenames = [f.filename for f in message.files.all()]
+            if filenames:
+                if message.is_bot:
+                    content = _("Bot responded with these files: ") + ", ".join(
+                        filenames
+                    )
+                else:
+                    content = _("User uploaded these files: ") + ", ".join(filenames)
+            else:
+                content = _("(empty message)")
+        elif is_text_to_summarize(message):
+            content = _("<text to summarize...>")
+        else:
+            content = message.text
+
+        role = MessageRole.ASSISTANT if message.is_bot else MessageRole.USER
+        history.append(ChatMessage(role=role, content=content))
+
+    # Remove trailing empty assistant message if present
+    if (
+        history
+        and history[-1].role == MessageRole.ASSISTANT
+        and not history[-1].content
+    ):
+        history.pop()
+
+    return history

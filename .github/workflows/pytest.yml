@@ -56,13 +56,13 @@ jobs:
         ports:
           - 4000:4000
     env:
-      AZURE_OPENAI_ENDPOINT=https://jus-sandbox-otto-openai-canadaeast.openai.azure.com/
+      AZURE_OPENAI_ENDPOINT=https://oai-otto-sandbox.openai.azure.com/
       AZURE_OPENAI_VERSION=2025-03-01-preview
       AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
       AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
       DJANGODB_HOST: postgres-service
       VECTORDB_HOST: postgres-service
-      LOG_LEVEL: ERROR      
+      LOG_LEVEL: ERROR
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
