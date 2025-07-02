@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from celery import current_app
+from data_fetcher import cache_within_request
 from llama_index.core.schema import MediaResource
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -125,20 +127,24 @@ class LawManager(models.Manager):
                         time.sleep(2**j)
         return obj
 
-    def purge(self, last_checked_before):
+    def purge(self, keep_ids):
         """
-        Purge all laws with checked_date before `last_checked_before`.
+        Delete any Law objects where law.eng_law_id is not in law_ids
         """
+        if not keep_ids:
+            return
 
-        logger.debug(f"Purging laws checked before {last_checked_before}...")
-        count = self.filter(checked_date__lt=last_checked_before).count()
-        if count == 0:
-            logger.debug("No laws to purge.")
-            return 0
+        to_delete = self.exclude(eng_law_id__in=set(keep_ids))
+        count = to_delete.count()
+        if count > 0:
+            logger.info(f"Purging {count} Law objects not in keep_ids")
+            to_delete.delete()
+        else:
+            logger.info("No Law objects to purge")
 
-        self.filter(checked_date__lt=last_checked_before).delete()
-        logger.debug(f"Purged {count} laws.")
-        return count
+        job_status = JobStatus.objects.singleton()
+        job_status.purged_count += count
+        job_status.save()
 
 
 class Law(models.Model):
@@ -168,8 +174,8 @@ class Law(models.Model):
     current_date = models.DateField(null=True, blank=True)
     in_force_start_date = models.DateField(null=True, blank=True)
 
-    # When was this law last checked for updates?
-    checked_date = models.DateTimeField(auto_now_add=True)
+    # To correlate with the XML file name
+    eng_law_id = models.CharField(max_length=50, null=True, blank=True)
 
     objects = LawManager()
 
@@ -199,3 +205,59 @@ class Law(models.Model):
             models.Index(fields=["type"]),
             models.Index(fields=["node_id"]),
         ]
+
+
+class JobStatusManager(models.Manager):
+    @cache_within_request
+    def singleton(self):
+        return self.get_or_create(pk=1)[0]
+
+
+class JobStatus(models.Model):
+    objects = JobStatusManager()
+
+    status = models.CharField(max_length=50, default="in_progress")
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+    purged_count = models.IntegerField(default=0)
+
+    def cancel(self):
+        """
+        Cancel the job by setting status to 'cancelled' and updating finished_at.
+        """
+        self.status = "cancelled"
+        self.finished_at = timezone.now()
+        self.error_message = "Job was cancelled by user."
+        self.save()
+        # Cancel all LawLoadingStatus entries
+        for law_status in LawLoadingStatus.objects.all():
+            # Cancel the celery task if it exists
+            if law_status.celery_task_id:
+
+                task = current_app.AsyncResult(law_status.celery_task_id)
+                try:
+                    task.revoke(terminate=True, signal="SIGKILL")
+                    law_status.status = "cancelled"
+                    law_status.finished_at = timezone.now()
+                    law_status.error_message = "Task was cancelled by user."
+                    law_status.save()
+                except Exception as e:
+                    pass  # Ignore errors if task is already finished or doesn't exist
+
+
+class LawLoadingStatus(models.Model):
+    law = models.ForeignKey(
+        Law,
+        on_delete=models.CASCADE,
+        related_name="loading_status",
+        null=True,
+        blank=True,
+    )
+    eng_law_id = models.CharField(max_length=50, null=True, blank=True)
+    status = models.CharField(max_length=50, default="pending")
+    details = models.TextField(null=True, blank=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+    cost = models.FloatField(default=0.0)

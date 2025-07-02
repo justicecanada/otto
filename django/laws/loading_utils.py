@@ -63,37 +63,30 @@ SAMPLE_LAW_IDS = [
     "N-22",  # Canadian Navigable Waters Act
 ]
 
+constitution_dir = os.path.join(settings.BASE_DIR, "laws", "data")
+CONSTITUTION_FILE_PATHS = (
+    os.path.join(constitution_dir, "Constitution 2020_E.xml"),
+    os.path.join(constitution_dir, "Constitution 2020_F_Rapport.xml"),
+)
 
-def _download_repo(force_download=False):
+
+def _download_repo():
+    # Download and extract to media folder
     repo_url = (
         "https://github.com/justicecanada/laws-lois-xml/archive/refs/heads/main.zip"
     )
+    zip_file_path = os.path.join(settings.MEDIA_ROOT, "laws-lois-xml.zip")
 
-    # Check if the repo was already downloaded
-    if os.path.exists("/tmp/laws-lois-xml-main"):
-        if force_download:
-            logger.debug("Deleting existing repo before re-downloading")
-            shutil.rmtree("/tmp/laws-lois-xml-main")
-        else:
-            logger.debug("Folder already exists, skipping download")
-            return
-
-    # Path to save the downloaded zip file
-    zip_file_path = "/tmp/laws-lois-xml.zip"
-    # Path to extract the zip file
-    extract_path = "/tmp"
-
-    # Download the zip file
-    logger.debug("Downloading laws-lois-xml repo...")
+    logger.info("Downloading laws-lois-xml repo to media folder...")
     response = requests.get(repo_url)
+    response.raise_for_status()
+
     with open(zip_file_path, "wb") as file:
         file.write(response.content)
 
-    # Extract the zip file
     with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
-        zip_ref.extractall(extract_path)
+        zip_ref.extractall(settings.MEDIA_ROOT)
 
-    # Clean up the zip file
     os.remove(zip_file_path)
 
 
@@ -125,25 +118,24 @@ def _get_fr_file_path(fr_id, laws_dir):
         return None
 
 
-def _get_en_fr_law_file_paths(laws_dir, eng_law_ids=[]):
+def _get_en_fr_law_file_paths(laws_dir, eng_law_id):
     """
     Search for the English and French file paths for each law ID
     Return a list of tuples (EN, FR) where each element is a full file path
     """
 
-    file_paths = []
-    for eng_law_id in eng_law_ids:
-        en_file_path = _get_en_file_path(eng_law_id, laws_dir)
-        fr_file_path = _get_fr_file_path(_get_fr_matching_id(eng_law_id), laws_dir)
-        if en_file_path and fr_file_path:
-            file_paths.append((en_file_path, fr_file_path))
-        else:
-            logger.debug(
-                f"Could not find both English and French files for {eng_law_id}"
-            )
-            logger.debug(f"(EN: {en_file_path}, FR: {fr_file_path})")
+    if eng_law_id in ["Constitution", "Constitution 2020"]:
+        return CONSTITUTION_FILE_PATHS
 
-    logger.debug(f"{len(file_paths)} laws found in both languages")
+    file_paths = None
+    en_file_path = _get_en_file_path(eng_law_id, laws_dir)
+    fr_file_path = _get_fr_file_path(_get_fr_matching_id(eng_law_id), laws_dir)
+    if en_file_path and fr_file_path:
+        file_paths = (en_file_path, fr_file_path)
+    else:
+        logger.debug(f"Could not find both English and French files for {eng_law_id}")
+        logger.debug(f"(EN: {en_file_path}, FR: {fr_file_path})")
+
     return file_paths
 
 
