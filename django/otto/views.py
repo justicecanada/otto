@@ -1233,10 +1233,8 @@ def celery_task_history(request):
     from otto.utils.celery_management import CeleryRedis, CeleryTaskRegistry
 
     # Get filter parameters
-    days = int(request.GET.get("days", 7))
     status_filter = request.GET.get("status", None)
     task_name_filter = request.GET.get("task_name", None)
-    limit = int(request.GET.get("limit", 50))
 
     # Connect to Redis
     redis_client = redis.from_url(settings.REDIS_URL)
@@ -1256,17 +1254,28 @@ def celery_task_history(request):
     )
     statuses = sorted(set(task["status"] for task in tasks))
 
+    filtered_tasks = [
+        task
+        for task in formatted_tasks
+        if (
+            status_filter is None or status_filter == "" or task.status == status_filter
+        )
+        and (
+            task_name_filter is None
+            or task_name_filter == ""
+            or task.name == task_name_filter
+        )
+    ]
+
     task_registry = CeleryTaskRegistry(app)
 
     registered_task_list = task_registry.get_registered_tasks()
 
     context = {
-        "tasks": formatted_tasks,
+        "tasks": filtered_tasks,
         "registered_tasks": registered_task_list,
-        "days": days,
         "status_filter": status_filter,
         "task_name_filter": task_name_filter,
-        "limit": limit,
         "task_names": task_names,
         "statuses": statuses,
     }
@@ -1276,25 +1285,37 @@ def celery_task_history(request):
 
 @permission_required("otto.manage_users")
 def run_celery_task(request):
-    """
-    HTMX endpoint to execute a Celery task
-    """
     if request.method != "POST":
-        return HttpResponse(
-            '<div class="alert alert-danger">Method not allowed</div>', status=405
+        logger.error("Invalid request method for running Celery task.")
+        return render(
+            request,
+            "components/celery_tasks/celery_run_tasks_responses.html",
+            {
+                "result_status": "Not Allowed",
+                "task_name": task_name,
+                "task_id": result.id,
+            },
         )
 
     try:
         import json
+
+        from otto.celery import app
 
         task_name = request.POST.get("task_name")
         task_args = request.POST.get("task_args", "[]")
         task_kwargs = request.POST.get("task_kwargs", "{}")
 
         if not task_name:
-            return HttpResponse(
-                '<div class="alert alert-danger">Task name is required</div>',
-                status=400,
+            logger.error("Task name is required to run Celery task.")
+            return render(
+                request,
+                "components/celery_tasks/celery_run_tasks_responses.html",
+                {
+                    "result_status": "Task Name Required",
+                    "task_name": task_name,
+                    "task_id": result.id,
+                },
             )
 
         # Parse arguments
@@ -1302,13 +1323,21 @@ def run_celery_task(request):
             args = json.loads(task_args) if task_args else []
             kwargs = json.loads(task_kwargs) if task_kwargs else {}
         except json.JSONDecodeError:
-            return HttpResponse(
-                '<div class="alert alert-danger">Invalid JSON in args or kwargs</div>',
-                status=400,
+            logger.error(
+                "Invalid JSON in task arguments while executing Celery task.",
+                task_name=task_name,
+                task_args=task_args,
+                task_kwargs=task_kwargs,
             )
-
-        # Execute the task
-        from otto.celery import app
+            return render(
+                request,
+                "components/celery_tasks/celery_run_tasks_responses.html",
+                {
+                    "result_status": "Invalid Arguments",
+                    "task_name": task_name,
+                    "task_id": result.id,
+                },
+            )
 
         result = app.send_task(task_name, args=args, kwargs=kwargs)
 
@@ -1321,21 +1350,16 @@ def run_celery_task(request):
             kwargs=kwargs,
         )
 
-        # Return HTML response for HTMX
-        success_html = f"""
-        <div class="alert alert-success">
-            <strong>{_("Task started successfully!")}</strong><br>
-            {_("Task ID:")}<code>{result.id}</code><br>
-            {_("Task")} {task_name} {_("started successfully")}
-        </div>
-        """
-        return HttpResponse(success_html)
+        return render(
+            request,
+            "components/celery_tasks/celery_run_tasks_responses.html",
+            {"result_status": "Success", "task_name": task_name, "task_id": result.id},
+        )
 
     except Exception as e:
         logger.error(f"Error executing Celery task: {e}")
-        error_html = f"""
-        <div class="alert alert-danger">
-            <strong>{_("Error:")}</strong> {str(e)}
-        </div>
-        """
-        return HttpResponse(error_html, status=500)
+        return render(
+            request,
+            "components/celery_tasks/celery_run_tasks_responses.html",
+            {"result_status": "Error", "message": e},
+        )

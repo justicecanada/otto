@@ -1,0 +1,21 @@
+{% load i18n %}
+
+{% if result_status == "Success" %}
+  <div class="alert alert-success">
+    <strong>{% trans "Task started successfully!" %}</strong>
+    <br>
+    {% trans "Task ID" %}: <code>{{ task_id }}</code>
+    <br>
+    {% trans "Task name" %}: {{ task_name }}
+  </div>
+{% elif result_status == "Not Allowed" %}
+  <div class="alert alert-danger">{% trans "Method not allowed" %}</div>
+{% elif result_status == "Task Name Required" %}
+  <div class="alert alert-danger">{% trans "Task name is required" %}</div>
+{% elif result_status == "Invalid Arguments" %}
+  <div class="alert alert-danger">{% trans "Invalid JSON in args or kwargs" %}</div>
+{% else %}
+  <div class="alert alert-danger">
+    <strong>{% trans "Error:" %}</strong> {{ message }}
+  </div>
+{% endif %}

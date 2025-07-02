@@ -5,7 +5,7 @@
     <h5 class="card-title">{% trans "Filters" %}</h5>
   </div>
   <div class="card-body">
-    <form method="get" class="row g-3">
+    <div class="row g-3" id="filter-form">
       <div class="col-md-6">
         <label for="status" class="form-label">{% trans "Status" %}</label>
         <select name="status" id="status" class="form-select">
@@ -27,10 +27,46 @@
         </select>
       </div>
       <div class="col-12">
-        <button type="submit" class="btn btn-primary">{% trans "Apply Filters" %}</button>
-        <a href="{% url 'celery_task_history' %}"
-           class="btn btn-outline-secondary">{% trans "Reset" %}</a>
+        <a href="#" class="btn btn-outline-secondary" id="reset-filters">{% trans "Reset" %}</a>
       </div>
-    </form>
+    </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const statusSelect = document.getElementById('status');
+  const taskNameSelect = document.getElementById('task_name');
+  const resetBtn = document.getElementById('reset-filters');
+  
+  const table = document.getElementById('task-table');
+
+  function filterTable() {
+    const status = statusSelect.value;
+    const taskName = taskNameSelect.value;
+    if (!table) return;
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      const rowStatus = row.getAttribute('data-status');
+      const rowTaskName = row.getAttribute('data-task-name');
+      let show = true;
+      if (status && rowStatus !== status) show = false;
+      if (taskName && rowTaskName !== taskName) show = false;
+      row.style.display = show ? '' : 'none';
+    });
+  }
+
+  statusSelect.addEventListener('change', filterTable);
+  taskNameSelect.addEventListener('change', filterTable);
+
+  resetBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    statusSelect.value = '';
+    taskNameSelect.value = '';
+    filterTable();
+  });
+
+  // Initial filter on page load
+  filterTable();
+});
+</script>
