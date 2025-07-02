@@ -4,7 +4,6 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from celery import current_app
 from data_fetcher import cache_within_request
 from llama_index.core.schema import MediaResource
 from sqlalchemy import create_engine, text
@@ -21,27 +20,19 @@ class LawManager(models.Manager):
 
     def from_docs_and_nodes(
         self,
+        law_status,
         document_en,
         nodes_en,
         document_fr,
         nodes_fr,
-        sha_256_hash_en,
-        sha_256_hash_fr,
         add_to_vector_store=True,
         force_update=False,
         llm=None,
         progress_callback=None,
     ):
-        # Does this law already exist?
-        existing_law = self.filter(node_id_en=document_en.doc_id)
-        en_hash_changed = True
-        fr_hash_changed = True
-        if existing_law.exists():
-            obj = existing_law.first()
-            en_hash_changed = obj.sha_256_hash_en != sha_256_hash_en
-            fr_hash_changed = obj.sha_256_hash_fr != sha_256_hash_fr
-            logger.debug(f"en_hash_changed: {en_hash_changed}")
-            logger.debug(f"fr_hash_changed: {fr_hash_changed}")
+        # Updating an existing law?
+        if law_status.law:
+            obj = law_status.law
         else:
             obj = self.model()
 
@@ -77,10 +68,10 @@ class LawManager(models.Manager):
         obj.last_amended_date = document_en.metadata.get("last_amended_date", None)
         obj.current_date = document_en.metadata.get("current_date", None)
         obj.in_force_start_date = document_en.metadata.get("in_force_start_date", None)
-        obj.sha_256_hash_en = sha_256_hash_en
-        obj.sha_256_hash_fr = sha_256_hash_fr
+        obj.sha_256_hash_en = law_status.sha_256_hash_en
+        obj.sha_256_hash_fr = law_status.sha_256_hash_fr
+        obj.eng_law_id = law_status.eng_law_id
 
-        obj.checked_date = timezone.now()
         obj.full_clean()
         obj.save()
 
@@ -89,16 +80,12 @@ class LawManager(models.Manager):
                 return
             idx = llm.get_index("laws_lois__", hnsw=True)
             nodes = []
-            if existing_law.exists():
+            if law_status.law:
                 # Remove the old content from the vector store
-                if en_hash_changed or force_update:
-                    idx.delete_ref_doc(obj.node_id_en, delete_from_docstore=True)
-                if fr_hash_changed or force_update:
-                    idx.delete_ref_doc(obj.node_id_fr, delete_from_docstore=True)
-            if en_hash_changed or force_update:
+                idx.delete_ref_doc(obj.node_id_en, delete_from_docstore=True)
+                idx.delete_ref_doc(obj.node_id_fr, delete_from_docstore=True)
                 nodes.append(document_en)
                 nodes.extend(nodes_en)
-            if fr_hash_changed or force_update:
                 nodes.append(document_fr)
                 nodes.extend(nodes_fr)
             batch_size = 16
@@ -109,15 +96,15 @@ class LawManager(models.Manager):
                 if not node.text.strip():
                     node.text_resource = MediaResource(text=node.doc_id)
 
+            original_details = law_status.details or ""
             for i in tqdm(range(0, len(nodes), batch_size)):
-                # Call progress callback if provided
-                if progress_callback:
-                    batch_num = (i // batch_size) + 1
-                    total_batches = (len(nodes) + batch_size - 1) // batch_size
-                    progress_callback(batch_num, total_batches)
-
-                # Exponential backoff retry
-                for j in range(4, 12):
+                batch_num = (i // batch_size) + 1
+                total_batches = (len(nodes) + batch_size - 1) // batch_size
+                law_status.details = (
+                    f"{original_details} (embedding batch {batch_num}/{total_batches})"
+                )
+                law_status.save()
+                for j in range(2, 12):
                     try:
                         idx.insert_nodes(nodes[i : i + batch_size])
                         break
@@ -221,29 +208,30 @@ class JobStatus(models.Model):
     finished_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
     purged_count = models.IntegerField(default=0)
+    celery_task_id = models.CharField(max_length=255, null=True, blank=True)
 
     def cancel(self):
         """
         Cancel the job by setting status to 'cancelled' and updating finished_at.
         """
+        if self.celery_task_id:
+            from celery import current_app
+
+            # Cancel the Celery task if it exists
+            task = current_app.AsyncResult(self.celery_task_id)
+            if task:
+                try:
+                    task.revoke(terminate=True, signal="SIGKILL")
+                except Exception as e:
+                    logger.error(
+                        f"Error cancelling Celery task {self.celery_task_id}: {e}"
+                    )
+
+        # Update job status
         self.status = "cancelled"
         self.finished_at = timezone.now()
         self.error_message = "Job was cancelled by user."
         self.save()
-        # Cancel all LawLoadingStatus entries
-        for law_status in LawLoadingStatus.objects.all():
-            # Cancel the celery task if it exists
-            if law_status.celery_task_id:
-
-                task = current_app.AsyncResult(law_status.celery_task_id)
-                try:
-                    task.revoke(terminate=True, signal="SIGKILL")
-                    law_status.status = "cancelled"
-                    law_status.finished_at = timezone.now()
-                    law_status.error_message = "Task was cancelled by user."
-                    law_status.save()
-                except Exception as e:
-                    pass  # Ignore errors if task is already finished or doesn't exist
 
 
 class LawLoadingStatus(models.Model):
@@ -261,3 +249,5 @@ class LawLoadingStatus(models.Model):
     finished_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
     cost = models.FloatField(default=0.0)
+    sha_256_hash_en = models.CharField(max_length=64, null=True, blank=True)
+    sha_256_hash_fr = models.CharField(max_length=64, null=True, blank=True)

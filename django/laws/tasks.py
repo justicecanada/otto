@@ -1,30 +1,16 @@
-import hashlib
 import os
 import shutil
-import time
-import zipfile
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
-from django.db import transaction
 from django.utils.timezone import now
 
-import requests
 from celery import shared_task
-from django_extensions.management.utils import signalcommand
-from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.schema import (
     Document,
     MetadataMode,
     NodeRelationship,
     RelatedNodeInfo,
-    TextNode,
 )
-from lxml import etree as ET
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
@@ -38,7 +24,6 @@ from .loading_utils import (
     _download_repo,
     _get_all_eng_law_ids,
     _get_en_fr_law_file_paths,
-    drop_hnsw_index,
     get_sha_256_hash,
     law_xml_to_nodes,
     recreate_indexes,
@@ -64,16 +49,16 @@ def update_laws(
     try:
         bind_contextvars(feature="laws_load")
         job_status = JobStatus.objects.singleton()
-        # Cancel existing job (if not "finished")
-        if job_status.status not in ["finished", "cancelled", "error"]:
-            job_status.cancel()
-            LawLoadingStatus.objects.all().delete()
+        # Cancel existing job
+        job_status.cancel()
+        LawLoadingStatus.objects.all().delete()
 
         # Update job status to "in_progress"
         job_status.status = "started"
         job_status.started_at = now()
         job_status.finished_at = None
         job_status.error_message = None
+        job_status.celery_task_id = self.request.id
         job_status.save()
 
         # Determine laws XML root directory, and download if necessary
@@ -130,6 +115,7 @@ def update_laws(
         job_status.save()
 
         # Check for existing laws in the database
+        existing_law_statuses = []  # Ensure always defined
         existing_laws = Law.objects.filter(eng_law_id__in=eng_law_ids)
         if existing_laws.exists():
             # Create LawLoadingStatus for each
@@ -138,9 +124,8 @@ def update_laws(
                     LawLoadingStatus(
                         law=law,
                         eng_law_id=law.eng_law_id,
-                        status="pending (check for update)",
+                        status="pending",
                         started_at=now(),
-                        celery_task_id=None,
                     )
                     for law in existing_laws
                 ]
@@ -167,16 +152,21 @@ def update_laws(
                 ):
                     # No update needed
                     if force_update:
-                        law_status.status = "pending (force update)"
+                        law_status.status = "pending"
+                        law_status.details = "No changes detected - forced update"
                     else:
-                        law_status.status = "finished (no changes)"
+                        law_status.status = "finished"
+                        law_status.details = "No changes detected"
                         law_status.finished_at = now()
 
                     law_status.save()
                     continue
 
             # Update status
-            law_status.status = "pending (needs update)"
+            law_status.status = "pending"
+            law_status.details = "Changes detected - update"
+            law_status.sha_256_hash_en = new_en_hash
+            law_status.sha_256_hash_fr = new_fr_hash
             law_status.save()
 
         job_status.status = "processing"
@@ -191,9 +181,9 @@ def update_laws(
                 [
                     LawLoadingStatus(
                         eng_law_id=law_id,
-                        status="pending (create)",
+                        status="pending",
+                        details="New law",
                         started_at=now(),
-                        celery_task_id=None,
                     )
                     for law_id in new_laws
                 ]
@@ -227,7 +217,7 @@ def update_laws(
         try:
             job_status = JobStatus.objects.singleton()
             job_status.error_message = str(exc)
-            job_status.status = "finished"
+            job_status.status = "error"
             job_status.finished_at = now()
             job_status.save()
         except Exception:
@@ -237,6 +227,7 @@ def update_laws(
 
 def process_law_status(law_status, laws_root, mock_embedding, debug):
     try:
+        law_status.status = "parsing_xml"
         eng_law_id = law_status.eng_law_id
         logger.info(f"Processing law: {eng_law_id}")
 
@@ -246,7 +237,6 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
             raise ValueError(f"Could not find EN and FR XML files for {eng_law_id}")
 
         # Update law status to "processing"
-        law_status.status = "processing"
         law_status.save()
 
         llm = OttoLLM(mock_embedding=mock_embedding)
@@ -254,8 +244,6 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
         document_fr = None
         nodes_en = None
         nodes_fr = None
-        en_hash = get_sha_256_hash(file_paths[0])
-        fr_hash = get_sha_256_hash(file_paths[1])
         job_status = JobStatus.objects.singleton()
         # Create nodes for the English and French XML files
         for k, file_path in enumerate(file_paths):
@@ -368,17 +356,9 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
             f"Creating Law object (and embeddings) for document: {document_en.metadata}"
         )
 
-        if not debug:
-            # Check if law already exists.
-            # node_id_en property will be unique in database
-            node_id_en = document_en.doc_id
-            if Law.objects.filter(node_id_en=node_id_en).exists():
-                logger.debug(f"Updating existing law.")
-                # load_results["updated"].append(file_paths)
-            else:
-                # load_results["added"].append(file_paths)
-                pass
+        law_status.status = "embedding_nodes"
 
+        if not debug:
             logger.debug(
                 f"Adding to database: {document_en.metadata['display_metadata']}"
             )
@@ -386,12 +366,11 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
             # This method will update existing Law object if it already exists
             # It includes granular progress updates for embedding batches
             law = Law.objects.from_docs_and_nodes(
+                law_status,
                 document_en,
                 nodes_en,
                 document_fr,
                 nodes_fr,
-                sha_256_hash_en=en_hash,
-                sha_256_hash_fr=fr_hash,
                 add_to_vector_store=True,
                 llm=llm,
             )
@@ -408,13 +387,8 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
             law_status.finished_at = now()
             law_status.save()
 
-        return
-
     except Exception as e:
-        logger.error(f"*** Error processing file pair: {file_paths}\n {e}\n")
-        import traceback
-
-        logger.error(traceback.format_exc())
+        raise e
 
 
 def finalize_law_loading_task():

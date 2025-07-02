@@ -1,34 +1,16 @@
 import hashlib
 import os
-import shutil
-import time
 import zipfile
-from concurrent.futures import ThreadPoolExecutor
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
-from django.utils.timezone import datetime
 
 import requests
-from django_extensions.management.utils import signalcommand
 from llama_index.core.node_parser import SentenceSplitter
-from llama_index.core.schema import (
-    Document,
-    MetadataMode,
-    NodeRelationship,
-    RelatedNodeInfo,
-    TextNode,
-)
+from llama_index.core.schema import TextNode
 from lxml import etree as ET
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
-from structlog.contextvars import bind_contextvars
-
-from chat.llm import OttoLLM
-from laws.models import Law
-from otto.models import Cost, OttoStatus
-from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
 
