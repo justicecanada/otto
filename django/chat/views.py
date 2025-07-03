@@ -46,8 +46,10 @@ from chat.utils import (
     title_chat,
     wrap_llm_response,
 )
-from librarian.models import Library, SavedFile
+from librarian.forms import LibraryUsersForm
+from librarian.models import Library
 from otto.models import SecurityLabel
+from otto.rules import can_edit_library
 from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
     app_access_required,
@@ -586,6 +588,30 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 accessible_to = form.cleaned_data.get("accessible_to", [])
 
                 preset.save()
+
+                library = preset.options.qa_library
+                if library and can_edit_library(preset.owner, library):
+                    if preset.sharing_option == "everyone":
+                        library.is_public = True
+                        library.save()
+                    elif preset.sharing_option == "others":
+                        user_form = LibraryUsersForm(
+                            library=library,
+                            data={
+                                "viewers": accessible_to.union(
+                                    User.objects.filter(
+                                        library_roles__library=library,
+                                        library_roles__role="viewer",
+                                    )
+                                )
+                            },
+                        )
+
+                        for field in ["admins", "contributors"]:
+                            user_form.data[field] = user_form.fields[field].initial
+
+                        if user_form.is_valid():
+                            user_form.save()
 
                 # clear the accessible_to field if the user changes the sharing option to private
                 if preset.sharing_option == "private" and len(accessible_to) > 0:
