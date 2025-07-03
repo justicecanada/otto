@@ -593,6 +593,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 if (
                     library
                     and not library.is_public
+                    and not library.is_personal_library
                     and can_edit_library(preset.owner, library)
                 ):
                     if preset.sharing_option == "everyone":
@@ -924,6 +925,7 @@ def edit_preset(request, chat_id, preset_id):
                 if library
                 and can_edit_library(preset.owner, library)
                 and not library.is_public
+                and not library.is_personal_library
                 else None
             ),
         },
