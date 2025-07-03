@@ -903,6 +903,8 @@ def edit_preset(request, chat_id, preset_id):
     preset = get_object_or_404(Preset, id=preset_id)
     form = PresetForm(instance=preset, user=request.user)
 
+    library = preset.options.qa_library
+
     return render(
         request,
         "chat/modals/presets/presets_form.html",
@@ -913,6 +915,13 @@ def edit_preset(request, chat_id, preset_id):
             "can_delete": request.user.has_perm("chat.delete_preset", preset),
             "is_public": preset.sharing_option == "everyone",
             "is_global_default": preset.global_default,
+            "library": (
+                library
+                if library
+                and can_edit_library(preset.owner, library)
+                and not library.is_public
+                else None
+            ),
         },
     )
 
