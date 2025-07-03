@@ -3894,5 +3894,149 @@
     "Select a library, folder or document to view.": {
         "fr": "",
         "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à consulter."
+    },
+    "Laws Loading Monitor": {
+        "fr": "",
+        "fr_auto": "Moniteur de chargement des lois"
+    },
+    "Laws Loading Monitor - Otto": {
+        "fr": "",
+        "fr_auto": "Surveillant de chargement des lois - Otto"
+    },
+    "Monitor, start and cancel the law loading process. This process downloads and processes Canadian legislation from the laws-lois-xml repository.": {
+        "fr": "",
+        "fr_auto": "Surveiller, lancer et annuler le processus de chargement des lois. Ce processus télécharge et traite la législation canadienne à partir du dépôt laws-lois-xml."
+    },
+    "Control Panel": {
+        "fr": "",
+        "fr_auto": "Panneau de commande"
+    },
+    "Load Options": {
+        "fr": "",
+        "fr_auto": "Options de chargement"
+    },
+    "Small (sample only)": {
+        "fr": "",
+        "fr_auto": "Petit (échantillon seulement)"
+    },
+    "Full (all legislation)": {
+        "fr": "",
+        "fr_auto": "Complet (toutes les lois)"
+    },
+    "Constitution only": {
+        "fr": "",
+        "fr_auto": "Constitution seulement"
+    },
+    "Advanced Options": {
+        "fr": "",
+        "fr_auto": "Options avancées"
+    },
+    "Reset database": {
+        "fr": "",
+        "fr_auto": "Réinitialiser la base de données"
+    },
+    "Force re-download": {
+        "fr": "",
+        "fr_auto": "Forcer le retéléchargement"
+    },
+    "Force update existing": {
+        "fr": "",
+        "fr_auto": "Mise à jour de la Force existante"
+    },
+    "Mock embedding (debug)": {
+        "fr": "",
+        "fr_auto": "Intégration fictive (débogage)"
+    },
+    "Debug mode": {
+        "fr": "",
+        "fr_auto": "Mode de débogage"
+    },
+    "Start Job": {
+        "fr": "",
+        "fr_auto": "Commencer l’emploi"
+    },
+    "Are you sure you want to cancel the running job?": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir annuler la tâche en cours d’exécution?"
+    },
+    "Cancel Job": {
+        "fr": "",
+        "fr_auto": "Annuler l’emploi"
+    },
+    "All Laws (Detailed View)": {
+        "fr": "",
+        "fr_auto": "Toutes les lois (vue détaillée)"
+    },
+    "Toggle": {
+        "fr": "",
+        "fr_auto": "Basculer"
+    },
+    "Law ID": {
+        "fr": "",
+        "fr_auto": "Numéro d’identification de la loi"
+    },
+    "Started": {
+        "fr": "",
+        "fr_auto": "Début"
+    },
+    "Finished": {
+        "fr": "",
+        "fr_auto": "Terminé"
+    },
+    "Job Status": {
+        "fr": "",
+        "fr_auto": "Statut de l’emploi"
+    },
+    "Time Elapsed": {
+        "fr": "",
+        "fr_auto": "Temps écoulé"
+    },
+    "Purged": {
+        "fr": "",
+        "fr_auto": "Purgé"
+    },
+    "Progress Overview": {
+        "fr": "",
+        "fr_auto": "Aperçu des progrès"
+    },
+    "Overall Progress": {
+        "fr": "",
+        "fr_auto": "Progrès globaux"
+    },
+    "Errors": {
+        "fr": "",
+        "fr_auto": "Erreurs"
+    },
+    "Empty": {
+        "fr": "",
+        "fr_auto": "Vide"
+    },
+    "Pending": {
+        "fr": "",
+        "fr_auto": "En attente"
+    },
+    "Parsing": {
+        "fr": "",
+        "fr_auto": "Analyse"
+    },
+    "Embedding": {
+        "fr": "",
+        "fr_auto": "Intégration"
+    },
+    "No laws to process": {
+        "fr": "",
+        "fr_auto": "Aucune loi à traiter"
+    },
+    "Currently Processing": {
+        "fr": "",
+        "fr_auto": "En cours de traitement"
+    },
+    "Recent Laws": {
+        "fr": "",
+        "fr_auto": "Lois récentes"
+    },
+    "Manage laws loading": {
+        "fr": "",
+        "fr_auto": "Gérer le chargement des lois"
     }
 }
