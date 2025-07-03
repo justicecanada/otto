@@ -3894,5 +3894,9 @@
     "Select a library, folder or document to view.": {
         "fr": "",
         "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à consulter."
+    },
+    "Users selected above will be added as viewers to library": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs sélectionnés ci-dessus seront ajoutés à la bibliothèque"
     }
 }
