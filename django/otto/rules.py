@@ -201,6 +201,8 @@ def can_view_library(user, library):
 
 @predicate
 def can_edit_library(user, library):
+    if getattr(library, "temp", False):
+        return True
     if library.is_public:
         if is_admin(user):
             return True

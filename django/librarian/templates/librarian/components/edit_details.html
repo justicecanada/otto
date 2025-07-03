@@ -4,7 +4,7 @@
 <div id="librarian-details" {% if swap %}hx-swap-oob="true"{% endif %}>
   {% include "components/messages.html" %}
 
-  {% if selected_library.id %}
+  {% if selected_library.id or selected_library.temp %}
     {% has_perm 'librarian.edit_library' user selected_library as can_edit_library %}
     {% if can_edit_library %}
       {% if detail_form %}
