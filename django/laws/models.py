@@ -224,7 +224,7 @@ class JobStatus(models.Model):
             task = current_app.AsyncResult(self.celery_task_id)
             if task:
                 try:
-                    task.revoke(terminate=True, signal="SIGKILL")
+                    task.revoke()
                 except Exception as e:
                     logger.error(
                         f"Error cancelling Celery task {self.celery_task_id}: {e}"

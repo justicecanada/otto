@@ -6,7 +6,10 @@
 {% block breadcrumb %}
   {{ block.super }}
   <li class="breadcrumb-item">
-    <a href="{% url 'laws:loading_monitor' %}">{% trans "Laws Loading Monitor" %}</a>
+    <a href="{% url 'laws:index' %}">{% trans "Legislation Search" %}</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'laws:loading_monitor' %}">{% trans "Loading Monitor" %}</a>
   </li>
 {% endblock %}
 
@@ -32,16 +35,16 @@
 {% endblock %}
 
 {% block page_title %}
-  {% trans "Laws Loading Monitor - Otto" %}
+  {% trans "Legislation loading monitor - Otto" %}
 {% endblock %}
 
 {% block content_container %}
   <div id="laws-loading-outer">
     <div class="container py-3 px-0">
-      <h2 class="mb-3 mt-2">{% trans "Laws Loading Monitor" %}</h2>
+      <h2 class="mb-3 mt-2">{% trans "Legislation Loading Monitor" %}</h2>
 
       <p class="text-muted">
-        {% trans "Monitor, start and cancel the law loading process. This process downloads and processes Canadian legislation from the laws-lois-xml repository." %}
+        {% trans "Monitor, start and cancel the law loading process. This process downloads and imports Canadian federal legislation from the laws-lois-xml repository." %}
       </p>
 
       <!-- Control Panel -->
@@ -60,51 +63,48 @@
                 {% csrf_token %}
                 <div class="row">
                   <div class="col-md-6">
+
                     <h6>{% trans "Load Options" %}</h6>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" name="small" id="small">
-                      <label class="form-check-label" for="small">{% trans "Small (sample only)" %}</label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" name="full" id="full">
-                      <label class="form-check-label" for="full">{% trans "Full (all legislation)" %}</label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input"
-                             type="checkbox"
-                             name="const_only"
-                             id="const_only">
-                      <label class="form-check-label" for="const_only">{% trans "Constitution only" %}</label>
+                    <div class="mb-3">
+                      <label for="load_option" class="form-label visually-hidden">{% trans "Select load type" %}</label>
+                      <select class="form-select mb-2" id="load_option" name="load_option">
+                        <option value="full" selected>{% trans "Full load (all legislation)" %}</option>
+                        <option value="subset">{% trans "Subset (26 acts/regs)" %}</option>
+                        <option value="small">{% trans "Tiny (1 act, 1 reg)" %}</option>
+                        <option value="const_only">{% trans "Constitution only" %}</option>
+                      </select>
+                      <div class="form-check">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="force_download"
+                               id="force_download"
+                               checked>
+                        <label class="form-check-label" for="force_download">{% trans "Re-download XML files" %}</label>
+                      </div>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <h6>{% trans "Advanced Options" %}</h6>
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" name="reset" id="reset">
-                      <label class="form-check-label" for="reset">{% trans "Reset database" %}</label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input"
-                             type="checkbox"
-                             name="force_download"
-                             id="force_download">
-                      <label class="form-check-label" for="force_download">{% trans "Force re-download" %}</label>
-                    </div>
-                    <div class="form-check">
                       <input class="form-check-input"
                              type="checkbox"
                              name="force_update"
                              id="force_update">
-                      <label class="form-check-label" for="force_update">{% trans "Force update existing" %}</label>
+                      <label class="form-check-label" for="force_update">{% trans "Force update existing laws" %}</label>
                     </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="reset" id="reset">
+                      <label class="form-check-label" for="reset">{% trans "Reset database" %}</label>
+                    </div>
+
                     <div class="form-check">
                       <input class="form-check-input"
                              type="checkbox"
                              name="mock_embedding"
                              id="mock_embedding">
-                      <label class="form-check-label" for="mock_embedding">{% trans "Mock embedding (debug)" %}</label>
+                      <label class="form-check-label" for="mock_embedding">{% trans "Mock embedding (test only)" %}</label>
                     </div>
-                    <div class="form-check">
+                    <div class="form-check d-none">
                       <input class="form-check-input" type="checkbox" name="debug" id="debug">
                       <label class="form-check-label" for="debug">{% trans "Debug mode" %}</label>
                     </div>

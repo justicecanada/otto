@@ -33,6 +33,11 @@ from .models import JobStatus, Law, LawLoadingStatus
 logger = get_logger(__name__)
 
 
+def is_cancelled():
+    job_status = JobStatus.objects.singleton()
+    return job_status.status == "cancelled"
+
+
 @shared_task(bind=True, max_retries=10)
 def update_laws(
     self,
@@ -190,6 +195,9 @@ def update_laws(
             )
 
         for law_status in LawLoadingStatus.objects.filter(finished_at__isnull=True):
+            if is_cancelled():
+                logger.info("Job was cancelled. Exiting law processing loop.")
+                break
             try:
                 process_law_status(law_status, laws_root, mock_embedding, debug)
             except Exception as exc:
@@ -229,6 +237,9 @@ def update_laws(
 
 
 def process_law_status(law_status, laws_root, mock_embedding, debug):
+    if is_cancelled():
+        logger.info("Job was cancelled before processing law.")
+        return
     try:
         law_status.status = "parsing_xml"
         eng_law_id = law_status.eng_law_id
@@ -250,10 +261,16 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
         job_status = JobStatus.objects.singleton()
         # Create nodes for the English and French XML files
         for k, file_path in enumerate(file_paths):
+            if is_cancelled():
+                logger.info("Job was cancelled during file processing.")
+                return
             logger.info(f"Processing file: {file_path}")
 
             # Create nodes from XML
             node_dict = law_xml_to_nodes(file_path)
+            if is_cancelled():
+                logger.info("Job was cancelled after XML parsing.")
+                return
             if not node_dict["nodes"]:
                 law_status.status = "empty"
                 law_status.finished_at = now()
@@ -391,6 +408,11 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
             law_status.save()
 
     except Exception as e:
+        logger.error(f"Error in process_law_status: {e}", exc_info=True)
+        law_status.status = "error"
+        law_status.error_message = str(e)
+        law_status.finished_at = now()
+        law_status.save()
         raise e
 
 

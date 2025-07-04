@@ -147,9 +147,12 @@ def laws_loading_start(request):
         )
 
     # Get options from form
-    small = request.POST.get("small") == "on"
-    full = request.POST.get("full") == "on"
-    const_only = request.POST.get("const_only") == "on"
+    load_option = request.POST.get("load_option", "full")
+    small = load_option == "small"
+    full = load_option == "full"
+    const_only = load_option == "const_only"
+    # 'subset' means all three are False
+
     reset = request.POST.get("reset") == "on"
     force_download = request.POST.get("force_download") == "on"
     mock_embedding = request.POST.get("mock_embedding") == "on"
