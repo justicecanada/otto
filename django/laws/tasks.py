@@ -157,10 +157,10 @@ def update_laws(
                 ):
                     # No update needed
                     if force_update:
-                        law_status.status = "pending"
+                        law_status.status = "pending_update"
                         law_status.details = "No changes detected - forced update"
                     else:
-                        law_status.status = "finished"
+                        law_status.status = "finished_nochange"
                         law_status.details = "No changes detected"
                         law_status.finished_at = now()
 
@@ -168,7 +168,7 @@ def update_laws(
                     continue
 
             # Update status
-            law_status.status = "pending"
+            law_status.status = "pending_update"
             law_status.details = "Changes detected - update"
             law_status.sha_256_hash_en = new_en_hash
             law_status.sha_256_hash_fr = new_fr_hash
@@ -186,7 +186,7 @@ def update_laws(
                 [
                     LawLoadingStatus(
                         eng_law_id=law_id,
-                        status="pending",
+                        status="pending_new",
                         details="New law",
                         started_at=now(),
                     )
@@ -212,12 +212,13 @@ def update_laws(
                 law_status.save()
 
         # Finalize job status
-        job_status.status = "rebuilding_indexes"
-        job_status.save()
-        finalize_law_loading_task()
-        job_status.status = "finished"
-        job_status.finished_at = now()
-        job_status.save()
+        if not is_cancelled():
+            job_status.status = "rebuilding_indexes"
+            job_status.save()
+            finalize_law_loading_task()
+            job_status.status = "finished"
+            job_status.finished_at = now()
+            job_status.save()
 
     except Exception as exc:
         logger.error(f"Error in initiate_law_loading_task: {exc}")
@@ -384,7 +385,7 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
             )
 
             # This method will update existing Law object if it already exists
-            # It includes granular progress updates for embedding batches
+            # It includes granular progress updates for embedding
             law = Law.objects.from_docs_and_nodes(
                 law_status,
                 document_en,
@@ -398,12 +399,17 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
             bind_contextvars(law_id=law.id)
             llm.create_costs()
             cost_obj = Cost.objects.filter(law=law).order_by("date_incurred")
-            # Convert Decimal to float for JSON serialization
             cost = float(cost_obj.last().usd_cost) if cost_obj.exists() else 0.0
             logger.debug(f"Cost: {display_cad_cost(cost)}")
             law_status.law = law
             law_status.cost = cost
-            law_status.status = "finished"
+            # Set finished status based on current pending status
+            if law_status.status == "cancelled":
+                pass
+            elif "update" in law_status.details.lower():
+                law_status.status = "finished_update"
+            elif "new" in law_status.details.lower():
+                law_status.status = "finished_new"
             law_status.finished_at = now()
             law_status.save()
 

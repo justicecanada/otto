@@ -30,6 +30,8 @@ class LawManager(models.Manager):
         llm=None,
         progress_callback=None,
     ):
+        from laws.tasks import is_cancelled
+
         # Updating an existing law?
         if law_status.law:
             obj = law_status.law
@@ -98,6 +100,13 @@ class LawManager(models.Manager):
 
             original_details = law_status.details or ""
             for i in tqdm(range(0, len(nodes), batch_size)):
+                if is_cancelled():
+                    logger.info("Law loading job cancelled by user.")
+                    law_status.status = "cancelled"
+                    law_status.finished_at = timezone.now()
+                    law_status.error_message = "Job was cancelled by user."
+                    law_status.save()
+                    return obj
                 batch_num = (i // batch_size) + 1
                 total_batches = (len(nodes) + batch_size - 1) // batch_size
                 law_status.details = (
@@ -246,7 +255,19 @@ class LawLoadingStatus(models.Model):
         blank=True,
     )
     eng_law_id = models.CharField(max_length=50, null=True, blank=True)
-    status = models.CharField(max_length=50, default="pending")
+    STATUS_CHOICES = [
+        ("pending_new", "Pending (New)"),
+        ("pending_update", "Pending (Update)"),
+        ("finished_new", "Finished (New)"),
+        ("finished_update", "Finished (Update)"),
+        ("finished_nochange", "Finished (No Change)"),
+        ("error", "Error"),
+        ("deleted", "Deleted"),
+        ("empty", "Empty"),
+    ]
+    status = models.CharField(
+        max_length=50, default="pending_new", choices=STATUS_CHOICES
+    )
     details = models.TextField(null=True, blank=True)
     started_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True, blank=True)

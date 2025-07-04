@@ -47,13 +47,15 @@
           </span>
         </p>
         <p>
-          <strong>{% trans "Started" %}:</strong> {{ job_status.started_at }}
+          <strong>{% trans "Start time" %}:</strong> {{ job_status.started_at }}
+          /
+          <strong>{% trans "End time" %}:</strong> {{ job_status.finished_at }}
         </p>
         <p>
-          <strong>{% trans "Finished" %}:</strong> {{ job_status.finished_at }}
+          <strong>{% trans "Time elapsed" %}:</strong> {{ job_status.elapsed }}
         </p>
         <p>
-          <strong>{% trans "Time Elapsed" %}:</strong> {{ job_status.elapsed }}
+          <strong>{% trans "Total cost" %}:</strong> {{ total_cost }}
         </p>
         {% if job_status.error_message %}
           <p>
@@ -74,7 +76,7 @@
           <div class="mb-3">
             <div class="d-flex justify-content-between">
               <span>{% trans "Overall Progress" %}</span>
-              <span>{{ stats.finished|add:stats.empty|add:stats.error }}/{{ stats.total }}</span>
+              <span>{{ stats.finished|add:stats.empty|add:stats.error|add:stats.deleted }}/{{ stats.total }}</span>
             </div>
             <div class="progress">
               <div class="progress-bar"
@@ -86,63 +88,29 @@
             </div>
           </div>
 
-          <div class="row text-center">
-            <div class="col-4">
-              <div class="text-success">
-                <strong>{{ stats.finished }}</strong>
-                <br>
-                <small>{% trans "Finished" %}</small>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="text-warning">
-                <strong>{{ stats.parsing|add:stats.embedding }}</strong>
-                <br>
-                <small>{% trans "Processing" %}</small>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="text-danger">
-                <strong>{{ stats.error }}</strong>
-                <br>
-                <small>{% trans "Errors" %}</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="row text-center mt-2">
-            <div class="col-4">
-              <div class="text-muted">
-                <strong>{{ stats.empty }}</strong>
-                <br>
-                <small>{% trans "Empty" %}</small>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="text-info">
-                <strong>{{ stats.pending }}</strong>
-                <br>
-                <small>{% trans "Pending" %}</small>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="text-primary">
-                <strong>{{ stats.parsing }}</strong>
-                <br>
-                <small>{% trans "Parsing" %}</small>
-              </div>
+          <!-- Status summary as inline counts -->
+          <div class="row mt-4">
+            <div class="col-12 col-lg-10 mx-auto">
+              <p class="mb-1">
+                <strong>{% trans "Pending:" %}</strong>
+                {% trans "New" %} ({{ stats.pending_new|default:0 }}),
+                {% trans "Update" %} ({{ stats.pending_update|default:0 }})
+              </p>
+              <p class="mb-1">
+                <strong>{% trans "Finished:" %}</strong>
+                {% trans "New" %} ({{ stats.finished_new|default:0 }}),
+                {% trans "Updated" %} ({{ stats.finished_update|default:0 }}),
+                {% trans "No changes" %} ({{ stats.finished_nochange|default:0 }})
+              </p>
+              <p class="mb-1">
+                <strong>{% trans "Other:" %}</strong>
+                {% trans "Error" %} ({{ stats.error|default:0 }}),
+                {% trans "Empty" %} ({{ stats.empty|default:0 }}),
+                {% trans "Deleted" %} ({{ stats.deleted|default:0 }})
+              </p>
             </div>
           </div>
 
-          <div class="row text-center mt-2">
-            <div class="col-12">
-              <div class="text-warning">
-                <strong>{{ stats.embedding }}</strong>
-                <br>
-                <small>{% trans "Embedding" %}</small>
-              </div>
-            </div>
-          </div>
         {% else %}
           <p class="text-muted">{% trans "No laws to process" %}</p>
         {% endif %}
@@ -151,31 +119,11 @@
   </div>
 </div>
 
-<!-- Current Law Being Processed -->
-{% if current_law.eng_law_id != "-" %}
-  <div class="card mb-4">
-    <div class="card-header bg-primary text-white">
-      <h5 class="mb-0">
-        <i class="bi bi-gear-fill me-2"></i>
-        {% trans "Currently Processing" %}
-      </h5>
-    </div>
-    <div class="card-body">
-      <h6>{{ current_law.eng_law_id }}</h6>
-      <p class="mb-1">
-        <strong>{% trans "Status" %}:</strong>
-        <span class="badge bg-warning">{{ current_law.status|title }}</span>
-      </p>
-      {% if current_law.details %}<p class="mb-0 text-muted">{{ current_law.details }}</p>{% endif %}
-    </div>
-  </div>
-{% endif %}
-
 <!-- Recent Laws -->
 {% if recent_laws %}
   <div class="card">
     <div class="card-header">
-      <h5 class="mb-0">{% trans "Recent Laws" %}</h5>
+      <h5 class="mb-0">{% trans "Recently Processed" %}</h5>
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -186,6 +134,7 @@
               <th>{% trans "Status" %}</th>
               <th>{% trans "Details" %}</th>
               <th>{% trans "Error" %}</th>
+              <th>{% trans "Cost (CAD)" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -193,14 +142,15 @@
               <tr {% if law.is_current %}class="table-primary"{% endif %}>
                 <td>{{ law.eng_law_id }}</td>
                 <td>
-                  <span class="badge {% if law.status == 'finished' %}bg-success{% elif law.status == 'error' %}bg-danger{% elif law.status == 'empty' %}bg-secondary{% elif law.status == 'parsing_xml' or law.status == 'embedding_nodes' %}bg-warning{% else %}bg-info{% endif %}">
+                  <span class="badge {% if law.status|slice:":8" == 'finished' %}bg-success{% elif law.status == 'error' %}bg-danger{% elif law.status == 'empty' %}bg-secondary{% elif law.status == 'deleted' %}bg-dark{% elif law.status == 'parsing_xml' or law.status == 'embedding_nodes' %}bg-warning{% elif law.status|slice:":7" == 'pending' %}bg-info{% else %}bg-secondary{% endif %}">
                     {{ law.status|title }}
                   </span>
                 </td>
-                <td>{{ law.details|truncatechars:50 }}</td>
+                <td>{{ law.details|truncatechars:80 }}</td>
                 <td>
-                  {% if law.error_message %}<span class="text-danger">{{ law.error_message|truncatechars:50 }}</span>{% endif %}
+                  {% if law.error_message %}<span class="text-danger">{{ law.error_message|truncatechars:80 }}</span>{% endif %}
                 </td>
+                <td>{{ law.cost }}</td>
               </tr>
             {% endfor %}
           </tbody>
