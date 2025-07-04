@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .loading_views import (
+    laws_list,
     laws_loading_cancel,
     laws_loading_monitor,
     laws_loading_start,
@@ -19,4 +20,5 @@ urlpatterns = [
     path("loading/status", laws_loading_status, name="loading_status"),
     path("loading/start", laws_loading_start, name="loading_start"),
     path("loading/cancel", laws_loading_cancel, name="loading_cancel"),
+    path("loading/list", laws_list, name="laws_list"),
 ]

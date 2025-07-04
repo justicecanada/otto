@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load filters %}
+{% load static %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'laws:index' %}">{% trans "Legislation Search" %}</a>
+  </li>
+  <li class="breadcrumb-item active">{% trans "List of loaded legislation" %}</li>
+{% endblock %}
+
+{% block page_css %}
+  <style>
+    .card {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "List of loaded legislation - Otto" %}
+{% endblock %}
+
+{% block content_container %}
+  <div id="laws-list-outer">
+    <div class="container py-3 px-0">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-1">{% trans "List of loaded legislation" %}</h2>
+          <p class="text-muted mb-0">{% trans "See when each act or regulation was last loaded into Otto" %}</p>
+        </div>
+        <a href="{% url 'laws:loading_monitor' %}" class="btn btn-primary">
+          <i class="fas fa-chart-line me-2"></i>{% trans "Loading Monitor" %}
+        </a>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <h4 class="card-title text-primary mb-1">{{ total_laws }}</h4>
+              <p class="card-text text-muted">{% trans "Total Laws" %}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <h4 class="card-title text-success mb-1">{{ laws_with_status }}</h4>
+              <p class="card-text text-muted">{% trans "With Loading Status" %}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <h4 class="card-title text-secondary mb-1">{{ laws_without_status }}</h4>
+              <p class="card-text text-muted">{% trans "Without Loading Status" %}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Laws Table -->
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{% trans "All Legislation" %}</h5>
+          <small class="text-muted">{{ laws|length }} {% trans "items" %}</small>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th style="width: 10%;">{% trans "Law ID" %}</th>
+                  <th style="width: 35%;">{% trans "Title" %}</th>
+                  <th style="width: 8%;">{% trans "Type" %}</th>
+                  <th style="width: 12%;">{% trans "Loading Status" %}</th>
+                  <th style="width: 10%;">{% trans "Started" %}</th>
+                  <th style="width: 10%;">{% trans "Finished" %}</th>
+                  <th style="width: 8%;">{% trans "Duration" %}</th>
+                  <th style="width: 15%;">{% trans "Actions" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for law in laws %}
+                  <tr>
+                    <td>
+                      <code class="text-primary">{{ law.eng_law_id }}</code>
+                    </td>
+                    <td>
+                      <div>
+                        <strong>{{ law.title|truncatechars:50 }}</strong>
+                      </div>
+                    </td>
+                    <td>
+                      {% if law.type == "act" %}
+                        <span class="badge bg-primary">{% trans "Act" %}</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{% trans "Regulation" %}</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if law.loading_status %}
+                        <span class="badge bg-{{ law.loading_status.status }}">{{ law.loading_status.status }}</span>
+                      {% else %}
+                        <span class="text-muted">{% trans "No status" %}</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if law.loading_status and law.loading_status.started_at %}
+                        <small>{{ law.loading_status.started_at|date:"M d" }}</small>
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if law.loading_status and law.loading_status.finished_at %}
+                        <small>{{ law.loading_status.finished_at|date:"M d" }}</small>
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if law.loading_status and law.loading_status.started_at and law.loading_status.finished_at %}
+                        <small>{{ law.loading_status.finished_at|timeuntil:law.loading_status.started_at }}</small>
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if law.loading_status and law.loading_status.error_message %}
+                        <button type="button"
+                                class="btn btn-sm btn-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#errorModal{{ forloop.counter }}">Error</button>
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="8" class="text-center text-muted py-5">
+                      <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+                      <br>
+                      {% trans "No laws found" %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% if laws %}
+          <div class="card-footer text-muted text-center">
+            <small>{% trans "Showing all" %} {{ laws|length }} {% trans "laws" %}</small>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Error Modals -->
+  {% for law in laws %}
+    {% if law.loading_status and law.loading_status.error_message %}
+      <div class="modal fade"
+           id="errorModal{{ forloop.counter }}"
+           tabindex="-1"
+           aria-labelledby="errorModalLabel{{ forloop.counter }}">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="errorModalLabel{{ forloop.counter }}">
+                <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                {% trans "Error Details" %} - {{ law.eng_law_id }}
+              </h5>
+              <button type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-md-4">
+                  <h6>{% trans "Law:" %}</h6>
+                  <p>
+                    <strong>{{ law.title }}</strong>
+                  </p>
+
+                  {% if law.loading_status.started_at %}
+                    <h6>{% trans "Started At:" %}</h6>
+                    <p>{{ law.loading_status.started_at|date:"F j, Y \a\t g:i A" }}</p>
+                  {% endif %}
+
+                  {% if law.loading_status.finished_at %}
+                    <h6>{% trans "Failed At:" %}</h6>
+                    <p>{{ law.loading_status.finished_at|date:"F j, Y \a\t g:i A" }}</p>
+                  {% endif %}
+                </div>
+                <div class="col-md-8">
+                  <h6>{% trans "Error Message:" %}</h6>
+                  <pre class="bg-light p-3 rounded border"><code>{{ law.loading_status.error_message }}</code></pre>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times me-1"></i>{% trans "Close" %}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endblock %}

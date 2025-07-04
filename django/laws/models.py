@@ -247,7 +247,7 @@ class JobStatus(models.Model):
 
 
 class LawLoadingStatus(models.Model):
-    law = models.ForeignKey(
+    law = models.OneToOneField(
         Law,
         on_delete=models.SET_NULL,
         related_name="loading_status",

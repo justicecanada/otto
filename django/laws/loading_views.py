@@ -8,8 +8,9 @@ from django.views.decorators.http import require_POST
 from structlog import get_logger
 
 from laws.loading_utils import calculate_job_elapsed_time
-from laws.models import JobStatus, LawLoadingStatus
+from laws.models import JobStatus, Law, LawLoadingStatus
 from laws.tasks import update_laws
+from otto.models import OttoStatus
 from otto.utils.common import cad_cost, display_cad_cost
 from otto.utils.decorators import permission_required
 
@@ -200,3 +201,26 @@ def laws_loading_cancel(request):
     return JsonResponse(
         {"success": True, "message": "Law loading job cancelled successfully."}
     )
+
+
+def laws_list(request):
+    # Get all laws with their loading status (if available)
+    # Now using select_related since it's a OneToOneField
+    laws = Law.objects.all().select_related("loading_status").order_by("eng_law_id")
+
+    # Get job status for overall context
+    job_status = JobStatus.objects.singleton()
+
+    # Calculate some basic statistics for the page header
+    total_laws = laws.count()
+    laws_with_status = laws.filter(loading_status__isnull=False).count()
+    laws_without_status = total_laws - laws_with_status
+
+    context = {
+        "laws": laws,
+        "job_status": job_status,
+        "total_laws": total_laws,
+        "laws_with_status": laws_with_status,
+        "laws_without_status": laws_without_status,
+    }
+    return render(request, "laws/laws_list.html", context)
