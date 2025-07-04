@@ -11,7 +11,7 @@
     const startBtn = document.getElementById('start-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     
-    if (status === 'finished' || status === 'cancelled' || status === 'error') {
+    if (status === 'finished' || status === 'cancelled' || status === 'error' || status === 'not_started') {
       if (startBtn) {
         startBtn.disabled = false;
       }

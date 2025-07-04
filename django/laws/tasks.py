@@ -257,7 +257,7 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
                 law_status.finished_at = now()
                 if law_status.law:
                     law_status.law.delete()
-                    job_status.purged_count += 1
+                    job_status.purged_count = job_status.purged_count + 1
                     job_status.save()
                 law_status.save()
                 return

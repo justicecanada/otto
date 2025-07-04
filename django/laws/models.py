@@ -130,16 +130,8 @@ class LawManager(models.Manager):
             logger.info("No Law objects to purge")
 
         job_status = JobStatus.objects.singleton()
-        job_status.purged_count += purged_count
+        job_status.purged_count = purged_count
         job_status.save()
-        # Debug: check value after save
-        logger.info(
-            f"[DEBUG] Saved purged_count={job_status.purged_count} (pk={job_status.pk})"
-        )
-        reloaded = JobStatus.objects.get(pk=job_status.pk)
-        logger.info(
-            f"[DEBUG] Reloaded purged_count={reloaded.purged_count} (pk={reloaded.pk})"
-        )
 
 
 class Law(models.Model):
@@ -210,8 +202,8 @@ class JobStatusManager(models.Manager):
 class JobStatus(models.Model):
     objects = JobStatusManager()
 
-    status = models.CharField(max_length=50, default="in_progress")
-    started_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=50, default="not_started", blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
     finished_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
     purged_count = models.IntegerField(default=0)

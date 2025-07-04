@@ -182,7 +182,7 @@ def laws_loading_cancel(request):
     """
     job_status = JobStatus.objects.singleton()
 
-    if job_status.status in ["finished", "cancelled", "error"]:
+    if job_status.status in ["finished", "cancelled", "error", "not_started"]:
         return JsonResponse(
             {"success": False, "message": "No running job to cancel."}, status=400
         )
