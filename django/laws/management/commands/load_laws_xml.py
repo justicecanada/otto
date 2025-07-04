@@ -91,7 +91,6 @@ class Command(BaseCommand):
                 # Add time elapsed
                 elapsed_str = calculate_job_elapsed_time(job_status)
                 print(f"Time Elapsed: {elapsed_str}")
-                print(f"Purged: {job_status.purged_count}")
                 print("\nLaw Loading Progress:")
                 total = law_statuses.count()
                 finished = law_statuses.filter(status="finished").count()

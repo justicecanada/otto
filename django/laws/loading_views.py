@@ -103,7 +103,6 @@ def laws_loading_status(request):
             ),
             "error_message": job_status.error_message,
             "elapsed": elapsed_str,
-            "purged_count": job_status.purged_count,
             "is_running": job_status.status not in ["finished", "cancelled", "error"],
         },
         "stats": {

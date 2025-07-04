@@ -58,7 +58,6 @@ def update_laws(
         job_status.started_at = now()
         job_status.finished_at = None
         job_status.error_message = None
-        job_status.purged_count = 0  # Reset purged count for new job
         job_status.celery_task_id = self.request.id
         job_status.save()
 
@@ -221,9 +220,12 @@ def update_laws(
             job_status.status = "error"
             job_status.finished_at = now()
             job_status.save()
+            # Only retry if not cancelled
+            if job_status.status != "cancelled":
+                raise self.retry(exc=exc, countdown=60)
         except Exception:
             pass
-        raise self.retry(exc=exc, countdown=60)
+        raise
 
 
 def process_law_status(law_status, laws_root, mock_embedding, debug):
@@ -257,8 +259,8 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
                 law_status.finished_at = now()
                 if law_status.law:
                     law_status.law.delete()
-                    job_status.purged_count = job_status.purged_count + 1
-                    job_status.save()
+                    law_status.status = "deleted"
+                    law_status.details = "Existing law deleted due to now being empty"
                 law_status.save()
                 return
 

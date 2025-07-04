@@ -155,64 +155,8 @@
         {% include 'laws/partials/status_content.html' %}
       </div>
 
-      <!-- All Laws Table (for detailed view) -->
-      {% if law_loading_statuses %}
-        <div class="card mt-4">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">{% trans "All Laws (Detailed View)" %}</h5>
-            <button class="btn btn-sm btn-outline-secondary"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#all-laws-table"
-                    aria-expanded="false">{% trans "Toggle" %}</button>
-          </div>
-          <div class="collapse" id="all-laws-table">
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-striped table-sm">
-                  <thead>
-                    <tr>
-                      <th>{% trans "Law ID" %}</th>
-                      <th>{% trans "Status" %}</th>
-                      <th>{% trans "Started" %}</th>
-                      <th>{% trans "Finished" %}</th>
-                      <th>{% trans "Details" %}</th>
-                      <th>{% trans "Error" %}</th>
-                      <th>{% trans "Cost" %}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for status in law_loading_statuses %}
-                      <tr>
-                        <td>{{ status.eng_law_id|default:"-" }}</td>
-                        <td>
-                          <span class="badge {% if status.status == 'finished' %}bg-success{% elif status.status == 'error' %}bg-danger{% elif status.status == 'empty' %}bg-secondary{% elif status.status == 'parsing_xml' or status.status == 'embedding_nodes' %}bg-warning{% else %}bg-info{% endif %}">
-                            {{ status.status|title }}
-                          </span>
-                        </td>
-                        <td>{{ status.started_at|date:"H:i:s" }}</td>
-                        <td>{{ status.finished_at|date:"H:i:s"|default:"-" }}</td>
-                        <td>{{ status.details|truncatechars:30|default:"-" }}</td>
-                        <td>
-                          {% if status.error_message %}
-                            <span class="text-danger" title="{{ status.error_message }}">{{ status.error_message|truncatechars:30 }}</span>
-                          {% else %}
-                            -
-                          {% endif %}
-                        </td>
-                        <td>{{ status.cost|floatformat:4|default:"0.0000" }}</td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      {% endif %}
     </div>
   </div>
-
   <script>
     // Handle form responses
     document.body.addEventListener('htmx:afterRequest', function(evt) {

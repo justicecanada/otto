@@ -122,16 +122,21 @@ class LawManager(models.Manager):
             return
 
         to_delete = self.exclude(eng_law_id__in=set(keep_ids))
+        # Create LawLoadingStatus objects for purged laws
+        for law in to_delete:
+            LawLoadingStatus.objects.create(
+                law=None,
+                eng_law_id=law.eng_law_id,
+                status="deleted",
+                finished_at=timezone.now(),
+                details="Existing law not present in the list of laws to load",
+            )
         purged_count = int(to_delete.count())
         if purged_count > 0:
             logger.info(f"Purging {purged_count} Law objects not in keep_ids")
             to_delete.delete()
         else:
             logger.info("No Law objects to purge")
-
-        job_status = JobStatus.objects.singleton()
-        job_status.purged_count = purged_count
-        job_status.save()
 
 
 class Law(models.Model):
@@ -206,7 +211,6 @@ class JobStatus(models.Model):
     started_at = models.DateTimeField(null=True, blank=True)
     finished_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
-    purged_count = models.IntegerField(default=0)
     celery_task_id = models.CharField(max_length=255, null=True, blank=True)
 
     def cancel(self):
@@ -236,7 +240,7 @@ class JobStatus(models.Model):
 class LawLoadingStatus(models.Model):
     law = models.ForeignKey(
         Law,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="loading_status",
         null=True,
         blank=True,
