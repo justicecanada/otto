@@ -7,6 +7,7 @@ from django.views.decorators.http import require_POST
 
 from structlog import get_logger
 
+from laws.loading_utils import calculate_job_elapsed_time
 from laws.models import JobStatus, LawLoadingStatus
 from laws.tasks import update_laws
 from otto.utils.common import cad_cost, display_cad_cost
@@ -51,12 +52,8 @@ def laws_loading_status(request):
         .first()
     )
 
-    # Calculate elapsed time
-    elapsed_str = "-"
-    if job_status.started_at:
-        elapsed = (now() - job_status.started_at).total_seconds()
-        elapsed_td = timedelta(seconds=int(elapsed))
-        elapsed_str = str(elapsed_td)
+    # Calculate elapsed time using the utility function
+    elapsed_str = calculate_job_elapsed_time(job_status)
 
     # Get recent laws
     parsing_or_embedding = law_statuses.filter(

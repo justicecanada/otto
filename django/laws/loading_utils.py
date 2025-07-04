@@ -1,8 +1,10 @@
 import hashlib
 import os
 import zipfile
+from datetime import timedelta
 
 from django.conf import settings
+from django.utils.timezone import now
 
 import requests
 from llama_index.core.node_parser import SentenceSplitter
@@ -694,3 +696,29 @@ def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
     session.execute(text(post_load_sql))
     session.commit()
     session.close()
+
+
+def calculate_job_elapsed_time(job_status):
+    """
+    Calculate elapsed time for a job.
+    If the job is finished, return the total duration (finished_at - started_at).
+    If the job is still running, return the current duration (now - started_at).
+
+    Args:
+        job_status: JobStatus object with started_at and finished_at fields
+
+    Returns:
+        str: Formatted elapsed time string (e.g., "0:05:23") or "-" if no start time
+    """
+    if not job_status.started_at:
+        return "-"
+
+    if job_status.finished_at:
+        # Job is finished, use total duration
+        elapsed = (job_status.finished_at - job_status.started_at).total_seconds()
+    else:
+        # Job is still running, use current duration
+        elapsed = (now() - job_status.started_at).total_seconds()
+
+    elapsed_td = timedelta(seconds=int(elapsed))
+    return str(elapsed_td)

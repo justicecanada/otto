@@ -58,6 +58,7 @@ def update_laws(
         job_status.started_at = now()
         job_status.finished_at = None
         job_status.error_message = None
+        job_status.purged_count = 0  # Reset purged count for new job
         job_status.celery_task_id = self.request.id
         job_status.save()
 

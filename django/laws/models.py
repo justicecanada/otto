@@ -122,16 +122,24 @@ class LawManager(models.Manager):
             return
 
         to_delete = self.exclude(eng_law_id__in=set(keep_ids))
-        count = to_delete.count()
-        if count > 0:
-            logger.info(f"Purging {count} Law objects not in keep_ids")
+        purged_count = int(to_delete.count())
+        if purged_count > 0:
+            logger.info(f"Purging {purged_count} Law objects not in keep_ids")
             to_delete.delete()
         else:
             logger.info("No Law objects to purge")
 
         job_status = JobStatus.objects.singleton()
-        job_status.purged_count += count
+        job_status.purged_count += purged_count
         job_status.save()
+        # Debug: check value after save
+        logger.info(
+            f"[DEBUG] Saved purged_count={job_status.purged_count} (pk={job_status.pk})"
+        )
+        reloaded = JobStatus.objects.get(pk=job_status.pk)
+        logger.info(
+            f"[DEBUG] Reloaded purged_count={reloaded.purged_count} (pk={reloaded.pk})"
+        )
 
 
 class Law(models.Model):
@@ -195,7 +203,6 @@ class Law(models.Model):
 
 
 class JobStatusManager(models.Manager):
-    @cache_within_request
     def singleton(self):
         return self.get_or_create(pk=1)[0]
 

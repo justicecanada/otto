@@ -7,6 +7,7 @@ from django.utils.timezone import localtime, now
 from django_extensions.management.utils import signalcommand
 from structlog import get_logger
 
+from laws.loading_utils import calculate_job_elapsed_time
 from laws.models import JobStatus, LawLoadingStatus
 from laws.tasks import update_laws
 
@@ -88,14 +89,8 @@ class Command(BaseCommand):
                     f"Finished: {localtime(job_status.finished_at).strftime('%Y-%m-%d %H:%M:%S') if job_status.finished_at else '-'}"
                 )
                 # Add time elapsed
-                if job_status.started_at:
-                    from datetime import timedelta
-
-                    elapsed = (now() - job_status.started_at).total_seconds()
-                    elapsed_td = timedelta(seconds=int(elapsed))
-                    print(f"Time Elapsed: {str(elapsed_td)}")
-                else:
-                    print("Time Elapsed: -")
+                elapsed_str = calculate_job_elapsed_time(job_status)
+                print(f"Time Elapsed: {elapsed_str}")
                 print(f"Purged: {job_status.purged_count}")
                 print("\nLaw Loading Progress:")
                 total = law_statuses.count()
