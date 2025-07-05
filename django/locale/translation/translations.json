@@ -4089,7 +4089,7 @@
     },
     "Actions": {
         "fr": "",
-        "fr_auto": "Mesures"
+        "fr_auto": "Mesures à prendre"
     },
     "No status": {
         "fr": "",
@@ -4214,5 +4214,21 @@
     "Cost (CAD)": {
         "fr": "",
         "fr_auto": "Coût (CAD)"
+    },
+    "Search federal acts and regulations using natural language.": {
+        "fr": "",
+        "fr_auto": "Faites des recherches dans les lois et règlements fédéraux en utilisant le langage naturel."
+    },
+    "Does not include case law.": {
+        "fr": "",
+        "fr_auto": "Ne comprend pas la jurisprudence."
+    },
+    "Full loading status": {
+        "fr": "",
+        "fr_auto": "Statut de chargement complet"
+    },
+    "Last Job Started": {
+        "fr": "",
+        "fr_auto": "Dernier emploi commencé"
     }
 }
