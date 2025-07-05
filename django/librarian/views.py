@@ -231,7 +231,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                     users_form = LibraryUsersForm(library=selected_library)
             elif not selected_library:
                 new_library = create_temp_object("library")
-                libraries.insert(0, new_library)
+                editable_libraries.insert(0, new_library)
                 selected_library = new_library
                 focus_el = "#id_name_en"
             form = form or LibraryDetailForm(
