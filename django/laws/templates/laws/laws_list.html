@@ -31,9 +31,11 @@
           <h2 class="mb-1">{% trans "List of loaded legislation" %}</h2>
           <p class="text-muted mb-0">{% trans "See when each act or regulation was last loaded into Otto" %}</p>
         </div>
-        <a href="{% url 'laws:loading_monitor' %}" class="btn btn-primary">
-          <i class="fas fa-chart-line me-2"></i>{% trans "Loading Monitor" %}
-        </a>
+        {% if request.user.is_admin %}
+          <a href="{% url 'laws:loading_monitor' %}" class="btn btn-primary">
+            <i class="fas fa-chart-line me-2"></i>{% trans "Loading Monitor" %}
+          </a>
+        {% endif %}
       </div>
 
       <!-- Summary Stats -->
@@ -49,16 +51,24 @@
         <div class="col-md-4">
           <div class="card text-center">
             <div class="card-body">
-              <h4 class="card-title text-success mb-1">{{ laws_with_status }}</h4>
-              <p class="card-text text-muted">{% trans "With Loading Status" %}</p>
+              <h4 class="card-title {% if job_status.status == 'finished' %}text-success{% elif job_status.status == 'error' %}text-danger{% elif job_status.status == 'cancelled' %}text-secondary{% else %}text-primary{% endif %} mb-1">
+                {{ job_status.status|title }}
+              </h4>
+              <p class="card-text text-muted">{% trans "Job Status" %}</p>
             </div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card text-center">
             <div class="card-body">
-              <h4 class="card-title text-secondary mb-1">{{ laws_without_status }}</h4>
-              <p class="card-text text-muted">{% trans "Without Loading Status" %}</p>
+              <h4 class="card-title text-info mb-1">
+                {% if job_status.started_at %}
+                  {{ job_status.started_at|date:"M d, Y" }}
+                {% else %}
+                  —
+                {% endif %}
+              </h4>
+              <p class="card-text text-muted">{% trans "Last Job Started" %}</p>
             </div>
           </div>
         </div>
@@ -105,7 +115,15 @@
                     </td>
                     <td>
                       {% if law.loading_status %}
-                        <span class="badge bg-{{ law.loading_status.status }}">{{ law.loading_status.status }}</span>
+                        {% if law.loading_status.status|default:''|slice:":8" == "finished" %}
+                          <span class="badge bg-success">{{ law.loading_status.status }}</span>
+                        {% elif law.loading_status.status == "error" %}
+                          <span class="badge bg-danger">{{ law.loading_status.status }}</span>
+                        {% elif law.loading_status.status == "deleted" or law.loading_status.status == "empty" %}
+                          <span class="badge bg-secondary">{{ law.loading_status.status }}</span>
+                        {% else %}
+                          <span class="badge bg-primary">{{ law.loading_status.status }}</span>
+                        {% endif %}
                       {% else %}
                         <span class="text-muted">{% trans "No status" %}</span>
                       {% endif %}

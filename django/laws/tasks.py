@@ -42,10 +42,10 @@ def is_cancelled():
 def update_laws(
     self,
     small=False,
-    full=False,
+    full=True,
     const_only=False,
     reset=False,
-    force_download=False,
+    force_download=True,
     mock_embedding=False,
     debug=False,
     force_update=False,

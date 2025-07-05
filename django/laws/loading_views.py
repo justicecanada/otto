@@ -213,14 +213,10 @@ def laws_list(request):
 
     # Calculate some basic statistics for the page header
     total_laws = laws.count()
-    laws_with_status = laws.filter(loading_status__isnull=False).count()
-    laws_without_status = total_laws - laws_with_status
 
     context = {
         "laws": laws,
         "job_status": job_status,
         "total_laws": total_laws,
-        "laws_with_status": laws_with_status,
-        "laws_without_status": laws_without_status,
     }
     return render(request, "laws/laws_list.html", context)

@@ -122,8 +122,10 @@
 <!-- Recent Laws -->
 {% if recent_laws %}
   <div class="card">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">{% trans "Recently Processed" %}</h5>
+      <a href="{% url 'laws:laws_list' %}"
+         class="btn btn-sm btn-outline-primary">{% trans "Full loading status" %}</a>
     </div>
     <div class="card-body">
       <div class="table-responsive">

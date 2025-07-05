@@ -74,6 +74,8 @@
                class="text-secondary">laws-lois-xml</a>
             {% trans "repository on" %}
             {{ last_updated }}
+            •
+            <a href="{% url 'laws:laws_list' %}" class="text-secondary">{% trans "Full loading status" %}</a>
           </p>
         {% endif %}
       {% endif %}
