@@ -24,7 +24,7 @@ app.conf.beat_schedule = {
     },
     # Update laws every week on Saturdays at 5 am UTC
     "update-laws-every-week": {
-        "task": "otto.tasks.update_laws",
+        "task": "laws.tasks.update_laws",
         "schedule": crontab(hour=5, minute=0, day_of_week=6),
     },
     # Reset monthly bonus every month on the 1st at 12 am UTC
