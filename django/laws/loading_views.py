@@ -165,7 +165,7 @@ def laws_loading_start(request):
     job_status = JobStatus.objects.singleton()
 
     # Check if job is already running
-    if job_status.status not in ["finished", "cancelled", "error"]:
+    if job_status.status not in ["finished", "cancelled", "error", "not_started"]:
         return JsonResponse(
             {
                 "success": False,
