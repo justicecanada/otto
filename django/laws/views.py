@@ -219,6 +219,7 @@ def existing_search(request, query_uuid):
 @budget_required
 def search(request):
     bind_contextvars(feature="laws_query")
+    query_uuid = None
     if request.method != "POST":
         return redirect("laws:index")
     try:
@@ -312,13 +313,28 @@ def search(request):
                 law.node_id_fr for law in selected_laws
             ]
 
-        filters.append(
-            MetadataFilter(
-                key="doc_id",
-                value=doc_id_list,
-                operator="in",
+        # Only add doc_id filter if doc_id_list is not empty
+        if doc_id_list:
+            filters.append(
+                MetadataFilter(
+                    key="doc_id",
+                    value=doc_id_list,
+                    operator="in",
+                )
             )
-        )
+        else:
+            # If doc_id_list is empty, return no sources immediately
+            context = {
+                "sources": [],
+                "query": query,
+                "disable_llm": True,
+                "answer_params": "",
+            }
+            logger.info(
+                "No sources found for query (empty doc_id_list)",
+                query=query,
+            )
+            return render(request, "laws/search_result.html", context=context)
 
         if request.POST.get("date_filter_option", "all") != "all":
             in_force_date_start = request.POST.get("in_force_date_start", None)
@@ -408,7 +424,12 @@ def search(request):
 
         try:
             sources = retriever.retrieve(query)
-        except:
+        except Exception as e:
+            logger.exception(
+                f"Error retrieving sources for query: {query}",
+                query_uuid=query_uuid,
+                error=e,
+            )
             sources = None
         llm.create_costs()
         if not sources:
@@ -418,6 +439,10 @@ def search(request):
                 "disable_llm": True,
                 "answer_params": "",
             }
+            logger.info(
+                "No sources found for query",
+                query=query,
+            )
             return render(request, "laws/search_result.html", context=context)
 
         # Cache sources so they can be retrieved in the AI answer function
@@ -441,17 +466,16 @@ def search(request):
     except Exception as e:
         context = {
             "sources": [],
-            "query": query,
+            "query": query if "query" in locals() else None,
             "query_uuid": query_uuid,
             "disable_llm": True,
             "error": e,
         }
         logger.exception(
-            f"Error in laws search for query: {query}",
+            f"Error in laws search for query: {context['query']}",
             query_uuid=query_uuid,
             error=e,
         )
-
         return render(request, "laws/search_result.html", context=context)
 
     response = render(

@@ -86,10 +86,11 @@ class LawManager(models.Manager):
                 # Remove the old content from the vector store
                 idx.delete_ref_doc(obj.node_id_en, delete_from_docstore=True)
                 idx.delete_ref_doc(obj.node_id_fr, delete_from_docstore=True)
-                nodes.append(document_en)
-                nodes.extend(nodes_en)
-                nodes.append(document_fr)
-                nodes.extend(nodes_fr)
+            # Always add the document and chunk nodes for embedding
+            nodes.append(document_en)
+            nodes.extend(nodes_en)
+            nodes.append(document_fr)
+            nodes.extend(nodes_fr)
             batch_size = 16
             logger.debug(
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
