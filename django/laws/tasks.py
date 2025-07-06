@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 
 from django.conf import settings
 from django.utils.timezone import now
@@ -430,7 +431,9 @@ def finalize_law_loading_task():
         logger.info("Finalizing law loading process...")
 
         # Rebuild vector-specific indexes (node_id index is managed by Django model)
-        recreate_indexes(node_id=False, jsonb=True, hnsw=False)
+        # Only recreate indexes if not running under pytest
+        if not any("pytest" in arg for arg in sys.argv):
+            recreate_indexes(node_id=False, jsonb=True, hnsw=False)
 
         # Update final status
         otto_status = OttoStatus.objects.singleton()

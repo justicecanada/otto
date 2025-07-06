@@ -66,6 +66,11 @@ class Command(BaseCommand):
             action="store_true",
             help="Start the law loading process, cancelling any existing job",
         )
+        parser.add_argument(
+            "--no_celery",
+            action="store_true",
+            help="Run the command synchronously without Celery",
+        )
 
     def print_status(self):
 
@@ -131,25 +136,33 @@ class Command(BaseCommand):
 
     @signalcommand
     def handle(self, *args, **options):
+        job_status = JobStatus.objects.singleton()
+        if options["cancel"] or options["start"]:
+            job_status.cancel()
+            print("Existing job cancelled.")
+        # If job is running, show status
+        if options["start"]:
+            start_options = dict(
+                small=options["small"],
+                full=options["full"],
+                const_only=options["const_only"],
+                reset=options["reset"],
+                force_download=options["force_download"],
+                mock_embedding=options["mock_embedding"],
+                debug=options["debug"],
+                force_update=options["force_update"],
+            )
+            if options["no_celery"]:
+                print("Running synchronously without Celery...")
+                update_laws(**start_options)
+                return
+            else:
+                update_laws.delay(**start_options)
+
+        if options["start"]:
+            print("Job started via Celery. Monitoring status...")
+            time.sleep(3)  # Allow time for the task to start
         try:
-            job_status = JobStatus.objects.singleton()
-            if options["cancel"] or options["start"]:
-                job_status.cancel()
-                print("Existing job cancelled.")
-            # If job is running, show status
-            if options["start"]:
-                update_laws.delay(
-                    small=options["small"],
-                    full=options["full"],
-                    const_only=options["const_only"],
-                    reset=options["reset"],
-                    force_download=options["force_download"],
-                    mock_embedding=options["mock_embedding"],
-                    debug=options["debug"],
-                    force_update=options["force_update"],
-                )
-                print("Job started via Celery. Monitoring status...")
-                time.sleep(3)  # Allow time for the task to start
             self.print_status()
         except KeyboardInterrupt:
             print("\nStatus monitoring stopped by user.")
