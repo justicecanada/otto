@@ -72,6 +72,26 @@ def laws_loading_status(request):
     recent_laws = []
     for ls in [current_law] + list(recent_finished):
         try:
+            # Parse embedding progress if present in details
+            embed_progress = None
+            if ls.details:
+                import re
+
+                match = re.search(
+                    r"embedding (?:batch|progress) (\d+)/(\d+)", ls.details
+                )
+                if match:
+                    embedded_count = int(match.group(1))
+                    total_to_embed = int(match.group(2))
+                    embed_progress = {
+                        "embedded_count": embedded_count,
+                        "total_to_embed": total_to_embed,
+                        "percent": (
+                            int(embedded_count / total_to_embed * 100)
+                            if total_to_embed
+                            else 0
+                        ),
+                    }
             recent_laws.append(
                 {
                     "eng_law_id": ls.eng_law_id or "-",
@@ -80,6 +100,7 @@ def laws_loading_status(request):
                     "error_message": ls.error_message or "",
                     "is_current": ls == current_law,
                     "cost": display_cad_cost(cad_cost(ls.cost) if ls.cost else 0),
+                    "embed_progress": embed_progress,
                 }
             )
         except:
