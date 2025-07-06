@@ -18,8 +18,8 @@ ADMINISTRATIVE_PERMISSIONS = {
     "otto.manage_users",
     "otto.manage_feedback",
     "otto.manage_cost_dashboard",
+    "otto.load_laws",
     "librarian.manage_public_libraries",
-    "librarian.manage_library_users",
 }
 
 
@@ -35,6 +35,7 @@ is_operations_admin = is_group_member("Operations admin")
 is_data_steward = is_group_member("Data steward")
 
 add_perm("otto.manage_users", is_admin)
+add_perm("otto.load_laws", is_admin)
 add_perm("otto.access_otto", accepted_terms)
 
 

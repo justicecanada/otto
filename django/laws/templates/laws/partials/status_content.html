@@ -1,0 +1,177 @@
+{% load i18n %}
+
+<!-- Hidden data for JavaScript -->
+<script>
+  // Update button states based on job status
+  document.addEventListener('DOMContentLoaded', function() {
+    updateButtonStates('{{ job_status.status }}');
+  });
+  
+  function updateButtonStates(status) {
+    const startBtn = document.getElementById('start-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    
+    if (status === 'finished' || status === 'cancelled' || status === 'error' || status === 'not_started') {
+      if (startBtn) {
+        startBtn.disabled = false;
+      }
+      if (cancelBtn) {
+        cancelBtn.disabled = true;
+      }
+    } else {
+      if (startBtn) {
+        startBtn.disabled = true;
+      }
+      if (cancelBtn) {
+        cancelBtn.disabled = false;
+      }
+    }
+  }
+  
+  // Call this function after HTMX swaps
+  updateButtonStates('{{ job_status.status }}');
+</script>
+
+<!-- Current Status Overview -->
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">{% trans "Job Status" %}</h5>
+      </div>
+      <div class="card-body">
+        <p>
+          <strong>{% trans "Status" %}:</strong>
+          <span class="badge {% if job_status.status == 'finished' %}bg-success{% elif job_status.status == 'error' %}bg-danger{% elif job_status.status == 'cancelled' %}bg-secondary{% else %}bg-primary{% endif %}">
+            {{ job_status.status|title }}
+          </span>
+        </p>
+        <p>
+          <strong>{% trans "Start time" %}:</strong> {{ job_status.started_at }}
+          /
+          <strong>{% trans "End time" %}:</strong> {{ job_status.finished_at }}
+        </p>
+        <p>
+          <strong>{% trans "Time elapsed" %}:</strong> {{ job_status.elapsed }}
+        </p>
+        <p>
+          <strong>{% trans "Total cost" %}:</strong> {{ total_cost }}
+        </p>
+        {% if job_status.error_message %}
+          <p>
+            <strong>{% trans "Error" %}:</strong> <span class="text-danger">{{ job_status.error_message }}</span>
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">{% trans "Progress Overview" %}</h5>
+      </div>
+      <div class="card-body">
+        {% if stats.total > 0 %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between">
+              <span>{% trans "Overall Progress" %}</span>
+              <span>{{ stats.finished|add:stats.empty|add:stats.error|add:stats.deleted }}/{{ stats.total }}</span>
+            </div>
+            <div class="progress">
+              <div class="progress-bar"
+                   role="progressbar"
+                   style="width: {{ stats.progress_percent }}%"
+                   aria-valuenow="{{ stats.progress_percent }}"
+                   aria-valuemin="0"
+                   aria-valuemax="100">{{ stats.progress_percent }}%</div>
+            </div>
+          </div>
+
+          <!-- Status summary as inline counts -->
+          <div class="row mt-4">
+            <div class="col-12 col-lg-10 mx-auto">
+              <p class="mb-1">
+                <strong>{% trans "Pending:" %}</strong>
+                {% trans "New" %} ({{ stats.pending_new|default:0 }}),
+                {% trans "Update" %} ({{ stats.pending_update|default:0 }})
+              </p>
+              <p class="mb-1">
+                <strong>{% trans "Finished:" %}</strong>
+                {% trans "New" %} ({{ stats.finished_new|default:0 }}),
+                {% trans "Updated" %} ({{ stats.finished_update|default:0 }}),
+                {% trans "No changes" %} ({{ stats.finished_nochange|default:0 }})
+              </p>
+              <p class="mb-1">
+                <strong>{% trans "Other:" %}</strong>
+                {% trans "Error" %} ({{ stats.error|default:0 }}),
+                {% trans "Empty" %} ({{ stats.empty|default:0 }}),
+                {% trans "Deleted" %} ({{ stats.deleted|default:0 }})
+              </p>
+            </div>
+          </div>
+
+        {% else %}
+          <p class="text-muted">{% trans "No laws to process" %}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Laws -->
+{% if recent_laws %}
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">{% trans "Recently Processed" %}</h5>
+      <a href="{% url 'laws:laws_list' %}"
+         class="btn btn-sm btn-outline-primary">{% trans "Full loading status" %}</a>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>{% trans "Law ID" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Details" %}</th>
+              <th>{% trans "Error" %}</th>
+              <th>{% trans "Cost (CAD)" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for law in recent_laws %}
+              <tr {% if law.is_current %}class="table-warning"{% endif %}>
+                <td>{{ law.eng_law_id }}</td>
+                <td>
+                  <span class="badge {% if law.status|slice:":8" == 'finished' %}bg-success{% elif law.status == 'error' %}bg-danger{% elif law.status == 'empty' %}bg-secondary{% elif law.status == 'deleted' %}bg-dark{% elif law.status == 'parsing_xml' or law.status == 'embedding_nodes' %}bg-warning{% elif law.status|slice:":7" == 'pending' %}bg-info{% else %}bg-secondary{% endif %}">
+                    {{ law.status|title }}
+                  </span>
+                </td>
+                <td>
+                  {{ law.details|truncatechars:80 }}
+                  {% if law.embed_progress %}
+                    <div class="progress my-1" style="height: 8px;">
+                      <div class="progress-bar bg-dark"
+                           role="progressbar"
+                           style="width: {{ law.embed_progress.percent }}%"
+                           aria-valuenow="{{ law.embed_progress.percent }}"
+                           aria-valuemin="0"
+                           aria-valuemax="100">
+                        <span class="visually-hidden">{{ law.embed_progress.percent }}%</span>
+                      </div>
+                    </div>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if law.error_message %}<span class="text-danger">{{ law.error_message|truncatechars:80 }}</span>{% endif %}
+                </td>
+                <td>{{ law.cost }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endif %}

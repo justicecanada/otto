@@ -34,7 +34,8 @@
         <a href="{% url 'laws:index' %}" class="text-decoration-none text-body">{% trans "Legislation Search" %}</a>
       </h2>
       <p class="mx-4 mb-4">
-        {% trans "Search acts and regulations using natural language. Find relevant sections of laws." %}
+        {% trans "Search federal acts and regulations using natural language." %}
+        <span class="text-secondary">{% trans "Does not include case law." %}</span>
       </p>
       <ul class="nav nav-tabs px-3 border-bottom-0">
         <li class="nav-item">
@@ -74,6 +75,8 @@
                class="text-secondary">laws-lois-xml</a>
             {% trans "repository on" %}
             {{ last_updated }}
+            •
+            <a href="{% url 'laws:laws_list' %}" class="text-secondary">{% trans "Full loading status" %}</a>
           </p>
         {% endif %}
       {% endif %}
