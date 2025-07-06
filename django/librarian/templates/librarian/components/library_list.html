@@ -7,11 +7,24 @@
           hx-get="{% url 'librarian:modal_create_library' %}">
     <i class="bi bi-plus"></i> {% trans "New library" %}
   </button>
-  {% if libraries %}
-    {% include "librarian/components/items_list.html" with items=libraries selected_item=selected_library listbox_label="libraries-label" item_type="library" %}
-  {% else %}
+
+  {% if editable_libraries %}
+    <div class="mb-3">
+      <h6 class="small text-muted mb-2">{% trans "Editable Libraries" %}</h6>
+      {% include "librarian/components/items_list.html" with items=editable_libraries selected_item=selected_library listbox_label="libraries-label" item_type="library" %}
+    </div>
+  {% endif %}
+
+  {% if view_only_libraries %}
+    <div class="mb-3">
+      <h6 class="small text-muted mb-2">{% trans "Viewable Libraries" %}</h6>
+      {% include "librarian/components/items_list.html" with items=view_only_libraries selected_item=selected_library listbox_label="libraries-label" item_type="library" %}
+    </div>
+  {% endif %}
+
+  {% if not editable_libraries and not view_only_libraries %}
     <div class="text-center">
-      <em class="small">{% trans "Libraries you can edit will appear here." %}</em>
+      <em class="small">{% trans "Available libraries will appear here." %}</em>
     </div>
   {% endif %}
 </div>
