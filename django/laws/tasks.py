@@ -3,6 +3,7 @@ import shutil
 import sys
 
 from django.conf import settings
+from django.utils import timezone
 from django.utils.timezone import now
 
 from celery import shared_task
@@ -34,9 +35,12 @@ from .models import JobStatus, Law, LawLoadingStatus
 logger = get_logger(__name__)
 
 
-def is_cancelled():
+def is_cancelled(current_task_id):
     job_status = JobStatus.objects.singleton()
-    return job_status.status == "cancelled"
+    # Cancelled if status is 'cancelled' or if celery_task_id does not match
+    return (
+        job_status.status == "cancelled" or job_status.celery_task_id != current_task_id
+    )
 
 
 @shared_task(bind=True, max_retries=10)
@@ -66,6 +70,7 @@ def update_laws(
         job_status.error_message = None
         job_status.celery_task_id = self.request.id
         job_status.save()
+        current_task_id = self.request.id
 
         # Determine laws XML root directory, and download if necessary
         if small:
@@ -196,11 +201,13 @@ def update_laws(
             )
 
         for law_status in LawLoadingStatus.objects.filter(finished_at__isnull=True):
-            if is_cancelled():
+            if is_cancelled(current_task_id):
                 logger.info("Job was cancelled. Exiting law processing loop.")
                 break
             try:
-                process_law_status(law_status, laws_root, mock_embedding, debug)
+                process_law_status(
+                    law_status, laws_root, mock_embedding, debug, current_task_id
+                )
             except Exception as exc:
                 logger.error(
                     f"Error processing law {law_status.eng_law_id}: {exc}",
@@ -213,7 +220,7 @@ def update_laws(
                 law_status.save()
 
         # Finalize job status
-        if not is_cancelled():
+        if not is_cancelled(current_task_id):
             job_status.status = "rebuilding_indexes"
             job_status.save()
             finalize_law_loading_task(downloaded=force_download)
@@ -238,9 +245,13 @@ def update_laws(
         raise
 
 
-def process_law_status(law_status, laws_root, mock_embedding, debug):
-    if is_cancelled():
+def process_law_status(law_status, laws_root, mock_embedding, debug, current_task_id):
+    if is_cancelled(current_task_id):
         logger.info("Job was cancelled before processing law.")
+        law_status.status = "cancelled"
+        law_status.finished_at = timezone.now()
+        law_status.error_message = "Job was cancelled by user."
+        law_status.save()
         return
     try:
         law_status.status = "parsing_xml"
@@ -263,24 +274,35 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
         job_status = JobStatus.objects.singleton()
         # Create nodes for the English and French XML files
         for k, file_path in enumerate(file_paths):
-            if is_cancelled():
+            if is_cancelled(current_task_id):
                 logger.info("Job was cancelled during file processing.")
+                law_status.status = "cancelled"
+                law_status.finished_at = timezone.now()
+                law_status.error_message = "Job was cancelled by user."
+                law_status.save()
                 return
             logger.info(f"Processing file: {file_path}")
 
             # Create nodes from XML
             node_dict = law_xml_to_nodes(file_path)
-            if is_cancelled():
+            if is_cancelled(current_task_id):
                 logger.info("Job was cancelled after XML parsing.")
                 return
             if not node_dict["nodes"]:
                 law_status.status = "empty"
                 law_status.finished_at = now()
                 if law_status.law:
-                    law_status.law.delete()
+                    law = law_status.law
+                    law_status.law = None
                     law_status.status = "deleted"
                     law_status.details = "Existing law deleted due to now being empty"
-                law_status.save()
+                    law_status.save()
+                    idx = Law.get_index()
+                    idx.delete_ref_doc(law.node_id_en, delete_from_docstore=True)
+                    idx.delete_ref_doc(law.node_id_fr, delete_from_docstore=True)
+                    law.delete()
+                else:
+                    law_status.save()
                 return
 
             doc_metadata = {
@@ -395,32 +417,35 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
                 nodes_fr,
                 add_to_vector_store=True,
                 llm=llm,
+                current_task_id=current_task_id,
             )
 
-            bind_contextvars(law_id=law.id)
-            llm.create_costs()
-            cost_obj = Cost.objects.filter(law=law).order_by("date_incurred")
-            cost = float(cost_obj.last().usd_cost) if cost_obj.exists() else 0.0
-            logger.debug(f"Cost: {display_cad_cost(cost)}")
-            law_status.law = law
-            law_status.cost = cost
-            # Set finished status based on current pending status
-            if law_status.status == "cancelled":
-                pass
-            elif "update" in law_status.details.lower():
-                law_status.status = "finished_update"
-                law_status.details = "Law updated successfully"
-            elif "new" in law_status.details.lower():
-                law_status.status = "finished_new"
-                law_status.details = "New law added successfully"
-            law_status.finished_at = now()
-            law_status.save()
+            if law is not None:
+                bind_contextvars(law_id=law.id)
+                llm.create_costs()
+                cost_obj = Cost.objects.filter(law=law).order_by("date_incurred")
+                cost = float(cost_obj.last().usd_cost) if cost_obj.exists() else 0.0
+                logger.debug(f"Cost: {display_cad_cost(cost)}")
+                law_status.law = law
+                law_status.cost = cost
+                # Set finished status based on current pending status
+                if law_status.status == "cancelled":
+                    pass
+                elif "update" in law_status.details.lower():
+                    law_status.status = "finished_update"
+                    law_status.details = "Law updated successfully"
+                elif "new" in law_status.details.lower():
+                    law_status.status = "finished_new"
+                    law_status.details = "New law added successfully"
+                law_status.finished_at = now()
+                law_status.save()
 
     except Exception as e:
         logger.error(f"Error in process_law_status: {e}", exc_info=True)
         law_status.status = "error"
         law_status.error_message = str(e)
         law_status.finished_at = now()
+        law_status.law = None
         law_status.save()
         raise e
 

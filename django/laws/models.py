@@ -29,6 +29,7 @@ class LawManager(models.Manager):
         force_update=False,
         llm=None,
         progress_callback=None,
+        current_task_id=None,
     ):
         from laws.tasks import is_cancelled
 
@@ -101,13 +102,16 @@ class LawManager(models.Manager):
 
             original_details = law_status.details or ""
             for i in tqdm(range(0, len(nodes), batch_size)):
-                if is_cancelled():
+                if is_cancelled(current_task_id):
                     logger.info("Law loading job cancelled by user.")
                     law_status.status = "cancelled"
                     law_status.finished_at = timezone.now()
                     law_status.error_message = "Job was cancelled by user."
                     law_status.save()
-                    return obj
+                    idx.delete_ref_doc(obj.node_id_en, delete_from_docstore=True)
+                    idx.delete_ref_doc(obj.node_id_fr, delete_from_docstore=True)
+                    obj.delete()
+                    return None
                 batch_num = (i // batch_size) + 1
                 total_batches = (len(nodes) + batch_size - 1) // batch_size
                 law_status.details = (
