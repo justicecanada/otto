@@ -204,19 +204,31 @@ def laws_loading_cancel(request):
 
 
 def laws_list(request):
-    # Get all laws with their loading status (if available)
-    # Now using select_related since it's a OneToOneField
-    laws = Law.objects.all().select_related("loading_status").order_by("eng_law_id")
+    # Get all law loading statuses with their associated laws (if available)
+    all_statuses = (
+        LawLoadingStatus.objects.all().select_related("law").order_by("eng_law_id")
+    )
+
+    # Separate into three categories
+    loaded_statuses = all_statuses.filter(status__startswith="finished")
+    exception_statuses = all_statuses.filter(
+        status__in=["error", "empty", "deleted", "cancelled"]
+    )
+    pending_statuses = all_statuses.filter(
+        status__in=["pending_new", "pending_update", "parsing_xml", "embedding_nodes"]
+    )
 
     # Get job status for overall context
     job_status = JobStatus.objects.singleton()
 
     # Calculate some basic statistics for the page header
-    total_laws = laws.count()
+    total_statuses = all_statuses.count()
 
     context = {
-        "laws": laws,
+        "loaded_statuses": loaded_statuses,
+        "exception_statuses": exception_statuses,
+        "pending_statuses": pending_statuses,
         "job_status": job_status,
-        "total_laws": total_laws,
+        "total_laws": total_statuses,
     }
     return render(request, "laws/laws_list.html", context)

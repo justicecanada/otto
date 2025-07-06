@@ -44,7 +44,15 @@
           <div class="card text-center">
             <div class="card-body">
               <h4 class="card-title text-primary mb-1">{{ total_laws }}</h4>
-              <p class="card-text text-muted">{% trans "Total Laws" %}</p>
+              <p class="card-text text-muted">{% trans "Total Entries" %}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <h4 class="card-title text-success mb-1">{{ loaded_statuses|length }}</h4>
+              <p class="card-text text-muted">{% trans "Loaded Laws" %}</p>
             </div>
           </div>
         </div>
@@ -58,103 +66,70 @@
             </div>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card text-center">
-            <div class="card-body">
-              <h4 class="card-title text-info mb-1">
-                {% if job_status.started_at %}
-                  {{ job_status.started_at|date:"M d, Y" }}
-                {% else %}
-                  —
-                {% endif %}
-              </h4>
-              <p class="card-text text-muted">{% trans "Last Job Started" %}</p>
-            </div>
-          </div>
-        </div>
       </div>
 
-      <!-- Laws Table -->
-      <div class="card">
+      <!-- Loaded Legislation Table -->
+      <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">{% trans "All Legislation" %}</h5>
-          <small class="text-muted">{{ laws|length }} {% trans "items" %}</small>
+          <h5 class="mb-0">{% trans "Loaded Legislation" %}</h5>
+          <small class="text-muted">{{ loaded_statuses|length }} {% trans "items" %}</small>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-striped table-hover mb-0">
-              <thead class="table-dark">
+              <thead class="table-success">
                 <tr>
                   <th style="width: 10%;">{% trans "Law ID" %}</th>
+                  <th style="width: 12%;">{% trans "Status" %}</th>
                   <th style="width: 35%;">{% trans "Title" %}</th>
                   <th style="width: 8%;">{% trans "Type" %}</th>
-                  <th style="width: 12%;">{% trans "Loading Status" %}</th>
-                  <th style="width: 10%;">{% trans "Started" %}</th>
+                  <th style="width: 12%;">{% trans "Last Amended" %}</th>
                   <th style="width: 10%;">{% trans "Finished" %}</th>
                   <th style="width: 8%;">{% trans "Duration" %}</th>
-                  <th style="width: 15%;">{% trans "Actions" %}</th>
                 </tr>
               </thead>
               <tbody>
-                {% for law in laws %}
+                {% for status in loaded_statuses %}
                   <tr>
                     <td>
-                      <code class="text-primary">{{ law.eng_law_id }}</code>
+                      <code class="text-primary">{{ status.eng_law_id }}</code>
+                    </td>
+                    <td>
+                      <span class="badge bg-success">{{ status.status }}</span>
                     </td>
                     <td>
                       <div>
-                        <strong>{{ law.title|truncatechars:50 }}</strong>
+                        {% if status.law %}
+                          <strong>{{ status.law.title|truncatechars:50 }}</strong>
+                        {% else %}
+                          <span class="text-muted">{% trans "No title available" %}</span>
+                        {% endif %}
                       </div>
                     </td>
                     <td>
-                      {% if law.type == "act" %}
-                        <span class="badge bg-primary">{% trans "Act" %}</span>
-                      {% else %}
-                        <span class="badge bg-secondary">{% trans "Regulation" %}</span>
-                      {% endif %}
-                    </td>
-                    <td>
-                      {% if law.loading_status %}
-                        {% if law.loading_status.status|default:''|slice:":8" == "finished" %}
-                          <span class="badge bg-success">{{ law.loading_status.status }}</span>
-                        {% elif law.loading_status.status == "error" %}
-                          <span class="badge bg-danger">{{ law.loading_status.status }}</span>
-                        {% elif law.loading_status.status == "deleted" or law.loading_status.status == "empty" %}
-                          <span class="badge bg-secondary">{{ law.loading_status.status }}</span>
-                        {% else %}
-                          <span class="badge bg-primary">{{ law.loading_status.status }}</span>
-                        {% endif %}
-                      {% else %}
-                        <span class="text-muted">{% trans "No status" %}</span>
-                      {% endif %}
-                    </td>
-                    <td>
-                      {% if law.loading_status and law.loading_status.started_at %}
-                        <small>{{ law.loading_status.started_at|date:"M d" }}</small>
+                      {% if status.law %}
+                        {{ status.law.type|capfirst }}
                       {% else %}
                         —
                       {% endif %}
                     </td>
                     <td>
-                      {% if law.loading_status and law.loading_status.finished_at %}
-                        <small>{{ law.loading_status.finished_at|date:"M d" }}</small>
+                      {% if status.law and status.law.last_amended_date %}
+                        {{ status.law.last_amended_date|date:"M d, Y" }}
                       {% else %}
                         —
                       {% endif %}
                     </td>
                     <td>
-                      {% if law.loading_status and law.loading_status.started_at and law.loading_status.finished_at %}
-                        <small>{{ law.loading_status.finished_at|timeuntil:law.loading_status.started_at }}</small>
+                      {% if status.finished_at %}
+                        <small>{{ status.finished_at|date:"M d, Y H:i" }}</small>
                       {% else %}
                         —
                       {% endif %}
                     </td>
                     <td>
-                      {% if law.loading_status and law.loading_status.error_message %}
-                        <button type="button"
-                                class="btn btn-sm btn-danger"
-                                data-bs-toggle="modal"
-                                data-bs-target="#errorModal{{ forloop.counter }}">Error</button>
+                      {% if status.started_at and status.finished_at %}
+                        <small>{{ status.finished_at|timeuntil:status.started_at }}</small>
                       {% else %}
                         —
                       {% endif %}
@@ -162,10 +137,10 @@
                   </tr>
                 {% empty %}
                   <tr>
-                    <td colspan="8" class="text-center text-muted py-5">
-                      <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+                    <td colspan="7" class="text-center text-muted py-5">
+                      <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
                       <br>
-                      {% trans "No laws found" %}
+                      {% trans "No loaded laws found" %}
                     </td>
                   </tr>
                 {% endfor %}
@@ -173,9 +148,180 @@
             </table>
           </div>
         </div>
-        {% if laws %}
+        {% if loaded_statuses %}
           <div class="card-footer text-muted text-center">
-            <small>{% trans "Showing all" %} {{ laws|length }} {% trans "laws" %}</small>
+            <small>{% trans "Showing" %} {{ loaded_statuses|length }} {% trans "loaded laws" %}</small>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Exceptions Table -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{% trans "Exceptions" %}</h5>
+          <small class="text-muted">{{ exception_statuses|length }} {% trans "items" %}</small>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+              <thead class="table-danger">
+                <tr>
+                  <th style="width: 15%;">{% trans "Law ID" %}</th>
+                  <th style="width: 20%;">{% trans "Status" %}</th>
+                  <th style="width: 25%;">{% trans "Description" %}</th>
+                  <th style="width: 20%;">{% trans "Finished" %}</th>
+                  <th style="width: 10%;">{% trans "Error Details" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for status in exception_statuses %}
+                  <tr>
+                    <td>
+                      <code class="text-primary">{{ status.eng_law_id }}</code>
+                    </td>
+                    <td>
+                      {% if status.status == "error" %}
+                        <span class="badge bg-danger">{{ status.status }}</span>
+                      {% elif status.status == "deleted" or status.status == "empty" %}
+                        <span class="badge bg-secondary">{{ status.status }}</span>
+                      {% else %}
+                        <span class="badge bg-warning">{{ status.status }}</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if status.details %}
+                        <small title="{{ status.details }}">{{ status.details|truncatechars:40 }}</small>
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if status.finished_at %}
+                        <small>{{ status.finished_at|date:"M d, Y H:i" }}</small>
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if status.error_message %}
+                        <button type="button"
+                                class="btn btn-sm btn-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#errorModal{{ forloop.counter }}"
+                                title="{{ status.error_message }}">Error</button>
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-5">
+                      <i class="fas fa-thumbs-up fa-3x mb-3 text-success"></i>
+                      <br>
+                      {% trans "No exceptions found" %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% if exception_statuses %}
+          <div class="card-footer text-muted text-center">
+            <small>{% trans "Showing" %} {{ exception_statuses|length }} {% trans "exceptions" %}</small>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Pending Table -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{% trans "Pending" %}</h5>
+          <small class="text-muted">{{ pending_statuses|length }} {% trans "items" %}</small>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+              <thead class="table-warning">
+                <tr>
+                  <th style="width: 15%;">{% trans "Law ID" %}</th>
+                  <th style="width: 15%;">{% trans "Status" %}</th>
+                  <th style="width: 30%;">{% trans "Description" %}</th>
+                  <th style="width: 20%;">{% trans "Started" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {# Show in-progress statuses first #}
+                {% for status in pending_statuses %}
+                  {% if status.status == "parsing_xml" or status.status == "embedding_nodes" %}
+                    <tr>
+                      <td>
+                        <code class="text-primary">{{ status.eng_law_id }}</code>
+                      </td>
+                      <td>
+                        <span class="badge bg-primary">{{ status.status }}</span>
+                      </td>
+                      <td>
+                        {% if status.details %}
+                          <small title="{{ status.details }}">{{ status.details|truncatechars:40 }}</small>
+                        {% else %}
+                          —
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if status.started_at %}
+                          <small>{{ status.started_at|date:"M d, Y H:i" }}</small>
+                        {% else %}
+                          —
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+                {# Then show the rest #}
+                {% for status in pending_statuses %}
+                  {% if status.status != "parsing_xml" and status.status != "embedding_nodes" %}
+                    <tr>
+                      <td>
+                        <code class="text-primary">{{ status.eng_law_id }}</code>
+                      </td>
+                      <td>
+                        <span class="badge bg-warning text-dark">{{ status.status }}</span>
+                      </td>
+                      <td>
+                        {% if status.details %}
+                          <small title="{{ status.details }}">{{ status.details|truncatechars:40 }}</small>
+                        {% else %}
+                          —
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if status.started_at %}
+                          <small>{{ status.started_at|date:"M d, Y H:i" }}</small>
+                        {% else %}
+                          —
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+                {% if pending_statuses|length == 0 %}
+                  <tr>
+                    <td colspan="4" class="text-center text-muted py-5">
+                      <i class="fas fa-hourglass-half fa-3x mb-3 text-warning"></i>
+                      <br>
+                      {% trans "No pending laws found" %}
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% if pending_statuses %}
+          <div class="card-footer text-muted text-center">
+            <small>{% trans "Showing" %} {{ pending_statuses|length }} {% trans "pending laws" %}</small>
           </div>
         {% endif %}
       </div>
@@ -184,8 +330,8 @@
   </div>
 
   <!-- Error Modals -->
-  {% for law in laws %}
-    {% if law.loading_status and law.loading_status.error_message %}
+  {% for status in exception_statuses %}
+    {% if status.error_message %}
       <div class="modal fade"
            id="errorModal{{ forloop.counter }}"
            tabindex="-1"
@@ -195,7 +341,7 @@
             <div class="modal-header">
               <h5 class="modal-title" id="errorModalLabel{{ forloop.counter }}">
                 <i class="fas fa-exclamation-triangle text-danger me-2"></i>
-                {% trans "Error Details" %} - {{ law.eng_law_id }}
+                {% trans "Error Details" %} - {{ status.eng_law_id }}
               </h5>
               <button type="button"
                       class="btn-close"
@@ -205,24 +351,31 @@
             <div class="modal-body">
               <div class="row">
                 <div class="col-md-4">
-                  <h6>{% trans "Law:" %}</h6>
+                  <h6>{% trans "Law ID:" %}</h6>
                   <p>
-                    <strong>{{ law.title }}</strong>
+                    <code>{{ status.eng_law_id }}</code>
                   </p>
 
-                  {% if law.loading_status.started_at %}
-                    <h6>{% trans "Started At:" %}</h6>
-                    <p>{{ law.loading_status.started_at|date:"F j, Y \a\t g:i A" }}</p>
+                  {% if status.law %}
+                    <h6>{% trans "Title:" %}</h6>
+                    <p>
+                      <strong>{{ status.law.title }}</strong>
+                    </p>
                   {% endif %}
 
-                  {% if law.loading_status.finished_at %}
+                  {% if status.started_at %}
+                    <h6>{% trans "Started At:" %}</h6>
+                    <p>{{ status.started_at|date:"F j, Y \a\t g:i A" }}</p>
+                  {% endif %}
+
+                  {% if status.finished_at %}
                     <h6>{% trans "Failed At:" %}</h6>
-                    <p>{{ law.loading_status.finished_at|date:"F j, Y \a\t g:i A" }}</p>
+                    <p>{{ status.finished_at|date:"F j, Y \a\t g:i A" }}</p>
                   {% endif %}
                 </div>
                 <div class="col-md-8">
                   <h6>{% trans "Error Message:" %}</h6>
-                  <pre class="bg-light p-3 rounded border"><code>{{ law.loading_status.error_message }}</code></pre>
+                  <pre class="bg-light p-3 rounded border"><code>{{ status.error_message }}</code></pre>
                 </div>
               </div>
             </div>

@@ -216,7 +216,7 @@ def update_laws(
         if not is_cancelled():
             job_status.status = "rebuilding_indexes"
             job_status.save()
-            finalize_law_loading_task()
+            finalize_law_loading_task(downloaded=force_download)
             job_status.status = "finished"
             job_status.finished_at = now()
             job_status.save()
@@ -409,8 +409,10 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
                 pass
             elif "update" in law_status.details.lower():
                 law_status.status = "finished_update"
+                law_status.details = "Law updated successfully"
             elif "new" in law_status.details.lower():
                 law_status.status = "finished_new"
+                law_status.details = "New law added successfully"
             law_status.finished_at = now()
             law_status.save()
 
@@ -423,7 +425,7 @@ def process_law_status(law_status, laws_root, mock_embedding, debug):
         raise e
 
 
-def finalize_law_loading_task():
+def finalize_law_loading_task(downloaded=False):
     """
     Finalize the law loading process by rebuilding indexes and updating timestamps.
     """
@@ -436,9 +438,10 @@ def finalize_law_loading_task():
             recreate_indexes(node_id=False, jsonb=True, hnsw=False)
 
         # Update final status
-        otto_status = OttoStatus.objects.singleton()
-        otto_status.laws_last_refreshed = now()
-        otto_status.save()
+        if downloaded:
+            otto_status = OttoStatus.objects.singleton()
+            otto_status.laws_last_refreshed = now()
+            otto_status.save()
         logger.info("Law loading finalization complete")
 
     except Exception as exc:

@@ -259,12 +259,15 @@ class LawLoadingStatus(models.Model):
     STATUS_CHOICES = [
         ("pending_new", "Pending (New)"),
         ("pending_update", "Pending (Update)"),
+        ("parsing_xml", "Parsing XML"),
+        ("embedding_nodes", "Embedding Nodes"),
         ("finished_new", "Finished (New)"),
         ("finished_update", "Finished (Update)"),
         ("finished_nochange", "Finished (No Change)"),
         ("error", "Error"),
         ("deleted", "Deleted"),
         ("empty", "Empty"),
+        ("cancelled", "Cancelled"),
     ]
     status = models.CharField(
         max_length=50, default="pending_new", choices=STATUS_CHOICES
