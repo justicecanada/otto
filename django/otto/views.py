@@ -188,6 +188,7 @@ def feedback_message(request: HttpRequest, message_id=None):
             )
             return HttpResponse(status=200)
         else:
+            print(form.errors)
             messages.error(
                 request,
                 _("Error submitting feedback."),
