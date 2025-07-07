@@ -1132,7 +1132,7 @@ def test_preset(client, basic_user, all_apps_user):
     assert new_library.is_public == True
 
     chat5.options.refresh_from_db()
-    assert chat5.options.qa_library.name == new_library
+    assert chat5.options.qa_library == new_library
 
 
 def test_update_qa_options_from_librarian(client, all_apps_user):
