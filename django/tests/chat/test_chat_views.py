@@ -12,10 +12,10 @@ from asgiref.sync import async_to_sync, sync_to_async
 
 from chat.forms import PresetForm
 from chat.llm import OttoLLM
-from chat.models import Chat, ChatFile, ChatOptions, Message, Preset
+from chat.models import Chat, ChatFile, Message, Preset
 from chat.utils import htmx_stream, title_chat
-from librarian.models import Library
-from otto.models import App, Notification, SecurityLabel
+from librarian.models import Library, LibraryUserRole
+from otto.models import Notification, SecurityLabel
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -1089,6 +1089,50 @@ def test_preset(client, basic_user, all_apps_user):
     # Reset to default preset
     chat2.options.qa_pre_instructions = ""
     chat2.options.save()
+
+    # Create new library as admin, then make it public by sharing an
+    # associated preset with everyone
+    client.force_login(user)
+    new_library = Library.objects.create(
+        name="Eventual Public Library", created_by=user
+    )
+    LibraryUserRole.objects.create(user=user, library=new_library, role="admin")
+    chat4 = Chat.objects.create(user=user)
+    chat4.options.qa_library = new_library
+    chat4.options.save()
+    response = client.post(
+        reverse(
+            "chat:chat_options", kwargs={"chat_id": chat4.id, "action": "create_preset"}
+        ),
+        data={
+            "name_en": "New Public Preset",
+            "sharing_option": "everyone",
+            "prompt": "",
+        },
+    )
+    assert response.status_code == 200
+    preset = Preset.objects.get(name_en="New Public Preset")
+
+    # Make sure User 2 can access the new public preset, and that the correct library is loaded
+    client.force_login(user2)
+    chat5 = Chat.objects.create(user=user2)
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat5.id,
+                "action": "load_preset",
+                "preset_id": preset.id,
+            },
+        )
+    )
+    assert response.status_code == 200
+
+    new_library.refresh_from_db()
+    assert new_library.is_public == True
+
+    chat5.options.refresh_from_db()
+    assert chat5.options.qa_library.name == new_library
 
 
 def test_update_qa_options_from_librarian(client, all_apps_user):
