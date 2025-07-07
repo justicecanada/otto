@@ -305,6 +305,7 @@ class Feedback(models.Model):
         ("new", _("New")),
         ("in_progress", _("In progress")),
         ("resolved", _("Resolved")),
+        ("deferred", _("Deferred")),
         ("closed", _("Closed")),
     ]
 
