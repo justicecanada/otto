@@ -590,11 +590,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 preset.save()
 
                 library = preset.options.qa_library
-                if (
-                    library
-                    and not library.is_public
-                    and not library.is_personal_library
-                    and can_edit_library(preset.owner, library)
+                if library and request.user.has_perm(
+                    "librarian.manage_library_users", library
                 ):
                     if preset.sharing_option == "everyone":
                         library.is_public = True
@@ -923,9 +920,7 @@ def edit_preset(request, chat_id, preset_id):
             "library": (
                 library
                 if library
-                and can_edit_library(preset.owner, library)
-                and not library.is_public
-                and not library.is_personal_library
+                and request.user.has_perm("librarian.manage_library_users", library)
                 else None
             ),
         },
