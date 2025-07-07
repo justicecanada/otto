@@ -1,18 +1,18 @@
 {% load i18n %}
 <div class="row">
   <div class="container my-3">
-    <div class="row g-0 border rounded">
+    <div class="d-flex flex-row flex-nowrap border rounded overflow-auto">
       <!-- TODO: Style bottom border and end border of the cards responsively -->
- 
-      <div class="col-12 col-xl-3 col-lg-6 p-4 border-end border-bottom">
+
+      <div class="col-6 col-md-3 col-lg-2 p-2 border-end border-bottom">
         <div class="d-flex justify-content-between align-items-center">
           <p class="text-muted fs-6 fw-semibold mb-1">{% trans "Total received" %}</p>
           <!-- <span class="fs-6 fw-semibold">{{ stats.total_percent|stringformat:"d%%" }}</span>-->
         </div>
         <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">{{ stats.total }}</p>
       </div>
- 
-      <div class="col-12 col-xl-3 col-lg-6  p-4 border-end border-bottom">
+
+      <div class="col-6 col-md-3 col-lg-2 p-2 border-end border-bottom">
         <div class="d-flex justify-content-between align-items-center">
           <p class="text-muted fw-semibold mb-1">{% trans "Total resolved" %}</p>
           <!-- Add stats later if necessary -->
@@ -20,8 +20,40 @@
         </div>
         <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">{{ stats.resolved }}</p>
       </div>
- 
-      <div class="col-12 col-xl-3 col-lg-6  p-4 border-end border-bottom">
+      <div class="col-6 col-md-3 col-lg-2 p-2 border-end border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+          <p class="text-muted fw-semibold mb-1">{% trans "Total new" %}</p>
+          <!-- Add stats later if necessary -->
+          <!-- <span class="fw-semibold">+12%</span>-->
+        </div>
+        <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">{{ stats.new }}</p>
+      </div>
+      <div class="col-6 col-md-3 col-lg-2 p-2 border-end border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+          <p class="text-muted fw-semibold mb-1">{% trans "Total in-progress" %}</p>
+          <!-- Add stats later if necessary -->
+          <!-- <span class="fw-semibold">+12%</span>-->
+        </div>
+        <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">{{ stats.in_progress }}</p>
+      </div>
+      <div class="col-6 col-md-3 col-lg-2 p-2 border-end border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+          <p class="text-muted fw-semibold mb-1">{% trans "Total deferred" %}</p>
+          <!-- Add stats later if necessary -->
+          <!-- <span class="fw-semibold">+12%</span>-->
+        </div>
+        <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">{{ stats.deferred }}</p>
+      </div>
+      <div class="col-6 col-md-3 col-lg-2 p-2 border-end border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+          <p class="text-muted fw-semibold mb-1">{% trans "Total closed" %}</p>
+          <!-- Add stats later if necessary -->
+          <!-- <span class="fw-semibold">+12%</span>-->
+        </div>
+        <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">{{ stats.closed }}</p>
+      </div>
+
+      <div class="col-6 col-md-3 col-lg-2 p-2 border-end border-bottom">
         <div class="d-flex justify-content-between align-items-center">
           <p class="text-muted fs-6 fw-semibold mb-1">{% trans "Total negative chat comment(s)" %}</p>
           <!-- Add stats later if necessary -->
@@ -29,8 +61,8 @@
         </div>
         <p style="letter-spacing: -0.025em;" class="display-6 fw-semibold mb-0">{{ stats.negative }}</p>
       </div>
- 
-      <div class="col-12 col-xl-3 col-lg-6  p-4 border-bottom">
+
+      <div class="col-6 col-md-3 col-lg-2 p-2 border-bottom">
         <div class="d-flex justify-content-between align-items-center">
           <p class="text-muted fs-6 fw-semibold mb-1">{% trans "Most active app" %}</p>
           <!-- Add stats later if necessary -->
