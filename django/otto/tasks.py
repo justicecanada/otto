@@ -1,4 +1,5 @@
 import time
+from datetime import date, timedelta
 
 from django.core.management import call_command
 
@@ -84,9 +85,8 @@ def reset_accepted_terms_date():
     from otto.models import User
 
     # Filter for users who have accepted terms at least 30 days ago
-    users = User.objects.filter(
-        accepted_terms_date__lte=time.time() - 30 * 24 * 60 * 60
-    )
+    cutoff_date = date.today() - timedelta(days=30)
+    users = User.objects.filter(accepted_terms_date__lte=cutoff_date)
     for user in users:
         user.accepted_terms_date = None
         user.save(update_fields=["accepted_terms_date"])

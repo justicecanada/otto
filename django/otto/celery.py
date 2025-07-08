@@ -1,12 +1,12 @@
 import os
 from logging.config import dictConfig
 
+from django.conf import settings
+
 from celery import Celery
 from celery.schedules import crontab
 from celery.signals import setup_logging
 from django_structlog.celery.steps import DjangoStructLogInitStep
-
-from django.conf import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "otto.settings")
 
@@ -42,7 +42,7 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.delete_empty_chats",
         "schedule": crontab(hour=2, minute=0),
     },
-    # Delete dangling SavedFilesevery day at 3:00 am UTC
+    # Delete dangling SavedFiles every day at 3:00 am UTC
     "delete-dangling-savedfiles-every-morning": {
         "task": "otto.tasks.delete_dangling_savedfiles",
         "schedule": crontab(hour=2, minute=30),
@@ -71,10 +71,10 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.delete_text_extractor_files",
         "schedule": crontab(hour=0, minute=0),
     },
-    "cleanup-vector-store-every-morning": {
-        "task": "otto.tasks.cleanup_vector_store",
-        "schedule": crontab(hour=3, minute=0),
-    },
+    # "cleanup-vector-store-every-morning": {
+    #     "task": "otto.tasks.cleanup_vector_store",
+    #     "schedule": crontab(hour=3, minute=0),
+    # },
     # Update USD to CAD exchange rate every Sunday at 2 am UTC
     "update-exchange-rate-every-week": {
         "task": "otto.tasks.update_exchange_rate",
