@@ -241,17 +241,22 @@ def feedback_list(request, page_number=None):
 
     feedback_messages = Feedback.objects.all().order_by("-created_at")
 
-    if request.method == "POST":
-        feedback_type = request.POST.get("feedback_type")
-        status = request.POST.get("status")
-        app = request.POST.get("app")
+    # if request.method == "POST":
+    # feedback_type = request.POST.get("feedback_type")
+    # status = request.POST.get("status")
+    # app = request.POST.get("app")
+    feedback_type = request.GET.get("feedback_type") or request.POST.get(
+        "feedback_type"
+    )
+    status = request.GET.get("status") or request.POST.get("status")
+    app = request.GET.get("app") or request.POST.get("app")
 
-        if feedback_type and feedback_type != "all":
-            feedback_messages = feedback_messages.filter(feedback_type=feedback_type)
-        if status and status != "all":
-            feedback_messages = feedback_messages.filter(status=status)
-        if app and app != "all":
-            feedback_messages = feedback_messages.filter(app=app)
+    if feedback_type and feedback_type != "all":
+        feedback_messages = feedback_messages.filter(feedback_type=feedback_type)
+    if status and status != "all":
+        feedback_messages = feedback_messages.filter(status=status)
+    if app and app != "all":
+        feedback_messages = feedback_messages.filter(app=app)
 
     # Get 10 feedback messages per page
     paginator = Paginator(feedback_messages, 10)
@@ -270,6 +275,7 @@ def feedback_list(request, page_number=None):
     context = {
         "feedback_info": feedback_info,
         "page_obj": page_obj,
+        "request": request,
     }
     return render(request, "components/feedback/dashboard/feedback_list.html", context)
 
