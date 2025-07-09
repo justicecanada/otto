@@ -139,10 +139,7 @@ def update_laws(
             existing_law_statuses = LawLoadingStatus.objects.bulk_create(
                 [
                     LawLoadingStatus(
-                        law=law,
-                        eng_law_id=law.eng_law_id,
-                        status="pending",
-                        started_at=now(),
+                        law=law, eng_law_id=law.eng_law_id, status="pending"
                     )
                     for law in existing_laws
                 ]
@@ -174,13 +171,11 @@ def update_laws(
                     )
                     law_status.status = "pending_update"
                     law_status.details = "NULL hashes - assuming needs update"
-                    law_status.sha_256_hash_en = new_en_hash
-                    law_status.sha_256_hash_fr = new_fr_hash
-                    law_status.save()
-                    continue
 
                 # Existing law with valid hashes, check if they match
-                if existing_en_hash == new_en_hash and existing_fr_hash == new_fr_hash:
+                elif (
+                    existing_en_hash == new_en_hash and existing_fr_hash == new_fr_hash
+                ):
                     # No update needed
                     if force_update:
                         law_status.status = "pending_update"
@@ -188,14 +183,14 @@ def update_laws(
                     else:
                         law_status.status = "finished_nochange"
                         law_status.details = "No changes detected"
+                        law_status.started_at = now()
                         law_status.finished_at = now()
 
-                    law_status.save()
-                    continue
+                # If existing hashes do NOT match, we need to update
+                else:
+                    law_status.status = "pending_update"
+                    law_status.details = "Changes detected - update"
 
-            # Update status
-            law_status.status = "pending_update"
-            law_status.details = "Changes detected - update"
             law_status.sha_256_hash_en = new_en_hash
             law_status.sha_256_hash_fr = new_fr_hash
             law_status.save()
@@ -207,18 +202,32 @@ def update_laws(
             existing_laws.values_list("eng_law_id", flat=True)
         )
         if new_laws:
-            # Create LawLoadingStatus for new laws
-            new_law_statuses = LawLoadingStatus.objects.bulk_create(
-                [
+            new_law_statuses = []
+
+            for law_id in new_laws:
+                # Get the hashes
+                file_paths = _get_en_fr_law_file_paths(laws_root, law_id)
+                if not file_paths:
+                    law_status.status = "error"
+                    law_status.error_message = f"Could not find EN and FR XML files."
+                    law_status.finished_at = now()
+                    law_status.save()
+                    continue
+                en_path, fr_path = file_paths
+                new_en_hash = get_sha_256_hash(en_path)
+                new_fr_hash = get_sha_256_hash(fr_path)
+
+                new_law_statuses.append(
                     LawLoadingStatus(
                         eng_law_id=law_id,
                         status="pending_new",
                         details="New law",
-                        started_at=now(),
+                        sha_256_hash_en=new_en_hash,
+                        sha_256_hash_fr=new_fr_hash,
                     )
-                    for law_id in new_laws
-                ]
-            )
+                )
+
+            new_law_statuses = LawLoadingStatus.objects.bulk_create(new_law_statuses)
 
         for law_status in LawLoadingStatus.objects.filter(finished_at__isnull=True):
             if is_cancelled(current_task_id):
@@ -279,6 +288,7 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
         law_status.save()
         return
     try:
+        law_status.started_at = now()
         law_status.status = "parsing_xml"
         eng_law_id = law_status.eng_law_id
         logger.info(f"Processing law: {eng_law_id}")
@@ -296,7 +306,6 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
         document_fr = None
         nodes_en = None
         nodes_fr = None
-        job_status = JobStatus.objects.singleton()
         # Create nodes for the English and French XML files
         for k, file_path in enumerate(file_paths):
             if is_cancelled(current_task_id):
@@ -449,21 +458,8 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
                 logger.debug(f"Cost: {display_cad_cost(cost)}")
                 law_status.law = law
                 law_status.cost = cost
-                # --- PATCH: Ensure hashes are set on Law after successful load ---
-                hashes_updated = False
-                if law.sha_256_hash_en is None and law_status.sha_256_hash_en:
-                    law.sha_256_hash_en = law_status.sha_256_hash_en
-                    hashes_updated = True
-                if law.sha_256_hash_fr is None and law_status.sha_256_hash_fr:
-                    law.sha_256_hash_fr = law_status.sha_256_hash_fr
-                    hashes_updated = True
-                if hashes_updated:
-                    law.save()
-                    logger.info(f"Patched Law hashes for {law.eng_law_id}")
                 # Set finished status based on current pending status
-                if law_status.status == "cancelled":
-                    pass
-                elif "update" in law_status.details.lower():
+                if "update" in law_status.details.lower():
                     law_status.status = "finished_update"
                     law_status.details = "Law updated successfully"
                 elif "new" in law_status.details.lower():

@@ -81,8 +81,17 @@ class LawManager(models.Manager):
             nodes = []
             if law_status.law:
                 # Remove the old content from the vector store using consistent cleanup
-                law_status.law.delete()
-                law_status.law = None
+                try:
+                    delete_documents_from_vector_store(
+                        [obj.node_id_en, obj.node_id_fr], "laws_lois__"
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Error deleting nodes from vector store for law {obj.eng_law_id}: {e}"
+                    )
+            else:
+                law_status.law = obj
+                law_status.save()
             # Always add the document and chunk nodes for embedding
             nodes.append(document_en)
             nodes.extend(nodes_en)
@@ -94,7 +103,11 @@ class LawManager(models.Manager):
             )
             for node in nodes:
                 if not node.text.strip():
-                    node.text_resource = MediaResource(text=node.doc_id)
+                    try:
+                        fallback_text = node.doc_id
+                    except:
+                        fallback_text = "empty"
+                    node.text_resource = MediaResource(text=fallback_text)
 
             original_details = law_status.details or ""
             total_batches = (len(nodes) + batch_size - 1) // batch_size
