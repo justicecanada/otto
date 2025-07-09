@@ -71,6 +71,11 @@ class Command(BaseCommand):
             action="store_true",
             help="Run the command synchronously without Celery",
         )
+        parser.add_argument(
+            "--use_celery",
+            action="store_true",
+            help="Force use of Celery (default is to run synchronously)",
+        )
 
     def print_status(self):
 
@@ -152,15 +157,19 @@ class Command(BaseCommand):
                 debug=options["debug"],
                 force_update=options["force_update"],
             )
-            if options["no_celery"]:
+            if options["use_celery"]:
+                print("Running via Celery...")
+                update_laws.delay(**start_options)
+            else:
                 print("Running synchronously without Celery...")
                 update_laws(**start_options)
                 return
-            else:
-                update_laws.delay(**start_options)
 
         if options["start"]:
-            print("Job started via Celery. Monitoring status...")
+            print("Job started. Monitoring status...")
+            if not options["use_celery"]:
+                print("Job completed synchronously.")
+                return
             time.sleep(3)  # Allow time for the task to start
         try:
             self.print_status()

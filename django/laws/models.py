@@ -4,13 +4,13 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from data_fetcher import cache_within_request
 from llama_index.core.schema import MediaResource
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
 
 from chat.llm import OttoLLM
+from librarian.tasks import delete_documents_from_vector_store
 
 logger = get_logger(__name__)
 
@@ -24,10 +24,7 @@ class LawManager(models.Manager):
         nodes_en,
         document_fr,
         nodes_fr,
-        add_to_vector_store=True,
-        force_update=False,
         llm=None,
-        progress_callback=None,
         current_task_id=None,
     ):
         from laws.tasks import is_cancelled
@@ -70,22 +67,22 @@ class LawManager(models.Manager):
         obj.last_amended_date = document_en.metadata.get("last_amended_date", None)
         obj.current_date = document_en.metadata.get("current_date", None)
         obj.in_force_start_date = document_en.metadata.get("in_force_start_date", None)
-        obj.sha_256_hash_en = law_status.sha_256_hash_en
-        obj.sha_256_hash_fr = law_status.sha_256_hash_fr
+        # NOTE: Don't set sha_256_hash fields yet - only after successful vector store operations
         obj.eng_law_id = law_status.eng_law_id
 
         obj.full_clean()
         obj.save()
 
-        if add_to_vector_store:
-            if llm is None:
-                return
+        if llm is None:
+            return obj
+
+        try:
             idx = llm.get_index("laws_lois__", hnsw=True)
             nodes = []
             if law_status.law:
-                # Remove the old content from the vector store
-                idx.delete_ref_doc(obj.node_id_en, delete_from_docstore=True)
-                idx.delete_ref_doc(obj.node_id_fr, delete_from_docstore=True)
+                # Remove the old content from the vector store using consistent cleanup
+                law_status.law.delete()
+                law_status.law = None
             # Always add the document and chunk nodes for embedding
             nodes.append(document_en)
             nodes.extend(nodes_en)
@@ -108,17 +105,15 @@ class LawManager(models.Manager):
                     law_status.finished_at = timezone.now()
                     law_status.error_message = "Job was cancelled by user."
                     law_status.save()
-                    idx.delete_ref_doc(obj.node_id_en, delete_from_docstore=True)
-                    idx.delete_ref_doc(obj.node_id_fr, delete_from_docstore=True)
-                    obj.delete()
-                    return None
+                    raise Exception("Law loading job cancelled by user.")
                 batch_num = (i // batch_size) + 1
                 logger.debug(f"Processing embedding batch {batch_num}/{total_batches}")
                 law_status.details = (
                     f"{original_details} (embedding batch {batch_num}/{total_batches})"
                 )
                 law_status.save()
-                for j in range(2, 12):
+                max_exponent = 7
+                for j in range(2, max_exponent + 1):
                     try:
                         idx.insert_nodes(nodes[i : i + batch_size])
                         break
@@ -126,7 +121,22 @@ class LawManager(models.Manager):
                         logger.error(f"Error inserting nodes: {e}")
                         logger.error(f"Retrying in {2**j} seconds...")
                         time.sleep(2**j)
-        return obj
+                        if j == max_exponent:  # Last retry
+                            # Clean up partial entries and re-raise using consistent method
+                            raise Exception("Failed to insert nodes after retries.")
+
+            # Only set hashes after successful vector store operations
+            obj.sha_256_hash_en = law_status.sha_256_hash_en
+            obj.sha_256_hash_fr = law_status.sha_256_hash_fr
+            obj.save()
+            return obj
+
+        except Exception as e:
+            # Clean up partial law object and vector store entries on any error
+            logger.error(f"Error in from_docs_and_nodes: {e}")
+            if obj.pk:  # Only try cleanup if object was saved
+                obj.delete()
+            raise
 
     def purge(self, keep_ids):
         """
@@ -136,7 +146,9 @@ class LawManager(models.Manager):
             return
 
         to_delete = self.exclude(eng_law_id__in=set(keep_ids))
-        # Create LawLoadingStatus objects for purged laws
+
+        # Create LawLoadingStatus objects for purged laws and collect node_ids for cleanup
+        node_ids_to_delete = []
         for law in to_delete:
             LawLoadingStatus.objects.create(
                 law=None,
@@ -145,10 +157,18 @@ class LawManager(models.Manager):
                 finished_at=timezone.now(),
                 details="Existing law not present in the list of laws to load",
             )
+            # Collect node IDs for vector store cleanup
+            if law.node_id_en:
+                node_ids_to_delete.append(law.node_id_en)
+            if law.node_id_fr:
+                node_ids_to_delete.append(law.node_id_fr)
+
         purged_count = int(to_delete.count())
         if purged_count > 0:
             logger.info(f"Purging {purged_count} Law objects not in keep_ids")
-            to_delete.delete()
+            # Call delete manually on each law since we override delete method
+            for law in to_delete:
+                law.delete()
         else:
             logger.info("No Law objects to purge")
 
@@ -187,6 +207,23 @@ class Law(models.Model):
 
     def __str__(self):
         return self.title
+
+    def delete(self, *args, **kwargs):
+        """
+        Delete the law and clean up associated vector store entries.
+        """
+        # Use the existing librarian task to clean up vector store
+        # Pass node_ids as document_uuids and use laws_lois__ as library_uuid
+        try:
+            delete_documents_from_vector_store(
+                [self.node_id_en, self.node_id_fr], "laws_lois__"
+            )
+        except Exception as e:
+            logger.error(
+                f"Error deleting nodes from vector store for law {self.eng_law_id}: {e}"
+            )
+
+        super().delete(*args, **kwargs)
 
     @classmethod
     def reset(cls):

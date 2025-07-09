@@ -40,7 +40,8 @@ def is_cancelled(current_task_id):
         job_status = JobStatus.objects.singleton()
         # Cancelled if status is 'cancelled' or if celery_task_id does not match
         return (
-            job_status.status == "cancelled" or job_status.celery_task_id != current_task_id
+            job_status.status == "cancelled"
+            or job_status.celery_task_id != current_task_id
         )
     except Exception as e:
         # If we can't check the job status due to async context issues, assume not cancelled
@@ -161,11 +162,25 @@ def update_laws(
             new_fr_hash = get_sha_256_hash(fr_path)
 
             if law_status.law:
-                # Existing law, check if hashes match
-                if (
-                    law_status.law.sha_256_hash_en == new_en_hash
-                    and law_status.law.sha_256_hash_fr == new_fr_hash
-                ):
+                # Get existing hashes
+                existing_en_hash = law_status.law.sha_256_hash_en
+                existing_fr_hash = law_status.law.sha_256_hash_fr
+
+                # If existing hashes are NULL (from older laws loaded before hash tracking),
+                # we must assume they need updating since we can't compare
+                if existing_en_hash is None or existing_fr_hash is None:
+                    logger.info(
+                        f"NULL hashes found for existing law {law_status.eng_law_id} - assuming needs update"
+                    )
+                    law_status.status = "pending_update"
+                    law_status.details = "NULL hashes - assuming needs update"
+                    law_status.sha_256_hash_en = new_en_hash
+                    law_status.sha_256_hash_fr = new_fr_hash
+                    law_status.save()
+                    continue
+
+                # Existing law with valid hashes, check if they match
+                if existing_en_hash == new_en_hash and existing_fr_hash == new_fr_hash:
                     # No update needed
                     if force_update:
                         law_status.status = "pending_update"
@@ -225,7 +240,9 @@ def update_laws(
                     law_status.finished_at = now()
                     law_status.save()
                 except Exception as save_error:
-                    logger.error(f"Could not save law_status due to async context: {save_error}")
+                    logger.error(
+                        f"Could not save law_status due to error: {save_error}"
+                    )
 
         # Finalize job status
         if not is_cancelled(current_task_id):
@@ -305,9 +322,6 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
                     law_status.status = "deleted"
                     law_status.details = "Existing law deleted due to now being empty"
                     law_status.save()
-                    idx = Law.get_index()
-                    idx.delete_ref_doc(law.node_id_en, delete_from_docstore=True)
-                    idx.delete_ref_doc(law.node_id_fr, delete_from_docstore=True)
                     law.delete()
                 else:
                     law_status.save()
@@ -423,7 +437,6 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
                 nodes_en,
                 document_fr,
                 nodes_fr,
-                add_to_vector_store=True,
                 llm=llm,
                 current_task_id=current_task_id,
             )
@@ -436,6 +449,17 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
                 logger.debug(f"Cost: {display_cad_cost(cost)}")
                 law_status.law = law
                 law_status.cost = cost
+                # --- PATCH: Ensure hashes are set on Law after successful load ---
+                hashes_updated = False
+                if law.sha_256_hash_en is None and law_status.sha_256_hash_en:
+                    law.sha_256_hash_en = law_status.sha_256_hash_en
+                    hashes_updated = True
+                if law.sha_256_hash_fr is None and law_status.sha_256_hash_fr:
+                    law.sha_256_hash_fr = law_status.sha_256_hash_fr
+                    hashes_updated = True
+                if hashes_updated:
+                    law.save()
+                    logger.info(f"Patched Law hashes for {law.eng_law_id}")
                 # Set finished status based on current pending status
                 if law_status.status == "cancelled":
                     pass
@@ -457,7 +481,7 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
             law_status.law = None
             law_status.save()
         except Exception as save_error:
-            logger.error(f"Could not save law_status due to async context: {save_error}")
+            logger.error(f"Could not save law_status due to error: {save_error}")
         raise e
 
 
