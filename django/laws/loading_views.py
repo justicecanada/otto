@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.timezone import localtime, now
 from django.views.decorators.http import require_POST
@@ -34,126 +34,134 @@ def laws_loading_status(request):
     """
     Return the current status as JSON for HTMX polling.
     """
-    job_status = JobStatus.objects.singleton()
-    law_statuses = LawLoadingStatus.objects.all().order_by("started_at")
+    try:
+        job_status = JobStatus.objects.singleton()
+        law_statuses = LawLoadingStatus.objects.all().order_by("started_at")
 
-    # Calculate statistics
-    total = law_statuses.count()
-    pending_new = law_statuses.filter(status="pending_new").count()
-    pending_update = law_statuses.filter(status="pending_update").count()
-    finished_new = law_statuses.filter(status="finished_new").count()
-    finished_update = law_statuses.filter(status="finished_update").count()
-    finished_nochange = law_statuses.filter(status="finished_nochange").count()
-    error = law_statuses.filter(status="error").count()
-    deleted = law_statuses.filter(status="deleted").count()
-    empty = law_statuses.filter(status="empty").count()
-    parsing = law_statuses.filter(status="parsing_xml").count()
-    embedding = law_statuses.filter(status="embedding_nodes").count()
+        # Calculate statistics
+        total = law_statuses.count()
+        pending_new = law_statuses.filter(status="pending_new").count()
+        pending_update = law_statuses.filter(status="pending_update").count()
+        finished_new = law_statuses.filter(status="finished_new").count()
+        finished_update = law_statuses.filter(status="finished_update").count()
+        finished_nochange = law_statuses.filter(status="finished_nochange").count()
+        error = law_statuses.filter(status="error").count()
+        deleted = law_statuses.filter(status="deleted").count()
+        empty = law_statuses.filter(status="empty").count()
+        parsing = law_statuses.filter(status="parsing_xml").count()
+        embedding = law_statuses.filter(status="embedding_nodes").count()
 
-    # For backward compatibility
-    finished = finished_new + finished_update + finished_nochange
-    pending = pending_new + pending_update
+        # For backward compatibility
+        finished = finished_new + finished_update + finished_nochange
+        pending = pending_new + pending_update
 
-    # Get current law being processed
-    current_law = (
-        law_statuses.filter(status__in=["parsing_xml", "embedding_nodes"])
-        .order_by("-started_at")
-        .first()
-    )
+        # Get current law being processed
+        current_law = (
+            law_statuses.filter(status__in=["parsing_xml", "embedding_nodes"])
+            .order_by("-started_at")
+            .first()
+        )
 
-    # Calculate elapsed time using the utility function
-    elapsed_str = calculate_job_elapsed_time(job_status)
+        # Calculate elapsed time using the utility function
+        elapsed_str = calculate_job_elapsed_time(job_status)
 
-    # Get recent laws
-    recent_finished = law_statuses.filter(finished_at__isnull=False).order_by(
-        "-finished_at"
-    )[:10]
+        # Get recent laws
+        recent_finished = law_statuses.filter(finished_at__isnull=False).order_by(
+            "-finished_at"
+        )[:10]
 
-    recent_laws = []
-    for ls in [current_law] + list(recent_finished):
-        try:
-            # Parse embedding progress if present in details
-            embed_progress = None
-            if ls.details:
-                import re
+        recent_laws = []
+        for ls in [current_law] + list(recent_finished):
+            try:
+                # Parse embedding progress if present in details
+                embed_progress = None
+                if ls.details:
+                    import re
 
-                match = re.search(
-                    r"embedding (?:batch|progress) (\d+)/(\d+)", ls.details
-                )
-                if match:
-                    embedded_count = int(match.group(1))
-                    total_to_embed = int(match.group(2))
-                    embed_progress = {
-                        "embedded_count": embedded_count,
-                        "total_to_embed": total_to_embed,
-                        "percent": (
-                            int(embedded_count / total_to_embed * 100)
-                            if total_to_embed
-                            else 0
-                        ),
+                    match = re.search(
+                        r"embedding (?:batch|progress) (\d+)/(\d+)", ls.details
+                    )
+                    if match:
+                        embedded_count = int(match.group(1))
+                        total_to_embed = int(match.group(2))
+                        embed_progress = {
+                            "embedded_count": embedded_count,
+                            "total_to_embed": total_to_embed,
+                            "percent": (
+                                int(embedded_count / total_to_embed * 100)
+                                if total_to_embed
+                                else 0
+                            ),
+                        }
+                recent_laws.append(
+                    {
+                        "eng_law_id": ls.eng_law_id or "-",
+                        "status": ls.status,
+                        "details": ls.details or "",
+                        "error_message": ls.error_message or "",
+                        "is_current": ls == current_law,
+                        "cost": display_cad_cost(cad_cost(ls.cost) if ls.cost else 0),
+                        "embed_progress": embed_progress,
                     }
-            recent_laws.append(
-                {
-                    "eng_law_id": ls.eng_law_id or "-",
-                    "status": ls.status,
-                    "details": ls.details or "",
-                    "error_message": ls.error_message or "",
-                    "is_current": ls == current_law,
-                    "cost": display_cad_cost(cad_cost(ls.cost) if ls.cost else 0),
-                    "embed_progress": embed_progress,
-                }
-            )
-        except:
-            continue
+                )
+            except:
+                continue
 
-    context = {
-        "job_status": {
-            "status": job_status.status,
-            "started_at": (
-                localtime(job_status.started_at).strftime("%Y-%m-%d %H:%M:%S")
-                if job_status.started_at
-                else "-"
+        context = {
+            "job_status": {
+                "status": job_status.status,
+                "started_at": (
+                    localtime(job_status.started_at).strftime("%Y-%m-%d %H:%M:%S")
+                    if job_status.started_at
+                    else "-"
+                ),
+                "finished_at": (
+                    localtime(job_status.finished_at).strftime("%Y-%m-%d %H:%M:%S")
+                    if job_status.finished_at
+                    else "-"
+                ),
+                "error_message": job_status.error_message,
+                "elapsed": elapsed_str,
+                "is_running": job_status.status
+                not in ["finished", "cancelled", "error"],
+            },
+            "stats": {
+                "total": total,
+                "pending_new": pending_new,
+                "pending_update": pending_update,
+                "finished_new": finished_new,
+                "finished_update": finished_update,
+                "finished_nochange": finished_nochange,
+                "error": error,
+                "deleted": deleted,
+                "empty": empty,
+                "parsing": parsing,
+                "embedding": embedding,
+                # For backward compatibility and progress calculation
+                "finished": finished,
+                "pending": pending,
+                "progress_percent": (
+                    int((finished + empty + error + deleted) / total * 100)
+                    if total > 0
+                    else 0
+                ),
+            },
+            "current_law": {
+                "eng_law_id": current_law.eng_law_id or "-" if current_law else "-",
+                "status": current_law.status if current_law else "-",
+                "details": current_law.details or "" if current_law else "",
+            },
+            "recent_laws": recent_laws,
+            "total_cost": display_cad_cost(
+                sum(ls.cost for ls in law_statuses if ls.cost)
             ),
-            "finished_at": (
-                localtime(job_status.finished_at).strftime("%Y-%m-%d %H:%M:%S")
-                if job_status.finished_at
-                else "-"
-            ),
-            "error_message": job_status.error_message,
-            "elapsed": elapsed_str,
-            "is_running": job_status.status not in ["finished", "cancelled", "error"],
-        },
-        "stats": {
-            "total": total,
-            "pending_new": pending_new,
-            "pending_update": pending_update,
-            "finished_new": finished_new,
-            "finished_update": finished_update,
-            "finished_nochange": finished_nochange,
-            "error": error,
-            "deleted": deleted,
-            "empty": empty,
-            "parsing": parsing,
-            "embedding": embedding,
-            # For backward compatibility and progress calculation
-            "finished": finished,
-            "pending": pending,
-            "progress_percent": (
-                int((finished + empty + error + deleted) / total * 100)
-                if total > 0
-                else 0
-            ),
-        },
-        "current_law": {
-            "eng_law_id": current_law.eng_law_id or "-" if current_law else "-",
-            "status": current_law.status if current_law else "-",
-            "details": current_law.details or "" if current_law else "",
-        },
-        "recent_laws": recent_laws,
-        "total_cost": display_cad_cost(sum(ls.cost for ls in law_statuses if ls.cost)),
-    }
+        }
 
-    return render(request, "laws/partials/status_content.html", context)
+        return render(request, "laws/partials/status_content.html", context)
+    except Exception as e:
+        logger.error("Error generating loading status: %s", e)
+        # Return no content to keep HTMX polling alive
+        return HttpResponse(status=204)
 
 
 @permission_required("otto.load_laws")
