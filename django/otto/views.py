@@ -241,15 +241,10 @@ def feedback_list(request, page_number=None):
 
     feedback_messages = Feedback.objects.all().order_by("-created_at")
 
-    # if request.method == "POST":
-    # feedback_type = request.POST.get("feedback_type")
-    # status = request.POST.get("status")
-    # app = request.POST.get("app")
-    feedback_type = request.GET.get("feedback_type") or request.POST.get(
-        "feedback_type"
-    )
-    status = request.GET.get("status") or request.POST.get("status")
-    app = request.GET.get("app") or request.POST.get("app")
+    # Only use GET for filters to ensure pagination works with query params
+    feedback_type = request.GET.get("feedback_type")
+    status = request.GET.get("status")
+    app = request.GET.get("app")
 
     if feedback_type and feedback_type != "all":
         feedback_messages = feedback_messages.filter(feedback_type=feedback_type)
@@ -258,8 +253,11 @@ def feedback_list(request, page_number=None):
     if app and app != "all":
         feedback_messages = feedback_messages.filter(app=app)
 
-    # Get 10 feedback messages per page
     paginator = Paginator(feedback_messages, 10)
+    try:
+        page_number = int(page_number)
+    except (TypeError, ValueError):
+        page_number = 1
     page_obj = paginator.get_page(page_number)
 
     feedback_info = [

@@ -116,7 +116,7 @@
         </div>
         <div id="filters" class="collapse mt-4">
           <form class="card card-body"
-                hx-post="{% url 'feedback_list' %}"
+                hx-get="{% url 'feedback_list' %}"
                 hx-target="#feedback-list-container"
                 hx-swap="innerHTML">
             <h2 class="mb-3 fs-5 ps-2 fw-semibold" style="letter-spacing: -0.025em">{% trans "Filters" %}</h2>
