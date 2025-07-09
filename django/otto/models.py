@@ -336,7 +336,7 @@ class Feedback(models.Model):
         max_length=16, choices=PRIOTITY_CHOICES, blank=False, default="low"
     )
     app = models.TextField(max_length=200, blank=False)
-    otto_version = models.CharField(max_length=50, null=True, blank=True)
+    otto_version = models.CharField(max_length=50, null=False)
     feedback_message = models.TextField(blank=False)
     url_context = models.CharField(max_length=2048, blank=True)
     chat_message = models.ForeignKey(
