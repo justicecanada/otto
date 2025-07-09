@@ -258,25 +258,26 @@ def update_laws(
             new_law_statuses = LawLoadingStatus.objects.bulk_create(new_law_statuses)
 
         for law_status in LawLoadingStatus.objects.filter(finished_at__isnull=True):
-            try:
-                process_law_status(
-                    law_status, laws_root, mock_embedding, debug, current_task_id
-                )
-            except Exception as exc:
-                logger.error(
-                    f"Error processing law {law_status.eng_law_id}: {exc}",
-                    exc_info=True,
-                )
-                # Update status to indicate failure
+            with cancellation_guard(current_task_id):
                 try:
-                    law_status.status = "error"
-                    law_status.error_message = str(exc)
-                    law_status.finished_at = now()
-                    law_status.save()
-                except Exception as save_error:
-                    logger.error(
-                        f"Could not save law_status due to error: {save_error}"
+                    process_law_status(
+                        law_status, laws_root, mock_embedding, debug, current_task_id
                     )
+                except Exception as exc:
+                    logger.error(
+                        f"Error processing law {law_status.eng_law_id}: {exc}",
+                        exc_info=True,
+                    )
+                    # Update status to indicate failure
+                    try:
+                        law_status.status = "error"
+                        law_status.error_message = str(exc)
+                        law_status.finished_at = now()
+                        law_status.save()
+                    except Exception as save_error:
+                        logger.error(
+                            f"Could not save law_status due to error: {save_error}"
+                        )
 
         # Finalize job status
         if not is_cancelled(current_task_id):

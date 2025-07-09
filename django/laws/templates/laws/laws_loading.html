@@ -158,47 +158,6 @@
     </div>
   </div>
   <script>
-    // Handle form responses
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-      if (evt.detail.xhr.status >= 200 && evt.detail.xhr.status < 300) {
-        let response = JSON.parse(evt.detail.xhr.responseText);
-        if (response.success) {
-          // Show success message
-          let alertDiv = document.createElement('div');
-          alertDiv.className = 'alert alert-success alert-dismissible fade show';
-          alertDiv.innerHTML = `
-            ${response.message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          `;
-          document.querySelector('.container').insertBefore(alertDiv, document.querySelector('h2').nextSibling);
-          
-          // Auto-dismiss after 5 seconds
-          setTimeout(() => {
-            alertDiv.remove();
-          }, 5000);
-          
-          // Refresh status immediately
-          htmx.trigger('#status-container', 'load');
-        }
-      } else {
-        // Handle error response
-        try {
-          let response = JSON.parse(evt.detail.xhr.responseText);
-          if (response.message) {
-            let alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-            alertDiv.innerHTML = `
-              ${response.message}
-              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('h2').nextSibling);
-          }
-        } catch (e) {
-          console.error('Error parsing response:', e);
-        }
-      }
-    });
-
     // Update button states based on job status
     document.body.addEventListener('htmx:afterSwap', function(evt) {
       if (evt.detail.target.id === 'status-container') {
