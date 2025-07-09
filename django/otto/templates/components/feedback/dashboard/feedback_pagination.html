@@ -1,3 +1,4 @@
+
 {% load i18n %}
 
 {% block page_css %}
@@ -66,8 +67,8 @@
       <li class="page-item">
         <a class="page-link link-dark"
            href="#"
-           hx-get="{% url 'feedback_list' page_number=page_obj.next_page_number %}?{{ request.GET.urlencode }}"
-           hx-push-url="{% url 'feedback_dashboard' page_number=page_obj.next_page_number %}?{{ request.GET.urlencode }}"
+           hx-get="{% url 'feedback_list' page_number=page_obj.next_page_number %}"
+           hx-push-url="{% url 'feedback_dashboard' page_number=page_obj.next_page_number %}"
            hx-trigger="click"
            hx-target="#feedback-list-container"
            aria-label="Next">
