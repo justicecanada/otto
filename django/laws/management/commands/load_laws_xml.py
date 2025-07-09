@@ -67,11 +67,6 @@ class Command(BaseCommand):
             help="Start the law loading process, cancelling any existing job",
         )
         parser.add_argument(
-            "--no_celery",
-            action="store_true",
-            help="Run the command synchronously without Celery",
-        )
-        parser.add_argument(
             "--use_celery",
             action="store_true",
             help="Force use of Celery (default is to run synchronously)",
