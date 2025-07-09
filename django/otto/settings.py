@@ -100,9 +100,6 @@ AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
 # Azure Translation Services
 LANGUAGE_KEY = os.environ.get("LANGUAGE_KEY")
 
-# Speech
-SPEECH_KEY = os.environ.get("SPEECH_KEY")
-
 DEFAULT_CHAT_MODEL = "gpt-4.1-mini"
 DEFAULT_QA_MODEL = "gpt-4.1-mini"
 DEFAULT_SUMMARIZE_MODEL = "gpt-4.1-mini"

@@ -25,7 +25,7 @@ language_key = settings.AZURE_COGNITIVE_SERVICE_KEY
 language_endpoint = settings.AZURE_COGNITIVE_SERVICE_ENDPOINT
 
 # Azure configuration
-speech_key = settings.SPEECH_KEY
+speech_key = settings.AZURE_COGNITIVE_SERVICE_KEY
 speech_region = settings.AZURE_COGNITIVE_SERVICE_REGION
 
 azure_openai_client = AzureOpenAI(
