@@ -437,6 +437,7 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
                                 f"{node.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
                             )
 
+        with cancellation_guard(current_task_id):
             # Nodes and document should be ready now! Let's add to our Django model
             # This will also handle the creation of LlamaIndex vector tables
             logger.info(
