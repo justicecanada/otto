@@ -33,7 +33,7 @@ class Command(BaseCommand):
         Session = sessionmaker(bind=engine)
 
         session = Session()
-        # Get a list of tables in the database
+        # Get a list of tables and views in the database
         vector_db_tables = [
             table[0]
             for table in session.execute(
@@ -42,24 +42,42 @@ class Command(BaseCommand):
                 )
             ).fetchall()
         ]
+        vector_db_views = [
+            view[0]
+            for view in session.execute(
+                text(
+                    "SELECT table_name FROM information_schema.views WHERE table_schema='public'"
+                )
+            ).fetchall()
+        ]
         print("Tables in vector db:")
         for table in vector_db_tables:
             print(table)
+        print("Views in vector db:")
+        for view in vector_db_views:
+            print(view)
         print("\nTables that should be kept, based on Django:")
         for table in keep_tables:
             print(table)
 
-        # Delete tables that are not in the keep_tables list
+        # Delete tables/views that are not in the keep_tables list
         delete_tables = set(vector_db_tables) - set(keep_tables)
+        delete_views = set(vector_db_views) - set(keep_tables)
         deleted_count = 0
         print("\nTables to delete:")
         for table in delete_tables:
             print(table)
+        print("\nViews to delete:")
+        for view in delete_views:
+            print(view)
         for table in delete_tables:
             session.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
             deleted_count += 1
+        for view in delete_views:
+            session.execute(text(f"DROP VIEW IF EXISTS {view} CASCADE"))
+            deleted_count += 1
         session.commit()
-        print(f"\nDeleted {deleted_count} tables.")
+        print(f"\nDeleted {deleted_count} tables/views.")
 
         # For each Django library, find documents that should be deleted
         print("\nChecking for documents to delete in individual libraries...")
