@@ -286,7 +286,7 @@ def transcribe_audio(file_path, transcript_path):
         return [{"error": "Azure Speech credentials not configured"}]
 
     config = speechsdk.SpeechConfig(subscription=speech_key, region=speech_region)
-    config.speech_recognition_language = "en-US"
+    config.speech_recognition_language = "fr-CA"
     config.set_property(
         speechsdk.PropertyId.SpeechServiceResponse_DiarizeIntermediateResults, "true"
     )
