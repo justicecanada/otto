@@ -27,7 +27,7 @@ class LawManager(models.Manager):
         llm=None,
         current_task_id=None,
     ):
-        from laws.tasks import is_cancelled
+        from laws.tasks import CancelledError, is_cancelled
 
         # Updating an existing law?
         if law_status.law:
@@ -118,7 +118,7 @@ class LawManager(models.Manager):
                     law_status.finished_at = timezone.now()
                     law_status.error_message = "Job was cancelled by user."
                     law_status.save()
-                    raise Exception("Law loading job cancelled by user.")
+                    raise CancelledError()
                 batch_num = (i // batch_size) + 1
                 logger.debug(f"Processing embedding batch {batch_num}/{total_batches}")
                 law_status.details = (
