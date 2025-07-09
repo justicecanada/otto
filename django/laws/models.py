@@ -9,7 +9,6 @@ from llama_index.core.schema import MediaResource
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
-from tqdm import tqdm
 
 from chat.llm import OttoLLM
 
@@ -101,7 +100,8 @@ class LawManager(models.Manager):
                     node.text_resource = MediaResource(text=node.doc_id)
 
             original_details = law_status.details or ""
-            for i in tqdm(range(0, len(nodes), batch_size)):
+            total_batches = (len(nodes) + batch_size - 1) // batch_size
+            for i in range(0, len(nodes), batch_size):
                 if is_cancelled(current_task_id):
                     logger.info("Law loading job cancelled by user.")
                     law_status.status = "cancelled"
@@ -113,7 +113,7 @@ class LawManager(models.Manager):
                     obj.delete()
                     return None
                 batch_num = (i // batch_size) + 1
-                total_batches = (len(nodes) + batch_size - 1) // batch_size
+                logger.debug(f"Processing embedding batch {batch_num}/{total_batches}")
                 law_status.details = (
                     f"{original_details} (embedding batch {batch_num}/{total_batches})"
                 )

@@ -36,11 +36,16 @@ logger = get_logger(__name__)
 
 
 def is_cancelled(current_task_id):
-    job_status = JobStatus.objects.singleton()
-    # Cancelled if status is 'cancelled' or if celery_task_id does not match
-    return (
-        job_status.status == "cancelled" or job_status.celery_task_id != current_task_id
-    )
+    try:
+        job_status = JobStatus.objects.singleton()
+        # Cancelled if status is 'cancelled' or if celery_task_id does not match
+        return (
+            job_status.status == "cancelled" or job_status.celery_task_id != current_task_id
+        )
+    except Exception as e:
+        # If we can't check the job status due to async context issues, assume not cancelled
+        logger.warning(f"Could not check job cancellation status: {e}")
+        return False
 
 
 @shared_task(bind=True, max_retries=10)
@@ -214,10 +219,13 @@ def update_laws(
                     exc_info=True,
                 )
                 # Update status to indicate failure
-                law_status.status = "error"
-                law_status.error_message = str(exc)
-                law_status.finished_at = now()
-                law_status.save()
+                try:
+                    law_status.status = "error"
+                    law_status.error_message = str(exc)
+                    law_status.finished_at = now()
+                    law_status.save()
+                except Exception as save_error:
+                    logger.error(f"Could not save law_status due to async context: {save_error}")
 
         # Finalize job status
         if not is_cancelled(current_task_id):
@@ -442,11 +450,14 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
 
     except Exception as e:
         logger.error(f"Error in process_law_status: {e}", exc_info=True)
-        law_status.status = "error"
-        law_status.error_message = str(e)
-        law_status.finished_at = now()
-        law_status.law = None
-        law_status.save()
+        try:
+            law_status.status = "error"
+            law_status.error_message = str(e)
+            law_status.finished_at = now()
+            law_status.law = None
+            law_status.save()
+        except Exception as save_error:
+            logger.error(f"Could not save law_status due to async context: {save_error}")
         raise e
 
 
