@@ -3894,5 +3894,29 @@
     "Select a library, folder or document to view.": {
         "fr": "",
         "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à consulter."
+    },
+    "Deferred": {
+        "fr": "",
+        "fr_auto": "Reporté"
+    },
+    "Total new": {
+        "fr": "",
+        "fr_auto": "Total des nouveaux"
+    },
+    "Total in-progress": {
+        "fr": "",
+        "fr_auto": "Total en cours"
+    },
+    "Total deferred": {
+        "fr": "",
+        "fr_auto": "Total reporté"
+    },
+    "Total closed": {
+        "fr": "",
+        "fr_auto": "Total fermé"
+    },
+    "Add notes or additional details.": {
+        "fr": "",
+        "fr_auto": "Ajoutez des notes ou des détails supplémentaires."
     }
 }

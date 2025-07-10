@@ -46,13 +46,13 @@ def test_feedback_list_view(client, all_apps_user, basic_feedback):
     assert len(response.context["feedback_info"]) == 2
 
     # Test filtering by feedback type
-    response = client.post(reverse("feedback_list"), {"feedback_type": "other"})
+    response = client.get(reverse("feedback_list"), {"feedback_type": "other"})
     assert response.status_code == 200
     assert len(response.context["feedback_info"]) == 1
     assert response.context["feedback_info"][0]["feedback"] == feedback_other_new
 
     # Test filtering by status
-    response = client.post(reverse("feedback_list"), {"status": "resolved"})
+    response = client.get(reverse("feedback_list"), {"status": "resolved"})
     assert response.status_code == 200
     assert len(response.context["feedback_info"]) == 1
     assert response.context["feedback_info"][0]["feedback"] == feedback_bug_resolved
@@ -60,7 +60,7 @@ def test_feedback_list_view(client, all_apps_user, basic_feedback):
     # Test filtering by app (assuming feedback objects have an app field)
     feedback_other_new.app = "Otto"
     feedback_other_new.save()
-    response = client.post(reverse("feedback_list"), {"app": "Otto"})
+    response = client.get(reverse("feedback_list"), {"app": "Otto"})
     assert response.status_code == 200
     assert len(response.context["feedback_info"]) == 1
     assert response.context["feedback_info"][0]["feedback"] == feedback_other_new
