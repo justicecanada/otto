@@ -100,12 +100,6 @@ function showSourceDetails(button) {
   scrollToSource(card, false);
 }
 
-function scrollToSource(targetElement, smooth = true) {
-  // Scroll to the element with the id of the href, leaving appropriate space
-  const y = targetElement.getBoundingClientRect().top + window.pageYOffset - 16;
-  window.scrollTo({top: y, behavior: smooth ? "smooth" : "instant"});
-}
-
 function findSimilar(el) {
   const text = el.getAttribute('data-text');
   // Populate the search form with the text
@@ -155,152 +149,23 @@ function render_markdown(element) {
   }
 }
 
-// Global cache for ID mappings and fuzzy matching
-let idCache = new Map();
-let actualIds = new Set();
-
-function initializeIdCache() {
-  // Cache all existing IDs on the page for fuzzy matching
-  actualIds.clear();
-  idCache.clear();
-  document.querySelectorAll('[id]').forEach(el => {
-    actualIds.add(el.id);
-  });
-}
-
-function normalizeId(id) {
-  // Normalize for comparison: lowercase, replace special chars
-  return id.toLowerCase().replace(/[-_\s]/g, '').replace(/[()]/g, '');
-}
-
-function findBestIdMatch(targetId) {
-  // Check cache first
-  if (idCache.has(targetId)) {
-    return idCache.get(targetId);
-  }
-
-  // Exact match
-  if (actualIds.has(targetId)) {
-    idCache.set(targetId, targetId);
-    return targetId;
-  }
-
-  // Fuzzy match using normalization
-  const normalizedTarget = normalizeId(targetId);
-  let bestMatch = null;
-  let bestScore = 0;
-
-  for (const actualId of actualIds) {
-    const normalizedActual = normalizeId(actualId);
-
-    // Check if normalized versions match exactly
-    if (normalizedTarget === normalizedActual) {
-      idCache.set(targetId, actualId);
-      return actualId;
-    }
-
-    // Simple similarity scoring for partial matches
-    const similarity = calculateSimilarity(normalizedTarget, normalizedActual);
-    if (similarity > 0.8 && similarity > bestScore) {
-      bestScore = similarity;
-      bestMatch = actualId;
-    }
-  }
-
-  if (bestMatch) {
-    idCache.set(targetId, bestMatch);
-    return bestMatch;
-  }
-
-  // No match found
-  idCache.set(targetId, null);
-  return null;
-}
-
-function calculateSimilarity(str1, str2) {
-  // Simple similarity based on longest common subsequence ratio
-  if (str1 === str2) return 1;
-  if (str1.length === 0 || str2.length === 0) return 0;
-
-  // Check if one is contained in the other (common with ID variations)
-  if (str1.includes(str2) || str2.includes(str1)) {
-    return Math.min(str1.length, str2.length) / Math.max(str1.length, str2.length);
-  }
-
-  // Simple character overlap ratio
-  const chars1 = new Set(str1);
-  const chars2 = new Set(str2);
-  const intersection = new Set([...chars1].filter(x => chars2.has(x)));
-  const union = new Set([...chars1, ...chars2]);
-
-  return intersection.size / union.size;
-}
-
-function update_anchor_links() {
-  // Within the answer, find all anchor links. HTML escape the href apart from the #
-  // and set the href to the escaped value
-  const anchors = document.querySelectorAll("#answer a[href^='#']");
-  anchors.forEach(anchor => {
-    const href = anchor.getAttribute("href").replace("(", "%28").replace(")", "%29").replace("*", "%2A").replace(",", "%2C").replace(" ", "%20");
-    anchor.setAttribute("href", href);
-
-    // Remove any existing click listeners to prevent duplicates during streaming
-    const newAnchor = anchor.cloneNode(true);
-    anchor.replaceWith(newAnchor);
-
-    // Override the default behaviour of anchor links. Scroll to the element with the id
-    // of the href
-    newAnchor.addEventListener("click", function (e) {
-      e.preventDefault();
-
-      // Decode the URL-encoded href back to original format for matching
-      let targetId = href.substring(1);
-      try {
-        targetId = decodeURIComponent(targetId);
-      } catch (err) {
-        // If decoding fails, use original
-        console.warn("Failed to decode href:", targetId);
-      }
-
-      // Use fuzzy matching to find the best ID match
-      const actualTargetId = findBestIdMatch(targetId);
-      const targetElement = actualTargetId ? document.getElementById(actualTargetId) : null;
-
-      if (targetElement) {
-        // Collapse details and remove the border from all other elements
-        showSourceDetails(null);
-        targetElement.classList.add("highlight");
-        scrollToSource(targetElement);
-      } else {
-        console.warn("No element found for target:", targetId, "tried fuzzy match, got:", actualTargetId);
-      }
-    });
-  });
-}
-
 // When streaming response is updated
 document.addEventListener("htmx:sseMessage", function (event) {
   if (!(event.target.id === "answer-sse")) return;
-
   render_markdown(event.target);
-  update_anchor_links();
 });
 
 // When streaming response is finished
 document.addEventListener("htmx:oobAfterSwap", function (event) {
   if (!(event.target.id === "answer-sse")) return;
   render_markdown(event.target);
-  update_anchor_links();
 });
 
-// When page loaded with existing answer
-document.addEventListener("DOMContentLoaded", function () {
-  // Initialize ID cache when page loads
-  initializeIdCache();
-
+document.addEventListener("DOMContentLoaded", () => {
   const answer = document.querySelector("#answer");
-  if (answer) render_markdown(answer);
-  update_anchor_links();
+  if (answer) {
+    render_markdown(answer);
+  }
 });
 
 function toggleAnswer(show) {
