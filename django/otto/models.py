@@ -312,8 +312,8 @@ class Feedback(models.Model):
     FEEDBACK_STATUS_CHOICES = [
         ("new", _("New")),
         ("in_progress", _("In progress")),
-        ("resolved", _("Resolved")),
         ("deferred", _("Deferred")),
+        ("resolved", _("Resolved")),
         ("closed", _("Closed")),
     ]
 
