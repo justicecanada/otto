@@ -78,7 +78,8 @@ def update_laws(
     mock_embedding=False,
     debug=False,
     force_update=False,
-    delete_missing=True,
+    eng_law_ids=None,
+    skip_purge=False,
 ):
     try:
         bind_contextvars(feature="laws_load")
@@ -120,20 +121,25 @@ def update_laws(
 
         with cancellation_guard(current_task_id):
             # Determine which laws to process
-            if full:
-                eng_law_ids = _get_all_eng_law_ids(laws_root)
+            law_ids_to_load = []
+            if eng_law_ids:
+                # List of laws was explicitly provided in call to function
+                law_ids_to_load = list(eng_law_ids)
+            elif full:
+                law_ids_to_load = _get_all_eng_law_ids(laws_root)
             elif small:
-                eng_law_ids = [
+                law_ids_to_load = [
                     "SOR-2010-203",  # Certain Ships Remission Order, 2010 (5kb)
                     "S-14.3",  # An Act to grant access to records of the Special Committee on the Defence of Canada Regulations (5kb)
                 ]
             elif const_only:
-                eng_law_ids = []
+                law_ids_to_load = []
             else:
                 # Subset of legislation, for testing
-                eng_law_ids = SAMPLE_LAW_IDS
-            if not small:
-                eng_law_ids.append("Constitution 2020")
+                law_ids_to_load = SAMPLE_LAW_IDS
+            if not small and not eng_law_ids:
+                law_ids_to_load.append("Constitution 2020")
+            eng_law_ids = law_ids_to_load
 
         with cancellation_guard(current_task_id):
             if reset:
@@ -144,7 +150,7 @@ def update_laws(
                 # Recreate the table
                 OttoLLM().get_retriever("laws_lois__", hnsw=True).retrieve("?")
 
-            elif delete_missing:
+            elif not skip_purge:
                 job_status.status = "purging"
                 job_status.save()
                 logger.info("Deleting missing Law objects")
