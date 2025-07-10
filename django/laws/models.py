@@ -101,13 +101,19 @@ class LawManager(models.Manager):
             logger.debug(
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
             )
+            # Filter out or skip bad nodes gracefully
+            valid_nodes = []
             for node in nodes:
-                if not node.text.strip():
-                    try:
-                        fallback_text = node.doc_id
-                    except:
-                        fallback_text = "empty"
-                    node.text_resource = MediaResource(text=fallback_text)
+                try:
+                    if hasattr(node, "text") and node.text and node.text.strip():
+                        valid_nodes.append(node)
+                    else:
+                        logger.warning(
+                            f"Skipping node with missing or empty text: {getattr(node, 'doc_id', 'unknown')}"
+                        )
+                except Exception as e:
+                    logger.warning(f"Skipping node due to error: {e}")
+            nodes = valid_nodes
 
             original_details = law_status.details or ""
             total_batches = (len(nodes) + batch_size - 1) // batch_size
