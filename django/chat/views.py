@@ -567,9 +567,38 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                     preset_id = preset.id
                     replace_with_settings = True
 
+                # save the current chat settings
+                if replace_with_settings:
+                    # copy the options from the chat to the preset
+                    copy_options(chat.options, preset.options)
+                    preset.options.prompt = request.POST.get("prompt", "")
+                    preset.options.save()
+
+                english_title = form.cleaned_data["name_en"]
+                french_title = form.cleaned_data["name_fr"]
+
+                # Set the fields based on the selected tab
+                preset.name_en = english_title
+                preset.name_fr = french_title
+                preset.description_en = form.cleaned_data["description_en"]
+                preset.description_fr = form.cleaned_data["description_fr"]
                 preset.sharing_option = form.cleaned_data.get("sharing_option", None)
 
                 accessible_to = form.cleaned_data.get("accessible_to", [])
+                preset.save()
+
+                # clear the accessible_to field if the user changes the sharing option to private
+                if preset.sharing_option == "private" and len(accessible_to) > 0:
+                    accessible_to = []
+
+                preset.accessible_to.set(accessible_to)
+                chat.loaded_preset = preset
+                chat.save()
+
+                messages.success(
+                    request,
+                    _("Preset saved successfully."),
+                )
 
                 library = chat.options.qa_library
                 if (
@@ -598,37 +627,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
                         if user_form.is_valid():
                             user_form.save()
-
-                # save the current chat settings
-                if replace_with_settings:
-                    # copy the options from the chat to the preset
-                    copy_options(chat.options, preset.options)
-                    preset.options.prompt = request.POST.get("prompt", "")
-                    preset.options.save()
-
-                english_title = form.cleaned_data["name_en"]
-                french_title = form.cleaned_data["name_fr"]
-
-                # Set the fields based on the selected tab
-                preset.name_en = english_title
-                preset.name_fr = french_title
-                preset.description_en = form.cleaned_data["description_en"]
-                preset.description_fr = form.cleaned_data["description_fr"]
-
-                preset.save()
-
-                # clear the accessible_to field if the user changes the sharing option to private
-                if preset.sharing_option == "private" and len(accessible_to) > 0:
-                    accessible_to = []
-
-                preset.accessible_to.set(accessible_to)
-                chat.loaded_preset = preset
-                chat.save()
-
-                messages.success(
-                    request,
-                    _("Preset saved successfully."),
-                )
 
                 return HttpResponse(status=200)
 
