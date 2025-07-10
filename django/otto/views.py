@@ -280,6 +280,8 @@ def feedback_list(request, page_number=None):
 
 @permission_required("otto.manage_feedback")
 def feedback_dashboard_update(request, feedback_id, form_type):
+    from django.template.loader import render_to_string
+
     feedback = Feedback.objects.get(id=feedback_id)
 
     if request.method == "POST":
@@ -295,9 +297,15 @@ def feedback_dashboard_update(request, feedback_id, form_type):
                 request,
                 _("Feedback updated successfully."),
             )
-            return HttpResponse(status=200)
+            badge_html = render_to_string(
+                "components/feedback/dashboard/feedback_type_status.html",
+                {"info": {"feedback": feedback}},
+            )
+            return HttpResponse(badge_html)
         else:
             messages.error(request, form.errors)
+            return HttpResponse(str(form.errors), status=400)
+
     else:
         return HttpResponse(status=405)
 

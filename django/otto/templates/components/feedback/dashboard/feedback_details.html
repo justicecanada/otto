@@ -80,7 +80,7 @@
                 {{ field }}
                 <label class="text-muted" for="{{ field.id_for_label }}">{{ field.label }}</label>
               {% endfor %}
- 
+
             </div>
             <button class="btn btn-light border input-group-text"
                     title="{% trans 'Save note' %}"
@@ -94,9 +94,8 @@
           <div class="border rounded">
             <form hx-post="{% url 'feedback_dashboard_update' feedback_id=feedback.id form_type='metadata' %}"
                   hx-trigger="change"
-                  hx-swap="none"
-                  class="px-2">
- 
+                  hx-target="#feedback-badge-{{ feedback.id }}"
+                  hx-swap="innerHTML">
               {% for field in form.metadata %}
                 <div class="row my-2 justify-content-between align-items-center">
                   <label class="col-sm-2 col-form-label text-muted fw-semibold"
