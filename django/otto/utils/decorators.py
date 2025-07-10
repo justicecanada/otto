@@ -54,6 +54,7 @@ def permission_required(
     login_url=None,
     raise_exception=False,
     redirect_field_name=REDIRECT_FIELD_NAME,
+    log=True,  # New argument to control logging
 ):
     # Modification of rules.contrib.views.permission_required
     def decorator(view_func):
@@ -76,13 +77,14 @@ def permission_required(
 
             # Check for permissions and return a response
             if not user.has_perms(perms, obj):
-                logger.info(
-                    "User does not have permission",
-                    admin=bool(ADMINISTRATIVE_PERMISSIONS.intersection(perms)),
-                    category="security",
-                    path=request.path,
-                    perms=perms,
-                )
+                if log:
+                    logger.info(
+                        "User does not have permission",
+                        admin=bool(ADMINISTRATIVE_PERMISSIONS.intersection(perms)),
+                        category="security",
+                        path=request.path,
+                        perms=perms,
+                    )
                 # User does not have a required permission
                 if raise_exception:
                     raise PermissionDenied()
@@ -104,7 +106,7 @@ def permission_required(
                     return robust_redirect(request, reverse("index"))
             else:
                 # User has all required permissions -- allow the view to execute
-                if bool(ADMINISTRATIVE_PERMISSIONS.intersection(perms)):
+                if bool(ADMINISTRATIVE_PERMISSIONS.intersection(perms)) and log:
                     logger.info(
                         "Administrative access granted",
                         admin=True,

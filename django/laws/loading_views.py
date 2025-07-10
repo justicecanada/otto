@@ -29,7 +29,7 @@ def laws_loading_monitor(request):
     return render(request, "laws/laws_loading.html", context)
 
 
-@permission_required("otto.load_laws")
+@permission_required("otto.load_laws", log=False)
 def laws_loading_status(request):
     """
     Return the current status as JSON for HTMX polling.
