@@ -3918,5 +3918,9 @@
     "Add notes or additional details.": {
         "fr": "",
         "fr_auto": "Ajoutez des notes ou des détails supplémentaires."
+    },
+    "Users selected above will be added as viewers to library": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs sélectionnés ci-dessus seront ajoutés à la bibliothèque"
     }
 }
