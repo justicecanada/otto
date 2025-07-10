@@ -162,9 +162,14 @@ function update_anchor_links() {
   anchors.forEach(anchor => {
     const href = anchor.getAttribute("href").replace("(", "%28").replace(")", "%29").replace("*", "%2A").replace(",", "%2C").replace(" ", "%20");
     anchor.setAttribute("href", href);
+
+    // Remove any existing click listeners to prevent duplicates during streaming
+    anchor.replaceWith(anchor.cloneNode(true));
+    const newAnchor = document.querySelector(`#answer a[href="${href}"]`);
+
     // Override the default behaviour of anchor links. Scroll to the element with the id
     // of the href
-    anchor.addEventListener("click", function (e) {
+    newAnchor.addEventListener("click", function (e) {
       e.preventDefault();
       const targetId = href.substring(1);
       const targetElement = document.getElementById(targetId);
