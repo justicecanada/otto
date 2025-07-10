@@ -265,19 +265,19 @@ def search(request):
 
         if not advanced_mode:
             vector_ratio = 0.8
-            top_k = 25
+            top_k = 50
             # Options for the AI answer
             model = settings.DEFAULT_LAWS_MODEL
-            context_tokens = 5000
+            context_tokens = 16000
             # Cast to string evaluates the lazy translation
             additional_instructions = str(default_additional_instructions)
             additional_instructions = urllib.parse.quote_plus(additional_instructions)
         else:
             vector_ratio = float(request.POST.get("vector_ratio", 0.8))
-            top_k = int(request.POST.get("top_k", 25))
+            top_k = int(request.POST.get("top_k", 50))
             # trim_redundant = request.POST.get("trim_redundant", "on") == "on"
             model = request.POST.get("model", settings.DEFAULT_LAWS_MODEL)
-            context_tokens = int(request.POST.get("context_tokens", 5000))
+            context_tokens = int(request.POST.get("context_tokens", 16000))
             additional_instructions = request.POST.get("additional_instructions", "")
             # Need to escape the instructions so they can be passed in GET parameter
             additional_instructions = urllib.parse.quote_plus(additional_instructions)

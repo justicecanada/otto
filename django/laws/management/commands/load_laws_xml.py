@@ -67,14 +67,19 @@ class Command(BaseCommand):
             help="Start the law loading process, cancelling any existing job",
         )
         parser.add_argument(
-            "--no_celery",
-            action="store_true",
-            help="Run the command synchronously without Celery",
-        )
-        parser.add_argument(
             "--use_celery",
             action="store_true",
             help="Force use of Celery (default is to run synchronously)",
+        )
+        parser.add_argument(
+            "--eng_law_ids",
+            type=str,
+            help="Comma-separated list of English law IDs to load (overrides --full, --small, --const_only)",
+        )
+        parser.add_argument(
+            "--skip_purge",
+            action="store_true",
+            help="Skip purging laws not in the current load",
         )
 
     def print_status(self):
@@ -147,6 +152,11 @@ class Command(BaseCommand):
             print("Existing job cancelled.")
         # If job is running, show status
         if options["start"]:
+            eng_law_ids = None
+            if options.get("eng_law_ids"):
+                eng_law_ids = [
+                    x.strip() for x in options["eng_law_ids"].split(",") if x.strip()
+                ]
             start_options = dict(
                 small=options["small"],
                 full=options["full"],
@@ -156,7 +166,10 @@ class Command(BaseCommand):
                 mock_embedding=options["mock_embedding"],
                 debug=options["debug"],
                 force_update=options["force_update"],
+                skip_purge=options["skip_purge"],
             )
+            if eng_law_ids:
+                start_options["eng_law_ids"] = eng_law_ids
             if options["use_celery"]:
                 print("Running via Celery...")
                 update_laws.delay(**start_options)
