@@ -119,7 +119,7 @@ class FeedbackNoteForm(ModelForm):
         fields = ["admin_notes"]
 
         labels = {
-            "admin_notes": _("Add notes or addition details."),
+            "admin_notes": _("Add notes or additional details."),
         }
 
         widgets = {
@@ -127,7 +127,7 @@ class FeedbackNoteForm(ModelForm):
                 attrs={
                     "class": "form-control fs-6",
                     "style": "height: 102px",
-                    "placeholder": _("Add notes or addition details."),
+                    "placeholder": _("Add notes or additional details."),
                 },
             ),
         }

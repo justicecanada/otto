@@ -3895,8 +3895,28 @@
         "fr": "",
         "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à consulter."
     },
-    "Users selected above will be added as viewers to library": {
+    "Deferred": {
         "fr": "",
-        "fr_auto": "Les utilisateurs sélectionnés ci-dessus seront ajoutés à la bibliothèque"
+        "fr_auto": "Reporté"
+    },
+    "Total new": {
+        "fr": "",
+        "fr_auto": "Total des nouveaux"
+    },
+    "Total in-progress": {
+        "fr": "",
+        "fr_auto": "Total en cours"
+    },
+    "Total deferred": {
+        "fr": "",
+        "fr_auto": "Total reporté"
+    },
+    "Total closed": {
+        "fr": "",
+        "fr_auto": "Total fermé"
+    },
+    "Add notes or additional details.": {
+        "fr": "",
+        "fr_auto": "Ajoutez des notes ou des détails supplémentaires."
     }
 }
