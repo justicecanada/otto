@@ -402,15 +402,16 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
                     f'({doc_metadata["consolidated_number"] or doc_metadata["instrument_number"] or doc_metadata["bill_number"]})'
                 )
 
+                doc_id = f'{node_dict["id"]}_{node_dict["lang"]}'
                 document = Document(
-                    text="",
+                    doc_id=doc_id,
+                    text=doc_metadata["display_metadata"],
                     metadata=doc_metadata,
                     excluded_llm_metadata_keys=exclude_keys,
                     excluded_embed_metadata_keys=exclude_keys,
                     metadata_template="{value}",
                     text_template="{metadata_str}",
                 )
-                document.doc_id = f'{node_dict["id"]}_{node_dict["lang"]}'
 
                 nodes = node_dict["nodes"]
                 for i, node in enumerate(nodes):
