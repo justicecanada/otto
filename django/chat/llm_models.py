@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Dict, List, Optional
 
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -60,18 +61,12 @@ class LLM(BaseModel):
 
     @property
     def description(self) -> str:
-        from django.utils.translation import get_language
-
-        print(get_language())
-
         if get_language() == "fr" and self.description_fr:
             return self.description_fr
         return self.description_en
 
     @property
     def help_text(self) -> str:
-        from django.utils.translation import get_language
-
         if get_language() == "fr" and self.help_text_fr:
             return self.help_text_fr
         return self.help_text_en
@@ -101,15 +96,48 @@ ALL_MODELS: List[LLM] = [
         help_text_fr="Le modèle de la plus haute qualité disponible. À utiliser pour des tâches complexes nécessitant un raisonnement approfondi, une analyse ou de la créativité, telles que l'analyse juridique ou la génération de rapports détaillés.",
     ),
     LLM(
-        model_id="o3-mini",
-        deployment_name="o3-mini",
-        description_en="o3-mini (adds reasoning, 7x cost)",
-        description_fr="o3-mini (ajoute le raisonnement, coût 7x)",
+        model_id="o4-mini",
+        deployment_name="o4-mini",
+        description_en="o4-mini (reasoning, >7x cost)",
+        description_fr="o4-mini (ajoute le raisonnement, coût >7x)",
         max_tokens_in=200000,
         max_tokens_out=100000,
         system_prompt_prefix="Formatting re-enabled.",
         help_text_en="A specialized model with enhanced reasoning capabilities. Ideal for tasks that involve logical deduction, step-by-step problem solving, or structured data extraction.",
         help_text_fr="Un modèle spécialisé avec des capacités de raisonnement améliorées. Idéal pour les tâches impliquant une déduction logique, une résolution de problèmes étape par étape ou une extraction de données structurées.",
+    ),
+    LLM(
+        model_id="o3",
+        deployment_name="o3",
+        description_en="o3 (reasoning, >12x cost)",
+        description_fr="o4-mini (ajoute le raisonnement, coût >12x)",
+        max_tokens_in=200000,
+        max_tokens_out=100000,
+        system_prompt_prefix="Formatting re-enabled.",
+        help_text_en="A specialized model with enhanced reasoning capabilities. Ideal for tasks that involve logical deduction, step-by-step problem solving, or structured data extraction.",
+        help_text_fr="Un modèle spécialisé avec des capacités de raisonnement améliorées. Idéal pour les tâches impliquant une déduction logique, une résolution de problèmes étape par étape ou une extraction de données structurées.",
+    ),
+    LLM(
+        model_id="gpt-4.1-nano",
+        deployment_name="gpt-4.1-nano",
+        description_en="GPT-4.1-nano (most efficient, 0.5x cost)",
+        description_fr="GPT-4.1-nano (le plus efficace, coût 0.5x)",
+        max_tokens_in=1047576,
+        max_tokens_out=32768,
+        help_text_en="The most efficient model available. Recommended only when other models are too slow or expensive. Use for simple queries or basic text generation tasks.",
+        help_text_fr="Le modèle le plus efficace disponible. Recommandé uniquement lorsque les autres modèles sont trop lents ou coûteux. À utiliser pour des requêtes simples ou des tâches de génération de texte de base.",
+    ),
+    LLM(
+        model_id="o3-mini",
+        deployment_name="o3-mini",
+        description_en="o3-mini (legacy reasoning, >7x cost)",
+        description_fr="o3-mini (modèle hérité de raisonnement, coût >7x)",
+        max_tokens_in=200000,
+        max_tokens_out=100000,
+        system_prompt_prefix="Formatting re-enabled.",
+        help_text_en="This model is deprecated and will be removed soon.",
+        help_text_fr="Ce modèle est obsolète et sera bientôt supprimé.",
+        deprecated_by="o4-mini",
     ),
     LLM(
         model_id="gpt-4o-mini",
@@ -119,9 +147,9 @@ ALL_MODELS: List[LLM] = [
         max_tokens_in=128000,
         max_tokens_out=16384,
         is_active=True,
-        deprecated_by="gpt-4.1-mini",
         help_text_en="This model is deprecated and will be removed soon.",
         help_text_fr="Ce modèle est obsolète et sera bientôt supprimé.",
+        deprecated_by="gpt-4.1-mini",
     ),
     LLM(
         model_id="gpt-4o",
@@ -131,9 +159,9 @@ ALL_MODELS: List[LLM] = [
         max_tokens_in=128000,
         max_tokens_out=16384,
         is_active=True,
-        deprecated_by="gpt-4.1",
         help_text_en="This model is deprecated and will be removed soon.",
         help_text_fr="Ce modèle est obsolète et sera bientôt supprimé.",
+        deprecated_by="gpt-4.1",
     ),
     LLM(
         model_id="command-a",
@@ -160,7 +188,9 @@ def get_chat_model_choices() -> List[tuple[str, str]]:
     This is used to populate dropdowns in forms.
     """
     return [
-        (model.model_id, model.description) for model in ALL_MODELS if model.is_active
+        (model.model_id, model.description)
+        for model in ALL_MODELS
+        if model.is_active and not model.deprecated_by
     ]
 
 
