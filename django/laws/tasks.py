@@ -363,10 +363,8 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
                         law_status.details = (
                             "Existing law deleted due to now being empty"
                         )
-                        law_status.save()
                         law.delete()
-                    else:
-                        law_status.save()
+                    law_status.save()
                     return
 
                 doc_metadata = {
