@@ -1,4 +1,5 @@
 import json
+import os
 import urllib.parse
 from datetime import datetime
 from unittest import mock
@@ -218,7 +219,9 @@ def test_law_loading_status_choices():
 def test_get_sha_256_hash():
     """Test the SHA-256 hash utility function."""
     # Test with our sample XML file
-    sample_file = "/workspace/django/tests/laws/xml_sample/eng/acts/S-14.3.xml"
+    sample_file = os.path.join(
+        os.path.dirname(__file__), "xml_sample/eng/acts/S-14.3.xml"
+    )
     hash_value = get_sha_256_hash(sample_file)
 
     assert len(hash_value) == 64  # SHA-256 produces 64 character hex string
@@ -231,7 +234,9 @@ def test_get_sha_256_hash():
 
 def test_get_dict_from_xml():
     """Test XML parsing utility function."""
-    sample_file = "/workspace/django/tests/laws/xml_sample/eng/acts/S-14.3.xml"
+    sample_file = os.path.join(
+        os.path.dirname(__file__), "xml_sample/eng/acts/S-14.3.xml"
+    )
     result = get_dict_from_xml(sample_file)
 
     assert isinstance(result, dict)
