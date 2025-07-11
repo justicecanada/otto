@@ -269,6 +269,8 @@ def update_laws(
                     process_law_status(
                         law_status, laws_root, mock_embedding, debug, current_task_id
                     )
+                except CancelledError:
+                    raise
                 except Exception as exc:
                     logger.error(
                         f"Error processing law {law_status.eng_law_id}: {exc}",
