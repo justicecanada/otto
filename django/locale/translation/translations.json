@@ -4269,7 +4269,7 @@
     },
     "Description": {
         "fr": "",
-        "fr_auto": "Descriptif"
+        "fr_auto": "Désignation des marchandises"
     },
     "No exceptions found": {
         "fr": "",
@@ -4314,5 +4314,13 @@
     "Add notes or additional details.": {
         "fr": "",
         "fr_auto": "Ajoutez des notes ou des détails supplémentaires."
+    },
+    "This will delete all laws not in the selected set, and could temporarily result in some laws being unavailable while loading. Are you sure you want to start the loading job?": {
+        "fr": "",
+        "fr_auto": "Cela supprimera toutes les lois qui ne font pas partie de l’ensemble sélectionné et pourrait temporairement entraîner l’indisponibilité de certaines lois pendant le chargement. Êtes-vous sûr de vouloir commencer le travail de chargement?"
+    },
+    "Checking": {
+        "fr": "",
+        "fr_auto": "Vérification"
     }
 }
