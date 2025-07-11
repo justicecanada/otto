@@ -603,6 +603,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                     _("Preset saved successfully."),
                 )
 
+                # Show the user any relevant messages about changes to library privacy
                 return library_access(
                     request, preset, preset.options.qa_library, action
                 )
@@ -619,6 +620,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             _("Preset updated successfully."),
         )
 
+        # Show the user any relevant messages about changes to library privacy
         return library_access(
             request,
             preset,
@@ -661,9 +663,13 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
 
 def library_access(request, preset, library, action, old_library=None):
-    keep_open = False
+    # Helper function (never called directly by user) to change librarian permissions
+    # when a user changes an associated preset, then display relevant messages
+
     message = ""
 
+    # If there's a library attached to the preset, and it's not already public,
+    # and the user has the necessary permissions, change its privacy
     if (
         library
         and not library.is_public
@@ -677,12 +683,14 @@ def library_access(request, preset, library, action, old_library=None):
                 {_("By saving it, you have made the attached library")} ({library}) {_("publicly viewable.")}
                 """
         elif preset.sharing_option == "others":
+            # Only make note of people who've had the preset shared with them,
+            # but who *don't* already have access to the attached library
+            # (in this case, generally people who were *just* added to the preset)
             potential_new_viewers = list(
                 User.objects.filter(
                     ~Q(library_roles__library=library) & Q(accessible_presets=preset)
                 )
             )
-
             user_form = LibraryUsersForm(
                 library=library,
                 data={
@@ -694,10 +702,8 @@ def library_access(request, preset, library, action, old_library=None):
                     )
                 },
             )
-
             for field in ["admins", "contributors"]:
                 user_form.data[field] = user_form.fields[field].initial
-
             if user_form.is_valid():
                 user_form.save()
                 if potential_new_viewers:
@@ -706,6 +712,9 @@ def library_access(request, preset, library, action, old_library=None):
                         {", ".join(user.full_name for user in potential_new_viewers)}
                         """
 
+    # Warn the user if they *don't* have the necessary permissions to add viewers
+    # to the library. Note that this only happens if the user saved new preset "metadata",
+    # or updated it *and changed the qa_library*
     elif (old_library or action == "create_preset") and not (
         library.is_public
         or request.user.has_perm("librarian.manage_library_users", library)
@@ -720,6 +729,8 @@ def library_access(request, preset, library, action, old_library=None):
             {_("unless a library administrator has granted them access.")}
             """
 
+    # If the user has changed qa_library for the preset and DOES have management permissions
+    # for the old one, remind them that all of the permissions are still there
     if old_library and request.user.has_perm(
         "librarian.manage_library_users", old_library
     ):
@@ -727,16 +738,17 @@ def library_access(request, preset, library, action, old_library=None):
         {_("Note: this action does NOT change permissions for the previously attached library")} ({old_library}).
         """
 
+    # If there's a message, end it with a reminder to use the librarian modal
+    # Otherwise, we send a flag that immediately closes the modal
     if message:
         message += _(
             "To adjust permissions on your libraries, use the 'Manage Libraries' button."
         )
-        keep_open = True
 
     return render(
         request,
         "chat/modals/presets/library_check.html",
-        {"keep_open": keep_open, "message": message},
+        {"keep_open": message != "", "message": message},
     )
 
 
