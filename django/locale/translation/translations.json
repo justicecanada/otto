@@ -4290,5 +4290,29 @@
     "Law ID:": {
         "fr": "",
         "fr_auto": "Numéro d’identification de la loi :"
+    },
+    "Deferred": {
+        "fr": "",
+        "fr_auto": "Reporté"
+    },
+    "Total new": {
+        "fr": "",
+        "fr_auto": "Total des nouveaux"
+    },
+    "Total in-progress": {
+        "fr": "",
+        "fr_auto": "Total en cours"
+    },
+    "Total deferred": {
+        "fr": "",
+        "fr_auto": "Total reporté"
+    },
+    "Total closed": {
+        "fr": "",
+        "fr_auto": "Total fermé"
+    },
+    "Add notes or additional details.": {
+        "fr": "",
+        "fr_auto": "Ajoutez des notes ou des détails supplémentaires."
     }
 }

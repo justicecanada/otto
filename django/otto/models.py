@@ -278,6 +278,10 @@ class FeedbackManager(models.Manager):
         total_feedback_count = self.all().count()
         negative_chat_comment = self.filter(chat_message__feedback=-1).count()
         resolved_feedback_count = self.filter(status="resolved").count()
+        new_feedback_count = self.filter(status="new").count()
+        in_progress_feedback_count = self.filter(status="in_progress").count()
+        deferred_feedback_count = self.filter(status="deferred").count()
+        closed_feedback_count = self.filter(status="closed").count()
         most_active = (
             self.values("app")
             .annotate(feedback_count=Count("id"))
@@ -289,6 +293,10 @@ class FeedbackManager(models.Manager):
             "negative": negative_chat_comment,
             "resolved": resolved_feedback_count,
             "most_active": most_active,
+            "new": new_feedback_count,
+            "in_progress": in_progress_feedback_count,
+            "deferred": deferred_feedback_count,
+            "closed": closed_feedback_count,
         }
 
 
@@ -304,6 +312,7 @@ class Feedback(models.Model):
     FEEDBACK_STATUS_CHOICES = [
         ("new", _("New")),
         ("in_progress", _("In progress")),
+        ("deferred", _("Deferred")),
         ("resolved", _("Resolved")),
         ("closed", _("Closed")),
     ]
