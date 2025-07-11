@@ -240,12 +240,13 @@ def update_laws(
                     # Get the hashes
                     file_paths = _get_en_fr_law_file_paths(laws_root, law_id)
                     if not file_paths:
-                        law_status.status = "error"
-                        law_status.error_message = (
-                            f"Could not find EN and FR XML files."
+                        # Create a law status to record the error
+                        error_law_status = LawLoadingStatus.objects.create(
+                            eng_law_id=law_id,
+                            status="error",
+                            error_message="Could not find EN and FR XML files.",
+                            finished_at=now(),
                         )
-                        law_status.finished_at = now()
-                        law_status.save()
                         continue
                     en_path, fr_path = file_paths
                     new_en_hash = get_sha_256_hash(en_path)
