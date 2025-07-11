@@ -3918,5 +3918,17 @@
     "Add notes or additional details.": {
         "fr": "",
         "fr_auto": "Ajoutez des notes ou des détails supplémentaires."
+    },
+    "Selected chat model is deprecated. Upgrading from": {
+        "fr": "",
+        "fr_auto": "Le modèle de clavardage sélectionné est obsolète. Mise à niveau de"
+    },
+    "Selected Q&A model is deprecated. Upgrading from": {
+        "fr": "",
+        "fr_auto": "Le modèle de questions et réponses sélectionné est obsolète. Mise à niveau de"
+    },
+    "Selected summarization model is deprecated. Upgrading from": {
+        "fr": "",
+        "fr_auto": "Le modèle de résumé sélectionné est obsolète. Mise à niveau de"
     }
 }

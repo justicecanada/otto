@@ -28,7 +28,7 @@ from structlog import get_logger
 
 from otto.models import Cost
 
-from .llm_models import CHAT_MODELS, get_model
+from .llm_models import get_model
 
 logger = get_logger(__name__)
 

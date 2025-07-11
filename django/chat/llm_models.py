@@ -31,13 +31,12 @@ class LLM(BaseModel):
     provider: ModelProvider = Field(
         ModelProvider.AZURE_OPENAI, description="The provider of the model."
     )
-    description: str = Field(
-        "", description="A short, user-facing description for the model selector UI."
+    description_en: str = Field(
+        "", description="The English description for the model."
     )
-    help_text: str = Field(
-        "",
-        description="Longer, more detailed help text for a modal or tooltip in the UI.",
-    )
+    description_fr: str = Field("", description="The French description for the model.")
+    help_text_en: str = Field("", description="The English help text for the model.")
+    help_text_fr: str = Field("", description="The French help text for the model.")
     is_active: bool = Field(
         True, description="Whether the model is currently active and available for use."
     )
@@ -59,6 +58,24 @@ class LLM(BaseModel):
         ..., description="The maximum number of output tokens the model can generate."
     )
 
+    @property
+    def description(self) -> str:
+        from django.utils.translation import get_language
+
+        print(get_language())
+
+        if get_language() == "fr" and self.description_fr:
+            return self.description_fr
+        return self.description_en
+
+    @property
+    def help_text(self) -> str:
+        from django.utils.translation import get_language
+
+        if get_language() == "fr" and self.help_text_fr:
+            return self.help_text_fr
+        return self.help_text_en
+
 
 # The canonical list of all models available in the system.
 # This is the new source of truth.
@@ -66,94 +83,119 @@ ALL_MODELS: List[LLM] = [
     LLM(
         model_id="gpt-4.1-mini",
         deployment_name="gpt-4.1-mini",
-        description=str(_("GPT-4.1-mini (best value, 3x cost)")),
+        description_en="GPT-4.1-mini (best value, 3x cost)",
+        description_fr="GPT-4.1-mini (meilleur rapport qualité/prix, coût 3x)",
         max_tokens_in=1047576,
         max_tokens_out=32768,
-        help_text=str(
-            _(
-                "A good balance of performance and cost. Suitable for a wide range of general tasks like drafting emails, summarizing documents, and answering questions."
-            )
-        ),
+        help_text_en="A good balance of performance and cost. Suitable for a wide range of general tasks like drafting emails, summarizing documents, and answering questions.",
+        help_text_fr="Un bon équilibre entre performance et coût. Convient à une large gamme de tâches générales telles que la rédaction d'e-mails, le résumé de documents et la réponse à des questions.",
     ),
     LLM(
         model_id="gpt-4.1",
         deployment_name="gpt-4.1",
-        description=str(_("GPT-4.1 (best quality, 12x cost)")),
+        description_en="GPT-4.1 (best quality, 12x cost)",
+        description_fr="GPT-4.1 (meilleure qualité, coût 12x)",
         max_tokens_in=1047576,
         max_tokens_out=32768,
-        help_text=str(
-            _(
-                "The highest quality model available. Use for complex tasks requiring deep reasoning, analysis, or creativity, such as legal analysis or generating detailed reports."
-            )
-        ),
+        help_text_en="The highest quality model available. Use for complex tasks requiring deep reasoning, analysis, or creativity, such as legal analysis or generating detailed reports.",
+        help_text_fr="Le modèle de la plus haute qualité disponible. À utiliser pour des tâches complexes nécessitant un raisonnement approfondi, une analyse ou de la créativité, telles que l'analyse juridique ou la génération de rapports détaillés.",
     ),
     LLM(
         model_id="o3-mini",
         deployment_name="o3-mini",
-        description=str(_("o3-mini (adds reasoning, 7x cost)")),
+        description_en="o3-mini (adds reasoning, 7x cost)",
+        description_fr="o3-mini (ajoute le raisonnement, coût 7x)",
         max_tokens_in=200000,
         max_tokens_out=100000,
         system_prompt_prefix="Formatting re-enabled.",
-        help_text=str(
-            _(
-                "A specialized model with enhanced reasoning capabilities. Ideal for tasks that involve logical deduction, step-by-step problem solving, or structured data extraction."
-            )
-        ),
+        help_text_en="A specialized model with enhanced reasoning capabilities. Ideal for tasks that involve logical deduction, step-by-step problem solving, or structured data extraction.",
+        help_text_fr="Un modèle spécialisé avec des capacités de raisonnement améliorées. Idéal pour les tâches impliquant une déduction logique, une résolution de problèmes étape par étape ou une extraction de données structurées.",
     ),
     LLM(
         model_id="gpt-4o-mini",
         deployment_name="gpt-4o-mini",
-        description=str(_("GPT-4o-mini (legacy model, 1x cost)")),
+        description_en="GPT-4o-mini (legacy model, 1x cost)",
+        description_fr="GPT-4o-mini (modèle hérité, coût 1x)",
         max_tokens_in=128000,
         max_tokens_out=16384,
-        is_active=False,
+        is_active=True,
         deprecated_by="gpt-4.1-mini",
-        help_text=str(_("This model is deprecated and will be removed soon.")),
+        help_text_en="This model is deprecated and will be removed soon.",
+        help_text_fr="Ce modèle est obsolète et sera bientôt supprimé.",
     ),
     LLM(
         model_id="gpt-4o",
         deployment_name="gpt-4o",
-        description=str(_("GPT-4o (legacy model, 15x cost)")),
+        description_en="GPT-4o (legacy model, 15x cost)",
+        description_fr="GPT-4o (modèle hérité, coût 15x)",
         max_tokens_in=128000,
         max_tokens_out=16384,
-        is_active=False,
+        is_active=True,
         deprecated_by="gpt-4.1",
-        help_text=str(_("This model is deprecated and will be removed soon.")),
+        help_text_en="This model is deprecated and will be removed soon.",
+        help_text_fr="Ce modèle est obsolète et sera bientôt supprimé.",
     ),
     LLM(
         model_id="command-a",
         deployment_name="command-a",
         provider=ModelProvider.COHERE,
-        description=str(_("Command-A (special purpose)")),
+        description_en="Command-A (Cohere, Canadian)",
+        description_fr="Command-A (Cohere, Canadian)",
         max_tokens_in=4096,
         max_tokens_out=1024,
         supports_chat_history=False,
         is_active=False,  # Assuming this might not be for general chat
-        help_text=str(
-            _(
-                "A special-purpose model that does not support chat history. Used for specific internal commands."
-            )
-        ),
+        help_text_en="Not available in Pilot",
+        help_text_fr="Non disponible dans Pilot",
     ),
 ]
 
 # A dictionary for quick lookups by model_id
 MODELS_BY_ID: Dict[str, LLM] = {model.model_id: model for model in ALL_MODELS}
 
-# A list of (model_id, description) for active models, for use in UI dropdowns.
-CHAT_MODELS = [
-    (model.model_id, model.description)
-    for model in ALL_MODELS
-    if model.is_active and model.supports_chat_history
-]
+
+def get_chat_model_choices() -> List[tuple[str, str]]:
+    """
+    Returns a list of tuples (model_id, description) for all active chat models.
+    This is used to populate dropdowns in forms.
+    """
+    return [
+        (model.model_id, model.description) for model in ALL_MODELS if model.is_active
+    ]
 
 
-def get_model(model_id: str) -> Optional[LLM]:
+# Default models for various modes
+DEFAULT_CHAT_MODEL_ID = "gpt-4.1-mini"
+DEFAULT_QA_MODEL_ID = "gpt-4.1-mini"
+DEFAULT_SUMMARIZE_MODEL_ID = "gpt-4.1-mini"
+DEFAULT_TRANSLATE_MODEL_ID = "gpt-4.1-mini"
+DEFAULT_LAWS_MODEL_ID = "gpt-4.1"
+
+
+def get_model(model_id: str) -> LLM:
     """
     Retrieves a model by its ID. If the model is deprecated, it returns
-    the model that replaces it.
+    the model that replaces it. If the model_id is not found, it returns
+    the default chat model.
     """
     model = MODELS_BY_ID.get(model_id)
     if model and model.deprecated_by:
-        return MODELS_BY_ID.get(model.deprecated_by)
-    return model
+        # Recursively find the current model
+        return get_model(model.deprecated_by)
+    if model:
+        return model
+    # Fallback to default if model_id is invalid
+    return MODELS_BY_ID[DEFAULT_CHAT_MODEL_ID]
+
+
+def get_updated_model_id(model_id: str) -> tuple[str, bool]:
+    """
+    Given a model_id, returns the current valid model_id for it and a boolean
+    indicating if it was changed (e.g., due to deprecation or invalid ID).
+    """
+    if not model_id or model_id not in MODELS_BY_ID:
+        # Model doesn't exist, so it's definitely updated to default.
+        return DEFAULT_CHAT_MODEL_ID, True
+
+    new_model = get_model(model_id)  # get_model handles deprecation chain
+    return new_model.model_id, new_model.model_id != model_id

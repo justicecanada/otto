@@ -29,7 +29,7 @@ from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
-from chat.models import AnswerSource, Chat, Message
+from chat.models import AnswerSource, Chat, ChatOptions, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS, current_time_prompt
 from otto.models import CostType, SecurityLabel
 from otto.utils.common import cad_cost, display_cad_cost
@@ -42,6 +42,8 @@ md = markdown.Markdown(
 
 
 def copy_options(source_options, target_options, user=None, chat=None, mode=None):
+    # Check the source_options for deprecated models
+    ChatOptions.objects.check_and_update_models(source_options)
     source_options = model_to_dict(source_options)
     # Remove the fields that are not part of the preset
     for field in ["id", "chat"]:
@@ -173,7 +175,7 @@ def get_model_name(chat_options):
     """
     Get the model used for the chat message.
     """
-    from chat.forms import CHAT_MODELS
+    from chat.llm_models import get_chat_model_choices
 
     model_key = ""
     if chat_options.mode == "qa":
@@ -182,9 +184,11 @@ def get_model_name(chat_options):
         model_key = chat_options.chat_model
     elif chat_options.mode == "summarize":
         model_key = chat_options.summarize_model
-    # CHAT_MODELS is a list of tuples
-    # (model_key, model_name)
-    model_name = [model[1] for model in CHAT_MODELS if model[0] == model_key]
+    # chat_model_choices is a list of tuples
+    # (model_key, model_description (including some stuff in parens))
+    model_name = [
+        model[1] for model in get_chat_model_choices() if model[0] == model_key
+    ]
     if model_name:
         return model_name[0].split("(")[0].strip()
     else:
