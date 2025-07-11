@@ -2,14 +2,15 @@ import time
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 from llama_index.core.schema import MediaResource
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
-from tqdm import tqdm
 
 from chat.llm import OttoLLM
+from librarian.tasks import delete_documents_from_vector_store
 
 logger = get_logger(__name__)
 
@@ -18,26 +19,19 @@ class LawManager(models.Manager):
 
     def from_docs_and_nodes(
         self,
+        law_status,
         document_en,
         nodes_en,
         document_fr,
         nodes_fr,
-        sha_256_hash_en,
-        sha_256_hash_fr,
-        add_to_vector_store=True,
-        force_update=False,
         llm=None,
+        current_task_id=None,
     ):
-        # Does this law already exist?
-        existing_law = self.filter(node_id_en=document_en.doc_id)
-        en_hash_changed = True
-        fr_hash_changed = True
-        if existing_law.exists():
-            obj = existing_law.first()
-            en_hash_changed = obj.sha_256_hash_en != sha_256_hash_en
-            fr_hash_changed = obj.sha_256_hash_fr != sha_256_hash_fr
-            logger.debug(f"en_hash_changed: {en_hash_changed}")
-            logger.debug(f"fr_hash_changed: {fr_hash_changed}")
+        from laws.tasks import cancellation_guard
+
+        # Updating an existing law?
+        if law_status.law:
+            obj = law_status.law
         else:
             obj = self.model()
 
@@ -73,48 +67,124 @@ class LawManager(models.Manager):
         obj.last_amended_date = document_en.metadata.get("last_amended_date", None)
         obj.current_date = document_en.metadata.get("current_date", None)
         obj.in_force_start_date = document_en.metadata.get("in_force_start_date", None)
-        obj.sha_256_hash_en = sha_256_hash_en
-        obj.sha_256_hash_fr = sha_256_hash_fr
+        # NOTE: Don't set sha_256_hash fields yet - only after successful vector store operations
+        obj.eng_law_id = law_status.eng_law_id
 
         obj.full_clean()
         obj.save()
 
-        if add_to_vector_store:
-            if llm is None:
-                return
+        if llm is None:
+            return obj
+
+        try:
             idx = llm.get_index("laws_lois__", hnsw=True)
             nodes = []
-            if existing_law.exists():
-                # Remove the old content from the vector store
-                if en_hash_changed or force_update:
-                    idx.delete_ref_doc(obj.node_id_en, delete_from_docstore=True)
-                if fr_hash_changed or force_update:
-                    idx.delete_ref_doc(obj.node_id_fr, delete_from_docstore=True)
-            if en_hash_changed or force_update:
-                nodes.append(document_en)
-                nodes.extend(nodes_en)
-            if fr_hash_changed or force_update:
-                nodes.append(document_fr)
-                nodes.extend(nodes_fr)
+            if law_status.law:
+                # Remove the old content from the vector store using consistent cleanup
+                try:
+                    delete_documents_from_vector_store(
+                        [obj.node_id_en, obj.node_id_fr], "laws_lois__"
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Error deleting nodes from vector store for law {obj.eng_law_id}: {e}"
+                    )
+            else:
+                law_status.law = obj
+                law_status.save()
+            # Always add the document and chunk nodes for embedding
+            nodes.append(document_en)
+            nodes.extend(nodes_en)
+            nodes.append(document_fr)
+            nodes.extend(nodes_fr)
             batch_size = 16
             logger.debug(
                 f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
             )
+            # Filter out or skip bad nodes gracefully
+            valid_nodes = []
             for node in nodes:
-                if not node.text.strip():
-                    node.text_resource = MediaResource(text=node.doc_id)
+                try:
+                    if hasattr(node, "text") and node.text and node.text.strip():
+                        valid_nodes.append(node)
+                    else:
+                        logger.warning(
+                            f"Skipping node with missing or empty text: {getattr(node, 'doc_id', 'unknown')}"
+                        )
+                except Exception as e:
+                    logger.warning(f"Skipping node due to error: {e}")
+            nodes = valid_nodes
 
-            for i in tqdm(range(0, len(nodes), batch_size)):
-                # Exponential backoff retry
-                for j in range(4, 12):
-                    try:
-                        idx.insert_nodes(nodes[i : i + batch_size])
-                        break
-                    except Exception as e:
-                        logger.error(f"Error inserting nodes: {e}")
-                        logger.error(f"Retrying in {2**j} seconds...")
-                        time.sleep(2**j)
-        return obj
+            original_details = law_status.details or ""
+            total_batches = (len(nodes) + batch_size - 1) // batch_size
+            for i in range(0, len(nodes), batch_size):
+                batch_num = (i // batch_size) + 1
+                logger.debug(f"Processing embedding batch {batch_num}/{total_batches}")
+                law_status.details = (
+                    f"{original_details} (embedding batch {batch_num}/{total_batches})"
+                )
+                law_status.save()
+                max_exponent = 7
+                for j in range(2, max_exponent + 1):
+                    with cancellation_guard(current_task_id):
+                        try:
+                            idx.insert_nodes(nodes[i : i + batch_size])
+                            break
+                        except Exception as e:
+                            logger.error(f"Error inserting nodes: {e}")
+                            logger.error(f"Retrying in {2**j} seconds...")
+                            if j == max_exponent:  # Last retry
+                                # Clean up partial entries and re-raise using consistent method
+                                raise Exception("Failed to insert nodes after retries.")
+                            with cancellation_guard(current_task_id):
+                                time.sleep(2**j)
+
+            # Only set hashes after successful vector store operations
+            obj.sha_256_hash_en = law_status.sha_256_hash_en
+            obj.sha_256_hash_fr = law_status.sha_256_hash_fr
+            obj.save()
+            return obj
+
+        except Exception as e:
+            # Clean up partial law object and vector store entries on any error
+            logger.error(f"Error in from_docs_and_nodes: {e}")
+            if obj.pk:  # Only try cleanup if object was saved
+                obj.delete()
+            raise
+
+    def purge(self, keep_ids):
+        """
+        Delete any Law objects where law.eng_law_id is not in law_ids
+        """
+        if not keep_ids:
+            return
+
+        to_delete = self.exclude(eng_law_id__in=set(keep_ids))
+
+        # Create LawLoadingStatus objects for purged laws and collect node_ids for cleanup
+        node_ids_to_delete = []
+        for law in to_delete:
+            LawLoadingStatus.objects.create(
+                law=None,
+                eng_law_id=law.eng_law_id,
+                status="deleted",
+                finished_at=timezone.now(),
+                details="Existing law not present in the list of laws to load",
+            )
+            # Collect node IDs for vector store cleanup
+            if law.node_id_en:
+                node_ids_to_delete.append(law.node_id_en)
+            if law.node_id_fr:
+                node_ids_to_delete.append(law.node_id_fr)
+
+        purged_count = int(to_delete.count())
+        if purged_count > 0:
+            logger.info(f"Purging {purged_count} Law objects not in keep_ids")
+            # Call delete manually on each law since we override delete method
+            for law in to_delete:
+                law.delete()
+        else:
+            logger.info("No Law objects to purge")
 
 
 class Law(models.Model):
@@ -144,10 +214,30 @@ class Law(models.Model):
     current_date = models.DateField(null=True, blank=True)
     in_force_start_date = models.DateField(null=True, blank=True)
 
+    # To correlate with the XML file name
+    eng_law_id = models.CharField(max_length=50, null=True, blank=True)
+
     objects = LawManager()
 
     def __str__(self):
         return self.title
+
+    def delete(self, *args, **kwargs):
+        """
+        Delete the law and clean up associated vector store entries.
+        """
+        # Use the existing librarian task to clean up vector store
+        # Pass node_ids as document_uuids and use laws_lois__ as library_uuid
+        try:
+            delete_documents_from_vector_store(
+                [self.node_id_en, self.node_id_fr], "laws_lois__"
+            )
+        except Exception as e:
+            logger.error(
+                f"Error deleting nodes from vector store for law {self.eng_law_id}: {e}"
+            )
+
+        super().delete(*args, **kwargs)
 
     @classmethod
     def reset(cls):
@@ -170,4 +260,77 @@ class Law(models.Model):
         indexes = [
             models.Index(fields=["title"]),
             models.Index(fields=["type"]),
+            models.Index(fields=["node_id"]),
         ]
+
+
+class JobStatusManager(models.Manager):
+    def singleton(self):
+        return self.get_or_create(pk=1)[0]
+
+
+class JobStatus(models.Model):
+    objects = JobStatusManager()
+
+    status = models.CharField(max_length=50, default="not_started", blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+    celery_task_id = models.CharField(max_length=255, null=True, blank=True)
+
+    def cancel(self):
+        """
+        Cancel the job by setting status to 'cancelled' and updating finished_at.
+        """
+        if self.celery_task_id:
+            from celery import current_app
+
+            # Cancel the Celery task if it exists
+            task = current_app.AsyncResult(self.celery_task_id)
+            if task:
+                try:
+                    task.revoke()
+                except Exception as e:
+                    logger.error(
+                        f"Error cancelling Celery task {self.celery_task_id}: {e}"
+                    )
+
+        # Update job status
+        self.status = "cancelled"
+        self.finished_at = timezone.now()
+        self.error_message = "Job was cancelled by user."
+        self.save()
+
+
+class LawLoadingStatus(models.Model):
+    law = models.OneToOneField(
+        Law,
+        on_delete=models.SET_NULL,
+        related_name="loading_status",
+        null=True,
+        blank=True,
+    )
+    eng_law_id = models.CharField(max_length=50, null=True, blank=True)
+    STATUS_CHOICES = [
+        ("pending_new", "Pending (New)"),
+        ("pending_update", "Pending (Update)"),
+        ("parsing_xml", "Parsing XML"),
+        ("embedding_nodes", "Embedding Nodes"),
+        ("finished_new", "Finished (New)"),
+        ("finished_update", "Finished (Update)"),
+        ("finished_nochange", "Finished (No Change)"),
+        ("error", "Error"),
+        ("deleted", "Deleted"),
+        ("empty", "Empty"),
+        ("cancelled", "Cancelled"),
+    ]
+    status = models.CharField(
+        max_length=50, default="pending_new", choices=STATUS_CHOICES
+    )
+    details = models.TextField(null=True, blank=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+    cost = models.FloatField(default=0.0)
+    sha_256_hash_en = models.CharField(max_length=64, null=True, blank=True)
+    sha_256_hash_fr = models.CharField(max_length=64, null=True, blank=True)

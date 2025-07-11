@@ -112,16 +112,18 @@ You should generate translations before making a PR if your branch has modified 
 
 For the legislation search app to function, we must load the XML files into the database.
 
+You can use the management GUI from the user dropdown if you are an Otto admin. Alternately...
+
 To download the [laws-lois-xml](https://github.com/justicecanada/laws-lois-xml) repo, and load an absolute minimum of laws (1 act, 1 regulation) into Django and the vector database, run the following:
 
 ```bash
-python django/manage.py load_laws_xml --reset --small
+python django/manage.py load_laws_xml --reset --small --start
 ```
 
 To load around 50 laws into Django and the vector database, run the following. It should take around half an hour and cost $2:
 
 ```bash
-python django/manage.py load_laws_xml --reset
+python django/manage.py load_laws_xml --reset --start
 ```
 
 * To load all laws (slow and quite expensive - around $20; 8 hours), add the `--full` flag.
