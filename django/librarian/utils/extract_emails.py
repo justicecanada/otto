@@ -39,6 +39,7 @@ def extract_msg(content, root_document_id):
                     "extract_msg",
                     temp_file_path,
                     "--json",
+                    "--skip-hidden",
                     "--extract-embedded",
                     "--out",
                     directory,
