@@ -62,10 +62,10 @@
         <p class="text">
             <a id="prevFileLink" class="nav" href="z_acf2da0532080a46_import_timer_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a id="nextFileLink" class="nav" href="z_ecd02b823ce06a50_load_laws_xml_py.html">&#xbb; next</a>
+            <a id="nextFileLink" class="nav" href="z_566cdf2bd0151013_loading_utils_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.9.2">coverage.py v7.9.2</a>,
-            created at 2025-07-10 20:14 +0000
+            created at 2025-07-11 18:29 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -247,8 +247,8 @@
     <p class="run"><span class="n"><a id="t165" href="#t165">165</a></span><span class="t">    <span class="nam">top_k</span> <span class="op">=</span> <span class="nam">forms</span><span class="op">.</span><span class="nam">IntegerField</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t166" href="#t166">166</a></span><span class="t">        <span class="nam">label</span><span class="op">=</span><span class="nam">_</span><span class="op">(</span><span class="str">"Number of sources"</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t167" href="#t167">167</a></span><span class="t">        <span class="nam">min_value</span><span class="op">=</span><span class="num">1</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t168" href="#t168">168</a></span><span class="t">        <span class="nam">max_value</span><span class="op">=</span><span class="num">100</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t169" href="#t169">169</a></span><span class="t">        <span class="nam">initial</span><span class="op">=</span><span class="num">25</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t168" href="#t168">168</a></span><span class="t">        <span class="nam">max_value</span><span class="op">=</span><span class="num">250</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t169" href="#t169">169</a></span><span class="t">        <span class="nam">initial</span><span class="op">=</span><span class="num">50</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t170" href="#t170">170</a></span><span class="t">        <span class="nam">widget</span><span class="op">=</span><span class="nam">forms</span><span class="op">.</span><span class="nam">NumberInput</span><span class="op">(</span><span class="nam">attrs</span><span class="op">=</span><span class="op">{</span><span class="str">"class"</span><span class="op">:</span> <span class="str">"form-control"</span><span class="op">}</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t171" href="#t171">171</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t172" href="#t172">172</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -267,10 +267,10 @@
     <p class="pln"><span class="n"><a id="t185" href="#t185">185</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t186" href="#t186">186</a></span><span class="t">    <span class="nam">context_tokens</span> <span class="op">=</span> <span class="nam">forms</span><span class="op">.</span><span class="nam">IntegerField</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t187" href="#t187">187</a></span><span class="t">        <span class="nam">label</span><span class="op">=</span><span class="nam">_</span><span class="op">(</span><span class="str">"Max input tokens"</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t188" href="#t188">188</a></span><span class="t">        <span class="nam">min_value</span><span class="op">=</span><span class="num">500</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t189" href="#t189">189</a></span><span class="t">        <span class="nam">max_value</span><span class="op">=</span><span class="num">100000</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t190" href="#t190">190</a></span><span class="t">        <span class="nam">initial</span><span class="op">=</span><span class="num">5000</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t191" href="#t191">191</a></span><span class="t">        <span class="nam">widget</span><span class="op">=</span><span class="nam">forms</span><span class="op">.</span><span class="nam">NumberInput</span><span class="op">(</span><span class="nam">attrs</span><span class="op">=</span><span class="op">{</span><span class="str">"class"</span><span class="op">:</span> <span class="str">"form-control"</span><span class="op">,</span> <span class="str">"step"</span><span class="op">:</span> <span class="num">500</span><span class="op">}</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t188" href="#t188">188</a></span><span class="t">        <span class="nam">min_value</span><span class="op">=</span><span class="num">1000</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t189" href="#t189">189</a></span><span class="t">        <span class="nam">max_value</span><span class="op">=</span><span class="num">150000</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t190" href="#t190">190</a></span><span class="t">        <span class="nam">initial</span><span class="op">=</span><span class="num">16000</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t191" href="#t191">191</a></span><span class="t">        <span class="nam">widget</span><span class="op">=</span><span class="nam">forms</span><span class="op">.</span><span class="nam">NumberInput</span><span class="op">(</span><span class="nam">attrs</span><span class="op">=</span><span class="op">{</span><span class="str">"class"</span><span class="op">:</span> <span class="str">"form-control"</span><span class="op">,</span> <span class="str">"step"</span><span class="op">:</span> <span class="num">1000</span><span class="op">}</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t192" href="#t192">192</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t193" href="#t193">193</a></span><span class="t">    <span class="nam">additional_instructions</span> <span class="op">=</span> <span class="nam">forms</span><span class="op">.</span><span class="nam">CharField</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t194" href="#t194">194</a></span><span class="t">        <span class="nam">label</span><span class="op">=</span><span class="nam">_</span><span class="op">(</span><span class="str">"Additional instructions for AI answer"</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -332,10 +332,10 @@
         <p>
             <a class="nav" href="z_acf2da0532080a46_import_timer_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a class="nav" href="z_ecd02b823ce06a50_load_laws_xml_py.html">&#xbb; next</a>
+            <a class="nav" href="z_566cdf2bd0151013_loading_utils_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.9.2">coverage.py v7.9.2</a>,
-            created at 2025-07-10 20:14 +0000
+            created at 2025-07-11 18:29 +0000
         </p>
     </div>
 </footer>
