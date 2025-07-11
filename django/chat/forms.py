@@ -16,7 +16,7 @@ from django_file_form.forms import FileFormMixin, MultipleUploadedFileField
 from rules import is_group_member
 from structlog import get_logger
 
-from chat.llm import CHAT_MODELS
+from chat.llm_models import get_chat_model_choices
 from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
@@ -313,7 +313,7 @@ class ChatOptionsForm(ModelForm):
             "qa_model",
         ]:
             self.fields[field].widget = forms.Select(
-                choices=CHAT_MODELS,
+                choices=get_chat_model_choices(),
                 attrs={
                     "class": "form-select form-select-sm",
                     "onchange": "triggerOptionSave();",

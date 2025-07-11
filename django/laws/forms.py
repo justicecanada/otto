@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 
-from chat.llm import CHAT_MODELS
+from chat.llm_models import get_chat_model_choices
 
 from .models import Law
 from .prompts import default_additional_instructions
@@ -179,7 +179,7 @@ class LawSearchForm(forms.Form):
     )
     model = forms.ChoiceField(
         label=_("AI model"),
-        choices=CHAT_MODELS,  # This will be populated dynamically in the view
+        choices=get_chat_model_choices(),
         initial=settings.DEFAULT_LAWS_MODEL,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
