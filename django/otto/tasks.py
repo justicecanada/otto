@@ -12,13 +12,6 @@ def sync_users():
 
 
 @shared_task
-def update_laws():
-    call_command(
-        "load_laws_xml", "--force_download", "--full", "--reset", "--accept_reset"
-    )
-
-
-@shared_task
 def reset_monthly_bonus():
     from otto.models import User
 

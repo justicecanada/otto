@@ -3895,6 +3895,402 @@
         "fr": "",
         "fr_auto": "Sélectionnez une bibliothèque, un dossier ou un document à consulter."
     },
+    "Laws Loading Monitor": {
+        "fr": "",
+        "fr_auto": "Moniteur de chargement des lois"
+    },
+    "Laws Loading Monitor - Otto": {
+        "fr": "",
+        "fr_auto": "Surveillant de chargement des lois - Otto"
+    },
+    "Monitor, start and cancel the law loading process. This process downloads and processes Canadian legislation from the laws-lois-xml repository.": {
+        "fr": "",
+        "fr_auto": "Surveiller, lancer et annuler le processus de chargement des lois. Ce processus télécharge et traite la législation canadienne à partir du dépôt laws-lois-xml."
+    },
+    "Control Panel": {
+        "fr": "",
+        "fr_auto": "Panneau de commande"
+    },
+    "Load Options": {
+        "fr": "",
+        "fr_auto": "Options de chargement"
+    },
+    "Small (sample only)": {
+        "fr": "",
+        "fr_auto": "Petit (échantillon seulement)"
+    },
+    "Full (all legislation)": {
+        "fr": "",
+        "fr_auto": "Complet (toutes les lois)"
+    },
+    "Constitution only": {
+        "fr": "",
+        "fr_auto": "Constitution seulement"
+    },
+    "Advanced Options": {
+        "fr": "",
+        "fr_auto": "Options avancées"
+    },
+    "Reset database": {
+        "fr": "",
+        "fr_auto": "Réinitialiser la base de données"
+    },
+    "Force re-download": {
+        "fr": "",
+        "fr_auto": "Forcer le retéléchargement"
+    },
+    "Force update existing": {
+        "fr": "",
+        "fr_auto": "Mise à jour de la Force existante"
+    },
+    "Mock embedding (debug)": {
+        "fr": "",
+        "fr_auto": "Intégration fictive (débogage)"
+    },
+    "Debug mode": {
+        "fr": "",
+        "fr_auto": "Mode de débogage"
+    },
+    "Start Job": {
+        "fr": "",
+        "fr_auto": "Commencer l’emploi"
+    },
+    "Are you sure you want to cancel the running job?": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir annuler la tâche en cours d’exécution?"
+    },
+    "Cancel Job": {
+        "fr": "",
+        "fr_auto": "Annuler l’emploi"
+    },
+    "All Laws (Detailed View)": {
+        "fr": "",
+        "fr_auto": "Toutes les lois (vue détaillée)"
+    },
+    "Toggle": {
+        "fr": "",
+        "fr_auto": "Basculer"
+    },
+    "Law ID": {
+        "fr": "",
+        "fr_auto": "Numéro d’identification de la loi"
+    },
+    "Started": {
+        "fr": "",
+        "fr_auto": "Début"
+    },
+    "Finished": {
+        "fr": "",
+        "fr_auto": "Terminé"
+    },
+    "Job Status": {
+        "fr": "",
+        "fr_auto": "Statut de l’emploi"
+    },
+    "Time Elapsed": {
+        "fr": "",
+        "fr_auto": "Temps écoulé"
+    },
+    "Purged": {
+        "fr": "",
+        "fr_auto": "Purgé"
+    },
+    "Progress Overview": {
+        "fr": "",
+        "fr_auto": "Aperçu des progrès"
+    },
+    "Overall Progress": {
+        "fr": "",
+        "fr_auto": "Progrès globaux"
+    },
+    "Errors": {
+        "fr": "",
+        "fr_auto": "Erreurs"
+    },
+    "Empty": {
+        "fr": "",
+        "fr_auto": "Vide"
+    },
+    "Pending": {
+        "fr": "",
+        "fr_auto": "En attente"
+    },
+    "Parsing": {
+        "fr": "",
+        "fr_auto": "Analyse"
+    },
+    "Embedding": {
+        "fr": "",
+        "fr_auto": "Intégration"
+    },
+    "No laws to process": {
+        "fr": "",
+        "fr_auto": "Aucune loi à traiter"
+    },
+    "Currently Processing": {
+        "fr": "",
+        "fr_auto": "En cours de traitement"
+    },
+    "Recent Laws": {
+        "fr": "",
+        "fr_auto": "Lois récentes"
+    },
+    "Manage laws loading": {
+        "fr": "",
+        "fr_auto": "Gérer le chargement des lois"
+    },
+    "List of loaded legislation": {
+        "fr": "",
+        "fr_auto": "Liste des lois chargées"
+    },
+    "List of loaded legislation - Otto": {
+        "fr": "",
+        "fr_auto": "Liste des lois chargées - Otto"
+    },
+    "See when each act or regulation was last loaded into Otto": {
+        "fr": "",
+        "fr_auto": "Voyez quand chaque loi ou règlement a été chargé pour la dernière fois dans Otto"
+    },
+    "Loading Monitor": {
+        "fr": "",
+        "fr_auto": "Moniteur de chargement"
+    },
+    "Total Laws": {
+        "fr": "",
+        "fr_auto": "Total des lois"
+    },
+    "With Loading Status": {
+        "fr": "",
+        "fr_auto": "Avec l’état de chargement"
+    },
+    "Without Loading Status": {
+        "fr": "",
+        "fr_auto": "Sans statut de chargement"
+    },
+    "All Legislation": {
+        "fr": "",
+        "fr_auto": "Toutes les lois"
+    },
+    "items": {
+        "fr": "",
+        "fr_auto": "Objets"
+    },
+    "Title": {
+        "fr": "",
+        "fr_auto": "Titre"
+    },
+    "Loading Status": {
+        "fr": "",
+        "fr_auto": "État du chargement"
+    },
+    "Duration": {
+        "fr": "",
+        "fr_auto": "Durée"
+    },
+    "Actions": {
+        "fr": "",
+        "fr_auto": "Mesures à prendre"
+    },
+    "No status": {
+        "fr": "",
+        "fr_auto": "Aucun statut"
+    },
+    "No laws found": {
+        "fr": "",
+        "fr_auto": "Aucune loi trouvée"
+    },
+    "Showing all": {
+        "fr": "",
+        "fr_auto": "Tout afficher"
+    },
+    "laws": {
+        "fr": "",
+        "fr_auto": "Lois"
+    },
+    "Error Details": {
+        "fr": "",
+        "fr_auto": "Détails de l’erreur"
+    },
+    "Law:": {
+        "fr": "",
+        "fr_auto": "Droit :"
+    },
+    "Started At:": {
+        "fr": "",
+        "fr_auto": "A commencé à :"
+    },
+    "Failed At:": {
+        "fr": "",
+        "fr_auto": "Échec à :"
+    },
+    "Error Message:": {
+        "fr": "",
+        "fr_auto": "Message d’erreur :"
+    },
+    "Legislation loading monitor - Otto": {
+        "fr": "",
+        "fr_auto": "Surveillant de la charge de la législation - Otto"
+    },
+    "Legislation Loading Monitor": {
+        "fr": "",
+        "fr_auto": "Surveillant du chargement de la législation"
+    },
+    "Monitor, start and cancel the law loading process. This process downloads and imports Canadian federal legislation from the laws-lois-xml repository.": {
+        "fr": "",
+        "fr_auto": "Surveiller, lancer et annuler le processus de chargement des lois. Ce processus télécharge et importe la législation fédérale canadienne à partir du dépôt laws-lois-xml."
+    },
+    "Select load type": {
+        "fr": "",
+        "fr_auto": "Sélectionnez le type de charge"
+    },
+    "Full load (all legislation)": {
+        "fr": "",
+        "fr_auto": "Pleine charge (toutes les lois)"
+    },
+    "Subset (26 acts/regs)": {
+        "fr": "",
+        "fr_auto": "Sous-ensemble (26 lois/règlements)"
+    },
+    "Tiny (1 act, 1 reg)": {
+        "fr": "",
+        "fr_auto": "Tiny (1 acte, 1 rég)"
+    },
+    "Re-download XML files": {
+        "fr": "",
+        "fr_auto": "Télécharger à nouveau les fichiers XML"
+    },
+    "Force update existing laws": {
+        "fr": "",
+        "fr_auto": "Mettre à jour les lois existantes par la Force"
+    },
+    "Mock embedding (test only)": {
+        "fr": "",
+        "fr_auto": "Intégration fictive (test seulement)"
+    },
+    "Start time": {
+        "fr": "",
+        "fr_auto": "Heure de début"
+    },
+    "End time": {
+        "fr": "",
+        "fr_auto": "Heure de fin"
+    },
+    "Time elapsed": {
+        "fr": "",
+        "fr_auto": "Temps écoulé"
+    },
+    "Total cost": {
+        "fr": "",
+        "fr_auto": "Coût total"
+    },
+    "Pending:": {
+        "fr": "",
+        "fr_auto": "En attente :"
+    },
+    "Finished:": {
+        "fr": "",
+        "fr_auto": "Terminé :"
+    },
+    "Updated": {
+        "fr": "",
+        "fr_auto": "Mise à jour"
+    },
+    "No changes": {
+        "fr": "",
+        "fr_auto": "Aucun changement"
+    },
+    "Other:": {
+        "fr": "",
+        "fr_auto": "Autres :"
+    },
+    "Deleted": {
+        "fr": "",
+        "fr_auto": "Supprimé"
+    },
+    "Recently Processed": {
+        "fr": "",
+        "fr_auto": "Récemment traité"
+    },
+    "Cost (CAD)": {
+        "fr": "",
+        "fr_auto": "Coût (CAD)"
+    },
+    "Search federal acts and regulations using natural language.": {
+        "fr": "",
+        "fr_auto": "Faites des recherches dans les lois et règlements fédéraux en utilisant le langage naturel."
+    },
+    "Does not include case law.": {
+        "fr": "",
+        "fr_auto": "Ne comprend pas la jurisprudence."
+    },
+    "Full loading status": {
+        "fr": "",
+        "fr_auto": "Statut de chargement complet"
+    },
+    "Last Job Started": {
+        "fr": "",
+        "fr_auto": "Dernier emploi commencé"
+    },
+    "Total Entries": {
+        "fr": "",
+        "fr_auto": "Nombre total d’entrées"
+    },
+    "Loaded Laws": {
+        "fr": "",
+        "fr_auto": "Lois chargées"
+    },
+    "Loaded Legislation": {
+        "fr": "",
+        "fr_auto": "Législation chargée"
+    },
+    "Last Amended": {
+        "fr": "",
+        "fr_auto": "Dernière modification"
+    },
+    "No title available": {
+        "fr": "",
+        "fr_auto": "Aucun titre disponible"
+    },
+    "No loaded laws found": {
+        "fr": "",
+        "fr_auto": "Aucune loi chargée trouvée"
+    },
+    "Showing": {
+        "fr": "",
+        "fr_auto": "Affichage"
+    },
+    "loaded laws": {
+        "fr": "",
+        "fr_auto": "Lois chargées"
+    },
+    "Exceptions": {
+        "fr": "",
+        "fr_auto": "Exceptions"
+    },
+    "Description": {
+        "fr": "",
+        "fr_auto": "Désignation des marchandises"
+    },
+    "No exceptions found": {
+        "fr": "",
+        "fr_auto": "Aucune exception n’a été trouvée"
+    },
+    "exceptions": {
+        "fr": "",
+        "fr_auto": "Exceptions"
+    },
+    "No pending laws found": {
+        "fr": "",
+        "fr_auto": "Aucune loi en attente n’a été trouvée"
+    },
+    "pending laws": {
+        "fr": "",
+        "fr_auto": "lois en attente"
+    },
+    "Law ID:": {
+        "fr": "",
+        "fr_auto": "Numéro d’identification de la loi :"
+    },
     "Deferred": {
         "fr": "",
         "fr_auto": "Reporté"
@@ -3919,8 +4315,12 @@
         "fr": "",
         "fr_auto": "Ajoutez des notes ou des détails supplémentaires."
     },
-    "Users selected above will be added as viewers to library": {
+    "This will delete all laws not in the selected set, and could temporarily result in some laws being unavailable while loading. Are you sure you want to start the loading job?": {
         "fr": "",
-        "fr_auto": "Les utilisateurs sélectionnés ci-dessus seront ajoutés à la bibliothèque"
+        "fr_auto": "Cela supprimera toutes les lois qui ne font pas partie de l’ensemble sélectionné et pourrait temporairement entraîner l’indisponibilité de certaines lois pendant le chargement. Êtes-vous sûr de vouloir commencer le travail de chargement?"
+    },
+    "Checking": {
+        "fr": "",
+        "fr_auto": "Vérification"
     }
 }

@@ -18,7 +18,7 @@ echo "Loading corporate library..."
 
 # Load laws XML
 echo "Loading laws XML..."
-{ python manage.py load_laws_xml --small --reset --accept_reset || { echo "Error: Load laws XML failed"; exit 1; } }
+{ python manage.py load_laws_xml --small --reset --start || { echo "Error: Load laws XML failed"; exit 1; } }
 
 # Load users
 echo "Syncing users..."
