@@ -286,13 +286,23 @@ def update_laws(
                         )
 
         # Finalize job status
-        if not is_cancelled(current_task_id):
-            job_status.status = "rebuilding_indexes"
-            job_status.save()
-            finalize_law_loading_task(downloaded=force_download)
-            job_status.status = "finished"
+        job_status.status = "rebuilding_indexes"
+        job_status.save()
+        finalize_law_loading_task(downloaded=force_download)
+        job_status.status = "finished"
+        job_status.finished_at = now()
+        job_status.save()
+
+    except CancelledError:
+        logger.info("Job was cancelled in update_laws.")
+        try:
+            job_status = JobStatus.objects.singleton()
+            job_status.status = "cancelled"
+            job_status.error_message = "Job was cancelled by user."
             job_status.finished_at = now()
             job_status.save()
+        except Exception as save_error:
+            logger.error(f"Could not save job_status due to error: {save_error}")
 
     except Exception as exc:
         logger.error(f"Error in initiate_law_loading_task: {exc}")
