@@ -955,13 +955,6 @@ def test_preset(client, basic_user, all_apps_user):
 
     # Test editing an existing preset
     client.force_login(user)
-    # Create new private library, then share it with user 2 by sharing an associate preset
-    new_library = Library.objects.create(
-        name="Eventual Public Library", created_by=user
-    )
-    LibraryUserRole.objects.create(user=user, library=new_library, role="admin")
-    chat.options.qa_library = new_library
-    chat.options.save()
     response = client.post(
         reverse(
             "chat:chat_options",
@@ -978,6 +971,7 @@ def test_preset(client, basic_user, all_apps_user):
             "accessible_to": [user2.id],
             "prompt": "",
         },
+        follow=True,
     )
     assert response.status_code == 200
     preset.refresh_from_db()
@@ -988,21 +982,17 @@ def test_preset(client, basic_user, all_apps_user):
 
     # make sure the preset is in the preset list of user 2 but that user 3 cannot view it
     client.force_login(user2)
-    response = client.get(reverse("chat:get_presets", kwargs={"chat_id": chat2.id}))
+    response = client.get(
+        reverse("chat:get_presets", kwargs={"chat_id": chat2.id}), follow=True
+    )
     assert "Updated Preset" in response.content.decode()
-    chat.options.refresh_from_db()
-    assert chat.options.qa_library == new_library
-
-    new_library.refresh_from_db()
-    assert new_library.is_public == False
-    assert LibraryUserRole.objects.filter(
-        library=new_library, user=user2, role="viewer"
-    ).exists()
 
     user3 = all_apps_user("user3")
     chat3 = Chat.objects.create(user=user3)
     client.force_login(user3)
-    response = client.get(reverse("chat:get_presets", kwargs={"chat_id": chat3.id}))
+    response = client.get(
+        reverse("chat:get_presets", kwargs={"chat_id": chat3.id}), follow=True
+    )
     assert "Updated Preset" not in response.content.decode()
 
     # Test loading the preset as user 2
@@ -1015,7 +1005,8 @@ def test_preset(client, basic_user, all_apps_user):
                 "action": "load_preset",
                 "preset_id": preset.id,
             },
-        )
+        ),
+        follow=True,
     )
 
     last_message = list(response.context["messages"])[-1]
@@ -1029,7 +1020,9 @@ def test_preset(client, basic_user, all_apps_user):
 
     client.force_login(user)
     # Test setting the preset as default
-    response = client.get(reverse("chat:set_preset_default", args=[preset.id, chat.id]))
+    response = client.get(
+        reverse("chat:set_preset_default", args=[preset.id, chat.id]), follow=True
+    )
     assert response.status_code == 200
     user.refresh_from_db()
     assert user.default_preset == preset
@@ -1063,6 +1056,7 @@ def test_preset(client, basic_user, all_apps_user):
             "accessible_to": [user2.id],
             "prompt": "",
         },
+        follow=True,
     )
     assert response.status_code == 200
     preset = Preset.objects.get(name_en="Personal Library Preset")
@@ -1105,9 +1099,40 @@ def test_preset(client, basic_user, all_apps_user):
     chat2.options.qa_pre_instructions = ""
     chat2.options.save()
 
-    # Make new_libary it public by sharing an
-    # associated preset with everyone
+    # Create new private library, then share it with user 2 by sharing a new associated preset
     client.force_login(user)
+    new_library = Library.objects.create(
+        name="Eventual Public Library", created_by=user
+    )
+    LibraryUserRole.objects.create(user=user, library=new_library, role="admin")
+    chat.options.qa_library = new_library
+    chat.options.save()
+
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={
+                "chat_id": chat.id,
+                "action": "create_preset",
+            },
+        ),
+        data={
+            "name_en": "New Preset",
+            "description_en": "New Description",
+            "sharing_option": "others",
+            "accessible_to": [user2.id],
+            "prompt": "",
+        },
+    )
+
+    new_library.refresh_from_db()
+    assert new_library.is_public == False
+    assert LibraryUserRole.objects.filter(
+        library=new_library, user=user2, role="viewer"
+    ).exists()
+
+    # Make new_library public by sharing an
+    # associated preset with everyone
     chat4 = Chat.objects.create(user=user)
     chat4.options.qa_library = new_library
     chat4.options.save()

@@ -95,7 +95,6 @@
                name="accessible_to"
                value="{{ form.accessible_to.value }}">
       {% endif %}
-      {% include "chat/modals/presets/library_change_warning.html" %}
       {% include "chat/modals/presets/public_preset_warning.html" %}
     </div>
     <div class="modal-footer pb-0">
@@ -174,15 +173,9 @@
   function toggleOtherUsers() {
     const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
     if (selectedOption) {
-      if (selectedOption.value === 'private'){
-        document.getElementById("library-change-warning").classList.add("d-none");
-        otherUsers.classList.add('d-none');
-      }
-      else if (selectedOption.value === 'others') {
-        document.getElementById("library-change-warning").classList.remove("d-none");
+      if (selectedOption.value === 'others') {
         otherUsers.classList.remove('d-none');
       } else {
-        document.getElementById("library-change-warning").classList.remove("d-none");
         otherUsers.classList.add('d-none');
       }
       if (!initially_public) {

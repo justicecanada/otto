@@ -48,12 +48,7 @@ function handlePresetModalSubmit(event) {
   document.querySelector('input[name=\'prompt\']').value = document.getElementById('chat-prompt').value;
 
   // Only dismiss modal if validation passes
-  if (isValid) {
-    const modal = bootstrap.Modal.getInstance(document.getElementById('presets-modal'));
-    if (modal) {
-      modal.hide();
-    }
-  } else {
+  if (!isValid) {
     errorMessage.focus();
   }
 }

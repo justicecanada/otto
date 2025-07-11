@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -582,9 +583,11 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 preset.name_fr = french_title
                 preset.description_en = form.cleaned_data["description_en"]
                 preset.description_fr = form.cleaned_data["description_fr"]
+
                 preset.sharing_option = form.cleaned_data.get("sharing_option", None)
 
                 accessible_to = form.cleaned_data.get("accessible_to", [])
+
                 preset.save()
 
                 # clear the accessible_to field if the user changes the sharing option to private
@@ -600,39 +603,14 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                     _("Preset saved successfully."),
                 )
 
-                library = chat.options.qa_library
-                if (
-                    library
-                    and not library.is_public
-                    and request.user.has_perm("librarian.manage_library_users", library)
-                ):
-                    if preset.sharing_option == "everyone":
-                        library.is_public = True
-                        library.save()
-                    elif preset.sharing_option == "others":
-                        user_form = LibraryUsersForm(
-                            library=library,
-                            data={
-                                "viewers": accessible_to.union(
-                                    User.objects.filter(
-                                        library_roles__library=library,
-                                        library_roles__role="viewer",
-                                    )
-                                )
-                            },
-                        )
-
-                        for field in ["admins", "contributors"]:
-                            user_form.data[field] = user_form.fields[field].initial
-
-                        if user_form.is_valid():
-                            user_form.save()
-
-                return HttpResponse(status=200)
+                return library_access(
+                    request, preset, preset.options.qa_library, action
+                )
 
         return HttpResponse(status=500)
     elif action == "update_preset":
         preset = get_object_or_404(Preset, id=preset_id)
+        old_library = preset.options.qa_library
         copy_options(chat.options, preset.options)
         preset.options.prompt = request.POST.get("prompt", "")
         preset.options.save()
@@ -640,7 +618,14 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             request,
             _("Preset updated successfully."),
         )
-        return HttpResponse(status=200)
+
+        return library_access(
+            request,
+            preset,
+            preset.options.qa_library,
+            action,
+            (old_library if old_library != preset.options.qa_library else None),
+        )
     elif action == "delete_preset":
         # check each chat instance of the user to see if the preset is loaded
         for chat_instance in Chat.objects.filter(user=request.user):
@@ -673,6 +658,86 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
     else:
         return HttpResponse(status=500)
+
+
+def library_access(request, preset, library, action, old_library=None):
+    keep_open = False
+    message = ""
+
+    if (
+        library
+        and not library.is_public
+        and request.user.has_perm("librarian.manage_library_users", library)
+    ):
+        if preset.sharing_option == "everyone":
+            library.is_public = True
+            library.save()
+            message = f"""
+                {_("This preset is accessible to all users.")}
+                {_("By saving it, you have made the attached library")} ({library}) {_("publicly viewable.")}
+                """
+        elif preset.sharing_option == "others":
+            potential_new_viewers = list(
+                User.objects.filter(
+                    ~Q(library_roles__library=library) & Q(accessible_presets=preset)
+                )
+            )
+
+            user_form = LibraryUsersForm(
+                library=library,
+                data={
+                    "viewers": preset.accessible_to.union(
+                        User.objects.filter(
+                            library_roles__library=library,
+                            library_roles__role="viewer",
+                        )
+                    )
+                },
+            )
+
+            for field in ["admins", "contributors"]:
+                user_form.data[field] = user_form.fields[field].initial
+
+            if user_form.is_valid():
+                user_form.save()
+                if potential_new_viewers:
+                    message = f"""
+                        {_("The following preset recipients can now view the attached library")} ({library}).
+                        {", ".join(user.full_name for user in potential_new_viewers)}
+                        """
+
+    elif (old_library or action == "create_preset") and not (
+        library.is_public
+        or request.user.has_perm("librarian.manage_library_users", library)
+    ):
+        if library.is_personal_library:
+            message = _(
+                "The recipients of this preset will not be able to see your attached personal library."
+            )
+        elif preset.sharing_option != "private":
+            message = f"""
+            {_("Recipients of this preset may not be able to see the attached library")} ({library})
+            {_("unless a library administrator has granted them access.")}
+            """
+
+    if old_library and request.user.has_perm(
+        "librarian.manage_library_users", old_library
+    ):
+        message += f"""
+        {_("Note: this action does NOT change permissions for the previously attached library")} ({old_library}).
+        """
+
+    if message:
+        message += _(
+            "To adjust permissions on your libraries, use the 'Manage Libraries' button."
+        )
+        keep_open = True
+
+    return render(
+        request,
+        "chat/modals/presets/library_check.html",
+        {"keep_open": keep_open, "message": message},
+    )
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
@@ -917,13 +982,6 @@ def edit_preset(request, chat_id, preset_id):
             "can_delete": request.user.has_perm("chat.delete_preset", preset),
             "is_public": preset.sharing_option == "everyone",
             "is_global_default": preset.global_default,
-            "library": (
-                library
-                if library
-                and not library.is_public
-                and request.user.has_perm("librarian.manage_library_users", library)
-                else None
-            ),
         },
     )
 
