@@ -4322,5 +4322,13 @@
     "Checking": {
         "fr": "",
         "fr_auto": "Vérification"
+    },
+    "The recipients of this preset will not be able to see your attached personal library.": {
+        "fr": "",
+        "fr_auto": "Les destinataires de ce préréglage ne pourront pas voir votre bibliothèque personnelle ci-jointe."
+    },
+    "To adjust permissions on your libraries, use the 'Manage Libraries' button.": {
+        "fr": "",
+        "fr_auto": "Pour ajuster les autorisations de vos bibliothèques, utilisez le bouton « Gérer les bibliothèques »."
     }
 }
