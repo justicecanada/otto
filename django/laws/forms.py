@@ -165,8 +165,8 @@ class LawSearchForm(forms.Form):
     top_k = forms.IntegerField(
         label=_("Number of sources"),
         min_value=1,
-        max_value=100,
-        initial=25,
+        max_value=250,
+        initial=50,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
     )
 
@@ -185,10 +185,10 @@ class LawSearchForm(forms.Form):
     )
     context_tokens = forms.IntegerField(
         label=_("Max input tokens"),
-        min_value=500,
-        max_value=100000,
-        initial=5000,
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": 500}),
+        min_value=1000,
+        max_value=150000,
+        initial=16000,
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": 1000}),
     )
     additional_instructions = forms.CharField(
         label=_("Additional instructions for AI answer"),
