@@ -226,7 +226,7 @@ def update_laws(
                 law_status.sha_256_hash_fr = new_fr_hash
                 law_status.save()
 
-        job_status.status = "processing"
+        job_status.status = "generating_hashes"
         job_status.save()
 
         new_laws = set(eng_law_ids) - set(
@@ -263,6 +263,8 @@ def update_laws(
 
             new_law_statuses = LawLoadingStatus.objects.bulk_create(new_law_statuses)
 
+        job_status.status = "loading_laws"
+        job_status.save()
         for law_status in LawLoadingStatus.objects.filter(finished_at__isnull=True):
             with cancellation_guard(current_task_id):
                 try:
