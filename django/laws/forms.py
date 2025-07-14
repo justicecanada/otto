@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 
+from chat.forms import SelectWithOptionClasses
 from chat.llm_models import get_grouped_chat_model_choices
 
 from .models import Law
@@ -67,7 +68,7 @@ class LawsAutocomplete(HTMXAutoComplete):
         return []
 
 
-class SelectWithModelGroups(forms.Select):
+class SelectWithModelGroups(SelectWithOptionClasses):
     def optgroups(self, name, value, attrs=None):
         groups = []
         has_selected = False

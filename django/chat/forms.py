@@ -250,19 +250,23 @@ class DocumentsAutocomplete(HTMXAutoComplete):
 
 class GroupedModelChoiceField(forms.ChoiceField):
     def __init__(self, *args, **kwargs):
-        choices = get_grouped_chat_model_choices()
-        super().__init__(choices=choices, *args, **kwargs)
+        # Initialize with grouped choices based on current language
+        grouped_choices = get_grouped_chat_model_choices()
+        super().__init__(*args, choices=grouped_choices, **kwargs)
 
 
-class SelectWithModelGroups(forms.Select):
+class SelectWithModelGroups(SelectWithOptionClasses):
     def optgroups(self, name, value, attrs=None):
-        # This method is called by Django to render optgroups
+        # Render grouped options dynamically based on current language
         groups = []
         has_selected = False
-        for index, (group_label, options) in enumerate(self.choices):
+        # Fetch fresh grouped choices
+        grouped_choices = get_grouped_chat_model_choices()
+        for index, (group_label, options) in enumerate(grouped_choices):
             subgroup = []
             for option_value, option_label in options:
-                selected = str(option_value) in value
+                selected = str(option_value) in (value or [])
+                # create_option will correctly handle dict labels and data attributes
                 subgroup.append(
                     self.create_option(
                         name, option_value, option_label, selected, index
@@ -275,15 +279,6 @@ class SelectWithModelGroups(forms.Select):
 
 
 class ChatOptionsForm(ModelForm):
-    chat_model = GroupedModelChoiceField(
-        widget=SelectWithOptionClasses(
-            attrs={
-                "class": "form-select form-select-sm",
-                "onchange": "toggleReasoningEffort(); triggerOptionSave();",
-            }
-        )
-    )
-
     class Meta:
         model = ChatOptions
         fields = "__all__"
@@ -353,6 +348,7 @@ class ChatOptionsForm(ModelForm):
         super(ChatOptionsForm, self).__init__(*args, **kwargs)
         # Each of summarize_model, qa_model should be a grouped choice field
         for field in [
+            "chat_model",
             "summarize_model",
             "qa_model",
         ]:

@@ -468,6 +468,7 @@ class Message(models.Model):
         "self", on_delete=models.SET_NULL, null=True, related_name="child"
     )
     claims_list = models.JSONField(default=list, blank=True)
+    seconds_elapsed = models.FloatField(default=0.0)
 
     def __str__(self):
         return f"{'(BOT) ' if self.is_bot else ''}msg {self.id}: {self.text}"
