@@ -96,6 +96,20 @@
                value="{{ form.accessible_to.value }}">
       {% endif %}
       {% include "chat/modals/presets/public_preset_warning.html" %}
+      <div class="card mt-3 p-3">
+        <div class="col-12">
+          <input type="checkbox"
+                 id="make-default"
+                 class="visually-hidden"
+                 name="make_default"
+                 value="True"
+                 title="{% trans 'Set as default' %}">
+          <label for="make-default" class="mb-0 preset-default-button">
+            <i class="btn bi bi-star" id="star-icon"></i>
+            {% trans 'Make default' %}
+          </label>
+        </div>
+      </div>
     </div>
     <div class="modal-footer pb-0">
       <div class="col-12">
@@ -190,5 +204,23 @@
 
   toggleOtherUsers(); // Set initial state
 
+
+  const checkbox = document.getElementById('make-default');
+  const starIcon = document.getElementById('star-icon');
+  function updateStar() {
+    if (checkbox.checked) {
+    starIcon.classList.remove('bi-star');
+    starIcon.classList.add('bi-star-fill');
+    starIcon.style.color = "var(--app-color-yellow-1)";
+    } else {
+    starIcon.classList.add('bi-star');
+    starIcon.classList.remove('bi-star-fill');
+    starIcon.style.color = "";
+    }
+  }
+  if (checkbox && starIcon) {
+    checkbox.addEventListener('change', updateStar);
+    updateStar();
+  }
 })();
 </script>

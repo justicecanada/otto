@@ -603,6 +603,10 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                     _("Preset saved successfully."),
                 )
 
+                if request.POST.get("make_default", False) == "True":
+                    request.user.default_preset = preset
+                    request.user.save()
+
                 # Show the user any relevant messages about changes to library privacy
                 return library_access(
                     request, preset, preset.options.qa_library, action
