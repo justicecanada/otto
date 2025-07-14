@@ -94,7 +94,8 @@
               <p class="mb-1">
                 <strong>{% trans "Pending:" %}</strong>
                 {% trans "New" %} ({{ stats.pending_new|default:0 }}),
-                {% trans "Update" %} ({{ stats.pending_update|default:0 }})
+                {% trans "Update" %} ({{ stats.pending_update|default:0 }}),
+                {% trans "Checking" %} ({{ stats.pending_checking|default:0 }})
               </p>
               <p class="mb-1">
                 <strong>{% trans "Finished:" %}</strong>
@@ -106,7 +107,8 @@
                 <strong>{% trans "Other:" %}</strong>
                 {% trans "Error" %} ({{ stats.error|default:0 }}),
                 {% trans "Empty" %} ({{ stats.empty|default:0 }}),
-                {% trans "Deleted" %} ({{ stats.deleted|default:0 }})
+                {% trans "Deleted" %} ({{ stats.deleted|default:0 }}),
+                {% trans "Cancelled" %} ({{ stats.cancelled|default:0 }})
               </p>
             </div>
           </div>

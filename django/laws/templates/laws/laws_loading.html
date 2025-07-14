@@ -118,6 +118,7 @@
                         form="start-form"
                         class="btn btn-success btn-lg"
                         id="start-btn"
+                        hx-confirm="{% trans 'This will delete all laws not in the selected set, and could temporarily result in some laws being unavailable while loading. Are you sure you want to start the loading job?' %}"
                         {% if job_status.status not in 'finished,cancelled,error' %}disabled{% endif %}>
                   <span id="start-spinner"
                         class="spinner-border spinner-border-sm d-none"

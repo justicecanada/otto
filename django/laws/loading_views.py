@@ -29,10 +29,10 @@ def laws_loading_monitor(request):
     return render(request, "laws/laws_loading.html", context)
 
 
-@permission_required("otto.load_laws")
+@permission_required("otto.load_laws", log=False)
 def laws_loading_status(request):
     """
-    Return the current status as JSON for HTMX polling.
+    Return the current job & law statuses as HTML fragment for HTMX polling.
     """
     try:
         job_status = JobStatus.objects.singleton()
@@ -42,6 +42,7 @@ def laws_loading_status(request):
         total = law_statuses.count()
         pending_new = law_statuses.filter(status="pending_new").count()
         pending_update = law_statuses.filter(status="pending_update").count()
+        pending_checking = law_statuses.filter(status="pending").count()
         finished_new = law_statuses.filter(status="finished_new").count()
         finished_update = law_statuses.filter(status="finished_update").count()
         finished_nochange = law_statuses.filter(status="finished_nochange").count()
@@ -50,10 +51,13 @@ def laws_loading_status(request):
         empty = law_statuses.filter(status="empty").count()
         parsing = law_statuses.filter(status="parsing_xml").count()
         embedding = law_statuses.filter(status="embedding_nodes").count()
+        cancelled = law_statuses.filter(status="cancelled").count()
 
         # For backward compatibility
         finished = finished_new + finished_update + finished_nochange
-        pending = pending_new + pending_update
+        pending = (
+            pending_new + pending_update + pending_checking
+        )  # <-- Add checking to pending
 
         # Get current law being processed
         current_law = (
@@ -129,6 +133,7 @@ def laws_loading_status(request):
                 "total": total,
                 "pending_new": pending_new,
                 "pending_update": pending_update,
+                "pending_checking": pending_checking,
                 "finished_new": finished_new,
                 "finished_update": finished_update,
                 "finished_nochange": finished_nochange,
@@ -137,6 +142,7 @@ def laws_loading_status(request):
                 "empty": empty,
                 "parsing": parsing,
                 "embedding": embedding,
+                "cancelled": cancelled,
                 # For backward compatibility and progress calculation
                 "finished": finished,
                 "pending": pending,

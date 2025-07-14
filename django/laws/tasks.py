@@ -226,7 +226,7 @@ def update_laws(
                 law_status.sha_256_hash_fr = new_fr_hash
                 law_status.save()
 
-        job_status.status = "processing"
+        job_status.status = "generating_hashes"
         job_status.save()
 
         new_laws = set(eng_law_ids) - set(
@@ -240,12 +240,13 @@ def update_laws(
                     # Get the hashes
                     file_paths = _get_en_fr_law_file_paths(laws_root, law_id)
                     if not file_paths:
-                        law_status.status = "error"
-                        law_status.error_message = (
-                            f"Could not find EN and FR XML files."
+                        # Create a law status to record the error
+                        error_law_status = LawLoadingStatus.objects.create(
+                            eng_law_id=law_id,
+                            status="error",
+                            error_message="Could not find EN and FR XML files.",
+                            finished_at=now(),
                         )
-                        law_status.finished_at = now()
-                        law_status.save()
                         continue
                     en_path, fr_path = file_paths
                     new_en_hash = get_sha_256_hash(en_path)
@@ -263,12 +264,16 @@ def update_laws(
 
             new_law_statuses = LawLoadingStatus.objects.bulk_create(new_law_statuses)
 
+        job_status.status = "loading_laws"
+        job_status.save()
         for law_status in LawLoadingStatus.objects.filter(finished_at__isnull=True):
             with cancellation_guard(current_task_id):
                 try:
                     process_law_status(
                         law_status, laws_root, mock_embedding, debug, current_task_id
                     )
+                except CancelledError:
+                    raise
                 except Exception as exc:
                     logger.error(
                         f"Error processing law {law_status.eng_law_id}: {exc}",
@@ -286,13 +291,23 @@ def update_laws(
                         )
 
         # Finalize job status
-        if not is_cancelled(current_task_id):
-            job_status.status = "rebuilding_indexes"
-            job_status.save()
-            finalize_law_loading_task(downloaded=force_download)
-            job_status.status = "finished"
+        job_status.status = "rebuilding_indexes"
+        job_status.save()
+        finalize_law_loading_task(downloaded=force_download)
+        job_status.status = "finished"
+        job_status.finished_at = now()
+        job_status.save()
+
+    except CancelledError:
+        logger.info("Job was cancelled in update_laws.")
+        try:
+            job_status = JobStatus.objects.singleton()
+            job_status.status = "cancelled"
+            job_status.error_message = "Job was cancelled by user."
             job_status.finished_at = now()
             job_status.save()
+        except Exception as save_error:
+            logger.error(f"Could not save job_status due to error: {save_error}")
 
     except Exception as exc:
         logger.error(f"Error in initiate_law_loading_task: {exc}")
@@ -348,10 +363,8 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
                         law_status.details = (
                             "Existing law deleted due to now being empty"
                         )
-                        law_status.save()
                         law.delete()
-                    else:
-                        law_status.save()
+                    law_status.save()
                     return
 
                 doc_metadata = {
@@ -388,15 +401,16 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
                     f'({doc_metadata["consolidated_number"] or doc_metadata["instrument_number"] or doc_metadata["bill_number"]})'
                 )
 
+                doc_id = f'{node_dict["id"]}_{node_dict["lang"]}'
                 document = Document(
-                    text="",
+                    doc_id=doc_id,
+                    text=doc_metadata["display_metadata"],
                     metadata=doc_metadata,
                     excluded_llm_metadata_keys=exclude_keys,
                     excluded_embed_metadata_keys=exclude_keys,
                     metadata_template="{value}",
                     text_template="{metadata_str}",
                 )
-                document.doc_id = f'{node_dict["id"]}_{node_dict["lang"]}'
 
                 nodes = node_dict["nodes"]
                 for i, node in enumerate(nodes):

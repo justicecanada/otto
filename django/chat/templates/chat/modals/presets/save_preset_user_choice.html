@@ -9,7 +9,7 @@
       <form hx-post="{% url 'chat:chat_options' chat_id=chat_id action='update_preset' preset_id=preset.id %}"
             {% if confirm_message %}hx-confirm="{{ confirm_message }}"{% endif %}
             hx-swap="innerHTML"
-            data-bs-dismiss="modal"
+            hx-target="#presets-modal-body"
             class="d-flex flex-grow-1">
         {% csrf_token %}
         <button type="submit"
