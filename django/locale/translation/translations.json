@@ -4350,5 +4350,9 @@
     " To adjust permissions on your libraries, use the 'Manage Libraries' button.": {
         "fr": "",
         "fr_auto": " Pour ajuster les autorisations de vos bibliothèques, utilisez le bouton « Gérer les bibliothèques »."
+    },
+    "Make default": {
+        "fr": "",
+        "fr_auto": "Faire défaut"
     }
 }
