@@ -131,8 +131,8 @@ ALL_MODELS: List[LLM] = [
     LLM(
         model_id="o4-mini",
         deployment_name="o4-mini",
-        description_en="o4-mini (good reasoning, 0.75x cost)",
-        description_fr="o4-mini (bon raisonnement, coût 0.75x)",
+        description_en="o4-mini (good reasoning, 1x cost)",
+        description_fr="o4-mini (bon raisonnement, coût 1x)",
         max_tokens_in=200000,
         max_tokens_out=100000,
         system_prompt_prefix="Formatting re-enabled.\nUse markdown formatting (headings, LaTeX math, tables, code blocks, etc. *as needed*) for your final response.",
@@ -145,8 +145,8 @@ ALL_MODELS: List[LLM] = [
     LLM(
         model_id="o3",
         deployment_name="o3",
-        description_en="o3 (special purpose, 1.5x cost)",
-        description_fr="o3 (but spécial, coût 1.5x)",
+        description_en="o3 (special purpose, 2x cost)",
+        description_fr="o3 (but spécial, coût 2x)",
         max_tokens_in=200000,
         max_tokens_out=100000,
         system_prompt_prefix="Formatting re-enabled.\nUse markdown formatting (headings, LaTeX math, tables, code blocks, etc. *as needed*) for your final response.",

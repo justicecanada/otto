@@ -179,9 +179,9 @@ QA_SOURCE_ORDER_CHOICES = [
 ]
 
 REASONING_EFFORT_CHOICES = [
-    ("low", _("Low")),
-    ("medium", _("Medium")),
-    ("high", _("High")),
+    ("low", _("Low (faster, cheaper)")),
+    ("medium", _("Medium (default)")),
+    ("high", _("High (slower, more expensive)")),
 ]
 
 

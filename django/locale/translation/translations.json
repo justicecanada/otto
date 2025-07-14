@@ -4334,5 +4334,21 @@
     "Checking": {
         "fr": "",
         "fr_auto": "Vérification"
+    },
+    "Low (faster, cheaper)": {
+        "fr": "",
+        "fr_auto": "Faible (plus rapide, moins cher)"
+    },
+    "Medium (default)": {
+        "fr": "",
+        "fr_auto": "Moyen (par défaut)"
+    },
+    "High (slower, more expensive)": {
+        "fr": "",
+        "fr_auto": "Élevée (plus lente, plus chère)"
+    },
+    "Reasoning effort": {
+        "fr": "",
+        "fr_auto": "Effort de raisonnement"
     }
 }

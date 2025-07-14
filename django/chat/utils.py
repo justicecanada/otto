@@ -343,6 +343,8 @@ async def htmx_stream(
 
         message = await sync_to_async(Message.objects.get)(id=message_id)
         message.text = full_message
+        finished_at = timezone.now()
+        message.seconds_elapsed = (finished_at - message.date_created).total_seconds()
         await sync_to_async(message.save)()
 
         if is_untitled_chat:
