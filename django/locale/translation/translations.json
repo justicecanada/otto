@@ -4350,5 +4350,33 @@
     "Reasoning effort": {
         "fr": "",
         "fr_auto": "Effort de raisonnement"
+    },
+    "The recipients of this preset will not be able to see your attached personal library.": {
+        "fr": "",
+        "fr_auto": "Les destinataires de ce préréglage ne pourront pas voir votre bibliothèque personnelle ci-jointe."
+    },
+    "To adjust permissions on your libraries, use the 'Manage Libraries' button.": {
+        "fr": "",
+        "fr_auto": "Pour ajuster les autorisations de vos bibliothèques, utilisez le bouton « Gérer les bibliothèques »."
+    },
+    "Q&A library sharing": {
+        "fr": "",
+        "fr_auto": "Partage de la bibliothèque de questions et réponses"
+    },
+    "OK": {
+        "fr": "",
+        "fr_auto": "OK"
+    },
+    "This preset uses your personal Q&A library. Other users will have their own personal library selected when they load the preset.": {
+        "fr": "",
+        "fr_auto": "Ce préréglage utilise votre bibliothèque personnelle de questions-réponses. Les autres utilisateurs auront leur propre bibliothèque personnelle sélectionnée lorsqu’ils chargeront le préréglage."
+    },
+    "\nIf this isn't what you want, you can create a library via 'Manage libraries' and then update this preset.": {
+        "fr": "",
+        "fr_auto": "\nSi ce n’est pas ce que vous voulez, vous pouvez créer une bibliothèque via « Gérer les bibliothèques », puis mettre à jour ce préréglage."
+    },
+    " To adjust permissions on your libraries, use the 'Manage Libraries' button.": {
+        "fr": "",
+        "fr_auto": " Pour ajuster les autorisations de vos bibliothèques, utilisez le bouton « Gérer les bibliothèques »."
     }
 }

@@ -63,8 +63,12 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
 
     request = get_request()
     user = user or (request and request.user)
-    if not target_options.qa_library or (
-        user and not user.has_perm("librarian.view_library", target_options.qa_library)
+    if user and (
+        not target_options.qa_library
+        or (
+            user
+            and not user.has_perm("librarian.view_library", target_options.qa_library)
+        )
     ):
         if request:
             messages.warning(
@@ -73,7 +77,7 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
                     "QA library for settings preset not accessible. It has been reset to your personal library."
                 ),
             )
-        if user and user.personal_library:
+        if user.personal_library:
             target_options.qa_library = user.personal_library
             target_options.qa_data_sources.clear()
             target_options.qa_documents.clear()
