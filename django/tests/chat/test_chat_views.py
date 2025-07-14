@@ -970,6 +970,7 @@ def test_preset(client, basic_user, all_apps_user):
             "sharing_option": "others",
             "accessible_to": [user2.id],
             "prompt": "",
+            "make_default": "True",
         },
         follow=True,
     )
@@ -979,6 +980,8 @@ def test_preset(client, basic_user, all_apps_user):
     assert preset.description_en == "Updated Description"
     assert preset.sharing_option == "others"
     assert user2 in preset.accessible_to.all()
+    user.refresh_from_db()
+    assert user.default_preset.name_en == "Updated Preset"
 
     # make sure the preset is in the preset list of user 2 but that user 3 cannot view it
     client.force_login(user2)
