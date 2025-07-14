@@ -12,6 +12,14 @@
   </div>
   <div class="px-3">{{ options_form.chat_model }}</div>
 
+  <div id="reasoning-effort-container" style="display: none;">
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.chat_reasoning_effort.auto_id }}">{% trans "Reasoning effort" %}</label>
+    </div>
+    <div class="px-3">{{ options_form.chat_reasoning_effort }}</div>
+  </div>
+
   <div class="px-3 mt-2">
     <label class="col-form-label col-form-label-sm"
            for="{{ options_form.chat_temperature.auto_id }}">{% trans "Style" %}</label>

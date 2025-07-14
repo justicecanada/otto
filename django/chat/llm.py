@@ -91,6 +91,7 @@ class OttoLLM:
         deployment: str = settings.DEFAULT_CHAT_MODEL,
         temperature: float = 0.1,
         mock_embedding: bool = False,
+        reasoning_effort: str = "medium",
     ):
         self.llm_config = get_model(deployment)
         if not self.llm_config:
@@ -99,6 +100,7 @@ class OttoLLM:
         self.deployment = self.llm_config.deployment_name
         self.model = self.llm_config.deployment_name
         self.temperature = temperature
+        self.reasoning_effort = reasoning_effort
         self._token_counter = TokenCountingHandler(
             tokenizer=tiktoken.get_encoding("o200k_base").encode
         )
@@ -344,6 +346,7 @@ class OttoLLM:
             model=self.model,
             temperature=self.temperature,
             callback_manager=self._callback_manager,
+            reasoning_effort=self.reasoning_effort,
         )
 
     def _get_embed_model(self) -> AzureOpenAIEmbedding | MockEmbedding:

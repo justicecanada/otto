@@ -178,6 +178,12 @@ QA_SOURCE_ORDER_CHOICES = [
     ("reading_order", _("Reading order")),
 ]
 
+REASONING_EFFORT_CHOICES = [
+    ("low", _("Low")),
+    ("medium", _("Medium")),
+    ("high", _("High")),
+]
+
 
 class ChatOptions(models.Model):
     """
@@ -201,6 +207,9 @@ class ChatOptions(models.Model):
     # Chat-specific options
     chat_model = models.CharField(max_length=255, default=DEFAULT_CHAT_MODEL_ID)
     chat_temperature = models.FloatField(default=0.1)
+    chat_reasoning_effort = models.CharField(
+        max_length=10, default="medium", choices=REASONING_EFFORT_CHOICES
+    )
     chat_system_prompt = models.TextField(blank=True)
     chat_agent = models.BooleanField(default=False)
 

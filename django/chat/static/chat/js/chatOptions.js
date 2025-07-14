@@ -1,4 +1,3 @@
-
 // Chat options: handle library / data source etc. selection changes
 
 function updateLibraryModalButton() {
@@ -98,3 +97,27 @@ function switchToDocumentScope() {
     }
   }
 }
+
+function toggleReasoningEffort() {
+  console.log("Toggling reasoning effort visibility");
+  const modelSelect = document.getElementById('id_chat_model');
+  const reasoningEffortContainer = document.getElementById('reasoning-effort-container');
+  const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+
+  console.log("Selected option:", selectedOption);
+
+
+  if (selectedOption && selectedOption.dataset.isReasoning === 'true') {
+    reasoningEffortContainer.style.display = 'block';
+  } else {
+    reasoningEffortContainer.style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  toggleReasoningEffort();
+  const modelSelect = document.getElementById('id_chat_model');
+  if (modelSelect) {
+    modelSelect.addEventListener('change', toggleReasoningEffort);
+  }
+});

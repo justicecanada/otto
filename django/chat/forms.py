@@ -16,8 +16,15 @@ from django_file_form.forms import FileFormMixin, MultipleUploadedFileField
 from rules import is_group_member
 from structlog import get_logger
 
-from chat.llm_models import get_chat_model_choices
-from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
+from chat.llm_models import get_chat_model_choices, get_grouped_chat_model_choices
+from chat.models import (
+    QA_MODE_CHOICES,
+    QA_SCOPE_CHOICES,
+    REASONING_EFFORT_CHOICES,
+    Chat,
+    ChatOptions,
+    Preset,
+)
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
 
@@ -95,17 +102,14 @@ class SelectWithOptionClasses(forms.Select):
     def create_option(
         self, name, value, label, selected, index, subindex=None, attrs=None
     ):  # noqa
+        option = super().create_option(
+            name, value, label, selected, index, subindex, attrs
+        )
         if isinstance(label, dict):
             opt_attrs = label.copy()
-            label = opt_attrs.pop("label")
-        else:
-            opt_attrs = {}
-        option = super(SelectWithOptionClasses, self).create_option(
-            name, value, label, selected, index, subindex=None, attrs=None
-        )
-        for _, flag in opt_attrs.items():
-            option["attrs"]["class"] = str(flag)
-
+            option["label"] = opt_attrs.pop("label")
+            for key, val in opt_attrs.items():
+                option["attrs"][f"data-{key}"] = str(val).lower()
         return option
 
 
@@ -244,7 +248,42 @@ class DocumentsAutocomplete(HTMXAutoComplete):
         return []
 
 
+class GroupedModelChoiceField(forms.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        choices = get_grouped_chat_model_choices()
+        super().__init__(choices=choices, *args, **kwargs)
+
+
+class SelectWithModelGroups(forms.Select):
+    def optgroups(self, name, value, attrs=None):
+        # This method is called by Django to render optgroups
+        groups = []
+        has_selected = False
+        for index, (group_label, options) in enumerate(self.choices):
+            subgroup = []
+            for option_value, option_label in options:
+                selected = str(option_value) in value
+                subgroup.append(
+                    self.create_option(
+                        name, option_value, option_label, selected, index
+                    )
+                )
+                if selected:
+                    has_selected = True
+            groups.append((group_label, subgroup, index))
+        return groups
+
+
 class ChatOptionsForm(ModelForm):
+    chat_model = GroupedModelChoiceField(
+        widget=SelectWithOptionClasses(
+            attrs={
+                "class": "form-select form-select-sm",
+                "onchange": "toggleReasoningEffort(); triggerOptionSave();",
+            }
+        )
+    )
+
     class Meta:
         model = ChatOptions
         fields = "__all__"
@@ -253,6 +292,13 @@ class ChatOptionsForm(ModelForm):
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
                 choices=TEMPERATURES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "triggerOptionSave();",
+                },
+            ),
+            "chat_reasoning_effort": forms.Select(
+                choices=REASONING_EFFORT_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
                     "onchange": "triggerOptionSave();",
@@ -305,20 +351,24 @@ class ChatOptionsForm(ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         super(ChatOptionsForm, self).__init__(*args, **kwargs)
-        # Each of chat_model, summarize_model, qa_model
-        # should be a choice field with the available models
+        # Each of summarize_model, qa_model should be a grouped choice field
         for field in [
-            "chat_model",
             "summarize_model",
             "qa_model",
         ]:
-            self.fields[field].widget = forms.Select(
-                choices=get_chat_model_choices(),
-                attrs={
-                    "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave();",
-                },
+            self.fields[field] = GroupedModelChoiceField(
+                widget=SelectWithModelGroups(
+                    attrs={
+                        "class": "form-select form-select-sm",
+                        "onchange": "triggerOptionSave();",
+                    }
+                ),
+                required=False,
+                label=self.fields[field].label if field in self.fields else None,
+                initial=self.fields[field].initial if field in self.fields else None,
             )
+            if self.instance and getattr(self.instance, field, None):
+                self.fields[field].initial = getattr(self.instance, field)
 
         # translate_language has choices "en", "fr"
         for field in ["translate_language"]:
