@@ -1,7 +1,17 @@
-<div class="modal-body">{{ message | linebreaks }}</div>
-<div class="modal-footer">
-  <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+{% load i18n %}
+
+<div class="modal-body" id="preset-library-sharing-warning">
+  <h6>{% trans "Q&A library sharing" %}</h6>
+  {{ message | linebreaks }}
 </div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% translate "OK" %}</button>
+</div>
+<style>
+#preset-library-sharing-warning p {
+  margin-bottom: 0;
+}
+</style>
 
 <script>
 function close_modal(flag){

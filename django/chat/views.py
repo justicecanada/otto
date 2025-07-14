@@ -680,7 +680,7 @@ def library_access(request, preset, library, action, old_library=None):
             library.save()
             message = f"""
                 {_("This preset is accessible to all users.")}
-                {_("By saving it, you have made the attached library")} ({library}) {_("publicly viewable.")}
+                {_("By saving it, you have made the attached Q&A library")} ({library}) {_("publicly viewable.")}
                 """
         elif preset.sharing_option == "others":
             # Only make note of people who've had the preset shared with them,
@@ -708,7 +708,7 @@ def library_access(request, preset, library, action, old_library=None):
                 user_form.save()
                 if potential_new_viewers:
                     message = f"""
-                        {_("The following preset recipients can now view the attached library")} ({library}).
+                        {_("The following users have been granted access to the Q&A library")} ({library}):
                         {", ".join(user.full_name for user in potential_new_viewers)}
                         """
 
@@ -721,11 +721,13 @@ def library_access(request, preset, library, action, old_library=None):
     ):
         if library.is_personal_library:
             message = _(
-                "The recipients of this preset will not be able to see your attached personal library."
+                "This preset uses your personal Q&A library. Other users will have their own personal library selected when they load the preset."
+            ) + _(
+                "\nIf this isn't what you want, you can create a library via 'Manage libraries' and then update this preset."
             )
         elif preset.sharing_option != "private":
             message = f"""
-            {_("Recipients of this preset may not be able to see the attached library")} ({library})
+            {_("Other users may not be able to see the attached Q&A library")} ({library})
             {_("unless a library administrator has granted them access.")}
             """
 
@@ -735,20 +737,20 @@ def library_access(request, preset, library, action, old_library=None):
         "librarian.manage_library_users", old_library
     ):
         message += f"""
-        {_("Note: this action does NOT change permissions for the previously attached library")} ({old_library}).
+        {_("Note: This action does NOT change permissions for the previously attached Q&A library")} ({old_library}).
         """
 
     # If there's a message, end it with a reminder to use the librarian modal
     # Otherwise, we send a flag that immediately closes the modal
-    if message:
+    if message and not library.is_personal_library:
         message += _(
-            "To adjust permissions on your libraries, use the 'Manage Libraries' button."
+            " To adjust permissions on your libraries, use the 'Manage Libraries' button."
         )
 
     return render(
         request,
         "chat/modals/presets/library_check.html",
-        {"keep_open": message != "", "message": message},
+        {"keep_open": message != "", "message": message.strip()},
     )
 
 
