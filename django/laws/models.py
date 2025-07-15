@@ -28,7 +28,7 @@ class LawManager(models.Manager):
         llm=None,
         current_task_id=None,
     ):
-        from laws.tasks import CancelledError, is_cancelled
+        from laws.tasks import cancellation_guard
 
         # Updating an existing law?
         if law_status.law:
@@ -119,13 +119,6 @@ class LawManager(models.Manager):
             original_details = law_status.details or ""
             total_batches = (len(nodes) + batch_size - 1) // batch_size
             for i in range(0, len(nodes), batch_size):
-                if is_cancelled(current_task_id):
-                    logger.info("Law loading job cancelled by user.")
-                    law_status.status = "cancelled"
-                    law_status.finished_at = timezone.now()
-                    law_status.error_message = "Job was cancelled by user."
-                    law_status.save()
-                    raise CancelledError()
                 batch_num = (i // batch_size) + 1
                 logger.debug(f"Processing embedding batch {batch_num}/{total_batches}")
                 law_status.details = (
@@ -134,16 +127,18 @@ class LawManager(models.Manager):
                 law_status.save()
                 max_exponent = 7
                 for j in range(2, max_exponent + 1):
-                    try:
-                        idx.insert_nodes(nodes[i : i + batch_size])
-                        break
-                    except Exception as e:
-                        logger.error(f"Error inserting nodes: {e}")
-                        logger.error(f"Retrying in {2**j} seconds...")
-                        time.sleep(2**j)
-                        if j == max_exponent:  # Last retry
-                            # Clean up partial entries and re-raise using consistent method
-                            raise Exception("Failed to insert nodes after retries.")
+                    with cancellation_guard(current_task_id):
+                        try:
+                            idx.insert_nodes(nodes[i : i + batch_size])
+                            break
+                        except Exception as e:
+                            logger.error(f"Error inserting nodes: {e}")
+                            logger.error(f"Retrying in {2**j} seconds...")
+                            if j == max_exponent:  # Last retry
+                                # Clean up partial entries and re-raise using consistent method
+                                raise Exception("Failed to insert nodes after retries.")
+                            with cancellation_guard(current_task_id):
+                                time.sleep(2**j)
 
             # Only set hashes after successful vector store operations
             obj.sha_256_hash_en = law_status.sha_256_hash_en
@@ -189,30 +184,6 @@ class LawManager(models.Manager):
             # Call delete manually on each law since we override delete method
             for law in to_delete:
                 law.delete()
-        else:
-            logger.info("No Law objects to purge")
-
-    def purge(self, keep_ids):
-        """
-        Delete any Law objects where law.eng_law_id is not in law_ids
-        """
-        if not keep_ids:
-            return
-
-        to_delete = self.exclude(eng_law_id__in=set(keep_ids))
-        # Create LawLoadingStatus objects for purged laws
-        for law in to_delete:
-            LawLoadingStatus.objects.create(
-                law=None,
-                eng_law_id=law.eng_law_id,
-                status="deleted",
-                finished_at=timezone.now(),
-                details="Existing law not present in the list of laws to load",
-            )
-        purged_count = int(to_delete.count())
-        if purged_count > 0:
-            logger.info(f"Purging {purged_count} Law objects not in keep_ids")
-            to_delete.delete()
         else:
             logger.info("No Law objects to purge")
 

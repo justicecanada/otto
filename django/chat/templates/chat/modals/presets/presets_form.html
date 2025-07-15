@@ -96,6 +96,26 @@
                value="{{ form.accessible_to.value }}">
       {% endif %}
       {% include "chat/modals/presets/public_preset_warning.html" %}
+      <input type="checkbox"
+             id="make-default"
+             class="visually-hidden"
+             name="make_default"
+             value="True"
+             title="{% trans 'Set as default' %}">
+      {% if request.user.default_preset.id|stringformat:"s" == preset_id|stringformat:"s" %}
+        <p class="mt-3 mb-0 pb-0" style="font-style:italic">
+          {% trans "This is your default preset for new chats. To change your default preset, return to the Browse Presets page and click the 'star' for a different preset." %}
+        </p>
+      {% else %}
+        <div class="card mt-3 p-3">
+          <label for="make-default"
+                 class="mb-0 preset-default-button d-flex align-items-center gap-2"
+                 style="cursor:pointer">
+            <i class="btn bi bi-star p-0 m-0" id="star-icon" style="font-size:1.3em"></i>
+            <span>{% trans 'Make this my default for new chats' %}</span>
+          </label>
+        </div>
+      {% endif %}
     </div>
     <div class="modal-footer pb-0">
       <div class="col-12">
@@ -190,5 +210,23 @@
 
   toggleOtherUsers(); // Set initial state
 
+
+  const checkbox = document.getElementById('make-default');
+  const starIcon = document.getElementById('star-icon');
+  function updateStar() {
+    if (checkbox.checked) {
+    starIcon.classList.remove('bi-star');
+    starIcon.classList.add('bi-star-fill');
+    starIcon.style.color = "var(--app-color-yellow-1)";
+    } else {
+    starIcon.classList.add('bi-star');
+    starIcon.classList.remove('bi-star-fill');
+    starIcon.style.color = "";
+    }
+  }
+  if (checkbox && starIcon) {
+    checkbox.addEventListener('change', updateStar);
+    updateStar();
+  }
 })();
 </script>

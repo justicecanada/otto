@@ -4754,7 +4754,6 @@
     "Example sources updated successfully.": {
         "fr": "",
         "fr_auto": "Exemples de sources mises à jour avec succès."
-    
     },
     "Select a library to view folders.": {
         "fr": "",
@@ -5172,10 +5171,6 @@
         "fr": "",
         "fr_auto": "Exceptions"
     },
-    "Description": {
-        "fr": "",
-        "fr_auto": "Descriptif"
-    },
     "No exceptions found": {
         "fr": "",
         "fr_auto": "Aucune exception n’a été trouvée"
@@ -5195,5 +5190,77 @@
     "Law ID:": {
         "fr": "",
         "fr_auto": "Numéro d’identification de la loi :"
+    },
+    "Deferred": {
+        "fr": "",
+        "fr_auto": "Reporté"
+    },
+    "Total new": {
+        "fr": "",
+        "fr_auto": "Total des nouveaux"
+    },
+    "Total in-progress": {
+        "fr": "",
+        "fr_auto": "Total en cours"
+    },
+    "Total deferred": {
+        "fr": "",
+        "fr_auto": "Total reporté"
+    },
+    "Total closed": {
+        "fr": "",
+        "fr_auto": "Total fermé"
+    },
+    "Add notes or additional details.": {
+        "fr": "",
+        "fr_auto": "Ajoutez des notes ou des détails supplémentaires."
+    },
+    "This will delete all laws not in the selected set, and could temporarily result in some laws being unavailable while loading. Are you sure you want to start the loading job?": {
+        "fr": "",
+        "fr_auto": "Cela supprimera toutes les lois qui ne font pas partie de l’ensemble sélectionné et pourrait temporairement entraîner l’indisponibilité de certaines lois pendant le chargement. Êtes-vous sûr de vouloir commencer le travail de chargement?"
+    },
+    "Checking": {
+        "fr": "",
+        "fr_auto": "Vérification"
+    },
+    "The recipients of this preset will not be able to see your attached personal library.": {
+        "fr": "",
+        "fr_auto": "Les destinataires de ce préréglage ne pourront pas voir votre bibliothèque personnelle ci-jointe."
+    },
+    "To adjust permissions on your libraries, use the 'Manage Libraries' button.": {
+        "fr": "",
+        "fr_auto": "Pour ajuster les autorisations de vos bibliothèques, utilisez le bouton « Gérer les bibliothèques »."
+    },
+    "Q&A library sharing": {
+        "fr": "",
+        "fr_auto": "Partage de la bibliothèque de questions et réponses"
+    },
+    "OK": {
+        "fr": "",
+        "fr_auto": "OK"
+    },
+    "This preset uses your personal Q&A library. Other users will have their own personal library selected when they load the preset.": {
+        "fr": "",
+        "fr_auto": "Ce préréglage utilise votre bibliothèque personnelle de questions-réponses. Les autres utilisateurs auront leur propre bibliothèque personnelle sélectionnée lorsqu’ils chargeront le préréglage."
+    },
+    "\nIf this isn't what you want, you can create a library via 'Manage libraries' and then update this preset.": {
+        "fr": "",
+        "fr_auto": "\nSi ce n’est pas ce que vous voulez, vous pouvez créer une bibliothèque via « Gérer les bibliothèques », puis mettre à jour ce préréglage."
+    },
+    " To adjust permissions on your libraries, use the 'Manage Libraries' button.": {
+        "fr": "",
+        "fr_auto": " Pour ajuster les autorisations de vos bibliothèques, utilisez le bouton « Gérer les bibliothèques »."
+    },
+    "Make default": {
+        "fr": "",
+        "fr_auto": "Faire défaut"
+    },
+    "Make this my default for new chats": {
+        "fr": "",
+        "fr_auto": "Faites de cette option ma valeur par défaut pour les nouvelles discussions"
+    },
+    "This is your default preset for new chats. To change your default preset, return to the Browse Presets page and click the 'star' for a different preset.": {
+        "fr": "",
+        "fr_auto": "Il s’agit de votre préréglage par défaut pour les nouvelles discussions. Pour modifier votre préréglage par défaut, retournez à la page Parcourir les préréglages et cliquez sur l’étoile d’un autre préréglage."
     }
 }

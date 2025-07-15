@@ -15,7 +15,7 @@ polib==1.2.0
 django-cors-headers==4.4.0
 django-htmx-autocomplete==0.8.4
 rules==3.4
-django-cleanup==8.1.0
+django-cleanup==9.0.0
 django-azure-auth==2.0.0
 gevent==24.11.1
 django-data-fetcher==2.2
@@ -29,7 +29,7 @@ psycopg2-binary==2.9.9
 
 # Azure / auth -----------------------------------------------------------------
 azure-core==1.34.0
-azure-identity==1.19.0
+azure-identity==1.23.0
 azure-keyvault==4.2.0
 azure-ai-formrecognizer==3.3.3
 azure-ai-translation-document==1.0.0
@@ -49,7 +49,7 @@ tiktoken==0.9.0
 
 # Document extraction ----------------------------------------------------------
 beautifulsoup4==4.13.4
-markdownify==0.13.1
+markdownify==1.1.0
 Markdown==3.7
 bleach==6.1.0
 newspaper3k==0.2.8
@@ -68,7 +68,6 @@ lxml==4.9.2
 sentence-splitter==1.4
 
 # Data science -----------------------------------------------------------------
-pandas==2.2.3
 shapely==2.0.7
 pdf2image==1.17.0
 pillow==11.1.0
@@ -80,7 +79,7 @@ RapidFuzz==3.12.1
 # Redis/Celery -----------------------------------------------------------------
 celery==5.5.3
 redis==5.0.8
-django-redis==5.4.0
+django-redis==6.0.0
 django-celery-beat==2.7.0
 
 # GPL-licensed: Use only through CLI to maintain Otto's MIT license ------------
