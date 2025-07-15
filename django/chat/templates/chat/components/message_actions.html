@@ -45,7 +45,12 @@
       <i class="bi bi-trash"></i>
     </button>
   {% endif %}
+  {% if message.seconds_elapsed %}
+    <span class="message-time ms-1" style="word-spacing:0">{{ message.seconds_elapsed|stringformat:".0f" }}s</span>
+  {% endif %}
   {% if "." in message.usd_cost|stringformat:"f" %}
+
+    {% if message.seconds_elapsed %}<span class="ms-1">|</span>{% endif %}
     <span class="message-cost ms-1">{{ message.display_cost }}</span>
   {% endif %}
 </div>

@@ -21,6 +21,14 @@ import yaml
 from dotenv import load_dotenv
 from storages.backends.azure_storage import AzureStorage
 
+from chat.llm_models import (
+    DEFAULT_CHAT_MODEL_ID,
+    DEFAULT_LAWS_MODEL_ID,
+    DEFAULT_QA_MODEL_ID,
+    DEFAULT_SUMMARIZE_MODEL_ID,
+    DEFAULT_TRANSLATE_MODEL_ID,
+)
+
 from .utils import logging as logging_utils
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -99,11 +107,11 @@ AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
 LITELLM_ENDPOINT = os.environ.get("LITELLM_ENDPOINT")
 
-DEFAULT_CHAT_MODEL = "gpt-4.1-mini"
-DEFAULT_QA_MODEL = "gpt-4.1-mini"
-DEFAULT_SUMMARIZE_MODEL = "gpt-4.1-mini"
-DEFAULT_TRANSLATE_MODEL = "gpt-4.1-mini"
-DEFAULT_LAWS_MODEL = "gpt-4.1"
+DEFAULT_CHAT_MODEL = DEFAULT_CHAT_MODEL_ID
+DEFAULT_QA_MODEL = DEFAULT_QA_MODEL_ID
+DEFAULT_SUMMARIZE_MODEL = DEFAULT_SUMMARIZE_MODEL_ID
+DEFAULT_TRANSLATE_MODEL = DEFAULT_TRANSLATE_MODEL_ID
+DEFAULT_LAWS_MODEL = DEFAULT_LAWS_MODEL_ID
 
 DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
 LIBRARY_RETENTION_DAYS = 30

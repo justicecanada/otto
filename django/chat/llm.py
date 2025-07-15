@@ -26,6 +26,10 @@ from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
 from structlog import get_logger
 
+from otto.models import Cost
+
+from .llm_models import get_model
+
 logger = get_logger(__name__)
 
 
@@ -53,128 +57,6 @@ class ModelEventHandler(BaseEventHandler):
 if settings.DEBUG:
     root_dispatcher = get_dispatcher()
     root_dispatcher.add_event_handler(ModelEventHandler())
-
-
-llms = {
-    "gpt-4.1-mini": {
-        "description": _("GPT-4.1-mini (best value, 3x cost)"),
-        "model": "gpt-4.1-mini",
-        "max_tokens_in": 1047576,
-        "max_tokens_out": 32768,
-    },
-    "gpt-4.1": {
-        "description": _("GPT-4.1 (best quality, 12x cost)"),
-        "model": "gpt-4.1",
-        "max_tokens_in": 1047576,
-        "max_tokens_out": 32768,
-    },
-    "o3-mini": {
-        "description": _("o3-mini (adds reasoning, 7x cost)"),
-        "model": "o3-mini",
-        "max_tokens_in": 200000,
-        "max_tokens_out": 100000,
-    },
-    "gpt-4o-mini": {
-        "description": _("GPT-4o-mini (legacy model, 1x cost)"),
-        "model": "gpt-4o-mini",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 16384,
-    },
-    "gpt-4o": {
-        "description": _("GPT-4o (legacy model, 15x cost)"),
-        "model": "gpt-4o",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 16384,
-    },
-    "gemini-2.5-flash": {
-        "description": _("Gemini 2.5 Flash (Google, best value, long context)"),
-        "model": "gemini-2.5-flash",
-        "max_tokens_in": 1048576,
-        "max_tokens_out": 65536,
-    },
-    "gemini-2.5-pro": {
-        "description": _("Gemini 2.5 Pro (Google, best overall)"),
-        "model": "gemini-2.5-pro",
-        "max_tokens_in": 1048576,
-        "max_tokens_out": 65536,
-    },
-    "claude-sonnet-4": {
-        "description": _("Claude Sonnet 4 (Anthropic, kind of expensive)"),
-        "model": "claude-sonnet-4",
-        "max_tokens_in": 200000,
-        "max_tokens_out": 64000,
-    },
-    "claude-opus-4": {
-        "description": _("Claude Opus 4 (Anthropic, insanely expensive)"),
-        "model": "claude-opus-4",
-        "max_tokens_in": 200000,
-        "max_tokens_out": 32000,
-    },
-    "command-a": {
-        "description": _("Cohere Command A (Canadian, good quality)"),
-        "model": "command-a",
-        "max_tokens_in": 256000,
-        "max_tokens_out": 32000,  # Not documented
-    },
-    "Phi-4": {
-        "description": _("Phi-4 (very small open-source model)"),
-        "model": "Phi-4",
-        "max_tokens_in": 16384,
-        "max_tokens_out": 4096,
-    },
-    "MAI-DS-R1": {
-        "description": _("MAI-DS-R1 (open source, quality reasoning)"),
-        "model": "MAI-DS-R1",
-        "max_tokens_in": 163840,
-        "max_tokens_out": 163840,
-    },
-    "groq-llama-4-scout": {
-        "description": _("Llama 4 Scout (Groq, fast open-source RAG)"),
-        "model": "groq-llama-4-scout",
-        "max_tokens_in": 131072,
-        "max_tokens_out": 8192,
-    },
-    "groq-llama-4-maverick": {
-        "description": _("Llama 4 Maverick (Groq, fast open-source chat)"),
-        "model": "groq-llama-4-maverick",
-        "max_tokens_in": 131072,
-        "max_tokens_out": 8192,
-    },
-    "groq-QwQ-32B": {
-        "description": _("QwQ-32B (Groq, reasoning, long context)"),
-        "model": "groq-QwQ-32B",
-        "max_tokens_in": 131072,
-        "max_tokens_out": 131072,
-    },
-    "fireworks-Qwen3-235B": {
-        "description": _("Qwen3 235B (Fireworks, best open source)"),
-        "model": "fireworks-Qwen3-235B",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 128000,
-    },
-    "fireworks-Qwen3-30B": {
-        "description": _("Qwen3 30B-A3B (Fireworks, best small model)"),
-        "model": "fireworks-Qwen3-30B",
-        "max_tokens_in": 39000,
-        "max_tokens_out": 39000,
-    },
-    "cerebras-llama-4-scout": {
-        "description": _("Llama 4 Scout (Cerebras, instant, short context)"),
-        "model": "cerebras-llama-4-scout",
-        "max_tokens_in": 32000,
-        "max_tokens_out": 32000,
-    },
-    "cerebras-qwen-3-32b": {
-        "description": _("Qwen3 32B (Cerebras, instant, strong reasoning)"),
-        "model": "cerebras-qwen-3-32b",
-        "max_tokens_in": 32768,
-        "max_tokens_out": 32768,
-    },
-}
-
-CHAT_MODELS = [(k, v["description"]) for k, v in llms.items()]
-
-NO_CHAT_MODELS = ["command-a"]
 
 
 def chat_history_to_prompt(chat_history: list) -> str:
@@ -209,12 +91,16 @@ class OttoLLM:
         deployment: str = settings.DEFAULT_CHAT_MODEL,
         temperature: float = 0.1,
         mock_embedding: bool = False,
+        reasoning_effort: str = "medium",
     ):
-        if deployment not in llms:
+        self.llm_config = get_model(deployment)
+        if not self.llm_config:
             raise ValueError(f"Invalid deployment: {deployment}")
-        self.deployment = deployment
-        self.model = "litellm_proxy/" + llms[deployment]["model"]
+
+        self.deployment = self.llm_config.deployment_name
+        self.model = "litellm_proxy/" + self.llm_config.deployment_name
         self.temperature = temperature
+        self.reasoning_effort = reasoning_effort
         self._token_counter = TokenCountingHandler(
             tokenizer=tiktoken.get_encoding("o200k_base").encode
         )
@@ -222,8 +108,8 @@ class OttoLLM:
         self.llm = self._get_llm()
         self.mock_embedding = mock_embedding
         self.embed_model = self._get_embed_model()
-        self.max_input_tokens = llms[deployment]["max_tokens_in"]
-        self.max_output_tokens = llms[deployment]["max_tokens_out"]
+        self.max_input_tokens = self.llm_config.max_tokens_in
+        self.max_output_tokens = self.llm_config.max_tokens_out
 
     # Convenience methods to interact with LLM
     # Each will return a complete response (not single tokens)
@@ -231,11 +117,21 @@ class OttoLLM:
         """
         Stream complete response (not single tokens) from list of chat history objects
         """
-        if self.deployment in NO_CHAT_MODELS:
+        if not self.llm_config.supports_chat_history:
             prompt = chat_history_to_prompt(chat_history)
             async for chunk in self.stream(prompt):
                 yield chunk
             return
+
+        # Prepend system prompt prefix if it exists
+        if self.llm_config.system_prompt_prefix:
+            for message in chat_history:
+                if message.role == "system":
+                    message.content = (
+                        f"{self.llm_config.system_prompt_prefix}\n{message.content}"
+                    )
+                    break
+
         response_stream = await self.llm.astream_chat(chat_history)
         async for chunk in response_stream:
             yield chunk.message.content
@@ -255,9 +151,19 @@ class OttoLLM:
         """
         Return complete response string from list of chat history objects (no streaming)
         """
-        if self.deployment in NO_CHAT_MODELS:
+        if not self.llm_config.supports_chat_history:
             prompt = chat_history_to_prompt(chat_history)
             return self.complete(prompt)
+
+        # Prepend system prompt prefix if it exists
+        if self.llm_config.system_prompt_prefix:
+            for message in chat_history:
+                if message.role == "system":
+                    message.content = (
+                        f"{self.llm_config.system_prompt_prefix}\n{message.content}"
+                    )
+                    break
+
         return self.llm.chat(chat_history).message.content
 
     async def tree_summarize(
@@ -315,12 +221,14 @@ class OttoLLM:
         usd_cost = 0
         if self.input_token_count > 0:
             c1 = Cost.objects.new(
-                cost_type=f"{self.deployment}-in", count=self.input_token_count
+                cost_type=f"{self.llm_config.model_id}-in",
+                count=self.input_token_count,
             )
             usd_cost += c1.usd_cost
         if self.output_token_count > 0:
             c2 = Cost.objects.new(
-                cost_type=f"{self.deployment}-out", count=self.output_token_count
+                cost_type=f"{self.llm_config.model_id}-out",
+                count=self.output_token_count,
             )
             usd_cost += c2.usd_cost
         if self.embed_token_count > 0 and not self.mock_embedding:
@@ -438,6 +346,7 @@ class OttoLLM:
             model=self.model,
             temperature=self.temperature,
             callback_manager=self._callback_manager,
+            reasoning_effort=self.reasoning_effort,
         )
 
     def _get_embed_model(self) -> LiteLLMEmbedding | MockEmbedding:

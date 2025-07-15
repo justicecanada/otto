@@ -236,5 +236,18 @@ class Command(BaseCommand):
 
     def reset_cost_types(self):
         # Simply call manage.py loaddata cost_types.yaml
-        call_command("loaddata", "cost_types.yaml")
+        try:
+            call_command("loaddata", "cost_types.yaml")
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"Failed to load cost types: {str(e)}"))
+            self.stdout.write(
+                self.style.WARNING(
+                    "Deleting existing cost types before reloading from YAML."
+                )
+            )
+            # Clear existing cost types before reloading
+            from otto.models import CostType
+
+            CostType.objects.all().delete()
+            call_command("loaddata", "cost_types.yaml")
         self.stdout.write(self.style.SUCCESS("Cost types reset successfully."))
