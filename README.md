@@ -29,7 +29,7 @@
 | django/librarian/models.py                                            |      332 |       47 |     86% |53-55, 123, 125, 133, 135, 137, 147, 172-174, 196, 250, 312-313, 318, 329-332, 407, 424-433, 437, 455, 483-485, 495-496, 502, 518, 545-546, 556-557, 567-568, 580-581 |
 | django/librarian/tasks.py                                             |      116 |       41 |     65% |42-75, 82, 92, 105, 115, 138-139, 142, 164-166, 177-180, 199-200 |
 | django/librarian/translation.py                                       |        8 |        0 |    100% |           |
-| django/librarian/utils/extract\_emails.py                             |      109 |       24 |     78% |84, 86, 94-100, 118, 121, 130-142, 152, 154 |
+| django/librarian/utils/extract\_emails.py                             |      109 |       31 |     72% |58-72, 85, 87, 95-101, 119, 122, 131-143, 153, 155 |
 | django/librarian/utils/extract\_zip.py                                |       68 |       12 |     82% |37-39, 50-59, 92 |
 | django/librarian/utils/markdown\_splitter.py                          |      185 |       10 |     95% |72, 75-77, 88, 126, 140, 263, 273, 280 |
 | django/librarian/utils/process\_document.py                           |       21 |        1 |     95% |        35 |
@@ -66,7 +66,7 @@
 | django/text\_extractor/tasks.py                                       |       28 |        7 |     75% |     50-61 |
 | django/text\_extractor/utils.py                                       |      263 |       69 |     74% |62-85, 120-121, 155-159, 190-208, 221-223, 233-238, 269-274, 379-381, 392-397, 438-446, 472-480, 497-498, 504, 510-514 |
 | django/text\_extractor/views.py                                       |      118 |       28 |     76% |47, 65-80, 90, 104-112, 125-146, 164-166, 171, 176-181, 198, 208-209, 230-231 |
-|                                                             **TOTAL** | **8009** | **1571** | **80%** |           |
+|                                                             **TOTAL** | **8009** | **1578** | **80%** |           |
 
 
 ## Setup coverage badge
