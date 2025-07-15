@@ -340,14 +340,18 @@ class OttoLLM:
         )
 
     def _get_llm(self) -> LiteLLM:
-        return LiteLLM(
+        llm_kwargs = dict(
             api_base=settings.LITELLM_ENDPOINT,
             api_key=settings.LITELLM_KEY,
             model=self.model,
             temperature=self.temperature,
             callback_manager=self._callback_manager,
-            reasoning_effort=self.reasoning_effort,
         )
+        if self.reasoning_effort is not None:
+            llm_kwargs["additional_kwargs"] = {
+                "reasoning_effort": self.reasoning_effort
+            }
+        return LiteLLM(**llm_kwargs)
 
     def _get_embed_model(self) -> LiteLLMEmbedding | MockEmbedding:
         if self.mock_embedding:
