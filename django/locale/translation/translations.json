@@ -4315,6 +4315,18 @@
         "fr": "",
         "fr_auto": "Ajoutez des notes ou des détails supplémentaires."
     },
+    "Selected chat model is deprecated. Upgrading from": {
+        "fr": "",
+        "fr_auto": "Le modèle de clavardage sélectionné est obsolète. Mise à niveau de"
+    },
+    "Selected Q&A model is deprecated. Upgrading from": {
+        "fr": "",
+        "fr_auto": "Le modèle de questions et réponses sélectionné est obsolète. Mise à niveau de"
+    },
+    "Selected summarization model is deprecated. Upgrading from": {
+        "fr": "",
+        "fr_auto": "Le modèle de résumé sélectionné est obsolète. Mise à niveau de"
+    },
     "This will delete all laws not in the selected set, and could temporarily result in some laws being unavailable while loading. Are you sure you want to start the loading job?": {
         "fr": "",
         "fr_auto": "Cela supprimera toutes les lois qui ne font pas partie de l’ensemble sélectionné et pourrait temporairement entraîner l’indisponibilité de certaines lois pendant le chargement. Êtes-vous sûr de vouloir commencer le travail de chargement?"
@@ -4322,6 +4334,22 @@
     "Checking": {
         "fr": "",
         "fr_auto": "Vérification"
+    },
+    "Low (faster, cheaper)": {
+        "fr": "",
+        "fr_auto": "Faible (plus rapide, moins cher)"
+    },
+    "Medium (default)": {
+        "fr": "",
+        "fr_auto": "Moyen (par défaut)"
+    },
+    "High (slower, more expensive)": {
+        "fr": "",
+        "fr_auto": "Élevée (plus lente, plus chère)"
+    },
+    "Reasoning effort": {
+        "fr": "",
+        "fr_auto": "Effort de raisonnement"
     },
     "The recipients of this preset will not be able to see your attached personal library.": {
         "fr": "",

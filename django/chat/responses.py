@@ -134,7 +134,8 @@ def chat_response(
 ):
     model = chat.options.chat_model
     temperature = chat.options.chat_temperature
-    llm = OttoLLM(model, temperature)
+    reasoning_effort = chat.options.chat_reasoning_effort
+    llm = OttoLLM(model, temperature, reasoning_effort=reasoning_effort)
 
     chat_history = chat_to_history(chat)
 

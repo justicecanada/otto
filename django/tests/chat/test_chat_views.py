@@ -1270,8 +1270,8 @@ def test_chat_message_url_validation(client, all_apps_user):
         data={"user-message": "https://canada.ca"},
     )
     assert response.status_code == 200
-    # The error message contains the string "URL" but success message does not
-    assert not "URL" in response.content.decode()
+    # The error message contains the string "allowed" but success message does not
+    assert not "allowed" in response.content.decode()
 
     # Subdomain of valid URL
     response = client.post(
@@ -1279,7 +1279,7 @@ def test_chat_message_url_validation(client, all_apps_user):
         data={"user-message": "https://www.tbs-sct.canada.ca"},
     )
     assert response.status_code == 200
-    assert not "URL" in response.content.decode()
+    assert not "allowed" in response.content.decode()
 
     # Ends with valid URL, but isn't a subdomain
     response = client.post(
@@ -1288,7 +1288,7 @@ def test_chat_message_url_validation(client, all_apps_user):
     )
     assert response.status_code == 200
     # This should be a problem
-    assert "URL" in response.content.decode()
+    assert "allowed" in response.content.decode()
 
     # Is a valid URL, but is http:// only (should be fine, it will correct to https://)
     response = client.post(
@@ -1296,7 +1296,7 @@ def test_chat_message_url_validation(client, all_apps_user):
         data={"user-message": "http://www.tbs-sct.canada.ca"},
     )
     assert response.status_code == 200
-    assert not "URL" in response.content.decode()
+    assert not "allowed" in response.content.decode()
 
     # Is a valid URL, but FTP
     response = client.post(
@@ -1305,7 +1305,7 @@ def test_chat_message_url_validation(client, all_apps_user):
     )
     assert response.status_code == 200
     # This should be a problem
-    assert "URL" in response.content.decode()
+    assert "allowed" in response.content.decode()
 
     # Invalid URL
     response = client.post(
@@ -1314,14 +1314,14 @@ def test_chat_message_url_validation(client, all_apps_user):
     )
     assert response.status_code == 200
     # This should just be interpreted as a regular chat message
-    assert not "URL" in response.content.decode()
+    assert not "allowed" in response.content.decode()
 
     response = client.post(
         reverse("chat:chat_message", args=[chat.id]),
         data={"user-message": "https://notallowed.com"},
     )
     assert response.status_code == 200
-    assert "URL" in response.content.decode()
+    assert "allowed" in response.content.decode()
 
 
 def test_generate_prompt_view(client, all_apps_user):

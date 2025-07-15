@@ -7,16 +7,21 @@ from django.db.models import BooleanField, Q, Value
 from django.db.models.functions import Coalesce
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from data_fetcher.util import get_request
-from rapidfuzz import fuzz
 from structlog import get_logger
 
-from chat.llm import OttoLLM
+from chat.llm_models import (
+    DEFAULT_CHAT_MODEL_ID,
+    DEFAULT_QA_MODEL_ID,
+    DEFAULT_SUMMARIZE_MODEL_ID,
+    MODELS_BY_ID,
+    get_model,
+    get_updated_model_id,
+)
 from chat.prompts import current_time_prompt
 from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
@@ -113,6 +118,48 @@ class ChatOptionsManager(models.Manager):
 
         return new_options
 
+    def check_and_update_models(self, options):
+        """
+        Checks and updates deprecated or invalid model IDs in a ChatOptions instance.
+        Returns a list of user-facing messages about the changes.
+        """
+        from django.contrib import messages
+
+        update_messages = []
+        changed = False
+
+        model_fields = [
+            (
+                "chat_model",
+                _("Selected chat model is deprecated. Upgrading from"),
+            ),
+            (
+                "qa_model",
+                _("Selected Q&A model is deprecated. Upgrading from"),
+            ),
+            (
+                "summarize_model",
+                _("Selected summarization model is deprecated. Upgrading from"),
+            ),
+        ]
+
+        for field, msg_from in model_fields:
+            old_model = getattr(options, field)
+            new_model, was_updated = get_updated_model_id(old_model)
+            if was_updated:
+                setattr(options, field, new_model)
+                old_model = MODELS_BY_ID.get(old_model).description
+                new_model = get_model(new_model).description
+                update_messages.append(f"{msg_from} {old_model} {_('to')} {new_model}.")
+                changed = True
+
+        if changed:
+            options.save()
+            request = get_request()
+            if request:
+                for msg in update_messages:
+                    messages.info(request, msg)
+
 
 QA_SCOPE_CHOICES = [
     ("all", _("Entire library")),
@@ -129,6 +176,12 @@ QA_MODE_CHOICES = [
 QA_SOURCE_ORDER_CHOICES = [
     ("score", _("Relevance score")),
     ("reading_order", _("Reading order")),
+]
+
+REASONING_EFFORT_CHOICES = [
+    ("low", _("Low (faster, cheaper)")),
+    ("medium", _("Medium (default)")),
+    ("high", _("High (slower, more expensive)")),
 ]
 
 
@@ -152,20 +205,25 @@ class ChatOptions(models.Model):
     prompt = models.TextField(blank=True, default="")
 
     # Chat-specific options
-    chat_model = models.CharField(max_length=255, default="gpt-4o")
+    chat_model = models.CharField(max_length=255, default=DEFAULT_CHAT_MODEL_ID)
     chat_temperature = models.FloatField(default=0.1)
+    chat_reasoning_effort = models.CharField(
+        max_length=10, default="medium", choices=REASONING_EFFORT_CHOICES
+    )
     chat_system_prompt = models.TextField(blank=True)
     chat_agent = models.BooleanField(default=False)
 
     # Summarize-specific options
-    summarize_model = models.CharField(max_length=255, default="gpt-4o")
+    summarize_model = models.CharField(
+        max_length=255, default=DEFAULT_SUMMARIZE_MODEL_ID
+    )
     summarize_prompt = models.TextField(blank=True)
 
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
 
     # QA-specific options
-    qa_model = models.CharField(max_length=255, default="gpt-4o")
+    qa_model = models.CharField(max_length=255, default=DEFAULT_QA_MODEL_ID)
     qa_library = models.ForeignKey(
         "librarian.Library",
         on_delete=models.SET_NULL,
@@ -410,6 +468,7 @@ class Message(models.Model):
         "self", on_delete=models.SET_NULL, null=True, related_name="child"
     )
     claims_list = models.JSONField(default=list, blank=True)
+    seconds_elapsed = models.FloatField(default=0.0)
 
     def __str__(self):
         return f"{'(BOT) ' if self.is_bot else ''}msg {self.id}: {self.text}"

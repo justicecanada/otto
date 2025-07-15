@@ -153,12 +153,12 @@ def chat(request, chat_id):
     Chat.objects.filter(id=chat_id).update(accessed_at=timezone.now())
 
     # Get chat messages ready
-    messages = (
+    chat_messages = (
         Message.objects.filter(chat=chat)
         .order_by("date_created")
         .prefetch_related("answersource_set", "files")
     )
-    for message in messages:
+    for message in chat_messages:
         if message.is_bot:
             message.json = json.dumps(message.text)
         else:
@@ -167,7 +167,7 @@ def chat(request, chat_id):
     if not request.user.has_perm("chat.access_chat", chat):
         context = {
             "chat": chat,
-            "chat_messages": messages,
+            "chat_messages": chat_messages,
             "hide_breadcrumbs": True,
             "read_only": True,
             "chat_author": chat.user,
@@ -177,6 +177,8 @@ def chat(request, chat_id):
     # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
     try:
         chat.options
+        # Check for deprecated models and update them
+        ChatOptions.objects.check_and_update_models(chat.options)
     except:
         chat.options = ChatOptions.objects.from_defaults(user=chat.user, chat=chat)
         chat.save()
@@ -221,18 +223,18 @@ def chat(request, chat_id):
     # of creating a new message - which returns an "awaiting_response" bot message
     if (
         awaiting_response
-        and messages
-        and messages.last().is_bot
-        and not messages.last().text
+        and chat_messages
+        and chat_messages.last().is_bot
+        and not chat_messages.last().text
     ):
         response_init_message = {
             "is_bot": True,
             "awaiting_response": True,
-            "id": messages.last().id,
-            "date_created": messages.last().date_created
+            "id": chat_messages.last().id,
+            "date_created": chat_messages.last().date_created
             + timezone.timedelta(seconds=1),
         }
-        messages = [messages.first(), response_init_message]
+        chat_messages = [chat_messages.first(), response_init_message]
 
     if not chat.options.qa_library or not request.user.has_perm(
         "librarian.view_library", chat.options.qa_library
@@ -246,7 +248,7 @@ def chat(request, chat_id):
         "chat": chat,
         "options_form": form,
         "prompt": chat.options.prompt,
-        "chat_messages": messages,
+        "chat_messages": chat_messages,
         "hide_breadcrumbs": True,
         "user_chats": user_chats,
         "mode": mode,
@@ -525,9 +527,11 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             chat_id=chat_id,
             preset=preset_id,
         )
+
         if not preset_id:
-            return HttpResponse(status=500)
-        preset = Preset.objects.get(id=int(preset_id))
+            preset = Preset.objects.get_global_default()
+        else:
+            preset = Preset.objects.get(id=int(preset_id))
         if not preset:
             return HttpResponse(status=500)
 
