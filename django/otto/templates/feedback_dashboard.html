@@ -48,6 +48,12 @@
       border-color: hsl(331, 62%, 93%) !important;
       color: hsl(335, 78%, 42%);      
     }
+    
+    &.badge-deferred {
+      background-color: hsl(33, 73%, 97%);
+      border-color: hsl(33, 82%, 89%) !important;
+      color: hsl(33, 67%, 48%);      
+    }
   }
   .feedback-message{
     overflow: hidden;    
@@ -110,11 +116,11 @@
         </div>
         <div id="filters" class="collapse mt-4">
           <form class="card card-body"
-                hx-post="{% url 'feedback_list' %}"
+                hx-get="{% url 'feedback_list' %}"
                 hx-target="#feedback-list-container"
                 hx-swap="innerHTML">
             <h2 class="mb-3 fs-5 ps-2 fw-semibold" style="letter-spacing: -0.025em">{% trans "Filters" %}</h2>
- 
+
             <div class="row">
               <div class="col-md-4">
                 <label for="feedback_type" class="form-label">{% trans "Feedback Type" %}</label>
@@ -142,14 +148,14 @@
             <div class="mt-4 text-end">
               <button type="submit" class="btn btn-dark">{% trans "Apply Filters" %}</button>
             </div>
- 
+
           </form>
         </div>
         <div id="feedback-list-spinner"
              class="d-flex justify-content-center spinner text-primary htmx-indicator">
           <span class="spinner-border" aria-hidden="true"></span>
           <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
- 
+
         </div>
 
         <div hx-get="{% url 'feedback_list' page_number=current_page_number %}"
@@ -159,7 +165,7 @@
              id="feedback-list-container">{% include 'components/feedback/dashboard/feedback_list.html' %}</div>
 
       </div>
- 
+
     </div>
   </div>
 {% endblock %}

@@ -26,6 +26,11 @@ from otto.models import Cost
 
 logger = get_logger(__name__)
 
+# Threshold for when to force OCR on PDFs, in characters
+# If the text extracted from a PDF using non-OCR method is less than this threshold,
+# we fallback to the Azure Document Intelligence API to perform OCR.
+FORCE_OCR_THRESHOLD = 1000
+
 
 def markdownify_wrapper(text):
     """Wrapper to allow options to be passed to markdownify"""
@@ -271,7 +276,7 @@ def extract_markdown(
             if pdf_method == "default":
                 enable_markdown = False
                 md = pdf_to_text_pdfium(content)
-                if len(md) < 10:
+                if len(md) < FORCE_OCR_THRESHOLD:
                     # Fallback to Azure Document Intelligence Read API to OCR
                     md = pdf_to_text_azure_read(content)
             elif pdf_method == "azure_layout":

@@ -52,12 +52,12 @@
         </li>
       {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
         <li class="page-item">
-          <button class="page-link link-dark"
-                  href="#"
-                  hx-get="{% url 'feedback_list' page_number=num %}"
-                  hx-push-url="{% url 'feedback_dashboard' page_number=num %}"
-                  hx-trigger="click"
-                  hx-target="#feedback-list-container">{{ num }}</button>
+          <a class="page-link link-dark"
+             href="#"
+             hx-get="{% url 'feedback_list' page_number=num %}?{{ request.GET.urlencode }}"
+             hx-push-url="{% url 'feedback_dashboard' page_number=num %}?{{ request.GET.urlencode }}"
+             hx-trigger="click"
+             hx-target="#feedback-list-container">{{ num }}</a>
         </li>
       {% endif %}
     {% endfor %}
@@ -66,8 +66,8 @@
       <li class="page-item">
         <a class="page-link link-dark"
            href="#"
-           hx-get="{% url 'feedback_list' page_number=page_obj.next_page_number %}"
-           hx-push-url="{% url 'feedback_dashboard' page_number=page_obj.next_page_number %}"
+           hx-get="{% url 'feedback_list' page_number=page_obj.next_page_number %}?{{ request.GET.urlencode }}"
+           hx-push-url="{% url 'feedback_dashboard' page_number=page_obj.next_page_number %}?{{ request.GET.urlencode }}"
            hx-trigger="click"
            hx-target="#feedback-list-container"
            aria-label="Next">
@@ -77,8 +77,8 @@
       <li class="page-item">
         <a class="page-link link-dark"
            href="#"
-           hx-get="{% url 'feedback_list' page_number=page_obj.paginator.num_pages %}"
-           hx-push-url="{% url 'feedback_dashboard' page_number=page_obj.paginator.num_pages %}"
+           hx-get="{% url 'feedback_list' page_number=page_obj.paginator.num_pages %}?{{ request.GET.urlencode }}"
+           hx-push-url="{% url 'feedback_dashboard' page_number=page_obj.paginator.num_pages %}?{{ request.GET.urlencode }}"
            hx-trigger="click"
            hx-target="#feedback-list-container"
            aria-label="Last">

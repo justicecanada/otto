@@ -22,11 +22,11 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.sync_users",
         "schedule": crontab(hour=1, minute=0),
     },
-    # Update laws every week on Saturdays at 5 am UTC
-    "update-laws-every-week": {
-        "task": "otto.tasks.update_laws",
-        "schedule": crontab(hour=5, minute=0, day_of_week=6),
-    },
+    # NOTE: This is now handled by kubernetes CronJob instead
+    # "update-laws-every-week": {
+    #     "task": "laws.tasks.update_laws",
+    #     "schedule": crontab(hour=5, minute=0, day_of_week=6),
+    # },
     # Reset monthly bonus every month on the 1st at 12 am UTC
     "reset-monthly-bonus-every-month": {
         "task": "otto.tasks.reset_monthly_bonus",
@@ -71,6 +71,7 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.delete_text_extractor_files",
         "schedule": crontab(hour=0, minute=0),
     },
+    # NOTE: I am uncomfortable with this running without more tests / monitoring
     # "cleanup-vector-store-every-morning": {
     #     "task": "otto.tasks.cleanup_vector_store",
     #     "schedule": crontab(hour=3, minute=0),

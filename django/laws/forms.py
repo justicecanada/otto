@@ -5,7 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 
-from chat.llm import CHAT_MODELS
+from chat.forms import SelectWithOptionClasses
+from chat.llm_models import get_grouped_chat_model_choices
 
 from .models import Law
 from .prompts import default_additional_instructions
@@ -65,6 +66,25 @@ class LawsAutocomplete(HTMXAutoComplete):
             return items
 
         return []
+
+
+class SelectWithModelGroups(SelectWithOptionClasses):
+    def optgroups(self, name, value, attrs=None):
+        groups = []
+        has_selected = False
+        for index, (group_label, options) in enumerate(self.choices):
+            subgroup = []
+            for option_value, option_label in options:
+                selected = str(option_value) in value
+                subgroup.append(
+                    self.create_option(
+                        name, option_value, option_label, selected, index
+                    )
+                )
+                if selected:
+                    has_selected = True
+            groups.append((group_label, subgroup, index))
+        return groups
 
 
 class LawSearchForm(forms.Form):
@@ -165,8 +185,8 @@ class LawSearchForm(forms.Form):
     top_k = forms.IntegerField(
         label=_("Number of sources"),
         min_value=1,
-        max_value=100,
-        initial=25,
+        max_value=250,
+        initial=50,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
     )
 
@@ -179,16 +199,16 @@ class LawSearchForm(forms.Form):
     )
     model = forms.ChoiceField(
         label=_("AI model"),
-        choices=CHAT_MODELS,  # This will be populated dynamically in the view
+        choices=get_grouped_chat_model_choices(),
         initial=settings.DEFAULT_LAWS_MODEL,
-        widget=forms.Select(attrs={"class": "form-select"}),
+        widget=SelectWithModelGroups(attrs={"class": "form-select"}),
     )
     context_tokens = forms.IntegerField(
         label=_("Max input tokens"),
-        min_value=500,
-        max_value=100000,
-        initial=5000,
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": 500}),
+        min_value=1000,
+        max_value=150000,
+        initial=16000,
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": 1000}),
     )
     additional_instructions = forms.CharField(
         label=_("Additional instructions for AI answer"),
