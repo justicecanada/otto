@@ -4350,5 +4350,17 @@
     " To adjust permissions on your libraries, use the 'Manage Libraries' button.": {
         "fr": "",
         "fr_auto": " Pour ajuster les autorisations de vos bibliothèques, utilisez le bouton « Gérer les bibliothèques »."
+    },
+    "Make default": {
+        "fr": "",
+        "fr_auto": "Faire défaut"
+    },
+    "Make this my default for new chats": {
+        "fr": "",
+        "fr_auto": "Faites de cette option ma valeur par défaut pour les nouvelles discussions"
+    },
+    "This is your default preset for new chats. To change your default preset, return to the Browse Presets page and click the 'star' for a different preset.": {
+        "fr": "",
+        "fr_auto": "Il s’agit de votre préréglage par défaut pour les nouvelles discussions. Pour modifier votre préréglage par défaut, retournez à la page Parcourir les préréglages et cliquez sur l’étoile d’un autre préréglage."
     }
 }
