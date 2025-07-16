@@ -510,15 +510,3 @@
     unit_name_fr: jetons
     unit_cost: 0.34
     unit_quantity: 1000000
-- model: otto.CostType
-  pk: 153
-  fields:
-    short_name: o4-mini-in
-    name: o4-mini Global (input)
-    name_fr: o4-mini Global (entrée)
-    description: API calls to Azure OpenAI o4-mini Global Deployment model (input)
-    description_fr: Appels API au modèle de déploiement global Azure OpenAI o4-mini (entrée)
-    unit_name: tokens
-    unit_name_fr: jetons
-    unit_cost: 1.10
-    unit_quantity: 1000000
