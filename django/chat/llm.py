@@ -262,7 +262,7 @@ class OttoLLM:
             llm=self.llm,
             embed_model=self.embed_model,
         )
-        hybrid_retriever = QueryFusionRetriever(
+        hybrid_retriever = SafeQueryFusionRetriever(
             [vector_retriever, text_retriever],
             similarity_top_k=top_k,
             num_queries=1,  # set this to 1 to disable query generation
@@ -362,6 +362,15 @@ class OttoLLM:
             api_version=settings.AZURE_OPENAI_VERSION,
             callback_manager=self._callback_manager,
         )
+
+
+class SafeQueryFusionRetriever(QueryFusionRetriever):
+    def retrieve(self, *args, **kwargs):
+        try:
+            return super().retrieve(*args, **kwargs)
+        except Exception as e:
+            logger.warning(f"Retriever exception handled: {e}")
+            return []
 
 
 class OttoVectorStore(PGVectorStore):
