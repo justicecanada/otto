@@ -211,7 +211,6 @@ class ChatOptions(models.Model):
         max_length=10, default="medium", choices=REASONING_EFFORT_CHOICES
     )
     chat_system_prompt = models.TextField(blank=True)
-    chat_agent = models.BooleanField(default=False)
 
     # Summarize-specific options
     summarize_model = models.CharField(

@@ -58,6 +58,14 @@
         </div>
       </div>
       <div class="mt-4 alert alert-light text-body" id="chat-mode-description">
+        <p class="option agent-option">
+          {% blocktrans %}
+            <strong>Agent</strong> automatically selects tools to answer your query.
+          {% endblocktrans %}
+        </p>
+        <p class="mb-0 option agent-option">
+          {% trans "Review the agent's reasoning and tool selection to ensure they align with your intent." %}
+        </p>
         <p class="option chat-option">
           {% blocktrans %}
             <strong>Chat</strong> with a secure AI for brainstorming, writing assistance and text formatting.

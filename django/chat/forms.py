@@ -395,7 +395,7 @@ class ChatOptionsForm(ModelForm):
 
         # Toggles
         for field in [
-            "chat_agent",
+            # "chat_agent",
         ]:
             self.fields[field].widget = forms.CheckboxInput(
                 attrs={

@@ -151,7 +151,7 @@ function handleModeChange(mode, element = null) {
 function updateAccordion(mode) {
   // Otherwise, we need to update the accordion to show the correct mode
   let accordion_parent = document.querySelector("#options-accordion");
-  for (chat_mode of ["chat", "summarize", "translate", "qa"]) {
+  for (chat_mode of ["agent", "chat", "summarize", "translate", "qa"]) {
     let accordion_button = accordion_parent.querySelector(`button[data-bs-target="#options-accordion-${chat_mode}"]`);
     let accordion_content = document.querySelector(`#options-accordion-${chat_mode}`);
     if (chat_mode === mode) {

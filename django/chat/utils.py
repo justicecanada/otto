@@ -209,7 +209,6 @@ async def htmx_stream(
     wrap_markdown: bool = True,
     dots: bool = False,
     source_nodes: list = [],
-    switch_mode: bool = False,
     remove_stop: bool = False,
     cost_warning_buttons: str = None,
 ) -> AsyncGenerator:
@@ -270,9 +269,6 @@ async def htmx_stream(
     dots_html = '<div class="typing"><span></span><span></span><span></span></div>'
     if dots:
         dots = dots_html
-    if switch_mode:
-        mode = chat.options.mode
-        mode_str = {"qa": _("Q&A"), "chat": _("Chat")}[mode]
     try:
         if response_generator:
             response_replacer = stream_to_replacer(response_generator)
@@ -284,24 +280,6 @@ async def htmx_stream(
         async for response in response_replacer:
             if response is None:
                 continue
-            if first_message and switch_mode:
-                full_message = render_to_string(
-                    "chat/components/mode_switch_message.html",
-                    {
-                        "mode": mode,
-                        "mode_str": mode_str,
-                        "library_id": chat.options.qa_library_id,
-                        "library_str": chat.options.qa_library.name,
-                    },
-                )
-                yield sse_string(
-                    full_message,
-                    wrap_markdown=False,
-                    dots=dots_html,
-                    remove_stop=remove_stop,
-                )
-                await asyncio.sleep(1)
-                first_message = False
 
             if response != "<|batchboundary|>":
                 if remove_stop or not cache.get(f"stop_response_{message_id}", False):

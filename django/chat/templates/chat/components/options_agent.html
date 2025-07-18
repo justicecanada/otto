@@ -1,0 +1,15 @@
+{% extends 'chat/components/options_submenu.html' %}
+
+{% load i18n %}
+
+{% block accordion_title %}
+  {% trans "Agent" %}
+{% endblock %}
+
+{% block accordion_body %}
+  <div class="px-3">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.agent_name.auto_id }}">{% trans "Enabled tools" %}</label>
+  </div>
+  <div class="px-3">{{ options_form.agent_name }}...</div>
+{% endblock %}
