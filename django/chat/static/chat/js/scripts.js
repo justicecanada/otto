@@ -1,3 +1,4 @@
+
 const md = markdownit({
   highlight: function (str, lang) {
     if (lang && hljs.getLanguage(lang)) {
@@ -7,7 +8,6 @@ const md = markdownit({
           '</code></pre>';
       } catch (__) { }
     }
-
     return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
   },
   breaks: true,
@@ -23,7 +23,6 @@ const md_with_html = markdownit({
           '</code></pre>';
       } catch (__) { }
     }
-
     return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
   },
   breaks: true,
@@ -50,7 +49,18 @@ function render_markdown(element) {
     }
     const parent = markdown_text.parentElement;
     if (to_parse) {
-      parent.innerHTML = md.render(to_parse);
+      // Use md_with_html for agent messages to allow explicit <details> HTML
+      let isAgentMode = false;
+      // Check for a class or data attribute on the message-outer or parent
+      let outer = element.closest('.message-blob');
+      if (outer && outer.classList.contains('agent')) {
+        isAgentMode = true;
+      }
+      if (isAgentMode) {
+        parent.innerHTML = md_with_html.render(to_parse);
+      } else {
+        parent.innerHTML = md_with_html.render(to_parse);
+      }
       const current_dots = parent.parentElement.querySelector(".typing");
       // If dots=True on htmx_stream call and we just removed the dots at the beginning of stream,
       // add a new dots element after parent
@@ -651,5 +661,21 @@ function afterAccordionSwap() {
     resetQaAutocompletes();
   } else {
     updateQaSourceForms();
+  }
+}
+
+// Agent reasoning/code toggles for use with onclick attribute
+function toggleAgentSteps(btn) {
+  // btn: the button element inside .agent-steps-container
+  const container = btn.closest('.message-blob.agent');
+  if (container) {
+    container.classList.toggle('hide-steps');
+  }
+}
+
+function toggleAgentCode(btn) {
+  const container = btn.closest('.message-blob.agent');
+  if (container) {
+    container.classList.toggle('show-code');
   }
 }

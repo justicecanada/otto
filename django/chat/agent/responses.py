@@ -34,29 +34,29 @@ def format_tool_call(tool_call):
 
     if type(tool_call).__name__ == "ActionStep":
         # Show the step number if available
-        # step_number = getattr(tool_call, "step_number", None)
+        step_number = getattr(tool_call, "step_number", None)
         # if step_number is not None:
         #     lines.append(f"### Step {step_number}\n")
-
-        # Show the LLM's output/thoughts if available
-        # Try common attribute names
+        lines += ["<div class='agent-step'>\n"]
         llm_output = getattr(tool_call, "model_output_message", None)
         if llm_output and hasattr(llm_output, "content"):
-            lines.append(
-                llm_output.content.replace("<code>", "```python")
-                .replace("</code>", "```\n")
-                .replace("Thought: ", "")
-            )
-        lines.append("\n\n---\n\n")
+            content = llm_output.content
+            content = content.replace("<code>", "\n```python")
+            content = content.replace("</code>", "```")
+            content = content.replace("Thought: ", f"**Step {step_number}:** ")
+            lines.append(content)
+        lines.append("</div>")
 
     elif type(tool_call).__name__ == "FinalAnswerStep":
         # Show the final answer
-        lines.append("### Final Answer\n")
+        lines += ["<div class='agent-final-answer'>"]
         final_answer = getattr(tool_call, "output", None)
         if final_answer:
-            lines.append(
-                final_answer.replace("<code>", "```").replace("</code>", "```\n")
+            content = (
+                str(final_answer).replace("<code>", "```").replace("</code>", "```")
             )
+            lines.append(content)
+        lines += ["</div>"]
 
     return "\n".join(lines)
 
@@ -84,5 +84,3 @@ def agent_response_generator(user_message, chat):
     generator = agent.run(user_message.text, stream=True)
     for tool_call in generator:
         yield format_tool_call(tool_call)
-        print(str(tool_call))
-        print("\n\n")

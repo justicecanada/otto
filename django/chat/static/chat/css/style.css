@@ -667,8 +667,44 @@ li.message-file {
   top: -1.75rem;
 }
 
-div.message-text :last-child {
-  margin-bottom: 0;
+.message-blob.agent.hide-steps div.agent-step {
+  display: none;
+}
+
+.hide-steps-label {
+  display: inline;
+}
+
+.show-steps-label {
+  display: none;
+}
+
+.message-blob.agent.hide-steps {
+  .hide-steps-label {
+    display: none;
+  }
+
+  .show-steps-label {
+    display: inline;
+  }
+}
+
+
+.message-blob.agent.show-code {
+  .show-code-label {
+    display: none;
+  }
+
+  .hide-code-label {
+    display: inline;
+  }
+}
+
+.message-blob.agent .agent-step {
+  font-size: 0.9rem;
+  padding: 10px;
+  background: var(--bs-body-bg);
+  border-radius: 5px;
 }
 
 .message-text ul p,
@@ -709,6 +745,7 @@ div.message-text blockquote {
   border: solid 1px var(--chat-message-border);
   border-left-width: 3px;
 }
+
 
 .message-show-all {
   display: none;

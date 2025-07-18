@@ -367,6 +367,7 @@ async def htmx_stream(
 
     # Render the message template, wrapped in SSE format
     context["message"].json = json.dumps(str(full_message))
+    context["mode"] = chat.options.mode
 
     yield sse_string(
         await sync_to_async(render_to_string)(

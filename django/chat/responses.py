@@ -790,6 +790,7 @@ def chat_agent(chat, response_message):
             response_message.id,
             llm,
             response_generator=agent_response_generator(user_message, chat),
+            dots=True,
         ),
         content_type="text/event-stream",
     )

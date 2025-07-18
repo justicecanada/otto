@@ -30,6 +30,14 @@
       </div>
     {% endif %}
     <div class="message-blob {{ mode }}">
+      {% if mode == "agent" and message.is_bot %}
+        <button type="button"
+                class="btn btn-sm btn-outline-dark me-2 mb-2"
+                onclick="toggleAgentSteps(this)">
+          <span class="hide-steps-label">{% trans "Hide reasoning" %}</span>
+          <span class="show-steps-label">{% trans "Show reasoning" %}</span>
+        </button>
+      {% endif %}
       {% if message.awaiting_response %}
         <div class="message-text">{% include "chat/components/streaming_response.html" %}</div>
       {% elif file_upload %}
