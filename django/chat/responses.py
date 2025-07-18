@@ -547,7 +547,9 @@ def qa_response(chat, response_message, switch_mode=False):
         )
 
     # Summarize mode
-    if chat.options.qa_mode in ["summarize", "summarize_combined"]:
+    if chat.options.qa_mode != "rag":
+        response_generator = None
+        source_groups = None
         if not filter_documents:
             filter_documents = Document.objects.filter(
                 data_source__library=chat.options.qa_library
@@ -571,34 +573,89 @@ def qa_response(chat, response_message, switch_mode=False):
                 template=chat.options.qa_prompt_combined,
             )
         else:
-            # Use summarization on each of the documents
-            summary_responses = [
-                llm.tree_summarize(
-                    context=document.extracted_text,
-                    query=user_message.text,
-                    template=chat.options.qa_prompt_combined,
-                )
-                for document in filter_documents
-                if not cache.get(f"stop_response_{response_message.id}", False)
-            ]
             title_batches = create_batches(
                 document_titles, batch_size
             )  # TODO: test batch size
-            response_batches = create_batches(summary_responses, batch_size)
-            batch_generators = [
-                combine_response_replacers(
-                    batch_responses,
-                    batch_titles,
-                )
-                for batch_responses, batch_titles in zip(
-                    response_batches, title_batches
-                )
-            ]
+            if chat.options.qa_mode == "rag_per_doc":
+                source_groups = []
+                doc_responses = []
+                vector_store_table = chat.options.qa_library.uuid_hex
+                top_k = chat.options.qa_topk
+                for document in filter_documents:
+                    # Don't include the top-level nodes (documents); they don't contain text
+                    filters = MetadataFilters(
+                        filters=[
+                            MetadataFilter(
+                                key="node_type",
+                                value="document",
+                                operator="!=",
+                            ),
+                        ]
+                    )
+
+                    filters.filters.append(
+                        MetadataFilter(
+                            key="doc_id",
+                            value=document.uuid_hex,
+                            operator="==",
+                        )
+                    )
+                    retriever = llm.get_retriever(
+                        vector_store_table,
+                        filters,
+                        top_k,
+                        chat.options.qa_vector_ratio,
+                    )
+                    synthesizer = llm.get_response_synthesizer(
+                        chat.options.qa_prompt_combined
+                    )
+                    input = response_message.parent.text
+                    source_nodes = retriever.retrieve(input)
+                    source_groups.append(source_nodes)
+
+                    if not cache.get(f"stop_response_{response_message.id}", False):
+                        doc_responses.append(
+                            synthesizer.synthesize(
+                                query=input, nodes=source_nodes
+                            ).response_gen
+                        )
+                response_batches = create_batches(doc_responses, batch_size)
+                batch_generators = [
+                    combine_response_generators(
+                        batch_responses,
+                        batch_titles,
+                        input,
+                        llm,
+                    )
+                    for batch_responses, batch_titles in zip(
+                        response_batches, title_batches
+                    )
+                ]
+
+            # Use summarization on each of the documents
+            else:
+                doc_responses = [
+                    llm.tree_summarize(
+                        context=document.extracted_text,
+                        query=user_message.text,
+                        template=chat.options.qa_prompt_combined,
+                    )
+                    for document in filter_documents
+                    if not cache.get(f"stop_response_{response_message.id}", False)
+                ]
+                response_batches = create_batches(doc_responses, batch_size)
+                batch_generators = [
+                    combine_response_replacers(
+                        batch_responses,
+                        batch_titles,
+                    )
+                    for batch_responses, batch_titles in zip(
+                        response_batches, title_batches
+                    )
+                ]
             response_replacer = combine_batch_generators(
                 batch_generators,
             )
-        response_generator = None
-        source_groups = None
 
     else:
         vector_store_table = chat.options.qa_library.uuid_hex
@@ -655,7 +712,10 @@ def qa_response(chat, response_message, switch_mode=False):
             )
 
         # If we're stitching sources together into groups...
-        if chat.options.qa_granularity > 768:
+        if (
+            chat.options.qa_answer_mode == "per-source"
+            and chat.options.qa_granularity > 768
+        ):
             # Group nodes from the same doc together,
             # and ensure nodes WITHIN each doc are in reading order.
             # Need to do this if granularity is set to group multiple nodes together

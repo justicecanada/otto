@@ -171,6 +171,7 @@ QA_MODE_CHOICES = [
     ("rag", _("Use top sources only (fast, cheap)")),
     ("summarize", _("Full documents, separate answers ($)")),
     ("summarize_combined", _("Full documents, combined answer ($)")),
+    ("rag_per_doc", _("Use top sources for each selected document")),
 ]
 
 QA_SOURCE_ORDER_CHOICES = [
