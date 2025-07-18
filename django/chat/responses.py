@@ -16,7 +16,6 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.agent.responses import agent_response_string
 from chat.llm import OttoLLM
 from chat.models import Message
 from chat.tasks import translate_file
@@ -778,9 +777,10 @@ def error_response(chat, response_message, error_message=None):
 
 
 def chat_agent(chat, response_message):
+    from chat.agent.responses import agent_response_generator, agent_response_string
+
     bind_contextvars(feature="chat_agent")
     user_message = response_message.parent
-    response_str = agent_response_string(user_message, chat)
 
     llm = OttoLLM()
 
@@ -789,7 +789,7 @@ def chat_agent(chat, response_message):
             chat,
             response_message.id,
             llm,
-            response_str=response_str,
+            response_generator=agent_response_generator(user_message, chat),
         ),
         content_type="text/event-stream",
     )
