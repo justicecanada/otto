@@ -67,7 +67,7 @@
               <option value="reading_order">{% trans "Reading order" %}</option>
             </select>
           </div>
-          <div class="col-md-3 mb-2">
+          <div class="col-md-3 mb-2 qa_granular">
             <label for="qa_granular_toggle-modal"
                    class="col-form-label col-form-label-sm">{% trans "Answer granularity" %}</label>
             <select class="form-select form-select-sm"
@@ -102,7 +102,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-2 mb-2 pt-3">
+          <div class="col-md-2 mb-2 pt-3 qa_granular">
             <div class="form-check form-switch col ms-2"
                  id="qa_pruning"
                  style="{% if chat.options.qa_granular_toggle == 'combined' %} display: none;

@@ -304,14 +304,14 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this.value); triggerOptionSave();",
+                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this.value, document.getElementById('id_qa_answer_type').value); triggerOptionSave();",
                 },
             ),
             "qa_answer_type": forms.Select(
                 choices=QA_ANSWER_TYPE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this.value); triggerOptionSave();",
+                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(document.getElementById('id_qa_mode').value, this.value); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(
