@@ -669,7 +669,7 @@ function toggleAgentSteps(btn) {
   // btn: the button element inside .agent-steps-container
   const container = btn.closest('.message-blob.agent');
   if (container) {
-    container.classList.toggle('hide-steps');
+    container.classList.toggle('show-steps');
   }
 }
 
@@ -679,3 +679,11 @@ function toggleAgentCode(btn) {
     container.classList.toggle('show-code');
   }
 }
+
+function toggleAgentOutput(btn) {
+  const container = btn.closest('.message-blob.agent');
+  if (container) {
+    container.classList.toggle('show-output');
+  }
+}
+

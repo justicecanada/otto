@@ -667,25 +667,54 @@ li.message-file {
   top: -1.75rem;
 }
 
-.message-blob.agent.hide-steps div.agent-step {
+.message-blob.agent div.agent-steps,
+.message-blob.agent div.agent-steps .agent-step>pre,
+.message-blob.agent div.agent-steps .agent-output {
+  display: none;
+  margin-bottom: 10px;
+}
+
+button.agent-code-toggle,
+button.agent-output-toggle {
   display: none;
 }
 
-.hide-steps-label {
+.message-blob.agent.show-steps div.agent-steps {
+  display: block;
+}
+
+.message-blob.agent.show-output div.agent-steps .agent-output {
+  display: block;
+}
+
+.message-blob.agent.show-steps button.agent-code-toggle,
+.message-blob.agent.show-steps button.agent-output-toggle {
+  display: inline-block;
+}
+
+.message-blob.agent.show-code div.agent-steps .agent-step>pre {
+  display: block;
+}
+
+.message-blob.agent .hide-steps-label,
+.message-blob.agent .hide-code-label,
+.message-blob.agent .hide-output-label {
+  display: none;
+}
+
+.message-blob.agent .show-steps-label,
+.message-blob.agent .show-code-label,
+.message-blob.agent .show-output-label {
   display: inline;
 }
 
-.show-steps-label {
-  display: none;
-}
-
-.message-blob.agent.hide-steps {
+.message-blob.agent.show-steps {
   .hide-steps-label {
-    display: none;
+    display: inline;
   }
 
   .show-steps-label {
-    display: inline;
+    display: none;
   }
 }
 
@@ -700,7 +729,17 @@ li.message-file {
   }
 }
 
-.message-blob.agent .agent-step {
+.message-blob.agent.show-output {
+  .show-output-label {
+    display: none;
+  }
+
+  .hide-output-label {
+    display: inline;
+  }
+}
+
+.message-blob.agent .agent-steps {
   font-size: 0.9rem;
   padding: 10px;
   background: var(--bs-body-bg);
@@ -746,6 +785,10 @@ div.message-text blockquote {
   border-left-width: 3px;
 }
 
+div.message-text :last-child {
+  margin-bottom: 0;
+}
+
 
 .message-show-all {
   display: none;
@@ -774,6 +817,11 @@ code {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   line-clamp: 3;
+}
+
+.message-blob.agent * {
+  -webkit-line-clamp: none !important;
+  line-clamp: none !important;
 }
 
 
