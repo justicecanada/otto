@@ -508,7 +508,7 @@ function updateQaModal() {
         modal_element.value = hidden_field_element.value;
       }
     }
-    toggleGranularOptions(document.getElementById('qa_answer_mode-modal').value);
+    toggleGranularOptions(document.getElementById('qa_granular_toggle-modal').value);
   });
 };
 function updateQaHiddenField(modal_element) {
@@ -526,7 +526,7 @@ function toggleGranularOptions(value) {
   var gran_slider = document.getElementById('qa_granularity_slider');
   var pruning_toggle = document.getElementById('qa_pruning');
 
-  if (value === 'per-source') {
+  if (value === 'True') {
     gran_slider.style.display = 'flex';
     pruning_toggle.style.display = '';
   } else {

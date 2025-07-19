@@ -68,18 +68,19 @@
             </select>
           </div>
           <div class="col-md-3 mb-2">
-            <label for="qa_answer_mode-modal" class="col-form-label col-form-label-sm">{% trans "Answer granularity" %}</label>
+            <label for="qa_granular_toggle-modal"
+                   class="col-form-label col-form-label-sm">{% trans "Answer granularity" %}</label>
             <select class="form-select form-select-sm"
-                    id="qa_answer_mode-modal"
-                    data-inputname="qa_answer_mode"
+                    id="qa_granular_toggle-modal"
+                    data-inputname="qa_granular_toggle"
                     oninput="updateQaHiddenField(this); toggleGranularOptions(this.value);">
-              <option value="combined">{% trans "Single answer" %}</option>
-              <option value="per-source">{% trans "Granular answers" %}</option>
+              <option value="False">{% trans "Single answer" %}</option>
+              <option value="True">{% trans "Granular answers" %}</option>
             </select>
 
             <div class="row"
                  id="qa_granularity_slider"
-                 style="{% if chat.options.qa_answer_mode == 'combined' %} display: none;
+                 style="{% if chat.options.qa_granular_toggle == 'combined' %} display: none;
                         {% endif %}">
               <div class="col pe-0 text-center">
                 <label for="qa_granularity-modal"
@@ -104,7 +105,7 @@
           <div class="col-md-2 mb-2 pt-3">
             <div class="form-check form-switch col ms-2"
                  id="qa_pruning"
-                 style="{% if chat.options.qa_answer_mode == 'combined' %} display: none;
+                 style="{% if chat.options.qa_granular_toggle == 'combined' %} display: none;
                         {% endif %}">
               <input class="form-check-input small"
                      type="checkbox"

@@ -18,6 +18,7 @@ from structlog import get_logger
 
 from chat.llm_models import get_chat_model_choices, get_grouped_chat_model_choices
 from chat.models import (
+    QA_ANSWER_TYPE_CHOICES,
     QA_MODE_CHOICES,
     QA_SCOPE_CHOICES,
     REASONING_EFFORT_CHOICES,
@@ -306,6 +307,13 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this.value); triggerOptionSave();",
                 },
             ),
+            "qa_answer_type": forms.Select(
+                choices=QA_ANSWER_TYPE_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this.value); triggerOptionSave();",
+                },
+            ),
             "qa_scope": forms.Select(
                 choices=QA_SCOPE_CHOICES,
                 attrs={
@@ -333,7 +341,7 @@ class ChatOptionsForm(ModelForm):
             "qa_source_order": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
             ),
-            "qa_answer_mode": forms.HiddenInput(
+            "qa_granular_toggle": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_prune": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),

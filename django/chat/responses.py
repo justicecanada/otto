@@ -547,7 +547,7 @@ def qa_response(chat, response_message, switch_mode=False):
         )
 
     # Summarize mode
-    if chat.options.qa_mode != "rag":
+    if chat.options.qa_mode != "rag" or chat.options.qa_answer_type != "whole_library":
         response_generator = None
         source_groups = None
         if not filter_documents:
@@ -555,7 +555,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 data_source__library=chat.options.qa_library
             )
         document_titles = [document.name for document in filter_documents]
-        if chat.options.qa_mode == "summarize_combined":
+        if chat.options.qa_answer_type == "whole_library":
             # Combine all documents into one text, including the titles
             combined_documents = (
                 "<document>\n"
@@ -576,7 +576,7 @@ def qa_response(chat, response_message, switch_mode=False):
             title_batches = create_batches(
                 document_titles, batch_size
             )  # TODO: test batch size
-            if chat.options.qa_mode == "rag_per_doc":
+            if chat.options.qa_mode == "rag":
                 source_groups = []
                 doc_responses = []
                 vector_store_table = chat.options.qa_library.uuid_hex
@@ -713,7 +713,7 @@ def qa_response(chat, response_message, switch_mode=False):
 
         # If we're stitching sources together into groups...
         if (
-            chat.options.qa_answer_mode == "per-source"
+            chat.options.qa_granular_toggle == True
             and chat.options.qa_granularity > 768
         ):
             # Group nodes from the same doc together,
@@ -768,7 +768,7 @@ def qa_response(chat, response_message, switch_mode=False):
                 source_nodes = [node for doc in doc_groups for node in doc]
 
             source_groups = [[source] for source in source_nodes]
-        if chat.options.qa_answer_mode != "per-source":
+        if chat.options.qa_granular_toggle != True:
             response = synthesizer.synthesize(query=input, nodes=source_nodes)
             response_generator = response.response_gen
             response_replacer = None

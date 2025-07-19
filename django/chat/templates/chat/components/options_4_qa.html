@@ -43,6 +43,14 @@
     <div class="px-3">{{ options_form.qa_mode }}</div>
   </div>
 
+  <div id="qa-answer-type-outer">
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.qa_answer_type.auto_id }}">{% trans "Answer mode" %}</label>
+    </div>
+    <div class="px-3">{{ options_form.qa_answer_type }}</div>
+  </div>
+
   {% include "chat/components/options_qa_scope.html" %}
 
   <div id="qa-model-outer">
@@ -67,7 +75,7 @@
   {{ options_form.qa_post_instructions }}
   {{ options_form.qa_topk }}
   {{ options_form.qa_vector_ratio }}
-  {{ options_form.qa_answer_mode }}
+  {{ options_form.qa_granular_toggle }}
   {{ options_form.qa_source_order }}
   {{ options_form.qa_prune }}
   {{ options_form.qa_rewrite }}

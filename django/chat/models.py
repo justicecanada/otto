@@ -169,11 +169,15 @@ QA_SCOPE_CHOICES = [
 
 QA_MODE_CHOICES = [
     ("rag", _("Use top sources only (fast, cheap)")),
-    ("summarize", _("Full documents, separate answers ($)")),
-    ("summarize_combined", _("Full documents, combined answer ($)")),
-    ("rag_per_doc", _("Use top sources for each selected document")),
+    ("summarize", _("Use full documents ($)")),
+    # ("summarize_combined", _("Full documents, combined answer ($)")),
+    # ("rag_per_doc", _("Use top sources for each selected document")),
 ]
 
+QA_ANSWER_TYPE_CHOICES = [
+    ("whole_library", _("Across whole library")),
+    ("per_doc", _("Separately for each document")),
+]
 QA_SOURCE_ORDER_CHOICES = [
     ("score", _("Relevance score")),
     ("reading_order", _("Reading order")),
@@ -232,6 +236,9 @@ class ChatOptions(models.Model):
         related_name="qa_options",
     )
     qa_mode = models.CharField(max_length=20, default="rag", choices=QA_MODE_CHOICES)
+    qa_answer_type = models.CharField(
+        max_length=20, default="whole_library", choices=QA_ANSWER_TYPE_CHOICES
+    )
     qa_scope = models.CharField(max_length=20, default="all", choices=QA_SCOPE_CHOICES)
     qa_data_sources = models.ManyToManyField(
         "librarian.DataSource", related_name="qa_options"
@@ -248,10 +255,10 @@ class ChatOptions(models.Model):
         max_length=20, default="score", choices=QA_SOURCE_ORDER_CHOICES
     )
     qa_vector_ratio = models.FloatField(default=0.6)
-    qa_answer_mode = models.CharField(max_length=20, default="combined")
+    qa_granular_toggle = models.BooleanField(default=False)
+    qa_granularity = models.IntegerField(default=768)
     qa_prune = models.BooleanField(default=True)
     qa_rewrite = models.BooleanField(default=False)
-    qa_granularity = models.IntegerField(default=768)
 
     @property
     def qa_prompt_combined(self):

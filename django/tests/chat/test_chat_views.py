@@ -852,7 +852,7 @@ def test_per_source_qa_response(client, all_apps_user):
     # Create a chat using the route to create it with appropriate options
     response = client.get(reverse("chat:qa"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
-    chat.options.qa_answer_mode = "per-source"
+    chat.options.qa_granular_toggle = True
     chat.options.save()
 
     # Test chat_response with QA mode. This should query the Corporate library.
