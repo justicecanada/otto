@@ -1,30 +1,17 @@
 import os
 
+from django.conf import settings
 from django.utils.translation import gettext as _
 
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+from phoenix.otel import register
+from smolagents import CodeAgent, LiteLLMModel, VisitWebpageTool, WebSearchTool
 
-def agent_response_string(user_message, chat):
-    """
-    Generate a response string for the agent based on the user message and chat context.
-    """
-    # Placeholder for actual agent response logic
-    # return f"Agent response to: {user_message} in chat: {chat.id}"
+from .tools import LawRetrieverTool
 
-    from smolagents import CodeAgent, LiteLLMModel, VisitWebpageTool, WebSearchTool
-
-    model = LiteLLMModel(
-        model_id="azure/gpt-4.1",
-        api_base=os.environ.get("AZURE_OPENAI_ENDPOINT"),
-        api_key=os.environ.get("AZURE_OPENAI_KEY"),
-        api_version=os.environ.get("AZURE_OPENAI_VERSION"),
-    )
-
-    # Create an agent with no tools
-    agent = CodeAgent(tools=[WebSearchTool(), VisitWebpageTool()], model=model)
-
-    # Run the agent with a task
-    result = agent.run(user_message.text, stream=False)
-    return str(result)
+if settings.DEBUG:
+    register()
+    SmolagentsInstrumentor().instrument()
 
 
 def format_tool_call(tool_call):
@@ -71,20 +58,17 @@ def agent_response_generator(user_message, chat):
     """
     Generate a response string for the agent based on the user message and chat context.
     """
-    # Placeholder for actual agent response logic
-    # return f"Agent response to: {user_message} in chat: {chat.id}"
-
-    from smolagents import CodeAgent, LiteLLMModel, VisitWebpageTool, WebSearchTool
-
     model = LiteLLMModel(
-        model_id="azure/gpt-4.1-mini",
+        model_id="azure/gpt-4.1",
         api_base=os.environ.get("AZURE_OPENAI_ENDPOINT"),
         api_key=os.environ.get("AZURE_OPENAI_KEY"),
         api_version=os.environ.get("AZURE_OPENAI_VERSION"),
     )
 
     # Create an agent with no tools
-    agent = CodeAgent(tools=[WebSearchTool(), VisitWebpageTool()], model=model)
+    agent = CodeAgent(
+        tools=[WebSearchTool(), VisitWebpageTool(), LawRetrieverTool()], model=model
+    )
 
     # Run the agent with a task
     generator = agent.run(user_message.text, stream=True)

@@ -8,7 +8,8 @@
     "forwardPorts": [
         8000,
         5432,
-        6379
+        6379,
+        6006
     ],
     "customizations": {
         "vscode": {
