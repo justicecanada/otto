@@ -38,19 +38,17 @@ def format_tool_call(tool_call):
         observations = getattr(tool_call, "observations", None)
         # Prefer 'action_output', but if not present, show 'observations' if available
         output_to_show = action_output or observations
-        if output_to_show:
-            lines.append(
-                f"<div class='agent-output'>\n<pre>{output_to_show}</pre>\n</div>"
-            )
+        # if output_to_show:
+        #     lines.append(
+        #         f"<div class='agent-output'>\n<pre>{output_to_show}</pre>\n</div>"
+        #     )
         lines.append("</div>")
 
     elif type(tool_call).__name__ == "FinalAnswerStep":
-        lines += ["<div class='agent-final-answer'>"]
+        lines += ["</div><div class='agent-final-answer'>\n"]
         final_answer = getattr(tool_call, "output", None)
         if final_answer:
-            content = (
-                str(final_answer).replace("<code>", "```").replace("</code>", "```")
-            )
+            content = str(final_answer).strip()
             lines.append(content)
         lines += ["</div>"]
 
@@ -85,8 +83,7 @@ def otto_agent(chat):
     agent = CodeAgent(
         tools=enabled_tools,
         model=model,
-        stream_outputs=True,
-        instructions="Format the final answer in markdown.",
+        instructions="IMPORTANT!!! Format the final answer in markdown.",
     )
 
     return agent

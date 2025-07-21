@@ -29,7 +29,7 @@
         {% endif %}
       </div>
     {% endif %}
-    <div class="message-blob {{ message.mode }} {% if show_steps or message.awaiting_response %}show-steps show-code{% endif %}">
+    <div class="message-blob {{ message.mode }} {% if show_steps or message.awaiting_response %}show-steps{% endif %}">
       {% if message.mode == "agent" %}
         {% if message.is_bot %}
           <div class="mb-2">
@@ -45,12 +45,12 @@
               <span class="hide-code-label">{% trans "Hide code" %}</span>
               <span class="show-code-label">{% trans "Show code" %}</span>
             </button>
-            <button type="button"
-                    class="btn btn-sm btn-outline-dark agent-output-toggle"
-                    onclick="toggleAgentOutput(this)">
+            {% comment %}
+            <button type="button" class="btn btn-sm btn-outline-dark agent-output-toggle" onclick="toggleAgentOutput(this)">
               <span class="hide-output-label">{% trans "Hide outputs" %}</span>
               <span class="show-output-label">{% trans "Show outputs" %}</span>
             </button>
+            {% endcomment %}
           </div>
         {% endif %}
       {% endif %}
