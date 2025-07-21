@@ -70,11 +70,16 @@
           <div class="col-md-3 mb-2 qa_granular">
             <label for="qa_granular_toggle-modal"
                    class="col-form-label col-form-label-sm">{% trans "Answer granularity" %}</label>
+            <button class="p-0 border-0 bg-transparent"
+                    title='{% trans 'Select "granular answers" to split retrieved sources into groups and get separate answers for each group.' %}'>
+              <i class="bi-info-circle-fill text-primary small"
+                 style="vertical-align: middle"></i>
+            </button>
             <select class="form-select form-select-sm"
                     id="qa_granular_toggle-modal"
                     data-inputname="qa_granular_toggle"
                     oninput="updateQaHiddenField(this); toggleGranularOptions(this.value);">
-              <option value="False">{% trans "Single answer" %}</option>
+              <option value="False">{% trans "Single answers" %}</option>
               <option value="True">{% trans "Granular answers" %}</option>
             </select>
 
@@ -86,6 +91,11 @@
                 <label for="qa_granularity-modal"
                        class="col-form-label col-form-label-sm mb-0"
                        id="granularity-label">{% trans "Granularity" %}</label>
+                <button class="p-0 border-0 bg-transparent"
+                        title='{% trans '"Coarse" means a small number of groups, each containing a large number of sources.' %}'>
+                  <i class="bi-info-circle-fill text-primary small"
+                     style="vertical-align: middle"></i>
+                </button>
                 <input type="range"
                        class="form-range my-1"
                        id="qa_granularity-modal"
