@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 choices=[
                     ("combined_docs", "Documents together"),
-                    ("per_doc", "Each document separately"),
+                    ("per_doc", "Each document separately ($)"),
                 ],
                 default="combined_docs",
                 max_length=20,

@@ -176,7 +176,7 @@ QA_MODE_CHOICES = [
 
 QA_ANSWER_TYPE_CHOICES = [
     ("combined_docs", _("Documents together")),
-    ("per_doc", _("Each document separately")),
+    ("per_doc", _("Each document separately ($)")),
 ]
 QA_SOURCE_ORDER_CHOICES = [
     ("score", _("Relevance score")),
