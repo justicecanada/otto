@@ -4390,5 +4390,29 @@
     "This is your default preset for new chats. To change your default preset, return to the Browse Presets page and click the 'star' for a different preset.": {
         "fr": "",
         "fr_auto": "Il s’agit de votre préréglage par défaut pour les nouvelles discussions. Pour modifier votre préréglage par défaut, retournez à la page Parcourir les préréglages et cliquez sur l’étoile d’un autre préréglage."
+    },
+    "Use full documents ($)": {
+        "fr": "",
+        "fr_auto": "Utiliser les documents complets ($)"
+    },
+    "Documents together": {
+        "fr": "",
+        "fr_auto": "Documents ensemble"
+    },
+    "Each document separately": {
+        "fr": "",
+        "fr_auto": "Chaque document séparément"
+    },
+    "Sorry, I couldn't find any information about that in this document.": {
+        "fr": "",
+        "fr_auto": "Désolé, je n’ai pas trouvé d’information à ce sujet dans ce document."
+    },
+    "Answer mode": {
+        "fr": "",
+        "fr_auto": "Mode réponse"
+    },
+    "Search filters": {
+        "fr": "",
+        "fr_auto": "Filtres de recherche"
     }
 }
