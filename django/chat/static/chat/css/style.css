@@ -668,7 +668,7 @@ li.message-file {
 }
 
 .message-blob.agent div.agent-steps,
-.message-blob.agent div.agent-steps .agent-code,
+.message-blob.agent div.agent-steps code,
 .message-blob.agent div.agent-steps .agent-output {
   display: none;
   margin-bottom: 10px;
@@ -696,7 +696,7 @@ div.agent-steps .agent-output * {
   display: inline-block;
 }
 
-.message-blob.agent.show-code div.agent-steps .agent-code {
+.message-blob.agent.show-code div.agent-steps code {
   display: block;
 }
 

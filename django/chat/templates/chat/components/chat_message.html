@@ -29,8 +29,8 @@
         {% endif %}
       </div>
     {% endif %}
-    <div class="message-blob {{ message.mode }} {{ mode }} {% if show_steps or message.awaiting_response %}show-steps show-code{% endif %}">
-      {% if message.mode == "agent" or mode == "agent" %}
+    <div class="message-blob {{ message.mode }} {% if show_steps or message.awaiting_response %}show-steps show-code{% endif %}">
+      {% if message.mode == "agent" %}
         {% if message.is_bot %}
           <div class="mb-2">
             <button type="button"

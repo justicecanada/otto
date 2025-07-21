@@ -5,10 +5,12 @@ from django.utils.translation import gettext as _
 
 from smolagents import CodeAgent, LiteLLMModel, VisitWebpageTool, WebSearchTool
 
-from .tools import LawRetrieverTool
+from .tools.chat_history_retriever import ChatHistoryTool
+from .tools.law_retriever import LawRetrieverTool
 
 # from openinference.instrumentation.smolagents import SmolagentsInstrumentor
 # from phoenix.otel import register
+
 # if settings.DEBUG:
 #     register()
 #     SmolagentsInstrumentor().instrument()
@@ -54,7 +56,7 @@ def format_tool_call(tool_call):
     return "\n".join(lines)
 
 
-def agent_response_generator(user_message, chat):
+def agent_response_generator(user_message, chat_history):
     """
     Generate a response string for the agent based on the user message and chat context.
     """
@@ -65,13 +67,19 @@ def agent_response_generator(user_message, chat):
         api_version=os.environ.get("AZURE_OPENAI_VERSION"),
     )
 
-    # Create an agent with no tools
     agent = CodeAgent(
-        tools=[WebSearchTool(), VisitWebpageTool(), LawRetrieverTool()], model=model
+        tools=[
+            WebSearchTool(),
+            VisitWebpageTool(),
+            LawRetrieverTool(),
+            ChatHistoryTool(chat_history),
+        ],
+        model=model,
     )
 
     # Run the agent with a task
     generator = agent.run(user_message.text, stream=True)
+
     yield f"<div class='agent-steps'>\n<p><em>{_('Thinking...')}</em></p>\n\n"
     for tool_call in generator:
         if type(tool_call).__name__ == "FinalAnswerStep":

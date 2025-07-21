@@ -778,17 +778,24 @@ def error_response(chat, response_message, error_message=None):
 
 
 def chat_agent(chat, response_message):
+    from chat.llm import chat_history_to_prompt
+    from chat.utils import chat_to_history
+
     bind_contextvars(feature="chat_agent")
     user_message = response_message.parent
+    response_message.mode = "agent"
+    response_message.save()
 
     llm = OttoLLM()
+
+    chat_history = chat_history_to_prompt(chat_to_history(chat))
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
             llm,
-            response_generator=agent_response_generator(user_message, chat),
+            response_generator=agent_response_generator(user_message, chat_history),
             dots=True,
         ),
         content_type="text/event-stream",

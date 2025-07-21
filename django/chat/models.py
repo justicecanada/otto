@@ -13,6 +13,7 @@ from django.utils.translation import gettext_lazy as _
 
 from data_fetcher.util import get_request
 from structlog import get_logger
+from structlog.contextvars import get_contextvars
 
 from chat.llm_models import (
     DEFAULT_CHAT_MODEL_ID,
@@ -58,6 +59,17 @@ class ChatManager(models.Manager):
         )
         create_chat_data_source(kwargs["user"], instance)
         return instance
+
+    def get_current_chat(self):
+        request_context = get_contextvars()
+        if not request_context:
+            logger.error("No request context found to get current chat.")
+            return None
+        chat_id = request_context.get("chat_id")
+        if not chat_id:
+            logger.error("No chat ID found in request context.")
+            return None
+        return Chat.objects.filter(id=chat_id).first()
 
 
 class Chat(models.Model):
