@@ -3,15 +3,15 @@ import os
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from openinference.instrumentation.smolagents import SmolagentsInstrumentor
-from phoenix.otel import register
 from smolagents import CodeAgent, LiteLLMModel, VisitWebpageTool, WebSearchTool
 
 from .tools import LawRetrieverTool
 
-if settings.DEBUG:
-    register()
-    SmolagentsInstrumentor().instrument()
+# from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+# from phoenix.otel import register
+# if settings.DEBUG:
+#     register()
+#     SmolagentsInstrumentor().instrument()
 
 
 def format_tool_call(tool_call):
@@ -59,7 +59,7 @@ def agent_response_generator(user_message, chat):
     Generate a response string for the agent based on the user message and chat context.
     """
     model = LiteLLMModel(
-        model_id="azure/gpt-4.1",
+        model_id="azure/gpt-4.1-mini",
         api_base=os.environ.get("AZURE_OPENAI_ENDPOINT"),
         api_key=os.environ.get("AZURE_OPENAI_KEY"),
         api_version=os.environ.get("AZURE_OPENAI_VERSION"),

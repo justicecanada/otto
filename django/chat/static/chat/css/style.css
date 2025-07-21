@@ -668,7 +668,7 @@ li.message-file {
 }
 
 .message-blob.agent div.agent-steps,
-.message-blob.agent div.agent-steps .agent-step>pre,
+.message-blob.agent div.agent-steps .agent-code,
 .message-blob.agent div.agent-steps .agent-output {
   display: none;
   margin-bottom: 10px;
@@ -687,12 +687,16 @@ button.agent-output-toggle {
   display: block;
 }
 
+div.agent-steps .agent-output * {
+  font-size: 0.9rem !important;
+}
+
 .message-blob.agent.show-steps button.agent-code-toggle,
 .message-blob.agent.show-steps button.agent-output-toggle {
   display: inline-block;
 }
 
-.message-blob.agent.show-code div.agent-steps .agent-step>pre {
+.message-blob.agent.show-code div.agent-steps .agent-code {
   display: block;
 }
 

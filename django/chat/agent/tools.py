@@ -1,3 +1,4 @@
+from llama_index.core.schema import MetadataMode
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from smolagents import Tool
 
@@ -6,6 +7,7 @@ from chat.llm import OttoLLM
 
 # Tool to retrieve laws using LlamaIndex and OttoLLM
 class LawRetrieverTool(Tool):
+
     name = "law_retriever"
     description = (
         "Retrieves relevant sections of Canadian Laws, Legislation, Acts, Regulations."
@@ -42,9 +44,11 @@ class LawRetrieverTool(Tool):
             section_texts = []
             for result in results:
                 try:
-                    section_texts.append(result.node.get_content())
+                    section_texts.append(
+                        result.node.get_content(metadata_mode=MetadataMode.LLM)
+                    )
                 except Exception as e:
                     continue
-            return "\nRetrieved law sections:\n" + "\n==========\n".join(section_texts)
+            return "\nRetrieved law sections:\n\n" + "\n\n---\n\n".join(section_texts)
         except Exception as e:
             return f"Error retrieving law sections: {e}"
