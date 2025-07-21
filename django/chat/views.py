@@ -330,8 +330,10 @@ def chat_message(request, chat_id):
             "date_created": response_message.date_created
             + timezone.timedelta(seconds=1),
             "bot_name": bot_name,
+            "mode": mode,
         }
 
+    print(mode, user_message.mode, response_message["mode"])
     context = {
         "chat_messages": [
             user_message,

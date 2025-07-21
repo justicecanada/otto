@@ -28,6 +28,8 @@ from chat.models import (
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
 
+from .agent.tools.tool_registry import AVAILABLE_TOOLS
+
 logger = get_logger(__name__)
 
 TEMPERATURES = [
@@ -349,6 +351,7 @@ class ChatOptionsForm(ModelForm):
         # Each of summarize_model, qa_model should be a grouped choice field
         for field in [
             "chat_model",
+            "agent_model",
             "summarize_model",
             "qa_model",
         ]:
@@ -365,6 +368,13 @@ class ChatOptionsForm(ModelForm):
             )
             if self.instance and getattr(self.instance, field, None):
                 self.fields[field].initial = getattr(self.instance, field)
+
+        self.fields["agent_tools"] = forms.MultipleChoiceField(
+            choices=[(key, tool["name"]) for key, tool in AVAILABLE_TOOLS.items()],
+            widget=forms.CheckboxSelectMultiple,
+            required=False,
+            label=_("Enabled Tools"),
+        )
 
         # translate_language has choices "en", "fr"
         for field in ["translate_language"]:

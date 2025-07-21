@@ -16,7 +16,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.agent.responses import agent_response_generator
+from chat.agent.responses import agent_response_generator, otto_agent
 from chat.llm import OttoLLM
 from chat.models import Message
 from chat.tasks import translate_file
@@ -778,24 +778,19 @@ def error_response(chat, response_message, error_message=None):
 
 
 def chat_agent(chat, response_message):
-    from chat.llm import chat_history_to_prompt
-    from chat.utils import chat_to_history
-
     bind_contextvars(feature="chat_agent")
     user_message = response_message.parent
-    response_message.mode = "agent"
-    response_message.save()
 
     llm = OttoLLM()
 
-    chat_history = chat_history_to_prompt(chat_to_history(chat))
+    agent = otto_agent(chat)
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
             llm,
-            response_generator=agent_response_generator(user_message, chat_history),
+            response_generator=agent_response_generator(agent, user_message),
             dots=True,
         ),
         content_type="text/event-stream",

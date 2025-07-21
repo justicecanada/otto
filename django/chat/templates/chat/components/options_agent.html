@@ -9,7 +9,11 @@
 {% block accordion_body %}
   <div class="px-3">
     <label class="col-form-label col-form-label-sm"
-           for="{{ options_form.agent_name.auto_id }}">{% trans "Enabled tools" %}</label>
+           for="{{ options_form.agent_model.auto_id }}">{% trans "Model" %}</label>
+    {{ options_form.agent_model }}
   </div>
-  <div class="px-3">{{ options_form.agent_name }}...</div>
+  <div class="px-3 mt-2">
+    <label class="col-form-label col-form-label-sm">{% trans "Enabled tools" %}</label>
+    <div class="d-flex flex-wrap small" onchange="triggerOptionSave();">{{ options_form.agent_tools }}</div>
+  </div>
 {% endblock %}

@@ -7,6 +7,7 @@ from smolagents import CodeAgent, LiteLLMModel, VisitWebpageTool, WebSearchTool
 
 from .tools.chat_history_retriever import ChatHistoryTool
 from .tools.law_retriever import LawRetrieverTool
+from .tools.tool_registry import AVAILABLE_TOOLS
 
 # from openinference.instrumentation.smolagents import SmolagentsInstrumentor
 # from phoenix.otel import register
@@ -56,27 +57,42 @@ def format_tool_call(tool_call):
     return "\n".join(lines)
 
 
-def agent_response_generator(user_message, chat_history):
-    """
-    Generate a response string for the agent based on the user message and chat context.
-    """
+def otto_agent(chat):
+    from chat.llm import chat_history_to_prompt
+    from chat.utils import chat_to_history
+
+    model_id = "azure/" + chat.options.agent_model
     model = LiteLLMModel(
-        model_id="azure/gpt-4.1-mini",
+        model_id=model_id,
         api_base=os.environ.get("AZURE_OPENAI_ENDPOINT"),
         api_key=os.environ.get("AZURE_OPENAI_KEY"),
         api_version=os.environ.get("AZURE_OPENAI_VERSION"),
     )
 
+    chat_history = chat_history_to_prompt(chat_to_history(chat))
+
+    enabled_tools = []
+    if chat.options.agent_tools:
+        for tool_key in chat.options.agent_tools:
+            if tool_key in AVAILABLE_TOOLS:
+                tool_info = AVAILABLE_TOOLS[tool_key]
+                tool_class = tool_info["class"]
+                init_params = tool_info["init_params"].copy()
+                if "chat_history" in init_params:
+                    init_params["chat_history"] = chat_history
+                enabled_tools.append(tool_class(**init_params))
+
     agent = CodeAgent(
-        tools=[
-            WebSearchTool(),
-            VisitWebpageTool(),
-            LawRetrieverTool(),
-            ChatHistoryTool(chat_history),
-        ],
+        tools=enabled_tools,
         model=model,
+        stream_outputs=True,
+        instructions="Format the final answer in markdown.",
     )
 
+    return agent
+
+
+def agent_response_generator(agent, user_message):
     # Run the agent with a task
     generator = agent.run(user_message.text, stream=True)
 
