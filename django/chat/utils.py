@@ -4,6 +4,7 @@ import json
 import re
 import sys
 import uuid
+from collections.abc import Iterable
 from decimal import Decimal
 from itertools import groupby
 from typing import AsyncGenerator, Generator
@@ -490,13 +491,19 @@ def create_batches(iterable, n=1):
 
 async def combine_response_generators(generators, titles, query, llm, prune=False):
     streams = [{"stream": stream, "status": "running"} for stream in generators]
+    # formatted_titles = [f"\n###### *{title}*\n" for title in titles]
+    partial_streams = ["" for _ in titles]
     final_streams = [f"\n###### *{title}*\n" for title in titles]
     while any([stream["status"] == "running" for stream in streams]):
         for i, stream in enumerate(streams):
             try:
                 if stream["status"] == "running":
-                    final_streams[i] += next(stream["stream"])
-            except StopIteration:
+                    if isinstance(stream["stream"], Iterable):
+                        final_streams[i] += next(stream["stream"])
+                    else:
+                        partial_streams[i] = await stream["stream"].__anext__()
+                        final_streams[i] = partial_streams[i]
+            except (StopIteration, StopAsyncIteration):
                 stream["status"] = "stopped"
                 if prune:
                     tmpl = PromptTemplate(QA_PRUNING_INSTRUCTIONS).format(

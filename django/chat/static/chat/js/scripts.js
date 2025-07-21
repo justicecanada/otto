@@ -536,20 +536,13 @@ function toggleGranularOptions(value) {
 }
 
 
-function toggleRagOptions(search_mode, answer_type) {
+function toggleRagOptions(value) {
   var ragOptions = document.querySelectorAll('.qa_rag_option');
 
   ragOptions.forEach(function (option) {
-    if (search_mode !== 'rag') {
+    if (value !== 'rag') {
       option.style.display = 'none';
     } else {
-      option.querySelectorAll('.qa_granular').forEach(function (elem) {
-        if (answer_type == 'per_doc') {
-          elem.style.display = 'none';
-        } else {
-          elem.style.display = '';
-        }
-      });
       option.style.display = '';
     }
   });

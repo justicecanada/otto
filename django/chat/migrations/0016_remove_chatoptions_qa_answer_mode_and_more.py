@@ -19,10 +19,10 @@ class Migration(migrations.Migration):
             name="qa_answer_type",
             field=models.CharField(
                 choices=[
-                    ("whole_library", "Across whole library"),
-                    ("per_doc", "Separately for each document"),
+                    ("combined_docs", "Documents together"),
+                    ("per_doc", "Each document separately"),
                 ],
-                default="whole_library",
+                default="combined_docs",
                 max_length=20,
             ),
         ),

@@ -175,8 +175,8 @@ QA_MODE_CHOICES = [
 ]
 
 QA_ANSWER_TYPE_CHOICES = [
-    ("whole_library", _("Across whole library")),
-    ("per_doc", _("Separately for each document")),
+    ("combined_docs", _("Documents together")),
+    ("per_doc", _("Each document separately")),
 ]
 QA_SOURCE_ORDER_CHOICES = [
     ("score", _("Relevance score")),
@@ -237,7 +237,7 @@ class ChatOptions(models.Model):
     )
     qa_mode = models.CharField(max_length=20, default="rag", choices=QA_MODE_CHOICES)
     qa_answer_type = models.CharField(
-        max_length=20, default="whole_library", choices=QA_ANSWER_TYPE_CHOICES
+        max_length=20, default="combined_docs", choices=QA_ANSWER_TYPE_CHOICES
     )
     qa_scope = models.CharField(max_length=20, default="all", choices=QA_SCOPE_CHOICES)
     qa_data_sources = models.ManyToManyField(
