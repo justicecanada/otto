@@ -4426,5 +4426,13 @@
     "\"Coarse\" means a small number of groups, each containing a large number of sources.": {
         "fr": "",
         "fr_auto": "« Grossier » désigne un petit nombre de groupes, chacun contenant un grand nombre de sources."
+    },
+    "Each document separately ($)": {
+        "fr": "",
+        "fr_auto": "Chaque document séparément ($)"
+    },
+    "Granular answers ($)": {
+        "fr": "",
+        "fr_auto": "Réponses granulaires ($)"
     }
 }
