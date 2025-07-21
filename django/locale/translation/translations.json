@@ -4414,5 +4414,17 @@
     "Search filters": {
         "fr": "",
         "fr_auto": "Filtres de recherche"
+    },
+    "Select \"granular answers\" to split retrieved sources into groups and get separate answers for each group.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez « réponses granulaires » pour diviser les sources récupérées en groupes et obtenir des réponses distinctes pour chaque groupe."
+    },
+    "Single answers": {
+        "fr": "",
+        "fr_auto": "Réponses uniques"
+    },
+    "\"Coarse\" means a small number of groups, each containing a large number of sources.": {
+        "fr": "",
+        "fr_auto": "« Grossier » désigne un petit nombre de groupes, chacun contenant un grand nombre de sources."
     }
 }
