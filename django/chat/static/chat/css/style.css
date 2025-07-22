@@ -671,7 +671,6 @@ li.message-file {
 .message-blob.agent div.agent-steps code,
 .message-blob.agent div.agent-steps .agent-output {
   display: none;
-  margin-bottom: 10px;
 }
 
 button.agent-code-toggle,
@@ -687,8 +686,21 @@ button.agent-output-toggle {
   display: block;
 }
 
+div.agent-steps .agent-output pre {
+  font-size: 0.9rem !important;
+  line-height: 1;
+  margin: 1rem;
+  border: solid 1px var(--bs-border-color);
+  padding: 0.5rem;
+  border-radius: 5px;
+}
+
 div.agent-steps .agent-output * {
   font-size: 0.9rem !important;
+}
+
+div.agent-step {
+  margin-bottom: 10px;
 }
 
 .message-blob.agent.show-steps button.agent-code-toggle,

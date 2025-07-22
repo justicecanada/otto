@@ -3,7 +3,13 @@ import os
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from smolagents import CodeAgent, LiteLLMModel, VisitWebpageTool, WebSearchTool
+from smolagents import (
+    CodeAgent,
+    LiteLLMModel,
+    ToolCallingAgent,
+    VisitWebpageTool,
+    WebSearchTool,
+)
 
 from .tools.chat_history_retriever import ChatHistoryTool
 from .tools.law_retriever import LawRetrieverTool
@@ -21,38 +27,73 @@ def format_tool_call(tool_call):
     """
     Format a ToolCall or ActionStep object for display.
     """
-    lines = []
+    # Prepare a nicely formatted step-by-step output for the user
+    # Each step is a div.agent-step, with sub-divs for thought, tool call, and output
+    # Try to handle both ActionStep and FinalAnswerStep, as well as generic dicts
+    # 4. Final answer (if this is the last step)
+    is_final = False
+    if hasattr(tool_call, "is_final_answer") and getattr(
+        tool_call, "is_final_answer", False
+    ):
+        is_final = True
+    elif isinstance(tool_call, dict) and tool_call.get("is_final_answer"):
+        is_final = True
+    if getattr(tool_call, "name", None) == "final_answer":
+        is_final = True
+    if is_final:
+        return ""
 
-    if type(tool_call).__name__ == "ActionStep":
-        step_number = getattr(tool_call, "step_number", None)
-        lines += ["<div class='agent-step'>\n"]
-        llm_output = getattr(tool_call, "model_output_message", None)
-        if llm_output and hasattr(llm_output, "content"):
-            content = llm_output.content
-            content = content.replace("<code>", "\n```python")
-            content = content.replace("</code>", "```")
-            content = content.replace("Thought:", f"**Step {step_number}:**")
-            lines.append(content)
-        # Show LLM/code execution output in a dedicated div if present
-        action_output = getattr(tool_call, "action_output", None)
-        observations = getattr(tool_call, "observations", None)
-        # Prefer 'action_output', but if not present, show 'observations' if available
-        output_to_show = action_output or observations
-        if output_to_show:
-            lines.append(
-                f"<div class='agent-output'>\n<pre>{output_to_show}</pre>\n</div>"
-            )
-        lines.append("</div>")
+    step_html = ["<div class='agent-step'>"]
+    # 1. Model thought/reasoning (if available)
+    model_output = None
+    if hasattr(tool_call, "model_output_message") and getattr(
+        tool_call, "model_output_message", None
+    ):
+        llm_output = getattr(tool_call, "model_output_message")
+        if hasattr(llm_output, "content") and llm_output.content:
+            model_output = llm_output.content
+    elif hasattr(tool_call, "model_output") and getattr(
+        tool_call, "model_output", None
+    ):
+        model_output = getattr(tool_call, "model_output")
+    elif isinstance(tool_call, dict) and tool_call.get("model_output"):
+        model_output = tool_call["model_output"]
+    if model_output:
+        step_html.append(
+            f"<div class='agent-thought'><b>Model thought:</b> {model_output}</div>"
+        )
 
-    elif type(tool_call).__name__ == "FinalAnswerStep":
-        lines += ["</div><div class='agent-final-answer'>\n"]
-        final_answer = getattr(tool_call, "output", None)
-        if final_answer:
-            content = str(final_answer).strip()
-            lines.append(content)
-        lines += ["</div>"]
+    # 2. Tool call (name + arguments)
+    tool_name = None
+    tool_args = None
+    if hasattr(tool_call, "name") and hasattr(tool_call, "arguments"):
+        tool_name = getattr(tool_call, "name")
+        tool_args = getattr(tool_call, "arguments")
+    elif (
+        isinstance(tool_call, dict) and "name" in tool_call and "arguments" in tool_call
+    ):
+        tool_name = tool_call["name"]
+        tool_args = tool_call["arguments"]
+    if tool_name:
+        step_html.append(
+            f"<div class='agent-toolcall'><b>Tool:</b> {tool_name} <b>Args:</b> {tool_args}</div>"
+        )
 
-    return "\n".join(lines)
+    # 3. Tool output/observation (if available)
+    output_to_show = None
+    # Try several possible fields for output/observation
+    for key in ["action_output", "output", "observations", "observation"]:
+        if hasattr(tool_call, key) and getattr(tool_call, key, None):
+            output_to_show = getattr(tool_call, key)
+            break
+        elif isinstance(tool_call, dict) and tool_call.get(key):
+            output_to_show = tool_call[key]
+            break
+    if output_to_show:
+        step_html.append(f"<div class='agent-output'><pre>{output_to_show}</pre></div>")
+
+    step_html.append("</div>")
+    return "\n".join(step_html)
 
 
 def otto_agent(chat):
@@ -80,9 +121,10 @@ def otto_agent(chat):
                     init_params["chat_history"] = chat_history
                 enabled_tools.append(tool_class(**init_params))
 
-    agent = CodeAgent(
+    agent = ToolCallingAgent(
         tools=enabled_tools,
         model=model,
+        # planning_interval=1,
         instructions="IMPORTANT!!! Format the final answer in markdown.",
     )
 
@@ -95,6 +137,8 @@ def agent_response_generator(agent, user_message):
 
     yield f"<div class='agent-steps'>\n<p><em>{_('Thinking...')}</em></p>\n\n"
     for tool_call in generator:
-        if type(tool_call).__name__ == "FinalAnswerStep":
-            yield "\n</div>\n"
+        if getattr(tool_call, "name", None) == "final_answer":
+            yield f"\n</div><div class='agent-final-answer'>\n\n{tool_call.arguments['answer']}\n</div>\n"
+            break
         yield format_tool_call(tool_call)
+    yield "\n</div>\n"
