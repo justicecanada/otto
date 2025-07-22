@@ -778,7 +778,7 @@ def error_response(chat, response_message, error_message=None):
 
 
 def chat_agent(chat, response_message):
-    bind_contextvars(feature="chat_agent")
+    bind_contextvars(feature="chat_agent", chat_id=chat.id)
     user_message = response_message.parent
 
     llm = OttoLLM()
