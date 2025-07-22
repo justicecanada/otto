@@ -38,10 +38,10 @@ def format_tool_call(tool_call):
         observations = getattr(tool_call, "observations", None)
         # Prefer 'action_output', but if not present, show 'observations' if available
         output_to_show = action_output or observations
-        # if output_to_show:
-        #     lines.append(
-        #         f"<div class='agent-output'>\n<pre>{output_to_show}</pre>\n</div>"
-        #     )
+        if output_to_show:
+            lines.append(
+                f"<div class='agent-output'>\n<pre>{output_to_show}</pre>\n</div>"
+            )
         lines.append("</div>")
 
     elif type(tool_call).__name__ == "FinalAnswerStep":

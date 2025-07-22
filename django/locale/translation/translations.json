@@ -4390,5 +4390,61 @@
     "This is your default preset for new chats. To change your default preset, return to the Browse Presets page and click the 'star' for a different preset.": {
         "fr": "",
         "fr_auto": "Il s’agit de votre préréglage par défaut pour les nouvelles discussions. Pour modifier votre préréglage par défaut, retournez à la page Parcourir les préréglages et cliquez sur l’étoile d’un autre préréglage."
+    },
+    "Web search": {
+        "fr": "",
+        "fr_auto": "Recherche sur le Web"
+    },
+    "Visit webpage": {
+        "fr": "",
+        "fr_auto": "Visitez la page Web"
+    },
+    "Law retriever": {
+        "fr": "",
+        "fr_auto": "Récupérateur de la loi"
+    },
+    "Enabled Tools": {
+        "fr": "",
+        "fr_auto": "Outils activés"
+    },
+    "Selects the best mode(s) for your query": {
+        "fr": "",
+        "fr_auto": "Sélectionne le(s) meilleur(s) mode(s) pour votre requête"
+    },
+    "Agent": {
+        "fr": "",
+        "fr_auto": "Mandataire"
+    },
+    "Enter a question or instruction": {
+        "fr": "",
+        "fr_auto": "Entrez une question ou une instruction"
+    },
+    "Hide steps": {
+        "fr": "",
+        "fr_auto": "Masquer les étapes"
+    },
+    "Show steps": {
+        "fr": "",
+        "fr_auto": "Afficher les étapes"
+    },
+    "Hide code": {
+        "fr": "",
+        "fr_auto": "Masquer le code"
+    },
+    "Show code": {
+        "fr": "",
+        "fr_auto": "Afficher le code"
+    },
+    "\n            <strong>Agent</strong> automatically selects tools to answer your query.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>L’agent</strong> sélectionne automatiquement les outils pour répondre à votre demande.\n          "
+    },
+    "Review the agent's reasoning and tool selection to ensure they align with your intent.": {
+        "fr": "",
+        "fr_auto": "Examinez le raisonnement de l’agent et le choix des outils pour vous assurer qu’ils correspondent à votre intention."
+    },
+    "Enabled tools": {
+        "fr": "",
+        "fr_auto": "Outils activés"
     }
 }
