@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from smolagents import VisitWebpageTool, WebSearchTool
 
 from .chat_history_retriever import ChatHistoryTool
+from .file_tools import ReadUploadedFileTool
 from .law_retriever import LawRetrieverTool
 
 # A dictionary of all available tools. The keys are used to store the enabled tools in
@@ -34,5 +35,10 @@ AVAILABLE_TOOLS = {
         "class": ChatHistoryTool,
         "name": _("Chat history"),
         "init_params": {"chat_id": None},
+    },
+    "read_uploaded_file": {
+        "class": ReadUploadedFileTool,
+        "name": _("Read uploaded file"),
+        "init_params": {"user_id": None},
     },
 }

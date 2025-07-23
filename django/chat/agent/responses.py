@@ -34,6 +34,8 @@ def otto_agent(chat):
                 init_params = tool_info["init_params"].copy()
                 if "chat_id" in init_params:
                     init_params["chat_id"] = chat.id
+                if "user_id" in init_params:
+                    init_params["user_id"] = chat.user.id
                 enabled_tools.append(tool_class(**init_params))
 
     agent = ToolCallingAgent(
@@ -41,6 +43,7 @@ def otto_agent(chat):
         model=model,
         # planning_interval=1,
         instructions="IMPORTANT!!! Format the final answer in markdown.",
+        stream_outputs=False,
     )
 
     return agent

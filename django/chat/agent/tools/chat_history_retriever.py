@@ -5,7 +5,7 @@ from chat.models import Chat
 
 class ChatHistoryTool(Tool):
     name = "chat_history"
-    description = "Retrieves the chat history for the current conversation. Use when the user's question is unclear or requires context from previous messages."
+    description = "Retrieves the current chat history including uploaded filenames/IDs. Use when the user's question is unclear or requires context from previous messages."
     inputs = {}
     output_type = "string"
 

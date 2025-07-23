@@ -1022,13 +1022,18 @@ def chat_to_history(chat, include_system_prompt=True):
             filenames = []
             if hasattr(message, "files") and message.files.exists():
                 filenames = [f.filename for f in message.files.all()]
+                file_ids = [f.id for f in message.files.all()]
             if filenames:
                 if message.is_bot:
                     content = _("Bot responded with these files: ") + ", ".join(
-                        filenames
+                        f"{filename} (ID: {file_id})"
+                        for filename, file_id in zip(filenames, file_ids)
                     )
                 else:
-                    content = _("User uploaded these files: ") + ", ".join(filenames)
+                    content = _("User uploaded these files: ") + ", ".join(
+                        f"{filename} (ID: {file_id})"
+                        for filename, file_id in zip(filenames, file_ids)
+                    )
             else:
                 content = _("(empty message)")
         elif is_text_to_summarize(message):
@@ -1051,32 +1056,6 @@ def chat_to_history(chat, include_system_prompt=True):
 
 
 async def async_generator_from_sync(sync_gen):
-    """
-    Original code: never exhausts generator! Not sure why:
-    iterator = iter(sync_gen)
-    try:
-        while True:
-            try:
-                item = await sync_to_async(next)(iterator)
-            except StopIteration:
-                break
-            except GeneratorExit:
-                # Handle GeneratorExit gracefully
-                break
-            yield item
-    except GeneratorExit:
-        # Catch GeneratorExit at the async generator level too
-        pass
-    finally:
-        # Properly close the generator if it has a close() method
-        close = getattr(iterator, "close", None)
-        if callable(close):
-            try:
-                close()
-            except Exception:
-                # Ignore all errors during generator cleanup
-                pass
-    """
     # Run sync generator in a background thread and stream via a thread-safe queue
     import queue as _queue
     import threading
