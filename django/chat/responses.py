@@ -10,18 +10,16 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 
 from asgiref.sync import sync_to_async
-from data_fetcher.util import get_request
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.agent.responses import agent_response_generator, otto_agent
+from chat.agent.responses import agent_response
 from chat.llm import OttoLLM
 from chat.models import Message
 from chat.tasks import translate_file
 from chat.utils import (
-    async_generator_from_sync,
     chat_to_history,
     combine_batch_generators,
     combine_response_generators,
@@ -80,7 +78,7 @@ def otto_response(request, message_id=None):
         bind_contextvars(message_id=message_id, feature=mode)
 
         if mode == "agent":
-            return chat_agent(chat, response_message)
+            return agent_response(chat, response_message)
         if mode == "chat":
             return chat_response(chat, response_message)
         if mode == "summarize":
@@ -773,29 +771,6 @@ def error_response(chat, response_message, error_message=None):
             response_message.id,
             llm,
             response_str=response_str,
-        ),
-        content_type="text/event-stream",
-    )
-
-
-def chat_agent(chat, response_message):
-    bind_contextvars(feature="chat_agent", chat_id=chat.id)
-    user_message = response_message.parent
-
-    llm = OttoLLM()
-
-    agent = otto_agent(chat)
-
-    sync_gen = agent_response_generator(agent, user_message)
-    async_gen = async_generator_from_sync(sync_gen)
-
-    return StreamingHttpResponse(
-        streaming_content=htmx_stream(
-            chat,
-            response_message.id,
-            llm,
-            response_generator=async_gen,
-            dots=True,
         ),
         content_type="text/event-stream",
     )

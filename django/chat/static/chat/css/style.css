@@ -668,12 +668,10 @@ li.message-file {
 }
 
 .message-blob.agent div.agent-steps,
-.message-blob.agent div.agent-steps code,
 .message-blob.agent div.agent-steps .agent-output {
   display: none;
 }
 
-button.agent-code-toggle,
 button.agent-output-toggle {
   display: none;
 }
@@ -703,23 +701,16 @@ div.agent-step {
   margin-bottom: 10px;
 }
 
-.message-blob.agent.show-steps button.agent-code-toggle,
 .message-blob.agent.show-steps button.agent-output-toggle {
   display: inline-block;
 }
 
-.message-blob.agent.show-code div.agent-steps code {
-  display: block;
-}
-
 .message-blob.agent .hide-steps-label,
-.message-blob.agent .hide-code-label,
 .message-blob.agent .hide-output-label {
   display: none;
 }
 
 .message-blob.agent .show-steps-label,
-.message-blob.agent .show-code-label,
 .message-blob.agent .show-output-label {
   display: inline;
 }
@@ -734,16 +725,6 @@ div.agent-step {
   }
 }
 
-
-.message-blob.agent.show-code {
-  .show-code-label {
-    display: none;
-  }
-
-  .hide-code-label {
-    display: inline;
-  }
-}
 
 .message-blob.agent.show-output {
   .show-output-label {

@@ -673,13 +673,6 @@ function toggleAgentSteps(btn) {
   }
 }
 
-function toggleAgentCode(btn) {
-  const container = btn.closest('.message-blob.agent');
-  if (container) {
-    container.classList.toggle('show-code');
-  }
-}
-
 function toggleAgentOutput(btn) {
   const container = btn.closest('.message-blob.agent');
   if (container) {
