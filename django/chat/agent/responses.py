@@ -71,10 +71,26 @@ def agent_response(chat, response_message):
     async_gen = async_generator_from_sync(sync_gen)
 
     async def chat_agent_replacer(response_stream):
-        response = ""
+        # Collect tool call steps and extract final answer
+        steps = []
+        final_answer = ""
         async for smolagents_message in response_stream:
-            response += str(smolagents_message.__dict__)
-            yield response
+            msg = smolagents_message.__dict__
+            name = msg.get("name")
+            # Final answer should be displayed as response, not in steps
+            if name == "final_answer":
+                final_answer = msg.get("arguments", {}).get("answer", "")
+            elif name is not None:
+                # capture tool call name, args, and its output or observation
+                steps.append(
+                    {
+                        "name": name,
+                        "arguments": msg.get("arguments", {}),
+                        "output": msg.get("output") or msg.get("observation"),
+                    }
+                )
+        # Yield only once: final answer and collected steps
+        yield final_answer, steps
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(

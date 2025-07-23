@@ -48,19 +48,10 @@ function render_markdown(element) {
       to_parse = false;
     }
     const parent = markdown_text.parentElement;
+    // Save agent-steps for re-insertion
+    const agent_steps = parent.querySelector(".agent-steps");
     if (to_parse) {
-      // Use md_with_html for agent messages to allow explicit <details> HTML
-      let isAgentMode = false;
-      // Check for a class or data attribute on the message-outer or parent
-      let outer = element.closest('.message-blob');
-      if (outer && outer.classList.contains('agent')) {
-        isAgentMode = true;
-      }
-      if (isAgentMode) {
-        parent.innerHTML = md_with_html.render(to_parse);
-      } else {
-        parent.innerHTML = md_with_html.render(to_parse);
-      }
+      parent.innerHTML = md.render(to_parse);
       const current_dots = parent.parentElement.querySelector(".typing");
       // If dots=True on htmx_stream call and we just removed the dots at the beginning of stream,
       // add a new dots element after parent
@@ -73,6 +64,10 @@ function render_markdown(element) {
       // Add the "copy code" button to code blocks
       for (block of parent.querySelectorAll("pre code")) {
         block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
+      }
+      // Reinsert agent steps if they exist
+      if (agent_steps) {
+        parent.insertAdjacentElement("afterbegin", agent_steps);
       }
     } else if ((after_text = parent.nextElementSibling)) {
       // If stream is empty (which should only happen between batches), it will stream dots

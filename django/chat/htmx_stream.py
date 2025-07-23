@@ -1,4 +1,5 @@
 import asyncio
+import html
 import json
 import uuid
 from typing import AsyncGenerator, Generator
@@ -16,6 +17,10 @@ from chat.models import AnswerSource, Chat, ChatOptions, Message
 from otto.models import CostType, SecurityLabel
 
 logger = get_logger(__name__)
+
+
+def wrap_llm_response(llm_response_str, div_class="markdown-text"):
+    return f'<div class="{div_class}" data-md="{html.escape(json.dumps(str(llm_response_str)))}"></div>'
 
 
 async def htmx_stream(
@@ -56,7 +61,6 @@ async def htmx_stream(
         save_sources_and_update_security_label,
         stream_to_replacer,
         title_chat,
-        wrap_llm_response,
     )
 
     # Helper function to format a string as an SSE message
@@ -66,10 +70,11 @@ async def htmx_stream(
         dots=False,
         remove_stop=False,
         cost_warning_buttons=None,
+        steps_html="",
     ) -> str:
         sse_joiner = "\ndata: "
         if wrap_markdown:
-            message = wrap_llm_response(message)
+            message = steps_html + wrap_llm_response(message)
         if dots:
             message += dots
         out_string = "data: "
@@ -81,14 +86,17 @@ async def htmx_stream(
 
         if remove_stop:
             out_string += "<div hx-swap-oob='true' id='stop-button'></div>"
+
         out_string += "\n\n"  # End of SSE message
         return out_string
 
     ##############################
     # Start of the main function #
     ##############################
+    message = await sync_to_async(Message.objects.get)(id=message_id)
     is_untitled_chat = chat.title.strip() == ""
     full_message = ""
+    steps = []
     stop_warning_message = _(
         "Response stopped early. Costs may still be incurred after stopping."
     )
@@ -105,8 +113,18 @@ async def htmx_stream(
         # Stream the response text
         first_message = True
         async for response in response_replacer:
+
             if response is None:
                 continue
+
+            # If the response is a tuple, unpack it to "response, steps"
+            if isinstance(response, tuple):
+                response, steps = response
+                message.details["steps"] = steps
+                steps_html = render_to_string(
+                    "chat/components/agent_steps.html",
+                    {"message": message},
+                )
 
             if response != "<|batchboundary|>":
                 if remove_stop or not cache.get(f"stop_response_{message_id}", False):
@@ -135,6 +153,7 @@ async def htmx_stream(
                     wrap_markdown,
                     dots=dots if not generation_stopped else False,
                     remove_stop=remove_stop or generation_stopped,
+                    steps_html=steps_html,
                 )
             await asyncio.sleep(0.01)
 
@@ -143,13 +162,15 @@ async def htmx_stream(
             wrap_markdown,
             dots=False,
             remove_stop=True,
+            steps_html=steps_html,
         )
         await asyncio.sleep(0.01)
 
         await sync_to_async(llm.create_costs)()
 
-        message = await sync_to_async(Message.objects.get)(id=message_id)
         message.text = full_message
+        if steps:
+            message.details["steps"] = steps
         finished_at = timezone.now()
         message.seconds_elapsed = (finished_at - message.date_created).total_seconds()
         await sync_to_async(message.save)()

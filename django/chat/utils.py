@@ -104,10 +104,6 @@ def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
     return num_tokens
 
 
-def wrap_llm_response(llm_response_str):
-    return f'<div class="markdown-text" data-md="{html.escape(json.dumps(str(llm_response_str)))}"></div>'
-
-
 def url_to_text(url):
     article = Article(url)
     article.config.MAX_TEXT = sys.maxsize

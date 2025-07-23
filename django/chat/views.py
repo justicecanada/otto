@@ -24,6 +24,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
+from chat.htmx_stream import wrap_llm_response
 from chat.llm import OttoLLM
 from chat.models import (
     AnswerSource,
@@ -45,7 +46,6 @@ from chat.utils import (
     highlight_claims,
     label_section_index,
     title_chat,
-    wrap_llm_response,
 )
 from librarian.forms import LibraryUsersForm
 from librarian.models import Library
