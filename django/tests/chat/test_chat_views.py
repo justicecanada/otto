@@ -10,6 +10,7 @@ from django.utils import timezone
 import pytest
 from asgiref.sync import async_to_sync, sync_to_async
 
+from chat.agent.tools.tool_registry import AVAILABLE_TOOLS
 from chat.forms import PresetForm
 from chat.llm import OttoLLM
 from chat.models import Chat, ChatFile, Message, Preset
@@ -1311,3 +1312,52 @@ def test_email_chat_author(client, all_apps_user):
     assert response.status_code == 200
     assert "Otto" in response.content.decode()
     assert f"mailto:{user.email}" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_agent_no_tools_param(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("chat:new_agent"))
+    chat = Chat.objects.latest("created_at")
+    assert sorted(chat.options.agent_tools) == sorted(AVAILABLE_TOOLS.keys())
+
+
+@pytest.mark.django_db
+def test_agent_all_valid_tools(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(
+        reverse("chat:new_agent") + "?tools=law_retriever,chat_history"
+    )
+    chat = Chat.objects.latest("created_at")
+    assert sorted(chat.options.agent_tools) == sorted(["law_retriever", "chat_history"])
+
+
+@pytest.mark.django_db
+def test_agent_some_invalid_tools(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("chat:new_agent") + "?tools=law_retriever,foobar")
+    chat = Chat.objects.latest("created_at")
+    assert chat.options.agent_tools == ["law_retriever"]
+
+
+@pytest.mark.django_db
+def test_agent_all_invalid_tools(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(reverse("chat:new_agent") + "?tools=notatool,foobar")
+    chat = Chat.objects.latest("created_at")
+    assert sorted(chat.options.agent_tools) == sorted(AVAILABLE_TOOLS.keys())
+
+
+@pytest.mark.django_db
+def test_agent_tools_whitespace_and_case(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    response = client.get(
+        reverse("chat:new_agent") + "?tools=Law_Retriever, ,CHAT_HISTORY"
+    )
+    chat = Chat.objects.latest("created_at")
+    assert sorted(chat.options.agent_tools) == sorted(["law_retriever", "chat_history"])

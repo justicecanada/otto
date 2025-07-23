@@ -4446,5 +4446,13 @@
     "Enabled tools": {
         "fr": "",
         "fr_auto": "Outils activés"
+    },
+    "Hide outputs": {
+        "fr": "",
+        "fr_auto": "Masquer les sorties"
+    },
+    "Show outputs": {
+        "fr": "",
+        "fr_auto": "Afficher les extrants"
     }
 }
