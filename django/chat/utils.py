@@ -352,6 +352,10 @@ async def htmx_stream(
         message.text = full_message
         finished_at = timezone.now()
         message.seconds_elapsed = (finished_at - message.date_created).total_seconds()
+        message.details = {
+            "is_granular": chat.options.qa_granular_toggle,
+            "is_per_doc": chat.options.qa_process_mode == "per_doc",
+        }
         await sync_to_async(message.save)()
 
         if is_untitled_chat:
