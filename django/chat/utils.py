@@ -1005,14 +1005,15 @@ def estimate_cost_of_request(chat, response_message, response_estimation_count=5
     return cad_cost(cost)
 
 
-def chat_to_history(chat):
+def chat_to_history(chat, include_system_prompt=True):
     """
     Convert a Chat object to a history list of LlamaIndex ChatMessage objects.
     Fills blank messages with file info if available otherwise with "(empty message)".
     """
-    system_prompt = current_time_prompt() + chat.options.chat_system_prompt
     history = []
-    history.append(ChatMessage(role=MessageRole.SYSTEM, content=system_prompt))
+    if include_system_prompt:
+        system_prompt = current_time_prompt() + chat.options.chat_system_prompt
+        history.append(ChatMessage(role=MessageRole.SYSTEM, content=system_prompt))
 
     for message in chat.messages.all().order_by("date_created"):
         # Determine message content
@@ -1047,3 +1048,55 @@ def chat_to_history(chat):
         history.pop()
 
     return history
+
+
+async def async_generator_from_sync(sync_gen):
+    """
+    Original code: never exhausts generator! Not sure why:
+    iterator = iter(sync_gen)
+    try:
+        while True:
+            try:
+                item = await sync_to_async(next)(iterator)
+            except StopIteration:
+                break
+            except GeneratorExit:
+                # Handle GeneratorExit gracefully
+                break
+            yield item
+    except GeneratorExit:
+        # Catch GeneratorExit at the async generator level too
+        pass
+    finally:
+        # Properly close the generator if it has a close() method
+        close = getattr(iterator, "close", None)
+        if callable(close):
+            try:
+                close()
+            except Exception:
+                # Ignore all errors during generator cleanup
+                pass
+    """
+    # Run sync generator in a background thread and stream via a thread-safe queue
+    import queue as _queue
+    import threading
+
+    sentinel = object()
+    q = _queue.Queue()
+
+    def producer():
+        try:
+            for item in sync_gen:
+                q.put(item)
+        finally:
+            q.put(sentinel)
+
+    threading.Thread(target=producer, daemon=True).start()
+
+    # Consume items from the queue in the event loop
+    loop = asyncio.get_running_loop()
+    while True:
+        item = await loop.run_in_executor(None, q.get)
+        if item is sentinel:
+            break
+        yield item

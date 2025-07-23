@@ -33,6 +33,6 @@ AVAILABLE_TOOLS = {
     "chat_history": {
         "class": ChatHistoryTool,
         "name": _("Chat history"),
-        "init_params": {"chat_history": None},  # Placeholder for runtime value
+        "init_params": {"chat_id": None},
     },
 }

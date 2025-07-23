@@ -1,5 +1,6 @@
-from asgiref.sync import async_to_sync, sync_to_async
 from smolagents import Tool
+
+from chat.models import Chat
 
 
 class ChatHistoryTool(Tool):
@@ -8,9 +9,12 @@ class ChatHistoryTool(Tool):
     inputs = {}
     output_type = "string"
 
-    def __init__(self, chat_history, *args, **kwargs):
+    def __init__(self, chat_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._history_string = chat_history
+        self._chat_id = chat_id
 
     def forward(self) -> str:
-        return "Chat History:\n===\n\n" + self._history_string
+        chat = Chat.objects.get(id=self._chat_id)
+        return "Chat History:\n===\n\n" + chat.get_history_string(
+            include_system_prompt=False
+        )

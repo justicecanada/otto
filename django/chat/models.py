@@ -106,6 +106,14 @@ class Chat(models.Model):
             self.data_source.delete()
         super().delete(*args, **kwargs)
 
+    def get_history_string(self, include_system_prompt=True):
+        from chat.llm import chat_history_to_prompt
+        from chat.utils import chat_to_history
+
+        return chat_history_to_prompt(
+            chat_to_history(self, include_system_prompt=include_system_prompt)
+        )
+
 
 class ChatOptionsManager(models.Manager):
     def from_defaults(self, mode=None, chat=None):

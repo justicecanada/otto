@@ -21,6 +21,7 @@ from chat.llm import OttoLLM
 from chat.models import Message
 from chat.tasks import translate_file
 from chat.utils import (
+    async_generator_from_sync,
     chat_to_history,
     combine_batch_generators,
     combine_response_generators,
@@ -785,12 +786,15 @@ def chat_agent(chat, response_message):
 
     agent = otto_agent(chat)
 
+    sync_gen = agent_response_generator(agent, user_message)
+    async_gen = async_generator_from_sync(sync_gen)
+
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
             response_message.id,
             llm,
-            response_generator=agent_response_generator(agent, user_message),
+            response_generator=async_gen,
             dots=True,
         ),
         content_type="text/event-stream",

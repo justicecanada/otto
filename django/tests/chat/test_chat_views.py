@@ -606,7 +606,6 @@ def test_qa_response(client, all_apps_user):
     message = Message.objects.create(
         chat=chat, text="What is my dental coverage?", mode="qa"
     )
-    message.details["library"] = corporate_library_id
     message.save()
     response_message = Message.objects.create(
         chat=chat, mode="qa", is_bot=True, parent=message
