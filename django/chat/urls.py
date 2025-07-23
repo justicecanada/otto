@@ -10,6 +10,7 @@ app_name = "chat"
 urlpatterns = [
     path("", views.new_chat, name="new_chat"),
     path("chat-with-ai/", views.new_chat_with_ai, name="chat_with_ai"),
+    path("agent/", views.new_agent, name="new_agent"),
     path("summarize/", views.new_summarize, name="summarize"),
     path("translate/", views.new_translate, name="translate"),
     path("qa/", views.new_qa, name="qa"),

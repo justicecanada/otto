@@ -23,6 +23,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
+from chat.agent.tools.tool_registry import AVAILABLE_TOOLS
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
 from chat.llm import OttoLLM
 from chat.models import (
@@ -69,6 +70,35 @@ new_translate = lambda request: new_chat(request, mode="translate")
 new_summarize = lambda request: new_chat(request, mode="summarize")
 new_document_qa = lambda request: new_chat(request, mode="document_qa")
 new_qa = lambda request: new_chat(request, mode="qa")
+
+
+@app_access_required(app_name)
+def new_agent(request):
+    """
+    Creates a new Chat in Agent mode.
+    Optional query-param ?tools=<tool_key>[,<tool_key>...] pre-selects allowed tools.
+    Example: /agent?tools=law_retriever
+    """
+    # 1  Create the Chat in agent mode
+    chat = Chat.objects.create(user=request.user, mode="agent")
+
+    # 2  Parse ?tools=…  (default = empty list → all tools enabled)
+    tool_keys = request.GET.get("tools", "")
+    tool_keys = [t.strip().lower() for t in tool_keys.split(",") if t.strip()]
+
+    # 3  Filter only VALID tools (security!)
+    valid_tools = [k for k in tool_keys if k in AVAILABLE_TOOLS]
+
+    # If user provided none or only invalid, enable all by default
+    if not valid_tools:
+        valid_tools = list(AVAILABLE_TOOLS.keys())  # enable all tools
+
+    # 4  Persist into ChatOptions
+    chat.options.agent_tools = valid_tools  # e.g. ["law_retriever"]
+    chat.options.save()
+
+    # 5  Redirect to normal chat URL so SPA loads as usual
+    return redirect("chat:chat", chat_id=chat.id)
 
 
 @app_access_required(app_name)
