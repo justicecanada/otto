@@ -4,8 +4,8 @@ from chat.models import ChatFile
 from otto.models import User
 
 
-class ReadUploadedFileTool(Tool):
-    name = "read_uploaded_file"
+class FileReaderTool(Tool):
+    name = "file_reader"
     description = "Outputs markdown text from a specified file in the chat. (Use the chat_history tool to find the appropriate file ID.)"
     inputs = {"file_id": {"type": "integer", "description": "ID of the file to read"}}
     output_type = "string"

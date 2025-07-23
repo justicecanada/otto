@@ -311,9 +311,6 @@ async def htmx_stream(
                 )
             await asyncio.sleep(0.01)
 
-        # yield sse_string(
-        #     full_message, wrap_markdown=False, dots=False, remove_stop=True
-        # )
         yield sse_string(
             full_message,
             wrap_markdown,
@@ -1017,29 +1014,7 @@ def chat_to_history(chat, include_system_prompt=True):
 
     for message in chat.messages.all().order_by("date_created"):
         # Determine message content
-        if not message.text or message.text.strip() == "":
-            # Try to get filenames from files
-            filenames = []
-            if hasattr(message, "files") and message.files.exists():
-                filenames = [f.filename for f in message.files.all()]
-                file_ids = [f.id for f in message.files.all()]
-            if filenames:
-                if message.is_bot:
-                    content = _("Bot responded with these files: ") + ", ".join(
-                        f"{filename} (ID: {file_id})"
-                        for filename, file_id in zip(filenames, file_ids)
-                    )
-                else:
-                    content = _("User uploaded these files: ") + ", ".join(
-                        f"{filename} (ID: {file_id})"
-                        for filename, file_id in zip(filenames, file_ids)
-                    )
-            else:
-                content = _("(empty message)")
-        elif is_text_to_summarize(message):
-            content = _("<text to summarize...>")
-        else:
-            content = message.text
+        content = message.content_string
 
         role = MessageRole.ASSISTANT if message.is_bot else MessageRole.USER
         history.append(ChatMessage(role=role, content=content))

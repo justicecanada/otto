@@ -50,6 +50,6 @@ def otto_agent(chat):
 
 
 def agent_response_generator(agent, user_message):
-    generator = agent.run(user_message.text, stream=True)
+    generator = agent.run(user_message.content_string, stream=True)
     for chunk in generator:
         yield str(chunk.__dict__)

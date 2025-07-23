@@ -476,6 +476,7 @@ class Message(models.Model):
     chat = models.ForeignKey("Chat", on_delete=models.CASCADE, related_name="messages")
     text = models.TextField()
     date_created = models.DateTimeField(auto_now_add=True)
+
     # 0: user didn't click either like or dislike
     # 1: user clicked like
     # -1: user clicked dislike
@@ -485,14 +486,16 @@ class Message(models.Model):
     bot_name = models.CharField(max_length=255, blank=True)
     usd_cost = models.DecimalField(max_digits=10, decimal_places=4, null=True)
     pinned = models.BooleanField(default=False)
-    # Flexible JSON field for mode-specific details such as translation target language
-    details = models.JSONField(default=dict)
     mode = models.CharField(max_length=255, default="chat")
     parent = models.OneToOneField(
         "self", on_delete=models.SET_NULL, null=True, related_name="child"
     )
     claims_list = models.JSONField(default=list, blank=True)
     seconds_elapsed = models.FloatField(default=0.0)
+
+    # Secondary information for the message e.g. tool calls and reasoning
+    # Can be displayed in the UI but is generally not included in the chat history for LLM to read
+    details = models.JSONField(default=dict)
 
     def __str__(self):
         return f"{'(BOT) ' if self.is_bot else ''}msg {self.id}: {self.text}"
@@ -516,6 +519,35 @@ class Message(models.Model):
     @property
     def display_cost(self):
         return display_cad_cost(self.usd_cost)
+
+    @property
+    def content_string(self):
+        from chat.utils import is_text_to_summarize
+
+        if not self.text or self.text.strip() == "":
+            # Try to get filenames from files
+            filenames = []
+            if hasattr(self, "files") and self.files.exists():
+                filenames = [f.filename for f in self.files.all()]
+                file_ids = [f.id for f in self.files.all()]
+            if filenames:
+                if self.is_bot:
+                    content = _("Bot responded with these files: ") + ", ".join(
+                        f"{filename} (ID: {file_id})"
+                        for filename, file_id in zip(filenames, file_ids)
+                    )
+                else:
+                    content = _("User uploaded these files: ") + ", ".join(
+                        f"{filename} (ID: {file_id})"
+                        for filename, file_id in zip(filenames, file_ids)
+                    )
+            else:
+                content = _("(empty message)")
+        elif is_text_to_summarize(self):
+            content = _("<text to summarize...>")
+        else:
+            content = self.text
+        return content
 
     def calculate_costs(self):
         set_costs(self)
