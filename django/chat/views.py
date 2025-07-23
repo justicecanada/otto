@@ -82,7 +82,7 @@ def new_agent(request):
     # 1  Create the Chat in agent mode
     chat = Chat.objects.create(user=request.user, mode="agent")
 
-    # 2  Parse ?tools=…  (default = empty list → no tools enabled)
+    # 2  Parse ?tools=…  (default = empty list → all tools enabled)
     tool_keys = request.GET.get("tools", "")
     tool_keys = [t.strip().lower() for t in tool_keys.split(",") if t.strip()]
 
