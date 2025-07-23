@@ -631,9 +631,11 @@ def generate_prompt(task_or_prompt: str):
     bind_contextvars(feature="prompt_generator")
     llm = OttoLLM()
 
-    META_PROMPT = """
+    META_PROMPT = f"""
     Given a current prompt and a change description, produce a detailed system prompt to guide a language model in completing the task effectively.
-
+    
+    Answer in whatever language you are asked. If the input is in French, generate the output in French. If the input is in English, generate the output in English. Do not translate the input text, but respond in the same language as the input.
+    
     Your final output will be the full corrected prompt verbatim. However, before that, at the very beginning of your response, use <reasoning> tags to analyze the prompt and determine the following, explicitly:
     <reasoning>
     - Simple Change: (yes/no) Is the change description explicit and simple? (If so, skip the rest of these questions.)
@@ -673,9 +675,7 @@ def generate_prompt(task_or_prompt: str):
 
     [Concise instruction describing the task - this should be the first line in the prompt, no section header]
 
-    [Additional details as needed.]
-
-    [Optional sections with headings or bullet points for detailed steps.]
+    [Additional details as needed, translate the subtitles below starting with "#" too, such as "# Output Format".]
 
     # Steps [optional]
 
