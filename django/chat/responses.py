@@ -560,7 +560,7 @@ def qa_response(chat, response_message, switch_mode=False):
         )
 
     else:
-        if chat.options.qa_answer_type == "combined_docs":
+        if chat.options.qa_process_mode == "combined_docs":
             answer_components = rag_answer(
                 chat, response_message, llm, filter_documents, qa_scope
             )
@@ -659,7 +659,7 @@ def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
         if not cache.get(f"stop_response_{response_message.id}", False)
     ]
 
-    if chat.options.qa_answer_type == "combined_docs":
+    if chat.options.qa_process_mode == "combined_docs":
         # Combine all documents into one text, including the titles
         combined_documents = (
             "<document>\n"
@@ -717,7 +717,7 @@ def rag_answer(chat, response_message, llm, documents, qa_scope, batch_size=5):
             ),
         ]
     )
-    if qa_scope != "all" or chat.options.qa_answer_type == "per_doc":
+    if qa_scope != "all" or chat.options.qa_process_mode == "per_doc":
         filters.filters.append(
             MetadataFilter(
                 key="doc_id",

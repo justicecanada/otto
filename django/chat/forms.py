@@ -18,8 +18,8 @@ from structlog import get_logger
 
 from chat.llm_models import get_chat_model_choices, get_grouped_chat_model_choices
 from chat.models import (
-    QA_ANSWER_TYPE_CHOICES,
     QA_MODE_CHOICES,
+    QA_PROCESS_MODE_CHOICES,
     QA_SCOPE_CHOICES,
     REASONING_EFFORT_CHOICES,
     Chat,
@@ -321,8 +321,8 @@ class ChatOptionsForm(ModelForm):
                     ),
                 },
             ),
-            "qa_answer_type": forms.Select(
-                choices=QA_ANSWER_TYPE_CHOICES,
+            "qa_process_mode": forms.Select(
+                choices=QA_PROCESS_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
                     "onchange": "switchToDocumentScope(); updateQaSourceForms(); triggerOptionSave();",

@@ -172,7 +172,7 @@ QA_MODE_CHOICES = [
     ("summarize", _("Full documents")),
 ]
 
-QA_ANSWER_TYPE_CHOICES = [
+QA_PROCESS_MODE_CHOICES = [
     ("combined_docs", _("Combine")),
     ("per_doc", _("Separate")),
 ]
@@ -234,8 +234,8 @@ class ChatOptions(models.Model):
         related_name="qa_options",
     )
     qa_mode = models.CharField(max_length=20, default="rag", choices=QA_MODE_CHOICES)
-    qa_answer_type = models.CharField(
-        max_length=20, default="combined_docs", choices=QA_ANSWER_TYPE_CHOICES
+    qa_process_mode = models.CharField(
+        max_length=20, default="combined_docs", choices=QA_PROCESS_MODE_CHOICES
     )
     qa_scope = models.CharField(max_length=20, default="all", choices=QA_SCOPE_CHOICES)
     qa_data_sources = models.ManyToManyField(
