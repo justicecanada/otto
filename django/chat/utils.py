@@ -91,11 +91,13 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
     target_options.save()
 
 
-def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
+def num_tokens_from_string(
+    string: str, model: str = "gpt-4", enc_type: str = "o200k_base"
+) -> int:
     """Returns the number of tokens in a text string."""
     string = string or ""
     try:
-        encoding = tiktoken.get_encoding("o200k_base")
+        encoding = tiktoken.get_encoding(enc_type)
         num_tokens = len(encoding.encode(string))
     except:
         # Estimate the number of tokens using a simple heuristic (1 token = 4 chars)
