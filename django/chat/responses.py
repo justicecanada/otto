@@ -561,11 +561,13 @@ def qa_response(chat, response_message, switch_mode=False):
 
     else:
         if chat.options.qa_answer_type == "combined_docs":
-            (response_replacer, response_generator, source_groups, batch_generators) = (
-                rag_answer(
-                    chat, response_message, llm, filter_documents, qa_scope, switch_mode
-                )
+            answer_components = rag_answer(
+                chat, response_message, llm, filter_documents, qa_scope
             )
+            response_replacer = answer_components["response_replacer"]
+            response_generator = answer_components["response_generator"]
+            source_groups = answer_components["source_groups"]
+            batch_generators = answer_components["batch_generators"]
         else:
             source_groups = []
             doc_responses = []
@@ -573,16 +575,14 @@ def qa_response(chat, response_message, switch_mode=False):
             title_batches = create_batches(document_titles, batch_size)
             for document in filter_documents:
                 answer_components = rag_answer(
-                    chat, response_message, llm, [document], qa_scope, switch_mode
+                    chat, response_message, llm, [document], qa_scope
                 )
 
                 if answer_components:
-                    (
-                        doc_response_replacer,
-                        doc_response_generator,
-                        doc_source_groups,
-                        doc_batch_generators,
-                    ) = answer_components
+                    doc_response_replacer = answer_components["response_replacer"]
+                    doc_response_generator = answer_components["response_generator"]
+                    doc_source_groups = answer_components["source_groups"]
+                    doc_batch_generators = answer_components["batch_generators"]
                     doc_responses.append(
                         doc_response_replacer
                         if chat.options.qa_granular_toggle
@@ -700,9 +700,7 @@ def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
     return response_replacer
 
 
-def rag_answer(
-    chat, response_message, llm, documents, qa_scope, switch_mode, batch_size=5
-):
+def rag_answer(chat, response_message, llm, documents, qa_scope, batch_size=5):
     batch_generators = []
     source_groups = []
 
@@ -829,7 +827,12 @@ def rag_answer(
         )
         response_generator = None
 
-    return (response_replacer, response_generator, source_groups, batch_generators)
+    return {
+        "response_replacer": response_replacer,
+        "response_generator": response_generator,
+        "source_groups": source_groups,
+        "batch_generators": batch_generators,
+    }
 
 
 def error_response(chat, response_message, error_message=None):

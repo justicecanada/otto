@@ -4434,5 +4434,57 @@
     "Granular answers ($)": {
         "fr": "",
         "fr_auto": "Réponses granulaires ($)"
+    },
+    "Top sources only (fast, cheap)": {
+        "fr": "",
+        "fr_auto": "Principales sources seulement (rapide, bon marché)"
+    },
+    "Full documents ($)": {
+        "fr": "",
+        "fr_auto": "Documents complets ($)"
+    },
+    "Pool documents together": {
+        "fr": "",
+        "fr_auto": "Regrouper les documents"
+    },
+    "Top sources: Find the most relevant excerpts from selected documents. &#010; Full documents: Use the entire content of selected documents.": {
+        "fr": "",
+        "fr_auto": "Principales sources : Trouvez les extraits les plus pertinents de certains documents. Documents complets : Utilisez le contenu complet des documents sélectionnés."
+    },
+    "Filter sources": {
+        "fr": "",
+        "fr_auto": "Filtrer les sources"
+    },
+    "Full documents: Use the entire content of selected documents.": {
+        "fr": "",
+        "fr_auto": "Documents complets : Utilisez le contenu complet des documents sélectionnés."
+    },
+    "Top sources: Find the most relevant excerpts from selected documents.": {
+        "fr": "",
+        "fr_auto": "Principales sources : Trouvez les extraits les plus pertinents de certains documents."
+    },
+    "Top sources: Find the most relevant excerpts from selected documents.<br><br>Full documents: Use the entire content of selected documents.": {
+        "fr": "",
+        "fr_auto": "Principales sources : Trouvez les extraits les plus pertinents de certains documents. <br><br>Documents complets : Utilisez le contenu complet des documents sélectionnés."
+    },
+    "Top excerpts: Use most relevant excerpts from selected documents.<br><br>Full documents: Use full text of selected documents.": {
+        "fr": "",
+        "fr_auto": "Extraits les plus pertinents : Utilisez les extraits les plus pertinents de certains documents. <br><br>Documents complets : Utilisez le texte intégral des documents sélectionnés."
+    },
+    "Processing mode": {
+        "fr": "",
+        "fr_auto": "Mode de traitement"
+    },
+    "Combined: search once across all selected documents and write a single answer. <em>May not include all documents. Cheap, more succint.</em>": {
+        "fr": "",
+        "fr_auto": "Combiné : recherchez une fois dans tous les documents sélectionnés et rédigez une seule réponse. <em>Peut ne pas inclure tous les documents. Bon marché, plus succinct.</em>"
+    },
+    "\n                        Combined: search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>\n                        \n                        Separate: search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em>\n                        ": {
+        "fr": "",
+        "fr_auto": "\nCombiné : recherche une fois dans tous les documents sélectionnés avant la génération des réponses. <em>Peut ne pas inclure tous les documents. Bon marché, plus succinct.</em>\n                        \nSéparer : rechercher chaque document sélectionné individuellement et générer des réponses pour chacun. <em>Comprend tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus coûteux.</em>\n                        "
+    },
+    "\n                        Combined: read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>\n\n                        Separate: read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive.</em>\n                        ": {
+        "fr": "",
+        "fr_auto": "\nCombiné : lire tous les documents sélectionnés ensemble, rédiger une seule réponse. <em>Essentiel pour comparer des documents. Généralement moins détaillé.</em>\n\nSéparer : lisez chaque document sélectionné individuellement et rédigez une réponse distincte pour chacun. <em>Généralement plus détaillé. Coûteux.</em>\n                        "
     }
 }

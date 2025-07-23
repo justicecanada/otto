@@ -168,15 +168,13 @@ QA_SCOPE_CHOICES = [
 ]
 
 QA_MODE_CHOICES = [
-    ("rag", _("Use top sources only (fast, cheap)")),
-    ("summarize", _("Use full documents ($)")),
-    # ("summarize_combined", _("Full documents, combined answer ($)")),
-    # ("rag_per_doc", _("Use top sources for each selected document")),
+    ("rag", _("Top excerpts")),
+    ("summarize", _("Full documents")),
 ]
 
 QA_ANSWER_TYPE_CHOICES = [
-    ("combined_docs", _("Documents together")),
-    ("per_doc", _("Each document separately ($)")),
+    ("combined_docs", _("Combine")),
+    ("per_doc", _("Separate")),
 ]
 QA_SOURCE_ORDER_CHOICES = [
     ("score", _("Relevance score")),
