@@ -16,7 +16,7 @@ from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from pdf2image import convert_from_path
 from pdf2image.exceptions import PDFPageCountError
-from PIL import Image, ImageSequence
+from PIL import Image, ImageChops, ImageSequence
 from PIL.Image import Resampling
 from pypdf import PdfReader, PdfWriter
 from reportlab.lib import pagesizes
@@ -109,20 +109,43 @@ def calculate_start_pages(files):
     return start_pages
 
 
-def resize_image_to_a4(img, dpi=300):  # used only when merge is on
+def trim_whitespace(img):
+    # Convert to grayscale and invert (so white becomes black)
+    bg = Image.new(img.mode, img.size, img.getpixel((0, 0)))
+    diff = ImageChops.difference(img, bg)
+    diff = ImageChops.add(diff, diff, 2.0, -100)
+    bbox = diff.getbbox()
+    if bbox:
+        return img.crop(bbox)
+    return img  # No border found
+
+
+def resize_image_to_a4(img, output_size="small"):  # used only when merge is on
+
+    dpi = 300  # for A4 size in pixels
+    # Minimum readable DPI
+    min_dpi = 150
+
     a4_width = int(8.27 * dpi)  # 8.27 inches is 210mm
     a4_height = int(11.69 * dpi)  # 11.69 inches is 297mm
+    min_width = int(img.width * (min_dpi / dpi))
+    min_height = int(img.height * (min_dpi / dpi))
 
+    # Trim white borders
+    img = trim_whitespace(img)
+
+    # Calculate the scale so that the image is at least 150 DPI on the A4 page
     scale = min(a4_width / img.width, a4_height / img.height)
+    min_scale = max(min_width / img.width, min_height / img.height)
 
-    if scale < 1.0:
-        # Image is bigger than A4 in at least one dimension; scale it down
-        new_width = int(img.width * scale)
-        new_height = int(img.height * scale)
+    if output_size == "enlarged":
+        scale = min(a4_width / img.width, a4_height / img.height)
     else:
-        # Image already fits A4 or is smaller; keep its original size
-        new_width = img.width
-        new_height = img.height
+        # Downsample, but not below minimum readable DPI
+        scale = max(min_scale, 1.0)  # Don't upscale if already small
+
+    new_width = int(img.width * scale)
+    new_height = int(img.height * scale)
 
     # Resize the image using LANCZOS (formerly ANTIALIAS)
 
@@ -130,7 +153,11 @@ def resize_image_to_a4(img, dpi=300):  # used only when merge is on
 
     # Create an A4 background
     background = Image.new("RGB", (a4_width, a4_height), "white")
-    offset = ((a4_width - new_width) // 2, (a4_height - new_height) // 2)
+    # offset = ((a4_width - new_width) // 2, (a4_height - new_height) // 2)
+    offset = (
+        (a4_width - new_width) // 2,
+        (a4_height - new_height) // 2,
+    )
     background.paste(resized_img, offset)
     return background
 
@@ -139,7 +166,7 @@ def dist(p1, p2):
     return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
 
-def create_searchable_pdf(input_file, add_header, merged=False):
+def create_searchable_pdf(input_file, add_header, merged=False, output_size="small"):
     # Reset the file pointer to the beginning
     input_file.seek(0)
     file_content = input_file.read()
@@ -221,7 +248,8 @@ def create_searchable_pdf(input_file, add_header, merged=False):
                 with Image.open(temp_path) as img:
                     image_pages_original = ImageSequence.Iterator(img)
                     image_pages = [
-                        resize_image_to_a4(image) for image in image_pages_original
+                        resize_image_to_a4(image, output_size)
+                        for image in image_pages_original
                     ]
             else:
                 with Image.open(temp_path) as img:
