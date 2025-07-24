@@ -4390,5 +4390,17 @@
     "This is your default preset for new chats. To change your default preset, return to the Browse Presets page and click the 'star' for a different preset.": {
         "fr": "",
         "fr_auto": "Il s’agit de votre préréglage par défaut pour les nouvelles discussions. Pour modifier votre préréglage par défaut, retournez à la page Parcourir les préréglages et cliquez sur l’étoile d’un autre préréglage."
+    },
+    "Select Output Size: ": {
+        "fr": "",
+        "fr_auto": "Sélectionnez la taille de la sortie : "
+    },
+    "Small": {
+        "fr": "",
+        "fr_auto": "Petit"
+    },
+    "Enlarged": {
+        "fr": "",
+        "fr_auto": "Agrandi"
     }
 }
