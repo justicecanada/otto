@@ -97,6 +97,7 @@ async def htmx_stream(
     is_untitled_chat = chat.title.strip() == ""
     full_message = ""
     steps = []
+    steps_html = ""
     stop_warning_message = _(
         "Response stopped early. Costs may still be incurred after stopping."
     )
