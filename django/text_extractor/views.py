@@ -50,6 +50,7 @@ def submit_document(request):
     logger.debug(_("Received {len(files)} files"))
     access_key = AccessKey(user=request.user)
     merged = request.POST.get("merge_docs_checkbox", False) == "on"
+    output_size = request.POST.get("output_size", "small")  # default to 'small'
 
     UserRequest.grant_create_to(access_key)
     OutputFile.grant_create_to(access_key)
@@ -84,7 +85,9 @@ def submit_document(request):
             file_content = file.read()
             file.seek(0)
 
-            result = process_ocr_document.delay(file_content, file.name, merged, idx)
+            result = process_ocr_document.delay(
+                file_content, file.name, merged, idx, output_size
+            )
 
             if merged:
                 task_ids.append(result.id)

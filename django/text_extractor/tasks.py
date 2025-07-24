@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # passing the OCR method to celery
 @shared_task
-def process_ocr_document(file_content, file_name, merged, idx):
+def process_ocr_document(file_content, file_name, merged, idx, output_size="small"):
     if current_task:
         current_task.update_state(state="PROCESSING")
     try:
@@ -28,7 +28,7 @@ def process_ocr_document(file_content, file_name, merged, idx):
         # ocr_file, txt_file, cost = create_searchable_pdf(
         #     file, merged and idx > 0, merged
         # )
-        result = create_searchable_pdf(file, merged and idx > 0, merged)
+        result = create_searchable_pdf(file, merged and idx > 0, merged, output_size)
 
         ocr_file = result["output"]
         txt_file = result["all_text"]

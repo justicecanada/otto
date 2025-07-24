@@ -25,12 +25,11 @@ def test_format_merged_file_name():
 
 
 def test_resize_image_to_a4(mock_image_file2):
-    # DPI can be adjusted if needed
-    dpi = 150
+    dpi = 300
     a4_width, a4_height = int(8.27 * dpi), int(11.69 * dpi)
 
     # Call the function under test
-    resized_img = resize_image_to_a4(mock_image_file2, dpi=dpi)
+    resized_img = resize_image_to_a4(mock_image_file2)
 
     # Assert the size of the returned image is A4
     assert resized_img.size == (
