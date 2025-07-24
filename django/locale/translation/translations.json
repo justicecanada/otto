@@ -4446,5 +4446,17 @@
     "Enabled tools": {
         "fr": "",
         "fr_auto": "Outils activés"
+    },
+    "File reader": {
+        "fr": "",
+        "fr_auto": "Lecteur de fichiers"
+    },
+    "Hide step outputs": {
+        "fr": "",
+        "fr_auto": "Masquer les sorties d’étape"
+    },
+    "Show step outputs": {
+        "fr": "",
+        "fr_auto": "Afficher les sorties de l’étape"
     }
 }

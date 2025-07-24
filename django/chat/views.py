@@ -442,6 +442,7 @@ def save_upload(request, chat_id):
         "id": response_message.id,
         "date_created": user_message.date_created + timezone.timedelta(seconds=1),
         "bot_name": bot_name,
+        "mode": chat.options.mode,
     }
     context = {
         "chat_messages": [

@@ -12,10 +12,11 @@ default_en:
   options:
     mode: "agent"
     agent_tools:
+      - "chat_history"
+      - "file_reader"
+      - "law_retriever"
       - "web_search"
       - "visit_webpage"
-      - "law_retriever"
-      - "chat_history"
     chat_system_prompt: |
       You are the AI assistant for the Department of Justice Canada. You follow these rules:
       1. You do not have access to the internet or other knowledge bases. If you are asked about very specific facts, especially one about the Government of Canada or laws, you always caveat your response, e.g., 'I am a pre-trained AI and do not have access to the internet, so my answers might not be correct. Based on my training data, I expect that...'

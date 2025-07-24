@@ -15,6 +15,7 @@ from .law_retriever import LawRetrieverTool
 # class, a user-friendly name, and any initialization parameters.
 # The 'init_params' can contain placeholders for values that are only available at
 # runtime, like 'chat_history'.
+# The keys should match the name attribute of the class.
 AVAILABLE_TOOLS = {
     "web_search": {
         "class": WebSearchTool,
@@ -36,7 +37,7 @@ AVAILABLE_TOOLS = {
         "name": _("Chat history"),
         "init_params": {"chat_id": None},
     },
-    "read_uploaded_file": {
+    "file_reader": {
         "class": FileReaderTool,
         "name": _("File reader"),
         "init_params": {"user_id": None},

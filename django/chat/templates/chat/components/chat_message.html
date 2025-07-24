@@ -22,6 +22,8 @@
       <div class="message-mode text-secondary pt-2">
         {% if message.mode == "translate" %}
           <i class="bi bi-translate me-2" title='{% trans "Translate" %}'></i>
+        {% elif message.mode == "agent" %}
+          <i class="bi bi-magic me-2" title="{% trans 'Agent' %}"></i>
         {% elif message.mode == "summarize" %}
           <i class="bi bi-funnel me-2" title='{% trans "Summarize" %}'></i>
         {% elif message.mode == "qa" %}
