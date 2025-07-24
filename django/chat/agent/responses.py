@@ -1,9 +1,27 @@
 import os
+import re
 
 from django.http import HttpResponse, StreamingHttpResponse
 from django.utils.translation import gettext as _
 
-from smolagents import CodeAgent, LiteLLMModel, ToolCallingAgent
+# Regex to remove control characters (including null bytes) from strings
+_CONTROL_CHAR_REGEX = re.compile(r"[\x00-\x1F\x7F]")
+
+
+def sanitize(obj):
+    """
+    Recursively remove control characters from strings in the given object.
+    """
+    if isinstance(obj, str):
+        return _CONTROL_CHAR_REGEX.sub("", obj)
+    if isinstance(obj, dict):
+        return {key: sanitize(value) for key, value in obj.items()}
+    if isinstance(obj, list):
+        return [sanitize(item) for item in obj]
+    return obj
+
+
+from smolagents import CodeAgent, LiteLLMModel, ToolCallingAgent  # type: ignore
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
@@ -79,25 +97,33 @@ def agent_response(chat, response_message):
             name = msg.get("name")
             # Final answer should be displayed as response, not in steps
             if name == "final_answer":
-                final_answer = msg.get("arguments", {}).get("answer", "")
+                # Sanitize final answer to remove control chars
+                raw_answer = msg.get("arguments", {}).get("answer", "")
+                final_answer = sanitize(raw_answer)
                 yield final_answer, steps
                 break
             elif name is not None:
                 # Replace with translated, pretty name if possible
-                if name in AVAILABLE_TOOLS:
-                    name = str(AVAILABLE_TOOLS[name]["name"])
+                tool_name = name
+                if tool_name in AVAILABLE_TOOLS:
+                    tool_name = str(AVAILABLE_TOOLS[tool_name]["name"])
+                # Sanitize arguments
+                raw_args = msg.get("arguments", {})
+                args = sanitize(raw_args)
                 steps.append(
                     {
-                        "name": name,
-                        "arguments": msg.get("arguments", {}),
+                        "name": tool_name,
+                        "arguments": args,
                     }
                 )
             elif msg.get("output") or msg.get("observations"):
                 # capture output or observation from the agent
                 if not msg.get("is_final_answer"):
+                    raw_output = msg.get("output") or msg.get("observations")
+                    output = sanitize(raw_output)
                     steps.append(
                         {
-                            "output": msg.get("output") or msg.get("observations"),
+                            "output": output,
                         }
                     )
             yield final_answer, steps
