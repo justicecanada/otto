@@ -107,11 +107,15 @@ AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
 LITELLM_ENDPOINT = os.environ.get("LITELLM_ENDPOINT")
 
+# Azure Translation Services
+LANGUAGE_KEY = os.environ.get("LANGUAGE_KEY")
+
 DEFAULT_CHAT_MODEL = DEFAULT_CHAT_MODEL_ID
 DEFAULT_QA_MODEL = DEFAULT_QA_MODEL_ID
 DEFAULT_SUMMARIZE_MODEL = DEFAULT_SUMMARIZE_MODEL_ID
 DEFAULT_TRANSLATE_MODEL = DEFAULT_TRANSLATE_MODEL_ID
 DEFAULT_LAWS_MODEL = DEFAULT_LAWS_MODEL_ID
+DEFAULT_TRANSCRIBER_MODEL = "gpt-4.1-mini"
 
 DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
 LIBRARY_RETENTION_DAYS = 30
@@ -169,6 +173,7 @@ INSTALLED_APPS = [
     "librarian",
     "chat",
     "laws",
+    "transcriber",
     "text_extractor",
     "template_wizard",
     # Third-party apps
