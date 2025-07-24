@@ -1,4 +1,5 @@
 import time
+from datetime import date, timedelta
 
 from django.core.management import call_command
 
@@ -8,13 +9,6 @@ from celery import shared_task
 @shared_task
 def sync_users():
     call_command("sync_users")
-
-
-@shared_task
-def update_laws():
-    call_command(
-        "load_laws_xml", "--force_download", "--full", "--reset", "--accept_reset"
-    )
 
 
 @shared_task
@@ -84,6 +78,25 @@ def delete_dangling_savedfiles():
 @shared_task
 def cleanup_transcriber_uploads():
     call_command("cleanup_transcriber_uploads")
+
+
+@shared_task
+def cleanup_template_sessions():
+    call_command("cleanup_template_sessions")
+
+    
+@shared_task
+def reset_accepted_terms_date():
+    from otto.models import User
+
+    # Filter for users who have accepted terms at least 30 days ago
+    cutoff_date = date.today() - timedelta(days=30)
+    users = User.objects.filter(accepted_terms_date__lte=cutoff_date)
+    for user in users:
+        user.accepted_terms_date = None
+        user.save(update_fields=["accepted_terms_date"])
+        print(f"Reset accepted_terms_date for user {user.id}")
+
 
 
 # LOAD TESTING TASKS

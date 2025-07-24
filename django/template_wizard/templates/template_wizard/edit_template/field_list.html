@@ -1,0 +1,75 @@
+{% load i18n %}
+
+<ul class="list-group" aria-label="{% trans 'Fields' %}">
+  {% for field in fields %}
+    {% if field.parent_field == parent_field %}
+      <li class="list-group-item">
+        <div class="d-flex align-items-center">
+          <div class="flex-grow-1">
+            <span class="fw-semibold me-1">{{ field.field_name }}</span>
+            <span class="badge bg-secondary">{% trans field.get_field_type_display %}</span>
+            {% if field.required %}
+              <span class="badge bg-danger">{% trans "Required" %}</span>
+            {% endif %}
+            {% if field.list %}
+              <span class="badge bg-primary">{% trans "List" %}</span>
+            {% endif %}
+            {% if field.field_type == "str" and field.string_format != "none" %}
+              <span class="badge bg-info text-black">{{ field.get_string_format_display }}</span>
+            {% endif %}
+          </div>
+          <div class="ms-2">
+            {% if field.field_type == "object" %}
+              <button type="button"
+                      class="btn px-0 me-2 text-success hover-change-content"
+                      data-bs-toggle="modal"
+                      data-bs-target="#fieldModal"
+                      hx-get="{% url 'template_wizard:field_modal' template_id=template.id parent_field_id=field.id %}"
+                      hx-target="#fieldModal .modal-content"
+                      hx-swap="innerHTML"
+                      onclick="document.querySelector('#fieldModal .modal-content').innerHTML = ''"
+                      title="{% trans 'Add child field' %}">
+                <span class="non-hover"><i class="bi bi-plus-circle"></i></span>
+                <span class="only-hover"><i class="bi bi-plus-circle-fill"></i></span>
+                <small class="visually-hidden">{% trans "Add child field" %}</small>
+              </button>
+            {% endif %}
+            <button type="button"
+                    class="btn px-0 me-2 text-primary hover-change-content"
+                    data-bs-toggle="modal"
+                    data-bs-target="#fieldModal"
+                    hx-get="{% url 'template_wizard:field_modal' template_id=template.id field_id=field.id %}"
+                    hx-target="#fieldModal .modal-content"
+                    hx-swap="innerHTML"
+                    onclick="document.querySelector('#fieldModal .modal-content').innerHTML = ''"
+                    title="{% trans 'Edit' %}">
+              <span class="non-hover"><i class="bi bi-pencil"></i></span>
+              <span class="only-hover"><i class="bi bi-pencil-fill"></i></span>
+              <small class="visually-hidden">{% trans "Edit" %}</small>
+            </button>
+            <a class="btn px-0 me-0 hover-change-content"
+               href="{% url 'template_wizard:delete_field' template_id=template.id field_id=field.id %}"
+               onclick="return confirm('{% trans 'Are you sure you want to delete this field?' %}');"
+               title="{% trans 'Delete' %}">
+              <span class="non-hover"><i class="bi bi-trash text-secondary"></i></span>
+              <span class="only-hover"><i class="bi bi-trash-fill text-danger"></i></span>
+              <span class="visually-hidden">{% trans "Delete" %}</span>
+            </a>
+          </div>
+        </div>
+        {% if field.description %}<div class="text-muted small">{{ field.description }}</div>{% endif %}
+        {% if field.field_type == "object" %}
+          <div class="mt-2 child-fields-container">
+            {% with field as parent_field %}
+              {% include "template_wizard/edit_template/field_list.html" with fields=field.child_fields.all %}
+            {% endwith %}
+          </div>
+        {% endif %}
+      </li>
+    {% endif %}
+  {% empty %}
+    <li class="list-group-item text-muted">
+      <em>{% trans "No fields defined yet." %}</em>
+    </li>
+  {% endfor %}
+</ul>

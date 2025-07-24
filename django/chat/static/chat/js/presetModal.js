@@ -33,10 +33,6 @@ document.body.addEventListener('htmx:afterSwap', function (event) {
   const searchInput = document.getElementById('filter-search');
   const clearBtn = document.getElementById('clear-filters');
 
-  function normalize(str) {
-    return (str || '').toLowerCase();
-  }
-
   function getCardText(card) {
     return card.innerText.toLowerCase();
   }

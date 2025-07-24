@@ -16,10 +16,18 @@ from django_file_form.forms import FileFormMixin, MultipleUploadedFileField
 from rules import is_group_member
 from structlog import get_logger
 
-from chat.llm import CHAT_MODELS
-from chat.models import QA_MODE_CHOICES, QA_SCOPE_CHOICES, Chat, ChatOptions, Preset
+from chat.llm_models import get_chat_model_choices, get_grouped_chat_model_choices
+from chat.models import (
+    QA_MODE_CHOICES,
+    QA_SCOPE_CHOICES,
+    REASONING_EFFORT_CHOICES,
+    Chat,
+    ChatOptions,
+    Preset,
+)
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
+from otto.models import User
 
 logger = get_logger(__name__)
 
@@ -95,17 +103,14 @@ class SelectWithOptionClasses(forms.Select):
     def create_option(
         self, name, value, label, selected, index, subindex=None, attrs=None
     ):  # noqa
+        option = super().create_option(
+            name, value, label, selected, index, subindex, attrs
+        )
         if isinstance(label, dict):
             opt_attrs = label.copy()
-            label = opt_attrs.pop("label")
-        else:
-            opt_attrs = {}
-        option = super(SelectWithOptionClasses, self).create_option(
-            name, value, label, selected, index, subindex=None, attrs=None
-        )
-        for _, flag in opt_attrs.items():
-            option["attrs"]["class"] = str(flag)
-
+            option["label"] = opt_attrs.pop("label")
+            for key, val in opt_attrs.items():
+                option["attrs"][f"data-{key}"] = str(val).lower()
         return option
 
 
@@ -244,6 +249,36 @@ class DocumentsAutocomplete(HTMXAutoComplete):
         return []
 
 
+class GroupedModelChoiceField(forms.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        # Initialize with grouped choices based on current language
+        grouped_choices = get_grouped_chat_model_choices()
+        super().__init__(*args, choices=grouped_choices, **kwargs)
+
+
+class SelectWithModelGroups(SelectWithOptionClasses):
+    def optgroups(self, name, value, attrs=None):
+        # Render grouped options dynamically based on current language
+        groups = []
+        has_selected = False
+        # Fetch fresh grouped choices
+        grouped_choices = get_grouped_chat_model_choices()
+        for index, (group_label, options) in enumerate(grouped_choices):
+            subgroup = []
+            for option_value, option_label in options:
+                selected = str(option_value) in (value or [])
+                # create_option will correctly handle dict labels and data attributes
+                subgroup.append(
+                    self.create_option(
+                        name, option_value, option_label, selected, index
+                    )
+                )
+                if selected:
+                    has_selected = True
+            groups.append((group_label, subgroup, index))
+        return groups
+
+
 class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions
@@ -253,6 +288,13 @@ class ChatOptionsForm(ModelForm):
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
                 choices=TEMPERATURES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "triggerOptionSave();",
+                },
+            ),
+            "chat_reasoning_effort": forms.Select(
+                choices=REASONING_EFFORT_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
                     "onchange": "triggerOptionSave();",
@@ -305,20 +347,25 @@ class ChatOptionsForm(ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         super(ChatOptionsForm, self).__init__(*args, **kwargs)
-        # Each of chat_model, summarize_model, qa_model
-        # should be a choice field with the available models
+        # Each of summarize_model, qa_model should be a grouped choice field
         for field in [
             "chat_model",
             "summarize_model",
             "qa_model",
         ]:
-            self.fields[field].widget = forms.Select(
-                choices=CHAT_MODELS,
-                attrs={
-                    "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave();",
-                },
+            self.fields[field] = GroupedModelChoiceField(
+                widget=SelectWithModelGroups(
+                    attrs={
+                        "class": "form-select form-select-sm",
+                        "onchange": "triggerOptionSave();",
+                    }
+                ),
+                required=False,
+                label=self.fields[field].label if field in self.fields else None,
+                initial=self.fields[field].initial if field in self.fields else None,
             )
+            if self.instance and getattr(self.instance, field, None):
+                self.fields[field].initial = getattr(self.instance, field)
 
         # translate_language has choices "en", "fr"
         for field in ["translate_language"]:
@@ -437,6 +484,18 @@ class ChatRenameForm(ModelForm):
         }
 
 
+accessible_to_autocomplete = widgets.Autocomplete(
+    name="accessible_to",
+    options={
+        "item_value": User.id,
+        "item_label": User.email,
+        "multiselect": True,
+        "minimum_search_length": 2,
+        "model": User,
+    },
+)
+
+
 class PresetForm(forms.ModelForm):
     User = get_user_model()
 
@@ -473,16 +532,7 @@ class PresetForm(forms.ModelForm):
         queryset=User.objects.all(),
         label="Email",
         required=False,
-        widget=widgets.Autocomplete(
-            name="accessible_to",
-            options={
-                "item_value": User.id,
-                "item_label": User.email,
-                "multiselect": True,
-                "minimum_search_length": 2,
-                "model": User,
-            },
-        ),
+        widget=accessible_to_autocomplete,
     )
 
     def __init__(self, *args, **kwargs):
@@ -516,6 +566,7 @@ class UploadForm(FileFormMixin, forms.Form):
         saved_files = []
         metadata = json.loads(self.cleaned_data["input_file-metadata"])
         for f in self.cleaned_data["input_file"]:
+            print(f.__dict__)
             try:
                 try:
                     content_type = metadata[str(f)].get("type", "")

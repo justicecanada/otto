@@ -1,0 +1,67 @@
+{% load i18n %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">
+    {% if session.is_example_session %}
+      {% trans "Example sources / templates" %}
+    {% else %}
+      {% trans "Selected sources" %}
+    {% endif %}
+  </h5>
+  <form method="post"
+        action="{% url 'template_wizard:delete_all_sources' session_id=session.pk %}"
+        onsubmit="return confirm('{% trans "Are you sure you want to delete all sources?" %}');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Delete all" %}</button>
+  </form>
+</div>
+<ul class="list-group mb-3" id="sources-list">
+  {% for source in session.sources.all %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      {% if source.url %}
+        <a href="{{ source.url }}"
+           target="_blank"
+           rel="noopener"
+           class="truncate-start">{{ source.url }}</a>
+      {% elif source.filename %}
+        <a href="{% url 'template_wizard:download_source_file' source.pk %}"
+           class="truncate-start">{{ source.filename }}</a>
+      {% else %}
+        <span class="text-secondary">{{ source.text|truncatechars:50 }}</span>
+      {% endif %}
+      <div class="d-flex align-items-center flex-nowrap ms-1">
+        {% if session.is_example_session %}
+          {% include "template_wizard/_source_example_type_dropdown.html" %}
+        {% endif %}
+
+        <form method="post"
+              action="{% url 'template_wizard:delete_source' source.pk %}"
+              class="ms-2 me-0 d-inline">
+          {% csrf_token %}
+          <button type="submit"
+                  class="btn btn-sm btn-outline-danger"
+                  title="{% trans 'Delete' %}">
+            <i class="bi bi-trash"></i>
+          </button>
+        </form>
+      </div>
+    </li>
+  {% endfor %}
+</ul>
+<h5 class="mt-4">{% trans "PDF extraction method" %}</h5>
+<form method="post"
+      hx-post="{% url 'template_wizard:update_pdf_method' session.pk %}"
+      hx-trigger="change"
+      hx-swap="none"
+      class="d-inline">
+  {% csrf_token %}
+  <select name="pdf_method"
+          class="form-select form-select-sm d-inline w-auto"
+          style="min-width: 12em;
+                 display: inline-block;
+                 vertical-align: middle">
+    {% for value, label in pdf_method_choices %}
+      <option value="{{ value }}"
+              {% if session.pdf_method == value %}selected{% endif %}>{{ label|capfirst }}</option>
+    {% endfor %}
+  </select>
+</form>

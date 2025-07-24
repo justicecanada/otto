@@ -1,7 +1,7 @@
 import uuid
 
 from django.conf import settings
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 import sqlalchemy
 import tiktoken
@@ -16,18 +16,19 @@ from llama_index.core.instrumentation.events.llm import (
     LLMChatEndEvent,
     LLMChatStartEvent,
     LLMCompletionEndEvent,
-    LLMPredictStartEvent,
 )
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import QueryFusionRetriever
-from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
-from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
-from llama_index.llms.azure_openai import AzureOpenAI
+from llama_index.core.vector_stores.types import MetadataFilters
+from llama_index.embeddings.litellm import LiteLLMEmbedding
+from llama_index.llms.litellm import LiteLLM
 from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
 from structlog import get_logger
 
 from otto.models import Cost
+
+from .llm_models import get_model
 
 logger = get_logger(__name__)
 
@@ -58,40 +59,25 @@ if settings.DEBUG:
     root_dispatcher.add_event_handler(ModelEventHandler())
 
 
-llms = {
-    "gpt-4.1-mini": {
-        "description": _("GPT-4.1-mini (best value, 3x cost)"),
-        "model": "gpt-4.1-mini",
-        "max_tokens_in": 1047576,
-        "max_tokens_out": 32768,
-    },
-    "gpt-4.1": {
-        "description": _("GPT-4.1 (best quality, 12x cost)"),
-        "model": "gpt-4.1",
-        "max_tokens_in": 1047576,
-        "max_tokens_out": 32768,
-    },
-    "o3-mini": {
-        "description": _("o3-mini (adds reasoning, 7x cost)"),
-        "model": "o3-mini",
-        "max_tokens_in": 200000,
-        "max_tokens_out": 100000,
-    },
-    "gpt-4o-mini": {
-        "description": _("GPT-4o-mini (legacy model, 1x cost)"),
-        "model": "gpt-4o-mini",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 16384,
-    },
-    "gpt-4o": {
-        "description": _("GPT-4o (legacy model, 15x cost)"),
-        "model": "gpt-4o",
-        "max_tokens_in": 128000,
-        "max_tokens_out": 16384,
-    },
-}
+def chat_history_to_prompt(chat_history: list) -> str:
+    """
+    Convert a list of ChatMessage objects to a single prompt string.
+    Each message will be formatted as: "<role>: <content>"
+    """
+    from llama_index.core.base.llms.types import ChatMessage
 
-CHAT_MODELS = [(k, v["description"]) for k, v in llms.items()]
+    lines = []
+    for msg in chat_history:
+        # If msg is a dict, convert to ChatMessage
+        if not isinstance(msg, ChatMessage) and hasattr(ChatMessage, "model_validate"):
+            msg = ChatMessage.model_validate(msg)
+        role = getattr(msg, "role", None)
+        content = getattr(msg, "content", None)
+        if role and content:
+            lines.append(f"{role.value}: {content}")
+        elif content:
+            lines.append(str(content))
+    return "\n".join(lines)
 
 
 class OttoLLM:
@@ -105,12 +91,16 @@ class OttoLLM:
         deployment: str = settings.DEFAULT_CHAT_MODEL,
         temperature: float = 0.1,
         mock_embedding: bool = False,
+        reasoning_effort: str = "medium",
     ):
-        if deployment not in llms:
+        self.llm_config = get_model(deployment)
+        if not self.llm_config:
             raise ValueError(f"Invalid deployment: {deployment}")
-        self.deployment = deployment
-        self.model = llms[deployment]["model"]
+
+        self.deployment = self.llm_config.deployment_name
+        self.model = "litellm_proxy/" + self.llm_config.deployment_name
         self.temperature = temperature
+        self.reasoning_effort = reasoning_effort
         self._token_counter = TokenCountingHandler(
             tokenizer=tiktoken.get_encoding("o200k_base").encode
         )
@@ -118,8 +108,8 @@ class OttoLLM:
         self.llm = self._get_llm()
         self.mock_embedding = mock_embedding
         self.embed_model = self._get_embed_model()
-        self.max_input_tokens = llms[deployment]["max_tokens_in"]
-        self.max_output_tokens = llms[deployment]["max_tokens_out"]
+        self.max_input_tokens = self.llm_config.max_tokens_in
+        self.max_output_tokens = self.llm_config.max_tokens_out
 
     # Convenience methods to interact with LLM
     # Each will return a complete response (not single tokens)
@@ -127,28 +117,53 @@ class OttoLLM:
         """
         Stream complete response (not single tokens) from list of chat history objects
         """
+        if not self.llm_config.supports_chat_history:
+            prompt = chat_history_to_prompt(chat_history)
+            async for chunk in self.stream(prompt):
+                yield chunk
+            return
+
+        # Prepend system prompt prefix if it exists
+        if self.llm_config.system_prompt_prefix:
+            for message in chat_history:
+                if message.role == "system":
+                    message.content = (
+                        f"{self.llm_config.system_prompt_prefix}\n{message.content}"
+                    )
+                    break
+
         response_stream = await self.llm.astream_chat(chat_history)
         async for chunk in response_stream:
             yield chunk.message.content
 
     async def stream(self, prompt: str):
-        """
-        Stream complete response (not single tokens) from single prompt string
-        """
         response_stream = await self.llm.astream_complete(prompt)
         async for chunk in response_stream:
             yield chunk.text
 
-    def complete(self, prompt: str):
+    def complete(self, prompt: str, **kwargs):
         """
         Return complete response string from single prompt string (no streaming)
         """
-        return self.llm.complete(prompt).text
+        return self.llm.complete(prompt, **kwargs).text
 
     def chat_complete(self, chat_history: list):
         """
         Return complete response string from list of chat history objects (no streaming)
         """
+        if not self.llm_config.supports_chat_history:
+            prompt = chat_history_to_prompt(chat_history)
+            return self.complete(prompt)
+
+        # Prepend system prompt prefix if it exists
+        if self.llm_config.system_prompt_prefix:
+            for message in chat_history:
+                if message.role == "system":
+                    message.content = (
+                        f"{self.llm_config.system_prompt_prefix}\n{message.content}"
+                    )
+                    break
+
         return self.llm.chat(chat_history).message.content
 
     async def tree_summarize(
@@ -201,15 +216,19 @@ class OttoLLM:
         """
         Create Otto Cost objects for the given user and feature.
         """
+        from otto.models import Cost
+
         usd_cost = 0
         if self.input_token_count > 0:
             c1 = Cost.objects.new(
-                cost_type=f"{self.deployment}-in", count=self.input_token_count
+                cost_type=f"{self.llm_config.model_id}-in",
+                count=self.input_token_count,
             )
             usd_cost += c1.usd_cost
         if self.output_token_count > 0:
             c2 = Cost.objects.new(
-                cost_type=f"{self.deployment}-out", count=self.output_token_count
+                cost_type=f"{self.llm_config.model_id}-out",
+                count=self.output_token_count,
             )
             usd_cost += c2.usd_cost
         if self.embed_token_count > 0 and not self.mock_embedding:
@@ -320,28 +339,29 @@ class OttoLLM:
             verbose=True,
         )
 
-    def _get_llm(self) -> AzureOpenAI:
-        return AzureOpenAI(
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_VERSION,
-            api_key=settings.AZURE_OPENAI_KEY,
-            deployment_name=self.deployment,
+    def _get_llm(self) -> LiteLLM:
+        llm_kwargs = dict(
+            api_base=settings.LITELLM_ENDPOINT,
+            api_key=settings.LITELLM_KEY,
             model=self.model,
             temperature=self.temperature,
             callback_manager=self._callback_manager,
         )
+        if self.reasoning_effort is not None:
+            llm_kwargs["additional_kwargs"] = {
+                "reasoning_effort": self.reasoning_effort
+            }
+        return LiteLLM(**llm_kwargs)
 
-    def _get_embed_model(self) -> AzureOpenAIEmbedding | MockEmbedding:
+    def _get_embed_model(self) -> LiteLLMEmbedding | MockEmbedding:
         if self.mock_embedding:
             return MockEmbedding(1536)
-        return AzureOpenAIEmbedding(
-            model="text-embedding-3-large",
-            deployment_name="text-embedding-3-large",
+        return LiteLLMEmbedding(
+            model_name="text-embedding-3-large",
             dimensions=1536,
             embed_batch_size=16,
-            api_key=settings.AZURE_OPENAI_KEY,
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_VERSION,
+            api_key=settings.LITELLM_KEY,
+            api_base=settings.LITELLM_ENDPOINT,
             callback_manager=self._callback_manager,
         )
 

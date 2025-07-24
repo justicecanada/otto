@@ -80,4 +80,11 @@
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
+  "dev.containers.mountWaylandSocket": false,
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#7C21D7",
+    "statusBar.debuggingBackground": "#7C21D7",
+    "statusBar.noFolderBackground": "#7C21D7",
+    "statussBar.prominentBackground": "#7C21D7"
+  },
 }

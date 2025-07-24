@@ -100,12 +100,6 @@ function showSourceDetails(button) {
   scrollToSource(card, false);
 }
 
-function scrollToSource(targetElement, smooth = true) {
-  // Scroll to the element with the id of the href, leaving appropriate space
-  const y = targetElement.getBoundingClientRect().top + window.pageYOffset - 16;
-  window.scrollTo({top: y, behavior: smooth ? "smooth" : "instant"});
-}
-
 function findSimilar(el) {
   const text = el.getAttribute('data-text');
   // Populate the search form with the text
@@ -155,47 +149,23 @@ function render_markdown(element) {
   }
 }
 
-function update_anchor_links() {
-  // Within the answer, find all anchor links. HTML escape the href apart from the #
-  // and set the href to the escaped value
-  const anchors = document.querySelectorAll("#answer a[href^='#']");
-  anchors.forEach(anchor => {
-    const href = anchor.getAttribute("href").replace("(", "%28").replace(")", "%29").replace("*", "%2A").replace(",", "%2C").replace(" ", "%20");
-    anchor.setAttribute("href", href);
-    // Override the default behaviour of anchor links. Scroll to the element with the id
-    // of the href
-    anchor.addEventListener("click", function (e) {
-      e.preventDefault();
-      const targetId = href.substring(1);
-      const targetElement = document.getElementById(targetId);
-      if (targetElement) {
-        // Collapse details and remove the border from all other elements
-        showSourceDetails(null);
-        targetElement.classList.add("highlight");
-        scrollToSource(targetElement);
-      }
-    });
-  });
-}
-
 // When streaming response is updated
 document.addEventListener("htmx:sseMessage", function (event) {
   if (!(event.target.id === "answer-sse")) return;
   render_markdown(event.target);
-  update_anchor_links();
 });
 
 // When streaming response is finished
 document.addEventListener("htmx:oobAfterSwap", function (event) {
   if (!(event.target.id === "answer-sse")) return;
   render_markdown(event.target);
-  update_anchor_links();
 });
-// When page loaded with existing answer
-document.addEventListener("DOMContentLoaded", function () {
+
+document.addEventListener("DOMContentLoaded", () => {
   const answer = document.querySelector("#answer");
-  if (answer) render_markdown(answer);
-  update_anchor_links();
+  if (answer) {
+    render_markdown(answer);
+  }
 });
 
 function toggleAnswer(show) {

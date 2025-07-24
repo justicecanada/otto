@@ -17,10 +17,9 @@ import yaml
 from django_extensions.management.utils import signalcommand
 from llama_index.core import ChatPromptTemplate, PromptTemplate, Settings
 from llama_index.core.llms import ChatMessage, MessageRole
-from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
-from llama_index.llms.azure_openai import AzureOpenAI
 from structlog import get_logger
 
+from chat.llm import OttoLLM
 from chat.models import Chat, ChatOptions, Message
 from chat.responses import chat_response, qa_response
 from librarian.models import Library
@@ -29,22 +28,9 @@ logger = get_logger(__name__)
 
 UserModel = get_user_model()
 
-llm = AzureOpenAI(
-    azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-    azure_deployment="gpt-4o",
-    api_key=settings.AZURE_OPENAI_KEY,
-    api_version=settings.AZURE_OPENAI_VERSION,
-)
+llm = OttoLLM(deployment="gpt-4o")
+embed_model = llm.embed_model
 
-embed_model = AzureOpenAIEmbedding(
-    model="text-embedding-3-large",
-    deployment_name="text-embedding-3-large",
-    dimensions=1536,
-    embed_batch_size=16,
-    api_key=settings.AZURE_OPENAI_KEY,
-    azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-    api_version=settings.AZURE_OPENAI_VERSION,
-)
 
 Settings.llm = llm
 Settings.embed_model = embed_model

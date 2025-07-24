@@ -2,12 +2,12 @@
 {% load rules %}
 
 {% if form.instance.id %}
-  {% url 'librarian:modal_edit_document' document_id=form.instance.id as form_action_url %}
-  {% url 'librarian:modal_edit_document' document_id=form.instance.id as cancel_url %}
+  {% url 'librarian:modal_view_document' document_id=form.instance.id as form_action_url %}
+  {% url 'librarian:modal_view_document' document_id=form.instance.id as cancel_url %}
   {% url 'librarian:modal_delete_document' document_id=form.instance.id as delete_url %}
 {% else %}
   {% url 'librarian:modal_create_document' data_source_id=form.data_source.value as form_action_url %}
-  {% url 'librarian:modal_edit_data_source' data_source_id=form.data_source.value as cancel_url %}
+  {% url 'librarian:modal_view_data_source' data_source_id=form.data_source.value as cancel_url %}
   {# No delete URL needed when creating a new document #}
 {% endif %}
 

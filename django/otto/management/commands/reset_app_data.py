@@ -70,7 +70,7 @@ class Command(BaseCommand):
             self.reset_groups()
             self.reset_apps()
             self.reset_security_labels()
-            self.reset_libraries()
+            self.reset_libraries("library_mini.yaml")
             self.reset_cost_types()
             self.reset_presets()
         else:
@@ -235,6 +235,31 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("Security labels reset successfully."))
 
     def reset_cost_types(self):
-        # Simply call manage.py loaddata cost_types.yaml
-        call_command("loaddata", "cost_types.yaml")
+        # Improved: update or create CostType by short_name, do not delete if referenced
+        import yaml
+
+        from otto.models import CostType
+
+        fixture_path = os.path.join(
+            settings.BASE_DIR, "otto", "fixtures", "cost_types.yaml"
+        )
+        with open(fixture_path, "r", encoding="utf-8") as f:
+            cost_types_data = yaml.safe_load(f)
+
+        short_names_in_fixture = set()
+        for entry in cost_types_data:
+            fields = entry.get("fields", {})
+            short_name = fields.get("short_name")
+            if not short_name:
+                continue
+            short_names_in_fixture.add(short_name)
+            # Remove pk if present
+            fields.pop("pk", None)
+            CostType.objects.update_or_create(short_name=short_name, defaults=fields)
+
+        # Optionally, deactivate CostTypes not in fixture (if you have an 'active' field)
+        if hasattr(CostType, "active"):
+            CostType.objects.exclude(short_name__in=short_names_in_fixture).update(
+                active=False
+            )
         self.stdout.write(self.style.SUCCESS("Cost types reset successfully."))

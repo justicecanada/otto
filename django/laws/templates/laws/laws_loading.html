@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load filters %}
+{% load static %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'laws:index' %}">{% trans "Legislation Search" %}</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'laws:loading_monitor' %}">{% trans "Loading Monitor" %}</a>
+  </li>
+{% endblock %}
+
+{% block page_css %}
+  <script src="{% static 'thirdparty/htmx.min.js' %}"></script>
+  <style>
+    .status-container {
+      min-height: 400px;
+    }
+    .btn:disabled {
+      cursor: not-allowed;
+    }
+    .card {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .progress {
+      height: 20px;
+    }
+    .badge {
+      font-size: 0.75em;
+    }
+  </style>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "Legislation loading monitor - Otto" %}
+{% endblock %}
+
+{% block content_container %}
+  <div id="laws-loading-outer">
+    <div class="container py-3 px-0">
+      <h2 class="mb-3 mt-2">{% trans "Legislation Loading Monitor" %}</h2>
+
+      <p class="text-muted">
+        {% trans "Monitor, start and cancel the law loading process. This process downloads and imports Canadian federal legislation from the laws-lois-xml repository." %}
+      </p>
+
+      <!-- Control Panel -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">{% trans "Control Panel" %}</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-8">
+              <!-- Start Job Form -->
+              <form id="start-form"
+                    hx-post="{% url 'laws:loading_start' %}"
+                    hx-swap="none"
+                    hx-indicator="#start-spinner">
+                {% csrf_token %}
+                <div class="row">
+                  <div class="col-md-6">
+
+                    <h6>{% trans "Load Options" %}</h6>
+                    <div class="mb-3">
+                      <label for="load_option" class="form-label visually-hidden">{% trans "Select load type" %}</label>
+                      <select class="form-select mb-2" id="load_option" name="load_option">
+                        <option value="full" selected>{% trans "Full load (all legislation)" %}</option>
+                        <option value="subset">{% trans "Subset (26 acts/regs)" %}</option>
+                        <option value="small">{% trans "Tiny (1 act, 1 reg)" %}</option>
+                        <option value="const_only">{% trans "Constitution only" %}</option>
+                      </select>
+                      <div class="form-check">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="force_download"
+                               id="force_download"
+                               checked>
+                        <label class="form-check-label" for="force_download">{% trans "Re-download XML files" %}</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <h6>{% trans "Advanced Options" %}</h6>
+                    <div class="form-check">
+                      <input class="form-check-input"
+                             type="checkbox"
+                             name="force_update"
+                             id="force_update">
+                      <label class="form-check-label" for="force_update">{% trans "Force update existing laws" %}</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="reset" id="reset">
+                      <label class="form-check-label" for="reset">{% trans "Reset database" %}</label>
+                    </div>
+
+                    <div class="form-check">
+                      <input class="form-check-input"
+                             type="checkbox"
+                             name="mock_embedding"
+                             id="mock_embedding">
+                      <label class="form-check-label" for="mock_embedding">{% trans "Mock embedding (test only)" %}</label>
+                    </div>
+                    <div class="form-check d-none">
+                      <input class="form-check-input" type="checkbox" name="debug" id="debug">
+                      <label class="form-check-label" for="debug">{% trans "Debug mode" %}</label>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <div class="d-grid gap-2 w-100">
+                <button type="submit"
+                        form="start-form"
+                        class="btn btn-success btn-lg"
+                        id="start-btn"
+                        hx-confirm="{% trans 'This will delete all laws not in the selected set, and could temporarily result in some laws being unavailable while loading. Are you sure you want to start the loading job?' %}"
+                        {% if job_status.status not in 'finished,cancelled,error' %}disabled{% endif %}>
+                  <span id="start-spinner"
+                        class="spinner-border spinner-border-sm d-none"
+                        role="status"
+                        aria-hidden="true"></span>
+                  {% trans "Start Job" %}
+                </button>
+                <button type="button"
+                        class="btn btn-danger btn-lg"
+                        id="cancel-btn"
+                        hx-post="{% url 'laws:loading_cancel' %}"
+                        hx-confirm="{% trans 'Are you sure you want to cancel the running job?' %}"
+                        hx-swap="none"
+                        hx-indicator="#cancel-spinner"
+                        {% if job_status.status in 'finished,cancelled,error' %}disabled{% endif %}>
+                  <span id="cancel-spinner"
+                        class="spinner-border spinner-border-sm d-none"
+                        role="status"
+                        aria-hidden="true"></span>
+                  {% trans "Cancel Job" %}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Container - Auto-refreshes via HTMX -->
+      <div id="status-container"
+           class="status-container"
+           hx-get="{% url 'laws:loading_status' %}"
+           hx-trigger="load, every 2s"
+           hx-swap="innerHTML">
+        <!-- Initial status content will be loaded here -->
+        {% include 'laws/partials/status_content.html' %}
+      </div>
+
+    </div>
+  </div>
+  <script>
+    // Update button states based on job status
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+      if (evt.detail.target.id === 'status-container') {
+        // This would require us to pass the job status in a way that JavaScript can access
+        // For now, we'll handle this in the template
+      }
+    });
+  </script>
+{% endblock %}

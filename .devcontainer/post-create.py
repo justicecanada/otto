@@ -71,3 +71,19 @@ with open(os.path.join(os.path.dirname(__file__), "../django/.env"), "w") as f:
     f.write(f"ENTRA_CLIENT_SECRET='{client.get_secret('ENTRA-CLIENT-SECRET').value}'\n")
     f.write(f"ENTRA_CLIENT_ID='{entra_client_id}'\n")
     f.write(f"ENTRA_AUTHORITY='https://login.microsoftonline.com/{entra_tenant_id}'\n")
+
+    # More AI providers (specific to sandbox)
+    try:
+        f.write(
+            f"AZURE_AI_SERVICES_KEY='{client.get_secret('AI-SERVICES-KEY').value}'\n"
+        )
+        f.write(f"GROQ_KEY='{client.get_secret('GROQ-KEY').value}'\n")
+        f.write(f"FIREWORKS_KEY='{client.get_secret('FIREWORKS-KEY').value}'\n")
+        f.write(f"GEMINI_KEY='{client.get_secret('GEMINI-KEY').value}'\n")
+        f.write(f"CEREBRAS_KEY='{client.get_secret('CEREBRAS-KEY').value}'\n")
+        f.write(f"ANTHROPIC_KEY='{client.get_secret('ANTHROPIC-KEY').value}'\n")
+        f.write(f"COHERE_KEY='{client.get_secret('COHERE-KEY').value}'\n")
+    except Exception as e:
+        print(
+            "Error: An error occurred while trying to retrieve some AI provider keys."
+        )

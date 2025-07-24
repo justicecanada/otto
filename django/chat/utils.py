@@ -1,7 +1,6 @@
 import asyncio
 import html
 import json
-import os
 import re
 import sys
 import uuid
@@ -22,7 +21,7 @@ import tiktoken
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
 from llama_index.core import PromptTemplate
-from llama_index.core.llms import ChatMessage
+from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.prompts import PromptType
 from newspaper import Article
 from structlog import get_logger
@@ -30,7 +29,7 @@ from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
-from chat.models import AnswerSource, Chat, Message
+from chat.models import AnswerSource, Chat, ChatOptions, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS, current_time_prompt
 from otto.models import CostType, SecurityLabel
 from otto.utils.common import cad_cost, display_cad_cost
@@ -43,6 +42,8 @@ md = markdown.Markdown(
 
 
 def copy_options(source_options, target_options, user=None, chat=None, mode=None):
+    # Check the source_options for deprecated models
+    ChatOptions.objects.check_and_update_models(source_options)
     source_options = model_to_dict(source_options)
     # Remove the fields that are not part of the preset
     for field in ["id", "chat"]:
@@ -62,20 +63,26 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
 
     request = get_request()
     user = user or (request and request.user)
-    if not target_options.qa_library or (
-        user and not user.has_perm("librarian.view_library", target_options.qa_library)
-    ):
-        messages.warning(
-            request,
-            _(
-                "QA library for settings preset not accessible. It has been reset to your personal library."
-            ),
+    if user and (
+        not target_options.qa_library
+        or (
+            user
+            and not user.has_perm("librarian.view_library", target_options.qa_library)
         )
-        target_options.qa_library = user.personal_library
-        target_options.qa_data_sources.clear()
-        target_options.qa_documents.clear()
-        target_options.qa_scope = "all"
-        target_options.qa_mode = "rag"
+    ):
+        if request:
+            messages.warning(
+                request,
+                _(
+                    "QA library for settings preset not accessible. It has been reset to your personal library."
+                ),
+            )
+        if user.personal_library:
+            target_options.qa_library = user.personal_library
+            target_options.qa_data_sources.clear()
+            target_options.qa_documents.clear()
+            target_options.qa_scope = "all"
+            target_options.qa_mode = "rag"
     if chat:
         target_options.chat = chat
     if mode:
@@ -172,7 +179,7 @@ def get_model_name(chat_options):
     """
     Get the model used for the chat message.
     """
-    from chat.forms import CHAT_MODELS
+    from chat.llm_models import get_chat_model_choices
 
     model_key = ""
     if chat_options.mode == "qa":
@@ -181,9 +188,11 @@ def get_model_name(chat_options):
         model_key = chat_options.chat_model
     elif chat_options.mode == "summarize":
         model_key = chat_options.summarize_model
-    # CHAT_MODELS is a list of tuples
-    # (model_key, model_name)
-    model_name = [model[1] for model in CHAT_MODELS if model[0] == model_key]
+    # chat_model_choices is a list of tuples
+    # (model_key, model_description (including some stuff in parens))
+    model_name = [
+        model[1] for model in get_chat_model_choices() if model[0] == model_key
+    ]
     if model_name:
         return model_name[0].split("(")[0].strip()
     else:
@@ -338,6 +347,8 @@ async def htmx_stream(
 
         message = await sync_to_async(Message.objects.get)(id=message_id)
         message.text = full_message
+        finished_at = timezone.now()
+        message.seconds_elapsed = (finished_at - message.date_created).total_seconds()
         await sync_to_async(message.save)()
 
         if is_untitled_chat:
@@ -1010,3 +1021,47 @@ def estimate_cost_of_request(chat, response_message, response_estimation_count=5
         # testing has shown that for modes that are not translations, the estimation is 20% below
         cost = cost + (cost * Decimal("0.2"))
     return cad_cost(cost)
+
+
+def chat_to_history(chat):
+    """
+    Convert a Chat object to a history list of LlamaIndex ChatMessage objects.
+    Fills blank messages with file info if available otherwise with "(empty message)".
+    """
+    system_prompt = current_time_prompt() + chat.options.chat_system_prompt
+    history = []
+    history.append(ChatMessage(role=MessageRole.SYSTEM, content=system_prompt))
+
+    for message in chat.messages.all().order_by("date_created"):
+        # Determine message content
+        if not message.text or message.text.strip() == "":
+            # Try to get filenames from files
+            filenames = []
+            if hasattr(message, "files") and message.files.exists():
+                filenames = [f.filename for f in message.files.all()]
+            if filenames:
+                if message.is_bot:
+                    content = _("Bot responded with these files: ") + ", ".join(
+                        filenames
+                    )
+                else:
+                    content = _("User uploaded these files: ") + ", ".join(filenames)
+            else:
+                content = _("(empty message)")
+        elif is_text_to_summarize(message):
+            content = _("<text to summarize...>")
+        else:
+            content = message.text
+
+        role = MessageRole.ASSISTANT if message.is_bot else MessageRole.USER
+        history.append(ChatMessage(role=role, content=content))
+
+    # Remove trailing empty assistant message if present
+    if (
+        history
+        and history[-1].role == MessageRole.ASSISTANT
+        and not history[-1].content
+    ):
+        history.pop()
+
+    return history

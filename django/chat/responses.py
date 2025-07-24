@@ -11,7 +11,6 @@ from django.utils.translation import gettext as _
 
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
-from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from rules.contrib.views import objectgetter
 from structlog import get_logger
@@ -19,9 +18,9 @@ from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
 from chat.models import Message
-from chat.prompts import current_time_prompt
 from chat.tasks import translate_file
 from chat.utils import (
+    chat_to_history,
     combine_batch_generators,
     combine_response_generators,
     combine_response_replacers,
@@ -30,7 +29,6 @@ from chat.utils import (
     get_source_titles,
     group_sources_into_docs,
     htmx_stream,
-    is_text_to_summarize,
     num_tokens_from_string,
     sort_by_max_score,
     stream_to_replacer,
@@ -44,9 +42,8 @@ from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
 
-batch_size = (
-    5  # Maximum number of simultaneous LLM queries for multiple docs, sources, etc.
-)
+# Maximum number of simultaneous LLM queries for multiple docs, sources, etc.
+batch_size = 5
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
@@ -135,29 +132,12 @@ def chat_response(
     response_message,
     switch_mode=False,
 ):
-
-    system_prompt = current_time_prompt() + chat.options.chat_system_prompt
-    chat_history = [ChatMessage(role=MessageRole.SYSTEM, content=system_prompt)]
-    chat_history += [
-        ChatMessage(
-            role=MessageRole.ASSISTANT if message.is_bot else MessageRole.USER,
-            content=(
-                message.text
-                if not is_text_to_summarize(message)
-                else "<text to summarize...>"
-            ),
-        )
-        for message in chat.messages.all().order_by("date_created")
-    ]
-
-    if chat_history[-1].role == MessageRole.ASSISTANT and not chat_history[-1].content:
-        # The last message is likely an empty placeholder - remove it to avoid errors
-        chat_history.pop()
-
     model = chat.options.chat_model
     temperature = chat.options.chat_temperature
+    reasoning_effort = chat.options.chat_reasoning_effort
+    llm = OttoLLM(model, temperature, reasoning_effort=reasoning_effort)
 
-    llm = OttoLLM(model, temperature)
+    chat_history = chat_to_history(chat)
 
     tokens = num_tokens_from_string(
         " ".join(message.content or "" for message in chat_history)

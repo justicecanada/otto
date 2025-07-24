@@ -50,9 +50,11 @@
                   </div>
                 </span>
                 <span class="feedback-message col-8 lh-base">{{ info.feedback.feedback_message }}</span>
-                <span class="col-1 text-end">{% include 'components/feedback/dashboard/feedback_type_status.html' %}</span>
+                <span class="col-1 text-end" id="feedback-badge-{{ info.feedback.id }}">
+                  {% include 'components/feedback/dashboard/feedback_type_status.html' %}
+                </span>
               </div>
- 
+
             </button>
           </h3>
           <div id="collapse-{{ info.feedback.id }}"

@@ -18,8 +18,8 @@ ADMINISTRATIVE_PERMISSIONS = {
     "otto.manage_users",
     "otto.manage_feedback",
     "otto.manage_cost_dashboard",
+    "otto.load_laws",
     "librarian.manage_public_libraries",
-    "librarian.manage_library_users",
 }
 
 
@@ -35,6 +35,7 @@ is_operations_admin = is_group_member("Operations admin")
 is_data_steward = is_group_member("Data steward")
 
 add_perm("otto.manage_users", is_admin)
+add_perm("otto.load_laws", is_admin)
 add_perm("otto.access_otto", accepted_terms)
 
 
@@ -112,14 +113,14 @@ def can_edit_preset(user, preset):
 
 @predicate
 def can_delete_preset(user, preset):
-    if preset.global_default:
+    if getattr(preset, "global_default", False):
         return False
     return can_edit_preset(user, preset)
 
 
 @predicate
 def can_edit_preset_sharing(user, preset):
-    if preset.global_default:
+    if getattr(preset, "global_default", False):
         return False
     return can_edit_preset(user, preset)
 
@@ -201,6 +202,8 @@ def can_view_library(user, library):
 
 @predicate
 def can_edit_library(user, library):
+    if getattr(library, "temp", False):
+        return True
     if library.is_public:
         if is_admin(user):
             return True
@@ -228,6 +231,12 @@ def can_edit_data_source(user, data_source):
 
 
 @predicate
+def can_view_data_source(user, data_source):
+    # If they can view the library, they can view a data_source
+    return can_view_library(user, data_source.library)
+
+
+@predicate
 def can_delete_data_source(user, data_source):
     if Chat.objects.filter(data_source=data_source).exists():
         return False
@@ -239,6 +248,11 @@ def can_delete_data_source(user, data_source):
 @predicate
 def can_edit_document(user, document):
     return can_edit_library(user, document.data_source.library)
+
+
+@predicate
+def can_view_document(user, document):
+    return can_view_library(user, document.data_source.library)
 
 
 @predicate
@@ -268,8 +282,35 @@ add_perm("librarian.view_library", can_view_library)
 add_perm("librarian.edit_library", can_edit_library)
 add_perm("librarian.delete_library", can_delete_library)
 add_perm("librarian.edit_data_source", can_edit_data_source)
+add_perm("librarian.view_data_source", can_view_data_source)
 add_perm("librarian.delete_data_source", can_delete_data_source)
 add_perm("librarian.edit_document", can_edit_document)
+add_perm("librarian.view_document", can_view_document)
 add_perm("librarian.delete_document", can_delete_document)
 add_perm("librarian.manage_library_users", can_manage_library_users)
 add_perm("librarian.download_document", can_download_document)
+
+
+# Template Wizard. Same as chat Presets
+add_perm("template_wizard.access_template", can_access_preset)
+add_perm("template_wizard.edit_template", can_edit_preset)
+add_perm("template_wizard.delete_template", can_delete_preset)
+add_perm("template_wizard.edit_template_sharing", can_edit_preset_sharing)
+add_perm("template_wizard.upload_large_files", can_upload_large_files)
+
+
+# Template Wizard - template sessions & sources
+@predicate
+def can_access_template_session(user, session):
+    return session.user == user
+
+
+@predicate
+def can_access_template_source(user, source):
+    if source.session:
+        return source.session.user == user
+    return can_edit_preset(user, source.template)
+
+
+add_perm("template_wizard.access_session", can_access_template_session)
+add_perm("template_wizard.access_source", can_access_template_source)

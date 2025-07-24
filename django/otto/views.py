@@ -45,6 +45,7 @@ from otto.models import (
     CostType,
     Feature,
     Feedback,
+    OttoStatus,
     Pilot,
 )
 from otto.utils.common import cad_cost, display_cad_cost, get_tld_extractor
@@ -158,6 +159,7 @@ def terms_of_use(request):
         "terms_of_use.html",
         {
             "hide_breadcrumbs": True,
+            "last_updated": OttoStatus.objects.singleton().terms_last_updated,
             "redirect_url": redirect_url,
         },
     )
@@ -186,6 +188,7 @@ def feedback_message(request: HttpRequest, message_id=None):
             )
             return HttpResponse(status=200)
         else:
+            print(form.errors)
             messages.error(
                 request,
                 _("Error submitting feedback."),
@@ -238,20 +241,23 @@ def feedback_list(request, page_number=None):
 
     feedback_messages = Feedback.objects.all().order_by("-created_at")
 
-    if request.method == "POST":
-        feedback_type = request.POST.get("feedback_type")
-        status = request.POST.get("status")
-        app = request.POST.get("app")
+    # Only use GET for filters to ensure pagination works with query params
+    feedback_type = request.GET.get("feedback_type")
+    status = request.GET.get("status")
+    app = request.GET.get("app")
 
-        if feedback_type and feedback_type != "all":
-            feedback_messages = feedback_messages.filter(feedback_type=feedback_type)
-        if status and status != "all":
-            feedback_messages = feedback_messages.filter(status=status)
-        if app and app != "all":
-            feedback_messages = feedback_messages.filter(app=app)
+    if feedback_type and feedback_type != "all":
+        feedback_messages = feedback_messages.filter(feedback_type=feedback_type)
+    if status and status != "all":
+        feedback_messages = feedback_messages.filter(status=status)
+    if app and app != "all":
+        feedback_messages = feedback_messages.filter(app=app)
 
-    # Get 10 feedback messages per page
     paginator = Paginator(feedback_messages, 10)
+    try:
+        page_number = int(page_number)
+    except (TypeError, ValueError):
+        page_number = 1
     page_obj = paginator.get_page(page_number)
 
     feedback_info = [
@@ -267,12 +273,15 @@ def feedback_list(request, page_number=None):
     context = {
         "feedback_info": feedback_info,
         "page_obj": page_obj,
+        "request": request,
     }
     return render(request, "components/feedback/dashboard/feedback_list.html", context)
 
 
 @permission_required("otto.manage_feedback")
 def feedback_dashboard_update(request, feedback_id, form_type):
+    from django.template.loader import render_to_string
+
     feedback = Feedback.objects.get(id=feedback_id)
 
     if request.method == "POST":
@@ -288,9 +297,15 @@ def feedback_dashboard_update(request, feedback_id, form_type):
                 request,
                 _("Feedback updated successfully."),
             )
-            return HttpResponse(status=200)
+            badge_html = render_to_string(
+                "components/feedback/dashboard/feedback_type_status.html",
+                {"info": {"feedback": feedback}},
+            )
+            return HttpResponse(badge_html)
         else:
             messages.error(request, form.errors)
+            return HttpResponse(str(form.errors), status=400)
+
     else:
         return HttpResponse(status=405)
 

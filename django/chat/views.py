@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -46,8 +47,10 @@ from chat.utils import (
     title_chat,
     wrap_llm_response,
 )
-from librarian.models import Library, SavedFile
+from librarian.forms import LibraryUsersForm
+from librarian.models import Library
 from otto.models import SecurityLabel
+from otto.rules import can_edit_library
 from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
     app_access_required,
@@ -150,12 +153,12 @@ def chat(request, chat_id):
     Chat.objects.filter(id=chat_id).update(accessed_at=timezone.now())
 
     # Get chat messages ready
-    messages = (
+    chat_messages = (
         Message.objects.filter(chat=chat)
         .order_by("date_created")
         .prefetch_related("answersource_set", "files")
     )
-    for message in messages:
+    for message in chat_messages:
         if message.is_bot:
             message.json = json.dumps(message.text)
         else:
@@ -164,7 +167,7 @@ def chat(request, chat_id):
     if not request.user.has_perm("chat.access_chat", chat):
         context = {
             "chat": chat,
-            "chat_messages": messages,
+            "chat_messages": chat_messages,
             "hide_breadcrumbs": True,
             "read_only": True,
             "chat_author": chat.user,
@@ -174,6 +177,8 @@ def chat(request, chat_id):
     # Insurance code to ensure we have ChatOptions, DataSource, and Personal Library
     try:
         chat.options
+        # Check for deprecated models and update them
+        ChatOptions.objects.check_and_update_models(chat.options)
     except:
         chat.options = ChatOptions.objects.from_defaults(user=chat.user, chat=chat)
         chat.save()
@@ -218,18 +223,18 @@ def chat(request, chat_id):
     # of creating a new message - which returns an "awaiting_response" bot message
     if (
         awaiting_response
-        and messages
-        and messages.last().is_bot
-        and not messages.last().text
+        and chat_messages
+        and chat_messages.last().is_bot
+        and not chat_messages.last().text
     ):
         response_init_message = {
             "is_bot": True,
             "awaiting_response": True,
-            "id": messages.last().id,
-            "date_created": messages.last().date_created
+            "id": chat_messages.last().id,
+            "date_created": chat_messages.last().date_created
             + timezone.timedelta(seconds=1),
         }
-        messages = [messages.first(), response_init_message]
+        chat_messages = [chat_messages.first(), response_init_message]
 
     if not chat.options.qa_library or not request.user.has_perm(
         "librarian.view_library", chat.options.qa_library
@@ -243,7 +248,7 @@ def chat(request, chat_id):
         "chat": chat,
         "options_form": form,
         "prompt": chat.options.prompt,
-        "chat_messages": messages,
+        "chat_messages": chat_messages,
         "hide_breadcrumbs": True,
         "user_chats": user_chats,
         "mode": mode,
@@ -522,9 +527,11 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             chat_id=chat_id,
             preset=preset_id,
         )
+
         if not preset_id:
-            return HttpResponse(status=500)
-        preset = Preset.objects.get(id=int(preset_id))
+            preset = Preset.objects.get_global_default()
+        else:
+            preset = Preset.objects.get(id=int(preset_id))
         if not preset:
             return HttpResponse(status=500)
 
@@ -600,11 +607,19 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                     _("Preset saved successfully."),
                 )
 
-                return HttpResponse(status=200)
+                if request.POST.get("make_default", False) == "True":
+                    request.user.default_preset = preset
+                    request.user.save()
+
+                # Show the user any relevant messages about changes to library privacy
+                return library_access(
+                    request, preset, preset.options.qa_library, action
+                )
 
         return HttpResponse(status=500)
     elif action == "update_preset":
         preset = get_object_or_404(Preset, id=preset_id)
+        old_library = preset.options.qa_library
         copy_options(chat.options, preset.options)
         preset.options.prompt = request.POST.get("prompt", "")
         preset.options.save()
@@ -612,7 +627,15 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             request,
             _("Preset updated successfully."),
         )
-        return HttpResponse(status=200)
+
+        # Show the user any relevant messages about changes to library privacy
+        return library_access(
+            request,
+            preset,
+            preset.options.qa_library,
+            action,
+            (old_library if old_library != preset.options.qa_library else None),
+        )
     elif action == "delete_preset":
         # check each chat instance of the user to see if the preset is loaded
         for chat_instance in Chat.objects.filter(user=request.user):
@@ -645,6 +668,98 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
     else:
         return HttpResponse(status=500)
+
+
+def library_access(request, preset, library, action, old_library=None):
+    # Helper function (never called directly by user) to change librarian permissions
+    # when a user changes an associated preset, then display relevant messages
+
+    message = ""
+
+    # If there's a library attached to the preset, and it's not already public,
+    # and the user has the necessary permissions, change its privacy
+    if (
+        library
+        and not library.is_public
+        and request.user.has_perm("librarian.manage_library_users", library)
+    ):
+        if preset.sharing_option == "everyone":
+            library.is_public = True
+            library.save()
+            message = f"""
+                {_("This preset is accessible to all users.")}
+                {_("By saving it, you have made the attached Q&A library")} ({library}) {_("publicly viewable.")}
+                """
+        elif preset.sharing_option == "others":
+            # Only make note of people who've had the preset shared with them,
+            # but who *don't* already have access to the attached library
+            # (in this case, generally people who were *just* added to the preset)
+            potential_new_viewers = list(
+                User.objects.filter(
+                    ~Q(library_roles__library=library) & Q(accessible_presets=preset)
+                )
+            )
+            user_form = LibraryUsersForm(
+                library=library,
+                data={
+                    "viewers": preset.accessible_to.union(
+                        User.objects.filter(
+                            library_roles__library=library,
+                            library_roles__role="viewer",
+                        )
+                    )
+                },
+            )
+            for field in ["admins", "contributors"]:
+                user_form.data[field] = user_form.fields[field].initial
+            if user_form.is_valid():
+                user_form.save()
+                if potential_new_viewers:
+                    message = f"""
+                        {_("The following users have been granted access to the Q&A library")} ({library}):
+                        {", ".join(user.full_name for user in potential_new_viewers)}
+                        """
+
+    # Warn the user if they *don't* have the necessary permissions to add viewers
+    # to the library. Note that this only happens if the user saved new preset "metadata",
+    # or updated it *and changed the qa_library*
+    elif (old_library or action == "create_preset") and not (
+        library.is_public
+        or request.user.has_perm("librarian.manage_library_users", library)
+    ):
+        if library.is_personal_library:
+            message = _(
+                "This preset uses your personal Q&A library. Other users will have their own personal library selected when they load the preset."
+            ) + _(
+                "\nIf this isn't what you want, you can create a library via 'Manage libraries' and then update this preset."
+            )
+        elif preset.sharing_option != "private":
+            message = f"""
+            {_("Other users may not be able to see the attached Q&A library")} ({library})
+            {_("unless a library administrator has granted them access.")}
+            """
+
+    # If the user has changed qa_library for the preset and DOES have management permissions
+    # for the old one, remind them that all of the permissions are still there
+    if old_library and request.user.has_perm(
+        "librarian.manage_library_users", old_library
+    ):
+        message += f"""
+        {_("Note: This action does NOT change permissions for the previously attached Q&A library")} ({old_library}).
+        """
+
+    # If there's a message, end it with a reminder to use the librarian modal
+    # Otherwise, we send a flag that immediately closes the modal
+    if message and not library.is_personal_library:
+        message += _(
+            " To adjust permissions on your libraries, use the 'Manage Libraries' button."
+        )
+
+    return render(
+        request,
+        "chat/modals/presets/library_check.html",
+        {"keep_open": message != "", "message": message.strip()},
+    )
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
@@ -876,6 +991,8 @@ def open_preset_form(request, chat_id):
 def edit_preset(request, chat_id, preset_id):
     preset = get_object_or_404(Preset, id=preset_id)
     form = PresetForm(instance=preset, user=request.user)
+
+    library = preset.options.qa_library
 
     return render(
         request,

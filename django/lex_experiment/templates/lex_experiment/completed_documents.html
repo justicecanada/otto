@@ -1,0 +1,82 @@
+{% load i18n %}
+
+{% for output_file in output_files %}
+ 
+  <tr>
+    <td>
+      {# column1: Document #}
+      {{ output_file.file_name }}
+    </td>
+    {% for answer in output_file.answers %}
+      <td>
+        <p>{{ answer }}</p>
+      </td>
+    {% endfor %}
+  </tr>
+  <tr>
+    <td colspan="11" style="text-align: right;">
+      <span class="ms-3"><strong>Cost:</strong> {{ output_file.cost }}</span>
+      <span><strong>Status:</strong>
+        {% if output_file.status == "PENDING" %}
+          <span class="document-status document-status-{{ output_file.status }}">
+            <i class="bi bi-circle text-secondary small me-1" aria-hidden="true"></i>
+            <span>{% trans 'Queued' %}...</span>
+          </span>
+        {% elif output_file.status == "PROCESSING" %}
+          <span class="document-status document-status-{{ output_file.status }}">
+            <span class="me-1">
+              <i class="bi bi-arrow-repeat text-primary small icn-spinner"
+                 aria-hidden="true"></i>
+            </span>
+            <span>
+              {% if output_file.celery_status_message %}
+                {{ output_file.celery_status_message }}
+              {% else %}
+                {% trans 'Processing' %}...
+              {% endif %}
+            </span>
+          </span>
+        {% elif output_file.status == "SUCCESS" %}
+          <span class="document-status document-status-{{ output_file.status }}">
+            <i class="bi bi-check-circle-fill text-success small me-1"
+               aria-hidden="true"></i>
+            <span>{% trans 'Processed' %}</span>
+            {% if output_file.content_type == "application/pdf" %}
+              {% if output_file.pdf_method %}<span class="text-muted">({{ output_file.pdf_method }})</span>{% endif %}
+            {% endif %}
+          </span>
+        {% elif output_file.status == "FAILURE" %}
+          <span class="document-status document-status-{{ output_file.status }}">
+            <i class="bi bi-exclamation-circle-fill text-danger small me-1"
+               aria-hidden="true"></i>
+            <span>{% trans 'Error' %}</span>
+          </span>
+        {% endif %}
+      </span>
+    </td>
+  </tr>
+{% endfor %}
+{% if poll_url %}
+  <tr class="d-none"
+      id="poller"
+      hx-get="{{ poll_url }}"
+      hx-trigger="load delay:1s"
+      hx-swap="innerHTML"
+      hx-target="#completed_documents_body"></tr>
+{% endif %}
+{% if show_download_all_button %}
+  <script>document.querySelector("#download-all-files").classList.remove("d-none");</script>
+{% endif %}
+{% if user_request_id %}
+  <script>window.location.href = "{% url 'lex_experiment:poll_tasks' user_request_id=user_request_id %}";</script>
+{% endif %}
+<script>
+(function () {
+  // If arriving at a page fragment via browser back-forward, refresh.
+  // A page fragment will not have the #top-nav element
+  let is_page_fragment = document.getElementById('top-nav') === null;
+  if (performance.navigation.type === 2 && is_page_fragment) {
+    location.reload();
+  }
+})();
+</script>
