@@ -90,6 +90,8 @@
           url: transcriber:index
           category: other
 
+- model: otto.App
+  fields:
     handle: lex_experiment
     name_en: LEX experiment
     name_fr: Expérience LEX
