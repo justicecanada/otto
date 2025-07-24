@@ -80,17 +80,27 @@ def agent_response(chat, response_message):
             # Final answer should be displayed as response, not in steps
             if name == "final_answer":
                 final_answer = msg.get("arguments", {}).get("answer", "")
+                yield final_answer, steps
+                break
             elif name is not None:
-                # capture tool call name, args, and its output or observation
+                # Replace with translated, pretty name if possible
+                if name in AVAILABLE_TOOLS:
+                    name = str(AVAILABLE_TOOLS[name]["name"])
                 steps.append(
                     {
                         "name": name,
                         "arguments": msg.get("arguments", {}),
-                        "output": msg.get("output") or msg.get("observation"),
                     }
                 )
-        # Yield only once: final answer and collected steps
-        yield final_answer, steps
+            elif msg.get("output") or msg.get("observations"):
+                # capture output or observation from the agent
+                if not msg.get("is_final_answer"):
+                    steps.append(
+                        {
+                            "output": msg.get("output") or msg.get("observations"),
+                        }
+                    )
+            yield final_answer, steps
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(

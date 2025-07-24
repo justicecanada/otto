@@ -698,7 +698,7 @@ div.agent-steps .agent-output * {
 }
 
 div.agent-step {
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
 }
 
 .message-blob.agent.show-steps button.agent-output-toggle {
@@ -756,7 +756,8 @@ div.agent-step {
 
 .message-text strong,
 .message-text bold,
-.message-text th {
+.message-text th,
+.agent-step strong {
   font-weight: 500;
 }
 

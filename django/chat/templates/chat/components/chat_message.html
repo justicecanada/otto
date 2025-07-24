@@ -30,24 +30,8 @@
       </div>
     {% endif %}
     <div class="message-blob {{ message.mode }} {% if show_steps or message.awaiting_response %}show-steps{% endif %}">
-      {% if message.mode == "agent" and message.is_bot %}
-        <div class="mb-2">
-          <button type="button"
-                  class="btn btn-sm btn-outline-dark me-1"
-                  onclick="toggleAgentSteps(this)">
-            <span class="hide-steps-label">{% trans "Hide steps" %}</span>
-            <span class="show-steps-label">{% trans "Show steps" %}</span>
-          </button>
-          <button type="button"
-                  class="btn btn-sm btn-outline-dark agent-output-toggle"
-                  onclick="toggleAgentOutput(this)">
-            <span class="hide-output-label">{% trans "Hide step outputs" %}</span>
-            <span class="show-output-label">{% trans "Show step outputs" %}</span>
-          </button>
-        </div>
-        {% if not message.awaiting_response %}
-          {% include "chat/components/agent_steps.html" with message=message %}
-        {% endif %}
+      {% if message.mode == "agent" and message.is_bot and not message.awaiting_response %}
+        {% include "chat/components/agent_steps.html" with message=message %}
       {% endif %}
       {% if message.awaiting_response %}
         <div class="message-text">{% include "chat/components/streaming_response.html" %}</div>

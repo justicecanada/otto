@@ -81,9 +81,9 @@ function render_markdown(element) {
 
 // Chat window UI
 let autoscroll = true;
-const scrollBtn = document.querySelector("#scroll-btn");
 
-document.querySelector("#chat-container").addEventListener("scroll", function () {
+function showHideScrollButton() {
+  const scrollBtn = document.querySelector("#scroll-btn");
   const threshold = 10; // pixels from the bottom considered "at the bottom"
   if ((this.scrollHeight - this.scrollTop - this.clientHeight) > threshold) {
     autoscroll = false;
@@ -92,6 +92,10 @@ document.querySelector("#chat-container").addEventListener("scroll", function ()
     autoscroll = true;
     scrollBtn.classList.remove("show");
   }
+}
+
+document.querySelector("#chat-container").addEventListener("scroll", function () {
+  showHideScrollButton();
 });
 
 const copyCodeButtonHTML = `<button type="button" onclick="copyCode(this)"
@@ -665,6 +669,7 @@ function toggleAgentSteps(btn) {
   const container = btn.closest('.message-blob.agent');
   if (container) {
     container.classList.toggle('show-steps');
+    showHideScrollButton();
   }
 }
 
@@ -672,6 +677,7 @@ function toggleAgentOutput(btn) {
   const container = btn.closest('.message-blob.agent');
   if (container) {
     container.classList.toggle('show-output');
+    showHideScrollButton();
   }
 }
 
