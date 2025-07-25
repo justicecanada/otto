@@ -17,16 +17,6 @@ from .law_retriever import LawRetrieverTool
 # runtime, like 'chat_history'.
 # The keys should match the name attribute of the class.
 AVAILABLE_TOOLS = {
-    "web_search": {
-        "class": WebSearchTool,
-        "name": _("Web search"),
-        "init_params": {},
-    },
-    "visit_webpage": {
-        "class": VisitWebpageTool,
-        "name": _("Visit webpage"),
-        "init_params": {},
-    },
     "law_retriever": {
         "class": LawRetrieverTool,
         "name": _("Law retriever"),
@@ -41,5 +31,15 @@ AVAILABLE_TOOLS = {
         "class": FileReaderTool,
         "name": _("File reader"),
         "init_params": {"user_id": None},
+    },
+    "web_search": {
+        "class": WebSearchTool,
+        "name": _("Web search"),
+        "init_params": {},
+    },
+    "visit_webpage": {
+        "class": VisitWebpageTool,
+        "name": _("Visit webpage"),
+        "init_params": {},
     },
 }
