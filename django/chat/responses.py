@@ -745,7 +745,7 @@ def rag_answer(chat, response_message, llm, documents, qa_scope, batch_size=5):
         return
 
     # If we're stitching sources together into groups...
-    if chat.options.qa_granular_toggle == True and chat.options.qa_granularity > 768:
+    if chat.options.qa_granular_toggle and chat.options.qa_granularity > 768:
         # Group nodes from the same doc together,
         # and ensure nodes WITHIN each doc are in reading order.
         # Need to do this if granularity is set to group multiple nodes together
