@@ -765,7 +765,7 @@ def rag_answer(chat, response_message, llm, documents, qa_scope, batch_size=5):
             for next_source in doc:
                 if num_tokens_from_string(
                     "\n\n".join(
-                        [x.text for x in current_source_group] + [next_source.text],
+                        [x.text for x in current_source_group] + [next_source.text]
                     ),
                     "cl100k_base",
                 ) <= max(
