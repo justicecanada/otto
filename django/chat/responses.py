@@ -798,7 +798,7 @@ def rag_answer(chat, response_message, llm, documents, qa_scope, batch_size=5):
 
         source_groups = [[source] for source in source_nodes]
 
-    if chat.options.qa_granular_toggle != True:
+    if not chat.options.qa_granular_toggle:
         response = synthesizer.synthesize(query=input, nodes=source_nodes)
         response_generator = response.response_gen
         response_replacer = None
