@@ -100,7 +100,7 @@ def agent_response(chat, response_message):
                 # Sanitize final answer to remove control chars
                 raw_answer = msg.get("arguments", {}).get("answer", "")
                 final_answer = sanitize(raw_answer)
-                yield final_answer, steps
+                yield raw_answer, steps
                 break
             elif name is not None:
                 # Replace with translated, pretty name if possible

@@ -118,17 +118,17 @@ nav#breadcrumbs a:not(:hover) {
 /* Show app list columns at large sizes */
 @media (min-width: 768px) {
   div#app-list {
-    column-count: 2;
+    column-count: 3;
   }
 }
 
 @media (min-width: 1260px) {
-  /* div#app-list {
+  div#app-list {
     column-count: 3;
-  } */
+  }
 
   div#app-list.cols-2 {
-    column-count: 2;
+    column-count: 3;
   }
 }
 
