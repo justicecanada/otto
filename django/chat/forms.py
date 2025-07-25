@@ -307,16 +307,16 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this); triggerOptionSave();",
                     "data-rag_string": _(
                         """
-                        Combine: search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>
+                        <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>
                         <br><br>
-                        Separate: search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em>
+                        <strong>Separate:</strong> Search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em>
                         """
                     ),
                     "data-fulldoc_string": _(
                         """
-                        Combine: read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>
+                        <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>
                         <br><br>
-                        Separate: read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive.</em>
+                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive. Frog eats the grapefruit.</em>
                         """
                     ),
                 },

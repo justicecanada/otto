@@ -42,9 +42,10 @@
       <label class="col-form-label col-form-label-sm"
              for="{{ options_form.qa_mode.auto_id }}">{% trans "Excerpts or full documents" %}</label>
       <button class="p-0 border-0 bg-transparent"
+              disabled
               data-bs-toggle="tooltip"
               data-bs-html="true"
-              data-bs-title='{% trans "Top excerpts: Use most relevant excerpts from selected documents. <em>Fast, cheap.</em><br><br>Full documents: Use full text of selected documents. <em>More comprehensive, but slower and more expensive.</em>" %}'
+              data-bs-title='{% trans "<strong>Top excerpts:</strong> Use most relevant excerpts from selected documents. <em>Fast, cheap.</em><br><br><strong>Full documents:</strong> Use full text of selected documents. <em>More comprehensive, but slower and more expensive.</em>" %}'
               id="rag_info">
         <i class="bi-info-circle-fill text-primary small"
            style="vertical-align: middle"></i>
@@ -58,6 +59,7 @@
       <label class="col-form-label col-form-label-sm"
              for="{{ options_form.qa_process_mode.auto_id }}">{% trans "Combine or separate documents" %}</label>
       <button class="p-0 border-0 bg-transparent"
+              disabled
               data-bs-toggle="tooltip"
               data-bs-html="true"
               id="comb_sep_info">
