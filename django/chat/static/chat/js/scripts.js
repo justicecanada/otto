@@ -508,7 +508,7 @@ function updateQaModal() {
         modal_element.value = hidden_field_element.value;
       }
     }
-    toggleGranularOptions(document.getElementById('qa_answer_mode-modal').value);
+    toggleGranularOptions(document.getElementById('qa_granular_toggle-modal').value);
   });
 };
 function updateQaHiddenField(modal_element) {
@@ -526,7 +526,7 @@ function toggleGranularOptions(value) {
   var gran_slider = document.getElementById('qa_granularity_slider');
   var pruning_toggle = document.getElementById('qa_pruning');
 
-  if (value === 'per-source') {
+  if (value === 'True') {
     gran_slider.style.display = 'flex';
     pruning_toggle.style.display = '';
   } else {
@@ -536,8 +536,13 @@ function toggleGranularOptions(value) {
 }
 
 
-function toggleRagOptions(value) {
+function toggleRagOptions(elem) {
+  var value = elem.value;
+  var rag_string = elem.dataset.rag_string;
+  var fulldoc_string = elem.dataset.fulldoc_string;
+
   var ragOptions = document.querySelectorAll('.qa_rag_option');
+  var comb_sep = document.getElementById('comb_sep_info');
 
   ragOptions.forEach(function (option) {
     if (value !== 'rag') {
@@ -546,6 +551,18 @@ function toggleRagOptions(value) {
       option.style.display = '';
     }
   });
+
+  if (value === 'rag') {
+    comb_sep.setAttribute('data-bs-title', rag_string);
+  }
+  else {
+    comb_sep.setAttribute('data-bs-title', fulldoc_string);
+  }
+
+  if (bootstrap.Tooltip.getInstance(comb_sep)) {
+    bootstrap.Tooltip.getInstance(comb_sep).dispose();
+  }
+  new bootstrap.Tooltip(comb_sep, {delay: {show: 500, hide: 200}});
 }
 
 // Hide RAG-only Q+A options in advanced modal on page load if applicable
@@ -557,6 +574,13 @@ document.addEventListener("DOMContentLoaded", function () {
       option.style.display = "none";
     }
   });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  var select = document.getElementById("id_qa_mode");
+  if (select) {
+    toggleRagOptions(select);
+  }
 });
 
 
@@ -641,10 +665,10 @@ function afterAccordionSwap() {
 
   if (presetLoaded || swap) {
     handleModeChange(mode, null);
-    const qa_mode_value = document.getElementById('id_qa_mode').value;
+    const qa_mode = document.getElementById('id_qa_mode');
     switchToDocumentScope();
     // Update the advanced settings RAG options visibility
-    toggleRagOptions(qa_mode_value);
+    toggleRagOptions(qa_mode);
     setTimeout(updateQaSourceForms, 100);
   } else if (triggerLibraryChange) {
     // This function calls updateQaSourceForms, so no need to call it twice
