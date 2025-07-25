@@ -178,11 +178,11 @@ div.app-card-monitoring:hover {
 }
 
 /* Centre column */
-.app-card-translation {
+.app-card-research {
   border-left: solid 5px var(--app-color-green-1);
 }
 
-div.app-card-translation:hover {
+div.app-card-research:hover {
   box-shadow: 0 0 0 0.25rem var(--app-color-green-1-hover);
 }
 
@@ -195,12 +195,12 @@ div.app-card-reporting:hover {
 }
 
 
-.app-card-other {
-  border-left: solid 5px var(--app-color-blue-2);
+.app-card-tools {
+  border-left: solid 5px var(--app-color-orange-1);
 }
 
-div.app-card-other:hover {
-  box-shadow: 0 0 0 0.25rem var(--app-color-blue-2-hover);
+div.app-card-tools:hover {
+  box-shadow: 0 0 0 0.25rem var(--app-color-orange-1-hover);
 }
 
 #top-nav {
