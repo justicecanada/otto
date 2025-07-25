@@ -4,6 +4,7 @@ import json
 import re
 import sys
 import uuid
+from collections.abc import Iterable
 from decimal import Decimal
 from itertools import groupby
 from typing import AsyncGenerator, Generator
@@ -92,11 +93,13 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
     target_options.save()
 
 
-def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
+def num_tokens_from_string(
+    string: str, model: str = "gpt-4", enc_type: str = "o200k_base"
+) -> int:
     """Returns the number of tokens in a text string."""
     string = string or ""
     try:
-        encoding = tiktoken.get_encoding("o200k_base")
+        encoding = tiktoken.get_encoding(enc_type)
         num_tokens = len(encoding.encode(string))
     except:
         # Estimate the number of tokens using a simple heuristic (1 token = 4 chars)
@@ -287,13 +290,19 @@ def create_batches(iterable, n=1):
 
 async def combine_response_generators(generators, titles, query, llm, prune=False):
     streams = [{"stream": stream, "status": "running"} for stream in generators]
+    # formatted_titles = [f"\n###### *{title}*\n" for title in titles]
+    partial_streams = ["" for _ in titles]
     final_streams = [f"\n###### *{title}*\n" for title in titles]
     while any([stream["status"] == "running" for stream in streams]):
         for i, stream in enumerate(streams):
             try:
                 if stream["status"] == "running":
-                    final_streams[i] += next(stream["stream"])
-            except StopIteration:
+                    if isinstance(stream["stream"], Iterable):
+                        final_streams[i] += next(stream["stream"])
+                    else:
+                        partial_streams[i] = await stream["stream"].__anext__()
+                        final_streams[i] = partial_streams[i]
+            except (StopIteration, StopAsyncIteration):
                 stream["status"] = "stopped"
                 if prune:
                     tmpl = PromptTemplate(QA_PRUNING_INSTRUCTIONS).format(
@@ -428,9 +437,11 @@ def generate_prompt(task_or_prompt: str):
     bind_contextvars(feature="prompt_generator")
     llm = OttoLLM()
 
-    META_PROMPT = """
+    META_PROMPT = f"""
     Given a current prompt and a change description, produce a detailed system prompt to guide a language model in completing the task effectively.
-
+    
+    Answer in whatever language you are asked. If the input is in French, generate the output in French. If the input is in English, generate the output in English. Do not translate the input text, but respond in the same language as the input.
+    
     Your final output will be the full corrected prompt verbatim. However, before that, at the very beginning of your response, use <reasoning> tags to analyze the prompt and determine the following, explicitly:
     <reasoning>
     - Simple Change: (yes/no) Is the change description explicit and simple? (If so, skip the rest of these questions.)
@@ -470,9 +481,7 @@ def generate_prompt(task_or_prompt: str):
 
     [Concise instruction describing the task - this should be the first line in the prompt, no section header]
 
-    [Additional details as needed.]
-
-    [Optional sections with headings or bullet points for detailed steps.]
+    [Additional details as needed, translate the subtitles below starting with "#" too, such as "# Output Format".]
 
     # Steps [optional]
 

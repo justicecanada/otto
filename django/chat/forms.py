@@ -19,6 +19,7 @@ from structlog import get_logger
 from chat.llm_models import get_chat_model_choices, get_grouped_chat_model_choices
 from chat.models import (
     QA_MODE_CHOICES,
+    QA_PROCESS_MODE_CHOICES,
     QA_SCOPE_CHOICES,
     REASONING_EFFORT_CHOICES,
     Chat,
@@ -305,7 +306,28 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this.value); triggerOptionSave();",
+                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this); triggerOptionSave();",
+                    "data-rag_string": _(
+                        """
+                        <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>
+                        <br><br>
+                        <strong>Separate:</strong> Search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em>
+                        """
+                    ),
+                    "data-fulldoc_string": _(
+                        """
+                        <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>
+                        <br><br>
+                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive./em>
+                        """
+                    ),
+                },
+            ),
+            "qa_process_mode": forms.Select(
+                choices=QA_PROCESS_MODE_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(
@@ -335,7 +357,7 @@ class ChatOptionsForm(ModelForm):
             "qa_source_order": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
             ),
-            "qa_answer_mode": forms.HiddenInput(
+            "qa_granular_toggle": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_prune": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),

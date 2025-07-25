@@ -844,16 +844,24 @@ def set_security_label(request, chat_id, security_label_id):
 def message_sources(request, message_id, highlight=False):
     # When called via the URL for highlights, ?highlight=true will make this True.
     highlight = request.GET.get("highlight", "false").lower() == "true" or highlight
-    already_highlighted = Message.objects.get(id=message_id).claims_list != []
+    message = Message.objects.get(id=message_id)
+    already_highlighted = message.claims_list != []
 
     def replace_page_tags(match):
         page_number = match.group(1)
         return f"**_Page {page_number}_**\n"
 
     sources = []
-    for source in AnswerSource.objects.prefetch_related(
-        "document", "document__data_source", "document__data_source__library", "message"
-    ).filter(message_id=message_id):
+    for source in (
+        AnswerSource.objects.prefetch_related(
+            "document",
+            "document__data_source",
+            "document__data_source__library",
+            "message",
+        )
+        .filter(message_id=message_id)
+        .order_by("group_number")
+    ):
         source_text = str(source.node_text)
 
         already_processed = source.processed_text is not None
@@ -897,6 +905,8 @@ def message_sources(request, message_id, highlight=False):
             "message_id": message_id,
             "sources": sources,
             "highlighted": highlight or already_highlighted,
+            "is_per_doc": message.details.get("is_per_doc", False),
+            "is_granular": message.details.get("is_granular", False),
         },
     )
 
