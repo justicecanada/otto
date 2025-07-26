@@ -67,6 +67,7 @@ function render_markdown(element) {
       }
       // Reinsert agent steps if they exist
       if (agent_steps) {
+        // Render data md on any ".agent-thought" elements in agent-steps
         parent.insertAdjacentElement("afterbegin", agent_steps);
       }
     } else if ((after_text = parent.nextElementSibling)) {
@@ -75,6 +76,31 @@ function render_markdown(element) {
       if (after_text.classList.contains("typing")) {
         after_text.remove();
       }
+    }
+  }
+  document.querySelectorAll(".agent-thought").forEach(function (thought_element) {
+    render_data_md(thought_element);
+  });
+}
+
+function render_data_md(element) {
+  // Replaces element with rendered markdown from its dataset.md content
+  const markdown_text = element.dataset.md;
+  if (markdown_text) {
+    let to_parse = markdown_text;
+    try {
+      to_parse = JSON.parse(to_parse);
+    } catch (e) {
+      to_parse = false;
+    }
+    if (to_parse) {
+      element.outerHTML = md.render(to_parse);
+      // Add the "copy code" button to code blocks
+      for (block of element.querySelectorAll("pre code")) {
+        block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
+      }
+    } else {
+      console.warn("No valid markdown data found in element:", element);
     }
   }
 }

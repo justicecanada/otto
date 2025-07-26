@@ -701,8 +701,17 @@ div.agent-steps .agent-output * {
   font-size: 0.9rem !important;
 }
 
-div.agent-step {
-  /* margin-bottom: 10px; */
+div.agent-steps .agent-code pre {
+  margin-bottom: 0;
+}
+
+div.agent-steps .agent-code {
+  border: solid 1px var(--bs-border-color);
+  padding: 0.5rem;
+  border-radius: 5px;
+  max-height: 600px;
+  overflow-y: auto;
+  margin-bottom: 0.5rem;
 }
 
 .message-blob.agent.show-steps button.agent-output-toggle {

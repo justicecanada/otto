@@ -4,6 +4,9 @@ import re
 from django.http import HttpResponse, StreamingHttpResponse
 from django.utils.translation import gettext as _
 
+from chat.htmx_stream import wrap_llm_response
+from chat.utils import md
+
 # Regex to remove control characters (excluding line breaks) from strings
 # Removes: 0x00-0x09, 0x0B-0x0C, 0x0E-0x1F, 0x7F (but keeps 0x0A and 0x0D: LF and CR)
 _CONTROL_CHAR_REGEX = re.compile(r"[\x00-\x09\x0B-\x0C\x0E-\x1F\x7F]")
@@ -97,9 +100,8 @@ async def tool_calling_agent_replacer(response_stream):
         # Final answer should be displayed as response, not in steps
         if name == "final_answer":
             # Sanitize final answer to remove control chars
-            raw_answer = msg.get("arguments", {}).get("answer", "")
-            final_answer = sanitize(raw_answer)
-            yield raw_answer, steps
+            final_answer = msg.get("arguments", {}).get("answer", "")
+            yield final_answer, steps
             break
         elif name is not None:
             # Replace with translated, pretty name if possible
@@ -120,52 +122,72 @@ async def tool_calling_agent_replacer(response_stream):
             if not msg.get("is_final_answer"):
                 raw_output = msg.get("output") or msg.get("observations")
                 output = sanitize(raw_output)
-                steps.append(
-                    {
-                        "output": output,
-                    }
-                )
+                steps.append({"output": output})
         yield final_answer, steps
 
 
 async def code_agent_replacer(response_stream):
+    # Similar to the tool_calling_agent_replacer, but for CodeAgent
+    # Old logic below:
+    """
+    if type(tool_call).__name__ == "ActionStep":
+        step_number = getattr(tool_call, "step_number", None)
+        lines += ["<div class='agent-step'>\n"]
+        llm_output = getattr(tool_call, "model_output_message", None)
+        if llm_output and hasattr(llm_output, "content"):
+            content = llm_output.content
+            content = content.replace("<code>", "\n```python")
+            content = content.replace("</code>", "```")
+            content = content.replace("Thought:", f"**Step {step_number}:**")
+            lines.append(content)
+        # Show LLM/code execution output in a dedicated div if present
+        action_output = getattr(tool_call, "action_output", None)
+        observations = getattr(tool_call, "observations", None)
+        # Prefer 'action_output', but if not present, show 'observations' if available
+        output_to_show = action_output or observations
+        if output_to_show:
+            lines.append(
+                f"<div class='agent-output'>\n<pre>{output_to_show}</pre>\n</div>"
+            )
+        lines.append("</div>")
+
+    elif type(tool_call).__name__ == "FinalAnswerStep":
+        lines += ["</div><div class='agent-final-answer'>\n"]
+        final_answer = getattr(tool_call, "output", None)
+        if final_answer:
+            content = str(final_answer).strip()
+            lines.append(content)
+        lines += ["</div>"]
+
+    return "\n".join(lines)
+    """
     # Collect tool call steps and extract final answer
     steps = []
     final_answer = ""
     async for smolagents_message in response_stream:
         msg = smolagents_message.__dict__
         name = msg.get("name")
-        # Final answer should be displayed as response, not in steps
-        if name == "final_answer":
-            # Sanitize final answer to remove control chars
-            raw_answer = msg.get("arguments", {}).get("answer", "")
-            final_answer = sanitize(raw_answer)
-            yield raw_answer, steps
-            break
-        elif name is not None:
-            # Replace with translated, pretty name if possible
-            tool_name = name
-            if tool_name in AVAILABLE_TOOLS:
-                tool_name = str(AVAILABLE_TOOLS[tool_name]["name"])
-            # Sanitize arguments
-            raw_args = msg.get("arguments", {})
-            args = sanitize(raw_args)
+        keys = msg.keys()
+        llm_output = msg.get("model_output_message")
+        if llm_output and hasattr(llm_output, "content"):
+            content = llm_output.content
+            content = content.replace("<code>", "\n```python")
+            content = content.replace("</code>", "```")
+            content = content.replace("Thought:", f"**Thought:**")
             steps.append(
-                {
-                    "name": tool_name,
-                    "arguments": args,
-                }
+                {"thought": wrap_llm_response(content, div_class="agent-thought")}
             )
-        elif msg.get("output") or msg.get("observations"):
-            # capture output or observation from the agent
-            if not msg.get("is_final_answer"):
-                raw_output = msg.get("output") or msg.get("observations")
-                output = sanitize(raw_output)
-                steps.append(
-                    {
-                        "output": output,
-                    }
-                )
+        action_output = msg.get("action_output")
+        observations = msg.get("observations")
+        if action_output or observations:
+            output = sanitize(action_output or observations)
+            steps.append({"output": output})
+        if name == "python_interpreter":
+            steps.append({"code": msg.get("arguments")})
+        elif msg.get("is_final_answer"):
+            final_answer = msg.get("output")
+            yield final_answer, steps
+            break
         yield final_answer, steps
 
 
