@@ -10,7 +10,7 @@ import tiktoken
 from asgiref.sync import sync_to_async
 from structlog import get_logger
 
-from chat.utils import wrap_llm_response
+from chat.htmx_stream import wrap_llm_response
 from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)

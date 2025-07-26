@@ -6,10 +6,11 @@
      data-trigger-library-change="{{ trigger_library_change }}"
      data-mode="{{ options_form.mode.value }}"
      data-prompt="{{ prompt }}">
-  {% include 'chat/components/options_1_chat_with_ai.html' with options_section_id='chat' %}
-  {% include 'chat/components/options_4_qa.html' with options_section_id='qa' %}
-  {% include 'chat/components/options_2_summarize.html' with options_section_id='summarize' %}
-  {% include 'chat/components/options_3_translate.html' with options_section_id='translate' %}
+  {% include 'chat/components/options_agent.html' with options_section_id='agent' %}
+  {% include 'chat/components/options_chat.html' with options_section_id='chat' %}
+  {% include 'chat/components/options_qa.html' with options_section_id='qa' %}
+  {% include 'chat/components/options_summarize.html' with options_section_id='summarize' %}
+  {% include 'chat/components/options_translate.html' with options_section_id='translate' %}
 </div>
 
 {% include "chat/components/chat_label_script.html" %}

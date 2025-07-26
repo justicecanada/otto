@@ -19,6 +19,16 @@
               <ul class="nav nav-pills" id="chat-modes" role="tablist">
                 <li class="nav-item" role="presentation">
                   <button role="tab"
+                          class="nav-link agent-option"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          data-bs-title='{% trans "Selects the best mode(s) for your query" %}'
+                          type="button"
+                          aria-selected="false"
+                          onclick="clickCard('agent')">{% trans "Agent" %}</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button role="tab"
                           class="nav-link chat-option"
                           data-bs-toggle="tooltip"
                           data-bs-placement="top"
@@ -94,6 +104,7 @@
                     id="chat-prompt"
                     autocomplete="off"
                     aria-label='{% trans "Message" %}'
+                    data-agent-placeholder='{% trans "Enter a question or instruction" %}'
                     data-chat-placeholder='{% trans "Enter a message to chat with the AI" %}'
                     data-qa-placeholder='{% trans "Ask a question about the selected documents, upload files or enter a URL to add" %}'
                     data-summarize-placeholder='{% trans "Enter a URL, paste long text or upload files to summarize" %}'

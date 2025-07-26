@@ -1,3 +1,4 @@
+
 const md = markdownit({
   highlight: function (str, lang) {
     if (lang && hljs.getLanguage(lang)) {
@@ -7,7 +8,6 @@ const md = markdownit({
           '</code></pre>';
       } catch (__) { }
     }
-
     return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
   },
   breaks: true,
@@ -23,7 +23,6 @@ const md_with_html = markdownit({
           '</code></pre>';
       } catch (__) { }
     }
-
     return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
   },
   breaks: true,
@@ -49,6 +48,8 @@ function render_markdown(element) {
       to_parse = false;
     }
     const parent = markdown_text.parentElement;
+    // Save agent-steps for re-insertion
+    const agent_steps = parent.querySelector(".agent-steps");
     if (to_parse) {
       parent.innerHTML = md.render(to_parse);
       const current_dots = parent.parentElement.querySelector(".typing");
@@ -64,6 +65,11 @@ function render_markdown(element) {
       for (block of parent.querySelectorAll("pre code")) {
         block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
       }
+      // Reinsert agent steps if they exist
+      if (agent_steps) {
+        // Render data md on any ".agent-thought" elements in agent-steps
+        parent.insertAdjacentElement("afterbegin", agent_steps);
+      }
     } else if ((after_text = parent.nextElementSibling)) {
       // If stream is empty (which should only happen between batches), it will stream dots
       // so we can remove the dot element we manually added above
@@ -72,13 +78,38 @@ function render_markdown(element) {
       }
     }
   }
+  document.querySelectorAll(".agent-thought").forEach(function (thought_element) {
+    render_data_md(thought_element);
+  });
+}
+
+function render_data_md(element) {
+  // Replaces element with rendered markdown from its dataset.md content
+  const markdown_text = element.dataset.md;
+  if (markdown_text) {
+    let to_parse = markdown_text;
+    try {
+      to_parse = JSON.parse(to_parse);
+    } catch (e) {
+      to_parse = false;
+    }
+    if (to_parse) {
+      element.outerHTML = md.render(to_parse);
+      // Add the "copy code" button to code blocks
+      for (block of element.querySelectorAll("pre code")) {
+        block.insertAdjacentHTML("beforebegin", copyCodeButtonHTML);
+      }
+    } else {
+      console.warn("No valid markdown data found in element:", element);
+    }
+  }
 }
 
 // Chat window UI
 let autoscroll = true;
-const scrollBtn = document.querySelector("#scroll-btn");
 
-document.querySelector("#chat-container").addEventListener("scroll", function () {
+function showHideScrollButton() {
+  const scrollBtn = document.querySelector("#scroll-btn");
   const threshold = 10; // pixels from the bottom considered "at the bottom"
   if ((this.scrollHeight - this.scrollTop - this.clientHeight) > threshold) {
     autoscroll = false;
@@ -87,6 +118,10 @@ document.querySelector("#chat-container").addEventListener("scroll", function ()
     autoscroll = true;
     scrollBtn.classList.remove("show");
   }
+}
+
+document.querySelector("#chat-container").addEventListener("scroll", function () {
+  showHideScrollButton();
 });
 
 const copyCodeButtonHTML = `<button type="button" onclick="copyCode(this)"
@@ -151,7 +186,7 @@ function handleModeChange(mode, element = null) {
 function updateAccordion(mode) {
   // Otherwise, we need to update the accordion to show the correct mode
   let accordion_parent = document.querySelector("#options-accordion");
-  for (chat_mode of ["chat", "summarize", "translate", "qa"]) {
+  for (chat_mode of ["agent", "chat", "summarize", "translate", "qa"]) {
     let accordion_button = accordion_parent.querySelector(`button[data-bs-target="#options-accordion-${chat_mode}"]`);
     let accordion_content = document.querySelector(`#options-accordion-${chat_mode}`);
     if (chat_mode === mode) {
@@ -677,3 +712,22 @@ function afterAccordionSwap() {
     updateQaSourceForms();
   }
 }
+
+// Agent reasoning/code toggles for use with onclick attribute
+function toggleAgentSteps(btn) {
+  // btn: the button element inside .agent-steps-container
+  const container = btn.closest('.message-blob.agent');
+  if (container) {
+    container.classList.toggle('show-steps');
+    showHideScrollButton();
+  }
+}
+
+function toggleAgentOutput(btn) {
+  const container = btn.closest('.message-blob.agent');
+  if (container) {
+    container.classList.toggle('show-output');
+    showHideScrollButton();
+  }
+}
+
