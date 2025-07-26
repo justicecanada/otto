@@ -4,13 +4,14 @@ import re
 from django.http import HttpResponse, StreamingHttpResponse
 from django.utils.translation import gettext as _
 
-# Regex to remove control characters (including null bytes) from strings
-_CONTROL_CHAR_REGEX = re.compile(r"[\x00-\x1F\x7F]")
+# Regex to remove control characters (excluding line breaks) from strings
+# Removes: 0x00-0x09, 0x0B-0x0C, 0x0E-0x1F, 0x7F (but keeps 0x0A and 0x0D: LF and CR)
+_CONTROL_CHAR_REGEX = re.compile(r"[\x00-\x09\x0B-\x0C\x0E-\x1F\x7F]")
 
 
 def sanitize(obj):
     """
-    Recursively remove control characters from strings in the given object.
+    Recursively remove control characters (except line breaks) from strings in the given object.
     """
     if isinstance(obj, str):
         return _CONTROL_CHAR_REGEX.sub("", obj)
