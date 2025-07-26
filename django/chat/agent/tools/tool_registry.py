@@ -23,11 +23,11 @@ AVAILABLE_TOOLS = {
         "name": _("Law retriever"),
         "init_params": {},
     },
-    "summarize_text": {
-        "class": SummarizeTool,
-        "name": _("Summarization"),
-        "init_params": {"chat_id": None},
-    },
+    # "summarize_text": {
+    #     "class": SummarizeTool,
+    #     "name": _("Summarization"),
+    #     "init_params": {"chat_id": None},
+    # },
     "chat_history": {
         "class": ChatHistoryTool,
         "name": _("Chat history"),

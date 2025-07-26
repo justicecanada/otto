@@ -15,8 +15,8 @@ default_en:
       - "chat_history"
       - "file_reader"
       - "law_retriever"
-      # - "web_search"
-      # - "visit_webpage"
+      - "web_search"
+      - "visit_webpage"
     agent_type: "tool_calling_agent"
     chat_system_prompt: |
       You are the AI assistant for the Department of Justice Canada. You follow these rules:
