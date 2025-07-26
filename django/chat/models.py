@@ -239,14 +239,9 @@ class ChatOptions(models.Model):
     # Agent-specific options
     agent_model = models.CharField(max_length=255, default=DEFAULT_CHAT_MODEL_ID)
     agent_tools = models.JSONField(default=list)
-    # agent_mode = models.CharField(
-    #     max_length=30,
-    #     default="ToolCallingAgent",
-    #     choices=[
-    #         ("ToolCallingAgent", "Call tools"),
-    #         ("CodeAgent", "Write code"),
-    #     ],
-    # )
+    agent_type = models.CharField(
+        max_length=40, blank=True, default="tool_calling_agent"
+    )
 
     # Summarize-specific options
     summarize_model = models.CharField(

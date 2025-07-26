@@ -314,6 +314,8 @@ def chat_message(request, chat_id):
         response_message.json = json.dumps(response_message.text)
     else:
         bot_name = get_model_name(chat.options)
+        if mode == "agent":
+            bot_name += " + " + f" {chat.options.agent_type}"
         response_message = Message.objects.create(
             chat=chat,
             is_bot=True,

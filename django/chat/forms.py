@@ -408,6 +408,17 @@ class ChatOptionsForm(ModelForm):
                 },
             )
 
+        self.fields["agent_type"].widget = forms.Select(
+            choices=[
+                ("tool_calling_agent", _("Tool calling agent")),
+                ("code_agent", _("Coding agent")),
+            ],
+            attrs={
+                "class": "form-select form-select-sm",
+                "onchange": "triggerOptionSave();",
+            },
+        )
+
         # Text areas
         self.fields["chat_system_prompt"].widget = forms.Textarea(
             attrs={

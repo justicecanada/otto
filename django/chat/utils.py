@@ -189,6 +189,8 @@ def get_model_name(chat_options):
         model_key = chat_options.chat_model
     elif chat_options.mode == "summarize":
         model_key = chat_options.summarize_model
+    elif chat_options.mode == "agent":
+        model_key = chat_options.agent_model
     # chat_model_choices is a list of tuples
     # (model_key, model_description (including some stuff in parens))
     model_name = [
