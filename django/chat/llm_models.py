@@ -156,6 +156,7 @@ ALL_MODELS: List[LLM] = [
         group_en="Reasoning / long output",
         group_fr="Raisonnement / sortie longue",
         reasoning=True,
+        is_active=False,  # Not available in all environments
     ),
     LLM(
         model_id="gpt-4o",

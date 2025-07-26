@@ -60,11 +60,11 @@
        class="{% if 'prod' in otto_version %}cols-2{% endif %}">
     {% for category in categorized_features %}
       <div class="app-category">
-        <h2 class="fw-light h4 mb-3">{{ category.category_title }}</h2>
+        {# <h2 class="fw-light h4 mb-3">{{ category.category_title }}</h2> #}
         {% for feature in category.features %}
           {% include 'components/feature_tile.html' %}
         {% endfor %}
-        <div class="app-list-spacer mb-4"></div>
+        {# <div class="app-list-spacer mb-4"></div> #}
       </div>
     {% endfor %}
   </div>

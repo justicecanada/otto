@@ -24,6 +24,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
+from chat.htmx_stream import wrap_llm_response
 from chat.llm import OttoLLM
 from chat.models import (
     AnswerSource,
@@ -45,7 +46,6 @@ from chat.utils import (
     highlight_claims,
     label_section_index,
     title_chat,
-    wrap_llm_response,
 )
 from librarian.forms import LibraryUsersForm
 from librarian.models import Library
@@ -314,6 +314,8 @@ def chat_message(request, chat_id):
         response_message.json = json.dumps(response_message.text)
     else:
         bot_name = get_model_name(chat.options)
+        if mode == "agent":
+            bot_name += " + " + f" {chat.options.agent_type}"
         response_message = Message.objects.create(
             chat=chat,
             is_bot=True,
@@ -330,8 +332,10 @@ def chat_message(request, chat_id):
             "date_created": response_message.date_created
             + timezone.timedelta(seconds=1),
             "bot_name": bot_name,
+            "mode": mode,
         }
 
+    print(mode, user_message.mode, response_message["mode"])
     context = {
         "chat_messages": [
             user_message,
@@ -440,6 +444,7 @@ def save_upload(request, chat_id):
         "id": response_message.id,
         "date_created": user_message.date_created + timezone.timedelta(seconds=1),
         "bot_name": bot_name,
+        "mode": chat.options.mode,
     }
     context = {
         "chat_messages": [
@@ -841,16 +846,24 @@ def set_security_label(request, chat_id, security_label_id):
 def message_sources(request, message_id, highlight=False):
     # When called via the URL for highlights, ?highlight=true will make this True.
     highlight = request.GET.get("highlight", "false").lower() == "true" or highlight
-    already_highlighted = Message.objects.get(id=message_id).claims_list != []
+    message = Message.objects.get(id=message_id)
+    already_highlighted = message.claims_list != []
 
     def replace_page_tags(match):
         page_number = match.group(1)
         return f"**_Page {page_number}_**\n"
 
     sources = []
-    for source in AnswerSource.objects.prefetch_related(
-        "document", "document__data_source", "document__data_source__library", "message"
-    ).filter(message_id=message_id):
+    for source in (
+        AnswerSource.objects.prefetch_related(
+            "document",
+            "document__data_source",
+            "document__data_source__library",
+            "message",
+        )
+        .filter(message_id=message_id)
+        .order_by("group_number")
+    ):
         source_text = str(source.node_text)
 
         already_processed = source.processed_text is not None
@@ -894,6 +907,8 @@ def message_sources(request, message_id, highlight=False):
             "message_id": message_id,
             "sources": sources,
             "highlighted": highlight or already_highlighted,
+            "is_per_doc": message.details.get("is_per_doc", False),
+            "is_granular": message.details.get("is_granular", False),
         },
     )
 
