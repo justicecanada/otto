@@ -4610,5 +4610,17 @@
     "\n                        <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>\n                        <br><br>\n                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive./em>\n                        ": {
         "fr": "",
         "fr_auto": "\n<strong>Combiner :</strong> Lisez tous les documents sélectionnés ensemble, rédigez une seule réponse. <em>Essentiel pour comparer des documents. Généralement moins détaillé.</em>\n                        <br><br>\n                        <strong>Séparer :</strong> Lisez chaque document sélectionné individuellement et rédigez une réponse distincte pour chacun. <em>Généralement plus détaillé. Coûteux./em>\n                        "
+    },
+    "Tool calling agent": {
+        "fr": "",
+        "fr_auto": "Agent d’appel de l’outil"
+    },
+    "Coding agent": {
+        "fr": "",
+        "fr_auto": "Agent codant"
+    },
+    "Agent type": {
+        "fr": "",
+        "fr_auto": "Type d’agent"
     }
 }
