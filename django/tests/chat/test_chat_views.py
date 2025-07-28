@@ -606,7 +606,6 @@ def test_qa_response(client, all_apps_user):
     message = Message.objects.create(
         chat=chat, text="What is my dental coverage?", mode="qa"
     )
-    message.details["library"] = corporate_library_id
     message.save()
     response_message = Message.objects.create(
         chat=chat, mode="qa", is_bot=True, parent=message
@@ -622,55 +621,6 @@ def test_qa_response(client, all_apps_user):
     #     Message.objects.filter(chat=chat).order_by("-created_at").first()
     # )
     # assert response_message.sources.count() > 0
-
-
-@pytest.mark.django_db
-def test_chat_agent(client, all_apps_user):
-    user = all_apps_user()
-    client.force_login(user)
-    # Create a chat using the chat_with_ai route to create it with appropriate options
-    response = client.get(reverse("chat:chat_with_ai"), follow=True)
-    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
-    chat.options.chat_agent = True
-    chat.options.save()
-
-    message = Message.objects.create(chat=chat, text="Hello", mode="chat")
-    response_message = Message.objects.create(
-        chat=chat, mode="chat", is_bot=True, parent=message
-    )
-
-    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
-    assert response.status_code == 200
-    # Refresh the chat
-    chat.refresh_from_db()
-    # Check that the chat mode is "chat"
-    assert chat.options.mode == "chat"
-
-    # Ask a generic question to the chat agent, not about the department
-    message = Message.objects.create(
-        chat=chat, text="What is the meaning of life?", mode="chat"
-    )
-    response_message = Message.objects.create(
-        chat=chat, mode="chat", is_bot=True, parent=message
-    )
-    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
-    assert response.status_code == 200
-    chat.refresh_from_db()
-    # Check that the chat mode is still "chat"
-    assert chat.options.mode == "chat"
-
-    # Ask a question to the chat agent about Corporate library
-    message = Message.objects.create(
-        chat=chat, text="What is my corporate dental coverage?", mode="chat"
-    )
-    response_message = Message.objects.create(
-        chat=chat, mode="chat", is_bot=True, parent=message
-    )
-    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
-    assert response.status_code == 200
-    chat.refresh_from_db()
-    # Check that the chat mode has been switched to "qa"
-    assert chat.options.mode == "qa"
 
 
 @pytest.mark.django_db
@@ -693,6 +643,22 @@ def test_qa_response(client, all_apps_user):
     )
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
+
+    # Repeat with per-doc RAG
+    chat.options.qa_process_mode = "per_doc"
+    chat.options.save()
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+
+    # Once more with empty library
+    chat.options.qa_library = user.personal_library
+    chat.options.save()
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+
+    content = async_to_sync(final_response_helper)(response.streaming_content)
+    content_str = content.decode("utf-8")
+    assert "Try selecting a different library" in content_str
 
 
 @pytest.mark.django_db
@@ -852,7 +818,8 @@ def test_per_source_qa_response(client, all_apps_user):
     # Create a chat using the route to create it with appropriate options
     response = client.get(reverse("chat:qa"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
-    chat.options.qa_answer_mode = "per-source"
+    chat.options.qa_granular_toggle = True
+    chat.options.qa_granularity = 769
     chat.options.save()
 
     # Test chat_response with QA mode. This should query the Corporate library.
@@ -884,6 +851,20 @@ def test_summarize_qa_response(client, all_apps_user):
     # Test corporate chatbot QA mode
     chat.options.qa_documents.set(Document.objects.all())
     chat.options.save()
+    message = Message.objects.create(
+        chat=chat, text="What is my dental coverage?", mode="qa"
+    )
+    message.save()
+    response_message = Message.objects.create(
+        chat=chat, mode="qa", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+
+    # Repeat with per-doc mode
+    chat.options.qa_process_mode = "per_doc"
+    chat.options.save()
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     message = Message.objects.create(
         chat=chat, text="What is my dental coverage?", mode="qa"
     )

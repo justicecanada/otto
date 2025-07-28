@@ -493,7 +493,11 @@ def search(request):
 def sources_to_html(sources):
     return [
         {
-            "node_id": urllib.parse.quote_plus(s.node.node_id).replace("+", "-"),
+            "node_id": (
+                urllib.parse.quote_plus(s.node.node_id)
+                if "_schedule_" in s.node.node_id
+                else urllib.parse.quote_plus(s.node.node_id).replace("+", "-")
+            ),
             "title": s.node.metadata["display_metadata"].split("\n")[0],
             "chunk": (
                 s.node.metadata["chunk"]

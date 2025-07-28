@@ -667,8 +667,93 @@ li.message-file {
   top: -1.75rem;
 }
 
-div.message-text :last-child {
+.message-blob.agent div.agent-steps,
+.message-blob.agent div.agent-steps .agent-output {
+  display: none;
+}
+
+button.agent-output-toggle {
+  display: none;
+}
+
+.message-blob.agent.show-steps div.agent-steps {
+  display: block;
+}
+
+.message-blob.agent.show-output div.agent-steps .agent-output {
+  display: block;
+}
+
+div.agent-steps .agent-output pre {
+  font-size: 0.9rem !important;
+  line-height: 1;
+  margin: 1rem;
+  border: solid 1px var(--bs-border-color);
+  padding: 0.5rem;
+  border-radius: 5px;
+  max-height: 600px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+div.agent-steps .agent-output * {
+  font-size: 0.9rem !important;
+}
+
+div.agent-steps .agent-code pre {
   margin-bottom: 0;
+}
+
+div.agent-steps .agent-code {
+  border: solid 1px var(--bs-border-color);
+  padding: 0.5rem;
+  border-radius: 5px;
+  max-height: 600px;
+  overflow-y: auto;
+  margin-bottom: 0.5rem;
+}
+
+.message-blob.agent.show-steps button.agent-output-toggle {
+  display: inline-block;
+}
+
+.message-blob.agent .hide-steps-label,
+.message-blob.agent .hide-output-label {
+  display: none;
+}
+
+.message-blob.agent .show-steps-label,
+.message-blob.agent .show-output-label {
+  display: inline;
+}
+
+.message-blob.agent.show-steps {
+  .hide-steps-label {
+    display: inline;
+  }
+
+  .show-steps-label {
+    display: none;
+  }
+}
+
+
+.message-blob.agent.show-output {
+  .show-output-label {
+    display: none;
+  }
+
+  .hide-output-label {
+    display: inline;
+  }
+}
+
+.message-blob.agent .agent-steps {
+  font-size: 0.9rem;
+  padding: 10px;
+  background: var(--bs-body-bg);
+  border-radius: 5px;
 }
 
 .message-text ul p,
@@ -684,7 +769,8 @@ div.message-text :last-child {
 
 .message-text strong,
 .message-text bold,
-.message-text th {
+.message-text th,
+.agent-step strong {
   font-weight: 500;
 }
 
@@ -709,6 +795,11 @@ div.message-text blockquote {
   border: solid 1px var(--chat-message-border);
   border-left-width: 3px;
 }
+
+div.message-text :last-child {
+  margin-bottom: 0;
+}
+
 
 .message-show-all {
   display: none;
@@ -737,6 +828,11 @@ code {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   line-clamp: 3;
+}
+
+.message-blob.agent * {
+  -webkit-line-clamp: none !important;
+  line-clamp: none !important;
 }
 
 
@@ -871,7 +967,8 @@ div#chat-toolbar {
 #chat-outer.summarize #prompt-form .option.summarize-option,
 #chat-outer.qa #prompt-form .option.qa-option,
 #chat-outer.document_qa #prompt-form .option.document_qa-option,
-#chat-outer.chat #prompt-form .option.chat-option {
+#chat-outer.chat #prompt-form .option.chat-option,
+#chat-outer.agent #prompt-form .option.agent-option {
   display: block;
 }
 
@@ -880,7 +977,8 @@ div#chat-toolbar {
 #chat-outer.summarize #no-messages-placeholder p.option.summarize-option,
 #chat-outer.qa #no-messages-placeholder p.option.qa-option,
 #chat-outer.document_qa #no-messages-placeholder p.option.document_qa-option,
-#chat-outer.chat #no-messages-placeholder p.option.chat-option {
+#chat-outer.chat #no-messages-placeholder p.option.chat-option,
+#chat-outer.agent #no-messages-placeholder p.option.agent-option {
   display: block;
 }
 
@@ -1055,7 +1153,8 @@ div#chat-toolbar {
 #chat-outer.summarize #chat-modes button.summarize-option,
 #chat-outer.qa #chat-modes button.qa-option,
 #chat-outer.document_qa #chat-modes button.document_qa-option,
-#chat-outer.chat #chat-modes button.chat-option {
+#chat-outer.chat #chat-modes button.chat-option,
+#chat-outer.agent #chat-modes button.agent-option {
   background: var(--bs-body-bg);
   color: var(--bs-text-body) !important;
   border-bottom: none !important;
@@ -1154,6 +1253,22 @@ div#chat-toolbar {
 
 #chat-outer.chat .accordion-item.chat {
   border-left: solid 3px var(--app-color-red-2);
+}
+
+#chat-outer.agent #chat-modes button.agent-option {
+  border-top: solid 3px var(--app-color-orange-1) !important;
+}
+
+#chat-modes button.agent-option {
+  border-top: solid 3px var(--app-color-orange-1-hover) !important;
+}
+
+#chat-outer.agent #chat-mode-description {
+  border-left: solid 3px var(--app-color-orange-1-hover);
+}
+
+#chat-outer.agent .accordion-item.agent {
+  border-left: solid 3px var(--app-color-orange-1);
 }
 
 #no-messages-placeholder strong {

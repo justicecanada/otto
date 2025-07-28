@@ -19,6 +19,7 @@ from structlog import get_logger
 from chat.llm_models import get_chat_model_choices, get_grouped_chat_model_choices
 from chat.models import (
     QA_MODE_CHOICES,
+    QA_PROCESS_MODE_CHOICES,
     QA_SCOPE_CHOICES,
     REASONING_EFFORT_CHOICES,
     Chat,
@@ -28,6 +29,8 @@ from chat.models import (
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
 from otto.models import User
+
+from .agent.tools.tool_registry import AVAILABLE_TOOLS
 
 logger = get_logger(__name__)
 
@@ -304,7 +307,28 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this.value); triggerOptionSave();",
+                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this); triggerOptionSave();",
+                    "data-rag_string": _(
+                        """
+                        <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>
+                        <br><br>
+                        <strong>Separate:</strong> Search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em>
+                        """
+                    ),
+                    "data-fulldoc_string": _(
+                        """
+                        <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>
+                        <br><br>
+                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive./em>
+                        """
+                    ),
+                },
+            ),
+            "qa_process_mode": forms.Select(
+                choices=QA_PROCESS_MODE_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(
@@ -334,7 +358,7 @@ class ChatOptionsForm(ModelForm):
             "qa_source_order": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
             ),
-            "qa_answer_mode": forms.HiddenInput(
+            "qa_granular_toggle": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_prune": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
@@ -350,6 +374,7 @@ class ChatOptionsForm(ModelForm):
         # Each of summarize_model, qa_model should be a grouped choice field
         for field in [
             "chat_model",
+            "agent_model",
             "summarize_model",
             "qa_model",
         ]:
@@ -367,6 +392,13 @@ class ChatOptionsForm(ModelForm):
             if self.instance and getattr(self.instance, field, None):
                 self.fields[field].initial = getattr(self.instance, field)
 
+        self.fields["agent_tools"] = forms.MultipleChoiceField(
+            choices=[(key, tool["name"]) for key, tool in AVAILABLE_TOOLS.items()],
+            widget=forms.CheckboxSelectMultiple,
+            required=False,
+            label=_("Enabled Tools"),
+        )
+
         # translate_language has choices "en", "fr"
         for field in ["translate_language"]:
             self.fields[field].widget = forms.Select(
@@ -376,6 +408,17 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "triggerOptionSave();",
                 },
             )
+
+        self.fields["agent_type"].widget = forms.Select(
+            choices=[
+                ("tool_calling_agent", _("Tool calling agent")),
+                ("code_agent", _("Coding agent")),
+            ],
+            attrs={
+                "class": "form-select form-select-sm",
+                "onchange": "triggerOptionSave();",
+            },
+        )
 
         # Text areas
         self.fields["chat_system_prompt"].widget = forms.Textarea(
@@ -396,7 +439,7 @@ class ChatOptionsForm(ModelForm):
 
         # Toggles
         for field in [
-            "chat_agent",
+            # "chat_agent",
         ]:
             self.fields[field].widget = forms.CheckboxInput(
                 attrs={

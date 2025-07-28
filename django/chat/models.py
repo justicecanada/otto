@@ -13,6 +13,7 @@ from django.utils.translation import gettext_lazy as _
 
 from data_fetcher.util import get_request
 from structlog import get_logger
+from structlog.contextvars import get_contextvars
 
 from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
@@ -60,6 +61,18 @@ class ChatManager(models.Manager):
         create_chat_data_source(kwargs["user"], instance)
         return instance
 
+    def get_current_chat(self):
+        request_context = get_contextvars()
+        chat_id = request_context.get("chat_id")
+        if not chat_id:
+            logger.error("No chat_id found in contextvars")
+            return None
+        try:
+            return self.get(id=chat_id)
+        except self.model.DoesNotExist:
+            logger.error(f"Chat with id {chat_id} does not exist")
+            return None
+
 
 class Chat(models.Model):
     """
@@ -93,6 +106,14 @@ class Chat(models.Model):
         if hasattr(self, "data_source") and self.data_source:
             self.data_source.delete()
         super().delete(*args, **kwargs)
+
+    def get_history_string(self, include_system_prompt=True):
+        from chat.llm import chat_history_to_prompt
+        from chat.utils import chat_to_history
+
+        return chat_history_to_prompt(
+            chat_to_history(self, include_system_prompt=include_system_prompt)
+        )
 
 
 class ChatOptionsManager(models.Manager):
@@ -169,11 +190,14 @@ QA_SCOPE_CHOICES = [
 ]
 
 QA_MODE_CHOICES = [
-    ("rag", _("Use top sources only (fast, cheap)")),
-    ("summarize", _("Full documents, separate answers ($)")),
-    ("summarize_combined", _("Full documents, combined answer ($)")),
+    ("rag", _("Top excerpts")),
+    ("summarize", _("Full documents")),
 ]
 
+QA_PROCESS_MODE_CHOICES = [
+    ("combined_docs", _("Combine")),
+    ("per_doc", _("Separate")),
+]
 QA_SOURCE_ORDER_CHOICES = [
     ("score", _("Relevance score")),
     ("reading_order", _("Reading order")),
@@ -212,7 +236,13 @@ class ChatOptions(models.Model):
         max_length=10, default="medium", choices=REASONING_EFFORT_CHOICES
     )
     chat_system_prompt = models.TextField(blank=True)
-    chat_agent = models.BooleanField(default=False)
+
+    # Agent-specific options
+    agent_model = models.CharField(max_length=255, default=DEFAULT_CHAT_MODEL_ID)
+    agent_tools = models.JSONField(default=list)
+    agent_type = models.CharField(
+        max_length=40, blank=True, default="tool_calling_agent"
+    )
 
     # Summarize-specific options
     summarize_model = models.CharField(
@@ -232,6 +262,9 @@ class ChatOptions(models.Model):
         related_name="qa_options",
     )
     qa_mode = models.CharField(max_length=20, default="rag", choices=QA_MODE_CHOICES)
+    qa_process_mode = models.CharField(
+        max_length=20, default="combined_docs", choices=QA_PROCESS_MODE_CHOICES
+    )
     qa_scope = models.CharField(max_length=20, default="all", choices=QA_SCOPE_CHOICES)
     qa_data_sources = models.ManyToManyField(
         "librarian.DataSource", related_name="qa_options"
@@ -248,10 +281,10 @@ class ChatOptions(models.Model):
         max_length=20, default="score", choices=QA_SOURCE_ORDER_CHOICES
     )
     qa_vector_ratio = models.FloatField(default=0.6)
-    qa_answer_mode = models.CharField(max_length=20, default="combined")
+    qa_granular_toggle = models.BooleanField(default=False)
+    qa_granularity = models.IntegerField(default=768)
     qa_prune = models.BooleanField(default=True)
     qa_rewrite = models.BooleanField(default=False)
-    qa_granularity = models.IntegerField(default=768)
 
     @property
     def qa_prompt_combined(self):
@@ -453,6 +486,7 @@ class Message(models.Model):
     chat = models.ForeignKey("Chat", on_delete=models.CASCADE, related_name="messages")
     text = models.TextField()
     date_created = models.DateTimeField(auto_now_add=True)
+
     # 0: user didn't click either like or dislike
     # 1: user clicked like
     # -1: user clicked dislike
@@ -462,14 +496,16 @@ class Message(models.Model):
     bot_name = models.CharField(max_length=255, blank=True)
     usd_cost = models.DecimalField(max_digits=10, decimal_places=4, null=True)
     pinned = models.BooleanField(default=False)
-    # Flexible JSON field for mode-specific details such as translation target language
-    details = models.JSONField(default=dict)
     mode = models.CharField(max_length=255, default="chat")
     parent = models.OneToOneField(
         "self", on_delete=models.SET_NULL, null=True, related_name="child"
     )
     claims_list = models.JSONField(default=list, blank=True)
     seconds_elapsed = models.FloatField(default=0.0)
+
+    # Secondary information for the message e.g. tool calls and reasoning
+    # Can be displayed in the UI but is generally not included in the chat history for LLM to read
+    details = models.JSONField(default=dict)
 
     def __str__(self):
         return f"{'(BOT) ' if self.is_bot else ''}msg {self.id}: {self.text}"
@@ -493,6 +529,35 @@ class Message(models.Model):
     @property
     def display_cost(self):
         return display_cad_cost(self.usd_cost)
+
+    @property
+    def content_string(self):
+        from chat.utils import is_text_to_summarize
+
+        if not self.text or self.text.strip() == "":
+            # Try to get filenames from files
+            filenames = []
+            if hasattr(self, "files") and self.files.exists():
+                filenames = [f.filename for f in self.files.all()]
+                file_ids = [f.id for f in self.files.all()]
+            if filenames:
+                if self.is_bot:
+                    content = _("Bot responded with these files: ") + ", ".join(
+                        f"{filename} (ID: {file_id})"
+                        for filename, file_id in zip(filenames, file_ids)
+                    )
+                else:
+                    content = _("User uploaded these files: ") + ", ".join(
+                        f"{filename} (ID: {file_id})"
+                        for filename, file_id in zip(filenames, file_ids)
+                    )
+            else:
+                content = _("(empty message)")
+        elif is_text_to_summarize(self):
+            content = _("<text to summarize...>")
+        else:
+            content = self.text
+        return content
 
     def calculate_costs(self):
         set_costs(self)

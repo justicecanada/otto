@@ -35,15 +35,40 @@
     </div>
   </div>
 
+  {% include "chat/components/options_qa_scope.html" %}
+
   <div id="qa-search-mode-outer">
     <div class="px-3 mt-2">
       <label class="col-form-label col-form-label-sm"
-             for="{{ options_form.qa_mode.auto_id }}">{% trans "Search mode" %}</label>
+             for="{{ options_form.qa_mode.auto_id }}">{% trans "Excerpts or full documents" %}</label>
+      <button class="p-0 border-0 bg-transparent"
+              disabled
+              data-bs-toggle="tooltip"
+              data-bs-html="true"
+              data-bs-title='{% trans "<strong>Top excerpts:</strong> Use most relevant excerpts from selected documents. <em>Fast, cheap.</em><br><br><strong>Full documents:</strong> Use full text of selected documents. <em>More comprehensive, but slower and more expensive.</em>" %}'
+              id="rag_info">
+        <i class="bi-info-circle-fill text-primary small"
+           style="vertical-align: middle"></i>
+      </button>
     </div>
     <div class="px-3">{{ options_form.qa_mode }}</div>
   </div>
 
-  {% include "chat/components/options_qa_scope.html" %}
+  <div id="qa-answer-type-outer">
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.qa_process_mode.auto_id }}">{% trans "Combine or separate documents" %}</label>
+      <button class="p-0 border-0 bg-transparent"
+              disabled
+              data-bs-toggle="tooltip"
+              data-bs-html="true"
+              id="comb_sep_info">
+        <i class="bi-info-circle-fill text-primary small"
+           style="vertical-align: middle"></i>
+      </button>
+    </div>
+    <div class="px-3">{{ options_form.qa_process_mode }}</div>
+  </div>
 
   <div id="qa-model-outer">
     <div class="px-3 mt-2">
@@ -67,7 +92,7 @@
   {{ options_form.qa_post_instructions }}
   {{ options_form.qa_topk }}
   {{ options_form.qa_vector_ratio }}
-  {{ options_form.qa_answer_mode }}
+  {{ options_form.qa_granular_toggle }}
   {{ options_form.qa_source_order }}
   {{ options_form.qa_prune }}
   {{ options_form.qa_rewrite }}
