@@ -16,7 +16,7 @@ class TranslateFileTool(Tool):
     Returns the ID of the created file.
     """
 
-    name = "translate_files"
+    name = "translate_file"
     description = (
         "Translate a file using Azure Translation API."
         "Creates a ChatFile in the response message."

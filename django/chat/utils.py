@@ -883,3 +883,14 @@ async def async_generator_from_sync(sync_gen):
         if item is sentinel:
             break
         yield item
+
+
+async def final_response_helper(stream):
+    content = b""
+    async for chunk in stream:
+        content = chunk
+    return content
+
+
+def final_response(stream):
+    return asyncio.run(final_response_helper(stream))

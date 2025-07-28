@@ -9,7 +9,7 @@ from smolagents import VisitWebpageTool, WebSearchTool
 from .chat_history_retriever import ChatHistoryTool
 from .file_tools import FileReaderTool
 from .law_retriever import LawRetrieverTool
-from .summarize_tools import SummarizeTool
+from .summarize_tools import SummarizeFileTool
 from .translate_tools import TranslateFileTool
 
 # A dictionary of all available tools. The keys are used to store the enabled tools in
@@ -21,14 +21,14 @@ from .translate_tools import TranslateFileTool
 AVAILABLE_TOOLS = {
     "law_retriever": {
         "class": LawRetrieverTool,
-        "name": _("Law retriever"),
+        "name": _("Legislation search"),
         "init_params": {},
     },
-    # "summarize_text": {
-    #     "class": SummarizeTool,
-    #     "name": _("Summarization"),
-    #     "init_params": {"chat_id": None},
-    # },
+    "summarize_file": {
+        "class": SummarizeFileTool,
+        "name": _("Summarize file"),
+        "init_params": {"chat_id": None},
+    },
     "chat_history": {
         "class": ChatHistoryTool,
         "name": _("Chat history"),
@@ -36,7 +36,7 @@ AVAILABLE_TOOLS = {
     },
     "file_reader": {
         "class": FileReaderTool,
-        "name": _("File reader"),
+        "name": _("Read file"),
         "init_params": {"user_id": None},
     },
     "translate_file": {
