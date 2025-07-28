@@ -92,4 +92,14 @@ document.addEventListener('DOMContentLoaded', () => {
       hideList();
     }
   });
+
+  // Hide dropdown when focus leaves btn or list (works for tabbing forward and backward)
+  [btn, list].forEach(el => {
+    el.addEventListener('focusout', (e) => {
+      const next = e.relatedTarget;
+      if (!next || (next !== btn && next !== list && !list.contains(next))) {
+        hideList();
+      }
+    });
+  });
 });

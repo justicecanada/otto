@@ -610,8 +610,17 @@ svg.driver-overlay {
 
 #top-nav-app-dropdown {
   position: absolute;
-  top: 7px;
+  top: 9px;
   z-index: 11;
+}
+
+#top-nav-app-dropdown button>i {
+  opacity: 0.75;
+}
+
+#top-nav-app-dropdown button:focus-visible>i {
+  opacity: 1;
+  color: white !important;
 }
 
 #top-nav-app-list {
