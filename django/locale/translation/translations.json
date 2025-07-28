@@ -4402,5 +4402,157 @@
     "Enlarged": {
         "fr": "",
         "fr_auto": "Agrandi"
+    },
+    "Use full documents ($)": {
+        "fr": "",
+        "fr_auto": "Utiliser les documents complets ($)"
+    },
+    "Documents together": {
+        "fr": "",
+        "fr_auto": "Documents ensemble"
+    },
+    "Each document separately": {
+        "fr": "",
+        "fr_auto": "Chaque document séparément"
+    },
+    "Sorry, I couldn't find any information about that in this document.": {
+        "fr": "",
+        "fr_auto": "Désolé, je n’ai pas trouvé d’information à ce sujet dans ce document."
+    },
+    "Answer mode": {
+        "fr": "",
+        "fr_auto": "Mode réponse"
+    },
+    "Search filters": {
+        "fr": "",
+        "fr_auto": "Filtres de recherche"
+    },
+    "Select \"granular answers\" to split retrieved sources into groups and get separate answers for each group.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez « réponses granulaires » pour diviser les sources récupérées en groupes et obtenir des réponses distinctes pour chaque groupe."
+    },
+    "Single answers": {
+        "fr": "",
+        "fr_auto": "Réponses uniques"
+    },
+    "\"Coarse\" means a small number of groups, each containing a large number of sources.": {
+        "fr": "",
+        "fr_auto": "« Grossier » désigne un petit nombre de groupes, chacun contenant un grand nombre de sources."
+    },
+    "Each document separately ($)": {
+        "fr": "",
+        "fr_auto": "Chaque document séparément ($)"
+    },
+    "Granular answers ($)": {
+        "fr": "",
+        "fr_auto": "Réponses granulaires ($)"
+    },
+    "Top sources only (fast, cheap)": {
+        "fr": "",
+        "fr_auto": "Principales sources seulement (rapide, bon marché)"
+    },
+    "Full documents ($)": {
+        "fr": "",
+        "fr_auto": "Documents complets ($)"
+    },
+    "Pool documents together": {
+        "fr": "",
+        "fr_auto": "Regrouper les documents"
+    },
+    "Top sources: Find the most relevant excerpts from selected documents. &#010; Full documents: Use the entire content of selected documents.": {
+        "fr": "",
+        "fr_auto": "Principales sources : Trouvez les extraits les plus pertinents de certains documents. Documents complets : Utilisez le contenu complet des documents sélectionnés."
+    },
+    "Filter sources": {
+        "fr": "",
+        "fr_auto": "Filtrer les sources"
+    },
+    "Full documents: Use the entire content of selected documents.": {
+        "fr": "",
+        "fr_auto": "Documents complets : Utilisez le contenu complet des documents sélectionnés."
+    },
+    "Top sources: Find the most relevant excerpts from selected documents.": {
+        "fr": "",
+        "fr_auto": "Principales sources : Trouvez les extraits les plus pertinents de certains documents."
+    },
+    "Top sources: Find the most relevant excerpts from selected documents.<br><br>Full documents: Use the entire content of selected documents.": {
+        "fr": "",
+        "fr_auto": "Principales sources : Trouvez les extraits les plus pertinents de certains documents. <br><br>Documents complets : Utilisez le contenu complet des documents sélectionnés."
+    },
+    "Top excerpts: Use most relevant excerpts from selected documents.<br><br>Full documents: Use full text of selected documents.": {
+        "fr": "",
+        "fr_auto": "Extraits les plus pertinents : Utilisez les extraits les plus pertinents de certains documents. <br><br>Documents complets : Utilisez le texte intégral des documents sélectionnés."
+    },
+    "Processing mode": {
+        "fr": "",
+        "fr_auto": "Mode de traitement"
+    },
+    "Combined: search once across all selected documents and write a single answer. <em>May not include all documents. Cheap, more succint.</em>": {
+        "fr": "",
+        "fr_auto": "Combiné : recherchez une fois dans tous les documents sélectionnés et rédigez une seule réponse. <em>Peut ne pas inclure tous les documents. Bon marché, plus succinct.</em>"
+    },
+    "\n                        Combined: search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>\n                        \n                        Separate: search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em>\n                        ": {
+        "fr": "",
+        "fr_auto": "\nCombiné : recherche une fois dans tous les documents sélectionnés avant la génération des réponses. <em>Peut ne pas inclure tous les documents. Bon marché, plus succinct.</em>\n                        \nSéparer : rechercher chaque document sélectionné individuellement et générer des réponses pour chacun. <em>Comprend tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus coûteux.</em>\n                        "
+    },
+    "\n                        Combined: read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>\n\n                        Separate: read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive.</em>\n                        ": {
+        "fr": "",
+        "fr_auto": "\nCombiné : lire tous les documents sélectionnés ensemble, rédiger une seule réponse. <em>Essentiel pour comparer des documents. Généralement moins détaillé.</em>\n\nSéparer : lisez chaque document sélectionné individuellement et rédigez une réponse distincte pour chacun. <em>Généralement plus détaillé. Coûteux.</em>\n                        "
+    },
+    "\n                        Combine: search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>\n                        <br><br>\n                        Separate: search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em>\n                        ": {
+        "fr": "",
+        "fr_auto": "\nCombiner : rechercher une fois dans tous les documents sélectionnés avant de générer la réponse. <em>Peut ne pas inclure tous les documents. Bon marché, plus succinct.</em>\n                        <br><br>\n                        Séparer : rechercher chaque document sélectionné individuellement et générer des réponses pour chacun. <em>Comprend tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus coûteux.</em>\n                        "
+    },
+    "\n                        Combine: read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>\n                        <br><br>\n                        Separate: read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive.</em>\n                        ": {
+        "fr": "",
+        "fr_auto": "\nCombiner : lire tous les documents sélectionnés ensemble, rédiger une seule réponse. <em>Essentiel pour comparer des documents. Généralement moins détaillé.</em>\n                        <br><br>\n                        Séparer : lisez chaque document sélectionné individuellement et rédigez une réponse distincte pour chacun. <em>Généralement plus détaillé. Coûteux.</em>\n                        "
+    },
+    "Top excerpts": {
+        "fr": "Extraits les plus pertinents",
+        "fr_auto": "Extraits les plus populaires"
+    },
+    "Full documents": {
+        "fr": "",
+        "fr_auto": "Documents complets"
+    },
+    "Combine": {
+        "fr": "",
+        "fr_auto": "Moissonneuse-batteuse"
+    },
+    "Separate": {
+        "fr": "",
+        "fr_auto": "Séparer"
+    },
+    "Excerpts or full documents": {
+        "fr": "",
+        "fr_auto": "Extraits ou documents complets"
+    },
+    "Top excerpts: Use most relevant excerpts from selected documents. <em>Fast, cheap.</em><br><br>Full documents: Use full text of selected documents. <em>More comprehensive, but slower and more expensive.</em>": {
+        "fr": "",
+        "fr_auto": "Extraits les plus pertinents : Utilisez les extraits les plus pertinents de certains documents. <em>Rapide, pas cher.</em><br><br>Documents complets : Utilisez le texte intégral des documents sélectionnés. <em>Plus complet, mais plus lent et plus coûteux.</em>"
+    },
+    "Combine or separate documents": {
+        "fr": "",
+        "fr_auto": "Combiner ou séparer des documents"
+    },
+    "Select \"granular answers\" to split retrieved document excerpts into groups, and get separate answers for each group.": {
+        "fr": "",
+        "fr_auto": "Sélectionnez « réponses granulaires » pour diviser les extraits de documents récupérés en groupes et obtenir des réponses distinctes pour chaque groupe."
+    },
+    "\"Coarse\" means a small number of groups, each containing a large number of excerpts.": {
+        "fr": "",
+        "fr_auto": "« Grossier » désigne un petit nombre de groupes, chacun contenant un grand nombre d’extraits."
+    },
+    "<strong>Top excerpts:</strong> Use most relevant excerpts from selected documents. <em>Fast, cheap.</em><br><br><strong>Full documents:</strong> Use full text of selected documents. <em>More comprehensive, but slower and more expensive.</em>": {
+        "fr": "<strong>Extraits les plus pertinents :</strong> Utilisez les extraits les plus pertinents de certains documents. <em>Rapide, pas cher.</em><br><br><strong>Documents complets :</strong> Utilisez le texte intégral des documents sélectionnés. <em>Plus complet, mais plus lent et plus coûteux.</em>",
+        "fr_auto": "<strong>Extraits les plus populaires :</strong> Utilisez les extraits les plus pertinents de certains documents. <em>Rapide, pas cher.</em><br><br><strong>Documents complets :</strong> Utilisez le texte intégral des documents sélectionnés. <em>Plus complet, mais plus lent et plus coûteux.</em>"
+    },
+    "\n                        <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>\n                        <br><br>\n                        <strong>Separate:</strong> Search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em>\n                        ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Combiner :</strong> Effectuez une recherche dans tous les documents sélectionnés avant de générer les réponses. <em>Peut ne pas inclure tous les documents. Bon marché, plus succinct.</em>\n                        <br><br>\n                        <strong>Séparer :</strong> Faites une recherche individuelle dans chaque document sélectionné et générez des réponses pour chacun. <em>Comprend tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus coûteux.</em>\n                        "
+    },
+    "\n                        <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>\n                        <br><br>\n                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive./em>\n                        ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Combiner :</strong> Lisez tous les documents sélectionnés ensemble, rédigez une seule réponse. <em>Essentiel pour comparer des documents. Généralement moins détaillé.</em>\n                        <br><br>\n                        <strong>Séparer :</strong> Lisez chaque document sélectionné individuellement et rédigez une réponse distincte pour chacun. <em>Généralement plus détaillé. Coûteux./em>\n                        "
     }
 }

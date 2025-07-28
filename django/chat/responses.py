@@ -546,199 +546,92 @@ def qa_response(chat, response_message, switch_mode=False):
             content_type="text/event-stream",
         )
 
+    if not filter_documents:
+        filter_documents = Document.objects.filter(
+            data_source__library=chat.options.qa_library
+        )
+
     # Summarize mode
-    if chat.options.qa_mode in ["summarize", "summarize_combined"]:
-        if not filter_documents:
-            filter_documents = Document.objects.filter(
-                data_source__library=chat.options.qa_library
-            )
-        document_titles = [document.name for document in filter_documents]
-        if chat.options.qa_mode == "summarize_combined":
-            # Combine all documents into one text, including the titles
-            combined_documents = (
-                "<document>\n"
-                + "\n</document>\n<document>\n".join(
-                    [
-                        f"# {title}\n---\n{document.extracted_text}"
-                        for title, document in zip(document_titles, filter_documents)
-                    ]
-                )
-                + "\n</document>"
-            )
-            response_replacer = llm.tree_summarize(
-                context=combined_documents,
-                query=user_message.text,
-                template=chat.options.qa_prompt_combined,
-            )
-        else:
-            # Use summarization on each of the documents
-            summary_responses = [
-                llm.tree_summarize(
-                    context=document.extracted_text,
-                    query=user_message.text,
-                    template=chat.options.qa_prompt_combined,
-                )
-                for document in filter_documents
-                if not cache.get(f"stop_response_{response_message.id}", False)
-            ]
-            title_batches = create_batches(
-                document_titles, batch_size
-            )  # TODO: test batch size
-            response_batches = create_batches(summary_responses, batch_size)
-            batch_generators = [
-                combine_response_replacers(
-                    batch_responses,
-                    batch_titles,
-                )
-                for batch_responses, batch_titles in zip(
-                    response_batches, title_batches
-                )
-            ]
-            response_replacer = combine_batch_generators(
-                batch_generators,
-            )
+    if chat.options.qa_mode != "rag":
         response_generator = None
         source_groups = None
+        response_replacer = full_doc_answer(
+            chat, response_message, llm, filter_documents
+        )
 
     else:
-        vector_store_table = chat.options.qa_library.uuid_hex
-        top_k = chat.options.qa_topk
-
-        # Don't include the top-level nodes (documents); they don't contain text
-        filters = MetadataFilters(
-            filters=[
-                MetadataFilter(
-                    key="node_type",
-                    value="document",
-                    operator="!=",
-                ),
-            ]
-        )
-        if qa_scope != "all":
-            filters.filters.append(
-                MetadataFilter(
-                    key="doc_id",
-                    value=[document.uuid_hex for document in filter_documents],
-                    operator="in",
-                )
+        if chat.options.qa_process_mode == "combined_docs":
+            answer_components = rag_answer(
+                chat, response_message, llm, filter_documents, qa_scope
             )
-        retriever = llm.get_retriever(
-            vector_store_table,
-            filters,
-            top_k,
-            chat.options.qa_vector_ratio,
-        )
-        synthesizer = llm.get_response_synthesizer(chat.options.qa_prompt_combined)
-        input = response_message.parent.text
-        source_nodes = retriever.retrieve(input)
-
-        # For debugging: Shows how nodes are presented to the LLM
-        # from llama_index.core.schema import MetadataMode
-
-        # for node in source_nodes:
-        #     print(node.get_content(metadata_mode=MetadataMode.LLM))
-
-        if len(source_nodes) == 0:
-            response_str = _(
-                "Sorry, I couldn't find any information about that. Try selecting a different library or folder."
-            )
-            return StreamingHttpResponse(
-                # Although there are no LLM costs, there is still a query embedding cost
-                streaming_content=htmx_stream(
-                    chat,
-                    response_message.id,
-                    llm,
-                    response_str=response_str,
-                    switch_mode=switch_mode,
-                ),
-                content_type="text/event-stream",
-            )
-
-        # If we're stitching sources together into groups...
-        if chat.options.qa_granularity > 768:
-            # Group nodes from the same doc together,
-            # and ensure nodes WITHIN each doc are in reading order.
-            # Need to do this if granularity is set to group multiple nodes together
-            # AND/OR if "reading order" is enabled
-
-            doc_groups = group_sources_into_docs(source_nodes)
-
-            if chat.options.qa_source_order == "reading_order":
-                # Reading order requires keeping docs together, so
-                # sort documents by maximum node score within doc
-                # before stitching nodes together
-                doc_groups = sort_by_max_score(doc_groups)
-
-            # Stitching
+            response_replacer = answer_components["response_replacer"]
+            response_generator = answer_components["response_generator"]
+            source_groups = answer_components["source_groups"]
+            batch_generators = answer_components["batch_generators"]
+        else:
             source_groups = []
-            for doc in doc_groups:
-                current_source_group = []
-                for next_source in doc:
-                    if (
-                        num_tokens_from_string(
-                            "\n\n".join(
-                                [x.text for x in current_source_group]
-                                + [next_source.text]
-                            )
+            doc_responses = []
+            document_titles = [document.name for document in filter_documents]
+            title_batches = create_batches(document_titles, batch_size)
+            for document in filter_documents:
+                answer_components = rag_answer(
+                    chat, response_message, llm, [document], qa_scope
+                )
+
+                if answer_components:
+                    doc_response_replacer = answer_components["response_replacer"]
+                    doc_response_generator = answer_components["response_generator"]
+                    doc_source_groups = answer_components["source_groups"]
+                    doc_batch_generators = answer_components["batch_generators"]
+                    doc_responses.append(
+                        doc_response_replacer
+                        if chat.options.qa_granular_toggle
+                        else doc_response_generator
+                    )
+
+                    source_groups.extend(doc_source_groups)
+                    batch_generators.extend(doc_batch_generators)
+
+                else:
+                    response_str = _(
+                        "Sorry, I couldn't find any information about that in this document."
+                    )
+                    doc_responses.append(
+                        stream_to_replacer(
+                            [f"\n###### *{document.name}*\n{response_str}"]
                         )
-                        <= chat.options.qa_granularity
-                    ):
-                        current_source_group.append(next_source)
-                    else:
-                        source_groups.append(current_source_group)
-                        current_source_group = [next_source]  # Start a new group
+                    )
 
-                # Add any remaining sources in current_source_group
-                if current_source_group:
-                    source_groups.append(current_source_group)
+            if len(source_groups) > 0:
+                response_batches = create_batches(doc_responses, batch_size)
+                if not batch_generators:
+                    batch_generators = [
+                        combine_response_generators(
+                            batch_responses, batch_titles, input, llm, prune=False
+                        )
+                        for batch_responses, batch_titles in zip(
+                            response_batches, title_batches
+                        )
+                    ]
 
-            # If sorting by score, sort groups by max score within each one
-            # (without keeping documents together across groups)
-            if chat.options.qa_source_order == "score":
-                source_groups = sort_by_max_score(source_groups)
+                response_replacer = combine_batch_generators(batch_generators)
+                response_generator = None
 
-        else:
-            if chat.options.qa_source_order == "reading_order":
-                # If we're not stitching anything, then we only need to group docs
-                # if we're doing it in reading order
-                doc_groups = group_sources_into_docs(source_nodes)
-                doc_groups = sort_by_max_score(doc_groups)
-
-                # Flatten newly-sorted source nodes
-                source_nodes = [node for doc in doc_groups for node in doc]
-
-            source_groups = [[source] for source in source_nodes]
-        if chat.options.qa_answer_mode != "per-source":
-            response = synthesizer.synthesize(query=input, nodes=source_nodes)
-            response_generator = response.response_gen
-            response_replacer = None
-
-        else:
-            responses = [
-                synthesizer.synthesize(query=input, nodes=sources).response_gen
-                for sources in source_groups
-                if not cache.get(f"stop_response_{response_message.id}", False)
-            ]
-            titles = get_source_titles([sources[0] for sources in source_groups])
-            title_batches = create_batches(titles, batch_size)
-            response_batches = create_batches(responses, batch_size)
-            batch_generators = [
-                combine_response_generators(
-                    batch_responses,
-                    batch_titles,
-                    input,
-                    llm,
-                    chat.options.qa_prune,
-                )
-                for batch_responses, batch_titles in zip(
-                    response_batches, title_batches
-                )
-            ]
-            response_replacer = combine_batch_generators(
-                batch_generators,
-                pruning=chat.options.qa_prune,
-            )
-            response_generator = None
+    if source_groups == []:
+        response_str = _(
+            "Sorry, I couldn't find any information about that. Try selecting a different library or folder."
+        )
+        return StreamingHttpResponse(
+            # Although there are no LLM costs, there is still a query embedding cost
+            streaming_content=htmx_stream(
+                chat,
+                response_message.id,
+                llm,
+                response_str=response_str,
+                switch_mode=switch_mode,
+            ),
+            content_type="text/event-stream",
+        )
 
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
@@ -753,6 +646,194 @@ def qa_response(chat, response_message, switch_mode=False):
         ),
         content_type="text/event-stream",
     )
+
+
+def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
+    template = chat.options.qa_prompt_combined
+    query = response_message.parent.text
+    document_titles = [document.name for document in documents]
+
+    doc_responses = [
+        llm.tree_summarize(context=doc, query=query, template=template)
+        for doc in documents
+        if not cache.get(f"stop_response_{response_message.id}", False)
+    ]
+
+    if chat.options.qa_process_mode == "combined_docs":
+        # Combine all documents into one text, including the titles
+        combined_documents = (
+            "<document>\n"
+            + "\n</document>\n<document>\n".join(
+                [
+                    f"# {title}\n---\n{document.extracted_text}"
+                    for title, document in zip(document_titles, documents)
+                ]
+            )
+            + "\n</document>"
+        )
+        response_replacer = llm.tree_summarize(
+            context=combined_documents,
+            query=query,
+            template=chat.options.qa_prompt_combined,
+        )
+    else:
+        title_batches = create_batches(document_titles, batch_size)
+        doc_responses = [
+            llm.tree_summarize(
+                context=document.extracted_text,
+                query=query,
+                template=chat.options.qa_prompt_combined,
+            )
+            for document in documents
+            if not cache.get(f"stop_response_{response_message.id}", False)
+        ]
+        response_batches = create_batches(doc_responses, batch_size)
+        batch_generators = [
+            combine_response_replacers(
+                batch_responses,
+                batch_titles,
+            )
+            for batch_responses, batch_titles in zip(response_batches, title_batches)
+        ]
+        response_replacer = combine_batch_generators(batch_generators)
+
+    return response_replacer
+
+
+def rag_answer(chat, response_message, llm, documents, qa_scope, batch_size=5):
+    batch_generators = []
+    source_groups = []
+
+    vector_store_table = chat.options.qa_library.uuid_hex
+    top_k = chat.options.qa_topk
+
+    # Don't include the top-level nodes (documents); they don't contain text
+    filters = MetadataFilters(
+        filters=[
+            MetadataFilter(
+                key="node_type",
+                value="document",
+                operator="!=",
+            ),
+        ]
+    )
+    if qa_scope != "all" or chat.options.qa_process_mode == "per_doc":
+        filters.filters.append(
+            MetadataFilter(
+                key="doc_id",
+                value=[document.uuid_hex for document in documents],
+                operator="in",
+            )
+        )
+    retriever = llm.get_retriever(
+        vector_store_table,
+        filters,
+        top_k,
+        chat.options.qa_vector_ratio,
+    )
+    synthesizer = llm.get_response_synthesizer(chat.options.qa_prompt_combined)
+    input = response_message.parent.text
+    source_nodes = retriever.retrieve(input)
+
+    # For debugging: Shows how nodes are presented to the LLM
+    # from llama_index.core.schema import MetadataMode
+
+    # for node in source_nodes:
+    #     print(node.get_content(metadata_mode=MetadataMode.LLM))
+
+    if len(source_nodes) == 0:
+        return
+
+    # If we're stitching sources together into groups...
+    if chat.options.qa_granular_toggle and chat.options.qa_granularity > 768:
+        # Group nodes from the same doc together,
+        # and ensure nodes WITHIN each doc are in reading order.
+        # Need to do this if granularity is set to group multiple nodes together
+        # AND/OR if "reading order" is enabled
+
+        doc_groups = group_sources_into_docs(source_nodes)
+
+        if chat.options.qa_source_order == "reading_order":
+            # Reading order requires keeping docs together, so
+            # sort documents by maximum node score within doc
+            # before stitching nodes together
+            doc_groups = sort_by_max_score(doc_groups)
+
+        # Stitching
+        for doc in doc_groups:
+            current_source_group = []
+            for next_source in doc:
+                if num_tokens_from_string(
+                    "\n\n".join(
+                        [x.text for x in current_source_group] + [next_source.text]
+                    ),
+                    "cl100k_base",
+                ) <= max(
+                    num_tokens_from_string(next_source.text, "cl100k_base"),
+                    chat.options.qa_granularity,
+                ):
+                    current_source_group.append(next_source)
+                else:
+                    source_groups.append(current_source_group)
+                    current_source_group = [next_source]  # Start a new group
+
+            # Add any remaining sources in current_source_group
+            if current_source_group:
+                source_groups.append(current_source_group)
+
+        # If sorting by score, sort groups by max score within each one
+        # (without keeping documents together across groups)
+        if chat.options.qa_source_order == "score":
+            source_groups = sort_by_max_score(source_groups)
+
+    else:
+        if chat.options.qa_source_order == "reading_order":
+            # If we're not stitching anything, then we only need to group docs
+            # if we're doing it in reading order
+            doc_groups = group_sources_into_docs(source_nodes)
+            doc_groups = sort_by_max_score(doc_groups)
+
+            # Flatten newly-sorted source nodes
+            source_nodes = [node for doc in doc_groups for node in doc]
+
+        source_groups = [[source] for source in source_nodes]
+
+    if not chat.options.qa_granular_toggle:
+        response = synthesizer.synthesize(query=input, nodes=source_nodes)
+        response_generator = response.response_gen
+        response_replacer = None
+
+    else:
+        responses = [
+            synthesizer.synthesize(query=input, nodes=sources).response_gen
+            for sources in source_groups
+            if not cache.get(f"stop_response_{response_message.id}", False)
+        ]
+        titles = get_source_titles([sources[0] for sources in source_groups])
+        title_batches = create_batches(titles, batch_size)
+        response_batches = create_batches(responses, batch_size)
+        batch_generators = [
+            combine_response_generators(
+                batch_responses,
+                batch_titles,
+                input,
+                llm,
+                chat.options.qa_prune,
+            )
+            for batch_responses, batch_titles in zip(response_batches, title_batches)
+        ]
+        response_replacer = combine_batch_generators(
+            batch_generators,
+            pruning=chat.options.qa_prune,
+        )
+        response_generator = None
+
+    return {
+        "response_replacer": response_replacer,
+        "response_generator": response_generator,
+        "source_groups": source_groups,
+        "batch_generators": batch_generators,
+    }
 
 
 def error_response(chat, response_message, error_message=None):

@@ -4,6 +4,7 @@ import json
 import re
 import sys
 import uuid
+from collections.abc import Iterable
 from decimal import Decimal
 from itertools import groupby
 from typing import AsyncGenerator, Generator
@@ -90,11 +91,13 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
     target_options.save()
 
 
-def num_tokens_from_string(string: str, model: str = "gpt-4") -> int:
+def num_tokens_from_string(
+    string: str, model: str = "gpt-4", enc_type: str = "o200k_base"
+) -> int:
     """Returns the number of tokens in a text string."""
     string = string or ""
     try:
-        encoding = tiktoken.get_encoding("o200k_base")
+        encoding = tiktoken.get_encoding(enc_type)
         num_tokens = len(encoding.encode(string))
     except:
         # Estimate the number of tokens using a simple heuristic (1 token = 4 chars)
@@ -349,6 +352,10 @@ async def htmx_stream(
         message.text = full_message
         finished_at = timezone.now()
         message.seconds_elapsed = (finished_at - message.date_created).total_seconds()
+        message.details = {
+            "is_granular": chat.options.qa_granular_toggle,
+            "is_per_doc": chat.options.qa_process_mode == "per_doc",
+        }
         await sync_to_async(message.save)()
 
         if is_untitled_chat:
@@ -490,13 +497,19 @@ def create_batches(iterable, n=1):
 
 async def combine_response_generators(generators, titles, query, llm, prune=False):
     streams = [{"stream": stream, "status": "running"} for stream in generators]
+    # formatted_titles = [f"\n###### *{title}*\n" for title in titles]
+    partial_streams = ["" for _ in titles]
     final_streams = [f"\n###### *{title}*\n" for title in titles]
     while any([stream["status"] == "running" for stream in streams]):
         for i, stream in enumerate(streams):
             try:
                 if stream["status"] == "running":
-                    final_streams[i] += next(stream["stream"])
-            except StopIteration:
+                    if isinstance(stream["stream"], Iterable):
+                        final_streams[i] += next(stream["stream"])
+                    else:
+                        partial_streams[i] = await stream["stream"].__anext__()
+                        final_streams[i] = partial_streams[i]
+            except (StopIteration, StopAsyncIteration):
                 stream["status"] = "stopped"
                 if prune:
                     tmpl = PromptTemplate(QA_PRUNING_INSTRUCTIONS).format(
