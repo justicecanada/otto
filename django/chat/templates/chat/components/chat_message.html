@@ -39,8 +39,6 @@
         <div class="message-text">{% include "chat/components/streaming_response.html" %}</div>
       {% elif file_upload %}
         <div class="message-text">{% include "chat/components/file_upload_progress.html" %}</div>
-      {% elif message.num_files %}
-        <div class="message-text">{% include "chat/components/message_files.html" %}</div>
       {% elif message.is_bot %}
         <div class="message-text">
           <div class="markdown-text" data-md="{{ message.json }}">
@@ -55,6 +53,9 @@
       {% else %}
         {# There cannot be any space between div.message-text and its contents (whitespace: pre-wrap) #}
         <div class="message-text">{{ message.text|escape }}</div>
+      {% endif %}
+      {% if message.num_files %}
+        <div class="message-text">{% include "chat/components/message_files.html" %}</div>
       {% endif %}
       <div class="row">
         <div class="message-show-all col mt-2" style="line-height:1.75rem">

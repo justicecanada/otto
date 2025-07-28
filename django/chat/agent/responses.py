@@ -34,7 +34,7 @@ from chat.utils import async_generator_from_sync, htmx_stream
 from .tools.tool_registry import AVAILABLE_TOOLS
 
 
-def otto_agent(chat):
+def otto_agent(chat, response_message):
 
     model_id = "azure/" + chat.options.agent_model
     model = LiteLLMModel(
@@ -55,6 +55,8 @@ def otto_agent(chat):
                     init_params["chat_id"] = chat.id
                 if "user_id" in init_params:
                     init_params["user_id"] = chat.user.id
+                if "response_message_id" in init_params:
+                    init_params["response_message_id"] = response_message.id
                 enabled_tools.append(tool_class(**init_params))
 
     if chat.options.agent_type == "code_agent":
@@ -157,7 +159,7 @@ def agent_response(chat, response_message):
 
     llm = OttoLLM()
 
-    agent = otto_agent(chat)
+    agent = otto_agent(chat, response_message)
 
     sync_gen = agent_response_generator(agent, user_message)
     async_gen = async_generator_from_sync(sync_gen)

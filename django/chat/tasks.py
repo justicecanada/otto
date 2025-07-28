@@ -31,7 +31,7 @@ def azure_delete(path):
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def translate_file(file_path, target_language):
+def translate_file(file_path, target_language, response_message_id=None):
     if target_language == "fr":
         target_language = "fr-ca"
     input_file_path = None
@@ -75,9 +75,10 @@ def translate_file(file_path, target_language):
         Cost.objects.new(cost_type="translate-file", count=usage)
 
         request_context = get_contextvars()
-        out_message = Message.objects.get(id=request_context.get("message_id"))
+        out_message = Message.objects.get(
+            id=response_message_id or request_context.get("message_id")
+        )
         for document in result:
-
             if document.status == "Succeeded":
                 new_file = ChatFile.objects.create(
                     message=out_message,
@@ -87,10 +88,9 @@ def translate_file(file_path, target_language):
                 logger.info(f"Translation succeeded for {new_file.filename}")
                 with azure_storage.open(output_file_path) as f:
                     new_file.saved_file.file.save(output_file_name, f)
-            else:
+            elif document.error:
                 logger.error("Translation failed: ", error=document.error.message)
                 raise Exception(f"Translation failed:\n{document.error.message}")
-
         logger.info(f"Translation processed for {file_path} at {datetime.now()}")
     except SoftTimeLimitExceeded:
         logger.error(f"Translation task timed out for {file_path}")
