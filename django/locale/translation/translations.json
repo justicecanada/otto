@@ -4634,5 +4634,17 @@
     "File translation failed.": {
         "fr": "",
         "fr_auto": "Échec de la traduction des fichiers."
+    },
+    "Legislation search": {
+        "fr": "",
+        "fr_auto": "Recherche de législation"
+    },
+    "Summarize file": {
+        "fr": "",
+        "fr_auto": "Résumer le fichier"
+    },
+    "Read file": {
+        "fr": "",
+        "fr_auto": "Lire le fichier"
     }
 }
