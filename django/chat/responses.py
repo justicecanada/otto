@@ -15,7 +15,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.agent.responses import agent_response
+from chat.agent.smolagents import agent_response
 from chat.llm import OttoLLM
 from chat.models import Message
 from chat.tasks import translate_file

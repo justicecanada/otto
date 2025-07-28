@@ -1,11 +1,9 @@
-import time
-
 from django.core.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 
 from smolagents import Tool
 
-from chat.models import Chat, ChatFile, Message
+from chat.models import ChatFile
 from chat.tasks import translate_file
 from otto.models import User
 

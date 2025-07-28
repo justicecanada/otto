@@ -5,7 +5,6 @@ from smolagents import Tool
 
 from chat.llm import OttoLLM
 from chat.models import Chat, ChatFile
-from otto.models import User
 
 
 class SummarizeFileTool(Tool):

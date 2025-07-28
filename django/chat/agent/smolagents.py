@@ -4,8 +4,14 @@ import re
 from django.http import HttpResponse, StreamingHttpResponse
 from django.utils.translation import gettext as _
 
+from smolagents import CodeAgent, LiteLLMModel, ToolCallingAgent  # type: ignore
+from structlog.contextvars import bind_contextvars
+
 from chat.htmx_stream import wrap_llm_response
-from chat.utils import md
+from chat.llm import OttoLLM
+from chat.utils import async_generator_from_sync, htmx_stream
+
+from .tools.tool_registry import AVAILABLE_TOOLS
 
 # Regex to remove control characters (excluding line breaks) from strings
 # Removes: 0x00-0x09, 0x0B-0x0C, 0x0E-0x1F, 0x7F (but keeps 0x0A and 0x0D: LF and CR)
@@ -25,16 +31,7 @@ def sanitize(obj):
     return obj
 
 
-from smolagents import CodeAgent, LiteLLMModel, ToolCallingAgent  # type: ignore
-from structlog.contextvars import bind_contextvars
-
-from chat.llm import OttoLLM
-from chat.utils import async_generator_from_sync, htmx_stream
-
-from .tools.tool_registry import AVAILABLE_TOOLS
-
-
-def otto_agent(chat, response_message):
+def smolagent(chat, response_message):
 
     model_id = "azure/" + chat.options.agent_model
     model = LiteLLMModel(
@@ -77,12 +74,6 @@ def otto_agent(chat, response_message):
         )
 
     return agent
-
-
-def agent_response_generator(agent, user_message):
-    generator = agent.run(user_message.content_string, stream=True)
-    for smolagents_message in generator:
-        yield smolagents_message
 
 
 async def tool_calling_agent_replacer(response_stream):
@@ -159,9 +150,9 @@ def agent_response(chat, response_message):
 
     llm = OttoLLM()
 
-    agent = otto_agent(chat, response_message)
+    agent = smolagent(chat, response_message)
 
-    sync_gen = agent_response_generator(agent, user_message)
+    sync_gen = agent.run(user_message.content_string, stream=True)
     async_gen = async_generator_from_sync(sync_gen)
 
     if chat.options.agent_type == "code_agent":
