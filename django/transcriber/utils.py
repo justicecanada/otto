@@ -1,20 +1,24 @@
+import json
 import os
 import re
 import subprocess
 import threading
 import time
 from itertools import groupby
+from urllib.parse import urlparse
 
 from django.conf import settings
+from django.http import HttpResponse
 
 import azure.cognitiveservices.speech as speechsdk
+import ffmpeg
+import requests
 from azure.ai.textanalytics import TextAnalyticsClient
 from azure.ai.translation.text import TextTranslationClient
 from azure.core.credentials import AzureKeyCredential
 from bs4 import BeautifulSoup
-from langchain_text_splitters import RecursiveCharacterTextSplitter, TokenTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from openai import AzureOpenAI
-from structlog import get_logger
 
 # Azure Translator configuration
 translator_key = settings.AZURE_COGNITIVE_SERVICE_KEY
@@ -468,3 +472,31 @@ def combine_sentences(line_dicts):
             i += 1
         combined_entries.extend(combined)
     return combined_entries
+
+
+def get_video_from_parlvu(url, output_path="temp"):
+    website = urlparse(url).netloc
+    if website != "parlvu.parl.gc.ca":
+        return "Invalid URL"
+
+    parlvu_html = BeautifulSoup(
+        requests.get(url).content,
+        "html.parser",
+    )
+    script_element = parlvu_html.find(
+        lambda tag: tag.name == "script" and "var availableStreams" in tag.text
+    )
+    available_streams = json.loads(
+        re.search("(?<=var availableStreams = ).*?(?=\;)", script_element.text)[0]
+    )
+    floor_video_sd = next(
+        (
+            x
+            for x in available_streams
+            if x["Lang"] == "fl" and not (x["AudioOnly"] or x["IsHd"])
+        ),
+        None,
+    )
+    video_url = floor_video_sd["Url"]
+
+    ffmpeg.input(video_url).output(f"{output_path}.mp4", c="copy").run()
