@@ -862,10 +862,6 @@ footer .container {
   padding-right: 1.25rem;
 }
 
-#top-nav {
-  z-index: 100;
-}
-
 .message-outer.user .message-text {
   white-space: pre-wrap;
 }

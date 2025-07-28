@@ -195,7 +195,9 @@ div.app-card-tools:hover {
 }
 
 #top-nav {
-  height: 2.5rem;
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+  height: 2.75rem;
 }
 
 
@@ -614,7 +616,7 @@ svg.driver-overlay {
 
 #top-nav-app-list {
   position: fixed;
-  top: 2.75rem;
+  top: 3rem;
   left: 0.5rem;
   zoom: 0.9;
   background: white;
@@ -625,6 +627,6 @@ svg.driver-overlay {
   color: var(--text-secondary) !important;
 }
 
-#top-nav ul.dropdown-menu {
-  margin-top: 1px;
+#top-nav {
+  z-index: 100;
 }
