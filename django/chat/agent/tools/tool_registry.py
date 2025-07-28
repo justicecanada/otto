@@ -9,7 +9,7 @@ from smolagents import VisitWebpageTool, WebSearchTool
 from .chat_history_retriever import ChatHistoryTool
 from .file_tools import FileReaderTool
 from .law_retriever import LawRetrieverTool
-from .summarize_tool import SummarizeTool
+from .summarize_tools import SummarizeTool
 
 # A dictionary of all available tools. The keys are used to store the enabled tools in
 # the ChatOptions.agent_tools list. The values are dictionaries containing the tool's

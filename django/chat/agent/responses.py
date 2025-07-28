@@ -33,13 +33,6 @@ from chat.utils import async_generator_from_sync, htmx_stream
 
 from .tools.tool_registry import AVAILABLE_TOOLS
 
-# from openinference.instrumentation.smolagents import SmolagentsInstrumentor
-# from phoenix.otel import register
-
-# if settings.DEBUG:
-#     register()
-#     SmolagentsInstrumentor().instrument()
-
 
 def otto_agent(chat):
 
@@ -128,39 +121,6 @@ async def tool_calling_agent_replacer(response_stream):
 
 async def code_agent_replacer(response_stream):
     # Similar to the tool_calling_agent_replacer, but for CodeAgent
-    # Old logic below:
-    """
-    if type(tool_call).__name__ == "ActionStep":
-        step_number = getattr(tool_call, "step_number", None)
-        lines += ["<div class='agent-step'>\n"]
-        llm_output = getattr(tool_call, "model_output_message", None)
-        if llm_output and hasattr(llm_output, "content"):
-            content = llm_output.content
-            content = content.replace("<code>", "\n```python")
-            content = content.replace("</code>", "```")
-            content = content.replace("Thought:", f"**Step {step_number}:**")
-            lines.append(content)
-        # Show LLM/code execution output in a dedicated div if present
-        action_output = getattr(tool_call, "action_output", None)
-        observations = getattr(tool_call, "observations", None)
-        # Prefer 'action_output', but if not present, show 'observations' if available
-        output_to_show = action_output or observations
-        if output_to_show:
-            lines.append(
-                f"<div class='agent-output'>\n<pre>{output_to_show}</pre>\n</div>"
-            )
-        lines.append("</div>")
-
-    elif type(tool_call).__name__ == "FinalAnswerStep":
-        lines += ["</div><div class='agent-final-answer'>\n"]
-        final_answer = getattr(tool_call, "output", None)
-        if final_answer:
-            content = str(final_answer).strip()
-            lines.append(content)
-        lines += ["</div>"]
-
-    return "\n".join(lines)
-    """
     # Collect tool call steps and extract final answer
     steps = []
     final_answer = ""
