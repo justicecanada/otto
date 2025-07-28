@@ -4622,5 +4622,17 @@
     "Agent type": {
         "fr": "",
         "fr_auto": "Type d’agent"
+    },
+    "Translate file": {
+        "fr": "",
+        "fr_auto": "Traduire le fichier"
+    },
+    "You do not have permission to access this file.": {
+        "fr": "",
+        "fr_auto": "Vous n’avez pas la permission d’accéder à ce fichier."
+    },
+    "File translation failed.": {
+        "fr": "",
+        "fr_auto": "Échec de la traduction des fichiers."
     }
 }
