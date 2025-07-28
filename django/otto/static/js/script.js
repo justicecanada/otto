@@ -58,3 +58,38 @@ document.addEventListener('htmx:afterRequest', function (event) {
     });
   });
 })();
+
+// App dropdown toggle functionality
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('toggle-app-list-btn');
+  const overlay = document.getElementById('manual-lightbox-overlay');
+  const list = document.getElementById('top-nav-app-list');
+  if (!btn || !overlay || !list) return;
+
+  function hideList() {
+    document.body.classList.remove('app-list-active');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  function showList() {
+    document.body.classList.add('app-list-active');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (document.body.classList.contains('app-list-active')) {
+      hideList();
+    } else {
+      showList();
+    }
+  });
+
+  overlay.addEventListener('click', hideList);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('app-list-active')) {
+      hideList();
+    }
+  });
+});

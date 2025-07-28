@@ -1,0 +1,16 @@
+{% load i18n %}
+<div class="position-absolute d-inline-block" id="top-nav-app-dropdown">
+  <!-- Toggle button to show/hide the app list -->
+  <button class="btn btn-none text-secondary btn-sm"
+          type="button"
+          id="toggle-app-list-btn"
+          aria-expanded="false"
+          aria-controls="top-nav-app-list">
+    <i class="bi bi-caret-down-fill"></i>
+  </button>
+  <!-- Collapsible app list -->
+  <div id="top-nav-app-list"
+       hx-get="{% url 'search_inner' %}"
+       hx-trigger='load delay:200ms'
+       hx-swap="innerHTML"></div>
+</div>

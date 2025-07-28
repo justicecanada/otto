@@ -11,7 +11,7 @@
           content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <script src="{% static 'thirdparty/htmx.min.js' %}"></script>
     <script src="{% static 'thirdparty/idiomorph-ext.min.js' %}"></script>
- 
+
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet"
@@ -68,7 +68,7 @@
                href="{% url 'index' %}"
                id="home-link">
               <img src="{% static 'otto-icon.png' %}"
-                   width="27"
+                   width="25"
                    height="auto"
                    class="d-inline-block align-top"
                    style="position: relative;
@@ -78,10 +78,11 @@
               Otto
             </a>
             {{ otto_version|safe }}
+            {% include 'components/app_dropdown.html' %}
           </div>
 
           {% if request.user.is_authenticated %}
-            {% include 'components/search.html' %}
+            {# {% include 'components/search.html' %} #}
             <div class="collapse navbar-collapse flex-fill-lg justify-content-end">
               <ul class="navbar-nav position-relative" id="top-right-nav">
                 {% include 'components/user_menu.html' %}
