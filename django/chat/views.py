@@ -24,6 +24,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
+from chat.htmx_stream import wrap_llm_response
 from chat.llm import OttoLLM
 from chat.models import (
     AnswerSource,
@@ -45,7 +46,6 @@ from chat.utils import (
     highlight_claims,
     label_section_index,
     title_chat,
-    wrap_llm_response,
 )
 from librarian.forms import LibraryUsersForm
 from librarian.models import Library
@@ -314,6 +314,8 @@ def chat_message(request, chat_id):
         response_message.json = json.dumps(response_message.text)
     else:
         bot_name = get_model_name(chat.options)
+        if mode == "agent":
+            bot_name += " + " + f" {chat.options.agent_type}"
         response_message = Message.objects.create(
             chat=chat,
             is_bot=True,
@@ -330,8 +332,10 @@ def chat_message(request, chat_id):
             "date_created": response_message.date_created
             + timezone.timedelta(seconds=1),
             "bot_name": bot_name,
+            "mode": mode,
         }
 
+    print(mode, user_message.mode, response_message["mode"])
     context = {
         "chat_messages": [
             user_message,
@@ -440,6 +444,7 @@ def save_upload(request, chat_id):
         "id": response_message.id,
         "date_created": user_message.date_created + timezone.timedelta(seconds=1),
         "bot_name": bot_name,
+        "mode": chat.options.mode,
     }
     context = {
         "chat_messages": [

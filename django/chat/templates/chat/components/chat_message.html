@@ -22,6 +22,8 @@
       <div class="message-mode text-secondary pt-2">
         {% if message.mode == "translate" %}
           <i class="bi bi-translate me-2" title='{% trans "Translate" %}'></i>
+        {% elif message.mode == "agent" %}
+          <i class="bi bi-magic me-2" title="{% trans 'Agent' %}"></i>
         {% elif message.mode == "summarize" %}
           <i class="bi bi-funnel me-2" title='{% trans "Summarize" %}'></i>
         {% elif message.mode == "qa" %}
@@ -29,13 +31,14 @@
         {% endif %}
       </div>
     {% endif %}
-    <div class="message-blob {{ mode }}">
+    <div class="message-blob {{ message.mode }} {% if show_steps or message.awaiting_response %}show-steps{% endif %}">
+      {% if message.mode == "agent" and message.is_bot and not message.awaiting_response %}
+        {% include "chat/components/agent_steps.html" with message=message %}
+      {% endif %}
       {% if message.awaiting_response %}
         <div class="message-text">{% include "chat/components/streaming_response.html" %}</div>
       {% elif file_upload %}
         <div class="message-text">{% include "chat/components/file_upload_progress.html" %}</div>
-      {% elif message.num_files %}
-        <div class="message-text">{% include "chat/components/message_files.html" %}</div>
       {% elif message.is_bot %}
         <div class="message-text">
           <div class="markdown-text" data-md="{{ message.json }}">
@@ -50,6 +53,9 @@
       {% else %}
         {# There cannot be any space between div.message-text and its contents (whitespace: pre-wrap) #}
         <div class="message-text">{{ message.text|escape }}</div>
+      {% endif %}
+      {% if message.num_files %}
+        <div class="message-text">{% include "chat/components/message_files.html" %}</div>
       {% endif %}
       <div class="row">
         <div class="message-show-all col mt-2" style="line-height:1.75rem">

@@ -1,17 +1,8 @@
 @import url('css/variables.css');
 
-html {
-  visibility: hidden;
-}
-
 html[data-bs-theme="dark"],
 html[data-bs-theme="light"] {
-  visibility: visible;
-}
 
-
-[data-bs-theme="dark"] .btn-outline-dark {
-  color: var(--bs-body-text);
   background-color: var(--bs-btn-color);
   border-color: var(--bs-border-color);
 
@@ -118,17 +109,17 @@ nav#breadcrumbs a:not(:hover) {
 /* Show app list columns at large sizes */
 @media (min-width: 768px) {
   div#app-list {
-    column-count: 2;
+    column-count: 3;
   }
 }
 
 @media (min-width: 1260px) {
-  /* div#app-list {
+  div#app-list {
     column-count: 3;
-  } */
+  }
 
   div#app-list.cols-2 {
-    column-count: 2;
+    column-count: 3;
   }
 }
 
@@ -178,11 +169,11 @@ div.app-card-monitoring:hover {
 }
 
 /* Centre column */
-.app-card-translation {
+.app-card-research {
   border-left: solid 5px var(--app-color-green-1);
 }
 
-div.app-card-translation:hover {
+div.app-card-research:hover {
   box-shadow: 0 0 0 0.25rem var(--app-color-green-1-hover);
 }
 
@@ -195,57 +186,20 @@ div.app-card-reporting:hover {
 }
 
 
-.app-card-other {
-  border-left: solid 5px var(--app-color-blue-2);
+.app-card-tools {
+  border-left: solid 5px var(--app-color-orange-1);
 }
 
-div.app-card-other:hover {
-  box-shadow: 0 0 0 0.25rem var(--app-color-blue-2-hover);
+div.app-card-tools:hover {
+  box-shadow: 0 0 0 0.25rem var(--app-color-orange-1-hover);
 }
 
 #top-nav {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-  height: 3rem;
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+  height: 2.75rem;
 }
 
-#top-nav-search-input input {
-  border-width: 2px;
-  border-color: var(--search-bar-border);
-}
-
-div#top-nav-search {
-  left: 50%;
-  width: 400px;
-  margin-left: -200px;
-  zoom: 0.81;
-  top: calc(0.25rem + 1px);
-}
-
-
-@media (max-width: 1200px) {
-  div#top-nav-search {
-    display: none;
-  }
-}
-
-div#top-nav-search-results {
-  display: none;
-  z-index: 100;
-  position: absolute;
-  max-height: 500px;
-  overflow-y: auto;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
-  top: 53px;
-  border: solid 1px #333;
-  scrollbar-width: none;
-  margin-left: -50px;
-}
-
-div#top-nav-search-results a {
-  width: 500px;
-}
 
 [data-bs-theme="light"] [data-bs-theme="dark"] div#top-nav-search-results a:focus {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -286,6 +240,20 @@ body.search-active div#manual-lightbox-overlay,
 body.search-active div#top-nav-search-results {
   display: block;
   opacity: 1;
+}
+
+/* app dropdown overlay and list visibility */
+body.app-list-active div#manual-lightbox-overlay,
+body.app-list-active div#top-nav-app-list {
+  display: block;
+  opacity: 1;
+}
+
+#top-nav-app-list {
+  z-index: 11;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 }
 
 ul.navbar-nav .btn-check:checked+.btn,
@@ -638,4 +606,37 @@ svg.driver-overlay {
 [data-bs-theme="dark"] .driver-popover-close-btn:hover,
 [data-bs-theme="dark"] .driver-popover-close-btn:focus {
   color: #fff;
+}
+
+#top-nav-app-dropdown {
+  position: absolute;
+  top: 9px;
+  z-index: 11;
+}
+
+#top-nav-app-dropdown button>i {
+  opacity: 0.75;
+}
+
+#top-nav-app-dropdown button:focus>i,
+#top-nav-app-dropdown button:hover>i {
+  opacity: 1;
+  /* color: white !important; */
+}
+
+#top-nav-app-list {
+  position: fixed;
+  top: 3rem;
+  left: 0.5rem;
+  zoom: 0.9;
+  background: white;
+  border-radius: 0.5rem;
+}
+
+[data-bs-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+#top-nav {
+  z-index: 100;
 }

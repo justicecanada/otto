@@ -10,7 +10,6 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 
 from asgiref.sync import sync_to_async
-from data_fetcher.util import get_request
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from rules.contrib.views import objectgetter
 from structlog import get_logger
@@ -47,7 +46,7 @@ batch_size = 5
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
-def otto_response(request, message_id=None, switch_mode=False, skip_agent=False):
+def otto_response(request, message_id=None):
     """
     Stream a response to the user's message. Uses LlamaIndex to manage chat history.
     """
@@ -77,17 +76,16 @@ def otto_response(request, message_id=None, switch_mode=False, skip_agent=False)
         # including in async functions (i.e. htmx_stream) and Celery tasks.
         bind_contextvars(message_id=message_id, feature=mode)
 
-        agent_enabled = not skip_agent and mode == "chat" and chat.options.chat_agent
-        if agent_enabled:
-            return chat_agent(chat, response_message)
+        if mode == "agent":
+            return agent_response(chat, response_message)
         if mode == "chat":
-            return chat_response(chat, response_message, switch_mode=switch_mode)
+            return chat_response(chat, response_message)
         if mode == "summarize":
             return summarize_response(chat, response_message)
         if mode == "translate":
             return translate_response(chat, response_message)
         if mode == "qa":
-            return qa_response(chat, response_message, switch_mode=switch_mode)
+            return qa_response(chat, response_message)
         else:
             return error_response(chat, response_message, _("Invalid mode."))
     except Exception as e:
@@ -130,7 +128,6 @@ def cost_warning_response(chat, response_message, estimate_cost, over_budget=Fal
 def chat_response(
     chat,
     response_message,
-    switch_mode=False,
 ):
     model = chat.options.chat_model
     temperature = chat.options.chat_temperature
@@ -155,7 +152,6 @@ def chat_response(
                     "2. Using summarize mode, which can handle longer texts\n"
                     "3. Using a different model\n"
                 ),
-                switch_mode=switch_mode,
             ),
             content_type="text/event-stream",
         )
@@ -166,7 +162,6 @@ def chat_response(
             response_message.id,
             llm,
             response_replacer=llm.chat_stream(chat_history),
-            switch_mode=switch_mode,
         ),
         content_type="text/event-stream",
     )
@@ -391,7 +386,7 @@ def translate_response(chat, response_message):
     )
 
 
-def qa_response(chat, response_message, switch_mode=False):
+def qa_response(chat, response_message):
     """
     Answer a question using RAG on the selected library / data sources / documents
     """
@@ -541,7 +536,6 @@ def qa_response(chat, response_message, switch_mode=False):
                 response_message.id,
                 llm,
                 response_str=response_str,
-                switch_mode=switch_mode,
             ),
             content_type="text/event-stream",
         )
@@ -628,7 +622,6 @@ def qa_response(chat, response_message, switch_mode=False):
                 response_message.id,
                 llm,
                 response_str=response_str,
-                switch_mode=switch_mode,
             ),
             content_type="text/event-stream",
         )
@@ -641,7 +634,6 @@ def qa_response(chat, response_message, switch_mode=False):
             response_generator=response_generator,
             response_replacer=response_replacer,
             source_nodes=source_groups,
-            switch_mode=switch_mode,
             dots=len(batch_generators) > 1,
         ),
         content_type="text/event-stream",
@@ -864,81 +856,48 @@ def error_response(chat, response_message, error_message=None):
     )
 
 
-def chat_agent(chat, response_message):
-    """
-    Select the mode for the chat response.
-    """
-    bind_contextvars(feature="chat_agent")
-    user_message = response_message.parent
-    if user_message is None:
-        return error_response(chat, response_message, _("No user message found."))
+def agent_response(chat, response_message):
+    from .agent.langgraph import langgraph_agent, langgraph_agent_replacer
+    from .agent.smolagents import (
+        async_generator_from_sync,
+        code_agent_replacer,
+        smolagent,
+        tool_calling_agent_replacer,
+    )
 
-    user_text = user_message.text
-    if len(user_text) > 500:
-        user_text = user_text[:500] + "..."
-    llm = OttoLLM()
-    prompt = (
-        "Your role is to determine the best mode to handle the user's message.\n"
-        "The available modes and their descriptions are below:\n"
-        "- 'qa' mode: Question answering over previously uploaded 'document libraries'.\n"
-        "  Available document libraries:\n"
-    )
-    available_libraries = [
-        library
-        for library in Library.objects.all()
-        if chat.user.has_perm("librarian.view_library", library)
-    ]
-    for library in available_libraries:
-        prompt += f"  - {library.name} (id={library.id}){(': ' + library.description) if library.description else ''}\n"
-        if not library.is_personal_library:
-            # List the data sources in the library
-            data_sources = DataSource.objects.filter(library=library)
-            for data_source in data_sources:
-                prompt += f"    - {data_source.name}\n"
-    prompt += (
-        "- 'chat' mode: General purpose interaction with LLM, like ChatGPT.\n\n"
-        "Based on the user's message (below), respond with the appropriate mode and library, if any. "
-        "For questions unrelated to the available libraries, prefer to use 'chat' mode.\n"
-        "User's message:\n\n"
-        f"{user_text}\n\n"
-        "Mode: (qa, chat)\n"
-        "Library ID: (if qa mode)"
-    )
-    mode_response_raw = llm.complete(prompt)
-    # print(
-    #     "Mode selected based on the prompt and response:\n",
-    #     prompt,
-    #     "\n\n",
-    #     mode_response_raw,
-    # )
-    original_mode = chat.options.mode
-    if "qa" in mode_response_raw:
-        mode = "qa"
-        try:
-            library_id = int("".join(c for c in mode_response_raw if c.isdigit()))
-        except:
-            library_id = None
-    else:
-        mode = "chat"
-        library_id = None
-    chat.options.mode = mode
-    if (
-        library_id
-        and Library.objects.filter(id=library_id).exists()
-        and chat.user.has_perm(
-            "librarian.view_library", Library.objects.get(id=library_id)
+    smolagent_types = ["code_agent", "tool_calling_agent"]
+    langgraph_types = ["react_agent"]
+
+    bind_contextvars(feature="chat_agent", chat_id=chat.id)
+    user_message = response_message.parent
+
+    if chat.options.agent_type in smolagent_types:
+        agent = smolagent(chat, response_message)
+
+        sync_gen = agent.run(user_message.content_string, stream=True)
+        async_gen = async_generator_from_sync(sync_gen)
+
+        if chat.options.agent_type == "code_agent":
+            generator = code_agent_replacer(async_gen)
+        else:
+            generator = tool_calling_agent_replacer(async_gen)
+
+    elif chat.options.agent_type in langgraph_types:
+        agent = langgraph_agent
+        sync_gen = agent.stream(
+            {"messages": [{"role": "user", "content": user_message.content_string}]},
+            stream_mode="values",
         )
-    ):
-        chat.options.qa_library_id = library_id
-        chat.options.qa_scope = "all"
-        chat.options.qa_data_sources.clear()
-        chat.options.qa_documents.clear()
-    chat.options.save()
-    llm.create_costs()
-    request = get_request()
-    return otto_response(
-        request,
-        message_id=response_message.id,
-        switch_mode=mode if mode != original_mode else False,
-        skip_agent=True,
+        async_gen = async_generator_from_sync(sync_gen)
+        generator = langgraph_agent_replacer(async_gen)
+
+    return StreamingHttpResponse(
+        streaming_content=htmx_stream(
+            chat,
+            response_message.id,
+            OttoLLM(),
+            response_replacer=generator,
+            dots=True,
+        ),
+        content_type="text/event-stream",
     )

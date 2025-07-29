@@ -1,0 +1,24 @@
+{% extends 'chat/components/options_submenu.html' %}
+
+{% load i18n %}
+
+{% block accordion_title %}
+  {% trans "Agent" %}
+{% endblock %}
+
+{% block accordion_body %}
+  <div class="px-3">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.agent_type.auto_id }}">{% trans "Agent type" %}</label>
+    {{ options_form.agent_type }}
+  </div>
+  <div class="px-3 mt-2">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.agent_model.auto_id }}">{% trans "Model" %}</label>
+    {{ options_form.agent_model }}
+  </div>
+  <div class="px-3 mt-2">
+    <label class="col-form-label col-form-label-sm">{% trans "Enabled tools" %}</label>
+    <div class="d-flex flex-wrap small" onchange="triggerOptionSave();">{{ options_form.agent_tools }}</div>
+  </div>
+{% endblock %}

@@ -4391,6 +4391,74 @@
         "fr": "",
         "fr_auto": "Il s’agit de votre préréglage par défaut pour les nouvelles discussions. Pour modifier votre préréglage par défaut, retournez à la page Parcourir les préréglages et cliquez sur l’étoile d’un autre préréglage."
     },
+    "Web search": {
+        "fr": "",
+        "fr_auto": "Recherche sur le Web"
+    },
+    "Visit webpage": {
+        "fr": "",
+        "fr_auto": "Visitez la page Web"
+    },
+    "Law retriever": {
+        "fr": "",
+        "fr_auto": "Récupérateur de la loi"
+    },
+    "Enabled Tools": {
+        "fr": "",
+        "fr_auto": "Outils activés"
+    },
+    "Selects the best mode(s) for your query": {
+        "fr": "",
+        "fr_auto": "Sélectionne le(s) meilleur(s) mode(s) pour votre requête"
+    },
+    "Agent": {
+        "fr": "",
+        "fr_auto": "Mandataire"
+    },
+    "Enter a question or instruction": {
+        "fr": "",
+        "fr_auto": "Entrez une question ou une instruction"
+    },
+    "Hide steps": {
+        "fr": "",
+        "fr_auto": "Masquer les étapes"
+    },
+    "Show steps": {
+        "fr": "",
+        "fr_auto": "Afficher les étapes"
+    },
+    "Hide code": {
+        "fr": "",
+        "fr_auto": "Masquer le code"
+    },
+    "Show code": {
+        "fr": "",
+        "fr_auto": "Afficher le code"
+    },
+    "\n            <strong>Agent</strong> automatically selects tools to answer your query.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>L’agent</strong> sélectionne automatiquement les outils pour répondre à votre demande.\n          "
+    },
+    "Review the agent's reasoning and tool selection to ensure they align with your intent.": {
+        "fr": "",
+        "fr_auto": "Examinez le raisonnement de l’agent et le choix des outils pour vous assurer qu’ils correspondent à votre intention."
+    },
+    "Enabled tools": {
+        "fr": "",
+        "fr_auto": "Outils activés"
+    },
+    "File reader": {
+        "fr": "",
+        "fr_auto": "Lecteur de fichiers"
+    },
+    "Hide step outputs": {
+        "fr": "",
+        "fr_auto": "Masquer les sorties d’étape"
+    },
+    "Show step outputs": {
+        "fr": "",
+        "fr_auto": "Afficher les sorties de l’étape"
+    },
     "Use full documents ($)": {
         "fr": "",
         "fr_auto": "Utiliser les documents complets ($)"
@@ -4542,5 +4610,41 @@
     "\n                        <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>\n                        <br><br>\n                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive./em>\n                        ": {
         "fr": "",
         "fr_auto": "\n<strong>Combiner :</strong> Lisez tous les documents sélectionnés ensemble, rédigez une seule réponse. <em>Essentiel pour comparer des documents. Généralement moins détaillé.</em>\n                        <br><br>\n                        <strong>Séparer :</strong> Lisez chaque document sélectionné individuellement et rédigez une réponse distincte pour chacun. <em>Généralement plus détaillé. Coûteux./em>\n                        "
+    },
+    "Tool calling agent": {
+        "fr": "",
+        "fr_auto": "Agent d’appel de l’outil"
+    },
+    "Coding agent": {
+        "fr": "",
+        "fr_auto": "Agent codant"
+    },
+    "Agent type": {
+        "fr": "",
+        "fr_auto": "Type d’agent"
+    },
+    "Translate file": {
+        "fr": "",
+        "fr_auto": "Traduire le fichier"
+    },
+    "You do not have permission to access this file.": {
+        "fr": "",
+        "fr_auto": "Vous n’avez pas la permission d’accéder à ce fichier."
+    },
+    "File translation failed.": {
+        "fr": "",
+        "fr_auto": "Échec de la traduction des fichiers."
+    },
+    "Legislation search": {
+        "fr": "",
+        "fr_auto": "Recherche de législation"
+    },
+    "Summarize file": {
+        "fr": "",
+        "fr_auto": "Résumer le fichier"
+    },
+    "Read file": {
+        "fr": "",
+        "fr_auto": "Lire le fichier"
     }
 }

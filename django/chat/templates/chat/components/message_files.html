@@ -2,7 +2,9 @@
 
 <p class="mb-2">
   {% if message.is_bot %}
-    {{ message.num_files }}/{{ message.parent.num_files }} {% trans "files translated:" %}
+    {% if message.parent.mode == "translate" %}
+      {{ message.num_files }}/{{ message.parent.num_files }} {% trans "files translated:" %}
+    {% endif %}
   {% else %}
     {{ message.num_files }}
     {% if message.num_files == 1 %}
