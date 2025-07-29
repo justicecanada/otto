@@ -139,7 +139,7 @@ def resize_image_to_a4(img, output_size="small"):  # used only when merge is on
     min_scale = max(min_width / img.width, min_height / img.height)
 
     if output_size == "enlarged":
-        scale = min(a4_width / img.width, a4_height / img.height)
+        scale = min(a4_width / img.width, a4_height / img.height) * 0.85
     else:
         # Downsample, but not below minimum readable DPI
         scale = max(min_scale, 1.0)  # Don't upscale if already small
