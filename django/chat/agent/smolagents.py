@@ -142,31 +142,3 @@ async def code_agent_replacer(response_stream):
             yield final_answer, steps
             break
         yield final_answer, steps
-
-
-def agent_response(chat, response_message):
-    bind_contextvars(feature="chat_agent", chat_id=chat.id)
-    user_message = response_message.parent
-
-    llm = OttoLLM()
-
-    agent = smolagent(chat, response_message)
-
-    sync_gen = agent.run(user_message.content_string, stream=True)
-    async_gen = async_generator_from_sync(sync_gen)
-
-    if chat.options.agent_type == "code_agent":
-        generator = code_agent_replacer(async_gen)
-    else:
-        generator = tool_calling_agent_replacer(async_gen)
-
-    return StreamingHttpResponse(
-        streaming_content=htmx_stream(
-            chat,
-            response_message.id,
-            llm,
-            response_replacer=generator,
-            dots=True,
-        ),
-        content_type="text/event-stream",
-    )

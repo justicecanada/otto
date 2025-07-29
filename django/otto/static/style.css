@@ -618,9 +618,10 @@ svg.driver-overlay {
   opacity: 0.75;
 }
 
-#top-nav-app-dropdown button:focus-visible>i {
+#top-nav-app-dropdown button:focus>i,
+#top-nav-app-dropdown button:hover>i {
   opacity: 1;
-  color: white !important;
+  /* color: white !important; */
 }
 
 #top-nav-app-list {

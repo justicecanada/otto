@@ -15,7 +15,6 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.agent.smolagents import agent_response
 from chat.llm import OttoLLM
 from chat.models import Message
 from chat.tasks import translate_file
@@ -852,6 +851,53 @@ def error_response(chat, response_message, error_message=None):
             response_message.id,
             llm,
             response_str=response_str,
+        ),
+        content_type="text/event-stream",
+    )
+
+
+def agent_response(chat, response_message):
+    from .agent.langgraph import langgraph_agent, langgraph_agent_replacer
+    from .agent.smolagents import (
+        async_generator_from_sync,
+        code_agent_replacer,
+        smolagent,
+        tool_calling_agent_replacer,
+    )
+
+    smolagent_types = ["code_agent", "tool_calling_agent"]
+    langgraph_types = ["react_agent"]
+
+    bind_contextvars(feature="chat_agent", chat_id=chat.id)
+    user_message = response_message.parent
+
+    if chat.options.agent_type in smolagent_types:
+        agent = smolagent(chat, response_message)
+
+        sync_gen = agent.run(user_message.content_string, stream=True)
+        async_gen = async_generator_from_sync(sync_gen)
+
+        if chat.options.agent_type == "code_agent":
+            generator = code_agent_replacer(async_gen)
+        else:
+            generator = tool_calling_agent_replacer(async_gen)
+
+    elif chat.options.agent_type in langgraph_types:
+        agent = langgraph_agent
+        sync_gen = agent.stream(
+            {"messages": [{"role": "user", "content": user_message.content_string}]},
+            stream_mode="values",
+        )
+        async_gen = async_generator_from_sync(sync_gen)
+        generator = langgraph_agent_replacer(async_gen)
+
+    return StreamingHttpResponse(
+        streaming_content=htmx_stream(
+            chat,
+            response_message.id,
+            OttoLLM(),
+            response_replacer=generator,
+            dots=True,
         ),
         content_type="text/event-stream",
     )

@@ -410,8 +410,9 @@ class ChatOptionsForm(ModelForm):
 
         self.fields["agent_type"].widget = forms.Select(
             choices=[
-                ("tool_calling_agent", _("Tool calling agent")),
-                ("code_agent", _("Coding agent")),
+                ("react_agent", _("ReAct agent (LangGraph)")),
+                ("tool_calling_agent", _("Tool calling agent (Smolagents)")),
+                ("code_agent", _("Coding agent (Smolagents)")),
             ],
             attrs={
                 "class": "form-select form-select-sm",

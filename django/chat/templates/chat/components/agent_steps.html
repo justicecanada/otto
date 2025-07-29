@@ -27,7 +27,7 @@
         </div>
       {% elif step.thought %}
         <div class="agent-step">{{ step.thought|safe }}</div>
-      {% elif step.output and not forloop.last %}
+      {% elif step.output %}
         <div class="agent-output">
           <pre>{{ step.output }}</pre>
         </div>
