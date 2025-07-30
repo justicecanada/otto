@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_b8af4fcb9ed83e02_utils_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.10.0">coverage.py v7.10.0</a>,
-            created at 2025-07-30 13:37 +0000
+            created at 2025-07-30 19:02 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -95,7 +95,7 @@
     <p class="pln"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="com"># passing the OCR method to celery</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t"><span class="op">@</span><span class="nam">shared_task</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t"><span class="key">def</span> <span class="nam">process_ocr_document</span><span class="op">(</span><span class="nam">file_content</span><span class="op">,</span> <span class="nam">file_name</span><span class="op">,</span> <span class="nam">merged</span><span class="op">,</span> <span class="nam">idx</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t"><span class="key">def</span> <span class="nam">process_ocr_document</span><span class="op">(</span><span class="nam">file_content</span><span class="op">,</span> <span class="nam">file_name</span><span class="op">,</span> <span class="nam">merged</span><span class="op">,</span> <span class="nam">idx</span><span class="op">,</span> <span class="nam">enlarge_size</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t">    <span class="key">if</span> <span class="nam">current_task</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t">        <span class="nam">current_task</span><span class="op">.</span><span class="nam">update_state</span><span class="op">(</span><span class="nam">state</span><span class="op">=</span><span class="str">"PROCESSING"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t">    <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -110,7 +110,7 @@
     <p class="pln"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">        <span class="com"># ocr_file, txt_file, cost = create_searchable_pdf(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">        <span class="com">#     file, merged and idx > 0, merged</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">        <span class="com"># )</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t">        <span class="nam">result</span> <span class="op">=</span> <span class="nam">create_searchable_pdf</span><span class="op">(</span><span class="nam">file</span><span class="op">,</span> <span class="nam">merged</span> <span class="key">and</span> <span class="nam">idx</span> <span class="op">></span> <span class="num">0</span><span class="op">,</span> <span class="nam">merged</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t">        <span class="nam">result</span> <span class="op">=</span> <span class="nam">create_searchable_pdf</span><span class="op">(</span><span class="nam">file</span><span class="op">,</span> <span class="nam">merged</span> <span class="key">and</span> <span class="nam">idx</span> <span class="op">></span> <span class="num">0</span><span class="op">,</span> <span class="nam">merged</span><span class="op">,</span> <span class="nam">enlarge_size</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t">        <span class="nam">ocr_file</span> <span class="op">=</span> <span class="nam">result</span><span class="op">[</span><span class="str">"output"</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t">        <span class="nam">txt_file</span> <span class="op">=</span> <span class="nam">result</span><span class="op">[</span><span class="str">"all_text"</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
@@ -155,7 +155,7 @@
             <a class="nav" href="z_b8af4fcb9ed83e02_utils_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.10.0">coverage.py v7.10.0</a>,
-            created at 2025-07-30 13:37 +0000
+            created at 2025-07-30 19:02 +0000
         </p>
     </div>
 </footer>
