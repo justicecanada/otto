@@ -286,8 +286,12 @@ def create_searchable_pdf(input_file, add_header, merged=False, enlarge_size=Non
             output = PdfWriter()
             for page in pdf_reader.pages:
                 output.add_page(page)
-            logger.info(f"pdf created nicely")
+
             num_pages = len(pdf_reader.pages)
+            pdf_bytes_io = io.BytesIO()
+            output.write(pdf_bytes_io)
+            pdf_bytes = pdf_bytes_io.getvalue()
+            logger.info(f"pdf created nicely")
         except Exception as e:
             error_id = str(uuid.uuid4())[:7]
             logger.exception(
@@ -311,7 +315,7 @@ def create_searchable_pdf(input_file, add_header, merged=False, enlarge_size=Non
         logger.info(f"all text done, will all return now")
         return {
             "error": False,
-            "output": output,
+            "output": pdf_bytes,
             "all_text": all_text,
             "num_pages": num_pages,
         }
