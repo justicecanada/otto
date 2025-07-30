@@ -12,6 +12,8 @@ from django.core.files.base import ContentFile
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 
+from azure.ai.documentintelligence import DocumentIntelligenceClient
+from azure.ai.documentintelligence.models import AnalyzeOutputOption
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from pdf2image import convert_from_path
@@ -215,6 +217,72 @@ def create_searchable_pdf(input_file, add_header, merged=False):
                 "error_id": error_id,
             }
 
+        try:
+            logger.info(f"running document intelligence")
+            document_intelligence_client = DocumentIntelligenceClient(
+                endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+                credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+            )
+            logger.info(f"done with  document intelligence")
+            # newer azure OCR with pdf output directly
+            with open(temp_path, "rb") as f:
+                poller = document_intelligence_client.begin_analyze_document(
+                    model_id="prebuilt-read",
+                    body=f,
+                    output=[AnalyzeOutputOption.PDF],
+                )
+            logger.info(f"output parameter worked")
+            start_time = time.perf_counter()
+            result = poller.result()
+            elapsed = time.perf_counter() - start_time
+            logger.info(f"OCR with PDF output took {elapsed:.2f} seconds")
+
+            # Get the operation ID
+            operation_id = poller.details["operation_id"]
+
+            # Fetch the searchable PDF
+            pdf_response = document_intelligence_client.get_analyze_result_pdf(
+                model_id="prebuilt-read",
+                result_id=operation_id,
+            )
+            logger.info(f"pdf response is fine")
+            pdf_bytes = b"".join(pdf_response)
+
+            # Load with PyPDF2 for further handling
+            pdf_reader = PdfReader(io.BytesIO(pdf_bytes))
+            output = PdfWriter()
+            for page in pdf_reader.pages:
+                output.add_page(page)
+            logger.info(f"pdf created nicely")
+            num_pages = len(pdf_reader.pages)
+        except Exception as e:
+            error_id = str(uuid.uuid4())[:7]
+            logger.exception(
+                _(
+                    "Error running Azure's document intelligence API on in {error_id}: {e}"
+                )
+            )
+            return {
+                "error": True,
+                "message": _(
+                    "Error ID: %(error_id)s - Azure's document intelligence API failed to process the PDF file."
+                )
+                % {"error_id": error_id},
+                "error_id": error_id,
+            }
+        logger.info(f"all text starting")
+        # Optional text extraction from result object
+        all_text = "\n".join(
+            line.content for page in result.pages for line in page.lines
+        )
+        logger.info(f"all text done, will all return now")
+        return {
+            "error": False,
+            "output": output,
+            "all_text": all_text,
+            "num_pages": num_pages,
+        }
+
     elif input_file.name.lower().endswith(img_extensions):
         try:
             if merged:
@@ -250,169 +318,177 @@ def create_searchable_pdf(input_file, add_header, merged=False):
                 page.save(temp_resized, "PDF")
             temp_path = temp_resized.name
 
-    try:
-        # Running OCR using Azure Form Recognizer Read API------
-        document_analysis_client = DocumentAnalysisClient(
-            endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-            credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
-            headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
-        )
-        with open(temp_path, "rb") as f:
-            poller = document_analysis_client.begin_analyze_document(
-                "prebuilt-read", document=f
+        try:
+            # Running OCR using Azure Form Recognizer Read API------
+            document_analysis_client = DocumentAnalysisClient(
+                endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+                credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+                headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
             )
-        start_time_ocr = time.perf_counter()
-        ocr_results = poller.result()
-        elapsed_time_ocr = time.perf_counter() - start_time_ocr
-        logger.info(f"OCR polling took {elapsed_time_ocr:.2f} seconds")
+            with open(temp_path, "rb") as f:
+                poller = document_analysis_client.begin_analyze_document(
+                    "prebuilt-read", document=f
+                )
+            start_time_ocr = time.perf_counter()
+            ocr_results = poller.result()
+            elapsed_time_ocr = time.perf_counter() - start_time_ocr
+            logger.info(f"OCR polling took {elapsed_time_ocr:.2f} seconds")
 
-    except Exception as e:
-        error_id = str(uuid.uuid4())[:7]
-        logger.exception(
-            _("Error running Azure's document intelligence API on in {error_id}: {e}")
+        except Exception as e:
+            error_id = str(uuid.uuid4())[:7]
+            logger.exception(
+                _(
+                    "Error running Azure's document intelligence API on in {error_id}: {e}"
+                )
+            )
+            return {
+                "error": True,
+                "message": _(
+                    "Error ID: %(error_id)s - Azure's document intelligence API failed to process the image file or multiple combined files."
+                )
+                % {"error_id": error_id},
+                "error_id": error_id,
+            }
+
+        num_pages = len(ocr_results.pages)
+        logger.debug(
+            _(
+                "Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages."
+            )
         )
+        start_time_text = time.perf_counter()
+        all_text = "\n".join(
+            line.content for page in ocr_results.pages for line in page.lines
+        )
+        elapsed_time_text = time.perf_counter() - start_time_text
+        logger.info(f"Creating txt file took {elapsed_time_text:.2f} seconds")
+
+        start_time_overlay = time.perf_counter()
+        try:
+            # Generate OCR overlay layer
+            output = PdfWriter()
+
+            for page_id, page in enumerate(ocr_results.pages):
+                ocr_overlay = io.BytesIO()
+                # Calculate overlay PDF page size
+                if image_pages[page_id].height > image_pages[page_id].width:
+                    page_scale = (
+                        float(image_pages[page_id].height) / pagesizes.letter[1]
+                    )
+                else:
+                    page_scale = float(image_pages[page_id].width) / pagesizes.letter[1]
+
+                page_width = float(image_pages[page_id].width) / page_scale
+                page_height = float(image_pages[page_id].height) / page_scale
+
+                scale = (page_width / page.width + page_height / page.height) / 2.0
+                pdf_canvas = canvas.Canvas(
+                    ocr_overlay, pagesize=(page_width, page_height)
+                )
+
+                # Add image into PDF page
+                pdf_canvas.drawInlineImage(
+                    image_pages[page_id],
+                    0,
+                    0,
+                    width=page_width,
+                    height=page_height,
+                    preserveAspectRatio=True,
+                )
+
+                text = pdf_canvas.beginText()
+                # Set text rendering mode to invisible
+                text.setTextRenderMode(3)
+
+                for word in page.words:
+                    # Calculate optimal font size
+                    desired_text_width = (
+                        max(
+                            dist(word.polygon[0], word.polygon[1]),
+                            dist(word.polygon[3], word.polygon[2]),
+                        )
+                        * scale
+                    )
+                    desired_text_height = (
+                        max(
+                            dist(word.polygon[1], word.polygon[2]),
+                            dist(word.polygon[0], word.polygon[3]),
+                        )
+                        * scale
+                    )
+                    font_size = desired_text_height
+                    actual_text_width = pdf_canvas.stringWidth(
+                        word.content, default_font, font_size
+                    )
+
+                    # Calculate text rotation angle
+                    text_angle = math.atan2(
+                        (
+                            word.polygon[1].y
+                            - word.polygon[0].y
+                            + word.polygon[2].y
+                            - word.polygon[3].y
+                        )
+                        / 2.0,
+                        (
+                            word.polygon[1].x
+                            - word.polygon[0].x
+                            + word.polygon[2].x
+                            - word.polygon[3].x
+                        )
+                        / 2.0,
+                    )
+                    text.setFont(default_font, font_size)
+                    text.setTextTransform(
+                        math.cos(text_angle),
+                        -math.sin(text_angle),
+                        math.sin(text_angle),
+                        math.cos(text_angle),
+                        word.polygon[3].x * scale,
+                        page_height - word.polygon[3].y * scale,
+                    )
+                    text.setHorizScale(desired_text_width / actual_text_width * 100)
+                    text.textOut(word.content + " ")
+
+                # add header
+                if add_header:
+                    header_text = f"Filename: {str(input_file)}"
+                    pdf_canvas.setFont(default_font, 10)
+                    pdf_canvas.drawString(30, page_height - 30, header_text)
+
+                pdf_canvas.drawText(text)
+                pdf_canvas.save()
+
+                # Move to the beginning of the buffer
+                ocr_overlay.seek(0)
+
+                # Create a new PDF page
+                new_pdf_page = PdfReader(ocr_overlay)  # changed
+                output.add_page(new_pdf_page.pages[0])
+        except Exception as e:
+            error_id = str(uuid.uuid4())[:7]
+            logger.exception(
+                _("Error creating PDF overlay after OCR with ErrorID- {error_id}: {e}")
+            )
+            return {
+                "error": True,
+                "message": _(
+                    "Error ID: %(error_id)s - Failed to create PDF overlay after OCR."
+                )
+                % {"error_id": error_id},
+                "error_id": error_id,
+            }
+        elapsed_time_overlay = time.perf_counter() - start_time_overlay
+        logger.info(f"Creating PDF overlay took {elapsed_time_overlay:.2f} seconds")
+
+        cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
+        # return output, all_text, cost.usd_cost
         return {
-            "error": True,
-            "message": _(
-                "Error ID: %(error_id)s - Azure's document intelligence API failed to process the file."
-            )
-            % {"error_id": error_id},
-            "error_id": error_id,
+            "error": False,
+            "output": output,
+            "all_text": all_text,
+            "cost": cost.usd_cost,
         }
-
-    num_pages = len(ocr_results.pages)
-    logger.debug(
-        _("Azure Form Recognizer finished OCR text for {len(ocr_results.pages)} pages.")
-    )
-    start_time_text = time.perf_counter()
-    all_text = "\n".join(
-        line.content for page in ocr_results.pages for line in page.lines
-    )
-    elapsed_time_text = time.perf_counter() - start_time_text
-    logger.info(f"Creating txt file took {elapsed_time_text:.2f} seconds")
-
-    start_time_overlay = time.perf_counter()
-    try:
-        # Generate OCR overlay layer
-        output = PdfWriter()
-
-        for page_id, page in enumerate(ocr_results.pages):
-            ocr_overlay = io.BytesIO()
-            # Calculate overlay PDF page size
-            if image_pages[page_id].height > image_pages[page_id].width:
-                page_scale = float(image_pages[page_id].height) / pagesizes.letter[1]
-            else:
-                page_scale = float(image_pages[page_id].width) / pagesizes.letter[1]
-
-            page_width = float(image_pages[page_id].width) / page_scale
-            page_height = float(image_pages[page_id].height) / page_scale
-
-            scale = (page_width / page.width + page_height / page.height) / 2.0
-            pdf_canvas = canvas.Canvas(ocr_overlay, pagesize=(page_width, page_height))
-
-            # Add image into PDF page
-            pdf_canvas.drawInlineImage(
-                image_pages[page_id],
-                0,
-                0,
-                width=page_width,
-                height=page_height,
-                preserveAspectRatio=True,
-            )
-
-            text = pdf_canvas.beginText()
-            # Set text rendering mode to invisible
-            text.setTextRenderMode(3)
-
-            for word in page.words:
-                # Calculate optimal font size
-                desired_text_width = (
-                    max(
-                        dist(word.polygon[0], word.polygon[1]),
-                        dist(word.polygon[3], word.polygon[2]),
-                    )
-                    * scale
-                )
-                desired_text_height = (
-                    max(
-                        dist(word.polygon[1], word.polygon[2]),
-                        dist(word.polygon[0], word.polygon[3]),
-                    )
-                    * scale
-                )
-                font_size = desired_text_height
-                actual_text_width = pdf_canvas.stringWidth(
-                    word.content, default_font, font_size
-                )
-
-                # Calculate text rotation angle
-                text_angle = math.atan2(
-                    (
-                        word.polygon[1].y
-                        - word.polygon[0].y
-                        + word.polygon[2].y
-                        - word.polygon[3].y
-                    )
-                    / 2.0,
-                    (
-                        word.polygon[1].x
-                        - word.polygon[0].x
-                        + word.polygon[2].x
-                        - word.polygon[3].x
-                    )
-                    / 2.0,
-                )
-                text.setFont(default_font, font_size)
-                text.setTextTransform(
-                    math.cos(text_angle),
-                    -math.sin(text_angle),
-                    math.sin(text_angle),
-                    math.cos(text_angle),
-                    word.polygon[3].x * scale,
-                    page_height - word.polygon[3].y * scale,
-                )
-                text.setHorizScale(desired_text_width / actual_text_width * 100)
-                text.textOut(word.content + " ")
-
-            # add header
-            if add_header:
-                header_text = f"Filename: {str(input_file)}"
-                pdf_canvas.setFont(default_font, 10)
-                pdf_canvas.drawString(30, page_height - 30, header_text)
-
-            pdf_canvas.drawText(text)
-            pdf_canvas.save()
-
-            # Move to the beginning of the buffer
-            ocr_overlay.seek(0)
-
-            # Create a new PDF page
-            new_pdf_page = PdfReader(ocr_overlay)  # changed
-            output.add_page(new_pdf_page.pages[0])
-    except Exception as e:
-        error_id = str(uuid.uuid4())[:7]
-        logger.exception(
-            _("Error creating PDF overlay after OCR with ErrorID- {error_id}: {e}")
-        )
-        return {
-            "error": True,
-            "message": _(
-                "Error ID: %(error_id)s - Failed to create PDF overlay after OCR."
-            )
-            % {"error_id": error_id},
-            "error_id": error_id,
-        }
-    elapsed_time_overlay = time.perf_counter() - start_time_overlay
-    logger.info(f"Creating PDF overlay took {elapsed_time_overlay:.2f} seconds")
-
-    cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
-    # return output, all_text, cost.usd_cost
-    return {
-        "error": False,
-        "output": output,
-        "all_text": all_text,
-        "cost": cost.usd_cost,
-    }
 
 
 def shorten_input_name(input_name):
