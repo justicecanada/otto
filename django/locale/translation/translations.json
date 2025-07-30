@@ -4391,6 +4391,18 @@
         "fr": "",
         "fr_auto": "Il s’agit de votre préréglage par défaut pour les nouvelles discussions. Pour modifier votre préréglage par défaut, retournez à la page Parcourir les préréglages et cliquez sur l’étoile d’un autre préréglage."
     },
+    "Select Output Size: ": {
+        "fr": "",
+        "fr_auto": "Sélectionnez la taille de la sortie : "
+    },
+    "Small": {
+        "fr": "",
+        "fr_auto": "Petit"
+    },
+    "Enlarged": {
+        "fr": "",
+        "fr_auto": "Agrandi"
+    },
     "Use full documents ($)": {
         "fr": "",
         "fr_auto": "Utiliser les documents complets ($)"
@@ -4542,5 +4554,13 @@
     "\n                        <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>\n                        <br><br>\n                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive./em>\n                        ": {
         "fr": "",
         "fr_auto": "\n<strong>Combiner :</strong> Lisez tous les documents sélectionnés ensemble, rédigez une seule réponse. <em>Essentiel pour comparer des documents. Généralement moins détaillé.</em>\n                        <br><br>\n                        <strong>Séparer :</strong> Lisez chaque document sélectionné individuellement et rédigez une réponse distincte pour chacun. <em>Généralement plus détaillé. Coûteux./em>\n                        "
+    },
+    "Enlarge images (file size x 3)": {
+        "fr": "",
+        "fr_auto": "Agrandir les images (taille du fichier x 3)"
+    },
+    "Enlarge images (Warning: output file will take up 3x more space)": {
+        "fr": "",
+        "fr_auto": "Agrandir les images (Attention : le fichier de sortie prendra 3 fois plus d’espace)"
     }
 }
