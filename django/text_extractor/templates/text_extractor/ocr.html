@@ -46,28 +46,15 @@
                      name="merge_docs_checkbox"
                      id="merge_docs_checkbox">
               <label class="form-check-label" for="merge_docs_checkbox">{% trans "Merge multiple files into one document" %}</label>
+
               <div class="mt-2 ms-4 d-none" id="output-size-options">
-
-                <label class="form-label mb-1">{% trans "Select Output Size: " %}</label>
-                <div class="d-flex align-items-center">
-                  <div class="form-check me-3">
-                    <input class="form-check-input"
-                           type="radio"
-                           name="output_size"
-                           id="output-size-small"
-                           value="small"
-                           checked>
-                    <label class="form-check-label" for="output-size-small">{% trans "Small" %}</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input"
-                           type="radio"
-                           name="output_size"
-                           id="output-size-enlarged"
-                           value="enlarged">
-                    <label class="form-check-label" for="output-size-enlarged">{% trans "Enlarged" %}</label>
-                  </div>
-
+                <div class="form-check">
+                  <input class="form-check-input"
+                         type="checkbox"
+                         name="enlarge_size"
+                         id="output-size-enlarged"
+                         value="enlarged">
+                  <label class="form-check-label" for="output-size-enlarged">{% trans "Enlarge images (file size x 3)" %}</label>
                 </div>
               </div>
             </div>

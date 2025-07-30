@@ -126,7 +126,7 @@ def trim_whitespace(img, margin=10, bg_threshold=230):
     return img  # No border found
 
 
-def resize_image_to_a4(img, output_size="small"):  # used only when merge is on
+def resize_image_to_a4(img, enlarge_size=None):  # used only when merge is on
 
     dpi = 300  # for A4 size in pixels
     # Minimum readable DPI
@@ -144,7 +144,7 @@ def resize_image_to_a4(img, output_size="small"):  # used only when merge is on
     scale = min(a4_width / img.width, a4_height / img.height)
     min_scale = max(min_width / img.width, min_height / img.height)
 
-    if output_size == "enlarged":
+    if enlarge_size == "enlarged":
         scale = min(a4_width / img.width, a4_height / img.height) * 0.85
     else:
         # Downsample, but not below minimum readable DPI
@@ -172,7 +172,7 @@ def dist(p1, p2):
     return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
 
-def create_searchable_pdf(input_file, add_header, merged=False, output_size="small"):
+def create_searchable_pdf(input_file, add_header, merged=False, enlarge_size=None):
     # Reset the file pointer to the beginning
     input_file.seek(0)
     file_content = input_file.read()
@@ -254,7 +254,7 @@ def create_searchable_pdf(input_file, add_header, merged=False, output_size="sma
                 with Image.open(temp_path) as img:
                     image_pages_original = ImageSequence.Iterator(img)
                     image_pages = [
-                        resize_image_to_a4(image, output_size)
+                        resize_image_to_a4(image, enlarge_size)
                         for image in image_pages_original
                     ]
             else:
