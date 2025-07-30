@@ -4558,5 +4558,9 @@
     "Enlarge images (file size x 3)": {
         "fr": "",
         "fr_auto": "Agrandir les images (taille du fichier x 3)"
+    },
+    "Enlarge images (Warning: output file will take up 3x more space)": {
+        "fr": "",
+        "fr_auto": "Agrandir les images (Attention : le fichier de sortie prendra 3 fois plus d’espace)"
     }
 }
