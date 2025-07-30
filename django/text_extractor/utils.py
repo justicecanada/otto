@@ -109,14 +109,20 @@ def calculate_start_pages(files):
     return start_pages
 
 
-def trim_whitespace(img):
-    # Convert to grayscale and invert (so white becomes black)
-    bg = Image.new(img.mode, img.size, img.getpixel((0, 0)))
-    diff = ImageChops.difference(img, bg)
-    diff = ImageChops.add(diff, diff, 2.0, -100)
-    bbox = diff.getbbox()
+def trim_whitespace(img, margin=10, bg_threshold=230):
+    # Convert to grayscale for easier thresholding
+    gray = img.convert("L")
+    # Create a binary mask to separate background: 0 for background (light), 255 for content (dark)
+    mask = gray.point(lambda x: 0 if x > bg_threshold else 255, mode="1")
+    bbox = mask.getbbox()  # finds the smallest bbox that has all contents inside
+
+    # Expanding the bbox thats found by a margin on all sides but not crossing the images boundaries
     if bbox:
-        return img.crop(bbox)
+        left = max(bbox[0] - margin, 0)
+        upper = max(bbox[1] - margin, 0)
+        right = min(bbox[2] + margin, img.width)
+        lower = min(bbox[3] + margin, img.height)
+        return img.crop((left, upper, right, lower))
     return img  # No border found
 
 
