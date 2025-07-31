@@ -4646,5 +4646,17 @@
     "Read file": {
         "fr": "",
         "fr_auto": "Lire le fichier"
+    },
+    "ReAct agent (LangGraph)": {
+        "fr": "",
+        "fr_auto": "Agent ReAct (LangGraph)"
+    },
+    "Tool calling agent (Smolagents)": {
+        "fr": "",
+        "fr_auto": "Agent d’appel d’outils (Smolagents)"
+    },
+    "Coding agent (Smolagents)": {
+        "fr": "",
+        "fr_auto": "Agent codant (Smolagents)"
     }
 }
