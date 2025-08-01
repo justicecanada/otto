@@ -269,7 +269,7 @@ class OttoLLM:
             similarity_top_k=top_k,
             num_queries=1,  # set this to 1 to disable query generation
             mode="relative_score",
-            use_async=False,
+            use_async=True,
             retriever_weights=[vector_weight, 1 - vector_weight],
             llm=self.llm,
         )
@@ -290,6 +290,7 @@ class OttoLLM:
             text_search_config="english",
             perform_setup=True,
             use_jsonb=True,
+            # debug=True,
             hnsw_kwargs=(
                 {"hnsw_ef_construction": 256, "hnsw_m": 32, "hnsw_ef_search": 256}
                 if hnsw

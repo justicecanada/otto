@@ -5359,6 +5359,18 @@
         "fr": "",
         "fr_auto": "Afficher les sorties de l’étape"
     },
+    "Select Output Size: ": {
+        "fr": "",
+        "fr_auto": "Sélectionnez la taille de la sortie : "
+    },
+    "Small": {
+        "fr": "",
+        "fr_auto": "Petit"
+    },
+    "Enlarged": {
+        "fr": "",
+        "fr_auto": "Agrandi"
+    },
     "Use full documents ($)": {
         "fr": "",
         "fr_auto": "Utiliser les documents complets ($)"
@@ -5522,5 +5534,13 @@
     "Agent type": {
         "fr": "",
         "fr_auto": "Type d’agent"
+    },
+    "Enlarge images (file size x 3)": {
+        "fr": "",
+        "fr_auto": "Agrandir les images (taille du fichier x 3)"
+    },
+    "Enlarge images (Warning: output file will take up 3x more space)": {
+        "fr": "",
+        "fr_auto": "Agrandir les images (Attention : le fichier de sortie prendra 3 fois plus d’espace)"
     }
 }
