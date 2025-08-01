@@ -20,4 +20,5 @@ urlpatterns = [
         views.open_transcript_chat,
         name="open_transcript_chat",
     ),
+    path("loading_url/", views.loading_url, name="loading_url"),
 ]

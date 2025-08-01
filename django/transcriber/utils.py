@@ -4,11 +4,13 @@ import re
 import subprocess
 import threading
 import time
+from io import BytesIO
 from itertools import groupby
 from urllib.parse import urlparse
 
 from django.conf import settings
-from django.http import HttpResponse
+from django.core.files import File
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 import azure.cognitiveservices.speech as speechsdk
 import ffmpeg
@@ -499,4 +501,20 @@ def get_video_from_parlvu(url, output_path="temp"):
     )
     video_url = floor_video_sd["Url"]
 
-    ffmpeg.input(video_url).output(f"{output_path}.mp4", c="copy").run()
+    temp_file_path = f"{output_path}.mp4"
+
+    ffmpeg.input(video_url).output(temp_file_path, c="copy").run(overwrite_output=True)
+
+    with open(temp_file_path, "rb") as f:
+        byte_stream = BytesIO(f.read())
+        size = byte_stream.getbuffer().nbytes
+        return InMemoryUploadedFile(
+            byte_stream,
+            field_name=None,
+            name=temp_file_path,
+            content_type="video/mp4",
+            size=size,
+            charset=None,
+        )
+
+    # return f"{output_path}.mp4"  # TODO: implement some kind of file management/cleanup capabilities

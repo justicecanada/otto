@@ -5578,5 +5578,33 @@
     "Agent type": {
         "fr": "",
         "fr_auto": "Type d’agent"
+    },
+    "Enter a valid ParlVU URL below.": {
+        "fr": "",
+        "fr_auto": "Entrez une URL ParlVU valide ci-dessous."
+    },
+    "Enter URL.": {
+        "fr": "",
+        "fr_auto": "Entrez l’URL."
+    },
+    "<div class='bg-warning-subtle rounded border border-warning>{_('hello')}</div>": {
+        "fr": "",
+        "fr_auto": "<div class='bg-warning-subtil bordure arrondie-avertissement>{_('hello')}</div>"
+    },
+    "<div class='bg-warning-subtle rounded border border-warning'>{_('hello')}</div>": {
+        "fr": "",
+        "fr_auto": "<div class='bg-warning-subtil bordure arrondie-avertissement'>{_('hello')}</div>"
+    },
+    "hello": {
+        "fr": "",
+        "fr_auto": "Allô"
+    },
+    "frog": {
+        "fr": "",
+        "fr_auto": "grenouille"
+    },
+    "Please enter a URL from parlvu.parl.gc.ca.": {
+        "fr": "",
+        "fr_auto": "Veuillez entrer une URL de parlvu.parl.gc.ca."
     }
 }

@@ -1,6 +1,7 @@
 import json
 import os
 from collections import deque
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -27,6 +28,7 @@ from .utils import (
     generate_structured_notes,
     generate_summary,
     get_localized_prompt,
+    get_video_from_parlvu,
     transcribe_audio,
     translate_transcript,
     translator_key,
@@ -39,10 +41,22 @@ logger = get_logger(__name__)
 @app_access_required(app_name)
 def index(request):
     bind_contextvars(feature="transcriber")
-    return render(
-        request,
-        "transcriber.html",
-    )
+    return render(request, "transcriber/transcriber.html")
+
+
+@app_access_required(app_name)
+def loading_url(request):
+    if request.POST:
+        parlvu_url = request.POST.get("parlvu_url", "")
+        domain = urlparse(parlvu_url).netloc
+        if domain != "parlvu.parl.gc.ca":
+            return HttpResponse(_("Please enter a URL from parlvu.parl.gc.ca."))
+
+        try:
+            request.FILES["file"] = get_video_from_parlvu(parlvu_url)
+        except Exception as e:
+            return JsonResponse({"error": e})
+        return handle_upload(request)
 
 
 @app_access_required(app_name)
@@ -290,7 +304,7 @@ def add_to_library(request):
 
         return render(
             request,
-            "components/add_to_library_modal.html",
+            "transcriber/components/add_to_library_modal.html",
             context={
                 "result_message": result_message,
                 "transcript_uuid": transcript_doc.uuid_hex,

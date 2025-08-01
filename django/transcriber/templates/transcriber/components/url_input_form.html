@@ -1,0 +1,20 @@
+{% load i18n %}
+{% load filters %}
+<form hx-post="{% url 'transcriber:loading_url' %}"
+      hx-encoding="multipart/form-data"
+      hx-target="#transcriptContainer"
+      hx-indicator="#spinner"
+      hx-swap="innerHTML">
+
+  <div class="form-group mt-4 mb-3">
+    <label for="parlvu_url" style="font-size: smaller;">{% trans "Enter a valid ParlVU URL below." %}</label>
+    <div>
+      <input type="url"
+             placeholder="{% trans "Enter URL." %}"
+             id="parlvu_url"
+             name="parlvu_url"
+             size="40">
+    </div>
+  </div>
+  <button type="submit" class="btn action-button">{% trans "Submit" %}</button>
+</form>

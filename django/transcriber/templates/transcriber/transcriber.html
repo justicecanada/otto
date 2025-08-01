@@ -77,7 +77,8 @@
       </div>
     </div>
     <div class="error-message" id="errorMessage"></div>
-    <div id="status" class="status">Upload an audio or video file to begin</div>
+    <div id="status" class="status">{% trans "Upload an audio or video file to begin" %}</div>
+    <div class="mb-3 mt-1 p-3 border rounded">{% include "transcriber/components/url_input_form.html" %}</div>
 
     <div class="action-buttons">
       <button id="loadMediaButton" class="action-button">{% trans "Load Media" %}</button>
@@ -85,6 +86,9 @@
       <button id="loadTranscriptButton" class="action-button">{% trans "Load Transcript" %}</button>
       <button id="saveTranscriptButton" class="action-button" disabled>{% trans "Save Transcript" %}</button>
       <button id="copyButton" class="action-button" disabled>{% trans "Copy to Clipboard" %}</button>
+    </div>
+    <div id="spinner" class="spinner container text-primary px-4 pt-3 pb-3">
+      <span class="spinner-border" aria-hidden="true"></span>
     </div>
     <div class="action-buttons">
       <button id="cleanupButton" class="action-button" disabled>{% trans "Clean Up" %}</button>
@@ -114,6 +118,7 @@
 
     <input type="hidden" id="transcript_uuid">
     <input type="file" id="fileInput">
+
     {% csrf_token %}
 
     <div class="media-container hidden" id="mediaContainer">
@@ -236,6 +241,8 @@
                 }
               },
               error: function(xhr, status, error) {
+                console.log(xhr.responseText);
+                console.log(error);
                 showError(`Error: ${xhr.responseText || error}`);
               }
             })
