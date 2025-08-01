@@ -49,6 +49,23 @@
           url: text_extractor:index
           category: reporting
 
+- model: otto.App
+  fields:
+    handle: transcriber
+    name_en: Transcriber
+    name_fr: Transcripteur
+    prod_ready: true
+    user_group: Transcriber user
+    features:
+      - fields:
+          short_name: "transcriber"
+          name_en: Transcriber
+          name_fr: Transcripteur
+          description_en: Transcribe audio and video files to text using AI.
+          description_fr: Transcrire des fichiers audio et vidéo en texte à l'aide de l'IA.
+          url: transcriber:index
+          category: other
+
 # - model: otto.App
 #   fields:
 #     handle: lex_experiment
