@@ -649,171 +649,141 @@ def get_sha_256_hash(file_path):
     return sha256_hash.hexdigest()
 
 
-def drop_hnsw_index():
-    sql = "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
-    db = settings.DATABASES["vector_db"]
-    connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
-    engine = create_engine(connection_string)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    session.execute(text(sql))
-    session.commit()
-    session.close()
-
-
-def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
+def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
     """
-    Recreate vector‐specific and JSONB indexes on the data_laws_lois__ table,
-    then VACUUM ANALYZE, CLUSTER (optional), and prewarm both the index and the heap.
-
-    Args:
-        node_id: Ignored; Django manages node_id via Model.Meta.indexes
-        jsonb:    If True, create/drop the BTREE indexes on JSONB metadata
-        hnsw:     If True, recreate the HNSW index on the embedding column
+    Recreate indexes on data_laws_lois__ table for optimal performance.
+    Focus on the core indexes that matter most for query performance.
     """
-
     # Build SQLAlchemy engine from Django settings
     db = settings.DATABASES["vector_db"]
-    connection_url = (
+    url = (
         f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}"
         f"@{db['HOST']}:{db['PORT']}/{db['NAME']}"
     )
-    engine = create_engine(connection_url)
+    engine = create_engine(url)
 
-    #
-    # 1) Inside a transaction: Non‐locking/safe DDL
-    #
     with engine.begin() as conn:
-        # Always keep a GIN index on the tsvector for full‐text search of chunks
+        # Drop existing indexes to recreate them fresh
+        conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__chunk_text_idx;"))
+        conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__doc_id_chunk_idx;"))
+        conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__lang_chunk_idx;"))
+        conn.execute(
+            text("DROP INDEX IF EXISTS data_laws_lois__lang_doc_id_chunk_idx;")
+        )
+        conn.execute(
+            text("DROP INDEX IF EXISTS data_laws_lois__in_force_start_date_idx;")
+        )
+        conn.execute(
+            text("DROP INDEX IF EXISTS data_laws_lois__last_amended_date_idx;")
+        )
+        conn.execute(text("DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"))
+        conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__metadata__idx;"))
+
+        # Core indexes
+        if node_id:
+            conn.execute(
+                text(
+                    """
+                CREATE INDEX IF NOT EXISTS data_laws_lois__node_id_idx
+                  ON data_laws_lois__ (node_id);
+                """
+                )
+            )
+
+        # Full-text search with partial index for chunks
         conn.execute(
             text(
                 """
             CREATE INDEX IF NOT EXISTS data_laws_lois__chunk_text_idx
-              ON data_laws_lois__ USING gin(text_search_tsv)
-             WHERE metadata_ ->> 'node_type' = 'chunk';
-        """
+              ON data_laws_lois__
+              USING gin(text_search_tsv)
+              WHERE (metadata_ ->> 'node_type') = 'chunk';
+            """
             )
         )
 
         if jsonb:
-            # Drop any old generic GIN‐on‐JSONB index (if still present)
-            conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__metadata__idx;"))
-            # Drop old standalone btree indexes
-            conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__node_type_idx;"))
-            conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__doc_id_idx;"))
-
-            # Partial btree index on doc_id for chunk rows only
-            conn.execute(
-                text(
-                    """
-                CREATE INDEX IF NOT EXISTS data_laws_lois__doc_id_chunk_idx
-                  ON data_laws_lois__ ((metadata_ ->> 'doc_id'))
-                 WHERE metadata_ ->> 'node_type' = 'chunk';
-            """
-                )
-            )
-
-            # Partial btree index on lang for chunk rows only
-            conn.execute(
-                text(
-                    """
-                CREATE INDEX IF NOT EXISTS data_laws_lois__lang_chunk_idx
-                  ON data_laws_lois__ ((metadata_ ->> 'lang'))
-                 WHERE metadata_ ->> 'node_type' = 'chunk';
-            """
-                )
-            )
-
-            # Composite index for (lang, doc_id) on chunk rows for efficient filtering
+            # Composite lang+doc_id for chunks
             conn.execute(
                 text(
                     """
                 CREATE INDEX IF NOT EXISTS data_laws_lois__lang_doc_id_chunk_idx
-                  ON data_laws_lois__ ((metadata_ ->> 'lang'), (metadata_ ->> 'doc_id'))
-                 WHERE metadata_ ->> 'node_type' = 'chunk';
-            """
+                  ON data_laws_lois__ (
+                    (metadata_ ->> 'lang'),
+                    (metadata_ ->> 'doc_id')
+                  )
+                  WHERE (metadata_ ->> 'node_type') = 'chunk';
+                """
                 )
             )
 
-            # Additional btree indexes on date‐fields
+            # Date indexes for chunks (as text since JSONB ->> returns text)
             conn.execute(
                 text(
                     """
-                CREATE INDEX IF NOT EXISTS data_laws_lois__in_force_start_date_idx
-                  ON data_laws_lois__ ((metadata_ ->> 'in_force_start_date'));
-                 WHERE metadata_ ->> 'node_type' = 'chunk';
-            """
+                CREATE INDEX IF NOT EXISTS data_laws_lois__in_force_start_date_chunk_idx
+                  ON data_laws_lois__ ( (metadata_ ->> 'in_force_start_date') )
+                  WHERE (metadata_ ->> 'node_type') = 'chunk';
+                """
                 )
             )
             conn.execute(
                 text(
                     """
-                CREATE INDEX IF NOT EXISTS data_laws_lois__last_amended_date_idx
-                  ON data_laws_lois__ ((metadata_ ->> 'last_amended_date'));
-                WHERE metadata_ ->> 'node_type' = 'chunk';
-            """
+                CREATE INDEX IF NOT EXISTS data_laws_lois__last_amended_date_chunk_idx
+                  ON data_laws_lois__ ( (metadata_ ->> 'last_amended_date') )
+                  WHERE (metadata_ ->> 'node_type') = 'chunk';
+                """
                 )
             )
 
         if hnsw:
-            # Drop & recreate HNSW vector index with chosen parameters
-            conn.execute(text("DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"))
+            # Vector (HNSW) index for chunks only
             conn.execute(
                 text(
                     """
                 CREATE INDEX IF NOT EXISTS data_laws_lois___embedding_idx
-                  ON data_laws_lois__ USING hnsw(embedding vector_cosine_ops)
-                 WITH (m = 32, ef_construction = 256);
-            """
+                  ON data_laws_lois__
+                  USING hnsw(embedding vector_cosine_ops)
+                  WITH (m = 32, ef_construction = 256)
+                  WHERE (metadata_ ->> 'node_type') = 'chunk';
+                """
                 )
             )
 
-    #
-    # 2) Outside a transaction (AUTOCOMMIT): VACUUM, ANALYZE, CLUSTER, PREWARM
-    #
+    # VACUUM/ANALYZE for fresh stats
     with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
-        # Refresh table statistics so the planner sees the new indexes
         conn.execute(text("VACUUM ANALYZE data_laws_lois__;"))
 
-        # Optionally physically cluster the table around the lang_doc_id_chunk_idx
-        # This takes an exclusive lock but speeds up range scans on lang (most common filter) and doc_id
-        # Data will be physically organized: all 'eng' chunks together, all 'fra' chunks together,
-        # and within each language, documents will be grouped together
-        if jsonb:
-            conn.execute(
-                text(
-                    "CLUSTER data_laws_lois__ USING data_laws_lois__lang_doc_id_chunk_idx;"
-                )
-            )
-            # Re‐ANALYZE after clustering
-            conn.execute(text("ANALYZE data_laws_lois__;"))
-
-        # Log row count
-        row_count = conn.execute(
-            text("SELECT count(*) FROM data_laws_lois__;")
-        ).scalar_one()
-        print(f"[recreate_indexes] data_laws_lois__ row count = {row_count}")
-
-        # Ensure pg_prewarm is available, then prewarm indexes + heap into shared buffers
+        # Pre-warm the key indexes
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_prewarm;"))
+        if node_id:
+            conn.execute(
+                text("SELECT pg_prewarm('data_laws_lois__node_id_idx','buffer');")
+            )
+        conn.execute(
+            text("SELECT pg_prewarm('data_laws_lois__chunk_text_idx','buffer');")
+        )
         if jsonb:
-            conn.execute(
-                text("SELECT pg_prewarm('data_laws_lois__doc_id_chunk_idx','buffer');")
-            )
-            conn.execute(
-                text("SELECT pg_prewarm('data_laws_lois__lang_chunk_idx','buffer');")
-            )
             conn.execute(
                 text(
                     "SELECT pg_prewarm('data_laws_lois__lang_doc_id_chunk_idx','buffer');"
                 )
             )
-        conn.execute(
-            text("SELECT pg_prewarm('data_laws_lois__chunk_text_idx','buffer');")
-        )
-        conn.execute(
-            text("SELECT pg_prewarm('data_laws_lois___embedding_idx','buffer');")
-        )
+            conn.execute(
+                text(
+                    "SELECT pg_prewarm('data_laws_lois__in_force_start_date_chunk_idx','buffer');"
+                )
+            )
+            conn.execute(
+                text(
+                    "SELECT pg_prewarm('data_laws_lois__last_amended_date_chunk_idx','buffer');"
+                )
+            )
+        if hnsw:
+            conn.execute(
+                text("SELECT pg_prewarm('data_laws_lois___embedding_idx','buffer');")
+            )
         conn.execute(text("SELECT pg_prewarm('data_laws_lois__','buffer');"))
 
 

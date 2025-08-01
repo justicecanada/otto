@@ -288,7 +288,7 @@ class OttoLLM:
             text_search_config="english",
             perform_setup=True,
             use_jsonb=True,
-            # debug=True,
+            debug=settings.DEBUG,
             hnsw_kwargs=(
                 {"hnsw_ef_construction": 256, "hnsw_m": 32, "hnsw_ef_search": 256}
                 if hnsw

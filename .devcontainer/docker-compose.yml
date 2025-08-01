@@ -20,6 +20,16 @@ services:
   postgres-service:
     image: pgvector/pgvector:pg16
     restart: unless-stopped
+    command: [
+      "postgres",
+      "-c", "shared_preload_libraries=pg_stat_statements",
+      "-c", "pg_stat_statements.track=all",
+      "-c", "shared_buffers=256MB",
+      "-c", "work_mem=32MB",
+      "-c", "effective_cache_size=512MB",
+      "-c", "maintenance_work_mem=256MB"
+    ]
+    shm_size: 512mb
     volumes:
       - postgres-data:/var/lib/postgresql/data
       # - ./init.sql:/docker-entrypoint-initdb.d/init.sql

@@ -172,3 +172,13 @@ SELECT pg_prewarm('data_laws_lois___embedding_idx','buffer');
 
 -- Prewarm table heap
 SELECT pg_prewarm('data_laws_lois__','buffer');
+
+
+
+--- before lang: around 750ms in Django with subset of laws
+
+
+UPDATE data_laws_lois__ 
+SET metadata_ = jsonb_set(metadata_, '{lang}', '"fra"', true)
+WHERE metadata_ ->> 'node_type' = 'chunk' AND node_id LIKE '%_fra%';
+

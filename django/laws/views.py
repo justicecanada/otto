@@ -316,11 +316,12 @@ def search(request):
                 doc_id_list = [law.node_id_fr for law in selected_laws]
             else:
                 doc_id_list = [law.node_id_en for law in selected_laws]
+            print("applying filter on lang")
             filters.append(
                 MetadataFilter(
                     key="lang",
                     value=lang,
-                    operator="equals",
+                    operator="==",
                 )
             )
         else:
@@ -330,6 +331,7 @@ def search(request):
 
         # Only add doc_id filter if needed
         if doc_id_list and selected_laws.count() < Law.objects.count():
+            print("applying filter on doc_id")
             filters.append(
                 MetadataFilter(
                     key="doc_id",
