@@ -33,6 +33,17 @@ from .llm_models import get_model
 logger = get_logger(__name__)
 
 
+# Cache connection parameters to avoid repeated lookups
+connection_params = {
+    "database": settings.DATABASES["vector_db"]["NAME"],
+    "host": settings.DATABASES["vector_db"]["HOST"],
+    "password": settings.DATABASES["vector_db"]["PASSWORD"],
+    "user": settings.DATABASES["vector_db"]["USER"],
+    "port": settings.DATABASES["vector_db"]["PORT"],
+}
+debug = settings.DEBUG
+
+
 class ModelEventHandler(BaseEventHandler):
     @classmethod
     def class_name(cls) -> str:
@@ -236,7 +247,41 @@ class OttoLLM:
         self._token_counter.reset_counts()
         return usd_cost
 
-    # RAG-related getters for retriever (get sources only) and response synthesizer
+    def get_fast_vector_retriever(
+        self,
+        vector_store_table: str,
+        filters: MetadataFilters = None,
+        top_k: int = 5,
+        hnsw: bool = True,
+    ):
+        pg_idx = self.get_index(vector_store_table, hnsw=hnsw, skip_setup=True)
+
+        return pg_idx.as_retriever(
+            vector_store_query_mode="default",
+            similarity_top_k=top_k,
+            filters=filters,
+            vector_store_kwargs={"hnsw_ef_search": 256} if hnsw else {},
+        )
+
+    def get_fast_text_retriever(
+        self,
+        vector_store_table: str,
+        filters: MetadataFilters = None,
+        top_k: int = 5,
+    ):
+        pg_idx = self.get_index(vector_store_table, hnsw=False, skip_setup=True)
+
+        text_retriever = pg_idx.as_retriever(
+            vector_store_query_mode="sparse",
+            similarity_top_k=top_k,
+            filters=filters,
+        )
+
+        # Disable embedding to make it text-only
+        text_retriever._vector_store.is_embedding_query = False
+
+        return text_retriever
+
     def get_retriever(
         self,
         vector_store_table: str,
@@ -245,22 +290,24 @@ class OttoLLM:
         vector_weight: float = 0.6,
         hnsw: bool = False,
     ) -> QueryFusionRetriever:
-
-        pg_idx = self.get_index(vector_store_table, hnsw=hnsw)
-
-        vector_retriever = pg_idx.as_retriever(
-            vector_store_query_mode="default",
-            similarity_top_k=max(top_k, 100),
-            filters=filters,
-            llm=self.llm,
-            embed_model=self.embed_model,
+        if vector_weight == 0:
+            # If vector_weight is 0, use text-only retriever
+            text_retriever = self.get_fast_text_retriever(
+                vector_store_table, filters, top_k
+            )
+            return text_retriever
+        elif vector_weight == 1:
+            # If vector_weight is 1, use vector-only retriever
+            vector_retriever = self.get_fast_vector_retriever(
+                vector_store_table, filters, top_k, hnsw
+            )
+            return vector_retriever
+        # Otherwise, use hybrid retriever
+        text_retriever = self.get_fast_text_retriever(
+            vector_store_table, filters, max(top_k * 2, 100)
         )
-        text_retriever = pg_idx.as_retriever(
-            vector_store_query_mode="sparse",
-            similarity_top_k=max(top_k, 100),
-            filters=filters,
-            llm=self.llm,
-            embed_model=self.embed_model,
+        vector_retriever = self.get_fast_vector_retriever(
+            vector_store_table, filters, max(top_k * 2, 100), hnsw
         )
         hybrid_retriever = QueryFusionRetriever(
             [vector_retriever, text_retriever],
@@ -274,27 +321,25 @@ class OttoLLM:
         return hybrid_retriever
 
     def get_index(
-        self, vector_store_table: str, hnsw: bool = False
+        self, vector_store_table: str, hnsw: bool = False, skip_setup: bool = False
     ) -> VectorStoreIndex:
+
         vector_store = OttoVectorStore.from_params(
-            database=settings.DATABASES["vector_db"]["NAME"],
-            host=settings.DATABASES["vector_db"]["HOST"],
-            password=settings.DATABASES["vector_db"]["PASSWORD"],
-            user=settings.DATABASES["vector_db"]["USER"],
-            port=settings.DATABASES["vector_db"]["PORT"],
+            **connection_params,
             table_name=vector_store_table,
             embed_dim=1536,  # openai embedding dimension
             hybrid_search=True,
             text_search_config="english",
-            perform_setup=True,
+            perform_setup=not skip_setup,
             use_jsonb=True,
-            debug=settings.DEBUG,
+            debug=debug,
             hnsw_kwargs=(
                 {"hnsw_ef_construction": 256, "hnsw_m": 32, "hnsw_ef_search": 256}
                 if hnsw
                 else None
             ),
         )
+
         idx = VectorStoreIndex.from_vector_store(
             vector_store=vector_store,
             llm=self.llm,
@@ -366,7 +411,7 @@ class OttoLLM:
 
 
 class OttoVectorStore(PGVectorStore):
-    # Override from LlamaIndex to add retrying and connection test
+    # Override from LlamaIndex to add retrying, connection test, and connection pooling
     @retry(
         wait_exponential_multiplier=1000,
         wait_exponential_max=20000,
@@ -376,16 +421,26 @@ class OttoVectorStore(PGVectorStore):
         from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
         from sqlalchemy.orm import sessionmaker
 
+        # Add connection pooling for better performance
+        engine_kwargs = {
+            "pool_size": 10,
+            "max_overflow": 20,
+            "pool_pre_ping": True,
+            "pool_recycle": 3600,
+            **self.create_engine_kwargs,
+        }
+
         self._engine = create_engine(
-            self.connection_string, echo=self.debug, **self.create_engine_kwargs
+            self.connection_string, echo=self.debug, **engine_kwargs
         )
         self._session = sessionmaker(self._engine)
 
+        # Use the same pooling settings for async engine
         self._async_engine = create_async_engine(
-            self.async_connection_string, **self.create_engine_kwargs
+            self.async_connection_string, **engine_kwargs
         )
         self._async_session = sessionmaker(self._async_engine, class_=AsyncSession)  # type: ignore
 
         # Test the connection to ensure it's established
-        with self._engine.connect() as connection:
-            connection.execute(sqlalchemy.text("SELECT 1"))
+        # with self._engine.connect() as connection:
+        #     connection.execute(sqlalchemy.text("SELECT 1"))

@@ -1,5 +1,6 @@
 import hashlib
 import os
+import time
 import zipfile
 from datetime import timedelta
 
@@ -669,27 +670,32 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
     engine = create_engine(url)
 
     with engine.begin() as conn:
-        # Drop ALL existing indexes that might compete with vector index
-        conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__chunk_text_idx;"))
-        conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__doc_id_chunk_idx;"))
-        conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__lang_chunk_idx;"))
+        # Drop ONLY the problematic compound indexes that compete with vector index
+        # These are the ones that cause PostgreSQL to avoid the HNSW index
         conn.execute(
-            text("DROP INDEX IF EXISTS data_laws_lois__lang_doc_id_chunk_idx;")
+            text("DROP INDEX IF EXISTS data_laws_lois__lang_chunk_idx;")
+        )  # Compound: (metadata_->>'lang', metadata_->>'node_type')
+        conn.execute(
+            text(
+                "DROP INDEX IF EXISTS data_laws_lois__lang_doc_id_chunk_idx;"
+            )  # Compound: multiple metadata fields
         )
         conn.execute(
-            text("DROP INDEX IF EXISTS data_laws_lois__in_force_start_date_idx;")
+            text(
+                "DROP INDEX IF EXISTS data_laws_lois__in_force_start_date_chunk_idx;"
+            )  # Compound: (date + node_type)
         )
         conn.execute(
-            text("DROP INDEX IF EXISTS data_laws_lois__last_amended_date_idx;")
+            text(
+                "DROP INDEX IF EXISTS data_laws_lois__last_amended_date_chunk_idx;"
+            )  # Compound: (date + node_type)
         )
         conn.execute(
-            text("DROP INDEX IF EXISTS data_laws_lois__in_force_start_date_chunk_idx;")
-        )
+            text("DROP INDEX IF EXISTS data_laws_lois__type_language_id_idx;")
+        )  # Compound: (node_type + lang + id)
         conn.execute(
-            text("DROP INDEX IF EXISTS data_laws_lois__last_amended_date_chunk_idx;")
-        )
-        conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__type_language_id_idx;"))
-        conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__metadata__idx;"))
+            text("DROP INDEX IF EXISTS data_laws_lois__metadata__idx;")
+        )  # Generic metadata index
 
         # Core indexes that don't interfere with vector search
         if node_id:
@@ -702,6 +708,35 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
                 )
             )
 
+        # Useful single-column indexes for filtering and sorting
+        # These don't compete with vector index since they're not compound
+        conn.execute(
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS data_laws_lois__doc_id_idx
+              ON data_laws_lois__ USING btree((metadata_ ->> 'doc_id'));
+            """
+            )
+        )
+
+        conn.execute(
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS data_laws_lois__in_force_start_date_idx
+              ON data_laws_lois__ USING btree((metadata_ ->> 'in_force_start_date'));
+            """
+            )
+        )
+
+        conn.execute(
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS data_laws_lois__last_amended_date_idx
+              ON data_laws_lois__ USING btree((metadata_ ->> 'last_amended_date'));
+            """
+            )
+        )
+
         # Full-text search index (tested: doesn't compete significantly with vector index)
         conn.execute(
             text(
@@ -710,18 +745,28 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
               ON data_laws_lois__
               USING gin(text_search_tsv)
               WHERE (metadata_ ->> 'node_type') = 'chunk';
+
+            CREATE INDEX IF NOT EXISTS data_laws_lois__tsv_eng_chunk_idx
+              ON data_laws_lois__
+              USING gin(text_search_tsv)
+              WHERE (metadata_->>'lang' = 'eng' AND metadata_->>'node_type' = 'chunk');
+
+            CREATE INDEX IF NOT EXISTS data_laws_lois__tsv_fra_chunk_idx
+              ON data_laws_lois__
+              USING gin(text_search_tsv)
+              WHERE (metadata_->>'lang' = 'fra' AND metadata_->>'node_type' = 'chunk');
             """
             )
         )
 
-        # CRITICAL: NO compound indexes on metadata fields!
-        # They cause PostgreSQL to avoid the vector index, causing massive slowdown.
-        # LlamaIndex queries filter by both node_type='chunk' AND lang='eng'/'fra',
-        # and compound indexes on these fields make the planner choose wrong execution path.
+        # CRITICAL: NO compound indexes on metadata fields that include node_type + lang!
+        # Those specific combinations cause PostgreSQL to avoid the vector index.
+        # Single-column indexes are fine and beneficial.
 
         if hnsw:
             # High-performance vector (HNSW) index for chunks only
             # This MUST be the primary index used for similarity search
+            # Match the exact WHERE clause pattern used by LlamaIndex queries
             conn.execute(
                 text(
                     """
@@ -744,6 +789,17 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
             conn.execute(
                 text("SELECT pg_prewarm('data_laws_lois__node_id_idx','buffer');")
             )
+
+        # Pre-warm the beneficial single-column indexes
+        conn.execute(text("SELECT pg_prewarm('data_laws_lois__doc_id_idx','buffer');"))
+        conn.execute(
+            text(
+                "SELECT pg_prewarm('data_laws_lois__in_force_start_date_idx','buffer');"
+            )
+        )
+        conn.execute(
+            text("SELECT pg_prewarm('data_laws_lois__last_amended_date_idx','buffer');")
+        )
         conn.execute(
             text("SELECT pg_prewarm('data_laws_lois__chunk_text_idx','buffer');")
         )
@@ -754,14 +810,6 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
             )
         # Pre-warm the main table
         conn.execute(text("SELECT pg_prewarm('data_laws_lois__','buffer');"))
-
-    print("✅ Optimal indexing strategy applied!")
-    print("🚀 Vector search performance: ~35ms (vs 365ms with competing indexes)")
-    print("📊 Indexes created:")
-    print("   - HNSW vector index (441MB, primary for similarity search)")
-    print("   - Text search GIN index (for full-text search)")
-    print("   - Node ID B-tree index (for lookups)")
-    print("⚠️  Compound metadata indexes REMOVED (they compete with vector index)")
 
 
 def calculate_job_elapsed_time(job_status):
