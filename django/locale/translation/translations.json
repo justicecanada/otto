@@ -4562,5 +4562,21 @@
     "Enlarge images (Warning: output file will take up 3x more space)": {
         "fr": "",
         "fr_auto": "Agrandir les images (Attention : le fichier de sortie prendra 3 fois plus d’espace)"
+    },
+    "Vector DB indexes reset successfully.": {
+        "fr": "",
+        "fr_auto": "Les index vectoriels de la base de données se réinitialisent avec succès."
+    },
+    "Error recreating indexes: %s": {
+        "fr": "",
+        "fr_auto": "Erreur de recréation des index :%s"
+    },
+    "Are you sure you want to recreate the database indexes? This may temporarily impact performance.": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir recréer les index de la base de données? Cela peut avoir une incidence temporaire sur le rendement."
+    },
+    "Recreate Indexes": {
+        "fr": "",
+        "fr_auto": "Recréer des index"
     }
 }
