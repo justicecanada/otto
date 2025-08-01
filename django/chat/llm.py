@@ -1,4 +1,5 @@
 import uuid
+from typing import Any, Optional
 
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -388,3 +389,54 @@ class OttoVectorStore(PGVectorStore):
         # Test the connection to ensure it's established
         with self._engine.connect() as connection:
             connection.execute(sqlalchemy.text("SELECT 1"))
+
+    def _build_sparse_query(
+        self,
+        query_str: Optional[str],
+        limit: int,
+        metadata_filters: Optional[MetadataFilters] = None,
+    ) -> Any:
+        from sqlalchemy import select, type_coerce
+        from sqlalchemy.sql import func, text
+        from sqlalchemy.types import UserDefinedType
+
+        class REGCONFIG(UserDefinedType):
+            # The TypeDecorator.cache_ok class-level flag indicates if this custom TypeDecorator is safe to be used as part of a cache key.
+            # If the TypeDecorator is not guaranteed to produce the same bind/result behavior and SQL generation every time,
+            # this flag should be set to False; otherwise if the class produces the same behavior each time, it may be set to True.
+            cache_ok = True
+
+            def get_col_spec(self, **kw: Any) -> str:
+                return "regconfig"
+
+        if query_str is None:
+            raise ValueError("query_str must be specified for a sparse vector query.")
+
+        ts_query = func.to_tsquery(
+            type_coerce(self.text_search_config, REGCONFIG), query_str.replace(" ", "|")
+        )
+
+        # Modify this part to concatenate metadata (e.g., title, summary) into the tsvector dynamically
+        combined_text_expr = func.to_tsvector(
+            type_coerce(self.text_search_config, REGCONFIG),
+            func.concat_ws(
+                "\n",
+                self._table_class.metadata_["section_id"].astext,
+                self._table_class.metadata_["display_metadata"].astext,
+                self._table_class.text,
+            ),
+        )
+        stmt = (
+            select(  # type: ignore
+                self._table_class.id,
+                self._table_class.node_id,
+                self._table_class.text,
+                self._table_class.metadata_,
+                func.ts_rank(combined_text_expr, ts_query).label("rank"),
+            )
+            .where(self._table_class.text_search_tsv.op("@@")(ts_query))
+            .order_by(text("rank desc"))
+        )
+
+        # type: ignore
+        return self._apply_filters_and_limit(stmt, limit, metadata_filters)
