@@ -105,7 +105,7 @@
                     <div class="d-flex align-items-center">
                       <span>{% trans "Downloads" %}</span>
                       {% if show_download_all_button %}
-                        <a href="{% url 'text_extractor:download_all_zip' user_request_id=user_request.id %}"
+                        <a href="{% url 'text_extractor:download_all_zip' user_request_id=user_request_id %}"
                            class="btn btn-sm ms-2"
                            title="Download all as ZIP">
                           <i class="bi bi-download"></i>

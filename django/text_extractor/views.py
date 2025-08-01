@@ -1,3 +1,6 @@
+import io
+import zipfile
+
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -193,10 +196,11 @@ def poll_tasks(request, user_request_id):
 
     context = {
         "output_files": output_files,
-        "user_request_id": user_request.id,
+        # "user_request_id": user_request.id,
     }
     if not user_request.merged and output_files.count() > 1:
         context["show_download_all_button"] = True
+        # context["user_request_id"] = user_request.id
 
     if any(
         output_file.status in ["PENDING", "PROCESSING"] for output_file in output_files
@@ -219,6 +223,7 @@ def poll_tasks(request, user_request_id):
             "show_output": True,
             "refresh_on_load": False,
             "hide_breadcrumbs": True,
+            "user_request_id": user_request.id,
         }
     )
     return render(request, "text_extractor/ocr.html", context)
@@ -245,8 +250,6 @@ def download_document(request, file_id, file_type):
 
 
 def download_all_zip(request, user_request_id):
-    import io
-    import zipfile
 
     access_key = AccessKey(user=request.user)
     # collect all output files for this session

@@ -13,7 +13,7 @@ urlpatterns = [
         name="download_document",
     ),
     path(
-        "download_all_zip/<user_request_id>",
+        "download_all_zip/<str:user_request_id>",
         views.download_all_zip,
         name="download_all_zip",
     ),
