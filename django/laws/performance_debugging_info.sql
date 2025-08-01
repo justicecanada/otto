@@ -52,17 +52,25 @@ LIMIT 100;
 
 -- vector search -- needs helper function to create random vector
 -- 1. Create helper function
+DROP FUNCTION IF EXISTS vector_random(int);
+
 CREATE OR REPLACE FUNCTION vector_random(dim INT)
-  RETURNS vector AS $$
+  RETURNS vector
+  LANGUAGE plpgsql
+  IMMUTABLE
+AS $$
 BEGIN
   RETURN (
     SELECT ARRAY(
       SELECT random()::float4
-      FROM generate_series(1,dim)
+      FROM generate_series(1, dim)
     )::vector
   );
 END;
-$$ LANGUAGE plpgsql;
+$$;
+
+-- 2) Then your single‐statement KNN can be:
+SET hnsw.ef_search = 256;
 
 SET vector_hnsw.ef_search = 256;
 
@@ -74,6 +82,7 @@ WITH q AS (
 SELECT id, (embedding <=> q.query_emb) AS dist
 FROM data_laws_lois__ d
 CROSS JOIN q
+WHERE d.metadata_ ->> 'node_type' = 'chunk'
 ORDER BY dist
 LIMIT 100;
 

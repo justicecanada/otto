@@ -661,13 +661,14 @@ def drop_hnsw_index():
 def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
     """
     Recreate vector‐specific and JSONB indexes on the data_laws_lois__ table,
-    then VACUUM ANALYZE and prewarm both the index and the heap.
+    then VACUUM ANALYZE, CLUSTER (optional), and prewarm both the index and the heap.
 
     Args:
-        node_id:  Ignored (Django manages node_id index via Model.Meta.indexes)
-        jsonb:    If True, (re)creates BTREE indexes on metadata_->>'node_type' and metadata_->>'doc_id'
-        hnsw:     If True, (re)creates the HNSW index on the embedding column
+        node_id: Ignored; Django manages node_id via Model.Meta.indexes
+        jsonb:    If True, create/drop the BTREE indexes on JSONB metadata
+        hnsw:     If True, recreate the HNSW index on the embedding column
     """
+
     # Build SQLAlchemy engine from Django settings
     db = settings.DATABASES["vector_db"]
     connection_url = (
@@ -676,67 +677,105 @@ def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
     )
     engine = create_engine(connection_url)
 
-    # 1) DDL statements (run inside a transaction)
-    idx_statements = []
-
-    idx_statements.append(
-        "CREATE INDEX IF NOT EXISTS data_laws_lois__chunk_text_idx "
-        "ON data_laws_lois__ USING gin (text_search_tsv) "
-        "WHERE (metadata_ ->> 'node_type') = 'chunk';"
-    )
-
-    if jsonb:
-        # Drop any old generic GIN‐on‐JSONB index (if still present)
-        idx_statements.append("DROP INDEX IF EXISTS data_laws_lois__metadata__idx")
-        # Create BTREE expression indexes for your filters
-        idx_statements.append(
-            "CREATE INDEX IF NOT EXISTS data_laws_lois__node_type_idx "
-            "ON data_laws_lois__ ((metadata_ ->> 'node_type'))"
-        )
-        idx_statements.append(
-            "CREATE INDEX IF NOT EXISTS data_laws_lois__doc_id_idx "
-            "ON data_laws_lois__ ((metadata_ ->> 'doc_id'))"
-        )
-        idx_statements.append(
-            "CREATE INDEX IF NOT EXISTS data_laws_lois__in_force_start_date_idx "
-            "ON data_laws_lois__ ((metadata_ ->> 'in_force_start_date'))"
-        )
-        idx_statements.append(
-            "CREATE INDEX IF NOT EXISTS data_laws_lois__last_amended_date_idx "
-            "ON data_laws_lois__ ((metadata_ ->> 'last_amended_date'))"
-        )
-
-    if hnsw:
-        idx_statements.append("DROP INDEX IF EXISTS data_laws_lois___embedding_idx")
-        # Same command that LlamaIndex uses to create the HNSW index (usually don't need to run again)
-        idx_statements.append(
-            "CREATE INDEX data_laws_lois___embedding_idx"
-            "ON data_laws_lois__ USING hnsw (embedding vector_cosine_ops)"
-            "WITH (m = 32, ef_construction = 256);"
-        )
-
-    # Execute DDL in one transactional batch
+    #
+    # 1) Inside a transaction: Non‐locking/safe DDL
+    #
     with engine.begin() as conn:
-        for stmt in idx_statements:
-            conn.execute(text(stmt))
+        # Always keep a GIN index on the tsvector for full‐text search of chunks
+        conn.execute(
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS data_laws_lois__chunk_text_idx
+              ON data_laws_lois__ USING gin(text_search_tsv)
+             WHERE metadata_ ->> 'node_type' = 'chunk';
+        """
+            )
+        )
 
-    # 2) VACUUM, ANALYZE, and prewarm (must run outside a transaction block)
+        if jsonb:
+            # Drop any old generic GIN‐on‐JSONB index (if still present)
+            conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__metadata__idx;"))
+            # Drop old standalone btree indexes
+            conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__node_type_idx;"))
+            conn.execute(text("DROP INDEX IF EXISTS data_laws_lois__doc_id_idx;"))
+
+            # Partial btree index on doc_id for chunk rows only
+            conn.execute(
+                text(
+                    """
+                CREATE INDEX IF NOT EXISTS data_laws_lois__doc_id_chunk_idx
+                  ON data_laws_lois__ ((metadata_ ->> 'doc_id'))
+                 WHERE metadata_ ->> 'node_type' = 'chunk';
+            """
+                )
+            )
+
+            # Additional btree indexes on date‐fields (no WHERE clause)
+            conn.execute(
+                text(
+                    """
+                CREATE INDEX IF NOT EXISTS data_laws_lois__in_force_start_date_idx
+                  ON data_laws_lois__ ((metadata_ ->> 'in_force_start_date'));
+            """
+                )
+            )
+            conn.execute(
+                text(
+                    """
+                CREATE INDEX IF NOT EXISTS data_laws_lois__last_amended_date_idx
+                  ON data_laws_lois__ ((metadata_ ->> 'last_amended_date'));
+            """
+                )
+            )
+
+        if hnsw:
+            # Drop & recreate HNSW vector index with chosen parameters
+            conn.execute(text("DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"))
+            conn.execute(
+                text(
+                    """
+                CREATE INDEX IF NOT EXISTS data_laws_lois___embedding_idx
+                  ON data_laws_lois__ USING hnsw(embedding vector_cosine_ops)
+                 WITH (m = 32, ef_construction = 256);
+            """
+                )
+            )
+
+    #
+    # 2) Outside a transaction (AUTOCOMMIT): VACUUM, ANALYZE, CLUSTER, PREWARM
+    #
     with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
         # Refresh table statistics so the planner sees the new indexes
-        conn.execute(text("VACUUM ANALYZE data_laws_lois__"))
+        conn.execute(text("VACUUM ANALYZE data_laws_lois__;"))
 
-        # Optional: log row count
+        # Optionally physically cluster the table around the doc_id_chunk_idx
+        # This takes an exclusive lock but can speed up range scans on doc_id
+        if jsonb:
+            conn.execute(
+                text("CLUSTER data_laws_lois__ USING data_laws_lois__doc_id_chunk_idx;")
+            )
+            # Re‐ANALYZE after clustering
+            conn.execute(text("ANALYZE data_laws_lois__;"))
+
+        # Log row count
         row_count = conn.execute(
-            text("SELECT count(*) FROM data_laws_lois__")
+            text("SELECT count(*) FROM data_laws_lois__;")
         ).scalar_one()
         print(f"[recreate_indexes] data_laws_lois__ row count = {row_count}")
 
-        # Ensure pg_prewarm is available, then prewarm index + heap
-        conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_prewarm"))
+        # Ensure pg_prewarm is available, then prewarm indexes + heap into shared buffers
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_prewarm;"))
+        if jsonb:
+            conn.execute(
+                text("SELECT pg_prewarm('data_laws_lois__doc_id_chunk_idx','buffer');")
+            )
         conn.execute(
-            text("SELECT pg_prewarm('data_laws_lois___embedding_idx','buffer')")
+            text("SELECT pg_prewarm('data_laws_lois__chunk_text_idx','buffer');")
         )
-        conn.execute(text("SELECT pg_prewarm('data_laws_lois__','buffer')"))
+        conn.execute(
+            text("SELECT pg_prewarm('data_laws_lois___embedding_idx','buffer');")
+        )
+        conn.execute(text("SELECT pg_prewarm('data_laws_lois__','buffer');"))
 
 
 def calculate_job_elapsed_time(job_status):
