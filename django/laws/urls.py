@@ -6,6 +6,7 @@ from .loading_views import (
     laws_loading_monitor,
     laws_loading_start,
     laws_loading_status,
+    laws_recreate_indexes,
 )
 from .views import answer, existing_search, index, search, source
 
@@ -20,5 +21,6 @@ urlpatterns = [
     path("loading/status", laws_loading_status, name="loading_status"),
     path("loading/start", laws_loading_start, name="loading_start"),
     path("loading/cancel", laws_loading_cancel, name="loading_cancel"),
+    path("loading/recreate_indexes", laws_recreate_indexes, name="recreate_indexes"),
     path("loading/list", laws_list, name="laws_list"),
 ]

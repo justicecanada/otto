@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 
 from structlog import get_logger
 
-from laws.loading_utils import calculate_job_elapsed_time
+from laws.loading_utils import calculate_job_elapsed_time, recreate_indexes
 from laws.models import JobStatus, Law, LawLoadingStatus
 from laws.tasks import update_laws
 from otto.models import OttoStatus
@@ -236,6 +236,25 @@ def laws_loading_cancel(request):
     return JsonResponse(
         {"success": True, "message": "Law loading job cancelled successfully."}
     )
+
+
+@permission_required("otto.load_laws")
+@require_POST
+def laws_recreate_indexes(request):
+    """
+    Recreate database indexes for laws.
+    """
+    from django.contrib import messages
+    from django.utils.translation import gettext as _
+
+    try:
+        recreate_indexes()
+        messages.success(request, _("Vector DB indexes reset successfully."))
+        return JsonResponse({"success": True})
+    except Exception as e:
+        logger.error("Error recreating indexes: %s", e)
+        messages.error(request, _("Error recreating indexes: %s") % str(e))
+        return JsonResponse({"success": False}, status=500)
 
 
 def laws_list(request):

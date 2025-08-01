@@ -147,8 +147,6 @@ def update_laws(
                 job_status.save()
                 logger.info("Resetting Law model and indexes")
                 Law.reset()
-                # Recreate the table
-                OttoLLM().get_retriever("laws_lois__", hnsw=True).retrieve("?")
 
             elif not skip_purge:
                 job_status.status = "purging"

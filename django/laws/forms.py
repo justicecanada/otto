@@ -241,7 +241,7 @@ class LawSearchForm(forms.Form):
         label=_("AI answer"),
         label_suffix="",
         required=False,
-        initial=True,
+        initial=False,
         widget=forms.CheckboxInput(
             attrs={"class": "form-check-input", "role": "switch", "id": "ai_answer"}
         ),

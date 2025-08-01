@@ -1,5 +1,6 @@
 import hashlib
 import os
+import time
 import zipfile
 from datetime import timedelta
 
@@ -137,7 +138,9 @@ def _get_all_eng_law_ids(laws_dir):
 def law_xml_to_nodes(file_path):
     d = get_dict_from_xml(file_path)
     num_sections = len(d["all_chunkable_sections"])
-    nodes = [section_to_nodes(section) for section in d["all_chunkable_sections"]]
+    nodes = [
+        section_to_nodes(section, d["lang"]) for section in d["all_chunkable_sections"]
+    ]
     # Flatten nodes
     nodes = [node for sublist in nodes for node in sublist]
     file_id = d["title_str"]
@@ -145,7 +148,7 @@ def law_xml_to_nodes(file_path):
     return d
 
 
-def section_to_nodes(section, chunk_size=1024, chunk_overlap=100):
+def section_to_nodes(section, lang, chunk_size=1024, chunk_overlap=100):
     if chunk_size < 50:
         raise ValueError("Chunk size must be at least 50 tokens.")
     splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
@@ -167,6 +170,7 @@ def section_to_nodes(section, chunk_size=1024, chunk_overlap=100):
         "internal_refs": section["internal_refs"],
         "external_refs": section["external_refs"],
         "node_type": "chunk",
+        "lang": lang,
     }
     exclude_embed_keys = list(metadata.keys()) + ["chunk"]
     exclude_llm_keys = exclude_embed_keys.copy()
@@ -646,56 +650,166 @@ def get_sha_256_hash(file_path):
     return sha256_hash.hexdigest()
 
 
-def drop_hnsw_index():
-    sql = "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
-    db = settings.DATABASES["vector_db"]
-    connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
-    engine = create_engine(connection_string)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    session.execute(text(sql))
-    session.commit()
-    session.close()
-
-
-def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
+def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
     """
-    Recreate vector-specific indexes on the vector database table.
+    Recreate indexes on data_laws_lois__ table for optimal vector search performance.
 
-    Note: The node_id index is now managed by Django model Meta.indexes,
-    so this function only handles vector-specific indexes like JSONB and HNSW.
+    Key insight: COMPOUND INDEXES COMPETE WITH VECTOR INDEX!
+    PostgreSQL query planner prefers any compound index over vector index
+    when both language and node_type filters are present, causing 10-14x
+    performance degradation (35ms -> 365ms).
 
-    Args:
-        node_id: Ignored - kept for backward compatibility. Django manages this index.
-        jsonb: Whether to recreate the JSONB (GIN) index for metadata queries
-        hnsw: Whether to recreate the HNSW index for vector similarity search
+    Solution: Minimal indexing strategy that preserves vector index usage.
     """
-    post_load_sql = ""
-
-    # node_id index is managed by Django model Meta.indexes - no manual creation needed
-
-    if jsonb:
-        post_load_sql += (
-            "DROP INDEX IF EXISTS data_laws_lois__metadata__idx;"
-            "CREATE INDEX data_laws_lois__metadata__idx ON data_laws_lois__ USING GIN (metadata_);"
-        )
-    if hnsw:
-        post_load_sql += (
-            "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
-            "CREATE INDEX data_laws_lois___embedding_idx ON data_laws_lois__ USING HNSW (embedding);"
-        )
-
-    if not post_load_sql:
-        return  # Nothing to do
-
+    # Build SQLAlchemy engine from Django settings
     db = settings.DATABASES["vector_db"]
-    connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
-    engine = create_engine(connection_string)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    session.execute(text(post_load_sql))
-    session.commit()
-    session.close()
+    url = (
+        f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}"
+        f"@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+    )
+    engine = create_engine(url)
+
+    with engine.begin() as conn:
+        # Drop ONLY the problematic compound indexes that compete with vector index
+        # These are the ones that cause PostgreSQL to avoid the HNSW index
+        conn.execute(
+            text("DROP INDEX IF EXISTS data_laws_lois__lang_chunk_idx;")
+        )  # Compound: (metadata_->>'lang', metadata_->>'node_type')
+        conn.execute(
+            text(
+                "DROP INDEX IF EXISTS data_laws_lois__lang_doc_id_chunk_idx;"
+            )  # Compound: multiple metadata fields
+        )
+        conn.execute(
+            text(
+                "DROP INDEX IF EXISTS data_laws_lois__in_force_start_date_chunk_idx;"
+            )  # Compound: (date + node_type)
+        )
+        conn.execute(
+            text(
+                "DROP INDEX IF EXISTS data_laws_lois__last_amended_date_chunk_idx;"
+            )  # Compound: (date + node_type)
+        )
+        conn.execute(
+            text("DROP INDEX IF EXISTS data_laws_lois__type_language_id_idx;")
+        )  # Compound: (node_type + lang + id)
+        conn.execute(
+            text("DROP INDEX IF EXISTS data_laws_lois__metadata__idx;")
+        )  # Generic metadata index
+
+        # Core indexes that don't interfere with vector search
+        if node_id:
+            conn.execute(
+                text(
+                    """
+                CREATE INDEX IF NOT EXISTS data_laws_lois__node_id_idx
+                  ON data_laws_lois__ (node_id);
+                """
+                )
+            )
+
+        # Useful single-column indexes for filtering and sorting
+        # These don't compete with vector index since they're not compound
+        conn.execute(
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS data_laws_lois__doc_id_idx
+              ON data_laws_lois__ USING btree((metadata_ ->> 'doc_id'));
+            """
+            )
+        )
+
+        conn.execute(
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS data_laws_lois__in_force_start_date_idx
+              ON data_laws_lois__ USING btree((metadata_ ->> 'in_force_start_date'));
+            """
+            )
+        )
+
+        conn.execute(
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS data_laws_lois__last_amended_date_idx
+              ON data_laws_lois__ USING btree((metadata_ ->> 'last_amended_date'));
+            """
+            )
+        )
+
+        # Full-text search index (tested: doesn't compete significantly with vector index)
+        conn.execute(
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS data_laws_lois__chunk_text_idx
+              ON data_laws_lois__
+              USING gin(text_search_tsv)
+              WHERE (metadata_ ->> 'node_type') = 'chunk';
+
+            CREATE INDEX IF NOT EXISTS data_laws_lois__tsv_eng_chunk_idx
+              ON data_laws_lois__
+              USING gin(text_search_tsv)
+              WHERE (metadata_->>'lang' = 'eng' AND metadata_->>'node_type' = 'chunk');
+
+            CREATE INDEX IF NOT EXISTS data_laws_lois__tsv_fra_chunk_idx
+              ON data_laws_lois__
+              USING gin(text_search_tsv)
+              WHERE (metadata_->>'lang' = 'fra' AND metadata_->>'node_type' = 'chunk');
+            """
+            )
+        )
+
+        # CRITICAL: NO compound indexes on metadata fields that include node_type + lang!
+        # Those specific combinations cause PostgreSQL to avoid the vector index.
+        # Single-column indexes are fine and beneficial.
+
+        if hnsw:
+            # High-performance vector (HNSW) index for chunks only
+            # This MUST be the primary index used for similarity search
+            # Match the exact WHERE clause pattern used by LlamaIndex queries
+            conn.execute(
+                text(
+                    """
+                CREATE INDEX IF NOT EXISTS data_laws_lois___embedding_idx
+                  ON data_laws_lois__
+                  USING hnsw(embedding vector_cosine_ops)
+                  WITH (m = 32, ef_construction = 256)
+                  WHERE (metadata_ ->> 'node_type') = 'chunk';
+                """
+                )
+            )
+
+    # VACUUM/ANALYZE for fresh stats
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        conn.execute(text("VACUUM ANALYZE data_laws_lois__;"))
+
+        # Pre-warm the key indexes for performance
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_prewarm;"))
+        if node_id:
+            conn.execute(
+                text("SELECT pg_prewarm('data_laws_lois__node_id_idx','buffer');")
+            )
+
+        # Pre-warm the beneficial single-column indexes
+        conn.execute(text("SELECT pg_prewarm('data_laws_lois__doc_id_idx','buffer');"))
+        conn.execute(
+            text(
+                "SELECT pg_prewarm('data_laws_lois__in_force_start_date_idx','buffer');"
+            )
+        )
+        conn.execute(
+            text("SELECT pg_prewarm('data_laws_lois__last_amended_date_idx','buffer');")
+        )
+        conn.execute(
+            text("SELECT pg_prewarm('data_laws_lois__chunk_text_idx','buffer');")
+        )
+        if hnsw:
+            # Most important: pre-warm the vector index
+            conn.execute(
+                text("SELECT pg_prewarm('data_laws_lois___embedding_idx','buffer');")
+            )
+        # Pre-warm the main table
+        conn.execute(text("SELECT pg_prewarm('data_laws_lois__','buffer');"))
 
 
 def calculate_job_elapsed_time(job_status):

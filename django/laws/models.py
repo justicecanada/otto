@@ -250,6 +250,8 @@ class Law(models.Model):
         session.commit()
         session.close()
         cls.objects.all().delete()
+        # Recreate the table by calling llm get_index
+        cls.get_index()
 
     @classmethod
     def get_index(cls):
