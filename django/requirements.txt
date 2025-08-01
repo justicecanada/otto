@@ -22,7 +22,7 @@ django-data-fetcher==2.2
 django-file-form==3.9.0
 
 # Logging ----------------------------------------------------------------------
-django-structlog[celery,commands]==9.0.1
+django-structlog[celery,commands]==9.1.1
 
 # Database ---------------------------------------------------------------------
 psycopg2-binary==2.9.9
