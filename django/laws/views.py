@@ -300,7 +300,15 @@ def search(request):
                 )
         if detect_lang:
             # Detect the language of the query and search only documents in that lang
-            lang = detect(query)
+            try:
+                lang = detect(query)
+            except Exception as e:
+                logger.exception(
+                    "Error detecting language for query",
+                    query=query,
+                    error=e,
+                )
+                lang = request.LANGUAGE_CODE
             if lang not in ["en", "fr"]:
                 lang = request.LANGUAGE_CODE
             lang = "eng" if lang == "en" else "fra"
@@ -308,13 +316,20 @@ def search(request):
                 doc_id_list = [law.node_id_fr for law in selected_laws]
             else:
                 doc_id_list = [law.node_id_en for law in selected_laws]
+            filters.append(
+                MetadataFilter(
+                    key="lang",
+                    value=lang,
+                    operator="equals",
+                )
+            )
         else:
             doc_id_list = [law.node_id_en for law in selected_laws] + [
                 law.node_id_fr for law in selected_laws
             ]
 
-        # Only add doc_id filter if doc_id_list is not empty
-        if doc_id_list:
+        # Only add doc_id filter if needed
+        if doc_id_list and selected_laws.count() < Law.objects.count():
             filters.append(
                 MetadataFilter(
                     key="doc_id",
@@ -322,7 +337,7 @@ def search(request):
                     operator="in",
                 )
             )
-        else:
+        elif not doc_id_list:
             # If doc_id_list is empty, return no sources immediately
             context = {
                 "sources": [],

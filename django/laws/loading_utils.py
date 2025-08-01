@@ -137,7 +137,9 @@ def _get_all_eng_law_ids(laws_dir):
 def law_xml_to_nodes(file_path):
     d = get_dict_from_xml(file_path)
     num_sections = len(d["all_chunkable_sections"])
-    nodes = [section_to_nodes(section) for section in d["all_chunkable_sections"]]
+    nodes = [
+        section_to_nodes(section, d["lang"]) for section in d["all_chunkable_sections"]
+    ]
     # Flatten nodes
     nodes = [node for sublist in nodes for node in sublist]
     file_id = d["title_str"]
@@ -145,7 +147,7 @@ def law_xml_to_nodes(file_path):
     return d
 
 
-def section_to_nodes(section, chunk_size=1024, chunk_overlap=100):
+def section_to_nodes(section, lang, chunk_size=1024, chunk_overlap=100):
     if chunk_size < 50:
         raise ValueError("Chunk size must be at least 50 tokens.")
     splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
@@ -167,6 +169,7 @@ def section_to_nodes(section, chunk_size=1024, chunk_overlap=100):
         "internal_refs": section["internal_refs"],
         "external_refs": section["external_refs"],
         "node_type": "chunk",
+        "lang": lang,
     }
     exclude_embed_keys = list(metadata.keys()) + ["chunk"]
     exclude_llm_keys = exclude_embed_keys.copy()
@@ -710,12 +713,35 @@ def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
                 )
             )
 
-            # Additional btree indexes on date‐fields (no WHERE clause)
+            # Partial btree index on lang for chunk rows only
+            conn.execute(
+                text(
+                    """
+                CREATE INDEX IF NOT EXISTS data_laws_lois__lang_chunk_idx
+                  ON data_laws_lois__ ((metadata_ ->> 'lang'))
+                 WHERE metadata_ ->> 'node_type' = 'chunk';
+            """
+                )
+            )
+
+            # Composite index for (lang, doc_id) on chunk rows for efficient filtering
+            conn.execute(
+                text(
+                    """
+                CREATE INDEX IF NOT EXISTS data_laws_lois__lang_doc_id_chunk_idx
+                  ON data_laws_lois__ ((metadata_ ->> 'lang'), (metadata_ ->> 'doc_id'))
+                 WHERE metadata_ ->> 'node_type' = 'chunk';
+            """
+                )
+            )
+
+            # Additional btree indexes on date‐fields
             conn.execute(
                 text(
                     """
                 CREATE INDEX IF NOT EXISTS data_laws_lois__in_force_start_date_idx
                   ON data_laws_lois__ ((metadata_ ->> 'in_force_start_date'));
+                 WHERE metadata_ ->> 'node_type' = 'chunk';
             """
                 )
             )
@@ -724,6 +750,7 @@ def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
                     """
                 CREATE INDEX IF NOT EXISTS data_laws_lois__last_amended_date_idx
                   ON data_laws_lois__ ((metadata_ ->> 'last_amended_date'));
+                WHERE metadata_ ->> 'node_type' = 'chunk';
             """
                 )
             )
@@ -748,11 +775,15 @@ def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
         # Refresh table statistics so the planner sees the new indexes
         conn.execute(text("VACUUM ANALYZE data_laws_lois__;"))
 
-        # Optionally physically cluster the table around the doc_id_chunk_idx
-        # This takes an exclusive lock but can speed up range scans on doc_id
+        # Optionally physically cluster the table around the lang_doc_id_chunk_idx
+        # This takes an exclusive lock but speeds up range scans on lang (most common filter) and doc_id
+        # Data will be physically organized: all 'eng' chunks together, all 'fra' chunks together,
+        # and within each language, documents will be grouped together
         if jsonb:
             conn.execute(
-                text("CLUSTER data_laws_lois__ USING data_laws_lois__doc_id_chunk_idx;")
+                text(
+                    "CLUSTER data_laws_lois__ USING data_laws_lois__lang_doc_id_chunk_idx;"
+                )
             )
             # Re‐ANALYZE after clustering
             conn.execute(text("ANALYZE data_laws_lois__;"))
@@ -768,6 +799,14 @@ def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
         if jsonb:
             conn.execute(
                 text("SELECT pg_prewarm('data_laws_lois__doc_id_chunk_idx','buffer');")
+            )
+            conn.execute(
+                text("SELECT pg_prewarm('data_laws_lois__lang_chunk_idx','buffer');")
+            )
+            conn.execute(
+                text(
+                    "SELECT pg_prewarm('data_laws_lois__lang_doc_id_chunk_idx','buffer');"
+                )
             )
         conn.execute(
             text("SELECT pg_prewarm('data_laws_lois__chunk_text_idx','buffer');")
