@@ -660,42 +660,82 @@ def drop_hnsw_index():
 
 def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
     """
-    Recreate vector-specific indexes on the vector database table.
-
-    Note: The node_id index is now managed by Django model Meta.indexes,
-    so this function only handles vector-specific indexes like JSONB and HNSW.
+    Recreate vector‐specific and JSONB indexes on the data_laws_lois__ table,
+    then VACUUM ANALYZE and prewarm both the index and the heap.
 
     Args:
-        node_id: Ignored - kept for backward compatibility. Django manages this index.
-        jsonb: Whether to recreate the JSONB (GIN) index for metadata queries
-        hnsw: Whether to recreate the HNSW index for vector similarity search
+        node_id:  Ignored (Django manages node_id index via Model.Meta.indexes)
+        jsonb:    If True, (re)creates BTREE indexes on metadata_->>'node_type' and metadata_->>'doc_id'
+        hnsw:     If True, (re)creates the HNSW index on the embedding column
     """
-    post_load_sql = ""
+    # Build SQLAlchemy engine from Django settings
+    db = settings.DATABASES["vector_db"]
+    connection_url = (
+        f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}"
+        f"@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+    )
+    engine = create_engine(connection_url)
 
-    # node_id index is managed by Django model Meta.indexes - no manual creation needed
+    # 1) DDL statements (run inside a transaction)
+    idx_statements = []
+
+    idx_statements.append(
+        "CREATE INDEX IF NOT EXISTS data_laws_lois__chunk_text_idx "
+        "ON data_laws_lois__ USING gin (text_search_tsv) "
+        "WHERE (metadata_ ->> 'node_type') = 'chunk';"
+    )
 
     if jsonb:
-        post_load_sql += (
-            "DROP INDEX IF EXISTS data_laws_lois__metadata__idx;"
-            "CREATE INDEX data_laws_lois__metadata__idx ON data_laws_lois__ USING GIN (metadata_);"
+        # Drop any old generic GIN‐on‐JSONB index (if still present)
+        idx_statements.append("DROP INDEX IF EXISTS data_laws_lois__metadata__idx")
+        # Create BTREE expression indexes for your filters
+        idx_statements.append(
+            "CREATE INDEX IF NOT EXISTS data_laws_lois__node_type_idx "
+            "ON data_laws_lois__ ((metadata_ ->> 'node_type'))"
         )
+        idx_statements.append(
+            "CREATE INDEX IF NOT EXISTS data_laws_lois__doc_id_idx "
+            "ON data_laws_lois__ ((metadata_ ->> 'doc_id'))"
+        )
+        idx_statements.append(
+            "CREATE INDEX IF NOT EXISTS data_laws_lois__in_force_start_date_idx "
+            "ON data_laws_lois__ ((metadata_ ->> 'in_force_start_date'))"
+        )
+        idx_statements.append(
+            "CREATE INDEX IF NOT EXISTS data_laws_lois__last_amended_date_idx "
+            "ON data_laws_lois__ ((metadata_ ->> 'last_amended_date'))"
+        )
+
     if hnsw:
-        post_load_sql += (
-            "DROP INDEX IF EXISTS data_laws_lois___embedding_idx;"
-            "CREATE INDEX data_laws_lois___embedding_idx ON data_laws_lois__ USING HNSW (embedding);"
+        idx_statements.append("DROP INDEX IF EXISTS data_laws_lois___embedding_idx")
+        idx_statements.append(
+            "CREATE INDEX data_laws_lois___embedding_idx"
+            "ON data_laws_lois__ USING hnsw (embedding vector_cosine_ops)"
+            "WITH (m = 32, ef_construction = 256);"
         )
 
-    if not post_load_sql:
-        return  # Nothing to do
+    # Execute DDL in one transactional batch
+    with engine.begin() as conn:
+        for stmt in idx_statements:
+            conn.execute(text(stmt))
 
-    db = settings.DATABASES["vector_db"]
-    connection_string = f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
-    engine = create_engine(connection_string)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    session.execute(text(post_load_sql))
-    session.commit()
-    session.close()
+    # 2) VACUUM, ANALYZE, and prewarm (must run outside a transaction block)
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        # Refresh table statistics so the planner sees the new indexes
+        conn.execute(text("VACUUM ANALYZE data_laws_lois__"))
+
+        # Optional: log row count
+        row_count = conn.execute(
+            text("SELECT count(*) FROM data_laws_lois__")
+        ).scalar_one()
+        print(f"[recreate_indexes] data_laws_lois__ row count = {row_count}")
+
+        # Ensure pg_prewarm is available, then prewarm index + heap
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_prewarm"))
+        conn.execute(
+            text("SELECT pg_prewarm('data_laws_lois___embedding_idx','buffer')")
+        )
+        conn.execute(text("SELECT pg_prewarm('data_laws_lois__','buffer')"))
 
 
 def calculate_job_elapsed_time(job_status):
