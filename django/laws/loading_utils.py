@@ -708,6 +708,7 @@ def recreate_indexes(node_id=False, jsonb=True, hnsw=False):
 
     if hnsw:
         idx_statements.append("DROP INDEX IF EXISTS data_laws_lois___embedding_idx")
+        # Same command that LlamaIndex uses to create the HNSW index (usually don't need to run again)
         idx_statements.append(
             "CREATE INDEX data_laws_lois___embedding_idx"
             "ON data_laws_lois__ USING hnsw (embedding vector_cosine_ops)"
