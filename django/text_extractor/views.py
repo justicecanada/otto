@@ -85,23 +85,31 @@ def submit_document(request):
             file_content = file.read()
             file.seek(0)
 
-            result = process_ocr_document.delay(
-                file_content, file.name, merged, idx, enlarge_size
-            )
-
             if merged:
                 task_ids.append(result.id)
             else:
-                output_files.append(
-                    OutputFile.objects.create(
-                        access_key=access_key,
-                        pdf_file=None,
-                        txt_file=None,
-                        file_name=f"{file.name.rsplit('.', 1)[0]}_OCR",
-                        user_request=user_request,
-                        celery_task_ids=[result.id],
-                    )
+                output_file = OutputFile.objects.create(
+                    access_key=access_key,
+                    pdf_file=None,
+                    txt_file=None,
+                    file_name=f"{file.name.rsplit('.', 1)[0]}_OCR",
+                    user_request=user_request,
+                    celery_task_ids=[],
                 )
+
+                result = process_ocr_document.delay(
+                    file_content,
+                    file.name,
+                    merged,
+                    idx,
+                    enlarge_size,
+                    str(output_file.id),
+                    str(request.user.id),  # Pass user ID instead of access_key.id
+                )
+                # Store the task ID
+                output_file.celery_task_ids = [result.id]
+                output_file.save(access_key=access_key)
+                output_files.append(output_file)
 
         if merged:
             merged_output_file = OutputFile.objects.create(
@@ -157,21 +165,29 @@ def poll_tasks(request, user_request_id):
     access_key = AccessKey(user=request.user)
     user_request = UserRequest.objects.get(access_key, id=user_request_id)
     output_files = user_request.output_files.filter(access_key=access_key)
+
     for output_file in output_files:
         output_file_statuses = []
         for task_id in output_file.celery_task_ids:
             result = process_ocr_document.AsyncResult(task_id)
-            output_file_statuses.append(result.status)
+            status = result.status
+            output_file_statuses.append(status)
+
         if all(status == "SUCCESS" for status in output_file_statuses):
-            if not output_file.pdf_file:
-                output_file.status = "PROCESSING"
-                add_extracted_files(output_file, access_key)
-                output_file.refresh_from_db()
-            # Only set to SUCCESS if pdf_file is now present
-            if output_file.pdf_file:
+            # For single file processing, files should already be stored by the task
+            if not output_file.celery_task_ids:  # Task cleared its own task_ids
                 output_file.status = "SUCCESS"
             else:
-                output_file.status = "PROCESSING"
+                output_file.refresh_from_db()
+                if output_file.pdf_file:
+                    output_file.status = "SUCCESS"
+                    # Clear task IDs if they weren't cleared by the task
+                    if output_file.celery_task_ids:
+                        output_file.celery_task_ids = []
+                        output_file.save(access_key=access_key)
+                else:
+                    output_file.status = "PROCESSING"
+
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
         else:
