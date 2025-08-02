@@ -737,7 +737,7 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
             )
         )
 
-        # Full-text search index (tested: doesn't compete significantly with vector index)
+        # Full-text search index (single, not compound/partial by lang)
         conn.execute(
             text(
                 """
@@ -745,16 +745,6 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
               ON data_laws_lois__
               USING gin(text_search_tsv)
               WHERE (metadata_ ->> 'node_type') = 'chunk';
-
-            CREATE INDEX IF NOT EXISTS data_laws_lois__tsv_eng_chunk_idx
-              ON data_laws_lois__
-              USING gin(text_search_tsv)
-              WHERE (metadata_->>'lang' = 'eng' AND metadata_->>'node_type' = 'chunk');
-
-            CREATE INDEX IF NOT EXISTS data_laws_lois__tsv_fra_chunk_idx
-              ON data_laws_lois__
-              USING gin(text_search_tsv)
-              WHERE (metadata_->>'lang' = 'fra' AND metadata_->>'node_type' = 'chunk');
             """
             )
         )
