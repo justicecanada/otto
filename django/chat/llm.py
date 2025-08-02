@@ -18,7 +18,7 @@ from llama_index.core.instrumentation.events.llm import (
     LLMCompletionEndEvent,
 )
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
-from llama_index.core.retrievers import QueryFusionRetriever
+from llama_index.core.retrievers import BaseRetriever, QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilters
 from llama_index.embeddings.litellm import LiteLLMEmbedding
 from llama_index.llms.litellm import LiteLLM
@@ -291,7 +291,7 @@ class OttoLLM:
         top_k: int = 5,
         vector_weight: float = 0.6,
         hnsw: bool = False,
-    ) -> QueryFusionRetriever:
+    ) -> BaseRetriever:
         if vector_weight == 0:
             # If vector_weight is 0, use text-only retriever
             text_retriever = self.get_fast_text_retriever(

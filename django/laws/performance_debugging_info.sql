@@ -182,3 +182,6 @@ UPDATE data_laws_lois__
 SET metadata_ = jsonb_set(metadata_, '{lang}', '"fra"', true)
 WHERE metadata_ ->> 'node_type' = 'chunk' AND node_id LIKE '%_fra%';
 
+UPDATE data_laws_lois__ 
+SET metadata_ = jsonb_set(metadata_, '{lang}', '"eng"', true)
+WHERE metadata_ ->> 'node_type' = 'chunk' AND node_id LIKE '%_eng%';
