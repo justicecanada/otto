@@ -697,14 +697,16 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
     engine = create_engine(url)
 
     with engine.begin() as conn:
-        conn.execute(
-            text(
+        # Core indexes that don't interfere with vector search
+        if node_id:
+            conn.execute(
+                text(
+                    """
+                CREATE INDEX IF NOT EXISTS data_laws_lois__node_id_idx
+                  ON data_laws_lois__ (node_id);
                 """
-            CREATE INDEX IF NOT EXISTS data_laws_lois__node_id_idx
-                ON data_laws_lois__ (node_id);
-            """
+                )
             )
-        )
 
         # Useful single-column indexes for filtering and sorting
         # These don't compete with vector index since they're not compound
@@ -713,6 +715,15 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
                 """
             CREATE INDEX IF NOT EXISTS data_laws_lois__doc_id_idx
               ON data_laws_lois__ USING btree((metadata_ ->> 'doc_id'));
+            """
+            )
+        )
+
+        conn.execute(
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS data_laws_lois__lang_idx
+              ON data_laws_lois__ USING btree((metadata_ ->> 'lang'));
             """
             )
         )
