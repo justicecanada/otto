@@ -693,9 +693,6 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
         conn.execute(
             text("DROP INDEX IF EXISTS data_laws_lois__type_language_id_idx;")
         )  # Compound: (node_type + lang + id)
-        conn.execute(
-            text("DROP INDEX IF EXISTS data_laws_lois__metadata__idx;")
-        )  # Generic metadata index
 
         # Core indexes that don't interfere with vector search
         if node_id:
@@ -715,6 +712,15 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
                 """
             CREATE INDEX IF NOT EXISTS data_laws_lois__doc_id_idx
               ON data_laws_lois__ USING btree((metadata_ ->> 'doc_id'));
+            """
+            )
+        )
+
+        conn.execute(
+            text(
+                """
+            CREATE INDEX IF NOT EXISTS data_laws_lois__lang_idx
+              ON data_laws_lois__ USING btree((metadata_ ->> 'lang'));
             """
             )
         )
