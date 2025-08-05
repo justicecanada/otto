@@ -288,6 +288,10 @@ pgbouncer_options = {
     "CONN_MAX_AGE": 0,
 }
 
+VECTORDB_MAINTENANCE_WORK_MEM_HEAVY = os.environ.get(
+    "VECTORDB_MAINTENANCE_WORK_MEM_HEAVY", "2"
+)  # GB, used for vector db maintenance tasks
+
 # If the database is set in the environment variables, use that instead
 if os.environ.get("DJANGODB_ENGINE") is not None:
     DATABASES["default"] = {
