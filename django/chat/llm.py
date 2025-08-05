@@ -260,7 +260,7 @@ class OttoLLM:
             vector_store_query_mode="default",
             similarity_top_k=top_k,
             filters=filters,
-            vector_store_kwargs={"hnsw_ef_search": 256} if hnsw else {},
+            vector_store_kwargs={"hnsw_ef_search": 512} if hnsw else {},
         )
 
     def get_fast_text_retriever(
@@ -334,7 +334,7 @@ class OttoLLM:
             use_jsonb=True,
             debug=debug,
             hnsw_kwargs=(
-                {"hnsw_ef_construction": 256, "hnsw_m": 32, "hnsw_ef_search": 256}
+                {"hnsw_ef_construction": 256, "hnsw_m": 16, "hnsw_ef_search": 512}
                 if hnsw
                 else None
             ),

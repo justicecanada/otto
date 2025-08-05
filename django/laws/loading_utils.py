@@ -650,6 +650,33 @@ def get_sha_256_hash(file_path):
     return sha256_hash.hexdigest()
 
 
+def drop_indexes():
+    db = settings.DATABASES["vector_db"]
+    url = (
+        f"postgresql+psycopg2://{db['USER']}:{db['PASSWORD']}"
+        f"@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+    )
+    engine = create_engine(url)
+    # Drop all indexes on table data_laws_lois__
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+            DROP INDEX IF EXISTS data_laws_lois__chunk_text_idx;
+            DROP INDEX IF EXISTS data_laws_lois__doc_id_idx;
+            DROP INDEX IF EXISTS data_laws_lois__in_force_start_date_idx;
+            DROP INDEX IF EXISTS data_laws_lois__lang_idx;
+            DROP INDEX IF EXISTS data_laws_lois__last_amended_date_idx;
+            DROP INDEX IF EXISTS data_laws_lois__node_id_idx;
+            DROP INDEX IF EXISTS data_laws_lois___embedding_idx;
+            DROP INDEX IF EXISTS laws_lois___idx;
+            DROP INDEX IF EXISTS laws_lois___idx_1;
+            DROP INDEX IF EXISTS laws_lois___idx_2;
+            """
+            )
+        )
+
+
 def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
     """
     Recreate indexes on data_laws_lois__ table for optimal vector search performance.
@@ -670,43 +697,14 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
     engine = create_engine(url)
 
     with engine.begin() as conn:
-        # Drop ONLY the problematic compound indexes that compete with vector index
-        # These are the ones that cause PostgreSQL to avoid the HNSW index
-        conn.execute(
-            text("DROP INDEX IF EXISTS data_laws_lois__lang_chunk_idx;")
-        )  # Compound: (metadata_->>'lang', metadata_->>'node_type')
         conn.execute(
             text(
-                "DROP INDEX IF EXISTS data_laws_lois__lang_doc_id_chunk_idx;"
-            )  # Compound: multiple metadata fields
-        )
-        conn.execute(
-            text(
-                "DROP INDEX IF EXISTS data_laws_lois__in_force_start_date_chunk_idx;"
-            )  # Compound: (date + node_type)
-        )
-        conn.execute(
-            text(
-                "DROP INDEX IF EXISTS data_laws_lois__last_amended_date_chunk_idx;"
-            )  # Compound: (date + node_type)
-        )
-        conn.execute(
-            text("DROP INDEX IF EXISTS data_laws_lois__type_language_id_idx;")
-        )  # Compound: (node_type + lang + id)
-        conn.execute(
-            text("DROP INDEX IF EXISTS data_laws_lois__metadata__idx;")
-        )  # Generic metadata index
-
-        # Core indexes that don't interfere with vector search
-        if node_id:
-            conn.execute(
-                text(
-                    """
-                CREATE INDEX IF NOT EXISTS data_laws_lois__node_id_idx
-                  ON data_laws_lois__ (node_id);
                 """
-                )
+            CREATE INDEX IF NOT EXISTS data_laws_lois__node_id_idx
+                ON data_laws_lois__ (node_id);
+            """
             )
+        )
 
         # Useful single-column indexes for filtering and sorting
         # These don't compete with vector index since they're not compound
@@ -773,7 +771,7 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
                 CREATE INDEX IF NOT EXISTS data_laws_lois___embedding_idx
                   ON data_laws_lois__
                   USING hnsw(embedding vector_cosine_ops)
-                  WITH (m = 32, ef_construction = 256)
+                  WITH (m = 16, ef_construction = 256)
                   WHERE (metadata_ ->> 'node_type') = 'chunk';
                 """
                 )
@@ -785,10 +783,7 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
 
         # Pre-warm the key indexes for performance
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_prewarm;"))
-        if node_id:
-            conn.execute(
-                text("SELECT pg_prewarm('data_laws_lois__node_id_idx','buffer');")
-            )
+        conn.execute(text("SELECT pg_prewarm('data_laws_lois__node_id_idx','buffer');"))
 
         # Pre-warm the beneficial single-column indexes
         conn.execute(text("SELECT pg_prewarm('data_laws_lois__doc_id_idx','buffer');"))
@@ -803,11 +798,10 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
         conn.execute(
             text("SELECT pg_prewarm('data_laws_lois__chunk_text_idx','buffer');")
         )
-        if hnsw:
-            # Most important: pre-warm the vector index
-            conn.execute(
-                text("SELECT pg_prewarm('data_laws_lois___embedding_idx','buffer');")
-            )
+        # Most important: pre-warm the vector index
+        conn.execute(
+            text("SELECT pg_prewarm('data_laws_lois___embedding_idx','buffer');")
+        )
         # Pre-warm the main table
         conn.execute(text("SELECT pg_prewarm('data_laws_lois__','buffer');"))
 

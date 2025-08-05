@@ -77,7 +77,7 @@ class LawManager(models.Manager):
             return obj
 
         try:
-            idx = llm.get_index("laws_lois__", hnsw=True)
+            idx = llm.get_index("laws_lois__", hnsw=False)
             nodes = []
             if law_status.law:
                 # Remove the old content from the vector store using consistent cleanup
@@ -255,7 +255,7 @@ class Law(models.Model):
 
     @classmethod
     def get_index(cls):
-        idx = OttoLLM().get_index("laws_lois__", hnsw=True)
+        idx = OttoLLM().get_index("laws_lois__", hnsw=False)
         return idx
 
     class Meta:
@@ -279,6 +279,7 @@ class JobStatus(models.Model):
     finished_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
     celery_task_id = models.CharField(max_length=255, null=True, blank=True)
+    options = models.JSONField(default=dict, blank=True)
 
     def cancel(self):
         """

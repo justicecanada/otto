@@ -27,6 +27,7 @@ from .loading_utils import (
     _download_repo,
     _get_all_eng_law_ids,
     _get_en_fr_law_file_paths,
+    drop_indexes,
     get_sha_256_hash,
     law_xml_to_nodes,
     recreate_indexes,
@@ -94,8 +95,21 @@ def update_laws(
         job_status.finished_at = None
         job_status.error_message = None
         job_status.celery_task_id = self.request.id
+        job_status.options = {
+            "small": small,
+            "full": full,
+            "const_only": const_only,
+            "reset": reset,
+            "force_download": force_download,
+            "mock_embedding": mock_embedding,
+            "force_update": force_update,
+            "eng_law_ids": eng_law_ids or [],
+            "skip_purge": skip_purge,
+        }
         job_status.save()
         current_task_id = self.request.id
+
+        drop_indexes()
 
         # Determine laws XML root directory, and download if necessary
         if small:
@@ -529,7 +543,7 @@ def finalize_law_loading_task(downloaded=False):
         # Rebuild vector-specific indexes (node_id index is managed by Django model)
         # Only recreate indexes if not running under pytest
         if not any("pytest" in arg for arg in sys.argv):
-            recreate_indexes(node_id=False, jsonb=True, hnsw=False)
+            recreate_indexes()
 
         # Update final status
         if downloaded:
