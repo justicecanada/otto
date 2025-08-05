@@ -4594,5 +4594,9 @@
     "Detect language automatically": {
         "fr": "",
         "fr_auto": "Détecter automatiquement la langue"
+    },
+    "Get AI answer": {
+        "fr": "",
+        "fr_auto": "Obtenez une réponse de l’IA"
     }
 }
