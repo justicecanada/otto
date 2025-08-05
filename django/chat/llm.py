@@ -3,7 +3,6 @@ import uuid
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-import sqlalchemy
 import tiktoken
 from llama_index.core import PromptTemplate, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
@@ -24,6 +23,9 @@ from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
+from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
 
 from otto.models import Cost
@@ -32,15 +34,6 @@ from .llm_models import get_model
 
 logger = get_logger(__name__)
 
-
-# Cache connection parameters to avoid repeated lookups
-connection_params = {
-    "database": settings.DATABASES["vector_db"]["NAME"],
-    "host": settings.DATABASES["vector_db"]["HOST"],
-    "password": settings.DATABASES["vector_db"]["PASSWORD"],
-    "user": settings.DATABASES["vector_db"]["USER"],
-    "port": settings.DATABASES["vector_db"]["PORT"],
-}
 debug = settings.DEBUG
 
 
@@ -324,6 +317,15 @@ class OttoLLM:
         self, vector_store_table: str, hnsw: bool = False, skip_setup: bool = False
     ) -> VectorStoreIndex:
 
+        # Cache connection parameters to avoid repeated lookups
+        connection_params = {
+            "database": settings.DATABASES["vector_db"]["NAME"],
+            "host": settings.DATABASES["vector_db"]["HOST"],
+            "password": settings.DATABASES["vector_db"]["PASSWORD"],
+            "user": settings.DATABASES["vector_db"]["USER"],
+            "port": settings.DATABASES["vector_db"]["PORT"],
+        }
+
         vector_store = OttoVectorStore.from_params(
             **connection_params,
             table_name=vector_store_table,
@@ -417,9 +419,6 @@ class OttoVectorStore(PGVectorStore):
         wait_exponential_max=20000,
     )
     def _connect(self):
-        from sqlalchemy import create_engine
-        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-        from sqlalchemy.orm import sessionmaker
 
         # Pooling for sync engine only
         sync_engine_kwargs = {
