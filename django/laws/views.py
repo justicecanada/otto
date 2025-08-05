@@ -357,6 +357,7 @@ def search(request):
             context = {
                 "sources": [],
                 "query": query,
+                "query_uuid": None,
                 "disable_llm": True,
                 "answer_params": "",
             }
@@ -430,6 +431,7 @@ def search(request):
             context = {
                 "sources": [],
                 "query": query,
+                "query_uuid": None,
                 "disable_llm": True,
                 "answer_params": "",
             }
