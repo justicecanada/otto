@@ -58,6 +58,7 @@ def submit_document(request):
         access_key=access_key, merged=merged, name=request.user.username[:255]
     )
     output_files = []
+    individual_files = []
     task_ids = []
 
     try:
@@ -85,33 +86,40 @@ def submit_document(request):
             file_content = file.read()
             file.seek(0)
 
+            # Always create individual OutputFile objects for each file
+            output_file = OutputFile.objects.create(
+                access_key=access_key,
+                pdf_file=None,
+                txt_file=None,
+                file_name=f"{file.name.rsplit('.', 1)[0]}_OCR",
+                user_request=user_request,
+                celery_task_ids=[],
+            )
+
+            # Always call tasks individually (ignore merged flag in tasks)
+            result = process_ocr_document.delay(
+                file_content,
+                file.name,
+                False,  # Always pass False for merged to tasks
+                idx,
+                enlarge_size,
+                str(output_file.id),
+                str(request.user.id),
+            )
+
+            # Store the task ID
+            output_file.celery_task_ids = [result.id]
+            output_file.save(access_key=access_key)
+            individual_files.append(output_file)
+
             if merged:
                 task_ids.append(result.id)
             else:
-                output_file = OutputFile.objects.create(
-                    access_key=access_key,
-                    pdf_file=None,
-                    txt_file=None,
-                    file_name=f"{file.name.rsplit('.', 1)[0]}_OCR",
-                    user_request=user_request,
-                    celery_task_ids=[],
-                )
-
-                result = process_ocr_document.delay(
-                    file_content,
-                    file.name,
-                    merged,
-                    idx,
-                    enlarge_size,
-                    str(output_file.id),
-                    str(request.user.id),  # Pass user ID instead of access_key.id
-                )
-                # Store the task ID
-                output_file.celery_task_ids = [result.id]
-                output_file.save(access_key=access_key)
+                # If not merged, add to output_files directly
                 output_files.append(output_file)
 
         if merged:
+            # Create an additional OutputFile for the merged result
             merged_output_file = OutputFile.objects.create(
                 access_key=access_key,
                 pdf_file=None,
@@ -120,9 +128,10 @@ def submit_document(request):
                 user_request=user_request,
                 celery_task_ids=task_ids,
             )
-            output_files = [merged_output_file]
+            # Add the merged file to the output_files list (don't replace)
+            output_files.append(merged_output_file)
 
-        for output_file in output_files:
+        for output_file in individual_files:
             output_file.status = "PENDING"
 
         context = {
@@ -173,6 +182,7 @@ def poll_tasks(request, user_request_id):
             status = result.status
             output_file_statuses.append(status)
 
+        # Determine status based on task statuses and file existence
         if all(status == "SUCCESS" for status in output_file_statuses):
             # For single file processing, files should already be stored by the task
             if not output_file.celery_task_ids:  # Task cleared its own task_ids
@@ -187,7 +197,6 @@ def poll_tasks(request, user_request_id):
                         output_file.save(access_key=access_key)
                 else:
                     output_file.status = "PROCESSING"
-
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
         else:
@@ -198,6 +207,103 @@ def poll_tasks(request, user_request_id):
                 output_file.status = "PROCESSING"
             else:
                 output_file.status = "PENDING"
+
+    # if all individual tasks are done and we need to merge files
+    if user_request.merged:
+        # Find the merged output file first
+        merged_output_file = None
+        for output_file in output_files.order_by("-id"):
+            if not output_file.pdf_file:
+                merged_output_file = output_file
+                break
+
+        # Check if all individual files (excluding merged file) are complete
+        individual_files = (
+            output_files.exclude(id=merged_output_file.id)
+            if merged_output_file
+            else output_files
+        )
+
+        all_individual_complete = True
+        for output_file in individual_files:
+            output_file_statuses = []
+            for task_id in output_file.celery_task_ids:
+                result = process_ocr_document.AsyncResult(task_id)
+                status = result.status
+                output_file_statuses.append(status)
+
+            if not all(
+                status in ["SUCCESS", "FAILURE"] for status in output_file_statuses
+            ):
+                all_individual_complete = False
+                break
+
+        if all_individual_complete and merged_output_file:
+            from io import BytesIO
+
+            from django.core.files.base import ContentFile
+
+            from pypdf import PdfReader, PdfWriter
+
+            from .utils import shorten_input_name
+
+            merged_pdf_writer = PdfWriter()
+            merged_text_content = ""
+            total_cost = 0
+            merge_successful = True
+
+            try:
+                for individual_file in individual_files:
+                    # Read the PDF file
+                    with individual_file.pdf_file.open("rb") as pdf_file:
+                        pdf_reader = PdfReader(pdf_file)
+                        for page in pdf_reader.pages:
+                            merged_pdf_writer.add_page(page)
+
+                    # Read the text file
+                    with individual_file.txt_file.open("rb") as txt_file:
+                        text_content = txt_file.read().decode("utf-8")
+                        merged_text_content += text_content + "\n"
+
+                    # Accumulate cost
+                    if individual_file.usd_cost:
+                        total_cost += individual_file.usd_cost
+
+                # Write merged PDF to BytesIO
+                merged_pdf_bytes_io = BytesIO()
+                merged_pdf_writer.write(merged_pdf_bytes_io)
+                merged_pdf_bytes_io.seek(0)
+                merged_pdf_content = merged_pdf_bytes_io.read()
+
+                # Save merged files to the OutputFile
+                merged_output_file.pdf_file = ContentFile(
+                    merged_pdf_content,
+                    name=f"{shorten_input_name(merged_output_file.file_name)}.pdf",
+                )
+                merged_output_file.txt_file = ContentFile(
+                    merged_text_content.encode("utf-8"),
+                    name=f"{shorten_input_name(merged_output_file.file_name)}.txt",
+                )
+                merged_output_file.usd_cost = total_cost
+                merged_output_file.celery_task_ids = []  # Clear task IDs
+                merged_output_file.status = "SUCCESS"
+                merged_output_file.save(access_key=access_key)
+
+                output_files = [merged_output_file]
+
+                # Optionally delete the individual files after merging
+                # individual_files.delete()
+
+            except Exception as e:
+                logger.exception(f"Failed to merge files: {e}")
+                merged_output_file.status = "FAILURE"
+                merged_output_file.error_message = f"Failed to merge files: {str(e)}"
+                merged_output_file.save(access_key=access_key)
+        else:
+            # No completed files to merge
+            merged_output_file.status = "FAILURE"
+            merged_output_file.error_message = "No completed files available to merge"
+            merged_output_file.save(access_key=access_key)
 
     for output_file in output_files:
         if output_file.pdf_file:
