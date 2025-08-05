@@ -1,3 +1,6 @@
+import io
+import zipfile
+
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -194,17 +197,15 @@ def poll_tasks(request, user_request_id):
     context = {
         "output_files": output_files,
     }
-
+    if not user_request.merged and output_files.count() > 1:
+        context["show_download_all_button"] = True
+        context["user_request_id"] = user_request.id
     if any(
         output_file.status in ["PENDING", "PROCESSING"] for output_file in output_files
     ):
         context.update(
             {"poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id])}
         )
-    # else:
-    #     "Download all" doesn't work in prod. Disabling for now.
-    #     TODO: Zipped download of all files
-    #     context.update({"show_download_all_button": True})
 
     # In an HTMX request, we just want the updated rows.
     if request.headers.get("HX-Request") == "true":
@@ -243,3 +244,41 @@ def download_document(request, file_id, file_type):
             f'attachment; filename="{output_file.file_name}.{file_type}"'
         )
         return response
+
+
+def download_all_zip(request, user_request_id):
+
+    access_key = AccessKey(user=request.user)
+    # collect all output files for this session
+    user_request = UserRequest.objects.get(access_key=access_key, id=user_request_id)
+    output_files = user_request.output_files.filter(access_key=access_key)
+    # output_files = OutputFile.objects.filter(access_key=access_key)
+    if not output_files:
+        return render(
+            request,
+            "text_extractor/error_message.html",
+            {
+                "error_message": _(
+                    "No files to download. Please process documents first."
+                )
+            },
+        )
+
+    # Create a ZIP in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for output_file in output_files:
+            if output_file.pdf_file:
+                zip_file.writestr(
+                    f"{output_file.file_name}.pdf", output_file.pdf_file.read()
+                )
+            if output_file.txt_file:
+                zip_file.writestr(
+                    f"{output_file.file_name}.txt", output_file.txt_file.read()
+                )
+            # Add other file types as needed
+
+    zip_buffer.seek(0)
+    response = HttpResponse(zip_buffer, content_type="application/zip")
+    response["Content-Disposition"] = 'attachment; filename="all_documents.zip"'
+    return response
