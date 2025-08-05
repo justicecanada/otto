@@ -89,15 +89,8 @@
   <div id="warn-dont-leave-page" hx-swap-oob="true" class="d-none"></div>
 {% endif %}
 
-<style>
-.icn-spinner {
-  display: inline-block;
-  animation: icn-spin 1s linear infinite;
-}
-@keyframes icn-spin {
-  100% { transform: rotate(360deg); }
-}
-</style>
+{% if poll_url %}<script>window.location.href = "{{ poll_url }}";</script>{% endif %}
+
 <script>
 (function () {
   // If arriving at a page fragment via browser back-forward, refresh.
