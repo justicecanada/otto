@@ -12,6 +12,9 @@ function setActiveTab(e) {
   } else {
     document.getElementById('advanced-search-outer').classList.remove('d-none');
     document.getElementById('advanced-toggle').value = 'true';
+    // Turn off detect_language toggle when switching to advanced mode
+    const detectLang = document.getElementById('detect_language');
+    if (detectLang) detectLang.checked = false;
   }
 }
 
@@ -111,7 +114,7 @@ function findSimilar(el) {
   // Disable AI answer
   document.getElementById('ai_answer').checked = false;
   // Enable bilingual results
-  document.getElementById('bilingual_results').checked = true;
+  document.getElementById('detect_language').checked = false;
   // Submit the form
   document.getElementById('basic-search-button').click();
 }

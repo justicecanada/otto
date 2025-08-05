@@ -4578,5 +4578,21 @@
     "Recreate Indexes": {
         "fr": "",
         "fr_auto": "Recréer des index"
+    },
+    "English only": {
+        "fr": "",
+        "fr_auto": "Anglais seulement"
+    },
+    "French only": {
+        "fr": "",
+        "fr_auto": "Français seulement"
+    },
+    "Select language": {
+        "fr": "",
+        "fr_auto": "Sélectionnez la langue"
+    },
+    "Detect language automatically": {
+        "fr": "",
+        "fr_auto": "Détecter automatiquement la langue"
     }
 }

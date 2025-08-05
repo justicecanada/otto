@@ -1,9 +1,11 @@
 from django import forms
 from django.conf import settings
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 
 from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
+from data_fetcher.util import get_request
 
 from chat.forms import SelectWithOptionClasses
 from chat.llm_models import get_grouped_chat_model_choices
@@ -93,6 +95,15 @@ class LawSearchForm(forms.Form):
     and search/AI options (e.g. keyword ↔ vector ratio, number of sources, etc.)
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set detect_language label based on page language
+        lang = get_language()
+        if lang == "fr":
+            self.fields["detect_language"].label = "Francais seulement"
+        else:
+            self.fields["detect_language"].label = "English only"
+
     # Select laws to search
     search_laws_option = forms.ChoiceField(
         choices=[
@@ -167,6 +178,19 @@ class LawSearchForm(forms.Form):
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
     )
 
+    # Language selection (All, English, French)
+    language = forms.ChoiceField(
+        choices=[
+            ("all", _("All languages")),
+            ("en", _("English only")),
+            ("fr", _("French only")),
+        ],
+        label=_("Select language"),
+        required=True,
+        initial="all",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
     # Search options
     vector_ratio = forms.FloatField(
         label=_("Keyword ↔ Vector"),
@@ -202,13 +226,6 @@ class LawSearchForm(forms.Form):
         choices=get_grouped_chat_model_choices(),
         initial=settings.DEFAULT_LAWS_MODEL,
         widget=SelectWithModelGroups(attrs={"class": "form-select"}),
-    )
-    context_tokens = forms.IntegerField(
-        label=_("Max input tokens"),
-        min_value=1000,
-        max_value=150000,
-        initial=16000,
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": 1000}),
     )
     additional_instructions = forms.CharField(
         label=_("Additional instructions for AI answer"),
@@ -246,19 +263,21 @@ class LawSearchForm(forms.Form):
             attrs={"class": "form-check-input", "role": "switch", "id": "ai_answer"}
         ),
     )
-    bilingual_results = forms.BooleanField(
-        label=_("Any language results"),
+
+    detect_language = forms.BooleanField(
+        label=_("Detect language automatically"),
         label_suffix="",
         required=False,
-        initial=False,
+        initial=True,
         widget=forms.CheckboxInput(
             attrs={
                 "class": "form-check-input",
                 "role": "switch",
-                "id": "bilingual_results",
+                "id": "detect_language",
             }
         ),
     )
+
     advanced = forms.BooleanField(
         required=False,
         initial=False,
