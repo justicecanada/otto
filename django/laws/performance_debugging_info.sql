@@ -43,6 +43,7 @@ SELECT id
 FROM data_laws_lois__
 WHERE
    metadata_ ->> 'node_type' = 'chunk'
+   AND metadata_ ->> 'lang' = 'eng'
     -- AND metadata_ ->> 'doc_id'   = ANY('{…your list…}')
  AND text_search_tsv @@ plainto_tsquery('english','environment|law')
 ORDER BY ts_rank(text_search_tsv,
@@ -70,9 +71,7 @@ END;
 $$;
 
 -- 2) Then your single‐statement KNN can be:
-SET hnsw.ef_search = 256;
-
-SET vector_hnsw.ef_search = 256;
+SET hnsw.ef_search = 512;
 
 -- 2. Run your test query (random vector generated ONCE per query)
 EXPLAIN (ANALYZE, BUFFERS)
@@ -82,7 +81,8 @@ WITH q AS (
 SELECT id, (embedding <=> q.query_emb) AS dist
 FROM data_laws_lois__ d
 CROSS JOIN q
-WHERE d.metadata_ ->> 'node_type' = 'chunk'
+WHERE metadata_ ->> 'node_type' = 'chunk'
+AND metadata_ ->> 'lang' = 'eng'
 ORDER BY dist
 LIMIT 100;
 
