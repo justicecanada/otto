@@ -12,6 +12,7 @@ from django.utils.translation import gettext as _
 import markdown
 from llama_index.core import ChatPromptTemplate
 from llama_index.core.llms import ChatMessage, MessageRole
+from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
@@ -97,6 +98,13 @@ def source(request, source_id):
         return HttpResponse(_("Source not found."), status=404)
 
     return render(request, "laws/source_details.html", context=context)
+
+
+@app_access_required(app_name)
+def get_answer_column(request, query_uuid):
+    """Renders the answer column partial."""
+    context = {"query_uuid": query_uuid}
+    return render(request, "laws/_answer_column.html", context)
 
 
 @app_access_required(app_name)
@@ -224,9 +232,6 @@ def search(request):
     if request.method != "POST":
         return redirect("laws:index")
     try:
-        from langdetect import detect
-        from llama_index.core.retrievers import QueryFusionRetriever
-        from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 
         llm = OttoLLM()
 
