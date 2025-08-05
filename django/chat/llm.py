@@ -18,7 +18,7 @@ from llama_index.core.instrumentation.events.llm import (
     LLMCompletionEndEvent,
 )
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
-from llama_index.core.retrievers import QueryFusionRetriever
+from llama_index.core.retrievers import BaseRetriever, QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
@@ -289,7 +289,7 @@ class OttoLLM:
         top_k: int = 5,
         vector_weight: float = 0.6,
         hnsw: bool = False,
-    ) -> QueryFusionRetriever:
+    ) -> BaseRetriever:
         if vector_weight == 0:
             # If vector_weight is 0, use text-only retriever
             text_retriever = self.get_fast_text_retriever(
@@ -411,7 +411,7 @@ class OttoLLM:
 
 
 class OttoVectorStore(PGVectorStore):
-    # Override from LlamaIndex to add retrying, connection test, and connection pooling
+    # Override from LlamaIndex to add retrying, connection test, and correct pooling
     @retry(
         wait_exponential_multiplier=1000,
         wait_exponential_max=20000,
@@ -421,8 +421,8 @@ class OttoVectorStore(PGVectorStore):
         from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
         from sqlalchemy.orm import sessionmaker
 
-        # Add connection pooling for better performance
-        engine_kwargs = {
+        # Pooling for sync engine only
+        sync_engine_kwargs = {
             "pool_size": 10,
             "max_overflow": 20,
             "pool_pre_ping": True,
@@ -431,16 +431,22 @@ class OttoVectorStore(PGVectorStore):
         }
 
         self._engine = create_engine(
-            self.connection_string, echo=self.debug, **engine_kwargs
+            self.connection_string, echo=self.debug, **sync_engine_kwargs
         )
         self._session = sessionmaker(self._engine)
 
-        # Use the same pooling settings for async engine
+        # Async engine: only pass async-appropriate kwargs
+        async_engine_kwargs = dict(self.create_engine_kwargs)  # copy to avoid mutation
+
+        # Add connect_args for asyncpg/pgbouncer compatibility
+        async_engine_kwargs.setdefault("connect_args", {})
+        async_engine_kwargs["connect_args"]["statement_cache_size"] = 0
+
         self._async_engine = create_async_engine(
-            self.async_connection_string, **engine_kwargs
+            self.async_connection_string, echo=self.debug, **async_engine_kwargs
         )
         self._async_session = sessionmaker(self._async_engine, class_=AsyncSession)  # type: ignore
 
-        # Test the connection to ensure it's established
+        # Optionally test the sync connection
         # with self._engine.connect() as connection:
         #     connection.execute(sqlalchemy.text("SELECT 1"))
