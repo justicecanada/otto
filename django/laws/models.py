@@ -304,6 +304,15 @@ class JobStatus(models.Model):
         self.error_message = "Job was cancelled by user."
         self.save()
 
+    @property
+    def options_str(self):
+        """
+        Return a string representation of the options JSON field.
+        """
+        if not self.options:
+            return "No options provided"
+        return ", ".join(f"{k}: {v}" for k, v in self.options.items())
+
 
 class LawLoadingStatus(models.Model):
     law = models.OneToOneField(

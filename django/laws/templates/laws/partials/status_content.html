@@ -56,7 +56,7 @@
           <strong>{% trans "End time" %}:</strong> {{ job_status.finished_at }}
         </p>
         <p>
-          <strong>{% trans "Options" %}</strong> {{ job_status.options }}
+          <strong>{% trans "Options" %}</strong> {{ job_status.options_str }}
         </p>
         {% if job_status.error_message %}
           <p>
