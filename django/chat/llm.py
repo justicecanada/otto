@@ -252,7 +252,7 @@ class OttoLLM:
         vector_store_table: str,
         filters: MetadataFilters = None,
         top_k: int = 5,
-        hnsw: bool = True,
+        hnsw: bool = False,
     ):
         pg_idx = self.get_index(vector_store_table, hnsw=hnsw, skip_setup=True)
 
