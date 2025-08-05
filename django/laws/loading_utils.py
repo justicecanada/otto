@@ -699,7 +699,7 @@ def recreate_indexes(node_id=True, jsonb=True, hnsw=True):
     with engine.begin() as conn:
         conn.execute(
             text(
-                f"SET maintenance_work_mem = '{settings.VECTORDB_MAINTENANCE_WORK_MEM_HEAVY}GB';"
+                f"SET maintenance_work_mem = '{settings.VECTORDB_MAINTENANCE_WORK_MEM_HEAVY}';"
             )
         )
         conn.execute(

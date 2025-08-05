@@ -36,7 +36,6 @@ SHOW shared_buffers;
 SHOW work_mem;
 SHOW effective_cache_size;
 
-4. Benchmark stuff...
 -- test text search with metadata filtering
 EXPLAIN (ANALYZE, BUFFERS)
 SELECT id
