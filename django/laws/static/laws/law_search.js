@@ -19,9 +19,11 @@ function setActiveTab(e) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  setTimeout(() => {
-    document.getElementById('basic-search-input').focus();
-  }, 100);
+  if (!history_replay) {
+    setTimeout(() => {
+      document.getElementById('basic-search-input').focus();
+    }, 100);
+  }
 
   const textarea = document.getElementById("basic-search-input");
   const clearButton = document.getElementById("clear-button");
@@ -171,10 +173,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-document.addEventListener("htmx:afterSwap", () => {
+document.addEventListener("htmx:afterSwap", (event) => {
+  if (!(event.target.id === "search-result-hx-container")) return;
   const answer = document.querySelector("#answer");
   if (answer) {
     render_markdown(answer);
+  }
+  // Re-enable the #basic-search-button and #clear-button via triggering the input event
+  const textarea = document.getElementById("basic-search-input");
+  if (textarea) {
+    textarea.dispatchEvent(new Event('input'));
+  }
+  // Blur #basic-search-input if focused
+  const basicSearchInput = document.getElementById("basic-search-input");
+  if (basicSearchInput && document.activeElement === basicSearchInput) {
+    basicSearchInput.blur();
   }
 });
 

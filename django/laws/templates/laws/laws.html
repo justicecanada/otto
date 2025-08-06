@@ -118,7 +118,10 @@
 
   <script src="{% static 'laws/law_anchor_links.js' %}"></script>
   <script src="{% static 'laws/law_search.js' %}"></script>
+  {% if advanced_search %}<script>setActiveTab(document.getElementById("advanced-search-tab"));</script>{% endif %}
+  <script>const history_replay = {% if history_replay %}true{% else %}false{% endif %};</script>
 
   <link rel="stylesheet" href="{% static 'chat/css/highlightjs.css' %}">
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
+
 {% endblock %}

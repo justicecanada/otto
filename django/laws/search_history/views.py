@@ -85,6 +85,7 @@ def view_search(request, search_id):
         "history_replay": True,
         "law_search": search_obj,
         "answer": search_obj.ai_answer,
+        "advanced_search": search_obj.is_advanced_search,
     }
 
     return render(request, "laws/laws.html", context=context)
