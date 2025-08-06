@@ -208,23 +208,6 @@ def answer(request, query_uuid):
 
 
 @app_access_required(app_name)
-def existing_search(request, query_uuid):
-    """For back/forward navigation or (short-term) sharing of a search result page."""
-    query_info = cache.get(query_uuid)
-    if not query_info:
-        return redirect("laws:index")
-    context = {
-        "form": LawSearchForm(),
-        "hide_breadcrumbs": True,
-        "sources": sources_to_html(query_info["sources"]),
-        "query": query_info["query"],
-        "query_uuid": query_uuid,
-        "answer": query_info.get("answer", None),
-    }
-    return render(request, "laws/laws.html", context=context)
-
-
-@app_access_required(app_name)
 @budget_required
 def search(request):
     bind_contextvars(feature="laws_query")
@@ -441,7 +424,74 @@ def search(request):
             )
             return render(request, "laws/search_result.html", context=context)
 
-        # Cache sources so they can be retrieved in the AI answer function
+        # Create LawSearch object for authenticated users, unless replaying history
+        law_search = None
+        if request.user.is_authenticated and not getattr(
+            request, "_from_history", False
+        ):
+            # Collect search parameters
+            search_parameters = {
+                "advanced": advanced_mode,
+                "ai_answer": not disable_llm,
+                "detect_language": detect_lang,
+                "vector_ratio": vector_ratio,
+                "top_k": top_k,
+                "model": model,
+                "context_tokens": context_tokens,
+                "additional_instructions": urllib.parse.unquote_plus(
+                    additional_instructions
+                ),
+                "trim_redundant": trim_redundant,
+            }
+
+            # Add advanced search parameters if applicable
+            if advanced_mode:
+                search_parameters.update(
+                    {
+                        "search_laws_option": request.POST.get(
+                            "search_laws_option", "all"
+                        ),
+                        "language": request.POST.get("language", "all"),
+                        "date_filter_option": request.POST.get(
+                            "date_filter_option", "all"
+                        ),
+                    }
+                )
+
+                # Add specific law/enabling act selections
+                if request.POST.get("search_laws_option") == "specific_laws":
+                    search_parameters["laws"] = request.POST.getlist("laws")
+                elif request.POST.get("search_laws_option") == "enabling_acts":
+                    search_parameters["enabling_acts"] = request.POST.getlist(
+                        "enabling_acts"
+                    )
+
+                # Add date filter parameters
+                if request.POST.get("date_filter_option", "all") != "all":
+                    search_parameters.update(
+                        {
+                            "in_force_date_start": request.POST.get(
+                                "in_force_date_start"
+                            ),
+                            "in_force_date_end": request.POST.get("in_force_date_end"),
+                            "last_amended_date_start": request.POST.get(
+                                "last_amended_date_start"
+                            ),
+                            "last_amended_date_end": request.POST.get(
+                                "last_amended_date_end"
+                            ),
+                        }
+                    )
+
+            # Create the LawSearch object
+            from django.apps import apps
+
+            LawSearch = apps.get_model("laws", "LawSearch")
+            law_search = LawSearch.objects.create(
+                user=request.user, query=query, search_parameters=search_parameters
+            )
+
+        # Cache sources so they can be retrieved in the AI answer function (keep for compatibility)
         query_uuid = uuid.uuid4()
         query_info = {
             "sources": sources,
@@ -450,6 +500,7 @@ def search(request):
             "model": model,
             "context_tokens": context_tokens,
             "additional_instructions": additional_instructions,
+            "law_search_id": law_search.id if law_search else None,
         }
         cache.set(query_uuid, query_info, timeout=300)
 
@@ -458,6 +509,7 @@ def search(request):
             "query": query,
             "query_uuid": query_uuid,
             "disable_llm": disable_llm,
+            "law_search": law_search,
         }
     except Exception as e:
         context = {
@@ -480,8 +532,9 @@ def search(request):
         context=context,
     )
 
-    new_url = reverse("laws:existing_search", args=[str(query_uuid)])
-    response["HX-Push-Url"] = new_url
+    if not getattr(request, "_from_history", False):
+        new_url = reverse("laws:view_search", args=[context["law_search"].id])
+        response["HX-Push-Url"] = new_url
 
     return response
 

@@ -1,0 +1,26 @@
+{% load i18n %}
+{% if user.is_authenticated and user.law_searches.exists %}
+  <div class="mt-4 mx-3" id="search-history">
+    <h5>{% trans "Recent Searches" %}</h5>
+    <ul class="list-unstyled">
+      {% for search in user.law_searches.all|slice:":10" %}
+        <li class="mb-2">
+          <a href="{% url 'laws:view_search' search.id %}"
+             class="text-decoration-none d-flex justify-content-between align-items-start">
+            <span>
+              {{ search.query|truncatechars:80 }}
+              {% if search.is_advanced_search %}
+                <span class="badge bg-secondary ms-1">{% trans "Advanced" %}</span>
+              {% endif %}
+            </span>
+            <small class="text-muted ms-2 flex-shrink-0">{{ search.created_at|timesince }} {% trans "ago" %}</small>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+    <button hx-post="{% url 'laws:clear_history' %}"
+            hx-target="#search-history"
+            hx-swap="outerHTML"
+            class="btn btn-sm btn-outline-secondary">{% trans "Clear search history" %}</button>
+  </div>
+{% endif %}
