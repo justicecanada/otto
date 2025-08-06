@@ -209,16 +209,13 @@ def answer(request, query_uuid):
 
 @app_access_required(app_name)
 @budget_required
-def search(request):
+def search(request, law_search=None):
     bind_contextvars(feature="laws_query")
     query_uuid = None
     if request.method != "POST":
         return redirect("laws:index")
     try:
-
         llm = OttoLLM()
-
-        # time.sleep(60)
         # We don't want to search Document nodes - only chunks
         filters = [
             MetadataFilter(
@@ -425,7 +422,6 @@ def search(request):
             return render(request, "laws/search_result.html", context=context)
 
         # Create LawSearch object for authenticated users, unless replaying history
-        law_search = None
         if request.user.is_authenticated and not getattr(
             request, "_from_history", False
         ):
@@ -504,12 +500,17 @@ def search(request):
         }
         cache.set(query_uuid, query_info, timeout=300)
 
+        if law_search:
+            law_search.query_uuid = str(query_uuid)
+            law_search.save(update_fields=["query_uuid"])
+
         context = {
             "sources": sources_to_html(sources),
             "query": query,
             "query_uuid": query_uuid,
             "disable_llm": disable_llm,
             "law_search": law_search,
+            "answer": law_search.ai_answer if law_search else None,
         }
     except Exception as e:
         context = {

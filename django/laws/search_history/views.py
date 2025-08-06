@@ -68,7 +68,7 @@ def view_search(request, search_id):
         request._from_history = True
 
         # Call the main search view to get the search result response
-        search_response = laws_search(request)
+        search_response = laws_search(request, search_obj)
 
         # Restore original request method
         request.method = original_method

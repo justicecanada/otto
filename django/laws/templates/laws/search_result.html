@@ -26,7 +26,7 @@
   </div>
 </div>
 <div class="row" id="search-result-row">
-  {% if not disable_llm %}
+  {% if answer or not disable_llm %}
     {% include "laws/_answer_column.html" %}
   {% else %}
     <div id="answer-column-placeholder" class="d-none"></div>

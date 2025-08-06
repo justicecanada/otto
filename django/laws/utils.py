@@ -123,6 +123,7 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
         query_info["answer"] = f"<div>{markdown_div}</div>{cost_div}"
         cache.set(query_uuid, query_info, timeout=300)
         if query_info.get("law_search_id"):
+            # Persist the AI answer in the LawSearch model
             law_search = await sync_to_async(LawSearch.objects.get)(
                 id=query_info.get("law_search_id")
             )

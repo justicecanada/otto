@@ -171,6 +171,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+document.addEventListener("htmx:afterSwap", () => {
+  const answer = document.querySelector("#answer");
+  if (answer) {
+    render_markdown(answer);
+  }
+});
+
 function toggleAnswer(show) {
   const answer = document.querySelector("#answer-column");
   const showBtn = document.querySelector("#show-answer-button");

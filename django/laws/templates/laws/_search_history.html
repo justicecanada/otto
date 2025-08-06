@@ -16,9 +16,9 @@
     </div>
     <ul class="list-group">
       {% for search in user.law_searches.all|slice:":10" %}
-        <li class="list-group-item">
+        <li class="list-group-item search-history-item py-0">
           <a href="{% url 'laws:view_search' search.id %}"
-             class="text-decoration-none d-flex justify-content-between align-items-start">
+             class="text-decoration-none d-flex py-2 justify-content-between align-items-start text-body">
             <span>
               {{ search.query|truncatechars:100 }}
               {% if search.is_advanced_search %}

@@ -23,6 +23,10 @@ class LawSearch(models.Model):
     # AI answer if generated (to save LLM costs on repeat access)
     ai_answer = models.TextField(blank=True, null=True)
 
+    query_uuid = models.CharField(
+        max_length=36, unique=True, blank=True, null=True
+    )  # UUID in cache for quick access to sources
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [
