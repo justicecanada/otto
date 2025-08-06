@@ -42,6 +42,7 @@ llama-index-vector-stores-postgres==0.6.1
 llama-index-embeddings-azure-openai==0.4.0
 llama-index-llms-litellm==0.6.0
 llama-index-embeddings-litellm==0.4.0
+smolagents[litellm,toolkit]==1.20.0
 
 # Document extraction ----------------------------------------------------------
 beautifulsoup4==4.13.4
@@ -61,7 +62,7 @@ xhtml2pdf==0.2.17
 
 # NLP (non-LLM) ----------------------------------------------------------------
 langdetect==1.0.9
-lxml==4.9.2
+lxml[html_clean]==6.0.0
 sentence-splitter==1.4
 
 # Data science -----------------------------------------------------------------
