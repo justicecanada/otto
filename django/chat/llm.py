@@ -3,7 +3,6 @@ import uuid
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-import sqlalchemy
 import tiktoken
 from llama_index.core import PromptTemplate, VectorStoreIndex
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
@@ -19,11 +18,20 @@ from llama_index.core.instrumentation.events.llm import (
 )
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import BaseRetriever, QueryFusionRetriever
+<<<<<<< HEAD
 from llama_index.core.vector_stores.types import MetadataFilters
 from llama_index.embeddings.litellm import LiteLLMEmbedding
 from llama_index.llms.litellm import LiteLLM
+=======
+from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
+from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
+from llama_index.llms.azure_openai import AzureOpenAI
+>>>>>>> laws-performance
 from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
+from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
 
 from otto.models import Cost
@@ -31,6 +39,8 @@ from otto.models import Cost
 from .llm_models import get_model
 
 logger = get_logger(__name__)
+
+debug = settings.DEBUG
 
 
 # Cache connection parameters to avoid repeated lookups
@@ -254,7 +264,7 @@ class OttoLLM:
         vector_store_table: str,
         filters: MetadataFilters = None,
         top_k: int = 5,
-        hnsw: bool = True,
+        hnsw: bool = False,
     ):
         pg_idx = self.get_index(vector_store_table, hnsw=hnsw, skip_setup=True)
 
@@ -325,6 +335,15 @@ class OttoLLM:
     def get_index(
         self, vector_store_table: str, hnsw: bool = False, skip_setup: bool = False
     ) -> VectorStoreIndex:
+
+        # Cache connection parameters to avoid repeated lookups
+        connection_params = {
+            "database": settings.DATABASES["vector_db"]["NAME"],
+            "host": settings.DATABASES["vector_db"]["HOST"],
+            "password": settings.DATABASES["vector_db"]["PASSWORD"],
+            "user": settings.DATABASES["vector_db"]["USER"],
+            "port": settings.DATABASES["vector_db"]["PORT"],
+        }
 
         vector_store = OttoVectorStore.from_params(
             **connection_params,
@@ -419,9 +438,15 @@ class OttoVectorStore(PGVectorStore):
         wait_exponential_max=20000,
     )
     def _connect(self):
-        from sqlalchemy import create_engine
-        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-        from sqlalchemy.orm import sessionmaker
+
+        # Pooling for sync engine only
+        sync_engine_kwargs = {
+            "pool_size": 10,
+            "max_overflow": 20,
+            "pool_pre_ping": True,
+            "pool_recycle": 3600,
+            **self.create_engine_kwargs,
+        }
 
         # Pooling for sync engine only
         sync_engine_kwargs = {

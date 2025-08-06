@@ -1,3 +1,4 @@
+import time
 import urllib.parse
 import uuid
 
@@ -11,6 +12,7 @@ from django.utils.translation import gettext as _
 import markdown
 from llama_index.core import ChatPromptTemplate
 from llama_index.core.llms import ChatMessage, MessageRole
+from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
@@ -96,6 +98,13 @@ def source(request, source_id):
         return HttpResponse(_("Source not found."), status=404)
 
     return render(request, "laws/source_details.html", context=context)
+
+
+@app_access_required(app_name)
+def get_answer_column(request, query_uuid):
+    """Renders the answer column partial."""
+    context = {"query_uuid": query_uuid}
+    return render(request, "laws/_answer_column.html", context)
 
 
 @app_access_required(app_name)
@@ -223,9 +232,6 @@ def search(request):
     if request.method != "POST":
         return redirect("laws:index")
     try:
-        from langdetect import detect
-        from llama_index.core.retrievers import QueryFusionRetriever
-        from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 
         llm = OttoLLM()
 
@@ -248,7 +254,7 @@ def search(request):
 
         advanced_mode = request.POST.get("advanced") == "true"
         disable_llm = not (request.POST.get("ai_answer", False) == "on")
-        detect_lang = not (request.POST.get("bilingual_results", None) == "on")
+        detect_lang = request.POST.get("detect_language", None) == "on"
         selected_laws = Law.objects.all()
         trim_redundant = False
 
@@ -265,7 +271,7 @@ def search(request):
             top_k = 50
             # Options for the AI answer
             model = settings.DEFAULT_LAWS_MODEL
-            context_tokens = 16000
+            context_tokens = 128000
             # Cast to string evaluates the lazy translation
             additional_instructions = str(default_additional_instructions)
             additional_instructions = urllib.parse.quote_plus(additional_instructions)
@@ -274,7 +280,7 @@ def search(request):
             top_k = int(request.POST.get("top_k", 50))
             # trim_redundant = request.POST.get("trim_redundant", "on") == "on"
             model = request.POST.get("model", settings.DEFAULT_LAWS_MODEL)
-            context_tokens = int(request.POST.get("context_tokens", 16000))
+            context_tokens = int(request.POST.get("context_tokens", 128000))
             additional_instructions = request.POST.get("additional_instructions", "")
             # Need to escape the instructions so they can be passed in GET parameter
             additional_instructions = urllib.parse.quote_plus(additional_instructions)
@@ -295,19 +301,29 @@ def search(request):
                         enabling_acts.ref_number_en for enabling_acts in enabling_acts
                     ]
                 )
-        if detect_lang:
-            # Detect the language of the query and search only documents in that lang
-            try:
-                lang = detect(query)
-            except Exception as e:
-                logger.exception(
-                    "Error detecting language for query",
-                    query=query,
-                    error=e,
-                )
-                lang = request.LANGUAGE_CODE
-            if lang not in ["en", "fr"]:
-                lang = request.LANGUAGE_CODE
+        lang = request.POST.get("language", "all")
+        if lang != "all" or detect_lang:
+            if detect_lang:
+                # Detect the language of the query and search only documents in that lang
+                # try:
+                #     start_time = time.time()
+                #     lang = detect(query)
+                #     end_time = time.time()
+                #     logger.info(
+                #         "Detected language for query",
+                #         query=query,
+                #         lang=lang,
+                #         duration=end_time - start_time,
+                #     )
+                # except Exception as e:
+                #     logger.exception(
+                #         "Error detecting language for query",
+                #         query=query,
+                #         error=e,
+                #     )
+                #     lang = request.LANGUAGE_CODE
+                if lang not in ["en", "fr"]:
+                    lang = request.LANGUAGE_CODE
             lang = "eng" if lang == "en" else "fra"
             if lang == "fra":
                 doc_id_list = [law.node_id_fr for law in selected_laws]
@@ -341,6 +357,7 @@ def search(request):
             context = {
                 "sources": [],
                 "query": query,
+                "query_uuid": None,
                 "disable_llm": True,
                 "answer_params": "",
             }
@@ -414,6 +431,7 @@ def search(request):
             context = {
                 "sources": [],
                 "query": query,
+                "query_uuid": None,
                 "disable_llm": True,
                 "answer_params": "",
             }

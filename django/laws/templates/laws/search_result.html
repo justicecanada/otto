@@ -4,51 +4,32 @@
   <div class="col">
     <h3 class="h5 mb-4 mx-3" style="font-style:italic;">{{ query }}</h3>
   </div>
-  <div class="col-auto d-none" id="show-answer-button">
-    <button class="btn btn-link text-decoration-none text-body px-2"
+  <div class="col-auto" id="show-answer-button-container">
+    <button class="btn btn-link text-decoration-none text-body px-2 d-none"
             type="button"
+            id="show-answer-button"
             onclick="showAnswer();">
       <i class="bi bi-eye"></i>
       {% trans "Show AI answer" %}
     </button>
+    {% if disable_llm %}
+      <button class="btn btn-link text-decoration-none text-body px-2"
+              type="button"
+              id="get-answer-button"
+              hx-get="{% url 'laws:get_answer_column' query_uuid %}"
+              hx-target="#answer-column-placeholder"
+              hx-swap="outerHTML">
+        <i class="bi bi-robot"></i>
+        {% trans "Get AI answer" %}
+      </button>
+    {% endif %}
   </div>
 </div>
-<div class="row">
+<div class="row" id="search-result-row">
   {% if not disable_llm %}
-    <div class="col-md-4 pe-0" id="answer-column">
-      <div class="card mb-5 border-success" id="answer-container">
-        <div class="card-header bg-transparent border-0">
-          <div class="d-flex justify-content-between align-items-center py-1">
-            <h3 class="h6 text-success mb-0">{% trans "AI-generated answer &mdash; may contain inaccuracies" %}</h3>
-            <button type="button"
-                    class="btn-close"
-                    aria-label="{% trans 'Close' %}"
-                    onclick="hideAnswer();"></button>
-          </div>
-        </div>
-        <div class="card-body pb-1 pt-0">
-          <div id="answer">
-            {% if answer %}
-              {{ answer|safe }}
-            {% else %}
-              <div hx-ext="sse"
-                   sse-connect="{% url 'laws:answer' query_uuid %}"
-                   sse-swap="message"
-                   id="answer-sse">
-                <!-- djlint:off -->
-                <!-- djlint:on -->
-                {% comment %} Spans below require to make CSS "typing dots" bounce {% endcomment %}
-                <p>&nbsp;</p>
-                <div class="typing">
-                  <span></span><span></span><span></span>
-                </div>
-              </div>
-              <div id="answer-cost" class="d-none"></div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
+    {% include "laws/_answer_column.html" %}
+  {% else %}
+    <div id="answer-column-placeholder" class="d-none"></div>
   {% endif %}
   <div class="col">
     {% if error %}

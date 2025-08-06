@@ -128,6 +128,7 @@ def laws_loading_status(request):
                 "elapsed": elapsed_str,
                 "is_running": job_status.status
                 not in ["finished", "cancelled", "error"],
+                "options_str": job_status.options_str,
             },
             "stats": {
                 "total": total,

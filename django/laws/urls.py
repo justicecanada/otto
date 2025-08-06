@@ -8,13 +8,18 @@ from .loading_views import (
     laws_loading_status,
     laws_recreate_indexes,
 )
-from .views import answer, existing_search, index, search, source
+from .views import answer, existing_search, get_answer_column, index, search, source
 
 app_name = "laws"
 urlpatterns = [
     path("", index, name="index"),
     path("search/", search, name="search"),
     path("search/<str:query_uuid>", existing_search, name="existing_search"),
+    path(
+        "answer/get_column/<str:query_uuid>",
+        get_answer_column,
+        name="get_answer_column",
+    ),
     path("answer/<str:query_uuid>", answer, name="answer"),
     path("source/<str:source_id>", source, name="source"),
     path("loading/monitor", laws_loading_monitor, name="loading_monitor"),
