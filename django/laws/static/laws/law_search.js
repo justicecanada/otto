@@ -49,9 +49,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       searchButton.click();
-      textarea.value = "";
-      clearButton.style.display = "none";
-      searchButton.disabled = true;
+      textarea.blur();
+      // textarea.value = "";
+      // clearButton.style.display = "none";
+      // searchButton.disabled = true;
     }
   });
 
@@ -184,10 +185,9 @@ document.addEventListener("htmx:afterSwap", (event) => {
   if (textarea) {
     textarea.dispatchEvent(new Event('input'));
   }
-  // Blur #basic-search-input if focused
-  const basicSearchInput = document.getElementById("basic-search-input");
-  if (basicSearchInput && document.activeElement === basicSearchInput) {
-    basicSearchInput.blur();
+  const results = document.getElementById("result-container");
+  if (results) {
+    results.focus();
   }
 });
 
