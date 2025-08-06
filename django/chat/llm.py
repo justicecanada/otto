@@ -19,9 +19,7 @@ from llama_index.core.instrumentation.events.llm import (
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import BaseRetriever, QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
-from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.embeddings.litellm import LiteLLMEmbedding
-from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.llms.litellm import LiteLLM
 from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
