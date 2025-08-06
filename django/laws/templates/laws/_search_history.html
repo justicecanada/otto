@@ -15,7 +15,7 @@
       </div>
     </div>
     <ul class="list-group">
-      {% for search in user.law_searches.all|slice:":10" %}
+      {% for search in user.law_searches.all %}
         <li class="list-group-item search-history-item py-0">
           <a href="{% url 'laws:view_search' search.id %}"
              class="text-decoration-none d-flex py-2 justify-content-between align-items-start text-body">

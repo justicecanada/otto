@@ -210,7 +210,7 @@ class LawSearchForm(forms.Form):
         label=_("Number of sources"),
         min_value=1,
         max_value=250,
-        initial=50,
+        initial=25,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
     )
 

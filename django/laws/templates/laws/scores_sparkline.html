@@ -1,0 +1,18 @@
+{% load i18n %}
+{# Partial sparkline display: small bars for scores #}
+<div class="sparkline d-flex align-items-end"
+     style="height:20px;
+            cursor: help"
+     tabindex="0"
+     data-bs-toggle="tooltip"
+     id="sparkline"
+     title="{% if show_increase_results %}{% trans "Results may be relevant past your current limit—consider increasing number of sources in the 'Advanced search' tab." %}{% else %}{% trans "Results seem to capture all the relevant legislation." %}{% endif %}">
+  {% for h in sparkline_heights %}
+    <div style="flex: 0 0 2px;
+                height:{{ h }}px;
+                margin-right:1px;
+                background-color: {% if forloop.counter0 < requested_top_k %}#0d6efd{% else %}#cccccc{% endif %}">
+    </div>
+  {% endfor %}
+</div>
+<script>new bootstrap.Tooltip(document.getElementById("sparkline"));</script>

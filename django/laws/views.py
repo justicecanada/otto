@@ -248,19 +248,19 @@ def search(request, law_search=None):
 
         if not advanced_mode:
             vector_ratio = 0.8
-            top_k = 50
+            top_k = 25
             # Options for the AI answer
             model = settings.DEFAULT_LAWS_MODEL
-            context_tokens = 128000
+            context_tokens = 100000
             # Cast to string evaluates the lazy translation
             additional_instructions = str(default_additional_instructions)
             additional_instructions = urllib.parse.quote_plus(additional_instructions)
         else:
             vector_ratio = float(request.POST.get("vector_ratio", 0.8))
-            top_k = int(request.POST.get("top_k", 50))
+            top_k = int(request.POST.get("top_k", 25))
             # trim_redundant = request.POST.get("trim_redundant", "on") == "on"
             model = request.POST.get("model", settings.DEFAULT_LAWS_MODEL)
-            context_tokens = int(request.POST.get("context_tokens", 128000))
+            context_tokens = int(request.POST.get("context_tokens", 100000))
             additional_instructions = request.POST.get("additional_instructions", "")
             # Need to escape the instructions so they can be passed in GET parameter
             additional_instructions = urllib.parse.quote_plus(additional_instructions)
@@ -309,7 +309,6 @@ def search(request, law_search=None):
                 doc_id_list = [law.node_id_fr for law in selected_laws]
             else:
                 doc_id_list = [law.node_id_en for law in selected_laws]
-            print("applying filter on lang")
             filters.append(
                 MetadataFilter(
                     key="lang",
@@ -324,7 +323,6 @@ def search(request, law_search=None):
 
         # Only add doc_id filter if needed
         if doc_id_list and selected_laws.count() < Law.objects.count():
-            print("applying filter on doc_id")
             filters.append(
                 MetadataFilter(
                     key="doc_id",
@@ -392,7 +390,8 @@ def search(request, law_search=None):
         retriever = llm.get_retriever(
             vector_store_table="laws_lois__",
             filters=filters,
-            top_k=top_k,
+            # fetch enough docs to examine double the requested top_k for suggestions
+            top_k=max(2 * top_k, 100),
             vector_weight=vector_ratio,
             hnsw=True,
         )
@@ -420,6 +419,20 @@ def search(request, law_search=None):
                 query=query,
             )
             return render(request, "laws/search_result.html", context=context)
+
+        else:
+            # collect scores for suggestion and sparkline
+            source_scores = [s.score for s in sources if hasattr(s, "score")]
+            # compute suggestion: compare next phase (double top_k) to first phase min score
+            top_score = source_scores[0]
+            second_phase_max = source_scores[top_k]
+            suggest_increase_results = second_phase_max >= top_score * 0.5
+            # sparkline data: up to double the requested top_k
+            sparkline_scores = source_scores[: 2 * top_k]
+            # convert scores to pixel heights (max height 20px)
+            sparkline_heights = [int(s * 20) for s in sparkline_scores]
+            # now limit to the actual top_k sources for display
+            sources = sources[:top_k]
 
         # Create LawSearch object for authenticated users, unless replaying history
         if request.user.is_authenticated and not getattr(
@@ -511,6 +524,10 @@ def search(request, law_search=None):
             "disable_llm": disable_llm,
             "law_search": law_search,
             "answer": law_search.ai_answer if law_search else None,
+            # sparkline heights, suggestion flag, and original top_k
+            "sparkline_heights": sparkline_heights,
+            "show_increase_results": suggest_increase_results,
+            "requested_top_k": top_k,
         }
     except Exception as e:
         context = {
