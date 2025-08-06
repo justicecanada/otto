@@ -424,9 +424,14 @@ def search(request, law_search=None):
             # collect scores for suggestion and sparkline
             source_scores = [s.score for s in sources if hasattr(s, "score")]
             # compute suggestion: compare next phase (double top_k) to first phase min score
-            top_score = source_scores[0]
-            second_phase_max = source_scores[top_k]
-            suggest_increase_results = second_phase_max >= top_score * 0.5
+            # compute suggestion: compare next phase (double top_k) to first phase min score
+            top_score = source_scores[0] if source_scores else 0
+            # Only compute second phase max if enough scores are available
+            if len(source_scores) > top_k:
+                second_phase_max = source_scores[top_k]
+                suggest_increase_results = second_phase_max >= top_score * 0.5
+            else:
+                suggest_increase_results = False
             # sparkline data: up to double the requested top_k
             sparkline_scores = source_scores[: 2 * top_k]
             # convert scores to pixel heights (max height 20px)
@@ -552,7 +557,8 @@ def search(request, law_search=None):
 
     if not getattr(request, "_from_history", False):
         new_url = reverse("laws:view_search", args=[context["law_search"].id])
-        response["HX-Push-Url"] = new_url
+        # Remove trailing slash so the last path segment isn't empty when split
+        response["HX-Push-Url"] = new_url.rstrip("/")
 
     return response
 
