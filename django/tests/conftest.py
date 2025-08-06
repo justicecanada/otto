@@ -29,6 +29,11 @@ pytest_plugins = ("pytest_asyncio",)
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.fixture(autouse=True)
+def ensure_otto_admin_group(db):
+    Group.objects.get_or_create(name="Otto admin")
+
+
 @pytest.fixture(scope="function", autouse=True)
 def set_test_media():
     # Define the test media directory
