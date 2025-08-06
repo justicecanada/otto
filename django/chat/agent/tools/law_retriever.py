@@ -59,7 +59,7 @@ class LawRetrieverTool(Tool):
             vector_store_query_mode="default",
             similarity_top_k=10,
             filters=filters,
-            vector_store_kwargs={"hnsw_ef_search": 256},
+            vector_store_kwargs={"hnsw_ef_search": 512},
         )
         try:
             results = retriever.retrieve(query)
