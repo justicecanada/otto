@@ -4598,5 +4598,21 @@
     "Get AI answer": {
         "fr": "",
         "fr_auto": "Obtenez une réponse de l’IA"
+    },
+    "Search history cleared successfully. {} searches removed.": {
+        "fr": "",
+        "fr_auto": "L’historique de recherche a été effacé avec succès. {} recherches supprimées."
+    },
+    "Recent Searches": {
+        "fr": "",
+        "fr_auto": "Recherches récentes"
+    },
+    "Advanced": {
+        "fr": "",
+        "fr_auto": "Avancé"
+    },
+    "Clear search history": {
+        "fr": "",
+        "fr_auto": "Effacer l’historique de recherche"
     }
 }
