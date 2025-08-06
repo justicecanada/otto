@@ -4614,5 +4614,9 @@
     "Clear search history": {
         "fr": "",
         "fr_auto": "Effacer l’historique de recherche"
+    },
+    "Recent searches": {
+        "fr": "",
+        "fr_auto": "Recherches récentes"
     }
 }
