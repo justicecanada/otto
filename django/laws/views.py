@@ -441,8 +441,8 @@ def search(request, law_search=None):
             # Collect search parameters
             search_parameters = {
                 "advanced": advanced_mode,
-                "ai_answer": not disable_llm,
-                "detect_language": detect_lang,
+                "ai_answer": request.POST.get("ai_answer", None),
+                "detect_language": request.POST.get("detect_language", None),
                 "vector_ratio": vector_ratio,
                 "top_k": top_k,
                 "model": model,
