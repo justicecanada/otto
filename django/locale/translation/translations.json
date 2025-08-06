@@ -4618,5 +4618,13 @@
     "Recent searches": {
         "fr": "",
         "fr_auto": "Recherches récentes"
+    },
+    "Results may be relevant past your current limit—consider increasing number of sources in the 'Advanced search' tab.": {
+        "fr": "",
+        "fr_auto": "Les résultats peuvent être pertinents au-delà de votre limite actuelle – envisagez d’augmenter le nombre de sources dans l’onglet « Recherche avancée »."
+    },
+    "Results seem to capture all the relevant legislation.": {
+        "fr": "",
+        "fr_auto": "Les résultats semblent refléter toutes les lois pertinentes."
     }
 }
