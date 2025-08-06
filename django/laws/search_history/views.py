@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 
@@ -89,3 +89,15 @@ def view_search(request, search_id):
     }
 
     return render(request, "laws/laws.html", context=context)
+
+
+@app_access_required("laws")
+@login_required
+def delete_search(request, search_id):
+    """Delete a single search history entry."""
+    if request.method in ("DELETE", "POST"):
+        search_obj = get_object_or_404(LawSearch, id=search_id, user=request.user)
+        search_obj.delete()
+        # Return empty response to remove the list item via HTMX
+        return HttpResponse("", status=200)
+    return JsonResponse({"error": "Invalid request method."}, status=400)
