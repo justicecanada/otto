@@ -58,7 +58,6 @@ def submit_document(request):
         access_key=access_key, merged=merged, name=request.user.username[:255]
     )
     output_files = []
-    individual_files = []
     task_ids = []
 
     try:
@@ -110,7 +109,6 @@ def submit_document(request):
             # Store the task ID
             output_file.celery_task_ids = [result.id]
             output_file.save(access_key=access_key)
-            individual_files.append(output_file)
 
             if merged:
                 task_ids.append(result.id)
@@ -127,15 +125,23 @@ def submit_document(request):
                 file_name=formatted_merged_name,
                 user_request=user_request,
                 celery_task_ids=task_ids,
+                is_merged=True,  # Mark as merged file
             )
             # Add the merged file to the output_files list (don't replace)
             output_files.append(merged_output_file)
 
-        for output_file in individual_files:
+        for output_file in output_files:
             output_file.status = "PENDING"
 
+        files_to_display = []
+        if merged:
+            # For merged, we only display the merged file (the one we just created)
+            files_to_display = [merged_output_file]
+        else:
+            # For individual files, display all
+            files_to_display = output_files
         context = {
-            "output_files": output_files,
+            "output_files": files_to_display,
             "user_request_id": user_request.id,
             "poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id]),
         }
@@ -174,8 +180,19 @@ def poll_tasks(request, user_request_id):
     access_key = AccessKey(user=request.user)
     user_request = UserRequest.objects.get(access_key, id=user_request_id)
     output_files = user_request.output_files.filter(access_key=access_key)
+    if user_request.merged:
+        # Find the merged output file by the is_merged flag
+        merged_output_file = output_files.filter(is_merged=True).first()
+        merged_output_file.status = "PROCESSING"  # Set status to PROCESSING initially
 
-    for output_file in output_files:
+    # Check if all individual files (excluding merged file) are complete
+    individual_files = (
+        output_files.exclude(id=merged_output_file.id)
+        if merged_output_file
+        else output_files
+    )
+
+    for output_file in individual_files:
         output_file_statuses = []
         for task_id in output_file.celery_task_ids:
             result = process_ocr_document.AsyncResult(task_id)
@@ -210,19 +227,6 @@ def poll_tasks(request, user_request_id):
 
     # if all individual tasks are done and we need to merge files
     if user_request.merged:
-        # Find the merged output file first
-        merged_output_file = None
-        for output_file in output_files.order_by("-id"):
-            if not output_file.pdf_file:
-                merged_output_file = output_file
-                break
-
-        # Check if all individual files (excluding merged file) are complete
-        individual_files = (
-            output_files.exclude(id=merged_output_file.id)
-            if merged_output_file
-            else output_files
-        )
 
         all_individual_complete = True
         for output_file in individual_files:
@@ -289,8 +293,6 @@ def poll_tasks(request, user_request_id):
                 merged_output_file.status = "SUCCESS"
                 merged_output_file.save(access_key=access_key)
 
-                output_files = [merged_output_file]
-
                 # Optionally delete the individual files after merging
                 # individual_files.delete()
 
@@ -299,13 +301,8 @@ def poll_tasks(request, user_request_id):
                 merged_output_file.status = "FAILURE"
                 merged_output_file.error_message = f"Failed to merge files: {str(e)}"
                 merged_output_file.save(access_key=access_key)
-        else:
-            # No completed files to merge
-            merged_output_file.status = "FAILURE"
-            merged_output_file.error_message = "No completed files available to merge"
-            merged_output_file.save(access_key=access_key)
 
-    for output_file in output_files:
+    for output_file in individual_files:
         if output_file.pdf_file:
             output_file.cost = display_cad_cost(output_file.usd_cost)
             if output_file.txt_file:
@@ -313,12 +310,33 @@ def poll_tasks(request, user_request_id):
             if output_file.pdf_file:
                 output_file.pdf_size = file_size_to_string(output_file.pdf_file.size)
 
+    if user_request.merged and merged_output_file:
+        if merged_output_file.pdf_file:
+            merged_output_file.cost = display_cad_cost(merged_output_file.usd_cost)
+            if merged_output_file.txt_file:
+                merged_output_file.txt_size = file_size_to_string(
+                    merged_output_file.txt_file.size
+                )
+            if merged_output_file.pdf_file:
+                merged_output_file.pdf_size = file_size_to_string(
+                    merged_output_file.pdf_file.size
+                )
+
+    files_to_display = []
+    if user_request.merged:
+        # If merged, display only the merged file
+        files_to_display = [merged_output_file]
+    else:
+        # If not merged, display all individual files
+        files_to_display = output_files
+
     context = {
-        "output_files": output_files,
+        "output_files": files_to_display,
     }
 
     if any(
-        output_file.status in ["PENDING", "PROCESSING"] for output_file in output_files
+        output_file.status in ["PENDING", "PROCESSING"]
+        for output_file in individual_files
     ):
         context.update(
             {"poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id])}
