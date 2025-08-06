@@ -239,7 +239,9 @@ def test_download_document(client, all_apps_user, output_file):
         assert response.content == b"TXT content"
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db(
+    transaction=True
+)  # fixture of mock outputfiles will not work here as the main method checks files with accesskey and user request id filters
 def test_download_all_zip(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
@@ -248,7 +250,7 @@ def test_download_all_zip(client, all_apps_user):
     content_type_user_request = ContentType.objects.get_for_model(UserRequest)
     content_type_output_file = ContentType.objects.get_for_model(OutputFile)
 
-    # Grant permissions
+    # Grant permissions to both user and outputfile models
     permission_user_request, created = Permission.objects.get_or_create(
         codename="add_userrequest",
         content_type=content_type_user_request,
