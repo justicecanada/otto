@@ -208,34 +208,14 @@ def answer(request, query_uuid):
 
 
 @app_access_required(app_name)
-def existing_search(request, query_uuid):
-    """For back/forward navigation or (short-term) sharing of a search result page."""
-    query_info = cache.get(query_uuid)
-    if not query_info:
-        return redirect("laws:index")
-    context = {
-        "form": LawSearchForm(),
-        "hide_breadcrumbs": True,
-        "sources": sources_to_html(query_info["sources"]),
-        "query": query_info["query"],
-        "query_uuid": query_uuid,
-        "answer": query_info.get("answer", None),
-    }
-    return render(request, "laws/laws.html", context=context)
-
-
-@app_access_required(app_name)
 @budget_required
-def search(request):
+def search(request, law_search=None):
     bind_contextvars(feature="laws_query")
     query_uuid = None
     if request.method != "POST":
         return redirect("laws:index")
     try:
-
         llm = OttoLLM()
-
-        # time.sleep(60)
         # We don't want to search Document nodes - only chunks
         filters = [
             MetadataFilter(
@@ -268,19 +248,19 @@ def search(request):
 
         if not advanced_mode:
             vector_ratio = 0.8
-            top_k = 50
+            top_k = 25
             # Options for the AI answer
             model = settings.DEFAULT_LAWS_MODEL
-            context_tokens = 128000
+            context_tokens = 100000
             # Cast to string evaluates the lazy translation
             additional_instructions = str(default_additional_instructions)
             additional_instructions = urllib.parse.quote_plus(additional_instructions)
         else:
             vector_ratio = float(request.POST.get("vector_ratio", 0.8))
-            top_k = int(request.POST.get("top_k", 50))
+            top_k = int(request.POST.get("top_k", 25))
             # trim_redundant = request.POST.get("trim_redundant", "on") == "on"
             model = request.POST.get("model", settings.DEFAULT_LAWS_MODEL)
-            context_tokens = int(request.POST.get("context_tokens", 128000))
+            context_tokens = int(request.POST.get("context_tokens", 100000))
             additional_instructions = request.POST.get("additional_instructions", "")
             # Need to escape the instructions so they can be passed in GET parameter
             additional_instructions = urllib.parse.quote_plus(additional_instructions)
@@ -329,7 +309,6 @@ def search(request):
                 doc_id_list = [law.node_id_fr for law in selected_laws]
             else:
                 doc_id_list = [law.node_id_en for law in selected_laws]
-            print("applying filter on lang")
             filters.append(
                 MetadataFilter(
                     key="lang",
@@ -344,7 +323,6 @@ def search(request):
 
         # Only add doc_id filter if needed
         if doc_id_list and selected_laws.count() < Law.objects.count():
-            print("applying filter on doc_id")
             filters.append(
                 MetadataFilter(
                     key="doc_id",
@@ -412,7 +390,8 @@ def search(request):
         retriever = llm.get_retriever(
             vector_store_table="laws_lois__",
             filters=filters,
-            top_k=top_k,
+            # fetch enough docs to examine double the requested top_k for suggestions
+            top_k=max(2 * top_k, 100),
             vector_weight=vector_ratio,
             hnsw=True,
         )
@@ -441,7 +420,92 @@ def search(request):
             )
             return render(request, "laws/search_result.html", context=context)
 
-        # Cache sources so they can be retrieved in the AI answer function
+        else:
+            # collect scores for suggestion and sparkline
+            source_scores = [s.score for s in sources if hasattr(s, "score")]
+            # compute suggestion: compare next phase (double top_k) to first phase min score
+            # compute suggestion: compare next phase (double top_k) to first phase min score
+            top_score = source_scores[0] if source_scores else 0
+            # Only compute second phase max if enough scores are available
+            if len(source_scores) > top_k:
+                second_phase_max = source_scores[top_k]
+                suggest_increase_results = second_phase_max >= top_score * 0.5
+            else:
+                suggest_increase_results = False
+            # sparkline data: up to double the requested top_k
+            sparkline_scores = source_scores[: 2 * top_k]
+            # convert scores to pixel heights (max height 20px)
+            sparkline_heights = [int(s * 20) for s in sparkline_scores]
+            # now limit to the actual top_k sources for display
+            sources = sources[:top_k]
+
+        # Create LawSearch object for authenticated users, unless replaying history
+        if request.user.is_authenticated and not getattr(
+            request, "_from_history", False
+        ):
+            # Collect search parameters
+            search_parameters = {
+                "advanced": advanced_mode,
+                "ai_answer": request.POST.get("ai_answer", None),
+                "detect_language": request.POST.get("detect_language", None),
+                "vector_ratio": vector_ratio,
+                "top_k": top_k,
+                "model": model,
+                "context_tokens": context_tokens,
+                "additional_instructions": urllib.parse.unquote_plus(
+                    additional_instructions
+                ),
+                "trim_redundant": trim_redundant,
+            }
+
+            # Add advanced search parameters if applicable
+            if advanced_mode:
+                search_parameters.update(
+                    {
+                        "search_laws_option": request.POST.get(
+                            "search_laws_option", "all"
+                        ),
+                        "language": request.POST.get("language", "all"),
+                        "date_filter_option": request.POST.get(
+                            "date_filter_option", "all"
+                        ),
+                    }
+                )
+
+                # Add specific law/enabling act selections
+                if request.POST.get("search_laws_option") == "specific_laws":
+                    search_parameters["laws"] = request.POST.getlist("laws")
+                elif request.POST.get("search_laws_option") == "enabling_acts":
+                    search_parameters["enabling_acts"] = request.POST.getlist(
+                        "enabling_acts"
+                    )
+
+                # Add date filter parameters
+                if request.POST.get("date_filter_option", "all") != "all":
+                    search_parameters.update(
+                        {
+                            "in_force_date_start": request.POST.get(
+                                "in_force_date_start"
+                            ),
+                            "in_force_date_end": request.POST.get("in_force_date_end"),
+                            "last_amended_date_start": request.POST.get(
+                                "last_amended_date_start"
+                            ),
+                            "last_amended_date_end": request.POST.get(
+                                "last_amended_date_end"
+                            ),
+                        }
+                    )
+
+            # Create the LawSearch object
+            from django.apps import apps
+
+            LawSearch = apps.get_model("laws", "LawSearch")
+            law_search = LawSearch.objects.create(
+                user=request.user, query=query, search_parameters=search_parameters
+            )
+
+        # Cache sources so they can be retrieved in the AI answer function (keep for compatibility)
         query_uuid = uuid.uuid4()
         query_info = {
             "sources": sources,
@@ -450,14 +514,25 @@ def search(request):
             "model": model,
             "context_tokens": context_tokens,
             "additional_instructions": additional_instructions,
+            "law_search_id": law_search.id if law_search else None,
         }
         cache.set(query_uuid, query_info, timeout=300)
+
+        if law_search:
+            law_search.query_uuid = str(query_uuid)
+            law_search.save(update_fields=["query_uuid"])
 
         context = {
             "sources": sources_to_html(sources),
             "query": query,
             "query_uuid": query_uuid,
             "disable_llm": disable_llm,
+            "law_search": law_search,
+            "answer": law_search.ai_answer if law_search else None,
+            # sparkline heights, suggestion flag, and original top_k
+            "sparkline_heights": sparkline_heights,
+            "show_increase_results": suggest_increase_results,
+            "requested_top_k": top_k,
         }
     except Exception as e:
         context = {
@@ -480,8 +555,10 @@ def search(request):
         context=context,
     )
 
-    new_url = reverse("laws:existing_search", args=[str(query_uuid)])
-    response["HX-Push-Url"] = new_url
+    if not getattr(request, "_from_history", False):
+        new_url = reverse("laws:view_search", args=[context["law_search"].id])
+        # Remove trailing slash so the last path segment isn't empty when split
+        response["HX-Push-Url"] = new_url.rstrip("/")
 
     return response
 

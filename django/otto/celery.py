@@ -42,6 +42,11 @@ app.conf.beat_schedule = {
         "task": "otto.tasks.delete_empty_chats",
         "schedule": crontab(hour=2, minute=0),
     },
+    # Delete old law searches (30 days retention) every day at 2:15 am UTC
+    "delete-old-law-searches-every-morning": {
+        "task": "laws.tasks.delete_old_law_searches",
+        "schedule": crontab(hour=2, minute=15),
+    },
     # Delete dangling SavedFiles every day at 3:00 am UTC
     "delete-dangling-savedfiles-every-morning": {
         "task": "otto.tasks.delete_dangling_savedfiles",

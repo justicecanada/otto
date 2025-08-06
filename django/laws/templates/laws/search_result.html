@@ -1,10 +1,11 @@
 {% load i18n %}
 
 <div class="row">
-  <div class="col">
+  <div class="col-auto">
     <h3 class="h5 mb-4 mx-3" style="font-style:italic;">{{ query }}</h3>
   </div>
-  <div class="col-auto" id="show-answer-button-container">
+  <div class="col-auto">{% include "laws/scores_sparkline.html" %}</div>
+  <div class="col text-end" id="show-answer-button-container">
     <button class="btn btn-link text-decoration-none text-body px-2 d-none"
             type="button"
             id="show-answer-button"
@@ -25,8 +26,9 @@
     {% endif %}
   </div>
 </div>
+{% if sparkline_heights %}<div class="row mb-2"></div>{% endif %}
 <div class="row" id="search-result-row">
-  {% if not disable_llm %}
+  {% if answer or not disable_llm %}
     {% include "laws/_answer_column.html" %}
   {% else %}
     <div id="answer-column-placeholder" class="d-none"></div>

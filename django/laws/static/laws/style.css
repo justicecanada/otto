@@ -212,3 +212,7 @@ div.source.highlight {
     content: "(";
   }
 }
+
+li.search-history-item:not(:hover) {
+  background-color: transparent;
+}

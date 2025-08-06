@@ -555,3 +555,24 @@ def finalize_law_loading_task(downloaded=False):
     except Exception as exc:
         logger.error(f"Error in finalize_law_loading_task: {exc}")
         raise exc
+
+
+@shared_task
+def delete_old_law_searches():
+    """Delete LawSearch objects older than 30 days."""
+    from datetime import timedelta
+
+    from django.apps import apps
+
+    try:
+        LawSearch = apps.get_model("laws", "LawSearch")
+        cutoff_date = timezone.now() - timedelta(days=30)
+
+        deleted_count, _ = LawSearch.objects.filter(created_at__lt=cutoff_date).delete()
+
+        logger.info(f"Deleted {deleted_count} old law searches")
+        return f"Deleted {deleted_count} old law searches"
+
+    except Exception as e:
+        logger.exception(f"Error deleting old law searches: {e}")
+        raise

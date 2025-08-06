@@ -18,15 +18,11 @@ from llama_index.core.instrumentation.events.llm import (
 )
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import BaseRetriever, QueryFusionRetriever
-<<<<<<< HEAD
-from llama_index.core.vector_stores.types import MetadataFilters
-from llama_index.embeddings.litellm import LiteLLMEmbedding
-from llama_index.llms.litellm import LiteLLM
-=======
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
+from llama_index.embeddings.litellm import LiteLLMEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
->>>>>>> laws-performance
+from llama_index.llms.litellm import LiteLLM
 from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
 from sqlalchemy import create_engine
@@ -40,17 +36,6 @@ from .llm_models import get_model
 
 logger = get_logger(__name__)
 
-debug = settings.DEBUG
-
-
-# Cache connection parameters to avoid repeated lookups
-connection_params = {
-    "database": settings.DATABASES["vector_db"]["NAME"],
-    "host": settings.DATABASES["vector_db"]["HOST"],
-    "password": settings.DATABASES["vector_db"]["PASSWORD"],
-    "user": settings.DATABASES["vector_db"]["USER"],
-    "port": settings.DATABASES["vector_db"]["PORT"],
-}
 debug = settings.DEBUG
 
 
@@ -438,15 +423,6 @@ class OttoVectorStore(PGVectorStore):
         wait_exponential_max=20000,
     )
     def _connect(self):
-
-        # Pooling for sync engine only
-        sync_engine_kwargs = {
-            "pool_size": 10,
-            "max_overflow": 20,
-            "pool_pre_ping": True,
-            "pool_recycle": 3600,
-            **self.create_engine_kwargs,
-        }
 
         # Pooling for sync engine only
         sync_engine_kwargs = {
