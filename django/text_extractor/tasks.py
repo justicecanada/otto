@@ -15,6 +15,104 @@ from .utils import create_searchable_pdf, shorten_input_name
 logger = logging.getLogger(__name__)
 
 
+# New task for merging files before OCR
+@shared_task
+def process_merged_ocr_document(
+    files_data,  # List of dicts with 'content' and 'name' keys
+    merged_file_name,
+    enlarge_size=None,
+    output_file_id=None,
+    user_id=None,
+):
+    """
+    Process multiple files by merging them first, then performing OCR on the merged file.
+    files_data: List of dicts like [{'content': bytes, 'name': str}, ...]
+    """
+    if current_task:
+        current_task.update_state(state="PROCESSING")
+
+    # Reconstruct the access key from user ID
+    access_key = None
+
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    user = User.objects.get(id=user_id)
+    access_key = AccessKey(user=user)
+
+    from pypdf import PdfReader, PdfWriter
+
+    from .utils import calculate_start_pages, create_toc_pdf
+
+    # Create InMemoryUploadedFile objects from the file data
+    files = []
+    for file_data in files_data:
+        # Determine content type based on file extension
+        file_name = file_data["name"]
+        file_ext = os.path.splitext(file_name)[1].lower()
+
+        if file_ext == ".pdf":
+            content_type = "application/pdf"
+        elif file_ext in (".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp"):
+            content_type = f"image/{file_ext[1:]}"  # Remove the dot
+        else:
+            content_type = "application/octet-stream"
+
+        file = InMemoryUploadedFile(
+            file=BytesIO(file_data["content"]),
+            field_name=None,
+            name=file_name,
+            content_type=content_type,
+            size=len(file_data["content"]),
+            charset=None,
+        )
+        files.append(file)
+
+    # Calculate start pages for TOC
+    start_pages = calculate_start_pages(files)
+
+    # Create TOC PDF
+    toc_pdf_bytes = create_toc_pdf(files, start_pages)
+
+    # Create merged PDF
+    merged_pdf_writer = PdfWriter()
+
+    # Add TOC as first page
+    toc_reader = PdfReader(toc_pdf_bytes)
+    for page in toc_reader.pages:
+        merged_pdf_writer.add_page(page)
+
+    # Add all other files to the merged PDF
+    for file in files:
+        file.seek(0)
+        try:
+            pdf_reader = PdfReader(file)
+            for page in pdf_reader.pages:
+                merged_pdf_writer.add_page(page)
+        except Exception as e:
+            logger.error(f"Failed to read PDF {file.name}: {e}")
+            # Skip this file and continue
+            continue
+
+    # Write merged PDF to bytes
+    merged_pdf_bytes_io = BytesIO()
+    merged_pdf_writer.write(merged_pdf_bytes_io)
+    merged_pdf_bytes_io.seek(0)
+    merged_pdf_content = merged_pdf_bytes_io.read()
+
+    output_file = OutputFile.objects.get(access_key, id=output_file_id)
+    output_file.pdf_file = ContentFile(merged_pdf_content, name=merged_file_name)
+    output_file.status = "COMPLETED"
+    output_file.save(access_key=access_key)
+
+    return {
+        "error": False,
+        "message": "Merged PDF created successfully.",
+        "output_file_id": output_file_id,
+        "pdf_file_name": merged_file_name,
+    }
+
+
 # passing the OCR method to celery
 @shared_task
 def process_ocr_document(

@@ -24,7 +24,6 @@ class OutputFile(SecureModel):
     )
     celery_task_ids = models.JSONField(default=list, blank=True, null=True)
     error_message = models.TextField(blank=True, null=True)
-    is_merged = models.BooleanField(default=False)
 
     def get_permission_parents(self):
         return [self.user_request]

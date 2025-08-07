@@ -287,7 +287,8 @@ def create_searchable_pdf(input_file, add_header, merged=False, enlarge_size=Non
     try:
         # Running OCR using Azure Form Recognizer Read API------
         document_analysis_client = DocumentAnalysisClient(
-            endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+            endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT
+            + "/documentModels/prebuilt-read:analyze?output=pdf",
             credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
             headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
         )
