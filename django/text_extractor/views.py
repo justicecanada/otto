@@ -149,16 +149,13 @@ def poll_tasks(request, user_request_id):
         output_file_statuses = []
         for task_id in output_file.celery_task_ids:
             result = process_ocr_document.AsyncResult(task_id)
-            status = result.status
-            output_file_statuses.append(status)
+            output_file_statuses.append(result.status)
 
         if all(status == "SUCCESS" for status in output_file_statuses):
-            # For single file processing, files should already be stored by the task
             if output_file.pdf_file:
                 output_file.status = "SUCCESS"
             else:
                 output_file.status = "PROCESSING"
-
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
         else:
