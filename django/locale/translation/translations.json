@@ -4563,6 +4563,10 @@
         "fr": "",
         "fr_auto": "Agrandir les images (Attention : le fichier de sortie prendra 3 fois plus d’espace)"
     },
+    "No files to download. Please process documents first.": {
+        "fr": "",
+        "fr_auto": "Aucun fichier à télécharger. Veuillez d’abord traiter les documents."
+    },
     "Vector DB indexes reset successfully.": {
         "fr": "",
         "fr_auto": "Les index vectoriels de la base de données se réinitialisent avec succès."

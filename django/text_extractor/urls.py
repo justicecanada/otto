@@ -13,4 +13,9 @@ urlpatterns = [
         name="download_document",
     ),
     path("session/<str:user_request_id>", views.poll_tasks, name="poll_tasks"),
+    path(
+        "download_all_zip/<str:user_request_id>",
+        views.download_all_zip,
+        name="download_all_zip",
+    ),
 ]

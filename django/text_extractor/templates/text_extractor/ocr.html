@@ -103,14 +103,13 @@
                   <th scope="col" width="10%">{% trans "Cost" %}</th>
                   <th scope="col" width="20%">
                     {% trans "Downloads" %}
-                    <a class="ms-1 d-none fw-normal icon-link"
-                       id="download-all-files"
-                       type="button"
-                       href="#"
-                       onclick="downloadAllFiles();">
-                      <i class="bi bi-download h5"></i>
-                      {% trans "Download all files..." %}
-                    </a>
+                    {% if show_download_all_button %}
+                      <a href="{% url 'text_extractor:download_all_zip' user_request_id=user_request_id %}"
+                         class="btn btn-sm ms-2"
+                         title="Download all as ZIP">
+                        <i class="bi bi-download"></i>
+                      </a>
+                    {% endif %}
                   </th>
                 </tr>
               </thead>
@@ -125,14 +124,7 @@
     </div>
   </div>
   <script>
-function downloadAllFiles() {
-  const downloadLinks = document.querySelectorAll('td a.icon-link');
-  downloadLinks.forEach((link, index) => {
-    setTimeout(() => {
-      link.click();
-    }, index * 100); // delay is necessary to download multiple files
-  });
-}
+
 // event listener for when the documents are completed the spinner is hidden and file input is cleared
 document.getElementById('completed_documents_body').addEventListener('htmx:afterSwap', function() {
   document.getElementById('file-upload-field').value = '';

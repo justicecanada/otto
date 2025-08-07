@@ -3,6 +3,7 @@ import os
 import shutil
 import uuid
 from datetime import datetime
+from unittest import mock
 from unittest.mock import MagicMock
 
 from django.conf import settings
@@ -20,11 +21,17 @@ from PIL import Image, ImageDraw, ImageFont
 from pptx import Presentation
 from reportlab.pdfgen import canvas
 
+from otto.secure_models import AccessKey
 from text_extractor.models import OutputFile
 
 pytest_plugins = ("pytest_asyncio",)
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
+
+
+@pytest.fixture(autouse=True)
+def ensure_otto_admin_group(db):
+    Group.objects.get_or_create(name="Otto admin")
 
 
 @pytest.fixture(scope="function", autouse=True)
