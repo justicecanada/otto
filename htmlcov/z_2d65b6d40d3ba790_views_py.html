@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">595 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">460<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">135<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">456<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">139<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_c6daa466a915d399_base_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.10.0">coverage.py v7.10.0</a>,
-            created at 2025-07-30 19:02 +0000
+            created at 2025-08-07 14:12 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -1203,10 +1203,10 @@
     <p class="run"><span class="n"><a id="t1121" href="#t1121">1121</a></span><span class="t">        <span class="nam">llm</span> <span class="op">=</span> <span class="nam">OttoLLM</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1122" href="#t1122">1122</a></span><span class="t">        <span class="nam">retriever</span> <span class="op">=</span> <span class="nam">llm</span><span class="op">.</span><span class="nam">get_retriever</span><span class="op">(</span><span class="str">"laws_lois__"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1123" href="#t1123">1123</a></span><span class="t">        <span class="nam">nodes</span> <span class="op">=</span> <span class="nam">retriever</span><span class="op">.</span><span class="nam">retrieve</span><span class="op">(</span><span class="str">"query string"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1124" href="#t1124">1124</a></span><span class="t">        <span class="nam">end_time</span> <span class="op">=</span> <span class="nam">timezone</span><span class="op">.</span><span class="nam">now</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1125" href="#t1125">1125</a></span><span class="t">        <span class="nam">total_time</span> <span class="op">=</span> <span class="op">(</span><span class="nam">end_time</span> <span class="op">-</span> <span class="nam">start_time</span><span class="op">)</span><span class="op">.</span><span class="nam">total_seconds</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1126" href="#t1126">1126</a></span><span class="t">        <span class="nam">llm</span><span class="op">.</span><span class="nam">create_costs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1127" href="#t1127">1127</a></span><span class="t">        <span class="key">return</span> <span class="nam">HttpResponse</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Retrieved </span><span class="op">{</span><span class="nam">len</span><span class="op">(</span><span class="nam">nodes</span><span class="op">)</span><span class="op">}</span><span class="fst"> nodes in </span><span class="op">{</span><span class="nam">total_time</span><span class="op">:</span><span class="fst">.2f</span><span class="op">}</span><span class="fst"> seconds</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1124" href="#t1124">1124</a></span><span class="t">        <span class="nam">end_time</span> <span class="op">=</span> <span class="nam">timezone</span><span class="op">.</span><span class="nam">now</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1125" href="#t1125">1125</a></span><span class="t">        <span class="nam">total_time</span> <span class="op">=</span> <span class="op">(</span><span class="nam">end_time</span> <span class="op">-</span> <span class="nam">start_time</span><span class="op">)</span><span class="op">.</span><span class="nam">total_seconds</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1126" href="#t1126">1126</a></span><span class="t">        <span class="nam">llm</span><span class="op">.</span><span class="nam">create_costs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1127" href="#t1127">1127</a></span><span class="t">        <span class="key">return</span> <span class="nam">HttpResponse</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Retrieved </span><span class="op">{</span><span class="nam">len</span><span class="op">(</span><span class="nam">nodes</span><span class="op">)</span><span class="op">}</span><span class="fst"> nodes in </span><span class="op">{</span><span class="nam">total_time</span><span class="op">:</span><span class="fst">.2f</span><span class="op">}</span><span class="fst"> seconds</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1128" href="#t1128">1128</a></span><span class="t">    <span class="key">if</span> <span class="str">"celery_sleep"</span> <span class="key">in</span> <span class="nam">query_params</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1129" href="#t1129">1129</a></span><span class="t">        <span class="key">from</span> <span class="nam">otto</span><span class="op">.</span><span class="nam">tasks</span> <span class="key">import</span> <span class="nam">sleep_seconds</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1130" href="#t1130">1130</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -1324,7 +1324,7 @@
             <a class="nav" href="z_c6daa466a915d399_base_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.10.0">coverage.py v7.10.0</a>,
-            created at 2025-07-30 19:02 +0000
+            created at 2025-08-07 14:12 +0000
         </p>
     </div>
 </footer>
