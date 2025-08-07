@@ -57,6 +57,11 @@ def process_ocr_document(file_content, file_name, merged, idx, enlarge_size=None
         logger.exception(
             f"Error processing file {file_name} in task {current_task.request.id}: {e}"
         )
+        # # Raise so Celery marks the task as FAILURE
+        # raise Exception(
+        #     _("Corruption/Type mismatch.\n ")
+        #     + "\nError ID: %(error_id)s" % {"error_id": error_id}
+        # )
         # Fallback for other exceptions
         return {
             "error": True,

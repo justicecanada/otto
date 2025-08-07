@@ -123,6 +123,7 @@ def submit_document(request):
         context = {
             "output_files": output_files,
             "user_request_id": user_request.id,
+            "should_poll": True,
             "poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id]),
         }
 
@@ -173,10 +174,14 @@ def poll_tasks(request, user_request_id):
             # Only set to SUCCESS if pdf_file is now present
             if output_file.pdf_file:
                 output_file.status = "SUCCESS"
+
             else:
                 output_file.status = "PROCESSING"
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
+            output_file.save()
+            context["should_poll"] = False
+
         else:
             # Some tasks are still pending or processing
             if any(
@@ -196,6 +201,8 @@ def poll_tasks(request, user_request_id):
 
     context = {
         "output_files": output_files,
+        "user_request": user_request.id,
+        "should_poll": False,
     }
     if not user_request.merged and output_files.count() > 1:
         context["show_download_all_button"] = True
@@ -204,8 +211,15 @@ def poll_tasks(request, user_request_id):
         output_file.status in ["PENDING", "PROCESSING"] for output_file in output_files
     ):
         context.update(
-            {"poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id])}
+            {
+                "poll_url": reverse(
+                    "text_extractor:poll_tasks", args=[user_request.id]
+                ),
+                "should_poll": True,
+            }
         )
+    else:
+        context.update({"should_poll": False})
 
     # In an HTMX request, we just want the updated rows.
     if request.headers.get("HX-Request") == "true":
@@ -221,6 +235,7 @@ def poll_tasks(request, user_request_id):
             "show_output": True,
             "refresh_on_load": False,
             "hide_breadcrumbs": True,
+            "user_request_id": user_request.id,
         }
     )
     return render(request, "text_extractor/ocr.html", context)
@@ -280,5 +295,7 @@ def download_all_zip(request, user_request_id):
 
     zip_buffer.seek(0)
     response = HttpResponse(zip_buffer, content_type="application/zip")
-    response["Content-Disposition"] = 'attachment; filename="all_documents.zip"'
+    response["Content-Disposition"] = (
+        'attachment; filename="otto_text_extractor_downloads.zip"'
+    )
     return response

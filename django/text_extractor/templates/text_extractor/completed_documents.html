@@ -18,7 +18,7 @@
         {# Blue spinner #}
         <div class="document-status document-status-{{ document.status }}">
           <span class="me-1">
-            <i class="bi bi-arrow-clockwise text-primary small icn-spinner"
+            <i class="bi bi-arrow-repeat text-primary small icn-spinner"
                aria-hidden="true"></i>
           </span>
           <span>
@@ -89,8 +89,10 @@
   <div id="warn-dont-leave-page" hx-swap-oob="true" class="d-none"></div>
 {% endif %}
 
-{% if poll_url %}<script>window.location.href = "{{ poll_url }}";</script>{% endif %}
+{% if should_poll %}
+  <script>window.location.href = "{% url 'text_extractor:poll_tasks' user_request_id=user_request_id %}";</script>
 
+{% endif %}
 <script>
 (function () {
   // If arriving at a page fragment via browser back-forward, refresh.
