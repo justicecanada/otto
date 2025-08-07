@@ -3,9 +3,10 @@ import urllib.parse
 import uuid
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.http import HttpResponse, StreamingHttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
@@ -27,6 +28,7 @@ from .prompts import (
     qa_prompt_instruction_tmpl,
     system_prompt_tmpl,
 )
+from .search_history.models import LawSearch
 from .utils import (
     get_law_url,
     get_other_lang_node,
@@ -560,6 +562,54 @@ def search(request, law_search=None):
         # Remove trailing slash so the last path segment isn't empty when split
         response["HX-Push-Url"] = new_url.rstrip("/")
 
+    return response
+
+
+@app_access_required(app_name)
+@login_required
+def download_results(request, search_id):
+    """Return a text file attachment containing the query and raw markdown of results."""
+    law_search = get_object_or_404(LawSearch, id=search_id, user=request.user)
+    query_uuid = law_search.query_uuid
+    found_cached_sources = True
+    if not query_uuid:
+        found_cached_sources = False
+    query_info = cache.get(query_uuid)
+    if not query_info or "sources" not in query_info:
+        found_cached_sources = False
+    if not found_cached_sources:
+        search(request, law_search=law_search)
+        law_search.refresh_from_db()
+        query_uuid = law_search.query_uuid
+        if not query_uuid:
+            return HttpResponse("No stored results for this search.", status=400)
+        query_info = cache.get(query_uuid)
+        if not query_info or "sources" not in query_info:
+            return HttpResponse(
+                "Results not available. Please re-run the search.", status=404
+            )
+    query = query_info.get("query", "")
+    sources = query_info.get("sources", [])
+
+    # Build plain-text content
+    lines = []
+    lines.append(_("Query:"))
+    lines.append(query)
+    lines.append("")
+    lines.append(_("Results:"))
+    for s in sources:
+        title = s.node.metadata.get("display_metadata", "")
+        lines.append(f"# {title}\n")
+        markdown_text = getattr(s.node, "text", "")
+        lines.append(markdown_text)
+        lines.append("\n---\n")  # Separator between results
+    content = "\n".join(lines)
+
+    response = HttpResponse(content, content_type="text/plain")
+    law_search_translation = _("law_search")
+    response["Content-Disposition"] = (
+        f'attachment; filename="{law_search_translation}_{search_id}.txt"'
+    )
     return response
 
 

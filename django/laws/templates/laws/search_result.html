@@ -2,10 +2,17 @@
 
 <div class="row align-items-center mb-4">
   <div class="col-auto">
-    <h3 class="h5 mx-3 my-0" style="font-style:italic;">{{ query|truncatechars:100 }}</h3>
+    <h3 class="h5 mx-3 my-0" style="font-style:italic;">{{ query|truncatechars:60 }}</h3>
   </div>
   <div class="col-auto">{% include "laws/scores_sparkline.html" %}</div>
-  <div class="col text-end" id="show-answer-button-container">
+  <div class="col text-end">
+    {% if law_search and sources|length %}
+      <a class="btn btn-link text-decoration-none text-body px-2"
+         href="{% url 'laws:download_results' law_search.id %}">
+        <i class="bi bi-download me-1"></i>
+        {% trans "Download results" %}
+      </a>
+    {% endif %}
     <button class="btn btn-link text-decoration-none text-body px-2 d-none"
             type="button"
             id="show-answer-button"
@@ -13,14 +20,14 @@
       <i class="bi bi-eye"></i>
       {% trans "Show AI answer" %}
     </button>
-    {% if disable_llm %}
+    {% if disable_llm and sources|length %}
       <button class="btn btn-link text-decoration-none text-body px-2"
               type="button"
               id="get-answer-button"
               hx-get="{% url 'laws:get_answer_column' query_uuid %}"
               hx-target="#answer-column-placeholder"
               hx-swap="outerHTML">
-        <i class="bi bi-robot"></i>
+        <i class="bi bi-robot me-1"></i>
         {% trans "Get AI answer" %}
       </button>
     {% endif %}
