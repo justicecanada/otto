@@ -166,20 +166,41 @@ def poll_tasks(request, user_request_id):
         for task_id in output_file.celery_task_ids:
             result = process_ocr_document.AsyncResult(task_id)
             output_file_statuses.append(result.status)
+            # Check for Celery "FAILURE" (exception raised)
+            if result.status == "FAILURE":
+                should_poll = False
+                output_file.status = "FAILURE"
+                try:
+                    error_message = str(result.result)
+                except Exception:
+                    error_message = "Processing failed."
+            elif result.status == "SUCCESS":
+                task_result = result.result
+                if isinstance(task_result, dict) and task_result.get("error"):
+                    # result.status = "FAILURE"
+                    should_poll = False
+                    output_file.status = "FAILURE"
+                    error_message = task_result.get("message", "Processing failed.")
+            else:
+                should_poll = True
+
         if all(status == "SUCCESS" for status in output_file_statuses):
             if not output_file.pdf_file:
                 output_file.status = "PROCESSING"
                 add_extracted_files(output_file, access_key)
                 output_file.refresh_from_db()
+                should_poll = True
             # Only set to SUCCESS if pdf_file is now present
             if output_file.pdf_file:
                 output_file.status = "SUCCESS"
+                should_poll = False
 
             else:
                 output_file.status = "PROCESSING"
+                should_poll = True
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
-            output_file.save(access_key=access_key)
+            should_poll = False
 
         else:
             # Some tasks are still pending or processing
@@ -187,8 +208,10 @@ def poll_tasks(request, user_request_id):
                 status in ["STARTED", "PROCESSING"] for status in output_file_statuses
             ):
                 output_file.status = "PROCESSING"
+                should_poll = True
             else:
                 output_file.status = "PENDING"
+                should_poll = True
 
     for output_file in output_files:
         if output_file.pdf_file:
@@ -201,7 +224,7 @@ def poll_tasks(request, user_request_id):
     context = {
         "output_files": output_files,
         "user_request": user_request.id,
-        "should_poll": False,
+        "should_poll": should_poll,
     }
     if not user_request.merged and output_files.count() > 1:
         context["show_download_all_button"] = True
@@ -214,11 +237,11 @@ def poll_tasks(request, user_request_id):
                 "poll_url": reverse(
                     "text_extractor:poll_tasks", args=[user_request.id]
                 ),
-                "should_poll": True,
+                "should_poll": should_poll,
             }
         )
     else:
-        context.update({"should_poll": False})
+        context.update({"should_poll": should_poll})
 
     # In an HTMX request, we just want the updated rows.
     if request.headers.get("HX-Request") == "true":
