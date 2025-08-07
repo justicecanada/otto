@@ -179,8 +179,7 @@ def poll_tasks(request, user_request_id):
                 output_file.status = "PROCESSING"
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
-            output_file.save()
-            context["should_poll"] = False
+            output_file.save(access_key=access_key)
 
         else:
             # Some tasks are still pending or processing
