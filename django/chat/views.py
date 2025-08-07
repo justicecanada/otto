@@ -19,6 +19,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
+from memory_profiler import profile
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -51,7 +52,7 @@ from librarian.forms import LibraryUsersForm
 from librarian.models import Library
 from otto.models import SecurityLabel
 from otto.rules import can_edit_library
-from otto.utils.common import check_url_allowed, generate_mailto
+from otto.utils.common import check_url_allowed, generate_mailto, log_mem
 from otto.utils.decorators import (
     app_access_required,
     budget_required,
@@ -381,12 +382,14 @@ def cost_warning(request, message_id):
     return HttpResponse(html)
 
 
+@profile
 @require_POST
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def save_upload(request, chat_id):
     """
     Handles the form submission after JS upload
     """
+    log_mem("start save_upload")
     chat = Chat.objects.get(id=chat_id)
     form = UploadForm(request.POST, request.FILES, prefix="chat")
     if not form.is_valid():
@@ -468,6 +471,7 @@ def save_upload(request, chat_id):
         )
     )
     response.write("<script>scrollToBottom(false, true);</script>")
+    log_mem("end save_upload")
     return response
 
 

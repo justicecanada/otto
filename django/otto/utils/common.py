@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 
+import psutil
 import tldextract
 
 pdfium_lock = Lock()
@@ -131,3 +132,8 @@ def robust_redirect(request, redirect_url):
         response["HX-Redirect"] = redirect_url
         return response
     return redirect(redirect_url)
+
+
+def log_mem(label):
+    proc = psutil.Process(os.getpid())
+    print(f"[MEM] {label}: {proc.memory_info().rss/1024/1024:.1f} MiB")
