@@ -94,7 +94,7 @@ def submit_document(request):
                 file_content,
                 file.name,
                 str(output_file.id),
-                str(request.user.id),  # Pass user ID instead of access_key.id
+                str(request.user.id),
             )
             # Store the task ID
             output_file.celery_task_ids = [result.id]

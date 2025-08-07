@@ -2,6 +2,7 @@ import logging
 import os
 from io import BytesIO
 
+from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
@@ -20,25 +21,19 @@ logger = logging.getLogger(__name__)
 def process_ocr_document(
     file_content,
     file_name,
-    output_file_id=None,
-    user_id=None,
+    output_file_id,
+    user_id,
 ):
     if current_task:
         current_task.update_state(state="PROCESSING")
 
-    # Reconstruct the access key from user ID
-    access_key = None
-    if user_id:
-        try:
-            from django.contrib.auth import get_user_model
-
-            User = get_user_model()
-            user = User.objects.get(id=user_id)
-            access_key = AccessKey(user=user)
-        except User.DoesNotExist:
-            pass
-
     try:
+        # Reconstruct the access key from user ID
+        access_key = None
+        User = get_user_model()
+        user = User.objects.get(id=user_id)
+        access_key = AccessKey(user=user)
+
         file = InMemoryUploadedFile(
             file=BytesIO(file_content),
             field_name=None,
@@ -49,19 +44,6 @@ def process_ocr_document(
         )
 
         result = create_searchable_pdf(file)
-
-        if result.get("error"):
-            # Handle error case - update the OutputFile directly
-            if output_file_id and access_key:
-                try:
-                    output_file = OutputFile.objects.get(access_key, id=output_file_id)
-                    output_file.status = "FAILURE"
-                    output_file.error_message = result["message"]
-                    output_file.celery_task_ids = []
-                    output_file.save(access_key=access_key)
-                except Exception as e:
-                    pass
-            return result
 
         ocr_file = result["output"]
         text_content = result["all_text"]
@@ -81,19 +63,14 @@ def process_ocr_document(
             name=shorten_input_name(f"{output_name}.txt"),
         )
 
-        if output_file_id and access_key:
-            try:
-                output_file = OutputFile.objects.get(access_key, id=output_file_id)
+        output_file = OutputFile.objects.get(access_key, id=output_file_id)
 
-                # Clear the task IDs and update cost
-                output_file.usd_cost = cost
-                output_file.pdf_file = pdf_file
-                output_file.txt_file = txt_file
-                output_file.celery_task_ids = []
-                output_file.save(access_key=access_key)
-
-            except Exception as e:
-                raise e
+        # Clear the task IDs and update cost
+        output_file.usd_cost = cost
+        output_file.pdf_file = pdf_file
+        output_file.txt_file = txt_file
+        output_file.celery_task_ids = []
+        output_file.save(access_key=access_key)
 
         return {
             "error": False,
