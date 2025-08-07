@@ -154,18 +154,10 @@ def poll_tasks(request, user_request_id):
 
         if all(status == "SUCCESS" for status in output_file_statuses):
             # For single file processing, files should already be stored by the task
-            if not output_file.celery_task_ids:  # Task cleared its own task_ids
+            if output_file.pdf_file:
                 output_file.status = "SUCCESS"
             else:
-                output_file.refresh_from_db()
-                if output_file.pdf_file:
-                    output_file.status = "SUCCESS"
-                    # Clear task IDs if they weren't cleared by the task
-                    if output_file.celery_task_ids:
-                        output_file.celery_task_ids = []
-                        output_file.save(access_key=access_key)
-                else:
-                    output_file.status = "PROCESSING"
+                output_file.status = "PROCESSING"
 
         elif any(status == "FAILURE" for status in output_file_statuses):
             output_file.status = "FAILURE"
