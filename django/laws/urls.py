@@ -8,13 +8,14 @@ from .loading_views import (
     laws_loading_status,
     laws_recreate_indexes,
 )
-from .views import answer, get_answer_column, index, search, source
+from .views import answer, download_results, get_answer_column, index, search, source
 
 app_name = "laws"
 urlpatterns = [
     path("", index, name="index"),
     path("search/", search, name="search"),
     path("history/", include("laws.search_history.urls")),
+    path("download/<int:search_id>/", download_results, name="download_results"),
     path(
         "answer/get_column/<str:query_uuid>",
         get_answer_column,

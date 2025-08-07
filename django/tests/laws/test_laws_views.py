@@ -25,7 +25,9 @@ def test_laws_search_and_answer(client, all_apps_user):
     )
     response = client.post(reverse("laws:search"), {"query": query})
     assert response.status_code == 200
-    assert query in response.content.decode()
+    # Expect the query to be truncated to 60 characters if it is long
+    truncated = query[:59]
+    assert truncated in response.content.decode()
 
     assert "HX-Push-Url" in response
     result_url = response["HX-Push-Url"]

@@ -5576,7 +5576,7 @@
         "fr_auto": "Détecter automatiquement la langue"
     },
     "Get AI answer": {
-        "fr": "",
+        "fr": "Réponse de l’IA",
         "fr_auto": "Obtenez une réponse de l’IA"
     },
     "Search history cleared successfully. {} searches removed.": {
@@ -5606,5 +5606,21 @@
     "Results seem to capture all the relevant legislation.": {
         "fr": "",
         "fr_auto": "Les résultats semblent refléter toutes les lois pertinentes."
+    },
+    "Download results": {
+        "fr": "",
+        "fr_auto": "Télécharger les résultats"
+    },
+    "Query:": {
+        "fr": "",
+        "fr_auto": "Requête :"
+    },
+    "Results:": {
+        "fr": "",
+        "fr_auto": "Résultats :"
+    },
+    "law_search": {
+        "fr": "recherche_de_législation",
+        "fr_auto": "law_search"
     }
 }

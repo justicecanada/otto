@@ -1,3 +1,6 @@
+const detectLang = document.getElementById('detect_language');
+let detectLangChecked = detectLang ? detectLang.checked : false;
+
 function setActiveTab(e) {
   const tabs = document.querySelectorAll('.nav-link');
   tabs.forEach(tab => {
@@ -9,12 +12,16 @@ function setActiveTab(e) {
   if (e.id === 'basic-search-tab') {
     document.getElementById('advanced-search-outer').classList.add('d-none');
     document.getElementById('advanced-toggle').value = 'false';
+    // Restore detect_language toggle when switching (back) to basic mode
+    if (detectLang) detectLang.checked = detectLangChecked;
+    if (detectLang) detectLang.disabled = false;
   } else {
     document.getElementById('advanced-search-outer').classList.remove('d-none');
     document.getElementById('advanced-toggle').value = 'true';
     // Turn off detect_language toggle when switching to advanced mode
-    const detectLang = document.getElementById('detect_language');
+    detectLangChecked = detectLang ? detectLang.checked : false;
     if (detectLang) detectLang.checked = false;
+    if (detectLang) detectLang.disabled = true;
   }
 }
 
