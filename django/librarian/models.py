@@ -184,8 +184,8 @@ class Library(models.Model):
         session.commit()
         session.close()
         if recreate:
-            # This will create the vector store table
-            llm.get_retriever(self.uuid_hex).retrieve("?")
+            # This will create the vector store table - use get_index with skip_setup=False
+            llm.get_index(self.uuid_hex, skip_setup=False)
 
     @property
     def sorted_data_sources(self):
