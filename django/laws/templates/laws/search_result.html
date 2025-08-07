@@ -1,8 +1,8 @@
 {% load i18n %}
 
-<div class="row">
+<div class="row align-items-center mb-4">
   <div class="col-auto">
-    <h3 class="h5 mb-4 mx-3" style="font-style:italic;">{{ query }}</h3>
+    <h3 class="h5 mx-3 my-0" style="font-style:italic;">{{ query|truncatechars:100 }}</h3>
   </div>
   <div class="col-auto">{% include "laws/scores_sparkline.html" %}</div>
   <div class="col text-end" id="show-answer-button-container">

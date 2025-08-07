@@ -125,7 +125,7 @@ button#basic-search-button {
   field-sizing: content;
   margin-bottom: 24px;
   resize: vertical;
-  max-height: 200px;
+  max-height: 90px;
 }
 
 #basic-search-input::placeholder {
