@@ -20,9 +20,6 @@ logger = logging.getLogger(__name__)
 def process_ocr_document(
     file_content,
     file_name,
-    merged,
-    idx,
-    enlarge_size=None,
     output_file_id=None,
     user_id=None,
 ):
@@ -50,10 +47,8 @@ def process_ocr_document(
             size=len(file_content),
             charset=None,
         )
-        # ocr_file, txt_file, cost = create_searchable_pdf(
-        #     file, merged and idx > 0, merged
-        # )
-        result = create_searchable_pdf(file, merged and idx > 0, merged, enlarge_size)
+
+        result = create_searchable_pdf(file)
 
         if result.get("error"):
             # Handle error case - update the OutputFile directly
@@ -117,17 +112,6 @@ def process_ocr_document(
         logger.exception(
             f"Error processing file {file_name} in task {current_task.request.id}: {e}"
         )
-
-        # Update OutputFile with error if we have the ID
-        if output_file_id and access_key:
-            try:
-                output_file = OutputFile.objects.get(access_key, id=output_file_id)
-                output_file.status = "FAILURE"
-                output_file.error_message = f"Error ID: {error_id} - {str(e)}"
-                output_file.celery_task_ids = []
-                output_file.save(access_key=access_key)
-            except Exception:
-                pass
 
         # Fallback for other exceptions
         return {
