@@ -33,9 +33,9 @@
           {{ form.ai_answer.label_tag }}
         </div>
         <div class="form-check form-switch mb-0 pb-0">
-          {{ form.bilingual_results.errors }}
-          {{ form.bilingual_results }}
-          {{ form.bilingual_results.label_tag }}
+          {{ form.detect_language.errors }}
+          {{ form.detect_language }}
+          {{ form.detect_language.label_tag }}
         </div>
       </div>
     </div>
@@ -97,21 +97,6 @@
             {{ form.last_amended_date_end }}
           </div>
         </div>
-        {% comment %}
-        <div class="row mt-3">
-          <div class="col">
-            {{ form.section_last_amended_date_start.errors }}
-            {{ form.section_last_amended_date_start.label_tag }}
-            {{ form.section_last_amended_date_start }}
-          </div>
-
-          <div class="col">
-            {{ form.section_last_amended_date_end.errors }}
-            {{ form.section_last_amended_date_end.label_tag }}
-            {{ form.section_last_amended_date_end }}
-          </div>
-        </div>
-        {% endcomment %}
       </div>
     </div>
     <div class="col-lg-4 col-md-6">
@@ -121,43 +106,36 @@
           {{ form.top_k.label_tag }}
           {{ form.top_k }}
         </div>
-
+        <div class="col">
+          {{ form.language.errors }}
+          {{ form.language.label_tag }}
+          {{ form.language }}
+        </div>
+      </div>
+      <div class="row mt-3">
         <div class="col">
           {{ form.vector_ratio.errors }}
           {{ form.vector_ratio.label_tag }}
           {{ form.vector_ratio }}
         </div>
-      </div>
-      <div class="row mt-3">
+
         <div class="col">
           {{ form.model.errors }}
           {{ form.model.label_tag }}
           {{ form.model }}
         </div>
-
-        <div class="col">
-          {{ form.context_tokens.errors }}
-          {{ form.context_tokens.label_tag }}
-          {{ form.context_tokens }}
-        </div>
       </div>
     </div>
     <div class="col-lg-4 col-md-6">
-      {% comment %}
-      <div class="mt-3">
-        {{ form.trim_redundant.errors }}
-        {{ form.trim_redundant.label_tag }}
-        {{ form.trim_redundant }}
-      </div>
-      {% endcomment %}
+      <div class="row mt-3">
 
-      <div class="mt-3">
         {{ form.additional_instructions.errors }}
         {{ form.additional_instructions.label_tag }}
         {{ form.additional_instructions }}
       </div>
     </div>
   </div>
-  <input type="hidden" name="advanced" value="false" id="advanced-toggle">
+</div>
+<input type="hidden" name="advanced" value="false" id="advanced-toggle">
 
 </form>

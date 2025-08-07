@@ -27,6 +27,7 @@ from .loading_utils import (
     _download_repo,
     _get_all_eng_law_ids,
     _get_en_fr_law_file_paths,
+    drop_indexes,
     get_sha_256_hash,
     law_xml_to_nodes,
     recreate_indexes,
@@ -94,8 +95,21 @@ def update_laws(
         job_status.finished_at = None
         job_status.error_message = None
         job_status.celery_task_id = self.request.id
+        job_status.options = {
+            "small": small,
+            "full": full,
+            "const_only": const_only,
+            "reset": reset,
+            "force_download": force_download,
+            "mock_embedding": mock_embedding,
+            "force_update": force_update,
+            "eng_law_ids": eng_law_ids or [],
+            "skip_purge": skip_purge,
+        }
         job_status.save()
         current_task_id = self.request.id
+
+        drop_indexes()
 
         # Determine laws XML root directory, and download if necessary
         if small:
@@ -147,8 +161,6 @@ def update_laws(
                 job_status.save()
                 logger.info("Resetting Law model and indexes")
                 Law.reset()
-                # Recreate the table
-                OttoLLM().get_retriever("laws_lois__", hnsw=True).retrieve("?")
 
             elif not skip_purge:
                 job_status.status = "purging"
@@ -531,7 +543,7 @@ def finalize_law_loading_task(downloaded=False):
         # Rebuild vector-specific indexes (node_id index is managed by Django model)
         # Only recreate indexes if not running under pytest
         if not any("pytest" in arg for arg in sys.argv):
-            recreate_indexes(node_id=False, jsonb=True, hnsw=False)
+            recreate_indexes()
 
         # Update final status
         if downloaded:
@@ -543,3 +555,24 @@ def finalize_law_loading_task(downloaded=False):
     except Exception as exc:
         logger.error(f"Error in finalize_law_loading_task: {exc}")
         raise exc
+
+
+@shared_task
+def delete_old_law_searches():
+    """Delete LawSearch objects older than 30 days."""
+    from datetime import timedelta
+
+    from django.apps import apps
+
+    try:
+        LawSearch = apps.get_model("laws", "LawSearch")
+        cutoff_date = timezone.now() - timedelta(days=30)
+
+        deleted_count, _ = LawSearch.objects.filter(created_at__lt=cutoff_date).delete()
+
+        logger.info(f"Deleted {deleted_count} old law searches")
+        return f"Deleted {deleted_count} old law searches"
+
+    except Exception as e:
+        logger.exception(f"Error deleting old law searches: {e}")
+        raise

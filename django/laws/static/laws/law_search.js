@@ -1,3 +1,6 @@
+const detectLang = document.getElementById('detect_language');
+let detectLangChecked = detectLang ? detectLang.checked : false;
+
 function setActiveTab(e) {
   const tabs = document.querySelectorAll('.nav-link');
   tabs.forEach(tab => {
@@ -9,16 +12,25 @@ function setActiveTab(e) {
   if (e.id === 'basic-search-tab') {
     document.getElementById('advanced-search-outer').classList.add('d-none');
     document.getElementById('advanced-toggle').value = 'false';
+    // Restore detect_language toggle when switching (back) to basic mode
+    if (detectLang) detectLang.checked = detectLangChecked;
+    if (detectLang) detectLang.disabled = false;
   } else {
     document.getElementById('advanced-search-outer').classList.remove('d-none');
     document.getElementById('advanced-toggle').value = 'true';
+    // Turn off detect_language toggle when switching to advanced mode
+    detectLangChecked = detectLang ? detectLang.checked : false;
+    if (detectLang) detectLang.checked = false;
+    if (detectLang) detectLang.disabled = true;
   }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  setTimeout(() => {
-    document.getElementById('basic-search-input').focus();
-  }, 100);
+  if (!history_replay) {
+    setTimeout(() => {
+      document.getElementById('basic-search-input').focus();
+    }, 100);
+  }
 
   const textarea = document.getElementById("basic-search-input");
   const clearButton = document.getElementById("clear-button");
@@ -44,9 +56,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       searchButton.click();
-      textarea.value = "";
-      clearButton.style.display = "none";
-      searchButton.disabled = true;
+      textarea.blur();
+      // textarea.value = "";
+      // clearButton.style.display = "none";
+      // searchButton.disabled = true;
     }
   });
 
@@ -111,7 +124,7 @@ function findSimilar(el) {
   // Disable AI answer
   document.getElementById('ai_answer').checked = false;
   // Enable bilingual results
-  document.getElementById('bilingual_results').checked = true;
+  document.getElementById('detect_language').checked = false;
   // Submit the form
   document.getElementById('basic-search-button').click();
 }
@@ -165,6 +178,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const answer = document.querySelector("#answer");
   if (answer) {
     render_markdown(answer);
+  }
+});
+
+document.addEventListener("htmx:afterSwap", (event) => {
+  if (!(event.target.id === "search-result-hx-container")) return;
+  const answer = document.querySelector("#answer");
+  if (answer) {
+    render_markdown(answer);
+  }
+  // Re-enable the #basic-search-button and #clear-button via triggering the input event
+  const textarea = document.getElementById("basic-search-input");
+  if (textarea) {
+    textarea.dispatchEvent(new Event('input'));
+  }
+  const results = document.getElementById("result-container");
+  if (results) {
+    results.focus();
   }
 });
 
