@@ -186,13 +186,13 @@ def answer(request, query_uuid):
                 total_tokens += source_tokens
             else:
                 continue
-        logger.debug("\n\n\nSources passed to LLM:")
+        logger.info("\n\n\nSources passed to LLM:")
         for source in trimmed_sources:
-            logger.debug(source.node.metadata["display_metadata"])
-            logger.debug(f'Section ID: {source.node.metadata["section_id"]}')
-            logger.debug(f'Parent ID: {source.node.metadata["parent_id"]}')
+            logger.info(source.node.metadata["display_metadata"])
+            logger.info(f'Section ID: {source.node.metadata["section_id"]}')
+            logger.info(f'Parent ID: {source.node.metadata["parent_id"]}')
         sources = trimmed_sources
-        logger.debug("\n\n\n")
+        logger.info("\n\n\n")
 
         response_synthesizer = llm.get_response_synthesizer(CHAT_TEXT_QA_PROMPT)
         cache.delete(f"sources_{query}")
@@ -569,21 +569,54 @@ def search(request, law_search=None):
 @login_required
 def download_results(request, search_id):
     """Return a text file attachment containing the query and raw markdown of results."""
+    logger.info("download_results called for search_id=%s", search_id)
+    from .search_history.views import view_search
+
     law_search = get_object_or_404(LawSearch, id=search_id, user=request.user)
     query_uuid = law_search.query_uuid
+    logger.info("Initial query_uuid from LawSearch: %s", query_uuid)
     found_cached_sources = True
     if not query_uuid:
         found_cached_sources = False
     query_info = cache.get(query_uuid)
+    logger.info("cache.get(%s) returned: %r", query_uuid, query_info)
     if not query_info or "sources" not in query_info:
         found_cached_sources = False
     if not found_cached_sources:
-        search(request, law_search=law_search)
+        logger.info("Cache miss, rerunning search to repopulate cache")
+        # Programmatically re-run the saved search to repopulate cache
+        from django.http import QueryDict
+
+        from .views import search as laws_search
+
+        # Build POST data from stored form args
+        post_data = QueryDict(mutable=True)
+        for key, value in law_search.get_form_data().items():
+            if isinstance(value, list):
+                for v in value:
+                    post_data.appendlist(key, v)
+            else:
+                post_data[key] = value
+
+        # Simulate a POST request for replay
+        original_method = request.method
+        original_POST = request.POST
+        request.method = "POST"
+        request.POST = post_data
+        request._from_history = True
+        # Call the main search view
+        laws_search(request, law_search)
+        # Restore original request
+        request.method = original_method
+        request.POST = original_POST
+        # Refresh to get new uuid
         law_search.refresh_from_db()
         query_uuid = law_search.query_uuid
+        logger.info("After replay search, new query_uuid: %s", query_uuid)
         if not query_uuid:
             return HttpResponse("No stored results for this search.", status=400)
         query_info = cache.get(query_uuid)
+        logger.info("cache.get(%s) after replay returned: %r", query_uuid, query_info)
         if not query_info or "sources" not in query_info:
             return HttpResponse(
                 "Results not available. Please re-run the search.", status=404
