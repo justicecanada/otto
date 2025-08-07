@@ -76,7 +76,6 @@ def process_ocr_document(
             "error": False,
             "cost": cost,
             "input_name": input_name,
-            "completed": True,
         }
 
     except Exception as e:
