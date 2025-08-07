@@ -45,6 +45,10 @@
           <span class="badge {% if job_status.status == 'finished' %}bg-success{% elif job_status.status == 'error' %}bg-danger{% elif job_status.status == 'cancelled' %}bg-secondary{% else %}bg-primary{% endif %}">
             {{ job_status.status|title }}
           </span>
+          /
+          <strong>{% trans "Time elapsed" %}:</strong> {{ job_status.elapsed }}
+          /
+          <strong>{% trans "Cost" %}:</strong> {{ total_cost }}
         </p>
         <p>
           <strong>{% trans "Start time" %}:</strong> {{ job_status.started_at }}
@@ -52,10 +56,7 @@
           <strong>{% trans "End time" %}:</strong> {{ job_status.finished_at }}
         </p>
         <p>
-          <strong>{% trans "Time elapsed" %}:</strong> {{ job_status.elapsed }}
-        </p>
-        <p>
-          <strong>{% trans "Total cost" %}:</strong> {{ total_cost }}
+          <strong>{% trans "Options" %}</strong> {{ job_status.options_str }}
         </p>
         {% if job_status.error_message %}
           <p>

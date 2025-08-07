@@ -1,0 +1,47 @@
+{% load i18n %}
+{% if user.is_authenticated and user.law_searches.exists %}
+  <div class="mt-4 mx-3" id="search-history">
+    <div class="px-3">
+      <div class="row mt-1 mb-2">
+        <div class="col">
+          <h5>{% trans "Recent searches" %}</h5>
+        </div>
+        <div class="col-auto">
+          <button hx-post="{% url 'laws:clear_history' %}"
+                  hx-target="#search-history"
+                  hx-swap="outerHTML"
+                  class="btn btn-sm btn-outline-secondary">{% trans "Clear search history" %}</button>
+        </div>
+      </div>
+    </div>
+    <ul class="list-group">
+      {% for search in user.law_searches.all %}
+        <li class="list-group-item search-history-item py-0 d-flex justify-content-between align-items-center">
+          <a href="{% url 'laws:view_search' search.id %}"
+             class="text-decoration-none flex-grow-1 text-body">
+            <div class="d-flex justify-content-between align-items-start py-2">
+              <span>
+                <span class="me-1">{{ search.query|truncatechars:100 }}</span>
+                {% if search.is_advanced_search %}
+                  <span class="badge bg-secondary-subtle text-secondary ms-1">{% trans "Advanced search" %}</span>
+                {% endif %}
+                {% if search.ai_answer %}
+                  <span class="badge bg-success-subtle text-secondary ms-1">{% trans "AI answer" %}</span>
+                {% endif %}
+              </span>
+              <small class="text-muted ms-2 flex-shrink-0">{{ search.created_at|timesince }} {% trans "ago" %}</small>
+            </div>
+          </a>
+          <button type="button"
+                  class="btn btn-link p-0 ms-2 hover-change-content"
+                  hx-delete="{% url 'laws:delete_search' search.id %}"
+                  hx-target="closest .search-history-item"
+                  hx-swap="outerHTML">
+            <i class="bi bi-x text-muted non-hover"></i>
+            <i class="bi bi-x text-danger only-hover"></i>
+          </button>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}

@@ -54,7 +54,7 @@
         </div>
         <div class="card-body">
           <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-9">
               <!-- Start Job Form -->
               <form id="start-form"
                     hx-post="{% url 'laws:loading_start' %}"
@@ -112,33 +112,46 @@
                 </div>
               </form>
             </div>
-            <div class="col-md-4 d-flex align-items-end">
+            <div class="col-md-3 d-flex align-items-end">
               <div class="d-grid gap-2 w-100">
                 <button type="submit"
                         form="start-form"
-                        class="btn btn-success btn-lg"
+                        class="btn btn-success d-flex justify-content-between align-items-center"
                         id="start-btn"
                         hx-confirm="{% trans 'This will delete all laws not in the selected set, and could temporarily result in some laws being unavailable while loading. Are you sure you want to start the loading job?' %}"
                         {% if job_status.status not in 'finished,cancelled,error' %}disabled{% endif %}>
+                  <span>{% trans "Start Job" %}</span>
                   <span id="start-spinner"
-                        class="spinner-border spinner-border-sm d-none"
+                        class="spinner-border spinner-border-sm htmx-indicator"
                         role="status"
                         aria-hidden="true"></span>
-                  {% trans "Start Job" %}
                 </button>
                 <button type="button"
-                        class="btn btn-danger btn-lg"
+                        class="btn btn-danger d-flex justify-content-between align-items-center"
                         id="cancel-btn"
                         hx-post="{% url 'laws:loading_cancel' %}"
                         hx-confirm="{% trans 'Are you sure you want to cancel the running job?' %}"
                         hx-swap="none"
                         hx-indicator="#cancel-spinner"
                         {% if job_status.status in 'finished,cancelled,error' %}disabled{% endif %}>
+                  <span>{% trans "Cancel Job" %}</span>
                   <span id="cancel-spinner"
-                        class="spinner-border spinner-border-sm d-none"
+                        class="spinner-border spinner-border-sm htmx-indicator"
                         role="status"
                         aria-hidden="true"></span>
-                  {% trans "Cancel Job" %}
+                </button>
+                <button type="button"
+                        class="btn btn-outline-secondary d-flex justify-content-between align-items-center"
+                        id="recreate-indexes-btn"
+                        hx-post="{% url 'laws:recreate_indexes' %}"
+                        hx-confirm="{% trans 'Are you sure you want to recreate the database indexes? This may temporarily impact performance.' %}"
+                        hx-swap="none"
+                        hx-indicator="#recreate-indexes-spinner">
+                  <span>{% trans "Recreate Indexes" %}</span>
+                  <span id="recreate-indexes-spinner"
+                        class="spinner-border spinner-border-sm htmx-indicator"
+                        role="status"
+                        aria-hidden="true"></span>
                 </button>
               </div>
             </div>
