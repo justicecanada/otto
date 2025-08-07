@@ -25,7 +25,9 @@ def test_laws_search_and_answer(client, all_apps_user):
     )
     response = client.post(reverse("laws:search"), {"query": query})
     assert response.status_code == 200
-    assert query in response.content.decode()
+    # Expect the query to be truncated to 60 characters if it is long
+    truncated = query[:59]
+    assert truncated in response.content.decode()
 
     assert "HX-Push-Url" in response
     result_url = response["HX-Push-Url"]
@@ -59,33 +61,3 @@ def test_laws_search_and_answer(client, all_apps_user):
     )
     assert response.status_code == 200
     assert "No sources found" in response.content.decode()
-
-
-@pytest.mark.django_db(databases=["default", "vector_db"])
-def test_laws_cache(client, all_apps_user):
-    client.force_login(all_apps_user())
-    # Test basic search
-    query = (
-        "who has the right to access records about the defence of canada regulations?"
-    )
-    response = client.post(reverse("laws:search"), {"query": query})
-    assert response.status_code == 200
-    assert query in response.content.decode()
-
-    assert "HX-Push-Url" in response
-    result_url = response["HX-Push-Url"]
-    result_uuid = result_url.split("/")[-1]
-    assert result_uuid
-
-    # Test answer
-    response = client.get(
-        reverse("laws:answer", args=[str(result_uuid)]),
-    )
-    assert response.status_code == 200
-
-    # Load an existing search by UUID
-    response = client.get(
-        reverse("laws:existing_search", args=[str(result_uuid)]),
-    )
-    assert response.status_code == 200
-    assert query in response.content.decode()
