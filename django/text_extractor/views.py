@@ -75,7 +75,6 @@ def submit_document(request):
                 toc_pdf_bytes.getbuffer().nbytes,
                 None,
             )
-            files.insert(0, toc_file)
             files_data = [("toc.pdf", toc_pdf_bytes.getvalue(), "application/pdf")]
             file_names_to_merge = []
         for idx, file in enumerate(files):
