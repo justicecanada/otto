@@ -13,6 +13,8 @@ from structlog import get_logger
 from chat.htmx_stream import wrap_llm_response
 from otto.utils.common import display_cad_cost
 
+from .search_history.models import LawSearch
+
 logger = get_logger(__name__)
 
 
@@ -120,7 +122,13 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
         query_info = cache.get(query_uuid)
         query_info["answer"] = f"<div>{markdown_div}</div>{cost_div}"
         cache.set(query_uuid, query_info, timeout=300)
-
+        if query_info.get("law_search_id"):
+            # Persist the AI answer in the LawSearch model
+            law_search = await sync_to_async(LawSearch.objects.get)(
+                id=query_info.get("law_search_id")
+            )
+            law_search.ai_answer = query_info["answer"]
+            await sync_to_async(law_search.save)(update_fields=["ai_answer"])
     yield (
         f"data: <div hx-swap-oob='true' id='answer-sse'>{markdown_div}</div><div id='answer-cost' hx-swap-oob='true'>{cost_div}</div>\n\n"
     )

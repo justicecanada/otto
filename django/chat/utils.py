@@ -209,8 +209,8 @@ def title_chat(chat_id, llm, force_title=True):
     if not force_title and (
         chat.title != ""
         or (
-            len(chat_messages) < 3
-            and len(" ".join([m.text for m in chat_messages])) < 300
+            len(chat_messages) < 5
+            and len(" ".join([m.text for m in chat_messages])) < 1000
         )
     ):
         return chat.title

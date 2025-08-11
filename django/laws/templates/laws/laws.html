@@ -58,15 +58,32 @@
         </div>
       </div>
     </div>
-    <div id="spinner" class="spinner container text-primary px-4 pt-3">
+    <div id="spinner"
+         class="spinner htmx-indicator container text-primary px-4 pt-3">
       <span class="spinner-border" aria-hidden="true"></span>
       <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
     </div>
     <div class="container py-3 px-0" id="result-container" aria-live="polite">
-      {% if sources %}
+      {% if history_replay %}
+        <div id="search-result-hx-container"
+             hx-post="{% url 'laws:view_search' law_search.id %}"
+             hx-trigger="load"
+             hx-indicator="#spinner"
+             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'></div>
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            // Re-enable search button on history replay pages
+            const searchButton = document.querySelector('#search-form button[type="submit"]');
+            if (searchButton && document.getElementById('history-replay')) {
+              searchButton.disabled = false;
+            }
+          });
+        </script>
+      {% elif sources or answer %}
         {% include "laws/search_result.html" %}
       {% else %}
         {% include "laws/laws_warning.html" %}
+        {% include "laws/_search_history.html" %}
         {% if last_updated %}
           <p class="m-4 text-secondary">
             {% trans "Last refreshed from the" %}
@@ -101,7 +118,10 @@
 
   <script src="{% static 'laws/law_anchor_links.js' %}"></script>
   <script src="{% static 'laws/law_search.js' %}"></script>
+  {% if advanced_search %}<script>setActiveTab(document.getElementById("advanced-search-tab"));</script>{% endif %}
+  <script>const history_replay = {% if history_replay %}true{% else %}false{% endif %};</script>
 
   <link rel="stylesheet" href="{% static 'chat/css/highlightjs.css' %}">
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
+
 {% endblock %}

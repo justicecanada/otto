@@ -3,7 +3,7 @@ pytest-django==4.8.0
 coverage==7.6.1
 python-gettext==5.0
 pytest-asyncio==0.23.8
-django-debug-toolbar==4.4.6
+django-debug-toolbar==6.0.0
 djlint==1.36.4
 watchdog==6.0.0
 rich==14.0.0

@@ -5415,6 +5415,18 @@
         "fr": "",
         "fr_auto": "Afficher les sorties de l’étape"
     },
+    "Select Output Size: ": {
+        "fr": "",
+        "fr_auto": "Sélectionnez la taille de la sortie : "
+    },
+    "Small": {
+        "fr": "",
+        "fr_auto": "Petit"
+    },
+    "Enlarged": {
+        "fr": "",
+        "fr_auto": "Agrandi"
+    },
     "Use full documents ($)": {
         "fr": "",
         "fr_auto": "Utiliser les documents complets ($)"
@@ -5606,5 +5618,93 @@
     "Please enter a URL from parlvu.parl.gc.ca.": {
         "fr": "",
         "fr_auto": "Veuillez entrer une URL de parlvu.parl.gc.ca."
+    },
+    "Enlarge images (file size x 3)": {
+        "fr": "",
+        "fr_auto": "Agrandir les images (taille du fichier x 3)"
+    },
+    "Enlarge images (Warning: output file will take up 3x more space)": {
+        "fr": "",
+        "fr_auto": "Agrandir les images (Attention : le fichier de sortie prendra 3 fois plus d’espace)"
+    },
+    "Vector DB indexes reset successfully.": {
+        "fr": "",
+        "fr_auto": "Les index vectoriels de la base de données se réinitialisent avec succès."
+    },
+    "Error recreating indexes: %s": {
+        "fr": "",
+        "fr_auto": "Erreur de recréation des index :%s"
+    },
+    "Are you sure you want to recreate the database indexes? This may temporarily impact performance.": {
+        "fr": "",
+        "fr_auto": "Êtes-vous sûr de vouloir recréer les index de la base de données? Cela peut avoir une incidence temporaire sur le rendement."
+    },
+    "Recreate Indexes": {
+        "fr": "",
+        "fr_auto": "Recréer des index"
+    },
+    "English only": {
+        "fr": "",
+        "fr_auto": "Anglais seulement"
+    },
+    "French only": {
+        "fr": "",
+        "fr_auto": "Français seulement"
+    },
+    "Select language": {
+        "fr": "",
+        "fr_auto": "Sélectionnez la langue"
+    },
+    "Detect language automatically": {
+        "fr": "",
+        "fr_auto": "Détecter automatiquement la langue"
+    },
+    "Get AI answer": {
+        "fr": "Réponse de l’IA",
+        "fr_auto": "Obtenez une réponse de l’IA"
+    },
+    "Search history cleared successfully. {} searches removed.": {
+        "fr": "",
+        "fr_auto": "L’historique de recherche a été effacé avec succès. {} recherches supprimées."
+    },
+    "Recent Searches": {
+        "fr": "",
+        "fr_auto": "Recherches récentes"
+    },
+    "Advanced": {
+        "fr": "",
+        "fr_auto": "Avancé"
+    },
+    "Clear search history": {
+        "fr": "",
+        "fr_auto": "Effacer l’historique de recherche"
+    },
+    "Recent searches": {
+        "fr": "",
+        "fr_auto": "Recherches récentes"
+    },
+    "Results may be relevant past your current limit—consider increasing number of sources in the 'Advanced search' tab.": {
+        "fr": "",
+        "fr_auto": "Les résultats peuvent être pertinents au-delà de votre limite actuelle – envisagez d’augmenter le nombre de sources dans l’onglet « Recherche avancée »."
+    },
+    "Results seem to capture all the relevant legislation.": {
+        "fr": "",
+        "fr_auto": "Les résultats semblent refléter toutes les lois pertinentes."
+    },
+    "Download results": {
+        "fr": "",
+        "fr_auto": "Télécharger les résultats"
+    },
+    "Query:": {
+        "fr": "",
+        "fr_auto": "Requête :"
+    },
+    "Results:": {
+        "fr": "",
+        "fr_auto": "Résultats :"
+    },
+    "law_search": {
+        "fr": "recherche_de_législation",
+        "fr_auto": "law_search"
     }
 }
