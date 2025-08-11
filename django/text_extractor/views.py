@@ -111,6 +111,7 @@ def submit_document(request):
                 output_files.append(output_file)
 
         if merged:
+            print("merging files")
             formatted_merged_name = format_merged_file_name(
                 file_names_to_merge, max_length=40
             )
