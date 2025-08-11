@@ -2,7 +2,7 @@
 {% load filters %}
 <form hx-post="{% url 'transcriber:loading_url' %}"
       hx-encoding="multipart/form-data"
-      hx-target="#transcriptContainer"
+      hx-target="#transcript"
       hx-indicator="#spinner"
       hx-swap="innerHTML">
 

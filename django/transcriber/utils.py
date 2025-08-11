@@ -499,7 +499,9 @@ def get_video_from_parlvu(url, output_path="temp"):
             for x in available_streams
             if x["Lang"] == "fl" and not (x["AudioOnly"] or x["IsHd"])
         ),
-        None,
+        next(
+            (x for x in available_streams if x["Lang"] == "fl" and x["AudioOnly"]), None
+        ),
     )
     video_url = floor_video_sd["Url"]
 
