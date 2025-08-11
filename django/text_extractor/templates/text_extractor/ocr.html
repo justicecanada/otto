@@ -40,6 +40,26 @@
                    hx-select="#submit"
                    aria-labelledby="upload-label"
                    multiple>
+            <div class="form-check d-none mt-3" id="merge_documents">
+              <input class="form-check-input border-secondary"
+                     type="checkbox"
+                     name="merge_docs_checkbox"
+                     id="merge_docs_checkbox">
+              <label class="form-check-label" for="merge_docs_checkbox">{% trans "Merge multiple files into one document" %}</label>
+
+              <div class="mt-2 ms-4 d-none" id="output-size-options">
+                <div class="form-check">
+                  <input class="form-check-input"
+                         type="checkbox"
+                         name="enlarge_size"
+                         id="output-size-enlarged"
+                         value="enlarged">
+                  <label class="form-check-label" for="output-size-enlarged">
+                    {% trans "Enlarge images (Warning: output file will take up 3x more space)" %}
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="row mb-1">
             <div class="col-auto">
@@ -126,25 +146,25 @@ document.getElementById('file-upload-field').addEventListener('change', function
   //document.getElementById('merge_docs_checkbox').checked = false;
   
   // if more than one documents are uploaded show the merge documents checkbox
-  //if (this.files.length > 1) {
-  //  document.getElementById('merge_documents').classList.remove('d-none');
-  //} else {
-  //  document.getElementById('merge_documents').classList.add('d-none');
-  //}
+  if (this.files.length > 1) {
+    document.getElementById('merge_documents').classList.remove('d-none');
+  } else {
+    document.getElementById('merge_documents').classList.add('d-none');
+  }
 
   // make sure the error button is removed
   document.getElementById('error_message').classList.add('d-none');
 });
-//document.getElementById('merge_docs_checkbox').addEventListener('change', function() {
-//  const outputSizeOptions = document.getElementById('output-size-options');
-//  if (this.checked) {
-//    outputSizeOptions.classList.remove('d-none');
-//  } else {
-//    outputSizeOptions.classList.add('d-none');
-//    // Optionally, reset to "small" when hiding
-//    document.getElementById('output-size-small').checked = true;
-//  }
-//});
+document.getElementById('merge_docs_checkbox').addEventListener('change', function() {
+  const outputSizeOptions = document.getElementById('output-size-options');
+  if (this.checked) {
+    outputSizeOptions.classList.remove('d-none');
+  } else {
+    outputSizeOptions.classList.add('d-none');
+    // Optionally, reset to "small" when hiding
+    document.getElementById('output-size-small').checked = true;
+  }
+});
 
 {% if not show_output %}
   setTimeout(() => {

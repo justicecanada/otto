@@ -428,7 +428,7 @@ def create_searchable_pdf(
     except Exception as e:
         error_id = str(uuid.uuid4())[:7]
         logger.exception(
-            _("Error creating PDF overlay after OCR with ErrorID- {error_id}: {e}")
+            _(f"Error creating PDF overlay after OCR with ErrorID- {error_id}: {e}")
         )
         return {
             "error": True,

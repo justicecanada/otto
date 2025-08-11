@@ -14,7 +14,8 @@ from otto.utils.common import display_cad_cost, file_size_to_string
 from otto.utils.decorators import app_access_required, budget_required
 from text_extractor.models import OutputFile, UserRequest
 
-from .tasks import process_ocr_document
+from .tasks import process_document_merge, process_ocr_document
+from .utils import calculate_start_pages, create_toc_pdf, format_merged_file_name
 
 app_name = "text_extractor"
 logger = get_logger(__name__)
@@ -45,61 +46,96 @@ def submit_document(request):
     access_key = AccessKey(user=request.user)
 
     # Paused merging/enlarge features for now
-    # merged = request.POST.get("merge_docs_checkbox", False) == "on"
-    # enlarge_size = request.POST.get("enlarge_size", None)  # default to 'small'
+    merged = request.POST.get("merge_docs_checkbox", False) == "on"
+    enlarge_size = request.POST.get("enlarge_size", None)  # default to 'small'
 
     UserRequest.grant_create_to(access_key)
     OutputFile.grant_create_to(access_key)
     user_request = UserRequest.objects.create(
-        access_key=access_key, name=request.user.username[:255]
+        access_key=access_key, merged=merged, name=request.user.username[:255]
     )
     output_files = []
     task_ids = []
 
     try:
-        # if merged:
-        #     # Create the OutputFiles for the merged document only (not individual docs)
-        #     file_names_to_merge = [file.name for file in files]
-        #     formatted_merged_name = format_merged_file_name(
-        #         file_names_to_merge, max_length=40
-        #     )
-        #     # Add Table of Contents as first file
-        #     start_pages = calculate_start_pages(files)
-        #     toc_pdf_bytes = create_toc_pdf(files, start_pages)
-        #     toc_file = InMemoryUploadedFile(
-        #         toc_pdf_bytes,
-        #         "file",
-        #         "toc.pdf",
-        #         "application/pdf",
-        #         toc_pdf_bytes.getbuffer().nbytes,
-        #         None,
-        #     )
-        #     files.insert(0, toc_file)
-
+        if merged:
+            # Create the OutputFiles for the merged document only (not individual docs)
+            file_names_to_merge = [file.name for file in files]
+            formatted_merged_name = format_merged_file_name(
+                file_names_to_merge, max_length=40
+            )
+            # Add Table of Contents as first file
+            start_pages = calculate_start_pages(files)
+            toc_pdf_bytes = create_toc_pdf(files, start_pages)
+            toc_file = InMemoryUploadedFile(
+                toc_pdf_bytes,
+                "file",
+                "toc.pdf",
+                "application/pdf",
+                toc_pdf_bytes.getbuffer().nbytes,
+                None,
+            )
+            files.insert(0, toc_file)
+            files_data = [("toc.pdf", toc_pdf_bytes.getvalue(), "application/pdf")]
+            file_names_to_merge = []
         for idx, file in enumerate(files):
             file.seek(0)
             file_content = file.read()
             file.seek(0)
 
-            output_file = OutputFile.objects.create(
+            if merged:
+
+                files_data.append(
+                    (file.name, file_content, file.content_type or "application/pdf")
+                )
+                file_names_to_merge.append(file.name)
+            else:
+                output_file = OutputFile.objects.create(
+                    access_key=access_key,
+                    pdf_file=None,
+                    txt_file=None,
+                    file_name=f"{file.name.rsplit('.', 1)[0]}_OCR",
+                    user_request=user_request,
+                    celery_task_ids=[],
+                )
+
+                result = process_ocr_document.delay(
+                    file_content,
+                    file.name,
+                    str(output_file.id),
+                    str(request.user.id),
+                )
+                # Store the task ID
+                output_file.celery_task_ids = [result.id]
+                output_file.save(access_key=access_key)
+                output_files.append(output_file)
+
+        if merged:
+            formatted_merged_name = format_merged_file_name(
+                file_names_to_merge, max_length=40
+            )
+
+            merged_output_file = OutputFile.objects.create(
                 access_key=access_key,
                 pdf_file=None,
                 txt_file=None,
-                file_name=f"{file.name.rsplit('.', 1)[0]}_OCR",
+                file_name=formatted_merged_name + ".pdf",
                 user_request=user_request,
                 celery_task_ids=[],
             )
+            output_files = [merged_output_file]
 
-            result = process_ocr_document.delay(
-                file_content,
-                file.name,
-                str(output_file.id),
+            # Start the merged OCR task
+            result = process_document_merge.delay(
+                files_data,
+                formatted_merged_name,
+                str(merged_output_file.id),
                 str(request.user.id),
+                enlarge_size,
             )
             # Store the task ID
-            output_file.celery_task_ids = [result.id]
-            output_file.save(access_key=access_key)
-            output_files.append(output_file)
+            merged_output_file.celery_task_ids = [result.id]
+            merged_output_file.save(access_key=access_key)
 
         for output_file in output_files:
             output_file.status = "PENDING"
@@ -148,11 +184,39 @@ def poll_tasks(request, user_request_id):
     for output_file in output_files:
         output_file_statuses = []
         for task_id in output_file.celery_task_ids:
-            result = process_ocr_document.AsyncResult(task_id)
-            output_file_statuses.append(result.status)
+            if user_request.merged:
+                result = process_document_merge.AsyncResult(task_id)
+                output_file_statuses.append(result.status)
+            else:
+                result = process_ocr_document.AsyncResult(task_id)
+                output_file_statuses.append(result.status)
 
         if all(status == "SUCCESS" for status in output_file_statuses):
-            if output_file.pdf_file:
+            if user_request.merged:
+                # Read the merged PDF file content as bytes
+                with output_file.pdf_file.open("rb") as pdf_file:
+                    merged_pdf_content = pdf_file.read()
+
+                # detach pdf file from output_file
+                output_file.pdf_file = None
+
+                # send the merged doc to OCR
+                result = process_ocr_document.delay(
+                    merged_pdf_content,
+                    output_file.file_name,
+                    str(output_file.id),
+                    str(request.user.id),
+                )
+                # Store the task ID
+                output_file.celery_task_ids = [result.id]
+                output_file.status = "PROCESSING"
+                output_file.save(access_key=access_key)
+
+                # set user request merge to false
+                user_request.merged = False
+                user_request.save(access_key=access_key)
+
+            elif output_file.pdf_file:
                 output_file.status = "SUCCESS"
             else:
                 output_file.status = "PROCESSING"
@@ -168,7 +232,7 @@ def poll_tasks(request, user_request_id):
                 output_file.status = "PENDING"
 
     for output_file in output_files:
-        if output_file.pdf_file:
+        if output_file.pdf_file and not user_request.merged:
             output_file.cost = display_cad_cost(output_file.usd_cost)
             if output_file.txt_file:
                 output_file.txt_size = file_size_to_string(output_file.txt_file.size)
